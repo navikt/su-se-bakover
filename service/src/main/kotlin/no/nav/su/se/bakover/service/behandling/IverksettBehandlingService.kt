@@ -128,7 +128,7 @@ class IverksettBehandlingService(
                     return@map KunneIkkeOppretteJournalpostForIverksetting(
                         sakId = behandling.sakId,
                         behandlingId = behandling.id,
-                        grunn = "Kunne ikke hente attestants navn "
+                        grunn = "Kunne ikke hente attestants navn"
                     ).left()
                 }
             val person = personService.hentPerson(behandling.fnr).getOrElse {

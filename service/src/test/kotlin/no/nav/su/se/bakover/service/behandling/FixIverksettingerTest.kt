@@ -4,9 +4,11 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.argumentCaptor
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
+import com.nhaarman.mockitokotlin2.times
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
@@ -162,6 +164,57 @@ internal class FixIverksettingerTest {
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenJournalposteringer()
             verify(oppslagMock).hentBrukerinformasjonForNavIdent(any())
 
+            verify(behandlingRepoMock).hentIverksatteBehandlingerUtenBrevbestillinger()
+        }
+        verifyNoMoreInteractions(behandlingRepoMock, personServiceMock, oppslagMock)
+    }
+
+    @Test
+    fun `Kunne ikke opprette journalpost hvis vi ikke finner attestant`() {
+        val behandlingRepoMock = mock<BehandlingRepo> {
+            on { hentIverksatteBehandlingerUtenJournalposteringer() } doReturn listOf(innvilgetBehandlingUtenJournalpost)
+            on { hentIverksatteBehandlingerUtenBrevbestillinger() } doReturn emptyList()
+        }
+
+        val personServiceMock = mock<PersonService> {
+            on { hentPerson(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
+        }
+
+        val oppslagMock: MicrosoftGraphApiOppslag = mock {
+            on { hentBrukerinformasjonForNavIdent(any()) }.doReturn(
+                BehandlingTestUtils.microsoftGraphMock.response.right(),
+                FantIkkeBrukerForNavIdent.left()
+            )
+        }
+
+        val actual = createService(
+            behandlingRepo = behandlingRepoMock,
+            personService = personServiceMock,
+            microsoftGraphApiOppslag = oppslagMock,
+        ).opprettManglendeJournalpostOgBrevdistribusjon()
+
+        actual shouldBe OpprettManglendeJournalpostOgBrevdistribusjonResultat(
+            journalpostresultat = listOf(
+                KunneIkkeOppretteJournalpostForIverksetting(
+                    sakId = sakIdJournalpost,
+                    behandlingId = behandlingIdJournalpost,
+                    grunn = "Kunne ikke hente attestants navn"
+                ).left()
+            ),
+            brevbestillingsresultat = emptyList()
+        )
+
+        inOrder(
+            behandlingRepoMock,
+            personServiceMock,
+            oppslagMock
+        ) {
+            verify(behandlingRepoMock).hentIverksatteBehandlingerUtenJournalposteringer()
+            argumentCaptor<NavIdentBruker>().apply {
+                verify(oppslagMock, times(2)).hentBrukerinformasjonForNavIdent(capture())
+                firstValue shouldBe NavIdentBruker.Saksbehandler("saksbehandler")
+                secondValue shouldBe NavIdentBruker.Attestant("attestant")
+            }
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenBrevbestillinger()
         }
         verifyNoMoreInteractions(behandlingRepoMock, personServiceMock, oppslagMock)
