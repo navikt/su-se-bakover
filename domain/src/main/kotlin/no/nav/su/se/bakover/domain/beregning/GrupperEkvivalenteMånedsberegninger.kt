@@ -10,13 +10,18 @@ data class GrupperEkvivalenteMånedsberegninger(
         månedsberegninger.sorterMånedsberegninger().forEach { månedsberegning ->
             when {
                 this.isEmpty() -> this.add(mutableListOf(månedsberegning))
-                this.last().last() likehetUtenDato månedsberegning -> this.last().add(månedsberegning)
+                this.last().sisteMånedsberegningErLikOgTilstøtende(månedsberegning) -> this.last().add(månedsberegning)
                 else -> this.add(mutableListOf(månedsberegning))
             }
         }
     }.map {
         GrupperteMånedsberegninger(it)
     }
+
+    private fun List<Månedsberegning>.sisteMånedsberegningErLikOgTilstøtende(månedsberegning: Månedsberegning): Boolean =
+        this.last().let { sisteMånedsberegning ->
+            sisteMånedsberegning likehetUtenDato månedsberegning && sisteMånedsberegning.getPeriode() tilstøter månedsberegning.getPeriode()
+        }
 
     private infix fun Månedsberegning.likehetUtenDato(other: Månedsberegning): Boolean =
         this.getSumYtelse() == other.getSumYtelse() &&

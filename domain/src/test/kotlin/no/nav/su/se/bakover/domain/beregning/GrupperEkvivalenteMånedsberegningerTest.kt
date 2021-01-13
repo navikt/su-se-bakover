@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.beregning
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.april
+import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mars
@@ -268,6 +269,39 @@ internal class GrupperEkvivalenteMånedsberegningerTest {
 
         GrupperEkvivalenteMånedsberegninger(listOf(januar, februar)).grupper shouldBe listOf(
             GrupperEkvivalenteMånedsberegninger.GrupperteMånedsberegninger(listOf(januar, februar))
+        )
+    }
+
+    @Test
+    fun `like månedsberegninger som ikke er tilstøtende grupperes hver for seg`() {
+        val januar = MånedsberegningFactory.ny(
+            periode = Periode(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
+            sats = Sats.HØY,
+            fradrag = listOf()
+        )
+
+        val februar = MånedsberegningFactory.ny(
+            periode = Periode(fraOgMed = 1.februar(2021), tilOgMed = 28.februar(2021)),
+            sats = Sats.HØY,
+            fradrag = listOf()
+        )
+
+        val april = MånedsberegningFactory.ny(
+            periode = Periode(fraOgMed = 1.april(2021), tilOgMed = 30.april(2021)),
+            sats = Sats.HØY,
+            fradrag = listOf()
+        )
+
+        val desember = MånedsberegningFactory.ny(
+            periode = Periode(fraOgMed = 1.desember(2021), tilOgMed = 31.desember(2021)),
+            sats = Sats.HØY,
+            fradrag = listOf()
+        )
+
+        GrupperEkvivalenteMånedsberegninger(listOf(januar, februar, april, desember)).grupper shouldBe listOf(
+            GrupperEkvivalenteMånedsberegninger.GrupperteMånedsberegninger(listOf(januar, februar)),
+            GrupperEkvivalenteMånedsberegninger.GrupperteMånedsberegninger(listOf(april)),
+            GrupperEkvivalenteMånedsberegninger.GrupperteMånedsberegninger(listOf(desember))
         )
     }
 }

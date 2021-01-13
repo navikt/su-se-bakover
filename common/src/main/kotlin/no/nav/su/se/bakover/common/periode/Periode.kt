@@ -28,4 +28,12 @@ data class Periode(
     infix fun inneholder(other: Periode): Boolean =
         (fraOgMed.isEqual(other.fraOgMed) || fraOgMed.isBefore(other.fraOgMed)) &&
             (tilOgMed.isEqual(other.tilOgMed) || tilOgMed.isAfter(other.tilOgMed))
+
+    infix fun tilstøter(other: Periode): Boolean {
+        val sluttStart = Period.between(tilOgMed, other.fraOgMed)
+        val startSlutt = Period.between(fraOgMed, other.tilOgMed)
+        val plussEnDag = Period.ofDays(1)
+        val minusEnDag = Period.ofDays(-1)
+        return sluttStart == plussEnDag || sluttStart == minusEnDag || startSlutt == plussEnDag || startSlutt == minusEnDag
+    }
 }

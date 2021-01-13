@@ -76,4 +76,13 @@ internal class PeriodeTest {
         Periode(1.januar(2021), 31.desember(2021)) inneholder Periode(1.juli(2019), 31.august(2019)) shouldBe false
         Periode(1.januar(2021), 31.desember(2021)) inneholder Periode(1.juli(2022), 31.august(2022)) shouldBe false
     }
+
+    @Test
+    fun `tilstøtende perioder`() {
+        Periode(1.januar(2021), 31.desember(2021)) tilstøter Periode(1.januar(2021), 31.januar(2021)) shouldBe false
+        Periode(1.januar(2021), 31.desember(2021)) tilstøter Periode(1.januar(2022), 31.desember(2022)) shouldBe true
+        Periode(1.januar(2021), 31.desember(2021)) tilstøter Periode(1.januar(2020), 31.desember(2020)) shouldBe true
+        Periode(1.januar(2021), 31.desember(2021)) tilstøter Periode(1.januar(2050), 31.desember(2050)) shouldBe false
+        Periode(1.januar(2021), 31.desember(2021)) tilstøter Periode(1.januar(2015), 31.desember(2015)) shouldBe false
+    }
 }
