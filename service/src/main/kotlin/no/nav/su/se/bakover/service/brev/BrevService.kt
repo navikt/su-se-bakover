@@ -18,7 +18,6 @@ sealed class KunneIkkeLageBrev {
 }
 
 sealed class KunneIkkeJournalføreBrev {
-    object FantIkkePerson : KunneIkkeJournalføreBrev()
     object KunneIkkeGenereBrev : KunneIkkeJournalføreBrev()
     object KunneIkkeOppretteJournalpost : KunneIkkeJournalføreBrev()
 }

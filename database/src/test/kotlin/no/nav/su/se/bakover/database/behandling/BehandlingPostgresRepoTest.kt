@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database.behandling
 
 import com.nhaarman.mockitokotlin2.mock
+import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.database.EmbeddedDatabase
@@ -107,6 +108,124 @@ internal class BehandlingPostgresRepoTest {
             val hentet = repo.hentBehandling(nySøknadsbehandling.id)!!
 
             hentet.saksbehandler() shouldBe saksbehandler
+        }
+    }
+
+    @Test
+    fun `hent iverksatte behandlinger uten journalposteringer`() {
+        withMigratedDb {
+
+            val iverksattInnvilgetBehandling = FnrGenerator.random().let {
+                val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave(it)
+                val søknad = sak.søknader()[0] as Søknad.Journalført.MedOppgave
+                testDataHelper.insertBehandling(sak.id, søknad, søknad.oppgaveId).also {
+                    repo.oppdaterBehandlingStatus(it.id, Behandling.BehandlingsStatus.IVERKSATT_INNVILGET)
+                }
+            }
+
+            FnrGenerator.random().let {
+                // IVERKSATT_INNVILGET med iverksattJournalpostId
+                val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave(it)
+                val søknad = sak.søknader()[0] as Søknad.Journalført.MedOppgave
+                testDataHelper.insertBehandling(sak.id, søknad, søknad.oppgaveId).also {
+                    repo.oppdaterBehandlingStatus(it.id, Behandling.BehandlingsStatus.IVERKSATT_INNVILGET)
+                    repo.oppdaterIverksattJournalpostId(it.id, JournalpostId("1"))
+                }
+            }
+
+            FnrGenerator.random().let {
+                // IVERKSATT_AVSLAG
+                val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave(it)
+                val søknad = sak.søknader()[0] as Søknad.Journalført.MedOppgave
+                testDataHelper.insertBehandling(sak.id, søknad, søknad.oppgaveId).also {
+                    repo.oppdaterBehandlingStatus(it.id, Behandling.BehandlingsStatus.IVERKSATT_AVSLAG)
+                }
+            }
+
+            FnrGenerator.random().let {
+                // Med behandling opprettet
+                val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave(it)
+                val søknad = sak.søknader()[0] as Søknad.Journalført.MedOppgave
+                testDataHelper.insertBehandling(sak.id, søknad, søknad.oppgaveId)
+            }
+
+            val actual = repo.hentIverksatteBehandlingerUtenJournalposteringer()
+            actual shouldBe listOf(
+                repo.hentBehandling(iverksattInnvilgetBehandling.id)
+            )
+        }
+    }
+
+    @Test
+    fun `hent iverksatte behandlinger uten brevbestillinger`() {
+        withMigratedDb {
+            FnrGenerator.random().let {
+                // IVERKSATT_INNVILGET uten IverksattJournalpostId
+                val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave(it)
+                val søknad = sak.søknader()[0] as Søknad.Journalført.MedOppgave
+                testDataHelper.insertBehandling(sak.id, søknad, søknad.oppgaveId).also {
+                    repo.oppdaterBehandlingStatus(it.id, Behandling.BehandlingsStatus.IVERKSATT_INNVILGET)
+                }
+            }
+
+            val iverksattInnvilgetUtenBrevbestillingId = FnrGenerator.random().let {
+                // IVERKSATT_INNVILGET med iverksattJournalpostId
+                val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave(it)
+                val søknad = sak.søknader()[0] as Søknad.Journalført.MedOppgave
+                testDataHelper.insertBehandling(sak.id, søknad, søknad.oppgaveId).also {
+                    repo.oppdaterBehandlingStatus(it.id, Behandling.BehandlingsStatus.IVERKSATT_INNVILGET)
+                    repo.oppdaterIverksattJournalpostId(it.id, JournalpostId("1"))
+                }
+            }
+
+            FnrGenerator.random().let {
+                // IVERKSATT_INNVILGET med iverksattJournalpostId og iverksattBrevbestillingId
+                val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave(it)
+                val søknad = sak.søknader()[0] as Søknad.Journalført.MedOppgave
+                testDataHelper.insertBehandling(sak.id, søknad, søknad.oppgaveId).also {
+                    repo.oppdaterBehandlingStatus(it.id, Behandling.BehandlingsStatus.IVERKSATT_INNVILGET)
+                    repo.oppdaterIverksattJournalpostId(it.id, JournalpostId("1"))
+                    repo.oppdaterIverksattBrevbestillingId(it.id, BrevbestillingId("2"))
+                }
+            }
+
+            FnrGenerator.random().let {
+                // IVERKSATT_AVSLAG uten IverksattJournalpostId
+                val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave(it)
+                val søknad = sak.søknader()[0] as Søknad.Journalført.MedOppgave
+                testDataHelper.insertBehandling(sak.id, søknad, søknad.oppgaveId).also {
+                    repo.oppdaterBehandlingStatus(it.id, Behandling.BehandlingsStatus.IVERKSATT_AVSLAG)
+                }
+            }
+
+            val iverksattAvslåttUtenBrevbestillingId = FnrGenerator.random().let {
+                // IVERKSATT_AVSLAG med IverksattJournalpostId
+                val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave(it)
+                val søknad = sak.søknader()[0] as Søknad.Journalført.MedOppgave
+                testDataHelper.insertBehandling(sak.id, søknad, søknad.oppgaveId).also {
+                    repo.oppdaterBehandlingStatus(it.id, Behandling.BehandlingsStatus.IVERKSATT_AVSLAG)
+                    repo.oppdaterIverksattJournalpostId(it.id, JournalpostId("1"))
+                }
+            }
+
+            FnrGenerator.random().let {
+                // IVERKSATT_AVSLAG med IverksattJournalpostId og iverksattBrevbestillingId
+                val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave(it)
+                val søknad = sak.søknader()[0] as Søknad.Journalført.MedOppgave
+                testDataHelper.insertBehandling(sak.id, søknad, søknad.oppgaveId).also {
+                    repo.oppdaterBehandlingStatus(it.id, Behandling.BehandlingsStatus.IVERKSATT_AVSLAG)
+                    repo.oppdaterIverksattJournalpostId(it.id, JournalpostId("1"))
+                    repo.oppdaterIverksattBrevbestillingId(it.id, BrevbestillingId("2"))
+                }
+            }
+
+            val actual = repo.hentIverksatteBehandlingerUtenBrevbestillinger()
+            actual.shouldContainExactlyInAnyOrder(
+                listOf(
+                    repo.hentBehandling(iverksattAvslåttUtenBrevbestillingId.id),
+                    repo.hentBehandling(iverksattInnvilgetUtenBrevbestillingId.id)
+                )
+            )
         }
     }
 

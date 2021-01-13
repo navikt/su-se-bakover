@@ -8,6 +8,8 @@ import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.brev.BrevbestillingId
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import java.time.LocalDate
 import java.util.UUID
 
@@ -44,6 +46,7 @@ interface BehandlingService {
 
     fun opprettSøknadsbehandling(søknadId: UUID): Either<KunneIkkeOppretteSøknadsbehandling, Behandling>
     fun lagBrevutkast(behandlingId: UUID): Either<KunneIkkeLageBrevutkast, ByteArray>
+    fun opprettManglendeJournalpostOgBrevdistribusjon(): OpprettManglendeJournalpostOgBrevdistribusjonResultat
 }
 
 sealed class KunneIkkeLageBrevutkast {
@@ -102,6 +105,7 @@ sealed class KunneIkkeOppdatereBehandlingsinformasjon {
     object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeOppdatereBehandlingsinformasjon()
     object FantIkkeBehandling : KunneIkkeOppdatereBehandlingsinformasjon()
 }
+
 sealed class IverksattBehandling {
     abstract val behandling: Behandling
 
@@ -113,3 +117,37 @@ sealed class IverksattBehandling {
         data class KunneIkkeLukkeOppgave(override val behandling: Behandling) : MedMangler()
     }
 }
+
+data class OpprettManglendeJournalpostOgBrevdistribusjonResultat(
+    val journalpostresultat: List<Either<KunneIkkeOppretteJournalpostForIverksetting, OpprettetJournalpostForIverksetting>>,
+    val brevbestillingsresultat: List<Either<KunneIkkeBestilleBrev, BestiltBrev>>
+) {
+    fun harFeil(): Boolean = journalpostresultat.mapNotNull { it.swap().orNull() }.isNotEmpty() ||
+        brevbestillingsresultat.mapNotNull { it.swap().orNull() }.isNotEmpty()
+}
+
+data class OpprettetJournalpostForIverksetting(
+    val sakId: UUID,
+    val behandlingId: UUID,
+    val journalpostId: JournalpostId,
+)
+
+data class KunneIkkeOppretteJournalpostForIverksetting(
+    val sakId: UUID,
+    val behandlingId: UUID,
+    val grunn: String,
+)
+
+data class BestiltBrev(
+    val sakId: UUID,
+    val behandlingId: UUID,
+    val journalpostId: JournalpostId,
+    val brevbestillingId: BrevbestillingId,
+)
+
+data class KunneIkkeBestilleBrev(
+    val sakId: UUID,
+    val behandlingId: UUID,
+    val journalpostId: JournalpostId?,
+    val grunn: String,
+)

@@ -158,9 +158,11 @@ object BehandlingTestUtils {
             jobTitle = ""
         )
 
-        val oppslagMock: MicrosoftGraphApiOppslag = mock {
-            on { hentBrukerinformasjon(any()) } doReturn Either.right(response)
-            on { hentBrukerinformasjonForNavIdent(any()) } doReturn Either.right(response)
+        val oppslagMock: MicrosoftGraphApiOppslag by lazy {
+            mock {
+                on { hentBrukerinformasjon(any()) } doReturn Either.right(response)
+                on { hentBrukerinformasjonForNavIdent(any()) } doReturn Either.right(response)
+            }
         }
     }
 }

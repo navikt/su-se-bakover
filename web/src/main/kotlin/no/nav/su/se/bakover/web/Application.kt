@@ -222,7 +222,7 @@ internal fun Application.susebakover(
                     avstemmingRoutes(accessProtectedServices.avstemming)
                     stansutbetalingRoutes(accessProtectedServices.utbetaling)
                     gjenopptaUtbetalingRoutes(accessProtectedServices.utbetaling)
-                    driftRoutes(accessProtectedServices.søknad)
+                    driftRoutes(accessProtectedServices.søknad, accessProtectedServices.behandling)
                 }
             }
         }
