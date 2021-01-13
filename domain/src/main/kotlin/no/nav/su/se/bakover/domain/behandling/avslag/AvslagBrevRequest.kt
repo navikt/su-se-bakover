@@ -18,7 +18,7 @@ data class AvslagBrevRequest(
         avslagsgrunner = avslag.avslagsgrunner,
         harEktefelle = avslag.harEktefelle,
         halvGrunnbeløp = avslag.halvGrunnbeløp.toInt(),
-        beregning = avslag.beregning?.let { LagBrevinnholdForBeregning(it).get() },
+        beregningsperioder = avslag.beregning?.let { LagBrevinnholdForBeregning(it).brevInnhold } ?: emptyList(),
         saksbehandlerNavn = saksbehandlerNavn,
         attestantNavn = attestantNavn
     )

@@ -29,8 +29,8 @@ internal class GrupperEkvivalenteMånedsberegningerTest {
 
         GrupperEkvivalenteMånedsberegninger(listOf(januar, februar)).grupper shouldBe listOf(
             GrupperEkvivalenteMånedsberegninger.GrupperteMånedsberegninger(listOf(januar, februar)).also {
-                it.periode.getFraOgMed() shouldBe januar.getPeriode().getFraOgMed()
-                it.periode.getTilOgMed() shouldBe februar.getPeriode().getTilOgMed()
+                it.getPeriode().getFraOgMed() shouldBe januar.getPeriode().getFraOgMed()
+                it.getPeriode().getTilOgMed() shouldBe februar.getPeriode().getTilOgMed()
             }
         )
     }
@@ -59,12 +59,12 @@ internal class GrupperEkvivalenteMånedsberegningerTest {
 
         GrupperEkvivalenteMånedsberegninger(listOf(januar, februar)).grupper shouldBe listOf(
             GrupperEkvivalenteMånedsberegninger.GrupperteMånedsberegninger(listOf(januar)).also {
-                it.periode.getFraOgMed() shouldBe januar.getPeriode().getFraOgMed()
-                it.periode.getTilOgMed() shouldBe januar.getPeriode().getTilOgMed()
+                it.getPeriode().getFraOgMed() shouldBe januar.getPeriode().getFraOgMed()
+                it.getPeriode().getTilOgMed() shouldBe januar.getPeriode().getTilOgMed()
             },
             GrupperEkvivalenteMånedsberegninger.GrupperteMånedsberegninger(listOf(februar)).also {
-                it.periode.getFraOgMed() shouldBe februar.getPeriode().getFraOgMed()
-                it.periode.getTilOgMed() shouldBe februar.getPeriode().getTilOgMed()
+                it.getPeriode().getFraOgMed() shouldBe februar.getPeriode().getFraOgMed()
+                it.getPeriode().getTilOgMed() shouldBe februar.getPeriode().getTilOgMed()
             },
         )
     }

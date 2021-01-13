@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.brev.beregning
 
+import no.nav.su.se.bakover.domain.beregning.GrupperEkvivalenteMånedsberegninger
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
@@ -12,49 +13,44 @@ import no.nav.su.se.bakover.domain.beregning.Beregning as FaktiskBeregning
 data class LagBrevinnholdForBeregning(
     private val beregning: FaktiskBeregning
 ) {
-    internal fun get(): Beregning {
-        val førsteMånedsberegning = beregning.getMånedsberegninger().first() // Støtte for variende beløp i framtiden?
-
-        return Beregning(
-            ytelsePerMåned = førsteMånedsberegning.getSumYtelse(),
-            satsbeløpPerMåned = førsteMånedsberegning.getSatsbeløp().roundToInt(),
-            epsFribeløp =
-            FradragStrategy.fromName(beregning.getFradragStrategyName())
-                .getEpsFribeløp(førsteMånedsberegning.getPeriode())
-                .roundToTwoDecimals(),
-            fradrag = when (beregning.getFradrag().isEmpty()) {
-                true ->
-                    null
-                false ->
-                    Fradrag(
-                        bruker =
-                        førsteMånedsberegning.getFradrag()
+    internal val brevInnhold: List<Beregningsperiode> =
+        GrupperEkvivalenteMånedsberegninger(beregning.getMånedsberegninger()).grupper.map { gruppertMånedsberegning ->
+            Beregningsperiode(
+                // TODO mangler totalt beløp
+                // TODO filtrer vekk 0 beløp
+                // TODO ikke vis eps fradrag som er under fribeløp
+                periode = gruppertMånedsberegning.getPeriode(),
+                ytelsePerMåned = gruppertMånedsberegning.getSumYtelse(),
+                satsbeløpPerMåned = gruppertMånedsberegning.getSatsbeløp().roundToInt(),
+                epsFribeløp = FradragStrategy.fromName(beregning.getFradragStrategyName())
+                    .getEpsFribeløp(gruppertMånedsberegning.getPeriode()).let {
+                        it / gruppertMånedsberegning.getPeriode().getAntallMåneder()
+                    }.roundToTwoDecimals(),
+                fradrag = when (beregning.getFradrag().isEmpty()) {
+                    true -> null
+                    false -> Fradrag(
+                        bruker = gruppertMånedsberegning.getFradrag()
                             .filter { it.getTilhører() == FradragTilhører.BRUKER }
                             .let {
                                 FradragForBruker(
                                     fradrag = it.toMånedsfradragPerType(),
-                                    sum = it.sumByDouble { f -> f.getMånedsbeløp() }
-                                        .roundToTwoDecimals(),
-                                    harBruktForventetInntektIStedetForArbeidsinntekt = it
-                                        .any { f -> f.getFradragstype() == Fradragstype.ForventetInntekt }
+                                    sum = it.sumByDouble { f -> f.getMånedsbeløp() }.roundToTwoDecimals(),
+                                    harBruktForventetInntektIStedetForArbeidsinntekt = it.any { f -> f.getFradragstype() == Fradragstype.ForventetInntekt }
                                 )
                             },
-                        eps = beregning
-                            .getFradrag()
+                        eps = beregning.getFradrag()
                             .filter { it.getTilhører() == FradragTilhører.EPS }
+                            .filter { it.getPeriode() inneholder gruppertMånedsberegning.getPeriode() }
                             .let {
                                 FradragForEps(
                                     fradrag = it.toMånedsfradragPerType(),
-                                    sum = førsteMånedsberegning.getFradrag()
-                                        .filter { f -> f.getTilhører() == FradragTilhører.EPS }
-                                        .sumByDouble { f -> f.getMånedsbeløp() }
-                                        .roundToTwoDecimals()
+                                    sum = it.sumByDouble { f -> f.getMånedsbeløp() }.roundToTwoDecimals()
                                 )
                             }
                     )
-            }
-        )
-    }
+                }
+            )
+        }
 }
 
 internal fun List<Fradrag>.toMånedsfradragPerType(): List<Månedsfradrag> =

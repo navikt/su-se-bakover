@@ -46,8 +46,8 @@ data class GrupperEkvivalenteMånedsberegninger(
 
     data class GrupperteMånedsberegninger(
         val månedsberegninger: List<Månedsberegning>
-    ) {
-        val periode = Periode(
+    ) : Månedsberegning by månedsberegninger.first() {
+        override fun getPeriode(): Periode = Periode(
             fraOgMed = månedsberegninger.minOf { it.getPeriode().getFraOgMed() },
             tilOgMed = månedsberegninger.maxOf { it.getPeriode().getTilOgMed() }
         )

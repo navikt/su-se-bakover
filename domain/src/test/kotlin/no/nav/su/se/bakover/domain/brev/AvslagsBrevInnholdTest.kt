@@ -20,7 +20,7 @@ class AvslagsBrevInnholdTest {
         avslagsgrunner = listOf(Avslagsgrunn.FLYKTNING),
         harEktefelle = false,
         halvGrunnbeløp = 10,
-        beregning = null,
+        beregningsperioder = emptyList(),
         saksbehandlerNavn = "Sak Sakesen",
         attestantNavn = "Att Attestantsen"
     )
@@ -41,7 +41,7 @@ class AvslagsBrevInnholdTest {
               "harFlereAvslagsgrunner": false,
               "halvGrunnbeløp": 10,
               "harEktefelle": false,
-              "beregning": null,
+              "beregningsperioder": [],
               "avslagsparagrafer": [1,2],
               "saksbehandlerNavn": "Sak Sakesen",
               "attestantNavn": "Att Attestantsen"

@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.behandling.Satsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
-import no.nav.su.se.bakover.domain.brev.beregning.Beregning
+import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
 
 abstract class BrevInnhold {
     fun toJson(): String = objectMapper.writeValueAsString(this)
@@ -19,7 +19,7 @@ abstract class BrevInnhold {
         val avslagsgrunner: List<Avslagsgrunn>,
         val harEktefelle: Boolean,
         val halvGrunnbeløp: Int,
-        val beregning: Beregning?,
+        val beregningsperioder: List<Beregningsperiode>,
         val saksbehandlerNavn: String,
         val attestantNavn: String
     ) : BrevInnhold() {
@@ -41,7 +41,7 @@ abstract class BrevInnhold {
         val sats: String,
         val satsGrunn: Satsgrunn,
         val harEktefelle: Boolean,
-        val beregning: Beregning,
+        val beregningsperioder: List<Beregningsperiode>,
         val saksbehandlerNavn: String,
         val attestantNavn: String
     ) : BrevInnhold() {
