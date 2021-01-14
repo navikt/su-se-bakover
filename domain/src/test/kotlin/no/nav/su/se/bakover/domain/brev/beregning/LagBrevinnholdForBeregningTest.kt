@@ -47,19 +47,16 @@ internal class LagBrevinnholdForBeregningTest {
                 satsbeløpPerMåned = 20946,
                 epsFribeløp = 0.0,
                 fradrag = Fradrag(
-                    bruker = FradragForBruker(
-                        fradrag = listOf(
-                            Månedsfradrag(
-                                type = Fradragstype.ForventetInntekt.toReadableTypeName(
-                                    utenlandsk = false
-                                ),
-                                beløp = 1000.0,
-                                utenlandskInntekt = null
-                            )
-                        ),
-                        sum = 1000.0
+                    bruker = listOf(
+                        Månedsfradrag(
+                            type = Fradragstype.ForventetInntekt.toReadableTypeName(
+                                utenlandsk = false
+                            ),
+                            beløp = 1000.0,
+                            utenlandskInntekt = null
+                        )
                     ),
-                    eps = FradragForEps(listOf(), 0.0)
+                    eps = emptyList()
                 ),
             )
         )
@@ -103,19 +100,16 @@ internal class LagBrevinnholdForBeregningTest {
                 satsbeløpPerMåned = 20946,
                 epsFribeløp = 0.0,
                 fradrag = Fradrag(
-                    bruker = FradragForBruker(
-                        fradrag = listOf(
-                            Månedsfradrag(
-                                type = Fradragstype.ForventetInntekt.toReadableTypeName(
-                                    utenlandsk = false
-                                ),
-                                beløp = 1000.0,
-                                utenlandskInntekt = null
-                            )
-                        ),
-                        sum = 1000.0
+                    bruker = listOf(
+                        Månedsfradrag(
+                            type = Fradragstype.ForventetInntekt.toReadableTypeName(
+                                utenlandsk = false
+                            ),
+                            beløp = 1000.0,
+                            utenlandskInntekt = null
+                        )
                     ),
-                    eps = FradragForEps(listOf(), 0.0)
+                    eps = emptyList()
                 ),
             ),
             Beregningsperiode(
@@ -124,26 +118,23 @@ internal class LagBrevinnholdForBeregningTest {
                 satsbeløpPerMåned = 20946,
                 epsFribeløp = 0.0,
                 fradrag = Fradrag(
-                    bruker = FradragForBruker(
-                        fradrag = listOf(
-                            Månedsfradrag(
-                                type = Fradragstype.Arbeidsinntekt.toReadableTypeName(
-                                    utenlandsk = false
-                                ),
-                                beløp = 9999.0,
-                                utenlandskInntekt = null
+                    bruker = listOf(
+                        Månedsfradrag(
+                            type = Fradragstype.Arbeidsinntekt.toReadableTypeName(
+                                utenlandsk = false
                             ),
-                            Månedsfradrag(
-                                type = Fradragstype.Sosialstønad.toReadableTypeName(
-                                    utenlandsk = false
-                                ),
-                                beløp = 2000.0,
-                                utenlandskInntekt = null
-                            ),
+                            beløp = 9999.0,
+                            utenlandskInntekt = null
                         ),
-                        sum = 11999.0
+                        Månedsfradrag(
+                            type = Fradragstype.Sosialstønad.toReadableTypeName(
+                                utenlandsk = false
+                            ),
+                            beløp = 2000.0,
+                            utenlandskInntekt = null
+                        ),
                     ),
-                    eps = FradragForEps(listOf(), 0.0)
+                    eps = emptyList()
                 ),
             ),
             Beregningsperiode(
@@ -152,19 +143,16 @@ internal class LagBrevinnholdForBeregningTest {
                 satsbeløpPerMåned = 20946,
                 epsFribeløp = 0.0,
                 fradrag = Fradrag(
-                    bruker = FradragForBruker(
-                        fradrag = listOf(
-                            Månedsfradrag(
-                                type = Fradragstype.ForventetInntekt.toReadableTypeName(
-                                    utenlandsk = false
-                                ),
-                                beløp = 1000.0,
-                                utenlandskInntekt = null
-                            )
-                        ),
-                        sum = 1000.0
+                    bruker = listOf(
+                        Månedsfradrag(
+                            type = Fradragstype.ForventetInntekt.toReadableTypeName(
+                                utenlandsk = false
+                            ),
+                            beløp = 1000.0,
+                            utenlandskInntekt = null
+                        )
                     ),
-                    eps = FradragForEps(listOf(), 0.0)
+                    eps = emptyList()
                 ),
             ),
         )
@@ -208,29 +196,23 @@ internal class LagBrevinnholdForBeregningTest {
                 satsbeløpPerMåned = 20946,
                 epsFribeløp = 15298.92,
                 fradrag = Fradrag(
-                    bruker = FradragForBruker(
-                        fradrag = listOf(
-                            Månedsfradrag(
-                                type = Fradragstype.ForventetInntekt.toReadableTypeName(
-                                    utenlandsk = false
-                                ),
-                                beløp = 1000.0,
-                                utenlandskInntekt = null
-                            )
-                        ),
-                        sum = 1000.0
+                    bruker = listOf(
+                        Månedsfradrag(
+                            type = Fradragstype.ForventetInntekt.toReadableTypeName(
+                                utenlandsk = false
+                            ),
+                            beløp = 1000.0,
+                            utenlandskInntekt = null
+                        )
                     ),
-                    eps = FradragForEps(
-                        fradrag = listOf(
-                            Månedsfradrag(
-                                type = Fradragstype.Arbeidsinntekt.toReadableTypeName(
-                                    utenlandsk = false
-                                ),
-                                beløp = 20000.0,
-                                utenlandskInntekt = null
-                            )
-                        ),
-                        sum = 20000.0
+                    eps = listOf(
+                        Månedsfradrag(
+                            type = Fradragstype.Arbeidsinntekt.toReadableTypeName(
+                                utenlandsk = false
+                            ),
+                            beløp = 20000.0,
+                            utenlandskInntekt = null
+                        )
                     )
                 ),
             ),
@@ -240,36 +222,30 @@ internal class LagBrevinnholdForBeregningTest {
                 satsbeløpPerMåned = 20946,
                 epsFribeløp = 15298.92,
                 fradrag = Fradrag(
-                    bruker = FradragForBruker(
-                        fradrag = listOf(
-                            Månedsfradrag(
-                                type = Fradragstype.ForventetInntekt.toReadableTypeName(
-                                    utenlandsk = false
-                                ),
-                                beløp = 1000.0,
-                                utenlandskInntekt = null
-                            )
-                        ),
-                        sum = 1000.0
-                    ),
-                    eps = FradragForEps(
-                        fradrag = listOf(
-                            Månedsfradrag(
-                                type = Fradragstype.Arbeidsinntekt.toReadableTypeName(
-                                    utenlandsk = false
-                                ),
-                                beløp = 20000.0,
-                                utenlandskInntekt = null
+                    bruker = listOf(
+                        Månedsfradrag(
+                            type = Fradragstype.ForventetInntekt.toReadableTypeName(
+                                utenlandsk = false
                             ),
-                            Månedsfradrag(
-                                type = Fradragstype.Kapitalinntekt.toReadableTypeName(
-                                    utenlandsk = false
-                                ),
-                                beløp = 1000.0,
-                                utenlandskInntekt = null
-                            )
+                            beløp = 1000.0,
+                            utenlandskInntekt = null
+                        )
+                    ),
+                    eps = listOf(
+                        Månedsfradrag(
+                            type = Fradragstype.Arbeidsinntekt.toReadableTypeName(
+                                utenlandsk = false
+                            ),
+                            beløp = 20000.0,
+                            utenlandskInntekt = null
                         ),
-                        sum = 21000.0
+                        Månedsfradrag(
+                            type = Fradragstype.Kapitalinntekt.toReadableTypeName(
+                                utenlandsk = false
+                            ),
+                            beløp = 1000.0,
+                            utenlandskInntekt = null
+                        )
                     )
                 ),
             ),
@@ -279,29 +255,23 @@ internal class LagBrevinnholdForBeregningTest {
                 satsbeløpPerMåned = 20946,
                 epsFribeløp = 15298.92,
                 fradrag = Fradrag(
-                    bruker = FradragForBruker(
-                        fradrag = listOf(
-                            Månedsfradrag(
-                                type = Fradragstype.ForventetInntekt.toReadableTypeName(
-                                    utenlandsk = false
-                                ),
-                                beløp = 1000.0,
-                                utenlandskInntekt = null
-                            )
-                        ),
-                        sum = 1000.0
+                    bruker = listOf(
+                        Månedsfradrag(
+                            type = Fradragstype.ForventetInntekt.toReadableTypeName(
+                                utenlandsk = false
+                            ),
+                            beløp = 1000.0,
+                            utenlandskInntekt = null
+                        )
                     ),
-                    eps = FradragForEps(
-                        fradrag = listOf(
-                            Månedsfradrag(
-                                type = Fradragstype.Arbeidsinntekt.toReadableTypeName(
-                                    utenlandsk = false
-                                ),
-                                beløp = 20000.0,
-                                utenlandskInntekt = null
-                            )
-                        ),
-                        sum = 20000.0
+                    eps = listOf(
+                        Månedsfradrag(
+                            type = Fradragstype.Arbeidsinntekt.toReadableTypeName(
+                                utenlandsk = false
+                            ),
+                            beløp = 20000.0,
+                            utenlandskInntekt = null
+                        )
                     )
                 ),
             ),
@@ -316,44 +286,38 @@ internal class LagBrevinnholdForBeregningTest {
             satsbeløpPerMåned = 100,
             epsFribeløp = 100.0,
             fradrag = Fradrag(
-                bruker = FradragForBruker(
-                    fradrag = listOf(
-                        Månedsfradrag(
-                            type = Fradragstype.Arbeidsinntekt.toReadableTypeName(utenlandsk = false),
-                            beløp = 10.0,
-                            utenlandskInntekt = null
-                        ),
-                        Månedsfradrag(
-                            type = Fradragstype.OffentligPensjon.toReadableTypeName(utenlandsk = false),
-                            beløp = 35.0,
-                            utenlandskInntekt = null
-                        ),
-                        Månedsfradrag(
-                            type = Fradragstype.OffentligPensjon.toReadableTypeName(utenlandsk = true),
-                            beløp = 70.0,
-                            utenlandskInntekt = UtenlandskInntekt(
-                                beløpIUtenlandskValuta = 140,
-                                valuta = "SEK",
-                                kurs = 0.5
-                            )
-                        )
+                bruker = listOf(
+                    Månedsfradrag(
+                        type = Fradragstype.Arbeidsinntekt.toReadableTypeName(utenlandsk = false),
+                        beløp = 10.0,
+                        utenlandskInntekt = null
                     ),
-                    sum = 45.0
+                    Månedsfradrag(
+                        type = Fradragstype.OffentligPensjon.toReadableTypeName(utenlandsk = false),
+                        beløp = 35.0,
+                        utenlandskInntekt = null
+                    ),
+                    Månedsfradrag(
+                        type = Fradragstype.OffentligPensjon.toReadableTypeName(utenlandsk = true),
+                        beløp = 70.0,
+                        utenlandskInntekt = UtenlandskInntekt(
+                            beløpIUtenlandskValuta = 140,
+                            valuta = "SEK",
+                            kurs = 0.5
+                        )
+                    )
                 ),
-                eps = FradragForEps(
-                    fradrag = listOf(
-                        Månedsfradrag(
-                            type = Fradragstype.Arbeidsinntekt.toReadableTypeName(utenlandsk = false),
-                            beløp = 20.0,
-                            utenlandskInntekt = null
-                        ),
-                        Månedsfradrag(
-                            type = Fradragstype.OffentligPensjon.toReadableTypeName(utenlandsk = false),
-                            beløp = 70.0,
-                            utenlandskInntekt = null
-                        )
+                eps = listOf(
+                    Månedsfradrag(
+                        type = Fradragstype.Arbeidsinntekt.toReadableTypeName(utenlandsk = false),
+                        beløp = 20.0,
+                        utenlandskInntekt = null
                     ),
-                    sum = 0.0
+                    Månedsfradrag(
+                        type = Fradragstype.OffentligPensjon.toReadableTypeName(utenlandsk = false),
+                        beløp = 70.0,
+                        utenlandskInntekt = null
+                    )
                 )
             ),
         )
@@ -369,8 +333,7 @@ internal class LagBrevinnholdForBeregningTest {
               "satsbeløpPerMåned": 100,
               "epsFribeløp": 100.0,
               "fradrag": {
-                "bruker": {
-                  "fradrag": [
+                "bruker": [
                     {
                       "type": "Arbeidsinntekt",
                       "beløp": 10.0,
@@ -389,12 +352,9 @@ internal class LagBrevinnholdForBeregningTest {
                         "valuta": "SEK",
                         "kurs": 0.5
                       }
-                    }
-                  ],
-                  "sum": 45.0
-                },
-                "eps": {
-                  "fradrag": [
+                  }
+                ],
+                "eps": [
                     {
                       "type": "Arbeidsinntekt",
                       "beløp": 20.0,
@@ -405,10 +365,8 @@ internal class LagBrevinnholdForBeregningTest {
                       "beløp": 70.0,
                       "utenlandskInntekt": null
                     }
-                  ],
-                  "sum": 0.0
+                  ]
                 }
-              }
             }
         """.trimIndent()
 

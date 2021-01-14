@@ -32,21 +32,11 @@ data class LagBrevinnholdForBeregning(
                     false -> Fradrag(
                         bruker = gruppertMånedsberegning.getFradrag()
                             .filter { it.getTilhører() == FradragTilhører.BRUKER }
-                            .let {
-                                FradragForBruker(
-                                    fradrag = it.toMånedsfradragPerType(),
-                                    sum = it.sumByDouble { f -> f.getMånedsbeløp() }.roundToTwoDecimals()
-                                )
-                            },
+                            .toMånedsfradragPerType(),
                         eps = beregning.getFradrag()
                             .filter { it.getTilhører() == FradragTilhører.EPS }
                             .filter { it.getPeriode() inneholder gruppertMånedsberegning.getPeriode() }
-                            .let {
-                                FradragForEps(
-                                    fradrag = it.toMånedsfradragPerType(),
-                                    sum = it.sumByDouble { f -> f.getMånedsbeløp() }.roundToTwoDecimals()
-                                )
-                            }
+                            .toMånedsfradragPerType()
                     )
                 }
             )
