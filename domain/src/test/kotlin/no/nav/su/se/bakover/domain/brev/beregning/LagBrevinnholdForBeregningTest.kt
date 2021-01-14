@@ -56,7 +56,7 @@ internal class LagBrevinnholdForBeregningTest {
                             utenlandskInntekt = null
                         )
                     ),
-                    eps = emptyList()
+                    eps = Fradrag.Eps(emptyList(), false)
                 ),
             )
         )
@@ -109,7 +109,7 @@ internal class LagBrevinnholdForBeregningTest {
                             utenlandskInntekt = null
                         )
                     ),
-                    eps = emptyList()
+                    eps = Fradrag.Eps(emptyList(), false)
                 ),
             ),
             Beregningsperiode(
@@ -134,7 +134,7 @@ internal class LagBrevinnholdForBeregningTest {
                             utenlandskInntekt = null
                         ),
                     ),
-                    eps = emptyList()
+                    eps = Fradrag.Eps(emptyList(), false)
                 ),
             ),
             Beregningsperiode(
@@ -152,7 +152,7 @@ internal class LagBrevinnholdForBeregningTest {
                             utenlandskInntekt = null
                         )
                     ),
-                    eps = emptyList()
+                    eps = Fradrag.Eps(emptyList(), false)
                 ),
             ),
         )
@@ -205,14 +205,17 @@ internal class LagBrevinnholdForBeregningTest {
                             utenlandskInntekt = null
                         )
                     ),
-                    eps = listOf(
-                        Månedsfradrag(
-                            type = Fradragstype.Arbeidsinntekt.toReadableTypeName(
-                                utenlandsk = false
-                            ),
-                            beløp = 20000.0,
-                            utenlandskInntekt = null
-                        )
+                    eps = Fradrag.Eps(
+                        listOf(
+                            Månedsfradrag(
+                                type = Fradragstype.Arbeidsinntekt.toReadableTypeName(
+                                    utenlandsk = false
+                                ),
+                                beløp = 20000.0,
+                                utenlandskInntekt = null
+                            )
+                        ),
+                        false
                     )
                 ),
             ),
@@ -231,21 +234,24 @@ internal class LagBrevinnholdForBeregningTest {
                             utenlandskInntekt = null
                         )
                     ),
-                    eps = listOf(
-                        Månedsfradrag(
-                            type = Fradragstype.Arbeidsinntekt.toReadableTypeName(
-                                utenlandsk = false
+                    eps = Fradrag.Eps(
+                        listOf(
+                            Månedsfradrag(
+                                type = Fradragstype.Arbeidsinntekt.toReadableTypeName(
+                                    utenlandsk = false
+                                ),
+                                beløp = 20000.0,
+                                utenlandskInntekt = null
                             ),
-                            beløp = 20000.0,
-                            utenlandskInntekt = null
+                            Månedsfradrag(
+                                type = Fradragstype.Kapitalinntekt.toReadableTypeName(
+                                    utenlandsk = false
+                                ),
+                                beløp = 1000.0,
+                                utenlandskInntekt = null
+                            )
                         ),
-                        Månedsfradrag(
-                            type = Fradragstype.Kapitalinntekt.toReadableTypeName(
-                                utenlandsk = false
-                            ),
-                            beløp = 1000.0,
-                            utenlandskInntekt = null
-                        )
+                        false
                     )
                 ),
             ),
@@ -264,14 +270,17 @@ internal class LagBrevinnholdForBeregningTest {
                             utenlandskInntekt = null
                         )
                     ),
-                    eps = listOf(
-                        Månedsfradrag(
-                            type = Fradragstype.Arbeidsinntekt.toReadableTypeName(
-                                utenlandsk = false
-                            ),
-                            beløp = 20000.0,
-                            utenlandskInntekt = null
-                        )
+                    eps = Fradrag.Eps(
+                        listOf(
+                            Månedsfradrag(
+                                type = Fradragstype.Arbeidsinntekt.toReadableTypeName(
+                                    utenlandsk = false
+                                ),
+                                beløp = 20000.0,
+                                utenlandskInntekt = null
+                            )
+                        ),
+                        false
                     )
                 ),
             ),
@@ -307,17 +316,20 @@ internal class LagBrevinnholdForBeregningTest {
                         )
                     )
                 ),
-                eps = listOf(
-                    Månedsfradrag(
-                        type = Fradragstype.Arbeidsinntekt.toReadableTypeName(utenlandsk = false),
-                        beløp = 20.0,
-                        utenlandskInntekt = null
+                eps = Fradrag.Eps(
+                    listOf(
+                        Månedsfradrag(
+                            type = Fradragstype.Arbeidsinntekt.toReadableTypeName(utenlandsk = false),
+                            beløp = 20.0,
+                            utenlandskInntekt = null
+                        ),
+                        Månedsfradrag(
+                            type = Fradragstype.OffentligPensjon.toReadableTypeName(utenlandsk = false),
+                            beløp = 70.0,
+                            utenlandskInntekt = null
+                        )
                     ),
-                    Månedsfradrag(
-                        type = Fradragstype.OffentligPensjon.toReadableTypeName(utenlandsk = false),
-                        beløp = 70.0,
-                        utenlandskInntekt = null
-                    )
+                    false
                 )
             ),
         )
@@ -354,7 +366,8 @@ internal class LagBrevinnholdForBeregningTest {
                       }
                   }
                 ],
-                "eps": [
+                "eps": {
+                  "fradrag": [
                     {
                       "type": "Arbeidsinntekt",
                       "beløp": 20.0,
@@ -365,11 +378,147 @@ internal class LagBrevinnholdForBeregningTest {
                       "beløp": 70.0,
                       "utenlandskInntekt": null
                     }
-                  ]
+                  ],
+                  "harFradragMedSumSomErLavereEnnFribeløp": false
                 }
             }
+          }
         """.trimIndent()
 
         JSONAssert.assertEquals(expectedJson, objectMapper.writeValueAsString(beregning), true)
+    }
+
+    @Test
+    fun `Fradrag for eps er tom liste hvis beløp er lavere enn fribeløp`() {
+        val beregning = BeregningFactory.ny(
+            periode = Periode(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
+            sats = Sats.HØY,
+            fradrag = listOf(
+                FradragFactory.ny(
+                    type = Fradragstype.ForventetInntekt,
+                    månedsbeløp = 1000.0,
+                    periode = Periode(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER
+                ),
+                FradragFactory.ny(
+                    type = Fradragstype.Introduksjonsstønad,
+                    månedsbeløp = 3000.0,
+                    periode = Periode(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.EPS
+                )
+            ),
+            fradragStrategy = FradragStrategy.EpsOver67År
+        )
+
+        LagBrevinnholdForBeregning(beregning).brevInnhold shouldBe listOf(
+            Beregningsperiode(
+                periode = Periode(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
+                ytelsePerMåned = 19946,
+                satsbeløpPerMåned = 20946,
+                epsFribeløp = 15298.92,
+                fradrag = Fradrag(
+                    bruker = listOf(
+                        Månedsfradrag(
+                            type = Fradragstype.ForventetInntekt.toReadableTypeName(
+                                utenlandsk = false
+                            ),
+                            beløp = 1000.0,
+                            utenlandskInntekt = null
+                        )
+                    ),
+                    eps = Fradrag.Eps(
+                        emptyList(),
+                        true
+                    )
+                ),
+            )
+        )
+    }
+
+    @Test
+    fun `Tar med alle fradrag for eps hvis sum av fradagen er høyere enn fribeløp`() {
+        val beregning = BeregningFactory.ny(
+            periode = Periode(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
+            sats = Sats.HØY,
+            fradrag = listOf(
+                FradragFactory.ny(
+                    type = Fradragstype.ForventetInntekt,
+                    månedsbeløp = 1000.0,
+                    periode = Periode(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER
+                ),
+                FradragFactory.ny(
+                    type = Fradragstype.Kontantstøtte,
+                    månedsbeløp = 6000.0,
+                    periode = Periode(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.EPS
+                ),
+                FradragFactory.ny(
+                    type = Fradragstype.Introduksjonsstønad,
+                    månedsbeløp = 6000.0,
+                    periode = Periode(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.EPS
+                ),
+                FradragFactory.ny(
+                    type = Fradragstype.BidragEtterEkteskapsloven,
+                    månedsbeløp = 6000.0,
+                    periode = Periode(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.EPS
+                )
+            ),
+            fradragStrategy = FradragStrategy.EpsOver67År
+        )
+
+        LagBrevinnholdForBeregning(beregning).brevInnhold shouldBe listOf(
+            Beregningsperiode(
+                periode = Periode(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
+                ytelsePerMåned = 17245,
+                satsbeløpPerMåned = 20946,
+                epsFribeløp = 15298.92,
+                fradrag = Fradrag(
+                    bruker = listOf(
+                        Månedsfradrag(
+                            type = Fradragstype.ForventetInntekt.toReadableTypeName(
+                                utenlandsk = false
+                            ),
+                            beløp = 1000.0,
+                            utenlandskInntekt = null
+                        )
+                    ),
+                    eps = Fradrag.Eps(
+                        listOf(
+                            Månedsfradrag(
+                                type = Fradragstype.BidragEtterEkteskapsloven.toReadableTypeName(
+                                    utenlandsk = false
+                                ),
+                                beløp = 6000.0,
+                                utenlandskInntekt = null
+                            ),
+                            Månedsfradrag(
+                                type = Fradragstype.Introduksjonsstønad.toReadableTypeName(
+                                    utenlandsk = false
+                                ),
+                                beløp = 6000.0,
+                                utenlandskInntekt = null
+                            ),
+                            Månedsfradrag(
+                                type = Fradragstype.Kontantstøtte.toReadableTypeName(
+                                    utenlandsk = false
+                                ),
+                                beløp = 6000.0,
+                                utenlandskInntekt = null
+                            ),
+                        ),
+                        false
+                    )
+                ),
+            )
+        )
     }
 }

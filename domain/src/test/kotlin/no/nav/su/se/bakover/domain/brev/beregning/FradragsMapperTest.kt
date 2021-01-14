@@ -16,6 +16,13 @@ internal class FradragsMapperTest {
     @Test
     fun `Inneholder bare fradrag for aktuell bruker`() {
         val periode = Periode(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020))
+        val fradragForEps = FradragFactory.ny(
+            type = Fradragstype.BidragEtterEkteskapsloven,
+            månedsbeløp = 3000.0,
+            periode = periode,
+            utenlandskInntekt = null,
+            tilhører = FradragTilhører.EPS
+        )
         val fradrag = listOf(
             FradragFactory.ny(
                 type = Fradragstype.Kapitalinntekt,
@@ -24,16 +31,10 @@ internal class FradragsMapperTest {
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.BRUKER
             ),
-            FradragFactory.ny(
-                type = Fradragstype.BidragEtterEkteskapsloven,
-                månedsbeløp = 3000.0,
-                periode = periode,
-                utenlandskInntekt = null,
-                tilhører = FradragTilhører.EPS
-            )
+            fradragForEps
         )
 
-        BrukerFradragForBeregningsperiode(fradrag, periode).fradrag shouldBe listOf(
+        BrukerFradragForBeregningsperiode(fradrag).fradrag shouldBe listOf(
             Månedsfradrag(
                 type = Fradragstype.Kapitalinntekt.toReadableTypeName(false),
                 beløp = 5000.0,
@@ -41,7 +42,10 @@ internal class FradragsMapperTest {
             )
         )
 
-        EpsFradragForBeregningsperiode(fradrag, periode).fradrag shouldBe listOf(
+        EpsFradragForBeregningsperiode(
+            fradragFraSaksbehandler = fradrag,
+            beregningsperiode = periode
+        ).fradrag shouldBe listOf(
             Månedsfradrag(
                 type = Fradragstype.BidragEtterEkteskapsloven.toReadableTypeName(false),
                 beløp = 3000.0,
@@ -70,7 +74,7 @@ internal class FradragsMapperTest {
             )
         )
 
-        BrukerFradragForBeregningsperiode(fradrag, periode).fradrag shouldBe listOf(
+        BrukerFradragForBeregningsperiode(fradrag).fradrag shouldBe listOf(
             Månedsfradrag(
                 type = Fradragstype.Kapitalinntekt.toReadableTypeName(false),
                 beløp = 3337.0,
@@ -80,7 +84,7 @@ internal class FradragsMapperTest {
     }
 
     @Test
-    fun `BrukerFradrag inneholder bare fradrag for aktuell beregningsperiode`() {
+    fun `EpsFradrag inneholder bare fradrag for aktuell beregningsperiode`() {
         val periode = Periode(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020))
         val fradrag = listOf(
             FradragFactory.ny(
@@ -88,25 +92,25 @@ internal class FradragsMapperTest {
                 månedsbeløp = 3337.0,
                 periode = periode,
                 utenlandskInntekt = null,
-                tilhører = FradragTilhører.BRUKER
+                tilhører = FradragTilhører.EPS
             ),
             FradragFactory.ny(
                 type = Fradragstype.ForventetInntekt,
                 månedsbeløp = 10000.0,
                 periode = Periode(fraOgMed = 1.juni(2020), tilOgMed = 31.august(2020)),
                 utenlandskInntekt = null,
-                tilhører = FradragTilhører.BRUKER
+                tilhører = FradragTilhører.EPS
             ),
             FradragFactory.ny(
                 type = Fradragstype.Arbeidsinntekt,
                 månedsbeløp = 10000.0,
                 periode = Periode(fraOgMed = 1.januar(2020), tilOgMed = 31.januar(2020)),
                 utenlandskInntekt = null,
-                tilhører = FradragTilhører.BRUKER
+                tilhører = FradragTilhører.EPS
             )
         )
 
-        BrukerFradragForBeregningsperiode(
+        EpsFradragForBeregningsperiode(
             fradrag,
             Periode(fraOgMed = 1.januar(2020), tilOgMed = 31.januar(2020))
         ).fradrag shouldBe listOf(
@@ -122,7 +126,7 @@ internal class FradragsMapperTest {
             ),
         )
 
-        BrukerFradragForBeregningsperiode(
+        EpsFradragForBeregningsperiode(
             fradrag,
             periode
         ).fradrag shouldBe listOf(

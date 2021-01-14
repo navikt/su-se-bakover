@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.brev.beregning
 
 import no.nav.su.se.bakover.domain.beregning.GrupperEkvivalenteMånedsberegninger
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import java.math.BigDecimal
 import java.math.RoundingMode
 import kotlin.math.roundToInt
@@ -11,24 +12,37 @@ data class LagBrevinnholdForBeregning(
     private val beregning: FaktiskBeregning
 ) {
     internal val brevInnhold: List<Beregningsperiode> =
-        GrupperEkvivalenteMånedsberegninger(beregning.getMånedsberegninger()).grupper.map { gruppertMånedsberegning ->
+        GrupperEkvivalenteMånedsberegninger(beregning.getMånedsberegninger()).grupper.map { beregningsperiode ->
+            val inneholderEpsFradrag = beregningsperiode.getFradrag().innholderBeregnetFradragEps()
+            val epz = EpsFradragForBeregningsperiode(
+                beregning.getFradrag(),
+                beregningsperiode.getPeriode()
+            ).fradrag
             Beregningsperiode(
                 // TODO ikke vis eps fradrag som er under fribeløp
                 // TODO eps firbeløp ikke safe vel?
-                periode = gruppertMånedsberegning.getPeriode(),
-                ytelsePerMåned = gruppertMånedsberegning.getSumYtelse(),
-                satsbeløpPerMåned = gruppertMånedsberegning.getSatsbeløp().roundToInt(),
+                periode = beregningsperiode.getPeriode(),
+                ytelsePerMåned = beregningsperiode.getSumYtelse(),
+                satsbeløpPerMåned = beregningsperiode.getSatsbeløp().roundToInt(),
                 epsFribeløp = FradragStrategy.fromName(beregning.getFradragStrategyName())
-                    .getEpsFribeløp(gruppertMånedsberegning.getPeriode()).let {
-                        it / gruppertMånedsberegning.getPeriode().getAntallMåneder()
+                    .getEpsFribeløp(beregningsperiode.getPeriode()).let {
+                        it / beregningsperiode.getPeriode().getAntallMåneder()
                     }.roundToTwoDecimals(),
                 fradrag = Fradrag(
-                    bruker = BrukerFradragForBeregningsperiode(beregning.getFradrag(), gruppertMånedsberegning.getPeriode()).fradrag,
-                    eps = EpsFradragForBeregningsperiode(beregning.getFradrag(), gruppertMånedsberegning.getPeriode()).fradrag
+                    bruker = BrukerFradragForBeregningsperiode(beregningsperiode.getFradrag()).fradrag,
+                    eps = Fradrag.Eps(
+                        fradrag = when (inneholderEpsFradrag) {
+                            true -> epz
+                            false -> emptyList()
+                        },
+                        harFradragMedSumSomErLavereEnnFribeløp = !inneholderEpsFradrag && epz.isNotEmpty()
+                    )
                 )
             )
         }
 
+    private fun List<no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag>.innholderBeregnetFradragEps() =
+        this.any { it.getFradragstype() == Fradragstype.BeregnetFradragEPS }
 }
 
 fun Double.roundToTwoDecimals() =

@@ -56,7 +56,7 @@ internal class BrevInnholdTest {
                     ytelsePerMåned = 100,
                     satsbeløpPerMåned = 100,
                     epsFribeløp = 100.0,
-                    fradrag = Fradrag(emptyList(), emptyList())
+                    fradrag = Fradrag(emptyList(), Fradrag.Eps(emptyList(), false))
                 )
             ),
             saksbehandlerNavn = "Hei",
@@ -89,7 +89,10 @@ internal class BrevInnholdTest {
                     "epsFribeløp": 100.0,
                     "fradrag": {
                       "bruker" : [],
-                      "eps": []
+                      "eps": {
+                      "fradrag": [],
+                      "harFradragMedSumSomErLavereEnnFribeløp": false
+                      }
                     }
                 }],
                 "totalSumForBeregningsperioder": 1200,

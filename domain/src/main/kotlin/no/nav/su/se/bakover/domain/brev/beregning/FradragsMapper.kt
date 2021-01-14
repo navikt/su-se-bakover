@@ -5,19 +5,25 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 
-data class BrukerFradragForBeregningsperiode(val alleFradrag: List<Fradrag>, val beregningsperiode: Periode) {
-    val fradrag: List<Månedsfradrag> = alleFradrag
+internal data class BrukerFradragForBeregningsperiode(
+    private val fradragForBeregningsperiode: List<Fradrag>
+) {
+    val fradrag: List<Månedsfradrag> = fradragForBeregningsperiode
         .filter { it.getTilhører() == FradragTilhører.BRUKER }
-        .fradragStørreEnn0IPeriode(beregningsperiode)
+        .filter { it.getMånedsbeløp() > 0 }
+        .toMånedsfradragPerType()
 }
 
-data class EpsFradragForBeregningsperiode(val alleFradrag: List<Fradrag>, val beregningsperiode: Periode) {
-    val fradrag: List<Månedsfradrag> = alleFradrag
+internal data class EpsFradragForBeregningsperiode(
+    private val fradragFraSaksbehandler: List<Fradrag>,
+    private val beregningsperiode: Periode
+) {
+    val fradrag: List<Månedsfradrag> = fradragFraSaksbehandler
         .filter { it.getTilhører() == FradragTilhører.EPS }
         .fradragStørreEnn0IPeriode(beregningsperiode)
 }
 
-fun List<Fradrag>.fradragStørreEnn0IPeriode(periode: Periode) =
+internal fun List<Fradrag>.fradragStørreEnn0IPeriode(periode: Periode) =
     this.filter { it.getPeriode() inneholder periode }
         .filter { it.getMånedsbeløp() > 0 }
         .toMånedsfradragPerType()
@@ -26,10 +32,10 @@ internal fun List<Fradrag>.toMånedsfradragPerType(): List<Månedsfradrag> =
     this
         .groupBy {
             "${it.getFradragstype()}${
-                it.getUtenlandskInntekt()
-                    ?.let { u ->
-                        "${u.valuta}${u.beløpIUtenlandskValuta}"
-                    }
+            it.getUtenlandskInntekt()
+                ?.let { u ->
+                    "${u.valuta}${u.beløpIUtenlandskValuta}"
+                }
             }"
         }
         .map { (_, fradrag) ->

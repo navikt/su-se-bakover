@@ -31,7 +31,7 @@ object VedtakInnholdTestdataBuilder {
                 ytelsePerMåned = 0,
                 satsbeløpPerMåned = 0,
                 epsFribeløp = 0.0,
-                fradrag = Fradrag(emptyList(), emptyList())
+                fradrag = Fradrag(emptyList(), Fradrag.Eps(emptyList(), true))
             )
         ),
         saksbehandlerNavn = "Nei Josbø",
