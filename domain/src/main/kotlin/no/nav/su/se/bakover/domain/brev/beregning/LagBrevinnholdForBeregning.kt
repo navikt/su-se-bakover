@@ -19,6 +19,7 @@ data class LagBrevinnholdForBeregning(
                 // TODO mangler totalt beløp
                 // TODO filtrer vekk 0 beløp
                 // TODO ikke vis eps fradrag som er under fribeløp
+                // TODO eps firbeløp ikke safe vel?
                 periode = gruppertMånedsberegning.getPeriode(),
                 ytelsePerMåned = gruppertMånedsberegning.getSumYtelse(),
                 satsbeløpPerMåned = gruppertMånedsberegning.getSatsbeløp().roundToInt(),
@@ -34,8 +35,7 @@ data class LagBrevinnholdForBeregning(
                             .let {
                                 FradragForBruker(
                                     fradrag = it.toMånedsfradragPerType(),
-                                    sum = it.sumByDouble { f -> f.getMånedsbeløp() }.roundToTwoDecimals(),
-                                    harBruktForventetInntektIStedetForArbeidsinntekt = it.any { f -> f.getFradragstype() == Fradragstype.ForventetInntekt }
+                                    sum = it.sumByDouble { f -> f.getMånedsbeløp() }.roundToTwoDecimals()
                                 )
                             },
                         eps = beregning.getFradrag()

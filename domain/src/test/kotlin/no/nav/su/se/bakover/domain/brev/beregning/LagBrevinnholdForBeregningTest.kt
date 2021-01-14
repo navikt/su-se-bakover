@@ -57,8 +57,7 @@ internal class LagBrevinnholdForBeregningTest {
                                 utenlandskInntekt = null
                             )
                         ),
-                        sum = 1000.0,
-                        harBruktForventetInntektIStedetForArbeidsinntekt = true
+                        sum = 1000.0
                     ),
                     eps = FradragForEps(listOf(), 0.0)
                 ),
@@ -114,8 +113,7 @@ internal class LagBrevinnholdForBeregningTest {
                                 utenlandskInntekt = null
                             )
                         ),
-                        sum = 1000.0,
-                        harBruktForventetInntektIStedetForArbeidsinntekt = true
+                        sum = 1000.0
                     ),
                     eps = FradragForEps(listOf(), 0.0)
                 ),
@@ -143,8 +141,7 @@ internal class LagBrevinnholdForBeregningTest {
                                 utenlandskInntekt = null
                             ),
                         ),
-                        sum = 11999.0,
-                        harBruktForventetInntektIStedetForArbeidsinntekt = false
+                        sum = 11999.0
                     ),
                     eps = FradragForEps(listOf(), 0.0)
                 ),
@@ -165,8 +162,7 @@ internal class LagBrevinnholdForBeregningTest {
                                 utenlandskInntekt = null
                             )
                         ),
-                        sum = 1000.0,
-                        harBruktForventetInntektIStedetForArbeidsinntekt = true
+                        sum = 1000.0
                     ),
                     eps = FradragForEps(listOf(), 0.0)
                 ),
@@ -222,8 +218,7 @@ internal class LagBrevinnholdForBeregningTest {
                                 utenlandskInntekt = null
                             )
                         ),
-                        sum = 1000.0,
-                        harBruktForventetInntektIStedetForArbeidsinntekt = true
+                        sum = 1000.0
                     ),
                     eps = FradragForEps(
                         fradrag = listOf(
@@ -255,8 +250,7 @@ internal class LagBrevinnholdForBeregningTest {
                                 utenlandskInntekt = null
                             )
                         ),
-                        sum = 1000.0,
-                        harBruktForventetInntektIStedetForArbeidsinntekt = true
+                        sum = 1000.0
                     ),
                     eps = FradragForEps(
                         fradrag = listOf(
@@ -295,8 +289,7 @@ internal class LagBrevinnholdForBeregningTest {
                                 utenlandskInntekt = null
                             )
                         ),
-                        sum = 1000.0,
-                        harBruktForventetInntektIStedetForArbeidsinntekt = true
+                        sum = 1000.0
                     ),
                     eps = FradragForEps(
                         fradrag = listOf(
@@ -345,8 +338,7 @@ internal class LagBrevinnholdForBeregningTest {
                             )
                         )
                     ),
-                    sum = 45.0,
-                    harBruktForventetInntektIStedetForArbeidsinntekt = false
+                    sum = 45.0
                 ),
                 eps = FradragForEps(
                     fradrag = listOf(
@@ -399,8 +391,7 @@ internal class LagBrevinnholdForBeregningTest {
                       }
                     }
                   ],
-                  "sum": 45.0,
-                  "harBruktForventetInntektIStedetForArbeidsinntekt": false
+                  "sum": 45.0
                 },
                 "eps": {
                   "fradrag": [
