@@ -175,7 +175,7 @@ internal class VedtakssnapshotJsonTest {
                         "begrunnelse":null
                      },
                      "bosituasjon":{
-                        "epsFnr":null,
+                        "epsAlder":null,
                         "delerBolig":false,
                         "ektemakeEllerSamboerUførFlyktning":null,
                         "begrunnelse":null
@@ -564,7 +564,7 @@ internal class VedtakssnapshotJsonTest {
                         "begrunnelse":null
                      },
                      "bosituasjon":{
-                        "epsFnr":null,
+                        "epsAlder":null,
                         "delerBolig":false,
                         "ektemakeEllerSamboerUførFlyktning":null,
                         "begrunnelse":null

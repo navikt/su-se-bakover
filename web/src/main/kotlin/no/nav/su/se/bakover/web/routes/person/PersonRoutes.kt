@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.web.lesFnr
 import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.routes.person.PersonResponseJson.Companion.toJson
 import no.nav.su.se.bakover.web.svar
+import java.time.LocalDate
 
 internal const val personPath = "/person"
 
@@ -62,6 +63,8 @@ data class PersonResponseJson(
     val adresse: List<AdresseJson>?,
     val statsborgerskap: String?,
     val kjønn: String?,
+    val fødselsdato: LocalDate?,
+    val alder: Number?,
     val adressebeskyttelse: String?,
     val skjermet: Boolean?,
     val kontaktinfo: KontaktinfoJson?,
@@ -127,6 +130,8 @@ data class PersonResponseJson(
             },
             statsborgerskap = this.statsborgerskap,
             kjønn = this.kjønn,
+            fødselsdato = this.fødselsdato,
+            alder = this.getAlder(),
             adressebeskyttelse = this.adressebeskyttelse,
             skjermet = this.skjermet,
             kontaktinfo = this.kontaktinfo?.let {

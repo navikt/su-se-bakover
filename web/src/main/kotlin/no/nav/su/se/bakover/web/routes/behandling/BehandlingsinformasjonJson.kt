@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Sats
+import java.time.LocalDate
 
 data class BehandlingsinformasjonJson(
     val uførhet: UførhetJson? = null,
@@ -124,7 +125,7 @@ internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
         },
         bosituasjon = b.bosituasjon?.let { s ->
             Behandlingsinformasjon.Bosituasjon(
-                epsFnr = s.epsFnr,
+                epsAlder = s.epsAlder,
                 delerBolig = s.delerBolig,
                 ektemakeEllerSamboerUførFlyktning = s.ektemakeEllerSamboerUførFlyktning,
                 begrunnelse = s.begrunnelse
@@ -136,6 +137,7 @@ internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
                     fnr = e.fnr,
                     navn = e.navn,
                     kjønn = e.kjønn,
+                    fødselsdato = e.fødselsdato,
                     adressebeskyttelse = e.adressebeskyttelse,
                     skjermet = e.skjermet,
                 )
@@ -210,7 +212,7 @@ internal fun Behandlingsinformasjon.PersonligOppmøte.toJson() =
 
 internal fun Behandlingsinformasjon.Bosituasjon.toJson() =
     BosituasjonJson(
-        epsFnr = epsFnr,
+        epsAlder = epsAlder,
         delerBolig = delerBolig,
         ektemakeEllerSamboerUførFlyktning = ektemakeEllerSamboerUførFlyktning,
         begrunnelse = begrunnelse
@@ -221,7 +223,8 @@ internal fun Behandlingsinformasjon.EktefellePartnerSamboer.toJson() = when (thi
         fnr = this.fnr,
         navn = this.navn,
         kjønn = this.kjønn,
-        alder = this.fnr.getAlder(),
+        fødselsdato = this.fødselsdato,
+        alder = this.getAlder(),
         adressebeskyttelse = this.adressebeskyttelse,
         skjermet = this.skjermet,
     )
@@ -239,7 +242,7 @@ internal fun FlyktningJson.isValid() =
 internal fun LovligOppholdJson.isValid() =
     enumContains<Behandlingsinformasjon.LovligOpphold.Status>(status)
 
-internal fun BosituasjonJson.isValid() = epsFnr != null || delerBolig != null
+internal fun BosituasjonJson.isValid() = epsAlder != null || delerBolig != null
 
 internal fun PersonligOppmøteJson.isValid() =
     enumContains<Behandlingsinformasjon.PersonligOppmøte.Status>(status)
@@ -312,7 +315,7 @@ data class PersonligOppmøteJson(
 )
 
 data class BosituasjonJson(
-    val epsFnr: Fnr?,
+    val epsAlder: Int?,
     val delerBolig: Boolean?,
     val ektemakeEllerSamboerUførFlyktning: Boolean?,
     val begrunnelse: String?
@@ -322,6 +325,7 @@ data class EktefelleJson(
     val fnr: Fnr?,
     val navn: Person.Navn?,
     val kjønn: String?,
+    val fødselsdato: LocalDate?,
     val adressebeskyttelse: String?,
     val skjermet: Boolean?,
     val alder: Int?

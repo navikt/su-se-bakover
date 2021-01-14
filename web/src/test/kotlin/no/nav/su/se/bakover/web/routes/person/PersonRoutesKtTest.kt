@@ -22,6 +22,8 @@ import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
+import java.time.LocalDate
+import java.time.Period
 import kotlin.test.assertEquals
 
 internal class PersonRoutesKtTest {
@@ -50,6 +52,8 @@ internal class PersonRoutesKtTest {
     @Test
     fun `kan hente data gjennom PersonOppslag`() {
         val testIdent = "12345678910"
+        val fødselsdato = "1990-01-01"
+        val alder = fødselsdato.let { Period.between(LocalDate.parse(it), LocalDate.now()).years }
 
         //language=JSON
         val expectedResponseJson =
@@ -78,6 +82,8 @@ internal class PersonRoutesKtTest {
                     }],
                     "statsborgerskap": "NOR",
                     "kjønn": "MANN",
+                    "fødselsdato": $fødselsdato,
+                    "alder": $alder,
                     "adressebeskyttelse": null,
                     "skjermet": false,
                     "kontaktinfo": {

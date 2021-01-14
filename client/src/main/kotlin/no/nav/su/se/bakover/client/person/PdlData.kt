@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.client.person
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Telefonnummer
+import java.time.LocalDate
 
 internal data class PdlData(
     val ident: Ident,
@@ -11,6 +12,7 @@ internal data class PdlData(
     val adresse: List<Adresse>?,
     val statsborgerskap: String?,
     val kjønn: String?,
+    val fødselsdato: LocalDate?,
     val adressebeskyttelse: String?,
     val vergemålEllerFremtidsfullmakt: Boolean,
     val fullmakt: Boolean,

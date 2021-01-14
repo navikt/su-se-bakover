@@ -55,6 +55,7 @@ class PersonClient(
             },
             statsborgerskap = pdlData.statsborgerskap,
             kjønn = pdlData.kjønn,
+            fødselsdato = pdlData.fødselsdato,
             adressebeskyttelse = pdlData.adressebeskyttelse,
             skjermet = skjerming.erSkjermet(pdlData.ident.fnr),
             kontaktinfo = kontaktinfo(pdlData.ident.fnr),

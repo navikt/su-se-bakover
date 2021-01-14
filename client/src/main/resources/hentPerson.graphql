@@ -105,6 +105,9 @@ query($ident: ID!, $historikk: Boolean!, $identGrupper: [IdentGruppe!]) {
         kjoenn(historikk: $historikk) {
             kjoenn
         },
+        foedsel {
+            foedselsdato
+        },
         adressebeskyttelse(historikk: $historikk) {
             gradering
         },

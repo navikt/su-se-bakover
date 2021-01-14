@@ -81,6 +81,7 @@ object BehandlingTestUtils {
         adresse = null,
         statsborgerskap = null,
         kjønn = null,
+        fødselsdato = null,
         adressebeskyttelse = null,
         skjermet = null,
         kontaktinfo = null,
@@ -166,7 +167,7 @@ object BehandlingTestUtils {
             begrunnelse = null
         ),
         bosituasjon = Bosituasjon(
-            epsFnr = null,
+            epsAlder = null,
             delerBolig = false,
             ektemakeEllerSamboerUførFlyktning = false,
             begrunnelse = null
@@ -175,6 +176,7 @@ object BehandlingTestUtils {
             fnr = Fnr("17087524256"),
             navn = Navn("fornavn", null, "etternavn"),
             kjønn = null,
+            fødselsdato = null,
             adressebeskyttelse = null,
             skjermet = null
         )

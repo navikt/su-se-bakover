@@ -12,6 +12,8 @@ import no.nav.su.se.bakover.domain.behandling.Satsgrunn.DELER_BOLIG_MED_VOKSNE_B
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.Sats
+import java.time.LocalDate
+import java.time.Period
 
 data class Behandlingsinformasjon(
     val uførhet: Uførhet? = null,
@@ -245,7 +247,7 @@ data class Behandlingsinformasjon(
     }
 
     data class Bosituasjon(
-        val epsFnr: Fnr?,
+        val epsAlder: Int?,
         val delerBolig: Boolean?,
         val ektemakeEllerSamboerUførFlyktning: Boolean?,
         val begrunnelse: String?
@@ -256,14 +258,14 @@ data class Behandlingsinformasjon(
 
         @JsonIgnore
         internal fun getBeregningStrategy(): BeregningStrategy {
-            if (epsFnr == null && delerBolig == false) {
+            if (epsAlder == null && delerBolig == false) {
                 return BeregningStrategy.BorAlene
             } else {
                 if (delerBolig == true) {
                     return BeregningStrategy.BorMedVoksne
                 }
-                if (epsFnr != null) {
-                    if (epsFnr.getAlder() > 66) {
+                if (epsAlder != null) {
+                    if (epsAlder > 66) {
                         return BeregningStrategy.EpsOver67År
                     }
                     if (ektemakeEllerSamboerUførFlyktning == true) {
@@ -276,14 +278,14 @@ data class Behandlingsinformasjon(
         }
 
         override fun erVilkårOppfylt(): Boolean {
-            if (epsFnr == null && delerBolig == null) {
+            if (epsAlder == null && delerBolig == null) {
                 return false
             }
-            if (epsFnr != null) {
-                if (epsFnr.getAlder() < 67) {
+            if (epsAlder != null) {
+                if (epsAlder < 67) {
                     return ektemakeEllerSamboerUførFlyktning != null
                 }
-                if (epsFnr.getAlder() >= 67) {
+                if (epsAlder >= 67) {
                     return ektemakeEllerSamboerUførFlyktning == null
                 }
             }
@@ -296,12 +298,12 @@ data class Behandlingsinformasjon(
 
         @JsonIgnore
         fun getSatsgrunn(): Satsgrunn {
-            val epsOver66 = epsFnr != null && epsFnr.getAlder() > 66
-            val epsUnder67 = epsFnr != null && epsFnr.getAlder() < 67
+            val eps67EllerEldre = epsAlder != null && epsAlder >= 67
+            val epsUnder67 = epsAlder != null && epsAlder < 67
             return when {
                 delerBolig == false -> Satsgrunn.ENSLIG
                 delerBolig == true -> DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN
-                epsOver66 -> DELER_BOLIG_MED_EKTEMAKE_SAMBOER_OVER_67 // TODO jah: >66 != over 67
+                eps67EllerEldre -> DELER_BOLIG_MED_EKTEMAKE_SAMBOER_OVER_67
                 epsUnder67 && ektemakeEllerSamboerUførFlyktning == false -> DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67
                 epsUnder67 && ektemakeEllerSamboerUførFlyktning == true -> DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67_UFØR_FLYKTNING
                 else -> throw IllegalStateException("Kunne ikke utlede satsgrunn")
@@ -323,9 +325,12 @@ data class Behandlingsinformasjon(
             val fnr: Fnr,
             val navn: Person.Navn?,
             val kjønn: String?,
+            val fødselsdato: LocalDate?,
             val adressebeskyttelse: String?,
             val skjermet: Boolean?
-        ) : EktefellePartnerSamboer()
+        ) : EktefellePartnerSamboer() {
+            fun getAlder() = fødselsdato?.let { Period.between(it, LocalDate.now()).years }
+        }
 
         object IngenEktefelle : EktefellePartnerSamboer()
 

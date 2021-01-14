@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Telefonnummer
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.PersonOppslag
+import java.time.LocalDate
 
 object PersonOppslagStub :
     PersonOppslag {
@@ -33,6 +34,7 @@ object PersonOppslagStub :
         ),
         statsborgerskap = "NOR",
         kjønn = "MANN",
+        fødselsdato = LocalDate.of(1990, 1, 1),
         adressebeskyttelse = null,
         skjermet = false,
         kontaktinfo = Person.Kontaktinfo(

@@ -71,6 +71,7 @@ internal class LukkSøknadServiceImplTest {
         adresse = null,
         statsborgerskap = null,
         kjønn = null,
+        fødselsdato = null,
         adressebeskyttelse = null,
         skjermet = null,
         kontaktinfo = null,
