@@ -52,16 +52,14 @@ internal class BeregningMapperTest {
                       "utenlandskInntekt": null,
                       "periode": {
                         "fraOgMed": "2020-01-01",
-                        "tilOgMed": "2020-01-31",
-                        "antallMåneder": 1
+                        "tilOgMed": "2020-01-31"
                       },
                       "tilhører": "BRUKER"
                     }
                   ],
                   "periode": {
                     "fraOgMed": "2020-01-01",
-                    "tilOgMed": "2020-01-31",
-                    "antallMåneder": 1
+                    "tilOgMed": "2020-01-31"
                   }
                 }
               ],
@@ -72,8 +70,7 @@ internal class BeregningMapperTest {
                   "utenlandskInntekt": null,
                   "periode": {
                     "fraOgMed": "2020-01-01",
-                    "tilOgMed": "2020-01-31",
-                    "antallMåneder": 1
+                    "tilOgMed": "2020-01-31"
                   },
                   "tilhører": "BRUKER"
                 }
@@ -82,8 +79,7 @@ internal class BeregningMapperTest {
               "sumFradrag": 12000.0,
               "periode": {
                 "fraOgMed": "2020-01-01",
-                "tilOgMed": "2020-01-31",
-                "antallMåneder": 1
+                "tilOgMed": "2020-01-31"
               },
               "fradragStrategyName": "Enslig"
             }
@@ -101,8 +97,7 @@ internal class BeregningMapperTest {
                   "utenlandskInntekt": null,
                   "periode": {
                     "fraOgMed": "2020-01-01",
-                    "tilOgMed": "2020-01-31",
-                    "antallMåneder": 1
+                    "tilOgMed": "2020-01-31"
                   },
                   "tilhører": "BRUKER"
                 }
