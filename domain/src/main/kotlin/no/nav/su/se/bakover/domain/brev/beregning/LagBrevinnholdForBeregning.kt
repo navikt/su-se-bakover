@@ -27,18 +27,15 @@ data class LagBrevinnholdForBeregning(
                     .getEpsFribeløp(gruppertMånedsberegning.getPeriode()).let {
                         it / gruppertMånedsberegning.getPeriode().getAntallMåneder()
                     }.roundToTwoDecimals(),
-                fradrag = when (beregning.getFradrag().isEmpty()) {
-                    true -> null
-                    false -> Fradrag(
-                        bruker = gruppertMånedsberegning.getFradrag()
-                            .filter { it.getTilhører() == FradragTilhører.BRUKER }
-                            .toMånedsfradragPerType(),
-                        eps = beregning.getFradrag()
-                            .filter { it.getTilhører() == FradragTilhører.EPS }
-                            .filter { it.getPeriode() inneholder gruppertMånedsberegning.getPeriode() }
-                            .toMånedsfradragPerType()
-                    )
-                }
+                fradrag = Fradrag(
+                    bruker = gruppertMånedsberegning.getFradrag()
+                        .filter { it.getTilhører() == FradragTilhører.BRUKER }
+                        .toMånedsfradragPerType(),
+                    eps = beregning.getFradrag()
+                        .filter { it.getTilhører() == FradragTilhører.EPS }
+                        .filter { it.getPeriode() inneholder gruppertMånedsberegning.getPeriode() }
+                        .toMånedsfradragPerType()
+                )
             )
         }
 }

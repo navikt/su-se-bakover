@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.behandling.Satsgrunn
 import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
+import no.nav.su.se.bakover.domain.brev.beregning.Fradrag
 
 /**
  * TODO John Andre Hestad: Det skal være mulig å bygge en testJar og importere denne fra gradle.
@@ -30,7 +31,7 @@ object VedtakInnholdTestdataBuilder {
                 ytelsePerMåned = 0,
                 satsbeløpPerMåned = 0,
                 epsFribeløp = 0.0,
-                fradrag = null
+                fradrag = Fradrag(emptyList(), emptyList())
             )
         ),
         saksbehandlerNavn = "Nei Josbø",

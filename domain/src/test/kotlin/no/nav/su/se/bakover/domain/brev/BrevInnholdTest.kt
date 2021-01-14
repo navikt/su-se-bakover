@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.behandling.Satsgrunn
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
+import no.nav.su.se.bakover.domain.brev.beregning.Fradrag
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevInnhold
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
@@ -55,7 +56,7 @@ internal class BrevInnholdTest {
                     ytelsePerMåned = 100,
                     satsbeløpPerMåned = 100,
                     epsFribeløp = 100.0,
-                    fradrag = null
+                    fradrag = Fradrag(emptyList(), emptyList())
                 )
             ),
             saksbehandlerNavn = "Hei",
@@ -86,7 +87,10 @@ internal class BrevInnholdTest {
                     "ytelsePerMåned": 100,
                     "satsbeløpPerMåned": 100,
                     "epsFribeløp": 100.0,
-                    "fradrag": null
+                    "fradrag": {
+                      "bruker" : [],
+                      "eps": []
+                    }
                 }],
                 "totalSumForBeregningsperioder": 1200,
                 "saksbehandlerNavn": "Hei",
