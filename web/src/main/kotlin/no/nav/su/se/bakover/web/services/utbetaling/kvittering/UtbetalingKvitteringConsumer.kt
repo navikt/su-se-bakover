@@ -7,7 +7,10 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringResponse.Companion.toKvitteringResponse
 import org.slf4j.LoggerFactory
@@ -15,6 +18,7 @@ import java.time.Clock
 
 class UtbetalingKvitteringConsumer(
     private val utbetalingService: UtbetalingService,
+    private val behandlingService: BehandlingService,
     private val clock: Clock = Clock.systemUTC(),
     private val xmlMapper: XmlMapper = UtbetalingKvitteringConsumer.xmlMapper
 ) {
@@ -35,7 +39,8 @@ class UtbetalingKvitteringConsumer(
             Avstemmingsnøkkel.fromString(it)
         }
 
-        utbetalingService.oppdaterMedKvittering(avstemmingsnøkkel, kvitteringResponse.toKvittering(xmlMessage, clock))
+        val kvittering: Kvittering = kvitteringResponse.toKvittering(xmlMessage, clock)
+        utbetalingService.oppdaterMedKvittering(avstemmingsnøkkel, kvittering)
             .mapLeft {
                 runBlocking {
                     /**
@@ -48,11 +53,15 @@ class UtbetalingKvitteringConsumer(
                     delay(delayMs)
                     utbetalingService.oppdaterMedKvittering(
                         avstemmingsnøkkel,
-                        kvitteringResponse.toKvittering(xmlMessage, clock)
+                        kvittering
                     ).mapLeft {
                         throw RuntimeException("Kunne ikke lagre kvittering. Fant ikke utbetaling med avstemmingsnøkkel $avstemmingsnøkkel")
                     }
                 }
             }
+    }
+
+    private fun ferdigstillInnvilgelse(utbetalingId: UUID30) {
+        behandlingService.ferdigstillInnvilgelse(utbetalingId)
     }
 }

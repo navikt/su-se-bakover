@@ -291,7 +291,6 @@ internal fun Route.behandlingRoutes(
                 is IverksattBehandling.UtenMangler -> OK.jsonBody(value.behandling)
                 is IverksattBehandling.MedMangler.KunneIkkeLukkeOppgave -> OK.jsonBody(value.behandling)
                 is IverksattBehandling.MedMangler.KunneIkkeDistribuereBrev -> OK.jsonBody(value.behandling)
-                is IverksattBehandling.MedMangler.KunneIkkeJournalføreBrev -> OK.jsonBody(value.behandling)
             }
         }
 

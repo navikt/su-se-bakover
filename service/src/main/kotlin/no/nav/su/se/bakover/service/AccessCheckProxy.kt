@@ -212,6 +212,10 @@ class AccessCheckProxy(
                     return services.behandling.iverksett(behandlingId, attestant)
                 }
 
+                override fun ferdigstillInnvilgelse(utbetalingId: UUID30) {
+                    kastKanKunKallesFraAnnenService()
+                }
+
                 override fun opprettManglendeJournalpostOgBrevdistribusjon(): OpprettManglendeJournalpostOgBrevdistribusjonResultat {
                     // Dette er et driftsendepunkt og vi vil ikke returnere kode 6/7/person-sensitive data.
 
@@ -331,7 +335,7 @@ class AccessCheckProxy(
                 override fun publiser(statistikk: Statistikk) {
                     kastKanKunKallesFraAnnenService()
                 }
-            }
+            },
         )
     }
 

@@ -40,6 +40,9 @@ internal class BehandlingPostgresRepo(
     override fun hentBehandling(behandlingId: UUID): Behandling? =
         dataSource.withSession { hentBehandling(behandlingId, it) }
 
+    override fun hentBehandlingForUtbetaling(utbetalingId: UUID30): Behandling? =
+        dataSource.withSession { hentBehandlingForUtbetaling(utbetalingId, it) }
+
     override fun oppdaterBehandlingsinformasjon(
         behandlingId: UUID,
         behandlingsinformasjon: Behandlingsinformasjon
@@ -230,6 +233,12 @@ internal class BehandlingPostgresRepo(
     internal fun hentBehandling(behandlingId: UUID, session: Session): Behandling? =
         "select b.*, s.fnr, s.saksnummer from behandling b inner join sak s on s.id = b.sakId where b.id=:id"
             .hent(mapOf("id" to behandlingId), session) { row ->
+                row.toBehandling(session)
+            }
+
+    internal fun hentBehandlingForUtbetaling(utbetalingId: UUID30, session: Session): Behandling? =
+        "select b.*, s.fnr, s.saksnummer from utbetaling u inner join behandling b on b.utbetalingid = u.id inner join sak s on s.id = b.sakid where u.id = :id"
+            .hent(mapOf("id" to utbetalingId), session) { row ->
                 row.toBehandling(session)
             }
 

@@ -9,7 +9,10 @@ import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
 import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.service.behandling.BehandlingServiceImpl
+import no.nav.su.se.bakover.service.behandling.DistribuerIverksettingsbrevService
+import no.nav.su.se.bakover.service.behandling.FerdigstillIverksettingService
 import no.nav.su.se.bakover.service.behandling.IverksettBehandlingService
+import no.nav.su.se.bakover.service.behandling.JournalførIverksettingService
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.BrevServiceImpl
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
@@ -66,6 +69,18 @@ class ServiceBuilder(
             søknadMetrics = søknadMetrics
         )
         val opprettVedtakssnapshotService = OpprettVedtakssnapshotService(databaseRepos.vedtakssnapshot)
+        val journalførIverksettingService = JournalførIverksettingService(databaseRepos.behandling, brevService)
+        val distribuerIverksettingsbrevService =
+            DistribuerIverksettingsbrevService(brevService, databaseRepos.behandling)
+        val ferdigstillIverksettingService = FerdigstillIverksettingService(
+            behandlingRepo = databaseRepos.behandling,
+            oppgaveService = oppgaveService,
+            personService = personService,
+            behandlingMetrics = behandlingMetrics,
+            microsoftGraphApiClient = clients.microsoftGraphApiClient,
+            journalførIverksettingService = journalførIverksettingService,
+            distribuerIverksettingsbrevService = distribuerIverksettingsbrevService,
+        )
 
         return Services(
             avstemming = AvstemmingServiceImpl(
@@ -90,12 +105,14 @@ class ServiceBuilder(
                     utbetalingService = utbetalingService,
                     oppgaveService = oppgaveService,
                     personService = personService,
-                    brevService = brevService,
                     behandlingMetrics = behandlingMetrics,
                     microsoftGraphApiClient = clients.microsoftGraphApiClient,
                     opprettVedtakssnapshotService = opprettVedtakssnapshotService,
                     clock = Clock.systemUTC(),
+                    journalførIverksettingService = journalførIverksettingService,
+                    distribuerIverksettingsbrevService = distribuerIverksettingsbrevService,
                 ).apply { addObserver(statistikkService) },
+                ferdigstillIverksettingService = ferdigstillIverksettingService,
             ).apply { addObserver(statistikkService) },
             sak = sakService,
             søknad = søknadService,
@@ -109,7 +126,7 @@ class ServiceBuilder(
             ),
             oppgave = oppgaveService,
             person = personService,
-            statistikk = statistikkService
+            statistikk = statistikkService,
         )
     }
 }
@@ -124,5 +141,5 @@ data class Services(
     val lukkSøknad: LukkSøknadService,
     val oppgave: OppgaveService,
     val person: PersonService,
-    val statistikk: StatistikkService
+    val statistikk: StatistikkService,
 )

@@ -32,20 +32,13 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.brev.BrevService
-import no.nav.su.se.bakover.service.brev.KunneIkkeDistribuereBrev
-import no.nav.su.se.bakover.service.brev.KunneIkkeJournalføreBrev
-import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
-import no.nav.su.se.bakover.service.statistikk.EventObserver
-import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
-import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
 import org.junit.jupiter.api.Test
 import org.mockito.internal.verification.Times
 import java.util.UUID
 
-internal class FixIverksettingerTest {
+internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
     private val fnr = FnrGenerator.random()
     private val person = Person(
         ident = Ident(
@@ -225,7 +218,6 @@ internal class FixIverksettingerTest {
         val behandlingRepoMock = mock<BehandlingRepo> {
             on { hentIverksatteBehandlingerUtenJournalposteringer() } doReturn listOf(innvilgetBehandlingUtenJournalpost)
             on { hentIverksatteBehandlingerUtenBrevbestillinger() } doReturn emptyList()
-            on { oppdaterIverksattJournalpostId(any(), any()) }.doNothing()
         }
 
         val personServiceMock = mock<PersonService> {
@@ -272,16 +264,22 @@ internal class FixIverksettingerTest {
         val behandlingRepoMock = mock<BehandlingRepo> {
             on { hentIverksatteBehandlingerUtenJournalposteringer() } doReturn listOf(innvilgetBehandlingUtenJournalpost)
             on { hentIverksatteBehandlingerUtenBrevbestillinger() } doReturn emptyList()
-            on { oppdaterIverksattJournalpostId(any(), any()) }.doNothing()
         }
 
         val personServiceMock = mock<PersonService> {
             on { hentPerson(any()) } doReturn person.right()
         }
 
-        val brevServiceMock = mock<BrevService> {
-            on { journalførBrev(any(), any()) } doReturn KunneIkkeJournalføreBrev.KunneIkkeGenereBrev.left()
+        val journalførIverksettingServiceMock = mock<JournalførIverksettingService> {
+            on {
+                opprettJournalpost(
+                    any(),
+                    any()
+                )
+            } doReturn KunneIkkeIverksetteBehandling.KunneIkkeJournalføreBrev.left()
         }
+
+        val brevServiceMock = mock<DistribuerIverksettingsbrevService>()
 
         val oppslagMock = mock<MicrosoftGraphApiOppslag> {
             on {
@@ -291,9 +289,10 @@ internal class FixIverksettingerTest {
 
         val actual = createService(
             behandlingRepo = behandlingRepoMock,
-            brevService = brevServiceMock,
+            distribuerIverksettingsbrevService = brevServiceMock,
             personService = personServiceMock,
             microsoftGraphApiOppslag = oppslagMock,
+            journalførIverksettingService = journalførIverksettingServiceMock,
         ).opprettManglendeJournalpostOgBrevdistribusjon()
 
         actual shouldBe OpprettManglendeJournalpostOgBrevdistribusjonResultat(
@@ -311,16 +310,23 @@ internal class FixIverksettingerTest {
             behandlingRepoMock,
             brevServiceMock,
             personServiceMock,
-            oppslagMock
+            oppslagMock,
+            journalførIverksettingServiceMock
         ) {
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenJournalposteringer()
             verify(oppslagMock, Times(2)).hentBrukerinformasjonForNavIdent(any())
             verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
-            verify(brevServiceMock).journalførBrev(any(), any())
+            verify(journalførIverksettingServiceMock).opprettJournalpost(any(), any())
 
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenBrevbestillinger()
         }
-        verifyNoMoreInteractions(behandlingRepoMock, brevServiceMock, personServiceMock, oppslagMock)
+        verifyNoMoreInteractions(
+            behandlingRepoMock,
+            brevServiceMock,
+            personServiceMock,
+            oppslagMock,
+            journalførIverksettingServiceMock
+        )
     }
 
     @Test
@@ -374,13 +380,16 @@ internal class FixIverksettingerTest {
             )
         }
 
-        val brevServiceMock = mock<BrevService> {
-            on { distribuerBrev(any()) } doReturn KunneIkkeDistribuereBrev.left()
+        val journalførIverksettingServiceMock = mock<JournalførIverksettingService>()
+
+        val distribuerIverksettingsbrevServiceMock = mock<DistribuerIverksettingsbrevService> {
+            on { distribuerBrev(any()) } doReturn DistribuerIverksettingsbrevService.KunneIkkeDistribuereBrev.left()
         }
 
         val actual = createService(
             behandlingRepo = behandlingRepoMock,
-            brevService = brevServiceMock,
+            distribuerIverksettingsbrevService = distribuerIverksettingsbrevServiceMock,
+            journalførIverksettingService = journalførIverksettingServiceMock,
         ).opprettManglendeJournalpostOgBrevdistribusjon()
 
         actual shouldBe OpprettManglendeJournalpostOgBrevdistribusjonResultat(
@@ -397,18 +406,37 @@ internal class FixIverksettingerTest {
 
         inOrder(
             behandlingRepoMock,
-            brevServiceMock
+            distribuerIverksettingsbrevServiceMock,
+            journalførIverksettingServiceMock
         ) {
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenJournalposteringer()
-
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenBrevbestillinger()
-            verify(brevServiceMock).distribuerBrev(journalpostIdBestiltBrev)
+            verify(distribuerIverksettingsbrevServiceMock).distribuerBrev(
+                argThat {
+                    it shouldBe innvilgetBehandlingUtenJournalpost.copy(
+                        id = behandlingIdBestiltBrev,
+                        sakId = sakIdBestiltBrev,
+                        iverksattJournalpostId = journalpostIdBestiltBrev,
+                        iverksattBrevbestillingId = null,
+                    )
+                }
+            )
         }
-        verifyNoMoreInteractions(behandlingRepoMock, brevServiceMock)
+        verifyNoMoreInteractions(
+            behandlingRepoMock,
+            distribuerIverksettingsbrevServiceMock,
+            journalførIverksettingServiceMock
+        )
     }
 
     @Test
     fun `distribuerer brev for iverksatt avlsag`() {
+        val journalførtBehandling = innvilgetBehandlingUtenJournalpost.copy(
+            id = behandlingIdBestiltBrev,
+            sakId = sakIdBestiltBrev,
+            iverksattJournalpostId = journalpostIdBestiltBrev,
+            status = Behandling.BehandlingsStatus.IVERKSATT_AVSLAG,
+        )
         val behandlingRepoMock = mock<BehandlingRepo> {
             on { hentIverksatteBehandlingerUtenJournalposteringer() } doReturn listOf(
                 innvilgetBehandlingUtenJournalpost.copy(
@@ -416,22 +444,19 @@ internal class FixIverksettingerTest {
                 )
             )
             on { hentIverksatteBehandlingerUtenBrevbestillinger() } doReturn listOf(
-                innvilgetBehandlingUtenJournalpost.copy(
-                    id = behandlingIdBestiltBrev,
-                    sakId = sakIdBestiltBrev,
-                    iverksattJournalpostId = journalpostIdBestiltBrev,
-                    status = Behandling.BehandlingsStatus.IVERKSATT_AVSLAG,
-                ),
+                journalførtBehandling,
             )
         }
 
-        val brevServiceMock = mock<BrevService> {
-            on { distribuerBrev(any()) } doReturn brevbestillingId.right()
+        val distribuerIverksettingsbrevServiceMock = mock<DistribuerIverksettingsbrevService> {
+            on { distribuerBrev(any()) } doReturn innvilgetBehandlingUtenJournalpost.copy(
+                iverksattBrevbestillingId = brevbestillingId
+            ).right()
         }
 
         val actual = createService(
             behandlingRepo = behandlingRepoMock,
-            brevService = brevServiceMock,
+            distribuerIverksettingsbrevService = distribuerIverksettingsbrevServiceMock,
         ).opprettManglendeJournalpostOgBrevdistribusjon()
 
         actual shouldBe OpprettManglendeJournalpostOgBrevdistribusjonResultat(
@@ -447,18 +472,16 @@ internal class FixIverksettingerTest {
 
         inOrder(
             behandlingRepoMock,
-            brevServiceMock,
+            distribuerIverksettingsbrevServiceMock,
         ) {
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenJournalposteringer()
 
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenBrevbestillinger()
-            verify(brevServiceMock).distribuerBrev(journalpostIdBestiltBrev)
-            verify(behandlingRepoMock).oppdaterIverksattBrevbestillingId(
-                argThat { it shouldBe behandlingIdBestiltBrev },
-                argThat { it shouldBe brevbestillingId }
+            verify(distribuerIverksettingsbrevServiceMock).distribuerBrev(
+                argThat { it shouldBe journalførtBehandling }
             )
         }
-        verifyNoMoreInteractions(behandlingRepoMock, brevServiceMock)
+        verifyNoMoreInteractions(behandlingRepoMock, distribuerIverksettingsbrevServiceMock)
     }
 
     @Test
@@ -472,16 +495,21 @@ internal class FixIverksettingerTest {
                     iverksattJournalpostId = journalpostIdBestiltBrev
                 ),
             )
-            on { oppdaterIverksattJournalpostId(any(), any()) }.doNothing()
         }
 
         val personServiceMock = mock<PersonService> {
             on { hentPerson(any()) } doReturn person.right()
         }
 
-        val brevServiceMock = mock<BrevService> {
-            on { journalførBrev(any(), any()) } doReturn journalpostId.right()
-            on { distribuerBrev(any()) } doReturn brevbestillingId.right()
+        val journalførIverksettingServiceMock = mock<JournalførIverksettingService> {
+            on { opprettJournalpost(any(), any()) } doReturn journalpostId.right()
+        }
+
+        val distribuerIverksettingsbrevServiceMock = mock<DistribuerIverksettingsbrevService> {
+            // on { journalførBrev(any(), any()) } doReturn journalpostId.right()
+            on { distribuerBrev(any()) } doReturn innvilgetBehandlingUtenJournalpost.copy(
+                iverksattBrevbestillingId = brevbestillingId
+            ).right()
         }
 
         val oppslagMock: MicrosoftGraphApiOppslag = mock {
@@ -490,9 +518,10 @@ internal class FixIverksettingerTest {
 
         val actual = createService(
             behandlingRepo = behandlingRepoMock,
-            brevService = brevServiceMock,
+            distribuerIverksettingsbrevService = distribuerIverksettingsbrevServiceMock,
             personService = personServiceMock,
             microsoftGraphApiOppslag = oppslagMock,
+            journalførIverksettingService = journalførIverksettingServiceMock,
         ).opprettManglendeJournalpostOgBrevdistribusjon()
 
         actual shouldBe OpprettManglendeJournalpostOgBrevdistribusjonResultat(
@@ -502,48 +531,42 @@ internal class FixIverksettingerTest {
 
         inOrder(
             behandlingRepoMock,
-            brevServiceMock,
             personServiceMock,
-            oppslagMock
+            oppslagMock,
+            journalførIverksettingServiceMock,
+            distribuerIverksettingsbrevServiceMock,
         ) {
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenJournalposteringer()
             verify(oppslagMock, Times(2)).hentBrukerinformasjonForNavIdent(any())
             verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
-            verify(brevServiceMock).journalførBrev(any(), any())
-            verify(behandlingRepoMock).oppdaterIverksattJournalpostId(
-                argThat { it shouldBe behandlingIdJournalpost },
-                argThat { it shouldBe journalpostId }
-            )
+            verify(journalførIverksettingServiceMock).opprettJournalpost(any(), any())
 
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenBrevbestillinger()
-            verify(brevServiceMock).distribuerBrev(journalpostIdBestiltBrev)
-            verify(behandlingRepoMock).oppdaterIverksattBrevbestillingId(
-                argThat { it shouldBe behandlingIdBestiltBrev },
-                argThat { it shouldBe brevbestillingId }
-            )
+            verify(distribuerIverksettingsbrevServiceMock).distribuerBrev(any())
         }
-        verifyNoMoreInteractions(behandlingRepoMock, brevServiceMock, personServiceMock, oppslagMock)
+        verifyNoMoreInteractions(
+            behandlingRepoMock,
+            distribuerIverksettingsbrevServiceMock,
+            personServiceMock,
+            oppslagMock
+        )
     }
 
     private fun createService(
         behandlingRepo: BehandlingRepo = mock(),
-        utbetalingService: UtbetalingService = mock(),
         oppgaveService: OppgaveService = mock(),
         personService: PersonService = mock(),
-        brevService: BrevService = mock(),
         behandlingMetrics: BehandlingMetrics = mock(),
         microsoftGraphApiOppslag: MicrosoftGraphApiOppslag = mock(),
-        opprettVedtakssnapshotService: OpprettVedtakssnapshotService = mock(),
-        observer: EventObserver = BehandlingTestUtils.observerMock,
-    ) = IverksettBehandlingService(
+        journalførIverksettingService: JournalførIverksettingService = mock(),
+        distribuerIverksettingsbrevService: DistribuerIverksettingsbrevService = mock()
+    ) = FerdigstillIverksettingService(
         behandlingRepo = behandlingRepo,
-        utbetalingService = utbetalingService,
         oppgaveService = oppgaveService,
         personService = personService,
-        brevService = brevService,
         behandlingMetrics = behandlingMetrics,
-        clock = BehandlingTestUtils.fixedClock,
         microsoftGraphApiClient = microsoftGraphApiOppslag,
-        opprettVedtakssnapshotService = opprettVedtakssnapshotService
-    ).apply { addObserver(observer) }
+        journalførIverksettingService = journalførIverksettingService,
+        distribuerIverksettingsbrevService = distribuerIverksettingsbrevService,
+    )
 }

@@ -41,7 +41,7 @@ internal class UtbetalingKvitteringConsumerTest {
         val serviceMock = mock<UtbetalingService> {
             on { oppdaterMedKvittering(eq(avstemmingsnøkkel), any()) } doReturn FantIkkeUtbetaling.left()
         }
-        val consumer = UtbetalingKvitteringConsumer(serviceMock)
+        val consumer = UtbetalingKvitteringConsumer(serviceMock, mock())
 
         shouldThrow<RuntimeException> {
             consumer.onMessage(kvitteringXml())
@@ -94,7 +94,7 @@ internal class UtbetalingKvitteringConsumerTest {
             } doReturn postUpdate.right()
         }
 
-        val consumer = UtbetalingKvitteringConsumer(serviceMock, clock)
+        val consumer = UtbetalingKvitteringConsumer(serviceMock, mock(), clock)
 
         consumer.onMessage(xmlMessage)
 

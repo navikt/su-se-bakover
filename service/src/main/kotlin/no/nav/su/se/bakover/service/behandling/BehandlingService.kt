@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.behandling
 
 import arrow.core.Either
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -44,6 +45,7 @@ interface BehandlingService {
         attestant: Attestant
     ): Either<KunneIkkeIverksetteBehandling, IverksattBehandling>
 
+    fun ferdigstillInnvilgelse(utbetalingId: UUID30)
     fun opprettSøknadsbehandling(søknadId: UUID): Either<KunneIkkeOppretteSøknadsbehandling, Behandling>
     fun lagBrevutkast(behandlingId: UUID): Either<KunneIkkeLageBrevutkast, ByteArray>
     fun opprettManglendeJournalpostOgBrevdistribusjon(): OpprettManglendeJournalpostOgBrevdistribusjonResultat
@@ -112,7 +114,6 @@ sealed class IverksattBehandling {
     data class UtenMangler(override val behandling: Behandling) : IverksattBehandling()
 
     sealed class MedMangler : IverksattBehandling() {
-        data class KunneIkkeJournalføreBrev(override val behandling: Behandling) : MedMangler()
         data class KunneIkkeDistribuereBrev(override val behandling: Behandling) : MedMangler()
         data class KunneIkkeLukkeOppgave(override val behandling: Behandling) : MedMangler()
     }

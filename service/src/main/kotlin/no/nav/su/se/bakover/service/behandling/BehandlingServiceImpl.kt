@@ -10,6 +10,7 @@ import arrow.core.rightIfNotNull
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
@@ -55,6 +56,7 @@ internal class BehandlingServiceImpl(
     private val clock: Clock,
     private val microsoftGraphApiClient: MicrosoftGraphApiOppslag,
     private val iverksettBehandlingService: IverksettBehandlingService,
+    private val ferdigstillIverksettingService: FerdigstillIverksettingService
 ) : BehandlingService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -259,8 +261,12 @@ internal class BehandlingServiceImpl(
         return iverksettBehandlingService.iverksett(behandlingId, attestant)
     }
 
+    override fun ferdigstillInnvilgelse(utbetalingId: UUID30) {
+        return ferdigstillIverksettingService.ferdigstillInnvilgelse(utbetalingId)
+    }
+
     override fun opprettManglendeJournalpostOgBrevdistribusjon(): OpprettManglendeJournalpostOgBrevdistribusjonResultat {
-        return iverksettBehandlingService.opprettManglendeJournalpostOgBrevdistribusjon()
+        return ferdigstillIverksettingService.opprettManglendeJournalpostOgBrevdistribusjon()
     }
 
     override fun opprettSøknadsbehandling(
