@@ -34,7 +34,7 @@ internal class FradragsMapperTest {
             fradragForEps
         )
 
-        BrukerFradragForBeregningsperiode(fradrag).fradrag shouldBe listOf(
+        BrukerFradragBenyttetIBeregningsperiode(fradrag).fradrag shouldBe listOf(
             Månedsfradrag(
                 type = Fradragstype.Kapitalinntekt.toReadableTypeName(false),
                 beløp = 5000.0,
@@ -42,7 +42,7 @@ internal class FradragsMapperTest {
             )
         )
 
-        EpsFradragForBeregningsperiode(
+        EpsFradragFraSaksbehandlerIBeregningsperiode(
             fradragFraSaksbehandler = fradrag,
             beregningsperiode = periode
         ).fradrag shouldBe listOf(
@@ -74,7 +74,7 @@ internal class FradragsMapperTest {
             )
         )
 
-        BrukerFradragForBeregningsperiode(fradrag).fradrag shouldBe listOf(
+        BrukerFradragBenyttetIBeregningsperiode(fradrag).fradrag shouldBe listOf(
             Månedsfradrag(
                 type = Fradragstype.Kapitalinntekt.toReadableTypeName(false),
                 beløp = 3337.0,
@@ -110,7 +110,7 @@ internal class FradragsMapperTest {
             )
         )
 
-        EpsFradragForBeregningsperiode(
+        EpsFradragFraSaksbehandlerIBeregningsperiode(
             fradrag,
             Periode(fraOgMed = 1.januar(2020), tilOgMed = 31.januar(2020))
         ).fradrag shouldBe listOf(
@@ -126,7 +126,7 @@ internal class FradragsMapperTest {
             ),
         )
 
-        EpsFradragForBeregningsperiode(
+        EpsFradragFraSaksbehandlerIBeregningsperiode(
             fradrag,
             periode
         ).fradrag shouldBe listOf(

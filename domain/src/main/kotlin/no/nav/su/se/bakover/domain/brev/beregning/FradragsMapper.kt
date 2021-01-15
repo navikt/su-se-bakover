@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 
-internal data class BrukerFradragForBeregningsperiode(
+internal data class BrukerFradragBenyttetIBeregningsperiode(
     private val fradragForBeregningsperiode: List<Fradrag>
 ) {
     val fradrag: List<Månedsfradrag> = fradragForBeregningsperiode
@@ -15,7 +15,7 @@ internal data class BrukerFradragForBeregningsperiode(
         .toMånedsfradragPerType()
 }
 
-internal data class EpsFradragForBeregningsperiode(
+internal data class EpsFradragFraSaksbehandlerIBeregningsperiode(
     private val fradragFraSaksbehandler: List<Fradrag>,
     private val beregningsperiode: Periode
 ) {
