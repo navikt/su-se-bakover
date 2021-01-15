@@ -49,6 +49,7 @@ internal class BrevInnholdTest {
             tildato = "01.01.2020",
             sats = Sats.HØY.toString(),
             satsGrunn = Satsgrunn.DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN,
+            satsBeløp = 100.0,
             harEktefelle = true,
             beregningsperioder = listOf(
                 Beregningsperiode(
@@ -78,6 +79,7 @@ internal class BrevInnholdTest {
                 "tildato": "01.01.2020",
                 "sats": "HØY",
                 "satsGrunn": "DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN",
+                "satsBeløp": 100,
                 "harEktefelle": true,
                 "beregningsperioder": [{
                     "periode": {

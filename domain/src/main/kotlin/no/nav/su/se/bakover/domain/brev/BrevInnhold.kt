@@ -40,10 +40,11 @@ abstract class BrevInnhold {
         val tildato: String,
         val sats: String,
         val satsGrunn: Satsgrunn,
+        val satsBeløp: Double,
         val harEktefelle: Boolean,
         val beregningsperioder: List<Beregningsperiode>,
         val saksbehandlerNavn: String,
-        val attestantNavn: String
+        val attestantNavn: String,
     ) : BrevInnhold() {
         override val brevTemplate: BrevTemplate = BrevTemplate.InnvilgetVedtak
 

@@ -1,9 +1,12 @@
 package no.nav.su.se.bakover.domain.brev
 
+import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.brev.beregning.LagBrevinnholdForBeregning
+import java.time.Clock
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -27,6 +30,7 @@ interface LagBrevRequest {
                 tildato = beregning.getPeriode().getTilOgMed().formatMonthYear(),
                 sats = beregning.getSats().toString().toLowerCase(),
                 satsGrunn = behandling.behandlingsinformasjon().bosituasjon!!.getSatsgrunn(),
+                satsBeløp = beregning.getSats().månedsbeløp(Tidspunkt.now(Clock.systemUTC()).toLocalDate(zoneIdOslo)),
                 harEktefelle = behandling.behandlingsinformasjon().ektefelle != Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
                 beregningsperioder = LagBrevinnholdForBeregning(beregning).brevInnhold,
                 saksbehandlerNavn = saksbehandlerNavn,
