@@ -21,7 +21,8 @@ abstract class BrevInnhold {
         val halvGrunnbeløp: Int,
         val beregningsperioder: List<Beregningsperiode>,
         val saksbehandlerNavn: String,
-        val attestantNavn: String
+        val attestantNavn: String,
+        val sats: String?,
     ) : BrevInnhold() {
         @Suppress("unused")
         @JsonInclude
@@ -30,6 +31,10 @@ abstract class BrevInnhold {
         @Suppress("unused")
         @JsonInclude
         val avslagsparagrafer: List<Int> = avslagsgrunner.getDistinkteParagrafer()
+
+        @Suppress("unused")
+        @JsonInclude
+        val satsBeløp = beregningsperioder.firstOrNull()?.satsbeløpPerMåned
 
         override val brevTemplate: BrevTemplate = BrevTemplate.AvslagsVedtak
     }

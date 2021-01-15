@@ -13,13 +13,16 @@ data class AvslagBrevRequest(
     private val attestantNavn: String
 ) : LagBrevRequest {
     override fun getPerson(): Person = person
-    override fun lagBrevInnhold(personalia: Personalia): AvslagsBrevInnhold = AvslagsBrevInnhold(
-        personalia = personalia,
-        avslagsgrunner = avslag.avslagsgrunner,
-        harEktefelle = avslag.harEktefelle,
-        halvGrunnbeløp = avslag.halvGrunnbeløp.toInt(),
-        beregningsperioder = avslag.beregning?.let { LagBrevinnholdForBeregning(it).brevInnhold } ?: emptyList(),
-        saksbehandlerNavn = saksbehandlerNavn,
-        attestantNavn = attestantNavn
-    )
+    override fun lagBrevInnhold(personalia: Personalia): AvslagsBrevInnhold {
+        return AvslagsBrevInnhold(
+            personalia = personalia,
+            avslagsgrunner = avslag.avslagsgrunner,
+            harEktefelle = avslag.harEktefelle,
+            halvGrunnbeløp = avslag.halvGrunnbeløp.toInt(),
+            beregningsperioder = avslag.beregning?.let { LagBrevinnholdForBeregning(it).brevInnhold } ?: emptyList(),
+            saksbehandlerNavn = saksbehandlerNavn,
+            attestantNavn = attestantNavn,
+            sats = avslag.beregning?.getSats()?.name?.toLowerCase()
+        )
+    }
 }
