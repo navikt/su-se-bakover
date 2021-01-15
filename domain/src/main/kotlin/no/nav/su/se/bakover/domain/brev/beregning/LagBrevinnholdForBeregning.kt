@@ -1,10 +1,9 @@
 package no.nav.su.se.bakover.domain.brev.beregning
 
+import no.nav.su.se.bakover.common.roundToDecimals
 import no.nav.su.se.bakover.domain.beregning.GrupperEkvivalenteMånedsberegninger
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import java.math.BigDecimal
-import java.math.RoundingMode
 import kotlin.math.roundToInt
 import no.nav.su.se.bakover.domain.beregning.Beregning as FaktiskBeregning
 
@@ -27,7 +26,7 @@ data class LagBrevinnholdForBeregning(
                 epsFribeløp = FradragStrategy.fromName(beregning.getFradragStrategyName())
                     .getEpsFribeløp(beregningsperiode.getPeriode()).let {
                         it / beregningsperiode.getPeriode().getAntallMåneder()
-                    }.roundToTwoDecimals(),
+                    }.roundToDecimals(2),
                 fradrag = Fradrag(
                     bruker = BrukerFradragForBeregningsperiode(beregningsperiode.getFradrag()).fradrag,
                     eps = Fradrag.Eps(
@@ -44,7 +43,3 @@ data class LagBrevinnholdForBeregning(
     private fun List<no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag>.innholderBeregnetFradragEps() =
         this.any { it.getFradragstype() == Fradragstype.BeregnetFradragEPS }
 }
-
-fun Double.roundToTwoDecimals() =
-    BigDecimal(this).setScale(2, RoundingMode.HALF_UP)
-        .toDouble()

@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.brev.beregning
 
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.roundToDecimals
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -47,7 +48,7 @@ internal fun List<Fradrag>.toMånedsfradragPerType(): List<Månedsfradrag> =
                     ),
                 beløp = fradrag
                     .sumByDouble { it.getMånedsbeløp() }
-                    .roundToTwoDecimals(),
+                    .roundToDecimals(2),
                 utenlandskInntekt = fradrag[0].getUtenlandskInntekt()
             )
         }
