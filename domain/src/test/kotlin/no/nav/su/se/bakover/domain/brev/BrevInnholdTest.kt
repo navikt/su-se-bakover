@@ -1,14 +1,13 @@
 package no.nav.su.se.bakover.domain.brev
 
-import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.behandling.Satsgrunn
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
+import no.nav.su.se.bakover.domain.brev.beregning.BrevPeriode
 import no.nav.su.se.bakover.domain.brev.beregning.Fradrag
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevInnhold
 import org.junit.jupiter.api.Test
@@ -53,7 +52,7 @@ internal class BrevInnholdTest {
             harEktefelle = true,
             beregningsperioder = listOf(
                 Beregningsperiode(
-                    periode = Periode(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+                    periode = BrevPeriode("januar 2021", "desember 2021"),
                     ytelsePerMåned = 100,
                     satsbeløpPerMåned = 100,
                     epsFribeløp = 100.0,
@@ -81,10 +80,11 @@ internal class BrevInnholdTest {
                 "satsGrunn": "DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN",
                 "satsBeløp": 100,
                 "harEktefelle": true,
+                "harFradrag": false,
                 "beregningsperioder": [{
                     "periode": {
-                      "fraOgMed": "2021-01-01",
-                      "tilOgMed": "2021-12-31"
+                      "fraOgMed": "januar 2021",
+                      "tilOgMed": "desember 2021"
                     },
                     "ytelsePerMåned": 100,
                     "satsbeløpPerMåned": 100,
@@ -97,7 +97,6 @@ internal class BrevInnholdTest {
                       }
                     }
                 }],
-                "totalSumForBeregningsperioder": 1200,
                 "saksbehandlerNavn": "Hei",
                 "attestantNavn": "Hopp"
             }

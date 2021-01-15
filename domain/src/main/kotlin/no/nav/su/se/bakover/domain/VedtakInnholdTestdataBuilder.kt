@@ -1,11 +1,9 @@
 package no.nav.su.se.bakover.domain
 
-import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.behandling.Satsgrunn
 import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
+import no.nav.su.se.bakover.domain.brev.beregning.BrevPeriode
 import no.nav.su.se.bakover.domain.brev.beregning.Fradrag
 
 /**
@@ -28,7 +26,7 @@ object VedtakInnholdTestdataBuilder {
         harEktefelle = true,
         beregningsperioder = listOf(
             Beregningsperiode(
-                periode = Periode(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+                periode = BrevPeriode("1 januar", "31 desember"),
                 ytelsePerMåned = 0,
                 satsbeløpPerMåned = 0,
                 epsFribeløp = 0.0,

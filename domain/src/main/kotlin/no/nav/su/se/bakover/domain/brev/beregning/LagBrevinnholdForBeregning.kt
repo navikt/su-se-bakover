@@ -1,8 +1,11 @@
 package no.nav.su.se.bakover.domain.brev.beregning
 
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.roundToDecimals
 import no.nav.su.se.bakover.domain.beregning.GrupperEkvivalenteMånedsberegninger
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import kotlin.math.roundToInt
 import no.nav.su.se.bakover.domain.beregning.Beregning as FaktiskBeregning
 
@@ -13,7 +16,7 @@ data class LagBrevinnholdForBeregning(
         GrupperEkvivalenteMånedsberegninger(beregning.getMånedsberegninger()).grupper.map { beregningsperiode ->
             Beregningsperiode(
                 // TODO eps firbeløp ikke safe vel?
-                periode = beregningsperiode.getPeriode(),
+                periode = beregningsperiode.getPeriode().formaterForBrev(),
                 ytelsePerMåned = beregningsperiode.getSumYtelse(),
                 satsbeløpPerMåned = beregningsperiode.getSatsbeløp().roundToInt(),
                 epsFribeløp = FradragStrategy.fromName(beregning.getFradragStrategyName())
@@ -26,6 +29,13 @@ data class LagBrevinnholdForBeregning(
                 )
             )
         }
+
+    private fun Periode.formaterForBrev() = DateTimeFormatter.ofPattern("LLLL yyyy", Locale("nb", "NO")).let {
+        BrevPeriode(
+            fraOgMed = it.format(this.getFraOgMed()),
+            tilOgMed = it.format(this.getTilOgMed())
+        )
+    }
 
     /**
      * Deducing fradrag for EPS is a bit more complicated due to the "type erasure" of fradrag.

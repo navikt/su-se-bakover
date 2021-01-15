@@ -50,7 +50,7 @@ abstract class BrevInnhold {
 
         @Suppress("unused")
         @JsonInclude
-        val totalSumForBeregningsperioder: Int = beregningsperioder.sumBy { it.periode.getAntallMåneder() * it.ytelsePerMåned }
+        val harFradrag: Boolean = beregningsperioder.any { it.fradrag.bruker.isNotEmpty() || it.fradrag.eps.fradrag.isNotEmpty() }
     }
 
     data class Personalia(
