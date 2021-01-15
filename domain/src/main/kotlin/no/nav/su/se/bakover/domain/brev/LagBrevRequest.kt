@@ -30,7 +30,7 @@ interface LagBrevRequest {
                 tildato = beregning.getPeriode().getTilOgMed().formatMonthYear(),
                 sats = beregning.getSats().toString().toLowerCase(),
                 satsGrunn = behandling.behandlingsinformasjon().bosituasjon!!.getSatsgrunn(),
-                satsBeløp = beregning.getSats().månedsbeløp(Tidspunkt.now(Clock.systemUTC()).toLocalDate(zoneIdOslo)),
+                satsBeløp = beregning.getSats().månedsbeløp(beregning.getOpprettet().toLocalDate(zoneIdOslo)),
                 harEktefelle = behandling.behandlingsinformasjon().ektefelle != Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
                 beregningsperioder = LagBrevinnholdForBeregning(beregning).brevInnhold,
                 saksbehandlerNavn = saksbehandlerNavn,
