@@ -1,12 +1,10 @@
 package no.nav.su.se.bakover.domain.brev
 
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.brev.beregning.LagBrevinnholdForBeregning
-import java.time.Clock
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
