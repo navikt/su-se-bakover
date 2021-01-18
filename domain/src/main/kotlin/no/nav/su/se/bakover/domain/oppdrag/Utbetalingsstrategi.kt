@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.beregning.SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Companion.hentOversendteUtbetalingerUtenFeil
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import java.time.Clock
@@ -31,7 +32,8 @@ sealed class Utbetalingsstrategi {
         val clock: Clock = Clock.systemUTC()
     ) : Utbetalingsstrategi() {
         override fun generate(): Utbetaling.UtbetalingForSimulering {
-            val stansesFraOgMed = idag(clock).with(firstDayOfNextMonth()) // TODO jah: Tor Erik ønsker at den skal stanses snarest mulig, men vi ønsker ikke å stanse ting som er sent til UR/er allerede utbetalt.
+            val stansesFraOgMed =
+                idag(clock).with(firstDayOfNextMonth()) // TODO jah: Tor Erik ønsker at den skal stanses snarest mulig, men vi ønsker ikke å stanse ting som er sent til UR/er allerede utbetalt.
 
             validate(harOversendteUtbetalingerEtter(stansesFraOgMed)) { "Det eksisterer ingen utbetalinger med tilOgMed dato større enn eller lik $stansesFraOgMed" }
             validate(Utbetaling.UtbetalingsType.STANS != sisteOversendteUtbetaling()?.type) { "Kan ikke stanse utbetalinger som allerede er stanset" }
@@ -89,15 +91,15 @@ sealed class Utbetalingsstrategi {
             )
         }
 
-        private fun createUtbetalingsperioder(beregning: Beregning) = beregning.getMånedsberegninger()
-            .groupBy { it.getSumYtelse() }
-            .map {
-                Utbetalingsperiode(
-                    fraOgMed = it.value.map { v -> v.getPeriode().getFraOgMed() }.minOrNull()!!,
-                    tilOgMed = it.value.map { v -> v.getPeriode().getTilOgMed() }.maxOrNull()!!,
-                    beløp = it.key
-                )
-            }
+        private fun createUtbetalingsperioder(beregning: Beregning) =
+            SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(beregning.getMånedsberegninger()).beregningsperioder
+                .map {
+                    Utbetalingsperiode(
+                        fraOgMed = it.getPeriode().getFraOgMed(),
+                        tilOgMed = it.getPeriode().getTilOgMed(),
+                        beløp = it.getSumYtelse()
+                    )
+                }
     }
 
     data class Gjenoppta(
