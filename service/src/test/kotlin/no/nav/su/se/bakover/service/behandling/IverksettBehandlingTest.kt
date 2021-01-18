@@ -11,23 +11,12 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
-import no.nav.su.se.bakover.domain.AktørId
-import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
-import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
-import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.Person.Navn
-import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.SIMULERT
-import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics.InnvilgetHandlinger
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
@@ -42,6 +31,13 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.attestant
+import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.behandlingId
+import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.fnr
+import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.person
+import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.sakId
+import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.saksbehandler
+import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.saksnummer
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.tidspunkt
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.doNothing
@@ -53,34 +49,11 @@ import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
 import org.junit.jupiter.api.Test
-import java.util.UUID
 
 internal class IverksettBehandlingTest {
-    private val sakId = UUID.randomUUID()
-    private val saksnummer = Saksnummer(0)
-    private val søknadId = UUID.randomUUID()
-    private val behandlingId = UUID.randomUUID()
-    private val fnr = Fnr("12345678910")
-    private val saksbehandler = Saksbehandler("AB12345")
     private val oppgaveId = OppgaveId("o")
-    private val journalpostId = JournalpostId("j")
-    private val brevbestillingId = BrevbestillingId("2")
-    private val person = Person(
-        ident = Ident(
-            fnr = Fnr(fnr = "12345678901"),
-            aktørId = AktørId(aktørId = "123")
-        ),
-        navn = Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy"),
-        telefonnummer = null,
-        adresse = null,
-        statsborgerskap = null,
-        kjønn = null,
-        adressebeskyttelse = null,
-        skjermet = null,
-        kontaktinfo = null,
-        vergemål = null,
-        fullmakt = null,
-    )
+    private val iverksattJournalpostId = JournalpostId("j")
+    private val iverksattBrevbestillingId = BrevbestillingId("2")
 
     @Test
     fun `iverksett behandling finner ikke behandling`() {
@@ -227,12 +200,12 @@ internal class IverksettBehandlingTest {
         }
 
         val journalførIverksettingServiceMock = mock<JournalførIverksettingService> {
-            on { opprettJournalpost(any(), any()) } doReturn journalpostId.right()
+            on { opprettJournalpost(any(), any()) } doReturn iverksattJournalpostId.right()
         }
 
         val distribuerIverksettingsbrevServiceMock = mock<DistribuerIverksettingsbrevService> {
             on { distribuerBrev(any()) } doReturn behandling.copy(
-                iverksattBrevbestillingId = brevbestillingId,
+                iverksattBrevbestillingId = iverksattBrevbestillingId,
             ).right()
         }
 
@@ -572,30 +545,20 @@ internal class IverksettBehandlingTest {
         )
     }
 
-    private fun beregnetBehandling() = BehandlingFactory(mock()).createBehandling(
-        søknad = Søknad.Journalført.MedOppgave(
-            id = søknadId,
-            opprettet = Tidspunkt.EPOCH,
-            sakId = sakId,
-            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+    private fun beregnetBehandling() = BehandlingTestUtils.createOpprettetBehandling()
+        .copy(
+            status = Behandling.BehandlingsStatus.BEREGNET_INNVILGET,
+            saksbehandler = BehandlingTestUtils.saksbehandler,
+            attestering = Attestering.Iverksatt(BehandlingTestUtils.attestant),
             oppgaveId = oppgaveId,
-            journalpostId = journalpostId,
-        ),
-        beregning = beregning,
-        status = Behandling.BehandlingsStatus.BEREGNET_INNVILGET,
-        sakId = sakId,
-        saksnummer = saksnummer,
-        fnr = fnr,
-        oppgaveId = oppgaveId
-    )
+            beregning = beregning,
+        )
 
     private fun behandlingTilAttestering(status: Behandling.BehandlingsStatus) = beregnetBehandling().copy(
         simulering = simulering,
         status = status,
         saksbehandler = saksbehandler
     )
-
-    private val attestant = Attestant("SU")
 
     private val oppdragsmelding = Utbetalingsrequest(
         value = ""

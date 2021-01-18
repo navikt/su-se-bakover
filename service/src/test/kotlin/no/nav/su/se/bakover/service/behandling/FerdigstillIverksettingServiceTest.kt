@@ -13,84 +13,44 @@ import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
-import no.nav.su.se.bakover.domain.AktørId
-import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
-import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
-import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.attestant
+import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.createOpprettetBehandling
+import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.fnr
+import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.person
+import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.saksbehandler
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import org.junit.jupiter.api.Test
-import java.util.UUID
 
 internal class FerdigstillIverksettingServiceTest {
 
-    private val fnr = FnrGenerator.random()
     private val utbetalingId = UUID30.randomUUID()
-    private val person = Person(
-        ident = Ident(
-            fnr = fnr,
-            aktørId = AktørId(aktørId = "123")
-        ),
-        navn = Person.Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy"),
-        telefonnummer = null,
-        adresse = null,
-        statsborgerskap = null,
-        kjønn = null,
-        adressebeskyttelse = null,
-        skjermet = null,
-        kontaktinfo = null,
-        vergemål = null,
-        fullmakt = null,
-    )
-    private val sakIdJournalpost = UUID.randomUUID()
 
-    private val behandlingIdJournalpost = UUID.randomUUID()
+    private val iverksattOppgaveId = OppgaveId("iverksattOppgaveId")
 
-    private val journalpostId = JournalpostId("1")
-    private val journalpostIdBestiltBrev = JournalpostId("1")
+    private val iverksattJournalpostId = JournalpostId("iverksattJournalpostId")
 
-    private val brevbestillingId = BrevbestillingId("2")
+    private val iverksattBrevbestillingId = BrevbestillingId("iverattBrevbestillingId")
 
-    private val oppgaveId = OppgaveId("oppgaveId")
-
-    private val saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler")
-    private val attestant = NavIdentBruker.Attestant("attestant")
-    private val innvilgetBehandlingUtenJournalpost = BehandlingFactory(mock()).createBehandling(
-        id = behandlingIdJournalpost,
-        søknad = Søknad.Journalført.MedOppgave(
-            id = UUID.randomUUID(),
-            opprettet = Tidspunkt.EPOCH,
-            sakId = sakIdJournalpost,
-            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-            oppgaveId = OppgaveId("Denne skal ikke trenges sammenlignes på"),
-            journalpostId = journalpostId
-        ),
+    private val innvilgetBehandlingUtenJournalpost = createOpprettetBehandling().copy(
         status = Behandling.BehandlingsStatus.IVERKSATT_INNVILGET,
         saksbehandler = saksbehandler,
         attestering = Attestering.Iverksatt(attestant),
-        sakId = sakIdJournalpost,
-        saksnummer = Saksnummer(1),
-        fnr = fnr,
-        oppgaveId = oppgaveId,
         iverksattJournalpostId = null,
-        iverksattBrevbestillingId = null
+        iverksattBrevbestillingId = null,
+        oppgaveId = iverksattOppgaveId,
     )
 
     @Test
@@ -187,7 +147,7 @@ internal class FerdigstillIverksettingServiceTest {
                     it shouldBe saksbehandler
                 }
             )
-            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
+            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe iverksattOppgaveId })
         }
         verifyNoMoreInteractions(
             behandlingRepoMock,
@@ -250,7 +210,7 @@ internal class FerdigstillIverksettingServiceTest {
                 firstValue shouldBe saksbehandler
                 secondValue shouldBe attestant
             }
-            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
+            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe iverksattOppgaveId })
         }
         verifyNoMoreInteractions(
             behandlingRepoMock,
@@ -390,7 +350,7 @@ internal class FerdigstillIverksettingServiceTest {
                     )
                 },
             )
-            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
+            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe iverksattOppgaveId })
         }
         verifyNoMoreInteractions(
             behandlingRepoMock,
@@ -421,7 +381,7 @@ internal class FerdigstillIverksettingServiceTest {
         }
 
         val journalførIverksettingServiceMock = mock<JournalførIverksettingService> {
-            on { opprettJournalpost(any(), any()) } doReturn journalpostId.right()
+            on { opprettJournalpost(any(), any()) } doReturn iverksattJournalpostId.right()
         }
 
         val oppgaveServiceMock = mock<OppgaveService> {
@@ -470,7 +430,7 @@ internal class FerdigstillIverksettingServiceTest {
                     it shouldBe innvilgetBehandlingUtenJournalpost
                 }
             )
-            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
+            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe iverksattOppgaveId })
         }
         verifyNoMoreInteractions(
             behandlingRepoMock,
@@ -494,7 +454,7 @@ internal class FerdigstillIverksettingServiceTest {
 
         val distribuerIverksettingsbrevServiceMock = mock<DistribuerIverksettingsbrevService> {
             on { distribuerBrev(any()) } doReturn innvilgetBehandlingUtenJournalpost.copy(
-                iverksattBrevbestillingId = brevbestillingId
+                iverksattBrevbestillingId = iverksattBrevbestillingId
             ).right()
         }
 
@@ -503,7 +463,7 @@ internal class FerdigstillIverksettingServiceTest {
         }
 
         val journalførIverksettingServiceMock = mock<JournalførIverksettingService> {
-            on { opprettJournalpost(any(), any()) } doReturn journalpostId.right()
+            on { opprettJournalpost(any(), any()) } doReturn iverksattJournalpostId.right()
         }
 
         val oppgaveServiceMock = mock<OppgaveService> {
@@ -552,7 +512,7 @@ internal class FerdigstillIverksettingServiceTest {
                     it shouldBe innvilgetBehandlingUtenJournalpost
                 }
             )
-            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
+            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe iverksattOppgaveId })
         }
         verifyNoMoreInteractions(
             behandlingRepoMock,
