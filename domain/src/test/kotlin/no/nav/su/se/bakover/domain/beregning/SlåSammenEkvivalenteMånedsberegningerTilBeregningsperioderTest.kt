@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import org.junit.jupiter.api.Test
 
-internal class GrupperEkvivalenteMånedsberegningerTest {
+internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest {
     @Test
     fun `tilstøtende månedsberegninger hvor alt er likt bortsett fra dato grupperes sammen`() {
         val januar = MånedsberegningFactory.ny(
@@ -27,8 +27,8 @@ internal class GrupperEkvivalenteMånedsberegningerTest {
             fradrag = listOf()
         )
 
-        GrupperEkvivalenteMånedsberegninger(listOf(januar, februar)).grupper shouldBe listOf(
-            GrupperEkvivalenteMånedsberegninger.GrupperteMånedsberegninger(listOf(januar, februar)).also {
+        SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(listOf(januar, februar)).beregningsperioder shouldBe listOf(
+            EkvivalenteMånedsberegninger(listOf(januar, februar)).also {
                 it.getPeriode().getFraOgMed() shouldBe januar.getPeriode().getFraOgMed()
                 it.getPeriode().getTilOgMed() shouldBe februar.getPeriode().getTilOgMed()
             }
@@ -57,12 +57,12 @@ internal class GrupperEkvivalenteMånedsberegningerTest {
             )
         )
 
-        GrupperEkvivalenteMånedsberegninger(listOf(januar, februar)).grupper shouldBe listOf(
-            GrupperEkvivalenteMånedsberegninger.GrupperteMånedsberegninger(listOf(januar)).also {
+        SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(listOf(januar, februar)).beregningsperioder shouldBe listOf(
+            EkvivalenteMånedsberegninger(listOf(januar)).also {
                 it.getPeriode().getFraOgMed() shouldBe januar.getPeriode().getFraOgMed()
                 it.getPeriode().getTilOgMed() shouldBe januar.getPeriode().getTilOgMed()
             },
-            GrupperEkvivalenteMånedsberegninger.GrupperteMånedsberegninger(listOf(februar)).also {
+            EkvivalenteMånedsberegninger(listOf(februar)).also {
                 it.getPeriode().getFraOgMed() shouldBe februar.getPeriode().getFraOgMed()
                 it.getPeriode().getTilOgMed() shouldBe februar.getPeriode().getTilOgMed()
             },
@@ -95,11 +95,11 @@ internal class GrupperEkvivalenteMånedsberegningerTest {
             fradrag = listOf()
         )
 
-        GrupperEkvivalenteMånedsberegninger(listOf(januar, februar, mars, april)).grupper shouldBe listOf(
-            GrupperEkvivalenteMånedsberegninger.GrupperteMånedsberegninger(listOf(januar)),
-            GrupperEkvivalenteMånedsberegninger.GrupperteMånedsberegninger(listOf(februar)),
-            GrupperEkvivalenteMånedsberegninger.GrupperteMånedsberegninger(listOf(mars)),
-            GrupperEkvivalenteMånedsberegninger.GrupperteMånedsberegninger(listOf(april)),
+        SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(listOf(januar, februar, mars, april)).beregningsperioder shouldBe listOf(
+            EkvivalenteMånedsberegninger(listOf(januar)),
+            EkvivalenteMånedsberegninger(listOf(februar)),
+            EkvivalenteMånedsberegninger(listOf(mars)),
+            EkvivalenteMånedsberegninger(listOf(april)),
         )
     }
 
@@ -140,9 +140,9 @@ internal class GrupperEkvivalenteMånedsberegningerTest {
             )
         )
 
-        GrupperEkvivalenteMånedsberegninger(listOf(januar, februar)).grupper shouldBe listOf(
-            GrupperEkvivalenteMånedsberegninger.GrupperteMånedsberegninger(listOf(januar)),
-            GrupperEkvivalenteMånedsberegninger.GrupperteMånedsberegninger(listOf(februar)),
+        SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(listOf(januar, februar)).beregningsperioder shouldBe listOf(
+            EkvivalenteMånedsberegninger(listOf(januar)),
+            EkvivalenteMånedsberegninger(listOf(februar)),
         )
     }
 
@@ -190,8 +190,8 @@ internal class GrupperEkvivalenteMånedsberegningerTest {
             )
         )
 
-        GrupperEkvivalenteMånedsberegninger(listOf(januar, februar)).grupper shouldBe listOf(
-            GrupperEkvivalenteMånedsberegninger.GrupperteMånedsberegninger(listOf(januar, februar)),
+        SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(listOf(januar, februar)).beregningsperioder shouldBe listOf(
+            EkvivalenteMånedsberegninger(listOf(januar, februar)),
         )
     }
 
@@ -267,8 +267,8 @@ internal class GrupperEkvivalenteMånedsberegningerTest {
             )
         )
 
-        GrupperEkvivalenteMånedsberegninger(listOf(januar, februar)).grupper shouldBe listOf(
-            GrupperEkvivalenteMånedsberegninger.GrupperteMånedsberegninger(listOf(januar, februar))
+        SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(listOf(januar, februar)).beregningsperioder shouldBe listOf(
+            EkvivalenteMånedsberegninger(listOf(januar, februar))
         )
     }
 
@@ -298,10 +298,10 @@ internal class GrupperEkvivalenteMånedsberegningerTest {
             fradrag = listOf()
         )
 
-        GrupperEkvivalenteMånedsberegninger(listOf(januar, februar, april, desember)).grupper shouldBe listOf(
-            GrupperEkvivalenteMånedsberegninger.GrupperteMånedsberegninger(listOf(januar, februar)),
-            GrupperEkvivalenteMånedsberegninger.GrupperteMånedsberegninger(listOf(april)),
-            GrupperEkvivalenteMånedsberegninger.GrupperteMånedsberegninger(listOf(desember))
+        SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(listOf(januar, februar, april, desember)).beregningsperioder shouldBe listOf(
+            EkvivalenteMånedsberegninger(listOf(januar, februar)),
+            EkvivalenteMånedsberegninger(listOf(april)),
+            EkvivalenteMånedsberegninger(listOf(desember))
         )
     }
 }

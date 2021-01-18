@@ -2,7 +2,8 @@ package no.nav.su.se.bakover.domain.brev.beregning
 
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.roundToDecimals
-import no.nav.su.se.bakover.domain.beregning.GrupperEkvivalenteMånedsberegninger
+import no.nav.su.se.bakover.domain.beregning.EkvivalenteMånedsberegninger
+import no.nav.su.se.bakover.domain.beregning.SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -13,7 +14,7 @@ data class LagBrevinnholdForBeregning(
     private val beregning: FaktiskBeregning
 ) {
     internal val brevInnhold: List<Beregningsperiode> =
-        GrupperEkvivalenteMånedsberegninger(beregning.getMånedsberegninger()).grupper.map { beregningsperiode ->
+        SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(beregning.getMånedsberegninger()).beregningsperioder.map { beregningsperiode ->
             Beregningsperiode(
                 // TODO eps firbeløp ikke safe vel?
                 periode = beregningsperiode.getPeriode().formaterForBrev(),
@@ -44,7 +45,7 @@ data class LagBrevinnholdForBeregning(
      * exceedes the "fribeløp" for the specific month - otherwise no fradrag will actually be used for the calculation.
      * To determine the types for fradrag actually used, we need to "backtrack" to the original input fradrag.
      */
-    private fun finnFradragForEps(beregningsperiode: GrupperEkvivalenteMånedsberegninger.GrupperteMånedsberegninger): Fradrag.Eps {
+    private fun finnFradragForEps(beregningsperiode: EkvivalenteMånedsberegninger): Fradrag.Eps {
         // find all input-fradrag that are applicable for the period in question
         val epsFradragFraSaksbehandler = EpsFradragFraSaksbehandlerIBeregningsperiode(
             beregning.getFradrag(), // found from the original input-fradrag

@@ -3,10 +3,34 @@ package no.nav.su.se.bakover.domain.beregning
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 
-data class GrupperEkvivalenteMånedsberegninger(
+/**
+ * Join equivalent månedsberegninger to form distinct periods of ytelse and fradrag.
+ *
+ * A few examples of the intent.
+ * Input:
+ *     a   a   a   b   a   a
+ *   |---|---|---|---|---|---|
+ * Yields:
+ *         a	   b     a
+ *   |-----------|–––|-------|
+ *
+ * Input:
+ *     a   a   a   a   a   a
+ *   |---|---|---|---|---|---|
+ * Yields:
+ *               a
+ *   |-----------------------|
+ * Input:
+ *     a   b   b   a   b   c
+ *   |---|---|---|---|---|---|
+ * Yields:
+ *     a     b     a   b   c
+ *   |---|-------|---|---|---|
+ */
+internal data class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(
     private val månedsberegninger: List<Månedsberegning>
 ) {
-    val grupper = mutableListOf<MutableList<Månedsberegning>>().apply {
+    val beregningsperioder: List<EkvivalenteMånedsberegninger> = mutableListOf<MutableList<Månedsberegning>>().apply {
         månedsberegninger.sorterMånedsberegninger().forEach { månedsberegning ->
             when {
                 this.isEmpty() -> this.add(mutableListOf(månedsberegning))
@@ -15,7 +39,7 @@ data class GrupperEkvivalenteMånedsberegninger(
             }
         }
     }.map {
-        GrupperteMånedsberegninger(it)
+        EkvivalenteMånedsberegninger(it)
     }
 
     private fun List<Månedsberegning>.sisteMånedsberegningErLikOgTilstøtende(månedsberegning: Månedsberegning): Boolean =
@@ -44,15 +68,6 @@ data class GrupperEkvivalenteMånedsberegninger(
         return sortedThis.zip(sortedThat) { a, b -> a likhetUtenDato b }.all { it }
     }
 
-    data class GrupperteMånedsberegninger(
-        val månedsberegninger: List<Månedsberegning>
-    ) : Månedsberegning by månedsberegninger.first() {
-        override fun getPeriode(): Periode = Periode(
-            fraOgMed = månedsberegninger.minOf { it.getPeriode().getFraOgMed() },
-            tilOgMed = månedsberegninger.maxOf { it.getPeriode().getTilOgMed() }
-        )
-    }
-
     private fun List<Månedsberegning>.sorterMånedsberegninger() = this
         .sortedBy { it.getPeriode().getFraOgMed() }
 
@@ -60,4 +75,18 @@ data class GrupperEkvivalenteMånedsberegninger(
         .sortedBy { it.getMånedsbeløp() }
         .sortedBy { it.getFradragstype() }
         .sortedBy { it.getTilhører() }
+}
+
+/**
+ * Represents a group of adjacent [Månedsberegning], sharing all properties but [Periode] (also for fradrag).
+ * Implements the interface to act as a regular månedsberegning, but overrides the to return a period
+ * representing the minimum and maximum dates for the group of månedsberegninger contained.
+ */
+internal data class EkvivalenteMånedsberegninger(
+    private val månedsberegninger: List<Månedsberegning>
+) : Månedsberegning by månedsberegninger.first() {
+    override fun getPeriode(): Periode = Periode(
+        fraOgMed = månedsberegninger.minOf { it.getPeriode().getFraOgMed() },
+        tilOgMed = månedsberegninger.maxOf { it.getPeriode().getTilOgMed() }
+    )
 }
