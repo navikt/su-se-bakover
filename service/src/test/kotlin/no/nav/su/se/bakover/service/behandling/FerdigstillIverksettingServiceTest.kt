@@ -37,7 +37,6 @@ import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import org.junit.jupiter.api.Test
-import org.mockito.internal.verification.Times
 import java.util.UUID
 
 internal class FerdigstillIverksettingServiceTest {
@@ -375,7 +374,11 @@ internal class FerdigstillIverksettingServiceTest {
         ) {
             verify(behandlingRepoMock).hentBehandlingForUtbetaling(argThat { it shouldBe utbetalingId })
             verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
-            verify(oppslagMock, Times(2)).hentBrukerinformasjonForNavIdent(any())
+            argumentCaptor<NavIdentBruker>().apply {
+                verify(oppslagMock, times(2)).hentBrukerinformasjonForNavIdent(capture())
+                firstValue shouldBe saksbehandler
+                secondValue shouldBe attestant
+            }
             verify(journalførIverksettingServiceMock).opprettJournalpost(
                 argThat { it shouldBe innvilgetBehandlingUtenJournalpost.copy() },
                 argThat {
@@ -398,37 +401,6 @@ internal class FerdigstillIverksettingServiceTest {
             oppgaveServiceMock
         )
     }
-
-    // @Test
-    // fun `Kan ikke bestille brev hvis iverksattJournalId er null`() {
-    //     val behandlingRepoMock = mock<BehandlingRepo> {
-    //         on { hentBehandlingForUtbetaling(any()) } doReturn innvilgetBehandlingUtenJournalpost
-    //     }
-    //
-    //     val actual = createService(
-    //         behandlingRepo = behandlingRepoMock,
-    //     ).ferdigstillInnvilgelse(utbetalingId)
-    //
-    //     actual shouldBe OpprettManglendeJournalpostOgBrevdistribusjonResultat(
-    //         journalpostresultat = emptyList(),
-    //         brevbestillingsresultat = listOf(
-    //             KunneIkkeBestilleBrev(
-    //                 sakId = sakIdBestiltBrev,
-    //                 behandlingId = behandlingIdBestiltBrev,
-    //                 journalpostId = null,
-    //                 grunn = "Kunne ikke opprette brevbestilling siden iverksattJournalpostId er null."
-    //             ).left()
-    //         )
-    //     )
-    //
-    //     inOrder(
-    //         behandlingRepoMock
-    //     ) {
-    //         verify(behandlingRepoMock).hentBehandlingForUtbetaling()
-    //         verify(behandlingRepoMock).hentIverksatteBehandlingerUtenBrevbestillinger()
-    //     }
-    //     verifyNoMoreInteractions(behandlingRepoMock)
-    // }
 
     @Test
     fun `Kunne ikke distribuere brev`() {
@@ -477,7 +449,11 @@ internal class FerdigstillIverksettingServiceTest {
         ) {
             verify(behandlingRepoMock).hentBehandlingForUtbetaling(argThat { it shouldBe utbetalingId })
             verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
-            verify(oppslagMock, Times(2)).hentBrukerinformasjonForNavIdent(any())
+            argumentCaptor<NavIdentBruker>().apply {
+                verify(oppslagMock, times(2)).hentBrukerinformasjonForNavIdent(capture())
+                firstValue shouldBe saksbehandler
+                secondValue shouldBe attestant
+            }
             verify(journalførIverksettingServiceMock).opprettJournalpost(
                 argThat { it shouldBe innvilgetBehandlingUtenJournalpost.copy() },
                 argThat {
@@ -489,7 +465,11 @@ internal class FerdigstillIverksettingServiceTest {
                     )
                 },
             )
-            verify(distribuerIverksettingsbrevServiceMock).distribuerBrev(any())
+            verify(distribuerIverksettingsbrevServiceMock).distribuerBrev(
+                argThat {
+                    it shouldBe innvilgetBehandlingUtenJournalpost
+                }
+            )
             verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
         }
         verifyNoMoreInteractions(
@@ -551,7 +531,11 @@ internal class FerdigstillIverksettingServiceTest {
         ) {
             verify(behandlingRepoMock).hentBehandlingForUtbetaling(argThat { it shouldBe utbetalingId })
             verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
-            verify(oppslagMock, Times(2)).hentBrukerinformasjonForNavIdent(any())
+            argumentCaptor<NavIdentBruker>().apply {
+                verify(oppslagMock, times(2)).hentBrukerinformasjonForNavIdent(capture())
+                firstValue shouldBe saksbehandler
+                secondValue shouldBe attestant
+            }
             verify(journalførIverksettingServiceMock).opprettJournalpost(
                 argThat { it shouldBe innvilgetBehandlingUtenJournalpost.copy() },
                 argThat {

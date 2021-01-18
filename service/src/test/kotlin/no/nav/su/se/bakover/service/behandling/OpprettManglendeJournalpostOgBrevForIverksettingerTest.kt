@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
+import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
@@ -35,7 +36,6 @@ import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import org.junit.jupiter.api.Test
-import org.mockito.internal.verification.Times
 import java.util.UUID
 
 internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
@@ -72,6 +72,9 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
     private val bestiltBrev =
         BestiltBrev(sakIdBestiltBrev, behandlingIdBestiltBrev, journalpostIdBestiltBrev, brevbestillingId)
 
+    private val saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler")
+    private val attestant = NavIdentBruker.Attestant("attestant")
+
     private val innvilgetBehandlingUtenJournalpost = BehandlingFactory(mock()).createBehandling(
         søknad = Søknad.Journalført.MedOppgave(
             id = UUID.randomUUID(),
@@ -83,8 +86,8 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
         ),
         id = behandlingIdJournalpost,
         status = Behandling.BehandlingsStatus.IVERKSATT_INNVILGET,
-        saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-        attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
+        saksbehandler = saksbehandler,
+        attestering = Attestering.Iverksatt(attestant),
         sakId = sakIdJournalpost,
         saksnummer = Saksnummer(1),
         fnr = fnr,
@@ -155,7 +158,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
             oppslagMock
         ) {
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenJournalposteringer()
-            verify(oppslagMock).hentBrukerinformasjonForNavIdent(any())
+            verify(oppslagMock).hentBrukerinformasjonForNavIdent(argThat { it shouldBe saksbehandler })
 
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenBrevbestillinger()
         }
@@ -205,8 +208,8 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenJournalposteringer()
             argumentCaptor<NavIdentBruker>().apply {
                 verify(oppslagMock, times(2)).hentBrukerinformasjonForNavIdent(capture())
-                firstValue shouldBe NavIdentBruker.Saksbehandler("saksbehandler")
-                secondValue shouldBe NavIdentBruker.Attestant("attestant")
+                firstValue shouldBe saksbehandler
+                secondValue shouldBe attestant
             }
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenBrevbestillinger()
         }
@@ -251,7 +254,11 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
             oppslagMock
         ) {
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenJournalposteringer()
-            verify(oppslagMock, Times(2)).hentBrukerinformasjonForNavIdent(any())
+            argumentCaptor<NavIdentBruker>().apply {
+                verify(oppslagMock, times(2)).hentBrukerinformasjonForNavIdent(capture())
+                firstValue shouldBe saksbehandler
+                secondValue shouldBe attestant
+            }
             verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
 
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenBrevbestillinger()
@@ -314,9 +321,23 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
             journalførIverksettingServiceMock
         ) {
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenJournalposteringer()
-            verify(oppslagMock, Times(2)).hentBrukerinformasjonForNavIdent(any())
+            argumentCaptor<NavIdentBruker>().apply {
+                verify(oppslagMock, times(2)).hentBrukerinformasjonForNavIdent(capture())
+                firstValue shouldBe saksbehandler
+                secondValue shouldBe attestant
+            }
             verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
-            verify(journalførIverksettingServiceMock).opprettJournalpost(any(), any())
+            verify(journalførIverksettingServiceMock).opprettJournalpost(
+                argThat { it shouldBe innvilgetBehandlingUtenJournalpost },
+                argThat {
+                    it shouldBe LagBrevRequest.InnvilgetVedtak(
+                        person = person,
+                        attestantNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName,
+                        saksbehandlerNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName,
+                        behandling = innvilgetBehandlingUtenJournalpost.copy()
+                    )
+                }
+            )
 
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenBrevbestillinger()
         }
@@ -506,7 +527,6 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
         }
 
         val distribuerIverksettingsbrevServiceMock = mock<DistribuerIverksettingsbrevService> {
-            // on { journalførBrev(any(), any()) } doReturn journalpostId.right()
             on { distribuerBrev(any()) } doReturn innvilgetBehandlingUtenJournalpost.copy(
                 iverksattBrevbestillingId = brevbestillingId
             ).right()
@@ -537,12 +557,34 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
             distribuerIverksettingsbrevServiceMock,
         ) {
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenJournalposteringer()
-            verify(oppslagMock, Times(2)).hentBrukerinformasjonForNavIdent(any())
+            argumentCaptor<NavIdentBruker>().apply {
+                verify(oppslagMock, times(2)).hentBrukerinformasjonForNavIdent(capture())
+                firstValue shouldBe saksbehandler
+                secondValue shouldBe attestant
+            }
             verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
-            verify(journalførIverksettingServiceMock).opprettJournalpost(any(), any())
+            verify(journalførIverksettingServiceMock).opprettJournalpost(
+                argThat { it shouldBe innvilgetBehandlingUtenJournalpost },
+                argThat {
+                    it shouldBe LagBrevRequest.InnvilgetVedtak(
+                        person = person,
+                        attestantNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName,
+                        saksbehandlerNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName,
+                        behandling = innvilgetBehandlingUtenJournalpost.copy()
+                    )
+                }
+            )
 
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenBrevbestillinger()
-            verify(distribuerIverksettingsbrevServiceMock).distribuerBrev(any())
+            verify(distribuerIverksettingsbrevServiceMock).distribuerBrev(
+                argThat {
+                    it shouldBe innvilgetBehandlingUtenJournalpost.copy(
+                        id = behandlingIdBestiltBrev,
+                        sakId = sakIdBestiltBrev,
+                        iverksattJournalpostId = journalpostIdBestiltBrev
+                    )
+                }
+            )
         }
         verifyNoMoreInteractions(
             behandlingRepoMock,

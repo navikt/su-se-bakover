@@ -69,7 +69,6 @@ class FerdigstillIverksettingService(
                 log.info("Lukket oppgave ${behandling.oppgaveId()} ved innvilgelse for behandling ${behandling.id}")
                 // TODO jah: Vurder behandling.oppdaterOppgaveId(null), men den kan ikke være null atm.
                 behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.LUKKET_OPPGAVE)
-                // IverksattBehandling.UtenMangler(behandling)
             }
     }
 

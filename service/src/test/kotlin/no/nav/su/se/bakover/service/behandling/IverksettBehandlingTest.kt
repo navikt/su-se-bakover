@@ -53,7 +53,6 @@ import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
 import org.junit.jupiter.api.Test
-import org.mockito.internal.verification.Times
 import java.util.UUID
 
 internal class IverksettBehandlingTest {
@@ -201,7 +200,7 @@ internal class IverksettBehandlingTest {
         ).iverksett(behandling.id, Attestant(behandling.saksbehandler()!!.navIdent))
 
         response shouldBe KunneIkkeIverksetteBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
-        inOrder(behandlingRepoMock, distribuerIverksettingsbrevServiceMock, personServiceMock, oppgaveServiceMock) {
+        inOrder(behandlingRepoMock, personServiceMock) {
             verify(behandlingRepoMock).hentBehandling(behandling.id)
             verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
         }
@@ -508,7 +507,6 @@ internal class IverksettBehandlingTest {
             verify(behandlingRepoMock).hentBehandling(behandling.id)
             verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
             verify(utbetalingServiceMock).utbetal(behandling.sakId, attestant, beregning, simulering)
-            verify(behandlingRepoMock, Times(0)).oppdaterBehandlingStatus(any(), any())
         }
         verifyNoMoreInteractions(
             behandlingRepoMock,
