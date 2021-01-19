@@ -80,6 +80,8 @@ fun Fradragstype.toReadableTypeName(utenlandsk: Boolean) =
             "Forventet inntekt etter uførhet"
         Fradragstype.BeregnetFradragEPS ->
             "Utregnet fradrag for ektefelle/samboers inntekter"
+        Fradragstype.UnderMinstenivå ->
+            "Beløp under minstegrense for utbetaling"
     }.let { fradragsnavn ->
         if (utenlandsk) {
             "$fradragsnavn — fra utlandet"

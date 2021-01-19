@@ -21,7 +21,8 @@ enum class Fradragstype {
      *  Represents a "mixed bag" of fradrag that in total exceeds the respecive limits given by §5 and §6.
      *  Not to be used for input-operations (i.e. from frontend).
      */
-    BeregnetFradragEPS;
+    BeregnetFradragEPS,
+    UnderMinstenivå;
 
     companion object {
         fun isValid(s: String) =
