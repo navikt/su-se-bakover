@@ -13,4 +13,5 @@ interface Månedsberegning : PeriodisertInformasjon {
     fun getFradrag(): List<Fradrag>
 
     fun erFradragForEpsBenyttetIBeregning() = getFradrag().any { it.getFradragstype() == Fradragstype.BeregnetFradragEPS }
+    fun erSumYtelseUnderMinstebeløp() = getSumYtelse() == 0 && getFradrag().any { it.getFradragstype() == Fradragstype.UnderMinstenivå }
 }
