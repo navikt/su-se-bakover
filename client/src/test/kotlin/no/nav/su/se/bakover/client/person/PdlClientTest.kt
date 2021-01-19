@@ -49,7 +49,7 @@ internal class PdlClientTest : WiremockBase {
             }
             """.trimIndent()
         wireMockServer.stubFor(
-            wiremockBuilder
+            wiremockBuilder()
                 .willReturn(WireMock.ok(errorResponseJson))
         )
 
@@ -61,7 +61,7 @@ internal class PdlClientTest : WiremockBase {
     fun `hent aktørid ukjent feil`() {
 
         wireMockServer.stubFor(
-            wiremockBuilder
+            wiremockBuilder()
                 .willReturn(WireMock.serverError())
         )
 
@@ -93,7 +93,7 @@ internal class PdlClientTest : WiremockBase {
             }
             """.trimIndent()
         wireMockServer.stubFor(
-            wiremockBuilder
+            wiremockBuilder()
                 .willReturn(WireMock.ok(suksessResponseJson))
         )
 
@@ -132,7 +132,7 @@ internal class PdlClientTest : WiremockBase {
             }
             """.trimIndent()
         wireMockServer.stubFor(
-            wiremockBuilder
+            wiremockBuilder()
                 .willReturn(WireMock.ok(errorResponseJson))
         )
 
@@ -144,7 +144,7 @@ internal class PdlClientTest : WiremockBase {
     fun `hent person ukjent feil`() {
 
         wireMockServer.stubFor(
-            wiremockBuilder
+            wiremockBuilder()
                 .willReturn(WireMock.serverError())
         )
 
@@ -245,7 +245,7 @@ internal class PdlClientTest : WiremockBase {
             }
             """.trimIndent()
         wireMockServer.stubFor(
-            wiremockBuilder
+            wiremockBuilder()
                 .willReturn(WireMock.ok(suksessResponseJson))
         )
 
@@ -373,7 +373,7 @@ internal class PdlClientTest : WiremockBase {
             }
             """.trimIndent()
         wireMockServer.stubFor(
-            wiremockBuilder
+            wiremockBuilder()
                 .willReturn(WireMock.ok(suksessResponseJson))
         )
 
@@ -508,7 +508,7 @@ internal class PdlClientTest : WiremockBase {
             }
             """.trimIndent()
         wireMockServer.stubFor(
-            wiremockBuilder
+            wiremockBuilder()
                 .willReturn(WireMock.ok(suksessResponseJson))
         )
 
@@ -557,6 +557,70 @@ internal class PdlClientTest : WiremockBase {
 
     @Test
     fun `hent person OK, men med tomme verdier`() {
+        //language=JSON
+        val suksessResponseJson =
+            """
+            {
+              "data": {
+                "hentPerson": {
+                  "navn": [{
+                "fornavn": "NYDELIG",
+                "mellomnavn": null,
+                "etternavn": "KRONJUVEL",
+                "metadata": {
+                  "master": "Freg"
+                 }
+                }],
+                  "telefonnummer": [],
+                  "bostedsadresse": [],
+                  "kontaktadresse": [],
+                  "oppholdsadresse": [],
+                  "statsborgerskap": [],
+                  "kjoenn": [],
+                  "adressebeskyttelse": [],
+                  "vergemaalEllerFremtidsfullmakt": [],
+                  "fullmakt": []
+                },
+                "hentIdenter": {
+                  "identer": [
+                    {
+                      "ident": "07028820547",
+                      "gruppe": "FOLKEREGISTERIDENT"
+                    },
+                    {
+                      "ident": "2751637578706",
+                      "gruppe": "AKTORID"
+                    }
+                  ]
+                }
+              }
+            }
+            """.trimIndent()
+        wireMockServer.stubFor(
+            wiremockBuilder("Bearer ${tokenOppslag.token()}")
+                .willReturn(WireMock.ok(suksessResponseJson))
+        )
+
+        val client = PdlClient(wireMockServer.baseUrl(), tokenOppslag)
+        client.personForSystembruker(Fnr("07028820547")) shouldBe PdlData(
+            ident = PdlData.Ident(Fnr("07028820547"), AktørId("2751637578706")),
+            navn = PdlData.Navn(
+                fornavn = "NYDELIG",
+                mellomnavn = null,
+                etternavn = "KRONJUVEL"
+            ),
+            telefonnummer = null,
+            kjønn = null,
+            adresse = emptyList(),
+            statsborgerskap = null,
+            adressebeskyttelse = null,
+            vergemålEllerFremtidsfullmakt = false,
+            fullmakt = false,
+        ).right()
+    }
+
+    @Test
+    fun `hent person OK for systembruker`() {
 
         //language=JSON
         val suksessResponseJson =
@@ -591,7 +655,7 @@ internal class PdlClientTest : WiremockBase {
             }
             """.trimIndent()
         wireMockServer.stubFor(
-            wiremockBuilder
+            wiremockBuilder()
                 .willReturn(WireMock.ok(suksessResponseJson))
         )
 
@@ -599,8 +663,8 @@ internal class PdlClientTest : WiremockBase {
         client.person(Fnr("07028820547")) shouldBe KunneIkkeHentePerson.FantIkkePerson.left()
     }
 
-    private val wiremockBuilder = WireMock.post(WireMock.urlPathEqualTo("/graphql"))
-        .withHeader("Authorization", WireMock.equalTo("Bearer abc"))
+    private fun wiremockBuilder(authorization: String = "Bearer abc") = WireMock.post(WireMock.urlPathEqualTo("/graphql"))
+        .withHeader("Authorization", WireMock.equalTo(authorization))
         .withHeader("Content-Type", WireMock.equalTo("application/json"))
         .withHeader("Accept", WireMock.equalTo("application/json"))
         .withHeader("Nav-Consumer-Token", WireMock.equalTo("Bearer ${tokenOppslag.token()}"))
