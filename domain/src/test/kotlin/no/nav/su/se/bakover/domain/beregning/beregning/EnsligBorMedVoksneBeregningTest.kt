@@ -42,7 +42,7 @@ internal class EnsligBorMedVoksneBeregningTest {
         val utenlandskInntektPrMnd = utenlandskInntektPrÅr / 12
 
         val beregningsgrunnlag = Beregningsgrunnlag(
-            periode = periode,
+            beregningsperiode = periode,
             forventetInntektPerÅr = 0.0,
             fradragFraSaksbehandler = listOf(
                 FradragFactory.ny(

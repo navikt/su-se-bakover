@@ -1,14 +1,19 @@
 package no.nav.su.se.bakover.common.periode
 
+import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.april
+import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mars
+import no.nav.su.se.bakover.common.objectMapper
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.skyscreamer.jsonassert.JSONAssert
 
 internal class PeriodeTest {
     @Test
@@ -61,5 +66,54 @@ internal class PeriodeTest {
         assertThrows<IllegalArgumentException> {
             Periode(10.januar(2002), 1.januar(2020))
         }
+    }
+
+    @Test
+    fun `periode inneholder en annen periode`() {
+        Periode(1.januar(2021), 31.desember(2021)) inneholder Periode(1.januar(2021), 31.januar(2021)) shouldBe true
+        Periode(1.januar(2021), 31.desember(2021)) inneholder Periode(1.januar(2021), 31.desember(2021)) shouldBe true
+        Periode(1.januar(2021), 31.desember(2021)) inneholder Periode(1.desember(2021), 31.desember(2021)) shouldBe true
+        Periode(1.januar(2021), 31.desember(2021)) inneholder Periode(1.januar(2020), 31.desember(2021)) shouldBe false
+        Periode(1.januar(2021), 31.desember(2021)) inneholder Periode(1.januar(2021), 31.desember(2022)) shouldBe false
+        Periode(1.januar(2021), 31.desember(2021)) inneholder Periode(1.juli(2021), 31.august(2021)) shouldBe true
+        Periode(1.januar(2021), 31.desember(2021)) inneholder Periode(1.juli(2019), 31.august(2019)) shouldBe false
+        Periode(1.januar(2021), 31.desember(2021)) inneholder Periode(1.juli(2022), 31.august(2022)) shouldBe false
+    }
+
+    @Test
+    fun `tilstøtende perioder`() {
+        Periode(1.januar(2021), 31.desember(2021)) tilstøter Periode(1.januar(2021), 31.januar(2021)) shouldBe false
+        Periode(1.januar(2021), 31.desember(2021)) tilstøter Periode(1.januar(2022), 31.desember(2022)) shouldBe true
+        Periode(1.januar(2021), 31.desember(2021)) tilstøter Periode(1.januar(2020), 31.desember(2020)) shouldBe true
+        Periode(1.januar(2021), 31.desember(2021)) tilstøter Periode(1.januar(2050), 31.desember(2050)) shouldBe false
+        Periode(1.januar(2021), 31.desember(2021)) tilstøter Periode(1.januar(2015), 31.desember(2015)) shouldBe false
+    }
+
+    @Test
+    fun `serialisering av periode`() {
+        val expectedJson = """
+            {
+                "fraOgMed":"2021-01-01",
+                "tilOgMed":"2021-12-31"
+            }
+        """.trimIndent()
+
+        val serialized = objectMapper.writeValueAsString(Periode(1.januar(2021), 31.desember(2021)))
+
+        JSONAssert.assertEquals(expectedJson, serialized, true)
+    }
+
+    @Test
+    fun `deserialisering av periode`() {
+        val serialized = """
+            {
+                "fraOgMed":"2021-01-01",
+                "tilOgMed":"2021-12-31"
+            }
+        """.trimIndent()
+
+        val deserialized = objectMapper.readValue<Periode>(serialized)
+
+        deserialized shouldBe Periode(1.januar(2021), 31.desember(2021))
     }
 }

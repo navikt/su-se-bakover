@@ -472,16 +472,14 @@ internal class VedtakssnapshotJsonTest {
                                     },
                                     "periode":{
                                         "fraOgMed":"1970-01-01",
-                                        "tilOgMed":"1970-01-31",
-                                        "antallMåneder":1
+                                        "tilOgMed":"1970-01-31"
                                     },
                                     "tilhører":"BRUKER"
                                 }
                             ],
                             "periode":{
                                 "fraOgMed":"1970-01-01",
-                                "tilOgMed":"1970-01-31",
-                                "antallMåneder":1
+                                "tilOgMed":"1970-01-31"
                             }
                         }
                     ],
@@ -496,8 +494,7 @@ internal class VedtakssnapshotJsonTest {
                         },
                         "periode":{
                             "fraOgMed":"1970-01-01",
-                            "tilOgMed":"1970-01-31",
-                            "antallMåneder":1
+                            "tilOgMed":"1970-01-31"
                         },
                         "tilhører":"BRUKER"
                       }                        
@@ -506,8 +503,7 @@ internal class VedtakssnapshotJsonTest {
                     "sumFradrag":2.1,
                     "periode":{
                         "fraOgMed":"1970-01-01",
-                        "tilOgMed":"1970-01-31",
-                        "antallMåneder":1
+                        "tilOgMed":"1970-01-31"
                     },
                     "fradragStrategyName":"Enslig"
                 },

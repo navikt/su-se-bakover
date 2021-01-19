@@ -1,12 +1,15 @@
 package no.nav.su.se.bakover.domain.beregning.beregning
 
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.doubles.plusOrMinus
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juni
+import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
@@ -16,7 +19,9 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.IkkePeriodisertFradrag
+import no.nav.su.se.bakover.domain.beregning.fradrag.PeriodisertFradrag
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 
 internal class BeregningMedFradragBeregnetMånedsvisTest {
     @Test
@@ -121,8 +126,8 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
      *
      * Fradrag: 245117 -> 20426,42 pr mnd
      *
-     * Utbetalt Jan-Apr: 20637,32 - 20426,42 = 210,9 -> rundes til 211 -- "får" 0,1 pr mnd = 0,4 totalt
-     * Utbetalt Mai-Des: 20945,87 - 20426,42 = 519,46 -> rundes til 519 -- "mister" 0,46 pr mnd = 3,68 totalt
+     * Beløp Jan-Apr: 20637,32 - 20426,42 = 210,9 -> rundes til 211 -- "får" 0,1 pr mnd = 0,4 totalt
+     * Beløp Mai-Des: 20945,87 - 20426,42 = 519,46 -> rundes til 519 -- "mister" 0,46 pr mnd = 3,68 totalt
      * "Mister" totalt 3,28 kr pga avrunding av månedsbeløp
      * Totalt (tatt høyde for avrunding av månedsbeløp): 4996
      *
@@ -131,7 +136,10 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
      * Mai-Des: 519,46 pr mnd
      * Totalt: 4999.28
      *
-     * Total (uten avrunding) - "det vi mister pga avrunding" = 4996
+     * Beløp for Jan-Apr er under beløpsgrense for utbetaling, dette fører til et ekstra fradrag disse månedene
+     * tilsvarende 4 * 211 = 844
+     *
+     * Total (uten avrunding) - "det vi mister pga avrunding" = 4152
      */
     @Test
     fun `sum under minstebeløp for utbetaling (2 prosent av høy sats)`() {
@@ -150,8 +158,51 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             fradragStrategy = FradragStrategy.Enslig
         )
 
-        beregning.getSumYtelse() shouldBe 4996
-        beregning.getSumFradrag() shouldBe 245117.0.plusOrMinus(0.5)
+        val (janAprUnderMinstenivå, janAprAndre) = beregning.getMånedsberegninger()
+            .flatMap { it.getFradrag() }
+            .filter { Periode(1.januar(2020), 30.april(2020)) inneholder it.getPeriode() }
+            .partition { it.getFradragstype() == Fradragstype.UnderMinstenivå }
+
+        janAprUnderMinstenivå shouldHaveSize 4
+        janAprUnderMinstenivå.forEach {
+            it shouldBe PeriodisertFradrag(
+                type = Fradragstype.UnderMinstenivå,
+                månedsbeløp = 211.0,
+                periode = it.getPeriode(),
+                utenlandskInntekt = null,
+                tilhører = FradragTilhører.BRUKER
+            )
+        }
+        janAprAndre shouldHaveSize 4
+        janAprAndre.forEach {
+            it shouldBe PeriodisertFradrag(
+                type = Fradragstype.ForventetInntekt,
+                månedsbeløp = 20426.42,
+                periode = it.getPeriode(),
+                utenlandskInntekt = null,
+                tilhører = FradragTilhører.BRUKER
+            )
+        }
+
+        val (maiDesUnderMinstenivå, maiDesAndre) = beregning.getMånedsberegninger()
+            .flatMap { it.getFradrag() }
+            .filter { Periode(1.mai(2020), 31.desember(2020)) inneholder it.getPeriode() }
+            .partition { it.getFradragstype() == Fradragstype.UnderMinstenivå }
+
+        maiDesUnderMinstenivå shouldHaveSize 0
+        maiDesAndre shouldHaveSize 8
+        maiDesAndre.forEach {
+            it shouldBe PeriodisertFradrag(
+                type = Fradragstype.ForventetInntekt,
+                månedsbeløp = 20426.42,
+                periode = it.getPeriode(),
+                utenlandskInntekt = null,
+                tilhører = FradragTilhører.BRUKER
+            )
+        }
+
+        beregning.getSumYtelse() shouldBe 4152
+        beregning.getSumFradrag() shouldBe 245961.0.plusOrMinus(0.5)
     }
 
     @Test
@@ -260,5 +311,43 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
         beregning.getMånedsberegninger() shouldNotBe beregning2.getMånedsberegninger()
         beregning.getSumFradrag() shouldNotBe beregning2.getSumFradrag()
         beregning.getSumYtelse() shouldNotBe beregning2.getSumYtelse()
+    }
+
+    @Test
+    fun `fradrag må være innenfor beregningsperioden`() {
+        val beregningsperiode = Periode(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021))
+        assertThrows<IllegalArgumentException> {
+            BeregningFactory.ny(
+                periode = beregningsperiode,
+                sats = Sats.HØY,
+                fradrag = listOf(
+                    FradragFactory.ny(
+                        type = Fradragstype.ForventetInntekt,
+                        månedsbeløp = 12000.0,
+                        periode = Periode(fraOgMed = 1.februar(2021), tilOgMed = 31.januar(2022)),
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER
+                    )
+                ),
+                fradragStrategy = FradragStrategy.Enslig
+            )
+        }
+
+        assertThrows<IllegalArgumentException> {
+            BeregningFactory.ny(
+                periode = beregningsperiode,
+                sats = Sats.HØY,
+                fradrag = listOf(
+                    FradragFactory.ny(
+                        type = Fradragstype.ForventetInntekt,
+                        månedsbeløp = 12000.0,
+                        periode = Periode(fraOgMed = 1.januar(2019), tilOgMed = 31.januar(2022)),
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER
+                    )
+                ),
+                fradragStrategy = FradragStrategy.Enslig
+            )
+        }
     }
 }

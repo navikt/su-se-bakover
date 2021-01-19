@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.behandling.Satsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
-import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
+import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
 
 abstract class BrevInnhold {
     fun toJson(): String = objectMapper.writeValueAsString(this)
@@ -19,9 +19,10 @@ abstract class BrevInnhold {
         val avslagsgrunner: List<Avslagsgrunn>,
         val harEktefelle: Boolean,
         val halvGrunnbeløp: Int,
-        val beregning: Beregning?,
+        val beregningsperioder: List<Beregningsperiode>,
         val saksbehandlerNavn: String,
-        val attestantNavn: String
+        val attestantNavn: String,
+        val sats: String?,
     ) : BrevInnhold() {
         @Suppress("unused")
         @JsonInclude
@@ -30,6 +31,10 @@ abstract class BrevInnhold {
         @Suppress("unused")
         @JsonInclude
         val avslagsparagrafer: List<Int> = avslagsgrunner.getDistinkteParagrafer()
+
+        @Suppress("unused")
+        @JsonInclude
+        val satsBeløp = beregningsperioder.firstOrNull()?.satsbeløpPerMåned
 
         override val brevTemplate: BrevTemplate = BrevTemplate.AvslagsVedtak
     }
@@ -40,12 +45,17 @@ abstract class BrevInnhold {
         val tildato: String,
         val sats: String,
         val satsGrunn: Satsgrunn,
+        val satsBeløp: Double,
         val harEktefelle: Boolean,
-        val beregning: Beregning,
+        val beregningsperioder: List<Beregningsperiode>,
         val saksbehandlerNavn: String,
-        val attestantNavn: String
+        val attestantNavn: String,
     ) : BrevInnhold() {
         override val brevTemplate: BrevTemplate = BrevTemplate.InnvilgetVedtak
+
+        @Suppress("unused")
+        @JsonInclude
+        val harFradrag: Boolean = beregningsperioder.any { it.fradrag.bruker.isNotEmpty() || it.fradrag.eps.fradrag.isNotEmpty() }
     }
 
     data class Personalia(
@@ -53,35 +63,6 @@ abstract class BrevInnhold {
         val fødselsnummer: Fnr,
         val fornavn: String,
         val etternavn: String,
-    )
-
-    data class Beregning(
-        val ytelsePerMåned: Int,
-        val satsbeløpPerMåned: Int,
-        val epsFribeløp: Double,
-        val fradrag: Fradrag?,
-    ) {
-        data class Fradrag(
-            val bruker: FradragForBruker,
-            val eps: FradragForEps,
-        )
-
-        data class FradragForBruker(
-            val fradrag: List<Månedsfradrag>,
-            val sum: Double,
-            val harBruktForventetInntektIStedetForArbeidsinntekt: Boolean,
-        )
-
-        data class FradragForEps(
-            val fradrag: List<Månedsfradrag>,
-            val sum: Double,
-        )
-    }
-
-    data class Månedsfradrag(
-        val type: String,
-        val beløp: Double,
-        val utenlandskInntekt: UtenlandskInntekt?
     )
 }
 

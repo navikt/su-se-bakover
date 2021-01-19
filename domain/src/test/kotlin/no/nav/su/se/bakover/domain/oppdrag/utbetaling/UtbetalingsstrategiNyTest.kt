@@ -5,9 +5,11 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
+import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Fnr
@@ -234,7 +236,7 @@ internal class UtbetalingsstrategiNyTest {
     }
 
     @Test
-    fun `konverterer beregning til utbetalingsperioder`() {
+    fun `konverterer tilstøtende beregningsperioder med forskjellig beløp til separate utbetalingsperioder`() {
         val actualUtbetaling = Utbetalingsstrategi.Ny(
             sakId = sakId,
             saksnummer = saksnummer,
@@ -265,6 +267,75 @@ internal class UtbetalingsstrategiNyTest {
                     tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = actualUtbetaling.utbetalingslinjer[0].id,
                     beløp = 20946
+                )
+            ),
+            fnr = fnr,
+            type = Utbetaling.UtbetalingsType.NY,
+            behandler = NavIdentBruker.Saksbehandler("Z123"),
+            avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.EPOCH)
+        )
+    }
+
+    @Test
+    fun `perioder som har likt beløp, men ikke tilstøter hverandre får separate utbetalingsperioder`() {
+        val actualUtbetaling = Utbetalingsstrategi.Ny(
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            utbetalinger = emptyList(),
+            behandler = NavIdentBruker.Saksbehandler("Z123"),
+            beregning = BeregningFactory.ny(
+                periode = Periode(1.januar(2020), 30.april(2020)),
+                sats = Sats.HØY,
+                fradrag = listOf(
+                    FradragFactory.ny(
+                        type = Fradragstype.ForventetInntekt,
+                        månedsbeløp = 1000.0,
+                        periode = Periode(fraOgMed = 1.januar(2020), tilOgMed = 30.april(2020)),
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER
+                    ),
+                    FradragFactory.ny(
+                        type = Fradragstype.Arbeidsinntekt,
+                        månedsbeløp = 4000.0,
+                        periode = Periode(fraOgMed = 1.februar(2020), tilOgMed = 29.februar(2020)),
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER
+                    )
+                ),
+                fradragStrategy = FradragStrategy.Enslig
+            ),
+            clock = fixedClock
+        ).generate()
+        actualUtbetaling shouldBe Utbetaling.UtbetalingForSimulering(
+            id = actualUtbetaling.id,
+            opprettet = actualUtbetaling.opprettet,
+            sakId = sakId,
+            saksnummer = saksnummer,
+            utbetalingslinjer = listOf(
+                Utbetalingslinje(
+                    id = actualUtbetaling.utbetalingslinjer[0].id,
+                    opprettet = actualUtbetaling.utbetalingslinjer[0].opprettet,
+                    fraOgMed = 1.januar(2020),
+                    tilOgMed = 31.januar(2020),
+                    forrigeUtbetalingslinjeId = null,
+                    beløp = 19637
+                ),
+                Utbetalingslinje(
+                    id = actualUtbetaling.utbetalingslinjer[1].id,
+                    opprettet = actualUtbetaling.utbetalingslinjer[1].opprettet,
+                    fraOgMed = 1.februar(2020),
+                    tilOgMed = 29.februar(2020),
+                    forrigeUtbetalingslinjeId = actualUtbetaling.utbetalingslinjer[0].id,
+                    beløp = 16637
+                ),
+                Utbetalingslinje(
+                    id = actualUtbetaling.utbetalingslinjer[2].id,
+                    opprettet = actualUtbetaling.utbetalingslinjer[2].opprettet,
+                    fraOgMed = 1.mars(2020),
+                    tilOgMed = 30.april(2020),
+                    forrigeUtbetalingslinjeId = actualUtbetaling.utbetalingslinjer[1].id,
+                    beløp = actualUtbetaling.utbetalingslinjer[0].beløp
                 )
             ),
             fnr = fnr,

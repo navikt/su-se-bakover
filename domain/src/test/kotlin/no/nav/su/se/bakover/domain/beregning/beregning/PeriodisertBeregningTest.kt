@@ -143,4 +143,36 @@ internal class PeriodisertBeregningTest {
         )
         m1.getFradrag() shouldBe listOf(f1)
     }
+
+    @Test
+    fun `er fradrag for eps benyttet i beregning`() {
+        val f1 = FradragFactory.ny(
+            type = Fradragstype.BeregnetFradragEPS,
+            månedsbeløp = 1234.56,
+            periode = Periode(1.januar(2020), 31.januar(2020)),
+            utenlandskInntekt = null,
+            tilhører = FradragTilhører.EPS
+        )
+        val m1 = MånedsberegningFactory.ny(
+            periode = Periode(1.januar(2020), 31.januar(2020)),
+            sats = Sats.ORDINÆR,
+            fradrag = listOf(f1)
+        )
+        m1.erFradragForEpsBenyttetIBeregning() shouldBe true
+
+        val f2 = FradragFactory.ny(
+            type = Fradragstype.Arbeidsinntekt,
+            månedsbeløp = 1234.56,
+            periode = Periode(1.januar(2020), 31.januar(2020)),
+            utenlandskInntekt = null,
+            tilhører = FradragTilhører.BRUKER
+        )
+        val m2 = MånedsberegningFactory.ny(
+            periode = Periode(1.januar(2020), 31.januar(2020)),
+            sats = Sats.ORDINÆR,
+            fradrag = listOf(f2)
+        )
+
+        m2.erFradragForEpsBenyttetIBeregning() shouldBe false
+    }
 }

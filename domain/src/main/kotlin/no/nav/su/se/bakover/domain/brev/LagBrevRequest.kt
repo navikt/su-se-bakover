@@ -3,17 +3,10 @@ package no.nav.su.se.bakover.domain.brev
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import java.math.BigDecimal
-import java.math.RoundingMode
+import no.nav.su.se.bakover.domain.brev.beregning.LagBrevinnholdForBeregning
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
-import kotlin.math.roundToInt
 
 interface LagBrevRequest {
     fun getPerson(): Person
@@ -34,8 +27,9 @@ interface LagBrevRequest {
                 tildato = beregning.getPeriode().getTilOgMed().formatMonthYear(),
                 sats = beregning.getSats().toString().toLowerCase(),
                 satsGrunn = behandling.behandlingsinformasjon().bosituasjon!!.getSatsgrunn(),
+                satsBeløp = beregning.getSats().månedsbeløp(beregning.getPeriode().getTilOgMed()),
                 harEktefelle = behandling.behandlingsinformasjon().ektefelle != Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
-                beregning = getBrevinnholdberegning(beregning),
+                beregningsperioder = LagBrevinnholdForBeregning(beregning).brevInnhold,
                 saksbehandlerNavn = saksbehandlerNavn,
                 attestantNavn = attestantNavn
             )
@@ -43,115 +37,6 @@ interface LagBrevRequest {
     }
 }
 
-fun getBrevinnholdberegning(beregning: Beregning): BrevInnhold.Beregning {
-    val førsteMånedsberegning =
-        beregning.getMånedsberegninger()
-            .first() // Støtte for variende beløp i framtiden?
-
-    return BrevInnhold.Beregning(
-        ytelsePerMåned = førsteMånedsberegning.getSumYtelse(),
-        satsbeløpPerMåned = førsteMånedsberegning.getSatsbeløp().roundToInt(),
-        epsFribeløp =
-        FradragStrategy.fromName(beregning.getFradragStrategyName())
-            .getEpsFribeløp(førsteMånedsberegning.getPeriode())
-            .roundToTwoDecimals(),
-        fradrag = when (beregning.getFradrag().isEmpty()) {
-            true ->
-                null
-            false ->
-                BrevInnhold.Beregning.Fradrag(
-                    bruker =
-                    førsteMånedsberegning.getFradrag()
-                        .filter { it.getTilhører() == FradragTilhører.BRUKER }
-                        .let {
-                            BrevInnhold.Beregning.FradragForBruker(
-                                fradrag = it.toMånedsfradragPerType(),
-                                sum = it.sumByDouble { f -> f.getMånedsbeløp() }
-                                    .roundToTwoDecimals(),
-                                harBruktForventetInntektIStedetForArbeidsinntekt = it
-                                    .any { f -> f.getFradragstype() == Fradragstype.ForventetInntekt }
-                            )
-                        },
-                    eps = beregning
-                        .getFradrag()
-                        .filter { it.getTilhører() == FradragTilhører.EPS }
-                        .let {
-                            BrevInnhold.Beregning.FradragForEps(
-                                fradrag = it.toMånedsfradragPerType(),
-                                sum = førsteMånedsberegning.getFradrag()
-                                    .filter { f -> f.getTilhører() == FradragTilhører.EPS }
-                                    .sumByDouble { f -> f.getMånedsbeløp() }
-                                    .roundToTwoDecimals()
-                            )
-                        }
-                )
-        }
-    )
-}
-
 // TODO Hente Locale fra brukerens målform
 fun LocalDate.formatMonthYear(): String =
     this.format(DateTimeFormatter.ofPattern("LLLL yyyy", Locale.forLanguageTag("nb-NO")))
-
-internal fun List<Fradrag>.toMånedsfradragPerType(): List<BrevInnhold.Månedsfradrag> =
-    this
-        .groupBy {
-            "${it.getFradragstype()}${
-            it.getUtenlandskInntekt()
-                ?.let { u ->
-                    "${u.valuta}${u.beløpIUtenlandskValuta}"
-                }
-            }"
-        }
-        .map { (_, fradrag) ->
-            BrevInnhold.Månedsfradrag(
-                type = fradrag[0]
-                    .getFradragstype()
-                    .toReadableTypeName(
-                        utenlandsk = fradrag[0].getUtenlandskInntekt() != null
-                    ),
-                beløp = fradrag
-                    .sumByDouble { it.getMånedsbeløp() }
-                    .roundToTwoDecimals(),
-                utenlandskInntekt = fradrag[0].getUtenlandskInntekt()
-            )
-        }
-        .sortedBy { it.type }
-
-fun Double.roundToTwoDecimals() =
-    BigDecimal(this).setScale(2, RoundingMode.HALF_UP)
-        .toDouble()
-
-fun Fradragstype.toReadableTypeName(utenlandsk: Boolean) =
-    when (this) {
-        Fradragstype.NAVytelserTilLivsopphold ->
-            "NAV-ytelser til livsopphold"
-        Fradragstype.Arbeidsinntekt ->
-            "Arbeidsinntekt"
-        Fradragstype.OffentligPensjon ->
-            "Offentlig pensjon"
-        Fradragstype.PrivatPensjon ->
-            "Privat pensjon"
-        Fradragstype.Sosialstønad ->
-            "Sosialstønad"
-        Fradragstype.Kontantstøtte ->
-            "Kontantstøtte"
-        Fradragstype.Introduksjonsstønad ->
-            "Introduksjonsstønad"
-        Fradragstype.Kvalifiseringsstønad ->
-            "Kvalifiseringsstønad"
-        Fradragstype.BidragEtterEkteskapsloven ->
-            "Bidrag etter ekteskapsloven"
-        Fradragstype.Kapitalinntekt ->
-            "Kapitalinntekt"
-        Fradragstype.ForventetInntekt ->
-            "Forventet inntekt etter uførhet"
-        Fradragstype.BeregnetFradragEPS ->
-            "Utregnet fradrag for ektefelle/samboers inntekter"
-    }.let { fradragsnavn ->
-        if (utenlandsk) {
-            "$fradragsnavn — fra utlandet"
-        } else {
-            fradragsnavn
-        }
-    }

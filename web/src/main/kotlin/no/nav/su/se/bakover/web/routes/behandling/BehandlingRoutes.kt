@@ -71,8 +71,12 @@ internal fun Route.behandlingRoutes(
                                     {
                                         val resultat: Resultat = when (it) {
                                             is KunneIkkeOppretteSøknadsbehandling.FantIkkeSøknad -> NotFound.message("Fant ikke søknad med id $søknadId")
-                                            is KunneIkkeOppretteSøknadsbehandling.SøknadManglerOppgave -> InternalServerError.message("Søknad med id $søknadId mangler oppgave")
-                                            is KunneIkkeOppretteSøknadsbehandling.SøknadHarAlleredeBehandling -> BadRequest.message("Søknad med id $søknadId har allerede en behandling")
+                                            is KunneIkkeOppretteSøknadsbehandling.SøknadManglerOppgave -> InternalServerError.message(
+                                                "Søknad med id $søknadId mangler oppgave"
+                                            )
+                                            is KunneIkkeOppretteSøknadsbehandling.SøknadHarAlleredeBehandling -> BadRequest.message(
+                                                "Søknad med id $søknadId har allerede en behandling"
+                                            )
                                             is KunneIkkeOppretteSøknadsbehandling.SøknadErLukket -> BadRequest.message("Søknad med id $søknadId er lukket")
                                         }
                                         call.svar(resultat)
@@ -116,7 +120,9 @@ internal fun Route.behandlingRoutes(
                             behandlingsinformasjon = behandlingsinformasjonFromJson(body)
                         ).mapLeft {
                             val resultat = when (it) {
-                                KunneIkkeOppdatereBehandlingsinformasjon.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> BadRequest.message("Attestant og saksbehandler kan ikke være samme person")
+                                KunneIkkeOppdatereBehandlingsinformasjon.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> BadRequest.message(
+                                    "Attestant og saksbehandler kan ikke være samme person"
+                                )
                                 KunneIkkeOppdatereBehandlingsinformasjon.FantIkkeBehandling -> NotFound.message("Fant ikke behandling")
                             }
                             call.svar(resultat)
@@ -135,7 +141,7 @@ internal fun Route.behandlingRoutes(
         val tilOgMed: LocalDate,
         val fradrag: List<FradragJson>
     ) {
-        fun valid() = fraOgMed.dayOfMonth == 1 &&
+        fun isValid() = fraOgMed.dayOfMonth == 1 &&
             tilOgMed.dayOfMonth == tilOgMed.lengthOfMonth() &&
             fradrag.all {
                 Fradragstype.isValid(it.type) &&
@@ -153,24 +159,20 @@ internal fun Route.behandlingRoutes(
                         call.svar(BadRequest.message("Ugyldig body"))
                     },
                     ifRight = { body ->
-                        if (body.valid()) {
+                        if (body.isValid()) {
+                            val beregningsperiode = Periode(body.fraOgMed, body.tilOgMed)
                             behandlingService.opprettBeregning(
                                 saksbehandler = Saksbehandler(call.suUserContext.getNAVIdent()),
                                 behandlingId = behandlingId,
-                                fraOgMed = body.fraOgMed,
-                                tilOgMed = body.tilOgMed,
-                                fradrag = body.fradrag.map {
-                                    it.toFradrag(
-                                        Periode(
-                                            body.fraOgMed,
-                                            body.tilOgMed
-                                        )
-                                    )
-                                }
+                                fraOgMed = beregningsperiode.getFraOgMed(),
+                                tilOgMed = beregningsperiode.getTilOgMed(),
+                                fradrag = body.fradrag.map { it.toFradrag(beregningsperiode = beregningsperiode) }
                             ).mapLeft {
                                 val resultat = when (it) {
                                     KunneIkkeBeregne.FantIkkeBehandling -> NotFound.message("Fant ikke behandling")
-                                    KunneIkkeBeregne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> BadRequest.message("Attestant og saksbehandler kan ikke være samme person")
+                                    KunneIkkeBeregne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> BadRequest.message(
+                                        "Attestant og saksbehandler kan ikke være samme person"
+                                    )
                                 }
                                 call.svar(resultat)
                             }.map {
@@ -209,7 +211,9 @@ internal fun Route.behandlingRoutes(
                             is KunneIkkeLageBrevutkast.KunneIkkeLageBrev -> InternalServerError.message("Kunne ikke lage brev")
                             is KunneIkkeLageBrevutkast.KanIkkeLageBrevutkastForStatus -> BadRequest.message("Kunne ikke lage brev for behandlingstatus: ${it.status}")
                             is KunneIkkeLageBrevutkast.FantIkkePerson -> NotFound.message("Fant ikke person")
-                            is KunneIkkeLageBrevutkast.FikkIkkeHentetSaksbehandlerEllerAttestant -> InternalServerError.message("Klarte ikke hente informasjon om saksbehandler og/eller attestant")
+                            is KunneIkkeLageBrevutkast.FikkIkkeHentetSaksbehandlerEllerAttestant -> InternalServerError.message(
+                                "Klarte ikke hente informasjon om saksbehandler og/eller attestant"
+                            )
                         }
                         call.svar(resultat)
                     },
@@ -229,7 +233,9 @@ internal fun Route.behandlingRoutes(
                     {
                         val resultat = when (it) {
                             KunneIkkeSimulereBehandling.KunneIkkeSimulere -> InternalServerError.message("Kunne ikke gjennomføre simulering")
-                            KunneIkkeSimulereBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> BadRequest.message("Attestant og saksbehandler kan ikke være samme person")
+                            KunneIkkeSimulereBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> BadRequest.message(
+                                "Attestant og saksbehandler kan ikke være samme person"
+                            )
                             KunneIkkeSimulereBehandling.FantIkkeBehandling -> NotFound.message("Kunne ikke finne behandling")
                         }
                         call.svar(resultat)
@@ -253,7 +259,9 @@ internal fun Route.behandlingRoutes(
                             val resultat = when (it) {
                                 KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave -> InternalServerError.message("Kunne ikke opprette oppgave for attestering")
                                 KunneIkkeSendeTilAttestering.KunneIkkeFinneAktørId -> InternalServerError.message("Kunne ikke finne person")
-                                KunneIkkeSendeTilAttestering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> BadRequest.message("Attestant og saksbehandler kan ikke være samme person")
+                                KunneIkkeSendeTilAttestering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> BadRequest.message(
+                                    "Attestant og saksbehandler kan ikke være samme person"
+                                )
                                 KunneIkkeSendeTilAttestering.FantIkkeBehandling -> NotFound.message("Kunne ikke finne behandling")
                             }
                             call.svar(resultat)
@@ -281,7 +289,9 @@ internal fun Route.behandlingRoutes(
                 is KunneIkkeIverksetteBehandling.KunneIkkeJournalføreBrev -> InternalServerError.message("Feil ved journalføring av vedtaksbrev")
                 is KunneIkkeIverksetteBehandling.FantIkkeBehandling -> NotFound.message("Fant ikke behandling")
                 is KunneIkkeIverksetteBehandling.FantIkkePerson -> NotFound.message("Fant ikke person")
-                is KunneIkkeIverksetteBehandling.FikkIkkeHentetSaksbehandlerEllerAttestant -> InternalServerError.message("Klarte ikke hente informasjon om saksbehandler og/eller attestant")
+                is KunneIkkeIverksetteBehandling.FikkIkkeHentetSaksbehandlerEllerAttestant -> InternalServerError.message(
+                    "Klarte ikke hente informasjon om saksbehandler og/eller attestant"
+                )
             }
         }
 

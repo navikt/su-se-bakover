@@ -8,13 +8,15 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
+import org.junit.jupiter.api.assertThrows
 
 internal class BeregningsgrunnlagTest {
     @Test
     fun `skal legge til forventet inntekt som et månedsbeløp med en periode tilsvarende beregningsperioden 12mnd`() {
         val beregningsperiode = Periode(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020))
         Beregningsgrunnlag(
-            periode = beregningsperiode,
+            beregningsperiode = beregningsperiode,
             forventetInntektPerÅr = 120_000.0,
             fradragFraSaksbehandler = listOf(
                 FradragFactory.ny(
@@ -47,7 +49,7 @@ internal class BeregningsgrunnlagTest {
     fun `skal legge til forventet inntekt som et månedsbeløp med en periode tilsvarende beregningen 1mnd`() {
         val beregningsperiode = Periode(fraOgMed = 1.januar(2020), tilOgMed = 31.januar(2020))
         Beregningsgrunnlag(
-            periode = beregningsperiode,
+            beregningsperiode = beregningsperiode,
             forventetInntektPerÅr = 120_000.0,
             fradragFraSaksbehandler = listOf(
                 FradragFactory.ny(
@@ -80,7 +82,7 @@ internal class BeregningsgrunnlagTest {
     fun `tåler at man ikke har forventet inntekt`() {
         val beregningsperiode = Periode(fraOgMed = 1.januar(2020), tilOgMed = 31.januar(2020))
         Beregningsgrunnlag(
-            periode = beregningsperiode,
+            beregningsperiode = beregningsperiode,
             forventetInntektPerÅr = 0.0,
             fradragFraSaksbehandler = emptyList()
         ).fradrag shouldBe listOf(
@@ -92,5 +94,32 @@ internal class BeregningsgrunnlagTest {
                 tilhører = FradragTilhører.BRUKER
             )
         )
+    }
+
+    @Test
+    fun `validerer fradrag`() {
+        assertDoesNotThrow {
+            Beregningsgrunnlag(
+                beregningsperiode = Periode(fraOgMed = 1.januar(2020), tilOgMed = 31.januar(2020)),
+                forventetInntektPerÅr = 0.0,
+                fradragFraSaksbehandler = emptyList()
+            )
+        }
+
+        assertThrows<IllegalArgumentException> {
+            Beregningsgrunnlag(
+                beregningsperiode = Periode(fraOgMed = 1.januar(2020), tilOgMed = 31.januar(2020)),
+                forventetInntektPerÅr = 0.0,
+                fradragFraSaksbehandler = listOf(
+                    FradragFactory.ny(
+                        type = Fradragstype.ForventetInntekt,
+                        månedsbeløp = 0.0,
+                        periode = Periode(1.januar(2019), 31.desember(2019)),
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER
+                    )
+                )
+            )
+        }
     }
 }

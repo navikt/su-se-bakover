@@ -27,6 +27,7 @@ interface BehandlingService {
         saksbehandler: Saksbehandler,
         behandlingsinformasjon: Behandlingsinformasjon
     ): Either<KunneIkkeOppdatereBehandlingsinformasjon, Behandling>
+
     fun opprettBeregning(
         behandlingId: UUID,
         saksbehandler: Saksbehandler,
