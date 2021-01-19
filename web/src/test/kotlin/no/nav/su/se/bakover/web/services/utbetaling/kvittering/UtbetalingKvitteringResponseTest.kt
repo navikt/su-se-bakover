@@ -72,13 +72,13 @@ internal class UtbetalingKvitteringResponseTest {
         val avstemmingsnøkkelTidspunktIXml = "2200-10-06-09.19.48.123456"
 
         //language=XML
-        fun kvitteringXml() =
+        fun kvitteringXml(alvorlighetsgrad: UtbetalingKvitteringResponse.Alvorlighetsgrad = UtbetalingKvitteringResponse.Alvorlighetsgrad.ALVORLIG_FEIL) =
             """
 <?xml version="1.0" encoding="UTF-8"?>
 <oppdrag xmlns="http://www.trygdeetaten.no/skjema/oppdrag">
    <mmel>
       <systemId>231-OPPD</systemId>
-      <alvorlighetsgrad>08</alvorlighetsgrad>
+      <alvorlighetsgrad>$alvorlighetsgrad</alvorlighetsgrad>
    </mmel>
    <oppdrag-110>
       <kodeAksjon>1</kodeAksjon>
