@@ -22,7 +22,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import java.util.UUID
 
 internal object UtbetalingInternalRepo {
-    fun hentUtbetalingInternal(utbetalingId: UUID30, session: Session): Utbetaling? =
+    fun hentUtbetalingInternal(utbetalingId: UUID30, session: Session): Utbetaling.OversendtUtbetaling? =
         "select u.*, s.saksnummer from utbetaling u inner join sak s on s.id = u.sakId where u.id = :id".hent(
             mapOf(
                 "id" to utbetalingId

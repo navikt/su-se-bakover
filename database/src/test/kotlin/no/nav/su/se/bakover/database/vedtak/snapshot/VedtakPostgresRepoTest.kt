@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.behandling.BehandlingPostgresRepo
-import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepoTest.Companion.defaultOversendtUtbetaling
+import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepoTest.Companion.lagUtbetalingUtenKvittering
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -59,7 +59,7 @@ internal class VedtakPostgresRepoTest {
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(),
                     behandling = behandling,
-                    utbetaling = defaultOversendtUtbetaling(saksnummer = saksnummer, fnr = fnr),
+                    utbetaling = lagUtbetalingUtenKvittering(saksnummer = saksnummer, fnr = fnr),
                 )
             )
         }

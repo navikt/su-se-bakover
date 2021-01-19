@@ -46,7 +46,8 @@ internal class DistribuerIverksettingsbrevServiceTest {
 
         shouldThrowExactly<NullPointerException> {
             DistribuerIverksettingsbrevService(brevServiceMock, behandlingRepoMock).distribuerBrev(
-                behandling = behandling
+                behandling = behandling,
+                incrementMetrics = {}
             )
         }
         verifyNoMoreInteractions(behandlingRepoMock, brevServiceMock)
@@ -56,12 +57,13 @@ internal class DistribuerIverksettingsbrevServiceTest {
     fun `kan ikke distribuere brev`() {
         val behandling = innvilgetBehandlingMedJournalpost.copy()
         val behandlingRepoMock = mock<BehandlingRepo> ()
-        val brevServiceMock = mock<BrevService>() {
+        val brevServiceMock = mock<BrevService> {
             on { distribuerBrev(any()) } doReturn KunneIkkeDistribuereBrev.left()
         }
 
         DistribuerIverksettingsbrevService(brevServiceMock, behandlingRepoMock).distribuerBrev(
-            behandling = behandling
+            behandling = behandling,
+            incrementMetrics = {}
         ) shouldBe DistribuerIverksettingsbrevService.KunneIkkeDistribuereBrev.left()
         verify(brevServiceMock).distribuerBrev(argThat { it shouldBe iverksattJournalpostId })
         verifyNoMoreInteractions(behandlingRepoMock, brevServiceMock)
@@ -76,7 +78,8 @@ internal class DistribuerIverksettingsbrevServiceTest {
         }
 
         DistribuerIverksettingsbrevService(brevServiceMock, behandlingRepoMock).distribuerBrev(
-            behandling = behandling
+            behandling = behandling,
+            incrementMetrics = {}
         ) shouldBe innvilgetBehandlingMedJournalpost.copy(
             iverksattBrevbestillingId = iverksattBrevbestillingId
         ).right()

@@ -5,8 +5,8 @@ import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.getOrHandle
 import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
@@ -37,10 +37,7 @@ class FerdigstillIverksettingService(
         object KunneIkkeOppretteOppgave : KunneIkkeFerdigstilleInnvilgelse()
     }
 
-    fun ferdigstillInnvilgelse(utbetalingId: UUID30) {
-        val behandling = behandlingRepo.hentBehandlingForUtbetaling(utbetalingId)
-            ?: return Unit.also { log.error("Kunne ikke ferdigstille innvilgelse - fant ikke behandling for utbetaling $utbetalingId") }
-
+    fun ferdigstillInnvilgelse(behandling: Behandling) {
         val person = personService.hentPerson(behandling.fnr).getOrHandle {
             log.error("Kunne ikke ferdigstille innvilgelse - fant ikke person for saksnr ${behandling.saksnummer}")
             return
@@ -53,7 +50,7 @@ class FerdigstillIverksettingService(
         behandling: Behandling,
         person: Person
     ): Either<KunneIkkeFerdigstilleInnvilgelse, Unit> {
-        val journalføringOgBrevResultat = opprettJournalpostOgBrevbestilling(behandling, person)
+        val journalføringOgBrevResultat = opprettJournalpostOgBrevbestillingForInnvilgelse(behandling, person)
         val oppgaveResultat = opprettOppgave(behandling)
 
         return journalføringOgBrevResultat.flatMap { oppgaveResultat }
@@ -164,7 +161,13 @@ class FerdigstillIverksettingService(
             }
             return@map distribuerIverksettingsbrevService.distribuerBrev(
                 behandling = behandling,
-            ).mapLeft {
+            ) {
+                if (behandling.erAvslag()) {
+                    behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.DISTRIBUERT_BREV)
+                } else {
+                    behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.DISTRIBUERT_BREV)
+                }
+            }.mapLeft {
                 KunneIkkeBestilleBrev(
                     sakId = behandling.sakId,
                     behandlingId = behandling.id,
@@ -182,7 +185,7 @@ class FerdigstillIverksettingService(
         }
     }
 
-    private fun opprettJournalpostOgBrevbestilling(
+    private fun opprettJournalpostOgBrevbestillingForInnvilgelse(
         behandling: Behandling,
         person: Person
     ): Either<KunneIkkeFerdigstilleInnvilgelse, Unit> {
@@ -199,18 +202,12 @@ class FerdigstillIverksettingService(
             saksbehandlerNavn = saksbehandlerNavn,
             attestantNavn = attestantNavn
         )
-            .mapLeft {
-                log.error("Journalføring av iverksettingsbrev feilet for behandling ${behandling.id}. Dette må gjøres manuelt.")
-                it
-            }
             .flatMap {
-                log.info("Journalført iverksettingsbrev $it for behandling ${behandling.id}")
-                behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.JOURNALFØRT)
-                distribuerIverksettingsbrevService.distribuerBrev(behandling)
+                distribuerIverksettingsbrevService.distribuerBrev(behandling) {
+                    behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.DISTRIBUERT_BREV)
+                }
                     .mapLeft { KunneIkkeFerdigstilleInnvilgelse.KunneIkkeDistribuereBrev }
-                    .map {
-                        behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.DISTRIBUERT_BREV)
-                    }
+                    .map {}
             }
     }
 
@@ -220,6 +217,14 @@ class FerdigstillIverksettingService(
         saksbehandlerNavn: String,
         attestantNavn: String,
     ): Either<KunneIkkeFerdigstilleInnvilgelse, OpprettetJournalpostForIverksetting> {
+        if (behandling.iverksattJournalpostId() != null) {
+            log.info("Behandlingen er allerede journalført med journalpostId ${behandling.iverksattJournalpostId()}")
+            return OpprettetJournalpostForIverksetting(
+                sakId = behandling.sakId,
+                behandlingId = behandling.id,
+                journalpostId = behandling.iverksattJournalpostId()!!
+            ).right()
+        }
 
         return journalførIverksettingService.opprettJournalpost(
             behandling,
@@ -230,8 +235,11 @@ class FerdigstillIverksettingService(
                 attestantNavn = attestantNavn
             )
         ).mapLeft {
+            log.error("Journalføring av iverksettingsbrev feilet for behandling ${behandling.id}.")
             KunneIkkeFerdigstilleInnvilgelse.KunneIkkeOppretteJournalpost
         }.map {
+            log.info("Journalført iverksettingsbrev $it for behandling ${behandling.id}")
+            behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.JOURNALFØRT)
             OpprettetJournalpostForIverksetting(
                 sakId = behandling.sakId,
                 behandlingId = behandling.id,

@@ -16,6 +16,7 @@ import java.util.UUID
 
 interface BehandlingService {
     fun hentBehandling(behandlingId: UUID): Either<FantIkkeBehandling, Behandling>
+    fun hentBehandlingForUtbetaling(utbetalingId: UUID30): Either<FantIkkeBehandling, Behandling>
     fun underkjenn(
         behandlingId: UUID,
         attestering: Attestering.Underkjent
@@ -45,7 +46,7 @@ interface BehandlingService {
         attestant: Attestant
     ): Either<KunneIkkeIverksetteBehandling, IverksattBehandling>
 
-    fun ferdigstillInnvilgelse(utbetalingId: UUID30)
+    fun ferdigstillInnvilgelse(behandling: Behandling)
     fun opprettSøknadsbehandling(søknadId: UUID): Either<KunneIkkeOppretteSøknadsbehandling, Behandling>
     fun lagBrevutkast(behandlingId: UUID): Either<KunneIkkeLageBrevutkast, ByteArray>
     fun opprettManglendeJournalpostOgBrevdistribusjon(): OpprettManglendeJournalpostOgBrevdistribusjonResultat

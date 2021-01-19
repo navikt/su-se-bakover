@@ -404,7 +404,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
         val journalførIverksettingServiceMock = mock<JournalførIverksettingService>()
 
         val distribuerIverksettingsbrevServiceMock = mock<DistribuerIverksettingsbrevService> {
-            on { distribuerBrev(any()) } doReturn DistribuerIverksettingsbrevService.KunneIkkeDistribuereBrev.left()
+            on { distribuerBrev(any(), any()) } doReturn DistribuerIverksettingsbrevService.KunneIkkeDistribuereBrev.left()
         }
 
         val actual = createService(
@@ -440,7 +440,8 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
                         iverksattJournalpostId = journalpostIdBestiltBrev,
                         iverksattBrevbestillingId = null,
                     )
-                }
+                },
+                any()
             )
         }
         verifyNoMoreInteractions(
@@ -470,7 +471,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
         }
 
         val distribuerIverksettingsbrevServiceMock = mock<DistribuerIverksettingsbrevService> {
-            on { distribuerBrev(any()) } doReturn innvilgetBehandlingUtenJournalpost.copy(
+            on { distribuerBrev(any(), any()) } doReturn innvilgetBehandlingUtenJournalpost.copy(
                 iverksattBrevbestillingId = brevbestillingId
             ).right()
         }
@@ -499,7 +500,8 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
 
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenBrevbestillinger()
             verify(distribuerIverksettingsbrevServiceMock).distribuerBrev(
-                argThat { it shouldBe journalførtBehandling }
+                argThat { it shouldBe journalførtBehandling },
+                any()
             )
         }
         verifyNoMoreInteractions(behandlingRepoMock, distribuerIverksettingsbrevServiceMock)
@@ -527,7 +529,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
         }
 
         val distribuerIverksettingsbrevServiceMock = mock<DistribuerIverksettingsbrevService> {
-            on { distribuerBrev(any()) } doReturn innvilgetBehandlingUtenJournalpost.copy(
+            on { distribuerBrev(any(), any()) } doReturn innvilgetBehandlingUtenJournalpost.copy(
                 iverksattBrevbestillingId = brevbestillingId
             ).right()
         }
@@ -583,7 +585,8 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
                         sakId = sakIdBestiltBrev,
                         iverksattJournalpostId = journalpostIdBestiltBrev
                     )
-                }
+                },
+                any()
             )
         }
         verifyNoMoreInteractions(

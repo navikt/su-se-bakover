@@ -7,6 +7,7 @@ import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.eq
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
+import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -18,6 +19,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.web.FnrGenerator
@@ -34,6 +36,23 @@ import java.time.ZoneOffset
 internal class UtbetalingKvitteringConsumerTest {
 
     private val avstemmingsnøkkel = Avstemmingsnøkkel.fromString(avstemmingsnøkkelIXml)
+
+    val utbetaling = Utbetaling.OversendtUtbetaling.UtenKvittering(
+        sakId = sakId,
+        saksnummer = saksnummer,
+        utbetalingslinjer = emptyList(),
+        fnr = FnrGenerator.random(),
+        utbetalingsrequest = Utbetalingsrequest(""),
+        simulering = Simulering(
+            gjelderId = Fnr("12345678910"),
+            gjelderNavn = "navn",
+            datoBeregnet = idag(),
+            nettoBeløp = 0,
+            periodeList = listOf()
+        ),
+        type = Utbetaling.UtbetalingsType.NY,
+        behandler = NavIdentBruker.Attestant("Z123")
+    )
 
     @Test
     fun `should throw when unknown utbetalingId`() {
@@ -52,52 +71,41 @@ internal class UtbetalingKvitteringConsumerTest {
     }
 
     @Test
-    fun `should add kvittering`() {
+    fun `should add kvittering uten å ferdigstille behandling for stans of gjenoppta`() {
+        listOf(Utbetaling.UtbetalingsType.GJENOPPTA, Utbetaling.UtbetalingsType.STANS).forEach { utbetalingstype ->
 
-        val utbetaling = Utbetaling.OversendtUtbetaling.UtenKvittering(
-            sakId = sakId,
-            saksnummer = saksnummer,
-            utbetalingslinjer = emptyList(),
-            fnr = FnrGenerator.random(),
-            utbetalingsrequest = Utbetalingsrequest(""),
-            simulering = Simulering(
-                gjelderId = Fnr("12345678910"),
-                gjelderNavn = "navn",
-                datoBeregnet = idag(),
-                nettoBeløp = 0,
-                periodeList = listOf()
-            ),
-            type = Utbetaling.UtbetalingsType.NY,
-            behandler = NavIdentBruker.Attestant("Z123")
-        )
-        val xmlMessage = kvitteringXml()
-        val clock = Clock.fixed(Tidspunkt.EPOCH.instant, ZoneOffset.UTC)
+            val xmlMessage = kvitteringXml()
+            val clock = Clock.fixed(Tidspunkt.EPOCH.instant, ZoneOffset.UTC)
+            val utbetaling = utbetaling.copy(type = utbetalingstype)
 
-        val kvittering = Kvittering(
-            utbetalingsstatus = Kvittering.Utbetalingsstatus.FEIL,
-            originalKvittering = xmlMessage,
-            mottattTidspunkt = Tidspunkt.now(clock)
-        )
+            val kvittering = Kvittering(
+                utbetalingsstatus = Kvittering.Utbetalingsstatus.FEIL,
+                originalKvittering = xmlMessage,
+                mottattTidspunkt = Tidspunkt.now(clock)
+            )
 
-        val postUpdate = utbetaling.toKvittertUtbetaling(kvittering)
+            val postUpdate = utbetaling.toKvittertUtbetaling(kvittering)
 
-        val serviceMock = mock<UtbetalingService> {
-            on {
-                oppdaterMedKvittering(
-                    avstemmingsnøkkel = argThat {
-                        it shouldBe avstemmingsnøkkel
-                    },
-                    kvittering = argThat {
-                        it shouldBe kvittering
-                    }
-                )
-            } doReturn postUpdate.right()
+            val utbetalingServiceMock = mock<UtbetalingService> {
+                on {
+                    oppdaterMedKvittering(
+                        avstemmingsnøkkel = argThat {
+                            it shouldBe avstemmingsnøkkel
+                        },
+                        kvittering = argThat {
+                            it shouldBe kvittering
+                        }
+                    )
+                } doReturn postUpdate.right()
+            }
+
+            val behandlingServiceMock = mock<BehandlingService>() {}
+            val consumer = UtbetalingKvitteringConsumer(utbetalingServiceMock, behandlingServiceMock, clock)
+
+            consumer.onMessage(xmlMessage)
+
+            verify(utbetalingServiceMock, Times(1)).oppdaterMedKvittering(avstemmingsnøkkel, kvittering)
+            verifyNoMoreInteractions(utbetalingServiceMock, behandlingServiceMock)
         }
-
-        val consumer = UtbetalingKvitteringConsumer(serviceMock, mock(), clock)
-
-        consumer.onMessage(xmlMessage)
-
-        verify(serviceMock, Times(1)).oppdaterMedKvittering(avstemmingsnøkkel, kvittering)
     }
 }

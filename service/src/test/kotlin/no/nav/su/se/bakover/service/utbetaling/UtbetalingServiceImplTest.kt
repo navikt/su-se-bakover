@@ -75,6 +75,11 @@ internal class UtbetalingServiceImplTest {
         avstemmingsnøkkel = avstemmingsnøkkel
     )
 
+    val kvitteringOK = Kvittering(
+        Kvittering.Utbetalingsstatus.OK,
+        ""
+    )
+
     @Test
     fun `hent utbetaling - ikke funnet`() {
         val utbetalingRepoMock = mock<UtbetalingRepo> { on { hentUtbetaling(any<UUID30>()) } doReturn null }
@@ -99,16 +104,19 @@ internal class UtbetalingServiceImplTest {
 
     @Test
     fun `hent utbetaling - funnet`() {
-        val utbetaling = Utbetaling.UtbetalingForSimulering(
+        val utbetalingMedKvittering = Utbetaling.OversendtUtbetaling.MedKvittering(
             sakId = sakId,
             saksnummer = saksnummer,
             utbetalingslinjer = listOf(),
             fnr = Fnr("12345678910"),
             type = Utbetaling.UtbetalingsType.NY,
             behandler = NavIdentBruker.Saksbehandler("Z123"),
-            avstemmingsnøkkel = Avstemmingsnøkkel()
+            avstemmingsnøkkel = Avstemmingsnøkkel(),
+            simulering = simulering,
+            utbetalingsrequest = Utbetalingsrequest(""),
+            kvittering = kvitteringOK,
         )
-        val utbetalingRepoMock = mock<UtbetalingRepo> { on { hentUtbetaling(any<UUID30>()) } doReturn utbetaling }
+        val utbetalingRepoMock = mock<UtbetalingRepo> { on { hentUtbetaling(any<UUID30>()) } doReturn utbetalingMedKvittering }
         val sakServiceMock = mock<SakService>()
         val simuleringClientMock = mock<SimuleringClient>()
         val utbetalingPublisherMock = mock<UtbetalingPublisher>()
@@ -117,9 +125,9 @@ internal class UtbetalingServiceImplTest {
             sakService = sakServiceMock,
             simuleringClient = simuleringClientMock,
             utbetalingPublisher = utbetalingPublisherMock
-        ).hentUtbetaling(utbetaling.id) shouldBe utbetaling.right()
+        ).hentUtbetaling(utbetalingMedKvittering.id) shouldBe utbetalingMedKvittering.right()
 
-        verify(utbetalingRepoMock).hentUtbetaling(utbetaling.id)
+        verify(utbetalingRepoMock).hentUtbetaling(utbetalingMedKvittering.id)
         verifyNoMoreInteractions(
             sakServiceMock,
             simuleringClientMock,
@@ -130,10 +138,6 @@ internal class UtbetalingServiceImplTest {
 
     @Test
     fun `oppdater med kvittering - ikke funnet`() {
-        val kvittering = Kvittering(
-            Kvittering.Utbetalingsstatus.OK,
-            ""
-        )
 
         val avstemmingsnøkkel = Avstemmingsnøkkel()
 
@@ -148,12 +152,12 @@ internal class UtbetalingServiceImplTest {
             utbetalingPublisher = utbetalingPublisherMock
         ).oppdaterMedKvittering(
             avstemmingsnøkkel = avstemmingsnøkkel,
-            kvittering = kvittering
+            kvittering = kvitteringOK
         ) shouldBe FantIkkeUtbetaling.left()
 
         inOrder(utbetalingRepoMock) {
             verify(utbetalingRepoMock, Times(1)).hentUtbetaling(avstemmingsnøkkel)
-            verify(utbetalingRepoMock, Times(0)).oppdaterMedKvittering(any(), any())
+            verify(utbetalingRepoMock, Times(0)).oppdaterMedKvittering(any())
         }
         verifyNoMoreInteractions(
             sakServiceMock,
@@ -165,7 +169,7 @@ internal class UtbetalingServiceImplTest {
 
     @Test
     fun `oppdater med kvittering - kvittering eksisterer ikke fra før`() {
-        val utbetaling = Utbetaling.OversendtUtbetaling.UtenKvittering(
+        val utbetalingUtenKvittering = Utbetaling.OversendtUtbetaling.UtenKvittering(
             sakId = sakId,
             saksnummer = saksnummer,
             utbetalingslinjer = listOf(),
@@ -185,12 +189,12 @@ internal class UtbetalingServiceImplTest {
             Kvittering.Utbetalingsstatus.OK,
             ""
         )
+        val utbetalingMedKvittering = utbetalingUtenKvittering.toKvittertUtbetaling(kvittering)
 
-        val postUpdate = utbetaling.toKvittertUtbetaling(kvittering)
+        val postUpdate = utbetalingUtenKvittering.toKvittertUtbetaling(kvittering)
 
         val utbetalingRepoMock = mock<UtbetalingRepo> {
-            on { hentUtbetaling(any<Avstemmingsnøkkel>()) } doReturn utbetaling
-            on { oppdaterMedKvittering(any(), any()) } doReturn postUpdate
+            on { hentUtbetaling(any<Avstemmingsnøkkel>()) } doReturn utbetalingUtenKvittering
         }
 
         val sakServiceMock = mock<SakService>()
@@ -203,13 +207,13 @@ internal class UtbetalingServiceImplTest {
             simuleringClient = simuleringClientMock,
             utbetalingPublisher = utbetalingPublisherMock
         ).oppdaterMedKvittering(
-            utbetaling.avstemmingsnøkkel,
+            utbetalingUtenKvittering.avstemmingsnøkkel,
             kvittering
         ) shouldBe postUpdate.right()
 
         inOrder(utbetalingRepoMock) {
-            verify(utbetalingRepoMock).hentUtbetaling(utbetaling.avstemmingsnøkkel)
-            verify(utbetalingRepoMock).oppdaterMedKvittering(utbetaling.id, kvittering)
+            verify(utbetalingRepoMock).hentUtbetaling(argThat<Avstemmingsnøkkel> { it shouldBe utbetalingUtenKvittering.avstemmingsnøkkel })
+            verify(utbetalingRepoMock).oppdaterMedKvittering(argThat { it shouldBe utbetalingMedKvittering })
         }
         verifyNoMoreInteractions(
             sakServiceMock,
@@ -267,7 +271,7 @@ internal class UtbetalingServiceImplTest {
 
         inOrder(utbetalingRepoMock) {
             verify(utbetalingRepoMock, Times(1)).hentUtbetaling(avstemmingsnøkkel)
-            verify(utbetalingRepoMock, Times(0)).oppdaterMedKvittering(utbetaling.id, nyKvittering)
+            verify(utbetalingRepoMock, Times(0)).oppdaterMedKvittering(utbetaling)
         }
         verifyNoMoreInteractions(
             sakServiceMock,

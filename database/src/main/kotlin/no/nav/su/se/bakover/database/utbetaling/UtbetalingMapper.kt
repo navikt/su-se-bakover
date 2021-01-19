@@ -28,7 +28,7 @@ data class UtbetalingMapper(
     val avstemmingId: UUID30?,
     val behandler: NavIdentBruker
 ) {
-    fun map() = when (kvittering) {
+    fun map(): Utbetaling.OversendtUtbetaling = when (kvittering) {
         null -> {
             Utbetaling.OversendtUtbetaling.UtenKvittering(
                 id = id,

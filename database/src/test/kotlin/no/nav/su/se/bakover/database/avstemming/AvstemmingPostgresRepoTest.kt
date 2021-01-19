@@ -38,18 +38,20 @@ internal class AvstemmingPostgresRepoTest {
     fun `henter siste avstemming`() {
         withMigratedDb {
             val sak: Sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
-            val utbetaling = oversendtUtbetaling(sak)
-            utbetalingRepo.opprettUtbetaling(utbetaling)
-                .also {
-                    utbetalingRepo.oppdaterMedKvittering(
-                        utbetaling.id,
-                        Kvittering(
-                            utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
-                            originalKvittering = "hallo",
-                            mottattTidspunkt = Tidspunkt.now()
-                        )
-                    )
-                }
+            val utbetalingUtenKvittering: Utbetaling.OversendtUtbetaling.UtenKvittering = oversendtUtbetaling(sak).also {
+                utbetalingRepo.opprettUtbetaling(it)
+            }
+            val utbetalingMedKvittering = utbetalingUtenKvittering.toKvittertUtbetaling(
+                Kvittering(
+                    utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
+                    originalKvittering = "hallo",
+                    mottattTidspunkt = Tidspunkt.now()
+                )
+            ).also {
+                utbetalingRepo.oppdaterMedKvittering(
+                    it
+                )
+            }
 
             val zero = repo.hentSisteAvstemming()
             zero shouldBe null
@@ -58,7 +60,7 @@ internal class AvstemmingPostgresRepoTest {
                 Avstemming(
                     fraOgMed = 1.januar(2020).startOfDay(),
                     tilOgMed = 2.januar(2020).startOfDay(),
-                    utbetalinger = listOf(utbetaling)
+                    utbetalinger = listOf(utbetalingMedKvittering)
                 )
             )
 
@@ -66,7 +68,7 @@ internal class AvstemmingPostgresRepoTest {
                 Avstemming(
                     fraOgMed = 3.januar(2020).startOfDay(),
                     tilOgMed = 4.januar(2020).startOfDay(),
-                    utbetalinger = listOf(utbetaling),
+                    utbetalinger = listOf(utbetalingMedKvittering),
                     avstemmingXmlRequest = "<Root></Root>"
                 )
             )
@@ -166,24 +168,25 @@ internal class AvstemmingPostgresRepoTest {
     fun `oppretter avstemming og oppdaterer aktuelle utbetalinger`() {
         withMigratedDb {
             val sak: Sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
-            val utbetaling = oversendtUtbetaling(sak)
-            utbetalingRepo.opprettUtbetaling(utbetaling)
-
-            utbetalingRepo.oppdaterMedKvittering(
-                utbetaling.id,
+            val utbetalingUtenKvittering = oversendtUtbetaling(sak).also {
+                utbetalingRepo.opprettUtbetaling(it)
+            }
+            val utbetalingMedKvittering = utbetalingUtenKvittering.toKvittertUtbetaling(
                 Kvittering(
                     utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
                     originalKvittering = "",
                     mottattTidspunkt = Tidspunkt.now()
                 )
-            )
+            ).also {
+                utbetalingRepo.oppdaterMedKvittering(it)
+            }
 
             val avstemming = Avstemming(
                 id = UUID30.randomUUID(),
                 opprettet = Tidspunkt.now(),
                 fraOgMed = Tidspunkt.now(),
                 tilOgMed = Tidspunkt.now(),
-                utbetalinger = listOf(utbetaling),
+                utbetalinger = listOf(utbetalingMedKvittering),
                 avstemmingXmlRequest = "some xml"
             )
 

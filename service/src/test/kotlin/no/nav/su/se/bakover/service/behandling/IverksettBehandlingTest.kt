@@ -204,7 +204,7 @@ internal class IverksettBehandlingTest {
         }
 
         val distribuerIverksettingsbrevServiceMock = mock<DistribuerIverksettingsbrevService> {
-            on { distribuerBrev(any()) } doReturn behandling.copy(
+            on { distribuerBrev(any(), any()) } doReturn behandling.copy(
                 iverksattBrevbestillingId = iverksattBrevbestillingId,
             ).right()
         }
@@ -263,6 +263,7 @@ internal class IverksettBehandlingTest {
             )
             verify(distribuerIverksettingsbrevServiceMock).distribuerBrev(
                 behandling = argThat { it shouldBe behandling },
+                incrementMetrics = any()
             )
             verify(oppgaveServiceMock).lukkOppgave(oppgaveId)
             verify(opprettVedtakssnapshotServiceMock).opprettVedtak(

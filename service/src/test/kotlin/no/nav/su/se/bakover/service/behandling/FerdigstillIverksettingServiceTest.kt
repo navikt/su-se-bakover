@@ -54,53 +54,8 @@ internal class FerdigstillIverksettingServiceTest {
     )
 
     @Test
-    fun `Gjør ingenting hvis det ikke er noe å gjøre`() {
-        val behandlingRepoMock = mock<BehandlingRepo> {
-            on { hentBehandlingForUtbetaling(any()) } doReturn null
-        }
-
-        val personServiceMock = mock<PersonService>()
-        val oppslagMock = mock<MicrosoftGraphApiOppslag>()
-        val journalførIverksettingServiceMock = mock<JournalførIverksettingService>()
-        val oppgaveServiceMock = mock<OppgaveService>()
-        val distribuerIverksettingsbrevServiceMock = mock<DistribuerIverksettingsbrevService>()
-
-        val actual = createService(
-            behandlingRepo = behandlingRepoMock,
-            personService = personServiceMock,
-            microsoftGraphApiOppslag = oppslagMock,
-            journalførIverksettingService = journalførIverksettingServiceMock,
-            oppgaveService = oppgaveServiceMock,
-
-        ).ferdigstillInnvilgelse(utbetalingId)
-
-        actual shouldBe Unit
-
-        inOrder(
-            behandlingRepoMock,
-            distribuerIverksettingsbrevServiceMock,
-            personServiceMock,
-            oppslagMock,
-            journalførIverksettingServiceMock,
-            oppgaveServiceMock
-        ) {
-            verify(behandlingRepoMock).hentBehandlingForUtbetaling(argThat { it shouldBe utbetalingId })
-        }
-        verifyNoMoreInteractions(
-            behandlingRepoMock,
-            distribuerIverksettingsbrevServiceMock,
-            personServiceMock,
-            oppslagMock,
-            journalførIverksettingServiceMock,
-            oppgaveServiceMock
-        )
-    }
-
-    @Test
     fun `Kunne ikke opprette journalpost hvis vi ikke finner saksbehandler`() {
-        val behandlingRepoMock = mock<BehandlingRepo> {
-            on { hentBehandlingForUtbetaling(any()) } doReturn innvilgetBehandlingUtenJournalpost
-        }
+        val behandlingRepoMock = mock<BehandlingRepo>()
 
         val personServiceMock = mock<PersonService> {
             on { hentPerson(any()) } doReturn person.right()
@@ -128,7 +83,7 @@ internal class FerdigstillIverksettingServiceTest {
             journalførIverksettingService = journalførIverksettingServiceMock,
             oppgaveService = oppgaveServiceMock,
 
-        ).ferdigstillInnvilgelse(utbetalingId)
+        ).ferdigstillInnvilgelse(innvilgetBehandlingUtenJournalpost)
 
         actual shouldBe Unit
 
@@ -140,7 +95,6 @@ internal class FerdigstillIverksettingServiceTest {
             journalførIverksettingServiceMock,
             oppgaveServiceMock
         ) {
-            verify(behandlingRepoMock).hentBehandlingForUtbetaling(argThat { it shouldBe utbetalingId })
             verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
             verify(oppslagMock).hentBrukerinformasjonForNavIdent(
                 argThat {
@@ -161,9 +115,7 @@ internal class FerdigstillIverksettingServiceTest {
 
     @Test
     fun `Kunne ikke opprette journalpost hvis vi ikke finner attestant`() {
-        val behandlingRepoMock = mock<BehandlingRepo> {
-            on { hentBehandlingForUtbetaling(any()) } doReturn innvilgetBehandlingUtenJournalpost
-        }
+        val behandlingRepoMock = mock<BehandlingRepo>()
 
         val personServiceMock = mock<PersonService> {
             on { hentPerson(any()) } doReturn person.right()
@@ -191,7 +143,7 @@ internal class FerdigstillIverksettingServiceTest {
             journalførIverksettingService = journalførIverksettingServiceMock,
             oppgaveService = oppgaveServiceMock,
 
-        ).ferdigstillInnvilgelse(utbetalingId)
+        ).ferdigstillInnvilgelse(innvilgetBehandlingUtenJournalpost)
 
         actual shouldBe Unit
 
@@ -203,7 +155,6 @@ internal class FerdigstillIverksettingServiceTest {
             journalførIverksettingServiceMock,
             oppgaveServiceMock
         ) {
-            verify(behandlingRepoMock).hentBehandlingForUtbetaling(argThat { it shouldBe utbetalingId })
             verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
             argumentCaptor<NavIdentBruker>().apply {
                 verify(oppslagMock, times(2)).hentBrukerinformasjonForNavIdent(capture())
@@ -224,9 +175,7 @@ internal class FerdigstillIverksettingServiceTest {
 
     @Test
     fun `Kunne ikke opprette journalpost hvis vi ikke finner person`() {
-        val behandlingRepoMock = mock<BehandlingRepo> {
-            on { hentBehandlingForUtbetaling(any()) } doReturn innvilgetBehandlingUtenJournalpost
-        }
+        val behandlingRepoMock = mock<BehandlingRepo>()
 
         val personServiceMock = mock<PersonService> {
             on { hentPerson(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
@@ -258,7 +207,7 @@ internal class FerdigstillIverksettingServiceTest {
             journalførIverksettingService = journalførIverksettingServiceMock,
             oppgaveService = oppgaveServiceMock,
 
-        ).ferdigstillInnvilgelse(utbetalingId)
+        ).ferdigstillInnvilgelse(innvilgetBehandlingUtenJournalpost)
 
         actual shouldBe Unit
 
@@ -270,7 +219,6 @@ internal class FerdigstillIverksettingServiceTest {
             journalførIverksettingServiceMock,
             oppgaveServiceMock
         ) {
-            verify(behandlingRepoMock).hentBehandlingForUtbetaling(argThat { it shouldBe utbetalingId })
             verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
         }
         verifyNoMoreInteractions(
@@ -286,9 +234,7 @@ internal class FerdigstillIverksettingServiceTest {
     @Test
     fun `Kan ikke journalføre eller distribuere brev hvis journalføring feiler`() {
 
-        val behandlingRepoMock = mock<BehandlingRepo> {
-            on { hentBehandlingForUtbetaling(any()) } doReturn innvilgetBehandlingUtenJournalpost
-        }
+        val behandlingRepoMock = mock<BehandlingRepo>()
 
         val personServiceMock = mock<PersonService> {
             on { hentPerson(any()) } doReturn person.right()
@@ -320,7 +266,7 @@ internal class FerdigstillIverksettingServiceTest {
             journalførIverksettingService = journalførIverksettingServiceMock,
             oppgaveService = oppgaveServiceMock,
 
-        ).ferdigstillInnvilgelse(utbetalingId)
+        ).ferdigstillInnvilgelse(innvilgetBehandlingUtenJournalpost)
 
         actual shouldBe Unit
 
@@ -332,7 +278,6 @@ internal class FerdigstillIverksettingServiceTest {
             journalførIverksettingServiceMock,
             oppgaveServiceMock
         ) {
-            verify(behandlingRepoMock).hentBehandlingForUtbetaling(argThat { it shouldBe utbetalingId })
             verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
             argumentCaptor<NavIdentBruker>().apply {
                 verify(oppslagMock, times(2)).hentBrukerinformasjonForNavIdent(capture())
@@ -364,16 +309,14 @@ internal class FerdigstillIverksettingServiceTest {
 
     @Test
     fun `Kunne ikke distribuere brev`() {
-        val behandlingRepoMock = mock<BehandlingRepo> {
-            on { hentBehandlingForUtbetaling(any()) } doReturn innvilgetBehandlingUtenJournalpost
-        }
+        val behandlingRepoMock = mock<BehandlingRepo>()
 
         val personServiceMock = mock<PersonService> {
             on { hentPerson(any()) } doReturn person.right()
         }
 
         val distribuerIverksettingsbrevServiceMock = mock<DistribuerIverksettingsbrevService> {
-            on { distribuerBrev(any()) } doReturn DistribuerIverksettingsbrevService.KunneIkkeDistribuereBrev.left()
+            on { distribuerBrev(any(), any()) } doReturn DistribuerIverksettingsbrevService.KunneIkkeDistribuereBrev.left()
         }
 
         val oppslagMock: MicrosoftGraphApiOppslag = mock {
@@ -395,7 +338,7 @@ internal class FerdigstillIverksettingServiceTest {
             journalførIverksettingService = journalførIverksettingServiceMock,
             oppgaveService = oppgaveServiceMock,
             distribuerIverksettingsbrevService = distribuerIverksettingsbrevServiceMock,
-        ).ferdigstillInnvilgelse(utbetalingId)
+        ).ferdigstillInnvilgelse(innvilgetBehandlingUtenJournalpost)
 
         actual shouldBe Unit
 
@@ -407,7 +350,6 @@ internal class FerdigstillIverksettingServiceTest {
             journalførIverksettingServiceMock,
             oppgaveServiceMock
         ) {
-            verify(behandlingRepoMock).hentBehandlingForUtbetaling(argThat { it shouldBe utbetalingId })
             verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
             argumentCaptor<NavIdentBruker>().apply {
                 verify(oppslagMock, times(2)).hentBrukerinformasjonForNavIdent(capture())
@@ -428,7 +370,8 @@ internal class FerdigstillIverksettingServiceTest {
             verify(distribuerIverksettingsbrevServiceMock).distribuerBrev(
                 argThat {
                     it shouldBe innvilgetBehandlingUtenJournalpost
-                }
+                },
+                any()
             )
             verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe iverksattOppgaveId })
         }
@@ -444,16 +387,14 @@ internal class FerdigstillIverksettingServiceTest {
 
     @Test
     fun `journalfører og distribuerer brev for iverksatt innvilget`() {
-        val behandlingRepoMock = mock<BehandlingRepo> {
-            on { hentBehandlingForUtbetaling(any()) } doReturn innvilgetBehandlingUtenJournalpost
-        }
+        val behandlingRepoMock = mock<BehandlingRepo>()
 
         val personServiceMock = mock<PersonService> {
             on { hentPerson(any()) } doReturn person.right()
         }
 
         val distribuerIverksettingsbrevServiceMock = mock<DistribuerIverksettingsbrevService> {
-            on { distribuerBrev(any()) } doReturn innvilgetBehandlingUtenJournalpost.copy(
+            on { distribuerBrev(any(), any()) } doReturn innvilgetBehandlingUtenJournalpost.copy(
                 iverksattBrevbestillingId = iverksattBrevbestillingId
             ).right()
         }
@@ -477,7 +418,7 @@ internal class FerdigstillIverksettingServiceTest {
             journalførIverksettingService = journalførIverksettingServiceMock,
             oppgaveService = oppgaveServiceMock,
             distribuerIverksettingsbrevService = distribuerIverksettingsbrevServiceMock
-        ).ferdigstillInnvilgelse(utbetalingId)
+        ).ferdigstillInnvilgelse(innvilgetBehandlingUtenJournalpost)
 
         actual shouldBe Unit
 
@@ -489,7 +430,6 @@ internal class FerdigstillIverksettingServiceTest {
             journalførIverksettingServiceMock,
             oppgaveServiceMock
         ) {
-            verify(behandlingRepoMock).hentBehandlingForUtbetaling(argThat { it shouldBe utbetalingId })
             verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
             argumentCaptor<NavIdentBruker>().apply {
                 verify(oppslagMock, times(2)).hentBrukerinformasjonForNavIdent(capture())
@@ -510,7 +450,8 @@ internal class FerdigstillIverksettingServiceTest {
             verify(distribuerIverksettingsbrevServiceMock).distribuerBrev(
                 argThat {
                     it shouldBe innvilgetBehandlingUtenJournalpost
-                }
+                },
+                any()
             )
             verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe iverksattOppgaveId })
         }

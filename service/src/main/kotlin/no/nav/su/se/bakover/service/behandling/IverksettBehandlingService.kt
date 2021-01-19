@@ -117,7 +117,7 @@ class IverksettBehandlingService(
         behandlingRepo.oppdaterBehandlingStatus(behandling.id, behandling.status())
         log.info("Iverksatt avslag for behandling ${behandling.id} med journalpost $journalpostId")
         behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
-        val brevResultat = distribuerIverksettingsbrevService.distribuerBrev(behandling).map {
+        val brevResultat = distribuerIverksettingsbrevService.distribuerBrev(behandling) {
             behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.DISTRIBUERT_BREV)
         }
 

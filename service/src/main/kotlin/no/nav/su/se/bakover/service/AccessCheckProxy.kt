@@ -96,7 +96,7 @@ class AccessCheckProxy(
                 override fun oppdaterMedKvittering(
                     avstemmingsnøkkel: Avstemmingsnøkkel,
                     kvittering: Kvittering
-                ) = kastKanKunKallesFraAnnenService()
+                ): Either<FantIkkeUtbetaling, Utbetaling.OversendtUtbetaling.MedKvittering> = kastKanKunKallesFraAnnenService()
 
                 override fun simulerUtbetaling(
                     sakId: UUID,
@@ -143,6 +143,8 @@ class AccessCheckProxy(
 
                     return services.behandling.hentBehandling((behandlingId))
                 }
+
+                override fun hentBehandlingForUtbetaling(utbetalingId: UUID30) = kastKanKunKallesFraAnnenService()
 
                 override fun underkjenn(
                     behandlingId: UUID,
@@ -212,7 +214,7 @@ class AccessCheckProxy(
                     return services.behandling.iverksett(behandlingId, attestant)
                 }
 
-                override fun ferdigstillInnvilgelse(utbetalingId: UUID30) {
+                override fun ferdigstillInnvilgelse(behandling: Behandling) {
                     kastKanKunKallesFraAnnenService()
                 }
 

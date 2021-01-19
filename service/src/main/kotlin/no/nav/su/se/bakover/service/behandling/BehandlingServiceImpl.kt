@@ -73,6 +73,10 @@ internal class BehandlingServiceImpl(
         return behandlingRepo.hentBehandling(behandlingId)?.right() ?: FantIkkeBehandling.left()
     }
 
+    override fun hentBehandlingForUtbetaling(utbetalingId: UUID30): Either<FantIkkeBehandling, Behandling> {
+        return behandlingRepo.hentBehandlingForUtbetaling(utbetalingId).rightIfNotNull { FantIkkeBehandling }
+    }
+
     override fun underkjenn(
         behandlingId: UUID,
         attestering: Attestering.Underkjent
@@ -261,8 +265,8 @@ internal class BehandlingServiceImpl(
         return iverksettBehandlingService.iverksett(behandlingId, attestant)
     }
 
-    override fun ferdigstillInnvilgelse(utbetalingId: UUID30) {
-        return ferdigstillIverksettingService.ferdigstillInnvilgelse(utbetalingId)
+    override fun ferdigstillInnvilgelse(behandling: Behandling) {
+        return ferdigstillIverksettingService.ferdigstillInnvilgelse(behandling)
     }
 
     override fun opprettManglendeJournalpostOgBrevdistribusjon(): OpprettManglendeJournalpostOgBrevdistribusjonResultat {

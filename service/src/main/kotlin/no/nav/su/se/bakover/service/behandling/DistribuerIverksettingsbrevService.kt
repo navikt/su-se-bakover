@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.behandling
 
 import arrow.core.Either
+import arrow.core.right
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.service.brev.BrevService
@@ -14,17 +15,22 @@ class DistribuerIverksettingsbrevService(
 
     object KunneIkkeDistribuereBrev
 
-    internal fun distribuerBrev(behandling: Behandling): Either<KunneIkkeDistribuereBrev, Behandling> {
+    internal fun distribuerBrev(behandling: Behandling, incrementMetrics: () -> Unit): Either<KunneIkkeDistribuereBrev, Behandling> {
+        if (behandling.iverksattBrevbestillingId() != null) {
+            log.info("Behandling ${behandling.id} har allerede distribuert en brevbestilling ${behandling.iverksattBrevbestillingId()}")
+            return behandling.right()
+        }
         return brevService.distribuerBrev(behandling.iverksattJournalpostId()!!)
             .mapLeft {
                 log.error("Kunne ikke bestille brev ved iverksetting for behandling ${behandling.id}.")
                 KunneIkkeDistribuereBrev
             }
-            .map {
-                behandling.oppdaterIverksattBrevbestillingId(it)
-                behandlingRepo.oppdaterIverksattBrevbestillingId(behandling.id, it)
-                log.info("Bestilt iverksettingsbrev for behandling ${behandling.id} med bestillingsid $it")
-                behandling
+            .map { brevbestillingId ->
+                behandling.oppdaterIverksattBrevbestillingId(brevbestillingId).also {
+                    behandlingRepo.oppdaterIverksattBrevbestillingId(it.id, brevbestillingId)
+                    incrementMetrics()
+                    log.info("Bestilt iverksettingsbrev for behandling ${it.id} med bestillingsid $brevbestillingId")
+                }
             }
     }
 }
