@@ -48,6 +48,8 @@ import no.nav.su.se.bakover.service.behandling.OpprettManglendeJournalpostOgBrev
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneEllerSimulere
+import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.Statistikk
@@ -331,6 +333,27 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
             },
+            revurdering = object : RevurderingService {
+                override fun beregnOgSimuler(
+                    sakId: UUID,
+                    behandlingId: UUID,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
+                    fraOgMed: LocalDate,
+                    tilOgMed: LocalDate,
+                    fradrag: List<Fradrag>
+                ): Either<KunneIkkeBeregneEllerSimulere, Beregning> {
+                    assertHarTilgangTilSak(sakId)
+
+                    return services.revurdering.beregnOgSimuler(
+                        sakId = sakId,
+                        behandlingId = behandlingId,
+                        saksbehandler = saksbehandler,
+                        fraOgMed = fraOgMed,
+                        tilOgMed = tilOgMed,
+                        fradrag = fradrag
+                    )
+                }
+            }
         )
     }
 

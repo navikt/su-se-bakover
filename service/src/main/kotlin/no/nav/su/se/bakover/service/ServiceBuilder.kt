@@ -19,6 +19,8 @@ import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.oppgave.OppgaveServiceImpl
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.person.PersonServiceImpl
+import no.nav.su.se.bakover.service.revurdering.RevurderingService
+import no.nav.su.se.bakover.service.revurdering.RevurderingServiceImpl
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.sak.SakServiceImpl
 import no.nav.su.se.bakover.service.statistikk.StatistikkService
@@ -82,7 +84,11 @@ class ServiceBuilder(
             behandlingMetrics = behandlingMetrics,
             microsoftGraphApiClient = clients.microsoftGraphApiClient,
             journalførIverksettingService = journalførIverksettingService,
-            distribuerIverksettingsbrevService = distribuerIverksettingsbrevService,
+            distribuerIverksettingsbrevService = distribuerIverksettingsbrevService
+        )
+        val revurderingService = RevurderingServiceImpl(
+            behandlingRepo = databaseRepos.behandling,
+            utbetalingService = utbetalingService
         )
 
         return Services(
@@ -132,6 +138,7 @@ class ServiceBuilder(
             oppgave = oppgaveService,
             person = personService,
             statistikk = statistikkService,
+            revurdering = revurderingService
         )
     }
 }
@@ -147,4 +154,5 @@ data class Services(
     val oppgave: OppgaveService,
     val person: PersonService,
     val statistikk: StatistikkService,
+    val revurdering: RevurderingService
 )

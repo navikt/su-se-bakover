@@ -32,7 +32,8 @@ internal class StansUtbetalingRoutesKtTest {
         lukkSøknad = mock(),
         oppgave = mock(),
         person = mock(),
-        statistikk = mock()
+        statistikk = mock(),
+        revurdering = mock()
     )
 
     @Test

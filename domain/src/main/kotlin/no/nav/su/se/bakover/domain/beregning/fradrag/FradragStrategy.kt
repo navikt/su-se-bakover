@@ -14,7 +14,7 @@ enum class FradragStrategyName {
 fun getEpsFribeløp(strategyName: FradragStrategyName, periode: Periode) =
     FradragStrategy.fromName(strategyName).getEpsFribeløp(periode)
 
-internal sealed class FradragStrategy(private val name: FradragStrategyName) {
+sealed class FradragStrategy(private val name: FradragStrategyName) {
     fun getName() = name
 
     fun beregn(fradrag: List<Fradrag>, beregningsperiode: Periode): Map<Periode, List<Fradrag>> {

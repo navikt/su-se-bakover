@@ -10,7 +10,8 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 
-internal data class Beregningsgrunnlag private constructor (
+
+data class Beregningsgrunnlag private constructor (
     val beregningsperiode: Periode,
     val fradrag: List<Fradrag>
 ) {
