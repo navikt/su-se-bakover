@@ -134,6 +134,12 @@ internal class PersonRoutesKtTest {
             fnr.toString() -> PersonOppslagStub.nyTestPerson(fnr).right()
             else -> feil.left()
         }
+
+        override fun personForSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, Person> = when (testIdent) {
+            fnr.toString() -> PersonOppslagStub.nyTestPerson(fnr).right()
+            else -> feil.left()
+        }
+
         override fun aktørId(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> = throw NotImplementedError()
         override fun sjekkTilgangTilPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Unit> = when (testIdent) {
             fnr.toString() -> Unit.right()

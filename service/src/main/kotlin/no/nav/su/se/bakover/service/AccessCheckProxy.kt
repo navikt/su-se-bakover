@@ -323,6 +323,10 @@ class AccessCheckProxy(
                     return services.person.hentPerson(fnr)
                 }
 
+                override fun hentPersonForSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, Person> {
+                    kastKanKunKallesFraAnnenService()
+                }
+
                 override fun hentAktørId(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> {
                     assertHarTilgangTilPerson(fnr)
 

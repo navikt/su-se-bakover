@@ -224,7 +224,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
         }
 
         val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
+            on { hentPersonForSystembruker(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
         }
 
         val oppslagMock: MicrosoftGraphApiOppslag = mock {
@@ -259,7 +259,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
                 firstValue shouldBe saksbehandler
                 secondValue shouldBe attestant
             }
-            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
+            verify(personServiceMock).hentPersonForSystembruker(argThat { it shouldBe fnr })
 
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenBrevbestillinger()
         }
@@ -274,7 +274,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
         }
 
         val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
+            on { hentPersonForSystembruker(any()) } doReturn person.right()
         }
 
         val journalførIverksettingServiceMock = mock<JournalførIverksettingService> {
@@ -326,7 +326,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
                 firstValue shouldBe saksbehandler
                 secondValue shouldBe attestant
             }
-            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
+            verify(personServiceMock).hentPersonForSystembruker(argThat { it shouldBe fnr })
             verify(journalførIverksettingServiceMock).opprettJournalpost(
                 argThat { it shouldBe innvilgetBehandlingUtenJournalpost },
                 argThat {
@@ -521,7 +521,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
         }
 
         val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
+            on { hentPersonForSystembruker(any()) } doReturn person.right()
         }
 
         val journalførIverksettingServiceMock = mock<JournalførIverksettingService> {
@@ -564,7 +564,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
                 firstValue shouldBe saksbehandler
                 secondValue shouldBe attestant
             }
-            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
+            verify(personServiceMock).hentPersonForSystembruker(argThat { it shouldBe fnr })
             verify(journalførIverksettingServiceMock).opprettJournalpost(
                 argThat { it shouldBe innvilgetBehandlingUtenJournalpost },
                 argThat {
