@@ -15,6 +15,7 @@ import java.util.UUID
 
 interface BehandlingRepo {
     fun hentBehandling(behandlingId: UUID): Behandling?
+    fun hentBehandlingForUtbetaling(utbetalingId: UUID30): Behandling?
     fun oppdaterBehandlingsinformasjon(behandlingId: UUID, behandlingsinformasjon: Behandlingsinformasjon)
     fun oppdaterBehandlingStatus(behandlingId: UUID, status: Behandling.BehandlingsStatus)
     fun leggTilUtbetaling(behandlingId: UUID, utbetalingId: UUID30)

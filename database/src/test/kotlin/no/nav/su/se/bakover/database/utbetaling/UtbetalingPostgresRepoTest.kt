@@ -35,7 +35,7 @@ internal class UtbetalingPostgresRepoTest {
         withMigratedDb {
             val sak: Sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
 
-            val expected = defaultOversendtUtbetaling(
+            val expected = lagUtbetalingUtenKvittering(
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 fnr = sak.fnr
@@ -50,23 +50,25 @@ internal class UtbetalingPostgresRepoTest {
         withMigratedDb {
             val sak: Sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
 
-            val oversendtUtbetaling = defaultOversendtUtbetaling(
+            val utbetalingUtenKvittering = lagUtbetalingUtenKvittering(
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 fnr = sak.fnr
-            )
-            repo.opprettUtbetaling(oversendtUtbetaling)
-            val kvittert = repo.oppdaterMedKvittering(
-                utbetalingId = oversendtUtbetaling.id,
-                kvittering = Kvittering(
+            ).also {
+                repo.opprettUtbetaling(it)
+            }
+            val utbetalingMedKvittering = utbetalingUtenKvittering.toKvittertUtbetaling(
+                Kvittering(
                     Kvittering.Utbetalingsstatus.OK,
                     "some xml",
                     mottattTidspunkt = Tidspunkt.EPOCH
                 )
-            )
+            ).also {
+                repo.oppdaterMedKvittering(it)
+            }
             val hentet =
-                repo.hentUtbetaling(oversendtUtbetaling.avstemmingsnøkkel) as Utbetaling.OversendtUtbetaling.MedKvittering
-            kvittert shouldBe hentet
+                repo.hentUtbetaling(utbetalingMedKvittering.avstemmingsnøkkel) as Utbetaling.OversendtUtbetaling.MedKvittering
+            utbetalingMedKvittering shouldBe hentet
         }
     }
 
@@ -75,21 +77,23 @@ internal class UtbetalingPostgresRepoTest {
         withMigratedDb {
             val sak: Sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
 
-            val utbetaling = defaultOversendtUtbetaling(
+            val utbetalingUtenKvittering = lagUtbetalingUtenKvittering(
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 fnr = sak.fnr
-            )
-            repo.opprettUtbetaling(utbetaling)
-
-            val kvittering = Kvittering(
-                Kvittering.Utbetalingsstatus.OK,
-                "some xml",
-                mottattTidspunkt = Tidspunkt.EPOCH
-            )
-            val oppdatert = repo.oppdaterMedKvittering(utbetaling.id, kvittering)
-
-            oppdatert.shouldBeInstanceOf<Utbetaling.OversendtUtbetaling.MedKvittering>()
+            ).also {
+                repo.opprettUtbetaling(it)
+            }
+            val utbetalingMedKvittering = utbetalingUtenKvittering.toKvittertUtbetaling(
+                Kvittering(
+                    Kvittering.Utbetalingsstatus.OK,
+                    "some xml",
+                    mottattTidspunkt = Tidspunkt.EPOCH
+                )
+            ).also {
+                repo.oppdaterMedKvittering(it)
+            }
+            repo.hentUtbetaling(utbetalingMedKvittering.id).shouldBeInstanceOf<Utbetaling.OversendtUtbetaling.MedKvittering>()
         }
     }
 
@@ -98,7 +102,7 @@ internal class UtbetalingPostgresRepoTest {
         withMigratedDb {
             val sak: Sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
 
-            val utbetaling = defaultOversendtUtbetaling(
+            val utbetaling = lagUtbetalingUtenKvittering(
                 sakId = sak.id,
                 saksnummer = sak.saksnummer,
                 fnr = sak.fnr
@@ -115,7 +119,7 @@ internal class UtbetalingPostgresRepoTest {
     }
 
     companion object {
-        internal fun defaultOversendtUtbetaling(
+        internal fun lagUtbetalingUtenKvittering(
             sakId: UUID = UUID.randomUUID(),
             saksnummer: Saksnummer,
             fnr: Fnr,

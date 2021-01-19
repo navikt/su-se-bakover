@@ -232,7 +232,8 @@ internal fun Application.susebakover(
             kvitteringQueueName = applicationConfig.oppdrag.utbetaling.mqReplyTo,
             globalJmsContext = jmsConfig.jmsContext,
             kvitteringConsumer = UtbetalingKvitteringConsumer(
-                utbetalingService = services.utbetaling
+                utbetalingService = services.utbetaling,
+                behandlingService = services.behandling,
             )
         )
         AvstemmingJob(

@@ -10,6 +10,7 @@ import arrow.core.rightIfNotNull
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
@@ -55,6 +56,7 @@ internal class BehandlingServiceImpl(
     private val clock: Clock,
     private val microsoftGraphApiClient: MicrosoftGraphApiOppslag,
     private val iverksettBehandlingService: IverksettBehandlingService,
+    private val ferdigstillIverksettingService: FerdigstillIverksettingService
 ) : BehandlingService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -69,6 +71,10 @@ internal class BehandlingServiceImpl(
 
     override fun hentBehandling(behandlingId: UUID): Either<FantIkkeBehandling, Behandling> {
         return behandlingRepo.hentBehandling(behandlingId)?.right() ?: FantIkkeBehandling.left()
+    }
+
+    override fun hentBehandlingForUtbetaling(utbetalingId: UUID30): Either<FantIkkeBehandling, Behandling> {
+        return behandlingRepo.hentBehandlingForUtbetaling(utbetalingId).rightIfNotNull { FantIkkeBehandling }
     }
 
     override fun underkjenn(
@@ -259,8 +265,12 @@ internal class BehandlingServiceImpl(
         return iverksettBehandlingService.iverksett(behandlingId, attestant)
     }
 
+    override fun ferdigstillInnvilgelse(behandling: Behandling) {
+        return ferdigstillIverksettingService.ferdigstillInnvilgelse(behandling)
+    }
+
     override fun opprettManglendeJournalpostOgBrevdistribusjon(): OpprettManglendeJournalpostOgBrevdistribusjonResultat {
-        return iverksettBehandlingService.opprettManglendeJournalpostOgBrevdistribusjon()
+        return ferdigstillIverksettingService.opprettManglendeJournalpostOgBrevdistribusjon()
     }
 
     override fun opprettSøknadsbehandling(

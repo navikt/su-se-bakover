@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.beregning.PersistertFradrag
 import no.nav.su.se.bakover.database.beregning.PersistertMånedsberegning
-import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepoTest.Companion.defaultOversendtUtbetaling
+import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepoTest.Companion.lagUtbetalingUtenKvittering
 import no.nav.su.se.bakover.database.vedtak.snapshot.VedtakssnapshotJson.Companion.toJson
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -342,7 +342,7 @@ internal class VedtakssnapshotJsonTest {
     @Test
     fun `kan serialisere innvilgelse`() {
 
-        val utbetaling = defaultOversendtUtbetaling(
+        val utbetaling = lagUtbetalingUtenKvittering(
             sakId = UUID.fromString(sakId),
             saksnummer = Saksnummer(saksnummer),
             fnr = behandling.fnr,

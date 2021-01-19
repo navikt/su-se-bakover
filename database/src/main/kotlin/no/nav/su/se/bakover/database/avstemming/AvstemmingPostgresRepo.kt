@@ -101,7 +101,7 @@ private fun Row.toAvstemming(session: Session) = Avstemming(
             UtbetalingInternalRepo.hentUtbetalingInternal(
                 UUID30(utbetalingId as String),
                 session
-            )!! as Utbetaling.OversendtUtbetaling
+            )!!
         }
     }!!,
     avstemmingXmlRequest = stringOrNull("avstemmingXmlRequest")

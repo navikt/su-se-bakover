@@ -4,6 +4,8 @@ import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
@@ -12,6 +14,7 @@ import no.nav.su.se.bakover.database.beregning.assertBeregningMapping
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
@@ -20,6 +23,10 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import org.junit.jupiter.api.Test
 
@@ -46,6 +53,55 @@ internal class BehandlingPostgresRepoTest {
 
             repo.opprettSøknadsbehandling(nySøknadsbehandling)
             val hentet = repo.hentBehandling(nySøknadsbehandling.id)!!
+
+            hentet shouldBe behandlingFactory.createBehandling(
+                id = nySøknadsbehandling.id,
+                opprettet = nySøknadsbehandling.opprettet,
+                søknad = søknad,
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+                fnr = fnr,
+                oppgaveId = oppgaveId
+            )
+        }
+    }
+
+    @Test
+    fun `opprett og hent behandling for utbetaling`() {
+        withMigratedDb {
+            val fnr = FnrGenerator.random()
+            val sak: Sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave(fnr, oppgaveId, journalpostId)
+            val søknad = sak.søknader()[0] as Søknad.Journalført.MedOppgave
+            val nySøknadsbehandling = NySøknadsbehandling(
+                sakId = sak.id,
+                søknadId = søknad.id,
+                oppgaveId = oppgaveId
+            )
+
+            repo.opprettSøknadsbehandling(nySøknadsbehandling)
+
+            val utbetaling = Utbetaling.OversendtUtbetaling.UtenKvittering(
+                id = UUID30.randomUUID(),
+                utbetalingslinjer = listOf(),
+                sakId = sak.id,
+                saksnummer = Saksnummer(-99),
+                fnr = fnr,
+                avstemmingsnøkkel = Avstemmingsnøkkel(),
+                simulering = Simulering(
+                    gjelderId = fnr,
+                    gjelderNavn = "",
+                    datoBeregnet = idag(),
+                    nettoBeløp = 0,
+                    periodeList = listOf()
+                ),
+                utbetalingsrequest = Utbetalingsrequest(""),
+                type = Utbetaling.UtbetalingsType.NY,
+                behandler = NavIdentBruker.Attestant("Z123")
+            )
+            testDataHelper.opprettUtbetaling(utbetaling)
+            repo.leggTilUtbetaling(nySøknadsbehandling.id, utbetaling.id)
+
+            val hentet = repo.hentBehandlingForUtbetaling(utbetaling.id)!!
 
             hentet shouldBe behandlingFactory.createBehandling(
                 id = nySøknadsbehandling.id,

@@ -5,7 +5,6 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.withSession
-import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -14,10 +13,10 @@ import javax.sql.DataSource
 internal class UtbetalingPostgresRepo(
     private val dataSource: DataSource
 ) : UtbetalingRepo {
-    override fun hentUtbetaling(utbetalingId: UUID30): Utbetaling? =
+    override fun hentUtbetaling(utbetalingId: UUID30): Utbetaling.OversendtUtbetaling? =
         dataSource.withSession { session -> UtbetalingInternalRepo.hentUtbetalingInternal(utbetalingId, session) }
 
-    override fun hentUtbetaling(avstemmingsnøkkel: Avstemmingsnøkkel): Utbetaling? =
+    override fun hentUtbetaling(avstemmingsnøkkel: Avstemmingsnøkkel): Utbetaling.OversendtUtbetaling? =
         dataSource.withSession { session ->
             "select u.*, s.saksnummer from utbetaling u left join sak s on s.id = u.sakId where u.avstemmingsnøkkel ->> 'nøkkel' = :nokkel".hent(
                 mapOf(
@@ -27,17 +26,16 @@ internal class UtbetalingPostgresRepo(
             ) { it.toUtbetaling(session) }
         }
 
-    override fun oppdaterMedKvittering(utbetalingId: UUID30, kvittering: Kvittering): Utbetaling {
+    override fun oppdaterMedKvittering(utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering) {
         dataSource.withSession { session ->
             "update utbetaling set kvittering = to_json(:kvittering::json) where id = :id".oppdatering(
                 mapOf(
-                    "id" to utbetalingId,
-                    "kvittering" to objectMapper.writeValueAsString(kvittering)
+                    "id" to utbetaling.id,
+                    "kvittering" to objectMapper.writeValueAsString(utbetaling.kvittering)
                 ),
                 session
             )
         }
-        return hentUtbetaling(utbetalingId)!!
     }
 
     override fun opprettUtbetaling(utbetaling: Utbetaling.OversendtUtbetaling.UtenKvittering) {

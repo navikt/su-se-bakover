@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.services.utbetaling.kvittering
 
+import arrow.core.getOrHandle
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.dataformat.xml.JacksonXmlModule
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
@@ -7,7 +8,10 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import no.nav.su.se.bakover.domain.oppdrag.Kvittering
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringResponse.Companion.toKvitteringResponse
 import org.slf4j.LoggerFactory
@@ -15,6 +19,7 @@ import java.time.Clock
 
 class UtbetalingKvitteringConsumer(
     private val utbetalingService: UtbetalingService,
+    private val behandlingService: BehandlingService,
     private val clock: Clock = Clock.systemUTC(),
     private val xmlMapper: XmlMapper = UtbetalingKvitteringConsumer.xmlMapper
 ) {
@@ -35,7 +40,9 @@ class UtbetalingKvitteringConsumer(
             Avstemmingsnøkkel.fromString(it)
         }
 
-        utbetalingService.oppdaterMedKvittering(avstemmingsnøkkel, kvitteringResponse.toKvittering(xmlMessage, clock))
+        val kvittering: Kvittering = kvitteringResponse.toKvittering(xmlMessage, clock)
+        utbetalingService.oppdaterMedKvittering(avstemmingsnøkkel, kvittering)
+            .map { ferdigstillInnvilgelse(it) }
             .mapLeft {
                 runBlocking {
                     /**
@@ -48,11 +55,29 @@ class UtbetalingKvitteringConsumer(
                     delay(delayMs)
                     utbetalingService.oppdaterMedKvittering(
                         avstemmingsnøkkel,
-                        kvitteringResponse.toKvittering(xmlMessage, clock)
-                    ).mapLeft {
-                        throw RuntimeException("Kunne ikke lagre kvittering. Fant ikke utbetaling med avstemmingsnøkkel $avstemmingsnøkkel")
-                    }
+                        kvittering
+                    )
+                        .map { ferdigstillInnvilgelse(it) }
+                        .mapLeft {
+                            throw RuntimeException("Kunne ikke lagre kvittering. Fant ikke utbetaling med avstemmingsnøkkel $avstemmingsnøkkel")
+                        }
                 }
             }
+    }
+
+    private fun ferdigstillInnvilgelse(utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering) {
+        if (utbetaling.type != Utbetaling.UtbetalingsType.NY) {
+            log.info("Utbetaling ${utbetaling.id} er av type ${utbetaling.type} og vil derfor ikke bli prøvd ferdigstilt.")
+            return
+        }
+        if (!utbetaling.kvittering.erKvittertOk()) {
+            log.error("Prøver ikke å ferdigstille innvilgelse siden kvitteringen fra oppdrag ikke var OK.")
+            return
+        }
+        val behandling = behandlingService.hentBehandlingForUtbetaling(utbetaling.id).getOrHandle {
+            log.error("Kunne ikke ferdigstille innvilgelse - fant ikke behandling for utbetaling ${utbetaling.id}")
+            return
+        }
+        behandlingService.ferdigstillInnvilgelse(behandling)
     }
 }
