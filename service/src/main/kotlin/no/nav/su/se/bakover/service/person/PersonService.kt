@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.person.PersonOppslag
 
 interface PersonService {
     fun hentPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Person>
+    fun hentPersonForSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, Person>
     fun hentAktørId(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId>
     fun sjekkTilgangTilPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Unit>
 }
@@ -18,6 +19,10 @@ class PersonServiceImpl(
 ) : PersonService {
     override fun hentPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Person> {
         return personOppslag.person(fnr)
+    }
+
+    override fun hentPersonForSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, Person> {
+        return personOppslag.personForSystembruker(fnr)
     }
 
     override fun hentAktørId(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> {

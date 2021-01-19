@@ -13,7 +13,6 @@ import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -36,8 +35,6 @@ import org.junit.jupiter.api.Test
 
 internal class FerdigstillIverksettingServiceTest {
 
-    private val utbetalingId = UUID30.randomUUID()
-
     private val iverksattOppgaveId = OppgaveId("iverksattOppgaveId")
 
     private val iverksattJournalpostId = JournalpostId("iverksattJournalpostId")
@@ -58,7 +55,7 @@ internal class FerdigstillIverksettingServiceTest {
         val behandlingRepoMock = mock<BehandlingRepo>()
 
         val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
+            on { hentPersonForSystembruker(any()) } doReturn person.right()
         }
 
         val oppslagMock: MicrosoftGraphApiOppslag = mock {
@@ -95,7 +92,7 @@ internal class FerdigstillIverksettingServiceTest {
             journalførIverksettingServiceMock,
             oppgaveServiceMock
         ) {
-            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
+            verify(personServiceMock).hentPersonForSystembruker(argThat { it shouldBe fnr })
             verify(oppslagMock).hentBrukerinformasjonForNavIdent(
                 argThat {
                     it shouldBe saksbehandler
@@ -118,7 +115,7 @@ internal class FerdigstillIverksettingServiceTest {
         val behandlingRepoMock = mock<BehandlingRepo>()
 
         val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
+            on { hentPersonForSystembruker(any()) } doReturn person.right()
         }
 
         val oppslagMock: MicrosoftGraphApiOppslag = mock {
@@ -155,7 +152,7 @@ internal class FerdigstillIverksettingServiceTest {
             journalførIverksettingServiceMock,
             oppgaveServiceMock
         ) {
-            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
+            verify(personServiceMock).hentPersonForSystembruker(argThat { it shouldBe fnr })
             argumentCaptor<NavIdentBruker>().apply {
                 verify(oppslagMock, times(2)).hentBrukerinformasjonForNavIdent(capture())
                 firstValue shouldBe saksbehandler
@@ -178,7 +175,7 @@ internal class FerdigstillIverksettingServiceTest {
         val behandlingRepoMock = mock<BehandlingRepo>()
 
         val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
+            on { hentPersonForSystembruker(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
         }
 
         val oppslagMock: MicrosoftGraphApiOppslag = mock {
@@ -219,7 +216,7 @@ internal class FerdigstillIverksettingServiceTest {
             journalførIverksettingServiceMock,
             oppgaveServiceMock
         ) {
-            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
+            verify(personServiceMock).hentPersonForSystembruker(argThat { it shouldBe fnr })
         }
         verifyNoMoreInteractions(
             behandlingRepoMock,
@@ -237,7 +234,7 @@ internal class FerdigstillIverksettingServiceTest {
         val behandlingRepoMock = mock<BehandlingRepo>()
 
         val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
+            on { hentPersonForSystembruker(any()) } doReturn person.right()
         }
 
         val oppslagMock: MicrosoftGraphApiOppslag = mock {
@@ -278,7 +275,7 @@ internal class FerdigstillIverksettingServiceTest {
             journalførIverksettingServiceMock,
             oppgaveServiceMock
         ) {
-            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
+            verify(personServiceMock).hentPersonForSystembruker(argThat { it shouldBe fnr })
             argumentCaptor<NavIdentBruker>().apply {
                 verify(oppslagMock, times(2)).hentBrukerinformasjonForNavIdent(capture())
                 firstValue shouldBe saksbehandler
@@ -312,7 +309,7 @@ internal class FerdigstillIverksettingServiceTest {
         val behandlingRepoMock = mock<BehandlingRepo>()
 
         val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
+            on { hentPersonForSystembruker(any()) } doReturn person.right()
         }
 
         val distribuerIverksettingsbrevServiceMock = mock<DistribuerIverksettingsbrevService> {
@@ -350,7 +347,7 @@ internal class FerdigstillIverksettingServiceTest {
             journalførIverksettingServiceMock,
             oppgaveServiceMock
         ) {
-            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
+            verify(personServiceMock).hentPersonForSystembruker(argThat { it shouldBe fnr })
             argumentCaptor<NavIdentBruker>().apply {
                 verify(oppslagMock, times(2)).hentBrukerinformasjonForNavIdent(capture())
                 firstValue shouldBe saksbehandler
@@ -390,7 +387,7 @@ internal class FerdigstillIverksettingServiceTest {
         val behandlingRepoMock = mock<BehandlingRepo>()
 
         val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn person.right()
+            on { hentPersonForSystembruker(any()) } doReturn person.right()
         }
 
         val distribuerIverksettingsbrevServiceMock = mock<DistribuerIverksettingsbrevService> {
@@ -430,7 +427,7 @@ internal class FerdigstillIverksettingServiceTest {
             journalførIverksettingServiceMock,
             oppgaveServiceMock
         ) {
-            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
+            verify(personServiceMock).hentPersonForSystembruker(argThat { it shouldBe fnr })
             argumentCaptor<NavIdentBruker>().apply {
                 verify(oppslagMock, times(2)).hentBrukerinformasjonForNavIdent(capture())
                 firstValue shouldBe saksbehandler

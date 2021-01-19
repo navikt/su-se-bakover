@@ -37,7 +37,15 @@ internal class PdlClient(
     private val hentIdenterQuery = this::class.java.getResource("/hentIdenter.graphql").readText()
 
     fun person(fnr: Fnr): Either<KunneIkkeHentePerson, PdlData> {
-        return kallpdl<PersonResponseData>(fnr, hentPersonQuery).map { response ->
+        return person(fnr, MDC.get("Authorization"))
+    }
+
+    fun personForSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, PdlData> {
+        return person(fnr, "Bearer ".plus(tokenOppslag.token()))
+    }
+
+    fun person(fnr: Fnr, jwt: String): Either<KunneIkkeHentePerson, PdlData> {
+        return kallpdl<PersonResponseData>(fnr, hentPersonQuery, jwt).map { response ->
             val hentPerson = response.hentPerson ?: return FantIkkePerson.left()
             if (hentPerson.navn.isNullOrEmpty()) {
                 log.info("Fant person i pdl, men feltene var tomme")
@@ -79,7 +87,7 @@ internal class PdlClient(
     private fun folkeregisteretAsMaster(metadata: Metadata) = metadata.master.toLowerCase() == "freg"
 
     fun aktørId(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> {
-        return kallpdl<IdentResponseData>(fnr, hentIdenterQuery).map {
+        return kallpdl<IdentResponseData>(fnr, hentIdenterQuery, MDC.get("Authorization")).map {
             hentIdent(it.hentIdenter!!).aktørId
         }
     }
@@ -90,11 +98,11 @@ internal class PdlClient(
             aktørId = it.identer.first { it.gruppe == AKTORID }.ident.let { AktørId(it) }
         )
 
-    private inline fun <reified T> kallpdl(fnr: Fnr, query: String): Either<KunneIkkeHentePerson, T> {
+    private inline fun <reified T> kallpdl(fnr: Fnr, query: String, jwt: String): Either<KunneIkkeHentePerson, T> {
         val pdlRequest = PdlRequest(query, Variables(ident = fnr.toString()))
         val token = tokenOppslag.token()
         val (_, response, result) = "$pdlUrl/graphql".httpPost()
-            .header("Authorization", MDC.get("Authorization"))
+            .header("Authorization", jwt)
             .header("Nav-Consumer-Token", "Bearer $token")
             .header("Tema", Tema.SUPPLERENDE_STØNAD.value)
             .header("Accept", "application/json")

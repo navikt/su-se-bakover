@@ -38,7 +38,7 @@ class FerdigstillIverksettingService(
     }
 
     fun ferdigstillInnvilgelse(behandling: Behandling) {
-        val person = personService.hentPerson(behandling.fnr).getOrHandle {
+        val person = personService.hentPersonForSystembruker(behandling.fnr).getOrHandle {
             log.error("Kunne ikke ferdigstille innvilgelse - fant ikke person for saksnr ${behandling.saksnummer}")
             return
         }
@@ -108,7 +108,7 @@ class FerdigstillIverksettingService(
                         grunn = "Kunne ikke hente attestants navn"
                     ).left()
                 }
-            val person = personService.hentPerson(behandling.fnr).getOrElse {
+            val person = personService.hentPersonForSystembruker(behandling.fnr).getOrElse {
                 return@map KunneIkkeOppretteJournalpostForIverksetting(
                     sakId = behandling.sakId,
                     behandlingId = behandling.id,
