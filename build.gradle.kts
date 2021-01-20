@@ -35,13 +35,13 @@ allprojects {
     val junitJupiterVersion = "5.7.0"
     val arrowVersion = "0.11.0"
     val kotestVersion = "4.3.1"
-    val jacksonVersion = "2.12.0"
+    val jacksonVersion = "2.12.1"
     val ktlintVersion = "0.40.0"
     val bouncycastleVersion = "1.68"
     dependencies {
         api(kotlin("stdlib-jdk8"))
 
-        implementation("org.jetbrains.kotlin:kotlin-reflect:1.4.20")
+        implementation("org.jetbrains.kotlin:kotlin-reflect:1.4.21")
         implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
         implementation("io.arrow-kt:arrow-core:$arrowVersion")
         implementation("io.arrow-kt:arrow-syntax:$arrowVersion")
@@ -51,7 +51,7 @@ allprojects {
         implementation("ch.qos.logback:logback-classic:1.2.3")
         implementation("net.logstash.logback:logstash-logback-encoder:6.5")
         implementation("io.github.cdimascio:dotenv-kotlin:6.2.2")
-        implementation("org.apache.kafka:kafka-clients:2.6.0")
+        implementation("org.apache.kafka:kafka-clients:2.7.0")
         implementation("com.networknt:json-schema-validator:1.0.45")
 
         // The 9.2.1.0 version fails to connect to the MQ server.
@@ -67,7 +67,7 @@ allprojects {
         testImplementation("io.kotest:kotest-extensions-jvm:$kotestVersion")
         testImplementation("org.skyscreamer:jsonassert:1.5.0")
         testImplementation("com.nhaarman.mockitokotlin2:mockito-kotlin:2.2.0")
-        testImplementation("org.mockito:mockito-core:3.6.28")
+        testImplementation("org.mockito:mockito-core:3.7.7")
 
         constraints {
             implementation("io.netty:netty-codec-http2:4.1.53.Final") {
@@ -88,7 +88,7 @@ allprojects {
             implementation("org.postgresql:postgresql:42.2.13") {
                 because("https://app.snyk.io/vuln/SNYK-JAVA-ORGPOSTGRESQL-571481")
             }
-            implementation("org.apache.cxf:cxf-rt-transports-http:3.4.1") {
+            implementation("org.apache.cxf:cxf-rt-transports-http:3.4.2") {
                 because("https://app.snyk.io/vuln/SNYK-JAVA-ORGAPACHECXF-1039798")
             }
             implementation("junit:junit:4.13.1") {

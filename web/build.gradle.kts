@@ -4,7 +4,7 @@ repositories {
 
 val ktorVersion = "1.4.1"
 val orgJsonVersion = "20201115"
-val micrometerRegistryPrometheusVersion = "1.6.1"
+val micrometerRegistryPrometheusVersion = "1.6.3"
 
 dependencies {
     implementation(project(":common"))
@@ -24,7 +24,7 @@ dependencies {
     implementation("io.micrometer:micrometer-registry-prometheus:$micrometerRegistryPrometheusVersion")
     implementation("io.ktor:ktor-locations:$ktorVersion")
     implementation("io.ktor:ktor-jackson:$ktorVersion")
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.12.0")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.12.1")
 
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion") {
         exclude(group = "junit")

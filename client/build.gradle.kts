@@ -1,9 +1,9 @@
-val fuelVersion = "2.3.0"
+val fuelVersion = "2.3.1"
 val wireMockVersion = "2.27.2"
 val orgJsonVersion = "20201115"
 val tjenestespesifikasjonVersion = "1.2020.10.07-08.40-90b3ab7bad15"
-val cxfVersion = "3.4.1"
-val jettyVersion = "9.4.35.v20201120"
+val cxfVersion = "3.4.2"
+val jettyVersion = "9.4.36.v20210114"
 
 dependencies {
     implementation(project(":common"))
@@ -33,7 +33,7 @@ dependencies {
     testImplementation("com.github.tomakehurst:wiremock-jre8:$wireMockVersion") {
         exclude(group = "junit")
     }
-    testImplementation("org.xmlunit:xmlunit-matchers:2.8.1")
+    testImplementation("org.xmlunit:xmlunit-matchers:2.8.2")
 }
 
 configure<SourceSetContainer> {

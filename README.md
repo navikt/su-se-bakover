@@ -87,4 +87,4 @@ prod: https://alertmanager.prod-fss.nais.io
 * Deploy new alert: Just run the `alerts-deploy.yml` github actions workflow
 ## Upgrade versions
 * Check for newest versions: `./gradlew dependencyUpdates --refresh-dependencies`
-* Automatically use newest versions: `./gradlew useLatestVersions --refresh-dependencies`
+* Automatically use the newest versions: `./gradlew useLatestVersions --refresh-dependencies`
