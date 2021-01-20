@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.behandling.Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_OVER_67
+import no.nav.su.se.bakover.domain.behandling.Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_67_ELLER_ELDRE
 import no.nav.su.se.bakover.domain.behandling.Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67
 import no.nav.su.se.bakover.domain.behandling.Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67_UFØR_FLYKTNING
 import no.nav.su.se.bakover.domain.behandling.Satsgrunn.DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN
@@ -265,8 +265,8 @@ data class Behandlingsinformasjon(
                     return BeregningStrategy.BorMedVoksne
                 }
                 if (epsAlder != null) {
-                    if (epsAlder > 66) {
-                        return BeregningStrategy.EpsOver67År
+                    if (epsAlder >= 67) {
+                        return BeregningStrategy.Eps67EllerEldre
                     }
                     if (ektemakeEllerSamboerUførFlyktning == true) {
                         return BeregningStrategy.EpsUnder67ÅrOgUførFlyktning
@@ -303,7 +303,7 @@ data class Behandlingsinformasjon(
             return when {
                 delerBolig == false -> Satsgrunn.ENSLIG
                 delerBolig == true -> DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN
-                eps67EllerEldre -> DELER_BOLIG_MED_EKTEMAKE_SAMBOER_OVER_67
+                eps67EllerEldre -> DELER_BOLIG_MED_EKTEMAKE_SAMBOER_67_ELLER_ELDRE
                 epsUnder67 && ektemakeEllerSamboerUførFlyktning == false -> DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67
                 epsUnder67 && ektemakeEllerSamboerUførFlyktning == true -> DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67_UFØR_FLYKTNING
                 else -> throw IllegalStateException("Kunne ikke utlede satsgrunn")

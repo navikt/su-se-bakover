@@ -57,8 +57,8 @@ internal class BeregningStrategyTest {
 
     @Test
     fun `eps over 67 år inneholder korrekte verdier`() {
-        BeregningStrategy.EpsOver67År.sats() shouldBe Sats.ORDINÆR
-        BeregningStrategy.EpsOver67År.fradragStrategy() shouldBe FradragStrategy.EpsOver67År
+        BeregningStrategy.Eps67EllerEldre.sats() shouldBe Sats.ORDINÆR
+        BeregningStrategy.Eps67EllerEldre.fradragStrategy() shouldBe FradragStrategy.EpsOver67År
     }
 
     @Test

@@ -59,8 +59,8 @@ internal class BosituasjonTest {
             ektemakeEllerSamboerUførFlyktning = null,
             begrunnelse = null
         )
-        info.getSatsgrunn() shouldBe Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_OVER_67
-        info.getBeregningStrategy() shouldBe BeregningStrategy.EpsOver67År
+        info.getSatsgrunn() shouldBe Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_67_ELLER_ELDRE
+        info.getBeregningStrategy() shouldBe BeregningStrategy.Eps67EllerEldre
         info.getBeregningStrategy().sats() shouldBe Sats.ORDINÆR
         info.getBeregningStrategy().fradragStrategy() shouldBe FradragStrategy.EpsOver67År
     }
