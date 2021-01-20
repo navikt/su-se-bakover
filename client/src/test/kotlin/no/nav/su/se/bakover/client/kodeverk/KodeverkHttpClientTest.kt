@@ -5,6 +5,8 @@ import arrow.core.right
 import com.github.tomakehurst.wiremock.client.WireMock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.WiremockBase
+import no.nav.su.se.bakover.client.WiremockBase.Companion.putCorrelationId
+import no.nav.su.se.bakover.client.WiremockBase.Companion.removeCorrelationId
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
 import no.nav.su.se.bakover.client.kodeverk.Kodeverk.CouldNotGetKode
 import org.junit.jupiter.api.Test
@@ -21,6 +23,25 @@ internal class KodeverkHttpClientTest : WiremockBase {
         )
         val client = KodeverkHttpClient(wireMockServer.baseUrl(), "srvsupstonad")
         client.hentPoststed("1479") shouldBe "KURLAND".right()
+    }
+
+    @Test
+    fun `Sjekk at vi takler manglende correlationid`() {
+        wireMockServer.also { removeCorrelationId() }.stubFor(
+            WireMock.get(WireMock.urlPathEqualTo(kodeverkPoststedPath))
+                .withHeader("Content-Type", WireMock.equalTo("application/json"))
+                .withHeader("Nav-Call-Id", WireMock.matching(".+"))
+                .withHeader("Nav-Consumer-Id", WireMock.equalTo("srvsupstonad"))
+                .withQueryParam("ekskluderUgyldige", WireMock.equalTo("true"))
+                .withQueryParam("spraak", WireMock.equalTo("nb"))
+                .willReturn(
+                    WireMock.ok(resultatPoststedJson)
+                )
+        )
+
+        val client = KodeverkHttpClient(wireMockServer.baseUrl(), "srvsupstonad")
+        client.hentPoststed("1479") shouldBe "KURLAND".right()
+        putCorrelationId()
     }
 
     @Test

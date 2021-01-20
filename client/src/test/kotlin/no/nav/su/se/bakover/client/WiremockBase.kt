@@ -15,10 +15,18 @@ interface WiremockBase {
             ).also {
                 it.start()
                 // Denne kan da ikke overskrives fra testene.
-                MDC.put("X-Correlation-ID", "correlationId")
+                putCorrelationId()
                 // https://fuel.gitbook.io/documentation/core/fuel
                 FuelManager.instance.forceMethods = true
             }
+        }
+
+        fun removeCorrelationId() {
+            MDC.remove("X-Correlation-ID")
+        }
+
+        fun putCorrelationId() {
+            MDC.put("X-Correlation-ID", "correlationId")
         }
     }
 

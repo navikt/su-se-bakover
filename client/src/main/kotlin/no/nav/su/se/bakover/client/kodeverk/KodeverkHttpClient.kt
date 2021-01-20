@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.objectMapper
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
+import java.util.UUID
 
 internal const val kodeverkPoststedPath = "/api/v1/kodeverk/Postnummer/koder/betydninger"
 internal const val kodeverkKommunePath = "/api/v1/kodeverk/Kommuner/koder/betydninger"
@@ -27,9 +28,11 @@ class KodeverkHttpClient(val baseUrl: String, private val consumerId: String) : 
     }
 
     private fun hentKodebetydning(path: String, value: String): Either<CouldNotGetKode, String?> {
+        val correlationId: String = MDC.get("X-Correlation-ID") ?: UUID.randomUUID().toString()
+            .also { log.warn("Manglet X-Correlation-Id som er påkrevd ved kall til kodeverk. Bruker random uuid") }
         val (_, response, result) = "$baseUrl$path".httpGet()
             .header("Content-Type", "application/json")
-            .header("Nav-Call-Id", MDC.get("X-Correlation-ID"))
+            .header("Nav-Call-Id", correlationId)
             .header("Nav-Consumer-Id", consumerId)
             .apply {
                 parameters = listOf("ekskluderUgyldige" to "true", "spraak" to "nb")
@@ -66,6 +69,7 @@ class KodeverkHttpClient(val baseUrl: String, private val consumerId: String) : 
     data class Beskrivelser(
         val nb: Beskrivelse
     )
+
     data class Beskrivelse(
         val tekst: String,
         val term: String
