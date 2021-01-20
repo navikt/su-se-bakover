@@ -310,11 +310,11 @@ open class AccessCheckProxy(
                     return services.lukkSøknad.lagBrevutkast(request)
                 }
             },
-
             oppgave = object : OppgaveService {
                 override fun opprettOppgave(config: OppgaveConfig) = kastKanKunKallesFraAnnenService()
                 override fun opprettOppgaveMedSystembruker(config: OppgaveConfig) = kastKanKunKallesFraAnnenService()
                 override fun lukkOppgave(oppgaveId: OppgaveId) = kastKanKunKallesFraAnnenService()
+                override fun lukkOppgaveMedSystembruker(oppgaveId: OppgaveId) = kastKanKunKallesFraAnnenService()
             },
             person = object : PersonService {
                 override fun hentPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Person> {
