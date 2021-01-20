@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.common.periode
 
 import com.fasterxml.jackson.module.kotlin.readValue
-import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -16,10 +15,7 @@ import no.nav.su.se.bakover.common.objectMapper
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
-import java.lang.RuntimeException
 import java.time.LocalDate
-import java.time.Month
-import java.time.temporal.TemporalAdjuster
 import java.time.temporal.TemporalAdjusters
 
 internal class PeriodeTest {
@@ -89,7 +85,7 @@ internal class PeriodeTest {
 
     @Test
     fun `periode kan ikke være mer enn 12 måneder`() {
-        shouldThrowExactly<IllegalArgumentException>{ Periode(1.januar(2020), 1.januar(2021)) }
+        shouldThrowExactly<IllegalArgumentException> { Periode(1.januar(2020), 1.januar(2021)) }
     }
 
     @Test
