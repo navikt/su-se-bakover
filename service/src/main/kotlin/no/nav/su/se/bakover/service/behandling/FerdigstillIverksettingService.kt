@@ -51,13 +51,13 @@ class FerdigstillIverksettingService(
         person: Person
     ): Either<KunneIkkeFerdigstilleInnvilgelse, Unit> {
         val journalføringOgBrevResultat = opprettJournalpostOgBrevbestillingForInnvilgelse(behandling, person)
-        val oppgaveResultat = opprettOppgave(behandling)
+        val oppgaveResultat = lukkOppgave(behandling)
 
         return journalføringOgBrevResultat.flatMap { oppgaveResultat }
     }
 
-    private fun opprettOppgave(behandling: Behandling): Either<KunneIkkeFerdigstilleInnvilgelse, Unit> {
-        return oppgaveService.lukkOppgave(behandling.oppgaveId())
+    private fun lukkOppgave(behandling: Behandling): Either<KunneIkkeFerdigstilleInnvilgelse, Unit> {
+        return oppgaveService.lukkOppgaveMedSystembruker(behandling.oppgaveId())
             .mapLeft {
                 log.error("Kunne ikke lukke oppgave ved innvilgelse for behandling ${behandling.id}. Dette må gjøres manuelt.")
                 return KunneIkkeFerdigstilleInnvilgelse.KunneIkkeOppretteOppgave.left()

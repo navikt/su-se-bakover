@@ -68,7 +68,7 @@ internal class FerdigstillIverksettingServiceTest {
         val journalførIverksettingServiceMock = mock<JournalførIverksettingService>()
 
         val oppgaveServiceMock = mock<OppgaveService> {
-            on { lukkOppgave(any()) } doReturn Unit.right()
+            on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
         }
 
         val distribuerIverksettingsbrevServiceMock = mock<DistribuerIverksettingsbrevService>()
@@ -98,7 +98,7 @@ internal class FerdigstillIverksettingServiceTest {
                     it shouldBe saksbehandler
                 }
             )
-            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe iverksattOppgaveId })
+            verify(oppgaveServiceMock).lukkOppgaveMedSystembruker(argThat { it shouldBe iverksattOppgaveId })
         }
         verifyNoMoreInteractions(
             behandlingRepoMock,
@@ -128,7 +128,7 @@ internal class FerdigstillIverksettingServiceTest {
         val journalførIverksettingServiceMock = mock<JournalførIverksettingService>()
 
         val oppgaveServiceMock = mock<OppgaveService> {
-            on { lukkOppgave(any()) } doReturn Unit.right()
+            on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
         }
 
         val distribuerIverksettingsbrevServiceMock = mock<DistribuerIverksettingsbrevService>()
@@ -158,7 +158,7 @@ internal class FerdigstillIverksettingServiceTest {
                 firstValue shouldBe saksbehandler
                 secondValue shouldBe attestant
             }
-            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe iverksattOppgaveId })
+            verify(oppgaveServiceMock).lukkOppgaveMedSystembruker(argThat { it shouldBe iverksattOppgaveId })
         }
         verifyNoMoreInteractions(
             behandlingRepoMock,
@@ -192,7 +192,7 @@ internal class FerdigstillIverksettingServiceTest {
         }
 
         val oppgaveServiceMock = mock<OppgaveService> {
-            on { lukkOppgave(any()) } doReturn Unit.right()
+            on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
         }
 
         val distribuerIverksettingsbrevServiceMock = mock<DistribuerIverksettingsbrevService>()
@@ -251,7 +251,7 @@ internal class FerdigstillIverksettingServiceTest {
         }
 
         val oppgaveServiceMock = mock<OppgaveService> {
-            on { lukkOppgave(any()) } doReturn Unit.right()
+            on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
         }
 
         val distribuerIverksettingsbrevServiceMock = mock<DistribuerIverksettingsbrevService>()
@@ -292,7 +292,7 @@ internal class FerdigstillIverksettingServiceTest {
                     )
                 },
             )
-            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe iverksattOppgaveId })
+            verify(oppgaveServiceMock).lukkOppgaveMedSystembruker(argThat { it shouldBe iverksattOppgaveId })
         }
         verifyNoMoreInteractions(
             behandlingRepoMock,
@@ -325,7 +325,7 @@ internal class FerdigstillIverksettingServiceTest {
         }
 
         val oppgaveServiceMock = mock<OppgaveService> {
-            on { lukkOppgave(any()) } doReturn Unit.right()
+            on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
         }
 
         val actual = createService(
@@ -370,7 +370,7 @@ internal class FerdigstillIverksettingServiceTest {
                 },
                 any()
             )
-            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe iverksattOppgaveId })
+            verify(oppgaveServiceMock).lukkOppgaveMedSystembruker(argThat { it shouldBe iverksattOppgaveId })
         }
         verifyNoMoreInteractions(
             behandlingRepoMock,
@@ -405,7 +405,7 @@ internal class FerdigstillIverksettingServiceTest {
         }
 
         val oppgaveServiceMock = mock<OppgaveService> {
-            on { lukkOppgave(any()) } doReturn Unit.right()
+            on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
         }
 
         val actual = createService(
@@ -450,7 +450,7 @@ internal class FerdigstillIverksettingServiceTest {
                 },
                 any()
             )
-            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe iverksattOppgaveId })
+            verify(oppgaveServiceMock).lukkOppgaveMedSystembruker(argThat { it shouldBe iverksattOppgaveId })
         }
         verifyNoMoreInteractions(
             behandlingRepoMock,

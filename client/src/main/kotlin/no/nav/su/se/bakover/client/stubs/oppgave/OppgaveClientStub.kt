@@ -14,5 +14,7 @@ object OppgaveClientStub : OppgaveClient {
 
     override fun lukkOppgave(oppgaveId: OppgaveId) = Unit.right()
 
+    override fun lukkOppgaveMedSystembruker(oppgaveId: OppgaveId) = Unit.right()
+
     private fun generateOppgaveId() = OppgaveId(Random.nextLong(0, Long.MAX_VALUE).toString())
 }

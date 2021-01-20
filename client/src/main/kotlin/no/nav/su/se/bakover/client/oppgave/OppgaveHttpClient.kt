@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.client.oppgave
 
 import arrow.core.Either
 import arrow.core.flatMap
-import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -51,6 +50,16 @@ internal class OppgaveHttpClient(
         return onBehalfOfToken()
             .mapLeft { KunneIkkeOppretteOppgave }
             .flatMap { opprettOppgave(config, it) }
+    }
+
+    override fun lukkOppgaveMedSystembruker(oppgaveId: OppgaveId): Either<KunneIkkeLukkeOppgave, Unit> {
+        return lukkOppgave(oppgaveId, tokenoppslagForSystembruker.token())
+    }
+
+    override fun lukkOppgave(oppgaveId: OppgaveId): Either<KunneIkkeLukkeOppgave, Unit> {
+        return onBehalfOfToken()
+            .mapLeft { KunneIkkeLukkeOppgave }
+            .flatMap { lukkOppgave(oppgaveId, it) }
     }
 
     private fun onBehalfOfToken(): Either<KunneIkkeLageToken, String> {
@@ -113,24 +122,21 @@ internal class OppgaveHttpClient(
         )
     }
 
-    override fun lukkOppgave(oppgaveId: OppgaveId): Either<KunneIkkeLukkeOppgave, Unit> {
-        return hentOppgave(oppgaveId).mapLeft {
+    private fun lukkOppgave(oppgaveId: OppgaveId, token: String): Either<KunneIkkeLukkeOppgave, Unit> {
+        return hentOppgave(oppgaveId, token).mapLeft {
             KunneIkkeLukkeOppgave
         }.flatMap {
             if (it.erFerdigstilt()) {
                 Unit.right()
             } else {
-                lukkOppgave(it).map { }
+                lukkOppgave(it, token).map { }
             }
         }
     }
 
-    private fun hentOppgave(oppgaveId: OppgaveId): Either<KunneIkkeSøkeEtterOppgave, OppgaveResponse> {
-        val onBehalfOfToken = onBehalfOfToken().getOrElse {
-            return KunneIkkeSøkeEtterOppgave.left()
-        }
+    private fun hentOppgave(oppgaveId: OppgaveId, token: String): Either<KunneIkkeSøkeEtterOppgave, OppgaveResponse> {
         val (_, _, result) = "${connectionConfig.url}$oppgavePath/$oppgaveId".httpGet()
-            .authentication().bearer(onBehalfOfToken)
+            .authentication().bearer(token)
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
             .header("X-Correlation-ID", getCorrelationId())
@@ -147,15 +153,13 @@ internal class OppgaveHttpClient(
     }
 
     private fun lukkOppgave(
-        oppgave: OppgaveResponse
+        oppgave: OppgaveResponse,
+        token: String
     ): Either<KunneIkkeLukkeOppgave, LukkOppgaveResponse> {
-        val onBehalfOfToken = onBehalfOfToken().getOrElse {
-            return KunneIkkeLukkeOppgave.left()
-        }
         val beskrivelse =
             "--- ${Tidspunkt.now(clock).toOppgaveFormat()} - Lukket av Supplerende Stønad ---\nSøknadId : ${oppgave.saksreferanse}"
         val (_, response, result) = "${connectionConfig.url}$oppgavePath/${oppgave.id}".httpPatch()
-            .authentication().bearer(onBehalfOfToken)
+            .authentication().bearer(token)
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
             .header("X-Correlation-ID", getCorrelationId())
