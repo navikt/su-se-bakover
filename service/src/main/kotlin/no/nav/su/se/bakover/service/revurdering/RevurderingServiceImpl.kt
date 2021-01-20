@@ -21,31 +21,38 @@ internal class RevurderingServiceImpl(
 ) : RevurderingService {
 
     override fun beregnOgSimuler(
-        sakId: UUID,
         behandlingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
-        fraOgMed: LocalDate,
-        tilOgMed: LocalDate,
+        periode: Periode,
         fradrag: List<Fradrag>
-    ): Either<KunneIkkeBeregneEllerSimulere, Beregning> {
-        return opprettBeregning(
-            behandlingId = behandlingId,
-            fraOgMed = fraOgMed,
-            tilOgMed = tilOgMed,
-            fradrag = fradrag
-        ).fold(
-            ifLeft = { KunneIkkeBeregneEllerSimulere.left() },
-            ifRight = { beregning ->
-                simuler(
-                    sakId = sakId,
-                    saksbehandler = saksbehandler,
-                    beregning = beregning
-                ).fold(
-                    ifLeft = { KunneIkkeBeregneEllerSimulere.left() },
-                    ifRight = { beregning.right() }
-                )
-            },
+    ): Either<RevurderingFeilet, RevurdertBeregning> {
+        val behandling = behandlingRepo.hentBehandling(behandlingId)
+            ?: return RevurderingFeilet.GeneriskFeil.left()
+
+        val beregningsgrunnlag = Beregningsgrunnlag(
+            beregningsperiode = periode,
+            forventetInntektPerÅr = behandling.behandlingsinformasjon().uførhet?.forventetInntekt?.toDouble() ?: 0.0,
+            fradragFraSaksbehandler = listOf()
         )
+
+        val revurdering = OpprettetRevurdering(
+            id = UUID.randomUUID(),
+            opprettet = Tidspunkt.now(),
+            tilRevurdering = behandling
+        ).beregn(beregningsgrunnlag)
+
+        return utbetalingService.simulerUtbetaling(
+            sakId = behandling.sakId,
+            saksbehandler = saksbehandler,
+            beregning = revurdering.beregning
+        ).mapLeft {
+            RevurderingFeilet.GeneriskFeil
+        }.map {
+            RevurdertBeregning(
+                beregning = revurdering.tilRevurdering.beregning()!!,
+                revurdert = revurdering.toSimulert(it.simulering).beregning
+            )
+        }
     }
 
     private fun opprettBeregning(
@@ -85,3 +92,8 @@ internal class RevurderingServiceImpl(
         )
     }
 }
+
+data class RevurdertBeregning(
+    val beregning: Beregning,
+    val revurdert: Beregning
+)

@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrHandle
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.person.PersonRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
@@ -336,21 +337,17 @@ open class AccessCheckProxy(
             },
             revurdering = object : RevurderingService {
                 override fun beregnOgSimuler(
-                    sakId: UUID,
                     behandlingId: UUID,
                     saksbehandler: NavIdentBruker.Saksbehandler,
-                    fraOgMed: LocalDate,
-                    tilOgMed: LocalDate,
+                    periode: Periode,
                     fradrag: List<Fradrag>
-                ): Either<KunneIkkeBeregneEllerSimulere, Beregning> {
-                    assertHarTilgangTilSak(sakId)
+                ): Either<RevurderingFeilet, RevurdertBeregning> {
+                    assertHarTilgangTilBehandling(behandlingId)
 
                     return services.revurdering.beregnOgSimuler(
-                        sakId = sakId,
                         behandlingId = behandlingId,
                         saksbehandler = saksbehandler,
-                        fraOgMed = fraOgMed,
-                        tilOgMed = tilOgMed,
+                        periode = periode,
                         fradrag = fradrag
                     )
                 }

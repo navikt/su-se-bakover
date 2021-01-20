@@ -42,7 +42,7 @@ data class Behandling internal constructor(
     private var oppgaveId: OppgaveId,
     private var iverksattJournalpostId: JournalpostId?,
     private var iverksattBrevbestillingId: BrevbestillingId?,
-) {
+): Saksbehandling() {
 
     private var tilstand: Tilstand = resolve(status)
 
