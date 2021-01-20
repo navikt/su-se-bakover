@@ -22,7 +22,6 @@ import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.routes.behandling.FradragJson
 import no.nav.su.se.bakover.web.routes.behandling.enumContains
-import no.nav.su.se.bakover.web.routes.behandling.toJson
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withSakId
