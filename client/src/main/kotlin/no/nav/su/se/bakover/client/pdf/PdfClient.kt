@@ -5,6 +5,7 @@ import arrow.core.left
 import arrow.core.right
 import com.github.kittinunf.fuel.httpPost
 import no.nav.su.se.bakover.client.ClientError
+import no.nav.su.se.bakover.common.getCorrelationId
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
@@ -31,7 +32,7 @@ internal class PdfClient(private val baseUrl: String) : PdfGenerator {
     private fun genererPdf(input: String, template: String): Either<ClientError, ByteArray> {
         val (_, response, result) = "$baseUrl$suPdfGenPath/$template".httpPost()
             .header("Content-Type", "application/json")
-            .header("X-Correlation-ID", MDC.get("X-Correlation-ID"))
+            .header("X-Correlation-ID", getCorrelationId())
             .body(input).response()
 
         return result.fold(

@@ -14,7 +14,7 @@ internal class SkjermingClient(private val skjermingUrl: String) : Skjerming {
     override fun erSkjermet(ident: Fnr): Boolean {
         val (_, response, result) = "$skjermingUrl/skjermet?personident=$ident".httpGet()
             .header("Accept", "application/json")
-            .header("X-Correlation-ID", MDC.get("X-Correlation-ID"))
+            .header("X-Correlation-ID", MDC.getCo)
             .responseString()
 
         return result.fold(

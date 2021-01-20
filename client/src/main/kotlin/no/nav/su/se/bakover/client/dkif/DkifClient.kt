@@ -7,10 +7,10 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpGet
 import no.nav.su.se.bakover.client.sts.TokenOppslag
+import no.nav.su.se.bakover.common.getCorrelationId
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Fnr
 import org.slf4j.LoggerFactory
-import org.slf4j.MDC
 
 internal const val dkifPath = "/api/v1/personer/kontaktinformasjon"
 
@@ -23,7 +23,7 @@ class DkifClient(val baseUrl: String, val tokenOppslag: TokenOppslag, val consum
             .authentication().bearer(tokenOppslag.token())
             .header("Accept", "application/json")
             .header("Nav-Consumer-Id", consumerId)
-            .header("Nav-Call-Id", MDC.get("X-Correlation-ID"))
+            .header("Nav-Call-Id", getCorrelationId())
             .header("Nav-Personidenter", listOf(fnr.toString())).responseString()
 
         return result.fold(

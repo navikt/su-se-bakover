@@ -6,6 +6,7 @@ import arrow.core.right
 import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpPost
 import no.nav.su.se.bakover.client.sts.TokenOppslag
+import no.nav.su.se.bakover.common.getCorrelationId
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import org.json.JSONObject
@@ -25,7 +26,7 @@ class DokDistFordelingClient(val baseUrl: String, val tokenOppslag: TokenOppslag
             .authentication().bearer(tokenOppslag.token())
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
-            .header("X-Correlation-ID", MDC.get("X-Correlation-ID"))
+            .header("X-Correlation-ID", getCorrelationId())
             .body(
                 body
             ).responseString()

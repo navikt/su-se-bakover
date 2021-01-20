@@ -7,6 +7,7 @@ import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpPost
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.sts.TokenOppslag
+import no.nav.su.se.bakover.common.getCorrelationId
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import org.json.JSONObject
@@ -29,7 +30,7 @@ class DokArkivClient(
             .authentication().bearer(tokenOppslag.token())
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
-            .header("X-Correlation-ID", MDC.get("X-Correlation-ID"))
+            .header("X-Correlation-ID", getCorrelationId())
             .body(
                 objectMapper.writeValueAsString(
                     JournalpostRequest(
