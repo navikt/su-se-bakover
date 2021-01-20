@@ -34,5 +34,5 @@ fun <A, B> Pair<A, A>.mapBoth(f: (A) -> B) =
 
 fun getCorrelationId(): String {
     return MDC.get("X-Correlation-ID") ?: UUID.randomUUID().toString()
-        .also { log.warn("Mangler X-Correlation-Id. Bruker random uuid") }
+        .also { log.warn("Mangler X-Correlation-ID. Bruker random uuid $it") }
 }
