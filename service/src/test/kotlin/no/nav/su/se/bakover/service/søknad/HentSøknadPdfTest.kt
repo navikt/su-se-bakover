@@ -62,6 +62,7 @@ class HentSøknadPdfTest {
         adresse = listOf(),
         statsborgerskap = null,
         kjønn = null,
+        fødselsdato = null,
         adressebeskyttelse = null,
         skjermet = null,
         kontaktinfo = null,

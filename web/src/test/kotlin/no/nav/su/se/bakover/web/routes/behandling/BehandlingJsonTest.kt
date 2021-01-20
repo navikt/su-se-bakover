@@ -87,7 +87,7 @@ internal class BehandlingJsonTest {
                     "begrunnelse": null
                 },
                 "bosituasjon": {
-                    "epsFnr": null,
+                    "epsAlder": null,
                     "delerBolig": false,
                     "ektemakeEllerSamboerUførFlyktning": false,
                     "begrunnelse": null
@@ -100,6 +100,7 @@ internal class BehandlingJsonTest {
                       "etternavn": "etternavn"
                     },
                     "kjønn": null,
+                    "fødselsdato": "1975-08-17",
                     "adressebeskyttelse": null,
                     "skjermet": null,
                     "alder": 45

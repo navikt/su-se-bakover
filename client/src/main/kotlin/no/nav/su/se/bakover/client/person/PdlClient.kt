@@ -46,40 +46,43 @@ internal class PdlClient(
 
     fun person(fnr: Fnr, jwt: String): Either<KunneIkkeHentePerson, PdlData> {
         return kallpdl<PersonResponseData>(fnr, hentPersonQuery, jwt).map { response ->
-            val hentPerson = response.hentPerson ?: return FantIkkePerson.left()
-            if (hentPerson.navn.isNullOrEmpty()) {
+            val person = response.hentPerson ?: return FantIkkePerson.left()
+            val identer = response.hentIdenter ?: return FantIkkePerson.left()
+
+            val pdlIdent = finnIdent(identer)
+
+            if (person.navn.isNullOrEmpty()) {
                 log.info("Fant person i pdl, men feltene var tomme")
                 return FantIkkePerson.left()
             }
-            val navn = hentPerson.navn.minByOrNull {
+
+            val navn = person.navn.minByOrNull {
                 folkeregisteretAsMaster(it.metadata)
             }!!
 
             val alleAdresser = listOf(
-                hentPerson.bostedsadresse,
-                hentPerson.oppholdsadresse,
-                hentPerson.kontaktadresse
-            )
-                .filterMap { it.firstOrNull() }
-                .finnRiktigAdresseformatOgMapTilPdlAdresse()
+                person.bostedsadresse,
+                person.oppholdsadresse,
+                person.kontaktadresse
+            ).filterMap { it.firstOrNull() }.finnRiktigAdresseformatOgMapTilPdlAdresse()
 
-            // TODO jah: Don't throw exception if we can't find this person
             PdlData(
-                ident = Ident(hentIdent(response.hentIdenter!!).fnr, hentIdent(response.hentIdenter).aktørId),
+                ident = Ident(pdlIdent.fnr, pdlIdent.aktørId),
                 navn = Navn(
                     fornavn = navn.fornavn,
                     mellomnavn = navn.mellomnavn,
                     etternavn = navn.etternavn
                 ),
-                telefonnummer = hentPerson.telefonnummer.firstOrNull()?.let {
+                telefonnummer = person.telefonnummer.firstOrNull()?.let {
                     Telefonnummer(landskode = it.landskode, nummer = it.nummer)
                 },
                 adresse = alleAdresser,
-                statsborgerskap = hentPerson.statsborgerskap.firstOrNull()?.land,
-                kjønn = hentPerson.kjoenn.map { it.kjoenn }.firstOrNull(),
-                adressebeskyttelse = hentPerson.adressebeskyttelse.firstOrNull()?.gradering,
-                vergemålEllerFremtidsfullmakt = hentPerson.vergemaalEllerFremtidsfullmakt.isNotEmpty(),
-                fullmakt = hentPerson.fullmakt.isNotEmpty(),
+                statsborgerskap = person.statsborgerskap.firstOrNull()?.land,
+                kjønn = person.kjoenn.map { it.kjoenn }.firstOrNull(),
+                fødselsdato = person.foedsel.map { it.foedselsdato }.firstOrNull(),
+                adressebeskyttelse = person.adressebeskyttelse.firstOrNull()?.gradering,
+                vergemålEllerFremtidsfullmakt = person.vergemaalEllerFremtidsfullmakt.isNotEmpty(),
+                fullmakt = person.fullmakt.isNotEmpty(),
             )
         }
     }
@@ -88,14 +91,15 @@ internal class PdlClient(
 
     fun aktørId(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> {
         return kallpdl<IdentResponseData>(fnr, hentIdenterQuery, MDC.get("Authorization")).map {
-            hentIdent(it.hentIdenter!!).aktørId
+            val identer = it.hentIdenter ?: return FantIkkePerson.left()
+            finnIdent(identer).aktørId
         }
     }
 
-    private fun hentIdent(it: HentIdenter) =
+    private fun finnIdent(hentIdenter: HentIdenter) =
         PdlIdent(
-            fnr = it.identer.first { it.gruppe == FOLKEREGISTERIDENT }.ident.let { Fnr(it) },
-            aktørId = it.identer.first { it.gruppe == AKTORID }.ident.let { AktørId(it) }
+            fnr = hentIdenter.identer.first { it.gruppe == FOLKEREGISTERIDENT }.ident.let { Fnr(it) },
+            aktørId = hentIdenter.identer.first { it.gruppe == AKTORID }.ident.let { AktørId(it) }
         )
 
     private inline fun <reified T> kallpdl(fnr: Fnr, query: String, jwt: String): Either<KunneIkkeHentePerson, T> {
@@ -201,6 +205,7 @@ data class HentPerson(
     val oppholdsadresse: List<Oppholdsadresse>,
     val statsborgerskap: List<Statsborgerskap>,
     val kjoenn: List<Kjønn>,
+    val foedsel: List<Fødsel>,
     val adressebeskyttelse: List<Adressebeskyttelse>,
     val vergemaalEllerFremtidsfullmakt: List<VergemaalEllerFremtidsfullmakt>,
     val fullmakt: List<Fullmakt>
@@ -242,6 +247,10 @@ data class Id(
 
 data class Kjønn(
     val kjoenn: String
+)
+
+data class Fødsel(
+    val foedselsdato: LocalDate
 )
 
 data class Adressebeskyttelse(

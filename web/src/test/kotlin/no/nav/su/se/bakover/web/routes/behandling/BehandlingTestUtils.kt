@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.web.FnrGenerator
+import java.time.LocalDate
 import java.util.UUID
 
 object BehandlingTestUtils {
@@ -97,7 +98,7 @@ object BehandlingTestUtils {
                 begrunnelse = null
             ),
             bosituasjon = Behandlingsinformasjon.Bosituasjon(
-                epsFnr = null,
+                epsAlder = null,
                 delerBolig = false,
                 ektemakeEllerSamboerUførFlyktning = false,
                 begrunnelse = null
@@ -106,6 +107,7 @@ object BehandlingTestUtils {
                 fnr = Fnr("17087524256"),
                 navn = Person.Navn("fornavn", null, "etternavn"),
                 kjønn = null,
+                fødselsdato = LocalDate.of(1975, 8, 17),
                 adressebeskyttelse = null,
                 skjermet = null
             )

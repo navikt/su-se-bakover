@@ -29,6 +29,7 @@ internal class PersonPostgresRepoTest {
         fnr = EPSFNR,
         navn = Person.Navn(fornavn = "", mellomnavn = null, etternavn = ""),
         kjønn = null,
+        fødselsdato = null,
         adressebeskyttelse = null,
         skjermet = null
     )

@@ -225,6 +225,7 @@ internal class PdlClientTest : WiremockBase {
                       "kjoenn": "MANN"
                     }
                   ],
+                  "foedsel": [],
                   "adressebeskyttelse": [],
                   "vergemaalEllerFremtidsfullmakt": [],
                   "fullmakt": []
@@ -259,6 +260,7 @@ internal class PdlClientTest : WiremockBase {
             ),
             telefonnummer = null,
             kjønn = "MANN",
+            fødselsdato = null,
             adresse = listOf(
                 PdlData.Adresse(
                     adresselinje = "SANDTAKVEIEN 42",
@@ -353,6 +355,7 @@ internal class PdlClientTest : WiremockBase {
                       "kjoenn": "MANN"
                     }
                   ],
+                  "foedsel": [],
                   "adressebeskyttelse": [],
                   "vergemaalEllerFremtidsfullmakt": [],
                   "fullmakt": []
@@ -387,6 +390,7 @@ internal class PdlClientTest : WiremockBase {
             ),
             telefonnummer = null,
             kjønn = "MANN",
+            fødselsdato = null,
             adresse = listOf<PdlData.Adresse>(
                 PdlData.Adresse(
                     adresselinje = "SANDTAKVEIEN 42",
@@ -488,6 +492,7 @@ internal class PdlClientTest : WiremockBase {
                       "kjoenn": "MANN"
                     }
                   ],
+                  "foedsel": [],
                   "adressebeskyttelse": [],
                   "vergemaalEllerFremtidsfullmakt": [],
                   "fullmakt": []
@@ -522,6 +527,7 @@ internal class PdlClientTest : WiremockBase {
             ),
             telefonnummer = null,
             kjønn = "MANN",
+            fødselsdato = null,
             adresse = listOf<PdlData.Adresse>(
                 PdlData.Adresse(
                     adresselinje = "SANDTAKVEIEN 42",
@@ -577,6 +583,7 @@ internal class PdlClientTest : WiremockBase {
                   "oppholdsadresse": [],
                   "statsborgerskap": [],
                   "kjoenn": [],
+                  "foedsel": [],
                   "adressebeskyttelse": [],
                   "vergemaalEllerFremtidsfullmakt": [],
                   "fullmakt": []
@@ -611,6 +618,7 @@ internal class PdlClientTest : WiremockBase {
             ),
             telefonnummer = null,
             kjønn = null,
+            fødselsdato = null,
             adresse = emptyList(),
             statsborgerskap = null,
             adressebeskyttelse = null,
@@ -635,6 +643,7 @@ internal class PdlClientTest : WiremockBase {
                   "oppholdsadresse": [],
                   "statsborgerskap": [],
                   "kjoenn": [],
+                  "foedsel": [],
                   "adressebeskyttelse": [],
                   "vergemaalEllerFremtidsfullmakt": [],
                   "fullmakt": []

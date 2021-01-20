@@ -1,5 +1,8 @@
 package no.nav.su.se.bakover.domain
 
+import java.time.LocalDate
+import java.time.Period
+
 data class Person(
     val ident: Ident,
     val navn: Navn,
@@ -7,12 +10,15 @@ data class Person(
     val adresse: List<Adresse>?,
     val statsborgerskap: String?,
     val kjønn: String?,
+    val fødselsdato: LocalDate?,
     val adressebeskyttelse: String?,
     val skjermet: Boolean?,
     val kontaktinfo: Kontaktinfo?,
     val vergemål: Boolean?,
     val fullmakt: Boolean?
 ) {
+    fun getAlder(påDato: LocalDate) = fødselsdato?.let { Period.between(it, påDato).years }
+
     data class Navn(
         val fornavn: String,
         val mellomnavn: String?,
