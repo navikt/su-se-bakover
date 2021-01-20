@@ -24,6 +24,6 @@ internal class OppgaveServiceImpl(
     }
 
     override fun lukkOppgaveMedSystembruker(oppgaveId: OppgaveId): Either<KunneIkkeLukkeOppgave, Unit> {
-        return oppgaveClient.lukkOppgave(oppgaveId)
+        return oppgaveClient.lukkOppgaveMedSystembruker(oppgaveId)
     }
 }
