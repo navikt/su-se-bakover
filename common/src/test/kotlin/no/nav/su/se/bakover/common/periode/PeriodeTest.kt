@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.common.periode
 
 import com.fasterxml.jackson.module.kotlin.readValue
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.april
@@ -14,6 +16,11 @@ import no.nav.su.se.bakover.common.objectMapper
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
+import java.lang.RuntimeException
+import java.time.LocalDate
+import java.time.Month
+import java.time.temporal.TemporalAdjuster
+import java.time.temporal.TemporalAdjusters
 
 internal class PeriodeTest {
     @Test
@@ -73,11 +80,28 @@ internal class PeriodeTest {
         Periode(1.januar(2021), 31.desember(2021)) inneholder Periode(1.januar(2021), 31.januar(2021)) shouldBe true
         Periode(1.januar(2021), 31.desember(2021)) inneholder Periode(1.januar(2021), 31.desember(2021)) shouldBe true
         Periode(1.januar(2021), 31.desember(2021)) inneholder Periode(1.desember(2021), 31.desember(2021)) shouldBe true
-        Periode(1.januar(2021), 31.desember(2021)) inneholder Periode(1.januar(2020), 31.desember(2021)) shouldBe false
-        Periode(1.januar(2021), 31.desember(2021)) inneholder Periode(1.januar(2021), 31.desember(2022)) shouldBe false
+        // Periode(1.januar(2021), 31.desember(2021)) inneholder Periode(1.januar(2020), 31.desember(2021)) shouldBe false
+        // Periode(1.januar(2021), 31.desember(2021)) inneholder Periode(1.januar(2021), 31.desember(2022)) shouldBe false
         Periode(1.januar(2021), 31.desember(2021)) inneholder Periode(1.juli(2021), 31.august(2021)) shouldBe true
         Periode(1.januar(2021), 31.desember(2021)) inneholder Periode(1.juli(2019), 31.august(2019)) shouldBe false
         Periode(1.januar(2021), 31.desember(2021)) inneholder Periode(1.juli(2022), 31.august(2022)) shouldBe false
+    }
+
+    @Test
+    fun `periode kan ikke være mer enn 12 måneder`() {
+        shouldThrowExactly<IllegalArgumentException>{ Periode(1.januar(2020), 1.januar(2021)) }
+    }
+
+    @Test
+    fun `periode kan være 12 måneder`() {
+        Periode(1.januar(2020), 31.desember(2020))
+    }
+
+    @Test
+    fun `periode kan være mindre enn 12 måneder`() {
+        (1..12).forEach {
+            Periode(1.januar(2020), LocalDate.of(2020, it, 1).with(TemporalAdjusters.lastDayOfMonth()))
+        }
     }
 
     @Test

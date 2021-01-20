@@ -12,6 +12,7 @@ data class Periode(
         require(fraOgMed.dayOfMonth == 1) { "Perioder kan kun starte på første dag i måneden" }
         require(tilOgMed.dayOfMonth == tilOgMed.lengthOfMonth()) { "Perioder kan kun avsluttes siste dag i måneden" }
         require(fraOgMed.isBefore(tilOgMed)) { "fraOgMed må være tidligere enn tilOgMed" }
+        require(getAntallMåneder() <= 12) { "periode må være mindre eller lik 12 måneder" }
     }
 
     fun getFraOgMed() = fraOgMed
