@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.client.skjerming
 
 import com.github.kittinunf.fuel.httpGet
+import no.nav.su.se.bakover.common.getCorrelationId
 import no.nav.su.se.bakover.domain.Fnr
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.slf4j.MDC
 
 interface Skjerming {
     fun erSkjermet(ident: Fnr): Boolean
@@ -14,7 +14,7 @@ internal class SkjermingClient(private val skjermingUrl: String) : Skjerming {
     override fun erSkjermet(ident: Fnr): Boolean {
         val (_, response, result) = "$skjermingUrl/skjermet?personident=$ident".httpGet()
             .header("Accept", "application/json")
-            .header("X-Correlation-ID", MDC.getCo)
+            .header("X-Correlation-ID", getCorrelationId())
             .responseString()
 
         return result.fold(

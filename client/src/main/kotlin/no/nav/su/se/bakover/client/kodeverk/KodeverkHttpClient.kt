@@ -10,8 +10,6 @@ import no.nav.su.se.bakover.common.getCorrelationId
 import no.nav.su.se.bakover.common.objectMapper
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.slf4j.MDC
-import java.util.UUID
 
 internal const val kodeverkPoststedPath = "/api/v1/kodeverk/Postnummer/koder/betydninger"
 internal const val kodeverkKommunePath = "/api/v1/kodeverk/Kommuner/koder/betydninger"

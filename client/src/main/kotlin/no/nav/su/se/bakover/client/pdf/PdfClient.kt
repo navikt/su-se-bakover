@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.slf4j.MDC
 
 internal const val suPdfGenPath = "/api/v1/genpdf/supdfgen"
 internal const val SOKNAD_TEMPLATE = "soknad"

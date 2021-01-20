@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
-import org.slf4j.MDC
 
 internal const val dokDistFordelingPath = "/rest/v1/distribuerjournalpost"
 class DokDistFordelingClient(val baseUrl: String, val tokenOppslag: TokenOppslag) : DokDistFordeling {

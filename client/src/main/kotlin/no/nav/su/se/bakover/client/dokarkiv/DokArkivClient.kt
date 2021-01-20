@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import org.json.JSONObject
 import org.slf4j.LoggerFactory
-import org.slf4j.MDC
 
 internal const val dokArkivPath = "/rest/journalpostapi/v1/journalpost"
 
