@@ -17,7 +17,7 @@ data class Person(
     val vergemål: Boolean?,
     val fullmakt: Boolean?
 ) {
-    fun getAlder() = fødselsdato?.let { Period.between(it, LocalDate.now()).years }
+    fun getAlder(påDato: LocalDate) = fødselsdato?.let { Period.between(it, påDato).years }
 
     data class Navn(
         val fornavn: String,

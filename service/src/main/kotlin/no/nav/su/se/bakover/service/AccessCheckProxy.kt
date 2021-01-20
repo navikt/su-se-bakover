@@ -68,7 +68,7 @@ import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import java.time.LocalDate
 import java.util.UUID
 
-class AccessCheckProxy(
+open class AccessCheckProxy(
     private val personRepo: PersonRepo,
     private val services: Services
 ) {

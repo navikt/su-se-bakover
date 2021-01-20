@@ -15,10 +15,12 @@ import no.nav.su.se.bakover.database.DatabaseRepos
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
+import no.nav.su.se.bakover.service.AccessCheckProxy
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.web.stubs.JwtStub
 import no.nav.su.se.bakover.web.stubs.asBearerToken
+import java.time.Clock
 
 const val DEFAULT_CALL_ID = "her skulle vi sikkert hatt en korrelasjonsid"
 
@@ -90,14 +92,18 @@ internal fun Application.testSusebakover(
         clients = clients,
         behandlingMetrics = mock(),
         søknadMetrics = mock()
-    ).build()
+    ).build(),
+    accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
+    clock: Clock = Clock.systemUTC()
 ) {
     return susebakover(
         behandlingFactory = BehandlingFactory(mock()),
         databaseRepos = databaseRepos,
         clients = clients,
         services = services,
+        accessCheckProxy = accessCheckProxy,
         applicationConfig = applicationConfig,
+        clock = clock
     )
 }
 

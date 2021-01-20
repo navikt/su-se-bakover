@@ -78,6 +78,7 @@ import no.nav.su.se.bakover.web.services.avstemming.AvstemmingJob
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringConsumer
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringIbmMqConsumer
 import org.slf4j.event.Level
+import java.time.Clock
 
 fun main(args: Array<String>) {
     if (ApplicationConfig.isLocalOrRunningTests()) {
@@ -97,7 +98,9 @@ internal fun Application.susebakover(
     clients: Clients = if (applicationConfig.isLocalOrRunningTests) StubClientsBuilder.build(applicationConfig) else ProdClientsBuilder(
         jmsConfig
     ).build(applicationConfig),
-    services: Services = ServiceBuilder(databaseRepos, clients, behandlingMetrics, søknadMetrics).build()
+    services: Services = ServiceBuilder(databaseRepos, clients, behandlingMetrics, søknadMetrics).build(),
+    accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
+    clock: Clock = Clock.systemUTC()
 ) {
     install(CORS) {
         method(Options)
@@ -213,9 +216,9 @@ internal fun Application.susebakover(
                 meRoutes(azureGroupMapper)
 
                 withAccessProtectedServices(
-                    AccessCheckProxy(databaseRepos.person, services)
+                    accessCheckProxy
                 ) { accessProtectedServices ->
-                    personRoutes(accessProtectedServices.person)
+                    personRoutes(accessProtectedServices.person, clock)
                     sakRoutes(accessProtectedServices.sak)
                     søknadRoutes(accessProtectedServices.søknad, accessProtectedServices.lukkSøknad)
                     behandlingRoutes(accessProtectedServices.behandling)

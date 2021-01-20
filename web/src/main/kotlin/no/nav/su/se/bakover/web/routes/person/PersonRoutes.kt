@@ -18,12 +18,14 @@ import no.nav.su.se.bakover.web.lesFnr
 import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.routes.person.PersonResponseJson.Companion.toJson
 import no.nav.su.se.bakover.web.svar
+import java.time.Clock
 import java.time.LocalDate
 
 internal const val personPath = "/person"
 
 internal fun Route.personRoutes(
-    personService: PersonService
+    personService: PersonService,
+    clock: Clock
 ) {
     get("$personPath/{fnr}") {
         call.lesFnr("fnr").fold(
@@ -46,7 +48,7 @@ internal fun Route.personRoutes(
                         },
                         {
                             call.audit("Gjorde personoppslag på fødselsnummer $fnr")
-                            Resultat.json(HttpStatusCode.OK, objectMapper.writeValueAsString(it.toJson()))
+                            Resultat.json(HttpStatusCode.OK, objectMapper.writeValueAsString(it.toJson(clock)))
                         }
                     )
                 )
@@ -102,7 +104,7 @@ data class PersonResponseJson(
     )
 
     companion object {
-        fun Person.toJson() = PersonResponseJson(
+        fun Person.toJson(clock: Clock) = PersonResponseJson(
             fnr = this.ident.fnr.toString(),
             aktorId = this.ident.aktørId.toString(),
             navn = NavnJson(
@@ -131,7 +133,7 @@ data class PersonResponseJson(
             statsborgerskap = this.statsborgerskap,
             kjønn = this.kjønn,
             fødselsdato = this.fødselsdato,
-            alder = this.getAlder(),
+            alder = this.getAlder(LocalDate.now(clock)),
             adressebeskyttelse = this.adressebeskyttelse,
             skjermet = this.skjermet,
             kontaktinfo = this.kontaktinfo?.let {

@@ -1,8 +1,10 @@
 package no.nav.su.se.bakover.web.routes.person
 
-import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.doReturn
+import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode
@@ -11,28 +13,47 @@ import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
-import no.nav.su.se.bakover.domain.AktørId
+import no.nav.su.se.bakover.common.endOfDay
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
-import no.nav.su.se.bakover.domain.person.PersonOppslag
-import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
+import no.nav.su.se.bakover.service.AccessCheckProxy
+import no.nav.su.se.bakover.service.Services
+import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
-import java.time.LocalDate
-import java.time.Period
+import java.time.Clock
+import java.time.ZoneOffset
 import kotlin.test.assertEquals
 
 internal class PersonRoutesKtTest {
+
+    private val fixedClock: Clock = Clock.fixed(1.januar(2020).endOfDay(ZoneOffset.UTC).instant, ZoneOffset.UTC)
+    private val testIdent = "12345678910"
+    private val person = PersonOppslagStub.nyTestPerson(Fnr(testIdent))
+
+    private val services = Services(
+        avstemming = mock(),
+        utbetaling = mock(),
+        behandling = mock(),
+        sak = mock(),
+        søknad = mock(),
+        brev = mock(),
+        lukkSøknad = mock(),
+        oppgave = mock(),
+        person = mock(),
+        statistikk = mock()
+    )
+
     @Test
     fun `får ikke hente persondata uten å være innlogget`() {
         withTestApplication({
             testSusebakover()
         }) {
-            handleRequest(Get, "$personPath/12345678910")
+            handleRequest(Get, "$personPath/$testIdent")
         }.apply {
             assertEquals(HttpStatusCode.Unauthorized, response.status())
         }
@@ -51,15 +72,14 @@ internal class PersonRoutesKtTest {
 
     @Test
     fun `kan hente data gjennom PersonOppslag`() {
-        val testIdent = "12345678910"
-        val fødselsdato = "1990-01-01"
-        val alder = fødselsdato.let { Period.between(LocalDate.parse(it), LocalDate.now()).years }
+        val personServiceMock = mock<PersonService> { on { hentPerson(any()) } doReturn person.right() }
+        val accessCheckProxyMock = mock<AccessCheckProxy> { on { proxy() } doReturn services.copy(person = personServiceMock) }
 
         //language=JSON
         val expectedResponseJson =
             """
                 {
-                    "fnr": "12345678910",
+                    "fnr": "$testIdent",
                     "aktorId": "2437280977705",
                     "navn": {
                         "fornavn": "Tore",
@@ -82,8 +102,8 @@ internal class PersonRoutesKtTest {
                     }],
                     "statsborgerskap": "NOR",
                     "kjønn": "MANN",
-                    "fødselsdato": $fødselsdato,
-                    "alder": $alder,
+                    "fødselsdato": "1990-01-01",
+                    "alder": 30,
                     "adressebeskyttelse": null,
                     "skjermet": false,
                     "kontaktinfo": {
@@ -99,7 +119,7 @@ internal class PersonRoutesKtTest {
             """.trimIndent()
 
         withTestApplication({
-            testSusebakover(clients = testClients.copy(personOppslag = personoppslag(testIdent = testIdent)))
+            testSusebakover(accessCheckProxy = accessCheckProxyMock, clock = fixedClock)
         }) {
             defaultRequest(Get, "$personPath/$testIdent", listOf(Brukerrolle.Veileder))
         }.apply {
@@ -110,10 +130,11 @@ internal class PersonRoutesKtTest {
 
     @Test
     fun `skal svare med 500 hvis ukjent feil`() {
-        val testIdent = "12345678910"
+        val personServiceMock = mock<PersonService> { on { hentPerson(any()) } doReturn KunneIkkeHentePerson.Ukjent.left() }
+        val accessCheckProxyMock = mock<AccessCheckProxy> { on { proxy() } doReturn services.copy(person = personServiceMock) }
 
         withTestApplication({
-            testSusebakover(clients = testClients.copy(personOppslag = personoppslag(KunneIkkeHentePerson.Ukjent, null)))
+            testSusebakover(accessCheckProxy = accessCheckProxyMock)
         }) {
             defaultRequest(Get, "$personPath/$testIdent", listOf(Brukerrolle.Veileder))
         }.apply {
@@ -123,33 +144,15 @@ internal class PersonRoutesKtTest {
 
     @Test
     fun `skal svare med 404 hvis person ikke funnet`() {
-        val testIdent = "12345678910"
+        val personServiceMock = mock<PersonService> { on { hentPerson(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left() }
+        val accessCheckProxyMock = mock<AccessCheckProxy> { on { proxy() } doReturn services.copy(person = personServiceMock) }
 
         withTestApplication({
-            testSusebakover(clients = testClients.copy(personOppslag = personoppslag(KunneIkkeHentePerson.FantIkkePerson, null)))
+            testSusebakover(accessCheckProxy = accessCheckProxyMock)
         }) {
             defaultRequest(Get, "$personPath/$testIdent", listOf(Brukerrolle.Veileder))
         }.apply {
             response.status() shouldBe NotFound
-        }
-    }
-
-    private fun personoppslag(feil: KunneIkkeHentePerson = KunneIkkeHentePerson.Ukjent, testIdent: String?) = object :
-        PersonOppslag {
-        override fun person(fnr: Fnr): Either<KunneIkkeHentePerson, Person> = when (testIdent) {
-            fnr.toString() -> PersonOppslagStub.nyTestPerson(fnr).right()
-            else -> feil.left()
-        }
-
-        override fun personForSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, Person> = when (testIdent) {
-            fnr.toString() -> PersonOppslagStub.nyTestPerson(fnr).right()
-            else -> feil.left()
-        }
-
-        override fun aktørId(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> = throw NotImplementedError()
-        override fun sjekkTilgangTilPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Unit> = when (testIdent) {
-            fnr.toString() -> Unit.right()
-            else -> feil.left()
         }
     }
 }
