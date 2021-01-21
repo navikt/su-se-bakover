@@ -1,9 +1,11 @@
 package no.nav.su.se.bakover.service.revurdering
 
 import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.RevurderingRepo
-import no.nav.su.se.bakover.database.behandling.BehandlingRepo
+import no.nav.su.se.bakover.database.sak.SakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.behandling.OpprettetRevurdering
@@ -16,16 +18,23 @@ import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import java.util.UUID
 
 internal class RevurderingServiceImpl(
-    private val behandlingRepo: BehandlingRepo,
+    private val sakRepo: SakRepo,
     private val utbetalingService: UtbetalingService,
     private val revurderingRepo: RevurderingRepo
 ) : RevurderingService {
 
-    override fun opprettRevurdering(behandlingId: UUID): Revurdering {
+    override fun opprettRevurdering(sakId: UUID, periode: Periode): Either<RevurderingFeilet, Revurdering> {
         // TODO logikk for å finne ut hva som skal revurderes
-        val revurdering = OpprettetRevurdering(tilRevurdering = behandlingRepo.hentBehandling(behandlingId)!!)
-        revurderingRepo.lagre(revurdering)
-        return revurderingRepo.hent(revurdering.id)!!
+        val tilRevurdering = sakRepo.hentSak(sakId)!!.behandlinger()
+            .firstOrNull() { it.beregning()!!.getPeriode() inneholder periode }
+        return when (tilRevurdering) {
+            null -> RevurderingFeilet.GeneriskFeil.left()
+            else -> {
+                val revurdering = OpprettetRevurdering(tilRevurdering = tilRevurdering)
+                revurderingRepo.lagre(revurdering)
+                return revurderingRepo.hent(revurdering.id)!!.right()
+            }
+        }
     }
 
     override fun beregnOgSimuler(

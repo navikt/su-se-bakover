@@ -337,9 +337,9 @@ open class AccessCheckProxy(
                 }
             },
             revurdering = object : RevurderingService {
-                override fun opprettRevurdering(behandlingId: UUID): Revurdering {
-                    assertHarTilgangTilBehandling(behandlingId)
-                    return services.revurdering.opprettRevurdering(behandlingId)
+                override fun opprettRevurdering(sakId: UUID, periode: Periode): Either<RevurderingFeilet, Revurdering> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.revurdering.opprettRevurdering(sakId, periode)
                 }
 
                 override fun beregnOgSimuler(
@@ -349,8 +349,6 @@ open class AccessCheckProxy(
                     fradrag: List<Fradrag>
                 ): Either<RevurderingFeilet, RevurdertBeregning> {
                     // TODO assert tilgang til revurdering?
-                    assertHarTilgangTilBehandling(revurderingId)
-
                     return services.revurdering.beregnOgSimuler(
                         revurderingId = revurderingId,
                         saksbehandler = saksbehandler,

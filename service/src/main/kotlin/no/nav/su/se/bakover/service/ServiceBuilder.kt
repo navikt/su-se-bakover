@@ -87,7 +87,7 @@ class ServiceBuilder(
             distribuerIverksettingsbrevService = distribuerIverksettingsbrevService
         )
         val revurderingService = RevurderingServiceImpl(
-            behandlingRepo = databaseRepos.behandling,
+            sakRepo = databaseRepos.sak,
             utbetalingService = utbetalingService,
             revurderingRepo = databaseRepos.revurderingRepo
         )

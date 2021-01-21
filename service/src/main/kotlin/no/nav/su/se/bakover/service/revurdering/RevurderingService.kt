@@ -9,7 +9,10 @@ import java.util.UUID
 
 interface RevurderingService {
 
-    fun opprettRevurdering(behandlingId: UUID): Revurdering
+    fun opprettRevurdering(
+        sakId: UUID,
+        periode: Periode
+    ): Either<RevurderingFeilet, Revurdering>
 
     fun beregnOgSimuler(
         revurderingId: UUID,
