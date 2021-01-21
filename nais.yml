@@ -13,6 +13,10 @@ spec:
       replyURLs:
         - "http://localhost:8080/callback"
         - {{ env.BACKEND_CALLBACK_URL }}
+  accessPolicy:
+    inbound:
+      rules:
+        - application: su-se-framover
   image: {{ image }}
   liveness:
     path: /isalive
