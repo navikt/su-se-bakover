@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.routes.behandling.beregning.NyBeregningForSøknadsbehandlingJson
+import no.nav.su.se.bakover.web.routes.behandling.beregning.PeriodeJson
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withSakId
@@ -39,12 +40,18 @@ internal fun Route.revurderingRoutes(
     authorize(Brukerrolle.Saksbehandler) {
         post("$revurderingPath/opprett") {
             call.withSakId { sakId ->
-                Either.catch { deserialize<Periode>(call) }.fold(
+                Either.catch { deserialize<PeriodeJson>(call) }.fold(
                     ifLeft = {
                         call.svar(BadRequest.message("Ugyldig body"))
                     },
                     ifRight = { periode ->
-                        revurderingService.opprettRevurdering(sakId, periode).fold(
+                        revurderingService.opprettRevurdering(
+                            sakId,
+                            periode = Periode.create(
+                                LocalDate.parse(periode.fraOgMed),
+                                LocalDate.parse(periode.tilOgMed)
+                            )
+                        ).fold(
                             ifLeft = {
                                 when (it) {
                                     RevurderingFeilet.GeneriskFeil -> call.svar(InternalServerError.message("Noe gikk feil ved revurdering"))
