@@ -208,7 +208,7 @@ internal class StatistikkServiceImplTest {
         val søknadMock: Søknad.Journalført.MedOppgave = mock { on { søknadInnhold } doReturn SøknadInnholdTestdataBuilder.build() }
         val clock = Clock.fixed(1.januar(2020).endOfDay(ZoneOffset.UTC).instant, ZoneOffset.UTC)
         val beregning: Beregning = mock {
-            on { getPeriode() } doReturn Periode(1.januar(2021), 31.januar(2021))
+            on { getPeriode() } doReturn Periode.create(1.januar(2021), 31.januar(2021))
         }
 
         val behandling: Behandling = mock {

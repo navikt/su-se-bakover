@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes.behandling
 
+import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.deserialize
@@ -68,7 +69,7 @@ internal class FradragJsonTest {
             tilhører = FradragTilhører.BRUKER.toString()
         )
 
-        val expectedPeriode = Periode(1.januar(2020), 31.januar(2020))
+        val expectedPeriode = Periode.create(1.januar(2020), 31.januar(2020))
         val expected = FradragFactory.ny(
             type = Fradragstype.Arbeidsinntekt,
             månedsbeløp = 10.0,
@@ -77,7 +78,7 @@ internal class FradragJsonTest {
             tilhører = FradragTilhører.BRUKER
         )
 
-        jsonUtenPeriode.toFradrag(expectedPeriode) shouldBe expected
+        jsonUtenPeriode.toFradrag(expectedPeriode) shouldBe expected.right()
     }
 
     @Test
@@ -93,11 +94,11 @@ internal class FradragJsonTest {
         val expected = FradragFactory.ny(
             type = Fradragstype.Arbeidsinntekt,
             månedsbeløp = 10.0,
-            periode = Periode(1.januar(2021), 31.januar(2021)),
+            periode = Periode.create(1.januar(2021), 31.januar(2021)),
             utenlandskInntekt = null,
             tilhører = FradragTilhører.BRUKER
         )
 
-        jsonUtenPeriode.toFradrag(Periode(1.januar(2021), 31.desember(2021))) shouldBe expected
+        jsonUtenPeriode.toFradrag(Periode.create(1.januar(2021), 31.desember(2021))) shouldBe expected.right()
     }
 }

@@ -14,14 +14,14 @@ import org.junit.jupiter.api.Test
 internal class SatsTest {
     @Test
     fun `periodiserer sats`() {
-        val p1 = Sats.HØY.periodiser(Periode(1.januar(2020), 31.januar(2020)))
-        p1 shouldBe mapOf(Periode(1.januar(2020), 31.januar(2020)) to 20637.32)
+        val p1 = Sats.HØY.periodiser(Periode.create(1.januar(2020), 31.januar(2020)))
+        p1 shouldBe mapOf(Periode.create(1.januar(2020), 31.januar(2020)) to 20637.32)
 
-        val p2 = Sats.HØY.periodiser(Periode(1.april(2020), 30.juni(2020)))
+        val p2 = Sats.HØY.periodiser(Periode.create(1.april(2020), 30.juni(2020)))
         p2 shouldBe mapOf(
-            Periode(1.april(2020), 30.april(2020)) to Sats.HØY.månedsbeløp(1.april(2020)),
-            Periode(1.mai(2020), 31.mai(2020)) to Sats.HØY.månedsbeløp(1.mai(2020)),
-            Periode(1.juni(2020), 30.juni(2020)) to Sats.HØY.månedsbeløp(1.mai(2020)),
+            Periode.create(1.april(2020), 30.april(2020)) to Sats.HØY.månedsbeløp(1.april(2020)),
+            Periode.create(1.mai(2020), 31.mai(2020)) to Sats.HØY.månedsbeløp(1.mai(2020)),
+            Periode.create(1.juni(2020), 30.juni(2020)) to Sats.HØY.månedsbeløp(1.mai(2020)),
         )
     }
 
@@ -30,13 +30,13 @@ internal class SatsTest {
         Sats.HØY.årsbeløp(1.januar(2020)) shouldBe 247648.0.plusOrMinus(0.5)
         Sats.HØY.årsbeløp(31.desember(2020)) shouldBe 251350.0.plusOrMinus(0.5)
 
-        val p1 = Sats.HØY.periodiser(Periode(1.januar(2020), 30.april(2020)))
-        p1[Periode(1.januar(2020), 31.januar(2020))] shouldBe 20637.32.plusOrMinus(0.5)
+        val p1 = Sats.HØY.periodiser(Periode.create(1.januar(2020), 30.april(2020)))
+        p1[Periode.create(1.januar(2020), 31.januar(2020))] shouldBe 20637.32.plusOrMinus(0.5)
         val sumOfJanApr = p1.values.sum()
         sumOfJanApr shouldBe 82549.28.plusOrMinus(0.5)
 
-        val p2 = Sats.HØY.periodiser(Periode(1.mai(2020), 31.desember(2020)))
-        p2[Periode(1.mai(2020), 31.mai(2020))] shouldBe 20945.87.plusOrMinus(0.5)
+        val p2 = Sats.HØY.periodiser(Periode.create(1.mai(2020), 31.desember(2020)))
+        p2[Periode.create(1.mai(2020), 31.mai(2020))] shouldBe 20945.87.plusOrMinus(0.5)
         val sumOfMaiDes = p2.values.sum()
         sumOfMaiDes shouldBe 167566.96.plusOrMinus(0.5)
     }
@@ -51,7 +51,7 @@ internal class SatsTest {
 
     @Test
     fun `kalkulerer to prosent av høy sats for perioder`() {
-        Sats.toProsentAvHøy(Periode(1.januar(2020), 31.mars(2020))) shouldBe 1238.0.plusOrMinus(0.5)
-        Sats.toProsentAvHøy(Periode(1.januar(2020), 31.desember(2020))) shouldBe 5002.0.plusOrMinus(0.5)
+        Sats.toProsentAvHøy(Periode.create(1.januar(2020), 31.mars(2020))) shouldBe 1238.0.plusOrMinus(0.5)
+        Sats.toProsentAvHøy(Periode.create(1.januar(2020), 31.desember(2020))) shouldBe 5002.0.plusOrMinus(0.5)
     }
 }

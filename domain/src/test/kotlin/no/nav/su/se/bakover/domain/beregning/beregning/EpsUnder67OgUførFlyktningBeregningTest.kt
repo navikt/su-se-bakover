@@ -29,7 +29,7 @@ internal class EpsUnder67OgUførFlyktningBeregningTest {
      */
     @Test
     fun `beregningseksempel fra fagsiden`() {
-        val periode = Periode(1.mai(2020), 30.april(2021))
+        val periode = Periode.create(1.mai(2020), 30.april(2021))
 
         val arbeidsinntektPrÅr = 12000.0
         val folketrygdPrÅr = 128592.0

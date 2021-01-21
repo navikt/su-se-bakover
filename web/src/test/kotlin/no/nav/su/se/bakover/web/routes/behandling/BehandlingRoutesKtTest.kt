@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.Brukerrolle
@@ -150,8 +151,7 @@ internal class BehandlingRoutesKtTest {
             services.behandling.opprettBeregning(
                 objects.nySøknadsbehandling.id,
                 saksbehandler,
-                1.januar(2020),
-                31.desember(2020),
+                Periode.create(1.januar(2020), 31.desember(2020)),
                 emptyList()
             )
             services.behandling.simuler(objects.nySøknadsbehandling.id, saksbehandler)
@@ -197,8 +197,7 @@ internal class BehandlingRoutesKtTest {
             services.behandling.opprettBeregning(
                 objects.nySøknadsbehandling.id,
                 saksbehandler,
-                1.januar(2020),
-                31.desember(2020),
+                Periode.create(1.januar(2020), 31.desember(2020)),
                 emptyList()
             )
             services.behandling.simuler(objects.nySøknadsbehandling.id, saksbehandler)
@@ -504,8 +503,7 @@ internal class BehandlingRoutesKtTest {
             services.behandling.opprettBeregning(
                 objects.nySøknadsbehandling.id,
                 saksbehandler,
-                1.januar(2020),
-                31.desember(2020),
+                Periode.create(1.januar(2020), 31.desember(2020)),
                 emptyList()
             )
 
@@ -568,8 +566,7 @@ internal class BehandlingRoutesKtTest {
                     services.behandling.opprettBeregning(
                         nySøknadsbehandling.id,
                         saksbehandler,
-                        1.januar(2020),
-                        31.desember(2020),
+                        Periode.create(1.januar(2020), 31.desember(2020)),
                         emptyList()
                     )
                     services.behandling.simuler(nySøknadsbehandling.id, saksbehandler)
@@ -687,8 +684,7 @@ internal class BehandlingRoutesKtTest {
                     services.behandling.opprettBeregning(
                         nySøknadsbehandling.id,
                         saksbehandler,
-                        1.januar(2020),
-                        31.desember(2020),
+                        Periode.create(1.januar(2020), 31.desember(2020)),
                         emptyList()
                     )
                     services.behandling.simuler(nySøknadsbehandling.id, saksbehandler)
@@ -857,8 +853,7 @@ internal class BehandlingRoutesKtTest {
                 services.behandling.opprettBeregning(
                     objects.nySøknadsbehandling.id,
                     saksbehandler,
-                    1.januar(2020),
-                    31.desember(2020),
+                    Periode.create(1.januar(2020), 31.desember(2020)),
                     emptyList()
                 )
                 services.behandling.simuler(objects.nySøknadsbehandling.id, saksbehandler).fold(

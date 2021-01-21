@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrHandle
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.person.PersonRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
@@ -65,7 +66,6 @@ import no.nav.su.se.bakover.service.utbetaling.KunneIkkeGjenopptaUtbetalinger
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeStanseUtbetalinger
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
-import java.time.LocalDate
 import java.util.UUID
 
 open class AccessCheckProxy(
@@ -172,8 +172,7 @@ open class AccessCheckProxy(
                 override fun opprettBeregning(
                     behandlingId: UUID,
                     saksbehandler: NavIdentBruker.Saksbehandler,
-                    fraOgMed: LocalDate,
-                    tilOgMed: LocalDate,
+                    periode: Periode,
                     fradrag: List<Fradrag>
                 ): Either<KunneIkkeBeregne, Behandling> {
                     assertHarTilgangTilBehandling(behandlingId)
@@ -181,8 +180,7 @@ open class AccessCheckProxy(
                     return services.behandling.opprettBeregning(
                         behandlingId,
                         saksbehandler,
-                        fraOgMed,
-                        tilOgMed,
+                        periode,
                         fradrag
                     )
                 }

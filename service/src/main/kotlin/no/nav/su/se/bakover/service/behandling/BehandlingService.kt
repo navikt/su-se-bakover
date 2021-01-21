@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.behandling
 
 import arrow.core.Either
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -11,7 +12,6 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.journal.JournalpostId
-import java.time.LocalDate
 import java.util.UUID
 
 interface BehandlingService {
@@ -31,8 +31,7 @@ interface BehandlingService {
     fun opprettBeregning(
         behandlingId: UUID,
         saksbehandler: Saksbehandler,
-        fraOgMed: LocalDate,
-        tilOgMed: LocalDate,
+        periode: Periode,
         fradrag: List<Fradrag>
     ): Either<KunneIkkeBeregne, Behandling>
 

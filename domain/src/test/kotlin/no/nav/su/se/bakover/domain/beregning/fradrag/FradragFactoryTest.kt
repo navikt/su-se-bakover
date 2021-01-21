@@ -14,13 +14,13 @@ internal class FradragFactoryTest {
         val f1 = IkkePeriodisertFradrag(
             type = Fradragstype.Arbeidsinntekt,
             månedsbeløp = 12000.0,
-            periode = Periode(1.januar(2020), 31.januar(2020)),
+            periode = Periode.create(1.januar(2020), 31.januar(2020)),
             tilhører = FradragTilhører.BRUKER
         )
         val periodisert = PeriodisertFradrag(
             type = Fradragstype.Arbeidsinntekt,
             månedsbeløp = 12000.0,
-            periode = Periode(1.januar(2020), 31.januar(2020)),
+            periode = Periode.create(1.januar(2020), 31.januar(2020)),
             tilhører = FradragTilhører.BRUKER
         )
         FradragFactory.periodiser(f1) shouldBe listOf(periodisert)
@@ -31,32 +31,32 @@ internal class FradragFactoryTest {
         val f1 = IkkePeriodisertFradrag(
             type = Fradragstype.Arbeidsinntekt,
             månedsbeløp = 12000.0,
-            periode = Periode(1.januar(2020), 30.april(2020)),
+            periode = Periode.create(1.januar(2020), 30.april(2020)),
             tilhører = FradragTilhører.BRUKER
         )
         FradragFactory.periodiser(f1) shouldBe listOf(
             PeriodisertFradrag(
                 type = Fradragstype.Arbeidsinntekt,
                 månedsbeløp = 12000.0,
-                periode = Periode(1.januar(2020), 31.januar(2020)),
+                periode = Periode.create(1.januar(2020), 31.januar(2020)),
                 tilhører = FradragTilhører.BRUKER
             ),
             PeriodisertFradrag(
                 type = Fradragstype.Arbeidsinntekt,
                 månedsbeløp = 12000.0,
-                periode = Periode(1.februar(2020), 29.februar(2020)),
+                periode = Periode.create(1.februar(2020), 29.februar(2020)),
                 tilhører = FradragTilhører.BRUKER
             ),
             PeriodisertFradrag(
                 type = Fradragstype.Arbeidsinntekt,
                 månedsbeløp = 12000.0,
-                periode = Periode(1.mars(2020), 31.mars(2020)),
+                periode = Periode.create(1.mars(2020), 31.mars(2020)),
                 tilhører = FradragTilhører.BRUKER
             ),
             PeriodisertFradrag(
                 type = Fradragstype.Arbeidsinntekt,
                 månedsbeløp = 12000.0,
-                periode = Periode(1.april(2020), 30.april(2020)),
+                periode = Periode.create(1.april(2020), 30.april(2020)),
                 tilhører = FradragTilhører.BRUKER
             )
         )
@@ -67,7 +67,7 @@ internal class FradragFactoryTest {
         val f1 = PeriodisertFradrag(
             type = Fradragstype.Arbeidsinntekt,
             månedsbeløp = 12000.0,
-            periode = Periode(1.januar(2020), 31.januar(2020)),
+            periode = Periode.create(1.januar(2020), 31.januar(2020)),
             tilhører = FradragTilhører.BRUKER
         )
         FradragFactory.periodiser(f1) shouldBe listOf(f1)

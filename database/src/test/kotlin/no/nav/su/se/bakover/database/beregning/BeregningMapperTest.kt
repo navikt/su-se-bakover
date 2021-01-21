@@ -51,15 +51,15 @@ internal class BeregningMapperTest {
                       "månedsbeløp": 12000.0,
                       "utenlandskInntekt": null,
                       "periode": {
-                        "fraOgMed": "2020-01-01",
-                        "tilOgMed": "2020-01-31"
+                        "fraOgMed": "2021-01-01",
+                        "tilOgMed": "2021-01-31"
                       },
                       "tilhører": "BRUKER"
                     }
                   ],
                   "periode": {
-                    "fraOgMed": "2020-01-01",
-                    "tilOgMed": "2020-01-31"
+                    "fraOgMed": "2021-01-01",
+                    "tilOgMed": "2021-01-31"
                   }
                 }
               ],
@@ -69,8 +69,8 @@ internal class BeregningMapperTest {
                   "månedsbeløp": 12000.0,
                   "utenlandskInntekt": null,
                   "periode": {
-                    "fraOgMed": "2020-01-01",
-                    "tilOgMed": "2020-01-31"
+                    "fraOgMed": "2021-01-01",
+                    "tilOgMed": "2021-01-31"
                   },
                   "tilhører": "BRUKER"
                 }
@@ -78,8 +78,8 @@ internal class BeregningMapperTest {
               "sumYtelse": 8637,
               "sumFradrag": 12000.0,
               "periode": {
-                "fraOgMed": "2020-01-01",
-                "tilOgMed": "2020-01-31"
+                "fraOgMed": "2021-01-01",
+                "tilOgMed": "2021-01-31"
               },
               "fradragStrategyName": "Enslig"
             }
@@ -96,8 +96,8 @@ internal class BeregningMapperTest {
                   "totaltFradrag": 12000.0,
                   "utenlandskInntekt": null,
                   "periode": {
-                    "fraOgMed": "2020-01-01",
-                    "tilOgMed": "2020-01-31"
+                    "fraOgMed": "2021-01-01",
+                    "tilOgMed": "2021-01-31"
                   },
                   "tilhører": "BRUKER"
                 }
@@ -107,7 +107,7 @@ internal class BeregningMapperTest {
             fradragstype = Fradragstype.ForventetInntekt,
             månedsbeløp = 12000.0,
             utenlandskInntekt = null,
-            periode = Periode(fraOgMed = 1.januar(2020), tilOgMed = 31.januar(2020)),
+            periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
             tilhører = FradragTilhører.BRUKER
         )
     }

@@ -241,8 +241,10 @@ internal class BehandlingTest {
             assertThrows<Behandling.TilstandException> {
                 opprettet.opprettBeregning(
                     saksbehandler,
-                    1.januar(2020),
-                    31.desember(2020)
+                    Periode.create(
+                        1.januar(2020),
+                        31.desember(2020)
+                    )
                 )
             }
                 .also {
@@ -283,22 +285,20 @@ internal class BehandlingTest {
 
         @Test
         fun `legal operations`() {
-            vilkårsvurdert.opprettBeregning(saksbehandler, 1.januar(2020), 31.desember(2020))
+            vilkårsvurdert.opprettBeregning(saksbehandler, Periode.create(1.januar(2020), 31.desember(2020)))
             vilkårsvurdert.status() shouldBe BEREGNET_INNVILGET
         }
 
         @Test
         fun `should create beregning`() {
-            val fraOgMed = 1.januar(2020)
-            val tilOgMed = 31.desember(2020)
+            val periode = Periode.create(1.januar(2020), 31.desember(2020))
             vilkårsvurdert.opprettBeregning(
                 saksbehandler = saksbehandler,
-                fraOgMed = fraOgMed,
-                tilOgMed = tilOgMed
+                periode = periode
             )
             val beregning = vilkårsvurdert.beregning()!!
-            beregning.getPeriode().getFraOgMed() shouldBe fraOgMed
-            beregning.getPeriode().getTilOgMed() shouldBe tilOgMed
+            beregning.getPeriode().getFraOgMed() shouldBe periode.getFraOgMed()
+            beregning.getPeriode().getTilOgMed() shouldBe periode.getTilOgMed()
             beregning.getSats() shouldBe Sats.HØY
         }
 
@@ -313,11 +313,10 @@ internal class BehandlingTest {
 
         @Test
         fun `skal avslå hvis utbetaling er 0 for arbeidsInntekt`() {
-            val periode = Periode(fraOgMed = 1.januar(2020), 31.desember(2020))
+            val periode = Periode.create(fraOgMed = 1.januar(2020), 31.desember(2020))
             vilkårsvurdert.opprettBeregning(
                 saksbehandler = saksbehandler,
-                fraOgMed = periode.getFraOgMed(),
-                tilOgMed = periode.getTilOgMed(),
+                periode = periode,
                 fradrag = listOf(
                     FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
@@ -348,8 +347,7 @@ internal class BehandlingTest {
 
             vilkårsvurdert.opprettBeregning(
                 saksbehandler = saksbehandler,
-                fraOgMed = 1.januar(2020),
-                tilOgMed = 31.desember(2020),
+                periode = Periode.create(1.januar(2020), 31.desember(2020)),
             )
 
             vilkårsvurdert.status() shouldBe BEREGNET_AVSLAG
@@ -358,15 +356,14 @@ internal class BehandlingTest {
         @Test
         fun `skal avslå hvis utbetaling er under minstebeløp`() {
             val maxUtbetaling2020 = 250116
-            val periode = Periode(
+            val periode = Periode.create(
                 fraOgMed = 1.januar(2020),
                 tilOgMed = 31.desember(2020)
             )
 
             vilkårsvurdert.opprettBeregning(
                 saksbehandler = saksbehandler,
-                fraOgMed = periode.getFraOgMed(),
-                tilOgMed = periode.getTilOgMed(),
+                periode = periode,
                 fradrag = listOf(
                     FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
@@ -383,7 +380,7 @@ internal class BehandlingTest {
 
         @Test
         fun `skal innvilge hvis utbetaling er nøyaktig minstebeløp`() {
-            val periode = Periode(
+            val periode = Periode.create(
                 fraOgMed = 1.januar(2020),
                 tilOgMed = 31.desember(2020),
             )
@@ -392,8 +389,7 @@ internal class BehandlingTest {
 
             vilkårsvurdert.opprettBeregning(
                 saksbehandler = saksbehandler,
-                fraOgMed = periode.getFraOgMed(),
-                tilOgMed = periode.getTilOgMed(),
+                periode = periode,
                 fradrag = listOf(
                     FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
@@ -425,11 +421,10 @@ internal class BehandlingTest {
             val updatedUførhet = vilkårsvurdertInnvilget.patch(behandlingsinformasjon)
             vilkårsvurdert.oppdaterBehandlingsinformasjon(saksbehandler, updatedUførhet)
 
-            val heleÅret = Periode(1.januar(2020), 31.desember(2020))
+            val heleÅret = Periode.create(1.januar(2020), 31.desember(2020))
             vilkårsvurdert.opprettBeregning(
                 saksbehandler = saksbehandler,
-                fraOgMed = heleÅret.getFraOgMed(),
-                tilOgMed = heleÅret.getTilOgMed(),
+                periode = heleÅret
             )
 
             vilkårsvurdert.beregning()!!.getMånedsberegninger().forEach {
@@ -437,11 +432,10 @@ internal class BehandlingTest {
                 it.getSumFradrag() shouldBe expectedForventetInntektPerMonth
             }
 
-            val enMåned = Periode(1.januar(2020), 31.januar(2020))
+            val enMåned = Periode.create(1.januar(2020), 31.januar(2020))
             vilkårsvurdert.opprettBeregning(
                 saksbehandler = saksbehandler,
-                fraOgMed = enMåned.getFraOgMed(),
-                tilOgMed = enMåned.getTilOgMed(),
+                periode = enMåned
             )
 
             vilkårsvurdert.beregning()!!.getMånedsberegninger().forEach {
@@ -465,11 +459,10 @@ internal class BehandlingTest {
             val updatedUførhet = vilkårsvurdertInnvilget.patch(behandlingsinformasjon)
             vilkårsvurdert.oppdaterBehandlingsinformasjon(saksbehandler, updatedUførhet)
 
-            val heleÅret = Periode(1.januar(2020), 31.desember(2020))
+            val heleÅret = Periode.create(1.januar(2020), 31.desember(2020))
             vilkårsvurdert.opprettBeregning(
                 saksbehandler = saksbehandler,
-                fraOgMed = heleÅret.getFraOgMed(),
-                tilOgMed = heleÅret.getTilOgMed(),
+                periode = heleÅret
             )
 
             vilkårsvurdert.beregning()!!.getMånedsberegninger().forEach {
@@ -477,11 +470,10 @@ internal class BehandlingTest {
                 it.getSumFradrag() shouldBe expectedForventetInntektPerMonth
             }
 
-            val enMåned = Periode(1.januar(2020), 31.januar(2020))
+            val enMåned = Periode.create(1.januar(2020), 31.januar(2020))
             vilkårsvurdert.opprettBeregning(
                 saksbehandler = saksbehandler,
-                fraOgMed = enMåned.getFraOgMed(),
-                tilOgMed = enMåned.getTilOgMed(),
+                periode = enMåned
             )
 
             vilkårsvurdert.beregning()!!.getMånedsberegninger().forEach {
@@ -546,8 +538,7 @@ internal class BehandlingTest {
             assertThrows<Behandling.TilstandException> {
                 vilkårsvurdert.opprettBeregning(
                     saksbehandler,
-                    1.januar(2020),
-                    31.desember(2020)
+                    Periode.create(1.januar(2020), 31.desember(2020))
                 )
             }
             assertThrows<Behandling.TilstandException> {
@@ -573,7 +564,7 @@ internal class BehandlingTest {
                 saksbehandler,
                 extractBehandlingsinformasjon(beregnet).withAlleVilkårOppfylt()
             )
-            beregnet.opprettBeregning(saksbehandler, 1.januar(2020), 31.desember(2020))
+            beregnet.opprettBeregning(saksbehandler, Periode.create(1.januar(2020), 31.desember(2020)))
             beregnet.status() shouldBe BEREGNET_INNVILGET
         }
 
@@ -585,7 +576,7 @@ internal class BehandlingTest {
 
         @Test
         fun `skal kunne beregne på nytt`() {
-            beregnet.opprettBeregning(saksbehandler, 1.januar(2020), 31.desember(2020))
+            beregnet.opprettBeregning(saksbehandler, Periode.create(1.januar(2020), 31.desember(2020)))
             beregnet.status() shouldBe BEREGNET_INNVILGET
         }
 
@@ -622,14 +613,13 @@ internal class BehandlingTest {
                     saksbehandler,
                     extractBehandlingsinformasjon(beregnet).withAlleVilkårOppfylt()
                 )
-                val periode = Periode(
+                val periode = Periode.create(
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.desember(2020),
                 )
                 beregnet.opprettBeregning(
                     saksbehandler = saksbehandler,
-                    fraOgMed = periode.getFraOgMed(),
-                    tilOgMed = periode.getTilOgMed(),
+                    periode = periode,
                     fradrag = listOf(
                         FradragFactory.ny(
                             type = Fradragstype.Arbeidsinntekt,
@@ -646,7 +636,7 @@ internal class BehandlingTest {
 
             @Test
             fun `skal kunne beregne på nytt`() {
-                beregnet.opprettBeregning(saksbehandler, 1.januar(2020), 31.desember(2020))
+                beregnet.opprettBeregning(saksbehandler, Periode.create(1.januar(2020), 31.desember(2020)))
                 beregnet.status() shouldBe BEREGNET_INNVILGET
             }
 
@@ -698,7 +688,7 @@ internal class BehandlingTest {
                 extractBehandlingsinformasjon(simulert)
                     .withAlleVilkårOppfylt()
             )
-            simulert.opprettBeregning(saksbehandler, 1.januar(2020), 31.desember(2020))
+            simulert.opprettBeregning(saksbehandler, Periode.create(1.januar(2020), 31.desember(2020)))
             simulert.leggTilSimulering(saksbehandler, defaultSimulering())
             simulert.status() shouldBe SIMULERT
         }
@@ -714,13 +704,13 @@ internal class BehandlingTest {
 
         @Test
         fun `skal kunne beregne på nytt`() {
-            simulert.opprettBeregning(saksbehandler, 1.januar(2020), 31.desember(2020))
+            simulert.opprettBeregning(saksbehandler, Periode.create(1.januar(2020), 31.desember(2020)))
             simulert.status() shouldBe BEREGNET_INNVILGET
         }
 
         @Test
         fun `skal fjerne beregning hvis behandlingsinformasjon endres`() {
-            simulert.opprettBeregning(saksbehandler, 1.januar(2020), 31.desember(2020))
+            simulert.opprettBeregning(saksbehandler, Periode.create(1.januar(2020), 31.desember(2020)))
             simulert.oppdaterBehandlingsinformasjon(saksbehandler, simulert.behandlingsinformasjon())
 
             simulert.status() shouldBe VILKÅRSVURDERT_INNVILGET
@@ -779,7 +769,7 @@ internal class BehandlingTest {
         @Test
         fun `illegal operations`() {
             assertThrows<Behandling.TilstandException> {
-                avslått.opprettBeregning(saksbehandler, 1.januar(2020), 31.desember(2020))
+                avslått.opprettBeregning(saksbehandler, Periode.create(1.januar(2020), 31.desember(2020)))
             }
             assertThrows<Behandling.TilstandException> {
                 avslått.leggTilSimulering(saksbehandler, defaultSimulering())
@@ -798,7 +788,7 @@ internal class BehandlingTest {
                 saksbehandler,
                 extractBehandlingsinformasjon(tilAttestering).withAlleVilkårOppfylt()
             )
-            tilAttestering.opprettBeregning(saksbehandler, 1.januar(2020), 31.desember(2020))
+            tilAttestering.opprettBeregning(saksbehandler, Periode.create(1.januar(2020), 31.desember(2020)))
             tilAttestering.leggTilSimulering(saksbehandler, defaultSimulering())
             tilAttestering.sendTilAttestering(Saksbehandler("S123456"))
 
@@ -831,7 +821,7 @@ internal class BehandlingTest {
         @Test
         fun `illegal operations`() {
             assertThrows<Behandling.TilstandException> {
-                tilAttestering.opprettBeregning(saksbehandler, 1.januar(2020), 31.desember(2020))
+                tilAttestering.opprettBeregning(saksbehandler, Periode.create(1.januar(2020), 31.desember(2020)))
             }
             assertThrows<Behandling.TilstandException> {
                 tilAttestering.leggTilSimulering(saksbehandler, defaultSimulering())
@@ -883,7 +873,7 @@ internal class BehandlingTest {
         @Test
         fun `illegal operations`() {
             assertThrows<Behandling.TilstandException> {
-                tilAttestering.opprettBeregning(saksbehandler, 1.januar(2020), 31.desember(2020))
+                tilAttestering.opprettBeregning(saksbehandler, Periode.create(1.januar(2020), 31.desember(2020)))
             }
             assertThrows<Behandling.TilstandException> {
                 tilAttestering.leggTilSimulering(saksbehandler, defaultSimulering())
@@ -905,7 +895,7 @@ internal class BehandlingTest {
                 saksbehandler,
                 extractBehandlingsinformasjon(underkjent).withAlleVilkårOppfylt()
             )
-            underkjent.opprettBeregning(saksbehandler, 1.januar(2020), 31.desember(2020))
+            underkjent.opprettBeregning(saksbehandler, Periode.create(1.januar(2020), 31.desember(2020)))
             underkjent.leggTilSimulering(saksbehandler, defaultSimulering())
             underkjent.sendTilAttestering(saksbehandler)
             underkjent.underkjenn(
@@ -930,8 +920,7 @@ internal class BehandlingTest {
         fun `kan kjøre en ny beregning`() {
             underkjent.opprettBeregning(
                 saksbehandler = saksbehandler,
-                fraOgMed = 1.januar(2021),
-                tilOgMed = 31.desember(2021),
+                periode = Periode.create(1.januar(2021), 31.desember(2021)),
                 fradrag = listOf()
             )
             underkjent.status() shouldBe BEREGNET_INNVILGET
@@ -1027,8 +1016,7 @@ internal class BehandlingTest {
             assertThrows<Behandling.TilstandException> {
                 underkjent.opprettBeregning(
                     saksbehandler = saksbehandler,
-                    fraOgMed = 1.januar(2021),
-                    tilOgMed = 31.desember(2021),
+                    periode = Periode.create(1.januar(2021), 31.desember(2021)),
                     fradrag = listOf()
                 )
             }
@@ -1084,13 +1072,12 @@ internal class BehandlingTest {
             )
             underkjent.opprettBeregning(
                 saksbehandler = saksbehandler,
-                fraOgMed = 1.januar(2021),
-                tilOgMed = 31.desember(2021),
+                periode = Periode.create(1.januar(2021), 31.desember(2021)),
                 fradrag = listOf(
                     FradragFactory.ny(
                         type = Fradragstype.OffentligPensjon,
                         månedsbeløp = 2000000000.0,
-                        periode = Periode(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+                        periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER
                     )
@@ -1136,8 +1123,7 @@ internal class BehandlingTest {
         fun `kan beregne`() {
             underkjent.opprettBeregning(
                 saksbehandler = saksbehandler,
-                fraOgMed = 1.januar(2021),
-                tilOgMed = 31.desember(2021),
+                periode = Periode.create(1.januar(2021), 31.desember(2021)),
                 fradrag = listOf()
             )
             underkjent.status() shouldBe BEREGNET_INNVILGET

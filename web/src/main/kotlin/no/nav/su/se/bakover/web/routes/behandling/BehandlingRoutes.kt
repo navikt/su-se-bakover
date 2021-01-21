@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.routes.behandling
 
 import arrow.core.Either
 import arrow.core.flatMap
+import arrow.core.getOrHandle
 import io.ktor.application.call
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
@@ -22,6 +23,7 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.service.behandling.BehandlingService
@@ -160,13 +162,29 @@ internal fun Route.behandlingRoutes(
                     },
                     ifRight = { body ->
                         if (body.isValid()) {
-                            val beregningsperiode = Periode(body.fraOgMed, body.tilOgMed)
+                            fun feilmelding(ugyldigPeriode: Periode.UgyldigPeriode) = when (ugyldigPeriode) {
+                                Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden -> "Perioder kan kun starte på første dag i måneden"
+                                Periode.UgyldigPeriode.TilOgMedDatoMåVæreSisteDagIMåneden -> "Perioder kan kun avsluttes siste dag i måneden"
+                                Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørTilOgMedDato -> "Startmåned må være tidligere eller lik sluttmåned"
+                                Periode.UgyldigPeriode.PeriodeKanIkkeVæreLengreEnn12Måneder -> "En stønadsperiode kan være maks 12 måneder"
+                                Periode.UgyldigPeriode.FraOgMedDatoKanIkkeVæreFør2020 -> "En stønadsperiode kan ikke starte før 2020"
+                            }
+
+                            val beregningsperiode = Periode.tryCreate(body.fraOgMed, body.tilOgMed).getOrHandle {
+                                call.svar(BadRequest.message(feilmelding(it)))
+                                return@withBehandlingId
+                            }
+                            val fradrag: List<Fradrag> = body.fradrag.map {
+                                it.toFradrag(beregningsperiode = beregningsperiode).getOrHandle { feil ->
+                                    call.svar(BadRequest.message(feilmelding(feil)))
+                                    return@withBehandlingId
+                                }
+                            }
                             behandlingService.opprettBeregning(
                                 saksbehandler = Saksbehandler(call.suUserContext.getNAVIdent()),
                                 behandlingId = behandlingId,
-                                fraOgMed = beregningsperiode.getFraOgMed(),
-                                tilOgMed = beregningsperiode.getTilOgMed(),
-                                fradrag = body.fradrag.map { it.toFradrag(beregningsperiode = beregningsperiode) }
+                                periode = beregningsperiode,
+                                fradrag = fradrag
                             ).mapLeft {
                                 val resultat = when (it) {
                                     KunneIkkeBeregne.FantIkkeBehandling -> NotFound.message("Fant ikke behandling")

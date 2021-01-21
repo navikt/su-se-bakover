@@ -43,12 +43,12 @@ internal class MinstepensjonsnivåTest {
 
     @Test
     fun `periodiserer minstepensjonsnivå`() {
-        val januar = Periode(1.januar(2020), 31.januar(2020))
+        val januar = Periode.create(1.januar(2020), 31.januar(2020))
         Minstepensjonsnivå.Ordinær.periodiser(januar) shouldBe mapOf(januar to 15159.0)
-        val desember = Periode(1.desember(2020), 31.desember(2020))
+        val desember = Periode.create(1.desember(2020), 31.desember(2020))
         Minstepensjonsnivå.Ordinær.periodiser(desember) shouldBe mapOf(desember to 15298.916666666666)
 
-        val heleÅret = Periode(1.januar(2020), 31.desember(2020))
+        val heleÅret = Periode.create(1.januar(2020), 31.desember(2020))
         Minstepensjonsnivå.Ordinær.periodiser(heleÅret).let {
             it.size shouldBe 12
             it[januar] shouldBe 15159.0

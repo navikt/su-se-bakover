@@ -12,6 +12,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.mars
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -75,7 +76,7 @@ class BehandlingBeregningTest {
             behandlingRepo = behandlingRepoMock,
             behandlingMetrics = behandlingMetricsMock,
             microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
-        ).opprettBeregning(behandlingId, saksbehandler, 1.desember(2020), 31.mars(2021), emptyList())
+        ).opprettBeregning(behandlingId, saksbehandler, Periode.create(1.desember(2020), 31.mars(2021)), emptyList())
 
         response shouldBe vilkårsvurdertBehandling().copy(
             status = BEREGNET_INNVILGET,
@@ -105,7 +106,7 @@ class BehandlingBeregningTest {
             behandlingRepo = behandlingRepoMock,
             behandlingMetrics = behandlingMetricsMock,
             microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
-        ).opprettBeregning(behandlingId, saksbehandler, 1.desember(2020), 31.mars(2021), emptyList())
+        ).opprettBeregning(behandlingId, saksbehandler, Periode.create(1.desember(2020), 31.mars(2021)), emptyList())
 
         response shouldBe KunneIkkeBeregne.FantIkkeBehandling.left()
 
@@ -126,7 +127,7 @@ class BehandlingBeregningTest {
             behandlingRepo = behandlingRepoMock,
             behandlingMetrics = behandlingMetricsMock,
             microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
-        ).opprettBeregning(behandlingId, saksbehandler, 1.desember(2020), 31.mars(2021), emptyList())
+        ).opprettBeregning(behandlingId, saksbehandler, Periode.create(1.desember(2020), 31.mars(2021)), emptyList())
 
         response shouldBe KunneIkkeBeregne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
 

@@ -30,7 +30,7 @@ internal class MånedsberegningJsonTest {
         """
 
         internal val månedsberegning = MånedsberegningFactory.ny(
-            periode = Periode(1.januar(2020), 31.januar(2020)),
+            periode = Periode.create(1.januar(2020), 31.januar(2020)),
             sats = Sats.HØY,
             fradrag = emptyList(),
         )

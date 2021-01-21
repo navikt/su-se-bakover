@@ -13,14 +13,14 @@ import org.junit.jupiter.api.assertThrows
 internal class FradragStrategyTest {
     @Test
     fun `hver delperiode må inneholde nøyaktig ett fradrag for brukers forventede inntekt`() {
-        val periode = Periode(1.januar(2020), 31.desember(2020))
+        val periode = Periode.create(1.januar(2020), 31.desember(2020))
         assertThrows<IllegalArgumentException> {
             FradragStrategy.Enslig.beregn(
                 fradrag = listOf(
                     lagFradrag(
                         Fradragstype.ForventetInntekt,
                         5000.0,
-                        Periode(1.januar(2020), 31.januar(2020))
+                        Periode.create(1.januar(2020), 31.januar(2020))
                     )
                 ),
                 beregningsperiode = periode
@@ -34,7 +34,7 @@ internal class FradragStrategyTest {
                     lagFradrag(
                         Fradragstype.ForventetInntekt,
                         5000.0,
-                        Periode(1.januar(2020), 31.januar(2020))
+                        Periode.create(1.januar(2020), 31.januar(2020))
                     )
                 ),
                 beregningsperiode = periode
@@ -48,7 +48,7 @@ internal class FradragStrategyTest {
                     lagFradrag(
                         Fradragstype.ForventetInntekt,
                         5000.0,
-                        Periode(1.januar(2020), 31.januar(2020))
+                        Periode.create(1.januar(2020), 31.januar(2020))
                     )
                 ),
                 beregningsperiode = periode
@@ -62,7 +62,7 @@ internal class FradragStrategyTest {
                     lagFradrag(
                         Fradragstype.ForventetInntekt,
                         5000.0,
-                        Periode(1.januar(2020), 31.januar(2020))
+                        Periode.create(1.januar(2020), 31.januar(2020))
                     )
                 ),
                 beregningsperiode = periode
@@ -74,7 +74,7 @@ internal class FradragStrategyTest {
 
     @Nested
     inner class `fribeløp EPS` {
-        val periode = Periode(1.januar(2020), 31.januar(2020))
+        val periode = Periode.create(1.januar(2020), 31.januar(2020))
 
         @Test
         fun `EPS over 67 år bruker minste pensjonsnivå`() {

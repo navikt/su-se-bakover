@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
@@ -40,7 +41,6 @@ import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.slf4j.LoggerFactory
 import java.time.Clock
-import java.time.LocalDate
 import java.util.UUID
 
 internal class BehandlingServiceImpl(
@@ -160,8 +160,7 @@ internal class BehandlingServiceImpl(
     override fun opprettBeregning(
         behandlingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
-        fraOgMed: LocalDate,
-        tilOgMed: LocalDate,
+        periode: Periode,
         fradrag: List<Fradrag>
     ): Either<KunneIkkeBeregne, Behandling> {
         val behandling = behandlingRepo.hentBehandling(behandlingId)
@@ -169,8 +168,7 @@ internal class BehandlingServiceImpl(
 
         return behandling.opprettBeregning(
             saksbehandler,
-            fraOgMed,
-            tilOgMed,
+            periode,
             fradrag
         ) // invoke first to perform state-check
             .mapLeft {

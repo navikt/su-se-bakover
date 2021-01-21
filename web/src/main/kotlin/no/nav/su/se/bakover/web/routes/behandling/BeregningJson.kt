@@ -1,5 +1,9 @@
 package no.nav.su.se.bakover.web.routes.behandling
 
+import arrow.core.Either
+import arrow.core.getOrHandle
+import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
@@ -59,20 +63,27 @@ internal data class FradragJson(
     val utenlandskInntekt: UtenlandskInntekt?,
     val tilhører: String
 ) {
-    fun toFradrag(beregningsperiode: Periode): Fradrag = FradragFactory.ny(
-        type = Fradragstype.valueOf(type),
-        månedsbeløp = beløp,
-        periode = this.periode?.toPeriode() ?: beregningsperiode,
-        utenlandskInntekt = utenlandskInntekt,
-        tilhører = FradragTilhører.valueOf(tilhører)
-    )
+    fun toFradrag(beregningsperiode: Periode): Either<Periode.UgyldigPeriode, Fradrag> {
+        val periode: Periode = this.periode?.toPeriode()?.getOrHandle {
+            return it.left()
+        } ?: beregningsperiode
+        return FradragFactory.ny(
+            type = Fradragstype.valueOf(type),
+            månedsbeløp = beløp,
+            periode = periode,
+            utenlandskInntekt = utenlandskInntekt,
+            tilhører = FradragTilhører.valueOf(tilhører)
+        ).right()
+    }
 }
 
 internal data class PeriodeJson(
     val fraOgMed: String,
     val tilOgMed: String
 ) {
-    fun toPeriode() = Periode(LocalDate.parse(fraOgMed), LocalDate.parse(tilOgMed))
+    fun toPeriode(): Either<Periode.UgyldigPeriode, Periode> {
+        return Periode.tryCreate(LocalDate.parse(fraOgMed), LocalDate.parse(tilOgMed))
+    }
 }
 
 internal fun Periode.toJson() =

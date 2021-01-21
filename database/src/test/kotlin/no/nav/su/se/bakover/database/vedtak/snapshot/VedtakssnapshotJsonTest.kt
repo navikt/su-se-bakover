@@ -52,7 +52,7 @@ internal class VedtakssnapshotJsonTest {
     private val avslagId = "06015ac6-07ef-4017-bd04-1e7b87b160fa"
     private val beregningId = "4111d5ee-0215-4d0f-94fc-0959f900ef2e"
     private val tidspunkt = Tidspunkt(ZonedDateTime.of(1970, 1, 1, 1, 2, 3, 456789000, ZoneOffset.UTC).toInstant())
-    private val beregningsPeriode = Periode(LocalDate.EPOCH, LocalDate.EPOCH.plusDays(30))
+    private val beregningsPeriode = Periode.create(LocalDate.of(2021, 1, 1), LocalDate.of(2021, 1, 31))
 
     private val fnr = Fnr("12345678910")
 
@@ -471,15 +471,15 @@ internal class VedtakssnapshotJsonTest {
                                         "kurs": 129.0
                                     },
                                     "periode":{
-                                        "fraOgMed":"1970-01-01",
-                                        "tilOgMed":"1970-01-31"
+                                        "fraOgMed":"2021-01-01",
+                                        "tilOgMed":"2021-01-31"
                                     },
                                     "tilhører":"BRUKER"
                                 }
                             ],
                             "periode":{
-                                "fraOgMed":"1970-01-01",
-                                "tilOgMed":"1970-01-31"
+                                "fraOgMed":"2021-01-01",
+                                "tilOgMed":"2021-01-31"
                             }
                         }
                     ],
@@ -493,8 +493,8 @@ internal class VedtakssnapshotJsonTest {
                             "kurs": 129.0
                         },
                         "periode":{
-                            "fraOgMed":"1970-01-01",
-                            "tilOgMed":"1970-01-31"
+                            "fraOgMed":"2021-01-01",
+                            "tilOgMed":"2021-01-31"
                         },
                         "tilhører":"BRUKER"
                       }                        
@@ -502,8 +502,8 @@ internal class VedtakssnapshotJsonTest {
                     "sumYtelse":3,
                     "sumFradrag":2.1,
                     "periode":{
-                        "fraOgMed":"1970-01-01",
-                        "tilOgMed":"1970-01-31"
+                        "fraOgMed":"2021-01-01",
+                        "tilOgMed":"2021-01-31"
                     },
                     "fradragStrategyName":"Enslig"
                 },

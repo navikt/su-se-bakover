@@ -85,7 +85,7 @@ internal data class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder
 internal data class EkvivalenteMånedsberegninger(
     private val månedsberegninger: List<Månedsberegning>
 ) : Månedsberegning by månedsberegninger.first() {
-    override fun getPeriode(): Periode = Periode(
+    override fun getPeriode(): Periode = Periode.create(
         fraOgMed = månedsberegninger.minOf { it.getPeriode().getFraOgMed() },
         tilOgMed = månedsberegninger.maxOf { it.getPeriode().getTilOgMed() }
     )
