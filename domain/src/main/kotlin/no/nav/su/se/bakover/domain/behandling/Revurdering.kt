@@ -19,32 +19,30 @@ sealed class Revurdering : Saksbehandling() {
     )
 }
 
-open class OpprettetRevurdering(
-    override val id: UUID,
-    override val opprettet: Tidspunkt,
+data class OpprettetRevurdering(
+    override val id: UUID = UUID.randomUUID(),
+    override val opprettet: Tidspunkt = Tidspunkt.now(),
     override val tilRevurdering: Behandling
-) : Revurdering() {
-}
+) : Revurdering()
 
-open class BeregnetRevurdering(
+data class BeregnetRevurdering(
     override val id: UUID,
     override val opprettet: Tidspunkt,
     override val tilRevurdering: Behandling,
-    open val beregning: Beregning
+    val beregning: Beregning
 ) : Revurdering() {
     fun toSimulert(simulering: Simulering) = SimulertRevurdering(
         id, opprettet, tilRevurdering, beregning, simulering
     )
 }
 
-open class SimulertRevurdering(
+data class SimulertRevurdering(
     override val id: UUID,
     override val opprettet: Tidspunkt,
     override val tilRevurdering: Behandling,
     val beregning: Beregning,
     val simulering: Simulering
-) : Revurdering() {
-}
+) : Revurdering()
 
 open class TilAttesteringRevurdering(
     override val id: UUID,

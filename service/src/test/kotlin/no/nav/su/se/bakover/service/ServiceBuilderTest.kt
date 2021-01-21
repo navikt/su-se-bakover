@@ -21,7 +21,8 @@ internal class ServiceBuilderTest {
                 hendelseslogg = mock(),
                 sak = mock(),
                 person = mock(),
-                vedtakssnapshot = mock()
+                vedtakssnapshot = mock(),
+                revurderingRepo = mock()
             ),
             clients = Clients(
                 oauth = mock(),

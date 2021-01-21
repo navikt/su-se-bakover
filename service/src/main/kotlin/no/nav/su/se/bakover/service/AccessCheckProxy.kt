@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.behandling.Revurdering
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.NyBeregningForSøknadsbehandling
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
@@ -336,16 +337,22 @@ open class AccessCheckProxy(
                 }
             },
             revurdering = object : RevurderingService {
+                override fun opprettRevurdering(behandlingId: UUID): Revurdering {
+                    assertHarTilgangTilBehandling(behandlingId)
+                    return services.revurdering.opprettRevurdering(behandlingId)
+                }
+
                 override fun beregnOgSimuler(
-                    behandlingId: UUID,
+                    revurderingId: UUID,
                     saksbehandler: NavIdentBruker.Saksbehandler,
                     periode: Periode,
                     fradrag: List<Fradrag>
                 ): Either<RevurderingFeilet, RevurdertBeregning> {
-                    assertHarTilgangTilBehandling(behandlingId)
+                    // TODO assert tilgang til revurdering?
+                    assertHarTilgangTilBehandling(revurderingId)
 
                     return services.revurdering.beregnOgSimuler(
-                        behandlingId = behandlingId,
+                        revurderingId = revurderingId,
                         saksbehandler = saksbehandler,
                         periode = periode,
                         fradrag = fradrag

@@ -63,7 +63,7 @@ internal fun Route.revurderingRoutes(
                     ifRight = { body ->
                         if (body.valid()) {
                             revurderingService.beregnOgSimuler(
-                                behandlingId = body.behandlingId,
+                                revurderingId = body.behandlingId,
                                 saksbehandler = Saksbehandler(call.suUserContext.getNAVIdent()),
                                 periode = Periode(body.fraOgMed, body.tilOgMed),
                                 fradrag = body.fradrag.map { it.toFradrag(Periode(body.fraOgMed, body.tilOgMed)) }
