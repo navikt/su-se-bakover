@@ -273,7 +273,7 @@ data class Behandlingsinformasjon(
                     }
                     return BeregningStrategy.EpsUnder67År
                 }
-                throw RuntimeException("Uhåndtert case for beregning strategy")
+                throw RuntimeException("Uhåndtert case for beregning strategy: epsAlder: $epsAlder, delerBolig: $delerBolig, ektemakeEllerSamboerUførFlyktning: $ektemakeEllerSamboerUførFlyktning")
             }
         }
 
