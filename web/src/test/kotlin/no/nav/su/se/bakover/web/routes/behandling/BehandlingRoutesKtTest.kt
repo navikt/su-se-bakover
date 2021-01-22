@@ -151,7 +151,7 @@ internal class BehandlingRoutesKtTest {
                 NyBeregningForSøknadsbehandling.create(
                     behandlingId = objects.nySøknadsbehandling.id,
                     saksbehandler = saksbehandler,
-                    stønadsperiode = Stønadsperiode(Periode.create(1.januar(2021), 31.desember(2021))),
+                    stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
                     fradrag = emptyList()
                 )
             )
@@ -199,7 +199,7 @@ internal class BehandlingRoutesKtTest {
                 NyBeregningForSøknadsbehandling.create(
                     behandlingId = objects.nySøknadsbehandling.id,
                     saksbehandler = saksbehandler,
-                    stønadsperiode = Stønadsperiode(Periode.create(1.januar(2021), 31.desember(2021))),
+                    stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
                     fradrag = emptyList(),
                 )
             )
@@ -253,7 +253,7 @@ internal class BehandlingRoutesKtTest {
                 NyBeregningForSøknadsbehandling.create(
                     behandlingId = objects.nySøknadsbehandling.id,
                     saksbehandler = saksbehandler,
-                    stønadsperiode = Stønadsperiode(Periode.create(1.januar(2021), 31.desember(2021))),
+                    stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
                     fradrag = emptyList(),
                 )
             )
@@ -286,7 +286,7 @@ internal class BehandlingRoutesKtTest {
                         NyBeregningForSøknadsbehandling.create(
                             behandlingId = nySøknadsbehandling.id,
                             saksbehandler = saksbehandler,
-                            stønadsperiode = Stønadsperiode(Periode.create(1.januar(2021), 31.desember(2021))),
+                            stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
                             fradrag = emptyList()
                         )
                     )
@@ -406,7 +406,7 @@ internal class BehandlingRoutesKtTest {
                         NyBeregningForSøknadsbehandling.create(
                             behandlingId = nySøknadsbehandling.id,
                             saksbehandler = saksbehandler,
-                            stønadsperiode = Stønadsperiode(Periode.create(1.januar(2021), 31.desember(2021))),
+                            stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
                             fradrag = emptyList(),
                         )
                     )
@@ -577,7 +577,7 @@ internal class BehandlingRoutesKtTest {
                     NyBeregningForSøknadsbehandling.create(
                         behandlingId = objects.nySøknadsbehandling.id,
                         saksbehandler = saksbehandler,
-                        stønadsperiode = Stønadsperiode(Periode.create(1.januar(2021), 31.desember(2021))),
+                        stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
                         fradrag = emptyList(),
                     )
                 )

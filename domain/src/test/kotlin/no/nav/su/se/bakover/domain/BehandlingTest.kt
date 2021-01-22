@@ -72,7 +72,7 @@ internal class BehandlingTest {
     private val nyBeregningForSøknadsbehandling = NyBeregningForSøknadsbehandling.create(
         behandlingId = behandlingId,
         saksbehandler = saksbehandler,
-        stønadsperiode = Stønadsperiode(heleÅret2021)
+        stønadsperiode = Stønadsperiode.create(heleÅret2021)
     )
     private val søknad = Søknad.Journalført.MedOppgave(
         id = UUID.randomUUID(),

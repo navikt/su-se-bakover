@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.domain.beregning.Stønadsperiode
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.routes.behandling.beregning.PeriodeJson.Companion.toJson
-import no.nav.su.se.bakover.web.routes.behandling.toJson
 
 internal data class StønadsperiodeJson @JsonCreator(mode = JsonCreator.Mode.DELEGATING) constructor(
     @JsonValue val periode: PeriodeJson

@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.common.periode
 
 import arrow.core.left
 import com.fasterxml.jackson.module.kotlin.readValue
-import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -63,18 +62,10 @@ internal class PeriodeTest {
     }
 
     @Test
-    fun `får ikke opprettet perioder med ugyldige input parametere create`() {
-        assertSoftly {
-            assertThrows<IllegalArgumentException> {
-                Periode.create(10.januar(2021), 31.desember(2021))
-            }
-            assertThrows<IllegalArgumentException> {
-                Periode.create(1.januar(2021), 10.desember(2021))
-            }
-            assertThrows<IllegalArgumentException> {
-                Periode.create(1.februar(2021), 31.januar(2021))
-            }
-        }
+    fun `får ikke opprettet perioder med ugyldige input parametere `() {
+        assertThrows<IllegalArgumentException> { Periode.create(10.januar(2021), 31.desember(2021)) }
+        assertThrows<IllegalArgumentException> { Periode.create(1.januar(2021), 10.desember(2021)) }
+        assertThrows<IllegalArgumentException> { Periode.create(1.februar(2021), 31.januar(2021)) }
     }
 
     @Test

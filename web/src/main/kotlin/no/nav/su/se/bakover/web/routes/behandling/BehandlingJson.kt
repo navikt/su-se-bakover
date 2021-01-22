@@ -1,7 +1,5 @@
 package no.nav.su.se.bakover.web.routes.behandling
 
-import AttesteringJson
-import UnderkjennelseJson
 import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.behandling.Attestering

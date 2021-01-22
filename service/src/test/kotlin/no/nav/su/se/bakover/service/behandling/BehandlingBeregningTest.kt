@@ -11,10 +11,8 @@ import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -34,13 +32,9 @@ import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.behandlingFac
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.behandlingsinformasjon
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.tidspunkt
 import org.junit.jupiter.api.Test
-import java.time.Clock
-import java.time.ZoneOffset
 import java.util.UUID
 
 class BehandlingBeregningTest {
-    private val fixedClock: Clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC)
-
     private val sakId = UUID.randomUUID()
     private val saksnummer = Saksnummer(0)
     private val søknadId = UUID.randomUUID()
@@ -88,7 +82,7 @@ class BehandlingBeregningTest {
             NyBeregningForSøknadsbehandling.create(
                 behandlingId = behandlingId,
                 saksbehandler = saksbehandler,
-                stønadsperiode = Stønadsperiode(Periode.create(1.desember(2021), 31.mars(2022)))
+                stønadsperiode = Stønadsperiode.create(Periode.create(1.desember(2021), 31.mars(2022)))
             )
         )
 
@@ -124,7 +118,7 @@ class BehandlingBeregningTest {
             NyBeregningForSøknadsbehandling.create(
                 behandlingId = behandlingId,
                 saksbehandler = saksbehandler,
-                stønadsperiode = Stønadsperiode(Periode.create(1.desember(2021), 31.mars(2022)))
+                stønadsperiode = Stønadsperiode.create(Periode.create(1.desember(2021), 31.mars(2022)))
             )
         )
 
@@ -151,7 +145,7 @@ class BehandlingBeregningTest {
             NyBeregningForSøknadsbehandling.create(
                 behandlingId = behandlingId,
                 saksbehandler = saksbehandler,
-                stønadsperiode = Stønadsperiode(Periode.create(1.desember(2021), 31.mars(2022)))
+                stønadsperiode = Stønadsperiode.create(Periode.create(1.desember(2021), 31.mars(2022)))
             )
         )
 

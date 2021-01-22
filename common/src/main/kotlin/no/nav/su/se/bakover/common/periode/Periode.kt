@@ -16,7 +16,7 @@ data class Periode private constructor(
     fun getTilOgMed() = tilOgMed
 
     @JsonIgnore
-    fun getAntallMåneder() = Companion.getAntallMåneder(fraOgMed, tilOgMed)
+    fun getAntallMåneder() = Period.between(fraOgMed, tilOgMed.plusDays(1)).toTotalMonths().toInt()
     fun tilMånedsperioder(): List<Periode> {
         return (0L until getAntallMåneder())
             .map {
@@ -50,8 +50,6 @@ data class Periode private constructor(
 
             return Periode(fraOgMed, tilOgMed).right()
         }
-
-        private fun getAntallMåneder(fraOgMed: LocalDate, tilOgMed: LocalDate) = Period.between(fraOgMed, tilOgMed.plusDays(1)).toTotalMonths().toInt()
     }
 
     sealed class UgyldigPeriode {

@@ -6,7 +6,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
 
-data class Stønadsperiode(
+data class Stønadsperiode private constructor(
     val periode: Periode
 ) {
     companion object {
