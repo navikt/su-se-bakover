@@ -174,8 +174,8 @@ internal fun Route.behandlingRoutes(
                                 call.svar(BadRequest.message(feilmelding(it)))
                                 return@withBehandlingId
                             }
-                            //TODO en hack for å stoppe perioder før 2021, da Periode() ikke kan endres enda
-                            if (beregningsperiode.getFraOgMed().isBefore(LocalDate.of(2021,1,1))) {
+                            // TODO en hack for å stoppe perioder før 2021, da Periode() ikke kan endres enda
+                            if (beregningsperiode.getFraOgMed().isBefore(LocalDate.of(2021, 1, 1))) {
                                 call.svar(BadRequest.message("En stønadsperiode kan ikke starte før 2021"))
                                 return@withBehandlingId
                             }

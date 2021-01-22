@@ -151,7 +151,7 @@ internal class BehandlingRoutesKtTest {
             services.behandling.opprettBeregning(
                 objects.nySøknadsbehandling.id,
                 saksbehandler,
-                Periode.create(1.januar(2020), 31.desember(2020)),
+                Periode.create(1.januar(2021), 31.desember(2021)),
                 emptyList()
             )
             services.behandling.simuler(objects.nySøknadsbehandling.id, saksbehandler)
@@ -197,7 +197,7 @@ internal class BehandlingRoutesKtTest {
             services.behandling.opprettBeregning(
                 objects.nySøknadsbehandling.id,
                 saksbehandler,
-                Periode.create(1.januar(2020), 31.desember(2020)),
+                Periode.create(1.januar(2021), 31.desember(2021)),
                 emptyList()
             )
             services.behandling.simuler(objects.nySøknadsbehandling.id, saksbehandler)
@@ -219,8 +219,8 @@ internal class BehandlingRoutesKtTest {
             testSusebakover()
         }) {
             val objects = setup()
-            val fraOgMed = LocalDate.of(2020, Month.JANUARY, 1)
-            val tilOgMed = LocalDate.of(2020, Month.DECEMBER, 31)
+            val fraOgMed = LocalDate.of(2021, Month.JANUARY, 1)
+            val tilOgMed = LocalDate.of(2021, Month.DECEMBER, 31)
             val sats = Sats.HØY
 
             services.behandling.oppdaterBehandlingsinformasjon(
@@ -261,8 +261,8 @@ internal class BehandlingRoutesKtTest {
             testSusebakover()
         }) {
             val objects = setup()
-            val fraOgMed = LocalDate.of(2020, Month.JANUARY, 1)
-            val tilOgMed = LocalDate.of(2020, Month.DECEMBER, 31)
+            val fraOgMed = LocalDate.of(2021, Month.JANUARY, 1)
+            val tilOgMed = LocalDate.of(2021, Month.DECEMBER, 31)
             val sats = Sats.HØY
 
             services.behandling.oppdaterBehandlingsinformasjon(
@@ -325,8 +325,8 @@ internal class BehandlingRoutesKtTest {
             testSusebakover()
         }) {
             val objects = setup()
-            val fraOgMed = LocalDate.of(2020, Month.JANUARY, 1)
-            val tilOgMed = LocalDate.of(2020, Month.DECEMBER, 31)
+            val fraOgMed = LocalDate.of(2021, Month.JANUARY, 1)
+            val tilOgMed = LocalDate.of(2021, Month.DECEMBER, 31)
             val sats = Sats.HØY
 
             services.behandling.oppdaterBehandlingsinformasjon(
@@ -417,8 +417,8 @@ internal class BehandlingRoutesKtTest {
                 setBody(
                     """
                     {
-                        "fraOgMed":"${LocalDate.of(2020, Month.JANUARY, 16)}",
-                        "tilOgMed":"${LocalDate.of(2020, Month.DECEMBER, 31)}",
+                        "fraOgMed":"${LocalDate.of(2021, Month.JANUARY, 16)}",
+                        "tilOgMed":"${LocalDate.of(2021, Month.DECEMBER, 31)}",
                         "sats":"ORDINÆR",
                         "fradrag":[]
                     }
@@ -428,8 +428,8 @@ internal class BehandlingRoutesKtTest {
                 response.status() shouldBe HttpStatusCode.BadRequest
                 response.content shouldContain "Ugyldige input-parametere"
             }
-            val fraOgMed = LocalDate.of(2020, Month.JANUARY, 1)
-            val tilOgMed = LocalDate.of(2020, Month.DECEMBER, 31)
+            val fraOgMed = LocalDate.of(2021, Month.JANUARY, 1)
+            val tilOgMed = LocalDate.of(2021, Month.DECEMBER, 31)
             val sats = Sats.HØY
 
             objects.behandling.oppdaterBehandlingsinformasjon(
@@ -503,7 +503,7 @@ internal class BehandlingRoutesKtTest {
             services.behandling.opprettBeregning(
                 objects.nySøknadsbehandling.id,
                 saksbehandler,
-                Periode.create(1.januar(2020), 31.desember(2020)),
+                Periode.create(1.januar(2021), 31.desember(2021)),
                 emptyList()
             )
 
@@ -533,8 +533,8 @@ internal class BehandlingRoutesKtTest {
                 setBody(
                     """
                     {
-                        "fraOgMed":"${1.januar(2020)}",
-                        "tilOgMed":"${31.desember(2020)}",
+                        "fraOgMed":"${1.januar(2021)}",
+                        "tilOgMed":"${31.desember(2021)}",
                         "sats":"${Sats.HØY}",
                         "fradrag":[]
                     }
@@ -566,7 +566,7 @@ internal class BehandlingRoutesKtTest {
                     services.behandling.opprettBeregning(
                         nySøknadsbehandling.id,
                         saksbehandler,
-                        Periode.create(1.januar(2020), 31.desember(2020)),
+                        Periode.create(1.januar(2021), 31.desember(2021)),
                         emptyList()
                     )
                     services.behandling.simuler(nySøknadsbehandling.id, saksbehandler)
@@ -684,7 +684,7 @@ internal class BehandlingRoutesKtTest {
                     services.behandling.opprettBeregning(
                         nySøknadsbehandling.id,
                         saksbehandler,
-                        Periode.create(1.januar(2020), 31.desember(2020)),
+                        Periode.create(1.januar(2021), 31.desember(2021)),
                         emptyList()
                     )
                     services.behandling.simuler(nySøknadsbehandling.id, saksbehandler)
@@ -853,7 +853,7 @@ internal class BehandlingRoutesKtTest {
                 services.behandling.opprettBeregning(
                     objects.nySøknadsbehandling.id,
                     saksbehandler,
-                    Periode.create(1.januar(2020), 31.desember(2020)),
+                    Periode.create(1.januar(2021), 31.desember(2021)),
                     emptyList()
                 )
                 services.behandling.simuler(objects.nySøknadsbehandling.id, saksbehandler).fold(
