@@ -549,6 +549,44 @@ internal class BehandlingRoutesKtTest {
         }
     }
 
+    @Test
+    fun `ikke lov å beregne tidligere enn 2021`() {
+        withTestApplication({
+            testSusebakover()
+        }) {
+            val objects = setup()
+            val fraOgMed = LocalDate.of(2020, Month.JANUARY, 1)
+            val tilOgMed = LocalDate.of(2020, Month.DECEMBER, 31)
+            val sats = Sats.HØY
+
+            services.behandling.oppdaterBehandlingsinformasjon(
+                objects.nySøknadsbehandling.id,
+                saksbehandler,
+                extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
+            )
+
+            defaultRequest(
+                HttpMethod.Post,
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.nySøknadsbehandling.id}/beregn",
+                listOf(Brukerrolle.Saksbehandler)
+            ) {
+                setBody(
+                    """
+                    {
+                        "fraOgMed":"$fraOgMed",
+                        "tilOgMed":"$tilOgMed",
+                        "sats":"${sats.name}",
+                        "fradrag":[]
+                    }
+                    """.trimIndent()
+                )
+            }.apply {
+                response.status() shouldBe HttpStatusCode.BadRequest
+                response.content shouldContain "En stønadsperiode kan ikke starte før 2021"
+            }
+        }
+    }
+
     @Nested
     inner class `Iverksetting av behandling` {
         private fun <R> withFerdigbehandletSakForBruker(
