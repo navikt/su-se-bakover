@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.doNothing
+import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
 import org.junit.jupiter.api.Test
@@ -136,7 +137,8 @@ internal class GjenopptaUtbetalingerServiceTest {
             utbetalingRepo = utbetalingRepoMock,
             utbetalingPublisher = utbetalingPublisherMock,
             sakService = sakServiceMock,
-            simuleringClient = simuleringClientMock
+            simuleringClient = simuleringClientMock,
+            clock = fixedClock,
         ).gjenopptaUtbetalinger(sak.id, saksbehandler)
 
         actual shouldBe sak.right()
@@ -222,7 +224,8 @@ internal class GjenopptaUtbetalingerServiceTest {
             utbetalingRepo = utbetalingRepoMock,
             utbetalingPublisher = utbetalingPublisherMock,
             sakService = sakServiceMock,
-            simuleringClient = simuleringClientMock
+            simuleringClient = simuleringClientMock,
+            clock = fixedClock,
         )
 
         val response = service.gjenopptaUtbetalinger(sak.id, saksbehandler)
@@ -252,6 +255,7 @@ internal class GjenopptaUtbetalingerServiceTest {
             utbetalingPublisher = utbetalingPublisherMock,
             sakService = sakServiceMock,
             simuleringClient = simuleringClientMock,
+            clock = fixedClock,
         ).gjenopptaUtbetalinger(sak.id, saksbehandler)
 
         actual shouldBe KunneIkkeGjenopptaUtbetalinger.SimuleringAvStartutbetalingFeilet.left()
@@ -308,7 +312,8 @@ internal class GjenopptaUtbetalingerServiceTest {
             utbetalingRepo = utbetalingRepoMock,
             utbetalingPublisher = utbetalingPublisherMock,
             sakService = sakServiceMock,
-            simuleringClient = simuleringClientMock
+            simuleringClient = simuleringClientMock,
+            clock = fixedClock,
         ).gjenopptaUtbetalinger(sak.id, saksbehandler)
 
         response shouldBe KunneIkkeGjenopptaUtbetalinger.SendingAvUtebetalingTilOppdragFeilet.left()

@@ -8,10 +8,9 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.beregning.NyBeregningForSøknadsbehandling
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.journal.JournalpostId
-import java.time.LocalDate
 import java.util.UUID
 
 interface BehandlingService {
@@ -29,11 +28,7 @@ interface BehandlingService {
     ): Either<KunneIkkeOppdatereBehandlingsinformasjon, Behandling>
 
     fun opprettBeregning(
-        behandlingId: UUID,
-        saksbehandler: Saksbehandler,
-        fraOgMed: LocalDate,
-        tilOgMed: LocalDate,
-        fradrag: List<Fradrag>
+        nyBeregningForSøknadsbehandling: NyBeregningForSøknadsbehandling
     ): Either<KunneIkkeBeregne, Behandling>
 
     fun simuler(behandlingId: UUID, saksbehandler: Saksbehandler): Either<KunneIkkeSimulereBehandling, Behandling>

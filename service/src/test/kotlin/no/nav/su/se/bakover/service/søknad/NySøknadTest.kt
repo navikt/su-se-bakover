@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.doNothing
+import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
@@ -46,7 +47,7 @@ class NySøknadTest {
     private val søknadInnhold: SøknadInnhold = SøknadInnholdTestdataBuilder.build()
     private val fnr = søknadInnhold.personopplysninger.fnr
     private val person: Person = PersonOppslagStub.person(fnr).orNull()!!
-    private val sakFactory: SakFactory = SakFactory()
+    private val sakFactory: SakFactory = SakFactory(clock = fixedClock)
     private val sakId = UUID.randomUUID()
     private val saksnummer = Saksnummer(2021)
     private val sak: Sak = Sak(
@@ -78,7 +79,8 @@ class NySøknadTest {
             dokArkiv = dokArkivMock,
             personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
-            søknadMetrics = mock()
+            søknadMetrics = mock(),
+            clock = fixedClock,
         )
 
         søknadService.nySøknad(søknadInnhold) shouldBe KunneIkkeOppretteSøknad.FantIkkePerson.left()
@@ -117,7 +119,8 @@ class NySøknadTest {
             dokArkiv = dokArkivMock,
             personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
-            søknadMetrics = mock()
+            søknadMetrics = mock(),
+            clock = fixedClock,
         )
 
         val actual = søknadService.nySøknad(søknadInnhold)
@@ -150,12 +153,13 @@ class NySøknadTest {
             verify(sakServiceMock).hentSak(argThat<Fnr> { it shouldBe fnr })
             verify(pdfGeneratorMock).genererPdf(
                 argThat<SøknadPdfInnhold> {
-                    it shouldBe SøknadPdfInnhold(
+                    it shouldBe SøknadPdfInnhold.create(
                         saksnummer = sak.saksnummer,
                         søknadsId = it.søknadsId,
                         navn = person.navn,
-                        søknadOpprettet = it.søknadOpprettet,
+                        søknadOpprettet = actual.orNull()!!.second.opprettet,
                         søknadInnhold = søknadInnhold,
+                        clock = fixedClock,
                     )
                 }
             )
@@ -213,7 +217,8 @@ class NySøknadTest {
             dokArkiv = dokArkivMock,
             personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
-            søknadMetrics = mock()
+            søknadMetrics = mock(),
+            clock = fixedClock,
         )
 
         val nySøknad = søknadService.nySøknad(søknadInnhold)
@@ -239,12 +244,13 @@ class NySøknadTest {
             )
             verify(pdfGeneratorMock).genererPdf(
                 argThat<SøknadPdfInnhold> {
-                    it shouldBe SøknadPdfInnhold(
+                    it shouldBe SøknadPdfInnhold.create(
                         saksnummer = sak.saksnummer,
                         søknadsId = it.søknadsId,
                         navn = person.navn,
-                        søknadOpprettet = it.søknadOpprettet,
+                        søknadOpprettet = nySøknad.orNull()!!.second.opprettet,
                         søknadInnhold = søknadInnhold,
+                        clock = fixedClock,
                     )
                 }
             )
@@ -293,7 +299,8 @@ class NySøknadTest {
             dokArkiv = dokArkivMock,
             personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
-            søknadMetrics = mock()
+            søknadMetrics = mock(),
+            clock = fixedClock,
         )
 
         val actual = søknadService.nySøknad(søknadInnhold)
@@ -322,12 +329,13 @@ class NySøknadTest {
             )
             verify(pdfGeneratorMock).genererPdf(
                 argThat<SøknadPdfInnhold> {
-                    it shouldBe SøknadPdfInnhold(
+                    it shouldBe SøknadPdfInnhold.create(
                         saksnummer = sak.saksnummer,
                         søknadsId = it.søknadsId,
                         navn = person.navn,
-                        søknadOpprettet = it.søknadOpprettet,
+                        søknadOpprettet = actual.orNull()!!.second.opprettet,
                         søknadInnhold = søknadInnhold,
+                        clock = fixedClock,
                     )
                 }
             )
@@ -385,7 +393,8 @@ class NySøknadTest {
             dokArkiv = dokArkivMock,
             personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
-            søknadMetrics = mock()
+            søknadMetrics = mock(),
+            clock = fixedClock,
         )
 
         val actual = søknadService.nySøknad(søknadInnhold)
@@ -414,12 +423,13 @@ class NySøknadTest {
             )
             verify(pdfGeneratorMock).genererPdf(
                 argThat<SøknadPdfInnhold> {
-                    it shouldBe SøknadPdfInnhold(
+                    it shouldBe SøknadPdfInnhold.create(
                         saksnummer = sak.saksnummer,
                         søknadsId = it.søknadsId,
                         navn = person.navn,
-                        søknadOpprettet = it.søknadOpprettet,
+                        søknadOpprettet = actual.orNull()!!.second.opprettet,
                         søknadInnhold = søknadInnhold,
+                        clock = fixedClock
                     )
                 }
             )
@@ -491,7 +501,8 @@ class NySøknadTest {
             dokArkiv = dokArkivMock,
             personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
-            søknadMetrics = mock()
+            søknadMetrics = mock(),
+            clock = fixedClock,
         )
 
         val actual = søknadService.nySøknad(søknadInnhold)
@@ -520,12 +531,13 @@ class NySøknadTest {
             )
             verify(pdfGeneratorMock).genererPdf(
                 argThat<SøknadPdfInnhold> {
-                    it shouldBe SøknadPdfInnhold(
+                    it shouldBe SøknadPdfInnhold.create(
                         saksnummer = sak.saksnummer,
                         søknadsId = it.søknadsId,
                         navn = person.navn,
-                        søknadOpprettet = it.søknadOpprettet,
+                        søknadOpprettet = actual.orNull()!!.second.opprettet,
                         søknadInnhold = søknadInnhold,
+                        clock = fixedClock,
                     )
                 }
             )

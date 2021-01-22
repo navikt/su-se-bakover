@@ -26,7 +26,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagBrevRequest
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.beregning.NyBeregningForSøknadsbehandling
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -40,7 +40,6 @@ import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.slf4j.LoggerFactory
 import java.time.Clock
-import java.time.LocalDate
 import java.util.UUID
 
 internal class BehandlingServiceImpl(
@@ -158,27 +157,20 @@ internal class BehandlingServiceImpl(
 
     // TODO need to define responsibilities for domain and services.
     override fun opprettBeregning(
-        behandlingId: UUID,
-        saksbehandler: NavIdentBruker.Saksbehandler,
-        fraOgMed: LocalDate,
-        tilOgMed: LocalDate,
-        fradrag: List<Fradrag>
+        nyBeregningForSøknadsbehandling: NyBeregningForSøknadsbehandling
     ): Either<KunneIkkeBeregne, Behandling> {
-        val behandling = behandlingRepo.hentBehandling(behandlingId)
+        val behandling = behandlingRepo.hentBehandling(nyBeregningForSøknadsbehandling.behandlingId)
             ?: return KunneIkkeBeregne.FantIkkeBehandling.left()
 
         return behandling.opprettBeregning(
-            saksbehandler,
-            fraOgMed,
-            tilOgMed,
-            fradrag
+            nyBeregningForSøknadsbehandling
         ) // invoke first to perform state-check
             .mapLeft {
                 KunneIkkeBeregne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
             }
             .map {
                 behandlingRepo.leggTilBeregning(it.id, it.beregning()!!)
-                behandlingRepo.oppdaterBehandlingStatus(behandlingId, it.status())
+                behandlingRepo.oppdaterBehandlingStatus(nyBeregningForSøknadsbehandling.behandlingId, it.status())
                 it
             }
     }

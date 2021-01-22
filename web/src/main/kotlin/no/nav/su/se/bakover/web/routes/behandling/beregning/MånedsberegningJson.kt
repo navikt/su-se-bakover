@@ -1,7 +1,8 @@
-package no.nav.su.se.bakover.web.routes.behandling
+package no.nav.su.se.bakover.web.routes.behandling.beregning
 
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.web.routes.behandling.beregning.FradragJson.Companion.toJson
 import java.time.format.DateTimeFormatter
 import kotlin.math.roundToInt
 
@@ -22,8 +23,8 @@ internal fun Månedsberegning.toJson(epsFribeløp: Double, epsInputFradrag: List
     sats = getSats().name,
     grunnbeløp = getBenyttetGrunnbeløp(),
     beløp = getSumYtelse(),
-    fradrag = getFradrag().map { it.toJson() },
+    fradrag = getFradrag().toJson(),
     satsbeløp = getSatsbeløp().roundToInt(),
     epsFribeløp = epsFribeløp,
-    epsInputFradrag = epsInputFradrag.map { it.toJson() }
+    epsInputFradrag = epsInputFradrag.toJson()
 )

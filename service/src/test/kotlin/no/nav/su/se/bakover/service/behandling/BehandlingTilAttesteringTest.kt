@@ -20,13 +20,13 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
-import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.behandlingFactory
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.createService
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.doNothing
@@ -38,6 +38,7 @@ import org.junit.jupiter.api.Test
 import java.util.UUID
 
 class BehandlingTilAttesteringTest {
+
     private val sakId = UUID.randomUUID()
     private val saksnummer = Saksnummer(0)
     private val søknadId = UUID.randomUUID()
@@ -57,7 +58,7 @@ class BehandlingTilAttesteringTest {
         periodeList = listOf()
     )
 
-    private val simulertBehandling = BehandlingFactory(mock()).createBehandling(
+    private val simulertBehandling = behandlingFactory.createBehandling(
         søknad = Søknad.Journalført.MedOppgave(
             id = søknadId,
             opprettet = Tidspunkt.EPOCH,

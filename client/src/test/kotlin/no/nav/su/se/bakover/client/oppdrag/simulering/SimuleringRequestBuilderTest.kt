@@ -22,21 +22,21 @@ internal class SimuleringRequestBuilderTest {
             it.enhet[0].datoEnhetFom shouldBe utbetalingsRequest.oppdragsEnheter[0].datoEnhetFom
             it.enhet[0].enhet shouldBe utbetalingsRequest.oppdragsEnheter[0].enhet
             it.enhet[0].typeEnhet shouldBe utbetalingsRequest.oppdragsEnheter[0].typeEnhet
-            it.oppdragslinje[0].also {
-                it.delytelseId shouldBe utbetalingsRequest.oppdragslinjer[0].delytelseId
-                it.kodeEndringLinje shouldBe utbetalingsRequest.oppdragslinjer[0].kodeEndringLinje.value
-                it.sats shouldBe utbetalingsRequest.oppdragslinjer[0].sats.let { BigDecimal(it) }
-                it.typeSats shouldBe utbetalingsRequest.oppdragslinjer[0].typeSats.value
-                it.datoVedtakFom shouldBe utbetalingsRequest.oppdragslinjer[0].datoVedtakFom
-                it.datoVedtakTom shouldBe utbetalingsRequest.oppdragslinjer[0].datoVedtakTom
-                it.utbetalesTilId shouldBe utbetalingsRequest.oppdragslinjer[0].utbetalesTilId
-                it.refDelytelseId shouldBe utbetalingsRequest.oppdragslinjer[0].refDelytelseId
-                it.refFagsystemId shouldBe utbetalingsRequest.oppdragslinjer[0].refFagsystemId
-                it.kodeKlassifik shouldBe utbetalingsRequest.oppdragslinjer[0].kodeKlassifik
-                it.fradragTillegg shouldBe utbetalingsRequest.oppdragslinjer[0].fradragTillegg.value.let { FradragTillegg.valueOf(it) }
-                it.saksbehId shouldBe utbetalingsRequest.oppdragslinjer[0].saksbehId
-                it.brukKjoreplan shouldBe utbetalingsRequest.oppdragslinjer[0].brukKjoreplan
-                it.attestant[0].attestantId shouldBe utbetalingsRequest.oppdragslinjer[0].saksbehId
+            it.oppdragslinje[0].also { oppdragslinje ->
+                oppdragslinje.delytelseId shouldBe utbetalingsRequest.oppdragslinjer[0].delytelseId
+                oppdragslinje.kodeEndringLinje shouldBe utbetalingsRequest.oppdragslinjer[0].kodeEndringLinje.value
+                oppdragslinje.sats shouldBe BigDecimal(utbetalingsRequest.oppdragslinjer[0].sats)
+                oppdragslinje.typeSats shouldBe utbetalingsRequest.oppdragslinjer[0].typeSats.value
+                oppdragslinje.datoVedtakFom shouldBe utbetalingsRequest.oppdragslinjer[0].datoVedtakFom
+                oppdragslinje.datoVedtakTom shouldBe utbetalingsRequest.oppdragslinjer[0].datoVedtakTom
+                oppdragslinje.utbetalesTilId shouldBe utbetalingsRequest.oppdragslinjer[0].utbetalesTilId
+                oppdragslinje.refDelytelseId shouldBe utbetalingsRequest.oppdragslinjer[0].refDelytelseId
+                oppdragslinje.refFagsystemId shouldBe utbetalingsRequest.oppdragslinjer[0].refFagsystemId
+                oppdragslinje.kodeKlassifik shouldBe utbetalingsRequest.oppdragslinjer[0].kodeKlassifik
+                oppdragslinje.fradragTillegg shouldBe utbetalingsRequest.oppdragslinjer[0].fradragTillegg.value.let { FradragTillegg.valueOf(it) }
+                oppdragslinje.saksbehId shouldBe utbetalingsRequest.oppdragslinjer[0].saksbehId
+                oppdragslinje.brukKjoreplan shouldBe utbetalingsRequest.oppdragslinjer[0].brukKjoreplan
+                oppdragslinje.attestant[0].attestantId shouldBe utbetalingsRequest.oppdragslinjer[0].saksbehId
             }
         }
     }

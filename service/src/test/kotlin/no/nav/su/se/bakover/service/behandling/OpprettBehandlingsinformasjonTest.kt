@@ -20,12 +20,12 @@ import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.VILKÅRSVURDERT_INNVILGET
-import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.behandlingFactory
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.behandlingsinformasjon
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -42,7 +42,7 @@ internal class OpprettBehandlingsinformasjonTest {
     private val journalpostId = JournalpostId("j")
     private val behandlingMetricsMock = mock<BehandlingMetrics>()
     private fun opprettetBehandling(): Behandling {
-        return BehandlingFactory(behandlingMetricsMock).createBehandling(
+        return behandlingFactory.createBehandling(
             id = behandlingId,
             opprettet = BehandlingTestUtils.tidspunkt,
             behandlingsinformasjon = behandlingsinformasjon,

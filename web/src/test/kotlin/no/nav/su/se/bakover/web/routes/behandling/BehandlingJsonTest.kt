@@ -5,14 +5,14 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.web.FnrGenerator
-import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.behandlingFactory
+import no.nav.su.se.bakover.web.behandlingFactory
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.behandlingId
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.journalførtSøknadMedOppgave
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.nyBehandling
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.oppgaveId
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.sakId
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.saksnummer
-import no.nav.su.se.bakover.web.routes.behandling.BeregningJsonTest.Companion.expectedBeregningJson
+import no.nav.su.se.bakover.web.routes.behandling.beregning.BeregningJsonTest.Companion.expectedBeregningJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadJsonTest.Companion.søknadJsonString
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert

@@ -31,7 +31,7 @@ internal class EnsligBorMedVoksneBeregningTest {
      */
     @Test
     fun `beregningseksempel fra fagsiden`() {
-        val periode = Periode(1.mai(2020), 30.april(2021))
+        val periode = Periode.create(1.mai(2020), 30.april(2021))
 
         val arbeidsinntektPrÅr = 20000.0
         val folketrygdPrÅr = 14256.0
@@ -41,7 +41,7 @@ internal class EnsligBorMedVoksneBeregningTest {
         val folketrygdPrMnd = folketrygdPrÅr / 12
         val utenlandskInntektPrMnd = utenlandskInntektPrÅr / 12
 
-        val beregningsgrunnlag = Beregningsgrunnlag(
+        val beregningsgrunnlag = Beregningsgrunnlag.create(
             beregningsperiode = periode,
             forventetInntektPerÅr = 0.0,
             fradragFraSaksbehandler = listOf(
@@ -63,7 +63,7 @@ internal class EnsligBorMedVoksneBeregningTest {
                     type = Fradragstype.OffentligPensjon,
                     månedsbeløp = utenlandskInntektPrMnd,
                     periode = periode,
-                    utenlandskInntekt = UtenlandskInntekt(
+                    utenlandskInntekt = UtenlandskInntekt.create(
                         beløpIUtenlandskValuta = 10,
                         valuta = "Andebydollars",
                         kurs = 3.0

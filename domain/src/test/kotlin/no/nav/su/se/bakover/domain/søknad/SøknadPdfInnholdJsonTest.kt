@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.søknad
 
-import no.nav.su.se.bakover.common.ddMMyyyy
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Boforhold
 import no.nav.su.se.bakover.domain.InnlagtPåInstitusjon
 import no.nav.su.se.bakover.domain.Person
@@ -11,21 +11,23 @@ import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.fnrUnder67
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
+import java.time.Clock
 import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 class SøknadPdfInnholdJsonTest {
-
+    private val fixedClock: Clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC)
     private val søknadsId = UUID.randomUUID()
-    private val dagensDatoOgTidspunkt = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))
-    private val søknadPdfInnhold = SøknadPdfInnhold(
+    private val dagensDatoOgTidspunkt = LocalDateTime.now(fixedClock).format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))
+    private val søknadPdfInnhold = SøknadPdfInnhold.create(
         saksnummer = Saksnummer(2021),
         søknadsId = søknadsId,
         navn = Person.Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy"),
-        dagensDatoOgTidspunkt = dagensDatoOgTidspunkt,
-        søknadOpprettet = 1.januar(2021).ddMMyyyy(),
-        søknadInnhold = SøknadInnholdTestdataBuilder.build()
+        søknadOpprettet = 1.januar(2021).startOfDay(),
+        søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+        clock = fixedClock
     )
 
     @Test

@@ -27,14 +27,14 @@ internal class EnsligBeregningTest {
      */
     @Test
     fun `beregningseksempel fra fagsiden`() {
-        val periode = Periode(1.mai(2020), 30.april(2021))
+        val periode = Periode.create(1.mai(2020), 30.april(2021))
 
         val arbeidsinntektPrÅr = 180000.0
         val folketrygdPrÅr = 66323.0
         val arbeidsinntektPrMnd = arbeidsinntektPrÅr / 12
         val folketrygdPrMnd = folketrygdPrÅr / 12
 
-        val beregningsgrunnlag = Beregningsgrunnlag(
+        val beregningsgrunnlag = Beregningsgrunnlag.create(
             beregningsperiode = periode,
             forventetInntektPerÅr = 0.0,
             fradragFraSaksbehandler = listOf(

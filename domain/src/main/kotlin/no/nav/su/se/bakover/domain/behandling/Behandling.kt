@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
@@ -14,7 +13,7 @@ import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning.vurde
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.beregning.NyBeregningForSøknadsbehandling
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.Hendelse
@@ -116,12 +115,9 @@ data class Behandling internal constructor(
     }
 
     fun opprettBeregning(
-        saksbehandler: Saksbehandler,
-        fraOgMed: LocalDate,
-        tilOgMed: LocalDate,
-        fradrag: List<Fradrag> = emptyList()
+        nyBeregningForSøknadsbehandling: NyBeregningForSøknadsbehandling
     ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
-        return tilstand.opprettBeregning(saksbehandler, fraOgMed, tilOgMed, fradrag)
+        return tilstand.opprettBeregning(nyBeregningForSøknadsbehandling)
     }
 
     fun leggTilSimulering(
@@ -179,10 +175,7 @@ data class Behandling internal constructor(
         }
 
         fun opprettBeregning(
-            saksbehandler: Saksbehandler,
-            fraOgMed: LocalDate,
-            tilOgMed: LocalDate,
-            fradrag: List<Fradrag>
+            nyBeregningForSøknadsbehandling: NyBeregningForSøknadsbehandling
         ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
             throw TilstandException(status, this::opprettBeregning.toString())
         }
@@ -275,19 +268,16 @@ data class Behandling internal constructor(
 
         inner class Innvilget : Vilkårsvurdert() {
             override fun opprettBeregning(
-                saksbehandler: Saksbehandler,
-                fraOgMed: LocalDate,
-                tilOgMed: LocalDate,
-                fradrag: List<Fradrag>
+                nyBeregningForSøknadsbehandling: NyBeregningForSøknadsbehandling
             ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
-                if (erAttestantOgSakbehandlerSammePerson(saksbehandler)) {
+                if (erAttestantOgSakbehandlerSammePerson(nyBeregningForSøknadsbehandling.saksbehandler)) {
                     return AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
                 }
 
-                val beregningsgrunnlag = Beregningsgrunnlag(
-                    beregningsperiode = Periode(fraOgMed, tilOgMed),
+                val beregningsgrunnlag = Beregningsgrunnlag.create(
+                    beregningsperiode = nyBeregningForSøknadsbehandling.stønadsperiode.periode,
                     forventetInntektPerÅr = behandlingsinformasjon.uførhet?.forventetInntekt?.toDouble() ?: 0.0,
-                    fradragFraSaksbehandler = fradrag
+                    fradragFraSaksbehandler = nyBeregningForSøknadsbehandling.fradrag
                 )
 
                 val strategy = this@Behandling.behandlingsinformasjon.bosituasjon!!.getBeregningStrategy()
@@ -324,12 +314,9 @@ data class Behandling internal constructor(
         override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET_INNVILGET
 
         override fun opprettBeregning(
-            saksbehandler: Saksbehandler,
-            fraOgMed: LocalDate,
-            tilOgMed: LocalDate,
-            fradrag: List<Fradrag>
+            nyBeregningForSøknadsbehandling: NyBeregningForSøknadsbehandling
         ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
-            return nyTilstand(Vilkårsvurdert()).opprettBeregning(saksbehandler, fraOgMed, tilOgMed, fradrag)
+            return nyTilstand(Vilkårsvurdert()).opprettBeregning(nyBeregningForSøknadsbehandling)
         }
 
         override fun oppdaterBehandlingsinformasjon(
@@ -404,12 +391,9 @@ data class Behandling internal constructor(
         }
 
         override fun opprettBeregning(
-            saksbehandler: Saksbehandler,
-            fraOgMed: LocalDate,
-            tilOgMed: LocalDate,
-            fradrag: List<Fradrag>
+            nyBeregningForSøknadsbehandling: NyBeregningForSøknadsbehandling
         ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
-            return nyTilstand(Vilkårsvurdert().Innvilget()).opprettBeregning(saksbehandler, fraOgMed, tilOgMed, fradrag)
+            return nyTilstand(Vilkårsvurdert().Innvilget()).opprettBeregning(nyBeregningForSøknadsbehandling)
         }
 
         override fun oppdaterBehandlingsinformasjon(
@@ -530,16 +514,10 @@ data class Behandling internal constructor(
             }
 
             override fun opprettBeregning(
-                saksbehandler: Saksbehandler,
-                fraOgMed: LocalDate,
-                tilOgMed: LocalDate,
-                fradrag: List<Fradrag>
+                nyBeregningForSøknadsbehandling: NyBeregningForSøknadsbehandling
             ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
                 return nyTilstand(Vilkårsvurdert().Innvilget()).opprettBeregning(
-                    saksbehandler,
-                    fraOgMed,
-                    tilOgMed,
-                    fradrag
+                    nyBeregningForSøknadsbehandling
                 )
             }
 
@@ -566,18 +544,12 @@ data class Behandling internal constructor(
             }
 
             override fun opprettBeregning(
-                saksbehandler: Saksbehandler,
-                fraOgMed: LocalDate,
-                tilOgMed: LocalDate,
-                fradrag: List<Fradrag>
+                nyBeregningForSøknadsbehandling: NyBeregningForSøknadsbehandling
             ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, Behandling> {
                 // er samme logikk som brukes fra Opprettet::opprettBeregning
                 if (this@Behandling.behandlingsinformasjon.erInnvilget()) {
                     return nyTilstand(Vilkårsvurdert().Innvilget()).opprettBeregning(
-                        saksbehandler,
-                        fraOgMed,
-                        tilOgMed,
-                        fradrag
+                        nyBeregningForSøknadsbehandling
                     )
                 }
                 throw TilstandException(status, this::sendTilAttestering.toString())

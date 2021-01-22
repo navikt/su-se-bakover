@@ -12,6 +12,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.mars
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -21,11 +22,13 @@ import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.BEREGNET_INNVILGET
-import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
+import no.nav.su.se.bakover.domain.beregning.NyBeregningForSøknadsbehandling
+import no.nav.su.se.bakover.domain.beregning.Stønadsperiode
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.behandlingFactory
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.behandlingsinformasjon
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.tidspunkt
 import org.junit.jupiter.api.Test
@@ -43,7 +46,7 @@ class BehandlingBeregningTest {
     private val behandlingMetricsMock = mock<BehandlingMetrics>()
     private fun vilkårsvurdertBehandling(): Behandling {
 
-        return BehandlingFactory(behandlingMetricsMock).createBehandling(
+        return behandlingFactory.createBehandling(
             id = behandlingId,
             opprettet = tidspunkt,
             behandlingsinformasjon = behandlingsinformasjon,
@@ -66,7 +69,7 @@ class BehandlingBeregningTest {
     }
 
     @Test
-    fun `oppretter  beregning`() {
+    fun `oppretter beregning`() {
         val behandlingRepoMock = mock<BehandlingRepo> {
             on { hentBehandling(any()) } doReturn vilkårsvurdertBehandling()
         }
@@ -75,7 +78,13 @@ class BehandlingBeregningTest {
             behandlingRepo = behandlingRepoMock,
             behandlingMetrics = behandlingMetricsMock,
             microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
-        ).opprettBeregning(behandlingId, saksbehandler, 1.desember(2020), 31.mars(2021), emptyList())
+        ).opprettBeregning(
+            NyBeregningForSøknadsbehandling.create(
+                behandlingId = behandlingId,
+                saksbehandler = saksbehandler,
+                stønadsperiode = Stønadsperiode.create(Periode.create(1.desember(2021), 31.mars(2022)))
+            )
+        )
 
         response shouldBe vilkårsvurdertBehandling().copy(
             status = BEREGNET_INNVILGET,
@@ -105,7 +114,13 @@ class BehandlingBeregningTest {
             behandlingRepo = behandlingRepoMock,
             behandlingMetrics = behandlingMetricsMock,
             microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
-        ).opprettBeregning(behandlingId, saksbehandler, 1.desember(2020), 31.mars(2021), emptyList())
+        ).opprettBeregning(
+            NyBeregningForSøknadsbehandling.create(
+                behandlingId = behandlingId,
+                saksbehandler = saksbehandler,
+                stønadsperiode = Stønadsperiode.create(Periode.create(1.desember(2021), 31.mars(2022)))
+            )
+        )
 
         response shouldBe KunneIkkeBeregne.FantIkkeBehandling.left()
 
@@ -126,7 +141,13 @@ class BehandlingBeregningTest {
             behandlingRepo = behandlingRepoMock,
             behandlingMetrics = behandlingMetricsMock,
             microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
-        ).opprettBeregning(behandlingId, saksbehandler, 1.desember(2020), 31.mars(2021), emptyList())
+        ).opprettBeregning(
+            NyBeregningForSøknadsbehandling.create(
+                behandlingId = behandlingId,
+                saksbehandler = saksbehandler,
+                stønadsperiode = Stønadsperiode.create(Periode.create(1.desember(2021), 31.mars(2022)))
+            )
+        )
 
         response shouldBe KunneIkkeBeregne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
 

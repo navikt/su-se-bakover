@@ -18,11 +18,11 @@ import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.doNothing
+import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import org.junit.jupiter.api.Test
-import java.time.Clock
 import java.util.UUID
 
 internal class OpprettSøknadsbehandlingTest {
@@ -60,7 +60,7 @@ internal class OpprettSøknadsbehandlingTest {
             personService = mock(),
             brevService = mock(),
             behandlingMetrics = mock(),
-            clock = Clock.systemUTC(),
+            clock = fixedClock,
             microsoftGraphApiClient = mock(),
             iverksettBehandlingService = mock(),
             ferdigstillIverksettingService = mock(),

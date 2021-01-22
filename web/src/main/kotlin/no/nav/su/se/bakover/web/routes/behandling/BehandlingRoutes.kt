@@ -16,14 +16,11 @@ import io.ktor.routing.get
 import io.ktor.routing.patch
 import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.service.behandling.IverksattBehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeBeregne
@@ -40,13 +37,14 @@ import no.nav.su.se.bakover.web.deserialize
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.message
+import no.nav.su.se.bakover.web.routes.behandling.beregning.NyBeregningForSøknadsbehandlingJson
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.toUUID
 import no.nav.su.se.bakover.web.withBehandlingId
+import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withSakId
 import org.slf4j.LoggerFactory
-import java.time.LocalDate
 
 internal const val behandlingPath = "$sakPath/{sakId}/behandlinger"
 
@@ -136,54 +134,28 @@ internal fun Route.behandlingRoutes(
         }
     }
 
-    data class OpprettBeregningBody(
-        val fraOgMed: LocalDate,
-        val tilOgMed: LocalDate,
-        val fradrag: List<FradragJson>
-    ) {
-        fun isValid() = fraOgMed.dayOfMonth == 1 &&
-            tilOgMed.dayOfMonth == tilOgMed.lengthOfMonth() &&
-            fradrag.all {
-                Fradragstype.isValid(it.type) &&
-                    enumContains<FradragTilhører>(it.tilhører) &&
-                    it.utenlandskInntekt?.isValid() ?: true
-            }
-    }
-
     authorize(Brukerrolle.Saksbehandler) {
         post("$behandlingPath/{behandlingId}/beregn") {
             call.withBehandlingId { behandlingId ->
-                Either.catch { deserialize<OpprettBeregningBody>(call) }.fold(
-                    ifLeft = {
-                        log.info("Ugyldig behandling-body: ", it)
-                        call.svar(BadRequest.message("Ugyldig body"))
-                    },
-                    ifRight = { body ->
-                        if (body.isValid()) {
-                            val beregningsperiode = Periode(body.fraOgMed, body.tilOgMed)
-                            behandlingService.opprettBeregning(
-                                saksbehandler = Saksbehandler(call.suUserContext.getNAVIdent()),
-                                behandlingId = behandlingId,
-                                fraOgMed = beregningsperiode.getFraOgMed(),
-                                tilOgMed = beregningsperiode.getTilOgMed(),
-                                fradrag = body.fradrag.map { it.toFradrag(beregningsperiode = beregningsperiode) }
-                            ).mapLeft {
-                                val resultat = when (it) {
-                                    KunneIkkeBeregne.FantIkkeBehandling -> NotFound.message("Fant ikke behandling")
-                                    KunneIkkeBeregne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> BadRequest.message(
-                                        "Attestant og saksbehandler kan ikke være samme person"
-                                    )
+                call.withBody<NyBeregningForSøknadsbehandlingJson> { body ->
+                    body.toDomain(behandlingId, Saksbehandler(call.suUserContext.getNAVIdent()))
+                        .mapLeft { call.svar(it) }
+                        .map {
+                            behandlingService.opprettBeregning(it)
+                                .mapLeft { kunneIkkeBeregne ->
+                                    val resultat = when (kunneIkkeBeregne) {
+                                        KunneIkkeBeregne.FantIkkeBehandling -> NotFound.message("Fant ikke behandling")
+                                        KunneIkkeBeregne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> {
+                                            BadRequest.message("Attestant og saksbehandler kan ikke være samme person")
+                                        }
+                                    }
+                                    call.svar(resultat)
+                                }.map { behandling ->
+                                    call.audit("Opprettet en ny beregning på søknadsbehandling med id $behandlingId")
+                                    call.svar(Created.jsonBody(behandling))
                                 }
-                                call.svar(resultat)
-                            }.map {
-                                call.audit("Opprettet en ny beregning på behandling med id $behandlingId")
-                                call.svar(Created.jsonBody(it))
-                            }
-                        } else {
-                            call.svar(BadRequest.message("Ugyldige input-parametere for: $body"))
                         }
-                    }
-                )
+                }
             }
         }
     }

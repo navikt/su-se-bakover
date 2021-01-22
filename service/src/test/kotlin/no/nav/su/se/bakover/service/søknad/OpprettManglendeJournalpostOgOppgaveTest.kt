@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.doNothing
+import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
@@ -79,7 +80,8 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             dokArkiv = mock(),
             personService = mock(),
             oppgaveService = mock(),
-            søknadMetrics = mock()
+            søknadMetrics = mock(),
+            clock = fixedClock,
         )
 
         val actual = søknadService.opprettManglendeJournalpostOgOppgave()
@@ -114,7 +116,8 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             dokArkiv = mock(),
             personService = mock(),
             oppgaveService = mock(),
-            søknadMetrics = mock()
+            søknadMetrics = mock(),
+            clock = fixedClock,
         )
 
         val actual = søknadService.opprettManglendeJournalpostOgOppgave()
@@ -158,7 +161,8 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             dokArkiv = mock(),
             personService = personServiceMock,
             oppgaveService = mock(),
-            søknadMetrics = mock()
+            søknadMetrics = mock(),
+            clock = fixedClock,
         )
 
         val actual = søknadService.opprettManglendeJournalpostOgOppgave()
@@ -208,7 +212,8 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             dokArkiv = mock(),
             personService = personServiceMock,
             oppgaveService = mock(),
-            søknadMetrics = mock()
+            søknadMetrics = mock(),
+            clock = fixedClock,
         )
 
         val actual = søknadService.opprettManglendeJournalpostOgOppgave()
@@ -227,12 +232,13 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
             verify(pdfGeneratorMock).genererPdf(
                 argThat<SøknadPdfInnhold> {
-                    it shouldBe SøknadPdfInnhold(
+                    it shouldBe SøknadPdfInnhold.create(
                         saksnummer = sak.saksnummer,
                         søknadsId = it.søknadsId,
                         navn = person.navn,
-                        søknadOpprettet = it.søknadOpprettet,
+                        søknadOpprettet = nySøknad.opprettet,
                         søknadInnhold = søknadInnhold,
+                        clock = fixedClock,
                     )
                 }
             )
@@ -268,7 +274,8 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             dokArkiv = mock(),
             personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
-            søknadMetrics = mock()
+            søknadMetrics = mock(),
+            clock = fixedClock,
         )
 
         val actual = søknadService.opprettManglendeJournalpostOgOppgave()
@@ -339,7 +346,8 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             dokArkiv = dokArkivMock,
             personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
-            søknadMetrics = mock()
+            søknadMetrics = mock(),
+            clock = fixedClock,
         )
 
         val actual = søknadService.opprettManglendeJournalpostOgOppgave()
@@ -361,12 +369,13 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
             verify(pdfGeneratorMock).genererPdf(
                 argThat<SøknadPdfInnhold> {
-                    it shouldBe SøknadPdfInnhold(
+                    it shouldBe SøknadPdfInnhold.create(
                         saksnummer = sak.saksnummer,
                         søknadsId = it.søknadsId,
                         navn = person.navn,
-                        søknadOpprettet = it.søknadOpprettet,
+                        søknadOpprettet = nySøknad.opprettet,
                         søknadInnhold = søknadInnhold,
+                        clock = fixedClock,
                     )
                 }
             )

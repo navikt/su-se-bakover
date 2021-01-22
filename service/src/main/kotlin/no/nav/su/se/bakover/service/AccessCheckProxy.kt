@@ -18,7 +18,7 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.beregning.NyBeregningForSøknadsbehandling
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
@@ -65,7 +65,6 @@ import no.nav.su.se.bakover.service.utbetaling.KunneIkkeGjenopptaUtbetalinger
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeStanseUtbetalinger
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
-import java.time.LocalDate
 import java.util.UUID
 
 open class AccessCheckProxy(
@@ -170,21 +169,11 @@ open class AccessCheckProxy(
                 }
 
                 override fun opprettBeregning(
-                    behandlingId: UUID,
-                    saksbehandler: NavIdentBruker.Saksbehandler,
-                    fraOgMed: LocalDate,
-                    tilOgMed: LocalDate,
-                    fradrag: List<Fradrag>
+                    nyBeregningForSøknadsbehandling: NyBeregningForSøknadsbehandling
                 ): Either<KunneIkkeBeregne, Behandling> {
-                    assertHarTilgangTilBehandling(behandlingId)
+                    assertHarTilgangTilBehandling(nyBeregningForSøknadsbehandling.behandlingId)
 
-                    return services.behandling.opprettBeregning(
-                        behandlingId,
-                        saksbehandler,
-                        fraOgMed,
-                        tilOgMed,
-                        fradrag
-                    )
+                    return services.behandling.opprettBeregning(nyBeregningForSøknadsbehandling)
                 }
 
                 override fun simuler(

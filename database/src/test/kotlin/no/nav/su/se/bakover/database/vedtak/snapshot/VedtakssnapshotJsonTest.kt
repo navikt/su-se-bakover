@@ -2,8 +2,10 @@ package no.nav.su.se.bakover.database.vedtak.snapshot
 
 import com.nhaarman.mockitokotlin2.mock
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.beregning.PersistertFradrag
 import no.nav.su.se.bakover.database.beregning.PersistertMånedsberegning
@@ -38,12 +40,15 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
+import java.time.Clock
 import java.time.LocalDate
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.util.UUID
 
 internal class VedtakssnapshotJsonTest {
+
+    private val fixedClock: Clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC)
 
     private val sakId = "7a8b4a95-9736-4f79-bb38-e1d4a7c42799"
     private val saksnummer = 1234L
@@ -52,11 +57,11 @@ internal class VedtakssnapshotJsonTest {
     private val avslagId = "06015ac6-07ef-4017-bd04-1e7b87b160fa"
     private val beregningId = "4111d5ee-0215-4d0f-94fc-0959f900ef2e"
     private val tidspunkt = Tidspunkt(ZonedDateTime.of(1970, 1, 1, 1, 2, 3, 456789000, ZoneOffset.UTC).toInstant())
-    private val beregningsPeriode = Periode(LocalDate.EPOCH, LocalDate.EPOCH.plusDays(30))
+    private val beregningsPeriode = Periode.create(LocalDate.of(2021, 1, 1), LocalDate.of(2021, 1, 31))
 
     private val fnr = Fnr("12345678910")
 
-    private val behandling = BehandlingFactory(mock()).createBehandling(
+    private val behandling = BehandlingFactory(mock(), fixedClock).createBehandling(
         id = UUID.fromString(behandlingId),
         opprettet = tidspunkt,
         sakId = UUID.fromString(sakId),
@@ -352,7 +357,7 @@ internal class VedtakssnapshotJsonTest {
             PersistertFradrag(
                 fradragstype = Arbeidsinntekt,
                 månedsbeløp = 155.9,
-                utenlandskInntekt = UtenlandskInntekt(
+                utenlandskInntekt = UtenlandskInntekt.create(
                     beløpIUtenlandskValuta = 12345,
                     valuta = "Simoleons",
                     kurs = 129.0
@@ -471,15 +476,15 @@ internal class VedtakssnapshotJsonTest {
                                         "kurs": 129.0
                                     },
                                     "periode":{
-                                        "fraOgMed":"1970-01-01",
-                                        "tilOgMed":"1970-01-31"
+                                        "fraOgMed":"2021-01-01",
+                                        "tilOgMed":"2021-01-31"
                                     },
                                     "tilhører":"BRUKER"
                                 }
                             ],
                             "periode":{
-                                "fraOgMed":"1970-01-01",
-                                "tilOgMed":"1970-01-31"
+                                "fraOgMed":"2021-01-01",
+                                "tilOgMed":"2021-01-31"
                             }
                         }
                     ],
@@ -493,8 +498,8 @@ internal class VedtakssnapshotJsonTest {
                             "kurs": 129.0
                         },
                         "periode":{
-                            "fraOgMed":"1970-01-01",
-                            "tilOgMed":"1970-01-31"
+                            "fraOgMed":"2021-01-01",
+                            "tilOgMed":"2021-01-31"
                         },
                         "tilhører":"BRUKER"
                       }                        
@@ -502,8 +507,8 @@ internal class VedtakssnapshotJsonTest {
                     "sumYtelse":3,
                     "sumFradrag":2.1,
                     "periode":{
-                        "fraOgMed":"1970-01-01",
-                        "tilOgMed":"1970-01-31"
+                        "fraOgMed":"2021-01-01",
+                        "tilOgMed":"2021-01-31"
                     },
                     "fradragStrategyName":"Enslig"
                 },

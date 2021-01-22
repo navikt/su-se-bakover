@@ -24,7 +24,6 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
-import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
@@ -33,6 +32,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.behandlingFactory
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import org.junit.jupiter.api.Test
@@ -66,7 +66,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
     private val saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler")
     private val attestant = NavIdentBruker.Attestant("attestant")
 
-    private val innvilgetBehandlingUtenJournalpost = BehandlingFactory(mock()).createBehandling(
+    private val innvilgetBehandlingUtenJournalpost = behandlingFactory.createBehandling(
         søknad = Søknad.Journalført.MedOppgave(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.EPOCH,

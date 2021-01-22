@@ -23,13 +23,13 @@ internal class LagBrevinnholdForBeregningTest {
     @Test
     fun `Lagbrevinnhold for beregning med samme fradrag hele perioden`() {
         val beregning = BeregningFactory.ny(
-            periode = Periode(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
+            periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
             sats = Sats.HØY,
             fradrag = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.ForventetInntekt,
                     månedsbeløp = 1000.0,
-                    periode = Periode(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
+                    periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER
                 )
@@ -62,27 +62,27 @@ internal class LagBrevinnholdForBeregningTest {
     @Test
     fun `Lagbrevinnhold for beregning med ulike perioder`() {
         val beregning = BeregningFactory.ny(
-            periode = Periode(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
+            periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
             sats = Sats.HØY,
             fradrag = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.ForventetInntekt,
                     månedsbeløp = 1000.0,
-                    periode = Periode(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
+                    periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER
                 ),
                 FradragFactory.ny(
                     type = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = 9999.0,
-                    periode = Periode(fraOgMed = 1.juni(2020), tilOgMed = 31.august(2020)),
+                    periode = Periode.create(fraOgMed = 1.juni(2020), tilOgMed = 31.august(2020)),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER
                 ),
                 FradragFactory.ny(
                     type = Fradragstype.Sosialstønad,
                     månedsbeløp = 2000.0,
-                    periode = Periode(fraOgMed = 1.juni(2020), tilOgMed = 31.august(2020)),
+                    periode = Periode.create(fraOgMed = 1.juni(2020), tilOgMed = 31.august(2020)),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER
                 )
@@ -158,27 +158,27 @@ internal class LagBrevinnholdForBeregningTest {
     @Test
     fun `lager brevinnhold for beregninger med fradrag for EPS`() {
         val beregning = BeregningFactory.ny(
-            periode = Periode(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
+            periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
             sats = Sats.HØY,
             fradrag = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.ForventetInntekt,
                     månedsbeløp = 1000.0,
-                    periode = Periode(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
+                    periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER
                 ),
                 FradragFactory.ny(
                     type = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = 20000.0,
-                    periode = Periode(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
+                    periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.EPS
                 ),
                 FradragFactory.ny(
                     type = Fradragstype.Kapitalinntekt,
                     månedsbeløp = 1000.0,
-                    periode = Periode(fraOgMed = 1.desember(2020), tilOgMed = 31.desember(2020)),
+                    periode = Periode.create(fraOgMed = 1.desember(2020), tilOgMed = 31.desember(2020)),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.EPS
                 ),
@@ -306,7 +306,7 @@ internal class LagBrevinnholdForBeregningTest {
                     Månedsfradrag(
                         type = Fradragstype.OffentligPensjon.toReadableTypeName(utenlandsk = true),
                         beløp = 70.0,
-                        utenlandskInntekt = UtenlandskInntekt(
+                        utenlandskInntekt = UtenlandskInntekt.create(
                             beløpIUtenlandskValuta = 140,
                             valuta = "SEK",
                             kurs = 0.5
@@ -388,20 +388,20 @@ internal class LagBrevinnholdForBeregningTest {
     @Test
     fun `Fradrag for eps er tom liste hvis beløp er lavere enn fribeløp`() {
         val beregning = BeregningFactory.ny(
-            periode = Periode(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
+            periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
             sats = Sats.HØY,
             fradrag = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.ForventetInntekt,
                     månedsbeløp = 1000.0,
-                    periode = Periode(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
+                    periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER
                 ),
                 FradragFactory.ny(
                     type = Fradragstype.Introduksjonsstønad,
                     månedsbeløp = 3000.0,
-                    periode = Periode(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
+                    periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.EPS
                 )
@@ -437,34 +437,34 @@ internal class LagBrevinnholdForBeregningTest {
     @Test
     fun `Tar med alle fradrag for eps hvis sum av fradagen er høyere enn fribeløp`() {
         val beregning = BeregningFactory.ny(
-            periode = Periode(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
+            periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
             sats = Sats.HØY,
             fradrag = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.ForventetInntekt,
                     månedsbeløp = 1000.0,
-                    periode = Periode(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
+                    periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER
                 ),
                 FradragFactory.ny(
                     type = Fradragstype.Kontantstøtte,
                     månedsbeløp = 6000.0,
-                    periode = Periode(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
+                    periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.EPS
                 ),
                 FradragFactory.ny(
                     type = Fradragstype.Introduksjonsstønad,
                     månedsbeløp = 6000.0,
-                    periode = Periode(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
+                    periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.EPS
                 ),
                 FradragFactory.ny(
                     type = Fradragstype.BidragEtterEkteskapsloven,
                     månedsbeløp = 6000.0,
-                    periode = Periode(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
+                    periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.EPS
                 )

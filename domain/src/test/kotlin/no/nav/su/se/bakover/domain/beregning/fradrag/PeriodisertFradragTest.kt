@@ -13,7 +13,7 @@ internal class PeriodisertFradragTest {
             PeriodisertFradrag(
                 type = Fradragstype.Arbeidsinntekt,
                 månedsbeløp = 2000.0,
-                periode = Periode(1.januar(2020), 30.april(2002)),
+                periode = Periode.create(1.januar(2020), 30.april(2002)),
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.BRUKER
             )

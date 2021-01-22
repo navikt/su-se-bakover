@@ -17,11 +17,11 @@ import org.junit.jupiter.api.Test
 internal class BeregningStrategyTest {
     @Test
     fun `videresender korrekte verdier`() {
-        val periode = Periode(
+        val periode = Periode.create(
             fraOgMed = 1.januar(2020),
             tilOgMed = 31.desember(2020)
         )
-        val beregningsgrunnlag = Beregningsgrunnlag(
+        val beregningsgrunnlag = Beregningsgrunnlag.create(
             beregningsperiode = periode,
             forventetInntektPerÅr = 12000.0,
             fradragFraSaksbehandler = listOf(

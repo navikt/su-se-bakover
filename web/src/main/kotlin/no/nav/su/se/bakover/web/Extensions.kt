@@ -72,3 +72,10 @@ suspend fun ApplicationCall.withBehandlingId(ifRight: suspend (UUID) -> Unit) {
         ifRight = { ifRight(it) }
     )
 }
+
+internal suspend inline fun <reified T> ApplicationCall.withBody(ifRight: (T) -> Unit) {
+    Either.catch { deserialize<T>(this) }.fold(
+        ifLeft = { this.svar(HttpStatusCode.BadRequest.message("Ugyldig body")) },
+        ifRight = { ifRight(it) }
+    )
+}

@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.IverksattBehandling
 import no.nav.su.se.bakover.service.doNothing
+import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.person.PersonService
 import org.junit.jupiter.api.Test
 import java.time.Clock
@@ -44,7 +45,7 @@ internal class StatistikkServiceImplTest {
             on { publiser(any(), any()) }.doNothing()
         }
 
-        StatistikkServiceImpl(kafkaPublisherMock, mock()).publiser(StatistikkSchemaValidatorTest.gyldigSak)
+        StatistikkServiceImpl(kafkaPublisherMock, mock(), fixedClock).publiser(StatistikkSchemaValidatorTest.gyldigSak)
         verify(kafkaPublisherMock).publiser(
             argThat { it shouldBe sakTopicName },
             argThat { it shouldBe objectMapper.writeValueAsString(StatistikkSchemaValidatorTest.gyldigSak) }
@@ -57,7 +58,7 @@ internal class StatistikkServiceImplTest {
             on { publiser(any(), any()) }.doNothing()
         }
 
-        StatistikkServiceImpl(kafkaPublisherMock, mock()).publiser(StatistikkSchemaValidatorTest.gyldigBehandling)
+        StatistikkServiceImpl(kafkaPublisherMock, mock(), fixedClock).publiser(StatistikkSchemaValidatorTest.gyldigBehandling)
         verify(kafkaPublisherMock).publiser(
             argThat { it shouldBe behandlingTopicName },
             argThat { it shouldBe objectMapper.writeValueAsString(StatistikkSchemaValidatorTest.gyldigBehandling) }
@@ -76,7 +77,7 @@ internal class StatistikkServiceImplTest {
         val sak = Sak(
             id = UUID.randomUUID(),
             saksnummer = Saksnummer(nummer = 2021),
-            opprettet = Tidspunkt.now(),
+            opprettet = Tidspunkt.now(fixedClock),
             fnr = FnrGenerator.random(),
             søknader = listOf(),
             behandlinger = listOf(),
@@ -208,7 +209,7 @@ internal class StatistikkServiceImplTest {
         val søknadMock: Søknad.Journalført.MedOppgave = mock { on { søknadInnhold } doReturn SøknadInnholdTestdataBuilder.build() }
         val clock = Clock.fixed(1.januar(2020).endOfDay(ZoneOffset.UTC).instant, ZoneOffset.UTC)
         val beregning: Beregning = mock {
-            on { getPeriode() } doReturn Periode(1.januar(2021), 31.januar(2021))
+            on { getPeriode() } doReturn Periode.create(1.januar(2021), 31.januar(2021))
         }
 
         val behandling: Behandling = mock {

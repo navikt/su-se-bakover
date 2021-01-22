@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.routes.behandling
+package no.nav.su.se.bakover.web.routes.behandling.beregning
 
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
@@ -7,14 +7,11 @@ import no.nav.su.se.bakover.domain.beregning.MånedsberegningFactory
 import no.nav.su.se.bakover.domain.beregning.Sats
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
-import java.util.UUID
 
 internal class MånedsberegningJsonTest {
     companion object {
-        private val uuid = UUID.randomUUID()
-
         //language=JSON
-        internal val expectedMånedsberegningJson =
+        internal const val expectedMånedsberegningJson =
             """
             {
                 "fraOgMed":"2020-01-01",
@@ -30,7 +27,7 @@ internal class MånedsberegningJsonTest {
         """
 
         internal val månedsberegning = MånedsberegningFactory.ny(
-            periode = Periode(1.januar(2020), 31.januar(2020)),
+            periode = Periode.create(1.januar(2020), 31.januar(2020)),
             sats = Sats.HØY,
             fradrag = emptyList(),
         )

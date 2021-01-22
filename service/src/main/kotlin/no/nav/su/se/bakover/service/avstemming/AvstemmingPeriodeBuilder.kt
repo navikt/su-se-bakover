@@ -11,7 +11,7 @@ import java.time.temporal.ChronoUnit
 
 internal class AvstemmingPeriodeBuilder(
     private val sisteAvstemming: Avstemming?,
-    private val clock: Clock = Clock.systemUTC()
+    private val clock: Clock,
 ) {
 
     fun build() = when (sisteAvstemming) {

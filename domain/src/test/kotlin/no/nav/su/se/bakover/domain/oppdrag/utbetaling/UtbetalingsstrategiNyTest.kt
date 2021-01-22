@@ -285,20 +285,20 @@ internal class UtbetalingsstrategiNyTest {
             utbetalinger = emptyList(),
             behandler = NavIdentBruker.Saksbehandler("Z123"),
             beregning = BeregningFactory.ny(
-                periode = Periode(1.januar(2020), 30.april(2020)),
+                periode = Periode.create(1.januar(2020), 30.april(2020)),
                 sats = Sats.HØY,
                 fradrag = listOf(
                     FradragFactory.ny(
                         type = Fradragstype.ForventetInntekt,
                         månedsbeløp = 1000.0,
-                        periode = Periode(fraOgMed = 1.januar(2020), tilOgMed = 30.april(2020)),
+                        periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 30.april(2020)),
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER
                     ),
                     FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
                         månedsbeløp = 4000.0,
-                        periode = Periode(fraOgMed = 1.februar(2020), tilOgMed = 29.februar(2020)),
+                        periode = Periode.create(fraOgMed = 1.februar(2020), tilOgMed = 29.februar(2020)),
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER
                     )
@@ -381,13 +381,13 @@ internal class UtbetalingsstrategiNyTest {
     }
 
     private fun createBeregning(fraOgMed: LocalDate, tilOgMed: LocalDate) = BeregningFactory.ny(
-        periode = Periode(fraOgMed, tilOgMed),
+        periode = Periode.create(fraOgMed, tilOgMed),
         sats = Sats.HØY,
         fradrag = listOf(
             FradragFactory.ny(
                 type = Fradragstype.ForventetInntekt,
                 månedsbeløp = 0.0,
-                periode = Periode(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
+                periode = Periode.create(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.BRUKER
             )

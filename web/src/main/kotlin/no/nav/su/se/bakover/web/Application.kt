@@ -89,18 +89,25 @@ fun main(args: Array<String>) {
 
 @OptIn(io.ktor.locations.KtorExperimentalLocationsAPI::class, KtorExperimentalAPI::class)
 internal fun Application.susebakover(
+    clock: Clock,
     behandlingMetrics: BehandlingMetrics = BehandlingMicrometerMetrics(),
     søknadMetrics: SøknadMetrics = SøknadMicrometerMetrics(),
-    behandlingFactory: BehandlingFactory = BehandlingFactory(behandlingMetrics),
+    behandlingFactory: BehandlingFactory = BehandlingFactory(behandlingMetrics, clock),
     applicationConfig: ApplicationConfig = ApplicationConfig.createConfig(),
     databaseRepos: DatabaseRepos = DatabaseBuilder.build(behandlingFactory, applicationConfig.database),
     jmsConfig: JmsConfig = JmsConfig(applicationConfig),
     clients: Clients = if (applicationConfig.isLocalOrRunningTests) StubClientsBuilder.build(applicationConfig) else ProdClientsBuilder(
-        jmsConfig
+        jmsConfig,
+        clock = clock,
     ).build(applicationConfig),
-    services: Services = ServiceBuilder(databaseRepos, clients, behandlingMetrics, søknadMetrics).build(),
+    services: Services = ServiceBuilder(
+        databaseRepos = databaseRepos,
+        clients = clients,
+        behandlingMetrics = behandlingMetrics,
+        søknadMetrics = søknadMetrics,
+        clock = clock
+    ).build(),
     accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
-    clock: Clock = Clock.systemUTC()
 ) {
     install(CORS) {
         method(Options)
@@ -237,6 +244,7 @@ internal fun Application.susebakover(
             kvitteringConsumer = UtbetalingKvitteringConsumer(
                 utbetalingService = services.utbetaling,
                 behandlingService = services.behandling,
+                clock = clock,
             )
         )
         AvstemmingJob(

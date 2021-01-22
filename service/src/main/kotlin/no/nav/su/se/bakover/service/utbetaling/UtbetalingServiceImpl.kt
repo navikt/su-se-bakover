@@ -30,7 +30,7 @@ internal class UtbetalingServiceImpl(
     private val sakService: SakService,
     private val simuleringClient: SimuleringClient,
     private val utbetalingPublisher: UtbetalingPublisher,
-    private val clock: Clock = Clock.systemUTC()
+    private val clock: Clock,
 ) : UtbetalingService {
 
     private val log = LoggerFactory.getLogger(this::class.java)

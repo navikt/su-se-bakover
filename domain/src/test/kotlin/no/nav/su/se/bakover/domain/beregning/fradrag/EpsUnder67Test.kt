@@ -20,22 +20,22 @@ import org.junit.jupiter.api.Test
 internal class EpsUnder67Test {
     @Test
     fun `velger arbeidsinntekt dersom den er større enn forventet inntekt`() {
-        val periode = Periode(1.januar(2020), 31.desember(2020))
+        val periode = Periode.create(1.januar(2020), 31.desember(2020))
         val arbeidsinntekt = lagFradrag(Arbeidsinntekt, 2000.0, periode)
         val kontantstøtte = lagFradrag(Kontantstøtte, 500.0, periode)
         val forventetInntekt = lagFradrag(ForventetInntekt, 500.0, periode)
 
         val expectedArbeidsinntekt =
-            lagPeriodisertFradrag(Arbeidsinntekt, 2000.0, Periode(1.januar(2020), 31.januar(2020)))
+            lagPeriodisertFradrag(Arbeidsinntekt, 2000.0, Periode.create(1.januar(2020), 31.januar(2020)))
         val expectedKontantstøtte =
-            lagPeriodisertFradrag(Kontantstøtte, 500.0, Periode(1.januar(2020), 31.januar(2020)))
+            lagPeriodisertFradrag(Kontantstøtte, 500.0, Periode.create(1.januar(2020), 31.januar(2020)))
 
         FradragStrategy.EpsUnder67År.beregn(
             fradrag = listOf(arbeidsinntekt, kontantstøtte, forventetInntekt),
             beregningsperiode = periode
         ).let {
             it.size shouldBe 12
-            it[Periode(1.januar(2020), 31.januar(2020))]!! shouldContainAll listOf(
+            it[Periode.create(1.januar(2020), 31.januar(2020))]!! shouldContainAll listOf(
                 expectedArbeidsinntekt,
                 expectedKontantstøtte
             )
@@ -45,22 +45,22 @@ internal class EpsUnder67Test {
 
     @Test
     fun `velger forventet inntekt dersom den er større enn arbeidsinntekt`() {
-        val periode = Periode(1.januar(2020), 31.desember(2020))
+        val periode = Periode.create(1.januar(2020), 31.desember(2020))
         val arbeidsinntekt = lagFradrag(Arbeidsinntekt, 500.0, periode)
         val kontantstøtte = lagFradrag(Kontantstøtte, 500.0, periode)
         val forventetInntekt = lagFradrag(ForventetInntekt, 2000.0, periode)
 
         val expectedForventetInntekt =
-            lagPeriodisertFradrag(ForventetInntekt, 2000.0, Periode(1.januar(2020), 31.januar(2020)))
+            lagPeriodisertFradrag(ForventetInntekt, 2000.0, Periode.create(1.januar(2020), 31.januar(2020)))
         val expectedKontantstøtte =
-            lagPeriodisertFradrag(Kontantstøtte, 500.0, Periode(1.januar(2020), 31.januar(2020)))
+            lagPeriodisertFradrag(Kontantstøtte, 500.0, Periode.create(1.januar(2020), 31.januar(2020)))
 
         FradragStrategy.EpsUnder67År.beregn(
             fradrag = listOf(arbeidsinntekt, kontantstøtte, forventetInntekt),
             beregningsperiode = periode
         ).let {
             it.size shouldBe 12
-            it[Periode(1.januar(2020), 31.januar(2020))]!! shouldContainAll listOf(
+            it[Periode.create(1.januar(2020), 31.januar(2020))]!! shouldContainAll listOf(
                 expectedForventetInntekt,
                 expectedKontantstøtte
             )
@@ -70,14 +70,14 @@ internal class EpsUnder67Test {
 
     @Test
     fun `tar med fradrag som tilhører EPS`() {
-        val periode = Periode(1.januar(2020), 31.desember(2020))
+        val periode = Periode.create(1.januar(2020), 31.desember(2020))
         val epsArbeidsinntekt = lagFradrag(Arbeidsinntekt, 2000.0, periode, tilhører = EPS)
         val forventetInntekt = lagFradrag(ForventetInntekt, 1000.0, periode)
 
         val expectedBrukerInntekt =
-            lagPeriodisertFradrag(ForventetInntekt, 1000.0, Periode(1.januar(2020), 31.januar(2020)))
+            lagPeriodisertFradrag(ForventetInntekt, 1000.0, Periode.create(1.januar(2020), 31.januar(2020)))
         val expectedEpsInntekt = lagPeriodisertFradrag(
-            BeregnetFradragEPS, 2000.0, Periode(1.januar(2020), 31.januar(2020)), EPS
+            BeregnetFradragEPS, 2000.0, Periode.create(1.januar(2020), 31.januar(2020)), EPS
         )
 
         FradragStrategy.EpsUnder67År.beregn(
@@ -85,7 +85,7 @@ internal class EpsUnder67Test {
             beregningsperiode = periode
         ).let {
             it.size shouldBe 12
-            it[Periode(1.januar(2020), 31.januar(2020))]!! shouldBe listOf(
+            it[Periode.create(1.januar(2020), 31.januar(2020))]!! shouldBe listOf(
                 expectedBrukerInntekt,
                 expectedEpsInntekt
             )
@@ -96,7 +96,7 @@ internal class EpsUnder67Test {
 
     @Test
     fun `inneholder bare ett fradrag for eps, uavhengig av hvor mange som er input`() {
-        val periode = Periode(1.januar(2020), 31.desember(2020))
+        val periode = Periode.create(1.januar(2020), 31.desember(2020))
         val forventetInntekt = lagFradrag(ForventetInntekt, 10000.0, periode)
         val epsForventetInntekt = lagFradrag(ForventetInntekt, 150000.0, periode, tilhører = EPS)
         val epsUføretrygd = lagFradrag(NAVytelserTilLivsopphold, 150000.0, periode, tilhører = EPS)

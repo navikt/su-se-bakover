@@ -40,7 +40,6 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder.build
-import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -57,7 +56,9 @@ import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.applicationConfig
 import no.nav.su.se.bakover.web.argThat
+import no.nav.su.se.bakover.web.behandlingFactory
 import no.nav.su.se.bakover.web.defaultRequest
+import no.nav.su.se.bakover.web.fixedClock
 import no.nav.su.se.bakover.web.routes.sak.SakJson
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.Companion.toSøknadInnholdJson
@@ -88,7 +89,7 @@ internal class SøknadRoutesKtTest {
     )
     private val søknadId = UUID.randomUUID()
 
-    private val databaseRepos = DatabaseBuilder.build(EmbeddedDatabase.instance(), BehandlingFactory(mock()))
+    private val databaseRepos = DatabaseBuilder.build(EmbeddedDatabase.instance(), behandlingFactory)
     private val sakRepo = databaseRepos.sak
     private val trekkSøknadRequest = LukkSøknadRequest.MedBrev.TrekkSøknad(
         søknadId = søknadId,
@@ -198,7 +199,8 @@ internal class SøknadRoutesKtTest {
             databaseRepos = databaseRepos,
             clients = clients,
             behandlingMetrics = mock(),
-            søknadMetrics = mock()
+            søknadMetrics = mock(),
+            clock = fixedClock,
         ).build()
 
         withTestApplication({

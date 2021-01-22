@@ -12,8 +12,6 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.ddMMyyyy
-import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
@@ -26,6 +24,7 @@ import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
 import org.junit.jupiter.api.Test
@@ -75,7 +74,8 @@ class HentSøknadPdfTest {
             dokArkiv = mock(),
             personService = mock(),
             oppgaveService = mock(),
-            søknadMetrics = mock()
+            søknadMetrics = mock(),
+            clock = fixedClock,
         )
 
         val actual = søknadService.hentSøknadPdf(søknadId)
@@ -107,7 +107,8 @@ class HentSøknadPdfTest {
             dokArkiv = mock(),
             personService = personServiceMock,
             oppgaveService = mock(),
-            søknadMetrics = mock()
+            søknadMetrics = mock(),
+            clock = fixedClock,
         )
 
         val actual = søknadService.hentSøknadPdf(søknadId)
@@ -119,12 +120,13 @@ class HentSøknadPdfTest {
             verify(personServiceMock).hentPerson(argThat { it shouldBe søknad.søknadInnhold.personopplysninger.fnr })
             verify(pdfGeneratorMock).genererPdf(
                 argThat<SøknadPdfInnhold> {
-                    it shouldBe SøknadPdfInnhold(
+                    it shouldBe SøknadPdfInnhold.create(
                         saksnummer = sak.saksnummer,
                         søknadsId = søknad.id,
                         navn = person.navn,
-                        søknadOpprettet = søknad.opprettet.toLocalDate(zoneIdOslo).ddMMyyyy(),
-                        søknadInnhold = søknadInnhold
+                        søknadOpprettet = søknad.opprettet,
+                        søknadInnhold = søknadInnhold,
+                        clock = fixedClock,
                     )
                 }
             )
@@ -157,7 +159,8 @@ class HentSøknadPdfTest {
             dokArkiv = mock(),
             personService = personServiceMock,
             oppgaveService = mock(),
-            søknadMetrics = mock()
+            søknadMetrics = mock(),
+            clock = fixedClock,
         )
 
         val actual = søknadService.hentSøknadPdf(søknadId)
@@ -169,12 +172,13 @@ class HentSøknadPdfTest {
             verify(personServiceMock).hentPerson(argThat { it shouldBe søknad.søknadInnhold.personopplysninger.fnr })
             verify(pdfGeneratorMock).genererPdf(
                 argThat<SøknadPdfInnhold> {
-                    it shouldBe SøknadPdfInnhold(
+                    it shouldBe SøknadPdfInnhold.create(
                         saksnummer = sak.saksnummer,
                         søknadsId = søknad.id,
                         navn = person.navn,
-                        søknadOpprettet = søknad.opprettet.toLocalDate(zoneIdOslo).ddMMyyyy(),
-                        søknadInnhold = søknadInnhold
+                        søknadOpprettet = søknad.opprettet,
+                        søknadInnhold = søknadInnhold,
+                        clock = fixedClock,
                     )
                 }
             )

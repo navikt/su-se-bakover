@@ -35,7 +35,7 @@ data class NySak(
 
 class SakFactory(
     private val uuidFactory: UUIDFactory = UUIDFactory(),
-    private val clock: Clock = Clock.systemUTC()
+    private val clock: Clock,
 ) {
     fun nySak(fnr: Fnr, søknadInnhold: SøknadInnhold): NySak {
         val opprettet = Tidspunkt.now(clock)

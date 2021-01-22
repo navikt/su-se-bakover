@@ -29,7 +29,7 @@ internal class EpsOver67BeregningTest {
      */
     @Test
     fun `beregningseksempel fra fagsiden`() {
-        val periode = Periode(1.mai(2020), 30.april(2021))
+        val periode = Periode.create(1.mai(2020), 30.april(2021))
 
         val arbeidsinntektPrÅr = 71081.0
         val folketrygdPrÅr = 120000.0
@@ -40,7 +40,7 @@ internal class EpsOver67BeregningTest {
         val epsFolketrygdPrMnd = epsFolketrydPrÅr / 12
 
         val mpnOrdinær = 183587.0
-        val beregningsgrunnlag = Beregningsgrunnlag(
+        val beregningsgrunnlag = Beregningsgrunnlag.create(
             beregningsperiode = periode,
             forventetInntektPerÅr = 0.0,
             fradragFraSaksbehandler = listOf(

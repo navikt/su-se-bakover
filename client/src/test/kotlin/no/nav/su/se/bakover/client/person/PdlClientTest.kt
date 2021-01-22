@@ -391,7 +391,7 @@ internal class PdlClientTest : WiremockBase {
             telefonnummer = null,
             kjønn = "MANN",
             fødselsdato = null,
-            adresse = listOf<PdlData.Adresse>(
+            adresse = listOf(
                 PdlData.Adresse(
                     adresselinje = "SANDTAKVEIEN 42",
                     postnummer = "9190",
@@ -528,7 +528,7 @@ internal class PdlClientTest : WiremockBase {
             telefonnummer = null,
             kjønn = "MANN",
             fødselsdato = null,
-            adresse = listOf<PdlData.Adresse>(
+            adresse = listOf(
                 PdlData.Adresse(
                     adresselinje = "SANDTAKVEIEN 42",
                     postnummer = "9190",

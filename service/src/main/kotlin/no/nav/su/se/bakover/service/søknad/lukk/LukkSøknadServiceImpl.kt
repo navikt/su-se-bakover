@@ -30,7 +30,7 @@ internal class LukkSøknadServiceImpl(
     private val brevService: BrevService,
     private val oppgaveService: OppgaveService,
     private val personService: PersonService,
-    private val clock: Clock = Clock.systemUTC(),
+    private val clock: Clock,
 ) : LukkSøknadService {
     private val log = LoggerFactory.getLogger(this::class.java)
 

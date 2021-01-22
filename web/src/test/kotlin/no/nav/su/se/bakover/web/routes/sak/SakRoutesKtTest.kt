@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web.routes.sak
 
-import com.nhaarman.mockitokotlin2.mock
 import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.NotFound
@@ -13,8 +12,9 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
+import no.nav.su.se.bakover.web.behandlingFactory
 import no.nav.su.se.bakover.web.defaultRequest
+import no.nav.su.se.bakover.web.fixedClock
 import no.nav.su.se.bakover.web.testSusebakover
 import org.json.JSONObject
 import org.junit.jupiter.api.Test
@@ -24,7 +24,7 @@ import kotlin.test.assertEquals
 internal class SakRoutesKtTest {
 
     private val sakFnr01 = "12345678911"
-    private val repos = DatabaseBuilder.build(EmbeddedDatabase.instance(), BehandlingFactory(mock()))
+    private val repos = DatabaseBuilder.build(EmbeddedDatabase.instance(), behandlingFactory)
     private val søknadInnhold = SøknadInnholdTestdataBuilder.build()
 
     @Test
@@ -36,7 +36,7 @@ internal class SakRoutesKtTest {
                 }
                 )
         ) {
-            SakFactory().nySak(Fnr(sakFnr01), søknadInnhold).also {
+            SakFactory(clock = fixedClock).nySak(Fnr(sakFnr01), søknadInnhold).also {
                 repos.sak.opprettSak(it)
             }
             val opprettetSakId: Sak = repos.sak.hentSak(Fnr(sakFnr01))!!
@@ -61,7 +61,7 @@ internal class SakRoutesKtTest {
                 }
                 )
         ) {
-            repos.sak.opprettSak(SakFactory().nySak(Fnr(sakFnr01), søknadInnhold))
+            repos.sak.opprettSak(SakFactory(clock = fixedClock).nySak(Fnr(sakFnr01), søknadInnhold))
 
             defaultRequest(
                 Get,

@@ -1,20 +1,17 @@
 package no.nav.su.se.bakover.common.periode
 
+import arrow.core.Either
+import arrow.core.getOrHandle
+import arrow.core.left
+import arrow.core.right
 import com.fasterxml.jackson.annotation.JsonIgnore
 import java.time.LocalDate
 import java.time.Period
 
-data class Periode(
+data class Periode private constructor(
     private val fraOgMed: LocalDate,
     private val tilOgMed: LocalDate
 ) {
-    init {
-        require(fraOgMed.dayOfMonth == 1) { "Perioder kan kun starte på første dag i måneden" }
-        require(tilOgMed.dayOfMonth == tilOgMed.lengthOfMonth()) { "Perioder kan kun avsluttes siste dag i måneden" }
-        require(fraOgMed.isBefore(tilOgMed)) { "fraOgMed må være tidligere enn tilOgMed" }
-        require(getAntallMåneder() <= 12) { "periode må være mindre eller lik 12 måneder" }
-    }
-
     fun getFraOgMed() = fraOgMed
     fun getTilOgMed() = tilOgMed
 
@@ -39,5 +36,25 @@ data class Periode(
         val plussEnDag = Period.ofDays(1)
         val minusEnDag = Period.ofDays(-1)
         return sluttStart == plussEnDag || sluttStart == minusEnDag || startSlutt == plussEnDag || startSlutt == minusEnDag
+    }
+
+    companion object {
+        fun create(fraOgMed: LocalDate, tilOgMed: LocalDate): Periode {
+            return tryCreate(fraOgMed, tilOgMed).getOrHandle { throw IllegalArgumentException(it.toString()) }
+        }
+
+        fun tryCreate(fraOgMed: LocalDate, tilOgMed: LocalDate): Either<UgyldigPeriode, Periode> {
+            if (fraOgMed.dayOfMonth != 1) { return UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden.left() }
+            if (tilOgMed.dayOfMonth != tilOgMed.lengthOfMonth()) { return UgyldigPeriode.TilOgMedDatoMåVæreSisteDagIMåneden.left() }
+            if (!fraOgMed.isBefore(tilOgMed)) { return UgyldigPeriode.FraOgMedDatoMåVæreFørTilOgMedDato.left() }
+
+            return Periode(fraOgMed, tilOgMed).right()
+        }
+    }
+
+    sealed class UgyldigPeriode {
+        object FraOgMedDatoMåVæreFørsteDagIMåneden : UgyldigPeriode()
+        object TilOgMedDatoMåVæreSisteDagIMåneden : UgyldigPeriode()
+        object FraOgMedDatoMåVæreFørTilOgMedDato : UgyldigPeriode()
     }
 }

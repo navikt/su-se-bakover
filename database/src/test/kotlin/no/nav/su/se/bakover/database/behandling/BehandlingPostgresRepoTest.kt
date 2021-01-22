@@ -6,6 +6,8 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
+import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
@@ -29,12 +31,15 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import org.junit.jupiter.api.Test
+import java.time.Clock
+import java.time.ZoneOffset
 
-val behandlingFactory = BehandlingFactory(mock())
+private val fixedClock: Clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC)
+val behandlingFactory = BehandlingFactory(mock(), fixedClock)
 
 internal class BehandlingPostgresRepoTest {
 
-    private val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())
+    private val testDataHelper = TestDataHelper(EmbeddedDatabase.instance(), fixedClock)
     private val repo = BehandlingPostgresRepo(EmbeddedDatabase.instance(), behandlingFactory)
     private val oppgaveId = OppgaveId("o")
     private val journalpostId = JournalpostId("j")
