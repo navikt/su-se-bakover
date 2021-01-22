@@ -89,7 +89,9 @@ class ServiceBuilder(
         val revurderingService = RevurderingServiceImpl(
             sakService = sakService,
             utbetalingService = utbetalingService,
-            revurderingRepo = databaseRepos.revurderingRepo
+            revurderingRepo = databaseRepos.revurderingRepo,
+            oppgaveService = oppgaveService,
+            personService = personService
         )
 
         return Services(

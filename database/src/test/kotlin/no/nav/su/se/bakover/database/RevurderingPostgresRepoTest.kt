@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.database.behandling.BehandlingPostgresRepo
 import no.nav.su.se.bakover.database.beregning.TestBeregning
 import no.nav.su.se.bakover.database.søknad.SøknadPostgresRepo
+import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.BeregnetRevurdering
@@ -23,6 +24,7 @@ internal class RevurderingPostgresRepoTest {
     private val repo: RevurderingPostgresRepo = RevurderingPostgresRepo(ds, behandlingRepo)
     private val søknadRepo = SøknadPostgresRepo(ds)
     private val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())
+    private val saksbehandler = Saksbehandler("Sak S. Behandler")
 
     @Test
     fun `overskriver ikke permanente verdier ved lagring`() {
@@ -32,7 +34,8 @@ internal class RevurderingPostgresRepoTest {
             val original = OpprettetRevurdering(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(),
-                tilRevurdering = behandling
+                tilRevurdering = behandling,
+                saksbehandler = saksbehandler
             )
 
             repo.lagre(original)
@@ -60,7 +63,8 @@ internal class RevurderingPostgresRepoTest {
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(),
                 tilRevurdering = behandling,
-                beregning = TestBeregning
+                beregning = TestBeregning,
+                saksbehandler = saksbehandler
             )
 
             repo.lagre(original)
@@ -70,7 +74,8 @@ internal class RevurderingPostgresRepoTest {
             val nyttObjektMedSammeId = OpprettetRevurdering(
                 id = original.id,
                 opprettet = original.opprettet,
-                tilRevurdering = original.tilRevurdering
+                tilRevurdering = original.tilRevurdering,
+                saksbehandler = saksbehandler
             )
 
             repo.lagre(nyttObjektMedSammeId)

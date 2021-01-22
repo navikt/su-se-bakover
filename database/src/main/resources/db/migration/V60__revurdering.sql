@@ -4,5 +4,7 @@ create table if not exists revurdering
     opprettet timestamp with time zone not null,
     behandlingId uuid references behandling(id) not null,
     beregning jsonb,
-    simulering jsonb
+    simulering jsonb,
+    saksbehandler text,
+    oppgaveId text
 );

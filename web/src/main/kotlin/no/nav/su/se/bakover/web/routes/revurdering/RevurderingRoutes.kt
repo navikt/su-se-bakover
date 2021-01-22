@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.web.routes.behandling.beregning.NyBeregningForSøkna
 import no.nav.su.se.bakover.web.routes.behandling.beregning.PeriodeJson
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.svar
+import no.nav.su.se.bakover.web.withRevurderingId
 import no.nav.su.se.bakover.web.withSakId
 import org.slf4j.LoggerFactory
 import java.time.LocalDate
@@ -41,6 +42,7 @@ internal fun Route.revurderingRoutes(
     authorize(Brukerrolle.Saksbehandler) {
         post("$revurderingPath/opprett") {
             call.withSakId { sakId ->
+                val navIdent = call.suUserContext.getNAVIdent()
                 Either.catch { deserialize<PeriodeJson>(call) }.fold(
                     ifLeft = {
                         call.svar(BadRequest.message("Ugyldig body"))
@@ -51,7 +53,8 @@ internal fun Route.revurderingRoutes(
                             periode = Periode.create(
                                 LocalDate.parse(periode.fraOgMed),
                                 LocalDate.parse(periode.tilOgMed)
-                            )
+                            ),
+                            saksbehandler = Saksbehandler(navIdent)
                         ).fold(
                             ifLeft = {
                                 when (it) {
@@ -103,6 +106,23 @@ internal fun Route.revurderingRoutes(
                             )
                         }
                 }
+            )
+        }
+    }
+
+    post("$revurderingPath/{revurderingId}/tilAttestering") {
+        call.withRevurderingId { revurderingId ->
+            revurderingService.sendTilAttestering(
+                revurderingId = revurderingId, saksbehandler = Saksbehandler(call.suUserContext.getNAVIdent())
+            ).fold(
+                ifLeft = {
+                    // TODO
+                    call.svar(BadRequest.message("noe gikk feil"))
+                },
+                ifRight = {
+                    call.audit("sendt revurdering til attestering med id $revurderingId")
+                    call.svar(Resultat.json(OK, serialize(it.toJson())))
+                },
             )
         }
     }

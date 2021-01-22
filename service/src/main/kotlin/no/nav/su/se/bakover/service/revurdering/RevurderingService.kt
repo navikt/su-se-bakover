@@ -11,7 +11,8 @@ interface RevurderingService {
 
     fun opprettRevurdering(
         sakId: UUID,
-        periode: Periode
+        periode: Periode,
+        saksbehandler: NavIdentBruker.Saksbehandler
     ): Either<RevurderingFeilet, Revurdering>
 
     fun beregnOgSimuler(
@@ -20,11 +21,18 @@ interface RevurderingService {
         periode: Periode,
         fradrag: List<Fradrag>
     ): Either<RevurderingFeilet, RevurdertBeregning>
+
+    fun sendTilAttestering(
+        revurderingId: UUID,
+        saksbehandler: NavIdentBruker.Saksbehandler
+    ): Either<RevurderingFeilet, Revurdering>
 }
 
 sealed class RevurderingFeilet {
     object GeneriskFeil : RevurderingFeilet()
     object FantIkkeSak : RevurderingFeilet()
     object FantIngentingSomKanRevurderes : RevurderingFeilet()
+    object KunneIkkeFinneAktørId : RevurderingFeilet()
+    object KunneIkkeOppretteOppgave : RevurderingFeilet()
 }
 

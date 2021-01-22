@@ -2,6 +2,8 @@ package no.nav.su.se.bakover.web.routes.revurdering
 
 import no.nav.su.se.bakover.domain.behandling.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.behandling.Revurdering
+import no.nav.su.se.bakover.domain.behandling.RevurderingsStatus
+import no.nav.su.se.bakover.domain.behandling.TilAttesteringRevurdering
 import no.nav.su.se.bakover.service.revurdering.RevurdertBeregning
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingJson
 import no.nav.su.se.bakover.web.routes.behandling.beregning.BeregningJson
@@ -21,15 +23,37 @@ internal fun RevurdertBeregning.toJson() = RevurdertBeregningJson(
 
 internal data class OpprettetRevurderingJson(
     val id: String,
+    val status: RevurderingsStatus,
     val opprettet: String,
     val tilRevurdering: BehandlingJson
 )
 
-internal fun Revurdering.toJson() = when (this) {
+internal data class TilAttesteringJson(
+    val id: String,
+    val status: RevurderingsStatus,
+    val opprettet: String,
+    val tilRevurdering: BehandlingJson,
+    val beregninger: RevurdertBeregningJson,
+    val saksbehandler: String
+)
+
+internal fun Revurdering.toJson(): Any = when (this) {
     is OpprettetRevurdering -> OpprettetRevurderingJson(
         id = id.toString(),
+        status = status,
         opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
         tilRevurdering = tilRevurdering.toJson()
+    )
+    is TilAttesteringRevurdering -> TilAttesteringJson(
+        id = id.toString(),
+        status = status,
+        opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
+        tilRevurdering = tilRevurdering.toJson(),
+        beregninger = RevurdertBeregningJson(
+            beregning = tilRevurdering.beregning()!!.toJson(),
+            revurdert = beregning.toJson()
+        ),
+        saksbehandler = saksbehandler.toString(),
     )
     else -> throw NotImplementedError()
 }
