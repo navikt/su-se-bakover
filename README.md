@@ -5,19 +5,19 @@
 ### Lokalt oppsett
 #### Gradle
 For å få tilgang til å hente ut packages fra https://github.com/navikt/ kreves det autentisering mot Github package registry.
-Det gjør du ved å lage en ny fil i .gradle-mappa i hjemmemappa: 
+Det gjør du ved å lage en ny fil i .gradle-mappa i hjemmemappa:
 
 `$ vim ~/.gradle/gradle.properties`
 
-I denne filen skriver du: 
+I denne filen skriver du:
 ```
 githubUser=x-access-token
 githubPassword={et access token som du lager på GitHub}
 ```
-Access tokens lager du på: https://github.com/settings/tokens. Tokenet skal kun ha  `repo + read packages access`. 
-Husk å kopiere tokenet før du går videre. 
+Access tokens lager du på: https://github.com/settings/tokens. Tokenet skal kun ha  `repo + read packages access`.
+Husk å kopiere tokenet før du går videre.
 
-Deretter må tokenet autentiseres med SSO-tilgang. Det gjør du i listen over tokens.  
+Deretter må tokenet autentiseres med SSO-tilgang. Det gjør du i listen over tokens.
 
 #### Database (Postgres)
 Lokal database startes med `./docker-compose up`
@@ -32,6 +32,23 @@ docker-compose up
 
 #### Starte applikasjon lokalt
 Kan startes lokalt fra web/src/main/kotlin/.../Application.kt sin `fun main(...)`
+
+#### Autentisering
+su-se-framover tar seg av autentisering og kaller oss med on-behalf-of tokens.
+
+Lokalt kjøres det opp en mock oauth2-server på http://localhost:4321.
+Se https://github.com/navikt/su-se-framover#mock-oauth-server for mer informasjon.
+
+##### For testing mot Azure
+Legg inn følgende variabler i [.env]():
+- AZURE_APP_CLIENT_ID
+- AZURE_APP_WELL_KNOWN_URL
+- AZURE_APP_CLIENT_SECRET
+
+Disse hentes fra kjørende pod i det miljøet du vil teste mot.
+Merk: `AZURE_APP_CLIENT_SECRET` roteres automatisk.
+
+For å da bruke gruppe-claimet som kommer fra Azure må man også endre implementasjonen av `getGroupsFromJWT` i [./web/src/main/kotlin/no/nav/su/se/bakover/web/Extensions.kt]().
 
 #### Uten innlogging i Azure (default)
 Applikasjonen vil selv generere gyldige jwt-tokens for inkommende kall. Ved behov kan innholdet i disse konfigureres i `JwtStub.kt`.

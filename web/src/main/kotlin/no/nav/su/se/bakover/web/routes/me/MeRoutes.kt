@@ -6,6 +6,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.get
+import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.filterMap
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
@@ -20,12 +21,11 @@ data class UserData(
 )
 
 @OptIn(io.ktor.locations.KtorExperimentalLocationsAPI::class)
-internal fun Route.meRoutes(azureGroupMapper: AzureGroupMapper) {
+internal fun Route.meRoutes(applicationConfig: ApplicationConfig, azureGroupMapper: AzureGroupMapper) {
     get("/me") {
-        val prince = call.authentication.principal
-        val roller = getGroupsFromJWT(prince).filterMap {
-            azureGroupMapper.fromAzureGroup(it)
-        }
+        val roller =
+            getGroupsFromJWT(applicationConfig, call.authentication.principal)
+                .filterMap { azureGroupMapper.fromAzureGroup(it) }
 
         call.respond(
             HttpStatusCode.OK,

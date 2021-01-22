@@ -31,7 +31,7 @@ internal val fixedClock: Clock = Clock.fixed(1.januar(2021).startOfDay().instant
 internal val behandlingFactory = BehandlingFactory(mock(), fixedClock)
 
 val applicationConfig = ApplicationConfig(
-    isLocalOrRunningTests = true,
+    isRunningLocally = false,
     leaderPodLookupPath = "leaderPodLookupPath",
     pdfgenLocal = false,
     corsAllowOrigin = "corsAllowOrigin",
@@ -43,7 +43,6 @@ val applicationConfig = ApplicationConfig(
         clientSecret = "testClientSecret",
         wellKnownUrl = "http://localhost/test/wellKnownUrl",
         clientId = "testClientId",
-        backendCallbackUrl = "http://localhost/test/backendCallbackUrl",
         groups = ApplicationConfig.AzureConfig.AzureGroups(
             attestant = "testAzureGroupAttestant",
             saksbehandler = "testAzureGroupSaksbehandler",
@@ -83,7 +82,6 @@ val applicationConfig = ApplicationConfig(
         skjermingUrl = "skjermingUrl",
         dkifUrl = "dkifUrl",
     ),
-    frontendCallbackUrls = ApplicationConfig.FrontendCallbackUrls(frontendBaseUrl = "frontendBaseUrl"),
     kafkaConfig = ApplicationConfig.KafkaConfig(emptyMap(), ApplicationConfig.KafkaConfig.ProducerCfg(emptyMap()))
 )
 

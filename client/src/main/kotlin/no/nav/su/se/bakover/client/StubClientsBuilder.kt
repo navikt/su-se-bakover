@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.client
 
-import no.nav.su.se.bakover.client.azure.OAuth
+import no.nav.su.se.bakover.client.azure.AzureClient
 import no.nav.su.se.bakover.client.dkif.DigitalKontaktinformasjon
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokdistfordeling.DokDistFordelingClient
@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.client.pdf.PdfClient
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.client.sts.TokenOppslag
-import no.nav.su.se.bakover.client.stubs.azure.AzureClientStub
 import no.nav.su.se.bakover.client.stubs.dkif.DkifClientStub
 import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
 import no.nav.su.se.bakover.client.stubs.dokdistfordeling.DokDistFordelingStub
@@ -39,7 +38,7 @@ object StubClientsBuilder : ClientsBuilder {
 
     override fun build(applicationConfig: ApplicationConfig): Clients {
         return Clients(
-            oauth = AzureClientStub.also { log.warn("********** Using stub for ${OAuth::class.java} **********") },
+            oauth = AzureClient(applicationConfig.azure.clientId, applicationConfig.azure.clientSecret, applicationConfig.azure.wellKnownUrl),
             personOppslag = PersonOppslagStub.also { log.warn("********** Using stub for ${PersonOppslag::class.java} **********") },
             tokenOppslag = TokenOppslagStub.also { log.warn("********** Using stub for ${TokenOppslag::class.java} **********") },
             pdfGenerator = if (applicationConfig.pdfgenLocal) {
