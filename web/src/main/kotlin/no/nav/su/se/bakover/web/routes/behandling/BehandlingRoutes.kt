@@ -24,8 +24,6 @@ import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.service.behandling.IverksattBehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeBeregne
@@ -42,6 +40,7 @@ import no.nav.su.se.bakover.web.deserialize
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.message
+import no.nav.su.se.bakover.web.routes.behandling.UgyldigFradrag.Companion.toResultat
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.toUUID
@@ -142,13 +141,7 @@ internal fun Route.behandlingRoutes(
         val fraOgMed: LocalDate,
         val tilOgMed: LocalDate,
         val fradrag: List<FradragJson>
-    ) {
-        fun isValid() = fradrag.all {
-            Fradragstype.isValid(it.type) &&
-                enumContains<FradragTilhører>(it.tilhører) &&
-                it.utenlandskInntekt?.isValid() ?: true
-        }
-    }
+    )
 
     authorize(Brukerrolle.Saksbehandler) {
         post("$behandlingPath/{behandlingId}/beregn") {
@@ -159,50 +152,39 @@ internal fun Route.behandlingRoutes(
                         call.svar(BadRequest.message("Ugyldig body"))
                     },
                     ifRight = { body ->
-                        if (body.isValid()) {
-                            fun feilmelding(ugyldigPeriode: Periode.UgyldigPeriode) = when (ugyldigPeriode) {
-                                Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden -> "Perioder kan kun starte på første dag i måneden"
-                                Periode.UgyldigPeriode.TilOgMedDatoMåVæreSisteDagIMåneden -> "Perioder kan kun avsluttes siste dag i måneden"
-                                Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørTilOgMedDato -> "Startmåned må være tidligere eller lik sluttmåned"
-                                Periode.UgyldigPeriode.PeriodeKanIkkeVæreLengreEnn12Måneder -> "En stønadsperiode kan være maks 12 måneder"
-                                Periode.UgyldigPeriode.FraOgMedDatoKanIkkeVæreFør2020 -> "En stønadsperiode kan ikke starte før 2020"
-                            }
-
-                            val beregningsperiode = Periode.tryCreate(body.fraOgMed, body.tilOgMed).getOrHandle {
-                                call.svar(BadRequest.message(feilmelding(it)))
-                                return@withBehandlingId
-                            }
-                            // TODO en hack for å stoppe perioder før 2021, da Periode() ikke kan endres enda
-                            if (beregningsperiode.getFraOgMed().isBefore(LocalDate.of(2021, 1, 1))) {
-                                call.svar(BadRequest.message("En stønadsperiode kan ikke starte før 2021"))
-                                return@withBehandlingId
-                            }
-                            val fradrag: List<Fradrag> = body.fradrag.map {
-                                it.toFradrag(beregningsperiode = beregningsperiode).getOrHandle { feil ->
-                                    call.svar(BadRequest.message(feilmelding(feil)))
-                                    return@withBehandlingId
-                                }
-                            }
-                            behandlingService.opprettBeregning(
-                                saksbehandler = Saksbehandler(call.suUserContext.getNAVIdent()),
-                                behandlingId = behandlingId,
-                                periode = beregningsperiode,
-                                fradrag = fradrag
-                            ).mapLeft {
-                                val resultat = when (it) {
-                                    KunneIkkeBeregne.FantIkkeBehandling -> NotFound.message("Fant ikke behandling")
-                                    KunneIkkeBeregne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> BadRequest.message(
-                                        "Attestant og saksbehandler kan ikke være samme person"
-                                    )
-                                }
-                                call.svar(resultat)
-                            }.map {
-                                call.audit("Opprettet en ny beregning på behandling med id $behandlingId")
-                                call.svar(Created.jsonBody(it))
-                            }
-                        } else {
-                            call.svar(BadRequest.message("Ugyldige input-parametere for: $body"))
+                        val beregningsperiode = Periode.tryCreate(body.fraOgMed, body.tilOgMed).getOrHandle {
+                            call.svar(it.toResultat().resultat)
+                            return@withBehandlingId
                         }
+                        // TODO en hack for å stoppe perioder før 2021, da Periode() ikke kan endres enda
+                        if (beregningsperiode.getFraOgMed().isBefore(LocalDate.of(2021, 1, 1))) {
+                            call.svar(BadRequest.message("En stønadsperiode kan ikke starte før 2021"))
+                            return@withBehandlingId
+                        }
+                        val fradrag: List<Fradrag> = body.fradrag.map {
+                            it.toFradrag(beregningsperiode = beregningsperiode).getOrHandle { ugyldigFradrag ->
+                                call.svar(ugyldigFradrag.resultat)
+                                return@withBehandlingId
+                            }
+                        }
+                        behandlingService.opprettBeregning(
+                            behandlingId = behandlingId,
+                            saksbehandler = Saksbehandler(call.suUserContext.getNAVIdent()),
+                            periode = beregningsperiode,
+                            fradrag = fradrag
+                        ).mapLeft {
+                            val resultat = when (it) {
+                                KunneIkkeBeregne.FantIkkeBehandling -> NotFound.message("Fant ikke behandling")
+                                KunneIkkeBeregne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> BadRequest.message(
+                                    "Attestant og saksbehandler kan ikke være samme person"
+                                )
+                            }
+                            call.svar(resultat)
+                        }.map {
+                            call.audit("Opprettet en ny beregning på behandling med id $behandlingId")
+                            call.svar(Created.jsonBody(it))
+                        }
+
                     }
                 )
             }

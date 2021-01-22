@@ -281,7 +281,7 @@ data class Behandling internal constructor(
                     return AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
                 }
 
-                val beregningsgrunnlag = Beregningsgrunnlag(
+                val beregningsgrunnlag = Beregningsgrunnlag.create(
                     beregningsperiode = periode,
                     forventetInntektPerÅr = behandlingsinformasjon.uførhet?.forventetInntekt?.toDouble() ?: 0.0,
                     fradragFraSaksbehandler = fradrag

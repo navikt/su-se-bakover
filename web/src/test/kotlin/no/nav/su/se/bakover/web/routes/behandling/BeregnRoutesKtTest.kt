@@ -27,7 +27,6 @@ import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.extractBehandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.beregning.Sats
-import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.service.ServiceBuilder
@@ -35,6 +34,7 @@ import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.applicationConfig
 import no.nav.su.se.bakover.web.defaultRequest
+import no.nav.su.se.bakover.web.routes.behandling.beregning.UtenlandskInntektJson
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
@@ -204,7 +204,7 @@ internal class BeregnRoutesKtTest {
                 behandlingJson.beregning.månedsberegninger shouldHaveSize 12
                 behandlingJson.beregning.fradrag shouldHaveSize 2 // input + 1 because of forventet inntekt
                 behandlingJson.beregning.fradrag.filter { it.type == "Arbeidsinntekt" }.all {
-                    it.utenlandskInntekt == UtenlandskInntekt(
+                    it.utenlandskInntektJson == UtenlandskInntektJson(
                         beløpIUtenlandskValuta = 200,
                         valuta = "euro",
                         kurs = 0.5
@@ -263,7 +263,7 @@ internal class BeregnRoutesKtTest {
                 behandlingJson.beregning.sats shouldBe Sats.HØY.name
                 behandlingJson.beregning.månedsberegninger shouldHaveSize 12
                 behandlingJson.beregning.fradrag shouldHaveSize 2 // input + 1 because of forventet inntekt
-                behandlingJson.beregning.fradrag.all { it.utenlandskInntekt == null }
+                behandlingJson.beregning.fradrag.all { it.utenlandskInntektJson == null }
             }
         }
     }

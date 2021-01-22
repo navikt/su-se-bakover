@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
+import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
@@ -12,6 +13,11 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import no.nav.su.se.bakover.domain.beregning.fradrag.getEpsFribeløp
+import no.nav.su.se.bakover.web.Resultat
+import no.nav.su.se.bakover.web.message
+import no.nav.su.se.bakover.web.routes.behandling.UgyldigFradrag.Companion.toResultat
+import no.nav.su.se.bakover.web.routes.behandling.beregning.UtenlandskInntektJson
+import no.nav.su.se.bakover.web.routes.behandling.beregning.UtenlandskInntektJson.Companion.toJson
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -51,21 +57,52 @@ internal fun Fradrag.toJson() =
     FradragJson(
         type = getFradragstype().toString(),
         beløp = getMånedsbeløp(),
-        utenlandskInntekt = getUtenlandskInntekt(),
+        utenlandskInntektJson = getUtenlandskInntekt()?.toJson(),
         periode = getPeriode().toJson(),
         tilhører = getTilhører().toString()
     )
+
+internal data class UgyldigFradrag(
+    val resultat: Resultat
+) {
+    companion object {
+        fun UtenlandskInntekt.UgyldigUtenlandskInntekt.toResultat(): UgyldigFradrag {
+            return when (this) {
+                UtenlandskInntekt.UgyldigUtenlandskInntekt.BeløpKanIkkeVæreNegativ -> HttpStatusCode.BadRequest.message("Beløpet kan ikke være negativt")
+                UtenlandskInntekt.UgyldigUtenlandskInntekt.ValutaMåFyllesUt -> HttpStatusCode.BadRequest.message("Valuta må fylles ut")
+                UtenlandskInntekt.UgyldigUtenlandskInntekt.KursKanIkkeVæreNegativ -> HttpStatusCode.BadRequest.message("Kursen kan ikke være negativ")
+            }.let {
+                UgyldigFradrag(it)
+            }
+        }
+
+        fun Periode.UgyldigPeriode.toResultat(): UgyldigFradrag {
+            return when (this) {
+                Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden -> HttpStatusCode.BadRequest.message("Perioder kan kun starte på første dag i måneden")
+                Periode.UgyldigPeriode.TilOgMedDatoMåVæreSisteDagIMåneden -> HttpStatusCode.BadRequest.message("Perioder kan kun avsluttes siste dag i måneden")
+                Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørTilOgMedDato -> HttpStatusCode.BadRequest.message("Startmåned må være tidligere eller lik sluttmåned")
+                Periode.UgyldigPeriode.PeriodeKanIkkeVæreLengreEnn12Måneder -> HttpStatusCode.BadRequest.message("En stønadsperiode kan være maks 12 måneder")
+                Periode.UgyldigPeriode.FraOgMedDatoKanIkkeVæreFør2020 -> HttpStatusCode.BadRequest.message("En stønadsperiode kan ikke starte før 2020")
+            }.let {
+                UgyldigFradrag(it)
+            }
+        }
+    }
+}
 
 internal data class FradragJson(
     val periode: PeriodeJson?,
     val type: String,
     val beløp: Double,
-    val utenlandskInntekt: UtenlandskInntekt?,
+    val utenlandskInntektJson: UtenlandskInntektJson?,
     val tilhører: String
 ) {
-    fun toFradrag(beregningsperiode: Periode): Either<Periode.UgyldigPeriode, Fradrag> {
+    fun toFradrag(beregningsperiode: Periode): Either<UgyldigFradrag, Fradrag> {
+        val utenlandskInntekt: UtenlandskInntekt? = this.utenlandskInntektJson?.toUtlandskInntekt()?.getOrHandle {
+            return it.toResultat().left()
+        }
         val periode: Periode = this.periode?.toPeriode()?.getOrHandle {
-            return it.left()
+            return it.toResultat().left()
         } ?: beregningsperiode
         return FradragFactory.ny(
             type = Fradragstype.valueOf(type),

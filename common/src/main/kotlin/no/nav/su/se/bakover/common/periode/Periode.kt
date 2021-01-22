@@ -44,12 +44,9 @@ data class Periode private constructor(
         }
 
         fun tryCreate(fraOgMed: LocalDate, tilOgMed: LocalDate): Either<UgyldigPeriode, Periode> {
-            // TODO Denne ønsker vi at skal være 2021, men pga veldig mange tester på Grunnbeløp, så kan vi ikke endre denne enda
-            if (fraOgMed.year < 2020) { return UgyldigPeriode.FraOgMedDatoKanIkkeVæreFør2020.left() }
             if (fraOgMed.dayOfMonth != 1) { return UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden.left() }
             if (tilOgMed.dayOfMonth != tilOgMed.lengthOfMonth()) { return UgyldigPeriode.TilOgMedDatoMåVæreSisteDagIMåneden.left() }
             if (!fraOgMed.isBefore(tilOgMed)) { return UgyldigPeriode.FraOgMedDatoMåVæreFørTilOgMedDato.left() }
-            if (getAntallMåneder(fraOgMed, tilOgMed) > 12) { return UgyldigPeriode.PeriodeKanIkkeVæreLengreEnn12Måneder.left() }
 
             return Periode(fraOgMed, tilOgMed).right()
         }
@@ -61,7 +58,5 @@ data class Periode private constructor(
         object FraOgMedDatoMåVæreFørsteDagIMåneden : UgyldigPeriode()
         object TilOgMedDatoMåVæreSisteDagIMåneden : UgyldigPeriode()
         object FraOgMedDatoMåVæreFørTilOgMedDato : UgyldigPeriode()
-        object PeriodeKanIkkeVæreLengreEnn12Måneder : UgyldigPeriode()
-        object FraOgMedDatoKanIkkeVæreFør2020 : UgyldigPeriode()
     }
 }
