@@ -306,7 +306,7 @@ internal class LagBrevinnholdForBeregningTest {
                     Månedsfradrag(
                         type = Fradragstype.OffentligPensjon.toReadableTypeName(utenlandsk = true),
                         beløp = 70.0,
-                        utenlandskInntekt = UtenlandskInntekt(
+                        utenlandskInntekt = UtenlandskInntekt.create(
                             beløpIUtenlandskValuta = 140,
                             valuta = "SEK",
                             kurs = 0.5

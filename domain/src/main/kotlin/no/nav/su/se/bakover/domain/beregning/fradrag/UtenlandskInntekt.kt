@@ -5,17 +5,25 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 
-data class UtenlandskInntekt(
+data class UtenlandskInntekt private constructor(
     val beløpIUtenlandskValuta: Int,
     val valuta: String,
     val kurs: Double
 ) {
     companion object {
         fun create(beløpIUtenlandskValuta: Int, valuta: String, kurs: Double): UtenlandskInntekt {
-            return tryCreate(beløpIUtenlandskValuta, valuta, kurs).getOrHandle { throw IllegalArgumentException(it.toString()) }
+            return tryCreate(
+                beløpIUtenlandskValuta,
+                valuta,
+                kurs
+            ).getOrHandle { throw IllegalArgumentException(it.toString()) }
         }
 
-        fun tryCreate(beløpIUtenlandskValuta: Int, valuta: String, kurs: Double): Either<UgyldigUtenlandskInntekt, UtenlandskInntekt> {
+        fun tryCreate(
+            beløpIUtenlandskValuta: Int,
+            valuta: String,
+            kurs: Double
+        ): Either<UgyldigUtenlandskInntekt, UtenlandskInntekt> {
             if (beløpIUtenlandskValuta < 0) return UgyldigUtenlandskInntekt.BeløpKanIkkeVæreNegativ.left()
             if (valuta.isBlank()) return UgyldigUtenlandskInntekt.ValutaMåFyllesUt.left()
             if (kurs < 0) return UgyldigUtenlandskInntekt.KursKanIkkeVæreNegativ.left()

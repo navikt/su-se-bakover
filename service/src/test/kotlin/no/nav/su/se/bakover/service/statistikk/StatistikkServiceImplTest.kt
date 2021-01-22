@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.IverksattBehandling
 import no.nav.su.se.bakover.service.doNothing
+import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.person.PersonService
 import org.junit.jupiter.api.Test
 import java.time.Clock
@@ -35,8 +36,6 @@ import java.time.ZoneOffset
 import java.util.UUID
 
 internal class StatistikkServiceImplTest {
-    private val fixedClock: Clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC)
-
     private val sakTopicName = "supstonad.aapen-su-sak-statistikk-v1"
     private val behandlingTopicName = "supstonad.aapen-su-behandling-statistikk-v1"
 

@@ -13,15 +13,15 @@ import java.util.UUID
 
 internal data class NyBeregningForSøknadsbehandlingJson(
     val stønadsperiode: StønadsperiodeJson?,
-    // deprecated from frontend, prefer stønadsperiode
-    val fraOgMed: String,
-    // deprecated from frontend, prefer stønadsperiode
-    val tilOgMed: String,
+    // deprecated, change to stønadsperiode in su-se-framover
+    val fraOgMed: String?,
+    // deprecated, change to stønadsperiode in su-se-framover
+    val tilOgMed: String?,
     val fradrag: List<FradragJson>
 ) {
     fun toDomain(behandlingId: UUID, saksbehandler: Saksbehandler): Either<Resultat, NyBeregningForSøknadsbehandling> {
         val stønadsperiode =
-            (stønadsperiode ?: StønadsperiodeJson(PeriodeJson(fraOgMed, tilOgMed))).toStønadsperiode().getOrHandle {
+            (stønadsperiode ?: StønadsperiodeJson(PeriodeJson(fraOgMed!!, tilOgMed!!))).toStønadsperiode().getOrHandle {
                 return it.left()
             }
         val fradrag = fradrag.toFradrag(stønadsperiode.periode).getOrHandle {

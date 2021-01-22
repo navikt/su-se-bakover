@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.routes.behandling
+package no.nav.su.se.bakover.web.routes.behandling.beregning
 
 import com.nhaarman.mockitokotlin2.mock
 import io.kotest.assertions.assertSoftly
@@ -35,7 +35,7 @@ import no.nav.su.se.bakover.web.applicationConfig
 import no.nav.su.se.bakover.web.behandlingFactory
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.fixedClock
-import no.nav.su.se.bakover.web.routes.behandling.beregning.UtenlandskInntektJson
+import no.nav.su.se.bakover.web.routes.behandling.BehandlingJson
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test

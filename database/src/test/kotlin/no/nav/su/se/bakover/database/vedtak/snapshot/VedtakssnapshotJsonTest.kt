@@ -357,7 +357,7 @@ internal class VedtakssnapshotJsonTest {
             PersistertFradrag(
                 fradragstype = Arbeidsinntekt,
                 månedsbeløp = 155.9,
-                utenlandskInntekt = UtenlandskInntekt(
+                utenlandskInntekt = UtenlandskInntekt.create(
                     beløpIUtenlandskValuta = 12345,
                     valuta = "Simoleons",
                     kurs = 129.0

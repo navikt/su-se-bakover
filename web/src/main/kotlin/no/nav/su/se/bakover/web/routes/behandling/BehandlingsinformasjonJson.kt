@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Sats
 import java.time.LocalDate
 
-data class BehandlingsinformasjonJson(
+internal data class BehandlingsinformasjonJson(
     val uførhet: UførhetJson? = null,
     val flyktning: FlyktningJson? = null,
     val lovligOpphold: LovligOppholdJson? = null,
@@ -20,7 +20,7 @@ data class BehandlingsinformasjonJson(
     val ektefelle: EktefelleJson? = null
 ) {
     companion object {
-        fun Behandlingsinformasjon.toJson() =
+        internal fun Behandlingsinformasjon.toJson() =
             BehandlingsinformasjonJson(
                 uførhet = uførhet?.toJson(),
                 flyktning = flyktning?.toJson(),
@@ -37,7 +37,7 @@ data class BehandlingsinformasjonJson(
     }
 }
 
-fun BehandlingsinformasjonJson.isValid() =
+internal fun BehandlingsinformasjonJson.isValid() =
     uførhet?.isValid() ?: true &&
         flyktning?.isValid() ?: true &&
         lovligOpphold?.isValid() ?: true &&
@@ -231,7 +231,7 @@ internal fun Behandlingsinformasjon.EktefellePartnerSamboer.toJson() = when (thi
     is Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle -> null
 }
 
-inline fun <reified T : Enum<T>> enumContains(s: String) = enumValues<T>().any { it.name == s }
+internal inline fun <reified T : Enum<T>> enumContains(s: String) = enumValues<T>().any { it.name == s }
 
 internal fun UførhetJson.isValid() =
     enumContains<Behandlingsinformasjon.Uførhet.Status>(status)
@@ -258,39 +258,39 @@ internal fun FastOppholdINorgeJson.isValid() =
 
 internal fun EktefelleJson.isValid() = true
 
-data class UførhetJson(
+internal data class UførhetJson(
     val status: String,
     val uføregrad: Int?,
     val forventetInntekt: Int?,
     val begrunnelse: String?,
 )
 
-data class FlyktningJson(
+internal data class FlyktningJson(
     val status: String,
     val begrunnelse: String?
 )
 
-data class LovligOppholdJson(
+internal data class LovligOppholdJson(
     val status: String,
     val begrunnelse: String?
 )
 
-data class FastOppholdINorgeJson(
+internal data class FastOppholdINorgeJson(
     val status: String,
     val begrunnelse: String?
 )
 
-data class InstitusjonsoppholdJson(
+internal data class InstitusjonsoppholdJson(
     val status: String,
     val begrunnelse: String?
 )
 
-data class OppholdIUtlandetJson(
+internal data class OppholdIUtlandetJson(
     val status: String,
     val begrunnelse: String?
 )
 
-data class FormueJson(
+internal data class FormueJson(
     val status: String,
     val verdier: VerdierJson?,
     val borSøkerMedEPS: Boolean,
@@ -298,7 +298,7 @@ data class FormueJson(
     val begrunnelse: String?
 )
 
-data class VerdierJson(
+internal data class VerdierJson(
     val verdiIkkePrimærbolig: Int?,
     val verdiEiendommer: Int?,
     val verdiKjøretøy: Int?,
@@ -309,19 +309,19 @@ data class VerdierJson(
     val depositumskonto: Int?,
 )
 
-data class PersonligOppmøteJson(
+internal data class PersonligOppmøteJson(
     val status: String,
     val begrunnelse: String?
 )
 
-data class BosituasjonJson(
+internal data class BosituasjonJson(
     val epsAlder: Int?,
     val delerBolig: Boolean?,
     val ektemakeEllerSamboerUførFlyktning: Boolean?,
     val begrunnelse: String?
 )
 
-data class EktefelleJson(
+internal data class EktefelleJson(
     val fnr: Fnr?,
     val navn: Person.Navn?,
     val kjønn: String?,

@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.web.routes.behandling
+package no.nav.su.se.bakover.web.routes.behandling.beregning
 
 import arrow.core.right
 import io.kotest.matchers.shouldBe
@@ -9,8 +9,6 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.web.routes.behandling.beregning.FradragJson
-import no.nav.su.se.bakover.web.routes.behandling.beregning.PeriodeJson
 import org.junit.jupiter.api.Test
 
 internal class FradragJsonTest {

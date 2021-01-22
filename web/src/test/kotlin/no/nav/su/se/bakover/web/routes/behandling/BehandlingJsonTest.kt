@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.nyBehandli
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.oppgaveId
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.sakId
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.saksnummer
-import no.nav.su.se.bakover.web.routes.behandling.BeregningJsonTest.Companion.expectedBeregningJson
+import no.nav.su.se.bakover.web.routes.behandling.beregning.BeregningJsonTest.Companion.expectedBeregningJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadJsonTest.Companion.søknadJsonString
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert

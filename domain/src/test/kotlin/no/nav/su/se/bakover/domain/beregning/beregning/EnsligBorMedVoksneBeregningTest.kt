@@ -63,7 +63,7 @@ internal class EnsligBorMedVoksneBeregningTest {
                     type = Fradragstype.OffentligPensjon,
                     månedsbeløp = utenlandskInntektPrMnd,
                     periode = periode,
-                    utenlandskInntekt = UtenlandskInntekt(
+                    utenlandskInntekt = UtenlandskInntekt.create(
                         beløpIUtenlandskValuta = 10,
                         valuta = "Andebydollars",
                         kurs = 3.0
