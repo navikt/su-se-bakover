@@ -22,14 +22,14 @@ internal fun RevurdertBeregning.toJson() = RevurdertBeregningJson(
 internal data class OpprettetRevurderingJson(
     val id: String,
     val opprettet: String,
-    val behandling: BehandlingJson
+    val tilRevurdering: BehandlingJson
 )
 
 internal fun Revurdering.toJson() = when (this) {
     is OpprettetRevurdering -> OpprettetRevurderingJson(
         id = id.toString(),
         opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
-        behandling = tilRevurdering.toJson()
+        tilRevurdering = tilRevurdering.toJson()
     )
     else -> throw NotImplementedError()
 }

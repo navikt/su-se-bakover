@@ -102,7 +102,6 @@ internal fun Route.revurderingRoutes(
                                 },
                             )
                         }
-
                 }
             )
         }
