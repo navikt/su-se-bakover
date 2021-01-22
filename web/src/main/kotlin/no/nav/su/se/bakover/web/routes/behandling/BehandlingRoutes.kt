@@ -143,13 +143,11 @@ internal fun Route.behandlingRoutes(
         val tilOgMed: LocalDate,
         val fradrag: List<FradragJson>
     ) {
-        fun isValid() = fraOgMed.dayOfMonth == 1 &&
-            tilOgMed.dayOfMonth == tilOgMed.lengthOfMonth() &&
-            fradrag.all {
-                Fradragstype.isValid(it.type) &&
-                    enumContains<FradragTilhører>(it.tilhører) &&
-                    it.utenlandskInntekt?.isValid() ?: true
-            }
+        fun isValid() = fradrag.all {
+            Fradragstype.isValid(it.type) &&
+                enumContains<FradragTilhører>(it.tilhører) &&
+                it.utenlandskInntekt?.isValid() ?: true
+        }
     }
 
     authorize(Brukerrolle.Saksbehandler) {
