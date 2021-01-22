@@ -4,6 +4,7 @@ import arrow.core.Either
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
+import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.routing.Route
 import io.ktor.routing.post
@@ -54,6 +55,8 @@ internal fun Route.revurderingRoutes(
                         ).fold(
                             ifLeft = {
                                 when (it) {
+                                    RevurderingFeilet.FantIkkeSak -> call.svar(NotFound.message("Fant ikke sak"))
+                                    RevurderingFeilet.FantIngentingSomKanRevurderes -> call.svar(NotFound.message("Fant ingenting som kan revurderes for perioden $periode"))
                                     RevurderingFeilet.GeneriskFeil -> call.svar(InternalServerError.message("Noe gikk feil ved revurdering"))
                                     else -> call.svar(BadRequest.message("noe gikk feil"))
                                 }

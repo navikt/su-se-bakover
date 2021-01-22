@@ -24,5 +24,7 @@ interface RevurderingService {
 
 sealed class RevurderingFeilet {
     object GeneriskFeil : RevurderingFeilet()
+    object FantIkkeSak : RevurderingFeilet()
+    object FantIngentingSomKanRevurderes : RevurderingFeilet()
 }
 
