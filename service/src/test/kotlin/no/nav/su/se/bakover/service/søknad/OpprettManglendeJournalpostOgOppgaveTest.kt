@@ -61,17 +61,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             fnr = fnr,
             aktørId = AktørId(aktørId = "123")
         ),
-        navn = Person.Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy"),
-        telefonnummer = null,
-        adresse = null,
-        statsborgerskap = null,
-        kjønn = null,
-        fødselsdato = null,
-        adressebeskyttelse = null,
-        skjermet = null,
-        kontaktinfo = null,
-        vergemål = null,
-        fullmakt = null,
+        navn = Person.Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy")
     )
 
     @Test
