@@ -36,11 +36,12 @@ class ServiceBuilder(
     private val databaseRepos: DatabaseRepos,
     private val clients: Clients,
     private val behandlingMetrics: BehandlingMetrics,
-    private val søknadMetrics: SøknadMetrics
+    private val søknadMetrics: SøknadMetrics,
+    private val clock: Clock,
 ) {
     fun build(): Services {
         val personService = PersonServiceImpl(clients.personOppslag)
-        val statistikkService = StatistikkServiceImpl(clients.kafkaPublisher, personService)
+        val statistikkService = StatistikkServiceImpl(clients.kafkaPublisher, personService, clock)
         val sakService = SakServiceImpl(
             sakRepo = databaseRepos.sak
         ).apply { observers.add(statistikkService) }
@@ -48,7 +49,8 @@ class ServiceBuilder(
             utbetalingRepo = databaseRepos.utbetaling,
             sakService = sakService,
             simuleringClient = clients.simuleringClient,
-            utbetalingPublisher = clients.utbetalingPublisher
+            utbetalingPublisher = clients.utbetalingPublisher,
+            clock = clock,
         )
         val brevService = BrevServiceImpl(
             pdfGenerator = clients.pdfGenerator,
@@ -61,12 +63,13 @@ class ServiceBuilder(
         val søknadService = SøknadServiceImpl(
             søknadRepo = databaseRepos.søknad,
             sakService = sakService,
-            sakFactory = SakFactory(),
+            sakFactory = SakFactory(clock = clock),
             pdfGenerator = clients.pdfGenerator,
             dokArkiv = clients.dokArkiv,
             personService = personService,
             oppgaveService = oppgaveService,
-            søknadMetrics = søknadMetrics
+            søknadMetrics = søknadMetrics,
+            clock = clock,
         )
         val opprettVedtakssnapshotService = OpprettVedtakssnapshotService(databaseRepos.vedtakssnapshot)
         val journalførIverksettingService = JournalførIverksettingService(databaseRepos.behandling, brevService)
@@ -85,7 +88,8 @@ class ServiceBuilder(
         return Services(
             avstemming = AvstemmingServiceImpl(
                 repo = databaseRepos.avstemming,
-                publisher = clients.avstemmingPublisher
+                publisher = clients.avstemmingPublisher,
+                clock = clock,
             ),
             utbetaling = utbetalingService,
             behandling = BehandlingServiceImpl(
@@ -99,7 +103,7 @@ class ServiceBuilder(
                 brevService = brevService,
                 behandlingMetrics = behandlingMetrics,
                 microsoftGraphApiClient = clients.microsoftGraphApiClient,
-                clock = Clock.systemUTC(),
+                clock = clock,
                 iverksettBehandlingService = IverksettBehandlingService(
                     behandlingRepo = databaseRepos.behandling,
                     utbetalingService = utbetalingService,
@@ -108,7 +112,7 @@ class ServiceBuilder(
                     behandlingMetrics = behandlingMetrics,
                     microsoftGraphApiClient = clients.microsoftGraphApiClient,
                     opprettVedtakssnapshotService = opprettVedtakssnapshotService,
-                    clock = Clock.systemUTC(),
+                    clock = clock,
                     journalførIverksettingService = journalførIverksettingService,
                     distribuerIverksettingsbrevService = distribuerIverksettingsbrevService,
                 ).apply { addObserver(statistikkService) },
@@ -122,7 +126,8 @@ class ServiceBuilder(
                 sakService = sakService,
                 brevService = brevService,
                 oppgaveService = oppgaveService,
-                personService = personService
+                personService = personService,
+                clock = clock,
             ),
             oppgave = oppgaveService,
             person = personService,

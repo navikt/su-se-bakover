@@ -15,7 +15,7 @@ internal class BeregningsgrunnlagTest {
     @Test
     fun `skal legge til forventet inntekt som et månedsbeløp med en periode tilsvarende beregningsperioden 12mnd`() {
         val beregningsperiode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020))
-        Beregningsgrunnlag(
+        Beregningsgrunnlag.create(
             beregningsperiode = beregningsperiode,
             forventetInntektPerÅr = 120_000.0,
             fradragFraSaksbehandler = listOf(
@@ -48,7 +48,7 @@ internal class BeregningsgrunnlagTest {
     @Test
     fun `skal legge til forventet inntekt som et månedsbeløp med en periode tilsvarende beregningen 1mnd`() {
         val beregningsperiode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.januar(2020))
-        Beregningsgrunnlag(
+        Beregningsgrunnlag.create(
             beregningsperiode = beregningsperiode,
             forventetInntektPerÅr = 120_000.0,
             fradragFraSaksbehandler = listOf(
@@ -81,7 +81,7 @@ internal class BeregningsgrunnlagTest {
     @Test
     fun `tåler at man ikke har forventet inntekt`() {
         val beregningsperiode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.januar(2020))
-        Beregningsgrunnlag(
+        Beregningsgrunnlag.create(
             beregningsperiode = beregningsperiode,
             forventetInntektPerÅr = 0.0,
             fradragFraSaksbehandler = emptyList()
@@ -99,7 +99,7 @@ internal class BeregningsgrunnlagTest {
     @Test
     fun `validerer fradrag`() {
         assertDoesNotThrow {
-            Beregningsgrunnlag(
+            Beregningsgrunnlag.create(
                 beregningsperiode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.januar(2020)),
                 forventetInntektPerÅr = 0.0,
                 fradragFraSaksbehandler = emptyList()
@@ -107,7 +107,7 @@ internal class BeregningsgrunnlagTest {
         }
 
         assertThrows<IllegalArgumentException> {
-            Beregningsgrunnlag(
+            Beregningsgrunnlag.create(
                 beregningsperiode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.januar(2020)),
                 forventetInntektPerÅr = 0.0,
                 fradragFraSaksbehandler = listOf(

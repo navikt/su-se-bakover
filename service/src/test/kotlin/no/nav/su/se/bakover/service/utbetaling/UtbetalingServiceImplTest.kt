@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.doNothing
+import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.sak.SakService
 import org.junit.jupiter.api.Test
 import org.mockito.internal.verification.Times
@@ -90,7 +91,8 @@ internal class UtbetalingServiceImplTest {
             utbetalingRepo = utbetalingRepoMock,
             sakService = sakServiceMock,
             simuleringClient = simuleringClientMock,
-            utbetalingPublisher = utbetalingPublisherMock
+            utbetalingPublisher = utbetalingPublisherMock,
+            clock = fixedClock,
         ).hentUtbetaling(UUID30.randomUUID()) shouldBe FantIkkeUtbetaling.left()
 
         verify(utbetalingRepoMock, Times(1)).hentUtbetaling(any<UUID30>())
@@ -124,7 +126,8 @@ internal class UtbetalingServiceImplTest {
             utbetalingRepo = utbetalingRepoMock,
             sakService = sakServiceMock,
             simuleringClient = simuleringClientMock,
-            utbetalingPublisher = utbetalingPublisherMock
+            utbetalingPublisher = utbetalingPublisherMock,
+            clock = fixedClock,
         ).hentUtbetaling(utbetalingMedKvittering.id) shouldBe utbetalingMedKvittering.right()
 
         verify(utbetalingRepoMock).hentUtbetaling(utbetalingMedKvittering.id)
@@ -149,7 +152,8 @@ internal class UtbetalingServiceImplTest {
             utbetalingRepo = utbetalingRepoMock,
             sakService = sakServiceMock,
             simuleringClient = simuleringClientMock,
-            utbetalingPublisher = utbetalingPublisherMock
+            utbetalingPublisher = utbetalingPublisherMock,
+            clock = fixedClock,
         ).oppdaterMedKvittering(
             avstemmingsnøkkel = avstemmingsnøkkel,
             kvittering = kvitteringOK
@@ -205,7 +209,8 @@ internal class UtbetalingServiceImplTest {
             utbetalingRepo = utbetalingRepoMock,
             sakService = sakServiceMock,
             simuleringClient = simuleringClientMock,
-            utbetalingPublisher = utbetalingPublisherMock
+            utbetalingPublisher = utbetalingPublisherMock,
+            clock = fixedClock,
         ).oppdaterMedKvittering(
             utbetalingUtenKvittering.avstemmingsnøkkel,
             kvittering
@@ -263,7 +268,8 @@ internal class UtbetalingServiceImplTest {
             utbetalingRepo = utbetalingRepoMock,
             sakService = sakServiceMock,
             simuleringClient = simuleringClientMock,
-            utbetalingPublisher = utbetalingPublisherMock
+            utbetalingPublisher = utbetalingPublisherMock,
+            clock = fixedClock,
         ).oppdaterMedKvittering(
             avstemmingsnøkkel,
             nyKvittering
@@ -303,7 +309,8 @@ internal class UtbetalingServiceImplTest {
             utbetalingRepo = utbetalingRepoMock,
             utbetalingPublisher = utbetalingPublisherMock,
             sakService = sakServiceMock,
-            simuleringClient = simuleringClientMock
+            simuleringClient = simuleringClientMock,
+            clock = fixedClock,
         ).utbetal(
             sakId = sakId,
             attestant = attestant,
@@ -421,7 +428,8 @@ internal class UtbetalingServiceImplTest {
             utbetalingRepo = utbetalingRepoMock,
             utbetalingPublisher = utbetalingPublisherMock,
             sakService = sakServiceMock,
-            simuleringClient = simuleringClientMock
+            simuleringClient = simuleringClientMock,
+            clock = fixedClock,
         ).utbetal(
             sakId = sakId,
             attestant = attestant,
@@ -498,7 +506,8 @@ internal class UtbetalingServiceImplTest {
             utbetalingRepo = utbetalingRepoMock,
             utbetalingPublisher = utbetalingPublisherMock,
             sakService = sakServiceMock,
-            simuleringClient = simuleringClientMock
+            simuleringClient = simuleringClientMock,
+            clock = fixedClock,
         ).utbetal(
             sakId = sakId,
             attestant = attestant,

@@ -10,6 +10,8 @@ import io.ktor.server.testing.TestApplicationRequest
 import io.ktor.server.testing.handleRequest
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DatabaseRepos
 import no.nav.su.se.bakover.database.EmbeddedDatabase
@@ -21,8 +23,12 @@ import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.web.stubs.JwtStub
 import no.nav.su.se.bakover.web.stubs.asBearerToken
 import java.time.Clock
+import java.time.ZoneOffset
 
 const val DEFAULT_CALL_ID = "her skulle vi sikkert hatt en korrelasjonsid"
+
+internal val fixedClock: Clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC)
+internal val behandlingFactory = BehandlingFactory(mock(), fixedClock)
 
 val applicationConfig = ApplicationConfig(
     isLocalOrRunningTests = true,
@@ -83,21 +89,24 @@ val applicationConfig = ApplicationConfig(
 
 internal val jwtStub = JwtStub(applicationConfig)
 
+// The compiler does not like the naming reference loop :shrug:
+private val defaultBehandlingFactory = behandlingFactory
 internal fun Application.testSusebakover(
+    clock: Clock = fixedClock,
     clients: Clients = TestClientsBuilder.build(applicationConfig),
-    behandlingFactory: BehandlingFactory = BehandlingFactory(mock()),
+    behandlingFactory: BehandlingFactory = defaultBehandlingFactory,
     databaseRepos: DatabaseRepos = DatabaseBuilder.build(EmbeddedDatabase.instance(), behandlingFactory),
     services: Services = ServiceBuilder( // build actual clients
         databaseRepos = databaseRepos,
         clients = clients,
         behandlingMetrics = mock(),
-        søknadMetrics = mock()
+        søknadMetrics = mock(),
+        clock = clock
     ).build(),
     accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
-    clock: Clock = Clock.systemUTC()
 ) {
     return susebakover(
-        behandlingFactory = BehandlingFactory(mock()),
+        behandlingFactory = behandlingFactory,
         databaseRepos = databaseRepos,
         clients = clients,
         services = services,

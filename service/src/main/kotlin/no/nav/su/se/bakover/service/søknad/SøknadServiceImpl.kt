@@ -10,8 +10,6 @@ import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
 import no.nav.su.se.bakover.client.dokarkiv.Journalpost
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.ddMMyyyy
-import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Person
@@ -28,6 +26,7 @@ import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
 import org.slf4j.LoggerFactory
+import java.time.Clock
 import java.util.UUID
 
 internal class SøknadServiceImpl(
@@ -38,7 +37,8 @@ internal class SøknadServiceImpl(
     private val dokArkiv: DokArkiv,
     private val personService: PersonService,
     private val oppgaveService: OppgaveService,
-    private val søknadMetrics: SøknadMetrics
+    private val søknadMetrics: SøknadMetrics,
+    private val clock: Clock,
 ) : SøknadService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -148,12 +148,13 @@ internal class SøknadServiceImpl(
         person: Person
     ): Either<KunneIkkeOppretteJournalpost, Søknad.Journalført.UtenOppgave> {
         val pdfByteArray = pdfGenerator.genererPdf(
-            SøknadPdfInnhold(
+            SøknadPdfInnhold.create(
                 saksnummer = saksnummer,
                 søknadsId = søknad.id,
                 navn = person.navn,
-                søknadOpprettet = søknad.opprettet.toLocalDate(zoneIdOslo).ddMMyyyy(),
-                søknadInnhold = søknad.søknadInnhold
+                søknadOpprettet = søknad.opprettet,
+                søknadInnhold = søknad.søknadInnhold,
+                clock = clock,
             )
         ).getOrHandle {
             log.error("Ny søknad: Kunne ikke generere PDF. Originalfeil: $it")
@@ -220,12 +221,13 @@ internal class SøknadServiceImpl(
                         return KunneIkkeLageSøknadPdf.FantIkkePerson.left()
                     }.flatMap { person ->
                         pdfGenerator.genererPdf(
-                            SøknadPdfInnhold(
+                            SøknadPdfInnhold.create(
                                 saksnummer = sak.saksnummer,
                                 søknadsId = søknad.id,
                                 navn = person.navn,
-                                søknadOpprettet = søknad.opprettet.toLocalDate(zoneIdOslo).ddMMyyyy(),
-                                søknadInnhold = søknad.søknadInnhold
+                                søknadOpprettet = søknad.opprettet,
+                                søknadInnhold = søknad.søknadInnhold,
+                                clock = clock,
                             )
                         ).mapLeft {
                             log.error("Hent søknad-PDF: Kunne ikke generere PDF. Originalfeil: $it")

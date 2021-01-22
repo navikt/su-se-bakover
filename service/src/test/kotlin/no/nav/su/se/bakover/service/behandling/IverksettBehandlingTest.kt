@@ -41,6 +41,7 @@ import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.saksnummer
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.tidspunkt
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.doNothing
+import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.Event
@@ -549,8 +550,8 @@ internal class IverksettBehandlingTest {
     private fun beregnetBehandling() = BehandlingTestUtils.createOpprettetBehandling()
         .copy(
             status = Behandling.BehandlingsStatus.BEREGNET_INNVILGET,
-            saksbehandler = BehandlingTestUtils.saksbehandler,
-            attestering = Attestering.Iverksatt(BehandlingTestUtils.attestant),
+            saksbehandler = saksbehandler,
+            attestering = Attestering.Iverksatt(attestant),
             oppgaveId = oppgaveId,
             beregning = beregning,
         )
@@ -570,7 +571,7 @@ internal class IverksettBehandlingTest {
     private val simulering = Simulering(
         gjelderId = fnr,
         gjelderNavn = "NAVN",
-        datoBeregnet = idag(),
+        datoBeregnet = idag(fixedClock),
         nettoBeløp = 191500,
         periodeList = listOf()
     )
@@ -606,7 +607,7 @@ internal class IverksettBehandlingTest {
         oppgaveService = oppgaveService,
         personService = personService,
         behandlingMetrics = behandlingMetrics,
-        clock = BehandlingTestUtils.fixedClock,
+        clock = fixedClock,
         microsoftGraphApiClient = microsoftGraphApiOppslag,
         opprettVedtakssnapshotService = opprettVedtakssnapshotService,
         journalførIverksettingService = journalførIverksettingService,

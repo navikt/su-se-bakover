@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
@@ -27,7 +26,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagBrevRequest
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.beregning.NyBeregningForSøknadsbehandling
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -158,25 +157,20 @@ internal class BehandlingServiceImpl(
 
     // TODO need to define responsibilities for domain and services.
     override fun opprettBeregning(
-        behandlingId: UUID,
-        saksbehandler: NavIdentBruker.Saksbehandler,
-        periode: Periode,
-        fradrag: List<Fradrag>
+        nyBeregningForSøknadsbehandling: NyBeregningForSøknadsbehandling
     ): Either<KunneIkkeBeregne, Behandling> {
-        val behandling = behandlingRepo.hentBehandling(behandlingId)
+        val behandling = behandlingRepo.hentBehandling(nyBeregningForSøknadsbehandling.behandlingId)
             ?: return KunneIkkeBeregne.FantIkkeBehandling.left()
 
         return behandling.opprettBeregning(
-            saksbehandler,
-            periode,
-            fradrag
+            nyBeregningForSøknadsbehandling
         ) // invoke first to perform state-check
             .mapLeft {
                 KunneIkkeBeregne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
             }
             .map {
                 behandlingRepo.leggTilBeregning(it.id, it.beregning()!!)
-                behandlingRepo.oppdaterBehandlingStatus(behandlingId, it.status())
+                behandlingRepo.oppdaterBehandlingStatus(nyBeregningForSøknadsbehandling.behandlingId, it.status())
                 it
             }
     }

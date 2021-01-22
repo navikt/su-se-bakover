@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.getOrHandle
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.person.PersonRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
@@ -19,7 +18,7 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.beregning.NyBeregningForSøknadsbehandling
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
@@ -170,19 +169,11 @@ open class AccessCheckProxy(
                 }
 
                 override fun opprettBeregning(
-                    behandlingId: UUID,
-                    saksbehandler: NavIdentBruker.Saksbehandler,
-                    periode: Periode,
-                    fradrag: List<Fradrag>
+                    nyBeregningForSøknadsbehandling: NyBeregningForSøknadsbehandling
                 ): Either<KunneIkkeBeregne, Behandling> {
-                    assertHarTilgangTilBehandling(behandlingId)
+                    assertHarTilgangTilBehandling(nyBeregningForSøknadsbehandling.behandlingId)
 
-                    return services.behandling.opprettBeregning(
-                        behandlingId,
-                        saksbehandler,
-                        periode,
-                        fradrag
-                    )
+                    return services.behandling.opprettBeregning(nyBeregningForSøknadsbehandling)
                 }
 
                 override fun simuler(

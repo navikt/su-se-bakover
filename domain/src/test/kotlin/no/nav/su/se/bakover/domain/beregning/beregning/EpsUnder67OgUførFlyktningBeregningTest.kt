@@ -42,7 +42,7 @@ internal class EpsUnder67OgUførFlyktningBeregningTest {
         val epsAnnenNorskPrMnd = epsAnnenNorskPrÅr / 12
 
         val uføreOrdinærSatsbeløp = 231080.0
-        val beregningsgrunnlag = Beregningsgrunnlag(
+        val beregningsgrunnlag = Beregningsgrunnlag.create(
             beregningsperiode = periode,
             forventetInntektPerÅr = 0.0,
             fradragFraSaksbehandler = listOf(

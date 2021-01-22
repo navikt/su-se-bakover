@@ -14,7 +14,7 @@ data class Stønadsperiode(
             return tryCreate(periode).getOrHandle { throw IllegalArgumentException(it.toString()) }
         }
 
-        fun tryCreate(periode: Periode) : Either<UgyldigStønadsperiode, Stønadsperiode> {
+        fun tryCreate(periode: Periode): Either<UgyldigStønadsperiode, Stønadsperiode> {
             if (periode.getFraOgMed().year < 2021) { return UgyldigStønadsperiode.FraOgMedDatoKanIkkeVæreFør2021.left() }
             if (periode.getAntallMåneder() > 12) { return UgyldigStønadsperiode.PeriodeKanIkkeVæreLengreEnn12Måneder.left() }
 

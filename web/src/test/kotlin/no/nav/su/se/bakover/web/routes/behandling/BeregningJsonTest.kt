@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.routes.behandling
 
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.web.routes.behandling.beregning.toJson
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 

@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.fixedClock
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -35,7 +36,8 @@ class HentSøknadTest {
             dokArkiv = mock(),
             personService = mock(),
             oppgaveService = mock(),
-            søknadMetrics = mock()
+            søknadMetrics = mock(),
+            clock = fixedClock
         )
 
         val actual = søknadService.hentSøknad(søknadId)
@@ -64,7 +66,8 @@ class HentSøknadTest {
             dokArkiv = mock(),
             personService = mock(),
             oppgaveService = mock(),
-            søknadMetrics = mock()
+            søknadMetrics = mock(),
+            clock = fixedClock,
         )
 
         val actual = søknadService.hentSøknad(søknadId)

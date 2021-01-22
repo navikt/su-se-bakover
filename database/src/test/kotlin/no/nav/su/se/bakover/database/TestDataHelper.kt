@@ -21,14 +21,16 @@ import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import java.time.Clock
 import java.util.UUID
 import javax.sql.DataSource
 
 internal class TestDataHelper(
-    dataSource: DataSource = EmbeddedDatabase.instance()
+    dataSource: DataSource = EmbeddedDatabase.instance(),
+    private val clock: Clock = Clock.systemUTC(),
 ) {
     private val behandlingMetrics = mock<BehandlingMetrics>()
-    private val behandlingFactory = BehandlingFactory(behandlingMetrics)
+    private val behandlingFactory = BehandlingFactory(behandlingMetrics, clock)
     private val behandlingPostgresRepo = BehandlingPostgresRepo(dataSource, behandlingFactory)
     private val utbetalingRepo = UtbetalingPostgresRepo(dataSource)
     private val hendelsesloggRepo = HendelsesloggPostgresRepo(dataSource)
@@ -53,7 +55,7 @@ internal class TestDataHelper(
         return sakRepo.hentSak(fnr) ?: throw RuntimeException("Feil ved henting av sak.")
     }
 
-    internal fun insertSak(fnr: Fnr): NySak = SakFactory().nySak(fnr, SøknadInnholdTestdataBuilder.build()).also {
+    internal fun insertSak(fnr: Fnr): NySak = SakFactory(clock = clock).nySak(fnr, SøknadInnholdTestdataBuilder.build()).also {
         sakRepo.opprettSak(it)
     }
 

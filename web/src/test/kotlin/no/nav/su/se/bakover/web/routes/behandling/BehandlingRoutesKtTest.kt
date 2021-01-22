@@ -34,10 +34,11 @@ import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Behandling
-import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.extractBehandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
+import no.nav.su.se.bakover.domain.beregning.NyBeregningForSøknadsbehandling
+import no.nav.su.se.bakover.domain.beregning.Stønadsperiode
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
@@ -51,7 +52,9 @@ import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
 import no.nav.su.se.bakover.web.applicationConfig
+import no.nav.su.se.bakover.web.behandlingFactory
 import no.nav.su.se.bakover.web.defaultRequest
+import no.nav.su.se.bakover.web.fixedClock
 import no.nav.su.se.bakover.web.jwtStub
 import no.nav.su.se.bakover.web.requestSomAttestant
 import no.nav.su.se.bakover.web.routes.sak.sakPath
@@ -65,12 +68,13 @@ internal class BehandlingRoutesKtTest {
 
     private val saksbehandler = NavIdentBruker.Saksbehandler("AB12345")
 
-    private val repos = DatabaseBuilder.build(EmbeddedDatabase.instance(), BehandlingFactory(mock()))
+    private val repos = DatabaseBuilder.build(EmbeddedDatabase.instance(), behandlingFactory)
     private val services = ServiceBuilder(
         databaseRepos = repos,
         clients = TestClientsBuilder.build(applicationConfig),
         behandlingMetrics = mock(),
-        søknadMetrics = mock()
+        søknadMetrics = mock(),
+        clock = fixedClock,
     ).build()
 
     @Nested
@@ -144,10 +148,12 @@ internal class BehandlingRoutesKtTest {
                 extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
             )
             services.behandling.opprettBeregning(
-                objects.nySøknadsbehandling.id,
-                saksbehandler,
-                Periode.create(1.januar(2021), 31.desember(2021)),
-                emptyList()
+                NyBeregningForSøknadsbehandling.create(
+                    behandlingId = objects.nySøknadsbehandling.id,
+                    saksbehandler = saksbehandler,
+                    stønadsperiode = Stønadsperiode(Periode.create(1.januar(2021), 31.desember(2021))),
+                    fradrag = emptyList()
+                )
             )
             services.behandling.simuler(objects.nySøknadsbehandling.id, saksbehandler)
             defaultRequest(
@@ -190,10 +196,12 @@ internal class BehandlingRoutesKtTest {
                 extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
             )
             services.behandling.opprettBeregning(
-                objects.nySøknadsbehandling.id,
-                saksbehandler,
-                Periode.create(1.januar(2021), 31.desember(2021)),
-                emptyList()
+                NyBeregningForSøknadsbehandling.create(
+                    behandlingId = objects.nySøknadsbehandling.id,
+                    saksbehandler = saksbehandler,
+                    stønadsperiode = Stønadsperiode(Periode.create(1.januar(2021), 31.desember(2021))),
+                    fradrag = emptyList(),
+                )
             )
             services.behandling.simuler(objects.nySøknadsbehandling.id, saksbehandler)
             defaultRequest(
@@ -242,10 +250,12 @@ internal class BehandlingRoutesKtTest {
                 extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
             )
             services.behandling.opprettBeregning(
-                objects.nySøknadsbehandling.id,
-                saksbehandler,
-                Periode.create(1.januar(2021), 31.desember(2021)),
-                emptyList()
+                NyBeregningForSøknadsbehandling.create(
+                    behandlingId = objects.nySøknadsbehandling.id,
+                    saksbehandler = saksbehandler,
+                    stønadsperiode = Stønadsperiode(Periode.create(1.januar(2021), 31.desember(2021))),
+                    fradrag = emptyList(),
+                )
             )
 
             defaultRequest(
@@ -273,10 +283,12 @@ internal class BehandlingRoutesKtTest {
                         extractBehandlingsinformasjon(behandling).withAlleVilkårOppfylt()
                     )
                     services.behandling.opprettBeregning(
-                        nySøknadsbehandling.id,
-                        saksbehandler,
-                        Periode.create(1.januar(2021), 31.desember(2021)),
-                        emptyList()
+                        NyBeregningForSøknadsbehandling.create(
+                            behandlingId = nySøknadsbehandling.id,
+                            saksbehandler = saksbehandler,
+                            stønadsperiode = Stønadsperiode(Periode.create(1.januar(2021), 31.desember(2021))),
+                            fradrag = emptyList()
+                        )
                     )
                     services.behandling.simuler(nySøknadsbehandling.id, saksbehandler)
                         .map {
@@ -391,10 +403,12 @@ internal class BehandlingRoutesKtTest {
                         extractBehandlingsinformasjon(behandling).withAlleVilkårOppfylt()
                     )
                     services.behandling.opprettBeregning(
-                        nySøknadsbehandling.id,
-                        saksbehandler,
-                        Periode.create(1.januar(2021), 31.desember(2021)),
-                        emptyList()
+                        NyBeregningForSøknadsbehandling.create(
+                            behandlingId = nySøknadsbehandling.id,
+                            saksbehandler = saksbehandler,
+                            stønadsperiode = Stønadsperiode(Periode.create(1.januar(2021), 31.desember(2021))),
+                            fradrag = emptyList(),
+                        )
                     )
                     services.behandling.simuler(nySøknadsbehandling.id, saksbehandler)
                         .map {
@@ -540,7 +554,7 @@ internal class BehandlingRoutesKtTest {
         fun `Feiler dersom man ikke får sendt til utbetaling`() {
             withTestApplication({
                 testSusebakover(
-                    testClients.copy(
+                    clients = testClients.copy(
                         utbetalingPublisher = object : UtbetalingPublisher {
                             override fun publish(
                                 utbetaling: Utbetaling.SimulertUtbetaling
@@ -560,10 +574,12 @@ internal class BehandlingRoutesKtTest {
                     extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
                 )
                 services.behandling.opprettBeregning(
-                    objects.nySøknadsbehandling.id,
-                    saksbehandler,
-                    Periode.create(1.januar(2021), 31.desember(2021)),
-                    emptyList()
+                    NyBeregningForSøknadsbehandling.create(
+                        behandlingId = objects.nySøknadsbehandling.id,
+                        saksbehandler = saksbehandler,
+                        stønadsperiode = Stønadsperiode(Periode.create(1.januar(2021), 31.desember(2021))),
+                        fradrag = emptyList(),
+                    )
                 )
                 services.behandling.simuler(objects.nySøknadsbehandling.id, saksbehandler).fold(
                     { it },
@@ -596,7 +612,7 @@ internal class BehandlingRoutesKtTest {
     private fun setup(): Objects {
         val søknadInnhold = SøknadInnholdTestdataBuilder.build()
         val fnr: Fnr = FnrGenerator.random()
-        SakFactory().nySak(fnr, søknadInnhold).also {
+        SakFactory(clock = fixedClock).nySak(fnr, søknadInnhold).also {
             repos.sak.opprettSak(it)
         }
         val sak: Sak = repos.sak.hentSak(fnr)!!

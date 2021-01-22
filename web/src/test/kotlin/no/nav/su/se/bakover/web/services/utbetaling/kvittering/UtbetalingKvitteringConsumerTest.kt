@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.argThat
+import no.nav.su.se.bakover.web.fixedClock
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.nyBehandling
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.sakId
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.saksnummer
@@ -63,7 +64,7 @@ internal class UtbetalingKvitteringConsumerTest {
         val serviceMock = mock<UtbetalingService> {
             on { oppdaterMedKvittering(eq(avstemmingsnøkkel), any()) } doReturn FantIkkeUtbetaling.left()
         }
-        val consumer = UtbetalingKvitteringConsumer(serviceMock, mock())
+        val consumer = UtbetalingKvitteringConsumer(serviceMock, mock(), fixedClock)
 
         shouldThrow<RuntimeException> {
             consumer.onMessage(kvitteringXml())

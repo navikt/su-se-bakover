@@ -2,8 +2,10 @@ package no.nav.su.se.bakover.database.vedtak.snapshot
 
 import com.nhaarman.mockitokotlin2.mock
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.beregning.PersistertFradrag
 import no.nav.su.se.bakover.database.beregning.PersistertMånedsberegning
@@ -38,12 +40,15 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
+import java.time.Clock
 import java.time.LocalDate
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.util.UUID
 
 internal class VedtakssnapshotJsonTest {
+
+    private val fixedClock: Clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC)
 
     private val sakId = "7a8b4a95-9736-4f79-bb38-e1d4a7c42799"
     private val saksnummer = 1234L
@@ -56,7 +61,7 @@ internal class VedtakssnapshotJsonTest {
 
     private val fnr = Fnr("12345678910")
 
-    private val behandling = BehandlingFactory(mock()).createBehandling(
+    private val behandling = BehandlingFactory(mock(), fixedClock).createBehandling(
         id = UUID.fromString(behandlingId),
         opprettet = tidspunkt,
         sakId = UUID.fromString(sakId),

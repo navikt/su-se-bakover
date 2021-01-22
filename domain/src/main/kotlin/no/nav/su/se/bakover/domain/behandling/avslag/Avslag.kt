@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.domain.Grunnbeløp
 import no.nav.su.se.bakover.domain.beregning.Beregning
 
 data class Avslag(
-    val opprettet: Tidspunkt = Tidspunkt.now(),
+    val opprettet: Tidspunkt,
     val avslagsgrunner: List<Avslagsgrunn>,
     val harEktefelle: Boolean,
     val beregning: Beregning?,

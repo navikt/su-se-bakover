@@ -40,7 +40,7 @@ internal class EpsOver67BeregningTest {
         val epsFolketrygdPrMnd = epsFolketrydPrÅr / 12
 
         val mpnOrdinær = 183587.0
-        val beregningsgrunnlag = Beregningsgrunnlag(
+        val beregningsgrunnlag = Beregningsgrunnlag.create(
             beregningsperiode = periode,
             forventetInntektPerÅr = 0.0,
             fradragFraSaksbehandler = listOf(

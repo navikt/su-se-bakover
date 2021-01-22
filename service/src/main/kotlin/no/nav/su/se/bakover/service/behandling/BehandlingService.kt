@@ -2,14 +2,13 @@ package no.nav.su.se.bakover.service.behandling
 
 import arrow.core.Either
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.beregning.NyBeregningForSøknadsbehandling
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import java.util.UUID
@@ -29,10 +28,7 @@ interface BehandlingService {
     ): Either<KunneIkkeOppdatereBehandlingsinformasjon, Behandling>
 
     fun opprettBeregning(
-        behandlingId: UUID,
-        saksbehandler: Saksbehandler,
-        periode: Periode,
-        fradrag: List<Fradrag>
+        nyBeregningForSøknadsbehandling: NyBeregningForSøknadsbehandling
     ): Either<KunneIkkeBeregne, Behandling>
 
     fun simuler(behandlingId: UUID, saksbehandler: Saksbehandler): Either<KunneIkkeSimulereBehandling, Behandling>

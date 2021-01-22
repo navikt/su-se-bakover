@@ -20,7 +20,6 @@ import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.SIMULERT
-import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -28,6 +27,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.behandlingFactory
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.createService
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
@@ -148,7 +148,7 @@ internal class BehandlingssimuleringTest {
         verifyNoMoreInteractions(behandlingRepoMock, utbetalingServiceMock)
     }
 
-    private fun beregnetBehandling() = BehandlingFactory(mock()).createBehandling(
+    private fun beregnetBehandling() = behandlingFactory.createBehandling(
         søknad = Søknad.Journalført.MedOppgave(
             id = søknadId,
             opprettet = Tidspunkt.EPOCH,

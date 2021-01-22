@@ -14,7 +14,7 @@ import java.time.Clock
 internal class StatistikkServiceImpl(
     private val publisher: KafkaPublisher,
     private val personService: PersonService,
-    private val clock: Clock = Clock.systemUTC()
+    private val clock: Clock,
 ) : StatistikkService, EventObserver {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val schemaValidator = StatistikkSchemaValidator

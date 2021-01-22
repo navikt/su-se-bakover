@@ -8,6 +8,8 @@ import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.Søknad
@@ -23,9 +25,12 @@ import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import org.junit.jupiter.api.Test
 import java.time.Clock
+import java.time.ZoneOffset
 import java.util.UUID
 
 internal class OpprettSøknadsbehandlingTest {
+
+    private val fixedClock: Clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC)
 
     @Test
     fun `Oppretter behandling og publiserer event`() {
@@ -60,7 +65,7 @@ internal class OpprettSøknadsbehandlingTest {
             personService = mock(),
             brevService = mock(),
             behandlingMetrics = mock(),
-            clock = Clock.systemUTC(),
+            clock = fixedClock,
             microsoftGraphApiClient = mock(),
             iverksettBehandlingService = mock(),
             ferdigstillIverksettingService = mock(),

@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.common.periode
 
 import arrow.core.left
 import com.fasterxml.jackson.module.kotlin.readValue
+import io.kotest.assertions.assertSoftly
 import io.kotest.assertions.throwables.shouldThrowExactly
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -63,20 +64,16 @@ internal class PeriodeTest {
 
     @Test
     fun `får ikke opprettet perioder med ugyldige input parametere create`() {
-        assertThrows<IllegalArgumentException> {
-            Periode.create(10.januar(2021), 31.desember(2021))
-        }
-        assertThrows<IllegalArgumentException> {
-            Periode.create(1.januar(2021), 10.desember(2021))
-        }
-        assertThrows<IllegalArgumentException> {
-            Periode.create(1.februar(2021), 31.januar(2021))
-        }
-        assertThrows<IllegalArgumentException> {
-            Periode.create(1.januar(2021), 31.januar(2022))
-        }
-        assertThrows<IllegalArgumentException> {
-            Periode.create(1.desember(2019), 31.januar(2021))
+        assertSoftly {
+            assertThrows<IllegalArgumentException> {
+                Periode.create(10.januar(2021), 31.desember(2021))
+            }
+            assertThrows<IllegalArgumentException> {
+                Periode.create(1.januar(2021), 10.desember(2021))
+            }
+            assertThrows<IllegalArgumentException> {
+                Periode.create(1.februar(2021), 31.januar(2021))
+            }
         }
     }
 
@@ -85,8 +82,6 @@ internal class PeriodeTest {
         Periode.tryCreate(10.januar(2021), 31.desember(2021)) shouldBe Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden.left()
         Periode.tryCreate(1.februar(2021), 31.januar(2021)) shouldBe Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørTilOgMedDato.left()
         Periode.tryCreate(1.januar(2021), 30.desember(2021)) shouldBe Periode.UgyldigPeriode.TilOgMedDatoMåVæreSisteDagIMåneden.left()
-        Periode.tryCreate(1.januar(2021), 31.januar(2022)) shouldBe Periode.UgyldigPeriode.PeriodeKanIkkeVæreLengreEnn12Måneder.left()
-        Periode.tryCreate(1.desember(2019), 31.januar(2020)) shouldBe Periode.UgyldigPeriode.FraOgMedDatoKanIkkeVæreFør2020.left()
     }
 
     @Test

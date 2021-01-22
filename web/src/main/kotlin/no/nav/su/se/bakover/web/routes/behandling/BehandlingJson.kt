@@ -9,6 +9,8 @@ import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingsinformasjonJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.behandling.SimuleringJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.behandling.beregning.BeregningJson
+import no.nav.su.se.bakover.web.routes.behandling.beregning.toJson
 import no.nav.su.se.bakover.web.routes.hendelse.HendelseJson
 import no.nav.su.se.bakover.web.routes.hendelse.toJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadJson

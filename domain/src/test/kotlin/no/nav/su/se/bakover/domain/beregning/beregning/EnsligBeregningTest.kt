@@ -34,7 +34,7 @@ internal class EnsligBeregningTest {
         val arbeidsinntektPrMnd = arbeidsinntektPrÅr / 12
         val folketrygdPrMnd = folketrygdPrÅr / 12
 
-        val beregningsgrunnlag = Beregningsgrunnlag(
+        val beregningsgrunnlag = Beregningsgrunnlag.create(
             beregningsperiode = periode,
             forventetInntektPerÅr = 0.0,
             fradragFraSaksbehandler = listOf(

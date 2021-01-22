@@ -7,13 +7,15 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.database.avstemming.AvstemmingRepo
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
+import java.time.Clock
 
 internal class AvstemmingServiceImpl(
     private val repo: AvstemmingRepo,
-    private val publisher: AvstemmingPublisher
+    private val publisher: AvstemmingPublisher,
+    private val clock: Clock,
 ) : AvstemmingService {
     override fun avstemming(): Either<AvstemmingFeilet, Avstemming> {
-        val periode = AvstemmingPeriodeBuilder(repo.hentSisteAvstemming()).build()
+        val periode = AvstemmingPeriodeBuilder(repo.hentSisteAvstemming(), clock).build()
         return gjørAvstemming(periode)
     }
 

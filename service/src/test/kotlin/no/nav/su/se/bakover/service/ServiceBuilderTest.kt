@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.database.DatabaseRepos
 import no.nav.su.se.bakover.service.behandling.BehandlingServiceImpl
 import no.nav.su.se.bakover.service.sak.SakServiceImpl
 import org.junit.jupiter.api.Test
+import java.time.Clock
 
 internal class ServiceBuilderTest {
     @Test
@@ -40,7 +41,8 @@ internal class ServiceBuilderTest {
                 kafkaPublisher = mock()
             ),
             behandlingMetrics = mock(),
-            søknadMetrics = mock()
+            søknadMetrics = mock(),
+            clock = Clock.systemUTC(),
         ).build().let {
             (it.sak as SakServiceImpl).observers shouldContain it.statistikk
             (it.behandling as BehandlingServiceImpl).getObservers() shouldContain it.statistikk

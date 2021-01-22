@@ -29,7 +29,7 @@ sealed class Utbetalingsstrategi {
         override val fnr: Fnr,
         override val utbetalinger: List<Utbetaling>,
         override val behandler: NavIdentBruker,
-        val clock: Clock = Clock.systemUTC()
+        val clock: Clock,
     ) : Utbetalingsstrategi() {
         override fun generate(): Utbetaling.UtbetalingForSimulering {
             val stansesFraOgMed =
@@ -68,7 +68,7 @@ sealed class Utbetalingsstrategi {
         override val utbetalinger: List<Utbetaling>,
         override val behandler: NavIdentBruker,
         val beregning: Beregning,
-        val clock: Clock = Clock.systemUTC()
+        val clock: Clock,
     ) : Utbetalingsstrategi() {
         override fun generate(): Utbetaling.UtbetalingForSimulering {
             return Utbetaling.UtbetalingForSimulering(
@@ -108,7 +108,7 @@ sealed class Utbetalingsstrategi {
         override val fnr: Fnr,
         override val utbetalinger: List<Utbetaling>,
         override val behandler: NavIdentBruker,
-        val clock: Clock = Clock.systemUTC()
+        val clock: Clock,
     ) : Utbetalingsstrategi() {
         override fun generate(): Utbetaling.UtbetalingForSimulering {
             val sisteOversendteUtbetalingslinje = sisteOversendteUtbetaling()?.sisteUtbetalingslinje()

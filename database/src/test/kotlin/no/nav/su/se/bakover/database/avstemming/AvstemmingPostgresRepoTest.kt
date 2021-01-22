@@ -27,10 +27,12 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.Test
+import java.time.Clock
+import java.time.ZoneOffset
 
 internal class AvstemmingPostgresRepoTest {
-
-    private val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())
+    private val fixedClock: Clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC)
+    private val testDataHelper = TestDataHelper(EmbeddedDatabase.instance(), fixedClock)
     private val repo = AvstemmingPostgresRepo(EmbeddedDatabase.instance())
     private val utbetalingRepo = UtbetalingPostgresRepo(EmbeddedDatabase.instance())
 
@@ -38,14 +40,15 @@ internal class AvstemmingPostgresRepoTest {
     fun `henter siste avstemming`() {
         withMigratedDb {
             val sak: Sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
-            val utbetalingUtenKvittering: Utbetaling.OversendtUtbetaling.UtenKvittering = oversendtUtbetaling(sak).also {
-                utbetalingRepo.opprettUtbetaling(it)
-            }
+            val utbetalingUtenKvittering: Utbetaling.OversendtUtbetaling.UtenKvittering =
+                oversendtUtbetaling(sak).also {
+                    utbetalingRepo.opprettUtbetaling(it)
+                }
             val utbetalingMedKvittering = utbetalingUtenKvittering.toKvittertUtbetaling(
                 Kvittering(
                     utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
                     originalKvittering = "hallo",
-                    mottattTidspunkt = Tidspunkt.now()
+                    mottattTidspunkt = Tidspunkt.now(fixedClock)
                 )
             ).also {
                 utbetalingRepo.oppdaterMedKvittering(
@@ -97,7 +100,7 @@ internal class AvstemmingPostgresRepoTest {
                  """.oppdatering(
                     mapOf(
                         "id" to UUID30.randomUUID(),
-                        "opprettet" to Tidspunkt.now(),
+                        "opprettet" to Tidspunkt.now(fixedClock),
                         "sakId" to sak.id,
                         "fnr" to sak.fnr,
                         "type" to "NY",
@@ -175,7 +178,7 @@ internal class AvstemmingPostgresRepoTest {
                 Kvittering(
                     utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
                     originalKvittering = "",
-                    mottattTidspunkt = Tidspunkt.now()
+                    mottattTidspunkt = Tidspunkt.now(fixedClock)
                 )
             ).also {
                 utbetalingRepo.oppdaterMedKvittering(it)
@@ -183,9 +186,9 @@ internal class AvstemmingPostgresRepoTest {
 
             val avstemming = Avstemming(
                 id = UUID30.randomUUID(),
-                opprettet = Tidspunkt.now(),
-                fraOgMed = Tidspunkt.now(),
-                tilOgMed = Tidspunkt.now(),
+                opprettet = Tidspunkt.now(fixedClock),
+                fraOgMed = Tidspunkt.now(fixedClock),
+                tilOgMed = Tidspunkt.now(fixedClock),
                 utbetalinger = listOf(utbetalingMedKvittering),
                 avstemmingXmlRequest = "some xml"
             )

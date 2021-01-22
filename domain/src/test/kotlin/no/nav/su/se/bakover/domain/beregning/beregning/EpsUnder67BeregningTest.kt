@@ -36,7 +36,7 @@ internal class EpsUnder67BeregningTest {
         val folketrygdPrMnd = folketrygdPrÅr / 12
         val folketrygdEpsPrMnd = folketrygdEpsPrÅr / 12
 
-        val beregningsgrunnlag = Beregningsgrunnlag(
+        val beregningsgrunnlag = Beregningsgrunnlag.create(
             beregningsperiode = periode,
             forventetInntektPerÅr = 0.0,
             fradragFraSaksbehandler = listOf(

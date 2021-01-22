@@ -35,6 +35,8 @@ import java.time.ZoneOffset
 import java.util.UUID
 
 internal class StatistikkServiceImplTest {
+    private val fixedClock: Clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC)
+
     private val sakTopicName = "supstonad.aapen-su-sak-statistikk-v1"
     private val behandlingTopicName = "supstonad.aapen-su-behandling-statistikk-v1"
 
@@ -44,7 +46,7 @@ internal class StatistikkServiceImplTest {
             on { publiser(any(), any()) }.doNothing()
         }
 
-        StatistikkServiceImpl(kafkaPublisherMock, mock()).publiser(StatistikkSchemaValidatorTest.gyldigSak)
+        StatistikkServiceImpl(kafkaPublisherMock, mock(), fixedClock).publiser(StatistikkSchemaValidatorTest.gyldigSak)
         verify(kafkaPublisherMock).publiser(
             argThat { it shouldBe sakTopicName },
             argThat { it shouldBe objectMapper.writeValueAsString(StatistikkSchemaValidatorTest.gyldigSak) }
@@ -57,7 +59,7 @@ internal class StatistikkServiceImplTest {
             on { publiser(any(), any()) }.doNothing()
         }
 
-        StatistikkServiceImpl(kafkaPublisherMock, mock()).publiser(StatistikkSchemaValidatorTest.gyldigBehandling)
+        StatistikkServiceImpl(kafkaPublisherMock, mock(), fixedClock).publiser(StatistikkSchemaValidatorTest.gyldigBehandling)
         verify(kafkaPublisherMock).publiser(
             argThat { it shouldBe behandlingTopicName },
             argThat { it shouldBe objectMapper.writeValueAsString(StatistikkSchemaValidatorTest.gyldigBehandling) }
@@ -76,7 +78,7 @@ internal class StatistikkServiceImplTest {
         val sak = Sak(
             id = UUID.randomUUID(),
             saksnummer = Saksnummer(nummer = 2021),
-            opprettet = Tidspunkt.now(),
+            opprettet = Tidspunkt.now(fixedClock),
             fnr = FnrGenerator.random(),
             søknader = listOf(),
             behandlinger = listOf(),

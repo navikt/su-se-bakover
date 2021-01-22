@@ -2,6 +2,8 @@ package no.nav.su.se.bakover.database.vedtak.snapshot
 
 import com.nhaarman.mockitokotlin2.mock
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
@@ -21,15 +23,19 @@ import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
 import org.junit.jupiter.api.Test
+import java.time.Clock
+import java.time.ZoneOffset
 import java.util.UUID
 
 internal class VedtakPostgresRepoTest {
 
+    private val fixedClock: Clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC)
+
     private val fnr = FnrGenerator.random()
     private val saksnummer = Saksnummer(1234)
-    private val behandlingRepo = BehandlingPostgresRepo(EmbeddedDatabase.instance(), BehandlingFactory(mock()))
+    private val behandlingRepo = BehandlingPostgresRepo(EmbeddedDatabase.instance(), BehandlingFactory(mock(), fixedClock))
     private val repo = VedtakssnapshotPostgresRepo(EmbeddedDatabase.instance())
-    private val testDataHelper = TestDataHelper()
+    private val testDataHelper = TestDataHelper(clock = fixedClock)
 
     @Test
     fun `insert avslag`() {

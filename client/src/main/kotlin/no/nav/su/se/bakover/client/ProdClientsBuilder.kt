@@ -25,6 +25,7 @@ import java.time.Clock
 
 data class ProdClientsBuilder(
     private val jmsConfig: JmsConfig,
+    private val clock: Clock,
 ) : ClientsBuilder {
 
     override fun build(applicationConfig: ApplicationConfig): Clients {
@@ -50,7 +51,7 @@ data class ProdClientsBuilder(
                 connectionConfig = applicationConfig.clientsConfig.oppgaveConfig,
                 exchange = oAuth,
                 tokenoppslagForSystembruker = tokenOppslag,
-                clock = Clock.systemUTC(),
+                clock = clock,
             ),
             kodeverk = kodeverk,
             simuleringClient = SimuleringSoapClient(

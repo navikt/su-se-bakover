@@ -7,25 +7,30 @@ import no.nav.su.se.bakover.client.ClientError
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.ddMMyyyy
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.common.zoneIdOslo
+import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import org.junit.jupiter.api.Test
+import java.time.Clock
+import java.time.ZoneOffset
 import java.util.UUID
 import kotlin.random.Random
 
 internal class PdfClientTest : WiremockBase {
 
-    private val søknadPdfInnhold = SøknadPdfInnhold(
+    private val fixedClock: Clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC)
+
+    private val søknadPdfInnhold = SøknadPdfInnhold.create(
         saksnummer = Saksnummer(Random.nextLong()),
         søknadsId = UUID.randomUUID(),
         navn = Person.Navn("Tore", null, "Strømøy"),
-        søknadOpprettet = Tidspunkt.EPOCH.toLocalDate(zoneIdOslo).ddMMyyyy(),
-        søknadInnhold = SøknadInnholdTestdataBuilder.build()
+        søknadOpprettet = Tidspunkt.EPOCH,
+        søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+        clock = fixedClock
     )
     private val søknadPdfInnholdJson = objectMapper.writeValueAsString(søknadPdfInnhold)
 

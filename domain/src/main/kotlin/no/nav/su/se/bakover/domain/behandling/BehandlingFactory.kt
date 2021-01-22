@@ -17,7 +17,7 @@ import java.util.UUID
 
 class BehandlingFactory(
     private val behandlingMetrics: BehandlingMetrics,
-    private val clock: Clock = Clock.systemUTC(),
+    private val clock: Clock,
     private val uuidFactory: UUIDFactory = UUIDFactory(),
 ) {
     fun createBehandling(

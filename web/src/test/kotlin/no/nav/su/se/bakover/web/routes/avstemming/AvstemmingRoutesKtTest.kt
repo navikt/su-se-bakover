@@ -11,26 +11,28 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.Brukerrolle
-import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.avstemming.AvstemmingFeilet
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.applicationConfig
+import no.nav.su.se.bakover.web.behandlingFactory
 import no.nav.su.se.bakover.web.defaultRequest
+import no.nav.su.se.bakover.web.fixedClock
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 internal class AvstemmingRoutesKtTest {
-    private val repos = DatabaseBuilder.build(EmbeddedDatabase.instance(), BehandlingFactory(mock()))
+    private val repos = DatabaseBuilder.build(EmbeddedDatabase.instance(), behandlingFactory)
     private val services = ServiceBuilder(
         databaseRepos = repos,
         clients = TestClientsBuilder.build(applicationConfig),
         behandlingMetrics = mock(),
-        søknadMetrics = mock()
+        søknadMetrics = mock(),
+        clock = fixedClock,
     ).build()
 
     private val dummyAvstemming = Avstemming(
@@ -69,7 +71,8 @@ internal class AvstemmingRoutesKtTest {
             testSusebakover(
                 services = services.copy(
                     avstemming = happyAvstemmingService
-                )
+                ),
+                clock = fixedClock,
             )
         }) {
             defaultRequest(

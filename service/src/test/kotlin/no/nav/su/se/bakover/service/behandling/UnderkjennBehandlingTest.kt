@@ -22,7 +22,6 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
-import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics.UnderkjentHandlinger.LUKKET_OPPGAVE
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics.UnderkjentHandlinger.OPPRETTET_OPPGAVE
@@ -37,6 +36,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.behandlingFactory
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
@@ -74,7 +74,7 @@ class UnderkjennBehandlingTest {
         periodeList = listOf()
     )
 
-    private val innvilgetBehandlingTilAttestering = BehandlingFactory(mock()).createBehandling(
+    private val innvilgetBehandlingTilAttestering = behandlingFactory.createBehandling(
         søknad = Søknad.Journalført.MedOppgave(
             id = søknadId,
             opprettet = Tidspunkt.EPOCH,

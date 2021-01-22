@@ -7,8 +7,6 @@ import com.nhaarman.mockitokotlin2.mock
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.client.person.MicrosoftGraphResponse
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.juni
-import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
@@ -45,20 +43,18 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.doNothing
+import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
-import java.time.Clock
-import java.time.ZoneOffset
 import java.util.UUID
 
 object BehandlingTestUtils {
 
-    internal val tidspunkt = 15.juni(2020).atStartOfDay().toTidspunkt(ZoneOffset.UTC)
-    internal val fixedClock = Clock.fixed(15.juni(2020).atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
-
+    internal val tidspunkt = Tidspunkt.now(fixedClock)
+    internal val behandlingFactory = BehandlingFactory(mock(), fixedClock)
     internal val observerMock: EventObserver = mock { on { handle(any()) }.doNothing() }
 
     internal val sakId: UUID = UUID.fromString("268e62fb-3079-4e8d-ab32-ff9fb9eac2ec")
@@ -90,7 +86,7 @@ object BehandlingTestUtils {
     )
 
     internal fun createOpprettetBehandling(): Behandling {
-        return BehandlingFactory(mock()).createBehandling(
+        return behandlingFactory.createBehandling(
             id = behandlingId,
             søknad = Søknad.Journalført.MedOppgave(
                 id = søknadId,

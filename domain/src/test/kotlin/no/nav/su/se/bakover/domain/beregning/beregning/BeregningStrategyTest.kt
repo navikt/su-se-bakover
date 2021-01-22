@@ -21,7 +21,7 @@ internal class BeregningStrategyTest {
             fraOgMed = 1.januar(2020),
             tilOgMed = 31.desember(2020)
         )
-        val beregningsgrunnlag = Beregningsgrunnlag(
+        val beregningsgrunnlag = Beregningsgrunnlag.create(
             beregningsperiode = periode,
             forventetInntektPerÅr = 12000.0,
             fradragFraSaksbehandler = listOf(

@@ -22,7 +22,6 @@ import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Behandling
-import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.extractBehandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
@@ -33,7 +32,9 @@ import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.applicationConfig
+import no.nav.su.se.bakover.web.behandlingFactory
 import no.nav.su.se.bakover.web.defaultRequest
+import no.nav.su.se.bakover.web.fixedClock
 import no.nav.su.se.bakover.web.routes.behandling.beregning.UtenlandskInntektJson
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.testSusebakover
@@ -46,12 +47,13 @@ internal class BeregnRoutesKtTest {
 
     private val saksbehandler = NavIdentBruker.Saksbehandler("AB12345")
 
-    private val repos = DatabaseBuilder.build(EmbeddedDatabase.instance(), BehandlingFactory(mock()))
+    private val repos = DatabaseBuilder.build(EmbeddedDatabase.instance(), behandlingFactory)
     private val services = ServiceBuilder(
         databaseRepos = repos,
         clients = TestClientsBuilder.build(applicationConfig),
         behandlingMetrics = mock(),
-        søknadMetrics = mock()
+        søknadMetrics = mock(),
+        clock = fixedClock,
     ).build()
 
     @Test
@@ -139,13 +141,10 @@ internal class BeregnRoutesKtTest {
                     """.trimIndent()
                 )
             }.apply {
-                response.status() shouldBe HttpStatusCode.InternalServerError
-                response.content shouldContain "ikke lov med fradrag utenfor perioden"
-                // val behandlingJson = deserialize<BehandlingJson>(response.content!!)
-                // behandlingJson.beregning!!.fraOgMed shouldBe fraOgMed.toString()
-                // behandlingJson.beregning.tilOgMed shouldBe tilOgMed.toString()
-                // behandlingJson.beregning.sats shouldBe Sats.HØY.name
-                // behandlingJson.beregning.månedsberegninger shouldHaveSize 12
+                assertSoftly {
+                    response.status() shouldBe HttpStatusCode.BadRequest
+                    response.content shouldContain "Fradragsperioden kan ikke være utenfor stønadsperioden"
+                }
             }
         }
     }
@@ -204,7 +203,7 @@ internal class BeregnRoutesKtTest {
                 behandlingJson.beregning.månedsberegninger shouldHaveSize 12
                 behandlingJson.beregning.fradrag shouldHaveSize 2 // input + 1 because of forventet inntekt
                 behandlingJson.beregning.fradrag.filter { it.type == "Arbeidsinntekt" }.all {
-                    it.utenlandskInntektJson == UtenlandskInntektJson(
+                    it.utenlandskInntekt == UtenlandskInntektJson(
                         beløpIUtenlandskValuta = 200,
                         valuta = "euro",
                         kurs = 0.5
@@ -263,7 +262,7 @@ internal class BeregnRoutesKtTest {
                 behandlingJson.beregning.sats shouldBe Sats.HØY.name
                 behandlingJson.beregning.månedsberegninger shouldHaveSize 12
                 behandlingJson.beregning.fradrag shouldHaveSize 2 // input + 1 because of forventet inntekt
-                behandlingJson.beregning.fradrag.all { it.utenlandskInntektJson == null }
+                behandlingJson.beregning.fradrag.all { it.utenlandskInntekt == null }
             }
         }
     }
@@ -612,7 +611,7 @@ internal class BeregnRoutesKtTest {
     private fun setup(): Objects {
         val søknadInnhold = SøknadInnholdTestdataBuilder.build()
         val fnr: Fnr = FnrGenerator.random()
-        SakFactory().nySak(fnr, søknadInnhold).also {
+        SakFactory(clock = fixedClock).nySak(fnr, søknadInnhold).also {
             repos.sak.opprettSak(it)
         }
         val sak: Sak = repos.sak.hentSak(fnr)!!

@@ -11,14 +11,14 @@ data class UtenlandskInntekt(
     val kurs: Double
 ) {
     companion object {
-        fun create(beløpIUtenlandskValuta: Int, valuta: String, kurs: Double) : UtenlandskInntekt {
+        fun create(beløpIUtenlandskValuta: Int, valuta: String, kurs: Double): UtenlandskInntekt {
             return tryCreate(beløpIUtenlandskValuta, valuta, kurs).getOrHandle { throw IllegalArgumentException(it.toString()) }
         }
 
-        fun tryCreate(beløpIUtenlandskValuta: Int, valuta: String, kurs: Double) : Either<UgyldigUtenlandskInntekt, UtenlandskInntekt> {
-            if (beløpIUtenlandskValuta < 0 ) return UgyldigUtenlandskInntekt.BeløpKanIkkeVæreNegativ.left()
-            if (valuta.isBlank() ) return UgyldigUtenlandskInntekt.ValutaMåFyllesUt.left()
-            if (kurs < 0 ) return UgyldigUtenlandskInntekt.KursKanIkkeVæreNegativ.left()
+        fun tryCreate(beløpIUtenlandskValuta: Int, valuta: String, kurs: Double): Either<UgyldigUtenlandskInntekt, UtenlandskInntekt> {
+            if (beløpIUtenlandskValuta < 0) return UgyldigUtenlandskInntekt.BeløpKanIkkeVæreNegativ.left()
+            if (valuta.isBlank()) return UgyldigUtenlandskInntekt.ValutaMåFyllesUt.left()
+            if (kurs < 0) return UgyldigUtenlandskInntekt.KursKanIkkeVæreNegativ.left()
 
             return UtenlandskInntekt(beløpIUtenlandskValuta, valuta, kurs).right()
         }

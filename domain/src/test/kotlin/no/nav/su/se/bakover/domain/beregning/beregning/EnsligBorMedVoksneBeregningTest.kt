@@ -41,7 +41,7 @@ internal class EnsligBorMedVoksneBeregningTest {
         val folketrygdPrMnd = folketrygdPrÅr / 12
         val utenlandskInntektPrMnd = utenlandskInntektPrÅr / 12
 
-        val beregningsgrunnlag = Beregningsgrunnlag(
+        val beregningsgrunnlag = Beregningsgrunnlag.create(
             beregningsperiode = periode,
             forventetInntektPerÅr = 0.0,
             fradragFraSaksbehandler = listOf(

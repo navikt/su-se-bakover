@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web.routes.behandling
 
-import com.nhaarman.mockitokotlin2.mock
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -10,11 +9,11 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
-import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.web.FnrGenerator
+import no.nav.su.se.bakover.web.behandlingFactory
 import java.time.LocalDate
 import java.util.UUID
 
@@ -24,7 +23,6 @@ object BehandlingTestUtils {
     internal val søknadId = UUID.randomUUID()
     internal val behandlingId = UUID.randomUUID()
     internal val søknadInnhold = SøknadInnholdTestdataBuilder.build()
-    internal val behandlingFactory = BehandlingFactory(mock())
     internal val oppgaveId = OppgaveId("o")
     internal val journalpostId = JournalpostId("j")
     internal val journalførtSøknadMedOppgave = Søknad.Journalført.MedOppgave(

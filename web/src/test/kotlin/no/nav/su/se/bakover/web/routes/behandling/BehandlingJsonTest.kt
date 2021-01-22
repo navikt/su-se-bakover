@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.web.FnrGenerator
-import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.behandlingFactory
+import no.nav.su.se.bakover.web.behandlingFactory
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.behandlingId
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.journalførtSøknadMedOppgave
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.nyBehandling

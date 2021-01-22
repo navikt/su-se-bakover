@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.web.routes.behandling
 
 import arrow.core.Either
 import arrow.core.flatMap
-import arrow.core.getOrHandle
 import io.ktor.application.call
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
@@ -17,13 +16,11 @@ import io.ktor.routing.get
 import io.ktor.routing.patch
 import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.service.behandling.IverksattBehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeBeregne
@@ -40,14 +37,14 @@ import no.nav.su.se.bakover.web.deserialize
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.message
-import no.nav.su.se.bakover.web.routes.behandling.UgyldigFradrag.Companion.toResultat
+import no.nav.su.se.bakover.web.routes.behandling.beregning.NyBeregningForSøknadsbehandlingJson
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.toUUID
 import no.nav.su.se.bakover.web.withBehandlingId
+import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withSakId
 import org.slf4j.LoggerFactory
-import java.time.LocalDate
 
 internal const val behandlingPath = "$sakPath/{sakId}/behandlinger"
 
@@ -137,56 +134,28 @@ internal fun Route.behandlingRoutes(
         }
     }
 
-    data class OpprettBeregningBody(
-        val fraOgMed: LocalDate,
-        val tilOgMed: LocalDate,
-        val fradrag: List<FradragJson>
-    )
-
     authorize(Brukerrolle.Saksbehandler) {
         post("$behandlingPath/{behandlingId}/beregn") {
             call.withBehandlingId { behandlingId ->
-                Either.catch { deserialize<OpprettBeregningBody>(call) }.fold(
-                    ifLeft = {
-                        log.info("Ugyldig behandling-body: ", it)
-                        call.svar(BadRequest.message("Ugyldig body"))
-                    },
-                    ifRight = { body ->
-                        val beregningsperiode = Periode.tryCreate(body.fraOgMed, body.tilOgMed).getOrHandle {
-                            call.svar(it.toResultat().resultat)
-                            return@withBehandlingId
+                call.withBody<NyBeregningForSøknadsbehandlingJson> { body ->
+                    body.toDomain(behandlingId, Saksbehandler(call.suUserContext.getNAVIdent()))
+                        .mapLeft { call.svar(it) }
+                        .map {
+                            behandlingService.opprettBeregning(it)
+                                .mapLeft { kunneIkkeBeregne ->
+                                    val resultat = when (kunneIkkeBeregne) {
+                                        KunneIkkeBeregne.FantIkkeBehandling -> NotFound.message("Fant ikke behandling")
+                                        KunneIkkeBeregne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> {
+                                            BadRequest.message("Attestant og saksbehandler kan ikke være samme person")
+                                        }
+                                    }
+                                    call.svar(resultat)
+                                }.map { behandling ->
+                                    call.audit("Opprettet en ny beregning på søknadsbehandling med id $behandlingId")
+                                    call.svar(Created.jsonBody(behandling))
+                                }
                         }
-                        // TODO en hack for å stoppe perioder før 2021, da Periode() ikke kan endres enda
-                        if (beregningsperiode.getFraOgMed().isBefore(LocalDate.of(2021, 1, 1))) {
-                            call.svar(BadRequest.message("En stønadsperiode kan ikke starte før 2021"))
-                            return@withBehandlingId
-                        }
-                        val fradrag: List<Fradrag> = body.fradrag.map {
-                            it.toFradrag(beregningsperiode = beregningsperiode).getOrHandle { ugyldigFradrag ->
-                                call.svar(ugyldigFradrag.resultat)
-                                return@withBehandlingId
-                            }
-                        }
-                        behandlingService.opprettBeregning(
-                            behandlingId = behandlingId,
-                            saksbehandler = Saksbehandler(call.suUserContext.getNAVIdent()),
-                            periode = beregningsperiode,
-                            fradrag = fradrag
-                        ).mapLeft {
-                            val resultat = when (it) {
-                                KunneIkkeBeregne.FantIkkeBehandling -> NotFound.message("Fant ikke behandling")
-                                KunneIkkeBeregne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> BadRequest.message(
-                                    "Attestant og saksbehandler kan ikke være samme person"
-                                )
-                            }
-                            call.svar(resultat)
-                        }.map {
-                            call.audit("Opprettet en ny beregning på behandling med id $behandlingId")
-                            call.svar(Created.jsonBody(it))
-                        }
-
-                    }
-                )
+                }
             }
         }
     }

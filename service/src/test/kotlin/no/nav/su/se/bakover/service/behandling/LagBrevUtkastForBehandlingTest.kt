@@ -25,13 +25,13 @@ import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.BEREG
 import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
 import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.UNDERKJENT_AVSLAG
 import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.UNDERKJENT_INNVILGET
-import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagBrevRequest
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.behandlingFactory
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.createService
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.brev.BrevService
@@ -205,7 +205,7 @@ internal class LagBrevUtkastForBehandlingTest {
         verify(brevServiceMock).lagBrev(argThat { it.shouldBeTypeOf<AvslagBrevRequest>() })
     }
 
-    private fun beregnetBehandling() = BehandlingFactory(mock()).createBehandling(
+    private fun beregnetBehandling() = behandlingFactory.createBehandling(
         sakId = sakId,
         søknad = Søknad.Journalført.MedOppgave(
             id = søknadId,

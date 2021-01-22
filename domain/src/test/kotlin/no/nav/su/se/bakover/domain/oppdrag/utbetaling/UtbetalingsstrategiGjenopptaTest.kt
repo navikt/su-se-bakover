@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.november
 import no.nav.su.se.bakover.common.oktober
+import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -21,9 +22,13 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.Test
+import java.time.Clock
+import java.time.ZoneOffset
 import java.util.UUID
 
 internal class UtbetalingsstrategiGjenopptaTest {
+
+    private val fixedClock: Clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC)
 
     private val fnr = Fnr("12345678910")
     private val sakId = UUID.randomUUID()
@@ -61,7 +66,8 @@ internal class UtbetalingsstrategiGjenopptaTest {
             saksnummer = saksnummer,
             fnr = fnr,
             utbetalinger = listOf(opprinnelig, stans),
-            behandler = attestant
+            behandler = attestant,
+            clock = fixedClock,
         ).generate()
 
         actual shouldBe
@@ -95,7 +101,8 @@ internal class UtbetalingsstrategiGjenopptaTest {
                 saksnummer = saksnummer,
                 fnr = fnr,
                 utbetalinger = emptyList(),
-                behandler = attestant
+                behandler = attestant,
+                clock = fixedClock,
             ).generate()
         }.message shouldContain "Ingen oversendte utbetalinger"
     }
@@ -168,7 +175,8 @@ internal class UtbetalingsstrategiGjenopptaTest {
             saksnummer = saksnummer,
             fnr = fnr,
             utbetalinger = listOf(første, førsteStans, førsteGjenopptak, andre, andreStans),
-            behandler = attestant
+            behandler = attestant,
+            clock = fixedClock,
         ).generate()
 
         actual.utbetalingslinjer[0].assert(
@@ -199,7 +207,8 @@ internal class UtbetalingsstrategiGjenopptaTest {
                 saksnummer = saksnummer,
                 fnr = fnr,
                 utbetalinger = listOf(første),
-                behandler = attestant
+                behandler = attestant,
+                clock = fixedClock,
             ).generate()
         }.also {
             it.message shouldContain "Fant ingen utbetalinger som kan gjenopptas"
@@ -250,7 +259,8 @@ internal class UtbetalingsstrategiGjenopptaTest {
                 saksnummer = saksnummer,
                 fnr = fnr,
                 utbetalinger = listOf(første, andre, tredje),
-                behandler = attestant
+                behandler = attestant,
+                clock = fixedClock,
             ).generate()
         }.also {
             it.message shouldContain "Fant ingen utbetalinger som kan gjenopptas"
@@ -292,7 +302,8 @@ internal class UtbetalingsstrategiGjenopptaTest {
             saksnummer = saksnummer,
             fnr = fnr,
             utbetalinger = listOf(første, stans),
-            behandler = attestant
+            behandler = attestant,
+            clock = fixedClock,
         ).generate().also {
             it.utbetalingslinjer[0].assert(
                 fraOgMed = 1.april(2020),
