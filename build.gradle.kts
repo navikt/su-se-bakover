@@ -54,8 +54,7 @@ allprojects {
         implementation("org.apache.kafka:kafka-clients:2.7.0")
         implementation("com.networknt:json-schema-validator:1.0.45")
 
-        // The 9.2.1.0 version fails to connect to the MQ server.
-        implementation("com.ibm.mq:com.ibm.mq.allclient:9.2.0.1")
+        implementation("com.ibm.mq:com.ibm.mq.allclient:9.2.1.0")
 
         testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitJupiterVersion")
 

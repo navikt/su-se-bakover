@@ -23,6 +23,7 @@ data class JmsConfig(
                 channel = it.mqChannel
                 queueManager = it.mqQueueManager
                 transportType = WMQConstants.WMQ_CM_CLIENT
+                setBooleanProperty(WMQConstants.USER_AUTHENTICATION_MQCSP, false)
             }
         }.createContext(applicationConfig.serviceUser.username, applicationConfig.serviceUser.password)
     }
