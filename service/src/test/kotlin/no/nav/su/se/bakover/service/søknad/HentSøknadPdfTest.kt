@@ -57,17 +57,7 @@ class HentSøknadPdfTest {
             fnr = Fnr(fnr = "12345678901"),
             aktørId = AktørId(aktørId = "1234")
         ),
-        navn = Person.Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy"),
-        telefonnummer = null,
-        adresse = listOf(),
-        statsborgerskap = null,
-        kjønn = null,
-        fødselsdato = null,
-        adressebeskyttelse = null,
-        skjermet = null,
-        kontaktinfo = null,
-        vergemål = null,
-        fullmakt = null
+        navn = Person.Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy")
     )
 
     @Test

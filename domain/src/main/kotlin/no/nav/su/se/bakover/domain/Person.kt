@@ -6,16 +6,16 @@ import java.time.Period
 data class Person(
     val ident: Ident,
     val navn: Navn,
-    val telefonnummer: Telefonnummer?,
-    val adresse: List<Adresse>?,
-    val statsborgerskap: String?,
-    val kjønn: String?,
-    val fødselsdato: LocalDate?,
-    val adressebeskyttelse: String?,
-    val skjermet: Boolean?,
-    val kontaktinfo: Kontaktinfo?,
-    val vergemål: Boolean?,
-    val fullmakt: Boolean?
+    val telefonnummer: Telefonnummer? = null,
+    val adresse: List<Adresse>? = null,
+    val statsborgerskap: String? = null,
+    val kjønn: String? = null,
+    val fødselsdato: LocalDate? = null,
+    val adressebeskyttelse: String? = null,
+    val skjermet: Boolean? = null,
+    val kontaktinfo: Kontaktinfo? = null,
+    val vergemål: Boolean? = null,
+    val fullmakt: Boolean? = null
 ) {
     fun getAlder(påDato: LocalDate) = fødselsdato?.let { Period.between(it, påDato).years }
 
