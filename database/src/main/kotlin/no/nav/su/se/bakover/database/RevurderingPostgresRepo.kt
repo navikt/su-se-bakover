@@ -56,7 +56,7 @@ internal class RevurderingPostgresRepo(
         dataSource.withSession { session ->
             (
                 "insert into revurdering (id, opprettet, behandlingId, beregning, simulering) values (:id, :opprettet, :behandlingId, null, null) on conflict (id) do " +
-                    "update set opprettet = :opprettet, behandlingId = :behandlingId, beregning = null, simulering = null"
+                    "update set beregning = null, simulering = null"
                 ).oppdatering(
                 mapOf(
                     "id" to revurdering.id,
@@ -71,7 +71,7 @@ internal class RevurderingPostgresRepo(
         dataSource.withSession { session ->
             (
                 "insert into revurdering (id, opprettet, behandlingId, beregning, simulering) values (:id, :opprettet, :behandlingId, to_json(:beregning::json), null) on conflict (id) do " +
-                    "update set opprettet = :opprettet, behandlingId = :behandlingId, beregning = to_json(:beregning::json), simulering = null"
+                    "update set beregning = to_json(:beregning::json), simulering = null"
                 ).oppdatering(
                 mapOf(
                     "id" to revurdering.id,
@@ -87,7 +87,7 @@ internal class RevurderingPostgresRepo(
         dataSource.withSession { session ->
             (
                 "insert into revurdering (id, opprettet, behandlingId, beregning, simulering) values (:id, :opprettet, :behandlingId, to_json(:beregning::json), to_json(:simulering::json)) on conflict (id) do " +
-                    "update set opprettet = :opprettet, behandlingId = :behandlingId, beregning = to_json(:beregning::json), simulering = to_json(:simulering::json)"
+                    "update set beregning = to_json(:beregning::json), simulering = to_json(:simulering::json)"
                 ).oppdatering(
                 mapOf(
                     "id" to revurdering.id,
