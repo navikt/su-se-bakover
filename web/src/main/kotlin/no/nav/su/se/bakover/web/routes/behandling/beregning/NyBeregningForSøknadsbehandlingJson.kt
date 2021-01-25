@@ -12,16 +12,12 @@ import no.nav.su.se.bakover.web.routes.behandling.beregning.FradragJson.Companio
 import java.util.UUID
 
 internal data class NyBeregningForSøknadsbehandlingJson(
-    val stønadsperiode: StønadsperiodeJson?,
-    // deprecated, change to stønadsperiode in su-se-framover
-    val fraOgMed: String?,
-    // deprecated, change to stønadsperiode in su-se-framover
-    val tilOgMed: String?,
+    val stønadsperiode: StønadsperiodeJson,
     val fradrag: List<FradragJson>
 ) {
     fun toDomain(behandlingId: UUID, saksbehandler: Saksbehandler): Either<Resultat, NyBeregningForSøknadsbehandling> {
         val stønadsperiode =
-            (stønadsperiode ?: StønadsperiodeJson(PeriodeJson(fraOgMed!!, tilOgMed!!))).toStønadsperiode().getOrHandle {
+            stønadsperiode.toStønadsperiode().getOrHandle {
                 return it.left()
             }
         val fradrag = fradrag.toFradrag(stønadsperiode.periode).getOrHandle {

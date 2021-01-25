@@ -64,7 +64,6 @@ internal class BeregnRoutesKtTest {
             val objects = setup()
             val fraOgMed = LocalDate.of(2021, Month.JANUARY, 1)
             val tilOgMed = LocalDate.of(2021, Month.DECEMBER, 31)
-            val sats = Sats.HØY
 
             services.behandling.oppdaterBehandlingsinformasjon(
                 objects.nySøknadsbehandling.id,
@@ -78,12 +77,14 @@ internal class BeregnRoutesKtTest {
                 listOf(Brukerrolle.Saksbehandler)
             ) {
                 setBody(
+                    //language=JSON
                     """
                     {
+                      "stønadsperiode": {
                         "fraOgMed":"$fraOgMed",
-                        "tilOgMed":"$tilOgMed",
-                        "sats":"${sats.name}",
-                        "fradrag":[]
+                        "tilOgMed":"$tilOgMed"
+                       },
+                       "fradrag":[]
                     }
                     """.trimIndent()
                 )
@@ -108,7 +109,6 @@ internal class BeregnRoutesKtTest {
             val tilOgMed = LocalDate.of(2021, Month.DECEMBER, 31)
             val fradragFraOgMed = LocalDate.of(2021, Month.JANUARY, 1)
             val fradragTilOgMed = LocalDate.of(2021, Month.DECEMBER, 31)
-            val sats = Sats.HØY
 
             services.behandling.oppdaterBehandlingsinformasjon(
                 objects.nySøknadsbehandling.id,
@@ -122,20 +122,22 @@ internal class BeregnRoutesKtTest {
                 listOf(Brukerrolle.Saksbehandler)
             ) {
                 setBody(
+                    //language=JSON
                     """
                     {
-                         "fraOgMed":"$fraOgMed",
-                         "tilOgMed":"$tilOgMed",
-                         "sats":"${sats.name}",
+                      "stønadsperiode": {
+                        "fraOgMed":"$fraOgMed",
+                        "tilOgMed":"$tilOgMed"
+                       },
                          "fradrag":[{
-                             "type":"Arbeidsinntekt",
-                             "beløp":200,
-                             "utenlandskInntekt":null,
-                             "periode" : {
-                                "fraOgMed":"$fradragFraOgMed",
-                                "tilOgMed":"$fradragTilOgMed"
-                             },
-                             "tilhører": "BRUKER"
+                          "type":"Arbeidsinntekt",
+                            "beløp":200,
+                            "utenlandskInntekt":null,
+                            "periode" : {
+                              "fraOgMed":"$fradragFraOgMed",
+                              "tilOgMed":"$fradragTilOgMed"
+                            },
+                            "tilhører": "BRUKER"
                          }]
                     }
                     """.trimIndent()
@@ -157,7 +159,6 @@ internal class BeregnRoutesKtTest {
             val objects = setup()
             val fraOgMed = LocalDate.of(2021, Month.JANUARY, 1)
             val tilOgMed = LocalDate.of(2021, Month.DECEMBER, 31)
-            val sats = Sats.HØY
 
             services.behandling.oppdaterBehandlingsinformasjon(
                 objects.nySøknadsbehandling.id,
@@ -174,9 +175,10 @@ internal class BeregnRoutesKtTest {
                     //language=JSON
                     """
                     {
-                       "fraOgMed":"$fraOgMed",
-                       "tilOgMed":"$tilOgMed",
-                       "sats":"${sats.name}",
+                      "stønadsperiode": {
+                           "fraOgMed":"$fraOgMed",
+                           "tilOgMed":"$tilOgMed"
+                       },
                        "fradrag":[{
                          "type":"Arbeidsinntekt",
                          "beløp":200,
@@ -221,7 +223,6 @@ internal class BeregnRoutesKtTest {
             val objects = setup()
             val fraOgMed = LocalDate.of(2021, Month.JANUARY, 1)
             val tilOgMed = LocalDate.of(2021, Month.DECEMBER, 31)
-            val sats = Sats.HØY
 
             services.behandling.oppdaterBehandlingsinformasjon(
                 objects.nySøknadsbehandling.id,
@@ -238,9 +239,10 @@ internal class BeregnRoutesKtTest {
                     //language=JSON
                     """
                     {
-                        "fraOgMed":"$fraOgMed",
-                        "tilOgMed":"$tilOgMed",
-                        "sats":"${sats.name}",
+                        "stønadsperiode": {
+                            "fraOgMed":"$fraOgMed",
+                            "tilOgMed":"$tilOgMed"
+                        },
                         "fradrag": [{
                             "type": "Arbeidsinntekt",
                             "beløp": 200,
@@ -305,7 +307,6 @@ internal class BeregnRoutesKtTest {
             }
             val fraOgMed = LocalDate.of(2021, Month.JANUARY, 1)
             val tilOgMed = LocalDate.of(2021, Month.DECEMBER, 31)
-            val sats = Sats.HØY
 
             objects.behandling.oppdaterBehandlingsinformasjon(
                 saksbehandler,
@@ -320,9 +321,10 @@ internal class BeregnRoutesKtTest {
                 setBody(
                     //language=JSON
                     """{
-                           "fraOgMed":"$fraOgMed",
-                           "tilOgMed":"$tilOgMed",
-                           "sats":"${sats.name}",
+                          "stønadsperiode": {
+                               "fraOgMed":"$fraOgMed",
+                               "tilOgMed":"$tilOgMed"
+                           },
                            "fradrag":[{
                              "type":"Arbeidsinntekt",
                              "beløp":200,
@@ -356,11 +358,13 @@ internal class BeregnRoutesKtTest {
                 listOf(Brukerrolle.Saksbehandler)
             ) {
                 setBody(
+                    //language=JSON
                     """
                     {
-                        "fraOgMed":"${1.januar(2021)}",
-                        "tilOgMed":"${31.desember(2021)}",
-                        "sats":"${Sats.HØY}",
+                        "stønadsperiode": {
+                            "fraOgMed":"${1.januar(2021)}",
+                            "tilOgMed":"${31.desember(2021)}"
+                        },
                         "fradrag":[]
                     }
                     """.trimIndent()
@@ -382,7 +386,6 @@ internal class BeregnRoutesKtTest {
             val objects = setup()
             val fraOgMed = LocalDate.of(2020, Month.JANUARY, 1)
             val tilOgMed = LocalDate.of(2020, Month.DECEMBER, 31)
-            val sats = Sats.HØY
 
             services.behandling.oppdaterBehandlingsinformasjon(
                 objects.nySøknadsbehandling.id,
@@ -396,11 +399,13 @@ internal class BeregnRoutesKtTest {
                 listOf(Brukerrolle.Saksbehandler)
             ) {
                 setBody(
+                    //language=JSON
                     """
                     {
-                        "fraOgMed":"$fraOgMed",
-                        "tilOgMed":"$tilOgMed",
-                        "sats":"${sats.name}",
+                      "stønadsperiode": {
+                           "fraOgMed":"$fraOgMed",
+                           "tilOgMed":"$tilOgMed"
+                       },
                         "fradrag":[]
                     }
                     """.trimIndent()
@@ -420,7 +425,6 @@ internal class BeregnRoutesKtTest {
             val objects = setup()
             val fraOgMed = LocalDate.of(2021, Month.JANUARY, 2)
             val tilOgMed = LocalDate.of(2021, Month.DECEMBER, 31)
-            val sats = Sats.HØY
 
             services.behandling.oppdaterBehandlingsinformasjon(
                 objects.nySøknadsbehandling.id,
@@ -434,11 +438,13 @@ internal class BeregnRoutesKtTest {
                 listOf(Brukerrolle.Saksbehandler)
             ) {
                 setBody(
+                    //language=JSON
                     """
                     {
-                        "fraOgMed":"$fraOgMed",
-                        "tilOgMed":"$tilOgMed",
-                        "sats":"${sats.name}",
+                      "stønadsperiode": {
+                           "fraOgMed":"$fraOgMed",
+                           "tilOgMed":"$tilOgMed"
+                       },
                         "fradrag":[]
                     }
                     """.trimIndent()
@@ -458,7 +464,6 @@ internal class BeregnRoutesKtTest {
             val objects = setup()
             val fraOgMed = LocalDate.of(2021, Month.JANUARY, 1)
             val tilOgMed = LocalDate.of(2021, Month.DECEMBER, 30)
-            val sats = Sats.HØY
 
             services.behandling.oppdaterBehandlingsinformasjon(
                 objects.nySøknadsbehandling.id,
@@ -472,11 +477,13 @@ internal class BeregnRoutesKtTest {
                 listOf(Brukerrolle.Saksbehandler)
             ) {
                 setBody(
+                    //language=JSON
                     """
                     {
-                        "fraOgMed":"$fraOgMed",
-                        "tilOgMed":"$tilOgMed",
-                        "sats":"${sats.name}",
+                      "stønadsperiode": {
+                           "fraOgMed":"$fraOgMed",
+                           "tilOgMed":"$tilOgMed"
+                       },
                         "fradrag":[]
                     }
                     """.trimIndent()
@@ -496,7 +503,6 @@ internal class BeregnRoutesKtTest {
             val objects = setup()
             val fraOgMed = LocalDate.of(2021, Month.JANUARY, 1)
             val tilOgMed = LocalDate.of(2022, Month.JANUARY, 31)
-            val sats = Sats.HØY
 
             services.behandling.oppdaterBehandlingsinformasjon(
                 objects.nySøknadsbehandling.id,
@@ -510,11 +516,13 @@ internal class BeregnRoutesKtTest {
                 listOf(Brukerrolle.Saksbehandler)
             ) {
                 setBody(
+                    //language=JSON
                     """
                     {
+                      "stønadsperiode": {
                         "fraOgMed":"$fraOgMed",
-                        "tilOgMed":"$tilOgMed",
-                        "sats":"${sats.name}",
+                        "tilOgMed":"$tilOgMed"
+                       },
                         "fradrag":[]
                     }
                     """.trimIndent()
@@ -534,7 +542,6 @@ internal class BeregnRoutesKtTest {
             val objects = setup()
             val fraOgMed = LocalDate.of(2021, Month.FEBRUARY, 1)
             val tilOgMed = LocalDate.of(2021, Month.JANUARY, 31)
-            val sats = Sats.HØY
 
             services.behandling.oppdaterBehandlingsinformasjon(
                 objects.nySøknadsbehandling.id,
@@ -548,11 +555,13 @@ internal class BeregnRoutesKtTest {
                 listOf(Brukerrolle.Saksbehandler)
             ) {
                 setBody(
+                    //language=JSON
                     """
                     {
-                        "fraOgMed":"$fraOgMed",
-                        "tilOgMed":"$tilOgMed",
-                        "sats":"${sats.name}",
+                      "stønadsperiode": {
+                           "fraOgMed":"$fraOgMed",
+                           "tilOgMed":"$tilOgMed"
+                       },
                         "fradrag":[]
                     }
                     """.trimIndent()
@@ -572,7 +581,6 @@ internal class BeregnRoutesKtTest {
             val objects = setup()
             val fraOgMed = LocalDate.of(2021, Month.JANUARY, 1)
             val tilOgMed = LocalDate.of(2021, Month.JANUARY, 31)
-            val sats = Sats.HØY
 
             services.behandling.oppdaterBehandlingsinformasjon(
                 objects.nySøknadsbehandling.id,
@@ -586,11 +594,13 @@ internal class BeregnRoutesKtTest {
                 listOf(Brukerrolle.Saksbehandler)
             ) {
                 setBody(
+                    //language=JSON
                     """
                     {
-                        "fraOgMed":"$fraOgMed",
-                        "tilOgMed":"$tilOgMed",
-                        "sats":"${sats.name}",
+                      "stønadsperiode": {
+                           "fraOgMed":"$fraOgMed",
+                           "tilOgMed":"$tilOgMed"
+                       },
                         "fradrag":[]
                     }
                     """.trimIndent()

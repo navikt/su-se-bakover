@@ -84,8 +84,6 @@ internal class NyBeregningForSøknadsbehandlingJsonTest {
                         tilOgMed = tilOgMed,
                     )
                 ),
-                fraOgMed = fraOgMed,
-                tilOgMed = tilOgMed,
                 fradrag = listOf(
                     FradragJson(
                         periode = PeriodeJson(
