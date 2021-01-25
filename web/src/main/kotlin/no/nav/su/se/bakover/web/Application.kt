@@ -89,7 +89,7 @@ fun main(args: Array<String>) {
 
 @OptIn(io.ktor.locations.KtorExperimentalLocationsAPI::class, KtorExperimentalAPI::class)
 internal fun Application.susebakover(
-    clock: Clock,
+    clock: Clock = Clock.systemUTC(),
     behandlingMetrics: BehandlingMetrics = BehandlingMicrometerMetrics(),
     søknadMetrics: SøknadMetrics = SøknadMicrometerMetrics(),
     behandlingFactory: BehandlingFactory = BehandlingFactory(behandlingMetrics, clock),
