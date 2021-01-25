@@ -35,4 +35,3 @@ sealed class RevurderingFeilet {
     object KunneIkkeFinneAktørId : RevurderingFeilet()
     object KunneIkkeOppretteOppgave : RevurderingFeilet()
 }
-

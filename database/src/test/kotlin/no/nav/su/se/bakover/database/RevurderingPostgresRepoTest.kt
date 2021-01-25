@@ -16,11 +16,12 @@ import no.nav.su.se.bakover.domain.behandling.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import org.junit.jupiter.api.Test
+import java.time.Clock
 import java.util.UUID
 
 internal class RevurderingPostgresRepoTest {
     private val ds = EmbeddedDatabase.instance()
-    private val behandlingRepo = BehandlingPostgresRepo(ds, BehandlingFactory(mock()))
+    private val behandlingRepo = BehandlingPostgresRepo(ds, BehandlingFactory(mock(), Clock.systemUTC()))
     private val repo: RevurderingPostgresRepo = RevurderingPostgresRepo(ds, behandlingRepo)
     private val søknadRepo = SøknadPostgresRepo(ds)
     private val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())

@@ -45,7 +45,8 @@ internal class PersonRoutesKtTest {
         lukkSøknad = mock(),
         oppgave = mock(),
         person = mock(),
-        statistikk = mock()
+        statistikk = mock(),
+        revurdering = mock()
     )
 
     @Test

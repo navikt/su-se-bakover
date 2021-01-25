@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.database
 
-import no.nav.su.se.bakover.domain.behandling.Revurdering
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import no.nav.su.se.bakover.common.objectMapper
@@ -9,6 +8,7 @@ import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.behandling.OpprettetRevurdering
+import no.nav.su.se.bakover.domain.behandling.Revurdering
 import no.nav.su.se.bakover.domain.behandling.SimulertRevurdering
 import no.nav.su.se.bakover.domain.behandling.TilAttesteringRevurdering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering

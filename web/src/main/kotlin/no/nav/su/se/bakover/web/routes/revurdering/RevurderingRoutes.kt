@@ -102,10 +102,10 @@ internal fun Route.revurderingRoutes(
                                         RevurderingFeilet.FantIngentingSomKanRevurderes -> call.svar(
                                             NotFound.message(
                                                 "Fant ingenting som kan revurderes for perioden ${
-                                                    Periode.create(
-                                                        LocalDate.parse(body.stønadsperiode.periode.fraOgMed),
-                                                        LocalDate.parse(body.stønadsperiode.periode.tilOgMed)
-                                                    )
+                                                Periode.create(
+                                                    LocalDate.parse(body.stønadsperiode.periode.fraOgMed),
+                                                    LocalDate.parse(body.stønadsperiode.periode.tilOgMed)
+                                                )
                                                 }"
                                             )
                                         )
