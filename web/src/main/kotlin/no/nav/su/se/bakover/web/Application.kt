@@ -79,6 +79,7 @@ import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitter
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringIbmMqConsumer
 import org.slf4j.event.Level
 import java.time.Clock
+import java.time.format.DateTimeParseException
 
 fun main(args: Array<String>) {
     if (ApplicationConfig.isLocalOrRunningTests()) {
@@ -165,6 +166,10 @@ internal fun Application.susebakover(
         exception<Behandling.TilstandException> {
             log.info("Got ${Behandling.TilstandException::class.simpleName} with message=${it.msg}")
             call.respond(HttpStatusCode.BadRequest, ErrorJson(it.msg))
+        }
+        exception<DateTimeParseException> {
+            log.info("Got ${DateTimeParseException::class.simpleName} with message ${it.message}")
+            call.respond(HttpStatusCode.BadRequest, ErrorJson("Ugyldig dato - datoer må være på isoformat"))
         }
         exception<Throwable> {
             log.error("Got Throwable with message=${it.message}", it)
