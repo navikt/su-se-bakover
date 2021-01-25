@@ -1,6 +1,9 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
 import arrow.core.Either
+import arrow.core.getOrHandle
+import arrow.core.left
+import arrow.core.right
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
@@ -13,6 +16,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.service.revurdering.RevurderingFeilet
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.Resultat
@@ -21,7 +25,8 @@ import no.nav.su.se.bakover.web.deserialize
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.message
-import no.nav.su.se.bakover.web.routes.behandling.beregning.NyBeregningForSøknadsbehandlingJson
+import no.nav.su.se.bakover.web.routes.behandling.beregning.FradragJson
+import no.nav.su.se.bakover.web.routes.behandling.beregning.FradragJson.Companion.toFradrag
 import no.nav.su.se.bakover.web.routes.behandling.beregning.PeriodeJson
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.svar
@@ -77,8 +82,16 @@ internal fun Route.revurderingRoutes(
 
     data class BeregningForRevurderingsBody(
         val revurderingId: UUID,
-        val nyBeregningForSøknadsbehandlingJson: NyBeregningForSøknadsbehandlingJson
-    )
+        val periode: PeriodeJson,
+        val fradrag: List<FradragJson>,
+    ) {
+        fun toDomain(): Either<Resultat, Pair<Periode, List<Fradrag>>> {
+            val periode = periode.toPeriode().getOrHandle { return it.left() }
+            val fradrag = fradrag.toFradrag(periode).getOrHandle { return it.left() }
+
+            return Pair(periode, fradrag).right()
+        }
+    }
 
     post("$revurderingPath/beregnOgSimuler") {
         call.withSakId { sakId ->
@@ -88,7 +101,49 @@ internal fun Route.revurderingRoutes(
                     call.svar(BadRequest.message("Ugyldig body"))
                 },
                 ifRight = { body ->
-                    body.nyBeregningForSøknadsbehandlingJson.toDomain(
+                    body.toDomain()
+                        .fold(
+                            ifLeft = { call.svar(it) },
+                            ifRight = {
+                                val (periode, fradrag) = it
+
+                                revurderingService.beregnOgSimuler(
+                                    revurderingId = body.revurderingId,
+                                    saksbehandler = Saksbehandler(call.suUserContext.getNAVIdent()),
+                                    periode = periode,
+                                    fradrag = fradrag
+                                ).fold(
+                                    ifLeft = { revurderingFeilet ->
+                                        when (revurderingFeilet) {
+                                            RevurderingFeilet.GeneriskFeil -> call.svar(InternalServerError.message("Noe gikk feil ved revurdering"))
+                                            RevurderingFeilet.FantIkkeSak -> call.svar(NotFound.message("Fant ikke sak"))
+                                            RevurderingFeilet.FantIngentingSomKanRevurderes -> call.svar(
+                                                NotFound.message(
+                                                    "Fant ingenting som kan revurderes for perioden ${
+                                                    Periode.create(
+                                                        LocalDate.parse(body.periode.fraOgMed),
+                                                        LocalDate.parse(body.periode.tilOgMed)
+                                                    )
+                                                    }"
+                                                )
+                                            )
+                                            RevurderingFeilet.KunneIkkeFinneAktørId -> call.svar(NotFound.message("Kunne ikke finen aktør id"))
+                                            RevurderingFeilet.KunneIkkeOppretteOppgave -> call.svar(
+                                                InternalServerError.message(
+                                                    "Kunne ikke opprette oppgave"
+                                                )
+                                            )
+                                        }
+                                    },
+                                    ifRight = { revurdertBeregning ->
+                                        call.audit("Opprettet en ny revurdering beregning og simulering på sak med id $sakId")
+                                        call.svar(Resultat.json(OK, serialize(revurdertBeregning.toJson())))
+                                    },
+                                )
+                            }
+                        )
+
+                    /*body.nyBeregningForSøknadsbehandlingJson.toDomain(
                         body.revurderingId,
                         Saksbehandler(call.suUserContext.getNAVIdent())
                     )
@@ -130,7 +185,7 @@ internal fun Route.revurderingRoutes(
                                     call.svar(Resultat.json(OK, serialize(revurdertBeregning.toJson())))
                                 },
                             )
-                        }
+                        }*/
                 }
             )
         }
