@@ -75,23 +75,31 @@ internal fun Route.revurderingRoutes(
         }
     }
 
+    data class BeregningForRevurderingsBody(
+        val revurderingId: UUID,
+        val nyBeregningForSøknadsbehandlingJson: NyBeregningForSøknadsbehandlingJson
+    )
+
     post("$revurderingPath/beregnOgSimuler") {
         call.withSakId { sakId ->
-            Either.catch { deserialize<NyBeregningForSøknadsbehandlingJson>(call) }.fold(
+            Either.catch { deserialize<BeregningForRevurderingsBody>(call) }.fold(
                 ifLeft = {
                     log.info("Ugyldig behandling-body: ", it)
                     call.svar(BadRequest.message("Ugyldig body"))
                 },
                 ifRight = { body ->
-                    body.toDomain(UUID.randomUUID(), Saksbehandler(call.suUserContext.getNAVIdent()))
+                    body.nyBeregningForSøknadsbehandlingJson.toDomain(
+                        body.revurderingId,
+                        Saksbehandler(call.suUserContext.getNAVIdent())
+                    )
                         .mapLeft { call.svar(it) }
                         .map {
                             revurderingService.beregnOgSimuler(
                                 revurderingId = it.behandlingId,
                                 saksbehandler = Saksbehandler(call.suUserContext.getNAVIdent()),
                                 periode = Periode.create(
-                                    LocalDate.parse(body.stønadsperiode.periode.fraOgMed),
-                                    LocalDate.parse(body.stønadsperiode.periode.tilOgMed)
+                                    LocalDate.parse(body.nyBeregningForSøknadsbehandlingJson.stønadsperiode.periode.fraOgMed),
+                                    LocalDate.parse(body.nyBeregningForSøknadsbehandlingJson.stønadsperiode.periode.tilOgMed)
                                 ),
                                 fradrag = it.fradrag
                             ).fold(
@@ -102,10 +110,10 @@ internal fun Route.revurderingRoutes(
                                         RevurderingFeilet.FantIngentingSomKanRevurderes -> call.svar(
                                             NotFound.message(
                                                 "Fant ingenting som kan revurderes for perioden ${
-                                                Periode.create(
-                                                    LocalDate.parse(body.stønadsperiode.periode.fraOgMed),
-                                                    LocalDate.parse(body.stønadsperiode.periode.tilOgMed)
-                                                )
+                                                    Periode.create(
+                                                        LocalDate.parse(body.nyBeregningForSøknadsbehandlingJson.stønadsperiode.periode.fraOgMed),
+                                                        LocalDate.parse(body.nyBeregningForSøknadsbehandlingJson.stønadsperiode.periode.tilOgMed)
+                                                    )
                                                 }"
                                             )
                                         )
