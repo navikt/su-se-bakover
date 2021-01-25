@@ -61,7 +61,7 @@ internal fun Route.revurderingRoutes(
                                     RevurderingFeilet.FantIkkeSak -> call.svar(NotFound.message("Fant ikke sak"))
                                     RevurderingFeilet.FantIngentingSomKanRevurderes -> call.svar(NotFound.message("Fant ingenting som kan revurderes for perioden $periode"))
                                     RevurderingFeilet.GeneriskFeil -> call.svar(InternalServerError.message("Noe gikk feil ved revurdering"))
-                                    else -> call.svar(BadRequest.message("noe gikk feil"))
+                                    else -> call.svar(BadRequest.message("Ukjent feil"))
                                 }
                             },
                             ifRight = {
@@ -95,9 +95,27 @@ internal fun Route.revurderingRoutes(
                                 ),
                                 fradrag = it.fradrag
                             ).fold(
-                                ifLeft = {
-                                    // TODO
-                                    call.svar(BadRequest.message("noe gikk feil"))
+                                ifLeft = { revurderingFeilet ->
+                                    when (revurderingFeilet) {
+                                        RevurderingFeilet.GeneriskFeil -> call.svar(InternalServerError.message("Noe gikk feil ved revurdering"))
+                                        RevurderingFeilet.FantIkkeSak -> call.svar(NotFound.message("Fant ikke sak"))
+                                        RevurderingFeilet.FantIngentingSomKanRevurderes -> call.svar(
+                                            NotFound.message(
+                                                "Fant ingenting som kan revurderes for perioden ${
+                                                    Periode.create(
+                                                        LocalDate.parse(body.stønadsperiode.periode.fraOgMed),
+                                                        LocalDate.parse(body.stønadsperiode.periode.tilOgMed)
+                                                    )
+                                                }"
+                                            )
+                                        )
+                                        RevurderingFeilet.KunneIkkeFinneAktørId -> call.svar(NotFound.message("Kunne ikke finen aktør id"))
+                                        RevurderingFeilet.KunneIkkeOppretteOppgave -> call.svar(
+                                            InternalServerError.message(
+                                                "Kunne ikke opprette oppgave"
+                                            )
+                                        )
+                                    }
                                 },
                                 ifRight = { revurdertBeregning ->
                                     call.audit("Opprettet en ny revurdering beregning og simulering på sak med id $sakId")
@@ -116,8 +134,17 @@ internal fun Route.revurderingRoutes(
                 revurderingId = revurderingId, saksbehandler = Saksbehandler(call.suUserContext.getNAVIdent())
             ).fold(
                 ifLeft = {
-                    // TODO
-                    call.svar(BadRequest.message("noe gikk feil"))
+                    when (it) {
+                        RevurderingFeilet.GeneriskFeil -> call.svar(InternalServerError.message("Noe gikk feil ved revurdering"))
+                        RevurderingFeilet.FantIkkeSak -> call.svar(NotFound.message("Fant ikke sak"))
+                        RevurderingFeilet.FantIngentingSomKanRevurderes -> call.svar(
+                            NotFound.message("Fant ingenting som kan revurderes for perioden")
+                        )
+                        RevurderingFeilet.KunneIkkeFinneAktørId -> call.svar(NotFound.message("Kunne ikke finen aktør id"))
+                        RevurderingFeilet.KunneIkkeOppretteOppgave -> call.svar(
+                            InternalServerError.message("Kunne ikke opprette oppgave")
+                        )
+                    }
                 },
                 ifRight = {
                     call.audit("sendt revurdering til attestering med id $revurderingId")
