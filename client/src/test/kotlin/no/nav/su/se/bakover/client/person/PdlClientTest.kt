@@ -167,8 +167,7 @@ internal class PdlClientTest : WiremockBase {
                       "mellomnavn": null,
                       "etternavn": "KRONJUVEL",
                       "metadata": {
-                        "master": "Freg",
-                        "historisk": false
+                        "master": "Freg"
                       }
                     }
                   ],
@@ -294,8 +293,7 @@ internal class PdlClientTest : WiremockBase {
                       "mellomnavn": null,
                       "etternavn": "KRONJUVEL",
                       "metadata": {
-                        "master": "Freg",
-                        "historisk": false
+                        "master": "Freg"
                       }
                     }
                   ],
@@ -433,8 +431,7 @@ internal class PdlClientTest : WiremockBase {
                       "mellomnavn": null,
                       "etternavn": "KRONJUVEL",
                       "metadata": {
-                        "master": "Freg",
-                        "historisk": false
+                        "master": "Freg"
                       }
                     }
                   ],
@@ -577,8 +574,7 @@ internal class PdlClientTest : WiremockBase {
                 "mellomnavn": null,
                 "etternavn": "KRONJUVEL",
                 "metadata": {
-                  "master": "Freg",
-                  "historisk": false
+                  "master": "Freg"
                  }
                 }],
                   "telefonnummer": [],

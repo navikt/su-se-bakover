@@ -231,9 +231,7 @@ data class Statsborgerskap(
 )
 
 data class Metadata(
-    val opplysningsId: String?,
-    val master: String,
-    val historisk: Boolean
+    val master: String
 )
 
 data class HentIdenter(
