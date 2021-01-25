@@ -55,7 +55,9 @@ object BehandlingTestUtils {
 
     internal val tidspunkt = Tidspunkt.now(fixedClock)
     internal val behandlingFactory = BehandlingFactory(mock(), fixedClock)
-    internal val observerMock: EventObserver = mock { on { handle(any()) }.doNothing() }
+    internal val observerMock: EventObserver by lazy {
+        mock { on { handle(any()) }.doNothing() }
+    }
 
     internal val sakId: UUID = UUID.fromString("268e62fb-3079-4e8d-ab32-ff9fb9eac2ec")
     internal val saksnummer = Saksnummer(999999)
