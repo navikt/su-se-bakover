@@ -60,7 +60,7 @@ internal class AuthenticationTest {
     }
 
     @Test
-    fun `forespørsel uten medlemskap i påkrevet gruppe skal svare med 403`() {
+    fun `forespørsel uten medlemskap i påkrevet gruppe skal svare med 401`() {
         withTestApplication({
             testSusebakover()
         }) {
@@ -68,7 +68,7 @@ internal class AuthenticationTest {
                 addHeader(Authorization, jwtStub.createJwtToken(roller = emptyList()).asBearerToken())
             }
         }.apply {
-            assertEquals(Forbidden, response.status())
+            assertEquals(Unauthorized, response.status())
         }
     }
 

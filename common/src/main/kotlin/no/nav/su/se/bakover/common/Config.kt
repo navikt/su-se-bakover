@@ -37,7 +37,7 @@ private object EnvironmentConfig {
 }
 
 data class ApplicationConfig(
-    val isLocalOrRunningTests: Boolean,
+    val isRunningLocally: Boolean,
     val leaderPodLookupPath: String,
     val pdfgenLocal: Boolean,
     val corsAllowOrigin: String,
@@ -46,7 +46,6 @@ data class ApplicationConfig(
     val oppdrag: OppdragConfig,
     val database: DatabaseConfig,
     val clientsConfig: ClientsConfig,
-    val frontendCallbackUrls: FrontendCallbackUrls,
     val kafkaConfig: KafkaConfig,
 ) {
 
@@ -75,7 +74,6 @@ data class ApplicationConfig(
         val clientSecret: String,
         val wellKnownUrl: String,
         val clientId: String,
-        val backendCallbackUrl: String,
         val groups: AzureGroups,
     ) {
         data class AzureGroups(
@@ -92,7 +90,6 @@ data class ApplicationConfig(
                 clientSecret = getEnvironmentVariableOrThrow("AZURE_APP_CLIENT_SECRET"),
                 wellKnownUrl = getEnvironmentVariableOrThrow("AZURE_APP_WELL_KNOWN_URL"),
                 clientId = getEnvironmentVariableOrThrow("AZURE_APP_CLIENT_ID"),
-                backendCallbackUrl = getEnvironmentVariableOrThrow("BACKEND_CALLBACK_URL"),
                 groups = AzureGroups(
                     attestant = getEnvironmentVariableOrThrow("AZURE_GROUP_ATTESTANT"),
                     saksbehandler = getEnvironmentVariableOrThrow("AZURE_GROUP_SAKSBEHANDLER"),
@@ -105,15 +102,11 @@ data class ApplicationConfig(
                 clientSecret = getEnvironmentVariableOrThrow("AZURE_APP_CLIENT_SECRET"),
                 wellKnownUrl = getEnvironmentVariableOrDefault(
                     "AZURE_APP_WELL_KNOWN_URL",
-                    "https://login.microsoftonline.com/966ac572-f5b7-4bbe-aa88-c76419c0f851/v2.0/.well-known/openid-configuration"
+                    "http://localhost:4321/default/.well-known/openid-configuration"
                 ),
                 clientId = getEnvironmentVariableOrDefault(
                     "AZURE_APP_CLIENT_ID",
-                    "26a62d18-70ce-48a6-9f4d-664607bd5188"
-                ),
-                backendCallbackUrl = getEnvironmentVariableOrDefault(
-                    "BACKEND_CALLBACK_URL",
-                    "http://localhost:8080/callback"
+                    "su-se-bakover"
                 ),
                 groups = AzureGroups(
                     attestant = getEnvironmentVariableOrDefault(
@@ -299,23 +292,6 @@ data class ApplicationConfig(
         }
     }
 
-    data class FrontendCallbackUrls(
-        private val frontendBaseUrl: String,
-    ) {
-        val suSeFramoverLoginSuccessUrl = "$frontendBaseUrl/auth/complete"
-        val suSeFramoverLogoutSuccessUrl = "$frontendBaseUrl/logout/complete"
-
-        companion object {
-            fun createFromEnvironmentVariables() = FrontendCallbackUrls(
-                frontendBaseUrl = getEnvironmentVariableOrThrow("FRONTEND_BASE_URL")
-            )
-
-            fun createLocalConfig() = FrontendCallbackUrls(
-                frontendBaseUrl = "http://localhost:1234"
-            )
-        }
-    }
-
     data class KafkaConfig(
         private val common: Map<String, String>,
         val producerCfg: ProducerCfg,
@@ -378,10 +354,10 @@ data class ApplicationConfig(
             LoggerFactory.getLogger(this::class.java)
         }
 
-        fun createConfig() = if (isLocalOrRunningTests()) createLocalConfig() else createFromEnvironmentVariables()
+        fun createConfig() = if (isRunningLocally()) createLocalConfig() else createFromEnvironmentVariables()
 
         fun createFromEnvironmentVariables() = ApplicationConfig(
-            isLocalOrRunningTests = false,
+            isRunningLocally = false,
             leaderPodLookupPath = getEnvironmentVariableOrThrow("ELECTOR_PATH"),
             pdfgenLocal = false,
             corsAllowOrigin = getEnvironmentVariableOrThrow("ALLOW_CORS_ORIGIN"),
@@ -390,12 +366,11 @@ data class ApplicationConfig(
             oppdrag = OppdragConfig.createFromEnvironmentVariables(),
             database = DatabaseConfig.createFromEnvironmentVariables(),
             clientsConfig = ClientsConfig.createFromEnvironmentVariables(),
-            frontendCallbackUrls = FrontendCallbackUrls.createFromEnvironmentVariables(),
             kafkaConfig = KafkaConfig.createFromEnvironmentVariables()
         )
 
         fun createLocalConfig() = ApplicationConfig(
-            isLocalOrRunningTests = true,
+            isRunningLocally = true,
             leaderPodLookupPath = "",
             pdfgenLocal = getEnvironmentVariableOrDefault("PDFGEN_LOCAL", "false").toBoolean(),
             corsAllowOrigin = "localhost:1234",
@@ -404,12 +379,11 @@ data class ApplicationConfig(
             oppdrag = OppdragConfig.createLocalConfig(),
             database = DatabaseConfig.createLocalConfig(),
             clientsConfig = ClientsConfig.createLocalConfig(),
-            frontendCallbackUrls = FrontendCallbackUrls.createLocalConfig(),
             kafkaConfig = KafkaConfig.createLocalConfig()
         ).also {
             log.warn("**********  Using local config (the environment variable 'NAIS_CLUSTER_NAME' is missing.)")
         }
 
-        fun isLocalOrRunningTests() = !exists("NAIS_CLUSTER_NAME")
+        fun isRunningLocally() = !exists("NAIS_CLUSTER_NAME")
     }
 }

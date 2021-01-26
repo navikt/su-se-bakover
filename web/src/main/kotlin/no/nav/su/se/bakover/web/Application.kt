@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.web
 
 import ch.qos.logback.classic.util.ContextInitializer
 import io.ktor.application.Application
-import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.auth.authenticate
@@ -24,7 +23,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.jackson.JacksonConverter
 import io.ktor.locations.Locations
 import io.ktor.request.httpMethod
-import io.ktor.request.path
 import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.routing
@@ -66,9 +64,7 @@ import no.nav.su.se.bakover.web.routes.behandling.behandlingRoutes
 import no.nav.su.se.bakover.web.routes.drift.driftRoutes
 import no.nav.su.se.bakover.web.routes.installMetrics
 import no.nav.su.se.bakover.web.routes.me.meRoutes
-import no.nav.su.se.bakover.web.routes.naisPaths
 import no.nav.su.se.bakover.web.routes.naisRoutes
-import no.nav.su.se.bakover.web.routes.person.personPath
 import no.nav.su.se.bakover.web.routes.person.personRoutes
 import no.nav.su.se.bakover.web.routes.sak.sakRoutes
 import no.nav.su.se.bakover.web.routes.søknad.søknadRoutes
@@ -82,7 +78,7 @@ import java.time.Clock
 import java.time.format.DateTimeParseException
 
 fun main(args: Array<String>) {
-    if (ApplicationConfig.isLocalOrRunningTests()) {
+    if (ApplicationConfig.isRunningLocally()) {
         System.setProperty(ContextInitializer.CONFIG_FILE_PROPERTY, "logback-local.xml")
     }
     io.ktor.server.netty.EngineMain.main(args)
@@ -97,7 +93,7 @@ internal fun Application.susebakover(
     applicationConfig: ApplicationConfig = ApplicationConfig.createConfig(),
     databaseRepos: DatabaseRepos = DatabaseBuilder.build(behandlingFactory, applicationConfig.database),
     jmsConfig: JmsConfig = JmsConfig(applicationConfig),
-    clients: Clients = if (applicationConfig.isLocalOrRunningTests) StubClientsBuilder.build(applicationConfig) else ProdClientsBuilder(
+    clients: Clients = if (applicationConfig.isRunningLocally) StubClientsBuilder.build(applicationConfig) else ProdClientsBuilder(
         jmsConfig,
         clock = clock,
     ).build(applicationConfig),
@@ -186,7 +182,7 @@ internal fun Application.susebakover(
 
     install(Authorization) {
         getRoller { principal ->
-            getGroupsFromJWT(principal)
+            getGroupsFromJWT(applicationConfig, principal)
                 .filterMap { azureGroupMapper.fromAzureGroup(it) }
                 .toSet()
         }
@@ -207,7 +203,6 @@ internal fun Application.susebakover(
         level = Level.INFO
         filter { call ->
             if (call.request.httpMethod.value == "OPTIONS") return@filter false
-            if (call.pathShouldBeExcluded(naisPaths + AUTH_CALLBACK_PATH + personPath)) return@filter false
 
             return@filter true
         }
@@ -225,7 +220,7 @@ internal fun Application.susebakover(
     routing {
         authenticate("jwt") {
             withUser {
-                meRoutes(azureGroupMapper)
+                meRoutes(applicationConfig, azureGroupMapper)
 
                 withAccessProtectedServices(
                     accessCheckProxy
@@ -242,7 +237,7 @@ internal fun Application.susebakover(
             }
         }
     }
-    if (!applicationConfig.isLocalOrRunningTests) {
+    if (!applicationConfig.isRunningLocally) {
         UtbetalingKvitteringIbmMqConsumer(
             kvitteringQueueName = applicationConfig.oppdrag.utbetaling.mqReplyTo,
             globalJmsContext = jmsConfig.jmsContext,
@@ -256,12 +251,6 @@ internal fun Application.susebakover(
             avstemmingService = services.avstemming,
             leaderPodLookup = clients.leaderPodLookup
         ).schedule()
-    }
-}
-
-fun ApplicationCall.pathShouldBeExcluded(paths: List<String>): Boolean {
-    return paths.any {
-        this.request.path().startsWith(it)
     }
 }
 

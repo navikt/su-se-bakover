@@ -7,8 +7,6 @@ import org.json.JSONObject
 object AzureClientStub : OAuth {
     override fun onBehalfOfToken(originalToken: String, otherAppId: String): String = originalToken
 
-    override fun refreshTokens(refreshToken: String): JSONObject = throw NotImplementedError()
-
     override fun jwkConfig(): JSONObject {
         return JSONObject(
             mapOf(

@@ -1,14 +1,17 @@
 package no.nav.su.se.bakover.web
 
 import arrow.core.Either
+import com.auth0.jwt.interfaces.Payload
 import io.ktor.application.ApplicationCall
 import io.ktor.auth.Principal
+import io.ktor.auth.jwt.JWTCredential
 import io.ktor.auth.jwt.JWTPrincipal
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.request.header
 import io.ktor.request.receiveStream
 import kotlinx.coroutines.runBlocking
+import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.sikkerLogg
@@ -20,8 +23,26 @@ internal fun ApplicationCall.audit(msg: String) {
     sikkerLogg.info("${suUserContext.getNAVIdent()} $msg")
 }
 
-internal fun getGroupsFromJWT(principal: Principal?): List<String> =
-    (principal as JWTPrincipal).payload.getClaim("groups").asList(String::class.java)
+internal fun getGroupsFromJWT(applicationConfig: ApplicationConfig, principal: Principal?): List<String> =
+    getGroupsFromJWT(applicationConfig, (principal as JWTPrincipal).payload)
+
+internal fun getGroupsFromJWT(applicationConfig: ApplicationConfig, credential: JWTCredential): List<String> =
+    getGroupsFromJWT(applicationConfig, credential.payload)
+
+private fun getGroupsFromJWT(applicationConfig: ApplicationConfig, payload: Payload): List<String> =
+    // Token som genereres lokalt (av navikt/oauth2-mock-server) vil ikke inneholde gruppene, så vi legger dem på her
+    if (applicationConfig.isRunningLocally) {
+        applicationConfig.azure.groups.let {
+            listOf(
+                it.veileder,
+                it.saksbehandler,
+                it.attestant,
+                it.drift
+            )
+        }
+    } else {
+        payload.getClaim("groups").asList(String::class.java)
+    }
 
 internal fun String.toUUID() =
     runBlocking {

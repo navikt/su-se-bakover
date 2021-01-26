@@ -52,23 +52,6 @@ internal class AzureClient(
         )
     }
 
-    override fun refreshTokens(refreshToken: String): JSONObject {
-        val (_, _, result) = tokenEndpoint.httpPost(
-            listOf(
-                "grant_type" to "refresh_token",
-                "client_id" to thisClientId,
-                "client_secret" to thisClientSecret,
-                "refresh_token" to refreshToken
-            )
-        )
-            .header("Content-Type", "application/x-www-form-urlencoded")
-            .responseString()
-        return result.fold(
-            { JSONObject(it) },
-            { throw RuntimeException("Error while refreshing token in Azure, message:${it.message}}, error:${String(it.errorData)}") }
-        )
-    }
-
     override fun jwkConfig(): JSONObject {
         val (_, _, result) = wellknownUrl.httpGet().responseString()
         return result.fold(

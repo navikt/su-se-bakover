@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 internal class ApplicationConfigTest {
 
     private val expectedApplicationConfig = ApplicationConfig(
-        isLocalOrRunningTests = false,
+        isRunningLocally = false,
         leaderPodLookupPath = "leaderPodLookupPath",
         pdfgenLocal = false,
         corsAllowOrigin = "corsAllowOrigin",
@@ -20,7 +20,6 @@ internal class ApplicationConfigTest {
             clientSecret = "clientSecret",
             wellKnownUrl = "wellKnownUrl",
             clientId = "clientId",
-            backendCallbackUrl = "backendCallbackUrl",
             groups = ApplicationConfig.AzureConfig.AzureGroups(
                 attestant = "attestant",
                 saksbehandler = "saksbehandler",
@@ -62,7 +61,6 @@ internal class ApplicationConfigTest {
             skjermingUrl = "skjermingUrl",
             dkifUrl = "http://dkif.default.svc.nais.local",
         ),
-        frontendCallbackUrls = ApplicationConfig.FrontendCallbackUrls(frontendBaseUrl = "frontendBaseUrl"),
         kafkaConfig = ApplicationConfig.KafkaConfig(
             common = mapOf(
                 "bootstrap.servers" to "brokers",
@@ -154,7 +152,7 @@ internal class ApplicationConfigTest {
             )
         ) {
             ApplicationConfig.createLocalConfig() shouldBe expectedApplicationConfig.copy(
-                isLocalOrRunningTests = true,
+                isRunningLocally = true,
                 corsAllowOrigin = "localhost:1234",
                 leaderPodLookupPath = "",
                 serviceUser = ApplicationConfig.ServiceUserConfig(
@@ -193,7 +191,6 @@ internal class ApplicationConfigTest {
                     skjermingUrl = "mocked",
                     dkifUrl = "mocked",
                 ),
-                frontendCallbackUrls = ApplicationConfig.FrontendCallbackUrls("http://localhost:1234"),
                 kafkaConfig = ApplicationConfig.KafkaConfig(
                     emptyMap(), ApplicationConfig.KafkaConfig.ProducerCfg((emptyMap()))
                 )
