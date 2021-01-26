@@ -370,10 +370,9 @@ open class AccessCheckProxy(
                     return services.revurdering.sendTilAttestering(revurderingId, saksbehandler)
                 }
 
-                override fun lagBrevutkast(revurderingId: UUID): Either<RevurderingFeilet, ByteArray> {
+                override fun lagBrevutkast(revurderingId: UUID, fritekst: String?): Either<RevurderingFeilet, ByteArray> {
                     // TODO assert tillgang
-                    return services.revurdering.lagBrevutkast(revurderingId)
-
+                    return services.revurdering.lagBrevutkast(revurderingId, fritekst)
                 }
             }
         )

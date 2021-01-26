@@ -27,7 +27,7 @@ interface RevurderingService {
         saksbehandler: NavIdentBruker.Saksbehandler
     ): Either<RevurderingFeilet, Revurdering>
 
-    fun lagBrevutkast(revurderingId: UUID): Either<RevurderingFeilet, ByteArray>
+    fun lagBrevutkast(revurderingId: UUID, fritekst: String?): Either<RevurderingFeilet, ByteArray>
 }
 
 sealed class RevurderingFeilet {

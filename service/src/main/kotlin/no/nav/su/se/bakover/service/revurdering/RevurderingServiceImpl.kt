@@ -35,7 +35,7 @@ internal class RevurderingServiceImpl(
     private val personService: PersonService,
     private val microsoftGraphApiClient: MicrosoftGraphApiOppslag,
     private val brevService: BrevService,
-    ) : RevurderingService {
+) : RevurderingService {
 
     override fun opprettRevurdering(sakId: UUID, periode: Periode, saksbehandler: NavIdentBruker.Saksbehandler): Either<RevurderingFeilet, Revurdering> {
         // TODO logikk for å finne ut hva som skal revurderes
@@ -138,9 +138,10 @@ internal class RevurderingServiceImpl(
         .mapLeft { RevurderingFeilet.FantIkkeSak }
         .map { it }
 
+    override fun lagBrevutkast(revurderingId: UUID, fritekst: String?): Either<RevurderingFeilet, ByteArray> {
+        val revurdering = revurderingRepo.hent(revurderingId) ?: return RevurderingFeilet.FantIkkeRevurdering.left()
 
-    override fun lagBrevutkast(revurderingId: UUID): Either<RevurderingFeilet, ByteArray> {
-        fun lolz(revurdering: Revurdering, beregning: Beregning): Either<RevurderingFeilet, ByteArray> {
+        fun lagBrevutkastForRevurderingAvInntekt(revurdertBeregning: Beregning): Either<RevurderingFeilet, ByteArray> {
             val person = personService.hentPerson(revurdering.tilRevurdering.fnr).fold(
                 ifLeft = { return RevurderingFeilet.FantIkkePerson.left() },
                 ifRight = { it }
@@ -152,7 +153,10 @@ internal class RevurderingServiceImpl(
             val request = LagBrevRequest.Revurdering.Inntekt(
                 person = person,
                 saksbehandlerNavn = saksbehandlerNavn,
-                beregning = beregning
+                revurdertBeregning = revurdertBeregning,
+                fritekst = fritekst,
+                vedtattBeregning = revurdering.tilRevurdering.beregning()!!,
+                harEktefelle = revurdering.tilRevurdering.behandlingsinformasjon().harEktefelle()
             )
 
             return brevService.lagBrev(request).mapLeft {
@@ -160,10 +164,9 @@ internal class RevurderingServiceImpl(
             }
         }
 
-        val revurdering = revurderingRepo.hent(revurderingId) ?: return RevurderingFeilet.FantIkkeRevurdering.left()
         return when (revurdering) {
-            is SimulertRevurdering -> { lolz(revurdering, revurdering.beregning) }
-            is TilAttesteringRevurdering -> { lolz(revurdering, revurdering.beregning) }
+            is SimulertRevurdering -> { lagBrevutkastForRevurderingAvInntekt(revurdering.beregning) }
+            is TilAttesteringRevurdering -> { lagBrevutkastForRevurderingAvInntekt(revurdering.beregning) }
             else -> RevurderingFeilet.KunneIkkeLageBrevutkast.left()
         }
     }
@@ -173,4 +176,3 @@ data class RevurdertBeregning(
     val beregning: Beregning,
     val revurdert: Beregning
 )
-

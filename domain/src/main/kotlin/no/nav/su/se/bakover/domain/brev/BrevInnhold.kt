@@ -2,14 +2,12 @@ package no.nav.su.se.bakover.domain.brev
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
-import no.nav.su.se.bakover.common.ddMMyyyy
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.behandling.Satsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
+import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
-import java.time.LocalDate
 
 abstract class BrevInnhold {
     fun toJson(): String = objectMapper.writeValueAsString(this)
@@ -71,9 +69,20 @@ abstract class BrevInnhold {
     data class RevurderingAvInntekt(
         val personalia: Personalia,
         val saksbehandlerNavn: String,
-        val beregningsperioder: List<Beregningsperiode>
-    ): BrevInnhold() {
+        val beregningsperioder: List<Beregningsperiode>,
+        val fritekst: String?,
+        val sats: Sats,
+        val harEktefelle: Boolean,
+    ) : BrevInnhold() {
         override val brevTemplate = BrevTemplate.Revurdering.Inntekt
+
+        @Suppress("unused")
+        @JsonInclude
+        val satsBeløp = beregningsperioder.firstOrNull()?.satsbeløpPerMåned
+
+        @Suppress("unused")
+        @JsonInclude
+        val harFradrag: Boolean = beregningsperioder.any { it.fradrag.bruker.isNotEmpty() || it.fradrag.eps.fradrag.isNotEmpty() }
     }
 }
 

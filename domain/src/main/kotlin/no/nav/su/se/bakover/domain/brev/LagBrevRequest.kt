@@ -37,26 +37,30 @@ interface LagBrevRequest {
         }
     }
 
-    sealed class Revurdering: LagBrevRequest {
+    sealed class Revurdering : LagBrevRequest {
         data class Inntekt(
             private val person: Person,
             private val saksbehandlerNavn: String,
-            private val beregning: Beregning,
-        ): Revurdering() {
+            private val revurdertBeregning: Beregning,
+            private val fritekst: String?,
+            private val vedtattBeregning: Beregning,
+            private val harEktefelle: Boolean,
+        ) : Revurdering() {
             override fun getPerson(): Person = person
 
             override fun lagBrevInnhold(personalia: BrevInnhold.Personalia): BrevInnhold {
                 return BrevInnhold.RevurderingAvInntekt(
                     personalia = personalia,
                     saksbehandlerNavn = saksbehandlerNavn,
-                    beregningsperioder = LagBrevinnholdForBeregning(beregning).brevInnhold
+                    beregningsperioder = LagBrevinnholdForBeregning(revurdertBeregning).brevInnhold,
+                    fritekst = fritekst,
+                    sats = revurdertBeregning.getSats(),
+                    harEktefelle = harEktefelle
                 )
             }
         }
     }
 }
-
-
 
 // TODO Hente Locale fra brukerens målform
 fun LocalDate.formatMonthYear(): String =

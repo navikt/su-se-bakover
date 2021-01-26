@@ -38,5 +38,4 @@ sealed class BrevTemplate(
             brevTittel = "Vi har vurdert den supplerende stønaden din på nytt"
         )
     }
-
 }

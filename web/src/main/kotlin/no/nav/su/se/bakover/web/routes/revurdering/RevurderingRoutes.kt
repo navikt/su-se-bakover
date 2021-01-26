@@ -12,7 +12,6 @@ import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.response.respondBytes
 import io.ktor.routing.Route
-import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.periode.Periode
@@ -136,14 +135,20 @@ internal fun Route.revurderingRoutes(
         }
     }
 
-    get("$revurderingPath/{revurderingId}/brevutkast") {
+    data class BrevutkastMedFritekst(val fritekst: String?)
+    post("$revurderingPath/{revurderingId}/brevutkast") {
         call.withRevurderingId { revurderingId ->
-            revurderingService.lagBrevutkast(revurderingId = revurderingId).fold(
-                ifLeft = { call.svar(hentFeilResultat(it)) },
-                ifRight = {
-                    call.audit("sendt revurdering til attestering med id $revurderingId")
-                    call.respondBytes(it, ContentType.Application.Pdf)
-                },
+            Either.catch { deserialize<BrevutkastMedFritekst>(call) }.fold(
+                ifLeft = { call.svar(BadRequest.message("Ugyldig body")) },
+                ifRight = { it ->
+                    revurderingService.lagBrevutkast(revurderingId, it.fritekst).fold(
+                        ifLeft = { call.svar(hentFeilResultat(it)) },
+                        ifRight = {
+                            call.audit("sendt revurdering til attestering med id $revurderingId")
+                            call.respondBytes(it, ContentType.Application.Pdf)
+                        },
+                    )
+                }
             )
         }
     }
