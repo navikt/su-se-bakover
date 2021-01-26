@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.brev
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.beregning.LagBrevinnholdForBeregning
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -35,7 +36,27 @@ interface LagBrevRequest {
             )
         }
     }
+
+    sealed class Revurdering: LagBrevRequest {
+        data class Inntekt(
+            private val person: Person,
+            private val saksbehandlerNavn: String,
+            private val beregning: Beregning,
+        ): Revurdering() {
+            override fun getPerson(): Person = person
+
+            override fun lagBrevInnhold(personalia: BrevInnhold.Personalia): BrevInnhold {
+                return BrevInnhold.RevurderingAvInntekt(
+                    personalia = personalia,
+                    saksbehandlerNavn = saksbehandlerNavn,
+                    beregningsperioder = LagBrevinnholdForBeregning(beregning).brevInnhold
+                )
+            }
+        }
+    }
 }
+
+
 
 // TODO Hente Locale fra brukerens målform
 fun LocalDate.formatMonthYear(): String =

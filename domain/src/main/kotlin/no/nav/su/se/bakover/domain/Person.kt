@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.domain
 
+import no.nav.su.se.bakover.common.ddMMyyyy
+import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import java.time.LocalDate
 import java.time.Period
 

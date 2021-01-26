@@ -2,11 +2,14 @@ package no.nav.su.se.bakover.domain.brev
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
+import no.nav.su.se.bakover.common.ddMMyyyy
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.behandling.Satsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
+import java.time.LocalDate
 
 abstract class BrevInnhold {
     fun toJson(): String = objectMapper.writeValueAsString(this)
@@ -64,6 +67,14 @@ abstract class BrevInnhold {
         val fornavn: String,
         val etternavn: String,
     )
+
+    data class RevurderingAvInntekt(
+        val personalia: Personalia,
+        val saksbehandlerNavn: String,
+        val beregningsperioder: List<Beregningsperiode>
+    ): BrevInnhold() {
+        override val brevTemplate = BrevTemplate.Revurdering.Inntekt
+    }
 }
 
 fun List<Avslagsgrunn>.getDistinkteParagrafer() = this.map { it.getParagrafer() }.flatten().distinct().sorted()

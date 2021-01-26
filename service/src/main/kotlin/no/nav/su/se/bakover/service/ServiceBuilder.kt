@@ -91,7 +91,9 @@ class ServiceBuilder(
             utbetalingService = utbetalingService,
             revurderingRepo = databaseRepos.revurderingRepo,
             oppgaveService = oppgaveService,
-            personService = personService
+            personService = personService,
+            microsoftGraphApiClient = clients.microsoftGraphApiClient,
+            brevService = brevService
         )
 
         return Services(

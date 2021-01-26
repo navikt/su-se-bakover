@@ -369,6 +369,12 @@ open class AccessCheckProxy(
                     // TODO assert tilgang til revurdering?
                     return services.revurdering.sendTilAttestering(revurderingId, saksbehandler)
                 }
+
+                override fun lagBrevutkast(revurderingId: UUID): Either<RevurderingFeilet, ByteArray> {
+                    // TODO assert tillgang
+                    return services.revurdering.lagBrevutkast(revurderingId)
+
+                }
             }
         )
     }

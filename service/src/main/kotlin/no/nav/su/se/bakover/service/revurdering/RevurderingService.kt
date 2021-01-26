@@ -26,12 +26,18 @@ interface RevurderingService {
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler
     ): Either<RevurderingFeilet, Revurdering>
+
+    fun lagBrevutkast(revurderingId: UUID): Either<RevurderingFeilet, ByteArray>
 }
 
 sealed class RevurderingFeilet {
     object GeneriskFeil : RevurderingFeilet()
     object FantIkkeSak : RevurderingFeilet()
+    object FantIkkeRevurdering : RevurderingFeilet()
+    object MicrosoftApiGraphFeil : RevurderingFeilet()
     object FantIngentingSomKanRevurderes : RevurderingFeilet()
+    object FantIkkePerson : RevurderingFeilet()
     object KunneIkkeFinneAktørId : RevurderingFeilet()
     object KunneIkkeOppretteOppgave : RevurderingFeilet()
+    object KunneIkkeLageBrevutkast : RevurderingFeilet()
 }

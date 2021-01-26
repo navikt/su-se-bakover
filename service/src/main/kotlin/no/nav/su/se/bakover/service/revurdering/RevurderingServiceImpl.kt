@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.RevurderingRepo
@@ -17,7 +18,9 @@ import no.nav.su.se.bakover.domain.behandling.TilAttesteringRevurdering
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
@@ -29,8 +32,10 @@ internal class RevurderingServiceImpl(
     private val utbetalingService: UtbetalingService,
     private val revurderingRepo: RevurderingRepo,
     private val oppgaveService: OppgaveService,
-    private val personService: PersonService
-) : RevurderingService {
+    private val personService: PersonService,
+    private val microsoftGraphApiClient: MicrosoftGraphApiOppslag,
+    private val brevService: BrevService,
+    ) : RevurderingService {
 
     override fun opprettRevurdering(sakId: UUID, periode: Periode, saksbehandler: NavIdentBruker.Saksbehandler): Either<RevurderingFeilet, Revurdering> {
         // TODO logikk for å finne ut hva som skal revurderes
@@ -132,9 +137,40 @@ internal class RevurderingServiceImpl(
     private fun hentSak(sakId: UUID) = sakService.hentSak(sakId)
         .mapLeft { RevurderingFeilet.FantIkkeSak }
         .map { it }
+
+
+    override fun lagBrevutkast(revurderingId: UUID): Either<RevurderingFeilet, ByteArray> {
+        fun lolz(revurdering: Revurdering, beregning: Beregning): Either<RevurderingFeilet, ByteArray> {
+            val person = personService.hentPerson(revurdering.tilRevurdering.fnr).fold(
+                ifLeft = { return RevurderingFeilet.FantIkkePerson.left() },
+                ifRight = { it }
+            )
+            val saksbehandlerNavn = microsoftGraphApiClient.hentNavnForNavIdent(revurdering.saksbehandler).fold(
+                ifLeft = { return RevurderingFeilet.MicrosoftApiGraphFeil.left() },
+                ifRight = { it }
+            )
+            val request = LagBrevRequest.Revurdering.Inntekt(
+                person = person,
+                saksbehandlerNavn = saksbehandlerNavn,
+                beregning = beregning
+            )
+
+            return brevService.lagBrev(request).mapLeft {
+                RevurderingFeilet.KunneIkkeLageBrevutkast
+            }
+        }
+
+        val revurdering = revurderingRepo.hent(revurderingId) ?: return RevurderingFeilet.FantIkkeRevurdering.left()
+        return when (revurdering) {
+            is SimulertRevurdering -> { lolz(revurdering, revurdering.beregning) }
+            is TilAttesteringRevurdering -> { lolz(revurdering, revurdering.beregning) }
+            else -> RevurderingFeilet.KunneIkkeLageBrevutkast.left()
+        }
+    }
 }
 
 data class RevurdertBeregning(
     val beregning: Beregning,
     val revurdert: Beregning
 )
+

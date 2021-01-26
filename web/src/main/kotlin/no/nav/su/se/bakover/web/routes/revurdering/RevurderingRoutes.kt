@@ -5,11 +5,14 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import io.ktor.application.call
+import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
+import io.ktor.response.respondBytes
 import io.ktor.routing.Route
+import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.periode.Periode
@@ -61,14 +64,7 @@ internal fun Route.revurderingRoutes(
                             ),
                             saksbehandler = Saksbehandler(navIdent)
                         ).fold(
-                            ifLeft = {
-                                when (it) {
-                                    RevurderingFeilet.FantIkkeSak -> call.svar(NotFound.message("Fant ikke sak"))
-                                    RevurderingFeilet.FantIngentingSomKanRevurderes -> call.svar(NotFound.message("Fant ingenting som kan revurderes for perioden $periode"))
-                                    RevurderingFeilet.GeneriskFeil -> call.svar(InternalServerError.message("Noe gikk feil ved revurdering"))
-                                    else -> call.svar(BadRequest.message("Ukjent feil"))
-                                }
-                            },
+                            ifLeft = { call.svar(hentFeilResultat(it)) },
                             ifRight = {
                                 call.audit("Opprettet en ny revurdering beregning og simulering på sak med id $sakId")
                                 call.svar(Resultat.json(OK, serialize(it.toJson())))
@@ -113,28 +109,7 @@ internal fun Route.revurderingRoutes(
                                     periode = periode,
                                     fradrag = fradrag
                                 ).fold(
-                                    ifLeft = { revurderingFeilet ->
-                                        when (revurderingFeilet) {
-                                            RevurderingFeilet.GeneriskFeil -> call.svar(InternalServerError.message("Noe gikk feil ved revurdering"))
-                                            RevurderingFeilet.FantIkkeSak -> call.svar(NotFound.message("Fant ikke sak"))
-                                            RevurderingFeilet.FantIngentingSomKanRevurderes -> call.svar(
-                                                NotFound.message(
-                                                    "Fant ingenting som kan revurderes for perioden ${
-                                                    Periode.create(
-                                                        LocalDate.parse(body.periode.fraOgMed),
-                                                        LocalDate.parse(body.periode.tilOgMed)
-                                                    )
-                                                    }"
-                                                )
-                                            )
-                                            RevurderingFeilet.KunneIkkeFinneAktørId -> call.svar(NotFound.message("Kunne ikke finen aktør id"))
-                                            RevurderingFeilet.KunneIkkeOppretteOppgave -> call.svar(
-                                                InternalServerError.message(
-                                                    "Kunne ikke opprette oppgave"
-                                                )
-                                            )
-                                        }
-                                    },
+                                    ifLeft = { revurderingFeilet -> call.svar(hentFeilResultat(revurderingFeilet)) },
                                     ifRight = { revurdertBeregning ->
                                         call.audit("Opprettet en ny revurdering beregning og simulering på sak med id $sakId")
                                         call.svar(Resultat.json(OK, serialize(revurdertBeregning.toJson())))
@@ -142,50 +117,6 @@ internal fun Route.revurderingRoutes(
                                 )
                             }
                         )
-
-                    /*body.nyBeregningForSøknadsbehandlingJson.toDomain(
-                        body.revurderingId,
-                        Saksbehandler(call.suUserContext.getNAVIdent())
-                    )
-                        .mapLeft { call.svar(it) }
-                        .map {
-                            revurderingService.beregnOgSimuler(
-                                revurderingId = it.behandlingId,
-                                saksbehandler = Saksbehandler(call.suUserContext.getNAVIdent()),
-                                periode = Periode.create(
-                                    LocalDate.parse(body.nyBeregningForSøknadsbehandlingJson.stønadsperiode.periode.fraOgMed),
-                                    LocalDate.parse(body.nyBeregningForSøknadsbehandlingJson.stønadsperiode.periode.tilOgMed)
-                                ),
-                                fradrag = it.fradrag
-                            ).fold(
-                                ifLeft = { revurderingFeilet ->
-                                    when (revurderingFeilet) {
-                                        RevurderingFeilet.GeneriskFeil -> call.svar(InternalServerError.message("Noe gikk feil ved revurdering"))
-                                        RevurderingFeilet.FantIkkeSak -> call.svar(NotFound.message("Fant ikke sak"))
-                                        RevurderingFeilet.FantIngentingSomKanRevurderes -> call.svar(
-                                            NotFound.message(
-                                                "Fant ingenting som kan revurderes for perioden ${
-                                                    Periode.create(
-                                                        LocalDate.parse(body.nyBeregningForSøknadsbehandlingJson.stønadsperiode.periode.fraOgMed),
-                                                        LocalDate.parse(body.nyBeregningForSøknadsbehandlingJson.stønadsperiode.periode.tilOgMed)
-                                                    )
-                                                }"
-                                            )
-                                        )
-                                        RevurderingFeilet.KunneIkkeFinneAktørId -> call.svar(NotFound.message("Kunne ikke finen aktør id"))
-                                        RevurderingFeilet.KunneIkkeOppretteOppgave -> call.svar(
-                                            InternalServerError.message(
-                                                "Kunne ikke opprette oppgave"
-                                            )
-                                        )
-                                    }
-                                },
-                                ifRight = { revurdertBeregning ->
-                                    call.audit("Opprettet en ny revurdering beregning og simulering på sak med id $sakId")
-                                    call.svar(Resultat.json(OK, serialize(revurdertBeregning.toJson())))
-                                },
-                            )
-                        }*/
                 }
             )
         }
@@ -196,24 +127,38 @@ internal fun Route.revurderingRoutes(
             revurderingService.sendTilAttestering(
                 revurderingId = revurderingId, saksbehandler = Saksbehandler(call.suUserContext.getNAVIdent())
             ).fold(
-                ifLeft = {
-                    when (it) {
-                        RevurderingFeilet.GeneriskFeil -> call.svar(InternalServerError.message("Noe gikk feil ved revurdering"))
-                        RevurderingFeilet.FantIkkeSak -> call.svar(NotFound.message("Fant ikke sak"))
-                        RevurderingFeilet.FantIngentingSomKanRevurderes -> call.svar(
-                            NotFound.message("Fant ingenting som kan revurderes for perioden")
-                        )
-                        RevurderingFeilet.KunneIkkeFinneAktørId -> call.svar(NotFound.message("Kunne ikke finen aktør id"))
-                        RevurderingFeilet.KunneIkkeOppretteOppgave -> call.svar(
-                            InternalServerError.message("Kunne ikke opprette oppgave")
-                        )
-                    }
-                },
+                ifLeft = { call.svar(hentFeilResultat(it)) },
                 ifRight = {
                     call.audit("sendt revurdering til attestering med id $revurderingId")
                     call.svar(Resultat.json(OK, serialize(it.toJson())))
                 },
             )
         }
+    }
+
+    get("$revurderingPath/{revurderingId}/brevutkast") {
+        call.withRevurderingId { revurderingId ->
+            revurderingService.lagBrevutkast(revurderingId = revurderingId).fold(
+                ifLeft = { call.svar(hentFeilResultat(it)) },
+                ifRight = {
+                    call.audit("sendt revurdering til attestering med id $revurderingId")
+                    call.respondBytes(it, ContentType.Application.Pdf)
+                },
+            )
+        }
+    }
+}
+
+internal fun hentFeilResultat(feil: RevurderingFeilet): Resultat {
+    return when (feil) {
+        RevurderingFeilet.GeneriskFeil -> InternalServerError.message("Noe gikk feil ved revurdering")
+        RevurderingFeilet.FantIkkeSak -> NotFound.message("Fant ikke sak")
+        RevurderingFeilet.FantIngentingSomKanRevurderes -> NotFound.message("Fant ingenting som kan revurderes for perioden")
+        RevurderingFeilet.KunneIkkeFinneAktørId -> NotFound.message("Kunne ikke finen aktør id")
+        RevurderingFeilet.KunneIkkeOppretteOppgave -> InternalServerError.message("Kunne ikke opprette oppgave")
+        RevurderingFeilet.FantIkkePerson -> InternalServerError.message("Kunne ikke opprette oppgave")
+        RevurderingFeilet.FantIkkeRevurdering -> NotFound.message("Fant ikke revurdering")
+        RevurderingFeilet.KunneIkkeLageBrevutkast -> InternalServerError.message("Kunne ikke lage brev")
+        RevurderingFeilet.MicrosoftApiGraphFeil -> InternalServerError.message("Kunne ikke slå opp saksbehandler")
     }
 }
