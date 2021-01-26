@@ -29,6 +29,11 @@ internal class UtbetalingPostgresRepoTest {
 
     private val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())
     private val repo = UtbetalingPostgresRepo(EmbeddedDatabase.instance())
+    private val kvitteringOK = Kvittering(
+        Kvittering.Utbetalingsstatus.OK,
+        "some xml",
+        mottattTidspunkt = Tidspunkt.EPOCH
+    )
 
     @Test
     fun `hent utbetaling`() {
@@ -73,7 +78,32 @@ internal class UtbetalingPostgresRepoTest {
     }
 
     @Test
+    fun `hent utbetalinger uten kvittering`() {
+        withMigratedDb {
+            val sak: Sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
+
+            val utbetalingUtenKvittering = lagUtbetalingUtenKvittering(
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+                fnr = sak.fnr
+            ).also {
+                repo.opprettUtbetaling(it)
+            }
+            lagUtbetalingUtenKvittering(
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+                fnr = sak.fnr
+            ).also {
+                repo.opprettUtbetaling(it)
+                repo.oppdaterMedKvittering(it.toKvittertUtbetaling(kvitteringOK))
+            }
+            repo.hentUkvitterteUtbetalinger() shouldBe listOf(utbetalingUtenKvittering)
+        }
+    }
+
+    @Test
     fun `oppdater med kvittering`() {
+
         withMigratedDb {
             val sak: Sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
 
@@ -85,11 +115,7 @@ internal class UtbetalingPostgresRepoTest {
                 repo.opprettUtbetaling(it)
             }
             val utbetalingMedKvittering = utbetalingUtenKvittering.toKvittertUtbetaling(
-                Kvittering(
-                    Kvittering.Utbetalingsstatus.OK,
-                    "some xml",
-                    mottattTidspunkt = Tidspunkt.EPOCH
-                )
+                kvitteringOK
             ).also {
                 repo.oppdaterMedKvittering(it)
             }

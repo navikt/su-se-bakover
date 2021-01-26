@@ -20,8 +20,7 @@ import java.time.Clock
 class UtbetalingKvitteringConsumer(
     private val utbetalingService: UtbetalingService,
     private val behandlingService: BehandlingService,
-    private val clock: Clock,
-    private val xmlMapper: XmlMapper = UtbetalingKvitteringConsumer.xmlMapper
+    private val clock: Clock
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 

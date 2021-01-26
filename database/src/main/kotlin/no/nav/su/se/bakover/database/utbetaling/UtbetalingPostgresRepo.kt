@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.database.utbetaling
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.hent
+import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -16,8 +17,8 @@ internal class UtbetalingPostgresRepo(
     override fun hentUtbetaling(utbetalingId: UUID30): Utbetaling.OversendtUtbetaling? =
         dataSource.withSession { session -> UtbetalingInternalRepo.hentUtbetalingInternal(utbetalingId, session) }
 
-    override fun hentUtbetaling(avstemmingsnøkkel: Avstemmingsnøkkel): Utbetaling.OversendtUtbetaling? =
-        dataSource.withSession { session ->
+    override fun hentUtbetaling(avstemmingsnøkkel: Avstemmingsnøkkel): Utbetaling.OversendtUtbetaling? {
+        return dataSource.withSession { session ->
             "select u.*, s.saksnummer from utbetaling u left join sak s on s.id = u.sakId where u.avstemmingsnøkkel ->> 'nøkkel' = :nokkel".hent(
                 mapOf(
                     "nokkel" to avstemmingsnøkkel.toString()
@@ -25,6 +26,15 @@ internal class UtbetalingPostgresRepo(
                 session
             ) { it.toUtbetaling(session) }
         }
+    }
+
+    override fun hentUkvitterteUtbetalinger(): List<Utbetaling.OversendtUtbetaling.UtenKvittering> {
+        return dataSource.withSession { session ->
+            "select u.*, s.saksnummer from utbetaling u left join sak s on s.id = u.sakId where u.kvittering is null".hentListe(
+                session = session
+            ) { it.toUtbetaling(session) as Utbetaling.OversendtUtbetaling.UtenKvittering }
+        }
+    }
 
     override fun oppdaterMedKvittering(utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering) {
         dataSource.withSession { session ->

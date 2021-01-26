@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.services.utbetaling.kvittering
 
+import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import no.nav.su.se.bakover.common.sikkerLogg
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
@@ -10,7 +11,8 @@ import javax.jms.Session
 class UtbetalingKvitteringIbmMqConsumer(
     kvitteringQueueName: String,
     globalJmsContext: JMSContext,
-    private val kvitteringConsumer: UtbetalingKvitteringConsumer
+    private val kvitteringConsumer: UtbetalingKvitteringConsumer,
+    private val xmlMapper: XmlMapper = UtbetalingKvitteringConsumer.xmlMapper,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val jmsContext = globalJmsContext.createContext(Session.AUTO_ACKNOWLEDGE)

@@ -9,4 +9,5 @@ interface UtbetalingRepo {
     fun hentUtbetaling(avstemmingsnøkkel: Avstemmingsnøkkel): Utbetaling.OversendtUtbetaling?
     fun oppdaterMedKvittering(utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering)
     fun opprettUtbetaling(utbetaling: Utbetaling.OversendtUtbetaling.UtenKvittering)
+    fun hentUkvitterteUtbetalinger(): List<Utbetaling.OversendtUtbetaling.UtenKvittering>
 }

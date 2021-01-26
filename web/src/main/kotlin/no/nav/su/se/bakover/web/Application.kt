@@ -71,6 +71,7 @@ import no.nav.su.se.bakover.web.routes.søknad.søknadRoutes
 import no.nav.su.se.bakover.web.routes.utbetaling.gjenoppta.gjenopptaUtbetalingRoutes
 import no.nav.su.se.bakover.web.routes.utbetaling.stans.stansutbetalingRoutes
 import no.nav.su.se.bakover.web.services.avstemming.AvstemmingJob
+import no.nav.su.se.bakover.web.services.utbetaling.kvittering.LokalKvitteringJob
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringConsumer
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringIbmMqConsumer
 import org.slf4j.event.Level
@@ -237,20 +238,23 @@ internal fun Application.susebakover(
             }
         }
     }
+    val utbetalingKvitteringConsumer = UtbetalingKvitteringConsumer(
+        utbetalingService = services.utbetaling,
+        behandlingService = services.behandling,
+        clock = clock,
+    )
     if (!applicationConfig.isRunningLocally) {
         UtbetalingKvitteringIbmMqConsumer(
             kvitteringQueueName = applicationConfig.oppdrag.utbetaling.mqReplyTo,
             globalJmsContext = jmsConfig.jmsContext,
-            kvitteringConsumer = UtbetalingKvitteringConsumer(
-                utbetalingService = services.utbetaling,
-                behandlingService = services.behandling,
-                clock = clock,
-            )
+            kvitteringConsumer = utbetalingKvitteringConsumer
         )
         AvstemmingJob(
             avstemmingService = services.avstemming,
             leaderPodLookup = clients.leaderPodLookup
         ).schedule()
+    } else {
+        LokalKvitteringJob(databaseRepos.utbetaling, utbetalingKvitteringConsumer).schedule()
     }
 }
 
