@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web
 
 import ch.qos.logback.classic.util.ContextInitializer
 import io.ktor.application.Application
+import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.auth.authenticate
@@ -23,6 +24,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.jackson.JacksonConverter
 import io.ktor.locations.Locations
 import io.ktor.request.httpMethod
+import io.ktor.request.path
 import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.routing
@@ -64,7 +66,9 @@ import no.nav.su.se.bakover.web.routes.behandling.behandlingRoutes
 import no.nav.su.se.bakover.web.routes.drift.driftRoutes
 import no.nav.su.se.bakover.web.routes.installMetrics
 import no.nav.su.se.bakover.web.routes.me.meRoutes
+import no.nav.su.se.bakover.web.routes.naisPaths
 import no.nav.su.se.bakover.web.routes.naisRoutes
+import no.nav.su.se.bakover.web.routes.person.personPath
 import no.nav.su.se.bakover.web.routes.person.personRoutes
 import no.nav.su.se.bakover.web.routes.sak.sakRoutes
 import no.nav.su.se.bakover.web.routes.søknad.søknadRoutes
@@ -204,6 +208,8 @@ internal fun Application.susebakover(
         level = Level.INFO
         filter { call ->
             if (call.request.httpMethod.value == "OPTIONS") return@filter false
+            if (call.pathShouldBeExcluded(naisPaths)) return@filter false
+            if (call.pathShouldBeExcluded(personPath)) return@filter false
 
             return@filter true
         }
@@ -262,3 +268,11 @@ fun Route.withAccessProtectedServices(
     accessCheckProxy: AccessCheckProxy,
     build: Route.(services: Services) -> Unit
 ) = build(accessCheckProxy.proxy())
+
+fun ApplicationCall.pathShouldBeExcluded(paths: List<String>): Boolean {
+    return paths.any {
+        this.request.path().startsWith(it)
+    }
+}
+
+fun ApplicationCall.pathShouldBeExcluded(path: String) = pathShouldBeExcluded(listOf(path))
