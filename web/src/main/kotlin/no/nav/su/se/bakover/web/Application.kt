@@ -98,7 +98,7 @@ internal fun Application.susebakover(
     applicationConfig: ApplicationConfig = ApplicationConfig.createConfig(),
     databaseRepos: DatabaseRepos = DatabaseBuilder.build(behandlingFactory, applicationConfig.database),
     jmsConfig: JmsConfig = JmsConfig(applicationConfig),
-    clients: Clients = if (applicationConfig.isRunningLocally) StubClientsBuilder.build(applicationConfig) else ProdClientsBuilder(
+    clients: Clients = if (applicationConfig.runtimeEnvironment != ApplicationConfig.RuntimeEnvironment.Nais) StubClientsBuilder.build(applicationConfig) else ProdClientsBuilder(
         jmsConfig,
         clock = clock,
     ).build(applicationConfig),
@@ -249,7 +249,7 @@ internal fun Application.susebakover(
         behandlingService = services.behandling,
         clock = clock,
     )
-    if (!applicationConfig.isRunningLocally) {
+    if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {
         UtbetalingKvitteringIbmMqConsumer(
             kvitteringQueueName = applicationConfig.oppdrag.utbetaling.mqReplyTo,
             globalJmsContext = jmsConfig.jmsContext,

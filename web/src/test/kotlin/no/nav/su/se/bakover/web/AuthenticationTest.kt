@@ -1,14 +1,7 @@
 package no.nav.su.se.bakover.web
 
-import ch.qos.logback.classic.Logger
-import ch.qos.logback.classic.spi.ILoggingEvent
-import ch.qos.logback.core.read.ListAppender
-import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldNotContain
 import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpMethod.Companion.Get
-import io.ktor.http.HttpStatusCode.Companion.Forbidden
-import io.ktor.http.HttpStatusCode.Companion.Found
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.server.testing.handleRequest
@@ -47,7 +40,7 @@ internal class AuthenticationTest {
     }
 
     @Test
-    fun `forespørsel uten påkrevet audience skal svare med 403`() {
+    fun `forespørsel uten påkrevet audience skal svare med 401`() {
         withTestApplication({
             testSusebakover()
         }) {
@@ -55,7 +48,7 @@ internal class AuthenticationTest {
                 addHeader(Authorization, jwtStub.createJwtToken(audience = "wrong_audience").asBearerToken())
             }
         }.apply {
-            assertEquals(Forbidden, response.status())
+            assertEquals(Unauthorized, response.status())
         }
     }
 
@@ -86,47 +79,7 @@ internal class AuthenticationTest {
     }
 
     @Test
-    fun `skal ikke logge access eller refresh token ved redirect til frontend`() {
-        val appender = ListAppender<ILoggingEvent>().apply { start() }
-        lateinit var applog: Logger
-        withTestApplication({
-            testSusebakover()
-            applog = environment.log as Logger
-        }) {
-            applog.apply { addAppender(appender) }
-            defaultRequest(
-                Get,
-                "/callback?code=code&state=state&session_state=session_state",
-                listOf(Brukerrolle.Veileder)
-            ) {
-            }
-        }.apply {
-            appender.list.forEach {
-                it.message shouldNotContain "302 Found"
-                it.message shouldNotContain "callback"
-            }
-            response.status() shouldBe Found
-            response.headers["Location"] shouldBe "frontendBaseUrl/auth/complete#access#refresh"
-        }
-    }
-
-    @Test
-    fun `kan refreshe tokens`() {
-        withTestApplication({
-            testSusebakover()
-        }) {
-            defaultRequest(Get, "auth/refresh", listOf(Brukerrolle.Veileder)) {
-                addHeader("refresh_token", "my.refresh.token")
-            }
-        }.apply {
-            response.headers.contains("access_token") shouldBe true
-            response.headers.contains("refresh_token") shouldBe true
-            response.status() shouldBe OK
-        }
-    }
-
-    @Test
-    fun `forespørsel med feil issuer skal svare med 403`() {
+    fun `forespørsel med feil issuer skal svare med 401`() {
         withTestApplication({
             testSusebakover()
         }) {
@@ -134,7 +87,7 @@ internal class AuthenticationTest {
                 addHeader(Authorization, jwtStub.createJwtToken(issuer = "wrong_issuer").asBearerToken())
             }
         }.apply {
-            assertEquals(Forbidden, response.status())
+            assertEquals(Unauthorized, response.status())
         }
     }
 }
