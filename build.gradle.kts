@@ -107,7 +107,7 @@ allprojects {
         kotlinOptions {
             jvmTarget = "15"
             freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
-            allWarningsAsErrors = true
+            allWarningsAsErrors = false
         }
     }
 

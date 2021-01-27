@@ -50,7 +50,8 @@ internal class GjenopptaUtbetalingRoutesKtTest {
         lukkSøknad = mock(),
         oppgave = mock(),
         person = mock(),
-        statistikk = mock()
+        statistikk = mock(),
+        saksbehandling = mock()
     )
     private val saksbehandler = NavIdentBruker.Saksbehandler("Z990Lokal")
 

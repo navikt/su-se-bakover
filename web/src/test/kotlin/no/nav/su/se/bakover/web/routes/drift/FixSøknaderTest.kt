@@ -37,7 +37,8 @@ internal class FixSøknaderTest {
         lukkSøknad = mock(),
         oppgave = mock(),
         person = mock(),
-        statistikk = mock()
+        statistikk = mock(),
+        saksbehandling = mock()
     )
 
     @Test

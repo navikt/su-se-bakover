@@ -21,16 +21,17 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.service.AttesterRequest
+import no.nav.su.se.bakover.service.OppdaterBehandlingsinformasjonRequest
+import no.nav.su.se.bakover.service.OpprettBeregningRequest
+import no.nav.su.se.bakover.service.OpprettSaksbehandlingRequest
+import no.nav.su.se.bakover.service.OpprettSimuleringRequest
+import no.nav.su.se.bakover.service.SaksbehandlingService
+import no.nav.su.se.bakover.service.SendTilAttesteringRequest
 import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.service.behandling.IverksattBehandling
-import no.nav.su.se.bakover.service.behandling.KunneIkkeBeregne
 import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeLageBrevutkast
-import no.nav.su.se.bakover.service.behandling.KunneIkkeOppdatereBehandlingsinformasjon
-import no.nav.su.se.bakover.service.behandling.KunneIkkeOppretteSøknadsbehandling
-import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering
-import no.nav.su.se.bakover.service.behandling.KunneIkkeSimulereBehandling
-import no.nav.su.se.bakover.service.behandling.KunneIkkeUnderkjenneBehandling
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
@@ -50,7 +51,8 @@ internal const val behandlingPath = "$sakPath/{sakId}/behandlinger"
 
 @KtorExperimentalAPI
 internal fun Route.behandlingRoutes(
-    behandlingService: BehandlingService
+    behandlingService: BehandlingService,
+    saksbehandlingService: SaksbehandlingService
 ) {
     val log = LoggerFactory.getLogger(this::class.java)
 
@@ -64,20 +66,20 @@ internal fun Route.behandlingRoutes(
                     .fold(
                         ifLeft = { call.svar(BadRequest.message("Ugyldig body")) },
                         ifRight = { søknadId ->
-                            behandlingService.opprettSøknadsbehandling(søknadId)
+                            saksbehandlingService.opprett(OpprettSaksbehandlingRequest.Søknadsbehandling(søknadId))
                                 .fold(
                                     {
-                                        val resultat: Resultat = when (it) {
-                                            is KunneIkkeOppretteSøknadsbehandling.FantIkkeSøknad -> NotFound.message("Fant ikke søknad med id $søknadId")
-                                            is KunneIkkeOppretteSøknadsbehandling.SøknadManglerOppgave -> InternalServerError.message(
-                                                "Søknad med id $søknadId mangler oppgave"
-                                            )
-                                            is KunneIkkeOppretteSøknadsbehandling.SøknadHarAlleredeBehandling -> BadRequest.message(
-                                                "Søknad med id $søknadId har allerede en behandling"
-                                            )
-                                            is KunneIkkeOppretteSøknadsbehandling.SøknadErLukket -> BadRequest.message("Søknad med id $søknadId er lukket")
-                                        }
-                                        call.svar(resultat)
+                                        // val resultat: Resultat = when (it) {
+                                        // is KunneIkkeOppretteSøknadsbehandling.FantIkkeSøknad -> NotFound.message("Fant ikke søknad med id $søknadId")
+                                        // is KunneIkkeOppretteSøknadsbehandling.SøknadManglerOppgave -> InternalServerError.message(
+                                        //     "Søknad med id $søknadId mangler oppgave"
+                                        // )
+                                        // is KunneIkkeOppretteSøknadsbehandling.SøknadHarAlleredeBehandling -> BadRequest.message(
+                                        //     "Søknad med id $søknadId har allerede en behandling"
+                                        // )
+                                        // is KunneIkkeOppretteSøknadsbehandling.SøknadErLukket -> BadRequest.message("Søknad med id $søknadId er lukket")
+                                        // }
+                                        throw NotImplementedError()
                                     },
                                     {
                                         call.audit("Opprettet behandling på sak: $sakId og søknadId: $søknadId")
@@ -112,18 +114,20 @@ internal fun Route.behandlingRoutes(
                         call.svar(BadRequest.message("Klarte ikke deserialisere body"))
                     },
                     ifRight = { body ->
-                        behandlingService.oppdaterBehandlingsinformasjon(
-                            behandlingId = behandlingId,
-                            saksbehandler = Saksbehandler(call.suUserContext.getNAVIdent()),
-                            behandlingsinformasjon = behandlingsinformasjonFromJson(body)
+                        saksbehandlingService.vilkårsvurder(
+                            OppdaterBehandlingsinformasjonRequest.Søknadsbehandling(
+                                behandlingId = behandlingId,
+                                saksbehandler = Saksbehandler(call.suUserContext.getNAVIdent()),
+                                behandlingsinformasjon = behandlingsinformasjonFromJson(body)
+                            )
                         ).mapLeft {
-                            val resultat = when (it) {
-                                KunneIkkeOppdatereBehandlingsinformasjon.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> BadRequest.message(
-                                    "Attestant og saksbehandler kan ikke være samme person"
-                                )
-                                KunneIkkeOppdatereBehandlingsinformasjon.FantIkkeBehandling -> NotFound.message("Fant ikke behandling")
-                            }
-                            call.svar(resultat)
+                            // val resultat = when (it) {
+                            //     KunneIkkeOppdatereBehandlingsinformasjon.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> BadRequest.message(
+                            //         "Attestant og saksbehandler kan ikke være samme person"
+                            //     )
+                            //     KunneIkkeOppdatereBehandlingsinformasjon.FantIkkeBehandling -> NotFound.message("Fant ikke behandling")
+                            // }
+                            throw NotImplementedError()
                         }.map {
                             call.audit("Oppdaterte behandlingsinformasjon med behandlingsid $behandlingId")
                             call.svar(OK.jsonBody(it))
@@ -141,15 +145,22 @@ internal fun Route.behandlingRoutes(
                     body.toDomain(behandlingId, Saksbehandler(call.suUserContext.getNAVIdent()))
                         .mapLeft { call.svar(it) }
                         .map {
-                            behandlingService.opprettBeregning(it)
+                            saksbehandlingService.beregn(
+                                OpprettBeregningRequest.Søknadsbehandling(
+                                    behandlingId = it.behandlingId,
+                                    periode = it.stønadsperiode.periode,
+                                    fradrag = it.fradrag
+                                )
+                            )
                                 .mapLeft { kunneIkkeBeregne ->
-                                    val resultat = when (kunneIkkeBeregne) {
-                                        KunneIkkeBeregne.FantIkkeBehandling -> NotFound.message("Fant ikke behandling")
-                                        KunneIkkeBeregne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> {
-                                            BadRequest.message("Attestant og saksbehandler kan ikke være samme person")
-                                        }
-                                    }
-                                    call.svar(resultat)
+                                    // val resultat = when (kunneIkkeBeregne) {
+                                    //     KunneIkkeBeregne.FantIkkeBehandling -> NotFound.message("Fant ikke behandling")
+                                    //     KunneIkkeBeregne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> {
+                                    //         BadRequest.message("Attestant og saksbehandler kan ikke være samme person")
+                                    //     }
+                                    // }
+                                    // call.svar(resultat)
+                                    throw NotImplementedError()
                                 }.map { behandling ->
                                     call.audit("Opprettet en ny beregning på søknadsbehandling med id $behandlingId")
                                     call.svar(Created.jsonBody(behandling))
@@ -201,16 +212,22 @@ internal fun Route.behandlingRoutes(
     authorize(Brukerrolle.Saksbehandler) {
         post("$behandlingPath/{behandlingId}/simuler") {
             call.withBehandlingId { behandlingId ->
-                behandlingService.simuler(behandlingId, Saksbehandler(call.suUserContext.getNAVIdent())).fold(
+                saksbehandlingService.simuler(
+                    OpprettSimuleringRequest.Søknadsbehandling(
+                        behandlingId = behandlingId,
+                        saksbehandler = Saksbehandler(call.suUserContext.getNAVIdent())
+                    )
+                ).fold(
                     {
-                        val resultat = when (it) {
-                            KunneIkkeSimulereBehandling.KunneIkkeSimulere -> InternalServerError.message("Kunne ikke gjennomføre simulering")
-                            KunneIkkeSimulereBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> BadRequest.message(
-                                "Attestant og saksbehandler kan ikke være samme person"
-                            )
-                            KunneIkkeSimulereBehandling.FantIkkeBehandling -> NotFound.message("Kunne ikke finne behandling")
-                        }
-                        call.svar(resultat)
+                        // val resultat = when (it) {
+                        //     KunneIkkeSimulereBehandling.KunneIkkeSimulere -> InternalServerError.message("Kunne ikke gjennomføre simulering")
+                        //     KunneIkkeSimulereBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> BadRequest.message(
+                        //         "Attestant og saksbehandler kan ikke være samme person"
+                        //     )
+                        //     KunneIkkeSimulereBehandling.FantIkkeBehandling -> NotFound.message("Kunne ikke finne behandling")
+                        // }
+                        // call.svar(resultat)
+                        throw NotImplementedError()
                     },
                     {
                         call.audit("Oppdatert simulering for behandling med id $behandlingId")
@@ -226,20 +243,26 @@ internal fun Route.behandlingRoutes(
             call.withBehandlingId { behandlingId ->
                 call.withSakId {
                     val saksBehandler = Saksbehandler(call.suUserContext.getNAVIdent())
-                    behandlingService.sendTilAttestering(behandlingId, saksBehandler).fold(
+                    saksbehandlingService.sendTilAttestering(
+                        SendTilAttesteringRequest.SøknadsBehandling(
+                            behandlingId = behandlingId,
+                            saksbehandler = saksBehandler
+                        )
+                    ).fold(
                         {
-                            val resultat = when (it) {
-                                KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave -> InternalServerError.message("Kunne ikke opprette oppgave for attestering")
-                                KunneIkkeSendeTilAttestering.KunneIkkeFinneAktørId -> InternalServerError.message("Kunne ikke finne person")
-                                KunneIkkeSendeTilAttestering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> BadRequest.message(
-                                    "Attestant og saksbehandler kan ikke være samme person"
-                                )
-                                KunneIkkeSendeTilAttestering.FantIkkeBehandling -> NotFound.message("Kunne ikke finne behandling")
-                            }
-                            call.svar(resultat)
+                            // val resultat = when (it) {
+                            //     KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave -> InternalServerError.message("Kunne ikke opprette oppgave for attestering")
+                            //     KunneIkkeSendeTilAttestering.KunneIkkeFinneAktørId -> InternalServerError.message("Kunne ikke finne person")
+                            //     KunneIkkeSendeTilAttestering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> BadRequest.message(
+                            //         "Attestant og saksbehandler kan ikke være samme person"
+                            //     )
+                            //     KunneIkkeSendeTilAttestering.FantIkkeBehandling -> NotFound.message("Kunne ikke finne behandling")
+                            // }
+                            // call.svar(resultat)
+                            throw NotImplementedError()
                         },
                         {
-                            call.audit("Sendte behandling med id ${it.id} til attestering")
+                            call.audit("Sendte behandling med id $behandlingId til attestering")
                             call.svar(OK.jsonBody(it))
                         }
                     )
@@ -315,28 +338,31 @@ internal fun Route.behandlingRoutes(
                     },
                     ifRight = { body ->
                         if (body.valid()) {
-                            behandlingService.underkjenn(
-                                behandlingId = behandlingId,
-                                attestering = Attestering.Underkjent(
-                                    attestant = Attestant(navIdent),
-                                    grunn = Attestering.Underkjent.Grunn.valueOf(body.grunn),
-                                    kommentar = body.kommentar
+                            saksbehandlingService.attester(
+                                AttesterRequest.Søknadsbehandling.Underkjenn(
+                                    behandlingId = behandlingId,
+                                    attestering = Attestering.Underkjent(
+                                        attestant = Attestant(navIdent),
+                                        grunn = Attestering.Underkjent.Grunn.valueOf(body.grunn),
+                                        kommentar = body.kommentar
+                                    )
                                 )
                             ).fold(
                                 ifLeft = {
-                                    val resultat = when (it) {
-                                        KunneIkkeUnderkjenneBehandling.FantIkkeBehandling -> NotFound.message("Fant ikke behandling")
-                                        KunneIkkeUnderkjenneBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> Forbidden.message(
-                                            "Attestant og saksbehandler kan ikke være samme person"
-                                        )
-                                        KunneIkkeUnderkjenneBehandling.KunneIkkeOppretteOppgave -> InternalServerError.message(
-                                            "Oppgaven er lukket, men vi kunne ikke opprette oppgave. Prøv igjen senere."
-                                        )
-                                        KunneIkkeUnderkjenneBehandling.FantIkkeAktørId -> InternalServerError.message(
-                                            "Fant ikke aktørid som er knyttet til tokenet"
-                                        )
-                                    }
-                                    call.svar(resultat)
+                                    // val resultat = when (it) {
+                                    //     KunneIkkeUnderkjenneBehandling.FantIkkeBehandling -> NotFound.message("Fant ikke behandling")
+                                    //     KunneIkkeUnderkjenneBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> Forbidden.message(
+                                    //         "Attestant og saksbehandler kan ikke være samme person"
+                                    //     )
+                                    //     KunneIkkeUnderkjenneBehandling.KunneIkkeOppretteOppgave -> InternalServerError.message(
+                                    //         "Oppgaven er lukket, men vi kunne ikke opprette oppgave. Prøv igjen senere."
+                                    //     )
+                                    //     KunneIkkeUnderkjenneBehandling.FantIkkeAktørId -> InternalServerError.message(
+                                    //         "Fant ikke aktørid som er knyttet til tokenet"
+                                    //     )
+                                    // }
+                                    // call.svar(resultat)
+                                    throw NotImplementedError()
                                 },
                                 ifRight = {
                                     call.audit("Underkjente behandling med id: $behandlingId")

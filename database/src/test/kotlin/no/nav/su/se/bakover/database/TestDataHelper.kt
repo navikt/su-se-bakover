@@ -35,9 +35,10 @@ internal class TestDataHelper(
     private val utbetalingRepo = UtbetalingPostgresRepo(dataSource)
     private val hendelsesloggRepo = HendelsesloggPostgresRepo(dataSource)
     private val søknadRepo = SøknadPostgresRepo(dataSource)
+    private val saksbehandlingRepo = SaksbehandlingsPostgresRepo(dataSource)
 
     private val behandlingRepo = behandlingPostgresRepo
-    private val sakRepo = SakPostgresRepo(dataSource, behandlingPostgresRepo)
+    private val sakRepo = SakPostgresRepo(dataSource, saksbehandlingRepo)
 
     fun nySakMedJournalførtSøknadOgOppgave(
         fnr: Fnr = FnrGenerator.random(),

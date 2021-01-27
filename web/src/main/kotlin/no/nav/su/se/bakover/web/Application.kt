@@ -229,7 +229,7 @@ internal fun Application.susebakover(
                     personRoutes(accessProtectedServices.person, clock)
                     sakRoutes(accessProtectedServices.sak)
                     søknadRoutes(accessProtectedServices.søknad, accessProtectedServices.lukkSøknad)
-                    behandlingRoutes(accessProtectedServices.behandling)
+                    behandlingRoutes(accessProtectedServices.behandling, accessProtectedServices.saksbehandling)
                     avstemmingRoutes(accessProtectedServices.avstemming)
                     stansutbetalingRoutes(accessProtectedServices.utbetaling)
                     gjenopptaUtbetalingRoutes(accessProtectedServices.utbetaling)

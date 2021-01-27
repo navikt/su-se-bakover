@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.service.behandling.BehandlingServiceImpl
 import no.nav.su.se.bakover.service.behandling.DistribuerIverksettingsbrevService
 import no.nav.su.se.bakover.service.behandling.FerdigstillIverksettingService
 import no.nav.su.se.bakover.service.behandling.IverksettBehandlingService
+import no.nav.su.se.bakover.service.behandling.IverksettSaksbehandlingService
 import no.nav.su.se.bakover.service.behandling.JournalførIverksettingService
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.BrevServiceImpl
@@ -85,6 +86,20 @@ class ServiceBuilder(
             distribuerIverksettingsbrevService = distribuerIverksettingsbrevService,
         )
 
+        val iverksettSaksbehandlingService = IverksettSaksbehandlingService(
+            behandlingRepo = databaseRepos.behandling,
+            utbetalingService = utbetalingService,
+            oppgaveService = oppgaveService,
+            personService = personService,
+            behandlingMetrics = behandlingMetrics,
+            microsoftGraphApiClient = clients.microsoftGraphApiClient,
+            opprettVedtakssnapshotService = opprettVedtakssnapshotService,
+            clock = clock,
+            journalførIverksettingService = journalførIverksettingService,
+            distribuerIverksettingsbrevService = distribuerIverksettingsbrevService,
+            saksbehandlingRepo = databaseRepos.saksbehandling
+        )
+
         return Services(
             avstemming = AvstemmingServiceImpl(
                 repo = databaseRepos.avstemming,
@@ -132,6 +147,7 @@ class ServiceBuilder(
             oppgave = oppgaveService,
             person = personService,
             statistikk = statistikkService,
+            saksbehandling = SaksbehandlingServiceImpl(søknadService, databaseRepos.søknad, databaseRepos.saksbehandling, utbetalingService, personService, oppgaveService, iverksettSaksbehandlingService),
         )
     }
 }
@@ -147,4 +163,5 @@ data class Services(
     val oppgave: OppgaveService,
     val person: PersonService,
     val statistikk: StatistikkService,
+    val saksbehandling: SaksbehandlingService
 )
