@@ -82,7 +82,8 @@ val applicationConfig = ApplicationConfig(
         skjermingUrl = "skjermingUrl",
         dkifUrl = "dkifUrl",
     ),
-    kafkaConfig = ApplicationConfig.KafkaConfig(emptyMap(), ApplicationConfig.KafkaConfig.ProducerCfg(emptyMap()))
+    kafkaConfig = ApplicationConfig.KafkaConfig(emptyMap(), ApplicationConfig.KafkaConfig.ProducerCfg(emptyMap())),
+    unleash = ApplicationConfig.UnleashConfig("https://localhost", "su-se-bakover")
 )
 
 internal val jwtStub = JwtStub(applicationConfig)
@@ -99,9 +100,10 @@ internal fun Application.testSusebakover(
         clients = clients,
         behandlingMetrics = mock(),
         søknadMetrics = mock(),
-        clock = clock
+        clock = clock,
+        unleash = mock()
     ).build(),
-    accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
+    accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services)
 ) {
     return susebakover(
         behandlingFactory = behandlingFactory,

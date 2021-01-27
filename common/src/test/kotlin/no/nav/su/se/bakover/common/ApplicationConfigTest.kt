@@ -93,6 +93,7 @@ internal class ApplicationConfigTest {
                 retryTaskInterval = 15_000L
             )
         ),
+        unleash = ApplicationConfig.UnleashConfig("https://unleash.nais.io/api", "su-se-bakover")
     )
 
     @Test
@@ -193,7 +194,8 @@ internal class ApplicationConfigTest {
                 ),
                 kafkaConfig = ApplicationConfig.KafkaConfig(
                     emptyMap(), ApplicationConfig.KafkaConfig.ProducerCfg((emptyMap()))
-                )
+                ),
+                unleash = ApplicationConfig.UnleashConfig("https://localhost", "su-se-bakover")
             )
         }
     }

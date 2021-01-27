@@ -331,6 +331,7 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
             },
+            toggles = services.toggles
         )
     }
 

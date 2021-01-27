@@ -29,6 +29,8 @@ import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.routing
 import io.ktor.util.KtorExperimentalAPI
+import no.finn.unleash.DefaultUnleash
+import no.finn.unleash.util.UnleashConfig
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ProdClientsBuilder
 import no.nav.su.se.bakover.client.StubClientsBuilder
@@ -61,6 +63,7 @@ import no.nav.su.se.bakover.web.features.withUser
 import no.nav.su.se.bakover.web.metrics.BehandlingMicrometerMetrics
 import no.nav.su.se.bakover.web.metrics.SuMetrics
 import no.nav.su.se.bakover.web.metrics.SøknadMicrometerMetrics
+import no.nav.su.se.bakover.web.routes.IsNotProdStrategy
 import no.nav.su.se.bakover.web.routes.avstemming.avstemmingRoutes
 import no.nav.su.se.bakover.web.routes.behandling.behandlingRoutes
 import no.nav.su.se.bakover.web.routes.drift.driftRoutes
@@ -72,6 +75,7 @@ import no.nav.su.se.bakover.web.routes.person.personPath
 import no.nav.su.se.bakover.web.routes.person.personRoutes
 import no.nav.su.se.bakover.web.routes.sak.sakRoutes
 import no.nav.su.se.bakover.web.routes.søknad.søknadRoutes
+import no.nav.su.se.bakover.web.routes.toggleRoutes
 import no.nav.su.se.bakover.web.routes.utbetaling.gjenoppta.gjenopptaUtbetalingRoutes
 import no.nav.su.se.bakover.web.routes.utbetaling.stans.stansutbetalingRoutes
 import no.nav.su.se.bakover.web.services.avstemming.AvstemmingJob
@@ -107,9 +111,17 @@ internal fun Application.susebakover(
         clients = clients,
         behandlingMetrics = behandlingMetrics,
         søknadMetrics = søknadMetrics,
-        clock = clock
+        clock = clock,
+        unleash = DefaultUnleash(
+            UnleashConfig.builder()
+                .appName(applicationConfig.unleash.appName)
+                .instanceId(applicationConfig.unleash.appName)
+                .unleashAPI(applicationConfig.unleash.unleashUrl)
+                .build(),
+            IsNotProdStrategy()
+        )
     ).build(),
-    accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
+    accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services)
 ) {
     install(CORS) {
         method(Options)
@@ -225,6 +237,8 @@ internal fun Application.susebakover(
     }
 
     routing {
+        toggleRoutes(services.toggles)
+
         authenticate("jwt") {
             withUser {
                 meRoutes(applicationConfig, azureGroupMapper)

@@ -48,12 +48,12 @@ import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.service.ServiceBuilder
-import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukketSøknad
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.TestClientsBuilder
+import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.applicationConfig
 import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.behandlingFactory
@@ -97,18 +97,7 @@ internal class SøknadRoutesKtTest {
         trukketDato = 1.januar(2020)
     )
 
-    private val mockServices = Services(
-        avstemming = mock(),
-        utbetaling = mock(),
-        behandling = mock(),
-        sak = mock(),
-        søknad = mock(),
-        brev = mock(),
-        lukkSøknad = mock(),
-        oppgave = mock(),
-        person = mock(),
-        statistikk = mock()
-    )
+    private val mockServices = TestServicesBuilder.services()
 
     @Test
     fun `lagrer og henter søknad`() {
@@ -201,6 +190,7 @@ internal class SøknadRoutesKtTest {
             behandlingMetrics = mock(),
             søknadMetrics = mock(),
             clock = fixedClock,
+            unleash = mock(),
         ).build()
 
         withTestApplication({

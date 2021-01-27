@@ -54,6 +54,7 @@ internal class BeregnRoutesKtTest {
         behandlingMetrics = mock(),
         søknadMetrics = mock(),
         clock = fixedClock,
+        unleash = mock(),
     ).build()
 
     @Test

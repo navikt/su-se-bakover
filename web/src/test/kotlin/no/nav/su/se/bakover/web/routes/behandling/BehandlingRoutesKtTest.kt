@@ -75,6 +75,7 @@ internal class BehandlingRoutesKtTest {
         behandlingMetrics = mock(),
         søknadMetrics = mock(),
         clock = fixedClock,
+        unleash = mock(),
     ).build()
 
     @Nested

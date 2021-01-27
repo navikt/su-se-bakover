@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.service
 
+import no.finn.unleash.Unleash
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.database.DatabaseRepos
 import no.nav.su.se.bakover.domain.SakFactory
@@ -27,6 +28,8 @@ import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.SøknadServiceImpl
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadServiceImpl
+import no.nav.su.se.bakover.service.toggles.ToggleService
+import no.nav.su.se.bakover.service.toggles.ToggleServiceImpl
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingServiceImpl
 import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
@@ -38,6 +41,7 @@ class ServiceBuilder(
     private val behandlingMetrics: BehandlingMetrics,
     private val søknadMetrics: SøknadMetrics,
     private val clock: Clock,
+    private val unleash: Unleash
 ) {
     fun build(): Services {
         val personService = PersonServiceImpl(clients.personOppslag)
@@ -84,6 +88,7 @@ class ServiceBuilder(
             journalførIverksettingService = journalførIverksettingService,
             distribuerIverksettingsbrevService = distribuerIverksettingsbrevService,
         )
+        val toggleService = ToggleServiceImpl(unleash)
 
         return Services(
             avstemming = AvstemmingServiceImpl(
@@ -132,6 +137,7 @@ class ServiceBuilder(
             oppgave = oppgaveService,
             person = personService,
             statistikk = statistikkService,
+            toggles = toggleService,
         )
     }
 }
@@ -147,4 +153,5 @@ data class Services(
     val oppgave: OppgaveService,
     val person: PersonService,
     val statistikk: StatistikkService,
+    val toggles: ToggleService,
 )

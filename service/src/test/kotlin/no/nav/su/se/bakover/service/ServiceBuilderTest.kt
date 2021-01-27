@@ -43,6 +43,7 @@ internal class ServiceBuilderTest {
             behandlingMetrics = mock(),
             søknadMetrics = mock(),
             clock = Clock.systemUTC(),
+            unleash = mock()
         ).build().let {
             (it.sak as SakServiceImpl).observers shouldContain it.statistikk
             (it.behandling as BehandlingServiceImpl).getObservers() shouldContain it.statistikk

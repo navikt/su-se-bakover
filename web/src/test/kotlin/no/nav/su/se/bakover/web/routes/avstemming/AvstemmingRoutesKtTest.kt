@@ -33,6 +33,7 @@ internal class AvstemmingRoutesKtTest {
         behandlingMetrics = mock(),
         søknadMetrics = mock(),
         clock = fixedClock,
+        unleash = mock()
     ).build()
 
     private val dummyAvstemming = Avstemming(

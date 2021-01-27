@@ -47,6 +47,7 @@ data class ApplicationConfig(
     val database: DatabaseConfig,
     val clientsConfig: ClientsConfig,
     val kafkaConfig: KafkaConfig,
+    val unleash: UnleashConfig
 ) {
     enum class RuntimeEnvironment {
         Test,
@@ -203,6 +204,23 @@ data class ApplicationConfig(
                     url = "unused",
                     stsSoapUrl = "unused"
                 )
+            )
+        }
+    }
+
+    data class UnleashConfig(
+        val unleashUrl: String,
+        val appName: String
+    ) {
+        companion object {
+            fun createFromEnvironmentVariables() = UnleashConfig(
+                getEnvironmentVariableOrDefault("UNLEASH_URL", "https://unleash.nais.io/api"),
+                getEnvironmentVariableOrDefault("NAIS_APP_NAME", "su-se-bakover"),
+            )
+
+            fun createLocalConfig() = UnleashConfig(
+                "https://localhost",
+                "su-se-bakover"
             )
         }
     }
@@ -371,7 +389,8 @@ data class ApplicationConfig(
             oppdrag = OppdragConfig.createFromEnvironmentVariables(),
             database = DatabaseConfig.createFromEnvironmentVariables(),
             clientsConfig = ClientsConfig.createFromEnvironmentVariables(),
-            kafkaConfig = KafkaConfig.createFromEnvironmentVariables()
+            kafkaConfig = KafkaConfig.createFromEnvironmentVariables(),
+            unleash = UnleashConfig.createFromEnvironmentVariables()
         )
 
         fun createLocalConfig() = ApplicationConfig(
@@ -384,7 +403,8 @@ data class ApplicationConfig(
             oppdrag = OppdragConfig.createLocalConfig(),
             database = DatabaseConfig.createLocalConfig(),
             clientsConfig = ClientsConfig.createLocalConfig(),
-            kafkaConfig = KafkaConfig.createLocalConfig()
+            kafkaConfig = KafkaConfig.createLocalConfig(),
+            unleash = UnleashConfig.createLocalConfig()
         ).also {
             log.warn("**********  Using local config (the environment variable 'NAIS_CLUSTER_NAME' is missing.)")
         }
