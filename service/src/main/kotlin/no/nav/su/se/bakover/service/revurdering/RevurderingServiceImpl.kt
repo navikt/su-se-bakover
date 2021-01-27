@@ -60,7 +60,7 @@ internal class RevurderingServiceImpl(
         saksbehandler: NavIdentBruker.Saksbehandler,
         periode: Periode,
         fradrag: List<Fradrag>
-    ): Either<RevurderingFeilet, RevurdertBeregning> {
+    ): Either<RevurderingFeilet, SimulertRevurdering> {
         return when (val revurdering = revurderingRepo.hent(revurderingId)!!) {
             is BeregnetRevurdering, is OpprettetRevurdering, is SimulertRevurdering -> {
                 val beregningsgrunnlag = Beregningsgrunnlag.create(
@@ -80,10 +80,7 @@ internal class RevurderingServiceImpl(
                 }.map {
                     val simulert = beregnet.toSimulert(it.simulering)
                     revurderingRepo.lagre(simulert)
-                    RevurdertBeregning(
-                        beregning = simulert.tilRevurdering.beregning()!!,
-                        revurdert = simulert.beregning
-                    )
+                    simulert
                 }
             }
             else -> {
@@ -171,8 +168,3 @@ internal class RevurderingServiceImpl(
         }
     }
 }
-
-data class RevurdertBeregning(
-    val beregning: Beregning,
-    val revurdert: Beregning
-)

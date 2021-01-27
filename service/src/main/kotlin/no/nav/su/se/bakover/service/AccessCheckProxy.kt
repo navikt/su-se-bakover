@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.Revurdering
+import no.nav.su.se.bakover.domain.behandling.SimulertRevurdering
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.NyBeregningForSøknadsbehandling
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
@@ -53,7 +54,6 @@ import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.revurdering.RevurderingFeilet
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
-import no.nav.su.se.bakover.service.revurdering.RevurdertBeregning
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.Statistikk
@@ -352,7 +352,7 @@ open class AccessCheckProxy(
                     saksbehandler: NavIdentBruker.Saksbehandler,
                     periode: Periode,
                     fradrag: List<Fradrag>
-                ): Either<RevurderingFeilet, RevurdertBeregning> {
+                ): Either<RevurderingFeilet, SimulertRevurdering> {
                     // TODO assert tilgang til revurdering?
                     return services.revurdering.beregnOgSimuler(
                         revurderingId = revurderingId,
