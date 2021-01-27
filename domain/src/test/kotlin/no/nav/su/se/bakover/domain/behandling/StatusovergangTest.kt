@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.behandling
 
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.FnrGenerator
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -17,10 +18,11 @@ internal class StatusovergangTest {
     inner class TilVilkårsvurdert {
         @Test
         fun `kaster exception for ugyldige statusoverganger`() {
-            val opprettet = Saksbehandling.Søknadsbehandling.Opprettet(
+            val opprettet = Søknadsbehandling.Opprettet(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(),
                 sakId = UUID.randomUUID(),
+                saksnummer = Saksnummer(1),
                 søknad = Søknad.Journalført.MedOppgave(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(),

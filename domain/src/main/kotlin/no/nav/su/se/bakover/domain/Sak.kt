@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.domain
 import com.fasterxml.jackson.annotation.JsonValue
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUIDFactory
-import no.nav.su.se.bakover.domain.behandling.Saksbehandling
+import no.nav.su.se.bakover.domain.behandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import java.time.Clock
 import java.util.UUID
@@ -18,7 +18,7 @@ data class Sak(
     val opprettet: Tidspunkt = Tidspunkt.now(),
     val fnr: Fnr,
     private val søknader: List<Søknad> = emptyList(),
-    private val behandlinger: List<Saksbehandling> = emptyList(),
+    private val behandlinger: List<Søknadsbehandling> = emptyList(),
     val utbetalinger: List<Utbetaling>,
 ) {
     fun søknader() = søknader.toList()

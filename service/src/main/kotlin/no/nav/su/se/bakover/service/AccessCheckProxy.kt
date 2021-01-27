@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandling.Saksbehandling
+import no.nav.su.se.bakover.domain.behandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.NyBeregningForSøknadsbehandling
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
@@ -334,27 +334,27 @@ open class AccessCheckProxy(
             },
             // TODO TILGANG
             saksbehandling = object : SaksbehandlingService {
-                override fun opprett(request: OpprettSaksbehandlingRequest): Either<SaksbehandlingService.Feil, Saksbehandling> {
+                override fun opprett(request: OpprettSøknadsbehandlingRequest): Either<KunneIkkeOppretteSøknadsbehandling, Søknadsbehandling> {
                     return services.saksbehandling.opprett(request)
                 }
 
-                override fun vilkårsvurder(request: OppdaterBehandlingsinformasjonRequest): Either<SaksbehandlingService.Feil, Saksbehandling> {
+                override fun vilkårsvurder(request: OppdaterSøknadsbehandlingsinformasjonRequest): Either<KunneIkkeOppdatereBehandlingsinformasjon, Søknadsbehandling> {
                     return services.saksbehandling.vilkårsvurder(request)
                 }
 
-                override fun beregn(request: OpprettBeregningRequest): Either<SaksbehandlingService.Feil, Saksbehandling> {
+                override fun beregn(request: OpprettBeregningRequest): Either<KunneIkkeBeregne, Søknadsbehandling> {
                     return services.saksbehandling.beregn(request)
                 }
 
-                override fun simuler(request: OpprettSimuleringRequest): Either<SaksbehandlingService.Feil, Saksbehandling> {
+                override fun simuler(request: OpprettSimuleringRequest): Either<KunneIkkeSimulereBehandling, Søknadsbehandling> {
                     return services.saksbehandling.simuler(request)
                 }
 
-                override fun sendTilAttestering(request: SendTilAttesteringRequest): Either<SaksbehandlingService.Feil, Saksbehandling> {
+                override fun sendTilAttestering(request: SendTilAttesteringRequest): Either<KunneIkkeSendeTilAttestering, Søknadsbehandling> {
                     return services.saksbehandling.sendTilAttestering(request)
                 }
 
-                override fun attester(request: AttesterRequest): Either<SaksbehandlingService.Feil, Saksbehandling> {
+                override fun attester(request: AttesterRequest): Either<KunneIkkeIverksetteBehandling, Søknadsbehandling> {
                     return services.saksbehandling.attester(request)
                 }
             },

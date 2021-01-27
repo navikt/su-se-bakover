@@ -147,7 +147,16 @@ class ServiceBuilder(
             oppgave = oppgaveService,
             person = personService,
             statistikk = statistikkService,
-            saksbehandling = SaksbehandlingServiceImpl(søknadService, databaseRepos.søknad, databaseRepos.saksbehandling, utbetalingService, personService, oppgaveService, iverksettSaksbehandlingService),
+            saksbehandling = SaksbehandlingServiceImpl(
+                søknadService,
+                databaseRepos.søknad,
+                databaseRepos.saksbehandling,
+                utbetalingService,
+                personService,
+                oppgaveService,
+                iverksettSaksbehandlingService,
+                behandlingMetrics
+            ),
         )
     }
 }

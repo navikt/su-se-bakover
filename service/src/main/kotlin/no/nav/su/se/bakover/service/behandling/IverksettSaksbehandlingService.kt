@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
-import no.nav.su.se.bakover.domain.behandling.Saksbehandling
+import no.nav.su.se.bakover.domain.behandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.AttesterRequest
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -41,7 +41,7 @@ class IverksettSaksbehandlingService(
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    internal fun iverksett(request: AttesterRequest.Søknadsbehandling.Iverksett): Either<KunneIkkeIverksetteBehandling, Saksbehandling> {
+    internal fun iverksett(request: AttesterRequest.Søknadsbehandling.Iverksett): Either<KunneIkkeIverksetteBehandling, Søknadsbehandling> {
         val behandlingId = request.behandlingId
         val attestant = request.attestant
 
@@ -52,12 +52,12 @@ class IverksettSaksbehandlingService(
         //     return KunneIkkeIverksetteBehandling.FantIkkePerson.left()
         // }
         return when (behandling) {
-            is Saksbehandling.Søknadsbehandling.TilAttestering.Innvilget -> {
+            is Søknadsbehandling.TilAttestering.Innvilget -> {
                 iverksettInnvilgning(
                     behandling = behandling,
                     attestant = attestant
                 )
-                saksbehandlingRepo.hent(behandling.id).right()
+                saksbehandlingRepo.hent(behandling.id)!!.right()
             }
             else -> throw NotImplementedError()
         }
@@ -176,7 +176,7 @@ class IverksettSaksbehandlingService(
     // }
 
     private fun iverksettInnvilgning(
-        behandling: Saksbehandling.Søknadsbehandling.TilAttestering.Innvilget,
+        behandling: Søknadsbehandling.TilAttestering.Innvilget,
         attestant: NavIdentBruker.Attestant
     ): Either<KunneIkkeIverksetteBehandling, Unit> {
         return utbetalingService.utbetal(
@@ -193,10 +193,11 @@ class IverksettSaksbehandlingService(
             }
         }.flatMap { oversendtUtbetaling ->
             saksbehandlingRepo.lagre(
-                Saksbehandling.Søknadsbehandling.Attestert.Iverksatt.OversendtOppdrag(
+                Søknadsbehandling.Attestert.Iverksatt.OversendtOppdrag(
                     id = behandling.id,
                     opprettet = behandling.opprettet,
                     sakId = behandling.sakId,
+                    saksnummer = behandling.saksnummer,
                     søknad = behandling.søknad,
                     oppgaveId = behandling.oppgaveId,
                     behandlingsinformasjon = behandling.behandlingsinformasjon,

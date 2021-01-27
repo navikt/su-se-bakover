@@ -9,87 +9,108 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import java.util.UUID
 
 sealed class StatusovergangFeilet {
     object Feil : StatusovergangFeilet()
 }
 
-abstract class Statusovergang<T> : StatusovergangVisitor {
+abstract class Statusovergang<L, T> : StatusovergangVisitor {
 
-    protected lateinit var result: Either<StatusovergangFeilet, T>
-    fun get(): Either<StatusovergangFeilet, T> = result
+    protected lateinit var result: Either<L, T>
+    fun get(): Either<L, T> = result
 
     class TilVilkårsvurdert(
         private val behandlingsinformasjon: Behandlingsinformasjon
-    ) : Statusovergang<Saksbehandling>() {
+    ) : Statusovergang<Nothing, Søknadsbehandling>() {
 
-        override fun visit(saksbehandling: Saksbehandling.Søknadsbehandling.Opprettet) {
+        override fun visit(søknadsbehandling: Søknadsbehandling.Opprettet) {
             // TODO when to patch/update behandlingsinformasjon for this style?
-            result = saksbehandling.tilVilkårsvurdert(behandlingsinformasjon).right()
+            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon).right()
         }
 
-        override fun visit(saksbehandling: Saksbehandling.Søknadsbehandling.Vilkårsvurdert) {
-            result = saksbehandling.tilVilkårsvurdert(behandlingsinformasjon).right()
+        override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert) {
+            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon).right()
         }
 
-        override fun visit(saksbehandling: Saksbehandling.Søknadsbehandling.Beregnet) {
-            result = saksbehandling.tilVilkårsvurdert(behandlingsinformasjon).right()
+        override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet) {
+            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon).right()
         }
 
-        override fun visit(saksbehandling: Saksbehandling.Søknadsbehandling.Simulert) {
-            result = saksbehandling.tilVilkårsvurdert(behandlingsinformasjon).right()
+        override fun visit(søknadsbehandling: Søknadsbehandling.Simulert) {
+            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon).right()
+        }
+
+        override fun visit(søknadsbehandling: Søknadsbehandling.Attestert.Underkjent) {
+            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon).right()
         }
     }
 
     class TilBeregnet(
         private val periode: Periode,
         private val fradrag: List<Fradrag>
-    ) : Statusovergang<Saksbehandling>() {
+    ) : Statusovergang<Nothing, Søknadsbehandling>() {
 
-        override fun visit(saksbehandling: Saksbehandling.Søknadsbehandling.Vilkårsvurdert) {
-            result = saksbehandling.tilBeregnet(beregn(saksbehandling)).right()
+        override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Innvilget) {
+            result = søknadsbehandling.tilBeregnet(beregn(søknadsbehandling)).right()
         }
 
-        override fun visit(saksbehandling: Saksbehandling.Søknadsbehandling.Beregnet) {
-            result = saksbehandling.tilBeregnet(beregn(saksbehandling)).right()
+        override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet) {
+            result = søknadsbehandling.tilBeregnet(beregn(søknadsbehandling)).right()
         }
 
-        override fun visit(saksbehandling: Saksbehandling.Søknadsbehandling.Simulert) {
-            result = saksbehandling.tilBeregnet(beregn(saksbehandling)).right()
+        override fun visit(søknadsbehandling: Søknadsbehandling.Simulert) {
+            result = søknadsbehandling.tilBeregnet(beregn(søknadsbehandling)).right()
+        }
+
+        override fun visit(søknadsbehandling: Søknadsbehandling.Attestert.Underkjent) {
+            result = søknadsbehandling.tilBeregnet(beregn(søknadsbehandling)).right()
         }
 
         private fun beregn(
-            saksbehandling: Saksbehandling.Søknadsbehandling
+            søknadsbehandling: Søknadsbehandling
         ): Beregning {
             val beregningsgrunnlag = Beregningsgrunnlag.create(
                 beregningsperiode = Periode.create(periode.getFraOgMed(), periode.getTilOgMed()),
-                forventetInntektPerÅr = saksbehandling.behandlingsinformasjon.uførhet?.forventetInntekt?.toDouble()
+                forventetInntektPerÅr = søknadsbehandling.behandlingsinformasjon.uførhet?.forventetInntekt?.toDouble()
                     ?: 0.0,
                 fradragFraSaksbehandler = fradrag
             )
-            val strategy = saksbehandling.behandlingsinformasjon.bosituasjon!!.getBeregningStrategy()
+            val strategy = søknadsbehandling.behandlingsinformasjon.bosituasjon!!.getBeregningStrategy()
             return strategy.beregn(beregningsgrunnlag)
         }
     }
+    object KunneIkkeSimulereBehandling
 
     class TilSimulert(
         private val saksbehandler: NavIdentBruker,
-        private val simulering: (sakId: UUID, saksbehandler: NavIdentBruker, beregning: Beregning) -> Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>
+        private val simulering: (sakId: UUID, saksbehandler: NavIdentBruker, beregning: Beregning) -> Either<KunneIkkeSimulereBehandling, Utbetaling.SimulertUtbetaling>
 
-    ) : Statusovergang<Saksbehandling>() {
+    ) : Statusovergang<KunneIkkeSimulereBehandling, Søknadsbehandling>() {
 
-        override fun visit(saksbehandling: Saksbehandling.Søknadsbehandling.Beregnet) {
-            simulering(saksbehandling.sakId, saksbehandler, saksbehandling.beregning)
-                .mapLeft { StatusovergangFeilet.Feil.left() }
-                .map { result = saksbehandling.tilSimulert(it.simulering).right() }
+        override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Innvilget) {
+            simulering(søknadsbehandling.sakId, saksbehandler, søknadsbehandling.beregning)
+                .mapLeft { result = KunneIkkeSimulereBehandling.left() }
+                .map { result = søknadsbehandling.tilSimulert(it.simulering).right() }
         }
 
-        override fun visit(saksbehandling: Saksbehandling.Søknadsbehandling.Simulert) {
-            simulering(saksbehandling.sakId, saksbehandler, saksbehandling.beregning)
-                .mapLeft { StatusovergangFeilet.Feil.left() }
-                .map { result = saksbehandling.tilSimulert(it.simulering).right() }
+        override fun visit(søknadsbehandling: Søknadsbehandling.Simulert) {
+            simulering(søknadsbehandling.sakId, saksbehandler, søknadsbehandling.beregning)
+                .mapLeft { result = KunneIkkeSimulereBehandling.left() }
+                .map { result = søknadsbehandling.tilSimulert(it.simulering).right() }
+        }
+    }
+
+    class TilAttestering(
+        private val saksbehandler: NavIdentBruker.Saksbehandler
+    ) : Statusovergang<Nothing, Søknadsbehandling.TilAttestering>() {
+
+        override fun visit(søknadsbehandling: Søknadsbehandling.Simulert) {
+            søknadsbehandling.tilAttestering(saksbehandler)
+        }
+
+        override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Avslag) {
+            søknadsbehandling.tilAttestering(saksbehandler)
         }
     }
 }

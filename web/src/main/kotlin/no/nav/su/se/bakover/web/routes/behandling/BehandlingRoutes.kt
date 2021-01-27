@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.web.routes.behandling
 
 import arrow.core.Either
-import arrow.core.flatMap
 import io.ktor.application.call
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
@@ -22,16 +21,18 @@ import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.service.AttesterRequest
-import no.nav.su.se.bakover.service.OppdaterBehandlingsinformasjonRequest
+import no.nav.su.se.bakover.service.OppdaterSøknadsbehandlingsinformasjonRequest
 import no.nav.su.se.bakover.service.OpprettBeregningRequest
-import no.nav.su.se.bakover.service.OpprettSaksbehandlingRequest
 import no.nav.su.se.bakover.service.OpprettSimuleringRequest
+import no.nav.su.se.bakover.service.OpprettSøknadsbehandlingRequest
 import no.nav.su.se.bakover.service.SaksbehandlingService
 import no.nav.su.se.bakover.service.SendTilAttesteringRequest
 import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.service.behandling.IverksattBehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeLageBrevutkast
+import no.nav.su.se.bakover.service.behandling.KunneIkkeOppdatereBehandlingsinformasjon
+import no.nav.su.se.bakover.service.behandling.KunneIkkeOppretteSøknadsbehandling
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
@@ -61,33 +62,37 @@ internal fun Route.behandlingRoutes(
     authorize(Brukerrolle.Saksbehandler) {
         post("$sakPath/{sakId}/behandlinger") {
             call.withSakId { sakId ->
-                Either.catch { deserialize<OpprettBehandlingBody>(call) }
-                    .flatMap { it.soknadId.toUUID() }
-                    .fold(
-                        ifLeft = { call.svar(BadRequest.message("Ugyldig body")) },
-                        ifRight = { søknadId ->
-                            saksbehandlingService.opprett(OpprettSaksbehandlingRequest.Søknadsbehandling(søknadId))
-                                .fold(
-                                    {
-                                        // val resultat: Resultat = when (it) {
-                                        // is KunneIkkeOppretteSøknadsbehandling.FantIkkeSøknad -> NotFound.message("Fant ikke søknad med id $søknadId")
-                                        // is KunneIkkeOppretteSøknadsbehandling.SøknadManglerOppgave -> InternalServerError.message(
-                                        //     "Søknad med id $søknadId mangler oppgave"
-                                        // )
-                                        // is KunneIkkeOppretteSøknadsbehandling.SøknadHarAlleredeBehandling -> BadRequest.message(
-                                        //     "Søknad med id $søknadId har allerede en behandling"
-                                        // )
-                                        // is KunneIkkeOppretteSøknadsbehandling.SøknadErLukket -> BadRequest.message("Søknad med id $søknadId er lukket")
-                                        // }
-                                        throw NotImplementedError()
-                                    },
-                                    {
-                                        call.audit("Opprettet behandling på sak: $sakId og søknadId: $søknadId")
-                                        call.svar(Created.jsonBody(it))
-                                    }
-                                )
-                        }
-                    )
+                call.withBody<OpprettBehandlingBody> { body ->
+                    body.soknadId.toUUID().mapLeft {
+                        call.svar(BadRequest.message("soknadId er ikke en gyldig uuid"))
+                    }.map { søknadId ->
+                        saksbehandlingService.opprett(OpprettSøknadsbehandlingRequest(søknadId))
+                            .fold(
+                                {
+                                    call.svar(
+                                        when (it) {
+                                            is KunneIkkeOppretteSøknadsbehandling.FantIkkeSøknad -> {
+                                                NotFound.message("Fant ikke søknad med id $søknadId")
+                                            }
+                                            is KunneIkkeOppretteSøknadsbehandling.SøknadManglerOppgave -> {
+                                                InternalServerError.message("Søknad med id $søknadId mangler oppgave")
+                                            }
+                                            is KunneIkkeOppretteSøknadsbehandling.SøknadHarAlleredeBehandling -> {
+                                                BadRequest.message("Søknad med id $søknadId har allerede en behandling")
+                                            }
+                                            is KunneIkkeOppretteSøknadsbehandling.SøknadErLukket -> {
+                                                BadRequest.message("Søknad med id $søknadId er lukket")
+                                            }
+                                        }
+                                    )
+                                },
+                                {
+                                    call.audit("Opprettet behandling på sak: $sakId og søknadId: $søknadId")
+                                    call.svar(Created.jsonBody(it))
+                                }
+                            )
+                    }
+                }
             }
         }
     }
@@ -108,32 +113,30 @@ internal fun Route.behandlingRoutes(
     authorize(Brukerrolle.Saksbehandler) {
         patch("$behandlingPath/{behandlingId}/informasjon") {
             call.withBehandlingId { behandlingId ->
-                Either.catch { deserialize<BehandlingsinformasjonJson>(call) }.fold(
-                    ifLeft = {
-                        log.info("Ugylding behandlingsinformasjon-body", it)
-                        call.svar(BadRequest.message("Klarte ikke deserialisere body"))
-                    },
-                    ifRight = { body ->
-                        saksbehandlingService.vilkårsvurder(
-                            OppdaterBehandlingsinformasjonRequest.Søknadsbehandling(
-                                behandlingId = behandlingId,
-                                saksbehandler = Saksbehandler(call.suUserContext.getNAVIdent()),
-                                behandlingsinformasjon = behandlingsinformasjonFromJson(body)
-                            )
-                        ).mapLeft {
-                            // val resultat = when (it) {
-                            //     KunneIkkeOppdatereBehandlingsinformasjon.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> BadRequest.message(
-                            //         "Attestant og saksbehandler kan ikke være samme person"
-                            //     )
-                            //     KunneIkkeOppdatereBehandlingsinformasjon.FantIkkeBehandling -> NotFound.message("Fant ikke behandling")
-                            // }
-                            throw NotImplementedError()
-                        }.map {
-                            call.audit("Oppdaterte behandlingsinformasjon med behandlingsid $behandlingId")
-                            call.svar(OK.jsonBody(it))
-                        }
+                call.withBody<BehandlingsinformasjonJson> { body ->
+                    saksbehandlingService.vilkårsvurder(
+                        OppdaterSøknadsbehandlingsinformasjonRequest(
+                            behandlingId = behandlingId,
+                            saksbehandler = Saksbehandler(call.suUserContext.getNAVIdent()),
+                            behandlingsinformasjon = behandlingsinformasjonFromJson(body)
+                        )
+                    ).mapLeft {
+                        call.svar(
+                            when (it) {
+                                // TODO jah og jm: Slett denne
+                                KunneIkkeOppdatereBehandlingsinformasjon.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> {
+                                    BadRequest.message("Attestant og saksbehandler kan ikke være samme person")
+                                }
+                                KunneIkkeOppdatereBehandlingsinformasjon.FantIkkeBehandling -> {
+                                    NotFound.message("Fant ikke behandling")
+                                }
+                            }
+                        )
+                    }.map {
+                        call.audit("Oppdaterte behandlingsinformasjon med behandlingsid $behandlingId")
+                        call.svar(OK.jsonBody(it))
                     }
-                )
+                }
             }
         }
     }
@@ -146,7 +149,7 @@ internal fun Route.behandlingRoutes(
                         .mapLeft { call.svar(it) }
                         .map {
                             saksbehandlingService.beregn(
-                                OpprettBeregningRequest.Søknadsbehandling(
+                                OpprettBeregningRequest(
                                     behandlingId = it.behandlingId,
                                     periode = it.stønadsperiode.periode,
                                     fradrag = it.fradrag
@@ -213,7 +216,7 @@ internal fun Route.behandlingRoutes(
         post("$behandlingPath/{behandlingId}/simuler") {
             call.withBehandlingId { behandlingId ->
                 saksbehandlingService.simuler(
-                    OpprettSimuleringRequest.Søknadsbehandling(
+                    OpprettSimuleringRequest(
                         behandlingId = behandlingId,
                         saksbehandler = Saksbehandler(call.suUserContext.getNAVIdent())
                     )
@@ -244,7 +247,7 @@ internal fun Route.behandlingRoutes(
                 call.withSakId {
                     val saksBehandler = Saksbehandler(call.suUserContext.getNAVIdent())
                     saksbehandlingService.sendTilAttestering(
-                        SendTilAttesteringRequest.SøknadsBehandling(
+                        SendTilAttesteringRequest(
                             behandlingId = behandlingId,
                             saksbehandler = saksBehandler
                         )

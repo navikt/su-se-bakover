@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.database.beregning.TestBeregning
 import no.nav.su.se.bakover.database.beregning.toSnapshot
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandling.Saksbehandling
+import no.nav.su.se.bakover.domain.behandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -36,10 +36,11 @@ internal class SaksbehandlingsPostgresRepoTest {
                 val sak = setup()
                 val søknad = sak.søknader().first()
 
-                val saksbehandling = Saksbehandling.Søknadsbehandling.Opprettet(
+                val saksbehandling = Søknadsbehandling.Opprettet(
                     id = saksbehandlingId,
                     opprettet = opprettet,
                     sakId = sak.id,
+                    saksnummer = sak.saksnummer,
                     søknad = søknad,
                     oppgaveId = oppgaveId,
                     behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
@@ -56,10 +57,11 @@ internal class SaksbehandlingsPostgresRepoTest {
             withMigratedDb {
                 val sak = setup()
                 val søknad = sak.søknader().first()
-                val saksbehandling = Saksbehandling.Søknadsbehandling.Opprettet(
+                val saksbehandling = Søknadsbehandling.Opprettet(
                     id = saksbehandlingId,
                     opprettet = opprettet,
                     sakId = sak.id,
+                    saksnummer = sak.saksnummer,
                     søknad = søknad,
                     oppgaveId = oppgaveId,
                     behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
@@ -69,10 +71,11 @@ internal class SaksbehandlingsPostgresRepoTest {
                 repo.lagre(saksbehandling)
                 repo.hent(saksbehandlingId) shouldBe saksbehandling
 
-                val vilkårsvurdert = Saksbehandling.Søknadsbehandling.Vilkårsvurdert.Innvilget(
+                val vilkårsvurdert = Søknadsbehandling.Vilkårsvurdert.Innvilget(
                     id = saksbehandlingId,
                     opprettet = opprettet,
                     sakId = sak.id,
+                    saksnummer = sak.saksnummer,
                     søknad = søknad,
                     oppgaveId = oppgaveId,
                     behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon()
@@ -90,10 +93,11 @@ internal class SaksbehandlingsPostgresRepoTest {
             withMigratedDb {
                 val sak = setup()
                 val søknad = sak.søknader().first()
-                val saksbehandling = Saksbehandling.Søknadsbehandling.Simulert(
+                val saksbehandling = Søknadsbehandling.Simulert(
                     id = saksbehandlingId,
                     opprettet = opprettet,
                     sakId = sak.id,
+                    saksnummer = sak.saksnummer,
                     søknad = søknad,
                     oppgaveId = oppgaveId,
                     behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
@@ -118,10 +122,11 @@ internal class SaksbehandlingsPostgresRepoTest {
                     }
                 }
 
-                val vilkårsvurdert = Saksbehandling.Søknadsbehandling.Vilkårsvurdert.Innvilget(
+                val vilkårsvurdert = Søknadsbehandling.Vilkårsvurdert.Innvilget(
                     id = saksbehandlingId,
                     opprettet = opprettet,
                     sakId = sak.id,
+                    saksnummer = sak.saksnummer,
                     søknad = søknad,
                     oppgaveId = oppgaveId,
                     behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon()

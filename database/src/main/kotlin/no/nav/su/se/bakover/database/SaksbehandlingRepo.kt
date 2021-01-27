@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandling.Saksbehandling
+import no.nav.su.se.bakover.domain.behandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -24,47 +24,59 @@ import java.util.UUID
 import javax.sql.DataSource
 
 interface SaksbehandlingRepo {
-    fun lagre(saksbehandling: Saksbehandling)
-    fun hent(id: UUID): Saksbehandling
-    fun hentForSak(sakId: UUID, session: Session): List<Saksbehandling>
+    fun lagre(søknadsbehandling: Søknadsbehandling)
+    fun hent(id: UUID): Søknadsbehandling?
+    fun hentForSak(sakId: UUID, session: Session): List<Søknadsbehandling>
+    fun hentEventuellTidligereAttestering(id: UUID): Attestering?
 }
 
 internal class SaksbehandlingsPostgresRepo(
     private val dataSource: DataSource
 ) : SaksbehandlingRepo {
-    override fun lagre(saksbehandling: Saksbehandling) {
-        when (saksbehandling) {
-            is Saksbehandling.Søknadsbehandling -> {
-                when (saksbehandling) {
-                    is Saksbehandling.Søknadsbehandling.Opprettet -> lagre(saksbehandling)
-                    is Saksbehandling.Søknadsbehandling.Vilkårsvurdert -> lagre(saksbehandling)
-                    is Saksbehandling.Søknadsbehandling.Beregnet -> lagre(saksbehandling)
-                    is Saksbehandling.Søknadsbehandling.Simulert -> lagre(saksbehandling)
-                    is Saksbehandling.Søknadsbehandling.TilAttestering -> lagre(saksbehandling)
-                    is Saksbehandling.Søknadsbehandling.Attestert -> lagre(saksbehandling)
+    override fun lagre(søknadsbehandling: Søknadsbehandling) {
+        when (søknadsbehandling) {
+            is Søknadsbehandling -> {
+                when (søknadsbehandling) {
+                    is Søknadsbehandling.Opprettet -> lagre(søknadsbehandling)
+                    is Søknadsbehandling.Vilkårsvurdert -> lagre(søknadsbehandling)
+                    is Søknadsbehandling.Beregnet -> lagre(søknadsbehandling)
+                    is Søknadsbehandling.Simulert -> lagre(søknadsbehandling)
+                    is Søknadsbehandling.TilAttestering -> lagre(søknadsbehandling)
+                    is Søknadsbehandling.Attestert -> lagre(søknadsbehandling)
                     else -> throw NotImplementedError()
                 }
             }
         }
     }
 
-    override fun hent(id: UUID): Saksbehandling {
+    override fun hentEventuellTidligereAttestering(id: UUID): Attestering? {
+        return dataSource.withSession { session ->
+            "select b.attestering from behandling b where b.id=:id"
+                .hent(mapOf("id" to id), session) { row ->
+                    row.stringOrNull("attestering")?.let {
+                        objectMapper.readValue(it)
+                    }
+                }
+        }
+    }
+
+    override fun hent(id: UUID): Søknadsbehandling? {
         return dataSource.withSession { session ->
             "select b.*, s.fnr, s.saksnummer from behandling b inner join sak s on s.id = b.sakId where b.id=:id"
                 .hent(mapOf("id" to id), session) { row ->
                     row.toSaksbehandling(session)
-                }!!
+                }
         }
     }
 
-    override fun hentForSak(sakId: UUID, session: Session): List<Saksbehandling> {
+    override fun hentForSak(sakId: UUID, session: Session): List<Søknadsbehandling> {
         return "select b.*, s.fnr, s.saksnummer from behandling b inner join sak s on s.id = b.sakId where b.sakId=:sakId"
             .hentListe(mapOf("sakId" to sakId), session) {
                 it.toSaksbehandling(session)
             }
     }
 
-    private fun Row.toSaksbehandling(session: Session): Saksbehandling {
+    private fun Row.toSaksbehandling(session: Session): Søknadsbehandling {
         val behandlingId = uuid("id")
         val søknad = SøknadRepoInternal.hentSøknadInternal(uuid("søknadId"), session)!!
         if (søknad !is Søknad.Journalført.MedOppgave) {
@@ -80,66 +92,75 @@ internal class SaksbehandlingsPostgresRepo(
         val attestering = stringOrNull("attestering")?.let { objectMapper.readValue<Attestering>(it) }
         val saksbehandler = stringOrNull("saksbehandler")?.let { NavIdentBruker.Saksbehandler(it) }
         val saksnummer = Saksnummer(long("saksnummer"))
+        @Suppress("UNUSED_VARIABLE")
         val hendelseslogg = HendelsesloggRepoInternal.hentHendelseslogg(behandlingId.toString(), session)
             ?: Hendelseslogg(
                 behandlingId.toString()
             )
         val fnr = Fnr(string("fnr"))
+        @Suppress("UNUSED_VARIABLE")
         val iverksattJournalpostId = stringOrNull("iverksattJournalpostId")?.let { JournalpostId(it) }
+        @Suppress("UNUSED_VARIABLE")
         val iverksattBrevbestillingId = stringOrNull("iverksattBrevbestillingId")?.let { BrevbestillingId(it) }
 
         return when (status) {
-            Behandling.BehandlingsStatus.OPPRETTET -> Saksbehandling.Søknadsbehandling.Opprettet(
+            Behandling.BehandlingsStatus.OPPRETTET -> Søknadsbehandling.Opprettet(
                 id = behandlingId,
                 opprettet = opprettet,
                 sakId = sakId,
+                saksnummer = saksnummer,
                 søknad = søknad,
                 oppgaveId = oppgaveId,
                 behandlingsinformasjon = behandlingsinformasjon,
                 fnr = fnr
             )
-            Behandling.BehandlingsStatus.VILKÅRSVURDERT_INNVILGET -> Saksbehandling.Søknadsbehandling.Vilkårsvurdert.Innvilget(
+            Behandling.BehandlingsStatus.VILKÅRSVURDERT_INNVILGET -> Søknadsbehandling.Vilkårsvurdert.Innvilget(
                 id = behandlingId,
                 opprettet = opprettet,
                 sakId = sakId,
+                saksnummer = saksnummer,
                 søknad = søknad,
                 oppgaveId = oppgaveId,
                 behandlingsinformasjon = behandlingsinformasjon,
                 fnr = fnr
             )
-            Behandling.BehandlingsStatus.VILKÅRSVURDERT_AVSLAG -> Saksbehandling.Søknadsbehandling.Vilkårsvurdert.Avslag(
+            Behandling.BehandlingsStatus.VILKÅRSVURDERT_AVSLAG -> Søknadsbehandling.Vilkårsvurdert.Avslag(
                 id = behandlingId,
                 opprettet = opprettet,
                 sakId = sakId,
+                saksnummer = saksnummer,
                 søknad = søknad,
                 oppgaveId = oppgaveId,
                 behandlingsinformasjon = behandlingsinformasjon,
                 fnr = fnr
             )
-            Behandling.BehandlingsStatus.BEREGNET_INNVILGET -> Saksbehandling.Søknadsbehandling.Beregnet.Innvilget(
+            Behandling.BehandlingsStatus.BEREGNET_INNVILGET -> Søknadsbehandling.Beregnet.Innvilget(
                 id = behandlingId,
                 opprettet = opprettet,
                 sakId = sakId,
+                saksnummer = saksnummer,
                 søknad = søknad,
                 oppgaveId = oppgaveId,
                 behandlingsinformasjon = behandlingsinformasjon,
                 fnr = fnr,
                 beregning = beregning!!
             )
-            Behandling.BehandlingsStatus.BEREGNET_AVSLAG -> Saksbehandling.Søknadsbehandling.Beregnet.Avslag(
+            Behandling.BehandlingsStatus.BEREGNET_AVSLAG -> Søknadsbehandling.Beregnet.Avslag(
                 id = behandlingId,
                 opprettet = opprettet,
                 sakId = sakId,
+                saksnummer = saksnummer,
                 søknad = søknad,
                 oppgaveId = oppgaveId,
                 behandlingsinformasjon = behandlingsinformasjon,
                 fnr = fnr,
                 beregning = beregning!!
             )
-            Behandling.BehandlingsStatus.SIMULERT -> Saksbehandling.Søknadsbehandling.Simulert(
+            Behandling.BehandlingsStatus.SIMULERT -> Søknadsbehandling.Simulert(
                 id = behandlingId,
                 opprettet = opprettet,
                 sakId = sakId,
+                saksnummer = saksnummer,
                 søknad = søknad,
                 oppgaveId = oppgaveId,
                 behandlingsinformasjon = behandlingsinformasjon,
@@ -147,10 +168,11 @@ internal class SaksbehandlingsPostgresRepo(
                 beregning = beregning!!,
                 simulering = simulering!!
             )
-            Behandling.BehandlingsStatus.TIL_ATTESTERING_INNVILGET -> Saksbehandling.Søknadsbehandling.TilAttestering.Innvilget(
+            Behandling.BehandlingsStatus.TIL_ATTESTERING_INNVILGET -> Søknadsbehandling.TilAttestering.Innvilget(
                 id = behandlingId,
                 opprettet = opprettet,
                 sakId = sakId,
+                saksnummer = saksnummer,
                 søknad = søknad,
                 oppgaveId = oppgaveId,
                 behandlingsinformasjon = behandlingsinformasjon,
@@ -159,10 +181,11 @@ internal class SaksbehandlingsPostgresRepo(
                 simulering = simulering!!,
                 saksbehandler = saksbehandler!!
             )
-            Behandling.BehandlingsStatus.UNDERKJENT_INNVILGET -> Saksbehandling.Søknadsbehandling.Attestert.Underkjent(
+            Behandling.BehandlingsStatus.UNDERKJENT_INNVILGET -> Søknadsbehandling.Attestert.Underkjent(
                 id = behandlingId,
                 opprettet = opprettet,
                 sakId = sakId,
+                saksnummer = saksnummer,
                 søknad = søknad,
                 oppgaveId = oppgaveId,
                 behandlingsinformasjon = behandlingsinformasjon,
@@ -172,10 +195,11 @@ internal class SaksbehandlingsPostgresRepo(
                 saksbehandler = saksbehandler!!,
                 attestering = attestering!!
             )
-            Behandling.BehandlingsStatus.IVERKSATT_INNVILGET -> Saksbehandling.Søknadsbehandling.Attestert.Iverksatt.Innvilget(
+            Behandling.BehandlingsStatus.IVERKSATT_INNVILGET -> Søknadsbehandling.Attestert.Iverksatt.Innvilget(
                 id = behandlingId,
                 opprettet = opprettet,
                 sakId = sakId,
+                saksnummer = saksnummer,
                 søknad = søknad,
                 oppgaveId = oppgaveId,
                 behandlingsinformasjon = behandlingsinformasjon,
@@ -189,7 +213,7 @@ internal class SaksbehandlingsPostgresRepo(
         }
     }
 
-    private fun lagre(saksbehandling: Saksbehandling.Søknadsbehandling.Opprettet) {
+    private fun lagre(søknadsbehandling: Søknadsbehandling.Opprettet) {
         dataSource.withSession { session ->
             (
                 """
@@ -200,20 +224,20 @@ internal class SaksbehandlingsPostgresRepo(
                 """.trimIndent()
                 ).oppdatering(
                 mapOf(
-                    "id" to saksbehandling.id,
-                    "sakId" to saksbehandling.sakId,
-                    "soknadId" to saksbehandling.søknad.id,
-                    "opprettet" to saksbehandling.opprettet,
-                    "status" to saksbehandling.status.name,
-                    "behandlingsinformasjon" to objectMapper.writeValueAsString(saksbehandling.behandlingsinformasjon),
-                    "oppgaveId" to saksbehandling.oppgaveId.toString()
+                    "id" to søknadsbehandling.id,
+                    "sakId" to søknadsbehandling.sakId,
+                    "soknadId" to søknadsbehandling.søknad.id,
+                    "opprettet" to søknadsbehandling.opprettet,
+                    "status" to søknadsbehandling.status.name,
+                    "behandlingsinformasjon" to objectMapper.writeValueAsString(søknadsbehandling.behandlingsinformasjon),
+                    "oppgaveId" to søknadsbehandling.oppgaveId.toString()
                 ),
                 session
             )
         }
     }
 
-    private fun lagre(saksbehandling: Saksbehandling.Søknadsbehandling.Vilkårsvurdert) {
+    private fun lagre(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert) {
         dataSource.withSession { session ->
             (
                 """
@@ -224,20 +248,20 @@ internal class SaksbehandlingsPostgresRepo(
                 """.trimIndent()
                 ).oppdatering(
                 mapOf(
-                    "id" to saksbehandling.id,
-                    "sakId" to saksbehandling.sakId,
-                    "soknadId" to saksbehandling.søknad.id,
-                    "opprettet" to saksbehandling.opprettet,
-                    "status" to saksbehandling.status.name,
-                    "behandlingsinformasjon" to objectMapper.writeValueAsString(saksbehandling.behandlingsinformasjon),
-                    "oppgaveId" to saksbehandling.oppgaveId.toString()
+                    "id" to søknadsbehandling.id,
+                    "sakId" to søknadsbehandling.sakId,
+                    "soknadId" to søknadsbehandling.søknad.id,
+                    "opprettet" to søknadsbehandling.opprettet,
+                    "status" to søknadsbehandling.status.name,
+                    "behandlingsinformasjon" to objectMapper.writeValueAsString(søknadsbehandling.behandlingsinformasjon),
+                    "oppgaveId" to søknadsbehandling.oppgaveId.toString()
                 ),
                 session
             )
         }
     }
 
-    private fun lagre(saksbehandling: Saksbehandling.Søknadsbehandling.Beregnet) {
+    private fun lagre(søknadsbehandling: Søknadsbehandling.Beregnet) {
         dataSource.withSession { session ->
             (
                 """
@@ -248,21 +272,21 @@ internal class SaksbehandlingsPostgresRepo(
                 """.trimIndent()
                 ).oppdatering(
                 mapOf(
-                    "id" to saksbehandling.id,
-                    "sakId" to saksbehandling.sakId,
-                    "soknadId" to saksbehandling.søknad.id,
-                    "opprettet" to saksbehandling.opprettet,
-                    "status" to saksbehandling.status.name,
-                    "behandlingsinformasjon" to objectMapper.writeValueAsString(saksbehandling.behandlingsinformasjon),
-                    "oppgaveId" to saksbehandling.oppgaveId.toString(),
-                    "beregning" to objectMapper.writeValueAsString(saksbehandling.beregning.toSnapshot())
+                    "id" to søknadsbehandling.id,
+                    "sakId" to søknadsbehandling.sakId,
+                    "soknadId" to søknadsbehandling.søknad.id,
+                    "opprettet" to søknadsbehandling.opprettet,
+                    "status" to søknadsbehandling.status.name,
+                    "behandlingsinformasjon" to objectMapper.writeValueAsString(søknadsbehandling.behandlingsinformasjon),
+                    "oppgaveId" to søknadsbehandling.oppgaveId.toString(),
+                    "beregning" to objectMapper.writeValueAsString(søknadsbehandling.beregning.toSnapshot())
                 ),
                 session
             )
         }
     }
 
-    private fun lagre(saksbehandling: Saksbehandling.Søknadsbehandling.Simulert) {
+    private fun lagre(søknadsbehandling: Søknadsbehandling.Simulert) {
         dataSource.withSession { session ->
             (
                 """
@@ -273,44 +297,44 @@ internal class SaksbehandlingsPostgresRepo(
                 """.trimIndent()
                 ).oppdatering(
                 mapOf(
-                    "id" to saksbehandling.id,
-                    "sakId" to saksbehandling.sakId,
-                    "soknadId" to saksbehandling.søknad.id,
-                    "opprettet" to saksbehandling.opprettet,
-                    "status" to saksbehandling.status.name,
-                    "behandlingsinformasjon" to objectMapper.writeValueAsString(saksbehandling.behandlingsinformasjon),
-                    "oppgaveId" to saksbehandling.oppgaveId.toString(),
-                    "beregning" to objectMapper.writeValueAsString(saksbehandling.beregning.toSnapshot()),
-                    "simulering" to objectMapper.writeValueAsString(saksbehandling.simulering)
+                    "id" to søknadsbehandling.id,
+                    "sakId" to søknadsbehandling.sakId,
+                    "soknadId" to søknadsbehandling.søknad.id,
+                    "opprettet" to søknadsbehandling.opprettet,
+                    "status" to søknadsbehandling.status.name,
+                    "behandlingsinformasjon" to objectMapper.writeValueAsString(søknadsbehandling.behandlingsinformasjon),
+                    "oppgaveId" to søknadsbehandling.oppgaveId.toString(),
+                    "beregning" to objectMapper.writeValueAsString(søknadsbehandling.beregning.toSnapshot()),
+                    "simulering" to objectMapper.writeValueAsString(søknadsbehandling.simulering)
                 ),
                 session
             )
         }
     }
 
-    private fun lagre(saksbehandling: Saksbehandling.Søknadsbehandling.TilAttestering) {
-        when (saksbehandling) {
-            is Saksbehandling.Søknadsbehandling.TilAttestering.Innvilget -> {
+    private fun lagre(søknadsbehandling: Søknadsbehandling.TilAttestering) {
+        when (søknadsbehandling) {
+            is Søknadsbehandling.TilAttestering.Innvilget -> {
                 dataSource.withSession { session ->
                     (
                         """
                        insert into behandling (id, sakId, søknadId, opprettet, status, behandlingsinformasjon, oppgaveId, beregning, simulering, saksbehandler, attestering) 
                        values (:id, :sakId, :soknadId, :opprettet, :status, to_json(:behandlingsinformasjon::json), :oppgaveId, to_json(:beregning::json), to_json(:simulering::json), :saksbehandler, null) 
                        on conflict (id) do
-                       update set status = :status, saksbehandler = :saksbehandler, attestering = null
+                       update set status = :status, saksbehandler = :saksbehandler
                         """.trimIndent()
                         ).oppdatering(
                         mapOf(
-                            "id" to saksbehandling.id,
-                            "sakId" to saksbehandling.sakId,
-                            "soknadId" to saksbehandling.søknad.id,
-                            "opprettet" to saksbehandling.opprettet,
-                            "status" to saksbehandling.status.name,
-                            "behandlingsinformasjon" to objectMapper.writeValueAsString(saksbehandling.behandlingsinformasjon),
-                            "oppgaveId" to saksbehandling.oppgaveId.toString(),
-                            "beregning" to objectMapper.writeValueAsString(saksbehandling.beregning.toSnapshot()),
-                            "simulering" to objectMapper.writeValueAsString(saksbehandling.simulering),
-                            "saksbehandler" to saksbehandling.saksbehandler.navIdent
+                            "id" to søknadsbehandling.id,
+                            "sakId" to søknadsbehandling.sakId,
+                            "soknadId" to søknadsbehandling.søknad.id,
+                            "opprettet" to søknadsbehandling.opprettet,
+                            "status" to søknadsbehandling.status.name,
+                            "behandlingsinformasjon" to objectMapper.writeValueAsString(søknadsbehandling.behandlingsinformasjon),
+                            "oppgaveId" to søknadsbehandling.oppgaveId.toString(),
+                            "beregning" to objectMapper.writeValueAsString(søknadsbehandling.beregning.toSnapshot()),
+                            "simulering" to objectMapper.writeValueAsString(søknadsbehandling.simulering),
+                            "saksbehandler" to søknadsbehandling.saksbehandler.navIdent
                         ),
                         session
                     )
@@ -319,9 +343,9 @@ internal class SaksbehandlingsPostgresRepo(
         }
     }
 
-    private fun lagre(saksbehandling: Saksbehandling.Søknadsbehandling.Attestert) {
-        when (saksbehandling) {
-            is Saksbehandling.Søknadsbehandling.Attestert.Underkjent -> {
+    private fun lagre(søknadsbehandling: Søknadsbehandling.Attestert) {
+        when (søknadsbehandling) {
+            is Søknadsbehandling.Attestert.Underkjent -> {
                 dataSource.withSession { session ->
                     (
                         """
@@ -332,25 +356,25 @@ internal class SaksbehandlingsPostgresRepo(
                         """.trimIndent()
                         ).oppdatering(
                         mapOf(
-                            "id" to saksbehandling.id,
-                            "sakId" to saksbehandling.sakId,
-                            "soknadId" to saksbehandling.søknad.id,
-                            "opprettet" to saksbehandling.opprettet,
-                            "status" to saksbehandling.status.name,
-                            "behandlingsinformasjon" to objectMapper.writeValueAsString(saksbehandling.behandlingsinformasjon),
-                            "oppgaveId" to saksbehandling.oppgaveId.toString(),
-                            "beregning" to objectMapper.writeValueAsString(saksbehandling.beregning.toSnapshot()),
-                            "simulering" to objectMapper.writeValueAsString(saksbehandling.simulering),
-                            "saksbehandler" to saksbehandling.saksbehandler.navIdent,
-                            "attestering" to objectMapper.writeValueAsString(saksbehandling.attestering)
+                            "id" to søknadsbehandling.id,
+                            "sakId" to søknadsbehandling.sakId,
+                            "soknadId" to søknadsbehandling.søknad.id,
+                            "opprettet" to søknadsbehandling.opprettet,
+                            "status" to søknadsbehandling.status.name,
+                            "behandlingsinformasjon" to objectMapper.writeValueAsString(søknadsbehandling.behandlingsinformasjon),
+                            "oppgaveId" to søknadsbehandling.oppgaveId.toString(),
+                            "beregning" to objectMapper.writeValueAsString(søknadsbehandling.beregning.toSnapshot()),
+                            "simulering" to objectMapper.writeValueAsString(søknadsbehandling.simulering),
+                            "saksbehandler" to søknadsbehandling.saksbehandler.navIdent,
+                            "attestering" to objectMapper.writeValueAsString(søknadsbehandling.attestering)
                         ),
                         session
                     )
                 }
             }
-            is Saksbehandling.Søknadsbehandling.Attestert.Iverksatt -> {
-                when (saksbehandling) {
-                    is Saksbehandling.Søknadsbehandling.Attestert.Iverksatt.OversendtOppdrag -> {
+            is Søknadsbehandling.Attestert.Iverksatt -> {
+                when (søknadsbehandling) {
+                    is Søknadsbehandling.Attestert.Iverksatt.OversendtOppdrag -> {
                         dataSource.withSession { session ->
                             (
                                 """
@@ -361,18 +385,18 @@ internal class SaksbehandlingsPostgresRepo(
                                 """.trimIndent()
                                 ).oppdatering(
                                 mapOf(
-                                    "id" to saksbehandling.id,
-                                    "sakId" to saksbehandling.sakId,
-                                    "soknadId" to saksbehandling.søknad.id,
-                                    "opprettet" to saksbehandling.opprettet,
-                                    "status" to saksbehandling.status.name,
-                                    "behandlingsinformasjon" to objectMapper.writeValueAsString(saksbehandling.behandlingsinformasjon),
-                                    "oppgaveId" to saksbehandling.oppgaveId.toString(),
-                                    "beregning" to objectMapper.writeValueAsString(saksbehandling.beregning.toSnapshot()),
-                                    "simulering" to objectMapper.writeValueAsString(saksbehandling.simulering),
-                                    "saksbehandler" to saksbehandling.saksbehandler.navIdent,
-                                    "attestering" to objectMapper.writeValueAsString(saksbehandling.attestering),
-                                    "utbetalingId" to saksbehandling.utbetaling.id
+                                    "id" to søknadsbehandling.id,
+                                    "sakId" to søknadsbehandling.sakId,
+                                    "soknadId" to søknadsbehandling.søknad.id,
+                                    "opprettet" to søknadsbehandling.opprettet,
+                                    "status" to søknadsbehandling.status.name,
+                                    "behandlingsinformasjon" to objectMapper.writeValueAsString(søknadsbehandling.behandlingsinformasjon),
+                                    "oppgaveId" to søknadsbehandling.oppgaveId.toString(),
+                                    "beregning" to objectMapper.writeValueAsString(søknadsbehandling.beregning.toSnapshot()),
+                                    "simulering" to objectMapper.writeValueAsString(søknadsbehandling.simulering),
+                                    "saksbehandler" to søknadsbehandling.saksbehandler.navIdent,
+                                    "attestering" to objectMapper.writeValueAsString(søknadsbehandling.attestering),
+                                    "utbetalingId" to søknadsbehandling.utbetaling.id
                                 ),
                                 session
                             )

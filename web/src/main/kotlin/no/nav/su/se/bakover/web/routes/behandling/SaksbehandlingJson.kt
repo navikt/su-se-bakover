@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.web.routes.behandling
 import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.Saksbehandling
+import no.nav.su.se.bakover.domain.behandling.Søknadsbehandling
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingsinformasjonJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.behandling.SimuleringJson.Companion.toJson
@@ -11,12 +11,12 @@ import no.nav.su.se.bakover.web.routes.behandling.beregning.toJson
 import no.nav.su.se.bakover.web.routes.søknad.toJson
 import java.time.format.DateTimeFormatter
 
-internal fun Saksbehandling.toJson(): BehandlingJson {
+internal fun Søknadsbehandling.toJson(): BehandlingJson {
     val saksbehandling = this
     return when (saksbehandling) {
-        is Saksbehandling.Søknadsbehandling -> {
+        is Søknadsbehandling -> {
             when (saksbehandling) {
-                is Saksbehandling.Søknadsbehandling.Opprettet, is Saksbehandling.Søknadsbehandling.Vilkårsvurdert -> BehandlingJson(
+                is Søknadsbehandling.Opprettet, is Søknadsbehandling.Vilkårsvurdert -> BehandlingJson(
                     id = saksbehandling.id.toString(),
                     opprettet = DateTimeFormatter.ISO_INSTANT.format(saksbehandling.opprettet),
                     sakId = saksbehandling.sakId,
@@ -29,7 +29,7 @@ internal fun Saksbehandling.toJson(): BehandlingJson {
                     beregning = null,
                     simulering = null
                 )
-                is Saksbehandling.Søknadsbehandling.Beregnet -> {
+                is Søknadsbehandling.Beregnet -> {
                     BehandlingJson(
                         id = saksbehandling.id.toString(),
                         opprettet = DateTimeFormatter.ISO_INSTANT.format(saksbehandling.opprettet),
@@ -44,7 +44,7 @@ internal fun Saksbehandling.toJson(): BehandlingJson {
                         simulering = null
                     )
                 }
-                is Saksbehandling.Søknadsbehandling.Simulert -> {
+                is Søknadsbehandling.Simulert -> {
                     BehandlingJson(
                         id = saksbehandling.id.toString(),
                         opprettet = DateTimeFormatter.ISO_INSTANT.format(saksbehandling.opprettet),
@@ -59,7 +59,7 @@ internal fun Saksbehandling.toJson(): BehandlingJson {
                         simulering = saksbehandling.simulering.toJson()
                     )
                 }
-                is Saksbehandling.Søknadsbehandling.TilAttestering.Innvilget -> {
+                is Søknadsbehandling.TilAttestering.Innvilget -> {
                     BehandlingJson(
                         id = saksbehandling.id.toString(),
                         opprettet = DateTimeFormatter.ISO_INSTANT.format(saksbehandling.opprettet),
@@ -74,7 +74,7 @@ internal fun Saksbehandling.toJson(): BehandlingJson {
                         simulering = saksbehandling.simulering.toJson()
                     )
                 }
-                is Saksbehandling.Søknadsbehandling.Attestert.Underkjent -> {
+                is Søknadsbehandling.Attestert.Underkjent -> {
                     BehandlingJson(
                         id = saksbehandling.id.toString(),
                         opprettet = DateTimeFormatter.ISO_INSTANT.format(saksbehandling.opprettet),
@@ -103,7 +103,7 @@ internal fun Saksbehandling.toJson(): BehandlingJson {
                         simulering = saksbehandling.simulering.toJson()
                     )
                 }
-                is Saksbehandling.Søknadsbehandling.Attestert.Iverksatt.Innvilget -> {
+                is Søknadsbehandling.Attestert.Iverksatt.Innvilget -> {
                     BehandlingJson(
                         id = saksbehandling.id.toString(),
                         opprettet = DateTimeFormatter.ISO_INSTANT.format(saksbehandling.opprettet),
@@ -139,6 +139,6 @@ internal fun Saksbehandling.toJson(): BehandlingJson {
     }
 }
 
-internal fun HttpStatusCode.jsonBody(saksbehandling: Saksbehandling): Resultat {
-    return Resultat.json(this, serialize(saksbehandling.toJson()))
+internal fun HttpStatusCode.jsonBody(søknadsbehandling: Søknadsbehandling): Resultat {
+    return Resultat.json(this, serialize(søknadsbehandling.toJson()))
 }

@@ -101,6 +101,7 @@ sealed class KunneIkkeIverksetteBehandling {
 }
 
 sealed class KunneIkkeOppdatereBehandlingsinformasjon {
+    // TODO jah og jm: Slett denne
     object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeOppdatereBehandlingsinformasjon()
     object FantIkkeBehandling : KunneIkkeOppdatereBehandlingsinformasjon()
 }

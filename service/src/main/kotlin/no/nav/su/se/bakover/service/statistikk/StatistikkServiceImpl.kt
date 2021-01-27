@@ -83,6 +83,25 @@ internal class StatistikkServiceImpl(
                     )
                 )
             }
+            is Event.Statistikk.SøknadsbehandlingOpprettet -> {
+                val behandling = event.behandling
+                publiser(
+                    Statistikk.Behandling(
+                        funksjonellTid = behandling.opprettet,
+                        tekniskTid = Tidspunkt.now(clock),
+                        registrertDato = when (val forNav = behandling.søknad.søknadInnhold.forNav) {
+                            is ForNav.DigitalSøknad -> behandling.opprettet.toLocalDate(zoneIdOslo)
+                            is ForNav.Papirsøknad -> forNav.mottaksdatoForSøknad
+                        },
+                        mottattDato = behandling.opprettet.toLocalDate(zoneIdOslo),
+                        behandlingId = behandling.id,
+                        sakId = behandling.sakId,
+                        saksnummer = behandling.saksnummer.nummer,
+                        behandlingStatus = behandling.status,
+                        versjon = clock.millis()
+                    )
+                )
+            }
             is Event.Statistikk.BehandlingTilAttestering -> {
                 val behandling = event.behandling
                 publiser(
