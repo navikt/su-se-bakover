@@ -13,8 +13,8 @@ import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.behandling.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.behandling.Revurdering
+import no.nav.su.se.bakover.domain.behandling.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.behandling.SimulertRevurdering
-import no.nav.su.se.bakover.domain.behandling.TilAttesteringRevurdering
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
@@ -47,7 +47,11 @@ internal class RevurderingServiceImpl(
                 return when (tilRevurdering) {
                     null -> RevurderingFeilet.FantIngentingSomKanRevurderes.left()
                     else -> {
-                        val revurdering = OpprettetRevurdering(tilRevurdering = tilRevurdering, saksbehandler = saksbehandler)
+                        val revurdering = OpprettetRevurdering(
+                            periode = periode,
+                            tilRevurdering = tilRevurdering,
+                            saksbehandler = saksbehandler
+                        )
                         revurderingRepo.lagre(revurdering)
                         revurderingRepo.hent(revurdering.id)!!.right()
                     }
@@ -58,13 +62,12 @@ internal class RevurderingServiceImpl(
     override fun beregnOgSimuler(
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
-        periode: Periode,
         fradrag: List<Fradrag>
     ): Either<RevurderingFeilet, SimulertRevurdering> {
         return when (val revurdering = revurderingRepo.hent(revurderingId)!!) {
             is BeregnetRevurdering, is OpprettetRevurdering, is SimulertRevurdering -> {
                 val beregningsgrunnlag = Beregningsgrunnlag.create(
-                    beregningsperiode = periode,
+                    beregningsperiode = revurdering.periode,
                     forventetInntektPerÅr = revurdering.tilRevurdering.behandlingsinformasjon().uførhet?.forventetInntekt?.toDouble()
                         ?: 0.0,
                     fradragFraSaksbehandler = fradrag
@@ -113,8 +116,9 @@ internal class RevurderingServiceImpl(
                     return RevurderingFeilet.KunneIkkeOppretteOppgave.left()
                 }
 
-                TilAttesteringRevurdering(
+                RevurderingTilAttestering(
                     id = revurdering.id,
+                    periode = revurdering.periode,
                     opprettet = revurdering.opprettet,
                     beregning = revurdering.beregning,
                     tilRevurdering = revurdering.tilRevurdering,
@@ -163,7 +167,7 @@ internal class RevurderingServiceImpl(
 
         return when (revurdering) {
             is SimulertRevurdering -> { lagBrevutkastForRevurderingAvInntekt(revurdering.beregning) }
-            is TilAttesteringRevurdering -> { lagBrevutkastForRevurderingAvInntekt(revurdering.beregning) }
+            is RevurderingTilAttestering -> { lagBrevutkastForRevurderingAvInntekt(revurdering.beregning) }
             else -> RevurderingFeilet.KunneIkkeLageBrevutkast.left()
         }
     }

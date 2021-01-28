@@ -19,7 +19,6 @@ interface RevurderingService {
     fun beregnOgSimuler(
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
-        periode: Periode,
         fradrag: List<Fradrag>
     ): Either<RevurderingFeilet, SimulertRevurdering>
 

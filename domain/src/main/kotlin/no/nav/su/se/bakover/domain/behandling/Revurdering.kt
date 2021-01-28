@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.behandling
 
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
@@ -8,22 +9,16 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.util.UUID
 
-enum class RevurderingsStatus {
-    OPPRETTET,
-    BEREGNET,
-    SIMULERT,
-    TIL_ATTESTERING
-}
-
-sealed class Revurdering : Saksbehandling() {
+sealed class Revurdering {
     abstract val id: UUID
-    abstract val status: RevurderingsStatus
     abstract val opprettet: Tidspunkt
     abstract val tilRevurdering: Behandling
+    abstract val periode: Periode
     abstract val saksbehandler: Saksbehandler
     open fun beregn(beregningsgrunnlag: Beregningsgrunnlag): BeregnetRevurdering = BeregnetRevurdering(
         tilRevurdering = tilRevurdering,
         id = id,
+        periode = periode,
         opprettet = Tidspunkt.now(),
         beregning = tilRevurdering.behandlingsinformasjon().bosituasjon!!.getBeregningStrategy()
             .beregn(beregningsgrunnlag),
@@ -33,7 +28,7 @@ sealed class Revurdering : Saksbehandling() {
 
 data class OpprettetRevurdering(
     override val id: UUID = UUID.randomUUID(),
-    override val status: RevurderingsStatus = RevurderingsStatus.OPPRETTET,
+    override val periode: Periode,
     override val opprettet: Tidspunkt = Tidspunkt.now(),
     override val tilRevurdering: Behandling,
     override val saksbehandler: Saksbehandler,
@@ -41,7 +36,7 @@ data class OpprettetRevurdering(
 
 data class BeregnetRevurdering(
     override val id: UUID,
-    override val status: RevurderingsStatus = RevurderingsStatus.BEREGNET,
+    override val periode: Periode,
     override val opprettet: Tidspunkt,
     override val tilRevurdering: Behandling,
     override val saksbehandler: Saksbehandler,
@@ -49,6 +44,7 @@ data class BeregnetRevurdering(
 ) : Revurdering() {
     fun toSimulert(simulering: Simulering) = SimulertRevurdering(
         id = id,
+        periode = periode,
         opprettet = opprettet,
         tilRevurdering = tilRevurdering,
         beregning = beregning,
@@ -59,7 +55,7 @@ data class BeregnetRevurdering(
 
 data class SimulertRevurdering(
     override val id: UUID,
-    override val status: RevurderingsStatus = RevurderingsStatus.SIMULERT,
+    override val periode: Periode,
     override val opprettet: Tidspunkt,
     override val tilRevurdering: Behandling,
     override val saksbehandler: Saksbehandler,
@@ -67,9 +63,9 @@ data class SimulertRevurdering(
     val simulering: Simulering
 ) : Revurdering()
 
-data class TilAttesteringRevurdering(
+data class RevurderingTilAttestering(
     override val id: UUID,
-    override val status: RevurderingsStatus = RevurderingsStatus.TIL_ATTESTERING,
+    override val periode: Periode,
     override val opprettet: Tidspunkt,
     override val tilRevurdering: Behandling,
     override val saksbehandler: Saksbehandler,

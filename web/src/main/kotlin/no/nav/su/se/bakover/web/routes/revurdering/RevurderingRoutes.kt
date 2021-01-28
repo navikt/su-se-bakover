@@ -75,22 +75,22 @@ internal fun Route.revurderingRoutes(
         }
     }
 
-    data class BeregningForRevurderingsBody(
+    data class BeregningForRevurderingBody(
         val revurderingId: UUID,
         val periode: PeriodeJson,
         val fradrag: List<FradragJson>,
     ) {
-        fun toDomain(): Either<Resultat, Pair<Periode, List<Fradrag>>> {
+        fun toDomain(): Either<Resultat, List<Fradrag>> {
             val periode = periode.toPeriode().getOrHandle { return it.left() }
             val fradrag = fradrag.toFradrag(periode).getOrHandle { return it.left() }
 
-            return Pair(periode, fradrag).right()
+            return fradrag.right()
         }
     }
 
     post("$revurderingPath/beregnOgSimuler") {
         call.withSakId { sakId ->
-            Either.catch { deserialize<BeregningForRevurderingsBody>(call) }.fold(
+            Either.catch { deserialize<BeregningForRevurderingBody>(call) }.fold(
                 ifLeft = {
                     log.info("Ugyldig behandling-body: ", it)
                     call.svar(BadRequest.message("Ugyldig body"))
@@ -100,13 +100,10 @@ internal fun Route.revurderingRoutes(
                         .fold(
                             ifLeft = { call.svar(it) },
                             ifRight = {
-                                val (periode, fradrag) = it
-
                                 revurderingService.beregnOgSimuler(
                                     revurderingId = body.revurderingId,
                                     saksbehandler = Saksbehandler(call.suUserContext.getNAVIdent()),
-                                    periode = periode,
-                                    fradrag = fradrag
+                                    fradrag = it
                                 ).fold(
                                     ifLeft = { revurderingFeilet -> call.svar(hentFeilResultat(revurderingFeilet)) },
                                     ifRight = { simulertRevurdering ->

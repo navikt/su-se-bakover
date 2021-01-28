@@ -3,14 +3,15 @@ package no.nav.su.se.bakover.database
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.behandling.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.behandling.Revurdering
+import no.nav.su.se.bakover.domain.behandling.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.behandling.SimulertRevurdering
-import no.nav.su.se.bakover.domain.behandling.TilAttesteringRevurdering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.util.UUID
@@ -38,13 +39,13 @@ internal class RevurderingPostgresRepo(
             is OpprettetRevurdering -> lagre(revurdering)
             is BeregnetRevurdering -> lagre(revurdering)
             is SimulertRevurdering -> lagre(revurdering)
-            is TilAttesteringRevurdering -> lagre(revurdering)
-            else -> throw RuntimeException("UKJENT REVURDERING KANKE LAGRE")
+            is RevurderingTilAttestering -> lagre(revurdering)
         }
     }
 
     fun Row.toRevurdering(): Revurdering {
         val id = uuid("id")
+        val periode = string("periode").let { objectMapper.readValue<Periode>(it) }
         val opprettet = tidspunkt("opprettet")
         val tilRevurdering = behandlingRepo.hentBehandling(uuid("behandlingId"))!!
         val beregning = stringOrNull("beregning")?.let { objectMapper.readValue<PersistertBeregning>(it) }
@@ -52,8 +53,9 @@ internal class RevurderingPostgresRepo(
         val saksbehandler = string("saksbehandler")
         val oppgaveId = stringOrNull("oppgaveId")
         return when {
-            oppgaveId != null && simulering != null && beregning != null -> TilAttesteringRevurdering(
+            oppgaveId != null && simulering != null && beregning != null -> RevurderingTilAttestering(
                 id = id,
+                periode = periode,
                 opprettet = opprettet,
                 tilRevurdering = tilRevurdering,
                 beregning = beregning,
@@ -63,6 +65,7 @@ internal class RevurderingPostgresRepo(
             )
             simulering != null && beregning != null -> SimulertRevurdering(
                 id = id,
+                periode = periode,
                 opprettet = opprettet,
                 tilRevurdering = tilRevurdering,
                 beregning = beregning,
@@ -71,11 +74,13 @@ internal class RevurderingPostgresRepo(
             )
             beregning != null -> BeregnetRevurdering(
                 id = id,
+                periode = periode,
                 opprettet = opprettet,
                 tilRevurdering = tilRevurdering, beregning = beregning, saksbehandler = Saksbehandler(saksbehandler)
             )
             else -> OpprettetRevurdering(
                 id = id,
+                periode = periode,
                 opprettet = opprettet,
                 tilRevurdering = tilRevurdering,
                 saksbehandler = Saksbehandler(saksbehandler)
@@ -86,11 +91,16 @@ internal class RevurderingPostgresRepo(
     private fun lagre(revurdering: OpprettetRevurdering) =
         dataSource.withSession { session ->
             (
-                "insert into revurdering (id, opprettet, behandlingId, beregning, simulering, saksbehandler, oppgaveId) values (:id, :opprettet, :behandlingId, null, null, :saksbehandler, :oppgaveId) on conflict (id) do " +
+                "insert into revurdering" +
+                    "(id, opprettet, behandlingId, periode, beregning, simulering, saksbehandler, oppgaveId)" +
+                    "values" +
+                    "(:id, :opprettet, :behandlingId, to_json(:periode::json), null, null, :saksbehandler, :oppgaveId)" +
+                    "on conflict (id) do " +
                     "update set beregning = null, simulering = null"
                 ).oppdatering(
                 mapOf(
                     "id" to revurdering.id,
+                    "periode" to objectMapper.writeValueAsString(revurdering.periode),
                     "opprettet" to revurdering.opprettet,
                     "behandlingId" to revurdering.tilRevurdering.id,
                     "saksbehandler" to revurdering.saksbehandler.navIdent
@@ -102,11 +112,16 @@ internal class RevurderingPostgresRepo(
     private fun lagre(revurdering: BeregnetRevurdering) =
         dataSource.withSession { session ->
             (
-                "insert into revurdering (id, opprettet, behandlingId, beregning, simulering, saksbehandler, oppgaveId) values (:id, :opprettet, :behandlingId, to_json(:beregning::json), null, :saksbehandler, :oppgaveId) on conflict (id) do " +
+                "insert into revurdering" +
+                    "(id, opprettet, behandlingId, periode, beregning, simulering, saksbehandler, oppgaveId)" +
+                    "values" +
+                    "(:id, :opprettet, :behandlingId, to_json(:periode::json), to_json(:beregning::json), null, :saksbehandler, :oppgaveId)" +
+                    "on conflict (id) do " +
                     "update set beregning = to_json(:beregning::json), simulering = null"
                 ).oppdatering(
                 mapOf(
                     "id" to revurdering.id,
+                    "periode" to objectMapper.writeValueAsString(revurdering.periode),
                     "opprettet" to revurdering.opprettet,
                     "behandlingId" to revurdering.tilRevurdering.id,
                     "beregning" to objectMapper.writeValueAsString(revurdering.beregning),
@@ -119,11 +134,15 @@ internal class RevurderingPostgresRepo(
     private fun lagre(revurdering: SimulertRevurdering) =
         dataSource.withSession { session ->
             (
-                "insert into revurdering (id, opprettet, behandlingId, beregning, simulering, saksbehandler, oppgaveId) values (:id, :opprettet, :behandlingId, to_json(:beregning::json), to_json(:simulering::json), :saksbehandler, :oppgaveId) on conflict (id) do " +
+                "insert into revurdering" +
+                    "(id, opprettet, behandlingId, periode, beregning, simulering, saksbehandler, oppgaveId)" +
+                    "values (:id, :opprettet, :behandlingId, to_json(:periode::json), to_json(:beregning::json), to_json(:simulering::json), :saksbehandler, :oppgaveId)" +
+                    "on conflict (id) do " +
                     "update set beregning = to_json(:beregning::json), simulering = to_json(:simulering::json)"
                 ).oppdatering(
                 mapOf(
                     "id" to revurdering.id,
+                    "periode" to objectMapper.writeValueAsString(revurdering.periode),
                     "opprettet" to revurdering.opprettet,
                     "behandlingId" to revurdering.tilRevurdering.id,
                     "beregning" to objectMapper.writeValueAsString(revurdering.beregning),
@@ -134,14 +153,18 @@ internal class RevurderingPostgresRepo(
             )
         }
 
-    private fun lagre(revurdering: TilAttesteringRevurdering) =
+    private fun lagre(revurdering: RevurderingTilAttestering) =
         dataSource.withSession { session ->
             (
-                "insert into revurdering (id, opprettet, behandlingId, beregning, simulering, saksbehandler, oppgaveId) values (:id, :opprettet, :behandlingId, to_json(:beregning::json), to_json(:simulering::json), :saksbehandler, :oppgaveId) on conflict (id) do " +
+                "insert into revurdering" +
+                    "(id, opprettet, behandlingId, periode, beregning, simulering, saksbehandler, oppgaveId)" +
+                    "values (:id, :opprettet, :behandlingId, to_json(:periode::json), to_json(:beregning::json), to_json(:simulering::json), :saksbehandler, :oppgaveId)" +
+                    "on conflict (id) do " +
                     "update set beregning = to_json(:beregning::json), simulering = to_json(:simulering::json), oppgaveId = :oppgaveId"
                 ).oppdatering(
                 mapOf(
                     "id" to revurdering.id,
+                    "periode" to objectMapper.writeValueAsString(revurdering.periode),
                     "opprettet" to revurdering.opprettet,
                     "behandlingId" to revurdering.tilRevurdering.id,
                     "beregning" to objectMapper.writeValueAsString(revurdering.beregning),

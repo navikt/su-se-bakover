@@ -350,14 +350,12 @@ open class AccessCheckProxy(
                 override fun beregnOgSimuler(
                     revurderingId: UUID,
                     saksbehandler: NavIdentBruker.Saksbehandler,
-                    periode: Periode,
                     fradrag: List<Fradrag>
                 ): Either<RevurderingFeilet, SimulertRevurdering> {
-                    // TODO assert tilgang til revurdering?
+                    assertHarTilgangTilSak(revurderingId)
                     return services.revurdering.beregnOgSimuler(
                         revurderingId = revurderingId,
                         saksbehandler = saksbehandler,
-                        periode = periode,
                         fradrag = fradrag
                     )
                 }
@@ -366,12 +364,12 @@ open class AccessCheckProxy(
                     revurderingId: UUID,
                     saksbehandler: NavIdentBruker.Saksbehandler
                 ): Either<RevurderingFeilet, Revurdering> {
-                    // TODO assert tilgang til revurdering?
+                    assertHarTilgangTilSak(revurderingId)
                     return services.revurdering.sendTilAttestering(revurderingId, saksbehandler)
                 }
 
                 override fun lagBrevutkast(revurderingId: UUID, fritekst: String?): Either<RevurderingFeilet, ByteArray> {
-                    // TODO assert tillgang
+                    assertHarTilgangTilSak(revurderingId)
                     return services.revurdering.lagBrevutkast(revurderingId, fritekst)
                 }
             }
@@ -410,6 +408,11 @@ open class AccessCheckProxy(
 
     private fun assertHarTilgangTilUtbetaling(utbetalingId: UUID30) {
         personRepo.hentFnrForUtbetaling(utbetalingId)
+            .forEach { assertHarTilgangTilPerson(it) }
+    }
+
+    private fun assertHarTilgangTilRevurdering(revurderingId: UUID) {
+        personRepo.hentFnrForRevurdering(revurderingId)
             .forEach { assertHarTilgangTilPerson(it) }
     }
 }

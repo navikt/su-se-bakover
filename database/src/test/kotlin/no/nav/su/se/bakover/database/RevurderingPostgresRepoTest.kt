@@ -5,6 +5,9 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.behandling.BehandlingPostgresRepo
 import no.nav.su.se.bakover.database.beregning.TestBeregning
 import no.nav.su.se.bakover.database.søknad.SøknadPostgresRepo
@@ -26,6 +29,10 @@ internal class RevurderingPostgresRepoTest {
     private val søknadRepo = SøknadPostgresRepo(ds)
     private val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())
     private val saksbehandler = Saksbehandler("Sak S. Behandler")
+    private val periode = Periode.create(
+        fraOgMed = 1.januar(2020),
+        tilOgMed = 31.desember(2020)
+    )
 
     @Test
     fun `overskriver ikke permanente verdier ved lagring`() {
@@ -34,6 +41,7 @@ internal class RevurderingPostgresRepoTest {
 
             val original = OpprettetRevurdering(
                 id = UUID.randomUUID(),
+                periode = periode,
                 opprettet = Tidspunkt.now(),
                 tilRevurdering = behandling,
                 saksbehandler = saksbehandler
@@ -62,6 +70,7 @@ internal class RevurderingPostgresRepoTest {
 
             val original = BeregnetRevurdering(
                 id = UUID.randomUUID(),
+                periode = periode,
                 opprettet = Tidspunkt.now(),
                 tilRevurdering = behandling,
                 beregning = TestBeregning,
@@ -74,6 +83,7 @@ internal class RevurderingPostgresRepoTest {
 
             val nyttObjektMedSammeId = OpprettetRevurdering(
                 id = original.id,
+                periode = original.periode,
                 opprettet = original.opprettet,
                 tilRevurdering = original.tilRevurdering,
                 saksbehandler = saksbehandler
