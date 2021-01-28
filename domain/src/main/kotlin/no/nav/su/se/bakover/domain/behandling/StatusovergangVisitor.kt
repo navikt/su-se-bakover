@@ -25,10 +25,6 @@ interface StatusovergangVisitor {
         throw UgyldigStatusovergangException(søknadsbehandling, this)
     }
 
-    fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering) {
-        throw UgyldigStatusovergangException(søknadsbehandling, this)
-    }
-
     fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Innvilget) {
         throw UgyldigStatusovergangException(søknadsbehandling, this)
     }
@@ -41,7 +37,31 @@ interface StatusovergangVisitor {
         throw UgyldigStatusovergangException(søknadsbehandling, this)
     }
 
-    fun visit(søknadsbehandling: Søknadsbehandling.Iverksatt) {
+    fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Avslag.UtenBeregning) {
+        throw UgyldigStatusovergangException(søknadsbehandling, this)
+    }
+
+    fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Avslag.MedBeregning) {
+        throw UgyldigStatusovergangException(søknadsbehandling, this)
+    }
+
+    fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Innvilget) {
+        throw UgyldigStatusovergangException(søknadsbehandling, this)
+    }
+
+    fun visit(søknadsbehandling: Søknadsbehandling.Iverksatt.Avslag.UtenBeregning) {
+        throw UgyldigStatusovergangException(søknadsbehandling, this)
+    }
+
+    fun visit(søknadsbehandling: Søknadsbehandling.Iverksatt.Avslag.MedBeregning) {
+        throw UgyldigStatusovergangException(søknadsbehandling, this)
+    }
+
+    fun visit(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget) {
+        throw UgyldigStatusovergangException(søknadsbehandling, this)
+    }
+
+    fun visit(søknadsbehandling: Søknadsbehandling.Iverksatt.Utbetalt) {
         throw UgyldigStatusovergangException(søknadsbehandling, this)
     }
 

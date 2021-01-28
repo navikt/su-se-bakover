@@ -206,7 +206,7 @@ sealed class Søknadsbehandling {
         fun tilBeregnet(beregning: Beregning): Søknadsbehandling =
             opprett(id, opprettet, sakId, saksnummer, søknad, oppgaveId, behandlingsinformasjon, fnr, beregning)
 
-        fun tilSimulert(simulering: Simulering): Søknadsbehandling.Simulert =
+        fun tilSimulert(simulering: Simulering): Simulert =
             Simulert(
                 id,
                 opprettet,
@@ -456,10 +456,6 @@ sealed class Søknadsbehandling {
             final override val status: Behandling.BehandlingsStatus =
                 Behandling.BehandlingsStatus.TIL_ATTESTERING_AVSLAG
 
-            override fun accept(visitor: StatusovergangVisitor) {
-                visitor.visit(this)
-            }
-
             data class UtenBeregning(
                 override val id: UUID,
                 override val opprettet: Tidspunkt,
@@ -632,7 +628,7 @@ sealed class Søknadsbehandling {
                     beregning
                 )
 
-            fun tilSimulert(simulering: Simulering): Søknadsbehandling.Simulert =
+            fun tilSimulert(simulering: Simulering): Simulert =
                 Simulert(
                     id,
                     opprettet,
@@ -644,6 +640,21 @@ sealed class Søknadsbehandling {
                     fnr,
                     beregning,
                     simulering
+                )
+
+            fun tilAttestering(saksbehandler: NavIdentBruker.Saksbehandler): TilAttestering.Innvilget =
+                TilAttestering.Innvilget(
+                    id,
+                    opprettet,
+                    sakId,
+                    saksnummer,
+                    søknad,
+                    oppgaveId,
+                    behandlingsinformasjon,
+                    fnr,
+                    beregning,
+                    simulering,
+                    saksbehandler,
                 )
         }
 
@@ -664,7 +675,7 @@ sealed class Søknadsbehandling {
                 override val status: Behandling.BehandlingsStatus =
                     Behandling.BehandlingsStatus.UNDERKJENT_AVSLAG
 
-                override fun nyOppgaveId(nyOppgaveId: OppgaveId): Avslag.MedBeregning {
+                override fun nyOppgaveId(nyOppgaveId: OppgaveId): MedBeregning {
                     return this.copy(oppgaveId = nyOppgaveId)
                 }
 
@@ -685,8 +696,8 @@ sealed class Søknadsbehandling {
                         beregning
                     )
 
-                fun tilSimulert(simulering: Simulering): Søknadsbehandling.Simulert =
-                    Simulert(
+                fun tilAttestering(saksbehandler: NavIdentBruker.Saksbehandler): TilAttestering.Avslag.MedBeregning =
+                    TilAttestering.Avslag.MedBeregning(
                         id,
                         opprettet,
                         sakId,
@@ -696,7 +707,7 @@ sealed class Søknadsbehandling {
                         behandlingsinformasjon,
                         fnr,
                         beregning,
-                        simulering
+                        saksbehandler,
                     )
             }
 
@@ -715,13 +726,26 @@ sealed class Søknadsbehandling {
                 override val status: Behandling.BehandlingsStatus =
                     Behandling.BehandlingsStatus.UNDERKJENT_AVSLAG
 
-                override fun nyOppgaveId(nyOppgaveId: OppgaveId): Avslag.UtenBeregning {
+                override fun nyOppgaveId(nyOppgaveId: OppgaveId): UtenBeregning {
                     return this.copy(oppgaveId = nyOppgaveId)
                 }
 
                 override fun accept(visitor: StatusovergangVisitor) {
                     visitor.visit(this)
                 }
+
+                fun tilAttestering(saksbehandler: NavIdentBruker.Saksbehandler): TilAttestering.Avslag.UtenBeregning =
+                    TilAttestering.Avslag.UtenBeregning(
+                        id,
+                        opprettet,
+                        sakId,
+                        saksnummer,
+                        søknad,
+                        oppgaveId,
+                        behandlingsinformasjon,
+                        fnr,
+                        saksbehandler,
+                    )
             }
         }
     }

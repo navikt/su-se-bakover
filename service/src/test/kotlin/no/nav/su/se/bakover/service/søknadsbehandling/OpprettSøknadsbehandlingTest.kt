@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.service.behandling
+package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
@@ -27,7 +27,7 @@ import no.nav.su.se.bakover.service.søknad.SøknadService
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-internal class OpprettSøknadsbehandling2Test {
+internal class OpprettSøknadsbehandlingTest {
 
     @Test
     fun `Oppretter behandling og publiserer event`() {
@@ -60,6 +60,7 @@ internal class OpprettSøknadsbehandling2Test {
             saksbehandlingRepo = saksbehandlingRepoMock,
             iverksettSaksbehandlingService = mock(),
             behandlingMetrics = mock(),
+            beregningService = mock(),
         )
         val eventObserver: EventObserver = mock {
             on { handle(any()) }.doNothing()

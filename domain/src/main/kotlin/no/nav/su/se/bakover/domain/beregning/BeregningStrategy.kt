@@ -1,6 +1,22 @@
 package no.nav.su.se.bakover.domain.beregning
 
+import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.behandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
+
+class BeregningStrategyFactory() {
+    fun beregn(søknadsbehandling: Søknadsbehandling, periode: Periode, fradrag: List<Fradrag>): Beregning {
+        val beregningsgrunnlag = Beregningsgrunnlag.create(
+            beregningsperiode = Periode.create(periode.getFraOgMed(), periode.getTilOgMed()),
+            forventetInntektPerÅr = søknadsbehandling.behandlingsinformasjon.uførhet?.forventetInntekt?.toDouble()
+                ?: 0.0,
+            fradragFraSaksbehandler = fradrag
+        )
+        val strategy = søknadsbehandling.behandlingsinformasjon.bosituasjon!!.getBeregningStrategy()
+        return strategy.beregn(beregningsgrunnlag)
+    }
+}
 
 internal sealed class BeregningStrategy {
     abstract fun fradragStrategy(): FradragStrategy

@@ -1,20 +1,11 @@
 package no.nav.su.se.bakover.domain.behandling
 
 import arrow.core.Either
-import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import java.util.UUID
-
-sealed class StatusovergangFeilet {
-    object Feil : StatusovergangFeilet()
-}
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 
 abstract class Statusovergang<L, T> : StatusovergangVisitor {
 
@@ -64,66 +55,56 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
     }
 
     class TilBeregnet(
-        private val periode: Periode,
-        private val fradrag: List<Fradrag>
+        private val beregn: () -> Beregning
     ) : Statusovergang<Nothing, Søknadsbehandling>() {
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Innvilget) {
-            result = søknadsbehandling.tilBeregnet(beregn(søknadsbehandling)).right()
+            result = søknadsbehandling.tilBeregnet(beregn()).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Innvilget) {
-            result = søknadsbehandling.tilBeregnet(beregn(søknadsbehandling)).right()
+            result = søknadsbehandling.tilBeregnet(beregn()).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Avslag) {
-            result = søknadsbehandling.tilBeregnet(beregn(søknadsbehandling)).right()
+            result = søknadsbehandling.tilBeregnet(beregn()).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Simulert) {
-            result = søknadsbehandling.tilBeregnet(beregn(søknadsbehandling)).right()
+            result = søknadsbehandling.tilBeregnet(beregn()).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.MedBeregning) {
-            result = søknadsbehandling.tilBeregnet(beregn(søknadsbehandling)).right()
+            result = søknadsbehandling.tilBeregnet(beregn()).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Innvilget) {
-            result = søknadsbehandling.tilBeregnet(beregn(søknadsbehandling)).right()
-        }
-
-        private fun beregn(
-            søknadsbehandling: Søknadsbehandling
-        ): Beregning {
-            val beregningsgrunnlag = Beregningsgrunnlag.create(
-                beregningsperiode = Periode.create(periode.getFraOgMed(), periode.getTilOgMed()),
-                forventetInntektPerÅr = søknadsbehandling.behandlingsinformasjon.uførhet?.forventetInntekt?.toDouble()
-                    ?: 0.0,
-                fradragFraSaksbehandler = fradrag
-            )
-            val strategy = søknadsbehandling.behandlingsinformasjon.bosituasjon!!.getBeregningStrategy()
-            return strategy.beregn(beregningsgrunnlag)
+            result = søknadsbehandling.tilBeregnet(beregn()).right()
         }
     }
 
     object KunneIkkeSimulereBehandling
 
     class TilSimulert(
-        private val saksbehandler: NavIdentBruker,
-        private val simulering: (sakId: UUID, saksbehandler: NavIdentBruker, beregning: Beregning) -> Either<KunneIkkeSimulereBehandling, Utbetaling.SimulertUtbetaling>
-
+        private val simulering: (beregning: Beregning) -> Either<KunneIkkeSimulereBehandling, Simulering>
     ) : Statusovergang<KunneIkkeSimulereBehandling, Søknadsbehandling>() {
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Innvilget) {
-            simulering(søknadsbehandling.sakId, saksbehandler, søknadsbehandling.beregning)
+            simulering(søknadsbehandling.beregning)
                 .mapLeft { result = KunneIkkeSimulereBehandling.left() }
-                .map { result = søknadsbehandling.tilSimulert(it.simulering).right() }
+                .map { result = søknadsbehandling.tilSimulert(it).right() }
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Simulert) {
-            simulering(søknadsbehandling.sakId, saksbehandler, søknadsbehandling.beregning)
+            simulering(søknadsbehandling.beregning)
                 .mapLeft { result = KunneIkkeSimulereBehandling.left() }
-                .map { result = søknadsbehandling.tilSimulert(it.simulering).right() }
+                .map { result = søknadsbehandling.tilSimulert(it).right() }
+        }
+
+        override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Innvilget) {
+            simulering(søknadsbehandling.beregning)
+                .mapLeft { result = KunneIkkeSimulereBehandling.left() }
+                .map { result = søknadsbehandling.tilSimulert(it).right() }
         }
     }
 
@@ -142,13 +123,33 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
         override fun visit(søknadsbehandling: Søknadsbehandling.Simulert) {
             result = søknadsbehandling.tilAttestering(saksbehandler).right()
         }
+
+        override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.UtenBeregning) {
+            result = søknadsbehandling.tilAttestering(saksbehandler).right()
+        }
+
+        override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.MedBeregning) {
+            result = søknadsbehandling.tilAttestering(saksbehandler).right()
+        }
+
+        override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Innvilget) {
+            result = søknadsbehandling.tilAttestering(saksbehandler).right()
+        }
     }
 
     class TilUnderkjent(
         private val attestering: Attestering
     ) : Statusovergang<Nothing, Søknadsbehandling.Underkjent>() {
 
-        override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering) {
+        override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Avslag.UtenBeregning) {
+            result = søknadsbehandling.tilUnderkjent(attestering).right()
+        }
+
+        override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Avslag.MedBeregning) {
+            result = søknadsbehandling.tilUnderkjent(attestering).right()
+        }
+
+        override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Innvilget) {
             result = søknadsbehandling.tilUnderkjent(attestering).right()
         }
     }
@@ -157,7 +158,15 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
         private val attestering: Attestering
     ) : Statusovergang<Nothing, Søknadsbehandling.Iverksatt>() {
 
-        override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering) {
+        override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Avslag.UtenBeregning) {
+            result = søknadsbehandling.tilIverksatt(attestering).right()
+        }
+
+        override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Avslag.MedBeregning) {
+            result = søknadsbehandling.tilIverksatt(attestering).right()
+        }
+
+        override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Innvilget) {
             result = søknadsbehandling.tilIverksatt(attestering).right()
         }
     }
@@ -167,9 +176,8 @@ fun <T> statusovergang(
     søknadsbehandling: Søknadsbehandling,
     statusovergang: Statusovergang<Nothing, T>
 ): T {
-    return forsøkStatusovergang(søknadsbehandling, statusovergang).getOrHandle {
-        throw IllegalStateException("Det skjedde en feil ved statusovergang: $it")
-    }
+    // Kan aldri være Either.Left<Nothing>
+    return forsøkStatusovergang(søknadsbehandling, statusovergang).orNull()!!
 }
 
 fun <L, T> forsøkStatusovergang(
@@ -178,6 +186,4 @@ fun <L, T> forsøkStatusovergang(
 ): Either<L, T> {
     søknadsbehandling.accept(statusovergang)
     return statusovergang.get()
-    // .mapLeft { SaksbehandlingService.Feil } // TODO prolly do some mapping
-    // .map { it }
 }

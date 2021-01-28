@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.domain.behandling
 
+import arrow.core.left
+import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
@@ -278,82 +280,27 @@ internal class StatusovergangTest {
         }
 
         @Test
-        fun `til attestering til vilkårsvurdert er ikke lov`() {
-            assertThrows<StatusovergangVisitor.UgyldigStatusovergangException> {
-                statusovergang(
-                    tilAttesteringInnvilget,
-                    Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt())
-                )
-            }
-            assertThrows<StatusovergangVisitor.UgyldigStatusovergangException> {
-                statusovergang(
-                    tilAttesteringInnvilget,
-                    Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårAvslått())
-                )
-            }
-            assertThrows<StatusovergangVisitor.UgyldigStatusovergangException> {
-                statusovergang(
-                    tilAttesteringAvslagVilkår,
-                    Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt())
-                )
-            }
-            assertThrows<StatusovergangVisitor.UgyldigStatusovergangException> {
-                statusovergang(
-                    tilAttesteringAvslagVilkår,
-                    Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårAvslått())
-                )
-            }
-            assertThrows<StatusovergangVisitor.UgyldigStatusovergangException> {
-                statusovergang(
-                    tilAttesteringAvslagBeregning,
-                    Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt())
-                )
-            }
-            assertThrows<StatusovergangVisitor.UgyldigStatusovergangException> {
-                statusovergang(
-                    tilAttesteringAvslagBeregning,
-                    Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårAvslått())
-                )
-            }
-        }
-
-        @Test
-        fun `iverksatt til vilkårsvurdert er ikke lov`() {
-            assertThrows<StatusovergangVisitor.UgyldigStatusovergangException> {
-                statusovergang(
-                    iverksattInnvilget,
-                    Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt())
-                )
-            }
-            assertThrows<StatusovergangVisitor.UgyldigStatusovergangException> {
-                statusovergang(
-                    iverksattInnvilget,
-                    Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårAvslått())
-                )
-            }
-            assertThrows<StatusovergangVisitor.UgyldigStatusovergangException> {
-                statusovergang(
-                    iverksattAvslagVilkår,
-                    Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt())
-                )
-            }
-            assertThrows<StatusovergangVisitor.UgyldigStatusovergangException> {
-                statusovergang(
-                    iverksattAvslagVilkår,
-                    Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårAvslått())
-                )
-            }
-            assertThrows<StatusovergangVisitor.UgyldigStatusovergangException> {
-                statusovergang(
-                    iverksattAvslagBeregning,
-                    Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt())
-                )
-            }
-            assertThrows<StatusovergangVisitor.UgyldigStatusovergangException> {
-                statusovergang(
-                    iverksattAvslagBeregning,
-                    Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårAvslått())
-                )
+        fun `ulovlige statusoverganger`() {
+            listOf(
+                tilAttesteringInnvilget,
+                tilAttesteringAvslagVilkår,
+                tilAttesteringAvslagBeregning,
+                iverksattInnvilget,
+                iverksattAvslagVilkår,
+                iverksattAvslagBeregning,
+            ).forEach {
+                assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
+                    statusovergang(
+                        it,
+                        Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt())
+                    )
+                }
+                assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
+                    statusovergang(
+                        it,
+                        Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårAvslått())
+                    )
+                }
             }
         }
     }
@@ -361,7 +308,391 @@ internal class StatusovergangTest {
     @Nested
     inner class Beregnet {
         @Test
-        fun `vilkårsvurdert innvilget til beregnet`() {
+        fun `vilkårsvurdert innvilget til beregnet innvilget`() {
+            statusovergang(
+                vilkårsvurdertInnvilget,
+                Statusovergang.TilBeregnet { innvilgetBeregning }
+            ) shouldBe beregnetInnvilget
+        }
+
+        @Test
+        fun `vilkårsvurdert innvilget til beregnet avslag`() {
+            statusovergang(
+                vilkårsvurdertInnvilget,
+                Statusovergang.TilBeregnet { avslagBeregning }
+            ) shouldBe beregnetAvslag
+        }
+
+        @Test
+        fun `beregnet innvilget til beregnet innvilget`() {
+            statusovergang(
+                beregnetInnvilget,
+                Statusovergang.TilBeregnet { innvilgetBeregning }
+            ) shouldBe beregnetInnvilget
+        }
+
+        @Test
+        fun `beregnet innvilget til beregnet avslag`() {
+            statusovergang(
+                beregnetInnvilget,
+                Statusovergang.TilBeregnet { avslagBeregning }
+            ) shouldBe beregnetAvslag
+        }
+
+        @Test
+        fun `beregnet avslag til beregnet innvilget`() {
+            statusovergang(
+                beregnetAvslag,
+                Statusovergang.TilBeregnet { innvilgetBeregning }
+            ) shouldBe beregnetInnvilget
+        }
+
+        @Test
+        fun `beregnet avslag til beregnet avslag`() {
+            statusovergang(
+                beregnetAvslag,
+                Statusovergang.TilBeregnet { avslagBeregning }
+            ) shouldBe beregnetAvslag
+        }
+
+        @Test
+        fun `simulert til beregnet innvilget`() {
+            statusovergang(
+                simulert,
+                Statusovergang.TilBeregnet { innvilgetBeregning }
+            ) shouldBe beregnetInnvilget
+        }
+
+        @Test
+        fun `simulert til beregnet avslag`() {
+            statusovergang(
+                simulert,
+                Statusovergang.TilBeregnet { avslagBeregning }
+            ) shouldBe beregnetAvslag
+        }
+
+        @Test
+        fun `underkjent avslag med beregning til beregnet innvilget`() {
+            statusovergang(
+                underkjentAvslagBeregning,
+                Statusovergang.TilBeregnet { innvilgetBeregning }
+            ) shouldBe beregnetInnvilget
+        }
+
+        @Test
+        fun `underkjent avslag med beregning til beregnet avslag`() {
+            statusovergang(
+                underkjentAvslagBeregning,
+                Statusovergang.TilBeregnet { avslagBeregning }
+            ) shouldBe beregnetAvslag
+        }
+
+        @Test
+        fun `underkjent innvilget til beregnet innvilget`() {
+            statusovergang(
+                underkjentInnvilget,
+                Statusovergang.TilBeregnet { innvilgetBeregning }
+            ) shouldBe beregnetInnvilget
+        }
+
+        @Test
+        fun `underkjent innvilget til beregnet avslag`() {
+            statusovergang(
+                underkjentInnvilget,
+                Statusovergang.TilBeregnet { avslagBeregning }
+            ) shouldBe beregnetAvslag
+        }
+
+        @Test
+        fun `ulovlige statusoverganger`() {
+            listOf(
+                opprettet,
+                vilkårsvurdertAvslag,
+                tilAttesteringAvslagBeregning,
+                tilAttesteringAvslagVilkår,
+                tilAttesteringInnvilget,
+                underkjentAvslagVilkår,
+                iverksattAvslagBeregning,
+                iverksattAvslagVilkår,
+                iverksattInnvilget
+            ).forEach {
+                assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
+                    statusovergang(
+                        it,
+                        Statusovergang.TilBeregnet { innvilgetBeregning }
+                    )
+                }
+                assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
+                    statusovergang(
+                        it,
+                        Statusovergang.TilBeregnet { avslagBeregning }
+                    )
+                }
+            }
+        }
+    }
+
+    @Nested
+    inner class TilSimulert {
+        @Test
+        fun `beregnet innvilget til kunne ikke simulere`() {
+            forsøkStatusovergang(
+                beregnetInnvilget,
+                Statusovergang.TilSimulert {
+                    Statusovergang.KunneIkkeSimulereBehandling.left()
+                }
+            ) shouldBe Statusovergang.KunneIkkeSimulereBehandling.left()
+        }
+
+        @Test
+        fun `beregnet innvilget til simulering`() {
+            forsøkStatusovergang(
+                beregnetInnvilget,
+                Statusovergang.TilSimulert {
+                    simulering.right()
+                }
+            ) shouldBe simulert.right()
+        }
+
+        @Test
+        fun `simulering til kunne ikke simulere`() {
+            forsøkStatusovergang(
+                simulert,
+                Statusovergang.TilSimulert {
+                    Statusovergang.KunneIkkeSimulereBehandling.left()
+                }
+            ) shouldBe Statusovergang.KunneIkkeSimulereBehandling.left()
+        }
+
+        @Test
+        fun `simulering til simulering`() {
+            forsøkStatusovergang(
+                simulert,
+                Statusovergang.TilSimulert {
+                    simulering.right()
+                }
+            ) shouldBe simulert.right()
+        }
+
+        @Test
+        fun `underkjent innvilgning  til kunne ikke simulere`() {
+            forsøkStatusovergang(
+                underkjentInnvilget,
+                Statusovergang.TilSimulert {
+                    Statusovergang.KunneIkkeSimulereBehandling.left()
+                }
+            ) shouldBe Statusovergang.KunneIkkeSimulereBehandling.left()
+        }
+
+        @Test
+        fun `underkjent innvilgning til simulering`() {
+            forsøkStatusovergang(
+                underkjentInnvilget,
+                Statusovergang.TilSimulert {
+                    simulering.right()
+                }
+            ) shouldBe simulert.right()
+        }
+
+        @Test
+        fun `ulovlige overganger`() {
+            listOf(
+                opprettet,
+                vilkårsvurdertAvslag,
+                vilkårsvurdertInnvilget,
+                beregnetAvslag,
+                tilAttesteringAvslagBeregning,
+                tilAttesteringAvslagVilkår,
+                tilAttesteringInnvilget,
+                underkjentAvslagBeregning,
+                underkjentAvslagVilkår,
+                iverksattAvslagBeregning,
+                iverksattAvslagVilkår,
+                iverksattInnvilget
+            ).forEach {
+                assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
+                    forsøkStatusovergang(
+                        it,
+                        Statusovergang.TilSimulert { simulering.right() }
+                    )
+                }
+            }
+        }
+    }
+    @Nested
+    inner class TilAttestering {
+        @Test
+        fun `vilkårsvurder avslag til attestering`() {
+            statusovergang(
+                vilkårsvurdertAvslag,
+                Statusovergang.TilAttestering(saksbehandler)
+            ) shouldBe tilAttesteringAvslagVilkår
+        }
+
+        @Test
+        fun `vilkårsvurder beregning til attestering`() {
+            statusovergang(
+                beregnetAvslag,
+                Statusovergang.TilAttestering(saksbehandler)
+            ) shouldBe tilAttesteringAvslagBeregning
+        }
+
+        @Test
+        fun `simulert til attestering`() {
+            statusovergang(
+                simulert,
+                Statusovergang.TilAttestering(saksbehandler)
+            ) shouldBe tilAttesteringInnvilget
+        }
+
+        @Test
+        fun `underkjent avslag vilkår til attestering`() {
+            statusovergang(
+                underkjentAvslagVilkår,
+                Statusovergang.TilAttestering(saksbehandler)
+            ) shouldBe tilAttesteringAvslagVilkår
+        }
+
+        @Test
+        fun `underkjent avslag beregning til attestering`() {
+            statusovergang(
+                underkjentAvslagBeregning,
+                Statusovergang.TilAttestering(saksbehandler)
+            ) shouldBe tilAttesteringAvslagBeregning
+        }
+
+        @Test
+        fun `underkjent innvilging til attestering`() {
+            statusovergang(
+                underkjentInnvilget,
+                Statusovergang.TilAttestering(saksbehandler)
+            ) shouldBe tilAttesteringInnvilget
+        }
+
+        @Test
+        fun `ulovlige overganger`() {
+            listOf(
+                opprettet,
+                vilkårsvurdertInnvilget,
+                beregnetInnvilget,
+                tilAttesteringInnvilget,
+                tilAttesteringAvslagBeregning,
+                tilAttesteringAvslagVilkår,
+                iverksattAvslagBeregning,
+                iverksattAvslagVilkår,
+                iverksattInnvilget
+            ).forEach {
+                assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
+                    statusovergang(
+                        it,
+                        Statusovergang.TilAttestering(saksbehandler)
+                    )
+                }
+            }
+        }
+    }
+
+    @Nested
+    inner class TilUnderkjent {
+        @Test
+        fun `til attestering avslag vilkår til underkjent avslag vilkår`() {
+            statusovergang(
+                tilAttesteringAvslagVilkår,
+                Statusovergang.TilUnderkjent(underkjentAttestering)
+            ) shouldBe underkjentAvslagVilkår
+        }
+
+        @Test
+        fun `til attestering avslag beregning til underkjent avslag beregning`() {
+            statusovergang(
+                tilAttesteringAvslagBeregning,
+                Statusovergang.TilUnderkjent(underkjentAttestering)
+            ) shouldBe underkjentAvslagBeregning
+        }
+
+        @Test
+        fun `til attestering innvilget til underkjent innvilging`() {
+            statusovergang(
+                tilAttesteringInnvilget,
+                Statusovergang.TilUnderkjent(underkjentAttestering)
+            ) shouldBe underkjentInnvilget
+        }
+
+        @Test
+        fun `ulovlige overganger`() {
+            listOf(
+                opprettet,
+                vilkårsvurdertInnvilget,
+                vilkårsvurdertAvslag,
+                beregnetInnvilget,
+                beregnetAvslag,
+                simulert,
+                underkjentAvslagVilkår,
+                underkjentAvslagBeregning,
+                underkjentInnvilget,
+                iverksattAvslagBeregning,
+                iverksattAvslagVilkår,
+                iverksattInnvilget
+            ).forEach {
+                assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
+                    statusovergang(
+                        it,
+                        Statusovergang.TilUnderkjent(underkjentAttestering)
+                    )
+                }
+            }
+        }
+    }
+
+    @Nested
+    inner class TilIverksatt {
+        @Test
+        fun `attestert avslag vilkår til iverksatt avslag vilkår`() {
+            statusovergang(
+                tilAttesteringAvslagVilkår,
+                Statusovergang.TilIverksatt(attestering)
+            ) shouldBe iverksattAvslagVilkår
+        }
+
+        @Test
+        fun `attestert avslag beregning til iverksatt avslag beregning`() {
+            statusovergang(
+                tilAttesteringAvslagBeregning,
+                Statusovergang.TilIverksatt(attestering)
+            ) shouldBe iverksattAvslagBeregning
+        }
+
+        @Test
+        fun `attestert innvilget til iverksatt innvilging`() {
+            statusovergang(
+                tilAttesteringInnvilget,
+                Statusovergang.TilIverksatt(attestering)
+            ) shouldBe iverksattInnvilget
+        }
+
+        @Test
+        fun `ulovlige overganger`() {
+            listOf(
+                opprettet,
+                vilkårsvurdertInnvilget,
+                vilkårsvurdertAvslag,
+                beregnetInnvilget,
+                beregnetAvslag,
+                simulert,
+                underkjentAvslagVilkår,
+                underkjentAvslagBeregning,
+                underkjentInnvilget,
+                iverksattAvslagBeregning,
+                iverksattAvslagVilkår,
+                iverksattInnvilget
+            ).forEach {
+                assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
+                    statusovergang(
+                        it,
+                        Statusovergang.TilUnderkjent(underkjentAttestering)
+                    )
+                }
+            }
         }
     }
 }

@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.domain.behandling.Statusovergang
 import no.nav.su.se.bakover.domain.behandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.forsøkStatusovergang
 import no.nav.su.se.bakover.domain.behandling.statusovergang
-import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -31,6 +30,7 @@ import no.nav.su.se.bakover.service.behandling.KunneIkkeOppretteSøknadsbehandli
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeUnderkjenneBehandling
+import no.nav.su.se.bakover.service.beregning.BeregningService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.Event
@@ -95,6 +95,7 @@ class SaksbehandlingServiceImpl(
     private val oppgaveService: OppgaveService,
     private val iverksettSaksbehandlingService: IverksettSaksbehandlingService,
     private val behandlingMetrics: BehandlingMetrics,
+    private val beregningService: BeregningService,
 ) : SaksbehandlingService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -157,10 +158,9 @@ class SaksbehandlingServiceImpl(
 
         return statusovergang(
             søknadsbehandling = saksbehandling,
-            statusovergang = Statusovergang.TilBeregnet(
-                periode = request.periode,
-                fradrag = request.fradrag
-            )
+            statusovergang = Statusovergang.TilBeregnet {
+                beregningService.beregn(saksbehandling, request.periode, request.fradrag)
+            }
         ).let {
             saksbehandlingRepo.lagre(it)
             it.right()
@@ -172,10 +172,12 @@ class SaksbehandlingServiceImpl(
             ?: return KunneIkkeSimulereBehandling.FantIkkeBehandling.left()
         return forsøkStatusovergang(
             søknadsbehandling = saksbehandling,
-            statusovergang = Statusovergang.TilSimulert(request.saksbehandler) { uuid: UUID, navIdentBruker: NavIdentBruker, beregning: Beregning ->
-                utbetalingService.simulerUtbetaling(uuid, navIdentBruker, beregning)
+            statusovergang = Statusovergang.TilSimulert { beregning ->
+                utbetalingService.simulerUtbetaling(saksbehandling.sakId, request.saksbehandler, beregning)
                     .mapLeft {
                         Statusovergang.KunneIkkeSimulereBehandling
+                    }.map {
+                        it.simulering
                     }
             }
         ).mapLeft {

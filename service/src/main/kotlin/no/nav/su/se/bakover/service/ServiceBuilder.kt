@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.service.behandling.FerdigstillIverksettingService
 import no.nav.su.se.bakover.service.behandling.IverksettBehandlingService
 import no.nav.su.se.bakover.service.behandling.IverksettSaksbehandlingService
 import no.nav.su.se.bakover.service.behandling.JournalførIverksettingService
+import no.nav.su.se.bakover.service.beregning.BeregningService
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.BrevServiceImpl
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
@@ -155,7 +156,8 @@ class ServiceBuilder(
                 personService,
                 oppgaveService,
                 iverksettSaksbehandlingService,
-                behandlingMetrics
+                behandlingMetrics,
+                BeregningService(),
             ),
         )
     }
