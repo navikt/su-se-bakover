@@ -37,7 +37,7 @@ private object EnvironmentConfig {
 }
 
 data class ApplicationConfig(
-    val isRunningLocally: Boolean,
+    val runtimeEnvironment: RuntimeEnvironment,
     val leaderPodLookupPath: String,
     val pdfgenLocal: Boolean,
     val corsAllowOrigin: String,
@@ -48,6 +48,11 @@ data class ApplicationConfig(
     val clientsConfig: ClientsConfig,
     val kafkaConfig: KafkaConfig,
 ) {
+    enum class RuntimeEnvironment {
+        Test,
+        Local,
+        Nais
+    }
 
     data class ServiceUserConfig(
         val username: String,
@@ -357,7 +362,7 @@ data class ApplicationConfig(
         fun createConfig() = if (isRunningLocally()) createLocalConfig() else createFromEnvironmentVariables()
 
         fun createFromEnvironmentVariables() = ApplicationConfig(
-            isRunningLocally = false,
+            runtimeEnvironment = RuntimeEnvironment.Nais,
             leaderPodLookupPath = getEnvironmentVariableOrThrow("ELECTOR_PATH"),
             pdfgenLocal = false,
             corsAllowOrigin = getEnvironmentVariableOrThrow("ALLOW_CORS_ORIGIN"),
@@ -370,7 +375,7 @@ data class ApplicationConfig(
         )
 
         fun createLocalConfig() = ApplicationConfig(
-            isRunningLocally = true,
+            runtimeEnvironment = RuntimeEnvironment.Local,
             leaderPodLookupPath = "",
             pdfgenLocal = getEnvironmentVariableOrDefault("PDFGEN_LOCAL", "false").toBoolean(),
             corsAllowOrigin = "localhost:1234",

@@ -31,7 +31,7 @@ internal val fixedClock: Clock = Clock.fixed(1.januar(2021).startOfDay().instant
 internal val behandlingFactory = BehandlingFactory(mock(), fixedClock)
 
 val applicationConfig = ApplicationConfig(
-    isRunningLocally = false,
+    runtimeEnvironment = ApplicationConfig.RuntimeEnvironment.Test,
     leaderPodLookupPath = "leaderPodLookupPath",
     pdfgenLocal = false,
     corsAllowOrigin = "corsAllowOrigin",

@@ -8,6 +8,7 @@ import io.ktor.auth.jwt.JWTPrincipal
 import io.ktor.auth.jwt.jwt
 import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.web.stubs.JwkProviderStub
 import java.net.URL
 import java.util.concurrent.TimeUnit
 
@@ -17,14 +18,18 @@ internal fun Application.configureAuthentication(
 ) {
     val jwkConfig = oAuth.jwkConfig()
     val jwkProvider =
-        JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri")))
-            .cached(10, 24, TimeUnit.HOURS) // cache up to 10 JWKs for 24 hours
-            .rateLimited(
-                10,
-                1,
-                TimeUnit.MINUTES
-            ) // if not cached, only allow max 10 different keys per minute to be fetched from external provider
-            .build()
+        if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test) {
+            JwkProviderStub
+        } else {
+            JwkProviderBuilder(URL(jwkConfig.getString("jwks_uri")))
+                .cached(10, 24, TimeUnit.HOURS) // cache up to 10 JWKs for 24 hours
+                .rateLimited(
+                    10,
+                    1,
+                    TimeUnit.MINUTES
+                ) // if not cached, only allow max 10 different keys per minute to be fetched from external provider
+                .build()
+        }
 
     install(Authentication) {
         jwt("jwt") {
