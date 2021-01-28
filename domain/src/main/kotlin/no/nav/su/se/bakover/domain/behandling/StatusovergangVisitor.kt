@@ -2,44 +2,51 @@ package no.nav.su.se.bakover.domain.behandling
 
 interface StatusovergangVisitor {
     fun visit(søknadsbehandling: Søknadsbehandling.Opprettet) {
-        throw UgyldigStatusovergangException()
+        throw UgyldigStatusovergangException(søknadsbehandling, this)
     }
 
     fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Innvilget) {
-        throw UgyldigStatusovergangException()
+        throw UgyldigStatusovergangException(søknadsbehandling, this)
     }
 
-    fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert) {
-        throw UgyldigStatusovergangException()
-    }
-
-    fun visit(søknadsbehandling: Søknadsbehandling.Beregnet) {
-        throw UgyldigStatusovergangException()
-    }
-
-    fun visit(søknadsbehandling: Søknadsbehandling.Simulert) {
-        throw UgyldigStatusovergangException()
-    }
-
-    fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Avslag) {
-        throw UgyldigStatusovergangException()
+    fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Avslag) {
+        throw UgyldigStatusovergangException(søknadsbehandling, this)
     }
 
     fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Innvilget) {
-        throw UgyldigStatusovergangException()
+        throw UgyldigStatusovergangException(søknadsbehandling, this)
+    }
+
+    fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Avslag) {
+        throw UgyldigStatusovergangException(søknadsbehandling, this)
+    }
+
+    fun visit(søknadsbehandling: Søknadsbehandling.Simulert) {
+        throw UgyldigStatusovergangException(søknadsbehandling, this)
     }
 
     fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering) {
-        throw UgyldigStatusovergangException()
+        throw UgyldigStatusovergangException(søknadsbehandling, this)
     }
 
-    fun visit(søknadsbehandling: Søknadsbehandling.Attestert.Underkjent) {
-        throw UgyldigStatusovergangException()
+    fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Innvilget) {
+        throw UgyldigStatusovergangException(søknadsbehandling, this)
     }
 
-    fun visit(søknadsbehandling: Søknadsbehandling.Attestert) {
-        throw UgyldigStatusovergangException()
+    fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.MedBeregning) {
+        throw UgyldigStatusovergangException(søknadsbehandling, this)
     }
 
-    class UgyldigStatusovergangException : RuntimeException("Ugyldig statusovergang")
+    fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.UtenBeregning) {
+        throw UgyldigStatusovergangException(søknadsbehandling, this)
+    }
+
+    fun visit(søknadsbehandling: Søknadsbehandling.Iverksatt) {
+        throw UgyldigStatusovergangException(søknadsbehandling, this)
+    }
+
+    data class UgyldigStatusovergangException(
+        private val søknadsbehandling: Any,
+        private val statusovergang: Any,
+    ) : RuntimeException("Ugyldig statusovergang: ${statusovergang::class.qualifiedName} for type: ${søknadsbehandling::class.qualifiedName}")
 }

@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.behandling
 
 import arrow.core.Either
+import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
@@ -29,11 +30,19 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
             result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon).right()
         }
 
-        override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert) {
+        override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Innvilget) {
             result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon).right()
         }
 
-        override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet) {
+        override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Avslag) {
+            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon).right()
+        }
+
+        override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Innvilget) {
+            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon).right()
+        }
+
+        override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Avslag) {
             result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon).right()
         }
 
@@ -41,7 +50,15 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
             result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon).right()
         }
 
-        override fun visit(søknadsbehandling: Søknadsbehandling.Attestert.Underkjent) {
+        override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Innvilget) {
+            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon).right()
+        }
+
+        override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.MedBeregning) {
+            result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon).right()
+        }
+
+        override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.UtenBeregning) {
             result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon).right()
         }
     }
@@ -55,7 +72,11 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
             result = søknadsbehandling.tilBeregnet(beregn(søknadsbehandling)).right()
         }
 
-        override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet) {
+        override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Innvilget) {
+            result = søknadsbehandling.tilBeregnet(beregn(søknadsbehandling)).right()
+        }
+
+        override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Avslag) {
             result = søknadsbehandling.tilBeregnet(beregn(søknadsbehandling)).right()
         }
 
@@ -63,7 +84,11 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
             result = søknadsbehandling.tilBeregnet(beregn(søknadsbehandling)).right()
         }
 
-        override fun visit(søknadsbehandling: Søknadsbehandling.Attestert.Underkjent) {
+        override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.MedBeregning) {
+            result = søknadsbehandling.tilBeregnet(beregn(søknadsbehandling)).right()
+        }
+
+        override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Innvilget) {
             result = søknadsbehandling.tilBeregnet(beregn(søknadsbehandling)).right()
         }
 
@@ -80,6 +105,7 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
             return strategy.beregn(beregningsgrunnlag)
         }
     }
+
     object KunneIkkeSimulereBehandling
 
     class TilSimulert(
@@ -105,12 +131,53 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
         private val saksbehandler: NavIdentBruker.Saksbehandler
     ) : Statusovergang<Nothing, Søknadsbehandling.TilAttestering>() {
 
-        override fun visit(søknadsbehandling: Søknadsbehandling.Simulert) {
-            søknadsbehandling.tilAttestering(saksbehandler)
+        override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Avslag) {
+            result = søknadsbehandling.tilAttestering(saksbehandler).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Avslag) {
-            søknadsbehandling.tilAttestering(saksbehandler)
+            result = søknadsbehandling.tilAttestering(saksbehandler).right()
+        }
+
+        override fun visit(søknadsbehandling: Søknadsbehandling.Simulert) {
+            result = søknadsbehandling.tilAttestering(saksbehandler).right()
         }
     }
+
+    class TilUnderkjent(
+        private val attestering: Attestering
+    ) : Statusovergang<Nothing, Søknadsbehandling.Underkjent>() {
+
+        override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering) {
+            result = søknadsbehandling.tilUnderkjent(attestering).right()
+        }
+    }
+
+    class TilIverksatt(
+        private val attestering: Attestering
+    ) : Statusovergang<Nothing, Søknadsbehandling.Iverksatt>() {
+
+        override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering) {
+            result = søknadsbehandling.tilIverksatt(attestering).right()
+        }
+    }
+}
+
+fun <T> statusovergang(
+    søknadsbehandling: Søknadsbehandling,
+    statusovergang: Statusovergang<Nothing, T>
+): T {
+    return forsøkStatusovergang(søknadsbehandling, statusovergang).getOrHandle {
+        throw IllegalStateException("Det skjedde en feil ved statusovergang: $it")
+    }
+}
+
+fun <L, T> forsøkStatusovergang(
+    søknadsbehandling: Søknadsbehandling,
+    statusovergang: Statusovergang<L, T>
+): Either<L, T> {
+    søknadsbehandling.accept(statusovergang)
+    return statusovergang.get()
+    // .mapLeft { SaksbehandlingService.Feil } // TODO prolly do some mapping
+    // .map { it }
 }

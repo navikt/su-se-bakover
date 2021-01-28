@@ -16,7 +16,7 @@ sealed class Søknadsbehandling {
     abstract val opprettet: Tidspunkt
     abstract val sakId: UUID
     abstract val saksnummer: Saksnummer
-    abstract val søknad: Søknad
+    abstract val søknad: Søknad.Journalført.MedOppgave
     abstract val oppgaveId: OppgaveId
     abstract val behandlingsinformasjon: Behandlingsinformasjon
     abstract val status: Behandling.BehandlingsStatus
@@ -29,7 +29,7 @@ sealed class Søknadsbehandling {
         override val opprettet: Tidspunkt,
         override val sakId: UUID,
         override val saksnummer: Saksnummer,
-        override val søknad: Søknad,
+        override val søknad: Søknad.Journalført.MedOppgave,
         override val oppgaveId: OppgaveId,
         override val behandlingsinformasjon: Behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
         override val fnr: Fnr
@@ -54,14 +54,6 @@ sealed class Søknadsbehandling {
     }
 
     sealed class Vilkårsvurdert : Søknadsbehandling() {
-        // abstract override val id: UUID
-        // abstract override val opprettet: Tidspunkt
-        // abstract override val sakId: UUID
-        // abstract override val søknad: Søknad
-        // abstract override val oppgaveId: OppgaveId
-        // abstract override val behandlingsinformasjon: Behandlingsinformasjon
-        // abstract override val fnr: Fnr
-
         fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon): Søknadsbehandling =
             opprett(
                 id,
@@ -93,7 +85,7 @@ sealed class Søknadsbehandling {
                 opprettet: Tidspunkt,
                 sakId: UUID,
                 saksnummer: Saksnummer,
-                søknad: Søknad,
+                søknad: Søknad.Journalført.MedOppgave,
                 oppgaveId: OppgaveId,
                 behandlingsinformasjon: Behandlingsinformasjon,
                 fnr: Fnr
@@ -144,7 +136,7 @@ sealed class Søknadsbehandling {
             override val opprettet: Tidspunkt,
             override val sakId: UUID,
             override val saksnummer: Saksnummer,
-            override val søknad: Søknad,
+            override val søknad: Søknad.Journalført.MedOppgave,
             override val oppgaveId: OppgaveId,
             override val behandlingsinformasjon: Behandlingsinformasjon,
             override val fnr: Fnr
@@ -162,7 +154,7 @@ sealed class Søknadsbehandling {
             override val opprettet: Tidspunkt,
             override val sakId: UUID,
             override val saksnummer: Saksnummer,
-            override val søknad: Søknad,
+            override val søknad: Søknad.Journalført.MedOppgave,
             override val oppgaveId: OppgaveId,
             override val behandlingsinformasjon: Behandlingsinformasjon,
             override val fnr: Fnr
@@ -174,7 +166,7 @@ sealed class Søknadsbehandling {
                 visitor.visit(this)
             }
 
-            fun tilAttestering(saksbehandler: NavIdentBruker.Saksbehandler): TilAttestering.Avslag =
+            fun tilAttestering(saksbehandler: NavIdentBruker.Saksbehandler): TilAttestering.Avslag.UtenBeregning =
                 TilAttestering.Avslag.UtenBeregning(
                     id,
                     opprettet,
@@ -193,7 +185,7 @@ sealed class Søknadsbehandling {
         abstract override val id: UUID
         abstract override val opprettet: Tidspunkt
         abstract override val sakId: UUID
-        abstract override val søknad: Søknad
+        abstract override val søknad: Søknad.Journalført.MedOppgave
         abstract override val oppgaveId: OppgaveId
         abstract override val behandlingsinformasjon: Behandlingsinformasjon
         abstract override val fnr: Fnr
@@ -214,7 +206,7 @@ sealed class Søknadsbehandling {
         fun tilBeregnet(beregning: Beregning): Søknadsbehandling =
             opprett(id, opprettet, sakId, saksnummer, søknad, oppgaveId, behandlingsinformasjon, fnr, beregning)
 
-        fun tilSimulert(simulering: Simulering): Søknadsbehandling =
+        fun tilSimulert(simulering: Simulering): Søknadsbehandling.Simulert =
             Simulert(
                 id,
                 opprettet,
@@ -234,7 +226,7 @@ sealed class Søknadsbehandling {
                 opprettet: Tidspunkt,
                 sakId: UUID,
                 saksnummer: Saksnummer,
-                søknad: Søknad,
+                søknad: Søknad.Journalført.MedOppgave,
                 oppgaveId: OppgaveId,
                 behandlingsinformasjon: Behandlingsinformasjon,
                 fnr: Fnr,
@@ -271,7 +263,7 @@ sealed class Søknadsbehandling {
             override val opprettet: Tidspunkt,
             override val sakId: UUID,
             override val saksnummer: Saksnummer,
-            override val søknad: Søknad,
+            override val søknad: Søknad.Journalført.MedOppgave,
             override val oppgaveId: OppgaveId,
             override val behandlingsinformasjon: Behandlingsinformasjon,
             override val fnr: Fnr,
@@ -289,7 +281,7 @@ sealed class Søknadsbehandling {
             override val opprettet: Tidspunkt,
             override val sakId: UUID,
             override val saksnummer: Saksnummer,
-            override val søknad: Søknad,
+            override val søknad: Søknad.Journalført.MedOppgave,
             override val oppgaveId: OppgaveId,
             override val behandlingsinformasjon: Behandlingsinformasjon,
             override val fnr: Fnr,
@@ -306,7 +298,7 @@ sealed class Søknadsbehandling {
                 visitor.visit(this)
             }
 
-            fun tilAttestering(saksbehandler: NavIdentBruker.Saksbehandler): TilAttestering.Avslag =
+            fun tilAttestering(saksbehandler: NavIdentBruker.Saksbehandler): TilAttestering.Avslag.MedBeregning =
                 TilAttestering.Avslag.MedBeregning(
                     id,
                     opprettet,
@@ -327,7 +319,7 @@ sealed class Søknadsbehandling {
         override val opprettet: Tidspunkt,
         override val sakId: UUID,
         override val saksnummer: Saksnummer,
-        override val søknad: Søknad,
+        override val søknad: Søknad.Journalført.MedOppgave,
         override val oppgaveId: OppgaveId,
         override val behandlingsinformasjon: Behandlingsinformasjon,
         override val fnr: Fnr,
@@ -398,13 +390,15 @@ sealed class Søknadsbehandling {
     sealed class TilAttestering : Søknadsbehandling() {
         abstract val saksbehandler: NavIdentBruker
         abstract fun nyOppgaveId(nyOppgaveId: OppgaveId): TilAttestering
+        abstract fun tilUnderkjent(attestering: Attestering): Underkjent
+        abstract fun tilIverksatt(attestering: Attestering): Iverksatt
 
         data class Innvilget(
             override val id: UUID,
             override val opprettet: Tidspunkt,
             override val sakId: UUID,
             override val saksnummer: Saksnummer,
-            override val søknad: Søknad,
+            override val søknad: Søknad.Journalført.MedOppgave,
             override val oppgaveId: OppgaveId,
             override val behandlingsinformasjon: Behandlingsinformasjon,
             override val fnr: Fnr,
@@ -422,11 +416,45 @@ sealed class Søknadsbehandling {
             override fun nyOppgaveId(nyOppgaveId: OppgaveId): Innvilget {
                 return this.copy(oppgaveId = nyOppgaveId)
             }
+
+            override fun tilUnderkjent(attestering: Attestering): Underkjent.Innvilget {
+                return Underkjent.Innvilget(
+                    id,
+                    opprettet,
+                    sakId,
+                    saksnummer,
+                    søknad,
+                    oppgaveId,
+                    behandlingsinformasjon,
+                    fnr,
+                    beregning,
+                    simulering,
+                    saksbehandler,
+                    attestering
+                )
+            }
+
+            override fun tilIverksatt(attestering: Attestering): Iverksatt.Innvilget {
+                return Iverksatt.Innvilget(
+                    id,
+                    opprettet,
+                    sakId,
+                    saksnummer,
+                    søknad,
+                    oppgaveId,
+                    behandlingsinformasjon,
+                    fnr,
+                    beregning,
+                    simulering,
+                    saksbehandler,
+                    attestering
+                )
+            }
         }
 
         sealed class Avslag : TilAttestering() {
             final override val status: Behandling.BehandlingsStatus =
-                Behandling.BehandlingsStatus.TIL_ATTESTERING_INNVILGET
+                Behandling.BehandlingsStatus.TIL_ATTESTERING_AVSLAG
 
             override fun accept(visitor: StatusovergangVisitor) {
                 visitor.visit(this)
@@ -437,7 +465,7 @@ sealed class Søknadsbehandling {
                 override val opprettet: Tidspunkt,
                 override val sakId: UUID,
                 override val saksnummer: Saksnummer,
-                override val søknad: Søknad,
+                override val søknad: Søknad.Journalført.MedOppgave,
                 override val oppgaveId: OppgaveId,
                 override val behandlingsinformasjon: Behandlingsinformasjon,
                 override val fnr: Fnr,
@@ -451,6 +479,36 @@ sealed class Søknadsbehandling {
                 override fun nyOppgaveId(nyOppgaveId: OppgaveId): UtenBeregning {
                     return this.copy(oppgaveId = nyOppgaveId)
                 }
+
+                override fun tilUnderkjent(attestering: Attestering): Underkjent.Avslag.UtenBeregning {
+                    return Underkjent.Avslag.UtenBeregning(
+                        id,
+                        opprettet,
+                        sakId,
+                        saksnummer,
+                        søknad,
+                        oppgaveId,
+                        behandlingsinformasjon,
+                        fnr,
+                        saksbehandler,
+                        attestering
+                    )
+                }
+
+                override fun tilIverksatt(attestering: Attestering): Iverksatt.Avslag.UtenBeregning {
+                    return Iverksatt.Avslag.UtenBeregning(
+                        id,
+                        opprettet,
+                        sakId,
+                        saksnummer,
+                        søknad,
+                        oppgaveId,
+                        behandlingsinformasjon,
+                        fnr,
+                        saksbehandler,
+                        attestering
+                    )
+                }
             }
 
             data class MedBeregning(
@@ -458,7 +516,7 @@ sealed class Søknadsbehandling {
                 override val opprettet: Tidspunkt,
                 override val sakId: UUID,
                 override val saksnummer: Saksnummer,
-                override val søknad: Søknad,
+                override val søknad: Søknad.Journalført.MedOppgave,
                 override val oppgaveId: OppgaveId,
                 override val behandlingsinformasjon: Behandlingsinformasjon,
                 override val fnr: Fnr,
@@ -473,46 +531,93 @@ sealed class Søknadsbehandling {
                 override fun nyOppgaveId(nyOppgaveId: OppgaveId): MedBeregning {
                     return this.copy(oppgaveId = nyOppgaveId)
                 }
+
+                override fun tilUnderkjent(attestering: Attestering): Underkjent.Avslag.MedBeregning {
+                    return Underkjent.Avslag.MedBeregning(
+                        id,
+                        opprettet,
+                        sakId,
+                        saksnummer,
+                        søknad,
+                        oppgaveId,
+                        behandlingsinformasjon,
+                        fnr,
+                        beregning,
+                        saksbehandler,
+                        attestering
+                    )
+                }
+
+                override fun tilIverksatt(attestering: Attestering): Iverksatt.Avslag.MedBeregning {
+                    return Iverksatt.Avslag.MedBeregning(
+                        id,
+                        opprettet,
+                        sakId,
+                        saksnummer,
+                        søknad,
+                        oppgaveId,
+                        behandlingsinformasjon,
+                        fnr,
+                        beregning,
+                        saksbehandler,
+                        attestering
+                    )
+                }
             }
         }
     }
 
-    sealed class Attestert : Søknadsbehandling() {
-
+    sealed class Underkjent : Søknadsbehandling() {
+        abstract override val id: UUID
+        abstract override val opprettet: Tidspunkt
+        abstract override val sakId: UUID
+        abstract override val saksnummer: Saksnummer
+        abstract override val søknad: Søknad.Journalført.MedOppgave
+        abstract override val oppgaveId: OppgaveId
+        abstract override val behandlingsinformasjon: Behandlingsinformasjon
+        abstract override val fnr: Fnr
+        abstract val saksbehandler: NavIdentBruker
         abstract val attestering: Attestering
 
-        data class Underkjent(
+        abstract fun nyOppgaveId(nyOppgaveId: OppgaveId): Underkjent
+
+        fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon): Søknadsbehandling =
+            Vilkårsvurdert.opprett(
+                id,
+                opprettet,
+                sakId,
+                saksnummer,
+                søknad,
+                oppgaveId,
+                this.behandlingsinformasjon.patch(behandlingsinformasjon),
+                fnr
+            )
+
+        data class Innvilget(
             override val id: UUID,
             override val opprettet: Tidspunkt,
             override val sakId: UUID,
             override val saksnummer: Saksnummer,
-            override val søknad: Søknad,
+            override val søknad: Søknad.Journalført.MedOppgave,
             override val oppgaveId: OppgaveId,
             override val behandlingsinformasjon: Behandlingsinformasjon,
             override val fnr: Fnr,
             val beregning: Beregning,
             val simulering: Simulering,
-            val saksbehandler: NavIdentBruker,
+            override val saksbehandler: NavIdentBruker,
             override val attestering: Attestering
-        ) : Attestert() {
+        ) : Underkjent() {
+
+            override fun nyOppgaveId(nyOppgaveId: OppgaveId): Innvilget {
+                return this.copy(oppgaveId = nyOppgaveId)
+            }
+
             override val status: Behandling.BehandlingsStatus =
                 Behandling.BehandlingsStatus.UNDERKJENT_INNVILGET
 
             override fun accept(visitor: StatusovergangVisitor) {
                 visitor.visit(this)
             }
-
-            fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon): Søknadsbehandling =
-                Vilkårsvurdert.opprett(
-                    id,
-                    opprettet,
-                    sakId,
-                    saksnummer,
-                    søknad,
-                    oppgaveId,
-                    this.behandlingsinformasjon.patch(behandlingsinformasjon),
-                    fnr
-                )
 
             fun tilBeregnet(beregning: Beregning): Beregnet =
                 Beregnet.opprett(
@@ -542,51 +647,222 @@ sealed class Søknadsbehandling {
                 )
         }
 
-        sealed class Iverksatt : Attestert() {
-            data class Innvilget(
+        sealed class Avslag : Underkjent() {
+            data class MedBeregning(
                 override val id: UUID,
                 override val opprettet: Tidspunkt,
                 override val sakId: UUID,
                 override val saksnummer: Saksnummer,
-                override val søknad: Søknad,
+                override val søknad: Søknad.Journalført.MedOppgave,
                 override val oppgaveId: OppgaveId,
                 override val behandlingsinformasjon: Behandlingsinformasjon,
                 override val fnr: Fnr,
                 val beregning: Beregning,
-                val simulering: Simulering,
-                val saksbehandler: NavIdentBruker,
-                override val attestering: Attestering,
-            ) : Iverksatt() {
+                override val saksbehandler: NavIdentBruker,
+                override val attestering: Attestering
+            ) : Underkjent() {
                 override val status: Behandling.BehandlingsStatus =
-                    Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
+                    Behandling.BehandlingsStatus.UNDERKJENT_AVSLAG
+
+                override fun nyOppgaveId(nyOppgaveId: OppgaveId): Avslag.MedBeregning {
+                    return this.copy(oppgaveId = nyOppgaveId)
+                }
 
                 override fun accept(visitor: StatusovergangVisitor) {
                     visitor.visit(this)
                 }
+
+                fun tilBeregnet(beregning: Beregning): Beregnet =
+                    Beregnet.opprett(
+                        id,
+                        opprettet,
+                        sakId,
+                        saksnummer,
+                        søknad,
+                        oppgaveId,
+                        behandlingsinformasjon,
+                        fnr,
+                        beregning
+                    )
+
+                fun tilSimulert(simulering: Simulering): Søknadsbehandling.Simulert =
+                    Simulert(
+                        id,
+                        opprettet,
+                        sakId,
+                        saksnummer,
+                        søknad,
+                        oppgaveId,
+                        behandlingsinformasjon,
+                        fnr,
+                        beregning,
+                        simulering
+                    )
             }
 
-            data class OversendtOppdrag(
+            data class UtenBeregning(
                 override val id: UUID,
                 override val opprettet: Tidspunkt,
                 override val sakId: UUID,
                 override val saksnummer: Saksnummer,
-                override val søknad: Søknad,
+                override val søknad: Søknad.Journalført.MedOppgave,
                 override val oppgaveId: OppgaveId,
                 override val behandlingsinformasjon: Behandlingsinformasjon,
                 override val fnr: Fnr,
-                val beregning: Beregning,
-                val simulering: Simulering,
-                val saksbehandler: NavIdentBruker,
-                override val attestering: Attestering,
-                val utbetaling: Utbetaling
-            ) : Iverksatt() {
+                override val saksbehandler: NavIdentBruker,
+                override val attestering: Attestering
+            ) : Underkjent() {
                 override val status: Behandling.BehandlingsStatus =
-                    Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
+                    Behandling.BehandlingsStatus.UNDERKJENT_AVSLAG
+
+                override fun nyOppgaveId(nyOppgaveId: OppgaveId): Avslag.UtenBeregning {
+                    return this.copy(oppgaveId = nyOppgaveId)
+                }
 
                 override fun accept(visitor: StatusovergangVisitor) {
                     visitor.visit(this)
                 }
             }
         }
+    }
+
+    sealed class Iverksatt : Søknadsbehandling() {
+        abstract override val id: UUID
+        abstract override val opprettet: Tidspunkt
+        abstract override val sakId: UUID
+        abstract override val saksnummer: Saksnummer
+        abstract override val søknad: Søknad.Journalført.MedOppgave
+        abstract override val oppgaveId: OppgaveId
+        abstract override val behandlingsinformasjon: Behandlingsinformasjon
+        abstract override val fnr: Fnr
+        abstract val saksbehandler: NavIdentBruker
+        abstract val attestering: Attestering
+
+        data class Innvilget(
+            override val id: UUID,
+            override val opprettet: Tidspunkt,
+            override val sakId: UUID,
+            override val saksnummer: Saksnummer,
+            override val søknad: Søknad.Journalført.MedOppgave,
+            override val oppgaveId: OppgaveId,
+            override val behandlingsinformasjon: Behandlingsinformasjon,
+            override val fnr: Fnr,
+            val beregning: Beregning,
+            val simulering: Simulering,
+            override val saksbehandler: NavIdentBruker,
+            override val attestering: Attestering
+        ) : Iverksatt() {
+            override val status: Behandling.BehandlingsStatus =
+                Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
+
+            override fun accept(visitor: StatusovergangVisitor) {
+                visitor.visit(this)
+            }
+
+            fun tilUtbetalt(utbetaling: Utbetaling) = Utbetalt(
+                id,
+                opprettet,
+                sakId,
+                saksnummer,
+                søknad,
+                oppgaveId,
+                behandlingsinformasjon,
+                fnr,
+                beregning,
+                simulering,
+                saksbehandler,
+                attestering,
+                utbetaling
+            )
+        }
+
+        data class Utbetalt(
+            override val id: UUID,
+            override val opprettet: Tidspunkt,
+            override val sakId: UUID,
+            override val saksnummer: Saksnummer,
+            override val søknad: Søknad.Journalført.MedOppgave,
+            override val oppgaveId: OppgaveId,
+            override val behandlingsinformasjon: Behandlingsinformasjon,
+            override val fnr: Fnr,
+            val beregning: Beregning,
+            val simulering: Simulering,
+            override val saksbehandler: NavIdentBruker,
+            override val attestering: Attestering,
+            val utbetaling: Utbetaling
+        ) : Iverksatt() {
+            override val status: Behandling.BehandlingsStatus =
+                Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
+
+            override fun accept(visitor: StatusovergangVisitor) {
+                visitor.visit(this)
+            }
+        }
+
+        sealed class Avslag : Iverksatt() {
+            data class MedBeregning(
+                override val id: UUID,
+                override val opprettet: Tidspunkt,
+                override val sakId: UUID,
+                override val saksnummer: Saksnummer,
+                override val søknad: Søknad.Journalført.MedOppgave,
+                override val oppgaveId: OppgaveId,
+                override val behandlingsinformasjon: Behandlingsinformasjon,
+                override val fnr: Fnr,
+                val beregning: Beregning,
+                override val saksbehandler: NavIdentBruker,
+                override val attestering: Attestering
+            ) : Avslag() {
+                override val status: Behandling.BehandlingsStatus =
+                    Behandling.BehandlingsStatus.IVERKSATT_AVSLAG
+
+                override fun accept(visitor: StatusovergangVisitor) {
+                    visitor.visit(this)
+                }
+            }
+
+            data class UtenBeregning(
+                override val id: UUID,
+                override val opprettet: Tidspunkt,
+                override val sakId: UUID,
+                override val saksnummer: Saksnummer,
+                override val søknad: Søknad.Journalført.MedOppgave,
+                override val oppgaveId: OppgaveId,
+                override val behandlingsinformasjon: Behandlingsinformasjon,
+                override val fnr: Fnr,
+                override val saksbehandler: NavIdentBruker,
+                override val attestering: Attestering
+            ) : Avslag() {
+                override val status: Behandling.BehandlingsStatus =
+                    Behandling.BehandlingsStatus.IVERKSATT_AVSLAG
+
+                override fun accept(visitor: StatusovergangVisitor) {
+                    visitor.visit(this)
+                }
+            }
+        }
+
+        // data class OversendtOppdrag(
+        //     override val id: UUID,
+        //     override val opprettet: Tidspunkt,
+        //     override val sakId: UUID,
+        //     override val saksnummer: Saksnummer,
+        //     override val søknad: Søknad,
+        //     override val oppgaveId: OppgaveId,
+        //     override val behandlingsinformasjon: Behandlingsinformasjon,
+        //     override val fnr: Fnr,
+        //     val beregning: Beregning,
+        //     val simulering: Simulering,
+        //     val saksbehandler: NavIdentBruker,
+        //     override val attestering: Attestering,
+        //     val utbetaling: Utbetaling
+        // ) : Iverksatt() {
+        //     override val status: Behandling.BehandlingsStatus =
+        //         Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
+        //
+        //     override fun accept(visitor: StatusovergangVisitor) {
+        //         visitor.visit(this)
+        //     }
+        // }
     }
 }

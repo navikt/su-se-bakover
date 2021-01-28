@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.database.beregning.TestBeregning
 import no.nav.su.se.bakover.database.beregning.toSnapshot
+import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
@@ -34,7 +35,7 @@ internal class SaksbehandlingsPostgresRepoTest {
         fun `kan sette inn tom saksbehandling`() {
             withMigratedDb {
                 val sak = setup()
-                val søknad = sak.søknader().first()
+                val søknad = sak.søknader().first() as Søknad.Journalført.MedOppgave
 
                 val saksbehandling = Søknadsbehandling.Opprettet(
                     id = saksbehandlingId,
@@ -56,7 +57,7 @@ internal class SaksbehandlingsPostgresRepoTest {
         fun `kan oppdatere tom saksbehandling med ny behandlingsinformasjon`() {
             withMigratedDb {
                 val sak = setup()
-                val søknad = sak.søknader().first()
+                val søknad = sak.søknader().first() as Søknad.Journalført.MedOppgave
                 val saksbehandling = Søknadsbehandling.Opprettet(
                     id = saksbehandlingId,
                     opprettet = opprettet,
@@ -92,7 +93,7 @@ internal class SaksbehandlingsPostgresRepoTest {
         fun `oppdaterer status og behandlingsinformasjon og sletter beregning og simulering hvis de eksisterer`() {
             withMigratedDb {
                 val sak = setup()
-                val søknad = sak.søknader().first()
+                val søknad = sak.søknader().first() as Søknad.Journalført.MedOppgave
                 val saksbehandling = Søknadsbehandling.Simulert(
                     id = saksbehandlingId,
                     opprettet = opprettet,

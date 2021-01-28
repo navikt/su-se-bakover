@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.service
 
 import arrow.core.Either
 import arrow.core.getOrElse
-import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -17,8 +16,11 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.Statusovergang
 import no.nav.su.se.bakover.domain.behandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.behandling.forsøkStatusovergang
+import no.nav.su.se.bakover.domain.behandling.statusovergang
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.service.behandling.IverksettSaksbehandlingService
@@ -28,6 +30,7 @@ import no.nav.su.se.bakover.service.behandling.KunneIkkeOppdatereBehandlingsinfo
 import no.nav.su.se.bakover.service.behandling.KunneIkkeOppretteSøknadsbehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSimulereBehandling
+import no.nav.su.se.bakover.service.behandling.KunneIkkeUnderkjenneBehandling
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.Event
@@ -63,19 +66,15 @@ data class SendTilAttesteringRequest(
     val saksbehandler: NavIdentBruker.Saksbehandler
 )
 
-sealed class AttesterRequest {
-    sealed class Søknadsbehandling : AttesterRequest() {
-        data class Underkjenn(
-            val behandlingId: UUID,
-            val attestering: Attestering.Underkjent
-        ) : Søknadsbehandling()
+data class UnderkjennSøknadsbehandlingRequest(
+    val behandlingId: UUID,
+    val attestering: Attestering.Underkjent
+)
 
-        data class Iverksett(
-            val behandlingId: UUID,
-            val attestant: NavIdentBruker.Attestant
-        ) : Søknadsbehandling()
-    }
-}
+data class IverksettSøknadsbehandlingRequest(
+    val behandlingId: UUID,
+    val attestering: Attestering
+)
 
 interface SaksbehandlingService {
     fun opprett(request: OpprettSøknadsbehandlingRequest): Either<KunneIkkeOppretteSøknadsbehandling, Søknadsbehandling>
@@ -83,9 +82,8 @@ interface SaksbehandlingService {
     fun beregn(request: OpprettBeregningRequest): Either<KunneIkkeBeregne, Søknadsbehandling>
     fun simuler(request: OpprettSimuleringRequest): Either<KunneIkkeSimulereBehandling, Søknadsbehandling>
     fun sendTilAttestering(request: SendTilAttesteringRequest): Either<KunneIkkeSendeTilAttestering, Søknadsbehandling>
-    fun attester(request: AttesterRequest): Either<KunneIkkeIverksetteBehandling, Søknadsbehandling>
-
-    object Feil
+    fun underkjenn(request: UnderkjennSøknadsbehandlingRequest): Either<KunneIkkeUnderkjenneBehandling, Søknadsbehandling>
+    fun iverksett(request: IverksettSøknadsbehandlingRequest): Either<KunneIkkeIverksetteBehandling, Søknadsbehandling>
 }
 
 class SaksbehandlingServiceImpl(
@@ -141,25 +139,6 @@ class SaksbehandlingServiceImpl(
         return opprettet.right()
     }
 
-    private fun <T> statusovergang(
-        søknadsbehandling: Søknadsbehandling,
-        statusovergang: Statusovergang<Nothing, T>
-    ): T {
-        return forsøkStatusovergang(søknadsbehandling, statusovergang).getOrHandle {
-            throw IllegalStateException("Det skjedde en feil ved statusovergang: $it")
-        }
-    }
-
-    private fun <L, T> forsøkStatusovergang(
-        søknadsbehandling: Søknadsbehandling,
-        statusovergang: Statusovergang<L, T>
-    ): Either<L, T> {
-        søknadsbehandling.accept(statusovergang)
-        return statusovergang.get()
-        // .mapLeft { SaksbehandlingService.Feil } // TODO prolly do some mapping
-        // .map { it }
-    }
-
     override fun vilkårsvurder(request: OppdaterSøknadsbehandlingsinformasjonRequest): Either<KunneIkkeOppdatereBehandlingsinformasjon, Søknadsbehandling> {
         val saksbehandling = saksbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeOppdatereBehandlingsinformasjon.FantIkkeBehandling.left()
@@ -194,9 +173,10 @@ class SaksbehandlingServiceImpl(
         return forsøkStatusovergang(
             søknadsbehandling = saksbehandling,
             statusovergang = Statusovergang.TilSimulert(request.saksbehandler) { uuid: UUID, navIdentBruker: NavIdentBruker, beregning: Beregning ->
-                utbetalingService.simulerUtbetaling(uuid, navIdentBruker, beregning).mapLeft {
-                    Statusovergang.KunneIkkeSimulereBehandling
-                }
+                utbetalingService.simulerUtbetaling(uuid, navIdentBruker, beregning)
+                    .mapLeft {
+                        Statusovergang.KunneIkkeSimulereBehandling
+                    }
             }
         ).mapLeft {
             KunneIkkeSimulereBehandling.KunneIkkeSimulere
@@ -208,7 +188,10 @@ class SaksbehandlingServiceImpl(
 
     override fun sendTilAttestering(request: SendTilAttesteringRequest): Either<KunneIkkeSendeTilAttestering, Søknadsbehandling> {
         val søknadsbehandling = saksbehandlingRepo.hent(request.behandlingId)?.let {
-            statusovergang(it, Statusovergang.TilAttestering(request.saksbehandler))
+            statusovergang(
+                søknadsbehandling = it,
+                statusovergang = Statusovergang.TilAttestering(request.saksbehandler)
+            )
         } ?: return KunneIkkeSendeTilAttestering.FantIkkeBehandling.left()
 
         val aktørId = personService.hentAktørId(søknadsbehandling.fnr).getOrElse {
@@ -243,44 +226,66 @@ class SaksbehandlingServiceImpl(
         }
 
         behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.OPPRETTET_OPPGAVE)
-        return søknadsbehandling.right()
+        return søknadsbehandlingMedNyOppgaveId.right()
     }
 
-    override fun attester(request: AttesterRequest): Either<KunneIkkeIverksetteBehandling, Søknadsbehandling> {
-        return when (request) {
-            is AttesterRequest.Søknadsbehandling.Underkjenn -> {
-                when (val opprinnelig = saksbehandlingRepo.hent(request.behandlingId)!!) {
-                    is Søknadsbehandling.TilAttestering.Innvilget -> {
-                        saksbehandlingRepo.lagre(
-                            Søknadsbehandling.Attestert.Underkjent(
-                                id = opprinnelig.id,
-                                opprettet = opprinnelig.opprettet,
-                                sakId = opprinnelig.sakId,
-                                saksnummer = opprinnelig.saksnummer,
-                                søknad = opprinnelig.søknad,
-                                oppgaveId = opprinnelig.oppgaveId,
-                                behandlingsinformasjon = opprinnelig.behandlingsinformasjon,
-                                beregning = opprinnelig.beregning,
-                                simulering = opprinnelig.simulering,
-                                saksbehandler = opprinnelig.saksbehandler,
-                                fnr = opprinnelig.fnr,
-                                attestering = request.attestering
-                            )
-                        )
-                        saksbehandlingRepo.hent(opprinnelig.id)!!.right()
-                    }
-                    else -> throw NotImplementedError()
-                }
-            }
-            is AttesterRequest.Søknadsbehandling.Iverksett -> {
-                @Suppress("UNUSED_VARIABLE")
-                when (val opprinnelig = saksbehandlingRepo.hent(request.behandlingId)!!) {
-                    is Søknadsbehandling.TilAttestering.Innvilget -> {
-                        iverksettSaksbehandlingService.iverksett(request)
-                    }
-                    else -> throw NotImplementedError()
-                }
-            }
+    override fun underkjenn(request: UnderkjennSøknadsbehandlingRequest): Either<KunneIkkeUnderkjenneBehandling, Søknadsbehandling> {
+        val søknadsbehandling = saksbehandlingRepo.hent(request.behandlingId)?.let {
+            statusovergang(
+                søknadsbehandling = it,
+                statusovergang = Statusovergang.TilUnderkjent(request.attestering)
+            )
+        } ?: return KunneIkkeUnderkjenneBehandling.FantIkkeBehandling.left()
+
+        // TODO attestant kan ikke være saksbehandler
+        val aktørId = personService.hentAktørId(søknadsbehandling.fnr).getOrElse {
+            log.error("Fant ikke aktør-id med for fødselsnummer : ${søknadsbehandling.fnr}")
+            return KunneIkkeUnderkjenneBehandling.FantIkkeAktørId.left()
         }
+
+        val journalpostId: JournalpostId = søknadsbehandling.søknad.journalpostId
+        val eksisterendeOppgaveId = søknadsbehandling.oppgaveId
+        val nyOppgaveId = oppgaveService.opprettOppgave(
+            OppgaveConfig.Saksbehandling(
+                journalpostId = journalpostId,
+                søknadId = søknadsbehandling.søknad.id,
+                aktørId = aktørId,
+                tilordnetRessurs = søknadsbehandling.saksbehandler
+            )
+        ).getOrElse {
+            log.error("Behandling ${søknadsbehandling.id} ble ikke underkjent. Klarte ikke opprette behandlingsoppgave")
+            return@underkjenn KunneIkkeUnderkjenneBehandling.KunneIkkeOppretteOppgave.left()
+        }.also {
+            behandlingMetrics.incrementUnderkjentCounter(BehandlingMetrics.UnderkjentHandlinger.OPPRETTET_OPPGAVE)
+        }
+
+        val søknadsbehandlingMedNyOppgaveId = søknadsbehandling.nyOppgaveId(nyOppgaveId)
+
+        saksbehandlingRepo.lagre(søknadsbehandlingMedNyOppgaveId)
+        log.info("Behandling ${søknadsbehandling.id} ble underkjent. Opprettet behandlingsoppgave $nyOppgaveId")
+
+        oppgaveService.lukkOppgave(eksisterendeOppgaveId)
+            .mapLeft {
+                log.error("Kunne ikke lukke attesteringsoppgave $eksisterendeOppgaveId ved underkjenning av behandlingen. Dette må gjøres manuelt.")
+            }.map {
+                log.info("Lukket attesteringsoppgave $eksisterendeOppgaveId ved underkjenning av behandlingen")
+                behandlingMetrics.incrementUnderkjentCounter(BehandlingMetrics.UnderkjentHandlinger.LUKKET_OPPGAVE)
+            }
+        søknadsbehandlingMedNyOppgaveId.also {
+            observers.forEach { observer -> observer.handle(Event.Statistikk.SøknadsbehandlingUnderkjent(it)) }
+        }
+
+        return søknadsbehandlingMedNyOppgaveId.right()
+    }
+
+    override fun iverksett(request: IverksettSøknadsbehandlingRequest): Either<KunneIkkeIverksetteBehandling, Søknadsbehandling> {
+        val søknadsbehandling = saksbehandlingRepo.hent(request.behandlingId)?.let {
+            statusovergang(
+                søknadsbehandling = it,
+                statusovergang = Statusovergang.TilIverksatt(request.attestering)
+            )
+        } ?: return KunneIkkeIverksetteBehandling.FantIkkeBehandling.left()
+
+        return iverksettSaksbehandlingService.iverksett(søknadsbehandling)
     }
 }

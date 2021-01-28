@@ -354,8 +354,12 @@ open class AccessCheckProxy(
                     return services.saksbehandling.sendTilAttestering(request)
                 }
 
-                override fun attester(request: AttesterRequest): Either<KunneIkkeIverksetteBehandling, Søknadsbehandling> {
-                    return services.saksbehandling.attester(request)
+                override fun underkjenn(request: UnderkjennSøknadsbehandlingRequest): Either<KunneIkkeUnderkjenneBehandling, Søknadsbehandling> {
+                    return services.saksbehandling.underkjenn(request)
+                }
+
+                override fun iverksett(request: IverksettSøknadsbehandlingRequest): Either<KunneIkkeIverksetteBehandling, Søknadsbehandling> {
+                    return services.saksbehandling.iverksett(request)
                 }
             },
 
