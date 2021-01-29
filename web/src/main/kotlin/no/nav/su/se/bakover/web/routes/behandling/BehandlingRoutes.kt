@@ -251,7 +251,7 @@ internal fun Route.behandlingRoutes(
                                 NotFound.message("Kunne ikke finne behandling")
                             }
                         }
-                        throw NotImplementedError()
+                        call.svar(resultat)
                     },
                     {
                         call.audit("Oppdatert simulering for behandling med id $behandlingId")
@@ -288,7 +288,7 @@ internal fun Route.behandlingRoutes(
                                     NotFound.message("Kunne ikke finne behandling")
                                 }
                             }
-                            throw NotImplementedError()
+                            call.svar(resultat)
                         },
                         {
                             call.audit("Sendte behandling med id $behandlingId til attestering")
