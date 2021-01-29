@@ -301,7 +301,7 @@ class SaksbehandlingServiceImpl(
                     )
                 },
                 avslag = {
-                    iverksettSaksbehandlingService.iverksettAvslag(
+                    iverksettSaksbehandlingService.opprettJournalpostForAvslag(
                         it,
                         request.attestering.attestant
                     )
@@ -314,10 +314,22 @@ class SaksbehandlingServiceImpl(
                 Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> KunneIkkeIverksetteBehandling.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
                 Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.TekniskFeil -> KunneIkkeIverksetteBehandling.KunneIkkeUtbetale
                 Statusovergang.KunneIkkeIverksetteSøknadsbehandling.SaksbehandlerOgAttestantKanIkkeVæreSammePerson -> KunneIkkeIverksetteBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
+                Statusovergang.KunneIkkeIverksetteSøknadsbehandling.FantIkkePerson -> KunneIkkeIverksetteBehandling.FantIkkePerson
             }
         }.map {
             saksbehandlingRepo.lagre(it)
-            it
+            when (it) {
+                is Søknadsbehandling.Iverksatt.Innvilget -> {
+                    log.info("Iverksatt innvilgelse for behandling ${it.id}")
+                    behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
+                    it
+                }
+                is Søknadsbehandling.Iverksatt.Avslag -> {
+                    log.info("Iverksatt innvilgelse for behandling ${it.id}")
+                    behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
+                    iverksettSaksbehandlingService.distribuerBrevOgLukkOppgaveForAvslag(it)
+                }
+            }
         }
     }
 }

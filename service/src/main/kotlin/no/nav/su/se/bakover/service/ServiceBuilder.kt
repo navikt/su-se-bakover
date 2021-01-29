@@ -98,7 +98,8 @@ class ServiceBuilder(
             clock = clock,
             journalførIverksettingService = journalførIverksettingService,
             distribuerIverksettingsbrevService = distribuerIverksettingsbrevService,
-            saksbehandlingRepo = databaseRepos.saksbehandling
+            saksbehandlingRepo = databaseRepos.saksbehandling,
+            brevService = brevService,
         )
 
         return Services(

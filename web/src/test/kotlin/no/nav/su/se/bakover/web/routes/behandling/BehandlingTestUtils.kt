@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.routes.behandling
 
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
@@ -144,6 +145,7 @@ object BehandlingTestUtils {
             simulering = it.simulering()!!,
             saksbehandler = it.saksbehandler()!!,
             attestering = it.attestering()!!,
+            utbetalingId = UUID30.randomUUID()
         )
     }
 }

@@ -277,35 +277,6 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 simulering = saksbehandling.simulering.toJson()
             )
         }
-        is Søknadsbehandling.Iverksatt.Utbetalt -> {
-            BehandlingJson(
-                id = saksbehandling.id.toString(),
-                opprettet = DateTimeFormatter.ISO_INSTANT.format(saksbehandling.opprettet),
-                sakId = saksbehandling.sakId,
-                søknad = saksbehandling.søknad.toJson(),
-                behandlingsinformasjon = saksbehandling.behandlingsinformasjon.toJson(),
-                status = saksbehandling.status.toString(),
-                attestering = saksbehandling.attestering.let {
-                    when (it) {
-                        is Attestering.Iverksatt -> AttesteringJson(
-                            attestant = it.attestant.navIdent,
-                            underkjennelse = null
-                        )
-                        is Attestering.Underkjent -> AttesteringJson(
-                            attestant = it.attestant.navIdent,
-                            underkjennelse = UnderkjennelseJson(
-                                grunn = it.grunn.toString(),
-                                kommentar = it.kommentar
-                            )
-                        )
-                    }
-                },
-                saksbehandler = saksbehandling.saksbehandler.toString(),
-                hendelser = null,
-                beregning = saksbehandling.beregning.toJson(),
-                simulering = saksbehandling.simulering.toJson()
-            )
-        }
     }
 }
 

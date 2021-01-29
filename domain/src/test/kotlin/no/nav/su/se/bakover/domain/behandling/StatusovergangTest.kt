@@ -4,6 +4,7 @@ import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
@@ -18,6 +19,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -91,8 +93,17 @@ internal class StatusovergangTest {
     )
 
     private val saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler")
-    private val underkjentAttestering = Attestering.Underkjent(NavIdentBruker.Attestant("attestant"), Attestering.Underkjent.Grunn.ANDRE_FORHOLD, "")
+    private val underkjentAttestering =
+        Attestering.Underkjent(NavIdentBruker.Attestant("attestant"), Attestering.Underkjent.Grunn.ANDRE_FORHOLD, "")
     private val attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"))
+    private val utbetalingId = UUID30.randomUUID()
+    private val journalførtIverksettingsteg =
+        Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg.Journalført(JournalpostId("journalpostId"))
+    private val distribuertIverksettingssteg =
+        Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg.JournalførtOgDistribuertBrev(
+            journalpostId = JournalpostId("journalpostId"),
+            brevbestillingId = BrevbestillingId("brevbesttilingId")
+        )
 
     private val vilkårsvurdertInnvilget: Søknadsbehandling.Vilkårsvurdert.Innvilget =
         opprettet.tilVilkårsvurdert(
@@ -120,9 +131,11 @@ internal class StatusovergangTest {
         tilAttesteringAvslagVilkår.tilUnderkjent(underkjentAttestering)
     private val underkjentAvslagBeregning: Søknadsbehandling.Underkjent.Avslag.MedBeregning =
         tilAttesteringAvslagBeregning.tilUnderkjent(underkjentAttestering)
-    private val iverksattInnvilget = tilAttesteringInnvilget.tilIverksatt(attestering,)
-    private val iverksattAvslagVilkår = tilAttesteringAvslagVilkår.tilIverksatt(attestering)
-    private val iverksattAvslagBeregning = tilAttesteringAvslagBeregning.tilIverksatt(attestering)
+    private val iverksattInnvilget = tilAttesteringInnvilget.tilIverksatt(attestering, utbetalingId)
+    private val iverksattAvslagVilkår =
+        tilAttesteringAvslagVilkår.tilIverksatt(attestering, journalførtIverksettingsteg)
+    private val iverksattAvslagBeregning =
+        tilAttesteringAvslagBeregning.tilIverksatt(attestering, journalførtIverksettingsteg)
 
     @Nested
     inner class TilVilkårsvurdert {
@@ -674,7 +687,11 @@ internal class StatusovergangTest {
         fun `attestert avslag vilkår til iverksatt avslag vilkår`() {
             forsøkStatusovergang(
                 tilAttesteringAvslagVilkår,
-                Statusovergang.TilIverksatt(attestering)
+                Statusovergang.TilIverksatt(
+                    attestering = attestering,
+                    innvilget = { throw IllegalStateException() },
+                    avslag = { JournalpostId("journalpostId").right() }
+                )
             ) shouldBe iverksattAvslagVilkår.right()
         }
 
@@ -682,7 +699,11 @@ internal class StatusovergangTest {
         fun `attestert avslag beregning til iverksatt avslag beregning`() {
             forsøkStatusovergang(
                 tilAttesteringAvslagBeregning,
-                Statusovergang.TilIverksatt(attestering)
+                Statusovergang.TilIverksatt(
+                    attestering = attestering,
+                    innvilget = { throw IllegalStateException() },
+                    avslag = { JournalpostId("journalpostId").right() }
+                )
             ) shouldBe iverksattAvslagBeregning.right()
         }
 
@@ -690,32 +711,48 @@ internal class StatusovergangTest {
         fun `attestert innvilget til iverksatt innvilging`() {
             forsøkStatusovergang(
                 tilAttesteringInnvilget,
-                Statusovergang.TilIverksatt(attestering)
+                Statusovergang.TilIverksatt(
+                    attestering = attestering,
+                    innvilget = { utbetalingId.right() },
+                    avslag = { throw IllegalStateException() }
+                )
             ) shouldBe iverksattInnvilget.right()
         }
 
         @Test
         fun `attestert avslag vilkår kan ikke attestere sitt eget verk`() {
             forsøkStatusovergang(
-                tilAttesteringAvslagVilkår.copy(saksbehandler = NavIdentBruker.Saksbehandler("sneaky")),
-                Statusovergang.TilIverksatt(Attestering.Iverksatt(NavIdentBruker.Attestant("sneaky")))
-            ) shouldBe Statusovergang.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
+                tilAttesteringAvslagVilkår.copy(saksbehandler = NavIdentBruker.Saksbehandler(attestering.attestant.navIdent)),
+                Statusovergang.TilIverksatt(
+                    attestering = attestering,
+                    innvilget = { throw IllegalStateException() },
+                    avslag = { JournalpostId("journalpostId").right() }
+                )
+            ) shouldBe Statusovergang.KunneIkkeIverksetteSøknadsbehandling.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
         }
 
         @Test
         fun `attestert avslag beregning kan ikke attestere sitt eget verk`() {
             forsøkStatusovergang(
-                tilAttesteringAvslagBeregning.copy(saksbehandler = NavIdentBruker.Saksbehandler("sneaky")),
-                Statusovergang.TilIverksatt(Attestering.Iverksatt(NavIdentBruker.Attestant("sneaky")))
-            ) shouldBe Statusovergang.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
+                tilAttesteringAvslagBeregning.copy(saksbehandler = NavIdentBruker.Saksbehandler(attestering.attestant.navIdent)),
+                Statusovergang.TilIverksatt(
+                    attestering = attestering,
+                    innvilget = { throw IllegalStateException() },
+                    avslag = { JournalpostId("journalpostId").right() }
+                )
+            ) shouldBe Statusovergang.KunneIkkeIverksetteSøknadsbehandling.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
         }
 
         @Test
         fun `attestert innvilget kan ikke attestere sitt eget verk`() {
             forsøkStatusovergang(
-                tilAttesteringInnvilget.copy(saksbehandler = NavIdentBruker.Saksbehandler("sneaky")),
-                Statusovergang.TilIverksatt(Attestering.Iverksatt(NavIdentBruker.Attestant("sneaky")))
-            ) shouldBe Statusovergang.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
+                tilAttesteringInnvilget.copy(saksbehandler = NavIdentBruker.Saksbehandler(attestering.attestant.navIdent)),
+                Statusovergang.TilIverksatt(
+                    attestering = attestering,
+                    innvilget = { UUID30.randomUUID().right() },
+                    avslag = { throw IllegalStateException() }
+                )
+            ) shouldBe Statusovergang.KunneIkkeIverksetteSøknadsbehandling.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
         }
 
         @Test

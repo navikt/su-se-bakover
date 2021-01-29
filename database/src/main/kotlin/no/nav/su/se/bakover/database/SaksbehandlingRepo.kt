@@ -88,7 +88,6 @@ internal class SaksbehandlingsPostgresRepo(
         val attestering = stringOrNull("attestering")?.let { objectMapper.readValue<Attestering>(it) }
         val saksbehandler = stringOrNull("saksbehandler")?.let { NavIdentBruker.Saksbehandler(it) }
         val saksnummer = Saksnummer(long("saksnummer"))
-        val utbetalingId = uuid30("utbetalingId")
 
         @Suppress("UNUSED_VARIABLE")
         val hendelseslogg = HendelsesloggRepoInternal.hentHendelseslogg(behandlingId.toString(), session)
@@ -102,17 +101,6 @@ internal class SaksbehandlingsPostgresRepo(
 
         @Suppress("UNUSED_VARIABLE")
         val iverksattBrevbestillingId = stringOrNull("iverksattBrevbestillingId")?.let { BrevbestillingId(it) }
-
-        val eksterneIverksettingsteg = when {
-            iverksattJournalpostId != null && iverksattBrevbestillingId != null -> Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg.JournalførtOgDistribuertBrev(
-                journalpostId = iverksattJournalpostId,
-                brevbestillingId = iverksattBrevbestillingId
-            )
-            iverksattJournalpostId != null -> Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg.Journalført(
-                iverksattJournalpostId
-            )
-            else -> throw IllegalStateException("Kunne ikke bestemme eksterne iverksettingssteg for avslag, iverksattJournalpostId:$iverksattJournalpostId, iverksattBrevbestillingId:$iverksattBrevbestillingId")
-        }
 
         return when (status) {
             Behandling.BehandlingsStatus.OPPRETTET -> Søknadsbehandling.Opprettet(
@@ -258,23 +246,19 @@ internal class SaksbehandlingsPostgresRepo(
                     attestering = attestering!!
                 )
             }
-            Behandling.BehandlingsStatus.IVERKSATT_INNVILGET -> Søknadsbehandling.Iverksatt.Innvilget(
-                id = behandlingId,
-                opprettet = opprettet,
-                sakId = sakId,
-                saksnummer = saksnummer,
-                søknad = søknad,
-                oppgaveId = oppgaveId,
-                behandlingsinformasjon = behandlingsinformasjon,
-                fnr = fnr,
-                beregning = beregning!!,
-                simulering = simulering!!,
-                saksbehandler = saksbehandler!!,
-                attestering = attestering!!,
-                utbetalingId = utbetalingId
-            )
-            Behandling.BehandlingsStatus.IVERKSATT_AVSLAG -> when (beregning) {
-                null -> Søknadsbehandling.Iverksatt.Avslag.UtenBeregning(
+            Behandling.BehandlingsStatus.IVERKSATT_INNVILGET -> {
+                val eksterneIverksettingsteg = when {
+                    iverksattJournalpostId == null && iverksattBrevbestillingId == null -> Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.VenterPåKvittering
+                    iverksattJournalpostId != null && iverksattBrevbestillingId != null -> Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.JournalførtOgDistribuertBrev(
+                        journalpostId = iverksattJournalpostId,
+                        brevbestillingId = iverksattBrevbestillingId
+                    )
+                    iverksattJournalpostId != null -> Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.Journalført(
+                        iverksattJournalpostId
+                    )
+                    else -> throw IllegalStateException("Kunne ikke bestemme eksterne iverksettingssteg for innvilgelse, iverksattJournalpostId:$iverksattJournalpostId, iverksattBrevbestillingId:$iverksattBrevbestillingId")
+                }
+                Søknadsbehandling.Iverksatt.Innvilget(
                     id = behandlingId,
                     opprettet = opprettet,
                     sakId = sakId,
@@ -283,24 +267,55 @@ internal class SaksbehandlingsPostgresRepo(
                     oppgaveId = oppgaveId,
                     behandlingsinformasjon = behandlingsinformasjon,
                     fnr = fnr,
+                    beregning = beregning!!,
+                    simulering = simulering!!,
                     saksbehandler = saksbehandler!!,
                     attestering = attestering!!,
-                    eksterneIverkssettingsteg = eksterneIverksettingsteg
+                    utbetalingId = uuid30("utbetalingId"),
+                    eksterneIverksettingsteg = eksterneIverksettingsteg,
                 )
-                else -> Søknadsbehandling.Iverksatt.Avslag.MedBeregning(
-                    id = behandlingId,
-                    opprettet = opprettet,
-                    sakId = sakId,
-                    saksnummer = saksnummer,
-                    søknad = søknad,
-                    oppgaveId = oppgaveId,
-                    behandlingsinformasjon = behandlingsinformasjon,
-                    fnr = fnr,
-                    beregning = beregning,
-                    saksbehandler = saksbehandler!!,
-                    attestering = attestering!!,
-                    eksterneIverkssettingsteg = eksterneIverksettingsteg
-                )
+            }
+            Behandling.BehandlingsStatus.IVERKSATT_AVSLAG -> {
+                val eksterneIverksettingsteg = when {
+                    iverksattJournalpostId != null && iverksattBrevbestillingId != null -> Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg.JournalførtOgDistribuertBrev(
+                        journalpostId = iverksattJournalpostId,
+                        brevbestillingId = iverksattBrevbestillingId
+                    )
+                    iverksattJournalpostId != null -> Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg.Journalført(
+                        iverksattJournalpostId
+                    )
+                    else -> throw IllegalStateException("Kunne ikke bestemme eksterne iverksettingssteg for avslag, iverksattJournalpostId:$iverksattJournalpostId, iverksattBrevbestillingId:$iverksattBrevbestillingId")
+                }
+                when (beregning) {
+
+                    null -> Søknadsbehandling.Iverksatt.Avslag.UtenBeregning(
+                        id = behandlingId,
+                        opprettet = opprettet,
+                        sakId = sakId,
+                        saksnummer = saksnummer,
+                        søknad = søknad,
+                        oppgaveId = oppgaveId,
+                        behandlingsinformasjon = behandlingsinformasjon,
+                        fnr = fnr,
+                        saksbehandler = saksbehandler!!,
+                        attestering = attestering!!,
+                        eksterneIverksettingsteg = eksterneIverksettingsteg
+                    )
+                    else -> Søknadsbehandling.Iverksatt.Avslag.MedBeregning(
+                        id = behandlingId,
+                        opprettet = opprettet,
+                        sakId = sakId,
+                        saksnummer = saksnummer,
+                        søknad = søknad,
+                        oppgaveId = oppgaveId,
+                        behandlingsinformasjon = behandlingsinformasjon,
+                        fnr = fnr,
+                        beregning = beregning,
+                        saksbehandler = saksbehandler!!,
+                        attestering = attestering!!,
+                        eksterneIverksettingsteg = eksterneIverksettingsteg
+                    )
+                }
             }
         }
     }
@@ -558,7 +573,7 @@ internal class SaksbehandlingsPostgresRepo(
                             "behandlingsinformasjon" to objectMapper.writeValueAsString(søknadsbehandling.behandlingsinformasjon),
                             "oppgaveId" to søknadsbehandling.oppgaveId.toString(),
                             "saksbehandler" to søknadsbehandling.saksbehandler.navIdent,
-                            "attestering" to objectMapper.writeValueAsString(søknadsbehandling.attestering)
+                            "attestering" to objectMapper.writeValueAsString(søknadsbehandling.attestering),
                         ),
                         session
                     )
@@ -576,7 +591,7 @@ internal class SaksbehandlingsPostgresRepo(
                        insert into behandling (id, sakId, søknadId, opprettet, status, behandlingsinformasjon, oppgaveId, beregning, simulering, saksbehandler, attestering) 
                        values (:id, :sakId, :soknadId, :opprettet, :status, to_json(:behandlingsinformasjon::json), :oppgaveId, to_json(:beregning::json), to_json(:simulering::json), :saksbehandler, to_json(:attestering::json)) 
                        on conflict (id) do
-                       update set status = :status, attestering = to_json(:attestering::json)
+                       update set status = :status, attestering = to_json(:attestering::json), utbetalingId = :utbetalingId
                         """.trimIndent()
                         ).oppdatering(
                         mapOf(
@@ -590,7 +605,9 @@ internal class SaksbehandlingsPostgresRepo(
                             "beregning" to objectMapper.writeValueAsString(søknadsbehandling.beregning.toSnapshot()),
                             "simulering" to objectMapper.writeValueAsString(søknadsbehandling.simulering),
                             "saksbehandler" to søknadsbehandling.saksbehandler.navIdent,
-                            "attestering" to objectMapper.writeValueAsString(søknadsbehandling.attestering)
+                            "attestering" to objectMapper.writeValueAsString(søknadsbehandling.attestering),
+                            "utbetalingId" to søknadsbehandling.utbetalingId,
+                            // TODO jah: iverksattBrevbestillingId og iverksattJournalpostId
                         ),
                         session
                     )
@@ -603,7 +620,7 @@ internal class SaksbehandlingsPostgresRepo(
                        insert into behandling (id, sakId, søknadId, opprettet, status, behandlingsinformasjon, oppgaveId, beregning, simulering, saksbehandler, attestering) 
                        values (:id, :sakId, :soknadId, :opprettet, :status, to_json(:behandlingsinformasjon::json), :oppgaveId, to_json(:beregning::json), to_json(:simulering::json), :saksbehandler, to_json(:attestering::json)) 
                        on conflict (id) do
-                       update set status = :status, attestering = to_json(:attestering::json)
+                       update set status = :status, attestering = to_json(:attestering::json), iverksattJournalpostId = :iverksattJournalpostId
                         """.trimIndent()
                         ).oppdatering(
                         mapOf(
@@ -615,7 +632,9 @@ internal class SaksbehandlingsPostgresRepo(
                             "behandlingsinformasjon" to objectMapper.writeValueAsString(søknadsbehandling.behandlingsinformasjon),
                             "oppgaveId" to søknadsbehandling.oppgaveId.toString(),
                             "saksbehandler" to søknadsbehandling.saksbehandler.navIdent,
-                            "attestering" to objectMapper.writeValueAsString(søknadsbehandling.attestering)
+                            "attestering" to objectMapper.writeValueAsString(søknadsbehandling.attestering),
+                            "iverksattJournalpostId" to søknadsbehandling.eksterneIverksettingsteg.journalpostId,
+                            // TODO jah: iverksattBrevbestillingId
                         ),
                         session
                     )
@@ -628,7 +647,7 @@ internal class SaksbehandlingsPostgresRepo(
                        insert into behandling (id, sakId, søknadId, opprettet, status, behandlingsinformasjon, oppgaveId, beregning, simulering, saksbehandler, attestering) 
                        values (:id, :sakId, :soknadId, :opprettet, :status, to_json(:behandlingsinformasjon::json), :oppgaveId, to_json(:beregning::json), to_json(:simulering::json), :saksbehandler, to_json(:attestering::json)) 
                        on conflict (id) do
-                       update set status = :status, attestering = to_json(:attestering::json)
+                       update set status = :status, attestering = to_json(:attestering::json), iverksattJournalpostId = :iverksattJournalpostId
                         """.trimIndent()
                         ).oppdatering(
                         mapOf(
@@ -641,7 +660,9 @@ internal class SaksbehandlingsPostgresRepo(
                             "oppgaveId" to søknadsbehandling.oppgaveId.toString(),
                             "beregning" to objectMapper.writeValueAsString(søknadsbehandling.beregning.toSnapshot()),
                             "saksbehandler" to søknadsbehandling.saksbehandler.navIdent,
-                            "attestering" to objectMapper.writeValueAsString(søknadsbehandling.attestering)
+                            "attestering" to objectMapper.writeValueAsString(søknadsbehandling.attestering),
+                            "iverksattJournalpostId" to søknadsbehandling.eksterneIverksettingsteg.journalpostId,
+                            // TODO jah: iverksattBrevbestillingId
                         ),
                         session
                     )

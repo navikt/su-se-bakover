@@ -33,4 +33,21 @@ class DistribuerIverksettingsbrevService(
                 }
             }
     }
+
+    // internal fun <T : Søknadsbehandling.Iverksatt> distribuerBrev(
+    //     søknadsbehandling: Søknadsbehandling.Iverksatt,
+    //     incrementMetrics: () -> Unit
+    // ): Either<Søknadsbehandling.Iverksatt.KunneIkkeDistribuereBrev, T> {
+    //     return søknadsbehandling.distribuerBrev { journalpostId ->
+    //         brevService.distribuerBrev(journalpostId).mapLeft {
+    //             //     log.info("Behandling ${behandling.id} har allerede distribuert en brevbestilling ${behandling.iverksattBrevbestillingId()}")
+    //             //     log.error("Kunne ikke bestille brev ved iverksetting for behandling ${behandling.id}.")
+    //             Søknadsbehandling.Iverksatt.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev
+    //         }.map {
+    //             //         log.info("Bestilt iverksettingsbrev for behandling ${it.id} med bestillingsid $brevbestillingId")
+    //             incrementMetrics()
+    //             it
+    //         }
+    //     }
+    // }
 }

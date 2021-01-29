@@ -1,11 +1,9 @@
 package no.nav.su.se.bakover.service.behandling
 
 import arrow.core.Either
-import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.getOrHandle
 import arrow.core.left
-import arrow.core.right
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
@@ -13,14 +11,13 @@ import no.nav.su.se.bakover.database.SaksbehandlingRepo
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Statusovergang
 import no.nav.su.se.bakover.domain.behandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagBrevRequest
-import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
+import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.EventObserver
@@ -41,7 +38,8 @@ class IverksettSaksbehandlingService(
     private val microsoftGraphApiClient: MicrosoftGraphApiOppslag,
     private val journalførIverksettingService: JournalførIverksettingService,
     private val distribuerIverksettingsbrevService: DistribuerIverksettingsbrevService,
-    private val saksbehandlingRepo: SaksbehandlingRepo
+    private val saksbehandlingRepo: SaksbehandlingRepo,
+    private val brevService: BrevService,
 ) {
     private val observers: MutableList<EventObserver> = mutableListOf()
 
@@ -80,89 +78,39 @@ class IverksettSaksbehandlingService(
         }
     }
 
-    internal fun iverksettAvslag(
-        behandling: Søknadsbehandling.Iverksatt.Avslag
-    ): Either<KunneIkkeIverksetteBehandling, Søknadsbehandling.Iverksatt> {
-        val person: Person = personService.hentPerson(behandling.fnr).getOrElse {
-            log.error("Kunne ikke iverksette behandling med id:${behandling.id}; fant ikke person")
+    internal fun opprettJournalpostForAvslag(
+        søknadsbehandling: Søknadsbehandling.TilAttestering.Avslag,
+        attestant: NavIdentBruker.Attestant,
+    ): Either<Statusovergang.KunneIkkeIverksetteSøknadsbehandling, JournalpostId> {
+        val person: Person = personService.hentPerson(søknadsbehandling.fnr).getOrElse {
+            log.error("Kunne ikke iverksette behandling; fant ikke person")
             return Statusovergang.KunneIkkeIverksetteSøknadsbehandling.FantIkkePerson.left()
         }
-
-        val avslag = Avslag(
-            opprettet = Tidspunkt.now(clock),
-            avslagsgrunner = behandling.utledAvslagsgrunner(),
-            harEktefelle = behandling.behandlingsinformasjon().harEktefelle(),
-            beregning = behandling.beregning()
-        )
-
-        val journalpostId = opprettJournalpostForAvslag(
-            behandling = behandling,
-            person = person,
-            avslag = avslag,
-            attestant = attestant,
-        ).getOrHandle {
-            log.error("Behandling ${behandling.id} ble ikke iverksatt siden vi ikke klarte journalføre. Saksbehandleren må prøve på nytt.")
-            return it.left()
-        }.journalpostId
-
-        behandlingRepo.oppdaterAttestering(behandling.id, Attestering.Iverksatt(attestant))
-        behandlingRepo.oppdaterBehandlingStatus(behandling.id, behandling.status())
-        log.info("Iverksatt avslag for behandling ${behandling.id} med journalpost $journalpostId")
-        behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
-        val brevResultat = distribuerIverksettingsbrevService.distribuerBrev(behandling) {
-            behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.DISTRIBUERT_BREV)
+        val saksbehandlerNavn = hentNavnForNavIdent(søknadsbehandling.saksbehandler).getOrHandle {
+            return Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeJournalføre.left()
+        }
+        val attestantNavn = hentNavnForNavIdent(attestant).getOrHandle {
+            return Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeJournalføre.left()
         }
 
-        val oppgaveResultat = oppgaveService.lukkOppgave(behandling.oppgaveId())
-            .mapLeft {
-                log.error("Kunne ikke lukke oppgave ved avslag for behandling ${behandling.id}. Dette må gjøres manuelt.")
-                IverksattBehandling.MedMangler.KunneIkkeLukkeOppgave(behandling)
-            }
-            .map {
-                log.info("Lukket oppgave ${behandling.oppgaveId()} ved avslag for behandling ${behandling.id}")
-                // TODO jah: Vurder behandling.oppdaterOppgaveId(null), men den kan ikke være null atm.
-                behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.LUKKET_OPPGAVE)
-                IverksattBehandling.UtenMangler(behandling)
-            }
-
-        opprettVedtakssnapshotService.opprettVedtak(
-            vedtakssnapshot = Vedtakssnapshot.Avslag.createFromBehandling(behandling, avslag.avslagsgrunner)
-        )
-
-        return brevResultat
-            .mapLeft {
-                IverksattBehandling.MedMangler.KunneIkkeDistribuereBrev(behandling)
-            }
-            .flatMap { oppgaveResultat }.fold(
-                { it.right() },
-                { it.right() }
-            )
-    }
-
-    private fun opprettJournalpostForAvslag(
-        behandling: Behandling,
-        person: Person,
-        avslag: Avslag,
-        attestant: NavIdentBruker,
-    ): Either<KunneIkkeIverksetteBehandling, OpprettetJournalpostForIverksetting> {
-        val saksbehandlerNavn = hentNavnForNavIdent(behandling.saksbehandler()!!).getOrHandle { return it.left() }
-        val attestantNavn = hentNavnForNavIdent(attestant).getOrHandle { return it.left() }
-
-        return journalførIverksettingService.opprettJournalpost(
-            behandling,
-            AvslagBrevRequest(
+        return brevService.journalførBrev(
+            request = AvslagBrevRequest(
                 person = person,
-                avslag = avslag,
+                avslag = Avslag(
+                    opprettet = Tidspunkt.now(clock),
+                    avslagsgrunner = søknadsbehandling.avslagsgrunner,
+                    harEktefelle = søknadsbehandling.behandlingsinformasjon.harEktefelle(),
+                    beregning = if (søknadsbehandling is Søknadsbehandling.TilAttestering.Avslag.MedBeregning) søknadsbehandling.beregning else null
+                ),
                 saksbehandlerNavn = saksbehandlerNavn,
                 attestantNavn = attestantNavn
-            )
-        ).map {
+            ),
+            saksnummer = søknadsbehandling.saksnummer,
+        ).mapLeft {
+            Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeJournalføre
+        }.map {
             behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.JOURNALFØRT)
-            OpprettetJournalpostForIverksetting(
-                sakId = behandling.sakId,
-                behandlingId = behandling.id,
-                journalpostId = it
-            )
+            it
         }
     }
 
@@ -170,5 +118,36 @@ class IverksettSaksbehandlingService(
         return microsoftGraphApiClient.hentBrukerinformasjonForNavIdent(navIdent)
             .mapLeft { KunneIkkeIverksetteBehandling.FikkIkkeHentetSaksbehandlerEllerAttestant }
             .map { it.displayName }
+    }
+
+    internal fun distribuerBrevOgLukkOppgaveForAvslag(
+        søknadsbehandlingUtenBrev: Søknadsbehandling.Iverksatt.Avslag,
+    ): Søknadsbehandling.Iverksatt.Avslag {
+
+        val brevResultat: Either<Søknadsbehandling.Iverksatt.KunneIkkeDistribuereBrev, Søknadsbehandling.Iverksatt.Avslag> = søknadsbehandlingUtenBrev.distribuerBrev { journalpostId ->
+            brevService.distribuerBrev(journalpostId).mapLeft {
+                Søknadsbehandling.Iverksatt.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev
+            }.map {
+                behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.DISTRIBUERT_BREV)
+                it
+            }
+        }
+
+        oppgaveService.lukkOppgave(søknadsbehandlingUtenBrev.oppgaveId)
+            .mapLeft {
+                log.error("Kunne ikke lukke oppgave ved avslag for behandling ${søknadsbehandlingUtenBrev.id}. Dette må gjøres manuelt.")
+            }
+            .map {
+                log.info("Lukket oppgave ${søknadsbehandlingUtenBrev.oppgaveId} ved avslag for behandling ${søknadsbehandlingUtenBrev.id}")
+                // TODO jah: Vurder behandling.oppdaterOppgaveId(null), men den kan ikke være null atm.
+                behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.LUKKET_OPPGAVE)
+            }
+
+        // TODO jah: implement version for søknadsbehandling
+        // opprettVedtakssnapshotService.opprettVedtak(
+        //     vedtakssnapshot = Vedtakssnapshot.Avslag.createFromBehandling(søknadsbehandlingUtenBrev, avslag.avslagsgrunner)
+        // )
+
+        return brevResultat.getOrElse { søknadsbehandlingUtenBrev }
     }
 }
