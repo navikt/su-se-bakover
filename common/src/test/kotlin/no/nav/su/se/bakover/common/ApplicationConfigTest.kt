@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 internal class ApplicationConfigTest {
 
     private val expectedApplicationConfig = ApplicationConfig(
-        isRunningLocally = false,
+        runtimeEnvironment = ApplicationConfig.RuntimeEnvironment.Nais,
         leaderPodLookupPath = "leaderPodLookupPath",
         pdfgenLocal = false,
         corsAllowOrigin = "corsAllowOrigin",
@@ -152,7 +152,7 @@ internal class ApplicationConfigTest {
             )
         ) {
             ApplicationConfig.createLocalConfig() shouldBe expectedApplicationConfig.copy(
-                isRunningLocally = true,
+                runtimeEnvironment = ApplicationConfig.RuntimeEnvironment.Local,
                 corsAllowOrigin = "localhost:1234",
                 leaderPodLookupPath = "",
                 serviceUser = ApplicationConfig.ServiceUserConfig(
