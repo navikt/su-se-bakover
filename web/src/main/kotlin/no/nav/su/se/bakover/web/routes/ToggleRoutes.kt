@@ -42,12 +42,8 @@ internal fun Route.toggleRoutes(toggleService: ToggleService) {
     }
 }
 
-class IsNotProdStrategy : Strategy {
+class IsNotProdStrategy(private val isProd: Boolean) : Strategy {
     override fun getName() = "isNotProd"
 
-    override fun isEnabled(parameters: Map<String, String>) =
-        // TODO: Få fra Config
-        System.getenv("NAIS_CLUSTER_NAME")?.let {
-            !it.startsWith("prod-")
-        } ?: true
+    override fun isEnabled(parameters: Map<String, String>) = !isProd
 }

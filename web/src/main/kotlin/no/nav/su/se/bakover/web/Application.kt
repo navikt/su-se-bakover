@@ -118,7 +118,7 @@ internal fun Application.susebakover(
                 .instanceId(applicationConfig.unleash.appName)
                 .unleashAPI(applicationConfig.unleash.unleashUrl)
                 .build(),
-            IsNotProdStrategy()
+            IsNotProdStrategy(applicationConfig.naisCluster == ApplicationConfig.NaisCluster.Prod)
         )
     ).build(),
     accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services)

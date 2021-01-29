@@ -32,6 +32,7 @@ internal val behandlingFactory = BehandlingFactory(mock(), fixedClock)
 
 val applicationConfig = ApplicationConfig(
     runtimeEnvironment = ApplicationConfig.RuntimeEnvironment.Test,
+    naisCluster = null,
     leaderPodLookupPath = "leaderPodLookupPath",
     pdfgenLocal = false,
     corsAllowOrigin = "corsAllowOrigin",

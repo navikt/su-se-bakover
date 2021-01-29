@@ -9,6 +9,7 @@ internal class ApplicationConfigTest {
 
     private val expectedApplicationConfig = ApplicationConfig(
         runtimeEnvironment = ApplicationConfig.RuntimeEnvironment.Nais,
+        naisCluster = ApplicationConfig.NaisCluster.Prod,
         leaderPodLookupPath = "leaderPodLookupPath",
         pdfgenLocal = false,
         corsAllowOrigin = "corsAllowOrigin",
@@ -154,6 +155,7 @@ internal class ApplicationConfigTest {
         ) {
             ApplicationConfig.createLocalConfig() shouldBe expectedApplicationConfig.copy(
                 runtimeEnvironment = ApplicationConfig.RuntimeEnvironment.Local,
+                naisCluster = null,
                 corsAllowOrigin = "localhost:1234",
                 leaderPodLookupPath = "",
                 serviceUser = ApplicationConfig.ServiceUserConfig(
