@@ -28,7 +28,7 @@ import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.service.ServiceBuilder
+import no.nav.su.se.bakover.service.ProdServiceBuilder
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.applicationConfig
@@ -48,14 +48,14 @@ internal class BeregnRoutesKtTest {
     private val saksbehandler = NavIdentBruker.Saksbehandler("AB12345")
 
     private val repos = DatabaseBuilder.build(EmbeddedDatabase.instance(), behandlingFactory)
-    private val services = ServiceBuilder(
+    private val services = ProdServiceBuilder.build(
         databaseRepos = repos,
         clients = TestClientsBuilder.build(applicationConfig),
         behandlingMetrics = mock(),
         søknadMetrics = mock(),
         clock = fixedClock,
         unleash = mock(),
-    ).build()
+    )
 
     @Test
     fun `opprette beregning for behandling`() {

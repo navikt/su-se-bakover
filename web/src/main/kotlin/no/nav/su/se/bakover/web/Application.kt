@@ -48,8 +48,9 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.service.AccessCheckProxy
-import no.nav.su.se.bakover.service.ServiceBuilder
+import no.nav.su.se.bakover.service.ProdServiceBuilder
 import no.nav.su.se.bakover.service.Services
+import no.nav.su.se.bakover.service.StubServiceBuilder
 import no.nav.su.se.bakover.service.Tilgangssjekkfeil
 import no.nav.su.se.bakover.web.features.Authorization
 import no.nav.su.se.bakover.web.features.AuthorizationException
@@ -102,25 +103,37 @@ internal fun Application.susebakover(
     applicationConfig: ApplicationConfig = ApplicationConfig.createConfig(),
     databaseRepos: DatabaseRepos = DatabaseBuilder.build(behandlingFactory, applicationConfig.database),
     jmsConfig: JmsConfig = JmsConfig(applicationConfig),
-    clients: Clients = if (applicationConfig.runtimeEnvironment != ApplicationConfig.RuntimeEnvironment.Nais) StubClientsBuilder.build(applicationConfig) else ProdClientsBuilder(
-        jmsConfig,
-        clock = clock,
-    ).build(applicationConfig),
-    services: Services = ServiceBuilder(
-        databaseRepos = databaseRepos,
-        clients = clients,
-        behandlingMetrics = behandlingMetrics,
-        søknadMetrics = søknadMetrics,
-        clock = clock,
-        unleash = DefaultUnleash(
-            UnleashConfig.builder()
-                .appName(applicationConfig.unleash.appName)
-                .instanceId(applicationConfig.unleash.appName)
-                .unleashAPI(applicationConfig.unleash.unleashUrl)
-                .build(),
-            IsNotProdStrategy(applicationConfig.naisCluster == ApplicationConfig.NaisCluster.Prod)
-        )
-    ).build(),
+    clients: Clients =
+        if (applicationConfig.runtimeEnvironment != ApplicationConfig.RuntimeEnvironment.Nais)
+            StubClientsBuilder.build(applicationConfig)
+        else
+            ProdClientsBuilder(
+                jmsConfig,
+                clock = clock,
+            ).build(applicationConfig),
+    services: Services =
+        with(
+            if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais)
+                ProdServiceBuilder
+            else
+                StubServiceBuilder
+        ) {
+            build(
+                databaseRepos = databaseRepos,
+                clients = clients,
+                behandlingMetrics = behandlingMetrics,
+                søknadMetrics = søknadMetrics,
+                clock = clock,
+                unleash = DefaultUnleash(
+                    UnleashConfig.builder()
+                        .appName(applicationConfig.unleash.appName)
+                        .instanceId(applicationConfig.unleash.appName)
+                        .unleashAPI(applicationConfig.unleash.unleashUrl)
+                        .build(),
+                    IsNotProdStrategy(applicationConfig.naisCluster == ApplicationConfig.NaisCluster.Prod)
+                )
+            )
+        },
     accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services)
 ) {
     install(CORS) {

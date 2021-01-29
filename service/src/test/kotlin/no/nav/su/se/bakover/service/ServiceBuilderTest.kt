@@ -12,7 +12,7 @@ import java.time.Clock
 internal class ServiceBuilderTest {
     @Test
     fun `StatistikkService observerer SakService`() {
-        ServiceBuilder(
+        ProdServiceBuilder.build(
             databaseRepos = DatabaseRepos(
                 avstemming = mock(),
                 utbetaling = mock(),
@@ -44,7 +44,7 @@ internal class ServiceBuilderTest {
             søknadMetrics = mock(),
             clock = Clock.systemUTC(),
             unleash = mock()
-        ).build().let {
+        ).let {
             (it.sak as SakServiceImpl).observers shouldContain it.statistikk
             (it.behandling as BehandlingServiceImpl).getObservers() shouldContain it.statistikk
         }

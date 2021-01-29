@@ -197,7 +197,7 @@ internal class ApplicationConfigTest {
                 kafkaConfig = ApplicationConfig.KafkaConfig(
                     emptyMap(), ApplicationConfig.KafkaConfig.ProducerCfg((emptyMap()))
                 ),
-                unleash = ApplicationConfig.UnleashConfig("https://localhost", "su-se-bakover")
+                unleash = ApplicationConfig.UnleashConfig("https://unleash.nais.io/api", "su-se-bakover")
             )
         }
     }

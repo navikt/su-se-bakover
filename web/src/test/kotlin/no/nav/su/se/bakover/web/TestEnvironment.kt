@@ -18,7 +18,7 @@ import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.service.AccessCheckProxy
-import no.nav.su.se.bakover.service.ServiceBuilder
+import no.nav.su.se.bakover.service.ProdServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.web.stubs.JwtStub
 import no.nav.su.se.bakover.web.stubs.asBearerToken
@@ -96,14 +96,14 @@ internal fun Application.testSusebakover(
     clients: Clients = TestClientsBuilder.build(applicationConfig),
     behandlingFactory: BehandlingFactory = defaultBehandlingFactory,
     databaseRepos: DatabaseRepos = DatabaseBuilder.build(EmbeddedDatabase.instance(), behandlingFactory),
-    services: Services = ServiceBuilder( // build actual clients
+    services: Services = ProdServiceBuilder.build( // build actual clients
         databaseRepos = databaseRepos,
         clients = clients,
         behandlingMetrics = mock(),
         søknadMetrics = mock(),
         clock = clock,
         unleash = mock()
-    ).build(),
+    ),
     accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services)
 ) {
     return susebakover(

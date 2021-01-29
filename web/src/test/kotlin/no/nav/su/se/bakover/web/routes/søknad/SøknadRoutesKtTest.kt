@@ -47,7 +47,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.PersonOppslag
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
-import no.nav.su.se.bakover.service.ServiceBuilder
+import no.nav.su.se.bakover.service.ProdServiceBuilder
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukketSøknad
@@ -184,14 +184,14 @@ internal class SøknadRoutesKtTest {
             oppgaveClient = oppgaveClient
         )
 
-        val services = ServiceBuilder(
+        val services = ProdServiceBuilder.build(
             databaseRepos = databaseRepos,
             clients = clients,
             behandlingMetrics = mock(),
             søknadMetrics = mock(),
             clock = fixedClock,
             unleash = mock(),
-        ).build()
+        )
 
         withTestApplication({
             testSusebakover(

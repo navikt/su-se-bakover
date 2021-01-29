@@ -222,11 +222,6 @@ data class ApplicationConfig(
                 getEnvironmentVariableOrDefault("UNLEASH_URL", "https://unleash.nais.io/api"),
                 getEnvironmentVariableOrDefault("NAIS_APP_NAME", "su-se-bakover"),
             )
-
-            fun createLocalConfig() = UnleashConfig(
-                "https://localhost",
-                "su-se-bakover"
-            )
         }
     }
 
@@ -411,7 +406,7 @@ data class ApplicationConfig(
             database = DatabaseConfig.createLocalConfig(),
             clientsConfig = ClientsConfig.createLocalConfig(),
             kafkaConfig = KafkaConfig.createLocalConfig(),
-            unleash = UnleashConfig.createLocalConfig()
+            unleash = UnleashConfig.createFromEnvironmentVariables()
         ).also {
             log.warn("**********  Using local config (the environment variable 'NAIS_CLUSTER_NAME' is missing.)")
         }
