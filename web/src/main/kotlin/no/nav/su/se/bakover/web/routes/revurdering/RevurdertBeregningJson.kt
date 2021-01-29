@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
+import com.fasterxml.jackson.annotation.JsonInclude
 import no.nav.su.se.bakover.domain.behandling.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.behandling.Revurdering
 import no.nav.su.se.bakover.domain.behandling.RevurderingTilAttestering
@@ -23,39 +24,43 @@ internal data class RevurdertBeregningJson(
 
 internal data class OpprettetRevurderingJson(
     val id: String,
-    val status: RevurderingsStatus,
     val opprettet: String,
     val tilRevurdering: BehandlingJson
-)
-
-internal data class TilAttesteringJson(
-    val id: String,
-    val status: RevurderingsStatus,
-    val opprettet: String,
-    val tilRevurdering: BehandlingJson,
-    val beregninger: RevurdertBeregningJson,
-    val saksbehandler: String
-)
+) {
+    @JsonInclude
+    val status = RevurderingsStatus.OPPRETTET
+}
 
 internal data class SimulertRevurderingJson(
     val id: String,
-    val status: RevurderingsStatus,
     val opprettet: String,
     val tilRevurdering: BehandlingJson,
     val beregninger: RevurdertBeregningJson,
     val saksbehandler: String
-)
+) {
+    @JsonInclude
+    val status = RevurderingsStatus.SIMULERT
+}
+
+internal data class TilAttesteringJson(
+    val id: String,
+    val opprettet: String,
+    val tilRevurdering: BehandlingJson,
+    val beregninger: RevurdertBeregningJson,
+    val saksbehandler: String
+) {
+    @JsonInclude
+    val status = RevurderingsStatus.TIL_ATTESTERING
+}
 
 internal fun Revurdering.toJson(): Any = when (this) {
     is OpprettetRevurdering -> OpprettetRevurderingJson(
         id = id.toString(),
-        status = RevurderingsStatus.OPPRETTET,
         opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
         tilRevurdering = tilRevurdering.toJson()
     )
     is RevurderingTilAttestering -> TilAttesteringJson(
         id = id.toString(),
-        status = RevurderingsStatus.TIL_ATTESTERING,
         opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
         tilRevurdering = tilRevurdering.toJson(),
         beregninger = RevurdertBeregningJson(
@@ -66,7 +71,6 @@ internal fun Revurdering.toJson(): Any = when (this) {
     )
     is SimulertRevurdering -> SimulertRevurderingJson(
         id = id.toString(),
-        status = RevurderingsStatus.SIMULERT,
         opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
         tilRevurdering = tilRevurdering.toJson(),
         beregninger = RevurdertBeregningJson(

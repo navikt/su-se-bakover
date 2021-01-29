@@ -72,4 +72,8 @@ data class RevurderingTilAttestering(
     val beregning: Beregning,
     val simulering: Simulering,
     val oppgaveId: OppgaveId
-) : Revurdering()
+) : Revurdering() {
+    override fun beregn(beregningsgrunnlag: Beregningsgrunnlag): BeregnetRevurdering {
+        throw RuntimeException("Skal ikke kunne beregne når revurderingen er til attestering")
+    }
+}

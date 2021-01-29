@@ -162,5 +162,6 @@ internal fun hentFeilResultat(feil: RevurderingFeilet): Resultat {
         RevurderingFeilet.FantIkkeRevurdering -> NotFound.message("Fant ikke revurdering")
         RevurderingFeilet.KunneIkkeLageBrevutkast -> InternalServerError.message("Kunne ikke lage brev")
         RevurderingFeilet.MicrosoftApiGraphFeil -> InternalServerError.message("Kunne ikke slå opp saksbehandler")
+        RevurderingFeilet.PeriodenErIkkeIMånedenEtter -> BadRequest.message("Perioden er ikke i måneden etter")
     }
 }
