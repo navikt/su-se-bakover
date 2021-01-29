@@ -91,7 +91,7 @@ internal class BehandlingServiceImpl(
                 }
                 .map {
                     val aktørId: AktørId = personService.hentAktørId(behandling.fnr).getOrElse {
-                        log.error("Kunne ikke underkjenne behandling; fant ikke aktør id")
+                        log.error("Fant ikke aktør-id for sak: ${behandling.id}")
                         return KunneIkkeUnderkjenneBehandling.FantIkkeAktørId.left()
                     }
 

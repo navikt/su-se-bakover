@@ -110,7 +110,10 @@ internal class BehandlingJsonTest {
           "søknad": $søknadJsonString,
           "beregning": $expectedBeregningJson,
           "status": "OPPRETTET",
-          "simulering": null,
+          "simulering": {
+            "totalBruttoYtelse": 0,
+            "perioder": []
+          },
           "attestering" : { "attestant" : "kjella", "underkjennelse":  null},
           "saksbehandler" : "pro-saksbehandler",
           "sakId": "$sakId",

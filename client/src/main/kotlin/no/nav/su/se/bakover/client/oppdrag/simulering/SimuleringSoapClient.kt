@@ -46,7 +46,7 @@ internal class SimuleringSoapClient(
         } catch (e: SimulerBeregningFeilUnderBehandling) {
             log.error("Funksjonell feil ved simulering, se sikkerlogg for detaljer", e)
             sikkerLogg.error(
-                "Simulering feilet med feilmelding=${e.faultInfo.errorMessage}, for request:${simulerRequest.print()}",
+                "Simulering feilet med feiltype:${e.faultInfo.errorType}, feilmelding=${e.faultInfo.errorMessage} for request:${simulerRequest.print()}",
                 e
             )
             SimuleringFeilet.FUNKSJONELL_FEIL.left()

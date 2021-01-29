@@ -247,7 +247,7 @@ class SaksbehandlingServiceImpl(
             KunneIkkeUnderkjenneBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
         }.map { underkjent ->
             val aktørId = personService.hentAktørId(underkjent.fnr).getOrElse {
-                log.error("Fant ikke aktør-id med for fødselsnummer : ${underkjent.fnr}")
+                log.error("Fant ikke aktør-id for sak: ${underkjent.id}")
                 return KunneIkkeUnderkjenneBehandling.FantIkkeAktørId.left()
             }
 
