@@ -1,12 +1,14 @@
 package no.nav.su.se.bakover.domain.behandling
 
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.brev.BrevbestillingId
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.util.UUID
@@ -391,7 +393,6 @@ sealed class Søknadsbehandling {
         abstract val saksbehandler: NavIdentBruker
         abstract fun nyOppgaveId(nyOppgaveId: OppgaveId): TilAttestering
         abstract fun tilUnderkjent(attestering: Attestering): Underkjent
-        abstract fun tilIverksatt(attestering: Attestering): Iverksatt
 
         data class Innvilget(
             override val id: UUID,
@@ -434,7 +435,7 @@ sealed class Søknadsbehandling {
                 )
             }
 
-            override fun tilIverksatt(attestering: Attestering): Iverksatt.Innvilget {
+            fun tilIverksatt(attestering: Attestering, utbetalingId: UUID30): Iverksatt.Innvilget {
                 return Iverksatt.Innvilget(
                     id,
                     opprettet,
@@ -447,7 +448,8 @@ sealed class Søknadsbehandling {
                     beregning,
                     simulering,
                     saksbehandler,
-                    attestering
+                    attestering,
+                    utbetalingId
                 )
             }
         }
@@ -491,7 +493,10 @@ sealed class Søknadsbehandling {
                     )
                 }
 
-                override fun tilIverksatt(attestering: Attestering): Iverksatt.Avslag.UtenBeregning {
+                fun tilIverksatt(
+                    attestering: Attestering,
+                    eksterneIverksettingsteg: Iverksatt.Avslag.EksterneIverksettingsteg
+                ): Iverksatt.Avslag.UtenBeregning {
                     return Iverksatt.Avslag.UtenBeregning(
                         id,
                         opprettet,
@@ -502,7 +507,8 @@ sealed class Søknadsbehandling {
                         behandlingsinformasjon,
                         fnr,
                         saksbehandler,
-                        attestering
+                        attestering,
+                        eksterneIverksettingsteg
                     )
                 }
             }
@@ -544,7 +550,10 @@ sealed class Søknadsbehandling {
                     )
                 }
 
-                override fun tilIverksatt(attestering: Attestering): Iverksatt.Avslag.MedBeregning {
+                fun tilIverksatt(
+                    attestering: Attestering,
+                    eksterneIverksettingsteg: Iverksatt.Avslag.EksterneIverksettingsteg
+                ): Iverksatt.Avslag.MedBeregning {
                     return Iverksatt.Avslag.MedBeregning(
                         id,
                         opprettet,
@@ -556,7 +565,8 @@ sealed class Søknadsbehandling {
                         fnr,
                         beregning,
                         saksbehandler,
-                        attestering
+                        attestering,
+                        eksterneIverksettingsteg
                     )
                 }
             }
@@ -774,46 +784,8 @@ sealed class Søknadsbehandling {
             val beregning: Beregning,
             val simulering: Simulering,
             override val saksbehandler: NavIdentBruker,
-            override val attestering: Attestering
-        ) : Iverksatt() {
-            override val status: Behandling.BehandlingsStatus =
-                Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
-
-            override fun accept(visitor: StatusovergangVisitor) {
-                visitor.visit(this)
-            }
-
-            fun tilUtbetalt(utbetaling: Utbetaling) = Utbetalt(
-                id,
-                opprettet,
-                sakId,
-                saksnummer,
-                søknad,
-                oppgaveId,
-                behandlingsinformasjon,
-                fnr,
-                beregning,
-                simulering,
-                saksbehandler,
-                attestering,
-                utbetaling
-            )
-        }
-
-        data class Utbetalt(
-            override val id: UUID,
-            override val opprettet: Tidspunkt,
-            override val sakId: UUID,
-            override val saksnummer: Saksnummer,
-            override val søknad: Søknad.Journalført.MedOppgave,
-            override val oppgaveId: OppgaveId,
-            override val behandlingsinformasjon: Behandlingsinformasjon,
-            override val fnr: Fnr,
-            val beregning: Beregning,
-            val simulering: Simulering,
-            override val saksbehandler: NavIdentBruker,
             override val attestering: Attestering,
-            val utbetaling: Utbetaling
+            val utbetalingId: UUID30
         ) : Iverksatt() {
             override val status: Behandling.BehandlingsStatus =
                 Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
@@ -824,6 +796,8 @@ sealed class Søknadsbehandling {
         }
 
         sealed class Avslag : Iverksatt() {
+            abstract val eksterneIverkssettingsteg: EksterneIverksettingsteg
+
             data class MedBeregning(
                 override val id: UUID,
                 override val opprettet: Tidspunkt,
@@ -835,7 +809,8 @@ sealed class Søknadsbehandling {
                 override val fnr: Fnr,
                 val beregning: Beregning,
                 override val saksbehandler: NavIdentBruker,
-                override val attestering: Attestering
+                override val attestering: Attestering,
+                override val eksterneIverkssettingsteg: EksterneIverksettingsteg
             ) : Avslag() {
                 override val status: Behandling.BehandlingsStatus =
                     Behandling.BehandlingsStatus.IVERKSATT_AVSLAG
@@ -855,7 +830,8 @@ sealed class Søknadsbehandling {
                 override val behandlingsinformasjon: Behandlingsinformasjon,
                 override val fnr: Fnr,
                 override val saksbehandler: NavIdentBruker,
-                override val attestering: Attestering
+                override val attestering: Attestering,
+                override val eksterneIverkssettingsteg: EksterneIverksettingsteg
             ) : Avslag() {
                 override val status: Behandling.BehandlingsStatus =
                     Behandling.BehandlingsStatus.IVERKSATT_AVSLAG
@@ -864,29 +840,14 @@ sealed class Søknadsbehandling {
                     visitor.visit(this)
                 }
             }
-        }
 
-        // data class OversendtOppdrag(
-        //     override val id: UUID,
-        //     override val opprettet: Tidspunkt,
-        //     override val sakId: UUID,
-        //     override val saksnummer: Saksnummer,
-        //     override val søknad: Søknad,
-        //     override val oppgaveId: OppgaveId,
-        //     override val behandlingsinformasjon: Behandlingsinformasjon,
-        //     override val fnr: Fnr,
-        //     val beregning: Beregning,
-        //     val simulering: Simulering,
-        //     val saksbehandler: NavIdentBruker,
-        //     override val attestering: Attestering,
-        //     val utbetaling: Utbetaling
-        // ) : Iverksatt() {
-        //     override val status: Behandling.BehandlingsStatus =
-        //         Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
-        //
-        //     override fun accept(visitor: StatusovergangVisitor) {
-        //         visitor.visit(this)
-        //     }
-        // }
+            sealed class EksterneIverksettingsteg {
+                data class Journalført(val journalpostId: JournalpostId) : EksterneIverksettingsteg()
+                data class JournalførtOgDistribuertBrev(
+                    val journalpostId: JournalpostId,
+                    val brevbestillingId: BrevbestillingId
+                ) : EksterneIverksettingsteg()
+            }
+        }
     }
 }

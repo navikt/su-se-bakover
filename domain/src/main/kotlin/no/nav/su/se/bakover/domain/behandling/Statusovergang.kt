@@ -3,8 +3,11 @@ package no.nav.su.se.bakover.domain.behandling
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.behandling.Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 
 abstract class Statusovergang<L, T> : StatusovergangVisitor {
@@ -168,26 +171,54 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
 
     object SaksbehandlerOgAttestantKanIkkeVæreSammePerson
 
+    sealed class KunneIkkeIverksetteSøknadsbehandling {
+        object SaksbehandlerOgAttestantKanIkkeVæreSammePerson : KunneIkkeIverksetteSøknadsbehandling()
+        object KunneIkkeJournalføre : KunneIkkeIverksetteSøknadsbehandling()
+
+        sealed class KunneIkkeUtbetale : KunneIkkeIverksetteSøknadsbehandling() {
+            object SimuleringHarBlittEndretSidenSaksbehandlerSimulerte :
+                KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale()
+
+            object TekniskFeil : KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale()
+            object KunneIkkeKontrollsimulere : KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale()
+        }
+
+        object FantIkkePerson : KunneIkkeIverksetteSøknadsbehandling()
+    }
+
     class TilIverksatt(
-        private val attestering: Attestering
-    ) : Statusovergang<SaksbehandlerOgAttestantKanIkkeVæreSammePerson, Søknadsbehandling.Iverksatt>() {
+        private val attestering: Attestering,
+        private val innvilget: (søknadsbehandling: Søknadsbehandling.TilAttestering.Innvilget) -> Either<KunneIkkeIverksetteSøknadsbehandling, UUID30>,
+        private val avslag: (søknadsbehandling: Søknadsbehandling.TilAttestering.Avslag) -> Either<KunneIkkeIverksetteSøknadsbehandling, JournalpostId>
+    ) : Statusovergang<KunneIkkeIverksetteSøknadsbehandling, Søknadsbehandling.Iverksatt>() {
 
         override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Avslag.UtenBeregning) {
-            evaluerStatusovergang(søknadsbehandling)
+            result = if (saksbehandlerOgAttestantErForskjellig(søknadsbehandling, attestering)) {
+                avslag(søknadsbehandling)
+                    .mapLeft { KunneIkkeIverksetteSøknadsbehandling.KunneIkkeJournalføre }
+                    .map { søknadsbehandling.tilIverksatt(attestering, EksterneIverksettingsteg.Journalført(it)) }
+            } else {
+                KunneIkkeIverksetteSøknadsbehandling.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
+            }
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Avslag.MedBeregning) {
-            evaluerStatusovergang(søknadsbehandling)
+            result = if (saksbehandlerOgAttestantErForskjellig(søknadsbehandling, attestering)) {
+                avslag(søknadsbehandling)
+                    .mapLeft { KunneIkkeIverksetteSøknadsbehandling.KunneIkkeJournalføre }
+                    .map { søknadsbehandling.tilIverksatt(attestering, EksterneIverksettingsteg.Journalført(it)) }
+            } else {
+                KunneIkkeIverksetteSøknadsbehandling.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
+            }
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Innvilget) {
-            evaluerStatusovergang(søknadsbehandling)
-        }
-
-        private fun evaluerStatusovergang(søknadsbehandling: Søknadsbehandling.TilAttestering) {
-            result = when (saksbehandlerOgAttestantErForskjellig(søknadsbehandling, attestering)) {
-                true -> søknadsbehandling.tilIverksatt(attestering).right()
-                false -> SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
+            result = if (saksbehandlerOgAttestantErForskjellig(søknadsbehandling, attestering)) {
+                innvilget(søknadsbehandling)
+                    .mapLeft { it }
+                    .map { søknadsbehandling.tilIverksatt(attestering, it) }
+            } else {
+                KunneIkkeIverksetteSøknadsbehandling.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
             }
         }
 

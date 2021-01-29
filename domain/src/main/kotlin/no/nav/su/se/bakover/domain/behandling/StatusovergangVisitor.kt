@@ -61,10 +61,6 @@ interface StatusovergangVisitor {
         throw UgyldigStatusovergangException(søknadsbehandling, this)
     }
 
-    fun visit(søknadsbehandling: Søknadsbehandling.Iverksatt.Utbetalt) {
-        throw UgyldigStatusovergangException(søknadsbehandling, this)
-    }
-
     data class UgyldigStatusovergangException(
         private val søknadsbehandling: Any,
         private val statusovergang: Any,

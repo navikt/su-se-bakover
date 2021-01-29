@@ -88,6 +88,7 @@ internal class SaksbehandlingsPostgresRepo(
         val attestering = stringOrNull("attestering")?.let { objectMapper.readValue<Attestering>(it) }
         val saksbehandler = stringOrNull("saksbehandler")?.let { NavIdentBruker.Saksbehandler(it) }
         val saksnummer = Saksnummer(long("saksnummer"))
+        val utbetalingId = uuid30("utbetalingId")
 
         @Suppress("UNUSED_VARIABLE")
         val hendelseslogg = HendelsesloggRepoInternal.hentHendelseslogg(behandlingId.toString(), session)
@@ -101,6 +102,17 @@ internal class SaksbehandlingsPostgresRepo(
 
         @Suppress("UNUSED_VARIABLE")
         val iverksattBrevbestillingId = stringOrNull("iverksattBrevbestillingId")?.let { BrevbestillingId(it) }
+
+        val eksterneIverksettingsteg = when {
+            iverksattJournalpostId != null && iverksattBrevbestillingId != null -> Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg.JournalførtOgDistribuertBrev(
+                journalpostId = iverksattJournalpostId,
+                brevbestillingId = iverksattBrevbestillingId
+            )
+            iverksattJournalpostId != null -> Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg.Journalført(
+                iverksattJournalpostId
+            )
+            else -> throw IllegalStateException("Kunne ikke bestemme eksterne iverksettingssteg for avslag, iverksattJournalpostId:$iverksattJournalpostId, iverksattBrevbestillingId:$iverksattBrevbestillingId")
+        }
 
         return when (status) {
             Behandling.BehandlingsStatus.OPPRETTET -> Søknadsbehandling.Opprettet(
@@ -258,7 +270,8 @@ internal class SaksbehandlingsPostgresRepo(
                 beregning = beregning!!,
                 simulering = simulering!!,
                 saksbehandler = saksbehandler!!,
-                attestering = attestering!!
+                attestering = attestering!!,
+                utbetalingId = utbetalingId
             )
             Behandling.BehandlingsStatus.IVERKSATT_AVSLAG -> when (beregning) {
                 null -> Søknadsbehandling.Iverksatt.Avslag.UtenBeregning(
@@ -271,7 +284,8 @@ internal class SaksbehandlingsPostgresRepo(
                     behandlingsinformasjon = behandlingsinformasjon,
                     fnr = fnr,
                     saksbehandler = saksbehandler!!,
-                    attestering = attestering!!
+                    attestering = attestering!!,
+                    eksterneIverkssettingsteg = eksterneIverksettingsteg
                 )
                 else -> Søknadsbehandling.Iverksatt.Avslag.MedBeregning(
                     id = behandlingId,
@@ -284,7 +298,8 @@ internal class SaksbehandlingsPostgresRepo(
                     fnr = fnr,
                     beregning = beregning,
                     saksbehandler = saksbehandler!!,
-                    attestering = attestering!!
+                    attestering = attestering!!,
+                    eksterneIverkssettingsteg = eksterneIverksettingsteg
                 )
             }
         }

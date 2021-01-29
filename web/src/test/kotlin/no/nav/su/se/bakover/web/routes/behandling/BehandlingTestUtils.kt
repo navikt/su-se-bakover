@@ -134,16 +134,16 @@ object BehandlingTestUtils {
         Søknadsbehandling.Iverksatt.Innvilget(
             id = it.id,
             opprettet = it.opprettet,
-            behandlingsinformasjon = it.behandlingsinformasjon(),
-            søknad = it.søknad,
-            beregning = it.beregning()!!,
-            simulering = it.simulering()!!,
-            attestering = it.attestering()!!,
-            saksbehandler = it.saksbehandler()!!,
             sakId = it.sakId,
             saksnummer = it.saksnummer,
+            søknad = it.søknad,
+            oppgaveId = it.oppgaveId(),
+            behandlingsinformasjon = it.behandlingsinformasjon(),
             fnr = it.fnr,
-            oppgaveId = it.oppgaveId()
+            beregning = it.beregning()!!,
+            simulering = it.simulering()!!,
+            saksbehandler = it.saksbehandler()!!,
+            attestering = it.attestering()!!,
         )
     }
 }

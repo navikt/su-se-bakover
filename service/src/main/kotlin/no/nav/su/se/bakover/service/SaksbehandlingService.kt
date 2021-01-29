@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.service
 
 import arrow.core.Either
-import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
@@ -293,11 +292,32 @@ class SaksbehandlingServiceImpl(
 
         return forsøkStatusovergang(
             søknadsbehandling = søknadsbehandling,
-            statusovergang = Statusovergang.TilIverksatt(request.attestering)
+            statusovergang = Statusovergang.TilIverksatt(
+                attestering = request.attestering,
+                innvilget = {
+                    iverksettSaksbehandlingService.iverksettInnvilgning(
+                        it,
+                        request.attestering.attestant
+                    )
+                },
+                avslag = {
+                    iverksettSaksbehandlingService.iverksettAvslag(
+                        it,
+                        request.attestering.attestant
+                    )
+                }
+            )
         ).mapLeft {
-            KunneIkkeIverksetteBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
-        }.flatMap {
-            iverksettSaksbehandlingService.iverksett(it)
+            when (it) {
+                Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeJournalføre -> KunneIkkeIverksetteBehandling.KunneIkkeJournalføreBrev
+                Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.KunneIkkeKontrollsimulere -> KunneIkkeIverksetteBehandling.KunneIkkeKontrollsimulere
+                Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> KunneIkkeIverksetteBehandling.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
+                Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.TekniskFeil -> KunneIkkeIverksetteBehandling.KunneIkkeUtbetale
+                Statusovergang.KunneIkkeIverksetteSøknadsbehandling.SaksbehandlerOgAttestantKanIkkeVæreSammePerson -> KunneIkkeIverksetteBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
+            }
+        }.map {
+            saksbehandlingRepo.lagre(it)
+            it
         }
     }
 }
