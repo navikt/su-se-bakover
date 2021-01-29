@@ -136,8 +136,12 @@ class SaksbehandlingServiceImpl(
         )
 
         saksbehandlingRepo.lagre(opprettet)
-        observers.forEach { observer -> observer.handle(Event.Statistikk.SøknadsbehandlingOpprettet(opprettet)) }
-        return opprettet.right()
+
+        // Må hente fra db for å få joinet med saksnummer.
+        return saksbehandlingRepo.hent(opprettet.id)!!.let {
+            observers.forEach { observer -> observer.handle(Event.Statistikk.SøknadsbehandlingOpprettet(it)) }
+            it.right()
+        }
     }
 
     override fun vilkårsvurder(request: OppdaterSøknadsbehandlingsinformasjonRequest): Either<KunneIkkeOppdatereBehandlingsinformasjon, Søknadsbehandling> {

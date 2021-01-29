@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.argumentCaptor
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
@@ -42,6 +43,16 @@ internal class OpprettSøknadsbehandlingTest {
             journalpostId = JournalpostId(value = "2"),
             oppgaveId = OppgaveId(value = "1")
         )
+        val expectedSøknadsbehandling = Søknadsbehandling.Opprettet(
+            id = UUID.randomUUID(), // blir ignorert eller overskrevet
+            opprettet = Tidspunkt.EPOCH, // blir ignorert eller overskrevet
+            sakId = sakId,
+            saksnummer = Saksnummer(123),
+            søknad = søknad,
+            oppgaveId = søknad.oppgaveId,
+            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
+            fnr = fnr,
+        )
         val søknadService: SøknadService = mock {
             on { hentSøknad(any()) } doReturn søknad.right()
         }
@@ -50,6 +61,7 @@ internal class OpprettSøknadsbehandlingTest {
         }
         val saksbehandlingRepoMock: SaksbehandlingRepo = mock {
             on { lagre(any()) }.doNothing()
+            on { hent(any()) } doReturn expectedSøknadsbehandling
         }
         val behandlingService = SaksbehandlingServiceImpl(
             utbetalingService = mock(),
@@ -66,16 +78,7 @@ internal class OpprettSøknadsbehandlingTest {
             on { handle(any()) }.doNothing()
         }
         behandlingService.addObserver(eventObserver)
-        val expectedSøknadsbehandling = Søknadsbehandling.Opprettet(
-            id = UUID.randomUUID(), // blir ignorert eller overskrevet
-            opprettet = Tidspunkt.EPOCH, // blir ignorert eller overskrevet
-            sakId = sakId,
-            saksnummer = Saksnummer(-1),
-            søknad = søknad,
-            oppgaveId = søknad.oppgaveId,
-            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
-            fnr = fnr,
-        )
+
         behandlingService.opprett(OpprettSøknadsbehandlingRequest(søknad.id)).orNull()!!.shouldBeEqualToIgnoringFields(
             expectedSøknadsbehandling,
             Søknadsbehandling.Opprettet::id,
@@ -83,23 +86,18 @@ internal class OpprettSøknadsbehandlingTest {
         )
         verify(søknadService).hentSøknad(argThat { it shouldBe søknad.id })
         verify(søknadRepo).harSøknadPåbegyntBehandling(argThat { it shouldBe søknad.id })
-        verify(saksbehandlingRepoMock).lagre(
-            argThat {
-                val actual = it
 
-                it shouldBe expectedSøknadsbehandling.copy(
-                    id = actual.id,
-                    opprettet = actual.opprettet
-                )
-            }
+        val persistertSøknadsbehandling = argumentCaptor<Søknadsbehandling.Opprettet>()
+
+        verify(saksbehandlingRepoMock).lagre(persistertSøknadsbehandling.capture())
+
+        verify(saksbehandlingRepoMock).hent(
+            argThat { it shouldBe persistertSøknadsbehandling.firstValue.id }
         )
         verify(eventObserver).handle(
             argThat {
                 it shouldBe Event.Statistikk.SøknadsbehandlingOpprettet(
-                    expectedSøknadsbehandling.copy(
-                        id = (it as Event.Statistikk.SøknadsbehandlingOpprettet).behandling.id,
-                        opprettet = it.behandling.opprettet
-                    )
+                    expectedSøknadsbehandling
                 )
             }
         )

@@ -158,7 +158,9 @@ class ServiceBuilder(
                 iverksettSaksbehandlingService,
                 behandlingMetrics,
                 BeregningService(),
-            ),
+            ).apply {
+                addObserver(statistikkService)
+            },
         )
     }
 }

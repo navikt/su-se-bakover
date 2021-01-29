@@ -47,6 +47,7 @@ internal class ServiceBuilderTest {
         ).build().let {
             (it.sak as SakServiceImpl).observers shouldContain it.statistikk
             (it.behandling as BehandlingServiceImpl).getObservers() shouldContain it.statistikk
+            (it.saksbehandling as SaksbehandlingServiceImpl).getObservers() shouldContain it.statistikk
         }
     }
 }
