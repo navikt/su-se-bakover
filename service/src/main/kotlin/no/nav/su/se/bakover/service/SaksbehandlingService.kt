@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service
 
 import arrow.core.Either
+import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
@@ -236,62 +237,67 @@ class SaksbehandlingServiceImpl(
     }
 
     override fun underkjenn(request: UnderkjennSøknadsbehandlingRequest): Either<KunneIkkeUnderkjenneBehandling, Søknadsbehandling> {
-        val søknadsbehandling = saksbehandlingRepo.hent(request.behandlingId)?.let {
-            statusovergang(
-                søknadsbehandling = it,
-                statusovergang = Statusovergang.TilUnderkjent(request.attestering)
-            )
-        } ?: return KunneIkkeUnderkjenneBehandling.FantIkkeBehandling.left()
+        val søknadsbehandling = saksbehandlingRepo.hent(request.behandlingId)
+            ?: return KunneIkkeUnderkjenneBehandling.FantIkkeBehandling.left()
 
-        // TODO attestant kan ikke være saksbehandler
-        val aktørId = personService.hentAktørId(søknadsbehandling.fnr).getOrElse {
-            log.error("Fant ikke aktør-id med for fødselsnummer : ${søknadsbehandling.fnr}")
-            return KunneIkkeUnderkjenneBehandling.FantIkkeAktørId.left()
-        }
-
-        val journalpostId: JournalpostId = søknadsbehandling.søknad.journalpostId
-        val eksisterendeOppgaveId = søknadsbehandling.oppgaveId
-        val nyOppgaveId = oppgaveService.opprettOppgave(
-            OppgaveConfig.Saksbehandling(
-                journalpostId = journalpostId,
-                søknadId = søknadsbehandling.søknad.id,
-                aktørId = aktørId,
-                tilordnetRessurs = søknadsbehandling.saksbehandler
-            )
-        ).getOrElse {
-            log.error("Behandling ${søknadsbehandling.id} ble ikke underkjent. Klarte ikke opprette behandlingsoppgave")
-            return@underkjenn KunneIkkeUnderkjenneBehandling.KunneIkkeOppretteOppgave.left()
-        }.also {
-            behandlingMetrics.incrementUnderkjentCounter(BehandlingMetrics.UnderkjentHandlinger.OPPRETTET_OPPGAVE)
-        }
-
-        val søknadsbehandlingMedNyOppgaveId = søknadsbehandling.nyOppgaveId(nyOppgaveId)
-
-        saksbehandlingRepo.lagre(søknadsbehandlingMedNyOppgaveId)
-        log.info("Behandling ${søknadsbehandling.id} ble underkjent. Opprettet behandlingsoppgave $nyOppgaveId")
-
-        oppgaveService.lukkOppgave(eksisterendeOppgaveId)
-            .mapLeft {
-                log.error("Kunne ikke lukke attesteringsoppgave $eksisterendeOppgaveId ved underkjenning av behandlingen. Dette må gjøres manuelt.")
-            }.map {
-                log.info("Lukket attesteringsoppgave $eksisterendeOppgaveId ved underkjenning av behandlingen")
-                behandlingMetrics.incrementUnderkjentCounter(BehandlingMetrics.UnderkjentHandlinger.LUKKET_OPPGAVE)
+        return forsøkStatusovergang(
+            søknadsbehandling = søknadsbehandling,
+            statusovergang = Statusovergang.TilUnderkjent(request.attestering)
+        ).mapLeft {
+            KunneIkkeUnderkjenneBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
+        }.map { underkjent ->
+            val aktørId = personService.hentAktørId(underkjent.fnr).getOrElse {
+                log.error("Fant ikke aktør-id med for fødselsnummer : ${underkjent.fnr}")
+                return KunneIkkeUnderkjenneBehandling.FantIkkeAktørId.left()
             }
-        søknadsbehandlingMedNyOppgaveId.also {
-            observers.forEach { observer -> observer.handle(Event.Statistikk.SøknadsbehandlingUnderkjent(it)) }
-        }
 
-        return søknadsbehandlingMedNyOppgaveId.right()
+            val journalpostId: JournalpostId = underkjent.søknad.journalpostId
+            val eksisterendeOppgaveId = underkjent.oppgaveId
+            val nyOppgaveId = oppgaveService.opprettOppgave(
+                OppgaveConfig.Saksbehandling(
+                    journalpostId = journalpostId,
+                    søknadId = underkjent.søknad.id,
+                    aktørId = aktørId,
+                    tilordnetRessurs = underkjent.saksbehandler
+                )
+            ).getOrElse {
+                log.error("Behandling ${underkjent.id} ble ikke underkjent. Klarte ikke opprette behandlingsoppgave")
+                return@underkjenn KunneIkkeUnderkjenneBehandling.KunneIkkeOppretteOppgave.left()
+            }.also {
+                behandlingMetrics.incrementUnderkjentCounter(BehandlingMetrics.UnderkjentHandlinger.OPPRETTET_OPPGAVE)
+            }
+
+            val søknadsbehandlingMedNyOppgaveId = underkjent.nyOppgaveId(nyOppgaveId)
+
+            saksbehandlingRepo.lagre(søknadsbehandlingMedNyOppgaveId)
+            log.info("Behandling ${underkjent.id} ble underkjent. Opprettet behandlingsoppgave $nyOppgaveId")
+
+            oppgaveService.lukkOppgave(eksisterendeOppgaveId)
+                .mapLeft {
+                    log.error("Kunne ikke lukke attesteringsoppgave $eksisterendeOppgaveId ved underkjenning av behandlingen. Dette må gjøres manuelt.")
+                }.map {
+                    log.info("Lukket attesteringsoppgave $eksisterendeOppgaveId ved underkjenning av behandlingen")
+                    behandlingMetrics.incrementUnderkjentCounter(BehandlingMetrics.UnderkjentHandlinger.LUKKET_OPPGAVE)
+                }
+            søknadsbehandlingMedNyOppgaveId.also {
+                observers.forEach { observer -> observer.handle(Event.Statistikk.SøknadsbehandlingUnderkjent(it)) }
+            }
+
+            søknadsbehandlingMedNyOppgaveId
+        }
     }
 
     override fun iverksett(request: IverksettSøknadsbehandlingRequest): Either<KunneIkkeIverksetteBehandling, Søknadsbehandling> {
-        val søknadsbehandling = saksbehandlingRepo.hent(request.behandlingId)?.let {
-            statusovergang(
-                søknadsbehandling = it,
-                statusovergang = Statusovergang.TilIverksatt(request.attestering)
-            )
-        } ?: return KunneIkkeIverksetteBehandling.FantIkkeBehandling.left()
+        val søknadsbehandling = saksbehandlingRepo.hent(request.behandlingId)
+            ?: return KunneIkkeIverksetteBehandling.FantIkkeBehandling.left()
 
-        return iverksettSaksbehandlingService.iverksett(søknadsbehandling)
+        return forsøkStatusovergang(
+            søknadsbehandling = søknadsbehandling,
+            statusovergang = Statusovergang.TilIverksatt(request.attestering)
+        ).mapLeft {
+            KunneIkkeIverksetteBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
+        }.flatMap {
+            iverksettSaksbehandlingService.iverksett(it)
+        }
     }
 }

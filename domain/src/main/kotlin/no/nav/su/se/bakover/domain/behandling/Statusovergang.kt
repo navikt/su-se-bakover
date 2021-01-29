@@ -139,36 +139,62 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
 
     class TilUnderkjent(
         private val attestering: Attestering
-    ) : Statusovergang<Nothing, Søknadsbehandling.Underkjent>() {
+    ) : Statusovergang<SaksbehandlerOgAttestantKanIkkeVæreSammePerson, Søknadsbehandling.Underkjent>() {
 
         override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Avslag.UtenBeregning) {
-            result = søknadsbehandling.tilUnderkjent(attestering).right()
+            evaluerStatusovergang(søknadsbehandling)
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Avslag.MedBeregning) {
-            result = søknadsbehandling.tilUnderkjent(attestering).right()
+            evaluerStatusovergang(søknadsbehandling)
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Innvilget) {
-            result = søknadsbehandling.tilUnderkjent(attestering).right()
+            evaluerStatusovergang(søknadsbehandling)
         }
+
+        private fun evaluerStatusovergang(søknadsbehandling: Søknadsbehandling.TilAttestering) {
+            result = when (saksbehandlerOgAttestantErForskjellig(søknadsbehandling, attestering)) {
+                true -> søknadsbehandling.tilUnderkjent(attestering).right()
+                false -> SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
+            }
+        }
+
+        private fun saksbehandlerOgAttestantErForskjellig(
+            søknadsbehandling: Søknadsbehandling.TilAttestering,
+            attestering: Attestering
+        ): Boolean = søknadsbehandling.saksbehandler.navIdent != attestering.attestant.navIdent
     }
+
+    object SaksbehandlerOgAttestantKanIkkeVæreSammePerson
 
     class TilIverksatt(
         private val attestering: Attestering
-    ) : Statusovergang<Nothing, Søknadsbehandling.Iverksatt>() {
+    ) : Statusovergang<SaksbehandlerOgAttestantKanIkkeVæreSammePerson, Søknadsbehandling.Iverksatt>() {
 
         override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Avslag.UtenBeregning) {
-            result = søknadsbehandling.tilIverksatt(attestering).right()
+            evaluerStatusovergang(søknadsbehandling)
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Avslag.MedBeregning) {
-            result = søknadsbehandling.tilIverksatt(attestering).right()
+            evaluerStatusovergang(søknadsbehandling)
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Innvilget) {
-            result = søknadsbehandling.tilIverksatt(attestering).right()
+            evaluerStatusovergang(søknadsbehandling)
         }
+
+        private fun evaluerStatusovergang(søknadsbehandling: Søknadsbehandling.TilAttestering) {
+            result = when (saksbehandlerOgAttestantErForskjellig(søknadsbehandling, attestering)) {
+                true -> søknadsbehandling.tilIverksatt(attestering).right()
+                false -> SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
+            }
+        }
+
+        private fun saksbehandlerOgAttestantErForskjellig(
+            søknadsbehandling: Søknadsbehandling.TilAttestering,
+            attestering: Attestering
+        ): Boolean = søknadsbehandling.saksbehandler.navIdent != attestering.attestant.navIdent
     }
 }
 

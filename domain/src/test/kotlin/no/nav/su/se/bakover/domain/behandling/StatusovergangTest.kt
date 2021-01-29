@@ -90,10 +90,9 @@ internal class StatusovergangTest {
         periodeList = emptyList()
     )
 
-    private val saksbehandler = NavIdentBruker.Saksbehandler("")
-    private val underkjentAttestering =
-        Attestering.Underkjent(NavIdentBruker.Attestant(""), Attestering.Underkjent.Grunn.ANDRE_FORHOLD, "")
-    private val attestering = Attestering.Iverksatt(NavIdentBruker.Attestant(""))
+    private val saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler")
+    private val underkjentAttestering = Attestering.Underkjent(NavIdentBruker.Attestant("attestant"), Attestering.Underkjent.Grunn.ANDRE_FORHOLD, "")
+    private val attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"))
 
     private val vilkårsvurdertInnvilget: Søknadsbehandling.Vilkårsvurdert.Innvilget =
         opprettet.tilVilkårsvurdert(
@@ -114,7 +113,7 @@ internal class StatusovergangTest {
     private val tilAttesteringAvslagVilkår: Søknadsbehandling.TilAttestering.Avslag.UtenBeregning =
         vilkårsvurdertAvslag.tilAttestering(saksbehandler)
     private val tilAttesteringAvslagBeregning: Søknadsbehandling.TilAttestering.Avslag.MedBeregning =
-        beregnetAvslag.tilAttestering(NavIdentBruker.Saksbehandler(""))
+        beregnetAvslag.tilAttestering(saksbehandler)
     private val underkjentInnvilget: Søknadsbehandling.Underkjent.Innvilget =
         tilAttesteringInnvilget.tilUnderkjent(underkjentAttestering)
     private val underkjentAvslagVilkår: Søknadsbehandling.Underkjent.Avslag.UtenBeregning =
@@ -519,6 +518,7 @@ internal class StatusovergangTest {
             }
         }
     }
+
     @Nested
     inner class TilAttestering {
         @Test
@@ -596,26 +596,50 @@ internal class StatusovergangTest {
     inner class TilUnderkjent {
         @Test
         fun `til attestering avslag vilkår til underkjent avslag vilkår`() {
-            statusovergang(
+            forsøkStatusovergang(
                 tilAttesteringAvslagVilkår,
                 Statusovergang.TilUnderkjent(underkjentAttestering)
-            ) shouldBe underkjentAvslagVilkår
+            ) shouldBe underkjentAvslagVilkår.right()
         }
 
         @Test
         fun `til attestering avslag beregning til underkjent avslag beregning`() {
-            statusovergang(
+            forsøkStatusovergang(
                 tilAttesteringAvslagBeregning,
                 Statusovergang.TilUnderkjent(underkjentAttestering)
-            ) shouldBe underkjentAvslagBeregning
+            ) shouldBe underkjentAvslagBeregning.right()
         }
 
         @Test
         fun `til attestering innvilget til underkjent innvilging`() {
-            statusovergang(
+            forsøkStatusovergang(
                 tilAttesteringInnvilget,
                 Statusovergang.TilUnderkjent(underkjentAttestering)
-            ) shouldBe underkjentInnvilget
+            ) shouldBe underkjentInnvilget.right()
+        }
+
+        @Test
+        fun `til attestering avslag vilkår kan ikke underkjenne sitt eget verk`() {
+            forsøkStatusovergang(
+                tilAttesteringAvslagVilkår.copy(saksbehandler = NavIdentBruker.Saksbehandler("sneaky")),
+                Statusovergang.TilUnderkjent(Attestering.Underkjent(NavIdentBruker.Attestant("sneaky"), Attestering.Underkjent.Grunn.ANDRE_FORHOLD, ""))
+            ) shouldBe Statusovergang.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
+        }
+
+        @Test
+        fun `til attestering avslag beregning kan ikke underkjenne sitt eget verk`() {
+            forsøkStatusovergang(
+                tilAttesteringAvslagBeregning.copy(saksbehandler = NavIdentBruker.Saksbehandler("sneaky")),
+                Statusovergang.TilUnderkjent(Attestering.Underkjent(NavIdentBruker.Attestant("sneaky"), Attestering.Underkjent.Grunn.ANDRE_FORHOLD, ""))
+            ) shouldBe Statusovergang.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
+        }
+
+        @Test
+        fun `til attestering innvilget kan ikke underkjenne sitt eget verk`() {
+            forsøkStatusovergang(
+                tilAttesteringInnvilget.copy(saksbehandler = NavIdentBruker.Saksbehandler("sneaky")),
+                Statusovergang.TilUnderkjent(Attestering.Underkjent(NavIdentBruker.Attestant("sneaky"), Attestering.Underkjent.Grunn.ANDRE_FORHOLD, ""))
+            ) shouldBe Statusovergang.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
         }
 
         @Test
@@ -635,7 +659,7 @@ internal class StatusovergangTest {
                 iverksattInnvilget
             ).forEach {
                 assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
-                    statusovergang(
+                    forsøkStatusovergang(
                         it,
                         Statusovergang.TilUnderkjent(underkjentAttestering)
                     )
@@ -648,26 +672,50 @@ internal class StatusovergangTest {
     inner class TilIverksatt {
         @Test
         fun `attestert avslag vilkår til iverksatt avslag vilkår`() {
-            statusovergang(
+            forsøkStatusovergang(
                 tilAttesteringAvslagVilkår,
                 Statusovergang.TilIverksatt(attestering)
-            ) shouldBe iverksattAvslagVilkår
+            ) shouldBe iverksattAvslagVilkår.right()
         }
 
         @Test
         fun `attestert avslag beregning til iverksatt avslag beregning`() {
-            statusovergang(
+            forsøkStatusovergang(
                 tilAttesteringAvslagBeregning,
                 Statusovergang.TilIverksatt(attestering)
-            ) shouldBe iverksattAvslagBeregning
+            ) shouldBe iverksattAvslagBeregning.right()
         }
 
         @Test
         fun `attestert innvilget til iverksatt innvilging`() {
-            statusovergang(
+            forsøkStatusovergang(
                 tilAttesteringInnvilget,
                 Statusovergang.TilIverksatt(attestering)
-            ) shouldBe iverksattInnvilget
+            ) shouldBe iverksattInnvilget.right()
+        }
+
+        @Test
+        fun `attestert avslag vilkår kan ikke attestere sitt eget verk`() {
+            forsøkStatusovergang(
+                tilAttesteringAvslagVilkår.copy(saksbehandler = NavIdentBruker.Saksbehandler("sneaky")),
+                Statusovergang.TilIverksatt(Attestering.Iverksatt(NavIdentBruker.Attestant("sneaky")))
+            ) shouldBe Statusovergang.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
+        }
+
+        @Test
+        fun `attestert avslag beregning kan ikke attestere sitt eget verk`() {
+            forsøkStatusovergang(
+                tilAttesteringAvslagBeregning.copy(saksbehandler = NavIdentBruker.Saksbehandler("sneaky")),
+                Statusovergang.TilIverksatt(Attestering.Iverksatt(NavIdentBruker.Attestant("sneaky")))
+            ) shouldBe Statusovergang.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
+        }
+
+        @Test
+        fun `attestert innvilget kan ikke attestere sitt eget verk`() {
+            forsøkStatusovergang(
+                tilAttesteringInnvilget.copy(saksbehandler = NavIdentBruker.Saksbehandler("sneaky")),
+                Statusovergang.TilIverksatt(Attestering.Iverksatt(NavIdentBruker.Attestant("sneaky")))
+            ) shouldBe Statusovergang.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
         }
 
         @Test
@@ -687,7 +735,7 @@ internal class StatusovergangTest {
                 iverksattInnvilget
             ).forEach {
                 assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
-                    statusovergang(
+                    forsøkStatusovergang(
                         it,
                         Statusovergang.TilUnderkjent(underkjentAttestering)
                     )

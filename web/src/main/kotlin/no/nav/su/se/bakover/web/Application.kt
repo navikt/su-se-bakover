@@ -43,6 +43,7 @@ import no.nav.su.se.bakover.domain.UgyldigFnrException
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
+import no.nav.su.se.bakover.domain.behandling.StatusovergangVisitor
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.service.AccessCheckProxy
@@ -166,6 +167,10 @@ internal fun Application.susebakover(
         }
         exception<Behandling.TilstandException> {
             log.info("Got ${Behandling.TilstandException::class.simpleName} with message=${it.msg}")
+            call.respond(HttpStatusCode.BadRequest, ErrorJson(it.msg))
+        }
+        exception<StatusovergangVisitor.UgyldigStatusovergangException> {
+            log.info("Got ${StatusovergangVisitor.UgyldigStatusovergangException::class.simpleName} with message=${it.msg}")
             call.respond(HttpStatusCode.BadRequest, ErrorJson(it.msg))
         }
         exception<DateTimeParseException> {

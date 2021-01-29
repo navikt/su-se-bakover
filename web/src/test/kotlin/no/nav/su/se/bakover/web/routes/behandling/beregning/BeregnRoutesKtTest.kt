@@ -371,9 +371,9 @@ internal class BeregnRoutesKtTest {
                 )
             }.apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
-                response.content shouldContain "Illegal operation"
-                response.content shouldContain "opprettBeregning"
-                response.content shouldContain "state: OPPRETTET"
+                response.content shouldContain "Ugyldig statusovergang"
+                response.content shouldContain "TilBeregnet"
+                response.content shouldContain "Opprettet"
             }
         }
     }

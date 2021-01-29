@@ -10,7 +10,9 @@ import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.behandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.behandlingFactory
@@ -33,6 +35,7 @@ object BehandlingTestUtils {
         oppgaveId = oppgaveId,
         journalpostId = journalpostId,
     )
+    internal val fnr = FnrGenerator.random()
 
     /**
      * Behandling er fremdeles muterbar, så vi må påse at testene får hver sin versjon
@@ -112,11 +115,35 @@ object BehandlingTestUtils {
         ),
         søknad = journalførtSøknadMedOppgave,
         beregning = TestBeregning,
+        simulering = Simulering(
+            gjelderId = fnr,
+            gjelderNavn = "navn",
+            datoBeregnet = LocalDate.EPOCH,
+            nettoBeløp = 1000,
+            periodeList = listOf()
+        ),
         attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("kjella")),
         saksbehandler = NavIdentBruker.Saksbehandler("pro-saksbehandler"),
         sakId = sakId,
         saksnummer = saksnummer,
-        fnr = FnrGenerator.random(),
+        fnr = fnr,
         oppgaveId = oppgaveId
     )
+
+    internal fun nySøknadsbehandling() = nyBehandling().let {
+        Søknadsbehandling.Iverksatt.Innvilget(
+            id = it.id,
+            opprettet = it.opprettet,
+            behandlingsinformasjon = it.behandlingsinformasjon(),
+            søknad = it.søknad,
+            beregning = it.beregning()!!,
+            simulering = it.simulering()!!,
+            attestering = it.attestering()!!,
+            saksbehandler = it.saksbehandler()!!,
+            sakId = it.sakId,
+            saksnummer = it.saksnummer,
+            fnr = it.fnr,
+            oppgaveId = it.oppgaveId()
+        )
+    }
 }

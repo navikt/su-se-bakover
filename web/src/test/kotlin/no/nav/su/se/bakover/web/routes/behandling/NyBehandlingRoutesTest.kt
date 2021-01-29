@@ -14,12 +14,13 @@ import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Brukerrolle
-import no.nav.su.se.bakover.domain.behandling.Behandling
+import no.nav.su.se.bakover.domain.behandling.Søknadsbehandling
+import no.nav.su.se.bakover.service.OpprettSøknadsbehandlingRequest
+import no.nav.su.se.bakover.service.SaksbehandlingService
 import no.nav.su.se.bakover.service.Services
-import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.nyBehandling
+import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.nySøknadsbehandling
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.sakId
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.søknadId
 import no.nav.su.se.bakover.web.routes.sak.sakPath
@@ -45,13 +46,13 @@ class NyBehandlingRoutesTest {
 
     @Test
     fun `kan opprette behandling`() {
-        val behandling: Behandling = nyBehandling()
-        val behandlingServiceMock = mock<BehandlingService> {
-            on { opprettSøknadsbehandling(any()) } doReturn behandling.right()
+        val søknadsbehandling: Søknadsbehandling = nySøknadsbehandling()
+        val saksbehandlingServiceMock = mock<SaksbehandlingService> {
+            on { opprett(any()) } doReturn søknadsbehandling.right()
         }
 
         withTestApplication({
-            testSusebakover(services = services.copy(behandling = behandlingServiceMock))
+            testSusebakover(services = services.copy(saksbehandling = saksbehandlingServiceMock))
         }) {
             defaultRequest(
                 HttpMethod.Post,
@@ -62,8 +63,8 @@ class NyBehandlingRoutesTest {
             }.apply {
                 response.status() shouldBe HttpStatusCode.Created
                 val actualResponse = objectMapper.readValue<BehandlingJson>(response.content!!)
-                verify(behandlingServiceMock).opprettSøknadsbehandling(argThat { it shouldBe søknadId })
-                verifyNoMoreInteractions(behandlingServiceMock)
+                verify(saksbehandlingServiceMock).opprett(argThat { it shouldBe OpprettSøknadsbehandlingRequest(søknadId) })
+                verifyNoMoreInteractions(saksbehandlingServiceMock)
                 actualResponse.søknad.id shouldBe søknadId.toString()
             }
         }
