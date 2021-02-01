@@ -351,24 +351,55 @@ internal class SaksbehandlingsPostgresRepoTest {
     inner class Iverksatt {
         @Test
         fun `iverksatt avslag innvilget`() {
+
             withMigratedDb {
                 val iverksatt = iverksattInnvilget()
+                val expectedInnvilgetUtenJournalføring = Søknadsbehandling.Iverksatt.Innvilget(
+                    id = iverksatt.id,
+                    opprettet = iverksatt.opprettet,
+                    sakId = iverksatt.sakId,
+                    saksnummer = iverksatt.saksnummer,
+                    søknad = iverksatt.søknad,
+                    oppgaveId = iverksatt.oppgaveId,
+                    behandlingsinformasjon = iverksatt.behandlingsinformasjon,
+                    fnr = iverksatt.fnr,
+                    beregning = beregning,
+                    simulering = simulering,
+                    saksbehandler = saksbehandler,
+                    attestering = iverksattAttestering,
+                    eksterneIverksettingsteg = Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.VenterPåKvittering,
+                    utbetalingId = utbetalingId,
+                )
                 repo.hent(saksbehandlingId).also {
-                    it shouldBe Søknadsbehandling.Iverksatt.Innvilget(
-                        id = iverksatt.id,
-                        opprettet = iverksatt.opprettet,
-                        sakId = iverksatt.sakId,
-                        saksnummer = iverksatt.saksnummer,
-                        søknad = iverksatt.søknad,
-                        oppgaveId = iverksatt.oppgaveId,
-                        behandlingsinformasjon = iverksatt.behandlingsinformasjon,
-                        fnr = iverksatt.fnr,
-                        beregning = beregning,
-                        simulering = simulering,
-                        saksbehandler = saksbehandler,
-                        attestering = iverksattAttestering,
-                        eksterneIverksettingsteg = Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.VenterPåKvittering,
-                        utbetalingId = utbetalingId,
+                    it shouldBe expectedInnvilgetUtenJournalføring
+                }
+
+                val journalført =
+                    Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.Journalført(
+                        journalpostId = iverksattJournalpostId
+                    )
+                repo.lagre(
+                    iverksatt.copy(
+                        eksterneIverksettingsteg = journalført
+                    )
+                ).also {
+                    repo.hent(saksbehandlingId) shouldBe expectedInnvilgetUtenJournalføring.copy(
+                        eksterneIverksettingsteg = journalført
+                    )
+                }
+
+                val journalførtOgDistribuertBrev =
+                    Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.JournalførtOgDistribuertBrev(
+                        journalpostId = iverksattJournalpostId,
+                        brevbestillingId = iverksattBrevbestillingId,
+                    )
+                repo.lagre(
+                    iverksatt.copy(
+                        eksterneIverksettingsteg = journalførtOgDistribuertBrev
+                    )
+                ).also {
+                    repo.hent(saksbehandlingId) shouldBe expectedInnvilgetUtenJournalføring.copy(
+                        eksterneIverksettingsteg = journalførtOgDistribuertBrev
                     )
                 }
             }
@@ -378,25 +409,40 @@ internal class SaksbehandlingsPostgresRepoTest {
     @Test
     fun `iverksatt avslag uten beregning`() {
         withMigratedDb {
-            val eksterneIverksettingsteg =
+            val journalført = Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg.Journalført(
+                journalpostId = iverksattJournalpostId,
+            )
+            val iverksatt = iverksattAvslagUtenBeregning(journalført)
+            val expected = Søknadsbehandling.Iverksatt.Avslag.UtenBeregning(
+                id = iverksatt.id,
+                opprettet = iverksatt.opprettet,
+                sakId = iverksatt.sakId,
+                saksnummer = iverksatt.saksnummer,
+                søknad = iverksatt.søknad,
+                oppgaveId = iverksatt.oppgaveId,
+                behandlingsinformasjon = iverksatt.behandlingsinformasjon,
+                fnr = iverksatt.fnr,
+                saksbehandler = saksbehandler,
+                attestering = iverksattAttestering,
+                eksterneIverksettingsteg = journalført,
+            )
+            repo.hent(saksbehandlingId).also {
+
+                it shouldBe expected
+            }
+
+            val journalførtOgDistribuertBrev =
                 Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg.JournalførtOgDistribuertBrev(
                     journalpostId = iverksattJournalpostId,
                     brevbestillingId = iverksattBrevbestillingId,
                 )
-            val iverksatt = iverksattAvslagUtenBeregning(eksterneIverksettingsteg)
-            repo.hent(saksbehandlingId).also {
-                it shouldBe Søknadsbehandling.Iverksatt.Avslag.UtenBeregning(
-                    id = iverksatt.id,
-                    opprettet = iverksatt.opprettet,
-                    sakId = iverksatt.sakId,
-                    saksnummer = iverksatt.saksnummer,
-                    søknad = iverksatt.søknad,
-                    oppgaveId = iverksatt.oppgaveId,
-                    behandlingsinformasjon = iverksatt.behandlingsinformasjon,
-                    fnr = iverksatt.fnr,
-                    saksbehandler = saksbehandler,
-                    attestering = iverksattAttestering,
-                    eksterneIverksettingsteg = eksterneIverksettingsteg
+            repo.lagre(
+                iverksatt.copy(
+                    eksterneIverksettingsteg = journalførtOgDistribuertBrev
+                )
+            ).also {
+                repo.hent(saksbehandlingId) shouldBe expected.copy(
+                    eksterneIverksettingsteg = journalførtOgDistribuertBrev
                 )
             }
         }
@@ -552,7 +598,7 @@ internal class SaksbehandlingsPostgresRepoTest {
                     behandler = attestant,
                     avstemmingsnøkkel = Avstemmingsnøkkel(it.opprettet),
                     simulering = simulering,
-                    utbetalingsrequest = Utbetalingsrequest("")
+                    utbetalingsrequest = Utbetalingsrequest(""),
                 )
             )
             repo.lagre(it)
