@@ -11,13 +11,13 @@ import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.service.behandling.BestiltBrev
 import no.nav.su.se.bakover.service.behandling.KunneIkkeBestilleBrev
 import no.nav.su.se.bakover.service.behandling.KunneIkkeOppretteJournalpostForIverksetting
 import no.nav.su.se.bakover.service.behandling.OpprettManglendeJournalpostOgBrevdistribusjonResultat
 import no.nav.su.se.bakover.service.behandling.OpprettetJournalpostForIverksetting
+import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
@@ -26,18 +26,7 @@ import java.util.UUID
 
 internal class FixIverksettingerTest {
 
-    private val services = Services(
-        avstemming = mock(),
-        utbetaling = mock(),
-        behandling = mock(),
-        sak = mock(),
-        søknad = mock(),
-        brev = mock(),
-        lukkSøknad = mock(),
-        oppgave = mock(),
-        person = mock(),
-        statistikk = mock()
-    )
+    private val services = TestServicesBuilder.services()
 
     @Test
     fun `Kun Drift har tilgang til fix-iverksettinger-endepunktet`() {

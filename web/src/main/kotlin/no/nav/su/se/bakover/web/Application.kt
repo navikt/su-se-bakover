@@ -29,6 +29,8 @@ import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.routing
 import io.ktor.util.KtorExperimentalAPI
+import no.finn.unleash.DefaultUnleash
+import no.finn.unleash.util.UnleashConfig
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ProdClientsBuilder
 import no.nav.su.se.bakover.client.StubClientsBuilder
@@ -46,8 +48,9 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.service.AccessCheckProxy
-import no.nav.su.se.bakover.service.ServiceBuilder
+import no.nav.su.se.bakover.service.ProdServiceBuilder
 import no.nav.su.se.bakover.service.Services
+import no.nav.su.se.bakover.service.StubServiceBuilder
 import no.nav.su.se.bakover.service.Tilgangssjekkfeil
 import no.nav.su.se.bakover.web.features.Authorization
 import no.nav.su.se.bakover.web.features.AuthorizationException
@@ -61,6 +64,7 @@ import no.nav.su.se.bakover.web.features.withUser
 import no.nav.su.se.bakover.web.metrics.BehandlingMicrometerMetrics
 import no.nav.su.se.bakover.web.metrics.SuMetrics
 import no.nav.su.se.bakover.web.metrics.SøknadMicrometerMetrics
+import no.nav.su.se.bakover.web.routes.IsNotProdStrategy
 import no.nav.su.se.bakover.web.routes.avstemming.avstemmingRoutes
 import no.nav.su.se.bakover.web.routes.behandling.behandlingRoutes
 import no.nav.su.se.bakover.web.routes.drift.driftRoutes
@@ -72,6 +76,7 @@ import no.nav.su.se.bakover.web.routes.person.personPath
 import no.nav.su.se.bakover.web.routes.person.personRoutes
 import no.nav.su.se.bakover.web.routes.sak.sakRoutes
 import no.nav.su.se.bakover.web.routes.søknad.søknadRoutes
+import no.nav.su.se.bakover.web.routes.toggleRoutes
 import no.nav.su.se.bakover.web.routes.utbetaling.gjenoppta.gjenopptaUtbetalingRoutes
 import no.nav.su.se.bakover.web.routes.utbetaling.stans.stansutbetalingRoutes
 import no.nav.su.se.bakover.web.services.avstemming.AvstemmingJob
@@ -98,18 +103,38 @@ internal fun Application.susebakover(
     applicationConfig: ApplicationConfig = ApplicationConfig.createConfig(),
     databaseRepos: DatabaseRepos = DatabaseBuilder.build(behandlingFactory, applicationConfig.database),
     jmsConfig: JmsConfig = JmsConfig(applicationConfig),
-    clients: Clients = if (applicationConfig.runtimeEnvironment != ApplicationConfig.RuntimeEnvironment.Nais) StubClientsBuilder.build(applicationConfig) else ProdClientsBuilder(
-        jmsConfig,
-        clock = clock,
-    ).build(applicationConfig),
-    services: Services = ServiceBuilder(
-        databaseRepos = databaseRepos,
-        clients = clients,
-        behandlingMetrics = behandlingMetrics,
-        søknadMetrics = søknadMetrics,
-        clock = clock
-    ).build(),
-    accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
+    clients: Clients =
+        if (applicationConfig.runtimeEnvironment != ApplicationConfig.RuntimeEnvironment.Nais)
+            StubClientsBuilder.build(applicationConfig)
+        else
+            ProdClientsBuilder(
+                jmsConfig,
+                clock = clock,
+            ).build(applicationConfig),
+    services: Services =
+        with(
+            if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais)
+                ProdServiceBuilder
+            else
+                StubServiceBuilder
+        ) {
+            build(
+                databaseRepos = databaseRepos,
+                clients = clients,
+                behandlingMetrics = behandlingMetrics,
+                søknadMetrics = søknadMetrics,
+                clock = clock,
+                unleash = DefaultUnleash(
+                    UnleashConfig.builder()
+                        .appName(applicationConfig.unleash.appName)
+                        .instanceId(applicationConfig.unleash.appName)
+                        .unleashAPI(applicationConfig.unleash.unleashUrl)
+                        .build(),
+                    IsNotProdStrategy(applicationConfig.naisCluster == ApplicationConfig.NaisCluster.Prod)
+                )
+            )
+        },
+    accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services)
 ) {
     install(CORS) {
         method(Options)
@@ -225,6 +250,8 @@ internal fun Application.susebakover(
     }
 
     routing {
+        toggleRoutes(services.toggles)
+
         authenticate("jwt") {
             withUser {
                 meRoutes(applicationConfig, azureGroupMapper)

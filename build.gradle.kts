@@ -53,6 +53,7 @@ allprojects {
         implementation("io.github.cdimascio:dotenv-kotlin:6.2.2")
         implementation("org.apache.kafka:kafka-clients:2.7.0")
         implementation("com.networknt:json-schema-validator:1.0.45")
+        implementation("no.finn.unleash:unleash-client-java:3.3.4")
 
         // The 9.2.1.0 version fails to connect to the MQ server (hostname becomes null?)
         implementation("com.ibm.mq:com.ibm.mq.allclient:9.2.0.1")
