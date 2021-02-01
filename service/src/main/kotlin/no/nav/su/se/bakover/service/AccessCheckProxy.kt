@@ -337,6 +337,7 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
             },
+            toggles = services.toggles,
             revurdering = object : RevurderingService {
                 override fun opprettRevurdering(
                     sakId: UUID,

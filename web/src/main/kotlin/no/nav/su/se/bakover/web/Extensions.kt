@@ -31,7 +31,7 @@ internal fun getGroupsFromJWT(applicationConfig: ApplicationConfig, credential: 
 
 private fun getGroupsFromJWT(applicationConfig: ApplicationConfig, payload: Payload): List<String> =
     // Token som genereres lokalt (av navikt/oauth2-mock-server) vil ikke inneholde gruppene, så vi legger dem på her
-    if (applicationConfig.isRunningLocally) {
+    if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
         applicationConfig.azure.groups.let {
             listOf(
                 it.veileder,
@@ -65,6 +65,9 @@ internal suspend fun ApplicationCall.lesFnr(param: String) =
     this.parameters[param]?.let {
         Either.catch { Fnr(it) }.mapLeft { "$param er ikke et gyldig fødselsnummer" }
     } ?: Either.Left("$param er ikke et parameter")
+
+internal fun ApplicationCall.parameter(parameterName: String) =
+    this.parameters[parameterName]?.let { Either.right(it) } ?: Either.Left("$parameterName er ikke et parameter")
 
 fun ApplicationCall.authHeader() = this.request.header(HttpHeaders.Authorization).toString()
 

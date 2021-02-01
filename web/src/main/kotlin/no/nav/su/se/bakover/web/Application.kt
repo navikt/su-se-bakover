@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web
 
 import ch.qos.logback.classic.util.ContextInitializer
 import io.ktor.application.Application
+import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.auth.authenticate
@@ -23,10 +24,13 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.jackson.JacksonConverter
 import io.ktor.locations.Locations
 import io.ktor.request.httpMethod
+import io.ktor.request.path
 import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.routing
 import io.ktor.util.KtorExperimentalAPI
+import no.finn.unleash.DefaultUnleash
+import no.finn.unleash.util.UnleashConfig
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ProdClientsBuilder
 import no.nav.su.se.bakover.client.StubClientsBuilder
@@ -44,8 +48,9 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.service.AccessCheckProxy
-import no.nav.su.se.bakover.service.ServiceBuilder
+import no.nav.su.se.bakover.service.ProdServiceBuilder
 import no.nav.su.se.bakover.service.Services
+import no.nav.su.se.bakover.service.StubServiceBuilder
 import no.nav.su.se.bakover.service.Tilgangssjekkfeil
 import no.nav.su.se.bakover.web.features.Authorization
 import no.nav.su.se.bakover.web.features.AuthorizationException
@@ -59,16 +64,20 @@ import no.nav.su.se.bakover.web.features.withUser
 import no.nav.su.se.bakover.web.metrics.BehandlingMicrometerMetrics
 import no.nav.su.se.bakover.web.metrics.SuMetrics
 import no.nav.su.se.bakover.web.metrics.SøknadMicrometerMetrics
+import no.nav.su.se.bakover.web.routes.IsNotProdStrategy
 import no.nav.su.se.bakover.web.routes.avstemming.avstemmingRoutes
 import no.nav.su.se.bakover.web.routes.behandling.behandlingRoutes
 import no.nav.su.se.bakover.web.routes.drift.driftRoutes
 import no.nav.su.se.bakover.web.routes.installMetrics
 import no.nav.su.se.bakover.web.routes.me.meRoutes
+import no.nav.su.se.bakover.web.routes.naisPaths
 import no.nav.su.se.bakover.web.routes.naisRoutes
+import no.nav.su.se.bakover.web.routes.person.personPath
 import no.nav.su.se.bakover.web.routes.person.personRoutes
 import no.nav.su.se.bakover.web.routes.revurdering.revurderingRoutes
 import no.nav.su.se.bakover.web.routes.sak.sakRoutes
 import no.nav.su.se.bakover.web.routes.søknad.søknadRoutes
+import no.nav.su.se.bakover.web.routes.toggleRoutes
 import no.nav.su.se.bakover.web.routes.utbetaling.gjenoppta.gjenopptaUtbetalingRoutes
 import no.nav.su.se.bakover.web.routes.utbetaling.stans.stansutbetalingRoutes
 import no.nav.su.se.bakover.web.services.avstemming.AvstemmingJob
@@ -95,18 +104,38 @@ internal fun Application.susebakover(
     applicationConfig: ApplicationConfig = ApplicationConfig.createConfig(),
     databaseRepos: DatabaseRepos = DatabaseBuilder.build(behandlingFactory, applicationConfig.database),
     jmsConfig: JmsConfig = JmsConfig(applicationConfig),
-    clients: Clients = if (applicationConfig.isRunningLocally) StubClientsBuilder.build(applicationConfig) else ProdClientsBuilder(
-        jmsConfig,
-        clock = clock,
-    ).build(applicationConfig),
-    services: Services = ServiceBuilder(
-        databaseRepos = databaseRepos,
-        clients = clients,
-        behandlingMetrics = behandlingMetrics,
-        søknadMetrics = søknadMetrics,
-        clock = clock
-    ).build(),
-    accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
+    clients: Clients =
+        if (applicationConfig.runtimeEnvironment != ApplicationConfig.RuntimeEnvironment.Nais)
+            StubClientsBuilder.build(applicationConfig)
+        else
+            ProdClientsBuilder(
+                jmsConfig,
+                clock = clock,
+            ).build(applicationConfig),
+    services: Services =
+        with(
+            if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais)
+                ProdServiceBuilder
+            else
+                StubServiceBuilder
+        ) {
+            build(
+                databaseRepos = databaseRepos,
+                clients = clients,
+                behandlingMetrics = behandlingMetrics,
+                søknadMetrics = søknadMetrics,
+                clock = clock,
+                unleash = DefaultUnleash(
+                    UnleashConfig.builder()
+                        .appName(applicationConfig.unleash.appName)
+                        .instanceId(applicationConfig.unleash.appName)
+                        .unleashAPI(applicationConfig.unleash.unleashUrl)
+                        .build(),
+                    IsNotProdStrategy(applicationConfig.naisCluster == ApplicationConfig.NaisCluster.Prod)
+                )
+            )
+        },
+    accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services)
 ) {
     install(CORS) {
         method(Options)
@@ -205,6 +234,8 @@ internal fun Application.susebakover(
         level = Level.INFO
         filter { call ->
             if (call.request.httpMethod.value == "OPTIONS") return@filter false
+            if (call.pathShouldBeExcluded(naisPaths)) return@filter false
+            if (call.pathShouldBeExcluded(personPath)) return@filter false
 
             return@filter true
         }
@@ -220,6 +251,8 @@ internal fun Application.susebakover(
     }
 
     routing {
+        toggleRoutes(services.toggles)
+
         authenticate("jwt") {
             withUser {
                 meRoutes(applicationConfig, azureGroupMapper)
@@ -245,7 +278,7 @@ internal fun Application.susebakover(
         behandlingService = services.behandling,
         clock = clock,
     )
-    if (!applicationConfig.isRunningLocally) {
+    if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {
         UtbetalingKvitteringIbmMqConsumer(
             kvitteringQueueName = applicationConfig.oppdrag.utbetaling.mqReplyTo,
             globalJmsContext = jmsConfig.jmsContext,
@@ -264,3 +297,11 @@ fun Route.withAccessProtectedServices(
     accessCheckProxy: AccessCheckProxy,
     build: Route.(services: Services) -> Unit
 ) = build(accessCheckProxy.proxy())
+
+fun ApplicationCall.pathShouldBeExcluded(paths: List<String>): Boolean {
+    return paths.any {
+        this.request.path().startsWith(it)
+    }
+}
+
+fun ApplicationCall.pathShouldBeExcluded(path: String) = pathShouldBeExcluded(listOf(path))

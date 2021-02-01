@@ -80,7 +80,6 @@ internal class RevurderingServiceImplTest {
                 treMånederFramITid.month,
                 treMånederFramITid.lengthOfMonth()
             )
-
         }
     )
     private val saksbehandler = NavIdentBruker.Saksbehandler("Sak S. behandler")
@@ -90,13 +89,16 @@ internal class RevurderingServiceImplTest {
     private val revurderingId = UUID.randomUUID()
     private val aktørId = AktørId("aktørId")
     private val beregningMock = mock<Beregning> {
-        on { getPeriode() } doReturn Periode.create(fraOgMed = dagensDato, tilOgMed = dagensDato.let {
-            LocalDate.of(
-                it.year + 1,
-                it.month,
-                it.lengthOfMonth()
-            )
-        })
+        on { getPeriode() } doReturn Periode.create(
+            fraOgMed = dagensDato,
+            tilOgMed = dagensDato.let {
+                LocalDate.of(
+                    it.year + 1,
+                    it.month,
+                    it.lengthOfMonth()
+                )
+            }
+        )
     }
 
     val behandling = behandlingFactory.createBehandling(
@@ -784,5 +786,4 @@ internal class RevurderingServiceImplTest {
             microsoftGraphApiClient = microsoftGraphApiClient,
             brevService = brevService
         )
-
 }

@@ -40,6 +40,7 @@ class NyBehandlingRoutesTest {
         oppgave = mock(),
         person = mock(),
         statistikk = mock(),
+        toggles = mock(),
         revurdering = mock()
     )
 

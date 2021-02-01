@@ -18,7 +18,7 @@ import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.service.AccessCheckProxy
-import no.nav.su.se.bakover.service.ServiceBuilder
+import no.nav.su.se.bakover.service.ProdServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.web.stubs.JwtStub
 import no.nav.su.se.bakover.web.stubs.asBearerToken
@@ -31,7 +31,8 @@ internal val fixedClock: Clock = Clock.fixed(1.januar(2021).startOfDay().instant
 internal val behandlingFactory = BehandlingFactory(mock(), fixedClock)
 
 val applicationConfig = ApplicationConfig(
-    isRunningLocally = false,
+    runtimeEnvironment = ApplicationConfig.RuntimeEnvironment.Test,
+    naisCluster = null,
     leaderPodLookupPath = "leaderPodLookupPath",
     pdfgenLocal = false,
     corsAllowOrigin = "corsAllowOrigin",
@@ -82,7 +83,8 @@ val applicationConfig = ApplicationConfig(
         skjermingUrl = "skjermingUrl",
         dkifUrl = "dkifUrl",
     ),
-    kafkaConfig = ApplicationConfig.KafkaConfig(emptyMap(), ApplicationConfig.KafkaConfig.ProducerCfg(emptyMap()))
+    kafkaConfig = ApplicationConfig.KafkaConfig(emptyMap(), ApplicationConfig.KafkaConfig.ProducerCfg(emptyMap())),
+    unleash = ApplicationConfig.UnleashConfig("https://localhost", "su-se-bakover")
 )
 
 internal val jwtStub = JwtStub(applicationConfig)
@@ -94,14 +96,15 @@ internal fun Application.testSusebakover(
     clients: Clients = TestClientsBuilder.build(applicationConfig),
     behandlingFactory: BehandlingFactory = defaultBehandlingFactory,
     databaseRepos: DatabaseRepos = DatabaseBuilder.build(EmbeddedDatabase.instance(), behandlingFactory),
-    services: Services = ServiceBuilder( // build actual clients
+    services: Services = ProdServiceBuilder.build( // build actual clients
         databaseRepos = databaseRepos,
         clients = clients,
         behandlingMetrics = mock(),
         søknadMetrics = mock(),
-        clock = clock
-    ).build(),
-    accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
+        clock = clock,
+        unleash = mock()
+    ),
+    accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services)
 ) {
     return susebakover(
         behandlingFactory = behandlingFactory,

@@ -8,7 +8,8 @@ import org.junit.jupiter.api.Test
 internal class ApplicationConfigTest {
 
     private val expectedApplicationConfig = ApplicationConfig(
-        isRunningLocally = false,
+        runtimeEnvironment = ApplicationConfig.RuntimeEnvironment.Nais,
+        naisCluster = ApplicationConfig.NaisCluster.Prod,
         leaderPodLookupPath = "leaderPodLookupPath",
         pdfgenLocal = false,
         corsAllowOrigin = "corsAllowOrigin",
@@ -93,6 +94,7 @@ internal class ApplicationConfigTest {
                 retryTaskInterval = 15_000L
             )
         ),
+        unleash = ApplicationConfig.UnleashConfig("https://unleash.nais.io/api", "su-se-bakover")
     )
 
     @Test
@@ -152,7 +154,8 @@ internal class ApplicationConfigTest {
             )
         ) {
             ApplicationConfig.createLocalConfig() shouldBe expectedApplicationConfig.copy(
-                isRunningLocally = true,
+                runtimeEnvironment = ApplicationConfig.RuntimeEnvironment.Local,
+                naisCluster = null,
                 corsAllowOrigin = "localhost:1234",
                 leaderPodLookupPath = "",
                 serviceUser = ApplicationConfig.ServiceUserConfig(
@@ -193,7 +196,8 @@ internal class ApplicationConfigTest {
                 ),
                 kafkaConfig = ApplicationConfig.KafkaConfig(
                     emptyMap(), ApplicationConfig.KafkaConfig.ProducerCfg((emptyMap()))
-                )
+                ),
+                unleash = ApplicationConfig.UnleashConfig("https://unleash.nais.io/api", "su-se-bakover")
             )
         }
     }
