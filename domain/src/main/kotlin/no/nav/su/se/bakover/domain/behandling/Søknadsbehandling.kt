@@ -29,37 +29,8 @@ sealed class Søknadsbehandling {
 
     abstract fun accept(visitor: StatusovergangVisitor)
 
-    data class Opprettet(
-        override val id: UUID,
-        override val opprettet: Tidspunkt,
-        override val sakId: UUID,
-        override val saksnummer: Saksnummer,
-        override val søknad: Søknad.Journalført.MedOppgave,
-        override val oppgaveId: OppgaveId,
-        override val behandlingsinformasjon: Behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
-        override val fnr: Fnr
-    ) : Søknadsbehandling() {
-        override val status: Behandling.BehandlingsStatus = Behandling.BehandlingsStatus.OPPRETTET
-
-        override fun accept(visitor: StatusovergangVisitor) {
-            visitor.visit(this)
-        }
-
-        fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon) =
-            Vilkårsvurdert.opprett(
-                id,
-                opprettet,
-                sakId,
-                saksnummer,
-                søknad,
-                oppgaveId,
-                this.behandlingsinformasjon.patch(behandlingsinformasjon),
-                fnr
-            )
-    }
-
     sealed class Vilkårsvurdert : Søknadsbehandling() {
-        fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon): Søknadsbehandling =
+        fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon): Søknadsbehandling.Vilkårsvurdert =
             opprett(
                 id,
                 opprettet,
@@ -71,7 +42,7 @@ sealed class Søknadsbehandling {
                 fnr
             )
 
-        fun tilBeregnet(beregning: Beregning): Søknadsbehandling =
+        fun tilBeregnet(beregning: Beregning): Søknadsbehandling.Beregnet =
             Beregnet.opprett(
                 id,
                 opprettet,
@@ -94,7 +65,7 @@ sealed class Søknadsbehandling {
                 oppgaveId: OppgaveId,
                 behandlingsinformasjon: Behandlingsinformasjon,
                 fnr: Fnr
-            ): Søknadsbehandling {
+            ): Søknadsbehandling.Vilkårsvurdert {
                 return when {
                     behandlingsinformasjon.erInnvilget() -> {
                         Innvilget(
@@ -121,7 +92,7 @@ sealed class Søknadsbehandling {
                         )
                     }
                     else -> {
-                        Opprettet(
+                        Uavklart(
                             id,
                             opprettet,
                             sakId,
@@ -183,6 +154,24 @@ sealed class Søknadsbehandling {
                     fnr,
                     saksbehandler,
                 )
+        }
+
+        data class Uavklart(
+            override val id: UUID,
+            override val opprettet: Tidspunkt,
+            override val sakId: UUID,
+            override val saksnummer: Saksnummer,
+            override val søknad: Søknad.Journalført.MedOppgave,
+            override val oppgaveId: OppgaveId,
+            override val behandlingsinformasjon: Behandlingsinformasjon,
+            override val fnr: Fnr
+        ) : Vilkårsvurdert() {
+
+            override val status: Behandling.BehandlingsStatus = Behandling.BehandlingsStatus.OPPRETTET
+
+            override fun accept(visitor: StatusovergangVisitor) {
+                visitor.visit(this)
+            }
         }
     }
 

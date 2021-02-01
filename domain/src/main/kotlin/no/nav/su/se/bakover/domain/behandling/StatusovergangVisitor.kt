@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.behandling
 
 interface StatusovergangVisitor {
-    fun visit(søknadsbehandling: Søknadsbehandling.Opprettet) {
+    fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Uavklart) {
         throw UgyldigStatusovergangException(søknadsbehandling, this)
     }
 

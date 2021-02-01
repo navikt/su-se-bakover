@@ -373,7 +373,7 @@ internal class BeregnRoutesKtTest {
                 response.status() shouldBe HttpStatusCode.BadRequest
                 response.content shouldContain "Ugyldig statusovergang"
                 response.content shouldContain "TilBeregnet"
-                response.content shouldContain "Opprettet"
+                response.content shouldContain "Vilkårsvurdert.Uavklart"
             }
         }
     }

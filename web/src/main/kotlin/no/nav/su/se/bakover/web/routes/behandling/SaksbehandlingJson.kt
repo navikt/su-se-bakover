@@ -12,9 +12,8 @@ import no.nav.su.se.bakover.web.routes.søknad.toJson
 import java.time.format.DateTimeFormatter
 
 internal fun Søknadsbehandling.toJson(): BehandlingJson {
-    val saksbehandling = this
-    return when (saksbehandling) {
-        is Søknadsbehandling.Opprettet,
+    return when (val saksbehandling = this) {
+        is Søknadsbehandling.Vilkårsvurdert.Uavklart,
         is Søknadsbehandling.Vilkårsvurdert -> BehandlingJson(
             id = saksbehandling.id.toString(),
             opprettet = DateTimeFormatter.ISO_INSTANT.format(saksbehandling.opprettet),
