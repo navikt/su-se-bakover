@@ -7,6 +7,7 @@ import arrow.core.right
 import io.ktor.application.call
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
+import io.ktor.http.HttpStatusCode.Companion.Created
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
@@ -66,7 +67,7 @@ internal fun Route.revurderingRoutes(
                             ifLeft = { call.svar(hentFeilResultat(it)) },
                             ifRight = {
                                 call.audit("Opprettet en ny revurdering beregning og simulering på sak med id $sakId")
-                                call.svar(Resultat.json(OK, serialize(it.toJson())))
+                                call.svar(Resultat.json(Created, serialize(it.toJson())))
                             },
                         )
                     }
@@ -108,7 +109,7 @@ internal fun Route.revurderingRoutes(
                                     ifLeft = { revurderingFeilet -> call.svar(hentFeilResultat(revurderingFeilet)) },
                                     ifRight = { simulertRevurdering ->
                                         call.audit("Opprettet en ny revurdering beregning og simulering på sak med id $sakId")
-                                        call.svar(Resultat.json(OK, serialize(simulertRevurdering.toJson())))
+                                        call.svar(Resultat.json(Created, serialize(simulertRevurdering.toJson())))
                                     },
                                 )
                             }
