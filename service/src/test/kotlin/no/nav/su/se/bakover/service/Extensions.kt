@@ -35,7 +35,6 @@ fun <T> OngoingStubbing<T>.doNothing(): OngoingStubbing<T> {
     return thenAnswer(doesNothing())
 }
 
-@Suppress("unused")
 infix fun <Arg1, T> OngoingStubbing<T>.doAnswer(predicate: (Arg1) -> T): OngoingStubbing<T> {
     return thenAnswer { invocation ->
         predicate(invocation!!.getArgument(0))

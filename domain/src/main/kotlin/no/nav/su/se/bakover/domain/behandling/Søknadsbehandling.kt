@@ -30,7 +30,7 @@ sealed class Søknadsbehandling {
     abstract fun accept(visitor: StatusovergangVisitor)
 
     sealed class Vilkårsvurdert : Søknadsbehandling() {
-        fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon): Søknadsbehandling.Vilkårsvurdert =
+        fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon): Vilkårsvurdert =
             opprett(
                 id,
                 opprettet,
@@ -42,7 +42,7 @@ sealed class Søknadsbehandling {
                 fnr
             )
 
-        fun tilBeregnet(beregning: Beregning): Søknadsbehandling.Beregnet =
+        fun tilBeregnet(beregning: Beregning): Beregnet =
             Beregnet.opprett(
                 id,
                 opprettet,
@@ -65,7 +65,7 @@ sealed class Søknadsbehandling {
                 oppgaveId: OppgaveId,
                 behandlingsinformasjon: Behandlingsinformasjon,
                 fnr: Fnr
-            ): Søknadsbehandling.Vilkårsvurdert {
+            ): Vilkårsvurdert {
                 return when {
                     behandlingsinformasjon.erInnvilget() -> {
                         Innvilget(
