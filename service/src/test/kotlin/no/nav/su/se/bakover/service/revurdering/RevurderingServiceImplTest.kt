@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
@@ -54,11 +53,36 @@ import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.Clock
+import java.time.LocalDate
 import java.util.UUID
 
 internal class RevurderingServiceImplTest {
     private val sakId: UUID = UUID.randomUUID()
-    private val periode = Periode.create(fraOgMed = 1.februar(2021), tilOgMed = 31.desember(2021))
+    private val dagensDato = LocalDate.now().let {
+        LocalDate.of(
+            it.year,
+            it.month,
+            1
+        )
+    }
+    private val nesteMåned =
+        LocalDate.of(
+            dagensDato.year,
+            dagensDato.month.plus(1),
+            1
+        )
+    private val periode = Periode.create(
+        fraOgMed = nesteMåned,
+        tilOgMed = nesteMåned.let {
+            val treMånederFramITid = it.plusMonths(3)
+            LocalDate.of(
+                treMånederFramITid.year,
+                treMånederFramITid.month,
+                treMånederFramITid.lengthOfMonth()
+            )
+
+        }
+    )
     private val saksbehandler = NavIdentBruker.Saksbehandler("Sak S. behandler")
     private val behandlingFactory: BehandlingFactory = BehandlingFactory(mock(), Clock.systemUTC())
     private val saksnummer = Saksnummer(nummer = 12345676)
@@ -66,7 +90,13 @@ internal class RevurderingServiceImplTest {
     private val revurderingId = UUID.randomUUID()
     private val aktørId = AktørId("aktørId")
     private val beregningMock = mock<Beregning> {
-        on { getPeriode() } doReturn Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021))
+        on { getPeriode() } doReturn Periode.create(fraOgMed = dagensDato, tilOgMed = dagensDato.let {
+            LocalDate.of(
+                it.year + 1,
+                it.month,
+                it.lengthOfMonth()
+            )
+        })
     }
 
     val behandling = behandlingFactory.createBehandling(
@@ -754,4 +784,5 @@ internal class RevurderingServiceImplTest {
             microsoftGraphApiClient = microsoftGraphApiClient,
             brevService = brevService
         )
+
 }
