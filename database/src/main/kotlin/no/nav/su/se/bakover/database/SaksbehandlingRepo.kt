@@ -327,7 +327,7 @@ internal class SaksbehandlingsPostgresRepo(
         dataSource.withSession { session ->
             (
                 """
-                   update behandling set status = :status, beregning = to_json(:beregning::json), simulering = null
+                   update behandling set status = :status, beregning = to_json(:beregning::json), simulering = null where id = :id
                 """.trimIndent()
                 ).oppdatering(
                 params = defaultParams(søknadsbehandling).plus(
@@ -342,7 +342,7 @@ internal class SaksbehandlingsPostgresRepo(
         dataSource.withSession { session ->
             (
                 """
-                   update behandling set status = :status, beregning = to_json(:beregning::json), simulering = to_json(:simulering::json)
+                   update behandling set status = :status, beregning = to_json(:beregning::json), simulering = to_json(:simulering::json)  where id = :id
                 """.trimIndent()
                 ).oppdatering(
                 defaultParams(søknadsbehandling).plus(
@@ -360,7 +360,7 @@ internal class SaksbehandlingsPostgresRepo(
         dataSource.withSession { session ->
             (
                 """
-                   update behandling set status = :status, saksbehandler = :saksbehandler, oppgaveId = :oppgaveId
+                   update behandling set status = :status, saksbehandler = :saksbehandler, oppgaveId = :oppgaveId  where id = :id
                 """.trimIndent()
                 ).oppdatering(
                 defaultParams(søknadsbehandling).plus(
@@ -375,7 +375,7 @@ internal class SaksbehandlingsPostgresRepo(
         dataSource.withSession { session ->
             (
                 """
-                    update behandling set status = :status, attestering = to_json(:attestering::json), oppgaveId = :oppgaveId
+                    update behandling set status = :status, attestering = to_json(:attestering::json), oppgaveId = :oppgaveId  where id = :id
                 """.trimIndent()
                 ).oppdatering(
                 params = defaultParams(søknadsbehandling).plus(
@@ -392,7 +392,7 @@ internal class SaksbehandlingsPostgresRepo(
                 dataSource.withSession { session ->
                     (
                         """
-                       update behandling set status = :status, attestering = to_json(:attestering::json), utbetalingId = :utbetalingId, iverksattJournalpostId = :iverksattJournalpostId, iverksattBrevbestillingId = :iverksattBrevbestillingId
+                       update behandling set status = :status, attestering = to_json(:attestering::json), utbetalingId = :utbetalingId, iverksattJournalpostId = :iverksattJournalpostId, iverksattBrevbestillingId = :iverksattBrevbestillingId  where id = :id
                         """.trimIndent()
                         ).oppdatering(
                         params = defaultParams(søknadsbehandling).plus(
@@ -425,7 +425,7 @@ internal class SaksbehandlingsPostgresRepo(
                 dataSource.withSession { session ->
                     (
                         """
-                       update behandling set status = :status, attestering = to_json(:attestering::json), iverksattJournalpostId = :iverksattJournalpostId, iverksattBrevbestillingId = :iverksattBrevbestillingId
+                       update behandling set status = :status, attestering = to_json(:attestering::json), iverksattJournalpostId = :iverksattJournalpostId, iverksattBrevbestillingId = :iverksattBrevbestillingId  where id = :id
                         """.trimIndent()
                         ).oppdatering(
                         params = defaultParams(søknadsbehandling).plus(
