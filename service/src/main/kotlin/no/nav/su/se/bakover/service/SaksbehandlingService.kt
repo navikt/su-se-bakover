@@ -232,7 +232,10 @@ class SaksbehandlingServiceImpl(
         }
 
         behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.OPPRETTET_OPPGAVE)
-        return søknadsbehandlingMedNyOppgaveId.right()
+        return søknadsbehandlingMedNyOppgaveId.let {
+            observers.forEach { observer -> observer.handle(Event.Statistikk.SøknadsbehandlingTilAttestering(it)) }
+            it.right()
+        }
     }
 
     override fun underkjenn(request: UnderkjennSøknadsbehandlingRequest): Either<KunneIkkeUnderkjenneBehandling, Søknadsbehandling> {

@@ -21,6 +21,7 @@ sealed class Event {
         data class BehandlingTilAttestering(val behandling: Behandling) : Statistikk()
         data class BehandlingAttesteringUnderkjent(val behandling: Behandling) : Statistikk()
         data class SøknadsbehandlingUnderkjent(val behandling: Søknadsbehandling.Underkjent) : Statistikk()
+        data class SøknadsbehandlingTilAttestering(val behandling: Søknadsbehandling.TilAttestering) : Statistikk()
         data class BehandlingIverksatt(val behandling: IverksattBehandling) : Statistikk()
     }
 }

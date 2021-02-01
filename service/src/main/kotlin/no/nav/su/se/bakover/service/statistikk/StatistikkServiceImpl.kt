@@ -19,6 +19,7 @@ internal class StatistikkServiceImpl(
     private val log = LoggerFactory.getLogger(this::class.java)
     private val schemaValidator = StatistikkSchemaValidator
     private val underkjentStatistikk = UnderkjentStatistikkMapper(clock)
+    private val tilAttesteringMapper = TilAttesteringMapper(clock)
 
     override fun publiser(statistikk: Statistikk) {
         val json = objectMapper.writeValueAsString(statistikk)
@@ -181,6 +182,9 @@ internal class StatistikkServiceImpl(
             }
             is Event.Statistikk.SøknadsbehandlingUnderkjent -> {
                 publiser(underkjentStatistikk.map(event.behandling))
+            }
+            is Event.Statistikk.SøknadsbehandlingTilAttestering -> {
+                publiser(tilAttesteringMapper.map(event.behandling))
             }
         }
     }
