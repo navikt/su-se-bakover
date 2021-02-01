@@ -6,9 +6,12 @@ import arrow.core.getOrElse
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
+import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
@@ -30,6 +33,7 @@ internal class LukkSøknadServiceImpl(
     private val brevService: BrevService,
     private val oppgaveService: OppgaveService,
     private val personService: PersonService,
+    private val microsoftGraphApiClient: MicrosoftGraphApiOppslag,
     private val clock: Clock,
 ) : LukkSøknadService {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -117,9 +121,14 @@ internal class LukkSøknadServiceImpl(
 
     private fun lagBrevRequest(person: Person, søknad: Søknad, request: LukkSøknadRequest.MedBrev): LagBrevRequest {
         return when (request) {
-            is LukkSøknadRequest.MedBrev.TrekkSøknad -> TrukketSøknadBrevRequest(person, søknad, request.trukketDato)
-            is LukkSøknadRequest.MedBrev.AvvistSøknad -> AvvistSøknadBrevRequest(person, request.brevConfig)
+            is LukkSøknadRequest.MedBrev.TrekkSøknad -> TrukketSøknadBrevRequest(person, søknad, request.trukketDato, hentNavnForNavIdent(request.saksbehandler).getOrHandle { "" })
+            is LukkSøknadRequest.MedBrev.AvvistSøknad -> AvvistSøknadBrevRequest(person, request.brevConfig, hentNavnForNavIdent(request.saksbehandler).getOrHandle { "" })
         }
+    }
+
+    private fun hentNavnForNavIdent(navIdent: NavIdentBruker): Either<MicrosoftGraphApiOppslagFeil, String> {
+        return microsoftGraphApiClient.hentBrukerinformasjonForNavIdent(navIdent)
+            .map { it.displayName }
     }
 
     private fun hentSøknad(søknadId: UUID): Either<KunneIkkeLukkeSøknad.FantIkkeSøknad, Søknad> {

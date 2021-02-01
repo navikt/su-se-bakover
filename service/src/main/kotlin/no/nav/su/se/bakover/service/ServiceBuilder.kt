@@ -127,6 +127,7 @@ class ServiceBuilder(
                 brevService = brevService,
                 oppgaveService = oppgaveService,
                 personService = personService,
+                microsoftGraphApiClient = clients.microsoftGraphApiClient,
                 clock = clock,
             ),
             oppgave = oppgaveService,

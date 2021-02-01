@@ -22,7 +22,7 @@ internal class BrevInnholdTest {
     )
 
     private val trukketSøknad = TrukketSøknadBrevInnhold(
-        personalia, 1.januar(2020), 1.februar(2020)
+        personalia, 1.januar(2020), 1.februar(2020), "saksbehandler"
     )
 
     @Test
@@ -117,7 +117,8 @@ internal class BrevInnholdTest {
                   "etternavn": "Strømøy"
               },
               "datoSøknadOpprettet": "01.01.2020",
-              "trukketDato": "01.02.2020"
+              "trukketDato": "01.02.2020",
+              "saksbehandlerNavn": "saksbehandler"
             }
         """.trimIndent()
         JSONAssert.assertEquals(expectedJson, actualJson, true)

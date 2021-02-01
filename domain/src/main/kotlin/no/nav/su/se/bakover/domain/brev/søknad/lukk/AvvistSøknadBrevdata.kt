@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.domain.brev.BrevTemplate
 
 data class AvvistSøknadVedtakBrevInnhold(
     val personalia: Personalia,
+    val saksbehandlerNavn: String,
     val fritekst: String?
 ) : BrevInnhold() {
 
@@ -14,6 +15,7 @@ data class AvvistSøknadVedtakBrevInnhold(
 
 data class AvvistSøknadFritekstBrevInnhold(
     val personalia: Personalia,
+    val saksbehandlerNavn: String,
     val fritekst: String,
 ) : BrevInnhold() {
 
