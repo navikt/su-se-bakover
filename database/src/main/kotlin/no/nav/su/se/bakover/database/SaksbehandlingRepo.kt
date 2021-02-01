@@ -5,7 +5,6 @@ import kotliquery.Row
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.beregning.toSnapshot
-import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepoInternal
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -16,7 +15,6 @@ import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
-import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -88,17 +86,10 @@ internal class SaksbehandlingsPostgresRepo(
         val saksbehandler = stringOrNull("saksbehandler")?.let { NavIdentBruker.Saksbehandler(it) }
         val saksnummer = Saksnummer(long("saksnummer"))
 
-        @Suppress("UNUSED_VARIABLE")
-        val hendelseslogg = HendelsesloggRepoInternal.hentHendelseslogg(behandlingId.toString(), session)
-            ?: Hendelseslogg(
-                behandlingId.toString()
-            )
         val fnr = Fnr(string("fnr"))
 
-        @Suppress("UNUSED_VARIABLE")
         val iverksattJournalpostId = stringOrNull("iverksattJournalpostId")?.let { JournalpostId(it) }
 
-        @Suppress("UNUSED_VARIABLE")
         val iverksattBrevbestillingId = stringOrNull("iverksattBrevbestillingId")?.let { BrevbestillingId(it) }
 
         return when (status) {
@@ -414,15 +405,15 @@ internal class SaksbehandlingsPostgresRepo(
                                 ) {
                                     is Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.VenterPåKvittering,
                                     is Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.Journalført -> null
-                                    is Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.JournalførtOgDistribuertBrev -> e.brevbestillingId
+                                    is Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.JournalførtOgDistribuertBrev -> e.brevbestillingId.toString()
                                 },
                                 "iverksattJournalpostId" to when (
                                     val e =
                                         søknadsbehandling.eksterneIverksettingsteg
                                 ) {
                                     is Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.VenterPåKvittering -> null
-                                    is Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.Journalført -> e.journalpostId
-                                    is Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.JournalførtOgDistribuertBrev -> e.journalpostId
+                                    is Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.Journalført -> e.journalpostId.toString()
+                                    is Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.JournalførtOgDistribuertBrev -> e.journalpostId.toString()
                                 },
                             )
                         ),
@@ -434,7 +425,7 @@ internal class SaksbehandlingsPostgresRepo(
                 dataSource.withSession { session ->
                     (
                         """
-                       update behandling status = :status, attestering = to_json(:attestering::json), iverksattJournalpostId = :iverksattJournalpostId, iverksattBrevbestillingId = :iverksattBrevbestillingId
+                       update behandling set status = :status, attestering = to_json(:attestering::json), iverksattJournalpostId = :iverksattJournalpostId, iverksattBrevbestillingId = :iverksattBrevbestillingId
                         """.trimIndent()
                         ).oppdatering(
                         params = defaultParams(søknadsbehandling).plus(
@@ -445,14 +436,14 @@ internal class SaksbehandlingsPostgresRepo(
                                         søknadsbehandling.eksterneIverksettingsteg
                                 ) {
                                     is Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg.Journalført -> null
-                                    is Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg.JournalførtOgDistribuertBrev -> e.brevbestillingId
+                                    is Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg.JournalførtOgDistribuertBrev -> e.brevbestillingId.toString()
                                 },
                                 "iverksattJournalpostId" to when (
                                     val e =
                                         søknadsbehandling.eksterneIverksettingsteg
                                 ) {
-                                    is Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg.Journalført -> e.journalpostId
-                                    is Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg.JournalførtOgDistribuertBrev -> e.journalpostId
+                                    is Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg.Journalført -> e.journalpostId.toString()
+                                    is Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg.JournalførtOgDistribuertBrev -> e.journalpostId.toString()
                                 },
                             )
                         ),
