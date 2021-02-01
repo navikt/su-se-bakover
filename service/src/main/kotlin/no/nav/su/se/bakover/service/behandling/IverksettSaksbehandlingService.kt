@@ -124,14 +124,16 @@ class IverksettSaksbehandlingService(
         søknadsbehandlingUtenBrev: Søknadsbehandling.Iverksatt.Avslag,
     ): Søknadsbehandling.Iverksatt.Avslag {
 
-        val brevResultat: Either<Søknadsbehandling.Iverksatt.KunneIkkeDistribuereBrev, Søknadsbehandling.Iverksatt.Avslag> = søknadsbehandlingUtenBrev.distribuerBrev { journalpostId ->
-            brevService.distribuerBrev(journalpostId).mapLeft {
-                Søknadsbehandling.Iverksatt.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev
-            }.map {
-                behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.DISTRIBUERT_BREV)
-                it
+        val brevResultat: Either<Søknadsbehandling.Iverksatt.KunneIkkeDistribuereBrev, Søknadsbehandling.Iverksatt.Avslag> =
+            søknadsbehandlingUtenBrev.distribuerBrev { journalpostId ->
+                brevService.distribuerBrev(journalpostId)
+                    .mapLeft {
+                        Søknadsbehandling.Iverksatt.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev
+                    }.map {
+                        behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.DISTRIBUERT_BREV)
+                        it
+                    }
             }
-        }
 
         oppgaveService.lukkOppgave(søknadsbehandlingUtenBrev.oppgaveId)
             .mapLeft {

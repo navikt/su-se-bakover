@@ -314,14 +314,7 @@ class SaksbehandlingServiceImpl(
                 }
             )
         ).mapLeft {
-            when (it) {
-                Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeJournalføre -> KunneIkkeIverksetteBehandling.KunneIkkeJournalføreBrev
-                Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.KunneIkkeKontrollsimulere -> KunneIkkeIverksetteBehandling.KunneIkkeKontrollsimulere
-                Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> KunneIkkeIverksetteBehandling.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
-                Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.TekniskFeil -> KunneIkkeIverksetteBehandling.KunneIkkeUtbetale
-                Statusovergang.KunneIkkeIverksetteSøknadsbehandling.SaksbehandlerOgAttestantKanIkkeVæreSammePerson -> KunneIkkeIverksetteBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
-                Statusovergang.KunneIkkeIverksetteSøknadsbehandling.FantIkkePerson -> KunneIkkeIverksetteBehandling.FantIkkePerson
-            }
+            IverksettStatusovergangFeilMapper.map(it)
         }.map {
             saksbehandlingRepo.lagre(it)
             when (it) {
@@ -331,11 +324,26 @@ class SaksbehandlingServiceImpl(
                     it
                 }
                 is Søknadsbehandling.Iverksatt.Avslag -> {
-                    log.info("Iverksatt innvilgelse for behandling ${it.id}")
+                    log.info("Iverksatt avslag for behandling ${it.id}")
                     behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
                     iverksettSaksbehandlingService.distribuerBrevOgLukkOppgaveForAvslag(it)
+                        .let { medPotensiellBrevbestillingId ->
+                            saksbehandlingRepo.lagre(medPotensiellBrevbestillingId)
+                            medPotensiellBrevbestillingId
+                        }
                 }
             }
+        }
+    }
+
+    internal object IverksettStatusovergangFeilMapper {
+        fun map(feil: Statusovergang.KunneIkkeIverksetteSøknadsbehandling) = when (feil) {
+            Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeJournalføre -> KunneIkkeIverksetteBehandling.KunneIkkeJournalføreBrev
+            Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.KunneIkkeKontrollsimulere -> KunneIkkeIverksetteBehandling.KunneIkkeKontrollsimulere
+            Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> KunneIkkeIverksetteBehandling.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
+            Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.TekniskFeil -> KunneIkkeIverksetteBehandling.KunneIkkeUtbetale
+            Statusovergang.KunneIkkeIverksetteSøknadsbehandling.SaksbehandlerOgAttestantKanIkkeVæreSammePerson -> KunneIkkeIverksetteBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
+            Statusovergang.KunneIkkeIverksetteSøknadsbehandling.FantIkkePerson -> KunneIkkeIverksetteBehandling.FantIkkePerson
         }
     }
 }
