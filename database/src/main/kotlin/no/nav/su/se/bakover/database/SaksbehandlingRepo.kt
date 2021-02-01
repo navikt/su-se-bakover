@@ -328,18 +328,7 @@ internal class SaksbehandlingsPostgresRepo(
                     on conflict (id) do
                     update set status = :status, behandlingsinformasjon = to_json(:behandlingsinformasjon::json), beregning = null, simulering = null
                 """.trimIndent()
-                ).oppdatering(
-                mapOf(
-                    "id" to søknadsbehandling.id,
-                    "sakId" to søknadsbehandling.sakId,
-                    "soknadId" to søknadsbehandling.søknad.id,
-                    "opprettet" to søknadsbehandling.opprettet,
-                    "status" to søknadsbehandling.status.name,
-                    "behandlingsinformasjon" to objectMapper.writeValueAsString(søknadsbehandling.behandlingsinformasjon),
-                    "oppgaveId" to søknadsbehandling.oppgaveId.toString()
-                ),
-                session
-            )
+                ).oppdatering(defaultParams(søknadsbehandling), session)
         }
     }
 
@@ -350,17 +339,10 @@ internal class SaksbehandlingsPostgresRepo(
                    update behandling set status = :status, beregning = to_json(:beregning::json), simulering = null
                 """.trimIndent()
                 ).oppdatering(
-                mapOf(
-                    "id" to søknadsbehandling.id,
-                    "sakId" to søknadsbehandling.sakId,
-                    "soknadId" to søknadsbehandling.søknad.id,
-                    "opprettet" to søknadsbehandling.opprettet,
-                    "status" to søknadsbehandling.status.name,
-                    "behandlingsinformasjon" to objectMapper.writeValueAsString(søknadsbehandling.behandlingsinformasjon),
-                    "oppgaveId" to søknadsbehandling.oppgaveId.toString(),
+                params = defaultParams(søknadsbehandling).plus(
                     "beregning" to objectMapper.writeValueAsString(søknadsbehandling.beregning.toSnapshot())
                 ),
-                session
+                session = session
             )
         }
     }
@@ -372,16 +354,11 @@ internal class SaksbehandlingsPostgresRepo(
                    update behandling set status = :status, beregning = to_json(:beregning::json), simulering = to_json(:simulering::json)
                 """.trimIndent()
                 ).oppdatering(
-                mapOf(
-                    "id" to søknadsbehandling.id,
-                    "sakId" to søknadsbehandling.sakId,
-                    "soknadId" to søknadsbehandling.søknad.id,
-                    "opprettet" to søknadsbehandling.opprettet,
-                    "status" to søknadsbehandling.status.name,
-                    "behandlingsinformasjon" to objectMapper.writeValueAsString(søknadsbehandling.behandlingsinformasjon),
-                    "oppgaveId" to søknadsbehandling.oppgaveId.toString(),
-                    "beregning" to objectMapper.writeValueAsString(søknadsbehandling.beregning.toSnapshot()),
-                    "simulering" to objectMapper.writeValueAsString(søknadsbehandling.simulering)
+                defaultParams(søknadsbehandling).plus(
+                    listOf(
+                        "beregning" to objectMapper.writeValueAsString(søknadsbehandling.beregning.toSnapshot()),
+                        "simulering" to objectMapper.writeValueAsString(søknadsbehandling.simulering)
+                    )
                 ),
                 session
             )
@@ -389,147 +366,32 @@ internal class SaksbehandlingsPostgresRepo(
     }
 
     private fun lagre(søknadsbehandling: Søknadsbehandling.TilAttestering) {
-        when (søknadsbehandling) {
-            is Søknadsbehandling.TilAttestering.Innvilget -> {
-                dataSource.withSession { session ->
-                    (
-                        """
-                       update behandling set status = :status, saksbehandler = :saksbehandler
-                        """.trimIndent()
-                        ).oppdatering(
-                        mapOf(
-                            "id" to søknadsbehandling.id,
-                            "sakId" to søknadsbehandling.sakId,
-                            "soknadId" to søknadsbehandling.søknad.id,
-                            "opprettet" to søknadsbehandling.opprettet,
-                            "status" to søknadsbehandling.status.name,
-                            "behandlingsinformasjon" to objectMapper.writeValueAsString(søknadsbehandling.behandlingsinformasjon),
-                            "oppgaveId" to søknadsbehandling.oppgaveId.toString(),
-                            "beregning" to objectMapper.writeValueAsString(søknadsbehandling.beregning.toSnapshot()),
-                            "simulering" to objectMapper.writeValueAsString(søknadsbehandling.simulering),
-                            "saksbehandler" to søknadsbehandling.saksbehandler.navIdent
-                        ),
-                        session
-                    )
-                }
-            }
-            is Søknadsbehandling.TilAttestering.Avslag.MedBeregning -> {
-                dataSource.withSession { session ->
-                    (
-                        """
-                       update behandling set status = :status, saksbehandler = :saksbehandler
-                        """.trimIndent()
-                        ).oppdatering(
-                        mapOf(
-                            "id" to søknadsbehandling.id,
-                            "sakId" to søknadsbehandling.sakId,
-                            "soknadId" to søknadsbehandling.søknad.id,
-                            "opprettet" to søknadsbehandling.opprettet,
-                            "status" to søknadsbehandling.status.name,
-                            "behandlingsinformasjon" to objectMapper.writeValueAsString(søknadsbehandling.behandlingsinformasjon),
-                            "oppgaveId" to søknadsbehandling.oppgaveId.toString(),
-                            "beregning" to objectMapper.writeValueAsString(søknadsbehandling.beregning.toSnapshot()),
-                            "saksbehandler" to søknadsbehandling.saksbehandler.navIdent
-                        ),
-                        session
-                    )
-                }
-            }
-            is Søknadsbehandling.TilAttestering.Avslag.UtenBeregning -> {
-                dataSource.withSession { session ->
-                    (
-                        """
-                       update behandling set status = :status, saksbehandler = :saksbehandler
-                        """.trimIndent()
-                        ).oppdatering(
-                        mapOf(
-                            "id" to søknadsbehandling.id,
-                            "sakId" to søknadsbehandling.sakId,
-                            "soknadId" to søknadsbehandling.søknad.id,
-                            "opprettet" to søknadsbehandling.opprettet,
-                            "status" to søknadsbehandling.status.name,
-                            "behandlingsinformasjon" to objectMapper.writeValueAsString(søknadsbehandling.behandlingsinformasjon),
-                            "oppgaveId" to søknadsbehandling.oppgaveId.toString(),
-                            "saksbehandler" to søknadsbehandling.saksbehandler.navIdent
-                        ),
-                        session
-                    )
-                }
-            }
+        dataSource.withSession { session ->
+            (
+                """
+                   update behandling set status = :status, saksbehandler = :saksbehandler, oppgaveId = :oppgaveId
+                """.trimIndent()
+                ).oppdatering(
+                defaultParams(søknadsbehandling).plus(
+                    "saksbehandler" to søknadsbehandling.saksbehandler.navIdent,
+                ),
+                session
+            )
         }
     }
 
     private fun lagre(søknadsbehandling: Søknadsbehandling.Underkjent) {
-        when (søknadsbehandling) {
-            is Søknadsbehandling.Underkjent.Innvilget -> {
-                dataSource.withSession { session ->
-                    (
-                        """
-                       update behandling set status = :status, attestering = to_json(:attestering::json)
-                        """.trimIndent()
-                        ).oppdatering(
-                        mapOf(
-                            "id" to søknadsbehandling.id,
-                            "sakId" to søknadsbehandling.sakId,
-                            "soknadId" to søknadsbehandling.søknad.id,
-                            "opprettet" to søknadsbehandling.opprettet,
-                            "status" to søknadsbehandling.status.name,
-                            "behandlingsinformasjon" to objectMapper.writeValueAsString(søknadsbehandling.behandlingsinformasjon),
-                            "oppgaveId" to søknadsbehandling.oppgaveId.toString(),
-                            "beregning" to objectMapper.writeValueAsString(søknadsbehandling.beregning.toSnapshot()),
-                            "simulering" to objectMapper.writeValueAsString(søknadsbehandling.simulering),
-                            "saksbehandler" to søknadsbehandling.saksbehandler.navIdent,
-                            "attestering" to objectMapper.writeValueAsString(søknadsbehandling.attestering)
-                        ),
-                        session
-                    )
-                }
-            }
-            is Søknadsbehandling.Underkjent.Avslag.MedBeregning -> {
-                dataSource.withSession { session ->
-                    (
-                        """
-                       update behandling set status = :status, attestering = to_json(:attestering::json)
-                        """.trimIndent()
-                        ).oppdatering(
-                        mapOf(
-                            "id" to søknadsbehandling.id,
-                            "sakId" to søknadsbehandling.sakId,
-                            "soknadId" to søknadsbehandling.søknad.id,
-                            "opprettet" to søknadsbehandling.opprettet,
-                            "status" to søknadsbehandling.status.name,
-                            "behandlingsinformasjon" to objectMapper.writeValueAsString(søknadsbehandling.behandlingsinformasjon),
-                            "oppgaveId" to søknadsbehandling.oppgaveId.toString(),
-                            "beregning" to objectMapper.writeValueAsString(søknadsbehandling.beregning.toSnapshot()),
-                            "saksbehandler" to søknadsbehandling.saksbehandler.navIdent,
-                            "attestering" to objectMapper.writeValueAsString(søknadsbehandling.attestering)
-                        ),
-                        session
-                    )
-                }
-            }
-            is Søknadsbehandling.Underkjent.Avslag.UtenBeregning -> {
-                dataSource.withSession { session ->
-                    (
-                        """
-                       update behandling set status = :status, attestering = to_json(:attestering::json)
-                        """.trimIndent()
-                        ).oppdatering(
-                        mapOf(
-                            "id" to søknadsbehandling.id,
-                            "sakId" to søknadsbehandling.sakId,
-                            "soknadId" to søknadsbehandling.søknad.id,
-                            "opprettet" to søknadsbehandling.opprettet,
-                            "status" to søknadsbehandling.status.name,
-                            "behandlingsinformasjon" to objectMapper.writeValueAsString(søknadsbehandling.behandlingsinformasjon),
-                            "oppgaveId" to søknadsbehandling.oppgaveId.toString(),
-                            "saksbehandler" to søknadsbehandling.saksbehandler.navIdent,
-                            "attestering" to objectMapper.writeValueAsString(søknadsbehandling.attestering),
-                        ),
-                        session
-                    )
-                }
-            }
+        dataSource.withSession { session ->
+            (
+                """
+                    update behandling set status = :status, attestering = to_json(:attestering::json), oppgaveId = :oppgaveId
+                """.trimIndent()
+                ).oppdatering(
+                params = defaultParams(søknadsbehandling).plus(
+                    "attestering" to objectMapper.writeValueAsString(søknadsbehandling.attestering)
+                ),
+                session = session
+            )
         }
     }
 
@@ -539,77 +401,77 @@ internal class SaksbehandlingsPostgresRepo(
                 dataSource.withSession { session ->
                     (
                         """
-                       update behandling set status = :status, attestering = to_json(:attestering::json), utbetalingId = :utbetalingId
+                       update behandling set status = :status, attestering = to_json(:attestering::json), utbetalingId = :utbetalingId, iverksattJournalpostId = :iverksattJournalpostId, iverksattBrevbestillingId = :iverksattBrevbestillingId
                         """.trimIndent()
                         ).oppdatering(
-                        mapOf(
-                            "id" to søknadsbehandling.id,
-                            "sakId" to søknadsbehandling.sakId,
-                            "soknadId" to søknadsbehandling.søknad.id,
-                            "opprettet" to søknadsbehandling.opprettet,
-                            "status" to søknadsbehandling.status.name,
-                            "behandlingsinformasjon" to objectMapper.writeValueAsString(søknadsbehandling.behandlingsinformasjon),
-                            "oppgaveId" to søknadsbehandling.oppgaveId.toString(),
-                            "beregning" to objectMapper.writeValueAsString(søknadsbehandling.beregning.toSnapshot()),
-                            "simulering" to objectMapper.writeValueAsString(søknadsbehandling.simulering),
-                            "saksbehandler" to søknadsbehandling.saksbehandler.navIdent,
-                            "attestering" to objectMapper.writeValueAsString(søknadsbehandling.attestering),
-                            "utbetalingId" to søknadsbehandling.utbetalingId,
-                            // TODO jah: iverksattBrevbestillingId og iverksattJournalpostId
+                        params = defaultParams(søknadsbehandling).plus(
+                            listOf(
+                                "attestering" to objectMapper.writeValueAsString(søknadsbehandling.attestering),
+                                "utbetalingId" to søknadsbehandling.utbetalingId,
+                                "iverksattBrevbestillingId" to when (
+                                    val e =
+                                        søknadsbehandling.eksterneIverksettingsteg
+                                ) {
+                                    is Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.VenterPåKvittering,
+                                    is Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.Journalført -> null
+                                    is Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.JournalførtOgDistribuertBrev -> e.brevbestillingId
+                                },
+                                "iverksattJournalpostId" to when (
+                                    val e =
+                                        søknadsbehandling.eksterneIverksettingsteg
+                                ) {
+                                    is Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.VenterPåKvittering -> null
+                                    is Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.Journalført -> e.journalpostId
+                                    is Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.JournalførtOgDistribuertBrev -> e.journalpostId
+                                },
+                            )
                         ),
-                        session
+                        session = session
                     )
                 }
             }
-            is Søknadsbehandling.Iverksatt.Avslag.UtenBeregning -> {
+            is Søknadsbehandling.Iverksatt.Avslag -> {
                 dataSource.withSession { session ->
                     (
                         """
-                       update behandling status = :status, attestering = to_json(:attestering::json), iverksattJournalpostId = :iverksattJournalpostId
+                       update behandling status = :status, attestering = to_json(:attestering::json), iverksattJournalpostId = :iverksattJournalpostId, iverksattBrevbestillingId = :iverksattBrevbestillingId
                         """.trimIndent()
                         ).oppdatering(
-                        mapOf(
-                            "id" to søknadsbehandling.id,
-                            "sakId" to søknadsbehandling.sakId,
-                            "soknadId" to søknadsbehandling.søknad.id,
-                            "opprettet" to søknadsbehandling.opprettet,
-                            "status" to søknadsbehandling.status.name,
-                            "behandlingsinformasjon" to objectMapper.writeValueAsString(søknadsbehandling.behandlingsinformasjon),
-                            "oppgaveId" to søknadsbehandling.oppgaveId.toString(),
-                            "saksbehandler" to søknadsbehandling.saksbehandler.navIdent,
-                            "attestering" to objectMapper.writeValueAsString(søknadsbehandling.attestering),
-                            "iverksattJournalpostId" to søknadsbehandling.eksterneIverksettingsteg.journalpostId,
-                            // TODO jah: iverksattBrevbestillingId
+                        params = defaultParams(søknadsbehandling).plus(
+                            listOf(
+                                "attestering" to objectMapper.writeValueAsString(søknadsbehandling.attestering),
+                                "iverksattBrevbestillingId" to when (
+                                    val e =
+                                        søknadsbehandling.eksterneIverksettingsteg
+                                ) {
+                                    is Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg.Journalført -> null
+                                    is Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg.JournalførtOgDistribuertBrev -> e.brevbestillingId
+                                },
+                                "iverksattJournalpostId" to when (
+                                    val e =
+                                        søknadsbehandling.eksterneIverksettingsteg
+                                ) {
+                                    is Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg.Journalført -> e.journalpostId
+                                    is Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg.JournalførtOgDistribuertBrev -> e.journalpostId
+                                },
+                            )
                         ),
-                        session
-                    )
-                }
-            }
-            is Søknadsbehandling.Iverksatt.Avslag.MedBeregning -> {
-                dataSource.withSession { session ->
-                    (
-                        """
-                       update set status = :status, attestering = to_json(:attestering::json), iverksattJournalpostId = :iverksattJournalpostId
-                        """.trimIndent()
-                        ).oppdatering(
-                        mapOf(
-                            "id" to søknadsbehandling.id,
-                            "sakId" to søknadsbehandling.sakId,
-                            "soknadId" to søknadsbehandling.søknad.id,
-                            "opprettet" to søknadsbehandling.opprettet,
-                            "status" to søknadsbehandling.status.name,
-                            "behandlingsinformasjon" to objectMapper.writeValueAsString(søknadsbehandling.behandlingsinformasjon),
-                            "oppgaveId" to søknadsbehandling.oppgaveId.toString(),
-                            "beregning" to objectMapper.writeValueAsString(søknadsbehandling.beregning.toSnapshot()),
-                            "saksbehandler" to søknadsbehandling.saksbehandler.navIdent,
-                            "attestering" to objectMapper.writeValueAsString(søknadsbehandling.attestering),
-                            "iverksattJournalpostId" to søknadsbehandling.eksterneIverksettingsteg.journalpostId,
-                            // TODO jah: iverksattBrevbestillingId
-                        ),
-                        session
+                        session = session
                     )
                 }
             }
         }
+    }
+
+    private fun defaultParams(søknadsbehandling: Søknadsbehandling): Map<String, Any> {
+        return mapOf(
+            "id" to søknadsbehandling.id,
+            "sakId" to søknadsbehandling.sakId,
+            "soknadId" to søknadsbehandling.søknad.id,
+            "opprettet" to søknadsbehandling.opprettet,
+            "status" to søknadsbehandling.status.name,
+            "behandlingsinformasjon" to objectMapper.writeValueAsString(søknadsbehandling.behandlingsinformasjon),
+            "oppgaveId" to søknadsbehandling.oppgaveId.toString(),
+        )
     }
 }

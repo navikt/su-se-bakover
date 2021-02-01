@@ -30,7 +30,7 @@ sealed class Søknadsbehandling {
     abstract fun accept(visitor: StatusovergangVisitor)
 
     sealed class Vilkårsvurdert : Søknadsbehandling() {
-        fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon): Søknadsbehandling =
+        fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon): Søknadsbehandling.Vilkårsvurdert =
             opprett(
                 id,
                 opprettet,
