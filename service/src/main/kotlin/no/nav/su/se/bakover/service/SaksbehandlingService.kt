@@ -269,6 +269,8 @@ class SaksbehandlingServiceImpl(
             val søknadsbehandlingMedNyOppgaveId = underkjent.nyOppgaveId(nyOppgaveId)
 
             saksbehandlingRepo.lagre(søknadsbehandlingMedNyOppgaveId)
+
+            behandlingMetrics.incrementUnderkjentCounter(BehandlingMetrics.UnderkjentHandlinger.PERSISTERT)
             log.info("Behandling ${underkjent.id} ble underkjent. Opprettet behandlingsoppgave $nyOppgaveId")
 
             oppgaveService.lukkOppgave(eksisterendeOppgaveId)
