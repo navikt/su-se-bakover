@@ -65,7 +65,7 @@ internal class StatusovergangTest {
         fradragStrategy = FradragStrategy.Enslig
     )
 
-    private val opprettet = Søknadsbehandling.Opprettet(
+    private val opprettet = Søknadsbehandling.Vilkårsvurdert.Uavklart(
         id = UUID.randomUUID(),
         opprettet = Tidspunkt.now(),
         sakId = UUID.randomUUID(),

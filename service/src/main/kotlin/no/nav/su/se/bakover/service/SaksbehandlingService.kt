@@ -124,7 +124,7 @@ class SaksbehandlingServiceImpl(
             return KunneIkkeOppretteSøknadsbehandling.SøknadHarAlleredeBehandling.left()
         }
 
-        val opprettet = Søknadsbehandling.Opprettet(
+        val opprettet = Søknadsbehandling.Vilkårsvurdert.Uavklart(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(),
             sakId = søknad.sakId,
@@ -132,7 +132,8 @@ class SaksbehandlingServiceImpl(
             saksnummer = Saksnummer(-1),
             søknad = søknad,
             oppgaveId = søknad.oppgaveId,
-            fnr = søknad.søknadInnhold.personopplysninger.fnr
+            fnr = søknad.søknadInnhold.personopplysninger.fnr,
+            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon()
         )
 
         saksbehandlingRepo.lagre(opprettet)

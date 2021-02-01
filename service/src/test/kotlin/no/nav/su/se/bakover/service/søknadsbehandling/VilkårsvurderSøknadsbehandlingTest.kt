@@ -46,7 +46,7 @@ internal class VilkårsvurderSøknadsbehandlingTest {
     private val behandlingId = UUID.randomUUID()
     private val saksbehandler = Saksbehandler("AB12345")
     private val oppgaveId = OppgaveId("o")
-    private val opprettetBehandling = Søknadsbehandling.Opprettet(
+    private val opprettetBehandling = Søknadsbehandling.Vilkårsvurdert.Uavklart(
         id = behandlingId,
         opprettet = Tidspunkt.now(),
         behandlingsinformasjon = behandlingsinformasjon,

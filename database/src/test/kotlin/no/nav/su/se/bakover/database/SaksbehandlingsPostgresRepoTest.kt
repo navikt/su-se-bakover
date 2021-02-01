@@ -37,7 +37,7 @@ internal class SaksbehandlingsPostgresRepoTest {
                 val sak = setup()
                 val søknad = sak.søknader().first() as Søknad.Journalført.MedOppgave
 
-                val saksbehandling = Søknadsbehandling.Opprettet(
+                val saksbehandling = Søknadsbehandling.Vilkårsvurdert.Uavklart(
                     id = saksbehandlingId,
                     opprettet = opprettet,
                     sakId = sak.id,
@@ -58,7 +58,7 @@ internal class SaksbehandlingsPostgresRepoTest {
             withMigratedDb {
                 val sak = setup()
                 val søknad = sak.søknader().first() as Søknad.Journalført.MedOppgave
-                val saksbehandling = Søknadsbehandling.Opprettet(
+                val saksbehandling = Søknadsbehandling.Vilkårsvurdert.Uavklart(
                     id = saksbehandlingId,
                     opprettet = opprettet,
                     sakId = sak.id,
@@ -94,7 +94,7 @@ internal class SaksbehandlingsPostgresRepoTest {
             withMigratedDb {
                 val sak = setup()
                 val søknad = sak.søknader().first() as Søknad.Journalført.MedOppgave
-                val saksbehandling = Søknadsbehandling.Simulert(
+                val saksbehandling = Søknadsbehandling.Vilkårsvurdert.Uavklart(
                     id = saksbehandlingId,
                     opprettet = opprettet,
                     sakId = sak.id,
@@ -102,9 +102,13 @@ internal class SaksbehandlingsPostgresRepoTest {
                     søknad = søknad,
                     oppgaveId = oppgaveId,
                     behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
-                    fnr = sak.fnr,
-                    beregning = TestBeregning.toSnapshot(),
-                    simulering = Simulering(
+                    fnr = sak.fnr
+                )
+                repo.lagre(saksbehandling)
+                val simulertSaksbehandling = saksbehandling.tilBeregnet(
+                    beregning = TestBeregning.toSnapshot()
+                ).tilSimulert(
+                    Simulering(
                         gjelderId = fnr,
                         gjelderNavn = "navn",
                         datoBeregnet = LocalDate.EPOCH,
@@ -113,8 +117,8 @@ internal class SaksbehandlingsPostgresRepoTest {
                     )
                 )
 
-                repo.lagre(saksbehandling)
-                repo.hent(saksbehandling.id) shouldBe saksbehandling
+                repo.lagre(simulertSaksbehandling)
+                repo.hent(simulertSaksbehandling.id) shouldBe simulertSaksbehandling
 
                 dataSource.withSession {
                     "select * from behandling where id = :id".hent(mapOf("id" to saksbehandlingId), it) {

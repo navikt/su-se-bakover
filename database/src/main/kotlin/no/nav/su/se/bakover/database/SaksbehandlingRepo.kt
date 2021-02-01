@@ -35,7 +35,6 @@ internal class SaksbehandlingsPostgresRepo(
 ) : SaksbehandlingRepo {
     override fun lagre(søknadsbehandling: Søknadsbehandling) {
         when (søknadsbehandling) {
-            is Søknadsbehandling.Opprettet -> lagre(søknadsbehandling)
             is Søknadsbehandling.Vilkårsvurdert -> lagre(søknadsbehandling)
             is Søknadsbehandling.Beregnet -> lagre(søknadsbehandling)
             is Søknadsbehandling.Simulert -> lagre(søknadsbehandling)
@@ -103,7 +102,7 @@ internal class SaksbehandlingsPostgresRepo(
         val iverksattBrevbestillingId = stringOrNull("iverksattBrevbestillingId")?.let { BrevbestillingId(it) }
 
         return when (status) {
-            Behandling.BehandlingsStatus.OPPRETTET -> Søknadsbehandling.Opprettet(
+            Behandling.BehandlingsStatus.OPPRETTET -> Søknadsbehandling.Vilkårsvurdert.Uavklart(
                 id = behandlingId,
                 opprettet = opprettet,
                 sakId = sakId,
@@ -320,38 +319,14 @@ internal class SaksbehandlingsPostgresRepo(
         }
     }
 
-    private fun lagre(søknadsbehandling: Søknadsbehandling.Opprettet) {
-        dataSource.withSession { session ->
-            (
-                """
-                   insert into behandling (id, sakId, søknadId, opprettet, status, behandlingsinformasjon, oppgaveId, beregning, simulering, saksbehandler, attestering) 
-                   values (:id, :sakId, :soknadId, :opprettet, :status, to_json(:behandlingsinformasjon::json), :oppgaveId, null, null, null, null) 
-                   on conflict (id) do
-                   update set behandlingsinformasjon = to_json(:behandlingsinformasjon::json)
-                """.trimIndent()
-                ).oppdatering(
-                mapOf(
-                    "id" to søknadsbehandling.id,
-                    "sakId" to søknadsbehandling.sakId,
-                    "soknadId" to søknadsbehandling.søknad.id,
-                    "opprettet" to søknadsbehandling.opprettet,
-                    "status" to søknadsbehandling.status.name,
-                    "behandlingsinformasjon" to objectMapper.writeValueAsString(søknadsbehandling.behandlingsinformasjon),
-                    "oppgaveId" to søknadsbehandling.oppgaveId.toString()
-                ),
-                session
-            )
-        }
-    }
-
     private fun lagre(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert) {
         dataSource.withSession { session ->
             (
                 """
-                   insert into behandling (id, sakId, søknadId, opprettet, status, behandlingsinformasjon, oppgaveId, beregning, simulering, saksbehandler, attestering) 
-                   values (:id, :sakId, :soknadId, :opprettet, :status, to_json(:behandlingsinformasjon::json), :oppgaveId, null, null, null, null) 
-                   on conflict (id) do
-                   update set status = :status, behandlingsinformasjon = to_json(:behandlingsinformasjon::json), beregning = null, simulering = null
+                    insert into behandling (id, sakId, søknadId, opprettet, status, behandlingsinformasjon, oppgaveId, beregning, simulering, saksbehandler, attestering)
+                    values (:id, :sakId, :soknadId, :opprettet, :status, to_json(:behandlingsinformasjon::json), :oppgaveId, null, null, null, null)
+                    on conflict (id) do
+                    update set status = :status, behandlingsinformasjon = to_json(:behandlingsinformasjon::json), beregning = null, simulering = null
                 """.trimIndent()
                 ).oppdatering(
                 mapOf(
@@ -372,10 +347,7 @@ internal class SaksbehandlingsPostgresRepo(
         dataSource.withSession { session ->
             (
                 """
-                   insert into behandling (id, sakId, søknadId, opprettet, status, behandlingsinformasjon, oppgaveId, beregning, simulering, saksbehandler, attestering) 
-                   values (:id, :sakId, :soknadId, :opprettet, :status, to_json(:behandlingsinformasjon::json), :oppgaveId, to_json(:beregning::json), null, null, null) 
-                   on conflict (id) do
-                   update set status = :status, beregning = to_json(:beregning::json), simulering = null
+                   update behandling set status = :status, beregning = to_json(:beregning::json), simulering = null
                 """.trimIndent()
                 ).oppdatering(
                 mapOf(
@@ -397,10 +369,7 @@ internal class SaksbehandlingsPostgresRepo(
         dataSource.withSession { session ->
             (
                 """
-                   insert into behandling (id, sakId, søknadId, opprettet, status, behandlingsinformasjon, oppgaveId, beregning, simulering, saksbehandler, attestering) 
-                   values (:id, :sakId, :soknadId, :opprettet, :status, to_json(:behandlingsinformasjon::json), :oppgaveId, to_json(:beregning::json), to_json(:simulering::json), null, null) 
-                   on conflict (id) do
-                   update set status = :status, simulering = to_json(:simulering::json)
+                   update behandling set status = :status, beregning = to_json(:beregning::json), simulering = to_json(:simulering::json)
                 """.trimIndent()
                 ).oppdatering(
                 mapOf(
@@ -425,10 +394,7 @@ internal class SaksbehandlingsPostgresRepo(
                 dataSource.withSession { session ->
                     (
                         """
-                       insert into behandling (id, sakId, søknadId, opprettet, status, behandlingsinformasjon, oppgaveId, beregning, simulering, saksbehandler, attestering) 
-                       values (:id, :sakId, :soknadId, :opprettet, :status, to_json(:behandlingsinformasjon::json), :oppgaveId, to_json(:beregning::json), to_json(:simulering::json), :saksbehandler, null) 
-                       on conflict (id) do
-                       update set status = :status, saksbehandler = :saksbehandler
+                       update behandling set status = :status, saksbehandler = :saksbehandler
                         """.trimIndent()
                         ).oppdatering(
                         mapOf(
@@ -451,10 +417,7 @@ internal class SaksbehandlingsPostgresRepo(
                 dataSource.withSession { session ->
                     (
                         """
-                       insert into behandling (id, sakId, søknadId, opprettet, status, behandlingsinformasjon, oppgaveId, beregning, simulering, saksbehandler, attestering) 
-                       values (:id, :sakId, :soknadId, :opprettet, :status, to_json(:behandlingsinformasjon::json), :oppgaveId, to_json(:beregning::json), to_json(:simulering::json), :saksbehandler, null) 
-                       on conflict (id) do
-                       update set status = :status, saksbehandler = :saksbehandler
+                       update behandling set status = :status, saksbehandler = :saksbehandler
                         """.trimIndent()
                         ).oppdatering(
                         mapOf(
@@ -476,10 +439,7 @@ internal class SaksbehandlingsPostgresRepo(
                 dataSource.withSession { session ->
                     (
                         """
-                       insert into behandling (id, sakId, søknadId, opprettet, status, behandlingsinformasjon, oppgaveId, beregning, simulering, saksbehandler, attestering) 
-                       values (:id, :sakId, :soknadId, :opprettet, :status, to_json(:behandlingsinformasjon::json), :oppgaveId, to_json(:beregning::json), to_json(:simulering::json), :saksbehandler, null) 
-                       on conflict (id) do
-                       update set status = :status, saksbehandler = :saksbehandler
+                       update behandling set status = :status, saksbehandler = :saksbehandler
                         """.trimIndent()
                         ).oppdatering(
                         mapOf(
@@ -505,10 +465,7 @@ internal class SaksbehandlingsPostgresRepo(
                 dataSource.withSession { session ->
                     (
                         """
-                       insert into behandling (id, sakId, søknadId, opprettet, status, behandlingsinformasjon, oppgaveId, beregning, simulering, saksbehandler, attestering) 
-                       values (:id, :sakId, :soknadId, :opprettet, :status, to_json(:behandlingsinformasjon::json), :oppgaveId, to_json(:beregning::json), to_json(:simulering::json), :saksbehandler, to_json(:attestering::json)) 
-                       on conflict (id) do
-                       update set status = :status, attestering = to_json(:attestering::json)
+                       update behandling set status = :status, attestering = to_json(:attestering::json)
                         """.trimIndent()
                         ).oppdatering(
                         mapOf(
@@ -532,10 +489,7 @@ internal class SaksbehandlingsPostgresRepo(
                 dataSource.withSession { session ->
                     (
                         """
-                       insert into behandling (id, sakId, søknadId, opprettet, status, behandlingsinformasjon, oppgaveId, beregning, simulering, saksbehandler, attestering) 
-                       values (:id, :sakId, :soknadId, :opprettet, :status, to_json(:behandlingsinformasjon::json), :oppgaveId, to_json(:beregning::json), to_json(:simulering::json), :saksbehandler, to_json(:attestering::json)) 
-                       on conflict (id) do
-                       update set status = :status, attestering = to_json(:attestering::json)
+                       update behandling set status = :status, attestering = to_json(:attestering::json)
                         """.trimIndent()
                         ).oppdatering(
                         mapOf(
@@ -558,10 +512,7 @@ internal class SaksbehandlingsPostgresRepo(
                 dataSource.withSession { session ->
                     (
                         """
-                       insert into behandling (id, sakId, søknadId, opprettet, status, behandlingsinformasjon, oppgaveId, beregning, simulering, saksbehandler, attestering) 
-                       values (:id, :sakId, :soknadId, :opprettet, :status, to_json(:behandlingsinformasjon::json), :oppgaveId, to_json(:beregning::json), to_json(:simulering::json), :saksbehandler, to_json(:attestering::json)) 
-                       on conflict (id) do
-                       update set status = :status, attestering = to_json(:attestering::json)
+                       update behandling set status = :status, attestering = to_json(:attestering::json)
                         """.trimIndent()
                         ).oppdatering(
                         mapOf(
@@ -588,10 +539,7 @@ internal class SaksbehandlingsPostgresRepo(
                 dataSource.withSession { session ->
                     (
                         """
-                       insert into behandling (id, sakId, søknadId, opprettet, status, behandlingsinformasjon, oppgaveId, beregning, simulering, saksbehandler, attestering) 
-                       values (:id, :sakId, :soknadId, :opprettet, :status, to_json(:behandlingsinformasjon::json), :oppgaveId, to_json(:beregning::json), to_json(:simulering::json), :saksbehandler, to_json(:attestering::json)) 
-                       on conflict (id) do
-                       update set status = :status, attestering = to_json(:attestering::json), utbetalingId = :utbetalingId
+                       update behandling set status = :status, attestering = to_json(:attestering::json), utbetalingId = :utbetalingId
                         """.trimIndent()
                         ).oppdatering(
                         mapOf(
@@ -617,10 +565,7 @@ internal class SaksbehandlingsPostgresRepo(
                 dataSource.withSession { session ->
                     (
                         """
-                       insert into behandling (id, sakId, søknadId, opprettet, status, behandlingsinformasjon, oppgaveId, beregning, simulering, saksbehandler, attestering) 
-                       values (:id, :sakId, :soknadId, :opprettet, :status, to_json(:behandlingsinformasjon::json), :oppgaveId, to_json(:beregning::json), to_json(:simulering::json), :saksbehandler, to_json(:attestering::json)) 
-                       on conflict (id) do
-                       update set status = :status, attestering = to_json(:attestering::json), iverksattJournalpostId = :iverksattJournalpostId
+                       update behandling status = :status, attestering = to_json(:attestering::json), iverksattJournalpostId = :iverksattJournalpostId
                         """.trimIndent()
                         ).oppdatering(
                         mapOf(
@@ -644,9 +589,6 @@ internal class SaksbehandlingsPostgresRepo(
                 dataSource.withSession { session ->
                     (
                         """
-                       insert into behandling (id, sakId, søknadId, opprettet, status, behandlingsinformasjon, oppgaveId, beregning, simulering, saksbehandler, attestering) 
-                       values (:id, :sakId, :soknadId, :opprettet, :status, to_json(:behandlingsinformasjon::json), :oppgaveId, to_json(:beregning::json), to_json(:simulering::json), :saksbehandler, to_json(:attestering::json)) 
-                       on conflict (id) do
                        update set status = :status, attestering = to_json(:attestering::json), iverksattJournalpostId = :iverksattJournalpostId
                         """.trimIndent()
                         ).oppdatering(

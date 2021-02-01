@@ -19,7 +19,7 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
         private val behandlingsinformasjon: Behandlingsinformasjon
     ) : Statusovergang<Nothing, Søknadsbehandling>() {
 
-        override fun visit(søknadsbehandling: Søknadsbehandling.Opprettet) {
+        override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Uavklart) {
             // TODO when to patch/update behandlingsinformasjon for this style?
             result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon).right()
         }

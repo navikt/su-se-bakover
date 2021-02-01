@@ -43,7 +43,7 @@ internal class OpprettSøknadsbehandlingTest {
             journalpostId = JournalpostId(value = "2"),
             oppgaveId = OppgaveId(value = "1")
         )
-        val expectedSøknadsbehandling = Søknadsbehandling.Opprettet(
+        val expectedSøknadsbehandling = Søknadsbehandling.Vilkårsvurdert.Uavklart(
             id = UUID.randomUUID(), // blir ignorert eller overskrevet
             opprettet = Tidspunkt.EPOCH, // blir ignorert eller overskrevet
             sakId = sakId,
@@ -81,13 +81,13 @@ internal class OpprettSøknadsbehandlingTest {
 
         behandlingService.opprett(OpprettSøknadsbehandlingRequest(søknad.id)).orNull()!!.shouldBeEqualToIgnoringFields(
             expectedSøknadsbehandling,
-            Søknadsbehandling.Opprettet::id,
-            Søknadsbehandling.Opprettet::opprettet,
+            Søknadsbehandling.Vilkårsvurdert.Uavklart::id,
+            Søknadsbehandling.Vilkårsvurdert.Uavklart::opprettet,
         )
         verify(søknadService).hentSøknad(argThat { it shouldBe søknad.id })
         verify(søknadRepo).harSøknadPåbegyntBehandling(argThat { it shouldBe søknad.id })
 
-        val persistertSøknadsbehandling = argumentCaptor<Søknadsbehandling.Opprettet>()
+        val persistertSøknadsbehandling = argumentCaptor<Søknadsbehandling.Vilkårsvurdert.Uavklart>()
 
         verify(saksbehandlingRepoMock).lagre(persistertSøknadsbehandling.capture())
 
