@@ -13,8 +13,10 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.RevurderingRepo
@@ -222,6 +224,53 @@ internal class RevurderingServiceImplTest {
         )
 
         actual shouldBe KunneIkkeRevurdere.FantIngentingSomKanRevurderes.left()
+        verify(sakServiceMock).hentSak(sakId)
+        verifyNoMoreInteractions(sakServiceMock)
+    }
+
+    @Test
+    fun `kan ikke revurdere når stønadsperioden overlapper flere aktive stønadsperioder`() {
+        val revurderingsperiode = Periode.create(1.juni(2021), 31.august(2021))
+        val beregningMock = mock<Beregning> {
+            on { getPeriode() } doReturn Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.desember(2021))
+        }
+        val behandling1 = behandlingFactory.createBehandling(
+            id = mock(),
+            søknad = mock(),
+            status = Behandling.BehandlingsStatus.IVERKSATT_INNVILGET,
+            saksbehandler = saksbehandler,
+            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("Attes T. Ant")),
+            sakId = sakId,
+            saksnummer = BehandlingTestUtils.saksnummer,
+            fnr = fnr,
+            oppgaveId = mock(),
+            beregning = beregningMock
+        )
+        val behandling2 = behandling1.copy()
+
+        val sak = Sak(
+            id = sakId,
+            saksnummer = saksnummer,
+            opprettet = Tidspunkt.now(),
+            fnr = fnr,
+            søknader = listOf(),
+            behandlinger = listOf(behandling1, behandling2),
+            utbetalinger = listOf()
+        )
+
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(sakId) } doReturn sak.right()
+        }
+
+        val actual = createRevurderingService(
+            sakService = sakServiceMock
+        ).opprettRevurdering(
+            sakId = sakId,
+            periode = revurderingsperiode,
+            saksbehandler = saksbehandler
+        )
+
+        actual shouldBe KunneIkkeRevurdere.KanIkkeRevurderePerioderMedFlereAktiveStønadsperioder.left()
         verify(sakServiceMock).hentSak(sakId)
         verifyNoMoreInteractions(sakServiceMock)
     }

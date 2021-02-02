@@ -147,5 +147,6 @@ internal fun hentFeilResultat(feil: KunneIkkeRevurdere): Resultat {
         KunneIkkeRevurdere.MicrosoftApiGraphFeil -> InternalServerError.message("Kunne ikke slå opp saksbehandler")
         KunneIkkeRevurdere.KanIkkeRevurdereInneværendeMånedEllerTidligere -> BadRequest.message("Perioden er ikke i måneden etter")
         KunneIkkeRevurdere.SimuleringFeilet -> InternalServerError.message("Simulering feilet")
+        KunneIkkeRevurdere.KanIkkeRevurderePerioderMedFlereAktiveStønadsperioder -> InternalServerError.message("Revurderingsperioden kan ikke overlappe flere aktive stønadsperioder.")
     }
 }

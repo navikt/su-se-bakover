@@ -40,5 +40,6 @@ sealed class KunneIkkeRevurdere {
     object KunneIkkeOppretteOppgave : KunneIkkeRevurdere()
     object KunneIkkeLageBrevutkast : KunneIkkeRevurdere()
     object KanIkkeRevurdereInneværendeMånedEllerTidligere : KunneIkkeRevurdere()
+    object KanIkkeRevurderePerioderMedFlereAktiveStønadsperioder : KunneIkkeRevurdere()
     object SimuleringFeilet : KunneIkkeRevurdere()
 }

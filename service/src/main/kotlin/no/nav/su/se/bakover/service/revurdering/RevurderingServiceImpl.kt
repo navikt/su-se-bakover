@@ -37,26 +37,30 @@ internal class RevurderingServiceImpl(
     private val brevService: BrevService,
 ) : RevurderingService {
 
-    override fun opprettRevurdering(sakId: UUID, periode: Periode, saksbehandler: NavIdentBruker.Saksbehandler): Either<KunneIkkeRevurdere, Revurdering> {
+    override fun opprettRevurdering(
+        sakId: UUID,
+        periode: Periode,
+        saksbehandler: NavIdentBruker.Saksbehandler
+    ): Either<KunneIkkeRevurdere, Revurdering> {
         if (!periode.erPeriodenIMånederEtter()) return KunneIkkeRevurdere.KanIkkeRevurdereInneværendeMånedEllerTidligere.left()
 
         return hentSak(sakId)
             .map { sak ->
                 val tilRevurdering = sak.behandlinger()
                     .filter { it.status() == Behandling.BehandlingsStatus.IVERKSATT_INNVILGET }
-                    .singleOrNull { it.beregning()!!.getPeriode() inneholder periode }
+                    .filter { it.beregning()!!.getPeriode() inneholder periode }
 
-                return when (tilRevurdering) {
-                    null -> KunneIkkeRevurdere.FantIngentingSomKanRevurderes.left()
-                    else -> {
-                        val revurdering = OpprettetRevurdering(
-                            periode = periode,
-                            tilRevurdering = tilRevurdering,
-                            saksbehandler = saksbehandler
-                        )
-                        revurderingRepo.lagre(revurdering)
-                        return revurdering.right()
-                    }
+                if (tilRevurdering.isEmpty()) return KunneIkkeRevurdere.FantIngentingSomKanRevurderes.left()
+                if (tilRevurdering.size > 1) return KunneIkkeRevurdere.KanIkkeRevurderePerioderMedFlereAktiveStønadsperioder.left()
+
+                return tilRevurdering.single().let {
+                    val revurdering = OpprettetRevurdering(
+                        periode = periode,
+                        tilRevurdering = it,
+                        saksbehandler = saksbehandler
+                    )
+                    revurderingRepo.lagre(revurdering)
+                    revurdering.right()
                 }
             }
     }
@@ -159,8 +163,12 @@ internal class RevurderingServiceImpl(
         }
 
         return when (revurdering) {
-            is SimulertRevurdering -> { lagBrevutkastForRevurderingAvInntekt(revurdering.beregning) }
-            is RevurderingTilAttestering -> { lagBrevutkastForRevurderingAvInntekt(revurdering.beregning) }
+            is SimulertRevurdering -> {
+                lagBrevutkastForRevurderingAvInntekt(revurdering.beregning)
+            }
+            is RevurderingTilAttestering -> {
+                lagBrevutkastForRevurderingAvInntekt(revurdering.beregning)
+            }
             else -> KunneIkkeRevurdere.KunneIkkeLageBrevutkast.left()
         }
     }
