@@ -31,7 +31,7 @@ data class SøknadPdfInnhold private constructor(
             saksnummer = saksnummer,
             søknadsId = søknadsId,
             navn = navn,
-            dagensDatoOgTidspunkt = LocalDateTime.now(clock).format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")),
+            dagensDatoOgTidspunkt = LocalDateTime.now(clock.withZone(zoneIdOslo)).format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")),
             søknadOpprettet = søknadOpprettet.toLocalDate(zoneIdOslo).ddMMyyyy(),
             søknadInnhold = søknadInnhold,
         )
