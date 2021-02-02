@@ -30,16 +30,16 @@ internal class AvvistSøknadBrevRequestTest {
 
     @Test
     fun `lager vedtaks-brevdata`() {
-        AvvistSøknadBrevRequest(person, BrevConfig.Vedtak(null)).lagBrevInnhold(
+        AvvistSøknadBrevRequest(person, BrevConfig.Vedtak(null), "saksbehandler").lagBrevInnhold(
             expectedPersonalia
-        ) shouldBe AvvistSøknadVedtakBrevInnhold(expectedPersonalia, null)
+        ) shouldBe AvvistSøknadVedtakBrevInnhold(expectedPersonalia, "saksbehandler", null)
     }
 
     @Test
     fun `lager vedtaks-brevdata med fritekst`() {
-        AvvistSøknadBrevRequest(person, BrevConfig.Vedtak("jeg er fritekst")).lagBrevInnhold(
+        AvvistSøknadBrevRequest(person, BrevConfig.Vedtak("jeg er fritekst"), "saksbehandler").lagBrevInnhold(
             expectedPersonalia
-        ) shouldBe AvvistSøknadVedtakBrevInnhold(expectedPersonalia, "jeg er fritekst")
+        ) shouldBe AvvistSøknadVedtakBrevInnhold(expectedPersonalia, "saksbehandler", "jeg er fritekst")
     }
 
     @Test
@@ -48,11 +48,13 @@ internal class AvvistSøknadBrevRequestTest {
             person,
             BrevConfig.Fritekst(
                 "jeg er fritekst"
-            )
+            ),
+            "saksbehandler"
         ).lagBrevInnhold(
             expectedPersonalia
         ) shouldBe AvvistSøknadFritekstBrevInnhold(
             personalia = expectedPersonalia,
+            saksbehandlerNavn = "saksbehandler",
             fritekst = "jeg er fritekst"
         )
     }

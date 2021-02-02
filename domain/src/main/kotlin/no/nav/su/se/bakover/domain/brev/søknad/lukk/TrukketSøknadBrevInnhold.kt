@@ -8,13 +8,15 @@ import java.time.LocalDate
 data class TrukketSøknadBrevInnhold private constructor(
     val personalia: Personalia,
     val datoSøknadOpprettet: String,
-    val trukketDato: String
+    val trukketDato: String,
+    val saksbehandlerNavn: String
 ) : BrevInnhold() {
     override val brevTemplate: BrevTemplate = BrevTemplate.TrukketSøknad
 
     constructor(
         personalia: Personalia,
         datoSøknadOpprettet: LocalDate,
-        trukketDato: LocalDate
-    ) : this(personalia, datoSøknadOpprettet.ddMMyyyy(), trukketDato.ddMMyyyy())
+        trukketDato: LocalDate,
+        saksbehandlerNavn: String
+    ) : this(personalia, datoSøknadOpprettet.ddMMyyyy(), trukketDato.ddMMyyyy(), saksbehandlerNavn)
 }

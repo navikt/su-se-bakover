@@ -10,7 +10,8 @@ import java.time.LocalDate
 data class TrukketSøknadBrevRequest(
     private val person: Person,
     private val søknad: Søknad,
-    private val trukketDato: LocalDate
+    private val trukketDato: LocalDate,
+    private val saksbehandlerNavn: String
 ) : LagBrevRequest {
     override fun getPerson(): Person = person
 
@@ -18,7 +19,8 @@ data class TrukketSøknadBrevRequest(
         return TrukketSøknadBrevInnhold(
             personalia = personalia,
             datoSøknadOpprettet = søknad.opprettet.toLocalDate(zoneIdOslo),
-            trukketDato = trukketDato
+            trukketDato = trukketDato,
+            saksbehandlerNavn = saksbehandlerNavn
         )
     }
 }
