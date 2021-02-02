@@ -176,12 +176,13 @@ internal class SøknadsbehandlingServiceImpl(
 
         saksbehandlingRepo.lagre(søknadsbehandlingMedNyOppgaveId)
 
+
         oppgaveService.lukkOppgave(eksisterendeOppgaveId).map {
             behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.LUKKET_OPPGAVE)
         }.mapLeft {
             log.error("Klarte ikke å lukke oppgave. kall til oppgave for oppgaveId ${søknadsbehandling.oppgaveId} feilet")
         }
-
+        behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.PERSISTERT)
         behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.OPPRETTET_OPPGAVE)
         return søknadsbehandlingMedNyOppgaveId.let {
             observers.forEach { observer -> observer.handle(Event.Statistikk.SøknadsbehandlingTilAttestering(it)) }
