@@ -28,10 +28,7 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.service.OpprettSimuleringRequest
-import no.nav.su.se.bakover.service.SaksbehandlingServiceImpl
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.behandling.IverksettSaksbehandlingService
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.service.beregning.BeregningService
 import no.nav.su.se.bakover.service.beregning.TestBeregning
@@ -44,7 +41,7 @@ import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-internal class SøknadsbehandlingSimuleringTest {
+internal class SøknadsbehandlingServiceSimuleringTest {
 
     private fun createService(
         behandlingRepo: SaksbehandlingRepo = mock(),
@@ -54,10 +51,10 @@ internal class SøknadsbehandlingSimuleringTest {
         søknadRepo: SøknadRepo = mock(),
         personService: PersonService = mock(),
         behandlingMetrics: BehandlingMetrics = mock(),
-        iverksettBehandlingService: IverksettSaksbehandlingService = mock(),
+        iverksettBehandlingService: IverksettSøknadsbehandlingService = mock(),
         observer: EventObserver = mock { on { handle(any()) }.doNothing() },
         beregningService: BeregningService = mock(),
-    ) = SaksbehandlingServiceImpl(
+    ) = SøknadsbehandlingServiceImpl(
         søknadService,
         søknadRepo,
         behandlingRepo,

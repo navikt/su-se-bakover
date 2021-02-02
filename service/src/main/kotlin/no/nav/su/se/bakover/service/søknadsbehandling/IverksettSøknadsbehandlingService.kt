@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.service.behandling
+package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.Either
 import arrow.core.getOrElse
@@ -17,6 +17,9 @@ import no.nav.su.se.bakover.domain.behandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.service.behandling.DistribuerIverksettingsbrevService
+import no.nav.su.se.bakover.service.behandling.JournalførIverksettingService
+import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -27,7 +30,7 @@ import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotServic
 import org.slf4j.LoggerFactory
 import java.time.Clock
 
-class IverksettSaksbehandlingService(
+class IverksettSøknadsbehandlingService(
     private val behandlingRepo: BehandlingRepo,
     private val utbetalingService: UtbetalingService,
     private val oppgaveService: OppgaveService,

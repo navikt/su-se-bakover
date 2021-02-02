@@ -15,8 +15,8 @@ import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.behandling.Søknadsbehandling
-import no.nav.su.se.bakover.service.OpprettSøknadsbehandlingRequest
-import no.nav.su.se.bakover.service.SaksbehandlingService
+import no.nav.su.se.bakover.service.søknadsbehandling.OpprettSøknadsbehandlingRequest
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.defaultRequest
@@ -35,12 +35,12 @@ class NyBehandlingRoutesTest {
     @Test
     fun `kan opprette behandling`() {
         val søknadsbehandling: Søknadsbehandling = nySøknadsbehandling()
-        val saksbehandlingServiceMock = mock<SaksbehandlingService> {
+        val saksbehandlingServiceMock = mock<SøknadsbehandlingService> {
             on { opprett(any()) } doReturn søknadsbehandling.right()
         }
 
         withTestApplication({
-            testSusebakover(services = services.copy(saksbehandling = saksbehandlingServiceMock))
+            testSusebakover(services = services.copy(søknadsbehandling = saksbehandlingServiceMock))
         }) {
             defaultRequest(
                 HttpMethod.Post,

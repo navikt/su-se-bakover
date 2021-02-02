@@ -16,6 +16,6 @@ object TestServicesBuilder {
         person = mock(),
         statistikk = mock(),
         toggles = mock(),
-        saksbehandling = mock(),
+        søknadsbehandling = mock(),
     )
 }

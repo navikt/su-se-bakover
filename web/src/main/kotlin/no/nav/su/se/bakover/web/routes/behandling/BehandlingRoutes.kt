@@ -20,14 +20,6 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.service.IverksettSøknadsbehandlingRequest
-import no.nav.su.se.bakover.service.OppdaterSøknadsbehandlingsinformasjonRequest
-import no.nav.su.se.bakover.service.OpprettBeregningRequest
-import no.nav.su.se.bakover.service.OpprettSimuleringRequest
-import no.nav.su.se.bakover.service.OpprettSøknadsbehandlingRequest
-import no.nav.su.se.bakover.service.SaksbehandlingService
-import no.nav.su.se.bakover.service.SendTilAttesteringRequest
-import no.nav.su.se.bakover.service.UnderkjennSøknadsbehandlingRequest
 import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.service.behandling.IverksattBehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeBeregne
@@ -38,6 +30,14 @@ import no.nav.su.se.bakover.service.behandling.KunneIkkeOppretteSøknadsbehandli
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeUnderkjenneBehandling
+import no.nav.su.se.bakover.service.søknadsbehandling.IverksettSøknadsbehandlingRequest
+import no.nav.su.se.bakover.service.søknadsbehandling.OppdaterSøknadsbehandlingsinformasjonRequest
+import no.nav.su.se.bakover.service.søknadsbehandling.OpprettBeregningRequest
+import no.nav.su.se.bakover.service.søknadsbehandling.OpprettSimuleringRequest
+import no.nav.su.se.bakover.service.søknadsbehandling.OpprettSøknadsbehandlingRequest
+import no.nav.su.se.bakover.service.søknadsbehandling.SendTilAttesteringRequest
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.service.søknadsbehandling.UnderkjennSøknadsbehandlingRequest
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
@@ -58,7 +58,7 @@ internal const val behandlingPath = "$sakPath/{sakId}/behandlinger"
 @KtorExperimentalAPI
 internal fun Route.behandlingRoutes(
     behandlingService: BehandlingService,
-    saksbehandlingService: SaksbehandlingService
+    søknadsbehandlingService: SøknadsbehandlingService
 ) {
     val log = LoggerFactory.getLogger(this::class.java)
 
@@ -71,7 +71,7 @@ internal fun Route.behandlingRoutes(
                     body.soknadId.toUUID().mapLeft {
                         call.svar(BadRequest.message("soknadId er ikke en gyldig uuid"))
                     }.map { søknadId ->
-                        saksbehandlingService.opprett(OpprettSøknadsbehandlingRequest(søknadId))
+                        søknadsbehandlingService.opprett(OpprettSøknadsbehandlingRequest(søknadId))
                             .fold(
                                 {
                                     call.svar(
@@ -119,7 +119,7 @@ internal fun Route.behandlingRoutes(
         patch("$behandlingPath/{behandlingId}/informasjon") {
             call.withBehandlingId { behandlingId ->
                 call.withBody<BehandlingsinformasjonJson> { body ->
-                    saksbehandlingService.vilkårsvurder(
+                    søknadsbehandlingService.vilkårsvurder(
                         OppdaterSøknadsbehandlingsinformasjonRequest(
                             behandlingId = behandlingId,
                             saksbehandler = Saksbehandler(call.suUserContext.getNAVIdent()),
@@ -153,7 +153,7 @@ internal fun Route.behandlingRoutes(
                     body.toDomain(behandlingId, Saksbehandler(call.suUserContext.getNAVIdent()))
                         .mapLeft { call.svar(it) }
                         .map {
-                            saksbehandlingService.beregn(
+                            søknadsbehandlingService.beregn(
                                 OpprettBeregningRequest(
                                     behandlingId = it.behandlingId,
                                     periode = it.stønadsperiode.periode,
@@ -231,7 +231,7 @@ internal fun Route.behandlingRoutes(
     authorize(Brukerrolle.Saksbehandler) {
         post("$behandlingPath/{behandlingId}/simuler") {
             call.withBehandlingId { behandlingId ->
-                saksbehandlingService.simuler(
+                søknadsbehandlingService.simuler(
                     OpprettSimuleringRequest(
                         behandlingId = behandlingId,
                         saksbehandler = Saksbehandler(call.suUserContext.getNAVIdent())
@@ -267,7 +267,7 @@ internal fun Route.behandlingRoutes(
             call.withBehandlingId { behandlingId ->
                 call.withSakId {
                     val saksBehandler = Saksbehandler(call.suUserContext.getNAVIdent())
-                    saksbehandlingService.sendTilAttestering(
+                    søknadsbehandlingService.sendTilAttestering(
                         SendTilAttesteringRequest(
                             behandlingId = behandlingId,
                             saksbehandler = saksBehandler
@@ -355,7 +355,7 @@ internal fun Route.behandlingRoutes(
 
                 val navIdent = call.suUserContext.getNAVIdent()
 
-                saksbehandlingService.iverksett(
+                søknadsbehandlingService.iverksett(
                     IverksettSøknadsbehandlingRequest(
                         behandlingId = behandlingId,
                         attestering = Attestering.Iverksatt(Attestant(navIdent))
@@ -391,7 +391,7 @@ internal fun Route.behandlingRoutes(
                     },
                     ifRight = { body ->
                         if (body.valid()) {
-                            saksbehandlingService.underkjenn(
+                            søknadsbehandlingService.underkjenn(
                                 UnderkjennSøknadsbehandlingRequest(
                                     behandlingId = behandlingId,
                                     attestering = Attestering.Underkjent(

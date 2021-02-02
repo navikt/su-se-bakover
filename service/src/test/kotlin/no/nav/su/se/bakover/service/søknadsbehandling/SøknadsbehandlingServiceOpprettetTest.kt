@@ -22,10 +22,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.service.OpprettSøknadsbehandlingRequest
-import no.nav.su.se.bakover.service.SaksbehandlingServiceImpl
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.behandling.IverksettSaksbehandlingService
 import no.nav.su.se.bakover.service.behandling.KunneIkkeOppretteSøknadsbehandling
 import no.nav.su.se.bakover.service.beregning.BeregningService
 import no.nav.su.se.bakover.service.doNothing
@@ -39,7 +36,7 @@ import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-internal class OpprettSøknadsbehandlingTest {
+internal class SøknadsbehandlingServiceOpprettetTest {
 
     @Test
     fun `svarer med feil dersom vi ikke finner søknad`() {
@@ -233,10 +230,10 @@ internal class OpprettSøknadsbehandlingTest {
         søknadRepo: SøknadRepo = mock(),
         personService: PersonService = mock(),
         behandlingMetrics: BehandlingMetrics = mock(),
-        iverksettBehandlingService: IverksettSaksbehandlingService = mock(),
+        iverksettBehandlingService: IverksettSøknadsbehandlingService = mock(),
         observer: EventObserver = mock { on { handle(any()) }.doNothing() },
         beregningService: BeregningService = mock(),
-    ) = SaksbehandlingServiceImpl(
+    ) = SøknadsbehandlingServiceImpl(
         søknadService,
         søknadRepo,
         behandlingRepo,

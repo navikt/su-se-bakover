@@ -24,11 +24,8 @@ import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.service.FnrGenerator
-import no.nav.su.se.bakover.service.OppdaterSøknadsbehandlingsinformasjonRequest
-import no.nav.su.se.bakover.service.SaksbehandlingServiceImpl
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.behandlingsinformasjon
-import no.nav.su.se.bakover.service.behandling.IverksettSaksbehandlingService
 import no.nav.su.se.bakover.service.behandling.KunneIkkeOppdatereBehandlingsinformasjon
 import no.nav.su.se.bakover.service.beregning.BeregningService
 import no.nav.su.se.bakover.service.doNothing
@@ -40,7 +37,7 @@ import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-internal class VilkårsvurderSøknadsbehandlingTest {
+internal class SøknadsbehandlingServiceVilkårsvurderingTest {
 
     private val sakId = UUID.randomUUID()
     private val behandlingId = UUID.randomUUID()
@@ -168,10 +165,10 @@ internal class VilkårsvurderSøknadsbehandlingTest {
         søknadRepo: SøknadRepo = mock(),
         personService: PersonService = mock(),
         behandlingMetrics: BehandlingMetrics = mock(),
-        iverksettBehandlingService: IverksettSaksbehandlingService = mock(),
+        iverksettBehandlingService: IverksettSøknadsbehandlingService = mock(),
         observer: EventObserver = mock { on { handle(any()) }.doNothing() },
         beregningService: BeregningService = mock(),
-    ) = SaksbehandlingServiceImpl(
+    ) = SøknadsbehandlingServiceImpl(
         søknadService,
         søknadRepo,
         behandlingRepo,

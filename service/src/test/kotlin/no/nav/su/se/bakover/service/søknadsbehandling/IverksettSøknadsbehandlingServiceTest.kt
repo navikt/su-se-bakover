@@ -43,7 +43,6 @@ import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
 import no.nav.su.se.bakover.service.behandling.DistribuerIverksettingsbrevService
-import no.nav.su.se.bakover.service.behandling.IverksettSaksbehandlingService
 import no.nav.su.se.bakover.service.behandling.JournalførIverksettingService
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.brev.BrevService
@@ -58,7 +57,7 @@ import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.util.UUID
 
-internal class IverksettSaksbehandlingServiceTest {
+internal class IverksettSøknadsbehandlingServiceTest {
     private val fnr = FnrGenerator.random()
     private val sakId: UUID = UUID.fromString("268e62fb-3079-4e8d-ab32-ff9fb9eac2ec")
     private val behandlingId: UUID = UUID.fromString("a602aa68-c989-43e3-9fb7-cb488a2a3821")
@@ -387,7 +386,7 @@ internal class IverksettSaksbehandlingServiceTest {
         distribuerIverksettingsbrevService: DistribuerIverksettingsbrevService = mock(),
         saksbehandlingRepo: SaksbehandlingRepo = mock(),
         brevService: BrevService = mock(),
-    ) = IverksettSaksbehandlingService(
+    ) = IverksettSøknadsbehandlingService(
         behandlingRepo,
         utbetalingService,
         oppgaveService,

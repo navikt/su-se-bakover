@@ -61,6 +61,14 @@ import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukketSøknad
+import no.nav.su.se.bakover.service.søknadsbehandling.IverksettSøknadsbehandlingRequest
+import no.nav.su.se.bakover.service.søknadsbehandling.OppdaterSøknadsbehandlingsinformasjonRequest
+import no.nav.su.se.bakover.service.søknadsbehandling.OpprettBeregningRequest
+import no.nav.su.se.bakover.service.søknadsbehandling.OpprettSimuleringRequest
+import no.nav.su.se.bakover.service.søknadsbehandling.OpprettSøknadsbehandlingRequest
+import no.nav.su.se.bakover.service.søknadsbehandling.SendTilAttesteringRequest
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.service.søknadsbehandling.UnderkjennSøknadsbehandlingRequest
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeGjenopptaUtbetalinger
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeStanseUtbetalinger
@@ -96,7 +104,8 @@ open class AccessCheckProxy(
                 override fun oppdaterMedKvittering(
                     avstemmingsnøkkel: Avstemmingsnøkkel,
                     kvittering: Kvittering
-                ): Either<FantIkkeUtbetaling, Utbetaling.OversendtUtbetaling.MedKvittering> = kastKanKunKallesFraAnnenService()
+                ): Either<FantIkkeUtbetaling, Utbetaling.OversendtUtbetaling.MedKvittering> =
+                    kastKanKunKallesFraAnnenService()
 
                 override fun simulerUtbetaling(
                     sakId: UUID,
@@ -334,33 +343,33 @@ open class AccessCheckProxy(
             },
             toggles = services.toggles,
             // TODO TILGANG
-            saksbehandling = object : SaksbehandlingService {
+            søknadsbehandling = object : SøknadsbehandlingService {
                 override fun opprett(request: OpprettSøknadsbehandlingRequest): Either<KunneIkkeOppretteSøknadsbehandling, Søknadsbehandling> {
-                    return services.saksbehandling.opprett(request)
+                    return services.søknadsbehandling.opprett(request)
                 }
 
                 override fun vilkårsvurder(request: OppdaterSøknadsbehandlingsinformasjonRequest): Either<KunneIkkeOppdatereBehandlingsinformasjon, Søknadsbehandling> {
-                    return services.saksbehandling.vilkårsvurder(request)
+                    return services.søknadsbehandling.vilkårsvurder(request)
                 }
 
                 override fun beregn(request: OpprettBeregningRequest): Either<KunneIkkeBeregne, Søknadsbehandling> {
-                    return services.saksbehandling.beregn(request)
+                    return services.søknadsbehandling.beregn(request)
                 }
 
                 override fun simuler(request: OpprettSimuleringRequest): Either<KunneIkkeSimulereBehandling, Søknadsbehandling> {
-                    return services.saksbehandling.simuler(request)
+                    return services.søknadsbehandling.simuler(request)
                 }
 
                 override fun sendTilAttestering(request: SendTilAttesteringRequest): Either<KunneIkkeSendeTilAttestering, Søknadsbehandling> {
-                    return services.saksbehandling.sendTilAttestering(request)
+                    return services.søknadsbehandling.sendTilAttestering(request)
                 }
 
                 override fun underkjenn(request: UnderkjennSøknadsbehandlingRequest): Either<KunneIkkeUnderkjenneBehandling, Søknadsbehandling> {
-                    return services.saksbehandling.underkjenn(request)
+                    return services.søknadsbehandling.underkjenn(request)
                 }
 
                 override fun iverksett(request: IverksettSøknadsbehandlingRequest): Either<KunneIkkeIverksetteBehandling, Søknadsbehandling> {
-                    return services.saksbehandling.iverksett(request)
+                    return services.søknadsbehandling.iverksett(request)
                 }
             }
         )

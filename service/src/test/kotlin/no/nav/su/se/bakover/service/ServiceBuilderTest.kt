@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.database.DatabaseRepos
 import no.nav.su.se.bakover.service.behandling.BehandlingServiceImpl
 import no.nav.su.se.bakover.service.sak.SakServiceImpl
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServiceImpl
 import org.junit.jupiter.api.Test
 import java.time.Clock
 
@@ -48,7 +49,7 @@ internal class ServiceBuilderTest {
         ).let {
             (it.sak as SakServiceImpl).observers shouldContain it.statistikk
             (it.behandling as BehandlingServiceImpl).getObservers() shouldContain it.statistikk
-            (it.saksbehandling as SaksbehandlingServiceImpl).getObservers() shouldContain it.statistikk
+            (it.søknadsbehandling as SøknadsbehandlingServiceImpl).getObservers() shouldContain it.statistikk
         }
     }
 }

@@ -29,10 +29,7 @@ import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.service.FnrGenerator
-import no.nav.su.se.bakover.service.IverksettSøknadsbehandlingRequest
-import no.nav.su.se.bakover.service.SaksbehandlingServiceImpl
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
-import no.nav.su.se.bakover.service.behandling.IverksettSaksbehandlingService
 import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling
 import no.nav.su.se.bakover.service.beregning.BeregningService
 import no.nav.su.se.bakover.service.beregning.TestBeregning
@@ -48,7 +45,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.util.UUID
 
-internal class IverksettSøknadsbehandlingTest {
+internal class SøknadsbehandlingServiceIverksettTest {
     private val fnr = FnrGenerator.random()
     private val sakId: UUID = UUID.fromString("268e62fb-3079-4e8d-ab32-ff9fb9eac2ec")
     private val behandlingId: UUID = UUID.fromString("a602aa68-c989-43e3-9fb7-cb488a2a3821")
@@ -69,7 +66,7 @@ internal class IverksettSøknadsbehandlingTest {
             on { hent(any()) } doReturn null
         }
 
-        val iverksettSaksbehandlingServiceMock = mock<IverksettSaksbehandlingService>()
+        val iverksettSaksbehandlingServiceMock = mock<IverksettSøknadsbehandlingService>()
 
         val response = createService(
             behandlingRepo = behandlingRepoMock,
@@ -95,7 +92,7 @@ internal class IverksettSøknadsbehandlingTest {
             on { hent(any()) } doReturn behandling
         }
 
-        val iverksettSaksbehandlingServiceMock = mock<IverksettSaksbehandlingService>() {
+        val iverksettSaksbehandlingServiceMock = mock<IverksettSøknadsbehandlingService>() {
             on { iverksettInnvilgning(any(), any()) } doReturn utbetalingId.right()
         }
 
@@ -168,7 +165,7 @@ internal class IverksettSøknadsbehandlingTest {
             )
         )
 
-        val iverksettSaksbehandlingServiceMock = mock<IverksettSaksbehandlingService>() {
+        val iverksettSaksbehandlingServiceMock = mock<IverksettSøknadsbehandlingService>() {
             on { opprettJournalpostForAvslag(any(), any()) } doReturn iverksattJournalpostId.right()
             on { distribuerBrevOgLukkOppgaveForAvslag(any()) } doReturn expectedJournalførtOgDistribuert
         }
@@ -207,7 +204,7 @@ internal class IverksettSøknadsbehandlingTest {
             on { hent(any()) } doReturn behandling
         }
 
-        val iverksettSaksbehandlingServiceMock = mock<IverksettSaksbehandlingService>()
+        val iverksettSaksbehandlingServiceMock = mock<IverksettSøknadsbehandlingService>()
 
         val response = createService(
             behandlingRepo = behandlingRepoMock,
@@ -244,7 +241,7 @@ internal class IverksettSøknadsbehandlingTest {
             on { hent(any()) } doReturn behandling
         }
 
-        val iverksettSaksbehandlingServiceMock = mock<IverksettSaksbehandlingService>()
+        val iverksettSaksbehandlingServiceMock = mock<IverksettSøknadsbehandlingService>()
 
         assertThrows<StatusovergangVisitor.UgyldigStatusovergangException> {
             createService(
@@ -323,10 +320,10 @@ internal class IverksettSøknadsbehandlingTest {
         søknadRepo: SøknadRepo = mock(),
         personService: PersonService = mock(),
         behandlingMetrics: BehandlingMetrics = mock(),
-        iverksettBehandlingService: IverksettSaksbehandlingService = mock(),
+        iverksettBehandlingService: IverksettSøknadsbehandlingService = mock(),
         observer: EventObserver = mock { on { handle(any()) }.doNothing() },
         beregningService: BeregningService = mock(),
-    ) = SaksbehandlingServiceImpl(
+    ) = SøknadsbehandlingServiceImpl(
         søknadService,
         søknadRepo,
         behandlingRepo,
@@ -342,12 +339,12 @@ internal class IverksettSøknadsbehandlingTest {
     inner class IverksettStatusovergangFeilMapperTest {
         @Test
         fun `mapper feil fra statusovergang til fornuftige typer for servicelaget`() {
-            SaksbehandlingServiceImpl.IverksettStatusovergangFeilMapper.map(Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeJournalføre) shouldBe KunneIkkeIverksetteBehandling.KunneIkkeJournalføreBrev
-            SaksbehandlingServiceImpl.IverksettStatusovergangFeilMapper.map(Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.KunneIkkeKontrollsimulere) shouldBe KunneIkkeIverksetteBehandling.KunneIkkeKontrollsimulere
-            SaksbehandlingServiceImpl.IverksettStatusovergangFeilMapper.map(Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte) shouldBe KunneIkkeIverksetteBehandling.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
-            SaksbehandlingServiceImpl.IverksettStatusovergangFeilMapper.map(Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.TekniskFeil) shouldBe KunneIkkeIverksetteBehandling.KunneIkkeUtbetale
-            SaksbehandlingServiceImpl.IverksettStatusovergangFeilMapper.map(Statusovergang.KunneIkkeIverksetteSøknadsbehandling.SaksbehandlerOgAttestantKanIkkeVæreSammePerson) shouldBe KunneIkkeIverksetteBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
-            SaksbehandlingServiceImpl.IverksettStatusovergangFeilMapper.map(Statusovergang.KunneIkkeIverksetteSøknadsbehandling.FantIkkePerson) shouldBe KunneIkkeIverksetteBehandling.FantIkkePerson
+            SøknadsbehandlingServiceImpl.IverksettStatusovergangFeilMapper.map(Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeJournalføre) shouldBe KunneIkkeIverksetteBehandling.KunneIkkeJournalføreBrev
+            SøknadsbehandlingServiceImpl.IverksettStatusovergangFeilMapper.map(Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.KunneIkkeKontrollsimulere) shouldBe KunneIkkeIverksetteBehandling.KunneIkkeKontrollsimulere
+            SøknadsbehandlingServiceImpl.IverksettStatusovergangFeilMapper.map(Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte) shouldBe KunneIkkeIverksetteBehandling.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
+            SøknadsbehandlingServiceImpl.IverksettStatusovergangFeilMapper.map(Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.TekniskFeil) shouldBe KunneIkkeIverksetteBehandling.KunneIkkeUtbetale
+            SøknadsbehandlingServiceImpl.IverksettStatusovergangFeilMapper.map(Statusovergang.KunneIkkeIverksetteSøknadsbehandling.SaksbehandlerOgAttestantKanIkkeVæreSammePerson) shouldBe KunneIkkeIverksetteBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
+            SøknadsbehandlingServiceImpl.IverksettStatusovergangFeilMapper.map(Statusovergang.KunneIkkeIverksetteSøknadsbehandling.FantIkkePerson) shouldBe KunneIkkeIverksetteBehandling.FantIkkePerson
         }
     }
 }

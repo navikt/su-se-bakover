@@ -1,28 +1,24 @@
-package no.nav.su.se.bakover.service
+package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.Either
 import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.SaksbehandlingRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.Statusovergang
 import no.nav.su.se.bakover.domain.behandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.forsøkStatusovergang
 import no.nav.su.se.bakover.domain.behandling.statusovergang
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.service.behandling.IverksettSaksbehandlingService
 import no.nav.su.se.bakover.service.behandling.KunneIkkeBeregne
 import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeOppdatereBehandlingsinformasjon
@@ -40,63 +36,17 @@ import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
-data class OpprettSøknadsbehandlingRequest(
-    val søknadId: UUID
-)
-
-data class OppdaterSøknadsbehandlingsinformasjonRequest(
-    val behandlingId: UUID,
-    val saksbehandler: NavIdentBruker.Saksbehandler,
-    val behandlingsinformasjon: Behandlingsinformasjon
-)
-
-data class OpprettBeregningRequest(
-    val behandlingId: UUID,
-    val periode: Periode,
-    val fradrag: List<Fradrag>
-)
-
-data class OpprettSimuleringRequest(
-    val behandlingId: UUID,
-    val saksbehandler: NavIdentBruker.Saksbehandler
-)
-
-data class SendTilAttesteringRequest(
-    val behandlingId: UUID,
-    val saksbehandler: NavIdentBruker.Saksbehandler
-)
-
-data class UnderkjennSøknadsbehandlingRequest(
-    val behandlingId: UUID,
-    val attestering: Attestering.Underkjent
-)
-
-data class IverksettSøknadsbehandlingRequest(
-    val behandlingId: UUID,
-    val attestering: Attestering
-)
-
-interface SaksbehandlingService {
-    fun opprett(request: OpprettSøknadsbehandlingRequest): Either<KunneIkkeOppretteSøknadsbehandling, Søknadsbehandling>
-    fun vilkårsvurder(request: OppdaterSøknadsbehandlingsinformasjonRequest): Either<KunneIkkeOppdatereBehandlingsinformasjon, Søknadsbehandling>
-    fun beregn(request: OpprettBeregningRequest): Either<KunneIkkeBeregne, Søknadsbehandling>
-    fun simuler(request: OpprettSimuleringRequest): Either<KunneIkkeSimulereBehandling, Søknadsbehandling>
-    fun sendTilAttestering(request: SendTilAttesteringRequest): Either<KunneIkkeSendeTilAttestering, Søknadsbehandling>
-    fun underkjenn(request: UnderkjennSøknadsbehandlingRequest): Either<KunneIkkeUnderkjenneBehandling, Søknadsbehandling>
-    fun iverksett(request: IverksettSøknadsbehandlingRequest): Either<KunneIkkeIverksetteBehandling, Søknadsbehandling>
-}
-
-class SaksbehandlingServiceImpl(
+internal class SøknadsbehandlingServiceImpl(
     private val søknadService: SøknadService,
     private val søknadRepo: SøknadRepo,
     private val saksbehandlingRepo: SaksbehandlingRepo,
     private val utbetalingService: UtbetalingService,
     private val personService: PersonService,
     private val oppgaveService: OppgaveService,
-    private val iverksettSaksbehandlingService: IverksettSaksbehandlingService,
+    private val iverksettSøknadsbehandlingService: IverksettSøknadsbehandlingService,
     private val behandlingMetrics: BehandlingMetrics,
     private val beregningService: BeregningService,
-) : SaksbehandlingService {
+) : SøknadsbehandlingService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -301,13 +251,13 @@ class SaksbehandlingServiceImpl(
             statusovergang = Statusovergang.TilIverksatt(
                 attestering = request.attestering,
                 innvilget = {
-                    iverksettSaksbehandlingService.iverksettInnvilgning(
+                    iverksettSøknadsbehandlingService.iverksettInnvilgning(
                         it,
                         request.attestering.attestant
                     )
                 },
                 avslag = {
-                    iverksettSaksbehandlingService.opprettJournalpostForAvslag(
+                    iverksettSøknadsbehandlingService.opprettJournalpostForAvslag(
                         it,
                         request.attestering.attestant
                     )
@@ -326,7 +276,7 @@ class SaksbehandlingServiceImpl(
                 is Søknadsbehandling.Iverksatt.Avslag -> {
                     log.info("Iverksatt avslag for behandling ${it.id}")
                     behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
-                    iverksettSaksbehandlingService.distribuerBrevOgLukkOppgaveForAvslag(it)
+                    iverksettSøknadsbehandlingService.distribuerBrevOgLukkOppgaveForAvslag(it)
                         .let { medPotensiellBrevbestillingId ->
                             saksbehandlingRepo.lagre(medPotensiellBrevbestillingId)
                             medPotensiellBrevbestillingId
