@@ -6,6 +6,7 @@ import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.argumentCaptor
 import com.nhaarman.mockitokotlin2.doReturn
+import com.nhaarman.mockitokotlin2.doReturnConsecutively
 import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.times
@@ -113,7 +114,7 @@ internal class FerdigstillIverksettingServiceTest {
             personService = personServiceMock,
             microsoftGraphApiOppslag = oppslagMock,
 
-            ).ferdigstillInnvilgelse(innvilgetBehandlingUtenJournalpost)
+        ).ferdigstillInnvilgelse(innvilgetBehandlingUtenJournalpost)
 
         actual shouldBe Unit
 
@@ -125,7 +126,6 @@ internal class FerdigstillIverksettingServiceTest {
             journalførIverksettingServiceMock,
             oppgaveServiceMock
         ) {
-            verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe fnr })
             verify(oppslagMock).hentBrukerinformasjonForNavIdent(
                 argThat {
                     it shouldBe saksbehandler
@@ -152,19 +152,15 @@ internal class FerdigstillIverksettingServiceTest {
         }
 
         val oppslagMock: MicrosoftGraphApiOppslag = mock {
-            on { hentBrukerinformasjonForNavIdent(any()) }.doReturn(
-                Either.right(BehandlingTestUtils.microsoftGraphMock.response),
+            on { hentBrukerinformasjonForNavIdent(any()) } doReturnConsecutively listOf(
+                BehandlingTestUtils.microsoftGraphMock.response.right(),
                 MicrosoftGraphApiOppslagFeil.FantIkkeBrukerForNavIdent.left()
             )
         }
 
-        val journalførIverksettingServiceMock = mock<JournalførIverksettingService>()
-
         val oppgaveServiceMock = mock<OppgaveService> {
             on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
         }
-
-        val distribuerIverksettingsbrevServiceMock = mock<DistribuerIverksettingsbrevService>()
 
         val actual = createService(
             saksbehandlingRepo = behandlingRepoMock,
@@ -172,19 +168,16 @@ internal class FerdigstillIverksettingServiceTest {
             personService = personServiceMock,
             microsoftGraphApiOppslag = oppslagMock,
 
-            ).ferdigstillInnvilgelse(innvilgetBehandlingUtenJournalpost)
+        ).ferdigstillInnvilgelse(innvilgetBehandlingUtenJournalpost)
 
         actual shouldBe Unit
 
         inOrder(
             behandlingRepoMock,
-            distribuerIverksettingsbrevServiceMock,
             personServiceMock,
             oppslagMock,
-            journalførIverksettingServiceMock,
             oppgaveServiceMock
         ) {
-            verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe fnr })
             argumentCaptor<NavIdentBruker>().apply {
                 verify(oppslagMock, times(2)).hentBrukerinformasjonForNavIdent(capture())
                 firstValue shouldBe saksbehandler
@@ -194,10 +187,8 @@ internal class FerdigstillIverksettingServiceTest {
         }
         verifyNoMoreInteractions(
             behandlingRepoMock,
-            distribuerIverksettingsbrevServiceMock,
             personServiceMock,
             oppslagMock,
-            journalførIverksettingServiceMock,
             oppgaveServiceMock
         )
     }
@@ -211,7 +202,7 @@ internal class FerdigstillIverksettingServiceTest {
         }
 
         val oppslagMock: MicrosoftGraphApiOppslag = mock {
-            on { hentBrukerinformasjonForNavIdent(any()) } doReturn Either.right(BehandlingTestUtils.microsoftGraphMock.response)
+            on { hentBrukerinformasjonForNavIdent(any()) } doReturn BehandlingTestUtils.microsoftGraphMock.response.right()
         }
 
         val brevServiceMock = mock<BrevService>()
@@ -227,14 +218,16 @@ internal class FerdigstillIverksettingServiceTest {
             microsoftGraphApiOppslag = oppslagMock,
             brevService = brevServiceMock
 
-            ).ferdigstillInnvilgelse(innvilgetBehandlingUtenJournalpost)
+        ).ferdigstillInnvilgelse(innvilgetBehandlingUtenJournalpost)
 
         actual shouldBe Unit
 
         inOrder(
             personServiceMock,
-            oppgaveServiceMock
+            oppgaveServiceMock,
+            oppslagMock
         ) {
+            verify(oppslagMock, times(2)).hentBrukerinformasjonForNavIdent(any())
             verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe fnr })
             verify(oppgaveServiceMock).lukkOppgaveMedSystembruker(argThat { it shouldBe iverksattOppgaveId })
         }
@@ -257,7 +250,7 @@ internal class FerdigstillIverksettingServiceTest {
         }
 
         val oppslagMock: MicrosoftGraphApiOppslag = mock {
-            on { hentBrukerinformasjonForNavIdent(any()) } doReturn Either.right(BehandlingTestUtils.microsoftGraphMock.response)
+            on { hentBrukerinformasjonForNavIdent(any()) } doReturn BehandlingTestUtils.microsoftGraphMock.response.right()
         }
         val brevServiceMock = mock<BrevService>() {
             on { journalførBrev(any(), any()) } doReturn KunneIkkeJournalføreBrev.KunneIkkeOppretteJournalpost.left()
@@ -273,7 +266,7 @@ internal class FerdigstillIverksettingServiceTest {
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
 
-            ).ferdigstillInnvilgelse(innvilgetBehandlingUtenJournalpost)
+        ).ferdigstillInnvilgelse(innvilgetBehandlingUtenJournalpost)
 
         actual shouldBe Unit
 
@@ -284,12 +277,12 @@ internal class FerdigstillIverksettingServiceTest {
             brevServiceMock,
             oppgaveServiceMock
         ) {
-            verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe fnr })
             argumentCaptor<NavIdentBruker>().apply {
                 verify(oppslagMock, times(2)).hentBrukerinformasjonForNavIdent(capture())
                 firstValue shouldBe saksbehandler
                 secondValue shouldBe attestant
             }
+            verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe fnr })
             verify(brevServiceMock).journalførBrev(
                 argThat {
                     it shouldBe LagBrevRequest.InnvilgetVedtak(
@@ -321,7 +314,7 @@ internal class FerdigstillIverksettingServiceTest {
         }
 
         val oppslagMock: MicrosoftGraphApiOppslag = mock {
-            on { hentBrukerinformasjonForNavIdent(any()) } doReturn Either.right(BehandlingTestUtils.microsoftGraphMock.response)
+            on { hentBrukerinformasjonForNavIdent(any()) } doReturn BehandlingTestUtils.microsoftGraphMock.response.right()
         }
 
         val brevServiceMock = mock<BrevService> {
@@ -350,12 +343,12 @@ internal class FerdigstillIverksettingServiceTest {
             brevServiceMock,
             oppgaveServiceMock
         ) {
-            verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe fnr })
             argumentCaptor<NavIdentBruker>().apply {
                 verify(oppslagMock, times(2)).hentBrukerinformasjonForNavIdent(capture())
                 firstValue shouldBe saksbehandler
                 secondValue shouldBe attestant
             }
+            verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe fnr })
             verify(brevServiceMock).journalførBrev(
                 argThat {
                     it shouldBe LagBrevRequest.InnvilgetVedtak(
@@ -368,11 +361,15 @@ internal class FerdigstillIverksettingServiceTest {
                 },
                 argThat { it shouldBe saksnummer },
             )
-            verify(saksbehandlingRepoMock).lagre(argThat {
-                it shouldBe innvilgetBehandlingUtenJournalpost.copy(
-                    eksterneIverksettingsteg = Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.Journalført(iverksattJournalpostId)
-                )
-            })
+            verify(saksbehandlingRepoMock).lagre(
+                argThat {
+                    it shouldBe innvilgetBehandlingUtenJournalpost.copy(
+                        eksterneIverksettingsteg = Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.Journalført(
+                            iverksattJournalpostId
+                        )
+                    )
+                }
+            )
             verify(brevServiceMock).distribuerBrev(
                 argThat {
                     it shouldBe iverksattJournalpostId
@@ -420,40 +417,44 @@ internal class FerdigstillIverksettingServiceTest {
 
         actual shouldBe Unit
 
-
-            verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe fnr })
-            argumentCaptor<NavIdentBruker>().apply {
-                verify(oppslagMock, times(2)).hentBrukerinformasjonForNavIdent(capture())
-                firstValue shouldBe saksbehandler
-                secondValue shouldBe attestant
-            }
-            verify(brevServiceMock).journalførBrev(
-                argThat {
-                    it shouldBe LagBrevRequest.InnvilgetVedtak(
-                        person = person,
-                        beregning = innvilgetBehandlingUtenJournalpost.beregning,
-                        behandlingsinformasjon = innvilgetBehandlingUtenJournalpost.behandlingsinformasjon,
-                        saksbehandlerNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName,
-                        attestantNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName,
-                    )
-                },
-                argThat { it shouldBe saksnummer },
-            )
-            argumentCaptor<Søknadsbehandling>().apply {
-                verify(saksbehandlingRepoMock, times(2)).lagre(capture())
-                firstValue shouldBe innvilgetBehandlingUtenJournalpost.copy(
-                    eksterneIverksettingsteg = Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.Journalført(iverksattJournalpostId)
+        verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe fnr })
+        argumentCaptor<NavIdentBruker>().apply {
+            verify(oppslagMock, times(2)).hentBrukerinformasjonForNavIdent(capture())
+            firstValue shouldBe saksbehandler
+            secondValue shouldBe attestant
+        }
+        verify(brevServiceMock).journalførBrev(
+            argThat {
+                it shouldBe LagBrevRequest.InnvilgetVedtak(
+                    person = person,
+                    beregning = innvilgetBehandlingUtenJournalpost.beregning,
+                    behandlingsinformasjon = innvilgetBehandlingUtenJournalpost.behandlingsinformasjon,
+                    saksbehandlerNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName,
+                    attestantNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName,
                 )
-                secondValue shouldBe innvilgetBehandlingUtenJournalpost.copy(
-                    eksterneIverksettingsteg = Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.JournalførtOgDistribuertBrev(iverksattJournalpostId,iverksattBrevbestillingId)
+            },
+            argThat { it shouldBe saksnummer },
+        )
+        argumentCaptor<Søknadsbehandling>().apply {
+            verify(saksbehandlingRepoMock, times(2)).lagre(capture())
+            firstValue shouldBe innvilgetBehandlingUtenJournalpost.copy(
+                eksterneIverksettingsteg = Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.Journalført(
+                    iverksattJournalpostId
                 )
-            }
-            verify(brevServiceMock).distribuerBrev(
-                argThat {
-                    it shouldBe iverksattJournalpostId
-                }
             )
-            verify(oppgaveServiceMock).lukkOppgaveMedSystembruker(argThat { it shouldBe iverksattOppgaveId })
+            secondValue shouldBe innvilgetBehandlingUtenJournalpost.copy(
+                eksterneIverksettingsteg = Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.JournalførtOgDistribuertBrev(
+                    iverksattJournalpostId,
+                    iverksattBrevbestillingId
+                )
+            )
+        }
+        verify(brevServiceMock).distribuerBrev(
+            argThat {
+                it shouldBe iverksattJournalpostId
+            }
+        )
+        verify(oppgaveServiceMock).lukkOppgaveMedSystembruker(argThat { it shouldBe iverksattOppgaveId })
 
         verifyNoMoreInteractions(
             saksbehandlingRepoMock,

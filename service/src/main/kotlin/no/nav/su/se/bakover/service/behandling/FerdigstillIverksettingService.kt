@@ -116,17 +116,17 @@ class FerdigstillIverksettingServiceImpl(
                                 journalpostId
                             )
                         }
-                    }.map {
-                        saksbehandlingRepo.lagre(it)
+                    }.map { avslagMedJorunalpostOgDistribuertBrev ->
+                        saksbehandlingRepo.lagre(avslagMedJorunalpostOgDistribuertBrev)
                         behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.DISTRIBUERT_BREV)
-                        val e =
-                            behandling.eksterneIverksettingsteg as Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg.JournalførtOgDistribuertBrev
-                        BestiltBrev(
-                            sakId = behandling.sakId,
-                            behandlingId = behandling.id,
-                            journalpostId = e.journalpostId,
-                            brevbestillingId = e.brevbestillingId,
-                        )
+                        (avslagMedJorunalpostOgDistribuertBrev.eksterneIverksettingsteg as Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg.JournalførtOgDistribuertBrev).let {
+                            BestiltBrev(
+                                sakId = behandling.sakId,
+                                behandlingId = behandling.id,
+                                journalpostId = it.journalpostId,
+                                brevbestillingId = it.brevbestillingId,
+                            )
+                        }
                     }
                 }
                 is Søknadsbehandling.Iverksatt.Innvilget -> {
@@ -136,18 +136,17 @@ class FerdigstillIverksettingServiceImpl(
                                 journalpostId
                             )
                         }
-                    }.map {
-                        saksbehandlingRepo.lagre(it)
+                    }.map { innvilgetMedJournalpostOgDistribuertBrev ->
+                        saksbehandlingRepo.lagre(innvilgetMedJournalpostOgDistribuertBrev)
                         behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.DISTRIBUERT_BREV)
-                        val e =
-                            behandling.eksterneIverksettingsteg as Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.JournalførtOgDistribuertBrev
-
-                        BestiltBrev(
-                            sakId = behandling.sakId,
-                            behandlingId = behandling.id,
-                            journalpostId = e.journalpostId,
-                            brevbestillingId = e.brevbestillingId,
-                        )
+                        (innvilgetMedJournalpostOgDistribuertBrev.eksterneIverksettingsteg as Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.JournalførtOgDistribuertBrev).let {
+                            BestiltBrev(
+                                sakId = behandling.sakId,
+                                behandlingId = behandling.id,
+                                journalpostId = it.journalpostId,
+                                brevbestillingId = it.brevbestillingId,
+                            )
+                        }
                     }
                 }
             }.mapLeft {

@@ -25,7 +25,9 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -99,6 +101,27 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
         ),
         behandlingsinformasjon = BehandlingTestUtils.behandlingsinformasjon,
         utbetalingId = UUID30.randomUUID()
+    )
+
+    private val avslagUtenBrevbestilling = Søknadsbehandling.Iverksatt.Avslag.UtenBeregning(
+        søknad = Søknad.Journalført.MedOppgave(
+            id = UUID.randomUUID(),
+            opprettet = Tidspunkt.EPOCH,
+            sakId = sakIdJournalpost,
+            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+            oppgaveId = OppgaveId("1"),
+            journalpostId = journalpostId
+        ),
+        id = behandlingIdJournalpost,
+        saksbehandler = saksbehandler,
+        attestering = Attestering.Iverksatt(attestant),
+        sakId = sakIdJournalpost,
+        saksnummer = Saksnummer(1),
+        fnr = fnr,
+        oppgaveId = OppgaveId("1"),
+        opprettet = Tidspunkt.EPOCH,
+        behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withVilkårAvslått(),
+        eksterneIverksettingsteg = Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg.Journalført(journalpostId),
     )
 
     @Test
@@ -373,7 +396,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
                     sakId = sakIdBestiltBrev,
                     behandlingId = behandlingIdBestiltBrev,
                     journalpostId = null,
-                    grunn = "Kunne ikke opprette brevbestilling siden iverksattJournalpostId er null."
+                    grunn = "MåJournalføresFørst"
                 ).left()
             )
         )
@@ -395,7 +418,9 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
                 innvilgetBehandlingUtenJournalpost.copy(
                     id = behandlingIdBestiltBrev,
                     sakId = sakIdBestiltBrev,
-                    eksterneIverksettingsteg = Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.Journalført(journalpostId)
+                    eksterneIverksettingsteg = Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.Journalført(
+                        journalpostId
+                    )
                 )
             )
         }
@@ -440,15 +465,12 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
 
     @Test
     fun `distribuerer brev for iverksatt avslag`() {
-        val journalførtBehandling = innvilgetBehandlingUtenJournalpost.copy(
-            id = behandlingIdBestiltBrev,
-            sakId = sakIdBestiltBrev,
-        )
         val behandlingRepoMock = mock<SaksbehandlingRepo> {
-            // on { hentIverksatteBehandlingerUtenJournalposteringer() } doReturn listOf(
-            // )
             on { hentIverksatteBehandlingerUtenBrevbestillinger() } doReturn listOf(
-                journalførtBehandling,
+                avslagUtenBrevbestilling.copy(
+                    id = behandlingIdBestiltBrev,
+                    sakId = sakIdBestiltBrev
+                )
             )
         }
 
@@ -462,13 +484,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
         ).opprettManglendeJournalpostOgBrevdistribusjon()
 
         actual shouldBe OpprettManglendeJournalpostOgBrevdistribusjonResultat(
-            journalpostresultat = listOf(
-                KunneIkkeOppretteJournalpostForIverksetting(
-                    sakId = innvilgetBehandlingUtenJournalpost.sakId,
-                    behandlingId = innvilgetBehandlingUtenJournalpost.id,
-                    grunn = "Kunne ikke opprette journalpost for status IVERKSATT_AVSLAG"
-                ).left()
-            ),
+            journalpostresultat = emptyList(),
             brevbestillingsresultat = listOf(bestiltBrev.right())
         )
 
@@ -477,10 +493,19 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
             brevServiceMock,
         ) {
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenJournalposteringer()
-
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenBrevbestillinger()
-            verify(brevServiceMock).distribuerBrev(
-                argThat { it shouldBe journalførtBehandling },
+            verify(brevServiceMock).distribuerBrev(argThat { it shouldBe journalpostId })
+            verify(behandlingRepoMock).lagre(
+                argThat {
+                    it shouldBe avslagUtenBrevbestilling.copy(
+                        id = behandlingIdBestiltBrev,
+                        sakId = sakIdBestiltBrev,
+                        eksterneIverksettingsteg = Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg.JournalførtOgDistribuertBrev(
+                            avslagUtenBrevbestilling.eksterneIverksettingsteg.journalpostId,
+                            brevbestillingId
+                        )
+                    )
+                }
             )
         }
         verifyNoMoreInteractions(behandlingRepoMock, brevServiceMock)
@@ -505,11 +530,8 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
             on { hentPersonMedSystembruker(any()) } doReturn person.right()
         }
 
-        val journalførIverksettingServiceMock = mock<JournalførIverksettingService> {
-            on { opprettJournalpost(any(), any()) } doReturn journalpostId.right()
-        }
-
         val brevServiceMock = mock<BrevService> {
+            on { journalførBrev(any(), any()) } doReturn journalpostIdBestiltBrev.right()
             on { distribuerBrev(any()) } doReturn brevbestillingId.right()
         }
 
@@ -533,7 +555,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
             behandlingRepoMock,
             personServiceMock,
             oppslagMock,
-            journalførIverksettingServiceMock,
+            brevServiceMock,
             brevServiceMock,
         ) {
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenJournalposteringer()
@@ -543,8 +565,8 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
                 secondValue shouldBe attestant
             }
             verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe fnr })
-            verify(journalførIverksettingServiceMock).opprettJournalpost(
-                argThat { it shouldBe innvilgetBehandlingUtenJournalpost },
+            val lagreCaptor = argumentCaptor<Søknadsbehandling>()
+            verify(brevServiceMock).journalførBrev(
                 argThat {
                     it shouldBe LagBrevRequest.InnvilgetVedtak(
                         person = person,
@@ -553,21 +575,28 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
                         saksbehandlerNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName,
                         attestantNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName,
                     )
-                }
+                },
+                argThat { it shouldBe innvilgetBehandlingUtenJournalpost.saksnummer },
             )
-
-            verify(behandlingRepoMock).hentIverksatteBehandlingerUtenBrevbestillinger()
-            verify(brevServiceMock).distribuerBrev(
-                argThat {
-                    it shouldBe innvilgetBehandlingUtenJournalpost.copy(
-                        id = behandlingIdBestiltBrev,
-                        sakId = sakIdBestiltBrev,
-                        eksterneIverksettingsteg = Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.Journalført(
-                            journalpostIdBestiltBrev
-                        )
+            verify(behandlingRepoMock).lagre(lagreCaptor.capture()).let {
+                lagreCaptor.firstValue shouldBe innvilgetBehandlingUtenJournalpost.copy(
+                    eksterneIverksettingsteg = Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.Journalført(
+                        journalpostIdBestiltBrev
                     )
-                }
-            )
+                )
+            }
+            verify(behandlingRepoMock).hentIverksatteBehandlingerUtenBrevbestillinger()
+            verify(brevServiceMock).distribuerBrev(argThat { it shouldBe journalpostIdBestiltBrev })
+            verify(behandlingRepoMock).lagre(lagreCaptor.capture()).let {
+                lagreCaptor.secondValue shouldBe innvilgetBehandlingUtenJournalpost.copy(
+                    id = behandlingIdBestiltBrev,
+                    sakId = sakIdBestiltBrev,
+                    eksterneIverksettingsteg = Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.JournalførtOgDistribuertBrev(
+                        journalpostIdBestiltBrev,
+                        brevbestillingId
+                    )
+                )
+            }
         }
         verifyNoMoreInteractions(
             behandlingRepoMock,
