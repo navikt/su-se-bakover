@@ -332,6 +332,7 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
             },
+            toggles = services.toggles,
             // TODO TILGANG
             saksbehandling = object : SaksbehandlingService {
                 override fun opprett(request: OpprettSøknadsbehandlingRequest): Either<KunneIkkeOppretteSøknadsbehandling, Søknadsbehandling> {
@@ -361,8 +362,7 @@ open class AccessCheckProxy(
                 override fun iverksett(request: IverksettSøknadsbehandlingRequest): Either<KunneIkkeIverksetteBehandling, Søknadsbehandling> {
                     return services.saksbehandling.iverksett(request)
                 }
-            },
-
+            }
         )
     }
 

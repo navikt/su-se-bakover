@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.common
 
 import io.github.cdimascio.dotenv.dotenv
-import no.nav.su.se.bakover.common.EnvironmentConfig.exists
 import no.nav.su.se.bakover.common.EnvironmentConfig.getEnvironmentVariableOrDefault
 import no.nav.su.se.bakover.common.EnvironmentConfig.getEnvironmentVariableOrThrow
 import org.apache.kafka.clients.CommonClientConfigs
@@ -38,6 +37,7 @@ private object EnvironmentConfig {
 
 data class ApplicationConfig(
     val runtimeEnvironment: RuntimeEnvironment,
+    val naisCluster: NaisCluster?,
     val leaderPodLookupPath: String,
     val pdfgenLocal: Boolean,
     val corsAllowOrigin: String,
@@ -47,11 +47,17 @@ data class ApplicationConfig(
     val database: DatabaseConfig,
     val clientsConfig: ClientsConfig,
     val kafkaConfig: KafkaConfig,
+    val unleash: UnleashConfig
 ) {
     enum class RuntimeEnvironment {
         Test,
         Local,
         Nais
+    }
+
+    enum class NaisCluster {
+        Dev,
+        Prod
     }
 
     data class ServiceUserConfig(
@@ -203,6 +209,18 @@ data class ApplicationConfig(
                     url = "unused",
                     stsSoapUrl = "unused"
                 )
+            )
+        }
+    }
+
+    data class UnleashConfig(
+        val unleashUrl: String,
+        val appName: String
+    ) {
+        companion object {
+            fun createFromEnvironmentVariables() = UnleashConfig(
+                getEnvironmentVariableOrDefault("UNLEASH_URL", "https://unleash.nais.io/api"),
+                getEnvironmentVariableOrDefault("NAIS_APP_NAME", "su-se-bakover"),
             )
         }
     }
@@ -363,6 +381,7 @@ data class ApplicationConfig(
 
         fun createFromEnvironmentVariables() = ApplicationConfig(
             runtimeEnvironment = RuntimeEnvironment.Nais,
+            naisCluster = naisCluster(),
             leaderPodLookupPath = getEnvironmentVariableOrThrow("ELECTOR_PATH"),
             pdfgenLocal = false,
             corsAllowOrigin = getEnvironmentVariableOrThrow("ALLOW_CORS_ORIGIN"),
@@ -371,11 +390,13 @@ data class ApplicationConfig(
             oppdrag = OppdragConfig.createFromEnvironmentVariables(),
             database = DatabaseConfig.createFromEnvironmentVariables(),
             clientsConfig = ClientsConfig.createFromEnvironmentVariables(),
-            kafkaConfig = KafkaConfig.createFromEnvironmentVariables()
+            kafkaConfig = KafkaConfig.createFromEnvironmentVariables(),
+            unleash = UnleashConfig.createFromEnvironmentVariables()
         )
 
         fun createLocalConfig() = ApplicationConfig(
             runtimeEnvironment = RuntimeEnvironment.Local,
+            naisCluster = naisCluster(),
             leaderPodLookupPath = "",
             pdfgenLocal = getEnvironmentVariableOrDefault("PDFGEN_LOCAL", "false").toBoolean(),
             corsAllowOrigin = "localhost:1234",
@@ -384,11 +405,21 @@ data class ApplicationConfig(
             oppdrag = OppdragConfig.createLocalConfig(),
             database = DatabaseConfig.createLocalConfig(),
             clientsConfig = ClientsConfig.createLocalConfig(),
-            kafkaConfig = KafkaConfig.createLocalConfig()
+            kafkaConfig = KafkaConfig.createLocalConfig(),
+            unleash = UnleashConfig.createFromEnvironmentVariables()
         ).also {
             log.warn("**********  Using local config (the environment variable 'NAIS_CLUSTER_NAME' is missing.)")
         }
 
-        fun isRunningLocally() = !exists("NAIS_CLUSTER_NAME")
+        private fun naisCluster(): NaisCluster? =
+            with(getEnvironmentVariableOrDefault("NAIS_CLUSTER_NAME", "")) {
+                when {
+                    startsWith("prod-") -> NaisCluster.Prod
+                    startsWith("dev-") -> NaisCluster.Dev
+                    else -> null
+                }
+            }
+
+        fun isRunningLocally() = naisCluster() == null
     }
 }

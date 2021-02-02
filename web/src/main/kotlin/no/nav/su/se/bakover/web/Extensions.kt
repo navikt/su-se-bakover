@@ -66,6 +66,9 @@ internal suspend fun ApplicationCall.lesFnr(param: String) =
         Either.catch { Fnr(it) }.mapLeft { "$param er ikke et gyldig fødselsnummer" }
     } ?: Either.Left("$param er ikke et parameter")
 
+internal fun ApplicationCall.parameter(parameterName: String) =
+    this.parameters[parameterName]?.let { Either.right(it) } ?: Either.Left("$parameterName er ikke et parameter")
+
 fun ApplicationCall.authHeader() = this.request.header(HttpHeaders.Authorization).toString()
 
 internal suspend inline fun <reified T> deserialize(call: ApplicationCall): T =

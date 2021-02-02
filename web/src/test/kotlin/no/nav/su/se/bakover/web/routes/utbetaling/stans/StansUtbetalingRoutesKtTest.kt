@@ -10,9 +10,9 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
-import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeStanseUtbetalinger
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.testSusebakover
@@ -22,19 +22,7 @@ import java.util.UUID
 internal class StansUtbetalingRoutesKtTest {
 
     private val sakId: UUID = UUID.randomUUID()
-    private val services = Services(
-        avstemming = mock(),
-        utbetaling = mock(),
-        behandling = mock(),
-        sak = mock(),
-        søknad = mock(),
-        brev = mock(),
-        lukkSøknad = mock(),
-        oppgave = mock(),
-        person = mock(),
-        statistikk = mock(),
-        saksbehandling = mock()
-    )
+    private val services = TestServicesBuilder.services()
 
     @Test
     fun `fant ikke sak returnerer not found`() {

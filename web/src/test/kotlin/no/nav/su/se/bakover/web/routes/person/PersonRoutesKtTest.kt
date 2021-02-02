@@ -19,8 +19,8 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.service.AccessCheckProxy
-import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
@@ -35,19 +35,7 @@ internal class PersonRoutesKtTest {
     private val testIdent = "12345678910"
     private val person = PersonOppslagStub.nyTestPerson(Fnr(testIdent))
 
-    private val services = Services(
-        avstemming = mock(),
-        utbetaling = mock(),
-        behandling = mock(),
-        sak = mock(),
-        søknad = mock(),
-        brev = mock(),
-        lukkSøknad = mock(),
-        oppgave = mock(),
-        person = mock(),
-        statistikk = mock(),
-        saksbehandling = mock()
-    )
+    private val services = TestServicesBuilder.services()
 
     @Test
     fun `får ikke hente persondata uten å være innlogget`() {

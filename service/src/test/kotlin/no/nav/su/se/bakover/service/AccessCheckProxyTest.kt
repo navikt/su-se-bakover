@@ -30,7 +30,8 @@ internal class AccessCheckProxyTest {
         oppgave = mock(),
         person = mock(),
         statistikk = mock(),
-        saksbehandling = mock()
+        toggles = mock(),
+        saksbehandling = mock(),
     )
 
     @Nested

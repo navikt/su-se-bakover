@@ -22,10 +22,10 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeGjenopptaUtbetalinger
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.web.FnrGenerator
+import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.saksnummer
@@ -40,19 +40,7 @@ import java.util.UUID
 internal class GjenopptaUtbetalingRoutesKtTest {
 
     private val sakId = UUID.randomUUID()
-    private val services = Services(
-        avstemming = mock(),
-        utbetaling = mock(),
-        behandling = mock(),
-        sak = mock(),
-        søknad = mock(),
-        brev = mock(),
-        lukkSøknad = mock(),
-        oppgave = mock(),
-        person = mock(),
-        statistikk = mock(),
-        saksbehandling = mock()
-    )
+    private val services = TestServicesBuilder.services()
     private val saksbehandler = NavIdentBruker.Saksbehandler("Z990Lokal")
 
     @Test

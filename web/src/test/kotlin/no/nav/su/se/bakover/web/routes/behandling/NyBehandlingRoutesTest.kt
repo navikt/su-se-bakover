@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.behandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.OpprettSøknadsbehandlingRequest
 import no.nav.su.se.bakover.service.SaksbehandlingService
-import no.nav.su.se.bakover.service.Services
+import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.nySøknadsbehandling
@@ -30,19 +30,7 @@ import org.junit.jupiter.api.Test
 class NyBehandlingRoutesTest {
 
     private val requestPath = "$sakPath/$sakId/behandlinger"
-    private val services = Services(
-        avstemming = mock(),
-        utbetaling = mock(),
-        behandling = mock(),
-        sak = mock(),
-        søknad = mock(),
-        brev = mock(),
-        lukkSøknad = mock(),
-        oppgave = mock(),
-        person = mock(),
-        statistikk = mock(),
-        saksbehandling = mock()
-    )
+    private val services = TestServicesBuilder.services()
 
     @Test
     fun `kan opprette behandling`() {
