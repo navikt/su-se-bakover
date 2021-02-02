@@ -257,7 +257,7 @@ data class Behandlingsinformasjon(
         fun utledSats(): Sats = getBeregningStrategy().sats()
 
         @JsonIgnore
-        fun getBeregningStrategy(): BeregningStrategy {
+        internal fun getBeregningStrategy(): BeregningStrategy {
             if (epsAlder == null && delerBolig == false) {
                 return BeregningStrategy.BorAlene
             } else {

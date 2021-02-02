@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.util.UUID
@@ -15,15 +16,24 @@ sealed class Revurdering {
     abstract val tilRevurdering: Behandling
     abstract val periode: Periode
     abstract val saksbehandler: Saksbehandler
-    open fun beregn(beregningsgrunnlag: Beregningsgrunnlag): BeregnetRevurdering = BeregnetRevurdering(
-        tilRevurdering = tilRevurdering,
-        id = id,
-        periode = periode,
-        opprettet = Tidspunkt.now(),
-        beregning = tilRevurdering.behandlingsinformasjon().bosituasjon!!.getBeregningStrategy()
-            .beregn(beregningsgrunnlag),
-        saksbehandler = saksbehandler
-    )
+    open fun beregn(fradrag: List<Fradrag>): BeregnetRevurdering {
+        val beregningsgrunnlag = Beregningsgrunnlag.create(
+            beregningsperiode = periode,
+            forventetInntektPerÅr = tilRevurdering.behandlingsinformasjon().uførhet?.forventetInntekt?.toDouble()
+                ?: 0.0,
+            fradragFraSaksbehandler = fradrag
+        )
+
+        return BeregnetRevurdering(
+            tilRevurdering = tilRevurdering,
+            id = id,
+            periode = periode,
+            opprettet = Tidspunkt.now(),
+            beregning = tilRevurdering.behandlingsinformasjon().bosituasjon!!.getBeregningStrategy()
+                .beregn(beregningsgrunnlag),
+            saksbehandler = saksbehandler
+        )
+    }
 }
 
 data class OpprettetRevurdering(
@@ -73,7 +83,7 @@ data class RevurderingTilAttestering(
     val simulering: Simulering,
     val oppgaveId: OppgaveId
 ) : Revurdering() {
-    override fun beregn(beregningsgrunnlag: Beregningsgrunnlag): BeregnetRevurdering {
+    override fun beregn(fradrag: List<Fradrag>): BeregnetRevurdering {
         throw RuntimeException("Skal ikke kunne beregne når revurderingen er til attestering")
     }
 }

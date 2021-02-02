@@ -6,6 +6,7 @@ create table if not exists revurdering
     periode jsonb not null,
     beregning jsonb,
     simulering jsonb,
-    saksbehandler text,
-    oppgaveId text
+    saksbehandler text not null,
+    oppgaveId text,
+    revurderingsType text
 );

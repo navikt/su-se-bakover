@@ -52,7 +52,7 @@ import no.nav.su.se.bakover.service.behandling.OpprettManglendeJournalpostOgBrev
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
-import no.nav.su.se.bakover.service.revurdering.RevurderingFeilet
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeRevurdere
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
@@ -343,7 +343,7 @@ open class AccessCheckProxy(
                     sakId: UUID,
                     periode: Periode,
                     saksbehandler: NavIdentBruker.Saksbehandler
-                ): Either<RevurderingFeilet, Revurdering> {
+                ): Either<KunneIkkeRevurdere, Revurdering> {
                     assertHarTilgangTilSak(sakId)
                     return services.revurdering.opprettRevurdering(sakId, periode, saksbehandler)
                 }
@@ -352,7 +352,7 @@ open class AccessCheckProxy(
                     revurderingId: UUID,
                     saksbehandler: NavIdentBruker.Saksbehandler,
                     fradrag: List<Fradrag>
-                ): Either<RevurderingFeilet, SimulertRevurdering> {
+                ): Either<KunneIkkeRevurdere, SimulertRevurdering> {
                     assertHarTilgangTilSak(revurderingId)
                     return services.revurdering.beregnOgSimuler(
                         revurderingId = revurderingId,
@@ -364,12 +364,12 @@ open class AccessCheckProxy(
                 override fun sendTilAttestering(
                     revurderingId: UUID,
                     saksbehandler: NavIdentBruker.Saksbehandler
-                ): Either<RevurderingFeilet, Revurdering> {
+                ): Either<KunneIkkeRevurdere, Revurdering> {
                     assertHarTilgangTilSak(revurderingId)
                     return services.revurdering.sendTilAttestering(revurderingId, saksbehandler)
                 }
 
-                override fun lagBrevutkast(revurderingId: UUID, fritekst: String?): Either<RevurderingFeilet, ByteArray> {
+                override fun lagBrevutkast(revurderingId: UUID, fritekst: String?): Either<KunneIkkeRevurdere, ByteArray> {
                     assertHarTilgangTilSak(revurderingId)
                     return services.revurdering.lagBrevutkast(revurderingId, fritekst)
                 }

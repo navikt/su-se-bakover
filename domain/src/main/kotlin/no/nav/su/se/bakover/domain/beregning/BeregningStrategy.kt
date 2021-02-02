@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.beregning
 
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 
-sealed class BeregningStrategy {
+internal sealed class BeregningStrategy {
     abstract fun fradragStrategy(): FradragStrategy
     abstract fun sats(): Sats
     fun beregn(beregningsgrunnlag: Beregningsgrunnlag): Beregning {

@@ -26,8 +26,6 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.behandling.RevurderingTilAttestering
-import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
-import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -36,6 +34,7 @@ import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.defaultRequest
+import no.nav.su.se.bakover.web.routes.behandling.TestBeregning
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
@@ -116,12 +115,6 @@ internal class RevurderingRoutesKtTest {
 
     @Test
     fun `kan opprette beregning og simulering for revurdering`() {
-        val beregningsgrunnlag = Beregningsgrunnlag.create(
-            beregningsperiode = periode,
-            forventetInntektPerÅr = 20000.0,
-            fradragFraSaksbehandler = listOf()
-
-        )
         val behandling = BehandlingFactory(mock(), Clock.systemUTC()).createBehandling(
             sakId = sakId,
             saksnummer = Saksnummer(1569),
@@ -143,7 +136,7 @@ internal class RevurderingRoutesKtTest {
                     begrunnelse = null
                 )
             ),
-            beregning = BeregningStrategy.BorAlene.beregn(beregningsgrunnlag)
+            beregning = TestBeregning
         )
 
         val simulertRevurdering = OpprettetRevurdering(
@@ -152,7 +145,7 @@ internal class RevurderingRoutesKtTest {
             opprettet = Tidspunkt.now(),
             tilRevurdering = behandling,
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "")
-        ).beregn(beregningsgrunnlag)
+        ).beregn(emptyList())
             .toSimulert(
                 Simulering(
                     gjelderId = behandling.fnr,
@@ -202,12 +195,6 @@ internal class RevurderingRoutesKtTest {
 
     @Test
     fun `send til attestering`() {
-        val beregningsgrunnlag = Beregningsgrunnlag.create(
-            beregningsperiode = periode,
-            forventetInntektPerÅr = 20000.0,
-            fradragFraSaksbehandler = listOf()
-
-        )
         val behandling = BehandlingFactory(mock(), Clock.systemUTC()).createBehandling(
             sakId = sakId,
             saksnummer = Saksnummer(1569),
@@ -229,7 +216,7 @@ internal class RevurderingRoutesKtTest {
                     begrunnelse = null
                 )
             ),
-            beregning = BeregningStrategy.BorAlene.beregn(beregningsgrunnlag)
+            beregning = TestBeregning
         )
 
         val revurderingTilAttestering = RevurderingTilAttestering(
@@ -238,7 +225,7 @@ internal class RevurderingRoutesKtTest {
             opprettet = Tidspunkt.now(),
             tilRevurdering = behandling,
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = ""),
-            beregning = BeregningStrategy.BorAlene.beregn(beregningsgrunnlag),
+            beregning = TestBeregning,
             simulering = Simulering(
                 gjelderId = behandling.fnr,
                 gjelderNavn = "Test",

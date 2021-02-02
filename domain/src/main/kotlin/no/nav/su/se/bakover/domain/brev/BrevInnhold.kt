@@ -56,7 +56,7 @@ abstract class BrevInnhold {
 
         @Suppress("unused")
         @JsonInclude
-        val harFradrag: Boolean = beregningsperioder.any { it.fradrag.bruker.isNotEmpty() || it.fradrag.eps.fradrag.isNotEmpty() }
+        val harFradrag: Boolean = beregningsperioder.harFradrag()
     }
 
     data class Personalia(
@@ -82,10 +82,11 @@ abstract class BrevInnhold {
 
         @Suppress("unused")
         @JsonInclude
-        val harFradrag: Boolean = beregningsperioder.any { it.fradrag.bruker.isNotEmpty() || it.fradrag.eps.fradrag.isNotEmpty() }
+        val harFradrag: Boolean = beregningsperioder.harFradrag()
     }
 }
 
+fun List<Beregningsperiode>.harFradrag() = this.any { it.fradrag.bruker.isNotEmpty() || it.fradrag.eps.fradrag.isNotEmpty() }
 fun List<Avslagsgrunn>.getDistinkteParagrafer() = this.map { it.getParagrafer() }.flatten().distinct().sorted()
 fun Avslagsgrunn.getParagrafer() = when (this) {
     Avslagsgrunn.UFØRHET -> listOf(1, 2)

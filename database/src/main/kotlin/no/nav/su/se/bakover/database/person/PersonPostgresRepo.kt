@@ -112,7 +112,7 @@ internal class PersonPostgresRepo(
                     behandling.behandlingsinformasjon->'ektefelle'->>'fnr' epsFnr
                FROM revurdering
                INNER JOIN behandling on behandling.id = revurdering.behandlingid
-               LEFT JOIN sak ON sak.id = behandling.sakId
+               INNER JOIN sak ON sak.id = behandling.sakId
                WHERE revurdering.id=:revurderingId
             """
                 .trimMargin()

@@ -30,11 +30,7 @@ data class Periode private constructor(
         val dagensDato = LocalDate.now()
 
         return this.fraOgMed.isAfter(
-            LocalDate.of(
-                dagensDato.year,
-                dagensDato.month,
-                dagensDato.lengthOfMonth()
-            )
+            dagensDato.withDayOfMonth(dagensDato.lengthOfMonth())
         )
     }
 

@@ -14,31 +14,31 @@ interface RevurderingService {
         sakId: UUID,
         periode: Periode,
         saksbehandler: NavIdentBruker.Saksbehandler
-    ): Either<RevurderingFeilet, Revurdering>
+    ): Either<KunneIkkeRevurdere, Revurdering>
 
     fun beregnOgSimuler(
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
         fradrag: List<Fradrag>
-    ): Either<RevurderingFeilet, SimulertRevurdering>
+    ): Either<KunneIkkeRevurdere, SimulertRevurdering>
 
     fun sendTilAttestering(
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler
-    ): Either<RevurderingFeilet, Revurdering>
+    ): Either<KunneIkkeRevurdere, Revurdering>
 
-    fun lagBrevutkast(revurderingId: UUID, fritekst: String?): Either<RevurderingFeilet, ByteArray>
+    fun lagBrevutkast(revurderingId: UUID, fritekst: String?): Either<KunneIkkeRevurdere, ByteArray>
 }
 
-sealed class RevurderingFeilet {
-    object GeneriskFeil : RevurderingFeilet()
-    object FantIkkeSak : RevurderingFeilet()
-    object FantIkkeRevurdering : RevurderingFeilet()
-    object MicrosoftApiGraphFeil : RevurderingFeilet()
-    object FantIngentingSomKanRevurderes : RevurderingFeilet()
-    object FantIkkePerson : RevurderingFeilet()
-    object KunneIkkeFinneAktørId : RevurderingFeilet()
-    object KunneIkkeOppretteOppgave : RevurderingFeilet()
-    object KunneIkkeLageBrevutkast : RevurderingFeilet()
-    object PeriodenErIkkeIMånedenEtter : RevurderingFeilet()
+sealed class KunneIkkeRevurdere {
+    object FantIkkeSak : KunneIkkeRevurdere()
+    object FantIkkeRevurdering : KunneIkkeRevurdere()
+    object MicrosoftApiGraphFeil : KunneIkkeRevurdere()
+    object FantIngentingSomKanRevurderes : KunneIkkeRevurdere()
+    object FantIkkePerson : KunneIkkeRevurdere()
+    object KunneIkkeFinneAktørId : KunneIkkeRevurdere()
+    object KunneIkkeOppretteOppgave : KunneIkkeRevurdere()
+    object KunneIkkeLageBrevutkast : KunneIkkeRevurdere()
+    object KanIkkeRevurdereInneværendeMånedEllerTidligere : KunneIkkeRevurdere()
+    object SimuleringFeilet : KunneIkkeRevurdere()
 }

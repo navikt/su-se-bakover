@@ -176,7 +176,7 @@ internal class RevurderingServiceImplTest {
             saksbehandler = saksbehandler
         )
 
-        actual shouldBe RevurderingFeilet.FantIngentingSomKanRevurderes.left()
+        actual shouldBe KunneIkkeRevurdere.FantIngentingSomKanRevurderes.left()
         verify(sakServiceMock).hentSak(sakId)
         verifyNoMoreInteractions(sakServiceMock)
     }
@@ -221,7 +221,7 @@ internal class RevurderingServiceImplTest {
             saksbehandler = saksbehandler
         )
 
-        actual shouldBe RevurderingFeilet.FantIngentingSomKanRevurderes.left()
+        actual shouldBe KunneIkkeRevurdere.FantIngentingSomKanRevurderes.left()
         verify(sakServiceMock).hentSak(sakId)
         verifyNoMoreInteractions(sakServiceMock)
     }
@@ -237,7 +237,7 @@ internal class RevurderingServiceImplTest {
             saksbehandler = saksbehandler
         )
 
-        actual shouldBe RevurderingFeilet.PeriodenErIkkeIMånedenEtter.left()
+        actual shouldBe KunneIkkeRevurdere.KanIkkeRevurdereInneværendeMånedEllerTidligere.left()
     }
 
     @Test
@@ -341,7 +341,7 @@ internal class RevurderingServiceImplTest {
             fradrag = listOf()
         )
 
-        actual shouldBe RevurderingFeilet.GeneriskFeil.left()
+        actual shouldBe KunneIkkeRevurdere.SimuleringFeilet.left()
 
         inOrder(revurderingRepoMock) {
             verify(revurderingRepoMock).hent(revurderingId)
@@ -452,7 +452,7 @@ internal class RevurderingServiceImplTest {
             saksbehandler = saksbehandler,
         )
 
-        actual shouldBe RevurderingFeilet.KunneIkkeFinneAktørId.left()
+        actual shouldBe KunneIkkeRevurdere.KunneIkkeFinneAktørId.left()
 
         inOrder(revurderingRepoMock) {
             verify(revurderingRepoMock).hent(revurderingId)
@@ -491,7 +491,7 @@ internal class RevurderingServiceImplTest {
             saksbehandler = saksbehandler,
         )
 
-        actual shouldBe RevurderingFeilet.KunneIkkeOppretteOppgave.left()
+        actual shouldBe KunneIkkeRevurdere.KunneIkkeOppretteOppgave.left()
 
         inOrder(revurderingRepoMock, personServiceMock) {
             verify(revurderingRepoMock).hent(revurderingId)
@@ -606,7 +606,7 @@ internal class RevurderingServiceImplTest {
             fritekst = null
         )
 
-        actual shouldBe RevurderingFeilet.FantIkkePerson.left()
+        actual shouldBe KunneIkkeRevurdere.FantIkkePerson.left()
 
         inOrder(revurderingRepoMock, personServiceMock) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
@@ -653,7 +653,7 @@ internal class RevurderingServiceImplTest {
             fritekst = null
         )
 
-        actual shouldBe RevurderingFeilet.MicrosoftApiGraphFeil.left()
+        actual shouldBe KunneIkkeRevurdere.MicrosoftApiGraphFeil.left()
 
         inOrder(revurderingRepoMock, personServiceMock, microsoftGraphApiClientMock) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
@@ -714,7 +714,7 @@ internal class RevurderingServiceImplTest {
             fritekst = null
         )
 
-        actual shouldBe RevurderingFeilet.KunneIkkeLageBrevutkast.left()
+        actual shouldBe KunneIkkeRevurdere.KunneIkkeLageBrevutkast.left()
 
         inOrder(revurderingRepoMock, personServiceMock, microsoftGraphApiClientMock) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
@@ -744,7 +744,7 @@ internal class RevurderingServiceImplTest {
             fritekst = null
         )
 
-        actual shouldBe RevurderingFeilet.KunneIkkeLageBrevutkast.left()
+        actual shouldBe KunneIkkeRevurdere.KunneIkkeLageBrevutkast.left()
         verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
         verifyNoMoreInteractions(revurderingRepoMock)
     }
@@ -763,7 +763,7 @@ internal class RevurderingServiceImplTest {
             fritekst = null
         )
 
-        actual shouldBe RevurderingFeilet.KunneIkkeLageBrevutkast.left()
+        actual shouldBe KunneIkkeRevurdere.KunneIkkeLageBrevutkast.left()
         verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
         verifyNoMoreInteractions(revurderingRepoMock)
     }
