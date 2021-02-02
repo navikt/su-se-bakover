@@ -182,7 +182,6 @@ object BehandlingTestUtils {
         behandlingMetrics: BehandlingMetrics = mock(),
         microsoftGraphApiOppslag: MicrosoftGraphApiOppslag = microsoftGraphMock.oppslagMock,
         iverksettBehandlingService: IverksettBehandlingService = mock(),
-        ferdigstillIverksettingService: FerdigstillIverksettingService = mock(),
         observer: EventObserver = observerMock,
     ) = BehandlingServiceImpl(
         behandlingRepo = behandlingRepo,
@@ -197,7 +196,6 @@ object BehandlingTestUtils {
         clock = fixedClock,
         microsoftGraphApiClient = microsoftGraphApiOppslag,
         iverksettBehandlingService = iverksettBehandlingService,
-        ferdigstillIverksettingService = ferdigstillIverksettingService,
     ).apply { addObserver(observer) }
 
     internal object microsoftGraphMock {

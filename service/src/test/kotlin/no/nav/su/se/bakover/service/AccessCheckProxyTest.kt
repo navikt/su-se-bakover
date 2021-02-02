@@ -32,6 +32,7 @@ internal class AccessCheckProxyTest {
         statistikk = mock(),
         toggles = mock(),
         søknadsbehandling = mock(),
+        ferdigstillIverksettingService = mock(),
     )
 
     @Nested
@@ -62,7 +63,9 @@ internal class AccessCheckProxyTest {
                     },
                     person = object : PersonService {
                         override fun hentPerson(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
-                        override fun hentPersonForSystembruker(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+                        override fun hentPersonMedSystembruker(fnr: Fnr) =
+                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+
                         override fun hentAktørId(fnr: Fnr) = throw NotImplementedError()
                         override fun sjekkTilgangTilPerson(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
                     }
@@ -81,7 +84,9 @@ internal class AccessCheckProxyTest {
                 services = services.copy(
                     person = object : PersonService {
                         override fun hentPerson(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
-                        override fun hentPersonForSystembruker(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+                        override fun hentPersonMedSystembruker(fnr: Fnr) =
+                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+
                         override fun hentAktørId(fnr: Fnr) = throw NotImplementedError()
                         override fun sjekkTilgangTilPerson(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
                     }
@@ -100,7 +105,9 @@ internal class AccessCheckProxyTest {
                 services = services.copy(
                     person = object : PersonService {
                         override fun hentPerson(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
-                        override fun hentPersonForSystembruker(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+                        override fun hentPersonMedSystembruker(fnr: Fnr) =
+                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+
                         override fun hentAktørId(fnr: Fnr) = throw NotImplementedError()
                         override fun sjekkTilgangTilPerson(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
                     },
@@ -119,7 +126,9 @@ internal class AccessCheckProxyTest {
                 services = services.copy(
                     person = object : PersonService {
                         override fun hentPerson(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
-                        override fun hentPersonForSystembruker(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+                        override fun hentPersonMedSystembruker(fnr: Fnr) =
+                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+
                         override fun hentAktørId(fnr: Fnr) = throw NotImplementedError()
                         override fun sjekkTilgangTilPerson(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
                     }
@@ -138,7 +147,9 @@ internal class AccessCheckProxyTest {
                 services = services.copy(
                     person = object : PersonService {
                         override fun hentPerson(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
-                        override fun hentPersonForSystembruker(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+                        override fun hentPersonMedSystembruker(fnr: Fnr) =
+                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+
                         override fun hentAktørId(fnr: Fnr) = throw NotImplementedError()
                         override fun sjekkTilgangTilPerson(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
                     }

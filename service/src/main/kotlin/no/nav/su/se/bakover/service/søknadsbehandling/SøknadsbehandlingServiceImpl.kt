@@ -176,7 +176,6 @@ internal class SøknadsbehandlingServiceImpl(
 
         saksbehandlingRepo.lagre(søknadsbehandlingMedNyOppgaveId)
 
-
         oppgaveService.lukkOppgave(eksisterendeOppgaveId).map {
             behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.LUKKET_OPPGAVE)
         }.mapLeft {

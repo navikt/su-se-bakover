@@ -36,6 +36,7 @@ import no.nav.su.se.bakover.service.avstemming.AvstemmingFeilet
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.service.behandling.FantIkkeBehandling
+import no.nav.su.se.bakover.service.behandling.FerdigstillIverksettingService
 import no.nav.su.se.bakover.service.behandling.IverksattBehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeBeregne
 import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling
@@ -217,12 +218,6 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
 
-                override fun opprettManglendeJournalpostOgBrevdistribusjon(): OpprettManglendeJournalpostOgBrevdistribusjonResultat {
-                    // Dette er et driftsendepunkt og vi vil ikke returnere kode 6/7/person-sensitive data.
-
-                    return services.behandling.opprettManglendeJournalpostOgBrevdistribusjon()
-                }
-
                 override fun opprettSøknadsbehandling(
                     søknadId: UUID
                 ): Either<KunneIkkeOppretteSøknadsbehandling, Behandling> {
@@ -322,7 +317,7 @@ open class AccessCheckProxy(
                     return services.person.hentPerson(fnr)
                 }
 
-                override fun hentPersonForSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, Person> {
+                override fun hentPersonMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, Person> {
                     kastKanKunKallesFraAnnenService()
                 }
 
@@ -370,6 +365,18 @@ open class AccessCheckProxy(
 
                 override fun iverksett(request: IverksettSøknadsbehandlingRequest): Either<KunneIkkeIverksetteBehandling, Søknadsbehandling> {
                     return services.søknadsbehandling.iverksett(request)
+                }
+            },
+            ferdigstillIverksettingService = object : FerdigstillIverksettingService {
+                override fun hentBehandlingForUtbetaling(utbetalingId: UUID30) = kastKanKunKallesFraAnnenService()
+
+                override fun ferdigstillInnvilgelse(behandling: Søknadsbehandling.Iverksatt.Innvilget) =
+                    kastKanKunKallesFraAnnenService()
+
+                override fun opprettManglendeJournalpostOgBrevdistribusjon(): OpprettManglendeJournalpostOgBrevdistribusjonResultat {
+                    // Dette er et driftsendepunkt og vi vil ikke returnere kode 6/7/person-sensitive data.
+
+                    return services.ferdigstillIverksettingService.opprettManglendeJournalpostOgBrevdistribusjon()
                 }
             }
         )

@@ -156,10 +156,10 @@ class UnderkjennBehandlingTest {
 
         val actual = BehandlingTestUtils.createService(
             behandlingRepo = behandlingRepoMock,
-            personService = personServiceMock,
-            oppgaveService = oppgaveServiceMock,
-            behandlingMetrics = behandlingMetricsMock,
             hendelsesloggRepo = hendelsesloggRepoMock,
+            oppgaveService = oppgaveServiceMock,
+            personService = personServiceMock,
+            behandlingMetrics = behandlingMetricsMock,
             microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).underkjenn(
             behandlingId = behandling.id,
@@ -198,10 +198,10 @@ class UnderkjennBehandlingTest {
         shouldThrow<Behandling.TilstandException> {
             BehandlingTestUtils.createService(
                 behandlingRepo = behandlingRepoMock,
-                personService = personServiceMock,
-                oppgaveService = oppgaveServiceMock,
-                behandlingMetrics = behandlingMetricsMock,
                 hendelsesloggRepo = hendelsesloggRepoMock,
+                oppgaveService = oppgaveServiceMock,
+                personService = personServiceMock,
+                behandlingMetrics = behandlingMetricsMock,
                 microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
             ).underkjenn(
                 behandlingId = behandling.id,
@@ -241,10 +241,10 @@ class UnderkjennBehandlingTest {
 
         val actual = BehandlingTestUtils.createService(
             behandlingRepo = behandlingRepoMock,
-            personService = personServiceMock,
-            oppgaveService = oppgaveServiceMock,
-            behandlingMetrics = behandlingMetricsMock,
             hendelsesloggRepo = hendelsesloggRepoMock,
+            oppgaveService = oppgaveServiceMock,
+            personService = personServiceMock,
+            behandlingMetrics = behandlingMetricsMock,
             microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock,
             observer = observerMock
         ).underkjenn(
@@ -289,10 +289,10 @@ class UnderkjennBehandlingTest {
 
         val actual = BehandlingTestUtils.createService(
             behandlingRepo = behandlingRepoMock,
-            personService = personServiceMock,
-            oppgaveService = oppgaveServiceMock,
-            behandlingMetrics = behandlingMetricsMock,
             hendelsesloggRepo = hendelsesloggRepoMock,
+            oppgaveService = oppgaveServiceMock,
+            personService = personServiceMock,
+            behandlingMetrics = behandlingMetricsMock,
             microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).underkjenn(
             behandlingId = behandling.id,
@@ -335,10 +335,10 @@ class UnderkjennBehandlingTest {
 
         val actual = BehandlingTestUtils.createService(
             behandlingRepo = behandlingRepoMock,
-            personService = personServiceMock,
-            oppgaveService = oppgaveServiceMock,
-            behandlingMetrics = behandlingMetricsMock,
             hendelsesloggRepo = hendelsesloggRepoMock,
+            oppgaveService = oppgaveServiceMock,
+            personService = personServiceMock,
+            behandlingMetrics = behandlingMetricsMock,
             microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).underkjenn(
             behandlingId = behandling.id,
@@ -388,10 +388,10 @@ class UnderkjennBehandlingTest {
 
         val actual = BehandlingTestUtils.createService(
             behandlingRepo = behandlingRepoMock,
-            personService = personServiceMock,
-            oppgaveService = oppgaveServiceMock,
-            behandlingMetrics = behandlingMetricsMock,
             hendelsesloggRepo = hendelsesloggRepoMock,
+            oppgaveService = oppgaveServiceMock,
+            personService = personServiceMock,
+            behandlingMetrics = behandlingMetricsMock,
             microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock,
             observer = observerMock
         ).underkjenn(
@@ -476,10 +476,10 @@ class UnderkjennBehandlingTest {
 
         val actual = BehandlingTestUtils.createService(
             behandlingRepo = behandlingRepoMock,
-            personService = personServiceMock,
-            oppgaveService = oppgaveServiceMock,
-            behandlingMetrics = behandlingMetricsMock,
             hendelsesloggRepo = hendelsesloggRepoMock,
+            oppgaveService = oppgaveServiceMock,
+            personService = personServiceMock,
+            behandlingMetrics = behandlingMetricsMock,
             microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).underkjenn(
             behandlingId = behandling.id,

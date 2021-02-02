@@ -101,8 +101,8 @@ class BehandlingTilAttesteringTest {
 
         val actual = createService(
             behandlingRepo = behandlingRepoMock,
-            personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
+            personService = personServiceMock,
             microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock,
             observer = eventObserver
         ).sendTilAttestering(behandling.id, saksbehandler)
@@ -159,8 +159,8 @@ class BehandlingTilAttesteringTest {
 
         val actual = createService(
             behandlingRepo = behandlingRepoMock,
-            personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
+            personService = personServiceMock,
             microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).sendTilAttestering(behandling.id, saksbehandler)
 

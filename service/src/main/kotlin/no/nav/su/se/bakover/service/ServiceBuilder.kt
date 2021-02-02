@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.behandling.BehandlingService
+import no.nav.su.se.bakover.service.behandling.FerdigstillIverksettingService
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -42,5 +43,6 @@ data class Services(
     val person: PersonService,
     val statistikk: StatistikkService,
     val toggles: ToggleService,
-    val søknadsbehandling: SøknadsbehandlingService
+    val søknadsbehandling: SøknadsbehandlingService,
+    val ferdigstillIverksettingService: FerdigstillIverksettingService,
 )

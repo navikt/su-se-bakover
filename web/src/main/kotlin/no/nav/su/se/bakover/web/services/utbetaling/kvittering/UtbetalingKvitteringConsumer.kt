@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web.services.utbetaling.kvittering
 
-import arrow.core.getOrHandle
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.dataformat.xml.JacksonXmlModule
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
@@ -11,7 +10,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
-import no.nav.su.se.bakover.service.behandling.BehandlingService
+import no.nav.su.se.bakover.service.behandling.FerdigstillIverksettingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringResponse.Companion.toKvitteringResponse
 import org.slf4j.LoggerFactory
@@ -19,7 +18,7 @@ import java.time.Clock
 
 class UtbetalingKvitteringConsumer(
     private val utbetalingService: UtbetalingService,
-    private val behandlingService: BehandlingService,
+    private val ferdigstillIverksettingService: FerdigstillIverksettingService,
     private val clock: Clock
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -73,10 +72,9 @@ class UtbetalingKvitteringConsumer(
             log.error("Prøver ikke å ferdigstille innvilgelse siden kvitteringen fra oppdrag ikke var OK.")
             return
         }
-        val behandling = behandlingService.hentBehandlingForUtbetaling(utbetaling.id).getOrHandle {
+        val behandling = ferdigstillIverksettingService.hentBehandlingForUtbetaling(utbetaling.id) ?: return Unit.also {
             log.error("Kunne ikke ferdigstille innvilgelse - fant ikke behandling for utbetaling ${utbetaling.id}")
-            return
         }
-        behandlingService.ferdigstillInnvilgelse(behandling)
+        ferdigstillIverksettingService.ferdigstillInnvilgelse(behandling)
     }
 }

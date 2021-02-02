@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.database
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.beregning.toSnapshot
@@ -26,6 +27,9 @@ interface SaksbehandlingRepo {
     fun hent(id: UUID): Søknadsbehandling?
     fun hentForSak(sakId: UUID, session: Session): List<Søknadsbehandling>
     fun hentEventuellTidligereAttestering(id: UUID): Attestering?
+    fun hentIverksatteBehandlingerUtenJournalposteringer(): List<Søknadsbehandling.Iverksatt.Innvilget>
+    fun hentIverksatteBehandlingerUtenBrevbestillinger(): List<Søknadsbehandling.Iverksatt>
+    fun hentBehandlingForUtbetaling(utbetalingId: UUID30): Søknadsbehandling.Iverksatt.Innvilget?
 }
 
 internal class SaksbehandlingsPostgresRepo(
@@ -67,6 +71,33 @@ internal class SaksbehandlingsPostgresRepo(
             .hentListe(mapOf("sakId" to sakId), session) {
                 it.toSaksbehandling(session)
             }
+    }
+
+    override fun hentIverksatteBehandlingerUtenJournalposteringer(): List<Søknadsbehandling.Iverksatt.Innvilget> {
+        return dataSource.withSession { session ->
+            "select b.*, s.fnr, s.saksnummer from behandling b inner join sak s on s.id = b.sakId where iverksattJournalpostId is null and status = 'IVERKSATT_INNVILGET'"
+                .hentListe(emptyMap(), session) { row ->
+                    row.toSaksbehandling(session)
+                }.filterIsInstance<Søknadsbehandling.Iverksatt.Innvilget>()
+        }
+    }
+
+    override fun hentIverksatteBehandlingerUtenBrevbestillinger(): List<Søknadsbehandling.Iverksatt> {
+        return dataSource.withSession { session ->
+            "select b.*, s.fnr, s.saksnummer from behandling b inner join sak s on s.id = b.sakId where iverksattJournalpostId is not null and iverksattBrevbestillingId is null and status like 'IVERKSATT_%'"
+                .hentListe(emptyMap(), session) { row ->
+                    row.toSaksbehandling(session)
+                }.filterIsInstance<Søknadsbehandling.Iverksatt>()
+        }
+    }
+
+    override fun hentBehandlingForUtbetaling(utbetalingId: UUID30): Søknadsbehandling.Iverksatt.Innvilget? {
+        return dataSource.withSession { session ->
+            "select b.*, s.fnr, s.saksnummer from utbetaling u inner join behandling b on b.utbetalingid = u.id inner join sak s on s.id = b.sakid where u.id = :id"
+                .hent(mapOf("id" to utbetalingId), session) { row ->
+                    row.toSaksbehandling(session) as Søknadsbehandling.Iverksatt.Innvilget
+                }
+        }
     }
 
     private fun Row.toSaksbehandling(session: Session): Søknadsbehandling {

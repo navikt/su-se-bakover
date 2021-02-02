@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
 import no.nav.su.se.bakover.service.behandling.BehandlingServiceImpl
 import no.nav.su.se.bakover.service.behandling.DistribuerIverksettingsbrevService
-import no.nav.su.se.bakover.service.behandling.FerdigstillIverksettingService
+import no.nav.su.se.bakover.service.behandling.FerdigstillIverksettingServiceImpl
 import no.nav.su.se.bakover.service.behandling.IverksettBehandlingService
 import no.nav.su.se.bakover.service.behandling.JournalførIverksettingService
 import no.nav.su.se.bakover.service.beregning.BeregningService
@@ -71,14 +71,13 @@ object ProdServiceBuilder : ServiceBuilder {
         val journalførIverksettingService = JournalførIverksettingService(databaseRepos.behandling, brevService)
         val distribuerIverksettingsbrevService =
             DistribuerIverksettingsbrevService(brevService, databaseRepos.behandling)
-        val ferdigstillIverksettingService = FerdigstillIverksettingService(
-            behandlingRepo = databaseRepos.behandling,
+        val ferdigstillIverksettingService = FerdigstillIverksettingServiceImpl(
+            saksbehandlingRepo = databaseRepos.saksbehandling,
             oppgaveService = oppgaveService,
-            personService = personService,
             behandlingMetrics = behandlingMetrics,
             microsoftGraphApiClient = clients.microsoftGraphApiClient,
-            journalførIverksettingService = journalførIverksettingService,
-            distribuerIverksettingsbrevService = distribuerIverksettingsbrevService,
+            personService = personService,
+            brevService = brevService
         )
         val toggleService = ToggleServiceImpl(unleash)
 
@@ -128,7 +127,6 @@ object ProdServiceBuilder : ServiceBuilder {
                     journalførIverksettingService = journalførIverksettingService,
                     distribuerIverksettingsbrevService = distribuerIverksettingsbrevService,
                 ).apply { addObserver(statistikkService) },
-                ferdigstillIverksettingService = ferdigstillIverksettingService,
             ).apply { addObserver(statistikkService) },
             sak = sakService,
             søknad = søknadService,
@@ -157,7 +155,8 @@ object ProdServiceBuilder : ServiceBuilder {
                 BeregningService(),
             ).apply {
                 addObserver(statistikkService)
-            }
+            },
+            ferdigstillIverksettingService = ferdigstillIverksettingService,
         )
     }
 }

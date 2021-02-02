@@ -72,8 +72,8 @@ internal class LagBrevUtkastForBehandlingTest {
         }
         val response = createService(
             behandlingRepo = behandlingRepoMock,
-            brevService = brevServiceMock,
             personService = personServiceMock,
+            brevService = brevServiceMock,
             microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).lagBrevutkast(behandlingId)
 
@@ -96,8 +96,8 @@ internal class LagBrevUtkastForBehandlingTest {
         }
         val response = createService(
             behandlingRepo = behandlingRepoMock,
-            brevService = brevServiceMock,
             personService = personServiceMock,
+            brevService = brevServiceMock,
             microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).lagBrevutkast(behandlingId)
 
@@ -133,8 +133,8 @@ internal class LagBrevUtkastForBehandlingTest {
         }
         val response = createService(
             behandlingRepo = behandlingRepoMock,
-            brevService = brevServiceMock,
             personService = personServiceMock,
+            brevService = brevServiceMock,
             microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).lagBrevutkast(behandlingId)
 
@@ -158,8 +158,8 @@ internal class LagBrevUtkastForBehandlingTest {
         }
         val response = createService(
             behandlingRepo = behandlingRepoMock,
-            brevService = brevServiceMock,
             personService = personServiceMock,
+            brevService = brevServiceMock,
             microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).lagBrevutkast(behandlingId)
 
@@ -185,8 +185,8 @@ internal class LagBrevUtkastForBehandlingTest {
         }
         val response = createService(
             behandlingRepo = behandlingRepoMock,
-            brevService = brevServiceMock,
             personService = personServiceMock,
+            brevService = brevServiceMock,
             microsoftGraphApiOppslag = BehandlingTestUtils.microsoftGraphMock.oppslagMock
         ).lagBrevutkast(behandlingId)
 

@@ -63,7 +63,6 @@ internal class OpprettSøknadsbehandlingTest {
             clock = fixedClock,
             microsoftGraphApiClient = mock(),
             iverksettBehandlingService = mock(),
-            ferdigstillIverksettingService = mock(),
         )
         val eventObserver: EventObserver = mock {
             on { handle(any()) }.doNothing()

@@ -55,7 +55,6 @@ internal class BehandlingServiceImpl(
     private val clock: Clock,
     private val microsoftGraphApiClient: MicrosoftGraphApiOppslag,
     private val iverksettBehandlingService: IverksettBehandlingService,
-    private val ferdigstillIverksettingService: FerdigstillIverksettingService
 ) : BehandlingService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -258,11 +257,7 @@ internal class BehandlingServiceImpl(
     }
 
     override fun ferdigstillInnvilgelse(behandling: Behandling) {
-        return ferdigstillIverksettingService.ferdigstillInnvilgelse(behandling)
-    }
-
-    override fun opprettManglendeJournalpostOgBrevdistribusjon(): OpprettManglendeJournalpostOgBrevdistribusjonResultat {
-        return ferdigstillIverksettingService.opprettManglendeJournalpostOgBrevdistribusjon()
+        // TODO: delme: return ferdigstillIverksettingService.ferdigstillInnvilgelse(behandling)
     }
 
     override fun opprettSøknadsbehandling(
@@ -342,9 +337,10 @@ internal class BehandlingServiceImpl(
         if (behandling.erInnvilget()) {
             return LagBrevRequest.InnvilgetVedtak(
                 person = person,
-                behandling = behandling,
+                beregning = behandling.beregning()!!,
+                behandlingsinformasjon = behandling.behandlingsinformasjon(),
                 saksbehandlerNavn = saksbehandlerNavn ?: "-",
-                attestantNavn = attestantNavn ?: "-"
+                attestantNavn = attestantNavn ?: "-",
             ).right()
         }
         if (behandling.erAvslag()) {

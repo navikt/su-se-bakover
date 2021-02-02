@@ -14,7 +14,8 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil.FantIkkeBrukerForNavIdent
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.database.behandling.BehandlingRepo
+import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.database.SaksbehandlingRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -23,19 +24,24 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
+import no.nav.su.se.bakover.domain.behandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.behandlingFactory
+import no.nav.su.se.bakover.service.beregning.TestBeregning
+import no.nav.su.se.bakover.service.brev.BrevService
+import no.nav.su.se.bakover.service.brev.KunneIkkeDistribuereBrev
+import no.nav.su.se.bakover.service.brev.KunneIkkeJournalføreBrev
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 import java.util.UUID
 
 internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
@@ -66,7 +72,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
     private val saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler")
     private val attestant = NavIdentBruker.Attestant("attestant")
 
-    private val innvilgetBehandlingUtenJournalpost = behandlingFactory.createBehandling(
+    private val innvilgetBehandlingUtenJournalpost = Søknadsbehandling.Iverksatt.Innvilget(
         søknad = Søknad.Journalført.MedOppgave(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.EPOCH,
@@ -76,24 +82,34 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
             journalpostId = journalpostId
         ),
         id = behandlingIdJournalpost,
-        status = Behandling.BehandlingsStatus.IVERKSATT_INNVILGET,
         saksbehandler = saksbehandler,
         attestering = Attestering.Iverksatt(attestant),
         sakId = sakIdJournalpost,
         saksnummer = Saksnummer(1),
         fnr = fnr,
-        oppgaveId = OppgaveId("1")
+        oppgaveId = OppgaveId("1"),
+        opprettet = Tidspunkt.EPOCH,
+        beregning = TestBeregning,
+        simulering = Simulering(
+            gjelderId = BehandlingTestUtils.fnr,
+            gjelderNavn = "",
+            datoBeregnet = LocalDate.EPOCH,
+            nettoBeløp = 0,
+            periodeList = listOf()
+        ),
+        behandlingsinformasjon = BehandlingTestUtils.behandlingsinformasjon,
+        utbetalingId = UUID30.randomUUID()
     )
 
     @Test
     fun `Gjør ingenting hvis det ikke er noe å gjøre`() {
-        val behandlingRepoMock = mock<BehandlingRepo> {
+        val behandlingRepoMock = mock<SaksbehandlingRepo> {
             on { hentIverksatteBehandlingerUtenJournalposteringer() } doReturn emptyList()
             on { hentIverksatteBehandlingerUtenBrevbestillinger() } doReturn emptyList()
         }
 
         val actual = createService(
-            behandlingRepo = behandlingRepoMock,
+            saksbehandlingRepo = behandlingRepoMock,
         ).opprettManglendeJournalpostOgBrevdistribusjon()
 
         actual shouldBe OpprettManglendeJournalpostOgBrevdistribusjonResultat(
@@ -113,13 +129,13 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
 
     @Test
     fun `Kunne ikke opprette journalpost hvis vi ikke finner saksbehandler`() {
-        val behandlingRepoMock = mock<BehandlingRepo> {
+        val behandlingRepoMock = mock<SaksbehandlingRepo> {
             on { hentIverksatteBehandlingerUtenJournalposteringer() } doReturn listOf(innvilgetBehandlingUtenJournalpost)
             on { hentIverksatteBehandlingerUtenBrevbestillinger() } doReturn emptyList()
         }
 
         val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
+            on { hentPersonMedSystembruker(any()) } doReturn person.right()
         }
 
         val oppslagMock: MicrosoftGraphApiOppslag = mock {
@@ -127,7 +143,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
         }
 
         val actual = createService(
-            behandlingRepo = behandlingRepoMock,
+            saksbehandlingRepo = behandlingRepoMock,
             personService = personServiceMock,
             microsoftGraphApiOppslag = oppslagMock,
         ).opprettManglendeJournalpostOgBrevdistribusjon()
@@ -137,7 +153,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
                 KunneIkkeOppretteJournalpostForIverksetting(
                     sakId = sakIdJournalpost,
                     behandlingId = behandlingIdJournalpost,
-                    grunn = "Kunne ikke hente saksbehandlers navn"
+                    grunn = "FikkIkkeHentetSaksbehandlerEllerAttestant"
                 ).left()
             ),
             brevbestillingsresultat = emptyList()
@@ -158,13 +174,13 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
 
     @Test
     fun `Kunne ikke opprette journalpost hvis vi ikke finner attestant`() {
-        val behandlingRepoMock = mock<BehandlingRepo> {
+        val behandlingRepoMock = mock<SaksbehandlingRepo> {
             on { hentIverksatteBehandlingerUtenJournalposteringer() } doReturn listOf(innvilgetBehandlingUtenJournalpost)
             on { hentIverksatteBehandlingerUtenBrevbestillinger() } doReturn emptyList()
         }
 
         val personServiceMock = mock<PersonService> {
-            on { hentPerson(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
+            on { hentPersonMedSystembruker(any()) } doReturn person.right()
         }
 
         val oppslagMock: MicrosoftGraphApiOppslag = mock {
@@ -175,7 +191,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
         }
 
         val actual = createService(
-            behandlingRepo = behandlingRepoMock,
+            saksbehandlingRepo = behandlingRepoMock,
             personService = personServiceMock,
             microsoftGraphApiOppslag = oppslagMock,
         ).opprettManglendeJournalpostOgBrevdistribusjon()
@@ -185,7 +201,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
                 KunneIkkeOppretteJournalpostForIverksetting(
                     sakId = sakIdJournalpost,
                     behandlingId = behandlingIdJournalpost,
-                    grunn = "Kunne ikke hente attestants navn"
+                    grunn = "FikkIkkeHentetSaksbehandlerEllerAttestant"
                 ).left()
             ),
             brevbestillingsresultat = emptyList()
@@ -209,13 +225,13 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
 
     @Test
     fun `Kunne ikke opprette journalpost hvis vi ikke finner person`() {
-        val behandlingRepoMock = mock<BehandlingRepo> {
+        val behandlingRepoMock = mock<SaksbehandlingRepo> {
             on { hentIverksatteBehandlingerUtenJournalposteringer() } doReturn listOf(innvilgetBehandlingUtenJournalpost)
             on { hentIverksatteBehandlingerUtenBrevbestillinger() } doReturn emptyList()
         }
 
         val personServiceMock = mock<PersonService> {
-            on { hentPersonForSystembruker(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
+            on { hentPersonMedSystembruker(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
         }
 
         val oppslagMock: MicrosoftGraphApiOppslag = mock {
@@ -223,7 +239,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
         }
 
         val actual = createService(
-            behandlingRepo = behandlingRepoMock,
+            saksbehandlingRepo = behandlingRepoMock,
             personService = personServiceMock,
             microsoftGraphApiOppslag = oppslagMock,
         ).opprettManglendeJournalpostOgBrevdistribusjon()
@@ -233,7 +249,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
                 KunneIkkeOppretteJournalpostForIverksetting(
                     sakId = sakIdJournalpost,
                     behandlingId = behandlingIdJournalpost,
-                    grunn = "Kunne ikke hente person"
+                    grunn = "FantIkkePerson"
                 ).left()
             ),
             brevbestillingsresultat = emptyList()
@@ -250,7 +266,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
                 firstValue shouldBe saksbehandler
                 secondValue shouldBe attestant
             }
-            verify(personServiceMock).hentPersonForSystembruker(argThat { it shouldBe fnr })
+            verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe fnr })
 
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenBrevbestillinger()
         }
@@ -259,25 +275,20 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
 
     @Test
     fun `Kunne ikke journalføre brev når vi ikke klarer å lage det`() {
-        val behandlingRepoMock = mock<BehandlingRepo> {
+        val behandlingRepoMock = mock<SaksbehandlingRepo> {
             on { hentIverksatteBehandlingerUtenJournalposteringer() } doReturn listOf(innvilgetBehandlingUtenJournalpost)
             on { hentIverksatteBehandlingerUtenBrevbestillinger() } doReturn emptyList()
         }
 
         val personServiceMock = mock<PersonService> {
-            on { hentPersonForSystembruker(any()) } doReturn person.right()
+            on { hentPersonMedSystembruker(any()) } doReturn person.right()
         }
 
-        val journalførIverksettingServiceMock = mock<JournalførIverksettingService> {
+        val brevServiceMock = mock<BrevService> {
             on {
-                opprettJournalpost(
-                    any(),
-                    any()
-                )
-            } doReturn KunneIkkeIverksetteBehandling.KunneIkkeJournalføreBrev.left()
+                journalførBrev(any(), any())
+            } doReturn KunneIkkeJournalføreBrev.KunneIkkeOppretteJournalpost.left()
         }
-
-        val brevServiceMock = mock<DistribuerIverksettingsbrevService>()
 
         val oppslagMock = mock<MicrosoftGraphApiOppslag> {
             on {
@@ -286,11 +297,10 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
         }
 
         val actual = createService(
-            behandlingRepo = behandlingRepoMock,
-            distribuerIverksettingsbrevService = brevServiceMock,
+            saksbehandlingRepo = behandlingRepoMock,
             personService = personServiceMock,
             microsoftGraphApiOppslag = oppslagMock,
-            journalførIverksettingService = journalførIverksettingServiceMock,
+            brevService = brevServiceMock,
         ).opprettManglendeJournalpostOgBrevdistribusjon()
 
         actual shouldBe OpprettManglendeJournalpostOgBrevdistribusjonResultat(
@@ -298,7 +308,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
                 KunneIkkeOppretteJournalpostForIverksetting(
                     sakId = sakIdJournalpost,
                     behandlingId = behandlingIdJournalpost,
-                    grunn = "Kunne ikke opprette journalpost mot eksternt system"
+                    grunn = "KunneIkkeOppretteJournalpost"
                 ).left()
             ),
             brevbestillingsresultat = emptyList()
@@ -309,7 +319,6 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
             brevServiceMock,
             personServiceMock,
             oppslagMock,
-            journalførIverksettingServiceMock
         ) {
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenJournalposteringer()
             argumentCaptor<NavIdentBruker>().apply {
@@ -317,17 +326,18 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
                 firstValue shouldBe saksbehandler
                 secondValue shouldBe attestant
             }
-            verify(personServiceMock).hentPersonForSystembruker(argThat { it shouldBe fnr })
-            verify(journalførIverksettingServiceMock).opprettJournalpost(
-                argThat { it shouldBe innvilgetBehandlingUtenJournalpost },
+            verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe fnr })
+            verify(brevServiceMock).journalførBrev(
                 argThat {
                     it shouldBe LagBrevRequest.InnvilgetVedtak(
                         person = person,
-                        attestantNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName,
+                        beregning = innvilgetBehandlingUtenJournalpost.beregning,
+                        behandlingsinformasjon = innvilgetBehandlingUtenJournalpost.behandlingsinformasjon,
                         saksbehandlerNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName,
-                        behandling = innvilgetBehandlingUtenJournalpost.copy()
+                        attestantNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName,
                     )
-                }
+                },
+                argThat { it shouldBe innvilgetBehandlingUtenJournalpost.saksnummer }
             )
 
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenBrevbestillinger()
@@ -337,25 +347,23 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
             brevServiceMock,
             personServiceMock,
             oppslagMock,
-            journalførIverksettingServiceMock
         )
     }
 
     @Test
     fun `Kan ikke bestille brev hvis iverksattJournalId er null`() {
-        val behandlingRepoMock = mock<BehandlingRepo> {
+        val behandlingRepoMock = mock<SaksbehandlingRepo> {
             on { hentIverksatteBehandlingerUtenJournalposteringer() } doReturn emptyList()
             on { hentIverksatteBehandlingerUtenBrevbestillinger() } doReturn listOf(
                 innvilgetBehandlingUtenJournalpost.copy(
                     id = behandlingIdBestiltBrev,
                     sakId = sakIdBestiltBrev,
-                    iverksattJournalpostId = null
                 )
             )
         }
 
         val actual = createService(
-            behandlingRepo = behandlingRepoMock,
+            saksbehandlingRepo = behandlingRepoMock,
         ).opprettManglendeJournalpostOgBrevdistribusjon()
 
         actual shouldBe OpprettManglendeJournalpostOgBrevdistribusjonResultat(
@@ -381,27 +389,23 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
 
     @Test
     fun `Kunne ikke distribuere brev`() {
-        val behandlingRepoMock = mock<BehandlingRepo> {
+        val behandlingRepoMock = mock<SaksbehandlingRepo> {
             on { hentIverksatteBehandlingerUtenJournalposteringer() } doReturn emptyList()
             on { hentIverksatteBehandlingerUtenBrevbestillinger() } doReturn listOf(
                 innvilgetBehandlingUtenJournalpost.copy(
                     id = behandlingIdBestiltBrev,
                     sakId = sakIdBestiltBrev,
-                    iverksattJournalpostId = journalpostIdBestiltBrev
+                    eksterneIverksettingsteg = Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.Journalført(journalpostId)
                 )
             )
         }
 
-        val journalførIverksettingServiceMock = mock<JournalførIverksettingService>()
-
-        val distribuerIverksettingsbrevServiceMock = mock<DistribuerIverksettingsbrevService> {
-            on { distribuerBrev(any(), any()) } doReturn DistribuerIverksettingsbrevService.KunneIkkeDistribuereBrev.left()
+        val brevServiceMock = mock<BrevService>() {
+            on { distribuerBrev(any()) } doReturn KunneIkkeDistribuereBrev.left()
         }
-
         val actual = createService(
-            behandlingRepo = behandlingRepoMock,
-            distribuerIverksettingsbrevService = distribuerIverksettingsbrevServiceMock,
-            journalførIverksettingService = journalførIverksettingServiceMock,
+            saksbehandlingRepo = behandlingRepoMock,
+            brevService = brevServiceMock,
         ).opprettManglendeJournalpostOgBrevdistribusjon()
 
         actual shouldBe OpprettManglendeJournalpostOgBrevdistribusjonResultat(
@@ -411,65 +415,50 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
                     sakId = sakIdBestiltBrev,
                     behandlingId = behandlingIdBestiltBrev,
                     journalpostId = journalpostIdBestiltBrev,
-                    grunn = "Kunne ikke bestille brev"
+                    grunn = "FeilVedDistribueringAvBrev"
                 ).left()
             )
         )
 
         inOrder(
             behandlingRepoMock,
-            distribuerIverksettingsbrevServiceMock,
-            journalførIverksettingServiceMock
+            brevServiceMock,
         ) {
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenJournalposteringer()
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenBrevbestillinger()
-            verify(distribuerIverksettingsbrevServiceMock).distribuerBrev(
+            verify(brevServiceMock).distribuerBrev(
                 argThat {
-                    it shouldBe innvilgetBehandlingUtenJournalpost.copy(
-                        id = behandlingIdBestiltBrev,
-                        sakId = sakIdBestiltBrev,
-                        iverksattJournalpostId = journalpostIdBestiltBrev,
-                        iverksattBrevbestillingId = null,
-                    )
-                },
-                any()
+                    it shouldBe journalpostId
+                }
             )
         }
         verifyNoMoreInteractions(
             behandlingRepoMock,
-            distribuerIverksettingsbrevServiceMock,
-            journalførIverksettingServiceMock
+            brevServiceMock,
         )
     }
 
     @Test
-    fun `distribuerer brev for iverksatt avlsag`() {
+    fun `distribuerer brev for iverksatt avslag`() {
         val journalførtBehandling = innvilgetBehandlingUtenJournalpost.copy(
             id = behandlingIdBestiltBrev,
             sakId = sakIdBestiltBrev,
-            iverksattJournalpostId = journalpostIdBestiltBrev,
-            status = Behandling.BehandlingsStatus.IVERKSATT_AVSLAG,
         )
-        val behandlingRepoMock = mock<BehandlingRepo> {
-            on { hentIverksatteBehandlingerUtenJournalposteringer() } doReturn listOf(
-                innvilgetBehandlingUtenJournalpost.copy(
-                    status = Behandling.BehandlingsStatus.IVERKSATT_AVSLAG
-                )
-            )
+        val behandlingRepoMock = mock<SaksbehandlingRepo> {
+            // on { hentIverksatteBehandlingerUtenJournalposteringer() } doReturn listOf(
+            // )
             on { hentIverksatteBehandlingerUtenBrevbestillinger() } doReturn listOf(
                 journalførtBehandling,
             )
         }
 
-        val distribuerIverksettingsbrevServiceMock = mock<DistribuerIverksettingsbrevService> {
-            on { distribuerBrev(any(), any()) } doReturn innvilgetBehandlingUtenJournalpost.copy(
-                iverksattBrevbestillingId = brevbestillingId
-            ).right()
+        val brevServiceMock = mock<BrevService> {
+            on { distribuerBrev(any()) } doReturn brevbestillingId.right()
         }
 
         val actual = createService(
-            behandlingRepo = behandlingRepoMock,
-            distribuerIverksettingsbrevService = distribuerIverksettingsbrevServiceMock,
+            saksbehandlingRepo = behandlingRepoMock,
+            brevService = brevServiceMock,
         ).opprettManglendeJournalpostOgBrevdistribusjon()
 
         actual shouldBe OpprettManglendeJournalpostOgBrevdistribusjonResultat(
@@ -485,44 +474,43 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
 
         inOrder(
             behandlingRepoMock,
-            distribuerIverksettingsbrevServiceMock,
+            brevServiceMock,
         ) {
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenJournalposteringer()
 
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenBrevbestillinger()
-            verify(distribuerIverksettingsbrevServiceMock).distribuerBrev(
+            verify(brevServiceMock).distribuerBrev(
                 argThat { it shouldBe journalførtBehandling },
-                any()
             )
         }
-        verifyNoMoreInteractions(behandlingRepoMock, distribuerIverksettingsbrevServiceMock)
+        verifyNoMoreInteractions(behandlingRepoMock, brevServiceMock)
     }
 
     @Test
     fun `journalfører og distribuerer brev for iverksatt innvilget`() {
-        val behandlingRepoMock = mock<BehandlingRepo> {
+        val behandlingRepoMock = mock<SaksbehandlingRepo> {
             on { hentIverksatteBehandlingerUtenJournalposteringer() } doReturn listOf(innvilgetBehandlingUtenJournalpost)
             on { hentIverksatteBehandlingerUtenBrevbestillinger() } doReturn listOf(
                 innvilgetBehandlingUtenJournalpost.copy(
                     id = behandlingIdBestiltBrev,
                     sakId = sakIdBestiltBrev,
-                    iverksattJournalpostId = journalpostIdBestiltBrev
+                    eksterneIverksettingsteg = Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.Journalført(
+                        journalpostIdBestiltBrev
+                    )
                 ),
             )
         }
 
         val personServiceMock = mock<PersonService> {
-            on { hentPersonForSystembruker(any()) } doReturn person.right()
+            on { hentPersonMedSystembruker(any()) } doReturn person.right()
         }
 
         val journalførIverksettingServiceMock = mock<JournalførIverksettingService> {
             on { opprettJournalpost(any(), any()) } doReturn journalpostId.right()
         }
 
-        val distribuerIverksettingsbrevServiceMock = mock<DistribuerIverksettingsbrevService> {
-            on { distribuerBrev(any(), any()) } doReturn innvilgetBehandlingUtenJournalpost.copy(
-                iverksattBrevbestillingId = brevbestillingId
-            ).right()
+        val brevServiceMock = mock<BrevService> {
+            on { distribuerBrev(any()) } doReturn brevbestillingId.right()
         }
 
         val oppslagMock: MicrosoftGraphApiOppslag = mock {
@@ -530,11 +518,10 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
         }
 
         val actual = createService(
-            behandlingRepo = behandlingRepoMock,
-            distribuerIverksettingsbrevService = distribuerIverksettingsbrevServiceMock,
+            saksbehandlingRepo = behandlingRepoMock,
+            brevService = brevServiceMock,
             personService = personServiceMock,
             microsoftGraphApiOppslag = oppslagMock,
-            journalførIverksettingService = journalførIverksettingServiceMock,
         ).opprettManglendeJournalpostOgBrevdistribusjon()
 
         actual shouldBe OpprettManglendeJournalpostOgBrevdistribusjonResultat(
@@ -547,7 +534,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
             personServiceMock,
             oppslagMock,
             journalførIverksettingServiceMock,
-            distribuerIverksettingsbrevServiceMock,
+            brevServiceMock,
         ) {
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenJournalposteringer()
             argumentCaptor<NavIdentBruker>().apply {
@@ -555,54 +542,54 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
                 firstValue shouldBe saksbehandler
                 secondValue shouldBe attestant
             }
-            verify(personServiceMock).hentPersonForSystembruker(argThat { it shouldBe fnr })
+            verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe fnr })
             verify(journalførIverksettingServiceMock).opprettJournalpost(
                 argThat { it shouldBe innvilgetBehandlingUtenJournalpost },
                 argThat {
                     it shouldBe LagBrevRequest.InnvilgetVedtak(
                         person = person,
-                        attestantNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName,
+                        beregning = innvilgetBehandlingUtenJournalpost.beregning,
+                        behandlingsinformasjon = innvilgetBehandlingUtenJournalpost.behandlingsinformasjon,
                         saksbehandlerNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName,
-                        behandling = innvilgetBehandlingUtenJournalpost.copy()
+                        attestantNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName,
                     )
                 }
             )
 
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenBrevbestillinger()
-            verify(distribuerIverksettingsbrevServiceMock).distribuerBrev(
+            verify(brevServiceMock).distribuerBrev(
                 argThat {
                     it shouldBe innvilgetBehandlingUtenJournalpost.copy(
                         id = behandlingIdBestiltBrev,
                         sakId = sakIdBestiltBrev,
-                        iverksattJournalpostId = journalpostIdBestiltBrev
+                        eksterneIverksettingsteg = Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.Journalført(
+                            journalpostIdBestiltBrev
+                        )
                     )
-                },
-                any()
+                }
             )
         }
         verifyNoMoreInteractions(
             behandlingRepoMock,
-            distribuerIverksettingsbrevServiceMock,
+            brevServiceMock,
             personServiceMock,
             oppslagMock
         )
     }
 
     private fun createService(
-        behandlingRepo: BehandlingRepo = mock(),
+        saksbehandlingRepo: SaksbehandlingRepo = mock(),
         oppgaveService: OppgaveService = mock(),
         personService: PersonService = mock(),
         behandlingMetrics: BehandlingMetrics = mock(),
         microsoftGraphApiOppslag: MicrosoftGraphApiOppslag = mock(),
-        journalførIverksettingService: JournalførIverksettingService = mock(),
-        distribuerIverksettingsbrevService: DistribuerIverksettingsbrevService = mock()
-    ) = FerdigstillIverksettingService(
-        behandlingRepo = behandlingRepo,
+        brevService: BrevService = mock(),
+    ) = FerdigstillIverksettingServiceImpl(
+        saksbehandlingRepo = saksbehandlingRepo,
         oppgaveService = oppgaveService,
         personService = personService,
         behandlingMetrics = behandlingMetrics,
         microsoftGraphApiClient = microsoftGraphApiOppslag,
-        journalførIverksettingService = journalførIverksettingService,
-        distribuerIverksettingsbrevService = distribuerIverksettingsbrevService,
+        brevService = brevService
     )
 }

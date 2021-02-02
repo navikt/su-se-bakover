@@ -45,7 +45,6 @@ interface BehandlingService {
     fun ferdigstillInnvilgelse(behandling: Behandling)
     fun opprettSøknadsbehandling(søknadId: UUID): Either<KunneIkkeOppretteSøknadsbehandling, Behandling>
     fun lagBrevutkast(behandlingId: UUID): Either<KunneIkkeLageBrevutkast, ByteArray>
-    fun opprettManglendeJournalpostOgBrevdistribusjon(): OpprettManglendeJournalpostOgBrevdistribusjonResultat
 }
 
 sealed class KunneIkkeLageBrevutkast {

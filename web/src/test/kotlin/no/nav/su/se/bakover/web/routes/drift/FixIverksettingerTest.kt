@@ -11,8 +11,8 @@ import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.service.behandling.BestiltBrev
+import no.nav.su.se.bakover.service.behandling.FerdigstillIverksettingService
 import no.nav.su.se.bakover.service.behandling.KunneIkkeBestilleBrev
 import no.nav.su.se.bakover.service.behandling.KunneIkkeOppretteJournalpostForIverksetting
 import no.nav.su.se.bakover.service.behandling.OpprettManglendeJournalpostOgBrevdistribusjonResultat
@@ -48,14 +48,14 @@ internal class FixIverksettingerTest {
 
     @Test
     fun `fix-iverksettinger-endepunktet gir tomt resultat`() {
-        val behandlingServiceMock = mock<BehandlingService> {
+        val ferdigstillIverksettingServiceMock = mock<FerdigstillIverksettingService> {
             on { opprettManglendeJournalpostOgBrevdistribusjon() } doReturn OpprettManglendeJournalpostOgBrevdistribusjonResultat(
                 journalpostresultat = emptyList(),
                 brevbestillingsresultat = emptyList()
             )
         }
         withTestApplication({
-            testSusebakover(services = services.copy(behandling = behandlingServiceMock))
+            testSusebakover(services = services.copy(ferdigstillIverksettingService = ferdigstillIverksettingServiceMock))
         }) {
             defaultRequest(
                 HttpMethod.Patch,
@@ -101,7 +101,7 @@ internal class FixIverksettingerTest {
 
         val søknadIdJournalpost = UUID.fromString("18e19f68-029d-4731-ad4a-48d902fc92a2")
         val søknadIdOppgave = UUID.fromString("22770c98-31b0-412e-9e63-9a878330386e")
-        val behandlingServiceMock = mock<BehandlingService> {
+        val ferdigstillIverksettingServiceMock = mock<FerdigstillIverksettingService> {
             on { opprettManglendeJournalpostOgBrevdistribusjon() } doReturn OpprettManglendeJournalpostOgBrevdistribusjonResultat(
                 journalpostresultat = listOf(
                     journalført.right(),
@@ -119,7 +119,7 @@ internal class FixIverksettingerTest {
             )
         }
         withTestApplication({
-            testSusebakover(services = services.copy(behandling = behandlingServiceMock))
+            testSusebakover(services = services.copy(ferdigstillIverksettingService = ferdigstillIverksettingServiceMock))
         }) {
             defaultRequest(
                 HttpMethod.Patch,

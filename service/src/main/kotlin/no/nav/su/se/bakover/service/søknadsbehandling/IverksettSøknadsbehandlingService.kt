@@ -131,7 +131,7 @@ class IverksettSøknadsbehandlingService(
             søknadsbehandlingUtenBrev.distribuerBrev { journalpostId ->
                 brevService.distribuerBrev(journalpostId)
                     .mapLeft {
-                        Søknadsbehandling.Iverksatt.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev
+                        Søknadsbehandling.Iverksatt.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev(journalpostId)
                     }.map {
                         behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.DISTRIBUERT_BREV)
                         it
