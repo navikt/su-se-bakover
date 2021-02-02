@@ -47,7 +47,7 @@ import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.service.ServiceBuilder
+import no.nav.su.se.bakover.service.ProdServiceBuilder
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
@@ -69,13 +69,14 @@ internal class BehandlingRoutesKtTest {
     private val saksbehandler = NavIdentBruker.Saksbehandler("AB12345")
 
     private val repos = DatabaseBuilder.build(EmbeddedDatabase.instance(), behandlingFactory)
-    private val services = ServiceBuilder(
+    private val services = ProdServiceBuilder.build(
         databaseRepos = repos,
         clients = TestClientsBuilder.build(applicationConfig),
         behandlingMetrics = mock(),
         søknadMetrics = mock(),
         clock = fixedClock,
-    ).build()
+        unleash = mock(),
+    )
 
     @Nested
     inner class `Henting av behandling` {
