@@ -1,63 +1,63 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
-interface StatusovergangVisitor {
-    fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Uavklart) {
+interface StatusovergangVisitor : SøknadsbehandlingVisitor {
+    override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Uavklart) {
         throw UgyldigStatusovergangException(søknadsbehandling, this)
     }
 
-    fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Innvilget) {
+    override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Innvilget) {
         throw UgyldigStatusovergangException(søknadsbehandling, this)
     }
 
-    fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Avslag) {
+    override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Avslag) {
         throw UgyldigStatusovergangException(søknadsbehandling, this)
     }
 
-    fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Innvilget) {
+    override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Innvilget) {
         throw UgyldigStatusovergangException(søknadsbehandling, this)
     }
 
-    fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Avslag) {
+    override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Avslag) {
         throw UgyldigStatusovergangException(søknadsbehandling, this)
     }
 
-    fun visit(søknadsbehandling: Søknadsbehandling.Simulert) {
+    override fun visit(søknadsbehandling: Søknadsbehandling.Simulert) {
         throw UgyldigStatusovergangException(søknadsbehandling, this)
     }
 
-    fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Innvilget) {
+    override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Innvilget) {
         throw UgyldigStatusovergangException(søknadsbehandling, this)
     }
 
-    fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.MedBeregning) {
+    override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.MedBeregning) {
         throw UgyldigStatusovergangException(søknadsbehandling, this)
     }
 
-    fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.UtenBeregning) {
+    override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.UtenBeregning) {
         throw UgyldigStatusovergangException(søknadsbehandling, this)
     }
 
-    fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Avslag.UtenBeregning) {
+    override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Avslag.UtenBeregning) {
         throw UgyldigStatusovergangException(søknadsbehandling, this)
     }
 
-    fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Avslag.MedBeregning) {
+    override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Avslag.MedBeregning) {
         throw UgyldigStatusovergangException(søknadsbehandling, this)
     }
 
-    fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Innvilget) {
+    override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Innvilget) {
         throw UgyldigStatusovergangException(søknadsbehandling, this)
     }
 
-    fun visit(søknadsbehandling: Søknadsbehandling.Iverksatt.Avslag.UtenBeregning) {
+    override fun visit(søknadsbehandling: Søknadsbehandling.Iverksatt.Avslag.UtenBeregning) {
         throw UgyldigStatusovergangException(søknadsbehandling, this)
     }
 
-    fun visit(søknadsbehandling: Søknadsbehandling.Iverksatt.Avslag.MedBeregning) {
+    override fun visit(søknadsbehandling: Søknadsbehandling.Iverksatt.Avslag.MedBeregning) {
         throw UgyldigStatusovergangException(søknadsbehandling, this)
     }
 
-    fun visit(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget) {
+    override fun visit(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget) {
         throw UgyldigStatusovergangException(søknadsbehandling, this)
     }
 

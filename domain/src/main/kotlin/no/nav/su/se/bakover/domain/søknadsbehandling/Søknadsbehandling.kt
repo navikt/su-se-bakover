@@ -32,7 +32,7 @@ sealed class Søknadsbehandling {
     abstract val status: Behandling.BehandlingsStatus
     abstract val fnr: Fnr
 
-    abstract fun accept(visitor: StatusovergangVisitor)
+    abstract fun accept(visitor: SøknadsbehandlingVisitor)
 
     sealed class Vilkårsvurdert : Søknadsbehandling() {
         fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon): Vilkårsvurdert =
@@ -125,7 +125,7 @@ sealed class Søknadsbehandling {
 
             override val status: Behandling.BehandlingsStatus = Behandling.BehandlingsStatus.VILKÅRSVURDERT_INNVILGET
 
-            override fun accept(visitor: StatusovergangVisitor) {
+            override fun accept(visitor: SøknadsbehandlingVisitor) {
                 visitor.visit(this)
             }
         }
@@ -143,7 +143,7 @@ sealed class Søknadsbehandling {
 
             override val status: Behandling.BehandlingsStatus = Behandling.BehandlingsStatus.VILKÅRSVURDERT_AVSLAG
 
-            override fun accept(visitor: StatusovergangVisitor) {
+            override fun accept(visitor: SøknadsbehandlingVisitor) {
                 visitor.visit(this)
             }
 
@@ -174,7 +174,7 @@ sealed class Søknadsbehandling {
 
             override val status: Behandling.BehandlingsStatus = Behandling.BehandlingsStatus.OPPRETTET
 
-            override fun accept(visitor: StatusovergangVisitor) {
+            override fun accept(visitor: SøknadsbehandlingVisitor) {
                 visitor.visit(this)
             }
         }
@@ -270,7 +270,7 @@ sealed class Søknadsbehandling {
         ) : Beregnet() {
             override val status: Behandling.BehandlingsStatus = Behandling.BehandlingsStatus.BEREGNET_INNVILGET
 
-            override fun accept(visitor: StatusovergangVisitor) {
+            override fun accept(visitor: SøknadsbehandlingVisitor) {
                 visitor.visit(this)
             }
         }
@@ -293,7 +293,7 @@ sealed class Søknadsbehandling {
                     AvslagGrunnetBeregning.Nei -> throw RuntimeException("Dette skal ikke være mulig")
                 }
 
-            override fun accept(visitor: StatusovergangVisitor) {
+            override fun accept(visitor: SøknadsbehandlingVisitor) {
                 visitor.visit(this)
             }
 
@@ -327,7 +327,7 @@ sealed class Søknadsbehandling {
     ) : Søknadsbehandling() {
         override val status: Behandling.BehandlingsStatus = Behandling.BehandlingsStatus.SIMULERT
 
-        override fun accept(visitor: StatusovergangVisitor) {
+        override fun accept(visitor: SøknadsbehandlingVisitor) {
             visitor.visit(this)
         }
 
@@ -407,7 +407,7 @@ sealed class Søknadsbehandling {
             override val status: Behandling.BehandlingsStatus =
                 Behandling.BehandlingsStatus.TIL_ATTESTERING_INNVILGET
 
-            override fun accept(visitor: StatusovergangVisitor) {
+            override fun accept(visitor: SøknadsbehandlingVisitor) {
                 visitor.visit(this)
             }
 
@@ -471,7 +471,7 @@ sealed class Søknadsbehandling {
 
                 override val avslagsgrunner = behandlingsinformasjon.utledAvslagsgrunner()
 
-                override fun accept(visitor: StatusovergangVisitor) {
+                override fun accept(visitor: SøknadsbehandlingVisitor) {
                     visitor.visit(this)
                 }
 
@@ -535,7 +535,7 @@ sealed class Søknadsbehandling {
 
                 override val avslagsgrunner = behandlingsinformasjon.utledAvslagsgrunner() + utledAvslagsgrunnForBeregning
 
-                override fun accept(visitor: StatusovergangVisitor) {
+                override fun accept(visitor: SøknadsbehandlingVisitor) {
                     visitor.visit(this)
                 }
 
@@ -630,7 +630,7 @@ sealed class Søknadsbehandling {
             override val status: Behandling.BehandlingsStatus =
                 Behandling.BehandlingsStatus.UNDERKJENT_INNVILGET
 
-            override fun accept(visitor: StatusovergangVisitor) {
+            override fun accept(visitor: SøknadsbehandlingVisitor) {
                 visitor.visit(this)
             }
 
@@ -690,7 +690,7 @@ sealed class Søknadsbehandling {
                 val beregning: Beregning,
                 override val saksbehandler: NavIdentBruker,
                 override val attestering: Attestering
-            ) : Underkjent() {
+            ) : Avslag() {
                 override val status: Behandling.BehandlingsStatus =
                     Behandling.BehandlingsStatus.UNDERKJENT_AVSLAG
 
@@ -698,7 +698,7 @@ sealed class Søknadsbehandling {
                     return this.copy(oppgaveId = nyOppgaveId)
                 }
 
-                override fun accept(visitor: StatusovergangVisitor) {
+                override fun accept(visitor: SøknadsbehandlingVisitor) {
                     visitor.visit(this)
                 }
 
@@ -741,7 +741,7 @@ sealed class Søknadsbehandling {
                 override val fnr: Fnr,
                 override val saksbehandler: NavIdentBruker,
                 override val attestering: Attestering
-            ) : Underkjent() {
+            ) : Avslag() {
                 override val status: Behandling.BehandlingsStatus =
                     Behandling.BehandlingsStatus.UNDERKJENT_AVSLAG
 
@@ -749,7 +749,7 @@ sealed class Søknadsbehandling {
                     return this.copy(oppgaveId = nyOppgaveId)
                 }
 
-                override fun accept(visitor: StatusovergangVisitor) {
+                override fun accept(visitor: SøknadsbehandlingVisitor) {
                     visitor.visit(this)
                 }
 
@@ -813,7 +813,7 @@ sealed class Søknadsbehandling {
             override val status: Behandling.BehandlingsStatus =
                 Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
 
-            override fun accept(visitor: StatusovergangVisitor) {
+            override fun accept(visitor: SøknadsbehandlingVisitor) {
                 visitor.visit(this)
             }
 
@@ -901,7 +901,7 @@ sealed class Søknadsbehandling {
                 override val status: Behandling.BehandlingsStatus =
                     Behandling.BehandlingsStatus.IVERKSATT_AVSLAG
 
-                override fun accept(visitor: StatusovergangVisitor) {
+                override fun accept(visitor: SøknadsbehandlingVisitor) {
                     visitor.visit(this)
                 }
 
@@ -933,7 +933,7 @@ sealed class Søknadsbehandling {
                 override val status: Behandling.BehandlingsStatus =
                     Behandling.BehandlingsStatus.IVERKSATT_AVSLAG
 
-                override fun accept(visitor: StatusovergangVisitor) {
+                override fun accept(visitor: SøknadsbehandlingVisitor) {
                     visitor.visit(this)
                 }
 

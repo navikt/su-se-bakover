@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.behandling
+package no.nav.su.se.bakover.domain.søknadsbehandling
 
 import arrow.core.left
 import arrow.core.right
@@ -13,6 +13,11 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
+import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
+import no.nav.su.se.bakover.domain.behandling.withVilkårIkkeVurdert
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
@@ -23,11 +28,6 @@ import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.domain.søknadsbehandling.Statusovergang
-import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.forsøkStatusovergang
-import no.nav.su.se.bakover.domain.søknadsbehandling.statusovergang
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -640,7 +640,13 @@ internal class StatusovergangTest {
         fun `til attestering avslag vilkår kan ikke underkjenne sitt eget verk`() {
             forsøkStatusovergang(
                 tilAttesteringAvslagVilkår.copy(saksbehandler = NavIdentBruker.Saksbehandler("sneaky")),
-                Statusovergang.TilUnderkjent(Attestering.Underkjent(NavIdentBruker.Attestant("sneaky"), Attestering.Underkjent.Grunn.ANDRE_FORHOLD, ""))
+                Statusovergang.TilUnderkjent(
+                    Attestering.Underkjent(
+                        NavIdentBruker.Attestant("sneaky"),
+                        Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+                        ""
+                    )
+                )
             ) shouldBe Statusovergang.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
         }
 
@@ -648,7 +654,13 @@ internal class StatusovergangTest {
         fun `til attestering avslag beregning kan ikke underkjenne sitt eget verk`() {
             forsøkStatusovergang(
                 tilAttesteringAvslagBeregning.copy(saksbehandler = NavIdentBruker.Saksbehandler("sneaky")),
-                Statusovergang.TilUnderkjent(Attestering.Underkjent(NavIdentBruker.Attestant("sneaky"), Attestering.Underkjent.Grunn.ANDRE_FORHOLD, ""))
+                Statusovergang.TilUnderkjent(
+                    Attestering.Underkjent(
+                        NavIdentBruker.Attestant("sneaky"),
+                        Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+                        ""
+                    )
+                )
             ) shouldBe Statusovergang.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
         }
 
@@ -656,7 +668,13 @@ internal class StatusovergangTest {
         fun `til attestering innvilget kan ikke underkjenne sitt eget verk`() {
             forsøkStatusovergang(
                 tilAttesteringInnvilget.copy(saksbehandler = NavIdentBruker.Saksbehandler("sneaky")),
-                Statusovergang.TilUnderkjent(Attestering.Underkjent(NavIdentBruker.Attestant("sneaky"), Attestering.Underkjent.Grunn.ANDRE_FORHOLD, ""))
+                Statusovergang.TilUnderkjent(
+                    Attestering.Underkjent(
+                        NavIdentBruker.Attestant("sneaky"),
+                        Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+                        ""
+                    )
+                )
             ) shouldBe Statusovergang.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
         }
 
