@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
-import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -38,15 +37,12 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.KunneIkkeUnderkjenneBehandling
-import no.nav.su.se.bakover.service.beregning.BeregningService
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
-import no.nav.su.se.bakover.service.søknad.SøknadService
-import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -101,29 +97,6 @@ class SøknadsbehandlingServiceUnderkjennTest {
         tilordnetRessurs = saksbehandler
     )
 
-    private fun createService(
-        søknadsbehandlingRepo: SøknadsbehandlingRepo = mock(),
-        utbetalingService: UtbetalingService = mock(),
-        oppgaveService: OppgaveService = mock(),
-        søknadService: SøknadService = mock(),
-        søknadRepo: SøknadRepo = mock(),
-        personService: PersonService = mock(),
-        behandlingMetrics: BehandlingMetrics = mock(),
-        iverksettBehandlingService: IverksettSøknadsbehandlingService = mock(),
-        observer: EventObserver = mock { on { handle(any()) }.doNothing() },
-        beregningService: BeregningService = mock(),
-    ) = SøknadsbehandlingServiceImpl(
-        søknadService,
-        søknadRepo,
-        søknadsbehandlingRepo,
-        utbetalingService,
-        personService,
-        oppgaveService,
-        iverksettBehandlingService,
-        behandlingMetrics,
-        beregningService,
-    ).apply { addObserver(observer) }
-
     @Test
     fun `Fant ikke behandling`() {
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
@@ -135,7 +108,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
         val behandlingMetricsMock = mock<BehandlingMetrics>()
         val hendelsesloggRepoMock = mock<HendelsesloggRepo>()
 
-        val actual = createService(
+        val actual = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
@@ -181,7 +154,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
         val hendelsesloggRepoMock = mock<HendelsesloggRepo>()
 
         shouldThrow<StatusovergangVisitor.UgyldigStatusovergangException> {
-            createService(
+            createSøknadsbehandlingService(
                 søknadsbehandlingRepo = søknadsbehandlingRepoMock,
                 oppgaveService = oppgaveServiceMock,
                 personService = personServiceMock,
@@ -220,7 +193,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
         val behandlingMetricsMock = mock<BehandlingMetrics>()
         val observerMock: EventObserver = mock()
 
-        val actual = createService(
+        val actual = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
@@ -264,7 +237,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
         val oppgaveServiceMock = mock<OppgaveService>()
         val behandlingMetricsMock = mock<BehandlingMetrics>()
 
-        val actual = createService(
+        val actual = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
@@ -305,7 +278,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
         }
         val behandlingMetricsMock = mock<BehandlingMetrics>()
 
-        val actual = createService(
+        val actual = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
@@ -352,7 +325,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             on { handle(any()) }.doNothing()
         }
 
-        val actual = createService(
+        val actual = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
@@ -434,7 +407,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
 
         val behandlingMetricsMock = mock<BehandlingMetrics>()
 
-        val actual = createService(
+        val actual = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,

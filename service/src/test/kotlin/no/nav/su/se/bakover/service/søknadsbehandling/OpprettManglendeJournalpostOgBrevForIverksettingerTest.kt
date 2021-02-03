@@ -1,11 +1,11 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
-import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.argumentCaptor
 import com.nhaarman.mockitokotlin2.doReturn
+import com.nhaarman.mockitokotlin2.doReturnConsecutively
 import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.times
@@ -193,6 +193,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
             oppslagMock
         ) {
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenJournalposteringer()
+            verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe fnr })
             verify(oppslagMock).hentBrukerinformasjonForNavIdent(argThat { it shouldBe saksbehandler })
 
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenBrevbestillinger()
@@ -241,6 +242,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
             oppslagMock
         ) {
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenJournalposteringer()
+            verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe fnr })
             argumentCaptor<NavIdentBruker>().apply {
                 verify(oppslagMock, times(2)).hentBrukerinformasjonForNavIdent(capture())
                 firstValue shouldBe saksbehandler
@@ -263,7 +265,10 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
         }
 
         val oppslagMock: MicrosoftGraphApiOppslag = mock {
-            on { hentBrukerinformasjonForNavIdent(any()) } doReturn Either.right(BehandlingTestUtils.microsoftGraphMock.response)
+            on { hentBrukerinformasjonForNavIdent(any()) } doReturnConsecutively listOf(
+                BehandlingTestUtils.microsoftGraphMock.response.copy(saksbehandler.navIdent).right(),
+                BehandlingTestUtils.microsoftGraphMock.response.copy(attestant.navIdent).right(),
+            )
         }
 
         val actual = createService(
@@ -289,13 +294,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
             oppslagMock
         ) {
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenJournalposteringer()
-            argumentCaptor<NavIdentBruker>().apply {
-                verify(oppslagMock, times(2)).hentBrukerinformasjonForNavIdent(capture())
-                firstValue shouldBe saksbehandler
-                secondValue shouldBe attestant
-            }
             verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe fnr })
-
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenBrevbestillinger()
         }
         verifyNoMoreInteractions(behandlingRepoMock, personServiceMock, oppslagMock)
@@ -319,9 +318,10 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
         }
 
         val oppslagMock = mock<MicrosoftGraphApiOppslag> {
-            on {
-                hentBrukerinformasjonForNavIdent(any())
-            } doReturn Either.right(BehandlingTestUtils.microsoftGraphMock.response)
+            on { hentBrukerinformasjonForNavIdent(any()) } doReturnConsecutively listOf(
+                BehandlingTestUtils.microsoftGraphMock.response.copy(saksbehandler.navIdent).right(),
+                BehandlingTestUtils.microsoftGraphMock.response.copy(attestant.navIdent).right(),
+            )
         }
 
         val actual = createService(
@@ -349,20 +349,20 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
             oppslagMock,
         ) {
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenJournalposteringer()
+            verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe fnr })
             argumentCaptor<NavIdentBruker>().apply {
                 verify(oppslagMock, times(2)).hentBrukerinformasjonForNavIdent(capture())
                 firstValue shouldBe saksbehandler
                 secondValue shouldBe attestant
             }
-            verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe fnr })
             verify(brevServiceMock).journalførBrev(
                 argThat {
                     it shouldBe LagBrevRequest.InnvilgetVedtak(
                         person = person,
                         beregning = innvilgetBehandlingUtenJournalpost.beregning,
                         behandlingsinformasjon = innvilgetBehandlingUtenJournalpost.behandlingsinformasjon,
-                        saksbehandlerNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName,
-                        attestantNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName,
+                        saksbehandlerNavn = saksbehandler.navIdent,
+                        attestantNavn = attestant.navIdent,
                     )
                 },
                 argThat { it shouldBe innvilgetBehandlingUtenJournalpost.saksnummer }
@@ -541,7 +541,10 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
         }
 
         val oppslagMock: MicrosoftGraphApiOppslag = mock {
-            on { hentBrukerinformasjonForNavIdent(any()) } doReturn Either.right(BehandlingTestUtils.microsoftGraphMock.response)
+            on { hentBrukerinformasjonForNavIdent(any()) } doReturnConsecutively listOf(
+                BehandlingTestUtils.microsoftGraphMock.response.copy(saksbehandler.navIdent).right(),
+                BehandlingTestUtils.microsoftGraphMock.response.copy(attestant.navIdent).right(),
+            )
         }
 
         val actual = createService(
@@ -564,12 +567,12 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
             brevServiceMock,
         ) {
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenJournalposteringer()
+            verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe fnr })
             argumentCaptor<NavIdentBruker>().apply {
                 verify(oppslagMock, times(2)).hentBrukerinformasjonForNavIdent(capture())
                 firstValue shouldBe saksbehandler
                 secondValue shouldBe attestant
             }
-            verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe fnr })
             val lagreCaptor = argumentCaptor<Søknadsbehandling>()
             verify(brevServiceMock).journalførBrev(
                 argThat {
@@ -577,8 +580,8 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
                         person = person,
                         beregning = innvilgetBehandlingUtenJournalpost.beregning,
                         behandlingsinformasjon = innvilgetBehandlingUtenJournalpost.behandlingsinformasjon,
-                        saksbehandlerNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName,
-                        attestantNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName,
+                        saksbehandlerNavn = saksbehandler.navIdent,
+                        attestantNavn = attestant.navIdent,
                     )
                 },
                 argThat { it shouldBe innvilgetBehandlingUtenJournalpost.saksnummer },

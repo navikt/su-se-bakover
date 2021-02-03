@@ -148,6 +148,8 @@ object ProdServiceBuilder : ServiceBuilder {
                 iverksettSøknadsbehandlingService = iverksettSaksbehandlingService,
                 behandlingMetrics = behandlingMetrics,
                 beregningService = BeregningService(),
+                microsoftGraphApiClient = clients.microsoftGraphApiClient,
+                brevService = brevService
             ).apply {
                 addObserver(statistikkService)
             },

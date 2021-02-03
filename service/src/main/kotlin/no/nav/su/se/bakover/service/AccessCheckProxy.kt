@@ -64,6 +64,7 @@ import no.nav.su.se.bakover.service.søknadsbehandling.FerdigstillSøknadsbehand
 import no.nav.su.se.bakover.service.søknadsbehandling.IverksettSøknadsbehandlingRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.OppdaterSøknadsbehandlingsinformasjonRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.OpprettBeregningRequest
+import no.nav.su.se.bakover.service.søknadsbehandling.OpprettBrevRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.OpprettManglendeJournalpostOgBrevdistribusjonResultat
 import no.nav.su.se.bakover.service.søknadsbehandling.OpprettSimuleringRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.OpprettSøknadsbehandlingRequest
@@ -365,6 +366,10 @@ open class AccessCheckProxy(
 
                 override fun iverksett(request: IverksettSøknadsbehandlingRequest): Either<KunneIkkeIverksetteBehandling, Søknadsbehandling> {
                     return services.søknadsbehandling.iverksett(request)
+                }
+
+                override fun brev(request: OpprettBrevRequest): Either<KunneIkkeLageBrevutkast, ByteArray> {
+                    return services.søknadsbehandling.brev(request)
                 }
             },
             ferdigstillSøknadsbehandingIverksettingService = object : FerdigstillSøknadsbehandingIverksettingService {

@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeBeregne
 import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling
+import no.nav.su.se.bakover.service.behandling.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.service.behandling.KunneIkkeOppdatereBehandlingsinformasjon
 import no.nav.su.se.bakover.service.behandling.KunneIkkeOppretteSøknadsbehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering
@@ -24,6 +25,7 @@ interface SøknadsbehandlingService {
     fun sendTilAttestering(request: SendTilAttesteringRequest): Either<KunneIkkeSendeTilAttestering, Søknadsbehandling>
     fun underkjenn(request: UnderkjennSøknadsbehandlingRequest): Either<KunneIkkeUnderkjenneBehandling, Søknadsbehandling>
     fun iverksett(request: IverksettSøknadsbehandlingRequest): Either<KunneIkkeIverksetteBehandling, Søknadsbehandling>
+    fun brev(request: OpprettBrevRequest): Either<KunneIkkeLageBrevutkast, ByteArray>
 }
 
 data class OpprettSøknadsbehandlingRequest(
@@ -60,4 +62,8 @@ data class UnderkjennSøknadsbehandlingRequest(
 data class IverksettSøknadsbehandlingRequest(
     val behandlingId: UUID,
     val attestering: Attestering
+)
+
+class OpprettBrevRequest(
+    val behandlingId: UUID
 )

@@ -2,8 +2,11 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.Either
 import arrow.core.getOrElse
+import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
+import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
@@ -15,18 +18,21 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.søknadsbehandling.LagBrevRequestVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.Statusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.forsøkStatusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.statusovergang
 import no.nav.su.se.bakover.service.behandling.KunneIkkeBeregne
 import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling
+import no.nav.su.se.bakover.service.behandling.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.service.behandling.KunneIkkeOppdatereBehandlingsinformasjon
 import no.nav.su.se.bakover.service.behandling.KunneIkkeOppretteSøknadsbehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeUnderkjenneBehandling
 import no.nav.su.se.bakover.service.beregning.BeregningService
+import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.Event
@@ -46,6 +52,8 @@ internal class SøknadsbehandlingServiceImpl(
     private val iverksettSøknadsbehandlingService: IverksettSøknadsbehandlingService,
     private val behandlingMetrics: BehandlingMetrics,
     private val beregningService: BeregningService,
+    private val microsoftGraphApiClient: MicrosoftGraphApiOppslag,
+    private val brevService: BrevService,
 ) : SøknadsbehandlingService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -295,5 +303,43 @@ internal class SøknadsbehandlingServiceImpl(
             Statusovergang.KunneIkkeIverksetteSøknadsbehandling.SaksbehandlerOgAttestantKanIkkeVæreSammePerson -> KunneIkkeIverksetteBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
             Statusovergang.KunneIkkeIverksetteSøknadsbehandling.FantIkkePerson -> KunneIkkeIverksetteBehandling.FantIkkePerson
         }
+    }
+
+    override fun brev(request: OpprettBrevRequest): Either<KunneIkkeLageBrevutkast, ByteArray> {
+        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
+            ?: return KunneIkkeLageBrevutkast.FantIkkeBehandling.left()
+
+        val visitor = LagBrevRequestVisitor(
+            hentPerson = { fnr ->
+                personService.hentPerson(fnr)
+                    .mapLeft { LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeHentePerson }
+            },
+            hentNavn = { ident ->
+                hentNavnForNavIdent(ident)
+                    .mapLeft { LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant }
+            }
+        ).apply { søknadsbehandling.accept(this) }
+
+        val brevRequest = visitor.brevRequest.getOrHandle {
+            return when (it) {
+                LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> {
+                    KunneIkkeLageBrevutkast.FikkIkkeHentetSaksbehandlerEllerAttestant.left()
+                }
+                LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeHentePerson -> {
+                    KunneIkkeLageBrevutkast.FantIkkePerson.left()
+                }
+                is LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeLageBrevForStatus -> {
+                    KunneIkkeLageBrevutkast.KanIkkeLageBrevutkastForStatus(it.status).left()
+                }
+            }
+        }
+
+        return brevService.lagBrev(brevRequest)
+            .mapLeft { KunneIkkeLageBrevutkast.KunneIkkeLageBrev }
+    }
+
+    private fun hentNavnForNavIdent(navIdent: NavIdentBruker): Either<MicrosoftGraphApiOppslagFeil, String> {
+        return microsoftGraphApiClient.hentBrukerinformasjonForNavIdent(navIdent)
+            .map { it.displayName }
     }
 }

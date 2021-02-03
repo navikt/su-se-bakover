@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
-import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.søknadsbehandling.LagBrevRequestVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.behandling.BestiltBrev
 import no.nav.su.se.bakover.service.behandling.KunneIkkeBestilleBrev
@@ -207,26 +207,34 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceImpl(
     private fun opprettJournalpostForInnvilgelse(
         søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget,
     ): Either<FerdigstillSøknadsbehandingIverksettingService.KunneIkkeFerdigstilleInnvilgelse, Søknadsbehandling.Iverksatt.Innvilget> {
-        val saksbehandlerNavn =
-            søknadsbehandling.saksbehandler.let { hentNavnForNavIdent(it).getOrHandle { return it.left() } }
-        val attestantNavn =
-            søknadsbehandling.attestering.let { hentNavnForNavIdent(it.attestant).getOrHandle { return it.left() } }
-        val person = personService.hentPersonMedSystembruker(søknadsbehandling.fnr).getOrHandle {
-            log.error("Kunne ikke ferdigstille innvilgelse - fant ikke person for saksnr ${søknadsbehandling.saksnummer}")
-            return FerdigstillSøknadsbehandingIverksettingService.KunneIkkeFerdigstilleInnvilgelse.FantIkkePerson.left()
+        val visitor = LagBrevRequestVisitor(
+            hentPerson = { fnr ->
+                personService.hentPersonMedSystembruker(fnr)
+                    .mapLeft { LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeHentePerson }
+            },
+            hentNavn = { ident ->
+                hentNavnForNavIdent(ident)
+                    .mapLeft { LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant }
+            }
+        ).apply { søknadsbehandling.accept(this) }
+
+        val brevRequest = visitor.brevRequest.getOrHandle {
+            return when (it) {
+                LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> {
+                    FerdigstillSøknadsbehandingIverksettingService.KunneIkkeFerdigstilleInnvilgelse.FikkIkkeHentetSaksbehandlerEllerAttestant.left()
+                }
+                LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeHentePerson -> {
+                    FerdigstillSøknadsbehandingIverksettingService.KunneIkkeFerdigstilleInnvilgelse.FantIkkePerson.left()
+                }
+                is LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeLageBrevForStatus -> {
+                    FerdigstillSøknadsbehandingIverksettingService.KunneIkkeFerdigstilleInnvilgelse.FikkIkkeHentetSaksbehandlerEllerAttestant.left()
+                }
+            }
         }
 
         return søknadsbehandling.journalfør {
-            brevService.journalførBrev(
-                LagBrevRequest.InnvilgetVedtak(
-                    person = person,
-                    beregning = søknadsbehandling.beregning,
-                    behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
-                    saksbehandlerNavn = saksbehandlerNavn,
-                    attestantNavn = attestantNavn,
-                ),
-                søknadsbehandling.saksnummer
-            ).mapLeft { Søknadsbehandling.Iverksatt.KunneIkkeJournalføre.FeilVedJournalføring }
+            brevService.journalførBrev(brevRequest, søknadsbehandling.saksnummer)
+                .mapLeft { Søknadsbehandling.Iverksatt.KunneIkkeJournalføre.FeilVedJournalføring }
         }.mapLeft {
             when (it) {
                 is Søknadsbehandling.Iverksatt.KunneIkkeJournalføre.AlleredeJournalført -> {

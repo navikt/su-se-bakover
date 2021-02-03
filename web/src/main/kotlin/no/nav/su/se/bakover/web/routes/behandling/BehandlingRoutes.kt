@@ -33,6 +33,7 @@ import no.nav.su.se.bakover.service.behandling.KunneIkkeUnderkjenneBehandling
 import no.nav.su.se.bakover.service.søknadsbehandling.IverksettSøknadsbehandlingRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.OppdaterSøknadsbehandlingsinformasjonRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.OpprettBeregningRequest
+import no.nav.su.se.bakover.service.søknadsbehandling.OpprettBrevRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.OpprettSimuleringRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.OpprettSøknadsbehandlingRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SendTilAttesteringRequest
@@ -196,7 +197,7 @@ internal fun Route.behandlingRoutes(
     authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
         get("$behandlingPath/{behandlingId}/vedtaksutkast") {
             call.withBehandlingId { behandlingId ->
-                behandlingService.lagBrevutkast(behandlingId).fold(
+                søknadsbehandlingService.brev(OpprettBrevRequest(behandlingId)).fold(
                     {
                         val resultat = when (it) {
                             is KunneIkkeLageBrevutkast.FantIkkeBehandling -> {

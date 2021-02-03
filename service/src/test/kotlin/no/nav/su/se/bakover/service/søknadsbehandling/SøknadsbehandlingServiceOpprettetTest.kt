@@ -17,22 +17,17 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.KunneIkkeOppretteSøknadsbehandling
-import no.nav.su.se.bakover.service.beregning.BeregningService
 import no.nav.su.se.bakover.service.doNothing
-import no.nav.su.se.bakover.service.oppgave.OppgaveService
-import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.søknad.FantIkkeSøknad
 import no.nav.su.se.bakover.service.søknad.SøknadService
-import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -46,9 +41,9 @@ internal class SøknadsbehandlingServiceOpprettetTest {
 
         val saksbehandlingRepo = mock<SøknadsbehandlingRepo>()
 
-        val service = createService(
+        val service = createSøknadsbehandlingService(
             søknadService = søknadServiceMock,
-            behandlingRepo = saksbehandlingRepo
+            søknadsbehandlingRepo = saksbehandlingRepo
         )
 
         val søknadId = UUID.randomUUID()
@@ -80,9 +75,9 @@ internal class SøknadsbehandlingServiceOpprettetTest {
 
         val saksbehandlingRepo = mock<SøknadsbehandlingRepo>()
 
-        val service = createService(
+        val service = createSøknadsbehandlingService(
             søknadService = søknadServiceMock,
-            behandlingRepo = saksbehandlingRepo
+            søknadsbehandlingRepo = saksbehandlingRepo
         )
 
         service.opprett(OpprettSøknadsbehandlingRequest((lukketSøknad.id))) shouldBe KunneIkkeOppretteSøknadsbehandling.SøknadErLukket.left()
@@ -106,9 +101,9 @@ internal class SøknadsbehandlingServiceOpprettetTest {
 
         val saksbehandlingRepo = mock<SøknadsbehandlingRepo>()
 
-        val service = createService(
+        val service = createSøknadsbehandlingService(
             søknadService = søknadServiceMock,
-            behandlingRepo = saksbehandlingRepo
+            søknadsbehandlingRepo = saksbehandlingRepo
         )
 
         service.opprett(OpprettSøknadsbehandlingRequest((utenJournalpostOgOppgave.id))) shouldBe KunneIkkeOppretteSøknadsbehandling.SøknadManglerOppgave.left()
@@ -136,9 +131,9 @@ internal class SøknadsbehandlingServiceOpprettetTest {
 
         val saksbehandlingRepo = mock<SøknadsbehandlingRepo>()
 
-        val service = createService(
+        val service = createSøknadsbehandlingService(
             søknadService = søknadServiceMock,
-            behandlingRepo = saksbehandlingRepo,
+            søknadsbehandlingRepo = saksbehandlingRepo,
             søknadRepo = søknadRepoMock
         )
 
@@ -182,13 +177,13 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             on { lagre(any()) }.doNothing()
             on { hent(any()) } doReturn expectedSøknadsbehandling
         }
-        val behandlingService = createService(
+        val behandlingService = createSøknadsbehandlingService(
             utbetalingService = mock(),
             oppgaveService = mock(),
             søknadService = søknadService,
             søknadRepo = søknadRepo,
             personService = mock(),
-            behandlingRepo = søknadsbehandlingRepoMock,
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             iverksettBehandlingService = mock(),
             behandlingMetrics = mock(),
             beregningService = mock(),
@@ -221,27 +216,4 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             }
         )
     }
-
-    private fun createService(
-        behandlingRepo: SøknadsbehandlingRepo = mock(),
-        utbetalingService: UtbetalingService = mock(),
-        oppgaveService: OppgaveService = mock(),
-        søknadService: SøknadService = mock(),
-        søknadRepo: SøknadRepo = mock(),
-        personService: PersonService = mock(),
-        behandlingMetrics: BehandlingMetrics = mock(),
-        iverksettBehandlingService: IverksettSøknadsbehandlingService = mock(),
-        observer: EventObserver = mock { on { handle(any()) }.doNothing() },
-        beregningService: BeregningService = mock(),
-    ) = SøknadsbehandlingServiceImpl(
-        søknadService,
-        søknadRepo,
-        behandlingRepo,
-        utbetalingService,
-        personService,
-        oppgaveService,
-        iverksettBehandlingService,
-        behandlingMetrics,
-        beregningService,
-    ).apply { addObserver(observer) }
 }

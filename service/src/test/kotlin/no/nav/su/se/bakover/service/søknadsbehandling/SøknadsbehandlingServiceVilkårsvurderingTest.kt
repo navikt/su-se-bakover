@@ -10,13 +10,11 @@ import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
@@ -27,13 +25,6 @@ import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.behandlingsinformasjon
 import no.nav.su.se.bakover.service.behandling.KunneIkkeOppdatereBehandlingsinformasjon
-import no.nav.su.se.bakover.service.beregning.BeregningService
-import no.nav.su.se.bakover.service.doNothing
-import no.nav.su.se.bakover.service.oppgave.OppgaveService
-import no.nav.su.se.bakover.service.person.PersonService
-import no.nav.su.se.bakover.service.statistikk.EventObserver
-import no.nav.su.se.bakover.service.søknad.SøknadService
-import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -67,8 +58,8 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
             on { hent(any()) } doReturn null
         }
 
-        val response = createService(
-            behandlingRepo = søknadsbehandlingRepoMock,
+        val response = createSøknadsbehandlingService(
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
         ).vilkårsvurder(
             OppdaterSøknadsbehandlingsinformasjonRequest(
                 behandlingId = behandlingId,
@@ -90,8 +81,8 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
             on { hent(any()) } doReturn opprettetBehandling
         }
 
-        val response = createService(
-            behandlingRepo = søknadsbehandlingRepoMock,
+        val response = createSøknadsbehandlingService(
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
         ).vilkårsvurder(
             OppdaterSøknadsbehandlingsinformasjonRequest(
                 behandlingId,
@@ -127,8 +118,8 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
             on { hent(any()) } doReturn opprettetBehandling
         }
 
-        val response = createService(
-            behandlingRepo = søknadsbehandlingRepoMock,
+        val response = createSøknadsbehandlingService(
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
         ).vilkårsvurder(
             OppdaterSøknadsbehandlingsinformasjonRequest(
                 behandlingId,
@@ -156,27 +147,4 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
         }
         verifyNoMoreInteractions(søknadsbehandlingRepoMock)
     }
-
-    private fun createService(
-        behandlingRepo: SøknadsbehandlingRepo = mock(),
-        utbetalingService: UtbetalingService = mock(),
-        oppgaveService: OppgaveService = mock(),
-        søknadService: SøknadService = mock(),
-        søknadRepo: SøknadRepo = mock(),
-        personService: PersonService = mock(),
-        behandlingMetrics: BehandlingMetrics = mock(),
-        iverksettBehandlingService: IverksettSøknadsbehandlingService = mock(),
-        observer: EventObserver = mock { on { handle(any()) }.doNothing() },
-        beregningService: BeregningService = mock(),
-    ) = SøknadsbehandlingServiceImpl(
-        søknadService,
-        søknadRepo,
-        behandlingRepo,
-        utbetalingService,
-        personService,
-        oppgaveService,
-        iverksettBehandlingService,
-        behandlingMetrics,
-        beregningService,
-    ).apply { addObserver(observer) }
 }

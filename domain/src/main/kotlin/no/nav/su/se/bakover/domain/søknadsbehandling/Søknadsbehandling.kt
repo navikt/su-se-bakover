@@ -139,7 +139,7 @@ sealed class Søknadsbehandling {
             override val oppgaveId: OppgaveId,
             override val behandlingsinformasjon: Behandlingsinformasjon,
             override val fnr: Fnr
-        ) : Vilkårsvurdert() {
+        ) : Vilkårsvurdert(), no.nav.su.se.bakover.domain.søknadsbehandling.Avslag {
 
             override val status: Behandling.BehandlingsStatus = Behandling.BehandlingsStatus.VILKÅRSVURDERT_AVSLAG
 
@@ -159,6 +159,8 @@ sealed class Søknadsbehandling {
                     fnr,
                     saksbehandler,
                 )
+
+            override val avslagsgrunner: List<Avslagsgrunn> = behandlingsinformasjon.utledAvslagsgrunner()
         }
 
         data class Uavklart(
@@ -285,12 +287,13 @@ sealed class Søknadsbehandling {
             override val behandlingsinformasjon: Behandlingsinformasjon,
             override val fnr: Fnr,
             override val beregning: Beregning
-        ) : Beregnet() {
+        ) : Beregnet(), no.nav.su.se.bakover.domain.søknadsbehandling.Avslag {
             override val status: Behandling.BehandlingsStatus = Behandling.BehandlingsStatus.BEREGNET_AVSLAG
-            val avslagsgrunn =
-                when (val avslag = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
-                    is AvslagGrunnetBeregning.Ja -> avslag.avslagsgrunn
-                    AvslagGrunnetBeregning.Nei -> throw RuntimeException("Dette skal ikke være mulig")
+
+            private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
+                when (val vurdering = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
+                    is AvslagGrunnetBeregning.Ja -> listOf(vurdering.avslagsgrunn)
+                    is AvslagGrunnetBeregning.Nei -> emptyList()
                 }
 
             override fun accept(visitor: SøknadsbehandlingVisitor) {
@@ -310,6 +313,9 @@ sealed class Søknadsbehandling {
                     beregning,
                     saksbehandler,
                 )
+
+            override val avslagsgrunner: List<Avslagsgrunn> =
+                behandlingsinformasjon.utledAvslagsgrunner() + avslagsgrunnForBeregning
         }
     }
 
@@ -402,7 +408,7 @@ sealed class Søknadsbehandling {
             override val fnr: Fnr,
             val beregning: Beregning,
             val simulering: Simulering,
-            override val saksbehandler: NavIdentBruker
+            override val saksbehandler: NavIdentBruker.Saksbehandler
         ) : TilAttestering() {
             override val status: Behandling.BehandlingsStatus =
                 Behandling.BehandlingsStatus.TIL_ATTESTERING_INNVILGET
@@ -466,7 +472,7 @@ sealed class Søknadsbehandling {
                 override val oppgaveId: OppgaveId,
                 override val behandlingsinformasjon: Behandlingsinformasjon,
                 override val fnr: Fnr,
-                override val saksbehandler: NavIdentBruker
+                override val saksbehandler: NavIdentBruker.Saksbehandler
             ) : Avslag() {
 
                 override val avslagsgrunner = behandlingsinformasjon.utledAvslagsgrunner()
@@ -524,16 +530,17 @@ sealed class Søknadsbehandling {
                 override val behandlingsinformasjon: Behandlingsinformasjon,
                 override val fnr: Fnr,
                 val beregning: Beregning,
-                override val saksbehandler: NavIdentBruker
+                override val saksbehandler: NavIdentBruker.Saksbehandler
             ) : Avslag() {
 
-                private val utledAvslagsgrunnForBeregning: List<Avslagsgrunn> =
+                private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
                     when (val vurdering = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
                         is AvslagGrunnetBeregning.Ja -> listOf(vurdering.avslagsgrunn)
                         is AvslagGrunnetBeregning.Nei -> emptyList()
                     }
 
-                override val avslagsgrunner = behandlingsinformasjon.utledAvslagsgrunner() + utledAvslagsgrunnForBeregning
+                override val avslagsgrunner =
+                    behandlingsinformasjon.utledAvslagsgrunner() + avslagsgrunnForBeregning
 
                 override fun accept(visitor: SøknadsbehandlingVisitor) {
                     visitor.visit(this)
@@ -591,7 +598,7 @@ sealed class Søknadsbehandling {
         abstract override val oppgaveId: OppgaveId
         abstract override val behandlingsinformasjon: Behandlingsinformasjon
         abstract override val fnr: Fnr
-        abstract val saksbehandler: NavIdentBruker
+        abstract val saksbehandler: NavIdentBruker.Saksbehandler
         abstract val attestering: Attestering
 
         abstract fun nyOppgaveId(nyOppgaveId: OppgaveId): Underkjent
@@ -619,7 +626,7 @@ sealed class Søknadsbehandling {
             override val fnr: Fnr,
             val beregning: Beregning,
             val simulering: Simulering,
-            override val saksbehandler: NavIdentBruker,
+            override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val attestering: Attestering
         ) : Underkjent() {
 
@@ -688,11 +695,17 @@ sealed class Søknadsbehandling {
                 override val behandlingsinformasjon: Behandlingsinformasjon,
                 override val fnr: Fnr,
                 val beregning: Beregning,
-                override val saksbehandler: NavIdentBruker,
+                override val saksbehandler: NavIdentBruker.Saksbehandler,
                 override val attestering: Attestering
-            ) : Avslag() {
+            ) : Avslag(), no.nav.su.se.bakover.domain.søknadsbehandling.Avslag {
                 override val status: Behandling.BehandlingsStatus =
                     Behandling.BehandlingsStatus.UNDERKJENT_AVSLAG
+
+                private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
+                    when (val vurdering = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
+                        is AvslagGrunnetBeregning.Ja -> listOf(vurdering.avslagsgrunn)
+                        is AvslagGrunnetBeregning.Nei -> emptyList()
+                    }
 
                 override fun nyOppgaveId(nyOppgaveId: OppgaveId): MedBeregning {
                     return this.copy(oppgaveId = nyOppgaveId)
@@ -728,6 +741,9 @@ sealed class Søknadsbehandling {
                         beregning,
                         saksbehandler,
                     )
+
+                override val avslagsgrunner: List<Avslagsgrunn> =
+                    behandlingsinformasjon.utledAvslagsgrunner() + avslagsgrunnForBeregning
             }
 
             data class UtenBeregning(
@@ -739,9 +755,9 @@ sealed class Søknadsbehandling {
                 override val oppgaveId: OppgaveId,
                 override val behandlingsinformasjon: Behandlingsinformasjon,
                 override val fnr: Fnr,
-                override val saksbehandler: NavIdentBruker,
+                override val saksbehandler: NavIdentBruker.Saksbehandler,
                 override val attestering: Attestering
-            ) : Avslag() {
+            ) : Avslag(), no.nav.su.se.bakover.domain.søknadsbehandling.Avslag {
                 override val status: Behandling.BehandlingsStatus =
                     Behandling.BehandlingsStatus.UNDERKJENT_AVSLAG
 
@@ -765,6 +781,8 @@ sealed class Søknadsbehandling {
                         fnr,
                         saksbehandler,
                     )
+
+                override val avslagsgrunner: List<Avslagsgrunn> = behandlingsinformasjon.utledAvslagsgrunner()
             }
         }
     }
@@ -778,7 +796,7 @@ sealed class Søknadsbehandling {
         abstract override val oppgaveId: OppgaveId
         abstract override val behandlingsinformasjon: Behandlingsinformasjon
         abstract override val fnr: Fnr
-        abstract val saksbehandler: NavIdentBruker
+        abstract val saksbehandler: NavIdentBruker.Saksbehandler
         abstract val attestering: Attestering
 
         sealed class KunneIkkeDistribuereBrev {
@@ -805,7 +823,7 @@ sealed class Søknadsbehandling {
             override val fnr: Fnr,
             val beregning: Beregning,
             val simulering: Simulering,
-            override val saksbehandler: NavIdentBruker,
+            override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val attestering: Attestering,
             val utbetalingId: UUID30,
             val eksterneIverksettingsteg: EksterneIverksettingsteg = EksterneIverksettingsteg.VenterPåKvittering
@@ -894,16 +912,22 @@ sealed class Søknadsbehandling {
                 override val behandlingsinformasjon: Behandlingsinformasjon,
                 override val fnr: Fnr,
                 val beregning: Beregning,
-                override val saksbehandler: NavIdentBruker,
+                override val saksbehandler: NavIdentBruker.Saksbehandler,
                 override val attestering: Attestering,
                 override val eksterneIverksettingsteg: EksterneIverksettingsteg
-            ) : Avslag() {
+            ) : Avslag(), no.nav.su.se.bakover.domain.søknadsbehandling.Avslag {
                 override val status: Behandling.BehandlingsStatus =
                     Behandling.BehandlingsStatus.IVERKSATT_AVSLAG
 
                 override fun accept(visitor: SøknadsbehandlingVisitor) {
                     visitor.visit(this)
                 }
+
+                private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
+                    when (val vurdering = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
+                        is AvslagGrunnetBeregning.Ja -> listOf(vurdering.avslagsgrunn)
+                        is AvslagGrunnetBeregning.Nei -> emptyList()
+                    }
 
                 override fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeDistribuereBrev, MedBeregning> {
                     return when (eksterneIverksettingsteg) {
@@ -915,6 +939,9 @@ sealed class Søknadsbehandling {
                         ).left()
                     }
                 }
+
+                override val avslagsgrunner: List<Avslagsgrunn> =
+                    behandlingsinformasjon.utledAvslagsgrunner() + avslagsgrunnForBeregning
             }
 
             data class UtenBeregning(
@@ -926,10 +953,10 @@ sealed class Søknadsbehandling {
                 override val oppgaveId: OppgaveId,
                 override val behandlingsinformasjon: Behandlingsinformasjon,
                 override val fnr: Fnr,
-                override val saksbehandler: NavIdentBruker,
+                override val saksbehandler: NavIdentBruker.Saksbehandler,
                 override val attestering: Attestering,
                 override val eksterneIverksettingsteg: EksterneIverksettingsteg
-            ) : Avslag() {
+            ) : Avslag(), no.nav.su.se.bakover.domain.søknadsbehandling.Avslag {
                 override val status: Behandling.BehandlingsStatus =
                     Behandling.BehandlingsStatus.IVERKSATT_AVSLAG
 
@@ -947,15 +974,19 @@ sealed class Søknadsbehandling {
                         ).left()
                     }
                 }
+
+                override val avslagsgrunner: List<Avslagsgrunn> = behandlingsinformasjon.utledAvslagsgrunner()
             }
 
             sealed class EksterneIverksettingsteg {
                 abstract val journalpostId: JournalpostId
+
                 data class Journalført(override val journalpostId: JournalpostId) : EksterneIverksettingsteg() {
                     fun medDistribuertBrev(brevbestillingId: BrevbestillingId): JournalførtOgDistribuertBrev {
                         return JournalførtOgDistribuertBrev(journalpostId, brevbestillingId)
                     }
                 }
+
                 data class JournalførtOgDistribuertBrev(
                     override val journalpostId: JournalpostId,
                     val brevbestillingId: BrevbestillingId

@@ -129,6 +129,7 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
             journalførIverksettingServiceMock,
             oppgaveServiceMock
         ) {
+            verify(personServiceMock).hentPersonMedSystembruker(fnr)
             verify(oppslagMock).hentBrukerinformasjonForNavIdent(
                 argThat {
                     it shouldBe saksbehandler
@@ -181,6 +182,7 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
             oppslagMock,
             oppgaveServiceMock
         ) {
+            verify(personServiceMock).hentPersonMedSystembruker(fnr)
             argumentCaptor<NavIdentBruker>().apply {
                 verify(oppslagMock, times(2)).hentBrukerinformasjonForNavIdent(capture())
                 firstValue shouldBe saksbehandler
@@ -230,7 +232,6 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
             oppgaveServiceMock,
             oppslagMock
         ) {
-            verify(oppslagMock, times(2)).hentBrukerinformasjonForNavIdent(any())
             verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe fnr })
             verify(oppgaveServiceMock).lukkOppgaveMedSystembruker(argThat { it shouldBe iverksattOppgaveId })
         }
@@ -253,7 +254,10 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
         }
 
         val oppslagMock: MicrosoftGraphApiOppslag = mock {
-            on { hentBrukerinformasjonForNavIdent(any()) } doReturn BehandlingTestUtils.microsoftGraphMock.response.right()
+            on { hentBrukerinformasjonForNavIdent(any()) } doReturnConsecutively listOf(
+                BehandlingTestUtils.microsoftGraphMock.response.copy(displayName = saksbehandler.navIdent).right(),
+                BehandlingTestUtils.microsoftGraphMock.response.copy(displayName = attestant.navIdent).right(),
+            )
         }
         val brevServiceMock = mock<BrevService>() {
             on { journalførBrev(any(), any()) } doReturn KunneIkkeJournalføreBrev.KunneIkkeOppretteJournalpost.left()
@@ -280,20 +284,20 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
             brevServiceMock,
             oppgaveServiceMock
         ) {
+            verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe fnr })
             argumentCaptor<NavIdentBruker>().apply {
                 verify(oppslagMock, times(2)).hentBrukerinformasjonForNavIdent(capture())
                 firstValue shouldBe saksbehandler
                 secondValue shouldBe attestant
             }
-            verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe fnr })
             verify(brevServiceMock).journalførBrev(
                 argThat {
                     it shouldBe LagBrevRequest.InnvilgetVedtak(
                         person = person,
                         beregning = innvilgetBehandlingUtenJournalpost.beregning,
                         behandlingsinformasjon = innvilgetBehandlingUtenJournalpost.behandlingsinformasjon,
-                        saksbehandlerNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName,
-                        attestantNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName,
+                        saksbehandlerNavn = saksbehandler.navIdent,
+                        attestantNavn = attestant.navIdent,
                     )
                 },
                 argThat { it shouldBe saksnummer }
@@ -317,7 +321,10 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
         }
 
         val oppslagMock: MicrosoftGraphApiOppslag = mock {
-            on { hentBrukerinformasjonForNavIdent(any()) } doReturn BehandlingTestUtils.microsoftGraphMock.response.right()
+            on { hentBrukerinformasjonForNavIdent(any()) } doReturnConsecutively listOf(
+                BehandlingTestUtils.microsoftGraphMock.response.copy(displayName = saksbehandler.navIdent).right(),
+                BehandlingTestUtils.microsoftGraphMock.response.copy(displayName = attestant.navIdent).right(),
+            )
         }
 
         val brevServiceMock = mock<BrevService> {
@@ -346,20 +353,20 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
             brevServiceMock,
             oppgaveServiceMock
         ) {
+            verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe fnr })
             argumentCaptor<NavIdentBruker>().apply {
                 verify(oppslagMock, times(2)).hentBrukerinformasjonForNavIdent(capture())
                 firstValue shouldBe saksbehandler
                 secondValue shouldBe attestant
             }
-            verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe fnr })
             verify(brevServiceMock).journalførBrev(
                 argThat {
                     it shouldBe LagBrevRequest.InnvilgetVedtak(
                         person = person,
                         beregning = innvilgetBehandlingUtenJournalpost.beregning,
                         behandlingsinformasjon = innvilgetBehandlingUtenJournalpost.behandlingsinformasjon,
-                        saksbehandlerNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName,
-                        attestantNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName,
+                        saksbehandlerNavn = saksbehandler.navIdent,
+                        attestantNavn = attestant.navIdent,
                     )
                 },
                 argThat { it shouldBe saksnummer },
@@ -403,7 +410,10 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
         }
 
         val oppslagMock: MicrosoftGraphApiOppslag = mock {
-            on { hentBrukerinformasjonForNavIdent(any()) } doReturn Either.right(BehandlingTestUtils.microsoftGraphMock.response)
+            on { hentBrukerinformasjonForNavIdent(any()) } doReturnConsecutively listOf(
+                BehandlingTestUtils.microsoftGraphMock.response.copy(displayName = saksbehandler.navIdent).right(),
+                BehandlingTestUtils.microsoftGraphMock.response.copy(displayName = attestant.navIdent).right(),
+            )
         }
 
         val oppgaveServiceMock = mock<OppgaveService> {
@@ -432,8 +442,8 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
                     person = person,
                     beregning = innvilgetBehandlingUtenJournalpost.beregning,
                     behandlingsinformasjon = innvilgetBehandlingUtenJournalpost.behandlingsinformasjon,
-                    saksbehandlerNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName,
-                    attestantNavn = BehandlingTestUtils.microsoftGraphMock.response.displayName,
+                    saksbehandlerNavn = saksbehandler.navIdent,
+                    attestantNavn = attestant.navIdent,
                 )
             },
             argThat { it shouldBe saksnummer },

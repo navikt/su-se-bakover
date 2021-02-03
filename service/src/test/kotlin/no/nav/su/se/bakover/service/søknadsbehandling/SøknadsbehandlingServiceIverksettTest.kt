@@ -11,7 +11,6 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
-import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -31,15 +30,8 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
 import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling
-import no.nav.su.se.bakover.service.beregning.BeregningService
 import no.nav.su.se.bakover.service.beregning.TestBeregning
-import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.fixedClock
-import no.nav.su.se.bakover.service.oppgave.OppgaveService
-import no.nav.su.se.bakover.service.person.PersonService
-import no.nav.su.se.bakover.service.statistikk.EventObserver
-import no.nav.su.se.bakover.service.søknad.SøknadService
-import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -68,8 +60,8 @@ internal class SøknadsbehandlingServiceIverksettTest {
 
         val iverksettSaksbehandlingServiceMock = mock<IverksettSøknadsbehandlingService>()
 
-        val response = createService(
-            behandlingRepo = søknadsbehandlingRepoMock,
+        val response = createSøknadsbehandlingService(
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             iverksettBehandlingService = iverksettSaksbehandlingServiceMock
         ).iverksett(IverksettSøknadsbehandlingRequest(behandling.id, Attestering.Iverksatt(attestant)))
 
@@ -98,8 +90,8 @@ internal class SøknadsbehandlingServiceIverksettTest {
 
         val behandlingMetricsMock = mock<BehandlingMetrics>()
 
-        val response = createService(
-            behandlingRepo = søknadsbehandlingRepoMock,
+        val response = createSøknadsbehandlingService(
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             iverksettBehandlingService = iverksettSaksbehandlingServiceMock,
             behandlingMetrics = behandlingMetricsMock
         ).iverksett(IverksettSøknadsbehandlingRequest(behandling.id, Attestering.Iverksatt(attestant)))
@@ -172,8 +164,8 @@ internal class SøknadsbehandlingServiceIverksettTest {
 
         val behandlingMetricsMock = mock<BehandlingMetrics>()
 
-        val response = createService(
-            behandlingRepo = søknadsbehandlingRepoMock,
+        val response = createSøknadsbehandlingService(
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             iverksettBehandlingService = iverksettSaksbehandlingServiceMock,
             behandlingMetrics = behandlingMetricsMock
         ).iverksett(IverksettSøknadsbehandlingRequest(behandling.id, Attestering.Iverksatt(attestant)))
@@ -206,8 +198,8 @@ internal class SøknadsbehandlingServiceIverksettTest {
 
         val iverksettSaksbehandlingServiceMock = mock<IverksettSøknadsbehandlingService>()
 
-        val response = createService(
-            behandlingRepo = søknadsbehandlingRepoMock,
+        val response = createSøknadsbehandlingService(
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             iverksettBehandlingService = iverksettSaksbehandlingServiceMock
         ).iverksett(IverksettSøknadsbehandlingRequest(behandling.id, Attestering.Iverksatt(attestant)))
 
@@ -244,8 +236,8 @@ internal class SøknadsbehandlingServiceIverksettTest {
         val iverksettSaksbehandlingServiceMock = mock<IverksettSøknadsbehandlingService>()
 
         assertThrows<StatusovergangVisitor.UgyldigStatusovergangException> {
-            createService(
-                behandlingRepo = søknadsbehandlingRepoMock,
+            createSøknadsbehandlingService(
+                søknadsbehandlingRepo = søknadsbehandlingRepoMock,
                 iverksettBehandlingService = iverksettSaksbehandlingServiceMock
             ).iverksett(IverksettSøknadsbehandlingRequest(behandling.id, Attestering.Iverksatt(attestant)))
 
@@ -311,29 +303,6 @@ internal class SøknadsbehandlingServiceIverksettTest {
         nettoBeløp = 191500,
         periodeList = listOf()
     )
-
-    private fun createService(
-        behandlingRepo: SøknadsbehandlingRepo = mock(),
-        utbetalingService: UtbetalingService = mock(),
-        oppgaveService: OppgaveService = mock(),
-        søknadService: SøknadService = mock(),
-        søknadRepo: SøknadRepo = mock(),
-        personService: PersonService = mock(),
-        behandlingMetrics: BehandlingMetrics = mock(),
-        iverksettBehandlingService: IverksettSøknadsbehandlingService = mock(),
-        observer: EventObserver = mock { on { handle(any()) }.doNothing() },
-        beregningService: BeregningService = mock(),
-    ) = SøknadsbehandlingServiceImpl(
-        søknadService,
-        søknadRepo,
-        behandlingRepo,
-        utbetalingService,
-        personService,
-        oppgaveService,
-        iverksettBehandlingService,
-        behandlingMetrics,
-        beregningService,
-    ).apply { addObserver(observer) }
 
     @Nested
     inner class IverksettStatusovergangFeilMapperTest {
