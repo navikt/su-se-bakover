@@ -15,13 +15,13 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.behandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.service.behandling.FerdigstillIverksettingService
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.service.søknadsbehandling.FerdigstillSøknadsbehandingIverksettingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.argThat
@@ -75,12 +75,12 @@ internal class LokalKvitteringJobTest {
         }
         val innvilgetSøknadsbehandling = mock<Søknadsbehandling.Iverksatt.Innvilget> {
         }
-        val behandlingServiceMock = mock<FerdigstillIverksettingService> {
+        val behandlingServiceMock = mock<FerdigstillSøknadsbehandingIverksettingService> {
             on { hentBehandlingForUtbetaling(any()) } doReturn innvilgetSøknadsbehandling
         }
         val utbetalingKvitteringConsumer = UtbetalingKvitteringConsumer(
             utbetalingService = utbetalingServiceMock,
-            ferdigstillIverksettingService = behandlingServiceMock,
+            ferdigstillSøknadsbehandingIverksettingService = behandlingServiceMock,
             clock = fixedClock
         )
         LokalKvitteringJob(utbetalingRepoMock, utbetalingKvitteringConsumer).schedule()

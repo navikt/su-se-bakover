@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.domain.beregning
 
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.behandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 
 class BeregningStrategyFactory() {
     fun beregn(søknadsbehandling: Søknadsbehandling, periode: Periode, fradrag: List<Fradrag>): Beregning {

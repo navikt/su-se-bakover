@@ -10,19 +10,19 @@ import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.database.SaksbehandlingRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
+import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.behandlingsinformasjon
@@ -63,12 +63,12 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
 
     @Test
     fun `kan ikke hente behandling`() {
-        val behandlingRepoMock = mock<SaksbehandlingRepo> {
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn null
         }
 
         val response = createService(
-            behandlingRepo = behandlingRepoMock,
+            behandlingRepo = søknadsbehandlingRepoMock,
         ).vilkårsvurder(
             OppdaterSøknadsbehandlingsinformasjonRequest(
                 behandlingId = behandlingId,
@@ -79,19 +79,19 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
 
         response shouldBe KunneIkkeOppdatereBehandlingsinformasjon.FantIkkeBehandling.left()
 
-        verify(behandlingRepoMock).hent(argThat { it shouldBe behandlingId })
-        verifyNoMoreInteractions(behandlingRepoMock)
+        verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandlingId })
+        verifyNoMoreInteractions(søknadsbehandlingRepoMock)
     }
 
     @Test
     fun `vilkårsvurderer med alle vilkår oppfylt`() {
         val behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
-        val behandlingRepoMock = mock<SaksbehandlingRepo> {
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn opprettetBehandling
         }
 
         val response = createService(
-            behandlingRepo = behandlingRepoMock,
+            behandlingRepo = søknadsbehandlingRepoMock,
         ).vilkårsvurder(
             OppdaterSøknadsbehandlingsinformasjonRequest(
                 behandlingId,
@@ -113,22 +113,22 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
 
         response shouldBe expected.right()
 
-        inOrder(behandlingRepoMock) {
-            verify(behandlingRepoMock).hent(argThat { it shouldBe behandlingId })
-            verify(behandlingRepoMock).lagre(expected)
+        inOrder(søknadsbehandlingRepoMock) {
+            verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandlingId })
+            verify(søknadsbehandlingRepoMock).lagre(expected)
         }
-        verifyNoMoreInteractions(behandlingRepoMock)
+        verifyNoMoreInteractions(søknadsbehandlingRepoMock)
     }
 
     @Test
     fun `vilkårsvurderer med alle avslag`() {
         val behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withVilkårAvslått()
-        val behandlingRepoMock = mock<SaksbehandlingRepo> {
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn opprettetBehandling
         }
 
         val response = createService(
-            behandlingRepo = behandlingRepoMock,
+            behandlingRepo = søknadsbehandlingRepoMock,
         ).vilkårsvurder(
             OppdaterSøknadsbehandlingsinformasjonRequest(
                 behandlingId,
@@ -150,15 +150,15 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
 
         response shouldBe expected.right()
 
-        inOrder(behandlingRepoMock) {
-            verify(behandlingRepoMock).hent(argThat { it shouldBe behandlingId })
-            verify(behandlingRepoMock).lagre(expected)
+        inOrder(søknadsbehandlingRepoMock) {
+            verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandlingId })
+            verify(søknadsbehandlingRepoMock).lagre(expected)
         }
-        verifyNoMoreInteractions(behandlingRepoMock)
+        verifyNoMoreInteractions(søknadsbehandlingRepoMock)
     }
 
     private fun createService(
-        behandlingRepo: SaksbehandlingRepo = mock(),
+        behandlingRepo: SøknadsbehandlingRepo = mock(),
         utbetalingService: UtbetalingService = mock(),
         oppgaveService: OppgaveService = mock(),
         søknadService: SøknadService = mock(),

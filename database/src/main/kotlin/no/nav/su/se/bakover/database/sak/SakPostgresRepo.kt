@@ -2,11 +2,11 @@ package no.nav.su.se.bakover.database.sak
 
 import kotliquery.Row
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.database.SaksbehandlingRepo
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal
+import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingInternalRepo
 import no.nav.su.se.bakover.database.withSession
@@ -19,7 +19,7 @@ import javax.sql.DataSource
 
 internal class SakPostgresRepo(
     private val dataSource: DataSource,
-    private val saksbehandlingRepo: SaksbehandlingRepo
+    private val søknadsbehandlingRepo: SøknadsbehandlingRepo
 ) : SakRepo {
     override fun hentSak(sakId: UUID) = dataSource.withSession { hentSakInternal(sakId, it) }
     override fun hentSak(fnr: Fnr) = dataSource.withSession { hentSakInternal(fnr, it) }
@@ -56,7 +56,7 @@ internal class SakPostgresRepo(
             fnr = Fnr(string("fnr")),
             opprettet = tidspunkt("opprettet"),
             søknader = SøknadRepoInternal.hentSøknaderInternal(sakId, session),
-            behandlinger = saksbehandlingRepo.hentForSak(sakId, session),
+            behandlinger = søknadsbehandlingRepo.hentForSak(sakId, session),
             utbetalinger = UtbetalingInternalRepo.hentUtbetalinger(sakId, session)
         )
     }

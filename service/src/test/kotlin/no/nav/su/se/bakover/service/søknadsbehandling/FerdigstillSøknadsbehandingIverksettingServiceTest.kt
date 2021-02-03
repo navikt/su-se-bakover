@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.service.behandling
+package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.Either
 import arrow.core.left
@@ -17,26 +17,29 @@ import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.database.SaksbehandlingRepo
+import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
-import no.nav.su.se.bakover.domain.behandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.attestant
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.behandlingsinformasjon
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.fnr
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.person
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.saksbehandler
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.saksnummer
+import no.nav.su.se.bakover.service.behandling.DistribuerIverksettingsbrevService
+import no.nav.su.se.bakover.service.behandling.JournalførIverksettingService
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeDistribuereBrev
@@ -47,7 +50,7 @@ import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
 
-internal class FerdigstillIverksettingServiceTest {
+internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
 
     private val iverksattOppgaveId = OppgaveId("iverksattOppgaveId")
 
@@ -87,7 +90,7 @@ internal class FerdigstillIverksettingServiceTest {
 
     @Test
     fun `Kunne ikke opprette journalpost hvis vi ikke finner saksbehandler`() {
-        val behandlingRepoMock = mock<SaksbehandlingRepo>()
+        val behandlingRepoMock = mock<SøknadsbehandlingRepo>()
 
         val personServiceMock = mock<PersonService> {
             on { hentPersonMedSystembruker(any()) } doReturn person.right()
@@ -109,7 +112,7 @@ internal class FerdigstillIverksettingServiceTest {
         val distribuerIverksettingsbrevServiceMock = mock<DistribuerIverksettingsbrevService>()
 
         val actual = createService(
-            saksbehandlingRepo = behandlingRepoMock,
+            søknadsbehandlingRepo = behandlingRepoMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
             microsoftGraphApiOppslag = oppslagMock,
@@ -145,7 +148,7 @@ internal class FerdigstillIverksettingServiceTest {
 
     @Test
     fun `Kunne ikke opprette journalpost hvis vi ikke finner attestant`() {
-        val behandlingRepoMock = mock<SaksbehandlingRepo>()
+        val behandlingRepoMock = mock<SøknadsbehandlingRepo>()
 
         val personServiceMock = mock<PersonService> {
             on { hentPersonMedSystembruker(any()) } doReturn person.right()
@@ -163,7 +166,7 @@ internal class FerdigstillIverksettingServiceTest {
         }
 
         val actual = createService(
-            saksbehandlingRepo = behandlingRepoMock,
+            søknadsbehandlingRepo = behandlingRepoMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
             microsoftGraphApiOppslag = oppslagMock,
@@ -195,7 +198,7 @@ internal class FerdigstillIverksettingServiceTest {
 
     @Test
     fun `Kunne ikke opprette journalpost hvis vi ikke finner person`() {
-        val behandlingRepoMock = mock<SaksbehandlingRepo>()
+        val behandlingRepoMock = mock<SøknadsbehandlingRepo>()
 
         val personServiceMock = mock<PersonService> {
             on { hentPersonMedSystembruker(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
@@ -212,7 +215,7 @@ internal class FerdigstillIverksettingServiceTest {
         }
 
         val actual = createService(
-            saksbehandlingRepo = behandlingRepoMock,
+            søknadsbehandlingRepo = behandlingRepoMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
             microsoftGraphApiOppslag = oppslagMock,
@@ -243,7 +246,7 @@ internal class FerdigstillIverksettingServiceTest {
     @Test
     fun `Kan ikke journalføre eller distribuere brev hvis journalføring feiler`() {
 
-        val saksbehandlingRepoMock = mock<SaksbehandlingRepo>()
+        val saksbehandlingRepoMock = mock<SøknadsbehandlingRepo>()
 
         val personServiceMock = mock<PersonService> {
             on { hentPersonMedSystembruker(any()) } doReturn person.right()
@@ -260,7 +263,7 @@ internal class FerdigstillIverksettingServiceTest {
         }
 
         val actual = createService(
-            saksbehandlingRepo = saksbehandlingRepoMock,
+            søknadsbehandlingRepo = saksbehandlingRepoMock,
             personService = personServiceMock,
             microsoftGraphApiOppslag = oppslagMock,
             brevService = brevServiceMock,
@@ -307,7 +310,7 @@ internal class FerdigstillIverksettingServiceTest {
 
     @Test
     fun `Kunne ikke distribuere brev`() {
-        val saksbehandlingRepoMock = mock<SaksbehandlingRepo>()
+        val saksbehandlingRepoMock = mock<SøknadsbehandlingRepo>()
 
         val personServiceMock = mock<PersonService> {
             on { hentPersonMedSystembruker(any()) } doReturn person.right()
@@ -327,7 +330,7 @@ internal class FerdigstillIverksettingServiceTest {
         }
 
         val actual = createService(
-            saksbehandlingRepo = saksbehandlingRepoMock,
+            søknadsbehandlingRepo = saksbehandlingRepoMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
             microsoftGraphApiOppslag = oppslagMock,
@@ -388,7 +391,7 @@ internal class FerdigstillIverksettingServiceTest {
 
     @Test
     fun `journalfører og distribuerer brev for iverksatt innvilget`() {
-        val saksbehandlingRepoMock = mock<SaksbehandlingRepo>()
+        val saksbehandlingRepoMock = mock<SøknadsbehandlingRepo>()
 
         val personServiceMock = mock<PersonService> {
             on { hentPersonMedSystembruker(any()) } doReturn person.right()
@@ -408,7 +411,7 @@ internal class FerdigstillIverksettingServiceTest {
         }
 
         val actual = createService(
-            saksbehandlingRepo = saksbehandlingRepoMock,
+            søknadsbehandlingRepo = saksbehandlingRepoMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
             microsoftGraphApiOppslag = oppslagMock,
@@ -466,14 +469,14 @@ internal class FerdigstillIverksettingServiceTest {
     }
 
     private fun createService(
-        saksbehandlingRepo: SaksbehandlingRepo = mock(),
+        søknadsbehandlingRepo: SøknadsbehandlingRepo = mock(),
         oppgaveService: OppgaveService = mock(),
         personService: PersonService = mock(),
         behandlingMetrics: BehandlingMetrics = mock(),
         microsoftGraphApiOppslag: MicrosoftGraphApiOppslag = mock(),
         brevService: BrevService = mock(),
-    ) = FerdigstillIverksettingServiceImpl(
-        saksbehandlingRepo = saksbehandlingRepo,
+    ) = FerdigstillSøknadsbehandingIverksettingServiceImpl(
+        søknadsbehandlingRepo = søknadsbehandlingRepo,
         oppgaveService = oppgaveService,
         behandlingMetrics = behandlingMetrics,
         microsoftGraphApiClient = microsoftGraphApiOppslag,

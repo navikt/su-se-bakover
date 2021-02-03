@@ -14,13 +14,13 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.behandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.service.behandling.FerdigstillIverksettingService
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.service.søknadsbehandling.FerdigstillSøknadsbehandingIverksettingService
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.web.FnrGenerator
@@ -91,7 +91,7 @@ internal class UtbetalingKvitteringConsumerTest {
                 on { oppdaterMedKvittering(any(), any()) } doReturn utbetalingMedKvittering.right()
             }
 
-            val behandlingServiceMock = mock<FerdigstillIverksettingService>()
+            val behandlingServiceMock = mock<FerdigstillSøknadsbehandingIverksettingService>()
             val consumer = UtbetalingKvitteringConsumer(utbetalingServiceMock, behandlingServiceMock, clock)
 
             consumer.onMessage(xmlMessage)
@@ -121,7 +121,7 @@ internal class UtbetalingKvitteringConsumerTest {
             on { oppdaterMedKvittering(any(), any()) } doReturn utbetalingMedKvittering.right()
         }
 
-        val behandlingServiceMock = mock<FerdigstillIverksettingService>()
+        val behandlingServiceMock = mock<FerdigstillSøknadsbehandingIverksettingService>()
         val consumer = UtbetalingKvitteringConsumer(utbetalingServiceMock, behandlingServiceMock, clock)
 
         consumer.onMessage(xmlMessage)
@@ -150,7 +150,7 @@ internal class UtbetalingKvitteringConsumerTest {
             on { oppdaterMedKvittering(any(), any()) } doReturn utbetalingMedKvittering.right()
         }
 
-        val behandlingServiceMock = mock<FerdigstillIverksettingService> {
+        val behandlingServiceMock = mock<FerdigstillSøknadsbehandingIverksettingService> {
             on { hentBehandlingForUtbetaling(any()) } doReturn null
         }
         val consumer = UtbetalingKvitteringConsumer(utbetalingServiceMock, behandlingServiceMock, clock)
@@ -185,7 +185,7 @@ internal class UtbetalingKvitteringConsumerTest {
             on { oppdaterMedKvittering(any(), any()) } doReturn utbetalingMedKvittering.right()
         }
 
-        val behandlingServiceMock = mock<FerdigstillIverksettingService> {
+        val behandlingServiceMock = mock<FerdigstillSøknadsbehandingIverksettingService> {
             on { hentBehandlingForUtbetaling(any()) } doReturn behandling
         }
         val consumer = UtbetalingKvitteringConsumer(utbetalingServiceMock, behandlingServiceMock, clock)

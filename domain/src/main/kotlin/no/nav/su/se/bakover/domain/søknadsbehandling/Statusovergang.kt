@@ -1,14 +1,16 @@
-package no.nav.su.se.bakover.domain.behandling
+package no.nav.su.se.bakover.domain.søknadsbehandling
 
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.behandling.Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg
+import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg
 
 abstract class Statusovergang<L, T> : StatusovergangVisitor {
 
@@ -177,10 +179,10 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
 
         sealed class KunneIkkeUtbetale : KunneIkkeIverksetteSøknadsbehandling() {
             object SimuleringHarBlittEndretSidenSaksbehandlerSimulerte :
-                KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale()
+                KunneIkkeUtbetale()
 
-            object TekniskFeil : KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale()
-            object KunneIkkeKontrollsimulere : KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale()
+            object TekniskFeil : KunneIkkeUtbetale()
+            object KunneIkkeKontrollsimulere : KunneIkkeUtbetale()
         }
 
         object FantIkkePerson : KunneIkkeIverksetteSøknadsbehandling()

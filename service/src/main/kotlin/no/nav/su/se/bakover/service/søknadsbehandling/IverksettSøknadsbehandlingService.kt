@@ -7,18 +7,14 @@ import arrow.core.left
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.database.SaksbehandlingRepo
-import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
-import no.nav.su.se.bakover.domain.behandling.Statusovergang
-import no.nav.su.se.bakover.domain.behandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.service.behandling.DistribuerIverksettingsbrevService
-import no.nav.su.se.bakover.service.behandling.JournalførIverksettingService
+import no.nav.su.se.bakover.domain.søknadsbehandling.Statusovergang
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
@@ -26,22 +22,16 @@ import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
-import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
 import org.slf4j.LoggerFactory
 import java.time.Clock
 
 class IverksettSøknadsbehandlingService(
-    private val behandlingRepo: BehandlingRepo,
     private val utbetalingService: UtbetalingService,
     private val oppgaveService: OppgaveService,
     private val personService: PersonService,
-    private val opprettVedtakssnapshotService: OpprettVedtakssnapshotService,
     private val behandlingMetrics: BehandlingMetrics,
     private val clock: Clock,
     private val microsoftGraphApiClient: MicrosoftGraphApiOppslag,
-    private val journalførIverksettingService: JournalførIverksettingService,
-    private val distribuerIverksettingsbrevService: DistribuerIverksettingsbrevService,
-    private val saksbehandlingRepo: SaksbehandlingRepo,
     private val brevService: BrevService,
 ) {
     private val observers: MutableList<EventObserver> = mutableListOf()

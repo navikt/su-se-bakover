@@ -5,8 +5,8 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeBeregne
 import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeOppdatereBehandlingsinformasjon

@@ -116,14 +116,6 @@ sealed class IverksattBehandling {
     }
 }
 
-data class OpprettManglendeJournalpostOgBrevdistribusjonResultat(
-    val journalpostresultat: List<Either<KunneIkkeOppretteJournalpostForIverksetting, OpprettetJournalpostForIverksetting>>,
-    val brevbestillingsresultat: List<Either<KunneIkkeBestilleBrev, BestiltBrev>>
-) {
-    fun harFeil(): Boolean = journalpostresultat.mapNotNull { it.swap().orNull() }.isNotEmpty() ||
-        brevbestillingsresultat.mapNotNull { it.swap().orNull() }.isNotEmpty()
-}
-
 data class OpprettetJournalpostForIverksetting(
     val sakId: UUID,
     val behandlingId: UUID,

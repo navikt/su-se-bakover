@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.behandling
+package no.nav.su.se.bakover.domain.søknadsbehandling
 
 import arrow.core.Either
 import arrow.core.left
@@ -8,6 +8,11 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.behandling.AvslagGrunnetBeregning
+import no.nav.su.se.bakover.domain.behandling.Behandling
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
@@ -815,7 +820,11 @@ sealed class Søknadsbehandling {
             fun journalfør(journalfør: () -> Either<KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<KunneIkkeJournalføre, Innvilget> {
                 return when (eksterneIverksettingsteg) {
                     is EksterneIverksettingsteg.VenterPåKvittering -> journalfør().map {
-                        this.copy(eksterneIverksettingsteg = eksterneIverksettingsteg.medJournalpost(it))
+                        this.copy(
+                            eksterneIverksettingsteg = EksterneIverksettingsteg.VenterPåKvittering.medJournalpost(
+                                it
+                            )
+                        )
                     }
                     is EksterneIverksettingsteg.Journalført -> KunneIkkeJournalføre.AlleredeJournalført(
                         eksterneIverksettingsteg.journalpostId

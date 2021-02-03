@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.database
+package no.nav.su.se.bakover.database.søknadsbehandling
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -8,15 +8,20 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.database.EmbeddedDatabase
+import no.nav.su.se.bakover.database.FnrGenerator
+import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.beregning.PersistertMånedsberegning
 import no.nav.su.se.bakover.database.beregning.TestBeregning
 import no.nav.su.se.bakover.database.beregning.toSnapshot
+import no.nav.su.se.bakover.database.hent
+import no.nav.su.se.bakover.database.withMigratedDb
+import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
 import no.nav.su.se.bakover.domain.beregning.Sats
@@ -27,16 +32,17 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
 
-internal class SaksbehandlingsPostgresRepoTest {
+internal class SøknadsbehandlingPostgresRepoTest {
 
     private val dataSource = EmbeddedDatabase.instance()
     private val testDataHelper = TestDataHelper(dataSource)
-    private val repo = SaksbehandlingsPostgresRepo(dataSource)
+    private val repo = SøknadsbehandlingPostgresRepo(dataSource)
 
     private val saksbehandlingId = UUID.randomUUID()
     private val opprettet = Tidspunkt.now()

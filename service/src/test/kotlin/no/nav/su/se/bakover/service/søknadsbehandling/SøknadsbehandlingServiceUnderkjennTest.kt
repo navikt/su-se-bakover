@@ -14,9 +14,9 @@ import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
-import no.nav.su.se.bakover.database.SaksbehandlingRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
+import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -25,8 +25,6 @@ import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandling.StatusovergangVisitor
-import no.nav.su.se.bakover.domain.behandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -35,6 +33,8 @@ import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.KunneIkkeUnderkjenneBehandling
@@ -102,7 +102,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
     )
 
     private fun createService(
-        behandlingRepo: SaksbehandlingRepo = mock(),
+        søknadsbehandlingRepo: SøknadsbehandlingRepo = mock(),
         utbetalingService: UtbetalingService = mock(),
         oppgaveService: OppgaveService = mock(),
         søknadService: SøknadService = mock(),
@@ -115,7 +115,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
     ) = SøknadsbehandlingServiceImpl(
         søknadService,
         søknadRepo,
-        behandlingRepo,
+        søknadsbehandlingRepo,
         utbetalingService,
         personService,
         oppgaveService,
@@ -126,7 +126,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
 
     @Test
     fun `Fant ikke behandling`() {
-        val behandlingRepoMock = mock<SaksbehandlingRepo> {
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn null
         }
 
@@ -136,7 +136,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
         val hendelsesloggRepoMock = mock<HendelsesloggRepo>()
 
         val actual = createService(
-            behandlingRepo = behandlingRepoMock,
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
             behandlingMetrics = behandlingMetricsMock
@@ -149,12 +149,12 @@ class SøknadsbehandlingServiceUnderkjennTest {
 
         actual shouldBe KunneIkkeUnderkjenneBehandling.FantIkkeBehandling.left()
 
-        inOrder(behandlingRepoMock) {
-            verify(behandlingRepoMock).hent(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
+        inOrder(søknadsbehandlingRepoMock) {
+            verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
         }
 
         verifyNoMoreInteractions(
-            behandlingRepoMock,
+            søknadsbehandlingRepoMock,
             personServiceMock,
             oppgaveServiceMock,
             behandlingMetricsMock,
@@ -171,7 +171,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             UUID30.randomUUID()
         )
 
-        val behandlingRepoMock = mock<SaksbehandlingRepo> {
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn behandling
         }
 
@@ -182,7 +182,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
 
         shouldThrow<StatusovergangVisitor.UgyldigStatusovergangException> {
             createService(
-                behandlingRepo = behandlingRepoMock,
+                søknadsbehandlingRepo = søknadsbehandlingRepoMock,
                 oppgaveService = oppgaveServiceMock,
                 personService = personServiceMock,
                 behandlingMetrics = behandlingMetricsMock
@@ -194,12 +194,12 @@ class SøknadsbehandlingServiceUnderkjennTest {
             )
         }.msg shouldContain "Ugyldig statusovergang"
 
-        inOrder(behandlingRepoMock) {
-            verify(behandlingRepoMock).hent(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
+        inOrder(søknadsbehandlingRepoMock) {
+            verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
         }
 
         verifyNoMoreInteractions(
-            behandlingRepoMock,
+            søknadsbehandlingRepoMock,
             personServiceMock,
             oppgaveServiceMock,
             behandlingMetricsMock,
@@ -209,7 +209,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
 
     @Test
     fun `attestant kan ikke være den samme som saksbehandler`() {
-        val behandlingRepoMock = mock<SaksbehandlingRepo> {
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn innvilgetBehandlingTilAttestering
         }
 
@@ -221,7 +221,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
         val observerMock: EventObserver = mock()
 
         val actual = createService(
-            behandlingRepo = behandlingRepoMock,
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
             behandlingMetrics = behandlingMetricsMock,
@@ -239,12 +239,12 @@ class SøknadsbehandlingServiceUnderkjennTest {
 
         actual shouldBe KunneIkkeUnderkjenneBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
 
-        inOrder(behandlingRepoMock) {
-            verify(behandlingRepoMock).hent(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
+        inOrder(søknadsbehandlingRepoMock) {
+            verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
         }
 
         verifyNoMoreInteractions(
-            behandlingRepoMock,
+            søknadsbehandlingRepoMock,
             personServiceMock,
             oppgaveServiceMock,
             behandlingMetricsMock,
@@ -254,7 +254,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
 
     @Test
     fun `Feiler å underkjenne dersom vi ikke fikk aktør id`() {
-        val behandlingRepoMock = mock<SaksbehandlingRepo> {
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn innvilgetBehandlingTilAttestering
         }
 
@@ -265,7 +265,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
         val behandlingMetricsMock = mock<BehandlingMetrics>()
 
         val actual = createService(
-            behandlingRepo = behandlingRepoMock,
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
             behandlingMetrics = behandlingMetricsMock
@@ -278,13 +278,13 @@ class SøknadsbehandlingServiceUnderkjennTest {
 
         actual shouldBe KunneIkkeUnderkjenneBehandling.FantIkkeAktørId.left()
 
-        inOrder(behandlingRepoMock, personServiceMock) {
-            verify(behandlingRepoMock).hent(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
+        inOrder(søknadsbehandlingRepoMock, personServiceMock) {
+            verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
             verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
         }
 
         verifyNoMoreInteractions(
-            behandlingRepoMock,
+            søknadsbehandlingRepoMock,
             personServiceMock,
             oppgaveServiceMock,
             behandlingMetricsMock,
@@ -293,7 +293,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
 
     @Test
     fun `Klarer ikke opprette oppgave`() {
-        val behandlingRepoMock = mock<SaksbehandlingRepo> {
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn innvilgetBehandlingTilAttestering
         }
         val personServiceMock = mock<PersonService> {
@@ -306,7 +306,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
         val behandlingMetricsMock = mock<BehandlingMetrics>()
 
         val actual = createService(
-            behandlingRepo = behandlingRepoMock,
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
             behandlingMetrics = behandlingMetricsMock
@@ -319,14 +319,14 @@ class SøknadsbehandlingServiceUnderkjennTest {
 
         actual shouldBe KunneIkkeUnderkjenneBehandling.KunneIkkeOppretteOppgave.left()
 
-        inOrder(behandlingRepoMock, personServiceMock, oppgaveServiceMock) {
-            verify(behandlingRepoMock).hent(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
+        inOrder(søknadsbehandlingRepoMock, personServiceMock, oppgaveServiceMock) {
+            verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
             verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
             verify(oppgaveServiceMock).opprettOppgave(argThat { it shouldBe oppgaveConfig })
         }
 
         verifyNoMoreInteractions(
-            behandlingRepoMock,
+            søknadsbehandlingRepoMock,
             personServiceMock,
             oppgaveServiceMock,
             behandlingMetricsMock,
@@ -335,7 +335,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
 
     @Test
     fun `Underkjenner selvom vi ikke klarer lukke oppgave`() {
-        val behandlingRepoMock = mock<SaksbehandlingRepo> {
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn innvilgetBehandlingTilAttestering
         }
 
@@ -353,7 +353,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
         }
 
         val actual = createService(
-            behandlingRepo = behandlingRepoMock,
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
             behandlingMetrics = behandlingMetricsMock,
@@ -383,13 +383,13 @@ class SøknadsbehandlingServiceUnderkjennTest {
         actual shouldBe underkjentMedNyOppgaveIdOgAttestering.right()
 
         inOrder(
-            behandlingRepoMock,
+            søknadsbehandlingRepoMock,
             personServiceMock,
             oppgaveServiceMock,
             behandlingMetricsMock,
             observerMock
         ) {
-            verify(behandlingRepoMock).hent(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
+            verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
             verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
             verify(oppgaveServiceMock).opprettOppgave(
                 argThat {
@@ -398,7 +398,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             )
             verify(behandlingMetricsMock).incrementUnderkjentCounter(BehandlingMetrics.UnderkjentHandlinger.OPPRETTET_OPPGAVE)
 
-            verify(behandlingRepoMock).lagre(argThat { it shouldBe underkjentMedNyOppgaveIdOgAttestering })
+            verify(søknadsbehandlingRepoMock).lagre(argThat { it shouldBe underkjentMedNyOppgaveIdOgAttestering })
 
             verify(behandlingMetricsMock).incrementUnderkjentCounter(argThat { it shouldBe BehandlingMetrics.UnderkjentHandlinger.PERSISTERT })
             verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
@@ -410,7 +410,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
         }
 
         verifyNoMoreInteractions(
-            behandlingRepoMock,
+            søknadsbehandlingRepoMock,
             personServiceMock,
             oppgaveServiceMock,
             behandlingMetricsMock,
@@ -419,7 +419,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
 
     @Test
     fun `underkjenner behandling`() {
-        val behandlingRepoMock = mock<SaksbehandlingRepo> {
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn innvilgetBehandlingTilAttestering
         }
 
@@ -435,7 +435,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
         val behandlingMetricsMock = mock<BehandlingMetrics>()
 
         val actual = createService(
-            behandlingRepo = behandlingRepoMock,
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
             behandlingMetrics = behandlingMetricsMock
@@ -464,12 +464,12 @@ class SøknadsbehandlingServiceUnderkjennTest {
         actual shouldBe underkjentMedNyOppgaveIdOgAttestering.right()
 
         inOrder(
-            behandlingRepoMock,
+            søknadsbehandlingRepoMock,
             personServiceMock,
             oppgaveServiceMock,
             behandlingMetricsMock,
         ) {
-            verify(behandlingRepoMock).hent(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
+            verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
             verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
             verify(oppgaveServiceMock).opprettOppgave(
                 argThat {
@@ -477,14 +477,14 @@ class SøknadsbehandlingServiceUnderkjennTest {
                 }
             )
             verify(behandlingMetricsMock).incrementUnderkjentCounter(BehandlingMetrics.UnderkjentHandlinger.OPPRETTET_OPPGAVE)
-            verify(behandlingRepoMock).lagre(underkjentMedNyOppgaveIdOgAttestering)
+            verify(søknadsbehandlingRepoMock).lagre(underkjentMedNyOppgaveIdOgAttestering)
             verify(behandlingMetricsMock).incrementUnderkjentCounter(BehandlingMetrics.UnderkjentHandlinger.PERSISTERT)
             verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
             verify(behandlingMetricsMock).incrementUnderkjentCounter(BehandlingMetrics.UnderkjentHandlinger.LUKKET_OPPGAVE)
         }
 
         verifyNoMoreInteractions(
-            behandlingRepoMock,
+            søknadsbehandlingRepoMock,
             personServiceMock,
             oppgaveServiceMock,
             behandlingMetricsMock,

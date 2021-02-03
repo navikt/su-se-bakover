@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.database.behandling.BehandlingPostgresRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
 import no.nav.su.se.bakover.database.sak.SakPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadPostgresRepo
+import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NySak
@@ -35,7 +36,7 @@ internal class TestDataHelper(
     private val utbetalingRepo = UtbetalingPostgresRepo(dataSource)
     private val hendelsesloggRepo = HendelsesloggPostgresRepo(dataSource)
     private val søknadRepo = SøknadPostgresRepo(dataSource)
-    private val saksbehandlingRepo = SaksbehandlingsPostgresRepo(dataSource)
+    private val saksbehandlingRepo = SøknadsbehandlingPostgresRepo(dataSource)
 
     private val behandlingRepo = behandlingPostgresRepo
     private val sakRepo = SakPostgresRepo(dataSource, saksbehandlingRepo)

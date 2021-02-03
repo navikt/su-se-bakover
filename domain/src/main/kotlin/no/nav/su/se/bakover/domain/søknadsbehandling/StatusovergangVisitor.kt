@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.behandling
+package no.nav.su.se.bakover.domain.søknadsbehandling
 
 interface StatusovergangVisitor {
     fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Uavklart) {

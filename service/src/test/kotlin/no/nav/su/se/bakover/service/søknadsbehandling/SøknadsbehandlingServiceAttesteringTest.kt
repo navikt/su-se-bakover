@@ -11,8 +11,8 @@ import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.idag
-import no.nav.su.se.bakover.database.SaksbehandlingRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
+import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -20,7 +20,6 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -29,6 +28,7 @@ import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering
@@ -83,7 +83,7 @@ class SøknadsbehandlingServiceAttesteringTest {
 
     @Test
     fun `sjekk at vi sender inn riktig oppgaveId ved lukking av oppgave ved attestering`() {
-        val behandlingRepoMock = mock<SaksbehandlingRepo> {
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn simulertBehandling
             on { hentEventuellTidligereAttestering(any()) } doReturn null
         }
@@ -102,7 +102,7 @@ class SøknadsbehandlingServiceAttesteringTest {
         }
 
         val actual = createService(
-            behandlingRepo = behandlingRepoMock,
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
             observer = eventObserver
@@ -124,10 +124,10 @@ class SøknadsbehandlingServiceAttesteringTest {
 
         actual shouldBe expected.right()
 
-        inOrder(behandlingRepoMock, personServiceMock, oppgaveServiceMock, eventObserver) {
-            verify(behandlingRepoMock).hent(simulertBehandling.id)
+        inOrder(søknadsbehandlingRepoMock, personServiceMock, oppgaveServiceMock, eventObserver) {
+            verify(søknadsbehandlingRepoMock).hent(simulertBehandling.id)
             verify(personServiceMock).hentAktørId(fnr)
-            verify(behandlingRepoMock).hentEventuellTidligereAttestering(simulertBehandling.id)
+            verify(søknadsbehandlingRepoMock).hentEventuellTidligereAttestering(simulertBehandling.id)
             verify(oppgaveServiceMock).opprettOppgave(
                 config = OppgaveConfig.Attestering(
                     søknadId = søknadId,
@@ -135,16 +135,16 @@ class SøknadsbehandlingServiceAttesteringTest {
                     tilordnetRessurs = null
                 )
             )
-            verify(behandlingRepoMock).lagre(expected)
+            verify(søknadsbehandlingRepoMock).lagre(expected)
             verify(oppgaveServiceMock).lukkOppgave(oppgaveId)
             verify(eventObserver).handle(argThat { it shouldBe Event.Statistikk.SøknadsbehandlingTilAttestering(expected) })
         }
-        verifyNoMoreInteractions(behandlingRepoMock, personServiceMock, oppgaveServiceMock, eventObserver)
+        verifyNoMoreInteractions(søknadsbehandlingRepoMock, personServiceMock, oppgaveServiceMock, eventObserver)
     }
 
     @Test
     fun `svarer med feil dersom man ikke finner behandling`() {
-        val behandlingRepoMock = mock<SaksbehandlingRepo> {
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn null
         }
 
@@ -153,7 +153,7 @@ class SøknadsbehandlingServiceAttesteringTest {
         val eventObserver: EventObserver = mock()
 
         val actual = createService(
-            behandlingRepo = behandlingRepoMock,
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
             observer = eventObserver
@@ -161,14 +161,14 @@ class SøknadsbehandlingServiceAttesteringTest {
 
         actual shouldBe KunneIkkeSendeTilAttestering.FantIkkeBehandling.left()
 
-        verify(behandlingRepoMock).hent(simulertBehandling.id)
+        verify(søknadsbehandlingRepoMock).hent(simulertBehandling.id)
 
-        verifyNoMoreInteractions(behandlingRepoMock, personServiceMock, oppgaveServiceMock, eventObserver)
+        verifyNoMoreInteractions(søknadsbehandlingRepoMock, personServiceMock, oppgaveServiceMock, eventObserver)
     }
 
     @Test
     fun `svarer med feil dersom man ikke finner aktørid for person`() {
-        val behandlingRepoMock = mock<SaksbehandlingRepo> {
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn simulertBehandling
         }
 
@@ -181,7 +181,7 @@ class SøknadsbehandlingServiceAttesteringTest {
         val eventObserver: EventObserver = mock()
 
         val actual = createService(
-            behandlingRepo = behandlingRepoMock,
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
             observer = eventObserver
@@ -189,15 +189,15 @@ class SøknadsbehandlingServiceAttesteringTest {
 
         actual shouldBe KunneIkkeSendeTilAttestering.KunneIkkeFinneAktørId.left()
 
-        verify(behandlingRepoMock).hent(simulertBehandling.id)
+        verify(søknadsbehandlingRepoMock).hent(simulertBehandling.id)
         verify(personServiceMock).hentAktørId(simulertBehandling.fnr)
 
-        verifyNoMoreInteractions(behandlingRepoMock, personServiceMock, oppgaveServiceMock, eventObserver)
+        verifyNoMoreInteractions(søknadsbehandlingRepoMock, personServiceMock, oppgaveServiceMock, eventObserver)
     }
 
     @Test
     fun `svarer med feil dersom man ikke får til å opprette oppgave til attestant`() {
-        val behandlingRepoMock = mock<SaksbehandlingRepo> {
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn simulertBehandling
             on { hentEventuellTidligereAttestering(simulertBehandling.id) } doReturn null
         }
@@ -211,7 +211,7 @@ class SøknadsbehandlingServiceAttesteringTest {
         val eventObserver: EventObserver = mock()
 
         val actual = createService(
-            behandlingRepo = behandlingRepoMock,
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
             observer = eventObserver
@@ -219,9 +219,9 @@ class SøknadsbehandlingServiceAttesteringTest {
 
         actual shouldBe KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave.left()
 
-        verify(behandlingRepoMock).hent(simulertBehandling.id)
+        verify(søknadsbehandlingRepoMock).hent(simulertBehandling.id)
         verify(personServiceMock).hentAktørId(simulertBehandling.fnr)
-        verify(behandlingRepoMock).hentEventuellTidligereAttestering(simulertBehandling.id)
+        verify(søknadsbehandlingRepoMock).hentEventuellTidligereAttestering(simulertBehandling.id)
         verify(oppgaveServiceMock).opprettOppgave(
             OppgaveConfig.Attestering(
                 søknadId = simulertBehandling.søknad.id,
@@ -230,12 +230,12 @@ class SøknadsbehandlingServiceAttesteringTest {
             )
         )
 
-        verifyNoMoreInteractions(behandlingRepoMock, personServiceMock, oppgaveServiceMock, eventObserver)
+        verifyNoMoreInteractions(søknadsbehandlingRepoMock, personServiceMock, oppgaveServiceMock, eventObserver)
     }
 
     @Test
     fun `sender til attestering selv om lukking av eksisterende oppgave feiler`() {
-        val behandlingRepoMock = mock<SaksbehandlingRepo> {
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn simulertBehandling
             on { hentEventuellTidligereAttestering(any()) } doReturn null
         }
@@ -254,7 +254,7 @@ class SøknadsbehandlingServiceAttesteringTest {
         }
 
         val actual = createService(
-            behandlingRepo = behandlingRepoMock,
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
             observer = eventObserver
@@ -276,10 +276,10 @@ class SøknadsbehandlingServiceAttesteringTest {
 
         actual shouldBe expected.right()
 
-        inOrder(behandlingRepoMock, personServiceMock, oppgaveServiceMock, eventObserver) {
-            verify(behandlingRepoMock).hent(simulertBehandling.id)
+        inOrder(søknadsbehandlingRepoMock, personServiceMock, oppgaveServiceMock, eventObserver) {
+            verify(søknadsbehandlingRepoMock).hent(simulertBehandling.id)
             verify(personServiceMock).hentAktørId(fnr)
-            verify(behandlingRepoMock).hentEventuellTidligereAttestering(simulertBehandling.id)
+            verify(søknadsbehandlingRepoMock).hentEventuellTidligereAttestering(simulertBehandling.id)
             verify(oppgaveServiceMock).opprettOppgave(
                 config = OppgaveConfig.Attestering(
                     søknadId = søknadId,
@@ -287,15 +287,15 @@ class SøknadsbehandlingServiceAttesteringTest {
                     tilordnetRessurs = null
                 )
             )
-            verify(behandlingRepoMock).lagre(expected)
+            verify(søknadsbehandlingRepoMock).lagre(expected)
             verify(oppgaveServiceMock).lukkOppgave(oppgaveId)
             verify(eventObserver).handle(argThat { it shouldBe Event.Statistikk.SøknadsbehandlingTilAttestering(expected) })
         }
-        verifyNoMoreInteractions(behandlingRepoMock, personServiceMock, oppgaveServiceMock, eventObserver)
+        verifyNoMoreInteractions(søknadsbehandlingRepoMock, personServiceMock, oppgaveServiceMock, eventObserver)
     }
 
     private fun createService(
-        behandlingRepo: SaksbehandlingRepo = mock(),
+        søknadsbehandlingRepo: SøknadsbehandlingRepo = mock(),
         utbetalingService: UtbetalingService = mock(),
         oppgaveService: OppgaveService = mock(),
         søknadService: SøknadService = mock(),
@@ -308,7 +308,7 @@ class SøknadsbehandlingServiceAttesteringTest {
     ) = SøknadsbehandlingServiceImpl(
         søknadService,
         søknadRepo,
-        behandlingRepo,
+        søknadsbehandlingRepo,
         utbetalingService,
         personService,
         oppgaveService,

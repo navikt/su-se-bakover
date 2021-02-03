@@ -45,9 +45,9 @@ import no.nav.su.se.bakover.domain.UgyldigFnrException
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
-import no.nav.su.se.bakover.domain.behandling.StatusovergangVisitor
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
+import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
 import no.nav.su.se.bakover.service.AccessCheckProxy
 import no.nav.su.se.bakover.service.ProdServiceBuilder
 import no.nav.su.se.bakover.service.Services
@@ -271,14 +271,14 @@ internal fun Application.susebakover(
                     avstemmingRoutes(accessProtectedServices.avstemming)
                     stansutbetalingRoutes(accessProtectedServices.utbetaling)
                     gjenopptaUtbetalingRoutes(accessProtectedServices.utbetaling)
-                    driftRoutes(accessProtectedServices.søknad, accessProtectedServices.ferdigstillIverksettingService)
+                    driftRoutes(accessProtectedServices.søknad, accessProtectedServices.ferdigstillSøknadsbehandingIverksettingService)
                 }
             }
         }
     }
     val utbetalingKvitteringConsumer = UtbetalingKvitteringConsumer(
         utbetalingService = services.utbetaling,
-        ferdigstillIverksettingService = services.ferdigstillIverksettingService,
+        ferdigstillSøknadsbehandingIverksettingService = services.ferdigstillSøknadsbehandingIverksettingService,
         clock = clock,
     )
     if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {

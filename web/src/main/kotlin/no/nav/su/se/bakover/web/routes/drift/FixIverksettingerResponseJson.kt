@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.routes.drift
 
-import no.nav.su.se.bakover.service.behandling.OpprettManglendeJournalpostOgBrevdistribusjonResultat
+import no.nav.su.se.bakover.service.søknadsbehandling.OpprettManglendeJournalpostOgBrevdistribusjonResultat
 
 data class FixIverksettingerResponseJson(
     val journalposteringer: Journalposteringer,

@@ -15,6 +15,8 @@ import no.nav.su.se.bakover.database.sak.SakPostgresRepo
 import no.nav.su.se.bakover.database.sak.SakRepo
 import no.nav.su.se.bakover.database.søknad.SøknadPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
+import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
+import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.database.vedtak.snapshot.VedtakssnapshotPostgresRepo
@@ -51,7 +53,7 @@ object DatabaseBuilder {
 
     private fun buildInternal(dataSource: DataSource, behandlingFactory: BehandlingFactory): DatabaseRepos {
         val behandlingRepo = BehandlingPostgresRepo(dataSource, behandlingFactory)
-        val saksbehandlingRepo = SaksbehandlingsPostgresRepo(dataSource)
+        val saksbehandlingRepo = SøknadsbehandlingPostgresRepo(dataSource)
         return DatabaseRepos(
             avstemming = AvstemmingPostgresRepo(dataSource),
             utbetaling = UtbetalingPostgresRepo(dataSource),
@@ -61,7 +63,7 @@ object DatabaseBuilder {
             sak = SakPostgresRepo(dataSource, saksbehandlingRepo),
             person = PersonPostgresRepo(dataSource),
             vedtakssnapshot = VedtakssnapshotPostgresRepo(dataSource),
-            saksbehandling = saksbehandlingRepo
+            søknadsbehandling = saksbehandlingRepo
         )
     }
 }
@@ -75,5 +77,5 @@ data class DatabaseRepos(
     val sak: SakRepo,
     val person: PersonRepo,
     val vedtakssnapshot: VedtakssnapshotRepo,
-    val saksbehandling: SaksbehandlingRepo
+    val søknadsbehandling: SøknadsbehandlingRepo
 )

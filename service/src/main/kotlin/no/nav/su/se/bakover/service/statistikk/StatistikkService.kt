@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.service.statistikk
 
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Behandling
-import no.nav.su.se.bakover.domain.behandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.behandling.IverksattBehandling
 
 interface StatistikkService {

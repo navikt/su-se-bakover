@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.NyBeregningForSøknadsbehandling
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
@@ -32,11 +31,11 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.avstemming.AvstemmingFeilet
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.service.behandling.FantIkkeBehandling
-import no.nav.su.se.bakover.service.behandling.FerdigstillIverksettingService
 import no.nav.su.se.bakover.service.behandling.IverksattBehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeBeregne
 import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling
@@ -46,7 +45,6 @@ import no.nav.su.se.bakover.service.behandling.KunneIkkeOppretteSøknadsbehandli
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeUnderkjenneBehandling
-import no.nav.su.se.bakover.service.behandling.OpprettManglendeJournalpostOgBrevdistribusjonResultat
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -62,9 +60,11 @@ import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukketSøknad
+import no.nav.su.se.bakover.service.søknadsbehandling.FerdigstillSøknadsbehandingIverksettingService
 import no.nav.su.se.bakover.service.søknadsbehandling.IverksettSøknadsbehandlingRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.OppdaterSøknadsbehandlingsinformasjonRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.OpprettBeregningRequest
+import no.nav.su.se.bakover.service.søknadsbehandling.OpprettManglendeJournalpostOgBrevdistribusjonResultat
 import no.nav.su.se.bakover.service.søknadsbehandling.OpprettSimuleringRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.OpprettSøknadsbehandlingRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SendTilAttesteringRequest
@@ -367,16 +367,16 @@ open class AccessCheckProxy(
                     return services.søknadsbehandling.iverksett(request)
                 }
             },
-            ferdigstillIverksettingService = object : FerdigstillIverksettingService {
+            ferdigstillSøknadsbehandingIverksettingService = object : FerdigstillSøknadsbehandingIverksettingService {
                 override fun hentBehandlingForUtbetaling(utbetalingId: UUID30) = kastKanKunKallesFraAnnenService()
 
-                override fun ferdigstillInnvilgelse(behandling: Søknadsbehandling.Iverksatt.Innvilget) =
+                override fun ferdigstillInnvilgelse(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget) =
                     kastKanKunKallesFraAnnenService()
 
                 override fun opprettManglendeJournalpostOgBrevdistribusjon(): OpprettManglendeJournalpostOgBrevdistribusjonResultat {
                     // Dette er et driftsendepunkt og vi vil ikke returnere kode 6/7/person-sensitive data.
 
-                    return services.ferdigstillIverksettingService.opprettManglendeJournalpostOgBrevdistribusjon()
+                    return services.ferdigstillSøknadsbehandingIverksettingService.opprettManglendeJournalpostOgBrevdistribusjon()
                 }
             }
         )

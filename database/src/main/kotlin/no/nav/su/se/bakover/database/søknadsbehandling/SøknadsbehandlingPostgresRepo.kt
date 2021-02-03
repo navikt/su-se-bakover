@@ -1,12 +1,20 @@
-package no.nav.su.se.bakover.database
+package no.nav.su.se.bakover.database.søknadsbehandling
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.beregning.toSnapshot
+import no.nav.su.se.bakover.database.hent
+import no.nav.su.se.bakover.database.hentListe
+import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal
+import no.nav.su.se.bakover.database.tidspunkt
+import no.nav.su.se.bakover.database.uuid
+import no.nav.su.se.bakover.database.uuid30
+import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -14,27 +22,17 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import java.util.UUID
 import javax.sql.DataSource
 
-interface SaksbehandlingRepo {
-    fun lagre(søknadsbehandling: Søknadsbehandling)
-    fun hent(id: UUID): Søknadsbehandling?
-    fun hentForSak(sakId: UUID, session: Session): List<Søknadsbehandling>
-    fun hentEventuellTidligereAttestering(id: UUID): Attestering?
-    fun hentIverksatteBehandlingerUtenJournalposteringer(): List<Søknadsbehandling.Iverksatt.Innvilget>
-    fun hentIverksatteBehandlingerUtenBrevbestillinger(): List<Søknadsbehandling.Iverksatt>
-    fun hentBehandlingForUtbetaling(utbetalingId: UUID30): Søknadsbehandling.Iverksatt.Innvilget?
-}
-
-internal class SaksbehandlingsPostgresRepo(
+internal class SøknadsbehandlingPostgresRepo(
     private val dataSource: DataSource
-) : SaksbehandlingRepo {
+) : SøknadsbehandlingRepo {
     override fun lagre(søknadsbehandling: Søknadsbehandling) {
         when (søknadsbehandling) {
             is Søknadsbehandling.Vilkårsvurdert -> lagre(søknadsbehandling)

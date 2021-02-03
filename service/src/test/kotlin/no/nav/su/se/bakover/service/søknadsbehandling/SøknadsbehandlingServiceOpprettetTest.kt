@@ -11,17 +11,17 @@ import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.database.SaksbehandlingRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
+import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.KunneIkkeOppretteSøknadsbehandling
 import no.nav.su.se.bakover.service.beregning.BeregningService
@@ -44,7 +44,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             on { hentSøknad(any()) } doReturn FantIkkeSøknad.left()
         }
 
-        val saksbehandlingRepo = mock<SaksbehandlingRepo>()
+        val saksbehandlingRepo = mock<SøknadsbehandlingRepo>()
 
         val service = createService(
             søknadService = søknadServiceMock,
@@ -78,7 +78,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             on { hentSøknad(any()) } doReturn lukketSøknad.right()
         }
 
-        val saksbehandlingRepo = mock<SaksbehandlingRepo>()
+        val saksbehandlingRepo = mock<SøknadsbehandlingRepo>()
 
         val service = createService(
             søknadService = søknadServiceMock,
@@ -104,7 +104,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             on { hentSøknad(any()) } doReturn utenJournalpostOgOppgave.right()
         }
 
-        val saksbehandlingRepo = mock<SaksbehandlingRepo>()
+        val saksbehandlingRepo = mock<SøknadsbehandlingRepo>()
 
         val service = createService(
             søknadService = søknadServiceMock,
@@ -134,7 +134,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             on { harSøknadPåbegyntBehandling(any()) } doReturn true
         }
 
-        val saksbehandlingRepo = mock<SaksbehandlingRepo>()
+        val saksbehandlingRepo = mock<SøknadsbehandlingRepo>()
 
         val service = createService(
             søknadService = søknadServiceMock,
@@ -178,7 +178,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
         val søknadRepo: SøknadRepo = mock {
             on { harSøknadPåbegyntBehandling(any()) } doReturn false
         }
-        val saksbehandlingRepoMock: SaksbehandlingRepo = mock {
+        val søknadsbehandlingRepoMock: SøknadsbehandlingRepo = mock {
             on { lagre(any()) }.doNothing()
             on { hent(any()) } doReturn expectedSøknadsbehandling
         }
@@ -188,7 +188,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             søknadService = søknadService,
             søknadRepo = søknadRepo,
             personService = mock(),
-            behandlingRepo = saksbehandlingRepoMock,
+            behandlingRepo = søknadsbehandlingRepoMock,
             iverksettBehandlingService = mock(),
             behandlingMetrics = mock(),
             beregningService = mock(),
@@ -208,9 +208,9 @@ internal class SøknadsbehandlingServiceOpprettetTest {
 
         val persistertSøknadsbehandling = argumentCaptor<Søknadsbehandling.Vilkårsvurdert.Uavklart>()
 
-        verify(saksbehandlingRepoMock).lagre(persistertSøknadsbehandling.capture())
+        verify(søknadsbehandlingRepoMock).lagre(persistertSøknadsbehandling.capture())
 
-        verify(saksbehandlingRepoMock).hent(
+        verify(søknadsbehandlingRepoMock).hent(
             argThat { it shouldBe persistertSøknadsbehandling.firstValue.id }
         )
         verify(eventObserver).handle(
@@ -223,7 +223,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
     }
 
     private fun createService(
-        behandlingRepo: SaksbehandlingRepo = mock(),
+        behandlingRepo: SøknadsbehandlingRepo = mock(),
         utbetalingService: UtbetalingService = mock(),
         oppgaveService: OppgaveService = mock(),
         søknadService: SøknadService = mock(),

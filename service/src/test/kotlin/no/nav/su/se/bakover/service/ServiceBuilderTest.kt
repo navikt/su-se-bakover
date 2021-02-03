@@ -23,7 +23,7 @@ internal class ServiceBuilderTest {
                 sak = mock(),
                 person = mock(),
                 vedtakssnapshot = mock(),
-                saksbehandling = mock()
+                søknadsbehandling = mock()
             ),
             clients = Clients(
                 oauth = mock(),

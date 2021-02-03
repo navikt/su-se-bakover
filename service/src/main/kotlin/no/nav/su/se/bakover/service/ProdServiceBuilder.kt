@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
 import no.nav.su.se.bakover.service.behandling.BehandlingServiceImpl
 import no.nav.su.se.bakover.service.behandling.DistribuerIverksettingsbrevService
-import no.nav.su.se.bakover.service.behandling.FerdigstillIverksettingServiceImpl
 import no.nav.su.se.bakover.service.behandling.IverksettBehandlingService
 import no.nav.su.se.bakover.service.behandling.JournalførIverksettingService
 import no.nav.su.se.bakover.service.beregning.BeregningService
@@ -20,6 +19,7 @@ import no.nav.su.se.bakover.service.sak.SakServiceImpl
 import no.nav.su.se.bakover.service.statistikk.StatistikkServiceImpl
 import no.nav.su.se.bakover.service.søknad.SøknadServiceImpl
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadServiceImpl
+import no.nav.su.se.bakover.service.søknadsbehandling.FerdigstillSøknadsbehandingIverksettingServiceImpl
 import no.nav.su.se.bakover.service.søknadsbehandling.IverksettSøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServiceImpl
 import no.nav.su.se.bakover.service.toggles.ToggleServiceImpl
@@ -71,8 +71,8 @@ object ProdServiceBuilder : ServiceBuilder {
         val journalførIverksettingService = JournalførIverksettingService(databaseRepos.behandling, brevService)
         val distribuerIverksettingsbrevService =
             DistribuerIverksettingsbrevService(brevService, databaseRepos.behandling)
-        val ferdigstillIverksettingService = FerdigstillIverksettingServiceImpl(
-            saksbehandlingRepo = databaseRepos.saksbehandling,
+        val ferdigstillIverksettingService = FerdigstillSøknadsbehandingIverksettingServiceImpl(
+            søknadsbehandlingRepo = databaseRepos.søknadsbehandling,
             oppgaveService = oppgaveService,
             behandlingMetrics = behandlingMetrics,
             microsoftGraphApiClient = clients.microsoftGraphApiClient,
@@ -82,17 +82,12 @@ object ProdServiceBuilder : ServiceBuilder {
         val toggleService = ToggleServiceImpl(unleash)
 
         val iverksettSaksbehandlingService = IverksettSøknadsbehandlingService(
-            behandlingRepo = databaseRepos.behandling,
             utbetalingService = utbetalingService,
             oppgaveService = oppgaveService,
             personService = personService,
             behandlingMetrics = behandlingMetrics,
             microsoftGraphApiClient = clients.microsoftGraphApiClient,
-            opprettVedtakssnapshotService = opprettVedtakssnapshotService,
             clock = clock,
-            journalførIverksettingService = journalførIverksettingService,
-            distribuerIverksettingsbrevService = distribuerIverksettingsbrevService,
-            saksbehandlingRepo = databaseRepos.saksbehandling,
             brevService = brevService,
         )
 
@@ -144,19 +139,19 @@ object ProdServiceBuilder : ServiceBuilder {
             statistikk = statistikkService,
             toggles = toggleService,
             søknadsbehandling = SøknadsbehandlingServiceImpl(
-                søknadService,
-                databaseRepos.søknad,
-                databaseRepos.saksbehandling,
-                utbetalingService,
-                personService,
-                oppgaveService,
-                iverksettSaksbehandlingService,
-                behandlingMetrics,
-                BeregningService(),
+                søknadService = søknadService,
+                søknadRepo = databaseRepos.søknad,
+                søknadsbehandlingRepo = databaseRepos.søknadsbehandling,
+                utbetalingService = utbetalingService,
+                personService = personService,
+                oppgaveService = oppgaveService,
+                iverksettSøknadsbehandlingService = iverksettSaksbehandlingService,
+                behandlingMetrics = behandlingMetrics,
+                beregningService = BeregningService(),
             ).apply {
                 addObserver(statistikkService)
             },
-            ferdigstillIverksettingService = ferdigstillIverksettingService,
+            ferdigstillSøknadsbehandingIverksettingService = ferdigstillIverksettingService,
         )
     }
 }

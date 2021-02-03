@@ -13,17 +13,17 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.database.SaksbehandlingRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
+import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.tidspunkt
@@ -61,7 +61,7 @@ class SøknadsbehandlingServiceBeregningTest {
     )
 
     private fun createService(
-        behandlingRepo: SaksbehandlingRepo = mock(),
+        behandlingRepo: SøknadsbehandlingRepo = mock(),
         utbetalingService: UtbetalingService = mock(),
         oppgaveService: OppgaveService = mock(),
         søknadService: SøknadService = mock(),
@@ -85,7 +85,7 @@ class SøknadsbehandlingServiceBeregningTest {
 
     @Test
     fun `oppretter beregning`() {
-        val behandlingRepoMock = mock<SaksbehandlingRepo> {
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn vilkårsvurdertBehandling
         }
         val beregningServiceMock = mock<BeregningService> {
@@ -99,7 +99,7 @@ class SøknadsbehandlingServiceBeregningTest {
         )
 
         val response = createService(
-            behandlingRepo = behandlingRepoMock,
+            behandlingRepo = søknadsbehandlingRepoMock,
             beregningService = beregningServiceMock
         ).beregn(
             request
@@ -119,24 +119,24 @@ class SøknadsbehandlingServiceBeregningTest {
 
         response shouldBe expected.right()
 
-        inOrder(behandlingRepoMock, beregningServiceMock) {
-            verify(behandlingRepoMock).hent(argThat { it shouldBe behandlingId })
+        inOrder(søknadsbehandlingRepoMock, beregningServiceMock) {
+            verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandlingId })
             verify(beregningServiceMock).beregn(
                 søknadsbehandling = argThat { it shouldBe vilkårsvurdertBehandling },
                 periode = argThat { it shouldBe request.periode },
                 fradrag = argThat { it shouldBe request.fradrag },
             )
-            verify(behandlingRepoMock).lagre(expected)
+            verify(søknadsbehandlingRepoMock).lagre(expected)
         }
-        verifyNoMoreInteractions(behandlingRepoMock)
+        verifyNoMoreInteractions(søknadsbehandlingRepoMock)
     }
 
     @Test
     fun `kan ikke hente behandling`() {
-        val behandlingRepoMock = mock<SaksbehandlingRepo>()
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo>()
 
         val response = createService(
-            behandlingRepo = behandlingRepoMock,
+            behandlingRepo = søknadsbehandlingRepoMock,
         ).beregn(
             OpprettBeregningRequest(
                 behandlingId = behandlingId,
@@ -147,7 +147,7 @@ class SøknadsbehandlingServiceBeregningTest {
 
         response shouldBe KunneIkkeBeregne.FantIkkeBehandling.left()
 
-        verify(behandlingRepoMock).hent(argThat { it shouldBe behandlingId })
-        verifyNoMoreInteractions(behandlingRepoMock)
+        verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandlingId })
+        verifyNoMoreInteractions(søknadsbehandlingRepoMock)
     }
 }

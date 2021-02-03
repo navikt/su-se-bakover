@@ -4,7 +4,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.ForNav
-import no.nav.su.se.bakover.domain.behandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import java.time.Clock
 
 internal class TilAttesteringMapper(

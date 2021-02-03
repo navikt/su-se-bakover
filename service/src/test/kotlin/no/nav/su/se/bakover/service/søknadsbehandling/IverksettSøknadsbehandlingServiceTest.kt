@@ -15,8 +15,6 @@ import no.nav.su.se.bakover.client.person.MicrosoftGraphResponse
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
-import no.nav.su.se.bakover.database.SaksbehandlingRepo
-import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -26,12 +24,9 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandling.Statusovergang
-import no.nav.su.se.bakover.domain.behandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagBrevRequest
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
-import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
@@ -39,11 +34,11 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.søknadsbehandling.Statusovergang
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
-import no.nav.su.se.bakover.service.behandling.DistribuerIverksettingsbrevService
-import no.nav.su.se.bakover.service.behandling.JournalførIverksettingService
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeJournalføreBrev
@@ -52,7 +47,6 @@ import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
-import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.util.UUID
@@ -62,13 +56,10 @@ internal class IverksettSøknadsbehandlingServiceTest {
     private val sakId: UUID = UUID.fromString("268e62fb-3079-4e8d-ab32-ff9fb9eac2ec")
     private val behandlingId: UUID = UUID.fromString("a602aa68-c989-43e3-9fb7-cb488a2a3821")
     private val saksnummer = Saksnummer(999999)
-    private val oppgaveId = OppgaveId("o")
     private val iverksattJournalpostId = JournalpostId("j")
-    private val iverksattBrevbestillingId = BrevbestillingId("2")
     private val søknadOppgaveId = OppgaveId("søknadOppgaveId")
     private val attestant = NavIdentBruker.Attestant("attestant")
     private val saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlinger")
-    private val utbetalingId = UUID30.randomUUID()
     private val person = Person(
         ident = Ident(
             fnr = BehandlingTestUtils.fnr,
@@ -374,30 +365,20 @@ internal class IverksettSøknadsbehandlingServiceTest {
     )
 
     private fun createService(
-        behandlingRepo: BehandlingRepo = mock(),
         utbetalingService: UtbetalingService = mock(),
         oppgaveService: OppgaveService = mock(),
         personService: PersonService = mock(),
-        opprettVedtakssnapshotService: OpprettVedtakssnapshotService = mock(),
         behandlingMetrics: BehandlingMetrics = mock(),
         clock: Clock = fixedClock,
         microsoftGraphApiClient: MicrosoftGraphApiOppslag = mock(),
-        journalførIverksettingService: JournalførIverksettingService = mock(),
-        distribuerIverksettingsbrevService: DistribuerIverksettingsbrevService = mock(),
-        saksbehandlingRepo: SaksbehandlingRepo = mock(),
         brevService: BrevService = mock(),
     ) = IverksettSøknadsbehandlingService(
-        behandlingRepo,
         utbetalingService,
         oppgaveService,
         personService,
-        opprettVedtakssnapshotService,
         behandlingMetrics,
         clock,
         microsoftGraphApiClient,
-        journalførIverksettingService,
-        distribuerIverksettingsbrevService,
-        saksbehandlingRepo,
         brevService
     )
 }

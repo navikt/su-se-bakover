@@ -10,8 +10,8 @@ import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.idag
-import no.nav.su.se.bakover.database.SaksbehandlingRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
+import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
@@ -20,7 +20,6 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -28,6 +27,7 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.service.beregning.BeregningService
@@ -44,7 +44,7 @@ import java.util.UUID
 internal class SøknadsbehandlingServiceSimuleringTest {
 
     private fun createService(
-        behandlingRepo: SaksbehandlingRepo = mock(),
+        søknadsbehandlingRepo: SøknadsbehandlingRepo = mock(),
         utbetalingService: UtbetalingService = mock(),
         oppgaveService: OppgaveService = mock(),
         søknadService: SøknadService = mock(),
@@ -57,7 +57,7 @@ internal class SøknadsbehandlingServiceSimuleringTest {
     ) = SøknadsbehandlingServiceImpl(
         søknadService,
         søknadRepo,
-        behandlingRepo,
+        søknadsbehandlingRepo,
         utbetalingService,
         personService,
         oppgaveService,
@@ -68,14 +68,14 @@ internal class SøknadsbehandlingServiceSimuleringTest {
 
     @Test
     fun `simuler behandling`() {
-        val behandlingRepoMock = mock<SaksbehandlingRepo> {
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn beregnetBehandling
         }
         val utbetalingServiceMock = mock<UtbetalingService> {
             on { simulerUtbetaling(any(), any(), any()) } doReturn simulertUtbetaling.right()
         }
         val response = createService(
-            behandlingRepo = behandlingRepoMock,
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             utbetalingService = utbetalingServiceMock,
         ).simuler(
             OpprettSimuleringRequest(beregnetBehandling.id, saksbehandler)
@@ -96,24 +96,24 @@ internal class SøknadsbehandlingServiceSimuleringTest {
 
         response shouldBe expected.right()
 
-        verify(behandlingRepoMock).hent(beregnetBehandling.id)
+        verify(søknadsbehandlingRepoMock).hent(beregnetBehandling.id)
         verify(utbetalingServiceMock).simulerUtbetaling(
             sakId = argThat { it shouldBe beregnetBehandling.sakId },
             saksbehandler = argThat { it shouldBe saksbehandler },
             beregning = argThat { it shouldBe beregnetBehandling.beregning }
         )
-        verify(behandlingRepoMock).lagre(expected)
+        verify(søknadsbehandlingRepoMock).lagre(expected)
     }
 
     @Test
     fun `simuler behandling gir feilmelding hvis vi ikke finner behandling`() {
-        val behandlingRepoMock = mock<SaksbehandlingRepo> {
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn null
         }
         val utbetalingServiceMock = mock<UtbetalingService>()
 
         val response = createService(
-            behandlingRepo = behandlingRepoMock,
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             utbetalingService = utbetalingServiceMock,
         ).simuler(
             OpprettSimuleringRequest(beregnetBehandling.id, saksbehandler)
@@ -121,13 +121,13 @@ internal class SøknadsbehandlingServiceSimuleringTest {
 
         response shouldBe KunneIkkeSimulereBehandling.FantIkkeBehandling.left()
 
-        verify(behandlingRepoMock).hent(argThat { it shouldBe beregnetBehandling.id })
-        verifyNoMoreInteractions(behandlingRepoMock, utbetalingServiceMock)
+        verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe beregnetBehandling.id })
+        verifyNoMoreInteractions(søknadsbehandlingRepoMock, utbetalingServiceMock)
     }
 
     @Test
     fun `simuler behandling gir feilmelding hvis simulering ikke går bra`() {
-        val behandlingRepoMock = mock<SaksbehandlingRepo> {
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn beregnetBehandling
         }
         val utbetalingServiceMock = mock<UtbetalingService> {
@@ -135,7 +135,7 @@ internal class SøknadsbehandlingServiceSimuleringTest {
         }
 
         val response = createService(
-            behandlingRepo = behandlingRepoMock,
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             utbetalingService = utbetalingServiceMock,
         ).simuler(
             OpprettSimuleringRequest(beregnetBehandling.id, saksbehandler)
@@ -143,14 +143,14 @@ internal class SøknadsbehandlingServiceSimuleringTest {
 
         response shouldBe KunneIkkeSimulereBehandling.KunneIkkeSimulere.left()
 
-        verify(behandlingRepoMock).hent(argThat { it shouldBe beregnetBehandling.id })
+        verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe beregnetBehandling.id })
 
         verify(utbetalingServiceMock).simulerUtbetaling(
             sakId = argThat { it shouldBe beregnetBehandling.sakId },
             saksbehandler = argThat { it shouldBe saksbehandler },
             beregning = argThat { it shouldBe beregnetBehandling.beregning }
         )
-        verifyNoMoreInteractions(behandlingRepoMock, utbetalingServiceMock)
+        verifyNoMoreInteractions(søknadsbehandlingRepoMock, utbetalingServiceMock)
     }
 
     private val sakId = UUID.randomUUID()

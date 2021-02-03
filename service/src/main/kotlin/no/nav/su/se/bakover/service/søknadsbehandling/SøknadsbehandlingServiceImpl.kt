@@ -5,20 +5,20 @@ import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.database.SaksbehandlingRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
+import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandling.Statusovergang
-import no.nav.su.se.bakover.domain.behandling.Søknadsbehandling
-import no.nav.su.se.bakover.domain.behandling.forsøkStatusovergang
-import no.nav.su.se.bakover.domain.behandling.statusovergang
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.søknadsbehandling.Statusovergang
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.forsøkStatusovergang
+import no.nav.su.se.bakover.domain.søknadsbehandling.statusovergang
 import no.nav.su.se.bakover.service.behandling.KunneIkkeBeregne
 import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeOppdatereBehandlingsinformasjon
@@ -39,7 +39,7 @@ import java.util.UUID
 internal class SøknadsbehandlingServiceImpl(
     private val søknadService: SøknadService,
     private val søknadRepo: SøknadRepo,
-    private val saksbehandlingRepo: SaksbehandlingRepo,
+    private val søknadsbehandlingRepo: SøknadsbehandlingRepo,
     private val utbetalingService: UtbetalingService,
     private val personService: PersonService,
     private val oppgaveService: OppgaveService,
@@ -86,29 +86,29 @@ internal class SøknadsbehandlingServiceImpl(
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon()
         )
 
-        saksbehandlingRepo.lagre(opprettet)
+        søknadsbehandlingRepo.lagre(opprettet)
 
         // Må hente fra db for å få joinet med saksnummer.
-        return saksbehandlingRepo.hent(opprettet.id)!!.let {
+        return søknadsbehandlingRepo.hent(opprettet.id)!!.let {
             observers.forEach { observer -> observer.handle(Event.Statistikk.SøknadsbehandlingOpprettet(it)) }
             it.right()
         }
     }
 
     override fun vilkårsvurder(request: OppdaterSøknadsbehandlingsinformasjonRequest): Either<KunneIkkeOppdatereBehandlingsinformasjon, Søknadsbehandling> {
-        val saksbehandling = saksbehandlingRepo.hent(request.behandlingId)
+        val saksbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeOppdatereBehandlingsinformasjon.FantIkkeBehandling.left()
         return statusovergang(
             søknadsbehandling = saksbehandling,
             statusovergang = Statusovergang.TilVilkårsvurdert(request.behandlingsinformasjon)
         ).let {
-            saksbehandlingRepo.lagre(it)
+            søknadsbehandlingRepo.lagre(it)
             it.right()
         }
     }
 
     override fun beregn(request: OpprettBeregningRequest): Either<KunneIkkeBeregne, Søknadsbehandling> {
-        val saksbehandling = saksbehandlingRepo.hent(request.behandlingId)
+        val saksbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeBeregne.FantIkkeBehandling.left()
 
         return statusovergang(
@@ -117,13 +117,13 @@ internal class SøknadsbehandlingServiceImpl(
                 beregningService.beregn(saksbehandling, request.periode, request.fradrag)
             }
         ).let {
-            saksbehandlingRepo.lagre(it)
+            søknadsbehandlingRepo.lagre(it)
             it.right()
         }
     }
 
     override fun simuler(request: OpprettSimuleringRequest): Either<KunneIkkeSimulereBehandling, Søknadsbehandling> {
-        val saksbehandling = saksbehandlingRepo.hent(request.behandlingId)
+        val saksbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeSimulereBehandling.FantIkkeBehandling.left()
         return forsøkStatusovergang(
             søknadsbehandling = saksbehandling,
@@ -138,13 +138,13 @@ internal class SøknadsbehandlingServiceImpl(
         ).mapLeft {
             KunneIkkeSimulereBehandling.KunneIkkeSimulere
         }.map {
-            saksbehandlingRepo.lagre(it)
+            søknadsbehandlingRepo.lagre(it)
             it
         }
     }
 
     override fun sendTilAttestering(request: SendTilAttesteringRequest): Either<KunneIkkeSendeTilAttestering, Søknadsbehandling> {
-        val søknadsbehandling = saksbehandlingRepo.hent(request.behandlingId)?.let {
+        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)?.let {
             statusovergang(
                 søknadsbehandling = it,
                 statusovergang = Statusovergang.TilAttestering(request.saksbehandler)
@@ -158,7 +158,7 @@ internal class SøknadsbehandlingServiceImpl(
         val eksisterendeOppgaveId: OppgaveId = søknadsbehandling.oppgaveId
 
         val tilordnetRessurs: NavIdentBruker.Attestant? =
-            saksbehandlingRepo.hentEventuellTidligereAttestering(søknadsbehandling.id)?.attestant
+            søknadsbehandlingRepo.hentEventuellTidligereAttestering(søknadsbehandling.id)?.attestant
 
         val nyOppgaveId: OppgaveId = oppgaveService.opprettOppgave(
             OppgaveConfig.Attestering(
@@ -174,7 +174,7 @@ internal class SøknadsbehandlingServiceImpl(
 
         val søknadsbehandlingMedNyOppgaveId = søknadsbehandling.nyOppgaveId(nyOppgaveId)
 
-        saksbehandlingRepo.lagre(søknadsbehandlingMedNyOppgaveId)
+        søknadsbehandlingRepo.lagre(søknadsbehandlingMedNyOppgaveId)
 
         oppgaveService.lukkOppgave(eksisterendeOppgaveId).map {
             behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.LUKKET_OPPGAVE)
@@ -190,7 +190,7 @@ internal class SøknadsbehandlingServiceImpl(
     }
 
     override fun underkjenn(request: UnderkjennSøknadsbehandlingRequest): Either<KunneIkkeUnderkjenneBehandling, Søknadsbehandling> {
-        val søknadsbehandling = saksbehandlingRepo.hent(request.behandlingId)
+        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeUnderkjenneBehandling.FantIkkeBehandling.left()
 
         return forsøkStatusovergang(
@@ -222,7 +222,7 @@ internal class SøknadsbehandlingServiceImpl(
 
             val søknadsbehandlingMedNyOppgaveId = underkjent.nyOppgaveId(nyOppgaveId)
 
-            saksbehandlingRepo.lagre(søknadsbehandlingMedNyOppgaveId)
+            søknadsbehandlingRepo.lagre(søknadsbehandlingMedNyOppgaveId)
 
             behandlingMetrics.incrementUnderkjentCounter(BehandlingMetrics.UnderkjentHandlinger.PERSISTERT)
             log.info("Behandling ${underkjent.id} ble underkjent. Opprettet behandlingsoppgave $nyOppgaveId")
@@ -243,7 +243,7 @@ internal class SøknadsbehandlingServiceImpl(
     }
 
     override fun iverksett(request: IverksettSøknadsbehandlingRequest): Either<KunneIkkeIverksetteBehandling, Søknadsbehandling> {
-        val søknadsbehandling = saksbehandlingRepo.hent(request.behandlingId)
+        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeIverksetteBehandling.FantIkkeBehandling.left()
 
         return forsøkStatusovergang(
@@ -266,7 +266,7 @@ internal class SøknadsbehandlingServiceImpl(
         ).mapLeft {
             IverksettStatusovergangFeilMapper.map(it)
         }.map {
-            saksbehandlingRepo.lagre(it)
+            søknadsbehandlingRepo.lagre(it)
             when (it) {
                 is Søknadsbehandling.Iverksatt.Innvilget -> {
                     log.info("Iverksatt innvilgelse for behandling ${it.id}")
@@ -278,7 +278,7 @@ internal class SøknadsbehandlingServiceImpl(
                     behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
                     iverksettSøknadsbehandlingService.distribuerBrevOgLukkOppgaveForAvslag(it)
                         .let { medPotensiellBrevbestillingId ->
-                            saksbehandlingRepo.lagre(medPotensiellBrevbestillingId)
+                            søknadsbehandlingRepo.lagre(medPotensiellBrevbestillingId)
                             medPotensiellBrevbestillingId
                         }
                 }

@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.behandling.BehandlingService
-import no.nav.su.se.bakover.service.behandling.FerdigstillIverksettingService
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -15,6 +14,7 @@ import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.StatistikkService
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
+import no.nav.su.se.bakover.service.søknadsbehandling.FerdigstillSøknadsbehandingIverksettingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.toggles.ToggleService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
@@ -44,5 +44,5 @@ data class Services(
     val statistikk: StatistikkService,
     val toggles: ToggleService,
     val søknadsbehandling: SøknadsbehandlingService,
-    val ferdigstillIverksettingService: FerdigstillIverksettingService,
+    val ferdigstillSøknadsbehandingIverksettingService: FerdigstillSøknadsbehandingIverksettingService,
 )
