@@ -59,7 +59,7 @@ internal fun Route.revurderingRoutes(
                     ).fold(
                         ifLeft = { call.svar(hentFeilResultat(it)) },
                         ifRight = {
-                            call.audit("Opprettet en ny revurdering beregning og simulering på sak med id $sakId")
+                            call.audit("Opprettet en ny revurdering på sak med id $sakId")
                             call.svar(Resultat.json(Created, serialize(it.toJson())))
                         },
                     )
@@ -112,7 +112,7 @@ internal fun Route.revurderingRoutes(
             ).fold(
                 ifLeft = { call.svar(hentFeilResultat(it)) },
                 ifRight = {
-                    call.audit("sendt revurdering til attestering med id $revurderingId")
+                    call.audit("Sendt revurdering til attestering med id $revurderingId")
                     call.svar(Resultat.json(OK, serialize(it.toJson())))
                 },
             )
@@ -126,7 +126,7 @@ internal fun Route.revurderingRoutes(
                 revurderingService.lagBrevutkast(revurderingId, it.fritekst).fold(
                     ifLeft = { call.svar(hentFeilResultat(it)) },
                     ifRight = {
-                        call.audit("sendt revurdering til attestering med id $revurderingId")
+                        call.audit("Lagd brevutkast for revurdering med id $revurderingId")
                         call.respondBytes(it, ContentType.Application.Pdf)
                     },
                 )
