@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrHandle
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.person.PersonRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
@@ -17,8 +18,11 @@ import no.nav.su.se.bakover.domain.SøknadInnhold
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.behandling.Revurdering
+import no.nav.su.se.bakover.domain.behandling.SimulertRevurdering
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.NyBeregningForSøknadsbehandling
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
@@ -48,6 +52,8 @@ import no.nav.su.se.bakover.service.behandling.OpprettManglendeJournalpostOgBrev
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeRevurdere
+import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.Statistikk
@@ -331,7 +337,43 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
                 }
             },
-            toggles = services.toggles
+            toggles = services.toggles,
+            revurdering = object : RevurderingService {
+                override fun opprettRevurdering(
+                    sakId: UUID,
+                    periode: Periode,
+                    saksbehandler: NavIdentBruker.Saksbehandler
+                ): Either<KunneIkkeRevurdere, Revurdering> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.revurdering.opprettRevurdering(sakId, periode, saksbehandler)
+                }
+
+                override fun beregnOgSimuler(
+                    revurderingId: UUID,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
+                    fradrag: List<Fradrag>
+                ): Either<KunneIkkeRevurdere, SimulertRevurdering> {
+                    assertHarTilgangTilSak(revurderingId)
+                    return services.revurdering.beregnOgSimuler(
+                        revurderingId = revurderingId,
+                        saksbehandler = saksbehandler,
+                        fradrag = fradrag
+                    )
+                }
+
+                override fun sendTilAttestering(
+                    revurderingId: UUID,
+                    saksbehandler: NavIdentBruker.Saksbehandler
+                ): Either<KunneIkkeRevurdere, Revurdering> {
+                    assertHarTilgangTilSak(revurderingId)
+                    return services.revurdering.sendTilAttestering(revurderingId, saksbehandler)
+                }
+
+                override fun lagBrevutkast(revurderingId: UUID, fritekst: String?): Either<KunneIkkeRevurdere, ByteArray> {
+                    assertHarTilgangTilSak(revurderingId)
+                    return services.revurdering.lagBrevutkast(revurderingId, fritekst)
+                }
+            }
         )
     }
 
@@ -367,6 +409,11 @@ open class AccessCheckProxy(
 
     private fun assertHarTilgangTilUtbetaling(utbetalingId: UUID30) {
         personRepo.hentFnrForUtbetaling(utbetalingId)
+            .forEach { assertHarTilgangTilPerson(it) }
+    }
+
+    private fun assertHarTilgangTilRevurdering(revurderingId: UUID) {
+        personRepo.hentFnrForRevurdering(revurderingId)
             .forEach { assertHarTilgangTilPerson(it) }
     }
 }

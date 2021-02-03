@@ -16,5 +16,6 @@ object TestServicesBuilder {
         person = mock(),
         statistikk = mock(),
         toggles = mock(),
+        revurdering = mock()
     )
 }

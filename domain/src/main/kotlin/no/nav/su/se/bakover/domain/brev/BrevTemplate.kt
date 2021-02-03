@@ -31,4 +31,11 @@ sealed class BrevTemplate(
         pdfTemplate = PdfTemplate.AvvistSøknadFritekst,
         brevTittel = "Søknaden din om supplerende stønad er avvist"
     )
+
+    sealed class Revurdering(pdfTemplate: PdfTemplate, brevTittel: String) : BrevTemplate(pdfTemplate, brevTittel) {
+        object Inntekt : Revurdering(
+            pdfTemplate = PdfTemplate.Revurdering.Inntekt,
+            brevTittel = "Vi har vurdert den supplerende stønaden din på nytt"
+        )
+    }
 }

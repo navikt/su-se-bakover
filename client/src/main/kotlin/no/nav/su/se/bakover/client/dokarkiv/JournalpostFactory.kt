@@ -18,6 +18,7 @@ object JournalpostFactory {
             BrevTemplate.TrukketSøknad -> Journalpost.Info(person, saksnummer, brevInnhold, pdf)
             BrevTemplate.AvvistSøknadVedtak -> Journalpost.Vedtakspost(person, saksnummer, brevInnhold, pdf)
             BrevTemplate.AvvistSøknadFritekst -> Journalpost.Info(person, saksnummer, brevInnhold, pdf)
+            BrevTemplate.Revurdering.Inntekt -> Journalpost.Vedtakspost(person, saksnummer, brevInnhold, pdf)
         }
     }
 }

@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.behandling.Satsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
+import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
 
 abstract class BrevInnhold {
@@ -55,7 +56,7 @@ abstract class BrevInnhold {
 
         @Suppress("unused")
         @JsonInclude
-        val harFradrag: Boolean = beregningsperioder.any { it.fradrag.bruker.isNotEmpty() || it.fradrag.eps.fradrag.isNotEmpty() }
+        val harFradrag: Boolean = beregningsperioder.harFradrag()
     }
 
     data class Personalia(
@@ -64,8 +65,28 @@ abstract class BrevInnhold {
         val fornavn: String,
         val etternavn: String,
     )
+
+    data class RevurderingAvInntekt(
+        val personalia: Personalia,
+        val saksbehandlerNavn: String,
+        val beregningsperioder: List<Beregningsperiode>,
+        val fritekst: String?,
+        val sats: Sats,
+        val harEktefelle: Boolean,
+    ) : BrevInnhold() {
+        override val brevTemplate = BrevTemplate.Revurdering.Inntekt
+
+        @Suppress("unused")
+        @JsonInclude
+        val satsBeløp = beregningsperioder.firstOrNull()?.satsbeløpPerMåned
+
+        @Suppress("unused")
+        @JsonInclude
+        val harFradrag: Boolean = beregningsperioder.harFradrag()
+    }
 }
 
+fun List<Beregningsperiode>.harFradrag() = this.any { it.fradrag.bruker.isNotEmpty() || it.fradrag.eps.fradrag.isNotEmpty() }
 fun List<Avslagsgrunn>.getDistinkteParagrafer() = this.map { it.getParagrafer() }.flatten().distinct().sorted()
 fun Avslagsgrunn.getParagrafer() = when (this) {
     Avslagsgrunn.UFØRHET -> listOf(1, 2)

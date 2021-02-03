@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
+import no.nav.su.se.bakover.domain.behandling.Revurdering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -98,6 +99,22 @@ internal class PersonPostgresRepoTest {
         }
     }
 
+    @Test
+    fun `hent fnr for revurdering gir søkers fnr`() {
+        withDbWithData {
+            val fnrs = repo.hentFnrForRevurdering(revurderingId = revurdering.id)
+            fnrs shouldContainExactlyInAnyOrder listOf(FNR)
+        }
+    }
+
+    @Test
+    fun `hent fnr for revurdering gir også EPSs fnr`() {
+        withDbWithDataAndEps(eps) {
+            val fnrs = repo.hentFnrForRevurdering(revurderingId = revurdering.id)
+            fnrs shouldContainExactlyInAnyOrder listOf(FNR, EPSFNR)
+        }
+    }
+
     private fun withDbWithData(test: Ctx.() -> Unit) {
         withDbWithDataAndEps(null, test)
     }
@@ -130,9 +147,10 @@ internal class PersonPostgresRepoTest {
                 type = Utbetaling.UtbetalingsType.NY,
                 behandler = NavIdentBruker.Attestant("Z123")
             )
+            val revurdering = testDataHelper.insertRevurdering(behandling.id)
             testDataHelper.opprettUtbetaling(utbetaling)
 
-            Ctx(sak, søknad, behandling, utbetaling, behandlingsinformasjon).test()
+            Ctx(sak, søknad, behandling, utbetaling, behandlingsinformasjon, revurdering).test()
         }
     }
 
@@ -141,6 +159,7 @@ internal class PersonPostgresRepoTest {
         val søknad: Søknad,
         val behandling: NySøknadsbehandling,
         val utbetaling: Utbetaling,
-        val behandlingsinformasjon: Behandlingsinformasjon
+        val behandlingsinformasjon: Behandlingsinformasjon,
+        val revurdering: Revurdering,
     )
 }

@@ -41,6 +41,7 @@ class NyBehandlingRoutesTest {
         person = mock(),
         statistikk = mock(),
         toggles = mock(),
+        revurdering = mock()
     )
 
     @Test

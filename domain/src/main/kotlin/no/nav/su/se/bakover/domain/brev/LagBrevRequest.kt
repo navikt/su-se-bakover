@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.brev
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.beregning.LagBrevinnholdForBeregning
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -33,6 +34,30 @@ interface LagBrevRequest {
                 saksbehandlerNavn = saksbehandlerNavn,
                 attestantNavn = attestantNavn
             )
+        }
+    }
+
+    sealed class Revurdering : LagBrevRequest {
+        data class Inntekt(
+            private val person: Person,
+            private val saksbehandlerNavn: String,
+            private val revurdertBeregning: Beregning,
+            private val fritekst: String?,
+            private val vedtattBeregning: Beregning,
+            private val harEktefelle: Boolean,
+        ) : Revurdering() {
+            override fun getPerson(): Person = person
+
+            override fun lagBrevInnhold(personalia: BrevInnhold.Personalia): BrevInnhold {
+                return BrevInnhold.RevurderingAvInntekt(
+                    personalia = personalia,
+                    saksbehandlerNavn = saksbehandlerNavn,
+                    beregningsperioder = LagBrevinnholdForBeregning(revurdertBeregning).brevInnhold,
+                    fritekst = fritekst,
+                    sats = revurdertBeregning.getSats(),
+                    harEktefelle = harEktefelle
+                )
+            }
         }
     }
 }
