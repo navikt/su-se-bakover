@@ -18,14 +18,12 @@ import no.nav.su.se.bakover.domain.behandling.Behandling.BehandlingsStatus.IVERK
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagBrevRequest
-import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
-import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.UUID
@@ -35,7 +33,6 @@ class IverksettBehandlingService(
     private val utbetalingService: UtbetalingService,
     private val oppgaveService: OppgaveService,
     private val personService: PersonService,
-    private val opprettVedtakssnapshotService: OpprettVedtakssnapshotService,
     private val behandlingMetrics: BehandlingMetrics,
     private val clock: Clock,
     private val microsoftGraphApiClient: MicrosoftGraphApiOppslag,
@@ -133,10 +130,6 @@ class IverksettBehandlingService(
                 IverksattBehandling.UtenMangler(behandling)
             }
 
-        opprettVedtakssnapshotService.opprettVedtak(
-            vedtakssnapshot = Vedtakssnapshot.Avslag.createFromBehandling(behandling, avslag.avslagsgrunner)
-        )
-
         return brevResultat
             .mapLeft {
                 IverksattBehandling.MedMangler.KunneIkkeDistribuereBrev(behandling)
@@ -197,9 +190,6 @@ class IverksettBehandlingService(
             )
             behandlingRepo.oppdaterAttestering(behandling.id, Attestering.Iverksatt(attestant))
             behandlingRepo.oppdaterBehandlingStatus(behandling.id, behandling.status())
-            opprettVedtakssnapshotService.opprettVedtak(
-                vedtakssnapshot = Vedtakssnapshot.Innvilgelse.createFromBehandling(behandling, oversendtUtbetaling)
-            )
             log.info("Behandling ${behandling.id} innvilget med utbetaling ${oversendtUtbetaling.id}")
             behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
 

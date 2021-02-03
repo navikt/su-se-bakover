@@ -6,7 +6,6 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
@@ -20,13 +19,10 @@ import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.EventObserver
-import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
-import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.slf4j.LoggerFactory
 import java.time.Clock
 
 class IverksettSøknadsbehandlingService(
-    private val utbetalingService: UtbetalingService,
     private val oppgaveService: OppgaveService,
     private val personService: PersonService,
     private val behandlingMetrics: BehandlingMetrics,
@@ -41,35 +37,6 @@ class IverksettSøknadsbehandlingService(
     }
 
     private val log = LoggerFactory.getLogger(this::class.java)
-
-    internal fun iverksettInnvilgning(
-        søknadsbehandling: Søknadsbehandling.TilAttestering.Innvilget,
-        attestant: NavIdentBruker.Attestant
-    ): Either<Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale, UUID30> {
-        return utbetalingService.utbetal(
-            sakId = søknadsbehandling.sakId,
-            attestant = attestant,
-            beregning = søknadsbehandling.beregning,
-            simulering = søknadsbehandling.simulering
-        ).mapLeft {
-            log.error("Kunne ikke innvilge behandling ${søknadsbehandling.id} siden utbetaling feilet. Feiltype: $it")
-            when (it) {
-                KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
-                KunneIkkeUtbetale.Protokollfeil -> Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.TekniskFeil
-                KunneIkkeUtbetale.KunneIkkeSimulere -> Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.KunneIkkeKontrollsimulere
-            }
-        }.map { oversendtUtbetaling ->
-            // TODO fix fix
-            // opprettVedtakssnapshotService.opprettVedtak(
-            //     vedtakssnapshot = Vedtakssnapshot.Innvilgelse.createFromBehandling(søknadsbehandling, oversendtUtbetaling)
-            // )
-            // behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
-
-            log.info("Behandling ${søknadsbehandling.id} innvilget med utbetaling ${oversendtUtbetaling.id}")
-
-            oversendtUtbetaling.id
-        }
-    }
 
     internal fun opprettJournalpostForAvslag(
         søknadsbehandling: Søknadsbehandling.TilAttestering.Avslag,

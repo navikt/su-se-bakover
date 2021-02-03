@@ -34,6 +34,12 @@ sealed class Søknadsbehandling {
 
     abstract fun accept(visitor: SøknadsbehandlingVisitor)
 
+    internal fun utledAvslagsgrunnForBeregning(beregning: Beregning): Avslagsgrunn? =
+        when (val vurdering = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
+            is AvslagGrunnetBeregning.Ja -> vurdering.avslagsgrunn
+            is AvslagGrunnetBeregning.Nei -> null
+        }
+
     sealed class Vilkårsvurdert : Søknadsbehandling() {
         fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon): Vilkårsvurdert =
             opprett(
@@ -288,10 +294,7 @@ sealed class Søknadsbehandling {
         ) : Beregnet() {
             override val status: Behandling.BehandlingsStatus = Behandling.BehandlingsStatus.BEREGNET_AVSLAG
             val avslagsgrunn =
-                when (val avslag = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
-                    is AvslagGrunnetBeregning.Ja -> avslag.avslagsgrunn
-                    AvslagGrunnetBeregning.Nei -> throw RuntimeException("Dette skal ikke være mulig")
-                }
+                utledAvslagsgrunnForBeregning(beregning) ?: throw RuntimeException("Dette skal ikke være mulig")
 
             override fun accept(visitor: SøknadsbehandlingVisitor) {
                 visitor.visit(this)
@@ -527,13 +530,8 @@ sealed class Søknadsbehandling {
                 override val saksbehandler: NavIdentBruker
             ) : Avslag() {
 
-                private val utledAvslagsgrunnForBeregning: List<Avslagsgrunn> =
-                    when (val vurdering = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
-                        is AvslagGrunnetBeregning.Ja -> listOf(vurdering.avslagsgrunn)
-                        is AvslagGrunnetBeregning.Nei -> emptyList()
-                    }
-
-                override val avslagsgrunner = behandlingsinformasjon.utledAvslagsgrunner() + utledAvslagsgrunnForBeregning
+                override val avslagsgrunner: List<Avslagsgrunn> =
+                    behandlingsinformasjon.utledAvslagsgrunner() + listOfNotNull(utledAvslagsgrunnForBeregning(beregning))
 
                 override fun accept(visitor: SøknadsbehandlingVisitor) {
                     visitor.visit(this)
@@ -883,7 +881,7 @@ sealed class Søknadsbehandling {
         sealed class Avslag : Iverksatt() {
             abstract val eksterneIverksettingsteg: EksterneIverksettingsteg
             abstract fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeDistribuereBrev, Avslag>
-
+            abstract val avslagsgrunner: List<Avslagsgrunn>
             data class MedBeregning(
                 override val id: UUID,
                 override val opprettet: Tidspunkt,
@@ -904,6 +902,9 @@ sealed class Søknadsbehandling {
                 override fun accept(visitor: SøknadsbehandlingVisitor) {
                     visitor.visit(this)
                 }
+
+                override val avslagsgrunner: List<Avslagsgrunn> =
+                    behandlingsinformasjon.utledAvslagsgrunner() + listOfNotNull(utledAvslagsgrunnForBeregning(beregning))
 
                 override fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeDistribuereBrev, MedBeregning> {
                     return when (eksterneIverksettingsteg) {
@@ -936,6 +937,8 @@ sealed class Søknadsbehandling {
                 override fun accept(visitor: SøknadsbehandlingVisitor) {
                     visitor.visit(this)
                 }
+
+                override val avslagsgrunner: List<Avslagsgrunn> = behandlingsinformasjon.utledAvslagsgrunner()
 
                 override fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeDistribuereBrev, UtenBeregning> {
                     return when (eksterneIverksettingsteg) {

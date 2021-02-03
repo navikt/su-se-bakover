@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -168,15 +169,17 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
         iverksettBehandlingService: IverksettSøknadsbehandlingService = mock(),
         observer: EventObserver = mock { on { handle(any()) }.doNothing() },
         beregningService: BeregningService = mock(),
+        opprettVedtakssnapshotService: OpprettVedtakssnapshotService = mock(),
     ) = SøknadsbehandlingServiceImpl(
-        søknadService,
-        søknadRepo,
-        behandlingRepo,
-        utbetalingService,
-        personService,
-        oppgaveService,
-        iverksettBehandlingService,
-        behandlingMetrics,
-        beregningService,
+        søknadService = søknadService,
+        søknadRepo = søknadRepo,
+        søknadsbehandlingRepo = behandlingRepo,
+        utbetalingService = utbetalingService,
+        personService = personService,
+        oppgaveService = oppgaveService,
+        iverksettSøknadsbehandlingService = iverksettBehandlingService,
+        behandlingMetrics = behandlingMetrics,
+        beregningService = beregningService,
+        opprettVedtakssnapshotService = opprettVedtakssnapshotService
     ).apply { addObserver(observer) }
 }

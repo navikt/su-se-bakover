@@ -82,7 +82,6 @@ object ProdServiceBuilder : ServiceBuilder {
         val toggleService = ToggleServiceImpl(unleash)
 
         val iverksettSaksbehandlingService = IverksettSøknadsbehandlingService(
-            utbetalingService = utbetalingService,
             oppgaveService = oppgaveService,
             personService = personService,
             behandlingMetrics = behandlingMetrics,
@@ -117,7 +116,6 @@ object ProdServiceBuilder : ServiceBuilder {
                     personService = personService,
                     behandlingMetrics = behandlingMetrics,
                     microsoftGraphApiClient = clients.microsoftGraphApiClient,
-                    opprettVedtakssnapshotService = opprettVedtakssnapshotService,
                     clock = clock,
                     journalførIverksettingService = journalførIverksettingService,
                     distribuerIverksettingsbrevService = distribuerIverksettingsbrevService,
@@ -148,6 +146,7 @@ object ProdServiceBuilder : ServiceBuilder {
                 iverksettSøknadsbehandlingService = iverksettSaksbehandlingService,
                 behandlingMetrics = behandlingMetrics,
                 beregningService = BeregningService(),
+                opprettVedtakssnapshotService = opprettVedtakssnapshotService,
             ).apply {
                 addObserver(statistikkService)
             },

@@ -1,11 +1,9 @@
 package no.nav.su.se.bakover.database.vedtak.snapshot
 
-import com.nhaarman.mockitokotlin2.mock
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.beregning.PersistertFradrag
 import no.nav.su.se.bakover.database.beregning.PersistertMånedsberegning
@@ -17,8 +15,6 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.Behandling
-import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
@@ -29,7 +25,6 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører.BRUKER
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype.Arbeidsinntekt
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
-import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType.YTEL
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -37,10 +32,10 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
-import java.time.Clock
 import java.time.LocalDate
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
@@ -48,55 +43,50 @@ import java.util.UUID
 
 internal class VedtakssnapshotJsonTest {
 
-    private val fixedClock: Clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC)
-
     private val sakId = "7a8b4a95-9736-4f79-bb38-e1d4a7c42799"
     private val saksnummer = 1234L
     private val behandlingId = "62478b8d-8c5a-4da4-8fcf-b48c9b426698"
     private val søknadId = "68c7dba7-6c5c-422f-862e-94ebae82f24d"
-    private val avslagId = "06015ac6-07ef-4017-bd04-1e7b87b160fa"
+    private val vedtakssnapshotId = "06015ac6-07ef-4017-bd04-1e7b87b160fa"
     private val beregningId = "4111d5ee-0215-4d0f-94fc-0959f900ef2e"
     private val tidspunkt = Tidspunkt(ZonedDateTime.of(1970, 1, 1, 1, 2, 3, 456789000, ZoneOffset.UTC).toInstant())
     private val beregningsPeriode = Periode.create(LocalDate.of(2021, 1, 1), LocalDate.of(2021, 1, 31))
-
     private val fnr = Fnr("12345678910")
-
-    private val behandling = BehandlingFactory(mock(), fixedClock).createBehandling(
-        id = UUID.fromString(behandlingId),
-        opprettet = tidspunkt,
-        sakId = UUID.fromString(sakId),
-        behandlingsinformasjon = Behandlingsinformasjon
-            .lagTomBehandlingsinformasjon()
-            .withAlleVilkårOppfylt()
-            .withVilkårAvslått(),
-        søknad = Søknad.Journalført.MedOppgave(
-            id = UUID.fromString(søknadId),
-            opprettet = tidspunkt,
-            sakId = UUID.fromString(sakId),
-            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-            journalpostId = JournalpostId("journalpostId"),
-            oppgaveId = OppgaveId("oppgaveId")
-        ),
-        beregning = null,
-        simulering = null,
-        status = Behandling.BehandlingsStatus.IVERKSATT_AVSLAG,
-        saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-        attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
-        saksnummer = Saksnummer(1234),
-        hendelseslogg = Hendelseslogg("ignoreMe"),
-        fnr = fnr,
-        oppgaveId = OppgaveId("oppgaveId"),
-        iverksattJournalpostId = JournalpostId("iverksattJournalpostId"),
-        iverksattBrevbestillingId = BrevbestillingId("iverksattBrevbestillingId")
-
-    )
 
     @Test
     fun `kan serialisere avslag`() {
-        val avslag = Vedtakssnapshot.Avslag(
-            id = UUID.fromString(avslagId),
+        val avslagUtenBeregning = Søknadsbehandling.Iverksatt.Avslag.UtenBeregning(
+            id = UUID.fromString(behandlingId),
             opprettet = tidspunkt,
-            behandling = behandling,
+            sakId = UUID.fromString(sakId),
+            behandlingsinformasjon = Behandlingsinformasjon
+                .lagTomBehandlingsinformasjon()
+                .withAlleVilkårOppfylt()
+                .withVilkårAvslått(),
+            søknad = Søknad.Journalført.MedOppgave(
+                id = UUID.fromString(søknadId),
+                opprettet = tidspunkt,
+                sakId = UUID.fromString(sakId),
+                søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+                journalpostId = JournalpostId("journalpostId"),
+                oppgaveId = OppgaveId("oppgaveId")
+            ),
+            saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
+            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
+            saksnummer = Saksnummer(1234),
+            fnr = fnr,
+            oppgaveId = OppgaveId("oppgaveId"),
+            eksterneIverksettingsteg = Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg.JournalførtOgDistribuertBrev(
+                journalpostId = JournalpostId("iverksattJournalpostId"),
+                brevbestillingId = BrevbestillingId("iverksattBrevbestillingId"),
+
+            ),
+        )
+
+        val avslag = Vedtakssnapshot.Avslag(
+            id = UUID.fromString(vedtakssnapshotId),
+            opprettet = tidspunkt,
+            søknadsbehandling = avslagUtenBeregning,
             avslagsgrunner = listOf(Avslagsgrunn.PERSONLIG_OPPMØTE)
         )
 
@@ -104,7 +94,7 @@ internal class VedtakssnapshotJsonTest {
         val expectedJson = """
             {
                "type":"avslag",
-               "id":"$avslagId",
+               "id":"$vedtakssnapshotId",
                "opprettet":"1970-01-01T01:02:03.456789Z",
                "avslagsgrunner":["PERSONLIG_OPPMØTE"],
                "behandling":{
@@ -350,7 +340,7 @@ internal class VedtakssnapshotJsonTest {
         val utbetaling = lagUtbetalingUtenKvittering(
             sakId = UUID.fromString(sakId),
             saksnummer = Saksnummer(saksnummer),
-            fnr = behandling.fnr,
+            fnr = fnr,
             datoBeregnet = LocalDate.EPOCH
         )
         val fradrag = listOf(
@@ -366,71 +356,96 @@ internal class VedtakssnapshotJsonTest {
                 tilhører = BRUKER
             )
         )
-        val avslag = Vedtakssnapshot.Innvilgelse(
-            id = UUID.fromString(avslagId),
+        val innvilget = Søknadsbehandling.Iverksatt.Innvilget(
+            id = UUID.fromString(behandlingId),
             opprettet = tidspunkt,
-            behandling = behandling.copy(
-                beregning = PersistertBeregning(
-                    id = UUID.fromString(beregningId),
-                    opprettet = tidspunkt,
-                    sats = ORDINÆR,
-                    månedsberegninger = listOf(
-                        PersistertMånedsberegning(
-                            periode = beregningsPeriode,
-                            sats = ORDINÆR,
-                            fradrag = fradrag,
-                            sumYtelse = 3,
-                            sumFradrag = 1.2,
-                            benyttetGrunnbeløp = 66,
-                            satsbeløp = 4.1,
-                        )
-                    ),
-                    fradrag = fradrag,
-                    sumYtelse = 3,
-                    sumFradrag = 2.1,
-                    periode = beregningsPeriode,
-                    fradragStrategyName = Enslig,
+            sakId = UUID.fromString(sakId),
+            behandlingsinformasjon = Behandlingsinformasjon
+                .lagTomBehandlingsinformasjon()
+                .withAlleVilkårOppfylt()
+                .withVilkårAvslått(),
+            søknad = Søknad.Journalført.MedOppgave(
+                id = UUID.fromString(søknadId),
+                opprettet = tidspunkt,
+                sakId = UUID.fromString(sakId),
+                søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+                journalpostId = JournalpostId("journalpostId"),
+                oppgaveId = OppgaveId("oppgaveId")
+            ),
+            saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
+            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
+            saksnummer = Saksnummer(1234),
+            fnr = fnr,
+            oppgaveId = OppgaveId("oppgaveId"),
+            beregning = PersistertBeregning(
+                id = UUID.fromString(beregningId),
+                opprettet = tidspunkt,
+                sats = ORDINÆR,
+                månedsberegninger = listOf(
+                    PersistertMånedsberegning(
+                        periode = beregningsPeriode,
+                        sats = ORDINÆR,
+                        fradrag = fradrag,
+                        sumYtelse = 3,
+                        sumFradrag = 1.2,
+                        benyttetGrunnbeløp = 66,
+                        satsbeløp = 4.1,
+                    )
                 ),
-                simulering = Simulering(
-                    gjelderId = fnr,
-                    gjelderNavn = "gjelderNavn",
-                    datoBeregnet = LocalDate.EPOCH,
-                    nettoBeløp = 42,
-                    periodeList = listOf(
-                        SimulertPeriode(
-                            fraOgMed = LocalDate.EPOCH,
-                            tilOgMed = LocalDate.EPOCH.plusDays(30),
-                            utbetaling = listOf(
-                                SimulertUtbetaling(
-                                    fagSystemId = "fagSystemId",
-                                    utbetalesTilId = fnr,
-                                    utbetalesTilNavn = "utbetalesTilNavn",
-                                    forfall = LocalDate.EPOCH,
-                                    feilkonto = false,
-                                    detaljer = listOf(
-                                        SimulertDetaljer(
-                                            faktiskFraOgMed = LocalDate.EPOCH,
-                                            faktiskTilOgMed = LocalDate.EPOCH.plusDays(30),
-                                            konto = "konto",
-                                            belop = 1,
-                                            tilbakeforing = false,
-                                            sats = 2,
-                                            typeSats = "typeSats",
-                                            antallSats = 3,
-                                            uforegrad = 4,
-                                            klassekode = "klassekode",
-                                            klassekodeBeskrivelse = "klassekodeBeskrivelse",
-                                            klasseType = YTEL
-
-                                        )
+                fradrag = fradrag,
+                sumYtelse = 3,
+                sumFradrag = 2.1,
+                periode = beregningsPeriode,
+                fradragStrategyName = Enslig,
+            ),
+            simulering = Simulering(
+                gjelderId = fnr,
+                gjelderNavn = "gjelderNavn",
+                datoBeregnet = LocalDate.EPOCH,
+                nettoBeløp = 42,
+                periodeList = listOf(
+                    SimulertPeriode(
+                        fraOgMed = LocalDate.EPOCH,
+                        tilOgMed = LocalDate.EPOCH.plusDays(30),
+                        utbetaling = listOf(
+                            SimulertUtbetaling(
+                                fagSystemId = "fagSystemId",
+                                utbetalesTilId = fnr,
+                                utbetalesTilNavn = "utbetalesTilNavn",
+                                forfall = LocalDate.EPOCH,
+                                feilkonto = false,
+                                detaljer = listOf(
+                                    SimulertDetaljer(
+                                        faktiskFraOgMed = LocalDate.EPOCH,
+                                        faktiskTilOgMed = LocalDate.EPOCH.plusDays(30),
+                                        konto = "konto",
+                                        belop = 1,
+                                        tilbakeforing = false,
+                                        sats = 2,
+                                        typeSats = "typeSats",
+                                        antallSats = 3,
+                                        uforegrad = 4,
+                                        klassekode = "klassekode",
+                                        klassekodeBeskrivelse = "klassekodeBeskrivelse",
+                                        klasseType = YTEL
                                     )
                                 )
                             )
                         )
                     )
-
                 )
             ),
+            eksterneIverksettingsteg = Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.JournalførtOgDistribuertBrev(
+                journalpostId = JournalpostId("iverksattJournalpostId"),
+                brevbestillingId = BrevbestillingId("iverksattBrevbestillingId"),
+            ),
+            utbetalingId = UUID30.randomUUID(),
+        )
+
+        val innvilgelse = Vedtakssnapshot.Innvilgelse(
+            id = UUID.fromString(vedtakssnapshotId),
+            opprettet = tidspunkt,
+            søknadsbehandling = innvilget,
             utbetaling = utbetaling
         )
 
@@ -438,7 +453,7 @@ internal class VedtakssnapshotJsonTest {
         val expectedJson = """
             {
                "type":"innvilgelse",
-               "id":"$avslagId",
+               "id":"$vedtakssnapshotId",
                "opprettet":"1970-01-01T01:02:03.456789Z",
                "behandling":{
                   "id":"$behandlingId",
@@ -446,7 +461,7 @@ internal class VedtakssnapshotJsonTest {
                   "sakId":"$sakId",
                   "saksnummer":1234,
                   "fnr":"12345678910",
-                  "status":"IVERKSATT_AVSLAG",
+                  "status":"IVERKSATT_INNVILGET",
                   "saksbehandler":"saksbehandler",
                   "attestering":{
                      "type": "Iverksatt",
@@ -798,7 +813,7 @@ internal class VedtakssnapshotJsonTest {
             }
         """.trimIndent()
 
-        val actualJson = objectMapper.writeValueAsString(avslag.toJson())
+        val actualJson = objectMapper.writeValueAsString(innvilgelse.toJson())
         println(actualJson)
         JSONAssert.assertEquals(expectedJson, actualJson, true)
     }
