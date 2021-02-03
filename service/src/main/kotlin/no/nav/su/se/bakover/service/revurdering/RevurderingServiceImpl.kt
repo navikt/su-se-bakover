@@ -53,14 +53,14 @@ internal class RevurderingServiceImpl(
                 if (tilRevurdering.isEmpty()) return KunneIkkeRevurdere.FantIngentingSomKanRevurderes.left()
                 if (tilRevurdering.size > 1) return KunneIkkeRevurdere.KanIkkeRevurderePerioderMedFlereAktiveStønadsperioder.left()
 
-                return tilRevurdering.single().let {
+                tilRevurdering.single().let {
                     val revurdering = OpprettetRevurdering(
                         periode = periode,
                         tilRevurdering = it,
                         saksbehandler = saksbehandler
                     )
                     revurderingRepo.lagre(revurdering)
-                    revurdering.right()
+                    revurdering
                 }
             }
     }
@@ -70,7 +70,7 @@ internal class RevurderingServiceImpl(
         saksbehandler: NavIdentBruker.Saksbehandler,
         fradrag: List<Fradrag>
     ): Either<KunneIkkeRevurdere, SimulertRevurdering> {
-        return when (val revurdering = revurderingRepo.hent(revurderingId)!!) {
+        return when (val revurdering = revurderingRepo.hent(revurderingId)) {
             is BeregnetRevurdering, is OpprettetRevurdering, is SimulertRevurdering -> {
                 val beregnetRevurdering = revurdering.beregn(fradrag)
                 utbetalingService.simulerUtbetaling(
@@ -99,7 +99,7 @@ internal class RevurderingServiceImpl(
             is SimulertRevurdering -> {
                 val aktørId = personService.hentAktørId(revurdering.tilRevurdering.fnr).getOrElse {
                     log.error("Fant ikke aktør-id")
-                    return KunneIkkeRevurdere.KunneIkkeFinneAktørId.left()
+                    return KunneIkkeRevurdere.FantIkkeAktørid.left()
                 }
 
                 val oppgaveId = oppgaveService.opprettOppgave(
@@ -115,16 +115,7 @@ internal class RevurderingServiceImpl(
                     return KunneIkkeRevurdere.KunneIkkeOppretteOppgave.left()
                 }
 
-                RevurderingTilAttestering(
-                    id = revurdering.id,
-                    periode = revurdering.periode,
-                    opprettet = revurdering.opprettet,
-                    beregning = revurdering.beregning,
-                    tilRevurdering = revurdering.tilRevurdering,
-                    simulering = revurdering.simulering,
-                    saksbehandler = saksbehandler,
-                    oppgaveId = oppgaveId,
-                )
+                revurdering.tilAttestering(oppgaveId, saksbehandler)
             }
             else -> throw RuntimeException("Revurdering er ikke i riktig status for å sendes til attestering")
         }

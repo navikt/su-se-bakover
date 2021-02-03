@@ -416,6 +416,7 @@ internal class RevurderingServiceImplTest {
             on { opprettet } doReturn Tidspunkt.EPOCH
             on { beregning } doReturn mock()
             on { simulering } doReturn mock()
+            on { tilAttestering(any(), any()) } doReturn mock()
         }
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -501,7 +502,7 @@ internal class RevurderingServiceImplTest {
             saksbehandler = saksbehandler,
         )
 
-        actual shouldBe KunneIkkeRevurdere.KunneIkkeFinneAktørId.left()
+        actual shouldBe KunneIkkeRevurdere.FantIkkeAktørid.left()
 
         inOrder(revurderingRepoMock) {
             verify(revurderingRepoMock).hent(revurderingId)

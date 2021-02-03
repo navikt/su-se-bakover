@@ -36,7 +36,7 @@ sealed class KunneIkkeRevurdere {
     object MicrosoftApiGraphFeil : KunneIkkeRevurdere()
     object FantIngentingSomKanRevurderes : KunneIkkeRevurdere()
     object FantIkkePerson : KunneIkkeRevurdere()
-    object KunneIkkeFinneAktørId : KunneIkkeRevurdere()
+    object FantIkkeAktørid : KunneIkkeRevurdere()
     object KunneIkkeOppretteOppgave : KunneIkkeRevurdere()
     object KunneIkkeLageBrevutkast : KunneIkkeRevurdere()
     object KanIkkeRevurdereInneværendeMånedEllerTidligere : KunneIkkeRevurdere()

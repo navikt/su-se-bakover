@@ -86,7 +86,7 @@ internal class RevurderingPostgresRepo(
                 opprettet = opprettet,
                 tilRevurdering = tilRevurdering, beregning = beregning!!, saksbehandler = Saksbehandler(saksbehandler)
             )
-            else -> OpprettetRevurdering(
+            RevurderingsType.OPPRETTET -> OpprettetRevurdering(
                 id = id,
                 periode = periode,
                 opprettet = opprettet,

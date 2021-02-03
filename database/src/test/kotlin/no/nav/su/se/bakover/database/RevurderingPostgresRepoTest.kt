@@ -293,22 +293,7 @@ internal class RevurderingPostgresRepoTest {
 
             repo.lagre(simulert)
 
-            val tilAttestering = RevurderingTilAttestering(
-                id = beregnet.id,
-                periode = beregnet.periode,
-                opprettet = beregnet.opprettet,
-                tilRevurdering = beregnet.tilRevurdering,
-                saksbehandler = beregnet.saksbehandler,
-                beregning = beregnet.beregning,
-                simulering = Simulering(
-                    gjelderId = FnrGenerator.random(),
-                    gjelderNavn = "et navn for simulering",
-                    datoBeregnet = 1.januar(2021),
-                    nettoBeløp = 200,
-                    periodeList = listOf()
-                ),
-                oppgaveId = OppgaveId("oppgaveId")
-            )
+            val tilAttestering = simulert.tilAttestering(oppgaveId = OppgaveId("oppgaveId"), saksbehandler = saksbehandler)
 
             repo.lagre(tilAttestering)
 
@@ -361,22 +346,7 @@ internal class RevurderingPostgresRepoTest {
 
             repo.lagre(simulert)
 
-            val tilAttestering = RevurderingTilAttestering(
-                id = beregnet.id,
-                periode = beregnet.periode,
-                opprettet = beregnet.opprettet,
-                tilRevurdering = beregnet.tilRevurdering,
-                saksbehandler = Saksbehandler("saksbehandler som sendte til attestering"),
-                beregning = beregnet.beregning,
-                simulering = Simulering(
-                    gjelderId = FnrGenerator.random(),
-                    gjelderNavn = "et navn for simulering",
-                    datoBeregnet = 1.januar(2021),
-                    nettoBeløp = 200,
-                    periodeList = listOf()
-                ),
-                oppgaveId = OppgaveId("oppgaveId")
-            )
+            val tilAttestering = simulert.tilAttestering(oppgaveId = OppgaveId("oppgaveId"), saksbehandler = Saksbehandler("Ny saksbehandler"))
 
             repo.lagre(tilAttestering)
 

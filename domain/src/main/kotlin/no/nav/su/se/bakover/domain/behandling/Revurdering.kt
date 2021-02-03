@@ -71,7 +71,18 @@ data class SimulertRevurdering(
     override val saksbehandler: Saksbehandler,
     val beregning: Beregning,
     val simulering: Simulering
-) : Revurdering()
+) : Revurdering() {
+    fun tilAttestering(oppgaveId: OppgaveId, saksbehandler: Saksbehandler): RevurderingTilAttestering = RevurderingTilAttestering(
+        id = id,
+        periode = periode,
+        opprettet = opprettet,
+        tilRevurdering = tilRevurdering,
+        saksbehandler = saksbehandler,
+        beregning = beregning,
+        simulering = simulering,
+        oppgaveId = oppgaveId,
+    )
+}
 
 data class RevurderingTilAttestering(
     override val id: UUID,

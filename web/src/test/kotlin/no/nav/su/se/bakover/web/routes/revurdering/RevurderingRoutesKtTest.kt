@@ -44,7 +44,7 @@ import java.util.UUID
 
 internal class RevurderingRoutesKtTest {
     private val sakId = UUID.randomUUID()
-    private val requestPath = "$sakPath/$sakId/revurdering"
+    private val requestPath = "$sakPath/$sakId/revurderinger"
     private val services = TestServicesBuilder.services()
     private val periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020))
 
@@ -167,12 +167,11 @@ internal class RevurderingRoutesKtTest {
         }) {
             defaultRequest(
                 HttpMethod.Post,
-                "$requestPath/beregnOgSimuler",
+                "$requestPath/${simulertRevurdering.id}/beregnOgSimuler",
                 listOf(Brukerrolle.Saksbehandler)
             ) {
                 setBody(
                     """{
-                    "revurderingId": "${simulertRevurdering.id}",
                     "periode": { "fraOgMed": "${periode.getFraOgMed()}", "tilOgMed": "${periode.getTilOgMed()}"},
                     "fradrag": []
                     } 
