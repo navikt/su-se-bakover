@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
 
 internal fun createSøknadsbehandlingService(
     søknadsbehandlingRepo: SøknadsbehandlingRepo = mock(),
@@ -28,6 +29,7 @@ internal fun createSøknadsbehandlingService(
     beregningService: BeregningService = mock(),
     microsoftGraphApiOppslag: MicrosoftGraphApiOppslag = mock(),
     brevService: BrevService = mock(),
+    opprettVedtakssnapshotService: OpprettVedtakssnapshotService = mock()
 ) = SøknadsbehandlingServiceImpl(
     søknadService,
     søknadRepo,
@@ -40,4 +42,5 @@ internal fun createSøknadsbehandlingService(
     beregningService,
     microsoftGraphApiOppslag,
     brevService,
+    opprettVedtakssnapshotService,
 ).apply { addObserver(observer) }

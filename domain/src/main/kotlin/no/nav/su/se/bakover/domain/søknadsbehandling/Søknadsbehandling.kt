@@ -898,7 +898,7 @@ sealed class Søknadsbehandling {
             }
         }
 
-        sealed class Avslag : Iverksatt() {
+        sealed class Avslag : Iverksatt(), no.nav.su.se.bakover.domain.søknadsbehandling.Avslag {
             abstract val eksterneIverksettingsteg: EksterneIverksettingsteg
             abstract fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeDistribuereBrev, Avslag>
 

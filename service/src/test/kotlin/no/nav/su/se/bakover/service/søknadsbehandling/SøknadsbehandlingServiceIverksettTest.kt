@@ -22,19 +22,26 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Statusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.FnrGenerator
+import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
 import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.fixedClock
+import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
+import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import java.time.ZoneOffset
 import java.util.UUID
 
 internal class SøknadsbehandlingServiceIverksettTest {
@@ -42,13 +49,32 @@ internal class SøknadsbehandlingServiceIverksettTest {
     private val sakId: UUID = UUID.fromString("268e62fb-3079-4e8d-ab32-ff9fb9eac2ec")
     private val behandlingId: UUID = UUID.fromString("a602aa68-c989-43e3-9fb7-cb488a2a3821")
     private val saksnummer = Saksnummer(999999)
-    private val oppgaveId = OppgaveId("o")
-    private val iverksattJournalpostId = JournalpostId("j")
-    private val iverksattBrevbestillingId = BrevbestillingId("2")
+    private val iverksattJournalpostId = JournalpostId("journalpostId")
+    private val iverksattBrevbestillingId = BrevbestillingId("brevbestillingId")
     private val søknadOppgaveId = OppgaveId("søknadOppgaveId")
     private val attestant = NavIdentBruker.Attestant("attestant")
     private val saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlinger")
     private val utbetalingId = UUID30.randomUUID()
+    val opprettet = Tidspunkt.now(fixedClock)
+    private val utbetaling = Utbetaling.OversendtUtbetaling.UtenKvittering(
+        id = utbetalingId,
+        opprettet = opprettet,
+        sakId = sakId,
+        saksnummer = saksnummer,
+        fnr = fnr,
+        utbetalingslinjer = emptyList(),
+        type = Utbetaling.UtbetalingsType.NY,
+        behandler = attestant,
+        avstemmingsnøkkel = Avstemmingsnøkkel(),
+        simulering = Simulering(
+            gjelderId = FnrGenerator.random(),
+            gjelderNavn = "gjelderNavn",
+            datoBeregnet = opprettet.toLocalDate(ZoneOffset.UTC),
+            nettoBeløp = 0,
+            periodeList = listOf()
+        ),
+        utbetalingsrequest = Utbetalingsrequest(value = ""),
+    )
 
     @Test
     fun `svarer med feil dersom vi ikke finner behandling`() {
@@ -77,6 +103,127 @@ internal class SøknadsbehandlingServiceIverksettTest {
     }
 
     @Test
+    fun `svarer med feil dersom vi ikke kunne simulere`() {
+        val behandling = innvilgetTilAttestering()
+
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
+            on { hent(any()) } doReturn behandling
+        }
+
+        val iverksettSaksbehandlingServiceMock = mock<IverksettSøknadsbehandlingService>()
+
+        val utbetalingServiceMock = mock<UtbetalingService> {
+            on { utbetal(any(), any(), any(), any()) } doReturn KunneIkkeUtbetale.KunneIkkeSimulere.left()
+        }
+
+        val response = createSøknadsbehandlingService(
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
+            iverksettBehandlingService = iverksettSaksbehandlingServiceMock,
+            utbetalingService = utbetalingServiceMock,
+        ).iverksett(IverksettSøknadsbehandlingRequest(behandling.id, Attestering.Iverksatt(attestant)))
+
+        response shouldBe KunneIkkeIverksetteBehandling.KunneIkkeKontrollsimulere.left()
+
+        inOrder(søknadsbehandlingRepoMock, utbetalingServiceMock) {
+            verify(søknadsbehandlingRepoMock).hent(behandling.id)
+            verify(utbetalingServiceMock).utbetal(
+                sakId = argThat { it shouldBe sakId },
+                attestant = argThat { it shouldBe attestant },
+                beregning = argThat { it shouldBe beregning },
+                simulering = argThat { it shouldBe simulering },
+            )
+        }
+        verifyNoMoreInteractions(
+            utbetalingServiceMock,
+            søknadsbehandlingRepoMock,
+            iverksettSaksbehandlingServiceMock
+        )
+    }
+
+    @Test
+    fun `svarer med feil dersom kontrollsimulering var for ulik`() {
+        val behandling = innvilgetTilAttestering()
+
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
+            on { hent(any()) } doReturn behandling
+        }
+
+        val iverksettSaksbehandlingServiceMock = mock<IverksettSøknadsbehandlingService>()
+
+        val utbetalingServiceMock = mock<UtbetalingService> {
+            on {
+                utbetal(
+                    any(),
+                    any(),
+                    any(),
+                    any(),
+                )
+            } doReturn KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
+        }
+
+        val response = createSøknadsbehandlingService(
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
+            iverksettBehandlingService = iverksettSaksbehandlingServiceMock,
+            utbetalingService = utbetalingServiceMock,
+        ).iverksett(IverksettSøknadsbehandlingRequest(behandling.id, Attestering.Iverksatt(attestant)))
+
+        response shouldBe KunneIkkeIverksetteBehandling.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
+
+        inOrder(søknadsbehandlingRepoMock, utbetalingServiceMock) {
+            verify(søknadsbehandlingRepoMock).hent(behandling.id)
+            verify(utbetalingServiceMock).utbetal(
+                sakId = argThat { it shouldBe sakId },
+                attestant = argThat { it shouldBe attestant },
+                beregning = argThat { it shouldBe beregning },
+                simulering = argThat { it shouldBe simulering },
+            )
+        }
+        verifyNoMoreInteractions(
+            utbetalingServiceMock,
+            søknadsbehandlingRepoMock,
+            iverksettSaksbehandlingServiceMock
+        )
+    }
+
+    @Test
+    fun `svarer med feil dersom vi ikke kunne utbetale`() {
+        val behandling = innvilgetTilAttestering()
+
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
+            on { hent(any()) } doReturn behandling
+        }
+
+        val iverksettSaksbehandlingServiceMock = mock<IverksettSøknadsbehandlingService>()
+
+        val utbetalingServiceMock = mock<UtbetalingService> {
+            on { utbetal(any(), any(), any(), any()) } doReturn KunneIkkeUtbetale.Protokollfeil.left()
+        }
+
+        val response = createSøknadsbehandlingService(
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
+            iverksettBehandlingService = iverksettSaksbehandlingServiceMock,
+            utbetalingService = utbetalingServiceMock,
+        ).iverksett(IverksettSøknadsbehandlingRequest(behandling.id, Attestering.Iverksatt(attestant)))
+
+        response shouldBe KunneIkkeIverksetteBehandling.KunneIkkeUtbetale.left()
+
+        inOrder(søknadsbehandlingRepoMock, utbetalingServiceMock) {
+            verify(søknadsbehandlingRepoMock).hent(behandling.id)
+            verify(utbetalingServiceMock).utbetal(
+                sakId = argThat { it shouldBe sakId },
+                attestant = argThat { it shouldBe attestant },
+                beregning = argThat { it shouldBe beregning },
+                simulering = argThat { it shouldBe simulering },
+            )
+        }
+        verifyNoMoreInteractions(
+            utbetalingServiceMock,
+            søknadsbehandlingRepoMock,
+            iverksettSaksbehandlingServiceMock
+        )
+    }
+
+    @Test
     fun `attesterer og iverksetter innvilgning hvis alt er ok`() {
         val behandling = innvilgetTilAttestering()
 
@@ -84,16 +231,17 @@ internal class SøknadsbehandlingServiceIverksettTest {
             on { hent(any()) } doReturn behandling
         }
 
-        val iverksettSaksbehandlingServiceMock = mock<IverksettSøknadsbehandlingService>() {
-            on { iverksettInnvilgning(any(), any()) } doReturn utbetalingId.right()
+        val iverksettSaksbehandlingServiceMock = mock<IverksettSøknadsbehandlingService>()
+        val utbetalingServiceMock = mock<UtbetalingService> {
+            on { utbetal(any(), any(), any(), any()) } doReturn utbetaling.right()
         }
-
         val behandlingMetricsMock = mock<BehandlingMetrics>()
 
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             iverksettBehandlingService = iverksettSaksbehandlingServiceMock,
-            behandlingMetrics = behandlingMetricsMock
+            behandlingMetrics = behandlingMetricsMock,
+            utbetalingService = utbetalingServiceMock,
         ).iverksett(IverksettSøknadsbehandlingRequest(behandling.id, Attestering.Iverksatt(attestant)))
 
         val expected = Søknadsbehandling.Iverksatt.Innvilget(
@@ -114,15 +262,25 @@ internal class SøknadsbehandlingServiceIverksettTest {
 
         response shouldBe expected.right()
 
-        inOrder(søknadsbehandlingRepoMock, iverksettSaksbehandlingServiceMock, behandlingMetricsMock) {
+        inOrder(
+            søknadsbehandlingRepoMock,
+            behandlingMetricsMock,
+            utbetalingServiceMock
+        ) {
             verify(søknadsbehandlingRepoMock).hent(behandling.id)
-            verify(iverksettSaksbehandlingServiceMock).iverksettInnvilgning(behandling, attestant)
+            verify(utbetalingServiceMock).utbetal(
+                sakId = argThat { it shouldBe sakId },
+                attestant = argThat { it shouldBe attestant },
+                beregning = argThat { it shouldBe beregning },
+                simulering = argThat { it shouldBe simulering },
+            )
             verify(søknadsbehandlingRepoMock).lagre(expected)
             verify(behandlingMetricsMock).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
         }
         verifyNoMoreInteractions(
             søknadsbehandlingRepoMock,
-            iverksettSaksbehandlingServiceMock
+            iverksettSaksbehandlingServiceMock,
+            utbetalingServiceMock
         )
     }
 
@@ -157,7 +315,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             )
         )
 
-        val iverksettSaksbehandlingServiceMock = mock<IverksettSøknadsbehandlingService>() {
+        val iverksettSaksbehandlingServiceMock = mock<IverksettSøknadsbehandlingService> {
             on { opprettJournalpostForAvslag(any(), any()) } doReturn iverksattJournalpostId.right()
             on { distribuerBrevOgLukkOppgaveForAvslag(any()) } doReturn expectedJournalførtOgDistribuert
         }
@@ -254,10 +412,10 @@ internal class SøknadsbehandlingServiceIverksettTest {
     private fun innvilgetTilAttestering() =
         Søknadsbehandling.TilAttestering.Innvilget(
             id = behandlingId,
-            opprettet = Tidspunkt.now(),
+            opprettet = opprettet,
             søknad = Søknad.Journalført.MedOppgave(
                 id = BehandlingTestUtils.søknadId,
-                opprettet = Tidspunkt.EPOCH,
+                opprettet = opprettet,
                 sakId = sakId,
                 søknadInnhold = SøknadInnholdTestdataBuilder.build(),
                 oppgaveId = BehandlingTestUtils.søknadOppgaveId,
@@ -276,10 +434,10 @@ internal class SøknadsbehandlingServiceIverksettTest {
     private fun avslagTilAttestering() =
         Søknadsbehandling.TilAttestering.Avslag.MedBeregning(
             id = behandlingId,
-            opprettet = Tidspunkt.now(),
+            opprettet = opprettet,
             søknad = Søknad.Journalført.MedOppgave(
                 id = BehandlingTestUtils.søknadId,
-                opprettet = Tidspunkt.EPOCH,
+                opprettet = opprettet,
                 sakId = sakId,
                 søknadInnhold = SøknadInnholdTestdataBuilder.build(),
                 oppgaveId = BehandlingTestUtils.søknadOppgaveId,

@@ -7,14 +7,11 @@ import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.times
-import com.nhaarman.mockitokotlin2.verify
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.client.person.MicrosoftGraphResponse
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -28,10 +25,6 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagBrevRequest
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
-import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknadsbehandling.Statusovergang
@@ -45,8 +38,6 @@ import no.nav.su.se.bakover.service.brev.KunneIkkeJournalføreBrev
 import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
-import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
-import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.util.UUID
@@ -223,102 +214,6 @@ internal class IverksettSøknadsbehandlingServiceTest {
         }
     }
 
-    @Test
-    fun `betaler ut penger og returnerer utbetalings id hvis alt er ok for innvilgelse`() {
-        val behandling = innvilgetTilAttestering()
-
-        val utbetalingService = mock<UtbetalingService> {
-            on { utbetal(any(), any(), any(), any()) } doReturn utbetaling.right()
-        }
-
-        val response = createService(
-            utbetalingService = utbetalingService,
-        ).iverksettInnvilgning(behandling, attestant)
-
-        response shouldBe utbetaling.id.right()
-
-        verify(utbetalingService).utbetal(
-            argThat { it shouldBe behandling.sakId },
-            argThat { it shouldBe attestant },
-            argThat { it shouldBe behandling.beregning },
-            argThat { it shouldBe behandling.simulering }
-        )
-    }
-
-    @Test
-    fun `svarer med feil dersom vi ikke får oversendt utbetaling til oppdrag`() {
-        val behandling = innvilgetTilAttestering()
-
-        val utbetalingService = mock<UtbetalingService> {
-            on {
-                utbetal(
-                    any(),
-                    any(),
-                    any(),
-                    any()
-                )
-            } doReturn KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
-        }
-
-        val response = createService(
-            utbetalingService = utbetalingService,
-        ).iverksettInnvilgning(behandling, attestant)
-
-        response shouldBe Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
-    }
-
-    @Test
-    fun `svarer med feil ved teknisk feil ved utbretaling`() {
-        val behandling = innvilgetTilAttestering()
-
-        val utbetalingService = mock<UtbetalingService> {
-            on { utbetal(any(), any(), any(), any()) } doReturn KunneIkkeUtbetale.Protokollfeil.left()
-        }
-
-        val response = createService(
-            utbetalingService = utbetalingService,
-        ).iverksettInnvilgning(behandling, attestant)
-
-        response shouldBe Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.TekniskFeil.left()
-    }
-
-    @Test
-    fun `svarer med feil dersom vi ikke får simulert`() {
-        val behandling = innvilgetTilAttestering()
-
-        val utbetalingService = mock<UtbetalingService> {
-            on { utbetal(any(), any(), any(), any()) } doReturn KunneIkkeUtbetale.KunneIkkeSimulere.left()
-        }
-
-        val response = createService(
-            utbetalingService = utbetalingService,
-        ).iverksettInnvilgning(behandling, attestant)
-
-        response shouldBe Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.KunneIkkeKontrollsimulere.left()
-    }
-
-    private fun innvilgetTilAttestering() =
-        Søknadsbehandling.TilAttestering.Innvilget(
-            id = behandlingId,
-            opprettet = Tidspunkt.now(),
-            søknad = Søknad.Journalført.MedOppgave(
-                id = BehandlingTestUtils.søknadId,
-                opprettet = Tidspunkt.EPOCH,
-                sakId = sakId,
-                søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-                oppgaveId = BehandlingTestUtils.søknadOppgaveId,
-                journalpostId = BehandlingTestUtils.søknadJournalpostId
-            ),
-            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-            sakId = sakId,
-            saksnummer = saksnummer,
-            fnr = fnr,
-            saksbehandler = saksbehandler,
-            oppgaveId = søknadOppgaveId,
-            beregning = beregning,
-            simulering = simulering,
-        )
-
     private fun avslagTilAttestering() =
         Søknadsbehandling.TilAttestering.Avslag.MedBeregning(
             id = behandlingId,
@@ -342,30 +237,7 @@ internal class IverksettSøknadsbehandlingServiceTest {
 
     private val beregning = TestBeregning
 
-    private val simulering = Simulering(
-        gjelderId = fnr,
-        gjelderNavn = "NAVN",
-        datoBeregnet = idag(fixedClock),
-        nettoBeløp = 191500,
-        periodeList = listOf()
-    )
-
-    private val utbetaling = Utbetaling.OversendtUtbetaling.UtenKvittering(
-        id = UUID30.randomUUID(),
-        opprettet = Tidspunkt.now(fixedClock),
-        sakId = sakId,
-        saksnummer = saksnummer,
-        fnr = fnr,
-        utbetalingslinjer = emptyList(),
-        type = Utbetaling.UtbetalingsType.NY,
-        behandler = attestant,
-        avstemmingsnøkkel = Avstemmingsnøkkel(),
-        simulering = simulering,
-        utbetalingsrequest = Utbetalingsrequest(value = "")
-    )
-
     private fun createService(
-        utbetalingService: UtbetalingService = mock(),
         oppgaveService: OppgaveService = mock(),
         personService: PersonService = mock(),
         behandlingMetrics: BehandlingMetrics = mock(),
@@ -373,12 +245,11 @@ internal class IverksettSøknadsbehandlingServiceTest {
         microsoftGraphApiClient: MicrosoftGraphApiOppslag = mock(),
         brevService: BrevService = mock(),
     ) = IverksettSøknadsbehandlingService(
-        utbetalingService,
-        oppgaveService,
-        personService,
-        behandlingMetrics,
-        clock,
-        microsoftGraphApiClient,
-        brevService
+        oppgaveService = oppgaveService,
+        personService = personService,
+        behandlingMetrics = behandlingMetrics,
+        clock = clock,
+        microsoftGraphApiClient = microsoftGraphApiClient,
+        brevService = brevService
     )
 }

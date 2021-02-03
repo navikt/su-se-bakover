@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.LagBrevRequestVisitor
@@ -23,6 +24,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Statusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.forsøkStatusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.statusovergang
+import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
 import no.nav.su.se.bakover.service.behandling.KunneIkkeBeregne
 import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeLageBrevutkast
@@ -38,7 +40,9 @@ import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.søknad.SøknadService
+import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
@@ -54,6 +58,7 @@ internal class SøknadsbehandlingServiceImpl(
     private val beregningService: BeregningService,
     private val microsoftGraphApiClient: MicrosoftGraphApiOppslag,
     private val brevService: BrevService,
+    private val opprettVedtakssnapshotService: OpprettVedtakssnapshotService,
 ) : SøknadsbehandlingService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -254,15 +259,29 @@ internal class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeIverksetteBehandling.FantIkkeBehandling.left()
 
+        var utbetaling: Utbetaling.OversendtUtbetaling.UtenKvittering? = null
         return forsøkStatusovergang(
             søknadsbehandling = søknadsbehandling,
             statusovergang = Statusovergang.TilIverksatt(
                 attestering = request.attestering,
                 innvilget = {
-                    iverksettSøknadsbehandlingService.iverksettInnvilgning(
-                        it,
-                        request.attestering.attestant
-                    )
+                    utbetalingService.utbetal(
+                        sakId = it.sakId,
+                        attestant = request.attestering.attestant,
+                        beregning = it.beregning,
+                        simulering = it.simulering
+                    ).mapLeft {
+                        log.error("Kunne ikke innvilge behandling ${søknadsbehandling.id} siden utbetaling feilet. Feiltype: $it")
+                        when (it) {
+                            KunneIkkeUtbetale.KunneIkkeSimulere -> Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.KunneIkkeKontrollsimulere
+                            KunneIkkeUtbetale.Protokollfeil -> Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.TekniskFeil
+                            KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
+                        }
+                    }.map {
+                        // Dersom vi skal unngå denne hacken må Iverksatt.Innvilget innholde denne istedenfor kun IDen
+                        utbetaling = it
+                        it.id
+                    }
                 },
                 avslag = {
                     iverksettSøknadsbehandlingService.opprettJournalpostForAvslag(
@@ -278,11 +297,17 @@ internal class SøknadsbehandlingServiceImpl(
             when (it) {
                 is Søknadsbehandling.Iverksatt.Innvilget -> {
                     log.info("Iverksatt innvilgelse for behandling ${it.id}")
+                    opprettVedtakssnapshotService.opprettVedtak(
+                        vedtakssnapshot = Vedtakssnapshot.Innvilgelse.createFromBehandling(it, utbetaling!!)
+                    )
                     behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
                     it
                 }
                 is Søknadsbehandling.Iverksatt.Avslag -> {
                     log.info("Iverksatt avslag for behandling ${it.id}")
+                    opprettVedtakssnapshotService.opprettVedtak(
+                        vedtakssnapshot = Vedtakssnapshot.Avslag.createFromBehandling(it, it.avslagsgrunner)
+                    )
                     behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
                     iverksettSøknadsbehandlingService.distribuerBrevOgLukkOppgaveForAvslag(it)
                         .let { medPotensiellBrevbestillingId ->
