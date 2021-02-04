@@ -120,7 +120,7 @@ internal class PersonPostgresRepoTest {
     }
 
     private fun withDbWithDataAndEps(
-        @Suppress("UNUSED_PARAMETER") eps: Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle?,
+        eps: Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle?,
         test: Ctx.() -> Unit
     ) {
         val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())
