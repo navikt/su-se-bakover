@@ -38,8 +38,6 @@ import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.fnr
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.person
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.saksbehandler
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.saksnummer
-import no.nav.su.se.bakover.service.behandling.DistribuerIverksettingsbrevService
-import no.nav.su.se.bakover.service.behandling.JournalførIverksettingService
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeDistribuereBrev
@@ -103,13 +101,9 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
             )
         }
 
-        val journalførIverksettingServiceMock = mock<JournalførIverksettingService>()
-
         val oppgaveServiceMock = mock<OppgaveService> {
             on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
         }
-
-        val distribuerIverksettingsbrevServiceMock = mock<DistribuerIverksettingsbrevService>()
 
         val actual = createService(
             søknadsbehandlingRepo = behandlingRepoMock,
@@ -123,10 +117,8 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
 
         inOrder(
             behandlingRepoMock,
-            distribuerIverksettingsbrevServiceMock,
             personServiceMock,
             oppslagMock,
-            journalførIverksettingServiceMock,
             oppgaveServiceMock
         ) {
             verify(personServiceMock).hentPersonMedSystembruker(fnr)
@@ -139,10 +131,8 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
         }
         verifyNoMoreInteractions(
             behandlingRepoMock,
-            distribuerIverksettingsbrevServiceMock,
             personServiceMock,
             oppslagMock,
-            journalførIverksettingServiceMock,
             oppgaveServiceMock
         )
     }

@@ -25,15 +25,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.forsøkStatusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.statusovergang
 import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
-import no.nav.su.se.bakover.service.behandling.FantIkkeBehandling
-import no.nav.su.se.bakover.service.behandling.KunneIkkeBeregne
-import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling
-import no.nav.su.se.bakover.service.behandling.KunneIkkeLageBrevutkast
-import no.nav.su.se.bakover.service.behandling.KunneIkkeOppdatereBehandlingsinformasjon
-import no.nav.su.se.bakover.service.behandling.KunneIkkeOppretteSøknadsbehandling
-import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering
-import no.nav.su.se.bakover.service.behandling.KunneIkkeSimulereBehandling
-import no.nav.su.se.bakover.service.behandling.KunneIkkeUnderkjenneBehandling
 import no.nav.su.se.bakover.service.beregning.BeregningService
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
@@ -295,6 +286,8 @@ internal class SøknadsbehandlingServiceImpl(
             IverksettStatusovergangFeilMapper.map(it)
         }.map {
             søknadsbehandlingRepo.lagre(it)
+            // TODO jah, jm: Flytt inn i FerdigstillIverksetting...
+            observers.forEach { observer -> observer.handle(Event.Statistikk.SøknadsbehandlingIverksatt(it)) }
             when (it) {
                 is Søknadsbehandling.Iverksatt.Innvilget -> {
                     log.info("Iverksatt innvilgelse for behandling ${it.id}")

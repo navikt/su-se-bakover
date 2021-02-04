@@ -23,9 +23,8 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
             status = saksbehandling.status.toString(),
             attestering = null,
             saksbehandler = null,
-            hendelser = null,
             beregning = null,
-            simulering = null
+            simulering = null,
         )
         is Søknadsbehandling.Beregnet -> {
             BehandlingJson(
@@ -37,7 +36,6 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 status = saksbehandling.status.toString(),
                 attestering = null,
                 saksbehandler = null,
-                hendelser = null,
                 beregning = saksbehandling.beregning.toJson(),
                 simulering = null
             )
@@ -52,7 +50,6 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 status = saksbehandling.status.toString(),
                 attestering = null,
                 saksbehandler = null,
-                hendelser = null,
                 beregning = saksbehandling.beregning.toJson(),
                 simulering = saksbehandling.simulering.toJson()
             )
@@ -67,7 +64,6 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 status = saksbehandling.status.toString(),
                 attestering = null,
                 saksbehandler = saksbehandling.saksbehandler.toString(),
-                hendelser = null,
                 beregning = saksbehandling.beregning.toJson(),
                 simulering = saksbehandling.simulering.toJson()
             )
@@ -82,7 +78,6 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 status = saksbehandling.status.toString(),
                 attestering = null,
                 saksbehandler = saksbehandling.saksbehandler.toString(),
-                hendelser = null,
                 beregning = saksbehandling.beregning.toJson(),
                 simulering = null
             )
@@ -97,7 +92,6 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 status = saksbehandling.status.toString(),
                 attestering = null,
                 saksbehandler = saksbehandling.saksbehandler.toString(),
-                hendelser = null,
                 beregning = null,
                 simulering = null
             )
@@ -126,7 +120,6 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                     }
                 },
                 saksbehandler = saksbehandling.saksbehandler.toString(),
-                hendelser = null,
                 beregning = saksbehandling.beregning.toJson(),
                 simulering = saksbehandling.simulering.toJson()
             )
@@ -155,7 +148,6 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                     }
                 },
                 saksbehandler = saksbehandling.saksbehandler.toString(),
-                hendelser = null,
                 beregning = null,
                 simulering = null
             )
@@ -184,7 +176,6 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                     }
                 },
                 saksbehandler = saksbehandling.saksbehandler.toString(),
-                hendelser = null,
                 beregning = saksbehandling.beregning.toJson(),
                 simulering = null
             )
@@ -213,7 +204,6 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                     }
                 },
                 saksbehandler = saksbehandling.saksbehandler.toString(),
-                hendelser = null,
                 beregning = saksbehandling.beregning.toJson(),
                 simulering = null
             )
@@ -242,7 +232,6 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                     }
                 },
                 saksbehandler = saksbehandling.saksbehandler.toString(),
-                hendelser = null,
                 beregning = null,
                 simulering = null
             )
@@ -271,7 +260,6 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                     }
                 },
                 saksbehandler = saksbehandling.saksbehandler.toString(),
-                hendelser = null,
                 beregning = saksbehandling.beregning.toJson(),
                 simulering = saksbehandling.simulering.toJson()
             )

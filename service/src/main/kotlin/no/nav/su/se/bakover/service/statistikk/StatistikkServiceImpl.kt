@@ -3,10 +3,8 @@ package no.nav.su.se.bakover.service.statistikk
 import no.nav.su.se.bakover.client.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.ForNav
-import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.service.person.PersonService
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -20,6 +18,7 @@ internal class StatistikkServiceImpl(
     private val schemaValidator = StatistikkSchemaValidator
     private val underkjentStatistikk = UnderkjentStatistikkMapper(clock)
     private val tilAttesteringMapper = TilAttesteringMapper(clock)
+    private val iverksattMapper = IverksattStatistikkMapper(clock)
 
     override fun publiser(statistikk: Statistikk) {
         val json = objectMapper.writeValueAsString(statistikk)
@@ -66,25 +65,6 @@ internal class StatistikkServiceImpl(
                     }
                 )
             }
-            is Event.Statistikk.BehandlingOpprettet -> {
-                val behandling = event.behandling
-                publiser(
-                    Statistikk.Behandling(
-                        funksjonellTid = behandling.opprettet,
-                        tekniskTid = Tidspunkt.now(clock),
-                        registrertDato = when (val forNav = behandling.søknad.søknadInnhold.forNav) {
-                            is ForNav.DigitalSøknad -> behandling.opprettet.toLocalDate(zoneIdOslo)
-                            is ForNav.Papirsøknad -> forNav.mottaksdatoForSøknad
-                        },
-                        mottattDato = behandling.opprettet.toLocalDate(zoneIdOslo),
-                        behandlingId = behandling.id,
-                        sakId = behandling.sakId,
-                        saksnummer = behandling.saksnummer.nummer,
-                        behandlingStatus = behandling.status(),
-                        versjon = clock.millis()
-                    )
-                )
-            }
             is Event.Statistikk.SøknadsbehandlingOpprettet -> {
                 val behandling = event.behandling
                 publiser(
@@ -104,81 +84,8 @@ internal class StatistikkServiceImpl(
                     )
                 )
             }
-            is Event.Statistikk.BehandlingTilAttestering -> {
-                val behandling = event.behandling
-                publiser(
-                    Statistikk.Behandling(
-                        funksjonellTid = behandling.beregning()?.getPeriode()?.getFraOgMed()?.startOfDay(zoneIdOslo)
-                            ?: behandling.opprettet,
-                        tekniskTid = Tidspunkt.now(clock),
-                        registrertDato = when (val forNav = behandling.søknad.søknadInnhold.forNav) {
-                            is ForNav.DigitalSøknad -> behandling.opprettet.toLocalDate(zoneIdOslo)
-                            is ForNav.Papirsøknad -> forNav.mottaksdatoForSøknad
-                        },
-                        mottattDato = behandling.opprettet.toLocalDate(zoneIdOslo),
-                        behandlingId = behandling.id,
-                        sakId = behandling.sakId,
-                        saksnummer = behandling.saksnummer.nummer,
-                        behandlingStatus = behandling.status(),
-                        versjon = clock.millis(),
-                        saksbehandler = behandling.saksbehandler()?.navIdent,
-                    )
-                )
-            }
-            is Event.Statistikk.BehandlingAttesteringUnderkjent -> {
-                val behandling = event.behandling
-                publiser(
-                    Statistikk.Behandling(
-                        funksjonellTid = behandling.beregning()?.getPeriode()?.getFraOgMed()?.startOfDay(zoneIdOslo)
-                            ?: behandling.opprettet,
-                        tekniskTid = Tidspunkt.now(clock),
-                        registrertDato = when (val forNav = behandling.søknad.søknadInnhold.forNav) {
-                            is ForNav.DigitalSøknad -> behandling.opprettet.toLocalDate(zoneIdOslo)
-                            is ForNav.Papirsøknad -> forNav.mottaksdatoForSøknad
-                        },
-                        mottattDato = behandling.opprettet.toLocalDate(zoneIdOslo),
-                        behandlingId = behandling.id,
-                        sakId = behandling.sakId,
-                        saksnummer = behandling.saksnummer.nummer,
-                        behandlingStatus = behandling.status(),
-                        behandlingStatusBeskrivelse = "Sendt tilbake til saksbehandler",
-                        versjon = clock.millis(),
-                        saksbehandler = behandling.saksbehandler()?.navIdent,
-                        beslutter = behandling.attestering()?.attestant?.navIdent,
-                    )
-                )
-            }
-            is Event.Statistikk.BehandlingIverksatt -> {
-                val behandling = event.behandling.behandling
-                publiser(
-                    Statistikk.Behandling(
-                        funksjonellTid = behandling.beregning()?.getPeriode()?.getFraOgMed()?.startOfDay(zoneIdOslo)
-                            ?: behandling.opprettet,
-                        tekniskTid = Tidspunkt.now(clock),
-                        registrertDato = when (val forNav = behandling.søknad.søknadInnhold.forNav) {
-                            is ForNav.DigitalSøknad -> behandling.opprettet.toLocalDate(zoneIdOslo)
-                            is ForNav.Papirsøknad -> forNav.mottaksdatoForSøknad
-                        },
-                        mottattDato = behandling.opprettet.toLocalDate(zoneIdOslo),
-                        behandlingId = behandling.id,
-                        sakId = behandling.sakId,
-                        saksnummer = behandling.saksnummer.nummer,
-                        behandlingStatus = behandling.status(),
-                        versjon = clock.millis(),
-                        saksbehandler = behandling.saksbehandler()?.navIdent,
-                        beslutter = behandling.attestering()?.attestant?.navIdent,
-                        resultat = when (behandling.status()) {
-                            Behandling.BehandlingsStatus.IVERKSATT_INNVILGET -> "Innvilget"
-                            Behandling.BehandlingsStatus.IVERKSATT_AVSLAG -> "Avslått"
-                            else -> null
-                        },
-                        resultatBegrunnelse = when (behandling.status()) {
-                            Behandling.BehandlingsStatus.IVERKSATT_AVSLAG -> behandling.utledAvslagsgrunner()
-                                .joinToString(",")
-                            else -> null
-                        },
-                    )
-                )
+            is Event.Statistikk.SøknadsbehandlingIverksatt -> {
+                publiser(iverksattMapper.map(event.behandling))
             }
             is Event.Statistikk.SøknadsbehandlingUnderkjent -> {
                 publiser(underkjentStatistikk.map(event.behandling))

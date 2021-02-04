@@ -42,8 +42,6 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.DatabaseRepos
 import no.nav.su.se.bakover.domain.UgyldigFnrException
-import no.nav.su.se.bakover.domain.behandling.Behandling
-import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
@@ -101,9 +99,8 @@ internal fun Application.susebakover(
     clock: Clock = Clock.systemUTC(),
     behandlingMetrics: BehandlingMetrics = BehandlingMicrometerMetrics(),
     søknadMetrics: SøknadMetrics = SøknadMicrometerMetrics(),
-    behandlingFactory: BehandlingFactory = BehandlingFactory(behandlingMetrics, clock),
     applicationConfig: ApplicationConfig = ApplicationConfig.createConfig(),
-    databaseRepos: DatabaseRepos = DatabaseBuilder.build(behandlingFactory, applicationConfig.database),
+    databaseRepos: DatabaseRepos = DatabaseBuilder.build(applicationConfig.database),
     jmsConfig: JmsConfig = JmsConfig(applicationConfig),
     clients: Clients =
         if (applicationConfig.runtimeEnvironment != ApplicationConfig.RuntimeEnvironment.Nais)
@@ -191,10 +188,6 @@ internal fun Application.susebakover(
             log.warn("Got UgyldigFnrException with message=${it.message}", it)
             call.respond(HttpStatusCode.BadRequest, ErrorJson(it.message ?: "Ugyldig fødselsnummer"))
         }
-        exception<Behandling.TilstandException> {
-            log.info("Got ${Behandling.TilstandException::class.simpleName} with message=${it.msg}")
-            call.respond(HttpStatusCode.BadRequest, ErrorJson(it.msg))
-        }
         exception<StatusovergangVisitor.UgyldigStatusovergangException> {
             log.info("Got ${StatusovergangVisitor.UgyldigStatusovergangException::class.simpleName} with message=${it.msg}")
             call.respond(HttpStatusCode.BadRequest, ErrorJson(it.msg))
@@ -268,7 +261,7 @@ internal fun Application.susebakover(
                     personRoutes(accessProtectedServices.person, clock)
                     sakRoutes(accessProtectedServices.sak)
                     søknadRoutes(accessProtectedServices.søknad, accessProtectedServices.lukkSøknad)
-                    behandlingRoutes(accessProtectedServices.behandling, accessProtectedServices.søknadsbehandling)
+                    behandlingRoutes(accessProtectedServices.søknadsbehandling)
                     avstemmingRoutes(accessProtectedServices.avstemming)
                     stansutbetalingRoutes(accessProtectedServices.utbetaling)
                     gjenopptaUtbetalingRoutes(accessProtectedServices.utbetaling)

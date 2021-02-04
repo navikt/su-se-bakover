@@ -2,19 +2,19 @@ package no.nav.su.se.bakover.web.metrics
 
 import io.micrometer.core.instrument.Metrics
 import io.micrometer.core.instrument.Tags
-import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics.UnderkjentHandlinger
+import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.web.metrics.SuMetrics.incrementCounter
 import java.util.concurrent.atomic.AtomicInteger
 
 class BehandlingMicrometerMetrics : BehandlingMetrics {
 
-    private val behandlingstatuserGauge = Behandling.BehandlingsStatus.values().map {
+    private val behandlingstatuserGauge = BehandlingsStatus.values().map {
         it to Metrics.gauge("soknadsbehandling_aktive", Tags.of("type", it.name), AtomicInteger(0))
     }.toMap()
 
-    override fun behandlingsstatusChanged(old: Behandling.BehandlingsStatus, new: Behandling.BehandlingsStatus) {
+    override fun behandlingsstatusChanged(old: BehandlingsStatus, new: BehandlingsStatus) {
         // Ønsker å kunne vise hvor mange behandlinger vi har i de forskjellige tilstandene. Ved restart kan gaugen bli negativ, men dersom man klarer å summe de vil vi kanskje få lurt det til.
         behandlingstatuserGauge.getValue(new)!!.incrementAndGet()
         behandlingstatuserGauge.getValue(old)!!.decrementAndGet()

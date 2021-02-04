@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.web.behandlingFactory
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.fixedClock
 import no.nav.su.se.bakover.web.testSusebakover
@@ -24,7 +23,7 @@ import kotlin.test.assertEquals
 internal class SakRoutesKtTest {
 
     private val sakFnr01 = "12345678911"
-    private val repos = DatabaseBuilder.build(EmbeddedDatabase.instance(), behandlingFactory)
+    private val repos = DatabaseBuilder.build(EmbeddedDatabase.instance())
     private val søknadInnhold = SøknadInnholdTestdataBuilder.build()
 
     @Test

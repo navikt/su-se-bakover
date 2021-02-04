@@ -164,7 +164,7 @@ internal class StatusovergangTest {
         fun `opprettet til vilkårsvurdert uavklart (opprettet)`() {
             statusovergang(
                 opprettet,
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårIkkeVurdert())
+                Statusovergang.TilVilkårsvurdert(withVilkårIkkeVurdert())
             ) shouldBe opprettet
         }
 

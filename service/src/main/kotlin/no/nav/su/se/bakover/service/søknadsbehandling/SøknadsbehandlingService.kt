@@ -6,16 +6,10 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.brev.BrevbestillingId
+import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.service.behandling.FantIkkeBehandling
-import no.nav.su.se.bakover.service.behandling.KunneIkkeBeregne
-import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling
-import no.nav.su.se.bakover.service.behandling.KunneIkkeLageBrevutkast
-import no.nav.su.se.bakover.service.behandling.KunneIkkeOppdatereBehandlingsinformasjon
-import no.nav.su.se.bakover.service.behandling.KunneIkkeOppretteSøknadsbehandling
-import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering
-import no.nav.su.se.bakover.service.behandling.KunneIkkeSimulereBehandling
-import no.nav.su.se.bakover.service.behandling.KunneIkkeUnderkjenneBehandling
 import java.util.UUID
 
 interface SøknadsbehandlingService {
@@ -29,6 +23,86 @@ interface SøknadsbehandlingService {
     fun brev(request: OpprettBrevRequest): Either<KunneIkkeLageBrevutkast, ByteArray>
     fun hent(request: HentBehandlingRequest): Either<FantIkkeBehandling, Søknadsbehandling>
 }
+
+sealed class KunneIkkeLageBrevutkast {
+    data class KanIkkeLageBrevutkastForStatus(val status: BehandlingsStatus) : KunneIkkeLageBrevutkast()
+    object FantIkkeBehandling : KunneIkkeLageBrevutkast()
+    object KunneIkkeLageBrev : KunneIkkeLageBrevutkast()
+    object FantIkkePerson : KunneIkkeLageBrevutkast()
+    object FikkIkkeHentetSaksbehandlerEllerAttestant : KunneIkkeLageBrevutkast()
+}
+
+object FantIkkeBehandling
+
+sealed class KunneIkkeOppretteSøknadsbehandling {
+    object FantIkkeSøknad : KunneIkkeOppretteSøknadsbehandling()
+    object SøknadManglerOppgave : KunneIkkeOppretteSøknadsbehandling()
+    object SøknadErLukket : KunneIkkeOppretteSøknadsbehandling()
+    object SøknadHarAlleredeBehandling : KunneIkkeOppretteSøknadsbehandling()
+}
+
+sealed class KunneIkkeBeregne {
+    object FantIkkeBehandling : KunneIkkeBeregne()
+}
+
+sealed class KunneIkkeSimulereBehandling {
+    object KunneIkkeSimulere : KunneIkkeSimulereBehandling()
+    object FantIkkeBehandling : KunneIkkeSimulereBehandling()
+}
+
+sealed class KunneIkkeSendeTilAttestering {
+    object FantIkkeBehandling : KunneIkkeSendeTilAttestering()
+    object KunneIkkeFinneAktørId : KunneIkkeSendeTilAttestering()
+    object KunneIkkeOppretteOppgave : KunneIkkeSendeTilAttestering()
+}
+
+sealed class KunneIkkeUnderkjenneBehandling {
+    object FantIkkeBehandling : KunneIkkeUnderkjenneBehandling()
+    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeUnderkjenneBehandling()
+    object KunneIkkeOppretteOppgave : KunneIkkeUnderkjenneBehandling()
+    object FantIkkeAktørId : KunneIkkeUnderkjenneBehandling()
+}
+
+sealed class KunneIkkeIverksetteBehandling {
+    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteBehandling()
+    object KunneIkkeUtbetale : KunneIkkeIverksetteBehandling()
+    object KunneIkkeKontrollsimulere : KunneIkkeIverksetteBehandling()
+    object SimuleringHarBlittEndretSidenSaksbehandlerSimulerte : KunneIkkeIverksetteBehandling()
+    object KunneIkkeJournalføreBrev : KunneIkkeIverksetteBehandling()
+    object FantIkkeBehandling : KunneIkkeIverksetteBehandling()
+    object FantIkkePerson : KunneIkkeIverksetteBehandling()
+    object FikkIkkeHentetSaksbehandlerEllerAttestant : KunneIkkeIverksetteBehandling()
+}
+
+sealed class KunneIkkeOppdatereBehandlingsinformasjon {
+    object FantIkkeBehandling : KunneIkkeOppdatereBehandlingsinformasjon()
+}
+
+data class KunneIkkeOppretteJournalpostForIverksetting(
+    val sakId: UUID,
+    val behandlingId: UUID,
+    val grunn: String,
+)
+
+data class OpprettetJournalpostForIverksetting(
+    val sakId: UUID,
+    val behandlingId: UUID,
+    val journalpostId: JournalpostId,
+)
+
+data class BestiltBrev(
+    val sakId: UUID,
+    val behandlingId: UUID,
+    val journalpostId: JournalpostId,
+    val brevbestillingId: BrevbestillingId,
+)
+
+data class KunneIkkeBestilleBrev(
+    val sakId: UUID,
+    val behandlingId: UUID,
+    val journalpostId: JournalpostId?,
+    val grunn: String,
+)
 
 data class OpprettSøknadsbehandlingRequest(
     val søknadId: UUID

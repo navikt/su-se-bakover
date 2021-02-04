@@ -15,23 +15,20 @@ import io.ktor.routing.get
 import io.ktor.routing.patch
 import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
-import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.service.behandling.BehandlingService
-import no.nav.su.se.bakover.service.behandling.IverksattBehandling
-import no.nav.su.se.bakover.service.behandling.KunneIkkeBeregne
-import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling
-import no.nav.su.se.bakover.service.behandling.KunneIkkeLageBrevutkast
-import no.nav.su.se.bakover.service.behandling.KunneIkkeOppdatereBehandlingsinformasjon
-import no.nav.su.se.bakover.service.behandling.KunneIkkeOppretteSøknadsbehandling
-import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering
-import no.nav.su.se.bakover.service.behandling.KunneIkkeSimulereBehandling
-import no.nav.su.se.bakover.service.behandling.KunneIkkeUnderkjenneBehandling
 import no.nav.su.se.bakover.service.søknadsbehandling.HentBehandlingRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.IverksettSøknadsbehandlingRequest
+import no.nav.su.se.bakover.service.søknadsbehandling.KunneIkkeBeregne
+import no.nav.su.se.bakover.service.søknadsbehandling.KunneIkkeIverksetteBehandling
+import no.nav.su.se.bakover.service.søknadsbehandling.KunneIkkeLageBrevutkast
+import no.nav.su.se.bakover.service.søknadsbehandling.KunneIkkeOppdatereBehandlingsinformasjon
+import no.nav.su.se.bakover.service.søknadsbehandling.KunneIkkeOppretteSøknadsbehandling
+import no.nav.su.se.bakover.service.søknadsbehandling.KunneIkkeSendeTilAttestering
+import no.nav.su.se.bakover.service.søknadsbehandling.KunneIkkeSimulereBehandling
+import no.nav.su.se.bakover.service.søknadsbehandling.KunneIkkeUnderkjenneBehandling
 import no.nav.su.se.bakover.service.søknadsbehandling.OppdaterSøknadsbehandlingsinformasjonRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.OpprettBeregningRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.OpprettBrevRequest
@@ -59,7 +56,6 @@ internal const val behandlingPath = "$sakPath/{sakId}/behandlinger"
 
 @KtorExperimentalAPI
 internal fun Route.behandlingRoutes(
-    behandlingService: BehandlingService,
     søknadsbehandlingService: SøknadsbehandlingService
 ) {
     val log = LoggerFactory.getLogger(this::class.java)
@@ -130,10 +126,6 @@ internal fun Route.behandlingRoutes(
                     ).mapLeft {
                         call.svar(
                             when (it) {
-                                // TODO jah og jm: Slett denne
-                                KunneIkkeOppdatereBehandlingsinformasjon.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> {
-                                    BadRequest.message("Attestant og saksbehandler kan ikke være samme person")
-                                }
                                 KunneIkkeOppdatereBehandlingsinformasjon.FantIkkeBehandling -> {
                                     NotFound.message("Fant ikke behandling")
                                 }
@@ -167,9 +159,6 @@ internal fun Route.behandlingRoutes(
                                         KunneIkkeBeregne.FantIkkeBehandling -> {
                                             NotFound.message("Fant ikke behandling")
                                         }
-                                        KunneIkkeBeregne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> {
-                                            BadRequest.message("Attestant og saksbehandler kan ikke være samme person")
-                                        }
                                     }
                                     call.svar(resultat)
                                 }.map { behandling ->
@@ -177,19 +166,6 @@ internal fun Route.behandlingRoutes(
                                     call.svar(Created.jsonBody(behandling))
                                 }
                         }
-                }
-            }
-        }
-    }
-
-    authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
-        get("$behandlingPath/{behandlingId}/utledetSatsInfo") {
-            call.withBehandlingId { behandlingId ->
-                behandlingService.hentBehandling(behandlingId).mapLeft {
-                    call.svar(NotFound.message("Fant ikke behandling"))
-                }.map {
-                    call.audit("Hentet utledet sats informasjon for behandling med id $behandlingId")
-                    call.svar(Resultat.json(OK, serialize(it.toUtledetSatsInfoJson())))
                 }
             }
         }
@@ -244,11 +220,6 @@ internal fun Route.behandlingRoutes(
                             KunneIkkeSimulereBehandling.KunneIkkeSimulere -> {
                                 InternalServerError.message("Kunne ikke gjennomføre simulering")
                             }
-                            KunneIkkeSimulereBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> {
-                                BadRequest.message(
-                                    "Attestant og saksbehandler kan ikke være samme person"
-                                )
-                            }
                             KunneIkkeSimulereBehandling.FantIkkeBehandling -> {
                                 NotFound.message("Kunne ikke finne behandling")
                             }
@@ -282,9 +253,6 @@ internal fun Route.behandlingRoutes(
                                 }
                                 KunneIkkeSendeTilAttestering.KunneIkkeFinneAktørId -> {
                                     InternalServerError.message("Kunne ikke finne person")
-                                }
-                                KunneIkkeSendeTilAttestering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> {
-                                    BadRequest.message("Attestant og saksbehandler kan ikke være samme person")
                                 }
                                 KunneIkkeSendeTilAttestering.FantIkkeBehandling -> {
                                     NotFound.message("Kunne ikke finne behandling")
@@ -337,21 +305,6 @@ internal fun Route.behandlingRoutes(
             }
         }
 
-        fun iverksattMelding(value: IverksattBehandling): Resultat {
-            return when (value) {
-                // TODO jah: Vurdere om vi skal legge på manglene i json-responsen. Vurdere Multi-respons.
-                is IverksattBehandling.UtenMangler -> {
-                    OK.jsonBody(value.behandling)
-                }
-                is IverksattBehandling.MedMangler.KunneIkkeLukkeOppgave -> {
-                    OK.jsonBody(value.behandling)
-                }
-                is IverksattBehandling.MedMangler.KunneIkkeDistribuereBrev -> {
-                    OK.jsonBody(value.behandling)
-                }
-            }
-        }
-
         patch("$behandlingPath/{behandlingId}/iverksett") {
             call.withBehandlingId { behandlingId ->
 
@@ -368,7 +321,7 @@ internal fun Route.behandlingRoutes(
                     },
                     {
                         call.audit("Iverksatte behandling med id: $behandlingId")
-                        call.svar(OK.jsonBody(it)) // TODO fiks melding
+                        call.svar(OK.jsonBody(it))
                     }
                 )
             }

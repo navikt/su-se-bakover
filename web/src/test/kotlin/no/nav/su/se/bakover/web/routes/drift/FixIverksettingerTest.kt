@@ -11,12 +11,12 @@ import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.service.behandling.BestiltBrev
-import no.nav.su.se.bakover.service.behandling.KunneIkkeBestilleBrev
-import no.nav.su.se.bakover.service.behandling.KunneIkkeOppretteJournalpostForIverksetting
-import no.nav.su.se.bakover.service.behandling.OpprettetJournalpostForIverksetting
+import no.nav.su.se.bakover.service.søknadsbehandling.BestiltBrev
 import no.nav.su.se.bakover.service.søknadsbehandling.FerdigstillSøknadsbehandingIverksettingService
+import no.nav.su.se.bakover.service.søknadsbehandling.KunneIkkeBestilleBrev
+import no.nav.su.se.bakover.service.søknadsbehandling.KunneIkkeOppretteJournalpostForIverksetting
 import no.nav.su.se.bakover.service.søknadsbehandling.OpprettManglendeJournalpostOgBrevdistribusjonResultat
+import no.nav.su.se.bakover.service.søknadsbehandling.OpprettetJournalpostForIverksetting
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testSusebakover

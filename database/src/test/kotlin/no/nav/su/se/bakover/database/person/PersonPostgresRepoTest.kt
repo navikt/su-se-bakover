@@ -8,17 +8,17 @@ import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.Revurdering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import org.junit.jupiter.api.Test
 
 internal class PersonPostgresRepoTest {
@@ -120,15 +120,19 @@ internal class PersonPostgresRepoTest {
     }
 
     private fun withDbWithDataAndEps(
-        eps: Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle?,
+        @Suppress("UNUSED_PARAMETER") eps: Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle?,
         test: Ctx.() -> Unit
     ) {
         val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())
         withMigratedDb {
-            val sak = testDataHelper.insertSak(FNR)
-            val søknad = testDataHelper.insertSøknad(sak.id)
-            val behandling = testDataHelper.insertBehandling(sak.id, søknad)
-            val behandlingsinformasjon = testDataHelper.insertBehandlingsinformasjonMedEps(behandling.id, eps)
+            val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave(FNR)
+            val søknad = sak.søknader().first() as Søknad.Journalført.MedOppgave
+            val behandling = testDataHelper.uavklartVilkårsvurdering(
+                sak, søknad,
+                Behandlingsinformasjon.lagTomBehandlingsinformasjon().copy(
+                    ektefelle = eps
+                )
+            )
             val utbetaling = Utbetaling.OversendtUtbetaling.UtenKvittering(
                 id = UUID30.randomUUID(),
                 utbetalingslinjer = listOf(),
@@ -150,14 +154,14 @@ internal class PersonPostgresRepoTest {
             val revurdering = testDataHelper.insertRevurdering(behandling.id)
             testDataHelper.opprettUtbetaling(utbetaling)
 
-            Ctx(sak, søknad, behandling, utbetaling, behandlingsinformasjon, revurdering).test()
+            Ctx(sak, søknad, behandling, utbetaling, behandling.behandlingsinformasjon, revurdering).test()
         }
     }
 
     private data class Ctx(
-        val sak: NySak,
-        val søknad: Søknad,
-        val behandling: NySøknadsbehandling,
+        val sak: Sak,
+        val søknad: Søknad.Journalført.MedOppgave,
+        val behandling: Søknadsbehandling.Vilkårsvurdert.Uavklart,
         val utbetaling: Utbetaling,
         val behandlingsinformasjon: Behandlingsinformasjon,
         val revurdering: Revurdering,

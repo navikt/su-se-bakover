@@ -12,10 +12,6 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.søknadsbehandling.LagBrevRequestVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.service.behandling.BestiltBrev
-import no.nav.su.se.bakover.service.behandling.KunneIkkeBestilleBrev
-import no.nav.su.se.bakover.service.behandling.KunneIkkeOppretteJournalpostForIverksetting
-import no.nav.su.se.bakover.service.behandling.OpprettetJournalpostForIverksetting
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService

@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.database.DatabaseRepos
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
-import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -35,7 +34,6 @@ interface ServiceBuilder {
 data class Services(
     val avstemming: AvstemmingService,
     val utbetaling: UtbetalingService,
-    val behandling: BehandlingService,
     val sak: SakService,
     val søknad: SøknadService,
     val brev: BrevService,

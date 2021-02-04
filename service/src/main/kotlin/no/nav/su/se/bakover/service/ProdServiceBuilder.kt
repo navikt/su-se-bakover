@@ -7,10 +7,6 @@ import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
-import no.nav.su.se.bakover.service.behandling.BehandlingServiceImpl
-import no.nav.su.se.bakover.service.behandling.DistribuerIverksettingsbrevService
-import no.nav.su.se.bakover.service.behandling.IverksettBehandlingService
-import no.nav.su.se.bakover.service.behandling.JournalførIverksettingService
 import no.nav.su.se.bakover.service.beregning.BeregningService
 import no.nav.su.se.bakover.service.brev.BrevServiceImpl
 import no.nav.su.se.bakover.service.oppgave.OppgaveServiceImpl
@@ -78,9 +74,6 @@ object ProdServiceBuilder : ServiceBuilder {
             brevService = brevService
         )
         val opprettVedtakssnapshotService = OpprettVedtakssnapshotService(databaseRepos.vedtakssnapshot)
-        val journalførIverksettingService = JournalførIverksettingService(databaseRepos.behandling, brevService)
-        val distribuerIverksettingsbrevService =
-            DistribuerIverksettingsbrevService(brevService, databaseRepos.behandling)
         val ferdigstillIverksettingService = FerdigstillSøknadsbehandingIverksettingServiceImpl(
             søknadsbehandlingRepo = databaseRepos.søknadsbehandling,
             oppgaveService = oppgaveService,
@@ -107,30 +100,6 @@ object ProdServiceBuilder : ServiceBuilder {
                 clock = clock,
             ),
             utbetaling = utbetalingService,
-            behandling = BehandlingServiceImpl(
-                behandlingRepo = databaseRepos.behandling,
-                hendelsesloggRepo = databaseRepos.hendelseslogg,
-                utbetalingService = utbetalingService,
-                oppgaveService = oppgaveService,
-                søknadService = søknadService,
-                søknadRepo = databaseRepos.søknad,
-                personService = personService,
-                brevService = brevService,
-                behandlingMetrics = behandlingMetrics,
-                microsoftGraphApiClient = clients.microsoftGraphApiClient,
-                clock = clock,
-                iverksettBehandlingService = IverksettBehandlingService(
-                    behandlingRepo = databaseRepos.behandling,
-                    utbetalingService = utbetalingService,
-                    oppgaveService = oppgaveService,
-                    personService = personService,
-                    behandlingMetrics = behandlingMetrics,
-                    microsoftGraphApiClient = clients.microsoftGraphApiClient,
-                    clock = clock,
-                    journalførIverksettingService = journalførIverksettingService,
-                    distribuerIverksettingsbrevService = distribuerIverksettingsbrevService,
-                ).apply { addObserver(statistikkService) },
-            ).apply { addObserver(statistikkService) },
             sak = sakService,
             søknad = søknadService,
             brev = brevService,

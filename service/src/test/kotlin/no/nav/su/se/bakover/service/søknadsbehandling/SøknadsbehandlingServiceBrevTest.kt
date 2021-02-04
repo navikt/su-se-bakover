@@ -15,15 +15,14 @@ import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
-import no.nav.su.se.bakover.service.behandling.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
@@ -169,7 +168,7 @@ internal class SøknadsbehandlingServiceBrevTest {
     fun `svarer med feil hvis det ikke er mulig å opprette brev for aktuell behandling`() {
         val behandlingMock = mock<Søknadsbehandling.Vilkårsvurdert.Uavklart> {
             on { accept(any()) }.thenCallRealMethod()
-            on { status } doReturn Behandling.BehandlingsStatus.OPPRETTET
+            on { status } doReturn BehandlingsStatus.OPPRETTET
         }
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
@@ -179,7 +178,7 @@ internal class SøknadsbehandlingServiceBrevTest {
         createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
         ).brev(OpprettBrevRequest(beregnetAvslag.id)).let {
-            it shouldBe KunneIkkeLageBrevutkast.KanIkkeLageBrevutkastForStatus(Behandling.BehandlingsStatus.OPPRETTET).left()
+            it shouldBe KunneIkkeLageBrevutkast.KanIkkeLageBrevutkastForStatus(BehandlingsStatus.OPPRETTET).left()
         }
     }
 }

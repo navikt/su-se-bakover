@@ -5,8 +5,6 @@ import no.nav.su.se.bakover.common.ApplicationConfig.DatabaseConfig.RotatingCred
 import no.nav.su.se.bakover.common.ApplicationConfig.DatabaseConfig.StaticCredentials
 import no.nav.su.se.bakover.database.avstemming.AvstemmingPostgresRepo
 import no.nav.su.se.bakover.database.avstemming.AvstemmingRepo
-import no.nav.su.se.bakover.database.behandling.BehandlingPostgresRepo
-import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.database.person.PersonPostgresRepo
@@ -21,11 +19,10 @@ import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.database.vedtak.snapshot.VedtakssnapshotPostgresRepo
 import no.nav.su.se.bakover.database.vedtak.snapshot.VedtakssnapshotRepo
-import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import javax.sql.DataSource
 
 object DatabaseBuilder {
-    fun build(behandlingFactory: BehandlingFactory, databaseConfig: ApplicationConfig.DatabaseConfig): DatabaseRepos {
+    fun build(databaseConfig: ApplicationConfig.DatabaseConfig): DatabaseRepos {
         val abstractDatasource = Postgres(databaseConfig = databaseConfig).build()
 
         val dataSource = abstractDatasource.getDatasource(Postgres.Role.Admin)
@@ -42,23 +39,21 @@ object DatabaseBuilder {
         }.migrate()
 
         val userDatastore = abstractDatasource.getDatasource(Postgres.Role.User)
-        return buildInternal(userDatastore, behandlingFactory)
+        return buildInternal(userDatastore)
     }
 
-    fun build(embeddedDatasource: DataSource, behandlingFactory: BehandlingFactory): DatabaseRepos {
+    fun build(embeddedDatasource: DataSource): DatabaseRepos {
         // I testene ønsker vi ikke noe herjing med rolle; embedded-oppsettet sørger for at vi har riktige tilganger her.
         Flyway(embeddedDatasource).migrate()
-        return buildInternal(embeddedDatasource, behandlingFactory)
+        return buildInternal(embeddedDatasource)
     }
 
-    private fun buildInternal(dataSource: DataSource, behandlingFactory: BehandlingFactory): DatabaseRepos {
-        val behandlingRepo = BehandlingPostgresRepo(dataSource, behandlingFactory)
+    private fun buildInternal(dataSource: DataSource): DatabaseRepos {
         val saksbehandlingRepo = SøknadsbehandlingPostgresRepo(dataSource)
         return DatabaseRepos(
             avstemming = AvstemmingPostgresRepo(dataSource),
             utbetaling = UtbetalingPostgresRepo(dataSource),
             søknad = SøknadPostgresRepo(dataSource),
-            behandling = behandlingRepo,
             hendelseslogg = HendelsesloggPostgresRepo(dataSource),
             sak = SakPostgresRepo(dataSource, saksbehandlingRepo),
             person = PersonPostgresRepo(dataSource),
@@ -73,7 +68,6 @@ data class DatabaseRepos(
     val avstemming: AvstemmingRepo,
     val utbetaling: UtbetalingRepo,
     val søknad: SøknadRepo,
-    val behandling: BehandlingRepo,
     val hendelseslogg: HendelsesloggRepo,
     val sak: SakRepo,
     val person: PersonRepo,

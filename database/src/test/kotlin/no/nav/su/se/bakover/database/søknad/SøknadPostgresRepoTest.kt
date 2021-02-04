@@ -105,9 +105,10 @@ internal class SøknadPostgresRepoTest {
     @Test
     fun `søknad har påbegynt behandling`() {
         withMigratedDb {
-            val nySak: NySak = testDataHelper.insertSak(FNR)
-            testDataHelper.insertBehandling(nySak.id, nySak.søknad)
-            søknadRepo.harSøknadPåbegyntBehandling(nySak.søknad.id) shouldBe true
+            val sak: Sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave(fnr = FNR)
+            val søknad = sak.søknader().first() as Søknad.Journalført.MedOppgave
+            testDataHelper.uavklartVilkårsvurdering(sak, søknad)
+            søknadRepo.harSøknadPåbegyntBehandling(søknad.id) shouldBe true
         }
     }
 

@@ -9,14 +9,12 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.web.FnrGenerator
-import no.nav.su.se.bakover.web.behandlingFactory
 import java.time.LocalDate
 import java.util.UUID
 
@@ -38,11 +36,13 @@ object BehandlingTestUtils {
     )
     internal val fnr = FnrGenerator.random()
 
-    /**
-     * Behandling er fremdeles muterbar, så vi må påse at testene får hver sin versjon
-     */
-    internal fun nyBehandling(): Behandling = behandlingFactory.createBehandling(
+    internal fun nySøknadsbehandling() = Søknadsbehandling.Iverksatt.Innvilget(
         id = behandlingId,
+        opprettet = Tidspunkt.EPOCH,
+        sakId = sakId,
+        saksnummer = saksnummer,
+        søknad = journalførtSøknadMedOppgave,
+        oppgaveId = oppgaveId,
         behandlingsinformasjon = Behandlingsinformasjon(
             uførhet = Behandlingsinformasjon.Uførhet(
                 status = Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
@@ -114,7 +114,7 @@ object BehandlingTestUtils {
                 skjermet = null
             )
         ),
-        søknad = journalførtSøknadMedOppgave,
+        fnr = fnr,
         beregning = TestBeregning,
         simulering = Simulering(
             gjelderId = fnr,
@@ -123,29 +123,8 @@ object BehandlingTestUtils {
             nettoBeløp = 1000,
             periodeList = listOf()
         ),
-        attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("kjella")),
         saksbehandler = NavIdentBruker.Saksbehandler("pro-saksbehandler"),
-        sakId = sakId,
-        saksnummer = saksnummer,
-        fnr = fnr,
-        oppgaveId = oppgaveId
+        attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("kjella")),
+        utbetalingId = UUID30.randomUUID()
     )
-
-    internal fun nySøknadsbehandling() = nyBehandling().let {
-        Søknadsbehandling.Iverksatt.Innvilget(
-            id = it.id,
-            opprettet = it.opprettet,
-            sakId = it.sakId,
-            saksnummer = it.saksnummer,
-            søknad = it.søknad,
-            oppgaveId = it.oppgaveId(),
-            behandlingsinformasjon = it.behandlingsinformasjon(),
-            fnr = it.fnr,
-            beregning = it.beregning()!!,
-            simulering = it.simulering()!!,
-            saksbehandler = it.saksbehandler()!!,
-            attestering = it.attestering()!!,
-            utbetalingId = UUID30.randomUUID()
-        )
-    }
 }
