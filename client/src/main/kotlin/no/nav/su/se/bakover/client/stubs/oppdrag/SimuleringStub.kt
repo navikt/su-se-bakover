@@ -2,11 +2,10 @@ package no.nav.su.se.bakover.client.stubs.oppdrag
 
 import arrow.core.Either
 import arrow.core.right
-import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.common.idag
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
@@ -15,7 +14,6 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
 import java.time.LocalDate
-import java.time.Month
 import kotlin.math.roundToInt
 
 object SimuleringStub : SimuleringClient {
@@ -27,28 +25,26 @@ object SimuleringStub : SimuleringClient {
         }
 
     private fun simulerNyUtbetaling(utbetaling: Utbetaling, saksnummer: Saksnummer): Simulering {
-        val months = utbetaling.tidligsteDato().monthValue..utbetaling.senesteDato().monthValue
-        val perioder = months.map {
-            val fraOgMed = LocalDate.of(utbetaling.tidligsteDato().year, Month.of((it)), 1)
-            val tilOgMed = fraOgMed.plusMonths(1).minusDays(1)
-            val beløp = utbetaling.utbetalingslinjer.findBeløpForDate(fraOgMed)
-            SimulertPeriode(
-                fraOgMed = fraOgMed,
-                tilOgMed = tilOgMed,
-                utbetaling = listOf(
-                    SimulertUtbetaling(
-                        fagSystemId = saksnummer.toString(),
-                        feilkonto = false,
-                        forfall = idag(),
-                        utbetalesTilId = utbetaling.fnr,
-                        utbetalesTilNavn = "MYGG LUR",
-                        detaljer = listOf(
-                            createYtelse(fraOgMed, tilOgMed, beløp),
-                            createForskuddsskatt(fraOgMed, tilOgMed, beløp)
+        val perioder = utbetaling.utbetalingslinjer.flatMap { utbetalingslinje ->
+            Periode.create(utbetalingslinje.fraOgMed, utbetalingslinje.tilOgMed).tilMånedsperioder().map {
+                SimulertPeriode(
+                    fraOgMed = it.getFraOgMed(),
+                    tilOgMed = it.getTilOgMed(),
+                    utbetaling = listOf(
+                        SimulertUtbetaling(
+                            fagSystemId = saksnummer.toString(),
+                            feilkonto = false,
+                            forfall = it.getTilOgMed(),
+                            utbetalesTilId = utbetaling.fnr,
+                            utbetalesTilNavn = "MYGG LUR",
+                            detaljer = listOf(
+                                createYtelse(it.getFraOgMed(), it.getTilOgMed(), utbetalingslinje.beløp),
+                                createForskuddsskatt(it.getFraOgMed(), it.getTilOgMed(), utbetalingslinje.beløp)
+                            )
                         )
                     )
                 )
-            )
+            }
         }
 
         return Simulering(
@@ -67,9 +63,6 @@ object SimuleringStub : SimuleringClient {
                 .filter { !it.isYtelse() }
                 .sumBy { it.belop }
         }
-
-    private fun List<Utbetalingslinje>.findBeløpForDate(fraOgMed: LocalDate) =
-        this.first { fraOgMed.between(it.fraOgMed, it.tilOgMed) }.beløp
 
     private fun simulerStans(utbetaling: Utbetaling): Simulering {
         return Simulering(
