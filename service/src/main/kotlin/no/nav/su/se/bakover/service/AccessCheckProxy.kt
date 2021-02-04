@@ -345,41 +345,49 @@ open class AccessCheckProxy(
                 }
             },
             toggles = services.toggles,
-            // TODO TILGANG
             søknadsbehandling = object : SøknadsbehandlingService {
                 override fun opprett(request: OpprettSøknadsbehandlingRequest): Either<KunneIkkeOppretteSøknadsbehandling, Søknadsbehandling> {
+                    assertHarTilgangTilSøknad(request.søknadId)
                     return services.søknadsbehandling.opprett(request)
                 }
 
                 override fun vilkårsvurder(request: OppdaterSøknadsbehandlingsinformasjonRequest): Either<KunneIkkeOppdatereBehandlingsinformasjon, Søknadsbehandling> {
+                    assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.vilkårsvurder(request)
                 }
 
                 override fun beregn(request: OpprettBeregningRequest): Either<KunneIkkeBeregne, Søknadsbehandling> {
+                    assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.beregn(request)
                 }
 
                 override fun simuler(request: OpprettSimuleringRequest): Either<KunneIkkeSimulereBehandling, Søknadsbehandling> {
+                    assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.simuler(request)
                 }
 
                 override fun sendTilAttestering(request: SendTilAttesteringRequest): Either<KunneIkkeSendeTilAttestering, Søknadsbehandling> {
+                    assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.sendTilAttestering(request)
                 }
 
                 override fun underkjenn(request: UnderkjennSøknadsbehandlingRequest): Either<KunneIkkeUnderkjenneBehandling, Søknadsbehandling> {
+                    assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.underkjenn(request)
                 }
 
                 override fun iverksett(request: IverksettSøknadsbehandlingRequest): Either<KunneIkkeIverksetteBehandling, Søknadsbehandling> {
+                    assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.iverksett(request)
                 }
 
                 override fun brev(request: OpprettBrevRequest): Either<KunneIkkeLageBrevutkast, ByteArray> {
+                    assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.brev(request)
                 }
 
                 override fun hent(request: HentBehandlingRequest): Either<FantIkkeBehandling, Søknadsbehandling> {
+                    assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.hent(request)
                 }
             },
