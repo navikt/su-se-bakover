@@ -12,15 +12,12 @@ import no.nav.su.se.bakover.domain.fnrUnder67
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import java.time.Clock
-import java.time.LocalDateTime
 import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 class SøknadPdfInnholdJsonTest {
     private val fixedClock: Clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC)
     private val søknadsId = UUID.randomUUID()
-    private val dagensDatoOgTidspunkt = LocalDateTime.now(fixedClock).format(DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"))
     private val søknadPdfInnhold = SøknadPdfInnhold.create(
         saksnummer = Saksnummer(2021),
         søknadsId = søknadsId,
@@ -43,7 +40,7 @@ class SøknadPdfInnholdJsonTest {
                     "mellomnavn": "Johnas",
                     "etternavn": "Strømøy"
                   },
-                  "dagensDatoOgTidspunkt": "$dagensDatoOgTidspunkt",
+                  "dagensDatoOgTidspunkt": "01.01.2021 00:00",
                   "søknadOpprettet": "01.01.2021",
                   "søknadInnhold": {
                       "uførevedtak":{
@@ -217,7 +214,7 @@ class SøknadPdfInnholdJsonTest {
                     "mellomnavn": "Johnas",
                     "etternavn": "Strømøy"
                   },
-                  "dagensDatoOgTidspunkt": "$dagensDatoOgTidspunkt",
+                  "dagensDatoOgTidspunkt": "01.01.2021 00:00",
                   "søknadOpprettet": "01.01.2021",
                   "søknadInnhold": {
                       "uførevedtak":{
@@ -396,7 +393,7 @@ class SøknadPdfInnholdJsonTest {
                     "mellomnavn": "Johnas",
                     "etternavn": "Strømøy"
                   },
-                  "dagensDatoOgTidspunkt": "$dagensDatoOgTidspunkt",
+                  "dagensDatoOgTidspunkt": "01.01.2021 00:00",
                   "søknadOpprettet": "01.01.2021",
                   "søknadInnhold": {
                       "uførevedtak":{

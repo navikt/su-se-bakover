@@ -63,7 +63,8 @@ object DatabaseBuilder {
             sak = SakPostgresRepo(dataSource, saksbehandlingRepo),
             person = PersonPostgresRepo(dataSource),
             vedtakssnapshot = VedtakssnapshotPostgresRepo(dataSource),
-            søknadsbehandling = saksbehandlingRepo
+            søknadsbehandling = saksbehandlingRepo,
+            revurderingRepo = RevurderingPostgresRepo(dataSource, saksbehandlingRepo),
         )
     }
 }
@@ -77,5 +78,6 @@ data class DatabaseRepos(
     val sak: SakRepo,
     val person: PersonRepo,
     val vedtakssnapshot: VedtakssnapshotRepo,
-    val søknadsbehandling: SøknadsbehandlingRepo
+    val søknadsbehandling: SøknadsbehandlingRepo,
+    val revurderingRepo: RevurderingRepo,
 )

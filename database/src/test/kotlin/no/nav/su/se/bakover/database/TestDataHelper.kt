@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database
 
+import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.database.behandling.BehandlingPostgresRepo
@@ -9,6 +10,7 @@ import no.nav.su.se.bakover.database.søknad.SøknadPostgresRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
@@ -18,11 +20,13 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
+import no.nav.su.se.bakover.domain.behandling.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.time.Clock
+import java.time.Instant
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -36,10 +40,11 @@ internal class TestDataHelper(
     private val utbetalingRepo = UtbetalingPostgresRepo(dataSource)
     private val hendelsesloggRepo = HendelsesloggPostgresRepo(dataSource)
     private val søknadRepo = SøknadPostgresRepo(dataSource)
-    private val saksbehandlingRepo = SøknadsbehandlingPostgresRepo(dataSource)
+    private val søknadsbehandlingRepo = SøknadsbehandlingPostgresRepo(dataSource)
+    private val revurderingRepo = RevurderingPostgresRepo(dataSource, søknadsbehandlingRepo)
 
     private val behandlingRepo = behandlingPostgresRepo
-    private val sakRepo = SakPostgresRepo(dataSource, saksbehandlingRepo)
+    private val sakRepo = SakPostgresRepo(dataSource, søknadsbehandlingRepo)
 
     fun nySakMedJournalførtSøknadOgOppgave(
         fnr: Fnr = FnrGenerator.random(),
@@ -95,5 +100,17 @@ internal class TestDataHelper(
             ektefelle = eps
         ).also {
             behandlingRepo.oppdaterBehandlingsinformasjon(behandlingId, it)
+        }
+
+    fun insertRevurdering(behandlingId: UUID) =
+        OpprettetRevurdering(
+            id = UUID.randomUUID(),
+            periode = mock(),
+            tilRevurdering = mock
+            { on { id } doReturn behandlingId },
+            opprettet = Tidspunkt(instant = Instant.now()),
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "1337")
+        ).also {
+            revurderingRepo.lagre(it)
         }
 }

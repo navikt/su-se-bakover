@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.service.beregning.BeregningService
 import no.nav.su.se.bakover.service.brev.BrevServiceImpl
 import no.nav.su.se.bakover.service.oppgave.OppgaveServiceImpl
 import no.nav.su.se.bakover.service.person.PersonServiceImpl
+import no.nav.su.se.bakover.service.revurdering.RevurderingServiceImpl
 import no.nav.su.se.bakover.service.sak.SakServiceImpl
 import no.nav.su.se.bakover.service.statistikk.StatistikkServiceImpl
 import no.nav.su.se.bakover.service.søknad.SøknadServiceImpl
@@ -66,6 +67,15 @@ object ProdServiceBuilder : ServiceBuilder {
             oppgaveService = oppgaveService,
             søknadMetrics = søknadMetrics,
             clock = clock,
+        )
+        val revurderingService = RevurderingServiceImpl(
+            sakService = sakService,
+            utbetalingService = utbetalingService,
+            revurderingRepo = databaseRepos.revurderingRepo,
+            oppgaveService = oppgaveService,
+            personService = personService,
+            microsoftGraphApiClient = clients.microsoftGraphApiClient,
+            brevService = brevService
         )
         val opprettVedtakssnapshotService = OpprettVedtakssnapshotService(databaseRepos.vedtakssnapshot)
         val journalførIverksettingService = JournalførIverksettingService(databaseRepos.behandling, brevService)
@@ -130,6 +140,7 @@ object ProdServiceBuilder : ServiceBuilder {
                 brevService = brevService,
                 oppgaveService = oppgaveService,
                 personService = personService,
+                microsoftGraphApiClient = clients.microsoftGraphApiClient,
                 clock = clock,
             ),
             oppgave = oppgaveService,
@@ -153,6 +164,7 @@ object ProdServiceBuilder : ServiceBuilder {
                 addObserver(statistikkService)
             },
             ferdigstillSøknadsbehandingIverksettingService = ferdigstillIverksettingService,
+            revurdering = revurderingService
         )
     }
 }

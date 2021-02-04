@@ -26,6 +26,14 @@ data class Periode private constructor(
             }
     }
 
+    fun erPeriodenIMånederEtter(): Boolean {
+        val dagensDato = LocalDate.now()
+
+        return this.fraOgMed.isAfter(
+            dagensDato.withDayOfMonth(dagensDato.lengthOfMonth())
+        )
+    }
+
     infix fun inneholder(other: Periode): Boolean =
         (fraOgMed.isEqual(other.fraOgMed) || fraOgMed.isBefore(other.fraOgMed)) &&
             (tilOgMed.isEqual(other.tilOgMed) || tilOgMed.isAfter(other.tilOgMed))

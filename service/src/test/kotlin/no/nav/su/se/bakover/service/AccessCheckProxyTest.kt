@@ -30,6 +30,7 @@ internal class AccessCheckProxyTest {
         oppgave = mock(),
         person = mock(),
         statistikk = mock(),
+        revurdering = mock(),
         toggles = mock(),
         søknadsbehandling = mock(),
         ferdigstillSøknadsbehandingIverksettingService = mock(),
@@ -193,6 +194,10 @@ internal class AccessCheckProxyTest {
                 }
 
                 override fun hentFnrForUtbetaling(utbetalingId: UUID30): List<Fnr> {
+                    return listOf(FnrGenerator.random())
+                }
+
+                override fun hentFnrForRevurdering(revurderingId: UUID): List<Fnr> {
                     return listOf(FnrGenerator.random())
                 }
             },

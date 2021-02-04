@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.StatistikkService
 import no.nav.su.se.bakover.service.søknad.SøknadService
@@ -27,7 +28,7 @@ interface ServiceBuilder {
         behandlingMetrics: BehandlingMetrics,
         søknadMetrics: SøknadMetrics,
         clock: Clock,
-        unleash: Unleash
+        unleash: Unleash,
     ): Services
 }
 
@@ -45,4 +46,5 @@ data class Services(
     val toggles: ToggleService,
     val søknadsbehandling: SøknadsbehandlingService,
     val ferdigstillSøknadsbehandingIverksettingService: FerdigstillSøknadsbehandingIverksettingService,
+    val revurdering: RevurderingService,
 )

@@ -9,6 +9,7 @@ import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.client.stubs.person.MicrosoftGraphApiClientStub
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.toTidspunkt
@@ -123,6 +124,7 @@ internal class LukkSøknadServiceImplTest {
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
+            microsoftGraphApiClient = mock(),
             clock = fixedEpochClock,
         ).lukkSøknad(trekkSøknadRequest) shouldBe KunneIkkeLukkeSøknad.FantIkkeSøknad.left()
 
@@ -149,6 +151,7 @@ internal class LukkSøknadServiceImplTest {
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
+            microsoftGraphApiClient = mock(),
             clock = fixedEpochClock,
         ).lukkSøknad(trekkSøknadRequest) shouldBe KunneIkkeLukkeSøknad.FantIkkePerson.left()
 
@@ -191,6 +194,7 @@ internal class LukkSøknadServiceImplTest {
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
+            microsoftGraphApiClient = MicrosoftGraphApiClientStub,
             clock = fixedEpochClock,
         ).lukkSøknad(trekkSøknadRequest) shouldBe LukketSøknad.UtenMangler(sak).right()
 
@@ -210,7 +214,8 @@ internal class LukkSøknadServiceImplTest {
                             journalpostId = journalførtSøknadMedOppgaveJournalpostId,
                             oppgaveId = oppgaveId,
                         ),
-                        trukketDato = 1.januar(2020)
+                        trukketDato = 1.januar(2020),
+                        saksbehandlerNavn = "Testbruker, Lokal"
                     )
                 },
                 saksnummer = argThat { it shouldBe saksnummer }
@@ -260,6 +265,7 @@ internal class LukkSøknadServiceImplTest {
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
+            microsoftGraphApiClient = mock(),
             clock = fixedEpochClock,
         ).lukkSøknad(
             LukkSøknadRequest.UtenBrev.AvvistSøknad(
@@ -317,6 +323,7 @@ internal class LukkSøknadServiceImplTest {
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
+            microsoftGraphApiClient = MicrosoftGraphApiClientStub,
             clock = fixedEpochClock,
         ).lukkSøknad(
             LukkSøknadRequest.MedBrev.AvvistSøknad(
@@ -337,7 +344,8 @@ internal class LukkSøknadServiceImplTest {
                 argThat {
                     it shouldBe AvvistSøknadBrevRequest(
                         person = person,
-                        BrevConfig.Fritekst("Fritekst")
+                        saksbehandlerNavn = "Testbruker, Lokal",
+                        brevConfig = BrevConfig.Fritekst("Fritekst")
                     )
                 },
                 argThat { it shouldBe saksnummer }
@@ -388,6 +396,7 @@ internal class LukkSøknadServiceImplTest {
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
+            microsoftGraphApiClient = mock(),
             clock = fixedEpochClock,
         ).lukkSøknad(
             LukkSøknadRequest.MedBrev.TrekkSøknad(
@@ -426,6 +435,7 @@ internal class LukkSøknadServiceImplTest {
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
+            microsoftGraphApiClient = mock(),
             clock = fixedEpochClock,
         ).lukkSøknad(
             LukkSøknadRequest.UtenBrev.BortfaltSøknad(
@@ -469,6 +479,7 @@ internal class LukkSøknadServiceImplTest {
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
+            microsoftGraphApiClient = mock(),
             clock = fixedEpochClock,
         ).lukkSøknad(trekkSøknadRequest) shouldBe KunneIkkeLukkeSøknad.SøknadErAlleredeLukket.left()
 
@@ -502,6 +513,7 @@ internal class LukkSøknadServiceImplTest {
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
+            microsoftGraphApiClient = MicrosoftGraphApiClientStub,
             clock = fixedEpochClock,
         ).lagBrevutkast(trekkSøknadRequest) shouldBe pdf.right()
 
@@ -513,7 +525,7 @@ internal class LukkSøknadServiceImplTest {
 
             verify(brevServiceMock).lagBrev(
                 argThat {
-                    it shouldBe TrukketSøknadBrevRequest(person, journalførtSøknadMedOppgave, 1.januar(2020))
+                    it shouldBe TrukketSøknadBrevRequest(person, journalførtSøknadMedOppgave, 1.januar(2020), "Testbruker, Lokal")
                 }
             )
         }
@@ -541,6 +553,7 @@ internal class LukkSøknadServiceImplTest {
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
+            microsoftGraphApiClient = mock(),
             clock = fixedEpochClock,
         ).lagBrevutkast(trekkSøknadRequest) shouldBe KunneIkkeLageBrevutkast.FantIkkePerson.left()
 
@@ -572,6 +585,7 @@ internal class LukkSøknadServiceImplTest {
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
+            microsoftGraphApiClient = mock(),
             clock = fixedEpochClock,
         ).lagBrevutkast(trekkSøknadRequest) shouldBe KunneIkkeLageBrevutkast.FantIkkeSøknad.left()
 
@@ -605,6 +619,7 @@ internal class LukkSøknadServiceImplTest {
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
+            microsoftGraphApiClient = MicrosoftGraphApiClientStub,
             clock = fixedEpochClock,
         ).lagBrevutkast(trekkSøknadRequest) shouldBe KunneIkkeLageBrevutkast.KunneIkkeLageBrev.left()
 
@@ -616,7 +631,7 @@ internal class LukkSøknadServiceImplTest {
 
             verify(brevServiceMock).lagBrev(
                 argThat {
-                    it shouldBe TrukketSøknadBrevRequest(person, journalførtSøknadMedOppgave, 1.januar(2020))
+                    it shouldBe TrukketSøknadBrevRequest(person, journalførtSøknadMedOppgave, 1.januar(2020), "Testbruker, Lokal")
                 }
             )
         }
@@ -645,6 +660,7 @@ internal class LukkSøknadServiceImplTest {
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
+            microsoftGraphApiClient = mock(),
             clock = fixedEpochClock,
         ).lagBrevutkast(
             LukkSøknadRequest.UtenBrev.BortfaltSøknad(
@@ -691,6 +707,7 @@ internal class LukkSøknadServiceImplTest {
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
+            microsoftGraphApiClient = MicrosoftGraphApiClientStub,
             clock = fixedEpochClock,
         ).lukkSøknad(trekkSøknadRequest) shouldBe LukketSøknad.MedMangler.KunneIkkeDistribuereBrev(sak).right()
 
@@ -710,7 +727,8 @@ internal class LukkSøknadServiceImplTest {
                             journalpostId = journalførtSøknadMedOppgaveJournalpostId,
                             oppgaveId = oppgaveId
                         ),
-                        trukketDato = 1.januar(2020)
+                        trukketDato = 1.januar(2020),
+                        saksbehandlerNavn = "Testbruker, Lokal"
                     )
                 },
                 argThat { it shouldBe saksnummer }
@@ -767,6 +785,7 @@ internal class LukkSøknadServiceImplTest {
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
+            microsoftGraphApiClient = mock(),
             clock = fixedEpochClock,
         ).lukkSøknad(trekkSøknadRequest)
 
@@ -805,6 +824,7 @@ internal class LukkSøknadServiceImplTest {
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
+            microsoftGraphApiClient = mock(),
             clock = fixedEpochClock,
         ).lukkSøknad(
             trekkSøknadRequest.copy(
@@ -855,6 +875,7 @@ internal class LukkSøknadServiceImplTest {
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
+            microsoftGraphApiClient = MicrosoftGraphApiClientStub,
             clock = fixedEpochClock,
         ).lukkSøknad(trekkSøknadRequest) shouldBe LukketSøknad.MedMangler.KunneIkkeLukkeOppgave(sak).right()
 
@@ -875,6 +896,7 @@ internal class LukkSøknadServiceImplTest {
                             oppgaveId = oppgaveId,
                         ),
                         trukketDato = 1.januar(2020),
+                        "Testbruker, Lokal"
                     )
                 },
                 saksnummer = argThat { it shouldBe saksnummer }
@@ -921,6 +943,7 @@ internal class LukkSøknadServiceImplTest {
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
+            microsoftGraphApiClient = MicrosoftGraphApiClientStub,
             clock = fixedEpochClock,
         ).lukkSøknad(trekkSøknadRequest) shouldBe KunneIkkeLukkeSøknad.KunneIkkeJournalføreBrev.left()
 
@@ -940,7 +963,8 @@ internal class LukkSøknadServiceImplTest {
                             journalpostId = journalførtSøknadMedOppgaveJournalpostId,
                             oppgaveId = oppgaveId,
                         ),
-                        trukketDato = 1.januar(2020)
+                        trukketDato = 1.januar(2020),
+                        "Testbruker, Lokal"
                     )
                 },
                 saksnummer = argThat { it shouldBe sak.saksnummer }

@@ -35,6 +35,8 @@ data class ListOfMicrosoftGraphResponse(
 interface MicrosoftGraphApiOppslag {
     fun hentBrukerinformasjon(userToken: String): Either<MicrosoftGraphApiOppslagFeil, MicrosoftGraphResponse>
     fun hentBrukerinformasjonForNavIdent(navIdent: NavIdentBruker): Either<MicrosoftGraphApiOppslagFeil, MicrosoftGraphResponse>
+
+    fun hentNavnForNavIdent(navIdent: NavIdentBruker) = hentBrukerinformasjonForNavIdent(navIdent).map { it.displayName }
 }
 
 sealed class MicrosoftGraphApiOppslagFeil {
