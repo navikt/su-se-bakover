@@ -23,7 +23,7 @@ spec:
              offset 15m) or vector(0)) > 0'
       for: 1s
       description: "su-se-bakover har fått en ny error i loggen siste 15 min"
-      action: "Det er logget en melding i Kibana. Sjekk logger her: `https://logs.adeo.no/goto/10065d0eff34c88407beb46993e0d729`"
+      action: "Det er logget en melding i Kibana. Sjekk logger her: `https://logs.adeo.no/goto/6af62b00d098b7ef2d7cb769c53379b5`"
     - alert: su-se-bakover-ny-søknad-feilet
       expr: '(2 * sum(ny_soknad_counter_total{type="PERSISTERT"}) - sum(ny_soknad_counter_total{type="OPPGAVE"}) - sum(ny_soknad_counter_total{type="JOURNALFØRT"})) > 0'
       for: 1m

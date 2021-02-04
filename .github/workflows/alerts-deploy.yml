@@ -5,6 +5,7 @@ on:
       - master
     paths:
       - 'alerts.yml'
+      - 'alerts-prod.yml'
       - '.github/workflows/alerts-deploy.yml'
 jobs:
   apply-alerts:
@@ -25,5 +26,5 @@ jobs:
         env:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: prod-fss
-          RESOURCE: alerts.yml
+          RESOURCE: alerts-prod.yml
           VAR: SLACK_ALERTS_CHANNEL=#supplerende_stonad_alerts
