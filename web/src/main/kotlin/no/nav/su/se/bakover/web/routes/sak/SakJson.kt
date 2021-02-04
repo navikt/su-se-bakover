@@ -6,6 +6,8 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Companion.hentOversendteUt
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingJson
 import no.nav.su.se.bakover.web.routes.behandling.UtbetalingslinjeJson
 import no.nav.su.se.bakover.web.routes.behandling.toJson
+import no.nav.su.se.bakover.web.routes.revurdering.RevurderingJson
+import no.nav.su.se.bakover.web.routes.revurdering.toJson
 import no.nav.su.se.bakover.web.routes.sak.SakJson.KanStansesEllerGjenopptas.Companion.kanStansesEllerGjenopptas
 import no.nav.su.se.bakover.web.routes.søknad.SøknadJson
 import no.nav.su.se.bakover.web.routes.søknad.toJson
@@ -18,6 +20,7 @@ internal data class SakJson(
     val behandlinger: List<BehandlingJson>,
     val utbetalinger: List<UtbetalingslinjeJson>,
     val utbetalingerKanStansesEllerGjenopptas: KanStansesEllerGjenopptas,
+    val revurderinger: List<RevurderingJson>
 ) {
     enum class KanStansesEllerGjenopptas {
         STANS,
@@ -56,7 +59,8 @@ internal data class SakJson(
                         )
                     }
                 },
-            utbetalingerKanStansesEllerGjenopptas = utbetalinger.kanStansesEllerGjenopptas()
+            utbetalingerKanStansesEllerGjenopptas = utbetalinger.kanStansesEllerGjenopptas(),
+            revurderinger = revurderinger().map { it.toJson() }
         )
     }
 }

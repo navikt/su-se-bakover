@@ -19,11 +19,11 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
-import no.nav.su.se.bakover.domain.behandling.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import java.time.Clock
 import java.time.Instant
 import java.util.UUID
@@ -42,7 +42,7 @@ internal class TestDataHelper(
     private val revurderingRepo = RevurderingPostgresRepo(dataSource, behandlingPostgresRepo)
 
     private val behandlingRepo = behandlingPostgresRepo
-    private val sakRepo = SakPostgresRepo(dataSource, behandlingPostgresRepo)
+    private val sakRepo = SakPostgresRepo(dataSource, behandlingPostgresRepo, revurderingRepo)
 
     fun nySakMedJournalførtSøknadOgOppgave(
         fnr: Fnr = FnrGenerator.random(),

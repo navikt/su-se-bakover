@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUIDFactory
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import java.time.Clock
 import java.util.UUID
 
@@ -20,10 +21,13 @@ data class Sak(
     private val søknader: List<Søknad> = emptyList(),
     private val behandlinger: List<Behandling> = emptyList(),
     val utbetalinger: List<Utbetaling>,
+    private val revurderinger: List<Revurdering> = emptyList(),
 ) {
     fun søknader() = søknader.toList()
 
     fun behandlinger() = behandlinger.toList()
+
+    fun revurderinger() = revurderinger.toList()
 }
 
 data class NySak(

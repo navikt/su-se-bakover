@@ -51,13 +51,14 @@ object DatabaseBuilder {
 
     private fun buildInternal(dataSource: DataSource, behandlingFactory: BehandlingFactory): DatabaseRepos {
         val behandlingRepo = BehandlingPostgresRepo(dataSource, behandlingFactory)
+        val revurderingRepo = RevurderingPostgresRepo(dataSource, behandlingRepo)
         return DatabaseRepos(
             avstemming = AvstemmingPostgresRepo(dataSource),
             utbetaling = UtbetalingPostgresRepo(dataSource),
             søknad = SøknadPostgresRepo(dataSource),
             behandling = behandlingRepo,
             hendelseslogg = HendelsesloggPostgresRepo(dataSource),
-            sak = SakPostgresRepo(dataSource, behandlingRepo),
+            sak = SakPostgresRepo(dataSource, behandlingRepo, revurderingRepo),
             person = PersonPostgresRepo(dataSource),
             vedtakssnapshot = VedtakssnapshotPostgresRepo(dataSource),
             revurderingRepo = RevurderingPostgresRepo(dataSource, behandlingRepo)

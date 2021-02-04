@@ -7,19 +7,20 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
-import no.nav.su.se.bakover.domain.behandling.BeregnetRevurdering
-import no.nav.su.se.bakover.domain.behandling.OpprettetRevurdering
-import no.nav.su.se.bakover.domain.behandling.Revurdering
-import no.nav.su.se.bakover.domain.behandling.RevurderingTilAttestering
-import no.nav.su.se.bakover.domain.behandling.SimulertRevurdering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Revurdering
+import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
+import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import java.util.UUID
 import javax.sql.DataSource
 
 interface RevurderingRepo {
     fun hent(id: UUID): Revurdering?
     fun lagre(revurdering: Revurdering)
+    fun hentRevurderingerForSak(sakId: UUID, session: Session): List<Revurdering>
 }
 
 enum class RevurderingsType {
@@ -49,6 +50,12 @@ internal class RevurderingPostgresRepo(
             is RevurderingTilAttestering -> lagre(revurdering)
         }
     }
+
+    override fun hentRevurderingerForSak(sakId: UUID, session: Session): List<Revurdering> =
+        "select r.*, b.sakid from revurdering r inner join behandling b on r.behandlingid = b.id where b.sakid=:sakId"
+            .hentListe(mapOf("sakId" to sakId), session) {
+                it.toRevurdering()
+            }
 
     fun Row.toRevurdering(): Revurdering {
         val id = uuid("id")

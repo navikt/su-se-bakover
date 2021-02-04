@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.database.sak
 
 import kotliquery.Row
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.database.RevurderingPostgresRepo
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.behandling.BehandlingPostgresRepo
 import no.nav.su.se.bakover.database.hent
@@ -19,7 +20,8 @@ import javax.sql.DataSource
 
 internal class SakPostgresRepo(
     private val dataSource: DataSource,
-    private val behandlingRepo: BehandlingPostgresRepo
+    private val behandlingRepo: BehandlingPostgresRepo,
+    private val revurderingRepo: RevurderingPostgresRepo
 ) : SakRepo {
     override fun hentSak(sakId: UUID) = dataSource.withSession { hentSakInternal(sakId, it) }
     override fun hentSak(fnr: Fnr) = dataSource.withSession { hentSakInternal(fnr, it) }
@@ -57,7 +59,8 @@ internal class SakPostgresRepo(
             opprettet = tidspunkt("opprettet"),
             søknader = SøknadRepoInternal.hentSøknaderInternal(sakId, session),
             behandlinger = behandlingRepo.hentBehandlingerForSak(sakId, session),
-            utbetalinger = UtbetalingInternalRepo.hentUtbetalinger(sakId, session)
+            utbetalinger = UtbetalingInternalRepo.hentUtbetalinger(sakId, session),
+            revurderinger = revurderingRepo.hentRevurderingerForSak(sakId, session)
         )
     }
 }

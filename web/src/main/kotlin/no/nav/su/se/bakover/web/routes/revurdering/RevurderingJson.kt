@@ -1,15 +1,19 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import no.nav.su.se.bakover.domain.behandling.OpprettetRevurdering
-import no.nav.su.se.bakover.domain.behandling.Revurdering
-import no.nav.su.se.bakover.domain.behandling.RevurderingTilAttestering
-import no.nav.su.se.bakover.domain.behandling.SimulertRevurdering
+import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Revurdering
+import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
+import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingJson
 import no.nav.su.se.bakover.web.routes.behandling.beregning.BeregningJson
+import no.nav.su.se.bakover.web.routes.behandling.beregning.PeriodeJson
+import no.nav.su.se.bakover.web.routes.behandling.beregning.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.behandling.beregning.toJson
 import no.nav.su.se.bakover.web.routes.behandling.toJson
 import java.time.format.DateTimeFormatter
+
+sealed class RevurderingJson
 
 internal enum class RevurderingsStatus {
     OPPRETTET,
@@ -25,8 +29,10 @@ internal data class RevurdertBeregningJson(
 internal data class OpprettetRevurderingJson(
     val id: String,
     val opprettet: String,
-    val tilRevurdering: BehandlingJson
-) {
+    val periode: PeriodeJson,
+    val tilRevurdering: BehandlingJson,
+    val saksbehandler: String,
+) : RevurderingJson() {
     @JsonInclude
     val status = RevurderingsStatus.OPPRETTET
 }
@@ -34,10 +40,11 @@ internal data class OpprettetRevurderingJson(
 internal data class SimulertRevurderingJson(
     val id: String,
     val opprettet: String,
+    val periode: PeriodeJson,
     val tilRevurdering: BehandlingJson,
     val beregninger: RevurdertBeregningJson,
     val saksbehandler: String
-) {
+): RevurderingJson() {
     @JsonInclude
     val status = RevurderingsStatus.SIMULERT
 }
@@ -45,23 +52,27 @@ internal data class SimulertRevurderingJson(
 internal data class TilAttesteringJson(
     val id: String,
     val opprettet: String,
+    val periode: PeriodeJson,
     val tilRevurdering: BehandlingJson,
     val beregninger: RevurdertBeregningJson,
     val saksbehandler: String
-) {
+): RevurderingJson() {
     @JsonInclude
     val status = RevurderingsStatus.TIL_ATTESTERING
 }
 
-internal fun Revurdering.toJson(): Any = when (this) {
+internal fun Revurdering.toJson(): RevurderingJson = when (this) {
     is OpprettetRevurdering -> OpprettetRevurderingJson(
         id = id.toString(),
         opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
-        tilRevurdering = tilRevurdering.toJson()
+        periode = periode.toJson(),
+        tilRevurdering = tilRevurdering.toJson(),
+        saksbehandler = saksbehandler.toString()
     )
-    is RevurderingTilAttestering -> TilAttesteringJson(
+    is SimulertRevurdering -> SimulertRevurderingJson(
         id = id.toString(),
         opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
+        periode = periode.toJson(),
         tilRevurdering = tilRevurdering.toJson(),
         beregninger = RevurdertBeregningJson(
             beregning = tilRevurdering.beregning()!!.toJson(),
@@ -69,9 +80,10 @@ internal fun Revurdering.toJson(): Any = when (this) {
         ),
         saksbehandler = saksbehandler.toString(),
     )
-    is SimulertRevurdering -> SimulertRevurderingJson(
+    is RevurderingTilAttestering -> TilAttesteringJson(
         id = id.toString(),
         opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
+        periode = periode.toJson(),
         tilRevurdering = tilRevurdering.toJson(),
         beregninger = RevurdertBeregningJson(
             beregning = tilRevurdering.beregning()!!.toJson(),

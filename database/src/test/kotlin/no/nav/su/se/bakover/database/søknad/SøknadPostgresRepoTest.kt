@@ -28,7 +28,7 @@ internal class SøknadPostgresRepoTest {
     private val FNR = FnrGenerator.random()
     private val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())
     private val søknadRepo = SøknadPostgresRepo(EmbeddedDatabase.instance())
-    private val sakRepo = SakPostgresRepo(EmbeddedDatabase.instance(), mock())
+    private val sakRepo = SakPostgresRepo(EmbeddedDatabase.instance(), mock(), mock())
 
     @Test
     fun `opprett og hent søknad`() {

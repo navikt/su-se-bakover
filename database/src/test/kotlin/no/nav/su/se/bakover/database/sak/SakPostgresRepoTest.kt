@@ -13,7 +13,7 @@ internal class SakPostgresRepoTest {
 
     private val FNR = FnrGenerator.random()
     private val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())
-    private val repo = SakPostgresRepo(EmbeddedDatabase.instance(), mock())
+    private val repo = SakPostgresRepo(EmbeddedDatabase.instance(), mock(), mock())
 
     @Test
     fun `opprett og hent sak`() {
