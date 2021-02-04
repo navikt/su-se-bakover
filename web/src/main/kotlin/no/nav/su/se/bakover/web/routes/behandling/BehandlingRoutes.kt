@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.service.behandling.KunneIkkeOppretteSøknadsbehandli
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering
 import no.nav.su.se.bakover.service.behandling.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.service.behandling.KunneIkkeUnderkjenneBehandling
+import no.nav.su.se.bakover.service.søknadsbehandling.HentBehandlingRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.IverksettSøknadsbehandlingRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.OppdaterSøknadsbehandlingsinformasjonRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.OpprettBeregningRequest
@@ -106,7 +107,7 @@ internal fun Route.behandlingRoutes(
     authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
         get("$behandlingPath/{behandlingId}") {
             call.withBehandlingId { behandlingId ->
-                behandlingService.hentBehandling(behandlingId).mapLeft {
+                søknadsbehandlingService.hent(HentBehandlingRequest(behandlingId)).mapLeft {
                     call.svar(NotFound.message("Fant ikke behandling med id $behandlingId"))
                 }.map {
                     call.audit("Hentet behandling med id $behandlingId")
