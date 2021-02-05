@@ -32,7 +32,7 @@ fun Double.roundToDecimals(decimals: Int) = BigDecimal(this).setScale(decimals, 
 fun <A, B> Pair<A, A>.mapBoth(f: (A) -> B) =
     Pair(f(first), f(second))
 
-fun getCorrelationId(): String {
+fun getOrCreateCorrelationId(): String {
     return MDC.get("X-Correlation-ID") ?: UUID.randomUUID().toString()
         .also { log.warn("Mangler X-Correlation-ID. Bruker random uuid $it") }
 }
