@@ -40,7 +40,7 @@ jobs:
             ORG_GRADLE_PROJECT_githubUser: x-access-token
             ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
         - name: Build and publish Docker image
-          if: github.ref == 'refs/heads/BRANCH_NAME'
+          if: github.ref == 'refs/heads/EgenAlertfilForProd'
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           run: |
@@ -52,7 +52,7 @@ jobs:
       name: Deploy specific branch-name to dev
       needs: build
       runs-on: ubuntu-latest
-      if: github.ref == 'refs/heads/BRANCH_NAME'
+      if: github.ref == 'refs/heads/EgenAlertfilForProd'
       steps:
         - uses: actions/checkout@v2
         - uses: nais/deploy/actions/deploy@v1
