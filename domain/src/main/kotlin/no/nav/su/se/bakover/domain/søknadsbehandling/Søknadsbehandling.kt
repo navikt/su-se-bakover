@@ -138,7 +138,7 @@ sealed class Søknadsbehandling {
             override val oppgaveId: OppgaveId,
             override val behandlingsinformasjon: Behandlingsinformasjon,
             override val fnr: Fnr
-        ) : Vilkårsvurdert(), no.nav.su.se.bakover.domain.søknadsbehandling.Avslag {
+        ) : Vilkårsvurdert(), ErAvslag {
 
             override val status: BehandlingsStatus = BehandlingsStatus.VILKÅRSVURDERT_AVSLAG
 
@@ -286,7 +286,7 @@ sealed class Søknadsbehandling {
             override val behandlingsinformasjon: Behandlingsinformasjon,
             override val fnr: Fnr,
             override val beregning: Beregning
-        ) : Beregnet(), no.nav.su.se.bakover.domain.søknadsbehandling.Avslag {
+        ) : Beregnet(), ErAvslag {
             override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET_AVSLAG
 
             private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
@@ -456,11 +456,9 @@ sealed class Søknadsbehandling {
             }
         }
 
-        sealed class Avslag : TilAttestering() {
+        sealed class Avslag : TilAttestering(), ErAvslag {
             final override val status: BehandlingsStatus =
                 BehandlingsStatus.TIL_ATTESTERING_AVSLAG
-
-            abstract val avslagsgrunner: List<Avslagsgrunn>
 
             data class UtenBeregning(
                 override val id: UUID,
@@ -683,7 +681,7 @@ sealed class Søknadsbehandling {
                 )
         }
 
-        sealed class Avslag : Underkjent() {
+        sealed class Avslag : Underkjent(), ErAvslag {
             data class MedBeregning(
                 override val id: UUID,
                 override val opprettet: Tidspunkt,
@@ -696,7 +694,7 @@ sealed class Søknadsbehandling {
                 val beregning: Beregning,
                 override val saksbehandler: NavIdentBruker.Saksbehandler,
                 override val attestering: Attestering
-            ) : Avslag(), no.nav.su.se.bakover.domain.søknadsbehandling.Avslag {
+            ) : Avslag() {
                 override val status: BehandlingsStatus =
                     BehandlingsStatus.UNDERKJENT_AVSLAG
 
@@ -756,7 +754,7 @@ sealed class Søknadsbehandling {
                 override val fnr: Fnr,
                 override val saksbehandler: NavIdentBruker.Saksbehandler,
                 override val attestering: Attestering
-            ) : Avslag(), no.nav.su.se.bakover.domain.søknadsbehandling.Avslag {
+            ) : Avslag() {
                 override val status: BehandlingsStatus =
                     BehandlingsStatus.UNDERKJENT_AVSLAG
 
@@ -897,7 +895,7 @@ sealed class Søknadsbehandling {
             }
         }
 
-        sealed class Avslag : Iverksatt(), no.nav.su.se.bakover.domain.søknadsbehandling.Avslag {
+        sealed class Avslag : Iverksatt(), ErAvslag {
             abstract val eksterneIverksettingsteg: EksterneIverksettingsteg
             abstract fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeDistribuereBrev, Avslag>
 
@@ -914,7 +912,7 @@ sealed class Søknadsbehandling {
                 override val saksbehandler: NavIdentBruker.Saksbehandler,
                 override val attestering: Attestering,
                 override val eksterneIverksettingsteg: EksterneIverksettingsteg
-            ) : Avslag(), no.nav.su.se.bakover.domain.søknadsbehandling.Avslag {
+            ) : Avslag() {
                 override val status: BehandlingsStatus =
                     BehandlingsStatus.IVERKSATT_AVSLAG
 
@@ -955,7 +953,7 @@ sealed class Søknadsbehandling {
                 override val saksbehandler: NavIdentBruker.Saksbehandler,
                 override val attestering: Attestering,
                 override val eksterneIverksettingsteg: EksterneIverksettingsteg
-            ) : Avslag(), no.nav.su.se.bakover.domain.søknadsbehandling.Avslag {
+            ) : Avslag() {
                 override val status: BehandlingsStatus =
                     BehandlingsStatus.IVERKSATT_AVSLAG
 
