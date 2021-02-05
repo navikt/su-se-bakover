@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.database.beregning
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.database.fixedTidspunkt
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.Sats
@@ -15,9 +16,8 @@ import java.util.UUID
 
 internal object TestBeregning : Beregning {
     private val id = UUID.randomUUID()
-    private val tidspunkt = Tidspunkt.now()
     override fun getId(): UUID = id
-    override fun getOpprettet(): Tidspunkt = tidspunkt
+    override fun getOpprettet(): Tidspunkt = fixedTidspunkt
     override fun getSats(): Sats = Sats.HØY
     override fun getMånedsberegninger(): List<Månedsberegning> = listOf(TestMånedsberegning)
     override fun getFradrag(): List<Fradrag> = listOf(TestFradrag)
