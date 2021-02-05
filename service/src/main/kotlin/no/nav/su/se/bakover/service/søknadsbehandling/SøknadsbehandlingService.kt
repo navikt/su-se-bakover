@@ -11,111 +11,111 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import java.util.UUID
 
 interface SøknadsbehandlingService {
-    fun opprett(request: OpprettSøknadsbehandlingRequest): Either<KunneIkkeOppretteSøknadsbehandling, Søknadsbehandling>
-    fun vilkårsvurder(request: OppdaterSøknadsbehandlingsinformasjonRequest): Either<KunneIkkeOppdatereBehandlingsinformasjon, Søknadsbehandling>
-    fun beregn(request: OpprettBeregningRequest): Either<KunneIkkeBeregne, Søknadsbehandling>
-    fun simuler(request: OpprettSimuleringRequest): Either<KunneIkkeSimulereBehandling, Søknadsbehandling>
+    fun opprett(request: OpprettRequest): Either<KunneIkkeOpprette, Søknadsbehandling>
+    fun vilkårsvurder(request: VilkårsvurderRequest): Either<KunneIkkeVilkårsvurdere, Søknadsbehandling>
+    fun beregn(request: BeregnRequest): Either<KunneIkkeBeregne, Søknadsbehandling>
+    fun simuler(request: SimulerRequest): Either<KunneIkkeSimulereBehandling, Søknadsbehandling>
     fun sendTilAttestering(request: SendTilAttesteringRequest): Either<KunneIkkeSendeTilAttestering, Søknadsbehandling>
-    fun underkjenn(request: UnderkjennSøknadsbehandlingRequest): Either<KunneIkkeUnderkjenneBehandling, Søknadsbehandling>
-    fun iverksett(request: IverksettSøknadsbehandlingRequest): Either<KunneIkkeIverksetteBehandling, Søknadsbehandling>
-    fun brev(request: OpprettBrevRequest): Either<KunneIkkeLageBrevutkast, ByteArray>
-    fun hent(request: HentBehandlingRequest): Either<FantIkkeBehandling, Søknadsbehandling>
+    fun underkjenn(request: UnderkjennRequest): Either<KunneIkkeUnderkjenne, Søknadsbehandling>
+    fun iverksett(request: IverksettRequest): Either<KunneIkkeIverksette, Søknadsbehandling>
+    fun brev(request: BrevRequest): Either<KunneIkkeLageBrev, ByteArray>
+    fun hent(request: HentRequest): Either<FantIkkeBehandling, Søknadsbehandling>
+
+    data class OpprettRequest(
+        val søknadId: UUID
+    )
+
+    sealed class KunneIkkeOpprette {
+        object FantIkkeSøknad : KunneIkkeOpprette()
+        object SøknadManglerOppgave : KunneIkkeOpprette()
+        object SøknadErLukket : KunneIkkeOpprette()
+        object SøknadHarAlleredeBehandling : KunneIkkeOpprette()
+    }
+
+    data class VilkårsvurderRequest(
+        val behandlingId: UUID,
+        val saksbehandler: NavIdentBruker.Saksbehandler,
+        val behandlingsinformasjon: Behandlingsinformasjon
+    )
+
+    sealed class KunneIkkeVilkårsvurdere {
+        object FantIkkeBehandling : KunneIkkeVilkårsvurdere()
+    }
+
+    data class BeregnRequest(
+        val behandlingId: UUID,
+        val periode: Periode,
+        val fradrag: List<Fradrag>
+    )
+
+    sealed class KunneIkkeBeregne {
+        object FantIkkeBehandling : KunneIkkeBeregne()
+    }
+
+    data class SimulerRequest(
+        val behandlingId: UUID,
+        val saksbehandler: NavIdentBruker.Saksbehandler
+    )
+
+    sealed class KunneIkkeSimulereBehandling {
+        object KunneIkkeSimulere : KunneIkkeSimulereBehandling()
+        object FantIkkeBehandling : KunneIkkeSimulereBehandling()
+    }
+
+    data class SendTilAttesteringRequest(
+        val behandlingId: UUID,
+        val saksbehandler: NavIdentBruker.Saksbehandler
+    )
+
+    sealed class KunneIkkeSendeTilAttestering {
+        object FantIkkeBehandling : KunneIkkeSendeTilAttestering()
+        object KunneIkkeFinneAktørId : KunneIkkeSendeTilAttestering()
+        object KunneIkkeOppretteOppgave : KunneIkkeSendeTilAttestering()
+    }
+
+    data class UnderkjennRequest(
+        val behandlingId: UUID,
+        val attestering: Attestering.Underkjent
+    )
+
+    sealed class KunneIkkeUnderkjenne {
+        object FantIkkeBehandling : KunneIkkeUnderkjenne()
+        object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeUnderkjenne()
+        object KunneIkkeOppretteOppgave : KunneIkkeUnderkjenne()
+        object FantIkkeAktørId : KunneIkkeUnderkjenne()
+    }
+
+    data class IverksettRequest(
+        val behandlingId: UUID,
+        val attestering: Attestering
+    )
+
+    sealed class KunneIkkeIverksette {
+        object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksette()
+        object KunneIkkeUtbetale : KunneIkkeIverksette()
+        object KunneIkkeKontrollsimulere : KunneIkkeIverksette()
+        object SimuleringHarBlittEndretSidenSaksbehandlerSimulerte : KunneIkkeIverksette()
+        object KunneIkkeJournalføreBrev : KunneIkkeIverksette()
+        object FantIkkeBehandling : KunneIkkeIverksette()
+        object FantIkkePerson : KunneIkkeIverksette()
+        object FikkIkkeHentetSaksbehandlerEllerAttestant : KunneIkkeIverksette()
+    }
+
+    data class BrevRequest(
+        val behandlingId: UUID
+    )
+
+    sealed class KunneIkkeLageBrev {
+        data class KanIkkeLageBrevutkastForStatus(val status: BehandlingsStatus) : KunneIkkeLageBrev()
+        object FantIkkeBehandling : KunneIkkeLageBrev()
+        object KunneIkkeLagePDF : KunneIkkeLageBrev()
+        object FantIkkePerson : KunneIkkeLageBrev()
+        object FikkIkkeHentetSaksbehandlerEllerAttestant : KunneIkkeLageBrev()
+    }
+
+    data class HentRequest(
+        val behandlingId: UUID
+    )
+
+    object FantIkkeBehandling
 }
-
-sealed class KunneIkkeLageBrevutkast {
-    data class KanIkkeLageBrevutkastForStatus(val status: BehandlingsStatus) : KunneIkkeLageBrevutkast()
-    object FantIkkeBehandling : KunneIkkeLageBrevutkast()
-    object KunneIkkeLageBrev : KunneIkkeLageBrevutkast()
-    object FantIkkePerson : KunneIkkeLageBrevutkast()
-    object FikkIkkeHentetSaksbehandlerEllerAttestant : KunneIkkeLageBrevutkast()
-}
-
-object FantIkkeBehandling
-
-sealed class KunneIkkeOppretteSøknadsbehandling {
-    object FantIkkeSøknad : KunneIkkeOppretteSøknadsbehandling()
-    object SøknadManglerOppgave : KunneIkkeOppretteSøknadsbehandling()
-    object SøknadErLukket : KunneIkkeOppretteSøknadsbehandling()
-    object SøknadHarAlleredeBehandling : KunneIkkeOppretteSøknadsbehandling()
-}
-
-sealed class KunneIkkeBeregne {
-    object FantIkkeBehandling : KunneIkkeBeregne()
-}
-
-sealed class KunneIkkeSimulereBehandling {
-    object KunneIkkeSimulere : KunneIkkeSimulereBehandling()
-    object FantIkkeBehandling : KunneIkkeSimulereBehandling()
-}
-
-sealed class KunneIkkeSendeTilAttestering {
-    object FantIkkeBehandling : KunneIkkeSendeTilAttestering()
-    object KunneIkkeFinneAktørId : KunneIkkeSendeTilAttestering()
-    object KunneIkkeOppretteOppgave : KunneIkkeSendeTilAttestering()
-}
-
-sealed class KunneIkkeUnderkjenneBehandling {
-    object FantIkkeBehandling : KunneIkkeUnderkjenneBehandling()
-    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeUnderkjenneBehandling()
-    object KunneIkkeOppretteOppgave : KunneIkkeUnderkjenneBehandling()
-    object FantIkkeAktørId : KunneIkkeUnderkjenneBehandling()
-}
-
-sealed class KunneIkkeIverksetteBehandling {
-    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteBehandling()
-    object KunneIkkeUtbetale : KunneIkkeIverksetteBehandling()
-    object KunneIkkeKontrollsimulere : KunneIkkeIverksetteBehandling()
-    object SimuleringHarBlittEndretSidenSaksbehandlerSimulerte : KunneIkkeIverksetteBehandling()
-    object KunneIkkeJournalføreBrev : KunneIkkeIverksetteBehandling()
-    object FantIkkeBehandling : KunneIkkeIverksetteBehandling()
-    object FantIkkePerson : KunneIkkeIverksetteBehandling()
-    object FikkIkkeHentetSaksbehandlerEllerAttestant : KunneIkkeIverksetteBehandling()
-}
-
-sealed class KunneIkkeOppdatereBehandlingsinformasjon {
-    object FantIkkeBehandling : KunneIkkeOppdatereBehandlingsinformasjon()
-}
-
-data class OpprettSøknadsbehandlingRequest(
-    val søknadId: UUID
-)
-
-data class OppdaterSøknadsbehandlingsinformasjonRequest(
-    val behandlingId: UUID,
-    val saksbehandler: NavIdentBruker.Saksbehandler,
-    val behandlingsinformasjon: Behandlingsinformasjon
-)
-
-data class OpprettBeregningRequest(
-    val behandlingId: UUID,
-    val periode: Periode,
-    val fradrag: List<Fradrag>
-)
-
-data class OpprettSimuleringRequest(
-    val behandlingId: UUID,
-    val saksbehandler: NavIdentBruker.Saksbehandler
-)
-
-data class SendTilAttesteringRequest(
-    val behandlingId: UUID,
-    val saksbehandler: NavIdentBruker.Saksbehandler
-)
-
-data class UnderkjennSøknadsbehandlingRequest(
-    val behandlingId: UUID,
-    val attestering: Attestering.Underkjent
-)
-
-data class IverksettSøknadsbehandlingRequest(
-    val behandlingId: UUID,
-    val attestering: Attestering
-)
-
-data class OpprettBrevRequest(
-    val behandlingId: UUID
-)
-
-data class HentBehandlingRequest(
-    val behandlingId: UUID
-)

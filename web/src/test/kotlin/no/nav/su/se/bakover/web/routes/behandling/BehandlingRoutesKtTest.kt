@@ -45,10 +45,10 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.ProdServiceBuilder
-import no.nav.su.se.bakover.service.søknadsbehandling.OppdaterSøknadsbehandlingsinformasjonRequest
-import no.nav.su.se.bakover.service.søknadsbehandling.OpprettBeregningRequest
-import no.nav.su.se.bakover.service.søknadsbehandling.OpprettSimuleringRequest
-import no.nav.su.se.bakover.service.søknadsbehandling.SendTilAttesteringRequest
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.BeregnRequest
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.SendTilAttesteringRequest
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.SimulerRequest
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.VilkårsvurderRequest
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
@@ -144,20 +144,20 @@ internal class BehandlingRoutesKtTest {
         }) {
             val objects = setup()
             services.søknadsbehandling.vilkårsvurder(
-                OppdaterSøknadsbehandlingsinformasjonRequest(
+                VilkårsvurderRequest(
                     objects.søknadsbehandling.id,
                     saksbehandler,
                     Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
                 )
             )
             services.søknadsbehandling.beregn(
-                OpprettBeregningRequest(
+                BeregnRequest(
                     behandlingId = objects.søknadsbehandling.id,
                     periode = Periode.create(1.januar(2021), 31.desember(2021)),
                     fradrag = emptyList()
                 )
             )
-            services.søknadsbehandling.simuler(OpprettSimuleringRequest(objects.søknadsbehandling.id, saksbehandler))
+            services.søknadsbehandling.simuler(SimulerRequest(objects.søknadsbehandling.id, saksbehandler))
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/tilAttestering",
@@ -193,21 +193,21 @@ internal class BehandlingRoutesKtTest {
         }) {
             val objects = setup()
             services.søknadsbehandling.vilkårsvurder(
-                OppdaterSøknadsbehandlingsinformasjonRequest(
+                VilkårsvurderRequest(
                     objects.søknadsbehandling.id,
                     saksbehandler,
                     Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
                 )
             )
             services.søknadsbehandling.beregn(
-                OpprettBeregningRequest(
+                BeregnRequest(
                     behandlingId = objects.søknadsbehandling.id,
                     periode = Periode.create(1.januar(2021), 31.desember(2021)),
                     fradrag = emptyList(),
                 )
             )
             services.søknadsbehandling.simuler(
-                OpprettSimuleringRequest(
+                SimulerRequest(
                     objects.søknadsbehandling.id, saksbehandler
                 )
             )
@@ -252,14 +252,14 @@ internal class BehandlingRoutesKtTest {
             }
 
             services.søknadsbehandling.vilkårsvurder(
-                OppdaterSøknadsbehandlingsinformasjonRequest(
+                VilkårsvurderRequest(
                     objects.søknadsbehandling.id,
                     saksbehandler,
                     Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
                 )
             )
             services.søknadsbehandling.beregn(
-                OpprettBeregningRequest(
+                BeregnRequest(
                     behandlingId = objects.søknadsbehandling.id,
                     periode = Periode.create(1.januar(2021), 31.desember(2021)),
                     fradrag = emptyList(),
@@ -286,14 +286,14 @@ internal class BehandlingRoutesKtTest {
                 brukersNavIdent,
                 {
                     services.søknadsbehandling.vilkårsvurder(
-                        OppdaterSøknadsbehandlingsinformasjonRequest(
+                        VilkårsvurderRequest(
                             søknadsbehandling.id,
                             saksbehandler,
                             søknadsbehandling.behandlingsinformasjon.withAlleVilkårOppfylt()
                         )
                     )
                     services.søknadsbehandling.beregn(
-                        OpprettBeregningRequest(
+                        BeregnRequest(
                             behandlingId = søknadsbehandling.id,
                             periode =
                             Periode.create(
@@ -304,7 +304,7 @@ internal class BehandlingRoutesKtTest {
                         )
                     )
                     services.søknadsbehandling.simuler(
-                        OpprettSimuleringRequest(søknadsbehandling.id, saksbehandler)
+                        SimulerRequest(søknadsbehandling.id, saksbehandler)
                     )
                         .map {
                             services.søknadsbehandling.sendTilAttestering(
@@ -415,14 +415,14 @@ internal class BehandlingRoutesKtTest {
                 brukersNavIdent,
                 {
                     services.søknadsbehandling.vilkårsvurder(
-                        OppdaterSøknadsbehandlingsinformasjonRequest(
+                        VilkårsvurderRequest(
                             søknadsbehandling.id,
                             saksbehandler,
                             søknadsbehandling.behandlingsinformasjon.withAlleVilkårOppfylt()
                         )
                     )
                     services.søknadsbehandling.beregn(
-                        OpprettBeregningRequest(
+                        BeregnRequest(
                             behandlingId = søknadsbehandling.id,
                             periode = Periode.create(
                                 1.januar(2021),
@@ -432,7 +432,7 @@ internal class BehandlingRoutesKtTest {
                         )
                     )
                     services.søknadsbehandling.simuler(
-                        OpprettSimuleringRequest(
+                        SimulerRequest(
                             søknadsbehandling.id,
                             saksbehandler
                         )
@@ -597,21 +597,21 @@ internal class BehandlingRoutesKtTest {
             }) {
                 val objects = setup()
                 services.søknadsbehandling.vilkårsvurder(
-                    OppdaterSøknadsbehandlingsinformasjonRequest(
+                    VilkårsvurderRequest(
                         objects.søknadsbehandling.id,
                         saksbehandler,
                         Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
                     )
                 )
                 services.søknadsbehandling.beregn(
-                    OpprettBeregningRequest(
+                    BeregnRequest(
                         behandlingId = objects.søknadsbehandling.id,
                         periode = Periode.create(1.januar(2021), 31.desember(2021)),
                         fradrag = emptyList(),
                     )
                 )
                 services.søknadsbehandling.simuler(
-                    OpprettSimuleringRequest(objects.søknadsbehandling.id, saksbehandler)
+                    SimulerRequest(objects.søknadsbehandling.id, saksbehandler)
                 ).fold(
                     { it },
                     {

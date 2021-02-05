@@ -100,7 +100,7 @@ class SøknadsbehandlingServiceAttesteringTest {
             personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
             observer = eventObserver
-        ).sendTilAttestering(SendTilAttesteringRequest(simulertBehandling.id, saksbehandler))
+        ).sendTilAttestering(SøknadsbehandlingService.SendTilAttesteringRequest(simulertBehandling.id, saksbehandler))
 
         val expected = Søknadsbehandling.TilAttestering.Innvilget(
             id = simulertBehandling.id,
@@ -151,9 +151,9 @@ class SøknadsbehandlingServiceAttesteringTest {
             personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
             observer = eventObserver
-        ).sendTilAttestering(SendTilAttesteringRequest(simulertBehandling.id, saksbehandler))
+        ).sendTilAttestering(SøknadsbehandlingService.SendTilAttesteringRequest(simulertBehandling.id, saksbehandler))
 
-        actual shouldBe KunneIkkeSendeTilAttestering.FantIkkeBehandling.left()
+        actual shouldBe SøknadsbehandlingService.KunneIkkeSendeTilAttestering.FantIkkeBehandling.left()
 
         verify(søknadsbehandlingRepoMock).hent(simulertBehandling.id)
 
@@ -179,9 +179,9 @@ class SøknadsbehandlingServiceAttesteringTest {
             personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
             observer = eventObserver
-        ).sendTilAttestering(SendTilAttesteringRequest(simulertBehandling.id, saksbehandler))
+        ).sendTilAttestering(SøknadsbehandlingService.SendTilAttesteringRequest(simulertBehandling.id, saksbehandler))
 
-        actual shouldBe KunneIkkeSendeTilAttestering.KunneIkkeFinneAktørId.left()
+        actual shouldBe SøknadsbehandlingService.KunneIkkeSendeTilAttestering.KunneIkkeFinneAktørId.left()
 
         verify(søknadsbehandlingRepoMock).hent(simulertBehandling.id)
         verify(personServiceMock).hentAktørId(simulertBehandling.fnr)
@@ -209,9 +209,9 @@ class SøknadsbehandlingServiceAttesteringTest {
             personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
             observer = eventObserver
-        ).sendTilAttestering(SendTilAttesteringRequest(simulertBehandling.id, saksbehandler))
+        ).sendTilAttestering(SøknadsbehandlingService.SendTilAttesteringRequest(simulertBehandling.id, saksbehandler))
 
-        actual shouldBe KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave.left()
+        actual shouldBe SøknadsbehandlingService.KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave.left()
 
         verify(søknadsbehandlingRepoMock).hent(simulertBehandling.id)
         verify(personServiceMock).hentAktørId(simulertBehandling.fnr)
@@ -252,7 +252,7 @@ class SøknadsbehandlingServiceAttesteringTest {
             personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
             observer = eventObserver
-        ).sendTilAttestering(SendTilAttesteringRequest(simulertBehandling.id, saksbehandler))
+        ).sendTilAttestering(SøknadsbehandlingService.SendTilAttesteringRequest(simulertBehandling.id, saksbehandler))
 
         val expected = Søknadsbehandling.TilAttestering.Innvilget(
             id = simulertBehandling.id,

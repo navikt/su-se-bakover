@@ -46,7 +46,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
         )
 
         val søknadId = UUID.randomUUID()
-        service.opprett(OpprettSøknadsbehandlingRequest((søknadId))) shouldBe KunneIkkeOppretteSøknadsbehandling.FantIkkeSøknad.left()
+        service.opprett(SøknadsbehandlingService.OpprettRequest((søknadId))) shouldBe SøknadsbehandlingService.KunneIkkeOpprette.FantIkkeSøknad.left()
 
         verify(søknadServiceMock).hentSøknad(søknadId)
         verifyNoMoreInteractions(søknadServiceMock, saksbehandlingRepo)
@@ -79,7 +79,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             søknadsbehandlingRepo = saksbehandlingRepo
         )
 
-        service.opprett(OpprettSøknadsbehandlingRequest((lukketSøknad.id))) shouldBe KunneIkkeOppretteSøknadsbehandling.SøknadErLukket.left()
+        service.opprett(SøknadsbehandlingService.OpprettRequest((lukketSøknad.id))) shouldBe SøknadsbehandlingService.KunneIkkeOpprette.SøknadErLukket.left()
 
         verify(søknadServiceMock).hentSøknad(lukketSøknad.id)
         verifyNoMoreInteractions(søknadServiceMock, saksbehandlingRepo)
@@ -105,7 +105,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             søknadsbehandlingRepo = saksbehandlingRepo
         )
 
-        service.opprett(OpprettSøknadsbehandlingRequest((utenJournalpostOgOppgave.id))) shouldBe KunneIkkeOppretteSøknadsbehandling.SøknadManglerOppgave.left()
+        service.opprett(SøknadsbehandlingService.OpprettRequest((utenJournalpostOgOppgave.id))) shouldBe SøknadsbehandlingService.KunneIkkeOpprette.SøknadManglerOppgave.left()
 
         verify(søknadServiceMock).hentSøknad(utenJournalpostOgOppgave.id)
         verifyNoMoreInteractions(søknadServiceMock, saksbehandlingRepo)
@@ -136,7 +136,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             søknadRepo = søknadRepoMock
         )
 
-        service.opprett(OpprettSøknadsbehandlingRequest((søknad.id))) shouldBe KunneIkkeOppretteSøknadsbehandling.SøknadHarAlleredeBehandling.left()
+        service.opprett(SøknadsbehandlingService.OpprettRequest((søknad.id))) shouldBe SøknadsbehandlingService.KunneIkkeOpprette.SøknadHarAlleredeBehandling.left()
 
         verify(søknadServiceMock).hentSøknad(søknad.id)
         verify(søknadRepoMock).harSøknadPåbegyntBehandling(søknad.id)
@@ -192,7 +192,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
         }
         behandlingService.addObserver(eventObserver)
 
-        behandlingService.opprett(OpprettSøknadsbehandlingRequest(søknad.id)).orNull()!!.shouldBeEqualToIgnoringFields(
+        behandlingService.opprett(SøknadsbehandlingService.OpprettRequest(søknad.id)).orNull()!!.shouldBeEqualToIgnoringFields(
             expectedSøknadsbehandling,
             Søknadsbehandling.Vilkårsvurdert.Uavklart::id,
             Søknadsbehandling.Vilkårsvurdert.Uavklart::opprettet,

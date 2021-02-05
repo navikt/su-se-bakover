@@ -73,9 +73,9 @@ class IverksettSøknadsbehandlingService(
         }
     }
 
-    private fun hentNavnForNavIdent(navIdent: NavIdentBruker): Either<KunneIkkeIverksetteBehandling.FikkIkkeHentetSaksbehandlerEllerAttestant, String> {
+    private fun hentNavnForNavIdent(navIdent: NavIdentBruker): Either<SøknadsbehandlingService.KunneIkkeIverksette.FikkIkkeHentetSaksbehandlerEllerAttestant, String> {
         return microsoftGraphApiClient.hentBrukerinformasjonForNavIdent(navIdent)
-            .mapLeft { KunneIkkeIverksetteBehandling.FikkIkkeHentetSaksbehandlerEllerAttestant }
+            .mapLeft { SøknadsbehandlingService.KunneIkkeIverksette.FikkIkkeHentetSaksbehandlerEllerAttestant }
             .map { it.displayName }
     }
 

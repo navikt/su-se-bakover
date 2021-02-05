@@ -51,26 +51,8 @@ import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukketSøknad
-import no.nav.su.se.bakover.service.søknadsbehandling.FantIkkeBehandling
 import no.nav.su.se.bakover.service.søknadsbehandling.FerdigstillSøknadsbehandingIverksettingService
-import no.nav.su.se.bakover.service.søknadsbehandling.HentBehandlingRequest
-import no.nav.su.se.bakover.service.søknadsbehandling.IverksettSøknadsbehandlingRequest
-import no.nav.su.se.bakover.service.søknadsbehandling.KunneIkkeBeregne
-import no.nav.su.se.bakover.service.søknadsbehandling.KunneIkkeIverksetteBehandling
-import no.nav.su.se.bakover.service.søknadsbehandling.KunneIkkeLageBrevutkast
-import no.nav.su.se.bakover.service.søknadsbehandling.KunneIkkeOppdatereBehandlingsinformasjon
-import no.nav.su.se.bakover.service.søknadsbehandling.KunneIkkeOppretteSøknadsbehandling
-import no.nav.su.se.bakover.service.søknadsbehandling.KunneIkkeSendeTilAttestering
-import no.nav.su.se.bakover.service.søknadsbehandling.KunneIkkeSimulereBehandling
-import no.nav.su.se.bakover.service.søknadsbehandling.KunneIkkeUnderkjenneBehandling
-import no.nav.su.se.bakover.service.søknadsbehandling.OppdaterSøknadsbehandlingsinformasjonRequest
-import no.nav.su.se.bakover.service.søknadsbehandling.OpprettBeregningRequest
-import no.nav.su.se.bakover.service.søknadsbehandling.OpprettBrevRequest
-import no.nav.su.se.bakover.service.søknadsbehandling.OpprettSimuleringRequest
-import no.nav.su.se.bakover.service.søknadsbehandling.OpprettSøknadsbehandlingRequest
-import no.nav.su.se.bakover.service.søknadsbehandling.SendTilAttesteringRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
-import no.nav.su.se.bakover.service.søknadsbehandling.UnderkjennSøknadsbehandlingRequest
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeGjenopptaUtbetalinger
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeStanseUtbetalinger
@@ -254,47 +236,47 @@ open class AccessCheckProxy(
             },
             toggles = services.toggles,
             søknadsbehandling = object : SøknadsbehandlingService {
-                override fun opprett(request: OpprettSøknadsbehandlingRequest): Either<KunneIkkeOppretteSøknadsbehandling, Søknadsbehandling> {
+                override fun opprett(request: SøknadsbehandlingService.OpprettRequest): Either<SøknadsbehandlingService.KunneIkkeOpprette, Søknadsbehandling> {
                     assertHarTilgangTilSøknad(request.søknadId)
                     return services.søknadsbehandling.opprett(request)
                 }
 
-                override fun vilkårsvurder(request: OppdaterSøknadsbehandlingsinformasjonRequest): Either<KunneIkkeOppdatereBehandlingsinformasjon, Søknadsbehandling> {
+                override fun vilkårsvurder(request: SøknadsbehandlingService.VilkårsvurderRequest): Either<SøknadsbehandlingService.KunneIkkeVilkårsvurdere, Søknadsbehandling> {
                     assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.vilkårsvurder(request)
                 }
 
-                override fun beregn(request: OpprettBeregningRequest): Either<KunneIkkeBeregne, Søknadsbehandling> {
+                override fun beregn(request: SøknadsbehandlingService.BeregnRequest): Either<SøknadsbehandlingService.KunneIkkeBeregne, Søknadsbehandling> {
                     assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.beregn(request)
                 }
 
-                override fun simuler(request: OpprettSimuleringRequest): Either<KunneIkkeSimulereBehandling, Søknadsbehandling> {
+                override fun simuler(request: SøknadsbehandlingService.SimulerRequest): Either<SøknadsbehandlingService.KunneIkkeSimulereBehandling, Søknadsbehandling> {
                     assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.simuler(request)
                 }
 
-                override fun sendTilAttestering(request: SendTilAttesteringRequest): Either<KunneIkkeSendeTilAttestering, Søknadsbehandling> {
+                override fun sendTilAttestering(request: SøknadsbehandlingService.SendTilAttesteringRequest): Either<SøknadsbehandlingService.KunneIkkeSendeTilAttestering, Søknadsbehandling> {
                     assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.sendTilAttestering(request)
                 }
 
-                override fun underkjenn(request: UnderkjennSøknadsbehandlingRequest): Either<KunneIkkeUnderkjenneBehandling, Søknadsbehandling> {
+                override fun underkjenn(request: SøknadsbehandlingService.UnderkjennRequest): Either<SøknadsbehandlingService.KunneIkkeUnderkjenne, Søknadsbehandling> {
                     assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.underkjenn(request)
                 }
 
-                override fun iverksett(request: IverksettSøknadsbehandlingRequest): Either<KunneIkkeIverksetteBehandling, Søknadsbehandling> {
+                override fun iverksett(request: SøknadsbehandlingService.IverksettRequest): Either<SøknadsbehandlingService.KunneIkkeIverksette, Søknadsbehandling> {
                     assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.iverksett(request)
                 }
 
-                override fun brev(request: OpprettBrevRequest): Either<KunneIkkeLageBrevutkast, ByteArray> {
+                override fun brev(request: SøknadsbehandlingService.BrevRequest): Either<SøknadsbehandlingService.KunneIkkeLageBrev, ByteArray> {
                     assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.brev(request)
                 }
 
-                override fun hent(request: HentBehandlingRequest): Either<FantIkkeBehandling, Søknadsbehandling> {
+                override fun hent(request: SøknadsbehandlingService.HentRequest): Either<SøknadsbehandlingService.FantIkkeBehandling, Søknadsbehandling> {
                     assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.hent(request)
                 }

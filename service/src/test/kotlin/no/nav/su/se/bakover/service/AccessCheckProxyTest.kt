@@ -14,7 +14,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.service.person.PersonService
-import no.nav.su.se.bakover.service.søknadsbehandling.HentBehandlingRequest
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -138,7 +138,7 @@ internal class AccessCheckProxyTest {
 
             shouldThrow<Tilgangssjekkfeil> {
                 proxied.søknadsbehandling.hent(
-                    HentBehandlingRequest(UUID.randomUUID())
+                    SøknadsbehandlingService.HentRequest(UUID.randomUUID())
                 )
             }
         }
@@ -235,8 +235,8 @@ internal class AccessCheckProxyTest {
         @Test
         fun `Når man gjør oppslag på behandlingId`() {
             val id = UUID.randomUUID()
-            proxied.søknadsbehandling.hent(HentBehandlingRequest(id))
-            verify(servicesReturningSak.søknadsbehandling).hent(HentBehandlingRequest(id))
+            proxied.søknadsbehandling.hent(SøknadsbehandlingService.HentRequest(id))
+            verify(servicesReturningSak.søknadsbehandling).hent(SøknadsbehandlingService.HentRequest(id))
         }
 
         @Test

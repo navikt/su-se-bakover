@@ -60,7 +60,7 @@ class SøknadsbehandlingServiceBeregningTest {
             on { beregn(any(), any(), any()) } doReturn TestBeregning
         }
 
-        val request = OpprettBeregningRequest(
+        val request = SøknadsbehandlingService.BeregnRequest(
             behandlingId = behandlingId,
             periode = Periode.create(1.desember(2021), 31.mars(2022)),
             fradrag = emptyList()
@@ -106,14 +106,14 @@ class SøknadsbehandlingServiceBeregningTest {
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
         ).beregn(
-            OpprettBeregningRequest(
+            SøknadsbehandlingService.BeregnRequest(
                 behandlingId = behandlingId,
                 periode = Periode.create(1.desember(2021), 31.mars(2022)),
                 fradrag = emptyList()
             )
         )
 
-        response shouldBe KunneIkkeBeregne.FantIkkeBehandling.left()
+        response shouldBe SøknadsbehandlingService.KunneIkkeBeregne.FantIkkeBehandling.left()
 
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandlingId })
         verifyNoMoreInteractions(søknadsbehandlingRepoMock)

@@ -61,8 +61,8 @@ internal class SøknadsbehandlingServiceBrevTest {
         }
         createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-        ).brev(OpprettBrevRequest(beregnetAvslag.id)).let {
-            it shouldBe KunneIkkeLageBrevutkast.FantIkkeBehandling.left()
+        ).brev(SøknadsbehandlingService.BrevRequest(beregnetAvslag.id)).let {
+            it shouldBe SøknadsbehandlingService.KunneIkkeLageBrev.FantIkkeBehandling.left()
         }
     }
 
@@ -79,8 +79,8 @@ internal class SøknadsbehandlingServiceBrevTest {
         createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             personService = personServiceMock
-        ).brev(OpprettBrevRequest(beregnetAvslag.id)).let {
-            it shouldBe KunneIkkeLageBrevutkast.FantIkkePerson.left()
+        ).brev(SøknadsbehandlingService.BrevRequest(beregnetAvslag.id)).let {
+            it shouldBe SøknadsbehandlingService.KunneIkkeLageBrev.FantIkkePerson.left()
         }
     }
 
@@ -102,8 +102,8 @@ internal class SøknadsbehandlingServiceBrevTest {
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             personService = personServiceMock,
             microsoftGraphApiOppslag = microsoftGraphApiOppslagMock
-        ).brev(OpprettBrevRequest(beregnetAvslag.id)).let {
-            it shouldBe KunneIkkeLageBrevutkast.FikkIkkeHentetSaksbehandlerEllerAttestant.left()
+        ).brev(SøknadsbehandlingService.BrevRequest(beregnetAvslag.id)).let {
+            it shouldBe SøknadsbehandlingService.KunneIkkeLageBrev.FikkIkkeHentetSaksbehandlerEllerAttestant.left()
         }
     }
 
@@ -130,8 +130,8 @@ internal class SøknadsbehandlingServiceBrevTest {
             personService = personServiceMock,
             microsoftGraphApiOppslag = microsoftGraphApiOppslagMock,
             brevService = brevServiceMock
-        ).brev(OpprettBrevRequest(beregnetAvslag.id)).let {
-            it shouldBe KunneIkkeLageBrevutkast.KunneIkkeLageBrev.left()
+        ).brev(SøknadsbehandlingService.BrevRequest(beregnetAvslag.id)).let {
+            it shouldBe SøknadsbehandlingService.KunneIkkeLageBrev.KunneIkkeLagePDF.left()
         }
     }
 
@@ -159,7 +159,7 @@ internal class SøknadsbehandlingServiceBrevTest {
             personService = personServiceMock,
             microsoftGraphApiOppslag = microsoftGraphApiOppslagMock,
             brevService = brevServiceMock
-        ).brev(OpprettBrevRequest(beregnetAvslag.id)).let {
+        ).brev(SøknadsbehandlingService.BrevRequest(beregnetAvslag.id)).let {
             it shouldBe pdf.right()
         }
     }
@@ -177,8 +177,8 @@ internal class SøknadsbehandlingServiceBrevTest {
 
         createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-        ).brev(OpprettBrevRequest(beregnetAvslag.id)).let {
-            it shouldBe KunneIkkeLageBrevutkast.KanIkkeLageBrevutkastForStatus(BehandlingsStatus.OPPRETTET).left()
+        ).brev(SøknadsbehandlingService.BrevRequest(beregnetAvslag.id)).let {
+            it shouldBe SøknadsbehandlingService.KunneIkkeLageBrev.KanIkkeLageBrevutkastForStatus(BehandlingsStatus.OPPRETTET).left()
         }
     }
 }

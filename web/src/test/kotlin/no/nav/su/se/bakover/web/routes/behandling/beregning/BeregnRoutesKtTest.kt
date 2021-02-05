@@ -29,7 +29,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.ProdServiceBuilder
-import no.nav.su.se.bakover.service.søknadsbehandling.OppdaterSøknadsbehandlingsinformasjonRequest
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.VilkårsvurderRequest
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.applicationConfig
@@ -67,7 +67,7 @@ internal class BeregnRoutesKtTest {
             val tilOgMed = LocalDate.of(2021, Month.DECEMBER, 31)
 
             services.søknadsbehandling.vilkårsvurder(
-                OppdaterSøknadsbehandlingsinformasjonRequest(
+                VilkårsvurderRequest(
                     objects.behandling.id,
                     saksbehandler,
                     Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
@@ -114,7 +114,7 @@ internal class BeregnRoutesKtTest {
             val fradragTilOgMed = LocalDate.of(2021, Month.DECEMBER, 31)
 
             services.søknadsbehandling.vilkårsvurder(
-                OppdaterSøknadsbehandlingsinformasjonRequest(
+                VilkårsvurderRequest(
                     objects.behandling.id,
                     saksbehandler,
                     Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
@@ -166,7 +166,7 @@ internal class BeregnRoutesKtTest {
             val tilOgMed = LocalDate.of(2021, Month.DECEMBER, 31)
 
             services.søknadsbehandling.vilkårsvurder(
-                OppdaterSøknadsbehandlingsinformasjonRequest(
+                VilkårsvurderRequest(
                     objects.behandling.id,
                     saksbehandler,
                     Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
@@ -232,7 +232,7 @@ internal class BeregnRoutesKtTest {
             val tilOgMed = LocalDate.of(2021, Month.DECEMBER, 31)
 
             services.søknadsbehandling.vilkårsvurder(
-                OppdaterSøknadsbehandlingsinformasjonRequest(
+                VilkårsvurderRequest(
                     objects.behandling.id,
                     saksbehandler,
                     Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
@@ -318,7 +318,7 @@ internal class BeregnRoutesKtTest {
             val tilOgMed = LocalDate.of(2021, Month.DECEMBER, 31)
 
             services.søknadsbehandling.vilkårsvurder(
-                OppdaterSøknadsbehandlingsinformasjonRequest(
+                VilkårsvurderRequest(
                     objects.behandling.id,
                     saksbehandler,
                     Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
@@ -400,7 +400,7 @@ internal class BeregnRoutesKtTest {
             val tilOgMed = LocalDate.of(2020, Month.DECEMBER, 31)
 
             services.søknadsbehandling.vilkårsvurder(
-                OppdaterSøknadsbehandlingsinformasjonRequest(
+                VilkårsvurderRequest(
                     objects.behandling.id,
                     saksbehandler,
                     Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
@@ -441,7 +441,7 @@ internal class BeregnRoutesKtTest {
             val tilOgMed = LocalDate.of(2021, Month.DECEMBER, 31)
 
             services.søknadsbehandling.vilkårsvurder(
-                OppdaterSøknadsbehandlingsinformasjonRequest(
+                VilkårsvurderRequest(
                     objects.behandling.id,
                     saksbehandler,
                     Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
@@ -482,7 +482,7 @@ internal class BeregnRoutesKtTest {
             val tilOgMed = LocalDate.of(2021, Month.DECEMBER, 30)
 
             services.søknadsbehandling.vilkårsvurder(
-                OppdaterSøknadsbehandlingsinformasjonRequest(
+                VilkårsvurderRequest(
                     objects.behandling.id,
                     saksbehandler,
                     Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
@@ -523,7 +523,7 @@ internal class BeregnRoutesKtTest {
             val tilOgMed = LocalDate.of(2022, Month.JANUARY, 31)
 
             services.søknadsbehandling.vilkårsvurder(
-                OppdaterSøknadsbehandlingsinformasjonRequest(
+                VilkårsvurderRequest(
                     objects.behandling.id,
                     saksbehandler,
                     Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
@@ -564,7 +564,7 @@ internal class BeregnRoutesKtTest {
             val tilOgMed = LocalDate.of(2021, Month.JANUARY, 31)
 
             services.søknadsbehandling.vilkårsvurder(
-                OppdaterSøknadsbehandlingsinformasjonRequest(
+                VilkårsvurderRequest(
                     objects.behandling.id,
                     saksbehandler,
                     Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
@@ -605,7 +605,7 @@ internal class BeregnRoutesKtTest {
             val tilOgMed = LocalDate.of(2021, Month.JANUARY, 31)
 
             services.søknadsbehandling.vilkårsvurder(
-                OppdaterSøknadsbehandlingsinformasjonRequest(
+                VilkårsvurderRequest(
                     objects.behandling.id,
                     saksbehandler,
                     Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
