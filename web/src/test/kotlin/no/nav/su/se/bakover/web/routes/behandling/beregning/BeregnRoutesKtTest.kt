@@ -648,18 +648,17 @@ internal class BeregnRoutesKtTest {
             repos.sak.opprettSak(it)
         }
         val sak: Sak = repos.sak.hentSak(fnr)!!
-
-        val søknadId: UUID = sak.søknader()[0].id
-
-        repos.søknad.oppdaterjournalpostId(søknadId, JournalpostId("12"))
-        repos.søknad.oppdaterOppgaveId(søknadId, OppgaveId("12"))
-        val søknadMedOppgave = repos.søknad.hentSøknad(søknadId)
+        val journalpostId = JournalpostId("12")
+        val oppgaveId = OppgaveId("12")
+        val søknadMedOppgave: Søknad.Journalført.MedOppgave = (sak.søknader()[0] as Søknad.Ny)
+            .journalfør(journalpostId).also { repos.søknad.oppdaterjournalpostId(it) }
+            .medOppgave(oppgaveId).also { repos.søknad.oppdaterOppgaveId(it) }
 
         val nySøknadsbehandling = Søknadsbehandling.Vilkårsvurdert.Uavklart(
             id = UUID.randomUUID(),
             opprettet = sak.opprettet,
             sakId = sak.id,
-            søknad = søknadMedOppgave as Søknad.Journalført.MedOppgave,
+            søknad = søknadMedOppgave,
             oppgaveId = OppgaveId("1234"),
             saksnummer = sak.saksnummer,
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
@@ -670,7 +669,7 @@ internal class BeregnRoutesKtTest {
         )
         return Objects(
             repos.sak.hentSak(sak.id)!!,
-            repos.søknad.hentSøknad(søknadId)!!,
+            repos.søknad.hentSøknad(søknadMedOppgave.id)!!,
             nySøknadsbehandling,
         )
     }

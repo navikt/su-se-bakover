@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
+import no.nav.su.se.bakover.database.TestDataHelper.Companion.journalførtSøknadMedOppgave
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
@@ -126,7 +127,7 @@ internal class PersonPostgresRepoTest {
         val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())
         withMigratedDb {
             val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave(FNR)
-            val søknad = sak.søknader().first() as Søknad.Journalført.MedOppgave
+            val søknad = sak.journalførtSøknadMedOppgave()
             val behandling = testDataHelper.uavklartVilkårsvurdering(
                 sak, søknad,
                 Behandlingsinformasjon.lagTomBehandlingsinformasjon().copy(

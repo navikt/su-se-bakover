@@ -36,7 +36,6 @@ internal class TestDataHelper(
     private val søknadRepo = SøknadPostgresRepo(dataSource)
     private val søknadsbehandlingRepo = SøknadsbehandlingPostgresRepo(dataSource)
     private val revurderingRepo = RevurderingPostgresRepo(dataSource, søknadsbehandlingRepo)
-
     private val sakRepo = SakPostgresRepo(dataSource, søknadsbehandlingRepo)
 
     fun nySakMedJournalførtSøknadOgOppgave(
@@ -44,20 +43,30 @@ internal class TestDataHelper(
         oppgaveId: OppgaveId = OppgaveId("defaultOppgaveId"),
         journalpostId: JournalpostId = JournalpostId("defaultJournalpostId")
     ): Sak {
-        val nySak = insertSak(fnr)
-        val journalførtSøknad = nySak.søknad.journalfør(journalpostId).also {
-            søknadRepo.oppdaterjournalpostId(nySak.søknad.id, journalpostId)
+        val sak: Sak = nySakMedJournalførtSøknad(fnr, journalpostId)
+        sak.journalførtSøknad().medOppgave(oppgaveId).also {
+            søknadRepo.oppdaterOppgaveId(it)
         }
-        journalførtSøknad.medOppgave(oppgaveId).also {
-            søknadRepo.oppdaterOppgaveId(nySak.søknad.id, oppgaveId)
-        }
-
-        return sakRepo.hentSak(fnr) ?: throw RuntimeException("Feil ved henting av sak.")
+        return sakRepo.hentSak(fnr)
+            ?: throw java.lang.IllegalStateException("Fant ikke sak rett etter vi opprettet den.")
     }
 
-    internal fun insertSak(fnr: Fnr): NySak = SakFactory(clock = clock).nySak(fnr, SøknadInnholdTestdataBuilder.build()).also {
-        sakRepo.opprettSak(it)
+    fun nySakMedJournalførtSøknad(
+        fnr: Fnr = FnrGenerator.random(),
+        journalpostId: JournalpostId = JournalpostId("defaultJournalpostId")
+    ): Sak {
+        val nySak: NySak = nySakMedNySøknad(fnr)
+        nySak.søknad.journalfør(journalpostId).also { journalførtSøknad ->
+            søknadRepo.oppdaterjournalpostId(journalførtSøknad)
+        }
+        return sakRepo.hentSak(fnr)
+            ?: throw java.lang.IllegalStateException("Fant ikke sak rett etter vi opprettet den.")
     }
+
+    internal fun nySakMedNySøknad(fnr: Fnr): NySak =
+        SakFactory(clock = clock).nySak(fnr, SøknadInnholdTestdataBuilder.build()).also {
+            sakRepo.opprettSak(it)
+        }
 
     fun insertSøknad(sakId: UUID): Søknad.Ny = Søknad.Ny(
         sakId = sakId,
@@ -100,6 +109,30 @@ internal class TestDataHelper(
             fnr = sak.fnr
         ).also {
             søknadsbehandlingRepo.lagre(it)
+        }
+    }
+
+    companion object {
+        /** Kaster hvis size != 1 */
+        fun Sak.journalførtSøknadMedOppgave(): Søknad.Journalført.MedOppgave {
+            kastDersomSøknadErUlikEn()
+            return søknader().first() as Søknad.Journalført.MedOppgave
+        }
+
+        /** Kaster hvis size != 1 */
+        fun Sak.journalførtSøknad(): Søknad.Journalført.UtenOppgave {
+            kastDersomSøknadErUlikEn()
+            return søknader().first() as Søknad.Journalført.UtenOppgave
+        }
+
+        /** Kaster hvis size != 1 */
+        fun Sak.søknadNy(): Søknad.Ny {
+            kastDersomSøknadErUlikEn()
+            return søknader().first() as Søknad.Ny
+        }
+
+        private fun Sak.kastDersomSøknadErUlikEn() {
+            if (søknader.size != 1) throw IllegalStateException("Var ferre/fler enn 1 søknad. Testen bør spesifisere dersom fler. Antall: ${søknader.size}")
         }
     }
 }

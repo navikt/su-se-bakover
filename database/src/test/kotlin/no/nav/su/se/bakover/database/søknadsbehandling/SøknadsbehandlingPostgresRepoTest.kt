@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
+import no.nav.su.se.bakover.database.TestDataHelper.Companion.journalførtSøknadMedOppgave
 import no.nav.su.se.bakover.database.beregning.PersistertMånedsberegning
 import no.nav.su.se.bakover.database.beregning.TestBeregning
 import no.nav.su.se.bakover.database.beregning.toSnapshot
@@ -484,7 +485,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
 
     private fun uavklartVilkårsvurdering(): Søknadsbehandling.Vilkårsvurdert.Uavklart {
         val sak: Sak = setup()
-        val søknad: Søknad.Journalført.MedOppgave = sak.søknader().first() as Søknad.Journalført.MedOppgave
+        val søknad: Søknad.Journalført.MedOppgave = sak.journalførtSøknadMedOppgave()
 
         return Søknadsbehandling.Vilkårsvurdert.Uavklart(
             id = saksbehandlingId,

@@ -18,7 +18,7 @@ internal class SakPostgresRepoTest {
     @Test
     fun `opprett og hent sak`() {
         withMigratedDb {
-            testDataHelper.insertSak(FNR)
+            testDataHelper.nySakMedNySøknad(FNR)
             val opprettet: Sak = repo.hentSak(FNR)!!
             val hentetId = repo.hentSak(opprettet.id)!!
             val hentetFnr = repo.hentSak(FNR)!!

@@ -8,6 +8,8 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
+import no.nav.su.se.bakover.database.TestDataHelper.Companion.journalførtSøknad
+import no.nav.su.se.bakover.database.TestDataHelper.Companion.journalførtSøknadMedOppgave
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.sak.SakPostgresRepo
 import no.nav.su.se.bakover.database.withMigratedDb
@@ -34,7 +36,7 @@ internal class SøknadPostgresRepoTest {
     fun `opprett og hent søknad`() {
         withMigratedDb {
             EmbeddedDatabase.instance().withSession {
-                testDataHelper.insertSak(FNR)
+                testDataHelper.nySakMedNySøknad(FNR)
                 val sak: Sak = sakRepo.hentSak(FNR)!!
                 val søknad: Søknad = Søknad.Ny(
                     sakId = sak.id,
@@ -52,7 +54,7 @@ internal class SøknadPostgresRepoTest {
     @Test
     fun `nyopprettet søknad skal ikke være trukket`() {
         withMigratedDb {
-            testDataHelper.insertSak(FNR)
+            testDataHelper.nySakMedNySøknad(FNR)
             val sak: Sak = sakRepo.hentSak(FNR)!!
             val søknad: Søknad = Søknad.Ny(
                 sakId = sak.id,
@@ -70,16 +72,11 @@ internal class SøknadPostgresRepoTest {
     fun `lagrer og henter lukket søknad`() {
         val lukketBrevbestillingId = BrevbestillingId("lukketBrevbestillingId")
         val lukketJournalpostId = JournalpostId("lukketJournalpostId")
-        val nySøknadJournalpostId = JournalpostId("nySøknadJournalpostId")
-        val nySøknadOppgaveId = OppgaveId("nySøknadOppgaveId")
 
         withMigratedDb {
-            val nySak: NySak = testDataHelper.insertSak(FNR)
-            val søknad: Søknad.Ny = nySak.søknad
+            val nySak: Sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave(FNR)
+            val journalførtSøknadMedOppgave: Søknad.Journalført.MedOppgave = nySak.journalførtSøknadMedOppgave()
             val saksbehandler = Saksbehandler("Z993156")
-            val journalførtSøknadMedOppgave = søknad.journalfør(nySøknadJournalpostId).medOppgave(nySøknadOppgaveId)
-            søknadRepo.oppdaterOppgaveId(søknad.id, nySøknadOppgaveId)
-            søknadRepo.oppdaterjournalpostId(søknad.id, nySøknadJournalpostId)
             val lukketSøknad = journalførtSøknadMedOppgave
                 .lukk(
                     lukketAv = saksbehandler,
@@ -89,7 +86,7 @@ internal class SøknadPostgresRepoTest {
                 .medBrevbestillingId(lukketBrevbestillingId)
                 .medJournalpostId(lukketJournalpostId)
             søknadRepo.oppdaterSøknad(lukketSøknad)
-            val hentetSøknad = søknadRepo.hentSøknad(nySak.søknad.id)!!
+            val hentetSøknad = søknadRepo.hentSøknad(journalførtSøknadMedOppgave.id)!!
             hentetSøknad shouldBe lukketSøknad
         }
     }
@@ -97,7 +94,7 @@ internal class SøknadPostgresRepoTest {
     @Test
     fun `søknad har ikke påbegynt behandling`() {
         withMigratedDb {
-            val nySak: NySak = testDataHelper.insertSak(FNR)
+            val nySak: NySak = testDataHelper.nySakMedNySøknad(FNR)
             søknadRepo.harSøknadPåbegyntBehandling(nySak.søknad.id) shouldBe false
         }
     }
@@ -106,7 +103,7 @@ internal class SøknadPostgresRepoTest {
     fun `søknad har påbegynt behandling`() {
         withMigratedDb {
             val sak: Sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave(fnr = FNR)
-            val søknad = sak.søknader().first() as Søknad.Journalført.MedOppgave
+            val søknad = sak.journalførtSøknadMedOppgave()
             testDataHelper.uavklartVilkårsvurdering(sak, søknad)
             søknadRepo.harSøknadPåbegyntBehandling(søknad.id) shouldBe true
         }
@@ -115,28 +112,31 @@ internal class SøknadPostgresRepoTest {
     @Test
     fun `lagrer journalPostId`() {
         withMigratedDb {
-            val nySak: NySak = testDataHelper.insertSak(FNR)
-            val journalpostId = JournalpostId("2")
-            søknadRepo.oppdaterjournalpostId(nySak.søknad.id, journalpostId)
-            EmbeddedDatabase.instance().withSession { session ->
-                "select journalpostId from søknad where id='${nySak.søknad.id}'".hentListe(
-                    session = session
-                ) { it.stringOrNull("journalpostId") }
-            } shouldBe listOf("2")
+            fun hentJournalpostId(nySak: NySak): List<String?> {
+                return EmbeddedDatabase.instance().withSession { session ->
+                    "select journalpostId from søknad where id='${nySak.søknad.id}'".hentListe(
+                        session = session
+                    ) { it.stringOrNull("journalpostId") }
+                }
+            }
+            val journalpostId = JournalpostId("oppdatertJournalpostId")
+            val nySak: NySak = testDataHelper.nySakMedNySøknad(FNR)
+            hentJournalpostId(nySak) shouldBe emptyList()
+            val søknad = nySak.søknad.journalfør(journalpostId)
+            søknadRepo.oppdaterjournalpostId(søknad)
+            hentJournalpostId(nySak) shouldBe listOf(journalpostId.toString())
         }
     }
 
     @Test
     fun `lagrer og henter oppgaveId fra søknad`() {
         withMigratedDb {
-            val oppgaveId = OppgaveId("o")
-            val journalpostId = JournalpostId("j")
-            val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave(FNR, oppgaveId, journalpostId)
-            val søknadId = sak.søknader()[0].id
-            søknadRepo.oppdaterOppgaveId(søknadId, oppgaveId)
-            val hentetSøknad = søknadRepo.hentSøknad(søknadId)!!
+            val sak = testDataHelper.nySakMedJournalførtSøknad(FNR)
+            val journalførtSøknadMedOppgave = sak.journalførtSøknad().medOppgave(OppgaveId("oppdatertOppgaveId"))
+            søknadRepo.oppdaterOppgaveId(journalførtSøknadMedOppgave)
+            val hentetSøknad = søknadRepo.hentSøknad(journalførtSøknadMedOppgave.id)!!
             hentetSøknad.shouldBeTypeOf<Søknad.Journalført.MedOppgave>()
-            hentetSøknad.oppgaveId shouldBe oppgaveId
+            hentetSøknad shouldBe journalførtSøknadMedOppgave
         }
     }
 
@@ -144,9 +144,9 @@ internal class SøknadPostgresRepoTest {
     fun `hent søknader uten journalpost`() {
         withMigratedDb {
             val journalpostId = JournalpostId("j")
-            val sak = testDataHelper.insertSak(FNR)
+            val sak = testDataHelper.nySakMedNySøknad(FNR)
             testDataHelper.insertSøknad(sak.id).journalfør(journalpostId).let {
-                søknadRepo.oppdaterjournalpostId(it.id, it.journalpostId)
+                søknadRepo.oppdaterjournalpostId(it)
             }
             testDataHelper.insertSøknad(sak.id).lukk(
                 lukketAv = Saksbehandler("saksbehandler"),
@@ -167,14 +167,15 @@ internal class SøknadPostgresRepoTest {
             val journalpostId = JournalpostId("j")
             val journalpostId2 = JournalpostId("j2")
             val oppgaveId = OppgaveId("o")
-            val sak = testDataHelper.insertSak(FNR)
-            val journalførtSøknad = testDataHelper.insertSøknad(sak.id).journalfør(journalpostId).also { journalførtSøknad ->
-                søknadRepo.oppdaterjournalpostId(journalførtSøknad.id, journalførtSøknad.journalpostId)
-            }
+            val sak = testDataHelper.nySakMedNySøknad(FNR)
+            val journalførtSøknad =
+                testDataHelper.insertSøknad(sak.id).journalfør(journalpostId).also { journalførtSøknad ->
+                    søknadRepo.oppdaterjournalpostId(journalførtSøknad)
+                }
             testDataHelper.insertSøknad(sak.id).journalfør(journalpostId2).let { journalførtSøknad2 ->
-                søknadRepo.oppdaterjournalpostId(journalførtSøknad2.id, journalførtSøknad2.journalpostId)
+                søknadRepo.oppdaterjournalpostId(journalførtSøknad2)
                 journalførtSøknad2.medOppgave(oppgaveId).also { søknadMedOppgave ->
-                    søknadRepo.oppdaterOppgaveId(søknadMedOppgave.id, søknadMedOppgave.oppgaveId)
+                    søknadRepo.oppdaterOppgaveId(søknadMedOppgave)
                 }
             }
             testDataHelper.insertSøknad(sak.id).lukk(

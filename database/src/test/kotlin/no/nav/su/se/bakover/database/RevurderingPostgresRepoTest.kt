@@ -8,14 +8,13 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.database.TestDataHelper.Companion.journalførtSøknadMedOppgave
 import no.nav.su.se.bakover.database.beregning.TestBeregning
-import no.nav.su.se.bakover.database.søknad.SøknadPostgresRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.BeregnetRevurdering
@@ -23,7 +22,6 @@ import no.nav.su.se.bakover.domain.behandling.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.behandling.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.behandling.SimulertRevurdering
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
-import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -39,7 +37,6 @@ internal class RevurderingPostgresRepoTest {
     private val ds = EmbeddedDatabase.instance()
     private val søknadsbehandlingRepo: SøknadsbehandlingRepo = SøknadsbehandlingPostgresRepo(ds)
     private val repo: RevurderingPostgresRepo = RevurderingPostgresRepo(ds, søknadsbehandlingRepo)
-    private val søknadRepo = SøknadPostgresRepo(ds)
     private val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())
     private val saksbehandler = Saksbehandler("Sak S. Behandler")
     private val periode = Periode.create(
@@ -371,14 +368,8 @@ internal class RevurderingPostgresRepoTest {
     }
 
     private fun setupIverksattBehandling(): Søknadsbehandling.Iverksatt.Innvilget {
-        val sak = testDataHelper.insertSak(FnrGenerator.random())
-        val søknad: Søknad.Journalført.MedOppgave = testDataHelper.insertSøknad(sak.id).let {
-            søknadRepo.oppdaterOppgaveId(it.id, OppgaveId(""))
-            søknadRepo.oppdaterjournalpostId(it.id, JournalpostId(""))
-            søknadRepo.hentSøknad(it.id)
-        }.let {
-            søknadRepo.hentSøknad(it!!.id)
-        } as Søknad.Journalført.MedOppgave
+        val sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
+        val søknad = sak.journalførtSøknadMedOppgave()
 
         val simulering = Simulering(
             gjelderId = sak.fnr,

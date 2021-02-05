@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
+import no.nav.su.se.bakover.database.TestDataHelper.Companion.journalførtSøknadMedOppgave
 import no.nav.su.se.bakover.database.beregning.TestBeregning
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
@@ -15,7 +16,6 @@ import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
@@ -61,7 +61,7 @@ internal class VedtakPostgresRepoTest {
     fun `insert avslag`() {
         withMigratedDb {
             val sak: Sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave(fnr, oppgaveId, journalpostId)
-            val søknad = sak.søknader()[0] as Søknad.Journalført.MedOppgave
+            val søknad = sak.journalførtSøknadMedOppgave()
             val nySøknadsbehandling = Søknadsbehandling.Vilkårsvurdert.Avslag(
                 id = UUID.randomUUID(),
                 opprettet = opprettet,
@@ -104,7 +104,7 @@ internal class VedtakPostgresRepoTest {
     fun `insert innvilgelse`() {
         withMigratedDb {
             val sak: Sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave(fnr, oppgaveId, journalpostId)
-            val søknad = sak.søknader()[0] as Søknad.Journalført.MedOppgave
+            val søknad = sak.journalførtSøknadMedOppgave()
 
             val nySøknadsbehandling = Søknadsbehandling.Vilkårsvurdert.Innvilget(
                 id = UUID.randomUUID(),
