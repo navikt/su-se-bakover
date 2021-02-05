@@ -191,7 +191,7 @@ sealed class Søknadsbehandling {
         abstract override val fnr: Fnr
         abstract val beregning: Beregning
 
-        fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon): Søknadsbehandling =
+        fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon): Vilkårsvurdert =
             Vilkårsvurdert.opprett(
                 id,
                 opprettet,
@@ -203,7 +203,7 @@ sealed class Søknadsbehandling {
                 fnr
             )
 
-        fun tilBeregnet(beregning: Beregning): Søknadsbehandling =
+        fun tilBeregnet(beregning: Beregning): Beregnet =
             opprett(id, opprettet, sakId, saksnummer, søknad, oppgaveId, behandlingsinformasjon, fnr, beregning)
 
         fun tilSimulert(simulering: Simulering): Simulert =
@@ -336,7 +336,7 @@ sealed class Søknadsbehandling {
             visitor.visit(this)
         }
 
-        fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon): Søknadsbehandling =
+        fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon): Vilkårsvurdert =
             Vilkårsvurdert.opprett(
                 id,
                 opprettet,
@@ -348,7 +348,7 @@ sealed class Søknadsbehandling {
                 fnr
             )
 
-        fun tilBeregnet(beregning: Beregning): Søknadsbehandling =
+        fun tilBeregnet(beregning: Beregning): Beregnet =
             Beregnet.opprett(
                 id,
                 opprettet,
@@ -361,7 +361,7 @@ sealed class Søknadsbehandling {
                 beregning
             )
 
-        fun tilSimulert(simulering: Simulering): Søknadsbehandling =
+        fun tilSimulert(simulering: Simulering): Simulert =
             Simulert(
                 id,
                 opprettet,
@@ -600,7 +600,7 @@ sealed class Søknadsbehandling {
 
         abstract fun nyOppgaveId(nyOppgaveId: OppgaveId): Underkjent
 
-        fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon): Søknadsbehandling =
+        fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon): Vilkårsvurdert =
             Vilkårsvurdert.opprett(
                 id,
                 opprettet,
