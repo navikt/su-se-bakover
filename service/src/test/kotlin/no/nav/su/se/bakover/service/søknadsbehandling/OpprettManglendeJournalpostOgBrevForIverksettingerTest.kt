@@ -68,9 +68,18 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
     private val brevbestillingId = BrevbestillingId("2")
 
     private val journalpostOgBrevdistribusjonResultat =
-        OpprettetJournalpostForIverksetting(sakIdJournalpost, behandlingIdJournalpost, journalpostId)
+        FerdigstillSøknadsbehandingIverksettingService.OpprettetJournalpostForIverksetting(
+            sakIdJournalpost,
+            behandlingIdJournalpost,
+            journalpostId
+        )
     private val bestiltBrev =
-        BestiltBrev(sakIdBestiltBrev, behandlingIdBestiltBrev, journalpostIdBestiltBrev, brevbestillingId)
+        FerdigstillSøknadsbehandingIverksettingService.BestiltBrev(
+            sakIdBestiltBrev,
+            behandlingIdBestiltBrev,
+            journalpostIdBestiltBrev,
+            brevbestillingId
+        )
 
     private val saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler")
     private val attestant = NavIdentBruker.Attestant("attestant")
@@ -136,7 +145,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
             søknadsbehandlingRepo = behandlingRepoMock,
         ).opprettManglendeJournalpostOgBrevdistribusjon()
 
-        actual shouldBe OpprettManglendeJournalpostOgBrevdistribusjonResultat(
+        actual shouldBe FerdigstillSøknadsbehandingIverksettingService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
             journalpostresultat = emptyList(),
             brevbestillingsresultat = emptyList()
         )
@@ -172,9 +181,9 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
             microsoftGraphApiOppslag = oppslagMock,
         ).opprettManglendeJournalpostOgBrevdistribusjon()
 
-        actual shouldBe OpprettManglendeJournalpostOgBrevdistribusjonResultat(
+        actual shouldBe FerdigstillSøknadsbehandingIverksettingService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
             journalpostresultat = listOf(
-                KunneIkkeOppretteJournalpostForIverksetting(
+                FerdigstillSøknadsbehandingIverksettingService.KunneIkkeOppretteJournalpostForIverksetting(
                     sakId = sakIdJournalpost,
                     behandlingId = behandlingIdJournalpost,
                     grunn = "FikkIkkeHentetSaksbehandlerEllerAttestant"
@@ -221,9 +230,9 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
             microsoftGraphApiOppslag = oppslagMock,
         ).opprettManglendeJournalpostOgBrevdistribusjon()
 
-        actual shouldBe OpprettManglendeJournalpostOgBrevdistribusjonResultat(
+        actual shouldBe FerdigstillSøknadsbehandingIverksettingService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
             journalpostresultat = listOf(
-                KunneIkkeOppretteJournalpostForIverksetting(
+                FerdigstillSøknadsbehandingIverksettingService.KunneIkkeOppretteJournalpostForIverksetting(
                     sakId = sakIdJournalpost,
                     behandlingId = behandlingIdJournalpost,
                     grunn = "FikkIkkeHentetSaksbehandlerEllerAttestant"
@@ -273,9 +282,9 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
             microsoftGraphApiOppslag = oppslagMock,
         ).opprettManglendeJournalpostOgBrevdistribusjon()
 
-        actual shouldBe OpprettManglendeJournalpostOgBrevdistribusjonResultat(
+        actual shouldBe FerdigstillSøknadsbehandingIverksettingService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
             journalpostresultat = listOf(
-                KunneIkkeOppretteJournalpostForIverksetting(
+                FerdigstillSøknadsbehandingIverksettingService.KunneIkkeOppretteJournalpostForIverksetting(
                     sakId = sakIdJournalpost,
                     behandlingId = behandlingIdJournalpost,
                     grunn = "FantIkkePerson"
@@ -327,9 +336,9 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
             brevService = brevServiceMock,
         ).opprettManglendeJournalpostOgBrevdistribusjon()
 
-        actual shouldBe OpprettManglendeJournalpostOgBrevdistribusjonResultat(
+        actual shouldBe FerdigstillSøknadsbehandingIverksettingService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
             journalpostresultat = listOf(
-                KunneIkkeOppretteJournalpostForIverksetting(
+                FerdigstillSøknadsbehandingIverksettingService.KunneIkkeOppretteJournalpostForIverksetting(
                     sakId = sakIdJournalpost,
                     behandlingId = behandlingIdJournalpost,
                     grunn = "KunneIkkeOppretteJournalpost"
@@ -390,10 +399,10 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
             søknadsbehandlingRepo = behandlingRepoMock,
         ).opprettManglendeJournalpostOgBrevdistribusjon()
 
-        actual shouldBe OpprettManglendeJournalpostOgBrevdistribusjonResultat(
+        actual shouldBe FerdigstillSøknadsbehandingIverksettingService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
             journalpostresultat = emptyList(),
             brevbestillingsresultat = listOf(
-                KunneIkkeBestilleBrev(
+                FerdigstillSøknadsbehandingIverksettingService.KunneIkkeBestilleBrev(
                     sakId = sakIdBestiltBrev,
                     behandlingId = behandlingIdBestiltBrev,
                     journalpostId = null,
@@ -434,10 +443,10 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
             brevService = brevServiceMock,
         ).opprettManglendeJournalpostOgBrevdistribusjon()
 
-        actual shouldBe OpprettManglendeJournalpostOgBrevdistribusjonResultat(
+        actual shouldBe FerdigstillSøknadsbehandingIverksettingService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
             journalpostresultat = emptyList(),
             brevbestillingsresultat = listOf(
-                KunneIkkeBestilleBrev(
+                FerdigstillSøknadsbehandingIverksettingService.KunneIkkeBestilleBrev(
                     sakId = sakIdBestiltBrev,
                     behandlingId = behandlingIdBestiltBrev,
                     journalpostId = journalpostIdBestiltBrev,
@@ -484,7 +493,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
             brevService = brevServiceMock,
         ).opprettManglendeJournalpostOgBrevdistribusjon()
 
-        actual shouldBe OpprettManglendeJournalpostOgBrevdistribusjonResultat(
+        actual shouldBe FerdigstillSøknadsbehandingIverksettingService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
             journalpostresultat = emptyList(),
             brevbestillingsresultat = listOf(bestiltBrev.right())
         )
@@ -550,7 +559,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
             microsoftGraphApiOppslag = oppslagMock,
         ).opprettManglendeJournalpostOgBrevdistribusjon()
 
-        actual shouldBe OpprettManglendeJournalpostOgBrevdistribusjonResultat(
+        actual shouldBe FerdigstillSøknadsbehandingIverksettingService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
             journalpostresultat = listOf(journalpostOgBrevdistribusjonResultat.right()),
             brevbestillingsresultat = listOf(bestiltBrev.right())
         )

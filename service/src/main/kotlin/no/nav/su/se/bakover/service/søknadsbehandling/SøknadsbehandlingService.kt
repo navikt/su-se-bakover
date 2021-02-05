@@ -6,8 +6,6 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
-import no.nav.su.se.bakover.domain.brev.BrevbestillingId
-import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import java.util.UUID
@@ -77,32 +75,6 @@ sealed class KunneIkkeIverksetteBehandling {
 sealed class KunneIkkeOppdatereBehandlingsinformasjon {
     object FantIkkeBehandling : KunneIkkeOppdatereBehandlingsinformasjon()
 }
-
-data class KunneIkkeOppretteJournalpostForIverksetting(
-    val sakId: UUID,
-    val behandlingId: UUID,
-    val grunn: String,
-)
-
-data class OpprettetJournalpostForIverksetting(
-    val sakId: UUID,
-    val behandlingId: UUID,
-    val journalpostId: JournalpostId,
-)
-
-data class BestiltBrev(
-    val sakId: UUID,
-    val behandlingId: UUID,
-    val journalpostId: JournalpostId,
-    val brevbestillingId: BrevbestillingId,
-)
-
-data class KunneIkkeBestilleBrev(
-    val sakId: UUID,
-    val behandlingId: UUID,
-    val journalpostId: JournalpostId?,
-    val grunn: String,
-)
 
 data class OpprettSøknadsbehandlingRequest(
     val søknadId: UUID

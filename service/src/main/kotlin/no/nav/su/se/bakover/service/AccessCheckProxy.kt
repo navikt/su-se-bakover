@@ -66,7 +66,6 @@ import no.nav.su.se.bakover.service.søknadsbehandling.KunneIkkeUnderkjenneBehan
 import no.nav.su.se.bakover.service.søknadsbehandling.OppdaterSøknadsbehandlingsinformasjonRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.OpprettBeregningRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.OpprettBrevRequest
-import no.nav.su.se.bakover.service.søknadsbehandling.OpprettManglendeJournalpostOgBrevdistribusjonResultat
 import no.nav.su.se.bakover.service.søknadsbehandling.OpprettSimuleringRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.OpprettSøknadsbehandlingRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SendTilAttesteringRequest
@@ -306,9 +305,8 @@ open class AccessCheckProxy(
                 override fun ferdigstillInnvilgelse(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget) =
                     kastKanKunKallesFraAnnenService()
 
-                override fun opprettManglendeJournalpostOgBrevdistribusjon(): OpprettManglendeJournalpostOgBrevdistribusjonResultat {
+                override fun opprettManglendeJournalpostOgBrevdistribusjon(): FerdigstillSøknadsbehandingIverksettingService.OpprettManglendeJournalpostOgBrevdistribusjonResultat {
                     // Dette er et driftsendepunkt og vi vil ikke returnere kode 6/7/person-sensitive data.
-
                     return services.ferdigstillSøknadsbehandingIverksettingService.opprettManglendeJournalpostOgBrevdistribusjon()
                 }
             },
