@@ -35,6 +35,8 @@ import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.fixedClock
+import no.nav.su.se.bakover.service.statistikk.Event
+import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.junit.jupiter.api.Nested
@@ -320,22 +322,25 @@ internal class SøknadsbehandlingServiceIverksettTest {
         }
 
         val behandlingMetricsMock = mock<BehandlingMetrics>()
+        val statistikkObserver = mock<EventObserver>()
 
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             iverksettAvslåttBehandlingService = iverksettSaksbehandlingServiceMock,
-            behandlingMetrics = behandlingMetricsMock
+            behandlingMetrics = behandlingMetricsMock,
+            observer = statistikkObserver
         ).iverksett(SøknadsbehandlingService.IverksettRequest(behandling.id, Attestering.Iverksatt(attestant)))
 
         response shouldBe expectedJournalførtOgDistribuert.right()
 
-        inOrder(søknadsbehandlingRepoMock, iverksettSaksbehandlingServiceMock, behandlingMetricsMock) {
+        inOrder(søknadsbehandlingRepoMock, iverksettSaksbehandlingServiceMock, behandlingMetricsMock, statistikkObserver) {
             verify(søknadsbehandlingRepoMock).hent(behandling.id)
             verify(iverksettSaksbehandlingServiceMock).opprettJournalpostForAvslag(behandling, attestant)
             verify(søknadsbehandlingRepoMock).lagre(expectedJournalført)
             verify(behandlingMetricsMock).incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
             verify(iverksettSaksbehandlingServiceMock).distribuerBrevOgLukkOppgaveForAvslag(expectedJournalført)
             verify(søknadsbehandlingRepoMock).lagre(expectedJournalførtOgDistribuert)
+            verify(statistikkObserver).handle(argThat { it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(expectedJournalførtOgDistribuert) })
         }
         verifyNoMoreInteractions(
             søknadsbehandlingRepoMock,

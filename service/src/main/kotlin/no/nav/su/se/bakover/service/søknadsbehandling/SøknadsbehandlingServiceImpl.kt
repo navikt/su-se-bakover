@@ -304,14 +304,6 @@ internal class SøknadsbehandlingServiceImpl(
             IverksettStatusovergangFeilMapper.map(it)
         }.map {
             søknadsbehandlingRepo.lagre(it)
-            // TODO jah, jm: Flytt inn i FerdigstillIverksetting...
-            observers.forEach { observer ->
-                observer.handle(
-                    Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(
-                        it
-                    )
-                )
-            }
             when (it) {
                 is Søknadsbehandling.Iverksatt.Innvilget -> {
                     log.info("Iverksatt innvilgelse for behandling ${it.id}")
@@ -331,6 +323,12 @@ internal class SøknadsbehandlingServiceImpl(
                         .let { medPotensiellBrevbestillingId ->
                             søknadsbehandlingRepo.lagre(medPotensiellBrevbestillingId)
                             medPotensiellBrevbestillingId
+                        }.also {
+                            observers.forEach { observer ->
+                                observer.handle(
+                                    Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(it)
+                                )
+                            }
                         }
                 }
             }

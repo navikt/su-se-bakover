@@ -15,6 +15,8 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.service.statistikk.Event
+import no.nav.su.se.bakover.service.statistikk.EventObserver
 import org.slf4j.LoggerFactory
 
 internal class FerdigstillSøknadsbehandingIverksettingServiceImpl(
@@ -27,6 +29,14 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceImpl(
 ) : FerdigstillSøknadsbehandingIverksettingService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
+    private val observers: MutableList<EventObserver> = mutableListOf()
+
+    fun addObserver(observer: EventObserver) {
+        observers.add(observer)
+    }
+
+    fun getObservers(): List<EventObserver> = observers.toList()
+
     override fun hentBehandlingForUtbetaling(utbetalingId: UUID30): Søknadsbehandling.Iverksatt.Innvilget? {
         return søknadsbehandlingRepo.hentBehandlingForUtbetaling(utbetalingId)
     }
@@ -34,6 +44,9 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceImpl(
     override fun ferdigstillInnvilgelse(
         søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget
     ) {
+        observers.forEach { observer ->
+            observer.handle(Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(søknadsbehandling))
+        }
         opprettJournalpostOgBrevbestillingForInnvilgelse(søknadsbehandling)
         lukkOppgave(søknadsbehandling)
     }

@@ -42,8 +42,11 @@ import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeDistribuereBrev
 import no.nav.su.se.bakover.service.brev.KunneIkkeJournalføreBrev
+import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.service.statistikk.Event
+import no.nav.su.se.bakover.service.statistikk.EventObserver
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
@@ -105,12 +108,14 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
             on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
         }
 
+        val statistikkObserver = mock<EventObserver>()
+
         val actual = createService(
             søknadsbehandlingRepo = behandlingRepoMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
             microsoftGraphApiOppslag = oppslagMock,
-
+            eventObserver = statistikkObserver
         ).ferdigstillInnvilgelse(innvilgetBehandlingUtenJournalpost)
 
         actual shouldBe Unit
@@ -119,8 +124,10 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
             behandlingRepoMock,
             personServiceMock,
             oppslagMock,
-            oppgaveServiceMock
+            oppgaveServiceMock,
+            statistikkObserver
         ) {
+            verify(statistikkObserver).handle(argThat { it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(innvilgetBehandlingUtenJournalpost) })
             verify(personServiceMock).hentPersonMedSystembruker(fnr)
             verify(oppslagMock).hentBrukerinformasjonForNavIdent(
                 argThat {
@@ -161,9 +168,7 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
             microsoftGraphApiOppslag = oppslagMock,
-
         ).ferdigstillInnvilgelse(innvilgetBehandlingUtenJournalpost)
-
         actual shouldBe Unit
 
         inOrder(
@@ -236,7 +241,6 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
 
     @Test
     fun `Kan ikke journalføre eller distribuere brev hvis journalføring feiler`() {
-
         val saksbehandlingRepoMock = mock<SøknadsbehandlingRepo>()
 
         val personServiceMock = mock<PersonService> {
@@ -256,13 +260,15 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
             on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
         }
 
+        val statistikkObserver = mock<EventObserver>()
+
         val actual = createService(
             søknadsbehandlingRepo = saksbehandlingRepoMock,
             personService = personServiceMock,
             microsoftGraphApiOppslag = oppslagMock,
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
-
+            eventObserver = statistikkObserver
         ).ferdigstillInnvilgelse(innvilgetBehandlingUtenJournalpost)
 
         actual shouldBe Unit
@@ -272,8 +278,10 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
             personServiceMock,
             oppslagMock,
             brevServiceMock,
-            oppgaveServiceMock
+            oppgaveServiceMock,
+            statistikkObserver
         ) {
+            verify(statistikkObserver).handle(argThat { it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(innvilgetBehandlingUtenJournalpost) })
             verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe fnr })
             argumentCaptor<NavIdentBruker>().apply {
                 verify(oppslagMock, times(2)).hentBrukerinformasjonForNavIdent(capture())
@@ -410,16 +418,20 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
             on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
         }
 
+        val statistikkObserver = mock<EventObserver>()
+
         val actual = createService(
             søknadsbehandlingRepo = saksbehandlingRepoMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
             microsoftGraphApiOppslag = oppslagMock,
             brevService = brevServiceMock,
+            eventObserver = statistikkObserver
         ).ferdigstillInnvilgelse(innvilgetBehandlingUtenJournalpost)
 
         actual shouldBe Unit
 
+        verify(statistikkObserver).handle(argThat { it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(innvilgetBehandlingUtenJournalpost) })
         verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe fnr })
         argumentCaptor<NavIdentBruker>().apply {
             verify(oppslagMock, times(2)).hentBrukerinformasjonForNavIdent(capture())
@@ -475,6 +487,7 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
         behandlingMetrics: BehandlingMetrics = mock(),
         microsoftGraphApiOppslag: MicrosoftGraphApiOppslag = mock(),
         brevService: BrevService = mock(),
+        eventObserver: EventObserver = mock { on { handle(any()) }.doNothing() }
     ) = FerdigstillSøknadsbehandingIverksettingServiceImpl(
         søknadsbehandlingRepo = søknadsbehandlingRepo,
         oppgaveService = oppgaveService,
@@ -482,5 +495,5 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
         microsoftGraphApiClient = microsoftGraphApiOppslag,
         personService = personService,
         brevService = brevService,
-    )
+    ).apply { addObserver(eventObserver) }
 }

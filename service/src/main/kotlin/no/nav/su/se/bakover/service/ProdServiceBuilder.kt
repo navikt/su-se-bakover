@@ -81,7 +81,7 @@ object ProdServiceBuilder : ServiceBuilder {
             microsoftGraphApiClient = clients.microsoftGraphApiClient,
             personService = personService,
             brevService = brevService
-        )
+        ).apply { addObserver(statistikkService) }
         val toggleService = ToggleServiceImpl(unleash)
 
         val iverksettAvslåttSøknadsbehandlingService = IverksettAvslåttSøknadsbehandlingService(
