@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.getCorrelationId
+import no.nav.su.se.bakover.common.getOrCreateCorrelationId
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.unsafeCatch
@@ -84,7 +84,7 @@ internal class OppgaveHttpClient(
             .authentication().bearer(token)
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
-            .header("X-Correlation-ID", getCorrelationId())
+            .header("X-Correlation-ID", getOrCreateCorrelationId())
             .body(
                 objectMapper.writeValueAsString(
                     OppgaveRequest(
@@ -139,7 +139,7 @@ internal class OppgaveHttpClient(
             .authentication().bearer(token)
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
-            .header("X-Correlation-ID", getCorrelationId())
+            .header("X-Correlation-ID", getOrCreateCorrelationId())
             .responseString()
         return result.fold(
             { responseJson ->
@@ -162,7 +162,7 @@ internal class OppgaveHttpClient(
             .authentication().bearer(token)
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
-            .header("X-Correlation-ID", getCorrelationId())
+            .header("X-Correlation-ID", getOrCreateCorrelationId())
             .body(
                 objectMapper.writeValueAsString(
                     EndreOppgaveRequest(
