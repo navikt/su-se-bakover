@@ -13,7 +13,6 @@ import java.time.format.DateTimeFormatter
 
 internal fun Søknadsbehandling.toJson(): BehandlingJson {
     return when (val saksbehandling = this) {
-        is Søknadsbehandling.Vilkårsvurdert.Uavklart,
         is Søknadsbehandling.Vilkårsvurdert -> BehandlingJson(
             id = saksbehandling.id.toString(),
             opprettet = DateTimeFormatter.ISO_INSTANT.format(saksbehandling.opprettet),
