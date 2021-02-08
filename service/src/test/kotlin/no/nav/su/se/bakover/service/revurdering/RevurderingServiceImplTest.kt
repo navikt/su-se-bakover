@@ -187,18 +187,6 @@ internal class RevurderingServiceImplTest {
         val beregningMock = mock<Beregning> {
             on { getPeriode() } doReturn Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.desember(2021))
         }
-        // val behandling = behandlingFactory.createBehandling(
-        //     id = mock(),
-        //     søknad = mock(),
-        //     status = Behandling.BehandlingsStatus.IVERKSATT_INNVILGET,
-        //     saksbehandler = saksbehandler,
-        //     attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("Attes T. Ant")),
-        //     sakId = sakId,
-        //     saksnummer = BehandlingTestUtils.saksnummer,
-        //     fnr = fnr,
-        //     oppgaveId = mock(),
-        //     beregning = beregningMock
-        // )
         val behandling = mock<Søknadsbehandling.Iverksatt.Innvilget> {
             on { beregning } doReturn beregningMock
         }
@@ -235,23 +223,10 @@ internal class RevurderingServiceImplTest {
         val beregningMock = mock<Beregning> {
             on { getPeriode() } doReturn Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.desember(2021))
         }
-        // val behandling1 = behandlingFactory.createBehandling(
-        //     id = mock(),
-        //     søknad = mock(),
-        //     status = Behandling.BehandlingsStatus.IVERKSATT_INNVILGET,
-        //     saksbehandler = saksbehandler,
-        //     attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("Attes T. Ant")),
-        //     sakId = sakId,
-        //     saksnummer = BehandlingTestUtils.saksnummer,
-        //     fnr = fnr,
-        //     oppgaveId = mock(),
-        //     beregning = beregningMock
-        // )
-        // val behandling2 = behandling1.copy()
-        val behandling1 = mock<Søknadsbehandling.Iverksatt.Innvilget>() {
+        val behandling1 = mock<Søknadsbehandling.Iverksatt.Innvilget> {
             on { beregning } doReturn beregningMock
         }
-        val behandling2 = mock<Søknadsbehandling.Iverksatt.Innvilget>() {
+        val behandling2 = mock<Søknadsbehandling.Iverksatt.Innvilget> {
             on { beregning } doReturn beregningMock
         }
 
