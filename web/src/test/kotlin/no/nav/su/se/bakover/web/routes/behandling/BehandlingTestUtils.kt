@@ -36,7 +36,7 @@ object BehandlingTestUtils {
     )
     internal val fnr = FnrGenerator.random()
 
-    internal fun nySøknadsbehandling() = Søknadsbehandling.Iverksatt.Innvilget(
+    internal fun innvilgetSøknadsbehandling() = Søknadsbehandling.Iverksatt.Innvilget(
         id = behandlingId,
         opprettet = Tidspunkt.EPOCH,
         sakId = sakId,

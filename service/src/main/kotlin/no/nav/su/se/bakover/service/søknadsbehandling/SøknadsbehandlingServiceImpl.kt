@@ -65,7 +65,7 @@ internal class SøknadsbehandlingServiceImpl(
 
     fun getObservers(): List<EventObserver> = observers.toList()
 
-    override fun opprett(request: SøknadsbehandlingService.OpprettRequest): Either<SøknadsbehandlingService.KunneIkkeOpprette, Søknadsbehandling> {
+    override fun opprett(request: SøknadsbehandlingService.OpprettRequest): Either<SøknadsbehandlingService.KunneIkkeOpprette, Søknadsbehandling.Vilkårsvurdert.Uavklart> {
         val søknad = søknadService.hentSøknad(request.søknadId).getOrElse {
             return SøknadsbehandlingService.KunneIkkeOpprette.FantIkkeSøknad.left()
         }
@@ -96,11 +96,11 @@ internal class SøknadsbehandlingServiceImpl(
         søknadsbehandlingRepo.lagre(opprettet)
 
         // Må hente fra db for å få joinet med saksnummer.
-        return søknadsbehandlingRepo.hent(opprettet.id)!!.let {
+        return (søknadsbehandlingRepo.hent(opprettet.id)!! as Søknadsbehandling.Vilkårsvurdert.Uavklart).let {
             observers.forEach { observer ->
                 observer.handle(
                     Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingOpprettet(
-                        it as Søknadsbehandling.Vilkårsvurdert.Uavklart
+                        it
                     )
                 )
             }
@@ -108,7 +108,7 @@ internal class SøknadsbehandlingServiceImpl(
         }
     }
 
-    override fun vilkårsvurder(request: SøknadsbehandlingService.VilkårsvurderRequest): Either<SøknadsbehandlingService.KunneIkkeVilkårsvurdere, Søknadsbehandling> {
+    override fun vilkårsvurder(request: SøknadsbehandlingService.VilkårsvurderRequest): Either<SøknadsbehandlingService.KunneIkkeVilkårsvurdere, Søknadsbehandling.Vilkårsvurdert> {
         val saksbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return SøknadsbehandlingService.KunneIkkeVilkårsvurdere.FantIkkeBehandling.left()
         return statusovergang(
@@ -120,7 +120,7 @@ internal class SøknadsbehandlingServiceImpl(
         }
     }
 
-    override fun beregn(request: SøknadsbehandlingService.BeregnRequest): Either<SøknadsbehandlingService.KunneIkkeBeregne, Søknadsbehandling> {
+    override fun beregn(request: SøknadsbehandlingService.BeregnRequest): Either<SøknadsbehandlingService.KunneIkkeBeregne, Søknadsbehandling.Beregnet> {
         val saksbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return SøknadsbehandlingService.KunneIkkeBeregne.FantIkkeBehandling.left()
 
@@ -135,7 +135,7 @@ internal class SøknadsbehandlingServiceImpl(
         }
     }
 
-    override fun simuler(request: SøknadsbehandlingService.SimulerRequest): Either<SøknadsbehandlingService.KunneIkkeSimulereBehandling, Søknadsbehandling> {
+    override fun simuler(request: SøknadsbehandlingService.SimulerRequest): Either<SøknadsbehandlingService.KunneIkkeSimulereBehandling, Søknadsbehandling.Simulert> {
         val saksbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return SøknadsbehandlingService.KunneIkkeSimulereBehandling.FantIkkeBehandling.left()
         return forsøkStatusovergang(
@@ -156,7 +156,7 @@ internal class SøknadsbehandlingServiceImpl(
         }
     }
 
-    override fun sendTilAttestering(request: SøknadsbehandlingService.SendTilAttesteringRequest): Either<SøknadsbehandlingService.KunneIkkeSendeTilAttestering, Søknadsbehandling> {
+    override fun sendTilAttestering(request: SøknadsbehandlingService.SendTilAttesteringRequest): Either<SøknadsbehandlingService.KunneIkkeSendeTilAttestering, Søknadsbehandling.TilAttestering> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)?.let {
             statusovergang(
                 søknadsbehandling = it,
@@ -208,7 +208,7 @@ internal class SøknadsbehandlingServiceImpl(
         }
     }
 
-    override fun underkjenn(request: SøknadsbehandlingService.UnderkjennRequest): Either<SøknadsbehandlingService.KunneIkkeUnderkjenne, Søknadsbehandling> {
+    override fun underkjenn(request: SøknadsbehandlingService.UnderkjennRequest): Either<SøknadsbehandlingService.KunneIkkeUnderkjenne, Søknadsbehandling.Underkjent> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return SøknadsbehandlingService.KunneIkkeUnderkjenne.FantIkkeBehandling.left()
 
@@ -267,7 +267,7 @@ internal class SøknadsbehandlingServiceImpl(
         }
     }
 
-    override fun iverksett(request: SøknadsbehandlingService.IverksettRequest): Either<SøknadsbehandlingService.KunneIkkeIverksette, Søknadsbehandling> {
+    override fun iverksett(request: SøknadsbehandlingService.IverksettRequest): Either<SøknadsbehandlingService.KunneIkkeIverksette, Søknadsbehandling.Iverksatt> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return SøknadsbehandlingService.KunneIkkeIverksette.FantIkkeBehandling.left()
 

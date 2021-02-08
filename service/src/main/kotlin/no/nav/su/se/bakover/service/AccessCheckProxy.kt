@@ -236,37 +236,37 @@ open class AccessCheckProxy(
             },
             toggles = services.toggles,
             søknadsbehandling = object : SøknadsbehandlingService {
-                override fun opprett(request: SøknadsbehandlingService.OpprettRequest): Either<SøknadsbehandlingService.KunneIkkeOpprette, Søknadsbehandling> {
+                override fun opprett(request: SøknadsbehandlingService.OpprettRequest): Either<SøknadsbehandlingService.KunneIkkeOpprette, Søknadsbehandling.Vilkårsvurdert.Uavklart> {
                     assertHarTilgangTilSøknad(request.søknadId)
                     return services.søknadsbehandling.opprett(request)
                 }
 
-                override fun vilkårsvurder(request: SøknadsbehandlingService.VilkårsvurderRequest): Either<SøknadsbehandlingService.KunneIkkeVilkårsvurdere, Søknadsbehandling> {
+                override fun vilkårsvurder(request: SøknadsbehandlingService.VilkårsvurderRequest): Either<SøknadsbehandlingService.KunneIkkeVilkårsvurdere, Søknadsbehandling.Vilkårsvurdert> {
                     assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.vilkårsvurder(request)
                 }
 
-                override fun beregn(request: SøknadsbehandlingService.BeregnRequest): Either<SøknadsbehandlingService.KunneIkkeBeregne, Søknadsbehandling> {
+                override fun beregn(request: SøknadsbehandlingService.BeregnRequest): Either<SøknadsbehandlingService.KunneIkkeBeregne, Søknadsbehandling.Beregnet> {
                     assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.beregn(request)
                 }
 
-                override fun simuler(request: SøknadsbehandlingService.SimulerRequest): Either<SøknadsbehandlingService.KunneIkkeSimulereBehandling, Søknadsbehandling> {
+                override fun simuler(request: SøknadsbehandlingService.SimulerRequest): Either<SøknadsbehandlingService.KunneIkkeSimulereBehandling, Søknadsbehandling.Simulert> {
                     assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.simuler(request)
                 }
 
-                override fun sendTilAttestering(request: SøknadsbehandlingService.SendTilAttesteringRequest): Either<SøknadsbehandlingService.KunneIkkeSendeTilAttestering, Søknadsbehandling> {
+                override fun sendTilAttestering(request: SøknadsbehandlingService.SendTilAttesteringRequest): Either<SøknadsbehandlingService.KunneIkkeSendeTilAttestering, Søknadsbehandling.TilAttestering> {
                     assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.sendTilAttestering(request)
                 }
 
-                override fun underkjenn(request: SøknadsbehandlingService.UnderkjennRequest): Either<SøknadsbehandlingService.KunneIkkeUnderkjenne, Søknadsbehandling> {
+                override fun underkjenn(request: SøknadsbehandlingService.UnderkjennRequest): Either<SøknadsbehandlingService.KunneIkkeUnderkjenne, Søknadsbehandling.Underkjent> {
                     assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.underkjenn(request)
                 }
 
-                override fun iverksett(request: SøknadsbehandlingService.IverksettRequest): Either<SøknadsbehandlingService.KunneIkkeIverksette, Søknadsbehandling> {
+                override fun iverksett(request: SøknadsbehandlingService.IverksettRequest): Either<SøknadsbehandlingService.KunneIkkeIverksette, Søknadsbehandling.Iverksatt> {
                     assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.iverksett(request)
                 }

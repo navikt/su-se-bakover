@@ -8,8 +8,8 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.behandlingId
+import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.innvilgetSøknadsbehandling
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.journalførtSøknadMedOppgave
-import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.nySøknadsbehandling
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.oppgaveId
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.sakId
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.saksnummer
@@ -23,7 +23,7 @@ internal class SøknadsbehandlingJsonTest {
 
     companion object {
 
-        private val søknadsbehandling = nySøknadsbehandling()
+        private val søknadsbehandling = innvilgetSøknadsbehandling()
 
         //language=JSON
         internal val behandlingJsonString =
