@@ -18,7 +18,7 @@ import java.time.Clock
 class LagBrevRequestVisitor(
     private val hentPerson: (fnr: Fnr) -> Either<BrevRequestFeil, Person>,
     private val hentNavn: (navIdentBruker: NavIdentBruker) -> Either<BrevRequestFeil, String>,
-    private val clock: Clock = Clock.systemUTC()
+    private val clock: Clock
 ) : SøknadsbehandlingVisitor {
     lateinit var brevRequest: Either<BrevRequestFeil, LagBrevRequest>
 

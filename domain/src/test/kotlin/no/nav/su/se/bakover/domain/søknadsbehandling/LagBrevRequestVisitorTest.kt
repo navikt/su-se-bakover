@@ -79,7 +79,8 @@ internal class LagBrevRequestVisitorTest {
         uavklart.let {
             LagBrevRequestVisitor(
                 hentPerson = { person.right() },
-                hentNavn = { hentNavn(it) }
+                hentNavn = { hentNavn(it) },
+                clock = Clock.systemUTC(),
             ).apply { it.accept(this) }
                 .let {
                     it.brevRequest shouldBe LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeLageBrevForStatus(BehandlingsStatus.OPPRETTET)
@@ -90,7 +91,8 @@ internal class LagBrevRequestVisitorTest {
         uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()).let {
             LagBrevRequestVisitor(
                 hentPerson = { person.right() },
-                hentNavn = { hentNavn(it) }
+                hentNavn = { hentNavn(it) },
+                clock = Clock.systemUTC(),
             ).apply { it.accept(this) }
                 .let {
                     it.brevRequest shouldBe LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeLageBrevForStatus(BehandlingsStatus.VILKÅRSVURDERT_INNVILGET)

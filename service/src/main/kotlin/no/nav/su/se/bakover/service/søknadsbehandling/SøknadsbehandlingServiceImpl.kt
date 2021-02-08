@@ -36,6 +36,7 @@ import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
 import org.slf4j.LoggerFactory
+import java.time.Clock
 import java.util.UUID
 
 internal class SøknadsbehandlingServiceImpl(
@@ -358,7 +359,8 @@ internal class SøknadsbehandlingServiceImpl(
             hentNavn = { ident ->
                 hentNavnForNavIdent(ident)
                     .mapLeft { LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant }
-            }
+            },
+            clock = Clock.systemUTC(),
         ).apply { søknadsbehandling.accept(this) }
 
         val brevRequest = visitor.brevRequest.getOrHandle {

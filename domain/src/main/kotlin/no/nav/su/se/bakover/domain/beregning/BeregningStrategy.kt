@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 
-class BeregningStrategyFactory() {
+class BeregningStrategyFactory {
     fun beregn(søknadsbehandling: Søknadsbehandling, periode: Periode, fradrag: List<Fradrag>): Beregning {
         val beregningsgrunnlag = Beregningsgrunnlag.create(
             beregningsperiode = Periode.create(periode.getFraOgMed(), periode.getTilOgMed()),

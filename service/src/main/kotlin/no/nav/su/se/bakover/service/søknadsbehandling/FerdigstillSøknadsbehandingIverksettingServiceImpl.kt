@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import org.slf4j.LoggerFactory
+import java.time.Clock
 
 internal class FerdigstillSøknadsbehandingIverksettingServiceImpl(
     private val søknadsbehandlingRepo: SøknadsbehandlingRepo,
@@ -200,7 +201,8 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceImpl(
             hentNavn = { ident ->
                 hentNavnForNavIdent(ident)
                     .mapLeft { LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant }
-            }
+            },
+            clock = Clock.systemUTC(),
         ).apply { søknadsbehandling.accept(this) }
 
         val brevRequest = visitor.brevRequest.getOrHandle {
