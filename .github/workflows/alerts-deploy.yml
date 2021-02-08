@@ -25,5 +25,5 @@ jobs:
         env:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: prod-fss
-          RESOURCE: alerts-prod.yml
+          RESOURCE: alerts.yml
           VAR: SLACK_ALERTS_CHANNEL=#supplerende_stonad_alerts,LOGS_URL=https://logs.adeo.no/goto/6af62b00d098b7ef2d7cb769c53379b5
