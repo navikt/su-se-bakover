@@ -1,8 +1,10 @@
 package no.nav.su.se.bakover.database.søknadsbehandling
 
+import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeTypeOf
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.avslåttBeregning
@@ -18,6 +20,10 @@ import no.nav.su.se.bakover.database.simulering
 import no.nav.su.se.bakover.database.underkjentAttestering
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
+import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.brev.BrevbestillingId
+import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import org.junit.jupiter.api.Nested
@@ -48,6 +54,70 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     repo.hentForSak(it.sakId, session)
                 }
             }
+        }
+    }
+
+    @Test
+    fun `hent iverksatte behandlinger uten journalposteringer`() {
+        withMigratedDb {
+
+            val innvilgetUtenJournalpost = testDataHelper.nyIverksattInnvilget().first
+
+            testDataHelper.nyIverksattInnvilget().first.journalfør { JournalpostId("1").right() }.orNull()!!.also {
+                repo.lagre(it)
+            }
+            testDataHelper.nyIverksattAvslagUtenBeregning()
+            testDataHelper.nyUavklartVilkårsvurdering()
+
+            val actual = repo.hentIverksatteBehandlingerUtenJournalposteringer()
+            actual shouldBe listOf(
+                repo.hent(innvilgetUtenJournalpost.id)
+            )
+        }
+    }
+
+    @Test
+    fun `hent iverksatte behandlinger uten brevbestillinger`() {
+        withMigratedDb {
+            // innvilget uten IverksattJournalpostId
+            testDataHelper.nyIverksattInnvilget().first
+
+            // innvilget med iverksattJournalpostId
+            val innvilgetMedJournalpost =
+                testDataHelper.nyIverksattInnvilget().first.journalfør { JournalpostId("1").right() }.orNull()!!.also {
+                    repo.lagre(it)
+                }
+            // innvilget med iverksattJournalpostId og iverksattBrevbestillingId
+            testDataHelper.nyIverksattInnvilget().first
+                .journalfør { JournalpostId("1").right() }.orNull()!!
+                .distribuerBrev { BrevbestillingId("2").right() }.orNull()!!.also {
+                    repo.lagre(it)
+                }
+            // avslag med journalpost (avslag kan ikke opprettes uten journalpost)
+            val avslagUtenBeregningMedJournalpost = testDataHelper.nyIverksattAvslagUtenBeregning()
+            val avslagMedBeregningMedJournalpost =
+                testDataHelper.nyIverksattAvslagMedBeregning(journalførtIverksettingForAvslag)
+
+            // avslag med beregning med iverksattJournalpostId og iverksattBrevbestillingId
+            testDataHelper.nyIverksattAvslagMedBeregning(journalførtIverksettingForAvslag)
+                .distribuerBrev { BrevbestillingId("2").right() }.orNull()!!.also {
+                    repo.lagre(it)
+                }
+
+            val actual = repo.hentIverksatteBehandlingerUtenBrevbestillinger()
+            actual.size shouldBe 3
+            actual[0] shouldBe repo.hent(innvilgetMedJournalpost.id)
+            actual[1] shouldBe repo.hent(avslagUtenBeregningMedJournalpost.id)
+            actual[2] shouldBe repo.hent(avslagMedBeregningMedJournalpost.id)
+        }
+    }
+
+    @Test
+    fun `opprett og hent behandling for utbetaling`() {
+        withMigratedDb {
+            val nySøknadsbehandling = testDataHelper.nyIverksattInnvilget()
+            val hentet = repo.hentBehandlingForUtbetaling(nySøknadsbehandling.second.id)!!
+            hentet shouldBe nySøknadsbehandling.first
         }
     }
 
