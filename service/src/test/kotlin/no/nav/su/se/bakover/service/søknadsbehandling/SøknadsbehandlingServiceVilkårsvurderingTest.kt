@@ -24,7 +24,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.behandlingsinformasjon
-import no.nav.su.se.bakover.service.behandling.KunneIkkeOppdatereBehandlingsinformasjon
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -61,14 +60,14 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
         ).vilkårsvurder(
-            OppdaterSøknadsbehandlingsinformasjonRequest(
+            SøknadsbehandlingService.VilkårsvurderRequest(
                 behandlingId = behandlingId,
                 saksbehandler = saksbehandler,
                 behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon()
             )
         )
 
-        response shouldBe KunneIkkeOppdatereBehandlingsinformasjon.FantIkkeBehandling.left()
+        response shouldBe SøknadsbehandlingService.KunneIkkeVilkårsvurdere.FantIkkeBehandling.left()
 
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandlingId })
         verifyNoMoreInteractions(søknadsbehandlingRepoMock)
@@ -84,7 +83,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
         ).vilkårsvurder(
-            OppdaterSøknadsbehandlingsinformasjonRequest(
+            SøknadsbehandlingService.VilkårsvurderRequest(
                 behandlingId,
                 saksbehandler,
                 behandlingsinformasjon
@@ -121,7 +120,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
         ).vilkårsvurder(
-            OppdaterSøknadsbehandlingsinformasjonRequest(
+            SøknadsbehandlingService.VilkårsvurderRequest(
                 behandlingId,
                 saksbehandler,
                 behandlingsinformasjon

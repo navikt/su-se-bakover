@@ -25,7 +25,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.tidspunkt
-import no.nav.su.se.bakover.service.behandling.KunneIkkeBeregne
 import no.nav.su.se.bakover.service.beregning.BeregningService
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import org.junit.jupiter.api.Test
@@ -61,7 +60,7 @@ class SøknadsbehandlingServiceBeregningTest {
             on { beregn(any(), any(), any()) } doReturn TestBeregning
         }
 
-        val request = OpprettBeregningRequest(
+        val request = SøknadsbehandlingService.BeregnRequest(
             behandlingId = behandlingId,
             periode = Periode.create(1.desember(2021), 31.mars(2022)),
             fradrag = emptyList()
@@ -107,14 +106,14 @@ class SøknadsbehandlingServiceBeregningTest {
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
         ).beregn(
-            OpprettBeregningRequest(
+            SøknadsbehandlingService.BeregnRequest(
                 behandlingId = behandlingId,
                 periode = Periode.create(1.desember(2021), 31.mars(2022)),
                 fradrag = emptyList()
             )
         )
 
-        response shouldBe KunneIkkeBeregne.FantIkkeBehandling.left()
+        response shouldBe SøknadsbehandlingService.KunneIkkeBeregne.FantIkkeBehandling.left()
 
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandlingId })
         verifyNoMoreInteractions(søknadsbehandlingRepoMock)

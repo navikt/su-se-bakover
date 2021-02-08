@@ -25,15 +25,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.forsøkStatusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.statusovergang
 import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
-import no.nav.su.se.bakover.service.behandling.FantIkkeBehandling
-import no.nav.su.se.bakover.service.behandling.KunneIkkeBeregne
-import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling
-import no.nav.su.se.bakover.service.behandling.KunneIkkeLageBrevutkast
-import no.nav.su.se.bakover.service.behandling.KunneIkkeOppdatereBehandlingsinformasjon
-import no.nav.su.se.bakover.service.behandling.KunneIkkeOppretteSøknadsbehandling
-import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering
-import no.nav.su.se.bakover.service.behandling.KunneIkkeSimulereBehandling
-import no.nav.su.se.bakover.service.behandling.KunneIkkeUnderkjenneBehandling
 import no.nav.su.se.bakover.service.beregning.BeregningService
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
@@ -54,7 +45,7 @@ internal class SøknadsbehandlingServiceImpl(
     private val utbetalingService: UtbetalingService,
     private val personService: PersonService,
     private val oppgaveService: OppgaveService,
-    private val iverksettSøknadsbehandlingService: IverksettSøknadsbehandlingService,
+    private val iverksettAvslåttSøknadsbehandlingService: IverksettAvslåttSøknadsbehandlingService,
     private val behandlingMetrics: BehandlingMetrics,
     private val beregningService: BeregningService,
     private val microsoftGraphApiClient: MicrosoftGraphApiOppslag,
@@ -72,20 +63,20 @@ internal class SøknadsbehandlingServiceImpl(
 
     fun getObservers(): List<EventObserver> = observers.toList()
 
-    override fun opprett(request: OpprettSøknadsbehandlingRequest): Either<KunneIkkeOppretteSøknadsbehandling, Søknadsbehandling> {
+    override fun opprett(request: SøknadsbehandlingService.OpprettRequest): Either<SøknadsbehandlingService.KunneIkkeOpprette, Søknadsbehandling> {
         val søknad = søknadService.hentSøknad(request.søknadId).getOrElse {
-            return KunneIkkeOppretteSøknadsbehandling.FantIkkeSøknad.left()
+            return SøknadsbehandlingService.KunneIkkeOpprette.FantIkkeSøknad.left()
         }
         if (søknad is Søknad.Lukket) {
-            return KunneIkkeOppretteSøknadsbehandling.SøknadErLukket.left()
+            return SøknadsbehandlingService.KunneIkkeOpprette.SøknadErLukket.left()
         }
         if (søknad !is Søknad.Journalført.MedOppgave) {
             // TODO Prøv å opprette oppgaven hvis den mangler? (systembruker blir kanskje mest riktig?)
-            return KunneIkkeOppretteSøknadsbehandling.SøknadManglerOppgave.left()
+            return SøknadsbehandlingService.KunneIkkeOpprette.SøknadManglerOppgave.left()
         }
         if (søknadRepo.harSøknadPåbegyntBehandling(søknad.id)) {
             // Dersom man legger til avslutting av behandlinger, må denne spørringa spesifiseres.
-            return KunneIkkeOppretteSøknadsbehandling.SøknadHarAlleredeBehandling.left()
+            return SøknadsbehandlingService.KunneIkkeOpprette.SøknadHarAlleredeBehandling.left()
         }
 
         val opprettet = Søknadsbehandling.Vilkårsvurdert.Uavklart(
@@ -104,14 +95,20 @@ internal class SøknadsbehandlingServiceImpl(
 
         // Må hente fra db for å få joinet med saksnummer.
         return søknadsbehandlingRepo.hent(opprettet.id)!!.let {
-            observers.forEach { observer -> observer.handle(Event.Statistikk.SøknadsbehandlingOpprettet(it)) }
+            observers.forEach { observer ->
+                observer.handle(
+                    Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingOpprettet(
+                        it as Søknadsbehandling.Vilkårsvurdert.Uavklart
+                    )
+                )
+            }
             it.right()
         }
     }
 
-    override fun vilkårsvurder(request: OppdaterSøknadsbehandlingsinformasjonRequest): Either<KunneIkkeOppdatereBehandlingsinformasjon, Søknadsbehandling> {
+    override fun vilkårsvurder(request: SøknadsbehandlingService.VilkårsvurderRequest): Either<SøknadsbehandlingService.KunneIkkeVilkårsvurdere, Søknadsbehandling> {
         val saksbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
-            ?: return KunneIkkeOppdatereBehandlingsinformasjon.FantIkkeBehandling.left()
+            ?: return SøknadsbehandlingService.KunneIkkeVilkårsvurdere.FantIkkeBehandling.left()
         return statusovergang(
             søknadsbehandling = saksbehandling,
             statusovergang = Statusovergang.TilVilkårsvurdert(request.behandlingsinformasjon)
@@ -121,9 +118,9 @@ internal class SøknadsbehandlingServiceImpl(
         }
     }
 
-    override fun beregn(request: OpprettBeregningRequest): Either<KunneIkkeBeregne, Søknadsbehandling> {
+    override fun beregn(request: SøknadsbehandlingService.BeregnRequest): Either<SøknadsbehandlingService.KunneIkkeBeregne, Søknadsbehandling> {
         val saksbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
-            ?: return KunneIkkeBeregne.FantIkkeBehandling.left()
+            ?: return SøknadsbehandlingService.KunneIkkeBeregne.FantIkkeBehandling.left()
 
         return statusovergang(
             søknadsbehandling = saksbehandling,
@@ -136,9 +133,9 @@ internal class SøknadsbehandlingServiceImpl(
         }
     }
 
-    override fun simuler(request: OpprettSimuleringRequest): Either<KunneIkkeSimulereBehandling, Søknadsbehandling> {
+    override fun simuler(request: SøknadsbehandlingService.SimulerRequest): Either<SøknadsbehandlingService.KunneIkkeSimulereBehandling, Søknadsbehandling> {
         val saksbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
-            ?: return KunneIkkeSimulereBehandling.FantIkkeBehandling.left()
+            ?: return SøknadsbehandlingService.KunneIkkeSimulereBehandling.FantIkkeBehandling.left()
         return forsøkStatusovergang(
             søknadsbehandling = saksbehandling,
             statusovergang = Statusovergang.TilSimulert { beregning ->
@@ -150,24 +147,24 @@ internal class SøknadsbehandlingServiceImpl(
                     }
             }
         ).mapLeft {
-            KunneIkkeSimulereBehandling.KunneIkkeSimulere
+            SøknadsbehandlingService.KunneIkkeSimulereBehandling.KunneIkkeSimulere
         }.map {
             søknadsbehandlingRepo.lagre(it)
             it
         }
     }
 
-    override fun sendTilAttestering(request: SendTilAttesteringRequest): Either<KunneIkkeSendeTilAttestering, Søknadsbehandling> {
+    override fun sendTilAttestering(request: SøknadsbehandlingService.SendTilAttesteringRequest): Either<SøknadsbehandlingService.KunneIkkeSendeTilAttestering, Søknadsbehandling> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)?.let {
             statusovergang(
                 søknadsbehandling = it,
                 statusovergang = Statusovergang.TilAttestering(request.saksbehandler)
             )
-        } ?: return KunneIkkeSendeTilAttestering.FantIkkeBehandling.left()
+        } ?: return SøknadsbehandlingService.KunneIkkeSendeTilAttestering.FantIkkeBehandling.left()
 
         val aktørId = personService.hentAktørId(søknadsbehandling.fnr).getOrElse {
             log.error("Fant ikke aktør-id med for fødselsnummer : ${søknadsbehandling.fnr}")
-            return KunneIkkeSendeTilAttestering.KunneIkkeFinneAktørId.left()
+            return SøknadsbehandlingService.KunneIkkeSendeTilAttestering.KunneIkkeFinneAktørId.left()
         }
         val eksisterendeOppgaveId: OppgaveId = søknadsbehandling.oppgaveId
 
@@ -183,7 +180,7 @@ internal class SøknadsbehandlingServiceImpl(
             )
         ).getOrElse {
             log.error("Kunne ikke opprette Attesteringsoppgave. Avbryter handlingen.")
-            return KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave.left()
+            return SøknadsbehandlingService.KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave.left()
         }
 
         val søknadsbehandlingMedNyOppgaveId = søknadsbehandling.nyOppgaveId(nyOppgaveId)
@@ -198,24 +195,30 @@ internal class SøknadsbehandlingServiceImpl(
         behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.PERSISTERT)
         behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.OPPRETTET_OPPGAVE)
         return søknadsbehandlingMedNyOppgaveId.let {
-            observers.forEach { observer -> observer.handle(Event.Statistikk.SøknadsbehandlingTilAttestering(it)) }
+            observers.forEach { observer ->
+                observer.handle(
+                    Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingTilAttestering(
+                        it
+                    )
+                )
+            }
             it.right()
         }
     }
 
-    override fun underkjenn(request: UnderkjennSøknadsbehandlingRequest): Either<KunneIkkeUnderkjenneBehandling, Søknadsbehandling> {
+    override fun underkjenn(request: SøknadsbehandlingService.UnderkjennRequest): Either<SøknadsbehandlingService.KunneIkkeUnderkjenne, Søknadsbehandling> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
-            ?: return KunneIkkeUnderkjenneBehandling.FantIkkeBehandling.left()
+            ?: return SøknadsbehandlingService.KunneIkkeUnderkjenne.FantIkkeBehandling.left()
 
         return forsøkStatusovergang(
             søknadsbehandling = søknadsbehandling,
             statusovergang = Statusovergang.TilUnderkjent(request.attestering)
         ).mapLeft {
-            KunneIkkeUnderkjenneBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
+            SøknadsbehandlingService.KunneIkkeUnderkjenne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
         }.map { underkjent ->
             val aktørId = personService.hentAktørId(underkjent.fnr).getOrElse {
                 log.error("Fant ikke aktør-id for sak: ${underkjent.id}")
-                return KunneIkkeUnderkjenneBehandling.FantIkkeAktørId.left()
+                return SøknadsbehandlingService.KunneIkkeUnderkjenne.FantIkkeAktørId.left()
             }
 
             val journalpostId: JournalpostId = underkjent.søknad.journalpostId
@@ -229,7 +232,7 @@ internal class SøknadsbehandlingServiceImpl(
                 )
             ).getOrElse {
                 log.error("Behandling ${underkjent.id} ble ikke underkjent. Klarte ikke opprette behandlingsoppgave")
-                return@underkjenn KunneIkkeUnderkjenneBehandling.KunneIkkeOppretteOppgave.left()
+                return@underkjenn SøknadsbehandlingService.KunneIkkeUnderkjenne.KunneIkkeOppretteOppgave.left()
             }.also {
                 behandlingMetrics.incrementUnderkjentCounter(BehandlingMetrics.UnderkjentHandlinger.OPPRETTET_OPPGAVE)
             }
@@ -249,16 +252,22 @@ internal class SøknadsbehandlingServiceImpl(
                     behandlingMetrics.incrementUnderkjentCounter(BehandlingMetrics.UnderkjentHandlinger.LUKKET_OPPGAVE)
                 }
             søknadsbehandlingMedNyOppgaveId.also {
-                observers.forEach { observer -> observer.handle(Event.Statistikk.SøknadsbehandlingUnderkjent(it)) }
+                observers.forEach { observer ->
+                    observer.handle(
+                        Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingUnderkjent(
+                            it
+                        )
+                    )
+                }
             }
 
             søknadsbehandlingMedNyOppgaveId
         }
     }
 
-    override fun iverksett(request: IverksettSøknadsbehandlingRequest): Either<KunneIkkeIverksetteBehandling, Søknadsbehandling> {
+    override fun iverksett(request: SøknadsbehandlingService.IverksettRequest): Either<SøknadsbehandlingService.KunneIkkeIverksette, Søknadsbehandling> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
-            ?: return KunneIkkeIverksetteBehandling.FantIkkeBehandling.left()
+            ?: return SøknadsbehandlingService.KunneIkkeIverksette.FantIkkeBehandling.left()
 
         var utbetaling: Utbetaling.OversendtUtbetaling.UtenKvittering? = null
         return forsøkStatusovergang(
@@ -285,7 +294,7 @@ internal class SøknadsbehandlingServiceImpl(
                     }
                 },
                 avslag = {
-                    iverksettSøknadsbehandlingService.opprettJournalpostForAvslag(
+                    iverksettAvslåttSøknadsbehandlingService.opprettJournalpostForAvslag(
                         it,
                         request.attestering.attestant
                     )
@@ -310,10 +319,16 @@ internal class SøknadsbehandlingServiceImpl(
                         vedtakssnapshot = Vedtakssnapshot.Avslag.createFromBehandling(it, it.avslagsgrunner)
                     )
                     behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
-                    iverksettSøknadsbehandlingService.distribuerBrevOgLukkOppgaveForAvslag(it)
+                    iverksettAvslåttSøknadsbehandlingService.distribuerBrevOgLukkOppgaveForAvslag(it)
                         .let { medPotensiellBrevbestillingId ->
                             søknadsbehandlingRepo.lagre(medPotensiellBrevbestillingId)
                             medPotensiellBrevbestillingId
+                        }.also {
+                            observers.forEach { observer ->
+                                observer.handle(
+                                    Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(it)
+                                )
+                            }
                         }
                 }
             }
@@ -322,18 +337,18 @@ internal class SøknadsbehandlingServiceImpl(
 
     internal object IverksettStatusovergangFeilMapper {
         fun map(feil: Statusovergang.KunneIkkeIverksetteSøknadsbehandling) = when (feil) {
-            Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeJournalføre -> KunneIkkeIverksetteBehandling.KunneIkkeJournalføreBrev
-            Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.KunneIkkeKontrollsimulere -> KunneIkkeIverksetteBehandling.KunneIkkeKontrollsimulere
-            Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> KunneIkkeIverksetteBehandling.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
-            Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.TekniskFeil -> KunneIkkeIverksetteBehandling.KunneIkkeUtbetale
-            Statusovergang.KunneIkkeIverksetteSøknadsbehandling.SaksbehandlerOgAttestantKanIkkeVæreSammePerson -> KunneIkkeIverksetteBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
-            Statusovergang.KunneIkkeIverksetteSøknadsbehandling.FantIkkePerson -> KunneIkkeIverksetteBehandling.FantIkkePerson
+            Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeJournalføre -> SøknadsbehandlingService.KunneIkkeIverksette.KunneIkkeJournalføreBrev
+            Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.KunneIkkeKontrollsimulere -> SøknadsbehandlingService.KunneIkkeIverksette.KunneIkkeKontrollsimulere
+            Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> SøknadsbehandlingService.KunneIkkeIverksette.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
+            Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.TekniskFeil -> SøknadsbehandlingService.KunneIkkeIverksette.KunneIkkeUtbetale
+            Statusovergang.KunneIkkeIverksetteSøknadsbehandling.SaksbehandlerOgAttestantKanIkkeVæreSammePerson -> SøknadsbehandlingService.KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
+            Statusovergang.KunneIkkeIverksetteSøknadsbehandling.FantIkkePerson -> SøknadsbehandlingService.KunneIkkeIverksette.FantIkkePerson
         }
     }
 
-    override fun brev(request: OpprettBrevRequest): Either<KunneIkkeLageBrevutkast, ByteArray> {
+    override fun brev(request: SøknadsbehandlingService.BrevRequest): Either<SøknadsbehandlingService.KunneIkkeLageBrev, ByteArray> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
-            ?: return KunneIkkeLageBrevutkast.FantIkkeBehandling.left()
+            ?: return SøknadsbehandlingService.KunneIkkeLageBrev.FantIkkeBehandling.left()
 
         val visitor = LagBrevRequestVisitor(
             hentPerson = { fnr ->
@@ -349,19 +364,19 @@ internal class SøknadsbehandlingServiceImpl(
         val brevRequest = visitor.brevRequest.getOrHandle {
             return when (it) {
                 LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> {
-                    KunneIkkeLageBrevutkast.FikkIkkeHentetSaksbehandlerEllerAttestant.left()
+                    SøknadsbehandlingService.KunneIkkeLageBrev.FikkIkkeHentetSaksbehandlerEllerAttestant.left()
                 }
                 LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeHentePerson -> {
-                    KunneIkkeLageBrevutkast.FantIkkePerson.left()
+                    SøknadsbehandlingService.KunneIkkeLageBrev.FantIkkePerson.left()
                 }
                 is LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeLageBrevForStatus -> {
-                    KunneIkkeLageBrevutkast.KanIkkeLageBrevutkastForStatus(it.status).left()
+                    SøknadsbehandlingService.KunneIkkeLageBrev.KanIkkeLageBrevutkastForStatus(it.status).left()
                 }
             }
         }
 
         return brevService.lagBrev(brevRequest)
-            .mapLeft { KunneIkkeLageBrevutkast.KunneIkkeLageBrev }
+            .mapLeft { SøknadsbehandlingService.KunneIkkeLageBrev.KunneIkkeLagePDF }
     }
 
     private fun hentNavnForNavIdent(navIdent: NavIdentBruker): Either<MicrosoftGraphApiOppslagFeil, String> {
@@ -369,7 +384,8 @@ internal class SøknadsbehandlingServiceImpl(
             .map { it.displayName }
     }
 
-    override fun hent(request: HentBehandlingRequest): Either<FantIkkeBehandling, Søknadsbehandling> {
-        return søknadsbehandlingRepo.hent(request.behandlingId)?.right() ?: FantIkkeBehandling.left()
+    override fun hent(request: SøknadsbehandlingService.HentRequest): Either<SøknadsbehandlingService.FantIkkeBehandling, Søknadsbehandling> {
+        return søknadsbehandlingRepo.hent(request.behandlingId)?.right()
+            ?: SøknadsbehandlingService.FantIkkeBehandling.left()
     }
 }

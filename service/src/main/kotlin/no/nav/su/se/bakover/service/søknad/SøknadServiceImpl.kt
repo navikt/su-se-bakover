@@ -76,7 +76,7 @@ internal class SøknadServiceImpl(
                 val søknad = Søknad.Ny(
                     sakId = it.id,
                     id = UUID.randomUUID(),
-                    opprettet = Tidspunkt.now(),
+                    opprettet = Tidspunkt.now(clock),
                     søknadInnhold = søknadsinnholdMedNyesteFødselsnummer,
                 )
                 søknadRepo.opprettSøknad(søknad)
@@ -175,7 +175,7 @@ internal class SøknadServiceImpl(
         }
 
         return søknad.journalfør(journalpostId).also {
-            søknadRepo.oppdaterjournalpostId(søknad.id, journalpostId)
+            søknadRepo.oppdaterjournalpostId(it)
             søknadMetrics.incrementNyCounter(SøknadMetrics.NyHandlinger.JOURNALFØRT)
         }.right()
     }
@@ -197,7 +197,7 @@ internal class SøknadServiceImpl(
             KunneIkkeOppretteOppgave(søknad.sakId, søknad.id, søknad.journalpostId, "Kunne ikke opprette oppgave")
         }.map { oppgaveId ->
             return søknad.medOppgave(oppgaveId).also {
-                søknadRepo.oppdaterOppgaveId(søknad.id, oppgaveId)
+                søknadRepo.oppdaterOppgaveId(it)
                 søknadMetrics.incrementNyCounter(SøknadMetrics.NyHandlinger.OPPRETTET_OPPGAVE)
             }.right()
         }

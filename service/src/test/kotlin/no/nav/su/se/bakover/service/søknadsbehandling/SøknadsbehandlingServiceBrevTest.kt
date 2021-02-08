@@ -15,15 +15,14 @@ import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
-import no.nav.su.se.bakover.service.behandling.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
@@ -62,8 +61,8 @@ internal class SøknadsbehandlingServiceBrevTest {
         }
         createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-        ).brev(OpprettBrevRequest(beregnetAvslag.id)).let {
-            it shouldBe KunneIkkeLageBrevutkast.FantIkkeBehandling.left()
+        ).brev(SøknadsbehandlingService.BrevRequest(beregnetAvslag.id)).let {
+            it shouldBe SøknadsbehandlingService.KunneIkkeLageBrev.FantIkkeBehandling.left()
         }
     }
 
@@ -80,8 +79,8 @@ internal class SøknadsbehandlingServiceBrevTest {
         createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             personService = personServiceMock
-        ).brev(OpprettBrevRequest(beregnetAvslag.id)).let {
-            it shouldBe KunneIkkeLageBrevutkast.FantIkkePerson.left()
+        ).brev(SøknadsbehandlingService.BrevRequest(beregnetAvslag.id)).let {
+            it shouldBe SøknadsbehandlingService.KunneIkkeLageBrev.FantIkkePerson.left()
         }
     }
 
@@ -103,8 +102,8 @@ internal class SøknadsbehandlingServiceBrevTest {
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             personService = personServiceMock,
             microsoftGraphApiOppslag = microsoftGraphApiOppslagMock
-        ).brev(OpprettBrevRequest(beregnetAvslag.id)).let {
-            it shouldBe KunneIkkeLageBrevutkast.FikkIkkeHentetSaksbehandlerEllerAttestant.left()
+        ).brev(SøknadsbehandlingService.BrevRequest(beregnetAvslag.id)).let {
+            it shouldBe SøknadsbehandlingService.KunneIkkeLageBrev.FikkIkkeHentetSaksbehandlerEllerAttestant.left()
         }
     }
 
@@ -131,8 +130,8 @@ internal class SøknadsbehandlingServiceBrevTest {
             personService = personServiceMock,
             microsoftGraphApiOppslag = microsoftGraphApiOppslagMock,
             brevService = brevServiceMock
-        ).brev(OpprettBrevRequest(beregnetAvslag.id)).let {
-            it shouldBe KunneIkkeLageBrevutkast.KunneIkkeLageBrev.left()
+        ).brev(SøknadsbehandlingService.BrevRequest(beregnetAvslag.id)).let {
+            it shouldBe SøknadsbehandlingService.KunneIkkeLageBrev.KunneIkkeLagePDF.left()
         }
     }
 
@@ -160,7 +159,7 @@ internal class SøknadsbehandlingServiceBrevTest {
             personService = personServiceMock,
             microsoftGraphApiOppslag = microsoftGraphApiOppslagMock,
             brevService = brevServiceMock
-        ).brev(OpprettBrevRequest(beregnetAvslag.id)).let {
+        ).brev(SøknadsbehandlingService.BrevRequest(beregnetAvslag.id)).let {
             it shouldBe pdf.right()
         }
     }
@@ -169,7 +168,7 @@ internal class SøknadsbehandlingServiceBrevTest {
     fun `svarer med feil hvis det ikke er mulig å opprette brev for aktuell behandling`() {
         val behandlingMock = mock<Søknadsbehandling.Vilkårsvurdert.Uavklart> {
             on { accept(any()) }.thenCallRealMethod()
-            on { status } doReturn Behandling.BehandlingsStatus.OPPRETTET
+            on { status } doReturn BehandlingsStatus.OPPRETTET
         }
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
@@ -178,8 +177,8 @@ internal class SøknadsbehandlingServiceBrevTest {
 
         createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-        ).brev(OpprettBrevRequest(beregnetAvslag.id)).let {
-            it shouldBe KunneIkkeLageBrevutkast.KanIkkeLageBrevutkastForStatus(Behandling.BehandlingsStatus.OPPRETTET).left()
+        ).brev(SøknadsbehandlingService.BrevRequest(beregnetAvslag.id)).let {
+            it shouldBe SøknadsbehandlingService.KunneIkkeLageBrev.KanIkkeLageBrevutkastForStatus(BehandlingsStatus.OPPRETTET).left()
         }
     }
 }

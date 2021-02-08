@@ -87,7 +87,7 @@ fun Behandlingsinformasjon.withVilkårAvslått() =
     )
 
 @TestOnly
-fun Behandlingsinformasjon.withVilkårIkkeVurdert() =
+fun withVilkårIkkeVurdert() =
     Behandlingsinformasjon(
         uførhet = null,
         flyktning = null,
@@ -100,7 +100,3 @@ fun Behandlingsinformasjon.withVilkårIkkeVurdert() =
         bosituasjon = null,
         ektefelle = null
     )
-
-@TestOnly
-fun extractBehandlingsinformasjon(behandling: Behandling) =
-    behandling.behandlingsinformasjon()

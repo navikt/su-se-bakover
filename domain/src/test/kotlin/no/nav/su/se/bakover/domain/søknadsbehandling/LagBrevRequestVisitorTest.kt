@@ -19,7 +19,6 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagBrevRequest
@@ -83,7 +82,7 @@ internal class LagBrevRequestVisitorTest {
                 hentNavn = { hentNavn(it) }
             ).apply { it.accept(this) }
                 .let {
-                    it.brevRequest shouldBe LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeLageBrevForStatus(Behandling.BehandlingsStatus.OPPRETTET)
+                    it.brevRequest shouldBe LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeLageBrevForStatus(BehandlingsStatus.OPPRETTET)
                         .left()
                 }
         }
@@ -94,7 +93,7 @@ internal class LagBrevRequestVisitorTest {
                 hentNavn = { hentNavn(it) }
             ).apply { it.accept(this) }
                 .let {
-                    it.brevRequest shouldBe LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeLageBrevForStatus(Behandling.BehandlingsStatus.VILKÅRSVURDERT_INNVILGET)
+                    it.brevRequest shouldBe LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeLageBrevForStatus(BehandlingsStatus.VILKÅRSVURDERT_INNVILGET)
                         .left()
                 }
         }

@@ -15,13 +15,9 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
-import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.Behandling
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.Revurdering
 import no.nav.su.se.bakover.domain.behandling.SimulertRevurdering
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.beregning.NyBeregningForSøknadsbehandling
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -38,17 +34,6 @@ import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.avstemming.AvstemmingFeilet
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
-import no.nav.su.se.bakover.service.behandling.BehandlingService
-import no.nav.su.se.bakover.service.behandling.FantIkkeBehandling
-import no.nav.su.se.bakover.service.behandling.IverksattBehandling
-import no.nav.su.se.bakover.service.behandling.KunneIkkeBeregne
-import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling
-import no.nav.su.se.bakover.service.behandling.KunneIkkeLageBrevutkast
-import no.nav.su.se.bakover.service.behandling.KunneIkkeOppdatereBehandlingsinformasjon
-import no.nav.su.se.bakover.service.behandling.KunneIkkeOppretteSøknadsbehandling
-import no.nav.su.se.bakover.service.behandling.KunneIkkeSendeTilAttestering
-import no.nav.su.se.bakover.service.behandling.KunneIkkeSimulereBehandling
-import no.nav.su.se.bakover.service.behandling.KunneIkkeUnderkjenneBehandling
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -67,17 +52,7 @@ import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukketSøknad
 import no.nav.su.se.bakover.service.søknadsbehandling.FerdigstillSøknadsbehandingIverksettingService
-import no.nav.su.se.bakover.service.søknadsbehandling.HentBehandlingRequest
-import no.nav.su.se.bakover.service.søknadsbehandling.IverksettSøknadsbehandlingRequest
-import no.nav.su.se.bakover.service.søknadsbehandling.OppdaterSøknadsbehandlingsinformasjonRequest
-import no.nav.su.se.bakover.service.søknadsbehandling.OpprettBeregningRequest
-import no.nav.su.se.bakover.service.søknadsbehandling.OpprettBrevRequest
-import no.nav.su.se.bakover.service.søknadsbehandling.OpprettManglendeJournalpostOgBrevdistribusjonResultat
-import no.nav.su.se.bakover.service.søknadsbehandling.OpprettSimuleringRequest
-import no.nav.su.se.bakover.service.søknadsbehandling.OpprettSøknadsbehandlingRequest
-import no.nav.su.se.bakover.service.søknadsbehandling.SendTilAttesteringRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
-import no.nav.su.se.bakover.service.søknadsbehandling.UnderkjennSøknadsbehandlingRequest
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeGjenopptaUtbetalinger
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeStanseUtbetalinger
@@ -153,91 +128,6 @@ open class AccessCheckProxy(
                     assertHarTilgangTilSak(sakId)
 
                     return services.utbetaling.gjenopptaUtbetalinger(sakId, saksbehandler)
-                }
-            },
-            behandling = object : BehandlingService {
-                override fun hentBehandling(behandlingId: UUID): Either<FantIkkeBehandling, Behandling> {
-                    assertHarTilgangTilBehandling(behandlingId)
-
-                    return services.behandling.hentBehandling((behandlingId))
-                }
-
-                override fun hentBehandlingForUtbetaling(utbetalingId: UUID30) = kastKanKunKallesFraAnnenService()
-
-                override fun underkjenn(
-                    behandlingId: UUID,
-                    attestering: Attestering.Underkjent
-                ): Either<KunneIkkeUnderkjenneBehandling, Behandling> {
-                    assertHarTilgangTilBehandling(behandlingId)
-
-                    return services.behandling.underkjenn(behandlingId, attestering)
-                }
-
-                override fun oppdaterBehandlingsinformasjon(
-                    behandlingId: UUID,
-                    saksbehandler: NavIdentBruker.Saksbehandler,
-                    behandlingsinformasjon: Behandlingsinformasjon
-                ): Either<KunneIkkeOppdatereBehandlingsinformasjon, Behandling> {
-                    assertHarTilgangTilBehandling(behandlingId)
-
-                    return services.behandling.oppdaterBehandlingsinformasjon(
-                        behandlingId,
-                        saksbehandler,
-                        behandlingsinformasjon
-                    )
-                }
-
-                override fun opprettBeregning(
-                    nyBeregningForSøknadsbehandling: NyBeregningForSøknadsbehandling
-                ): Either<KunneIkkeBeregne, Behandling> {
-                    assertHarTilgangTilBehandling(nyBeregningForSøknadsbehandling.behandlingId)
-
-                    return services.behandling.opprettBeregning(nyBeregningForSøknadsbehandling)
-                }
-
-                override fun simuler(
-                    behandlingId: UUID,
-                    saksbehandler: NavIdentBruker.Saksbehandler
-                ): Either<KunneIkkeSimulereBehandling, Behandling> {
-                    assertHarTilgangTilBehandling(behandlingId)
-
-                    return services.behandling.simuler(behandlingId, saksbehandler)
-                }
-
-                override fun sendTilAttestering(
-                    behandlingId: UUID,
-                    saksbehandler: NavIdentBruker.Saksbehandler
-                ): Either<KunneIkkeSendeTilAttestering, Behandling> {
-                    assertHarTilgangTilBehandling(behandlingId)
-
-                    return services.behandling.sendTilAttestering(behandlingId, saksbehandler)
-                }
-
-                override fun iverksett(
-                    behandlingId: UUID,
-                    attestant: NavIdentBruker.Attestant
-                ): Either<KunneIkkeIverksetteBehandling, IverksattBehandling> {
-                    assertHarTilgangTilBehandling(behandlingId)
-
-                    return services.behandling.iverksett(behandlingId, attestant)
-                }
-
-                override fun ferdigstillInnvilgelse(behandling: Behandling) {
-                    kastKanKunKallesFraAnnenService()
-                }
-
-                override fun opprettSøknadsbehandling(
-                    søknadId: UUID
-                ): Either<KunneIkkeOppretteSøknadsbehandling, Behandling> {
-                    assertHarTilgangTilSøknad(søknadId)
-
-                    return services.behandling.opprettSøknadsbehandling(søknadId)
-                }
-
-                override fun lagBrevutkast(behandlingId: UUID): Either<KunneIkkeLageBrevutkast, ByteArray> {
-                    assertHarTilgangTilBehandling(behandlingId)
-
-                    return services.behandling.lagBrevutkast(behandlingId)
                 }
             },
             sak = object : SakService {
@@ -346,47 +236,47 @@ open class AccessCheckProxy(
             },
             toggles = services.toggles,
             søknadsbehandling = object : SøknadsbehandlingService {
-                override fun opprett(request: OpprettSøknadsbehandlingRequest): Either<KunneIkkeOppretteSøknadsbehandling, Søknadsbehandling> {
+                override fun opprett(request: SøknadsbehandlingService.OpprettRequest): Either<SøknadsbehandlingService.KunneIkkeOpprette, Søknadsbehandling> {
                     assertHarTilgangTilSøknad(request.søknadId)
                     return services.søknadsbehandling.opprett(request)
                 }
 
-                override fun vilkårsvurder(request: OppdaterSøknadsbehandlingsinformasjonRequest): Either<KunneIkkeOppdatereBehandlingsinformasjon, Søknadsbehandling> {
+                override fun vilkårsvurder(request: SøknadsbehandlingService.VilkårsvurderRequest): Either<SøknadsbehandlingService.KunneIkkeVilkårsvurdere, Søknadsbehandling> {
                     assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.vilkårsvurder(request)
                 }
 
-                override fun beregn(request: OpprettBeregningRequest): Either<KunneIkkeBeregne, Søknadsbehandling> {
+                override fun beregn(request: SøknadsbehandlingService.BeregnRequest): Either<SøknadsbehandlingService.KunneIkkeBeregne, Søknadsbehandling> {
                     assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.beregn(request)
                 }
 
-                override fun simuler(request: OpprettSimuleringRequest): Either<KunneIkkeSimulereBehandling, Søknadsbehandling> {
+                override fun simuler(request: SøknadsbehandlingService.SimulerRequest): Either<SøknadsbehandlingService.KunneIkkeSimulereBehandling, Søknadsbehandling> {
                     assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.simuler(request)
                 }
 
-                override fun sendTilAttestering(request: SendTilAttesteringRequest): Either<KunneIkkeSendeTilAttestering, Søknadsbehandling> {
+                override fun sendTilAttestering(request: SøknadsbehandlingService.SendTilAttesteringRequest): Either<SøknadsbehandlingService.KunneIkkeSendeTilAttestering, Søknadsbehandling> {
                     assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.sendTilAttestering(request)
                 }
 
-                override fun underkjenn(request: UnderkjennSøknadsbehandlingRequest): Either<KunneIkkeUnderkjenneBehandling, Søknadsbehandling> {
+                override fun underkjenn(request: SøknadsbehandlingService.UnderkjennRequest): Either<SøknadsbehandlingService.KunneIkkeUnderkjenne, Søknadsbehandling> {
                     assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.underkjenn(request)
                 }
 
-                override fun iverksett(request: IverksettSøknadsbehandlingRequest): Either<KunneIkkeIverksetteBehandling, Søknadsbehandling> {
+                override fun iverksett(request: SøknadsbehandlingService.IverksettRequest): Either<SøknadsbehandlingService.KunneIkkeIverksette, Søknadsbehandling> {
                     assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.iverksett(request)
                 }
 
-                override fun brev(request: OpprettBrevRequest): Either<KunneIkkeLageBrevutkast, ByteArray> {
+                override fun brev(request: SøknadsbehandlingService.BrevRequest): Either<SøknadsbehandlingService.KunneIkkeLageBrev, ByteArray> {
                     assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.brev(request)
                 }
 
-                override fun hent(request: HentBehandlingRequest): Either<FantIkkeBehandling, Søknadsbehandling> {
+                override fun hent(request: SøknadsbehandlingService.HentRequest): Either<SøknadsbehandlingService.FantIkkeBehandling, Søknadsbehandling> {
                     assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.hent(request)
                 }
@@ -397,9 +287,8 @@ open class AccessCheckProxy(
                 override fun ferdigstillInnvilgelse(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget) =
                     kastKanKunKallesFraAnnenService()
 
-                override fun opprettManglendeJournalpostOgBrevdistribusjon(): OpprettManglendeJournalpostOgBrevdistribusjonResultat {
+                override fun opprettManglendeJournalpostOgBrevdistribusjon(): FerdigstillSøknadsbehandingIverksettingService.OpprettManglendeJournalpostOgBrevdistribusjonResultat {
                     // Dette er et driftsendepunkt og vi vil ikke returnere kode 6/7/person-sensitive data.
-
                     return services.ferdigstillSøknadsbehandingIverksettingService.opprettManglendeJournalpostOgBrevdistribusjon()
                 }
             },

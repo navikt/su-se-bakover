@@ -27,7 +27,6 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.behandling.KunneIkkeSimulereBehandling
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.junit.jupiter.api.Test
@@ -47,7 +46,7 @@ internal class SøknadsbehandlingServiceSimuleringTest {
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             utbetalingService = utbetalingServiceMock,
         ).simuler(
-            OpprettSimuleringRequest(beregnetBehandling.id, saksbehandler)
+            SøknadsbehandlingService.SimulerRequest(beregnetBehandling.id, saksbehandler)
         )
 
         val expected = Søknadsbehandling.Simulert(
@@ -85,10 +84,10 @@ internal class SøknadsbehandlingServiceSimuleringTest {
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             utbetalingService = utbetalingServiceMock,
         ).simuler(
-            OpprettSimuleringRequest(beregnetBehandling.id, saksbehandler)
+            SøknadsbehandlingService.SimulerRequest(beregnetBehandling.id, saksbehandler)
         )
 
-        response shouldBe KunneIkkeSimulereBehandling.FantIkkeBehandling.left()
+        response shouldBe SøknadsbehandlingService.KunneIkkeSimulereBehandling.FantIkkeBehandling.left()
 
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe beregnetBehandling.id })
         verifyNoMoreInteractions(søknadsbehandlingRepoMock, utbetalingServiceMock)
@@ -107,10 +106,10 @@ internal class SøknadsbehandlingServiceSimuleringTest {
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             utbetalingService = utbetalingServiceMock,
         ).simuler(
-            OpprettSimuleringRequest(beregnetBehandling.id, saksbehandler)
+            SøknadsbehandlingService.SimulerRequest(beregnetBehandling.id, saksbehandler)
         )
 
-        response shouldBe KunneIkkeSimulereBehandling.KunneIkkeSimulere.left()
+        response shouldBe SøknadsbehandlingService.KunneIkkeSimulereBehandling.KunneIkkeSimulere.left()
 
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe beregnetBehandling.id })
 

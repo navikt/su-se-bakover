@@ -21,18 +21,18 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.behandling.Behandling
-import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
-import no.nav.su.se.bakover.domain.behandling.extractBehandlingsinformasjon
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.ProdServiceBuilder
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.VilkårsvurderRequest
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.applicationConfig
-import no.nav.su.se.bakover.web.behandlingFactory
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.fixedClock
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingJson
@@ -47,7 +47,7 @@ internal class BeregnRoutesKtTest {
 
     private val saksbehandler = NavIdentBruker.Saksbehandler("AB12345")
 
-    private val repos = DatabaseBuilder.build(EmbeddedDatabase.instance(), behandlingFactory)
+    private val repos = DatabaseBuilder.build(EmbeddedDatabase.instance())
     private val services = ProdServiceBuilder.build(
         databaseRepos = repos,
         clients = TestClientsBuilder.build(applicationConfig),
@@ -66,15 +66,17 @@ internal class BeregnRoutesKtTest {
             val fraOgMed = LocalDate.of(2021, Month.JANUARY, 1)
             val tilOgMed = LocalDate.of(2021, Month.DECEMBER, 31)
 
-            services.behandling.oppdaterBehandlingsinformasjon(
-                objects.nySøknadsbehandling.id,
-                saksbehandler,
-                extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
+            services.søknadsbehandling.vilkårsvurder(
+                VilkårsvurderRequest(
+                    objects.behandling.id,
+                    saksbehandler,
+                    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
+                )
             )
 
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.nySøknadsbehandling.id}/beregn",
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn",
                 listOf(Brukerrolle.Saksbehandler)
             ) {
                 setBody(
@@ -111,15 +113,17 @@ internal class BeregnRoutesKtTest {
             val fradragFraOgMed = LocalDate.of(2021, Month.JANUARY, 1)
             val fradragTilOgMed = LocalDate.of(2021, Month.DECEMBER, 31)
 
-            services.behandling.oppdaterBehandlingsinformasjon(
-                objects.nySøknadsbehandling.id,
-                saksbehandler,
-                extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
+            services.søknadsbehandling.vilkårsvurder(
+                VilkårsvurderRequest(
+                    objects.behandling.id,
+                    saksbehandler,
+                    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
+                )
             )
 
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.nySøknadsbehandling.id}/beregn",
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn",
                 listOf(Brukerrolle.Saksbehandler)
             ) {
                 setBody(
@@ -161,15 +165,17 @@ internal class BeregnRoutesKtTest {
             val fraOgMed = LocalDate.of(2021, Month.JANUARY, 1)
             val tilOgMed = LocalDate.of(2021, Month.DECEMBER, 31)
 
-            services.behandling.oppdaterBehandlingsinformasjon(
-                objects.nySøknadsbehandling.id,
-                saksbehandler,
-                extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
+            services.søknadsbehandling.vilkårsvurder(
+                VilkårsvurderRequest(
+                    objects.behandling.id,
+                    saksbehandler,
+                    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
+                )
             )
 
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.nySøknadsbehandling.id}/beregn",
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn",
                 listOf(Brukerrolle.Saksbehandler)
             ) {
                 setBody(
@@ -225,15 +231,17 @@ internal class BeregnRoutesKtTest {
             val fraOgMed = LocalDate.of(2021, Month.JANUARY, 1)
             val tilOgMed = LocalDate.of(2021, Month.DECEMBER, 31)
 
-            services.behandling.oppdaterBehandlingsinformasjon(
-                objects.nySøknadsbehandling.id,
-                saksbehandler,
-                extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
+            services.søknadsbehandling.vilkårsvurder(
+                VilkårsvurderRequest(
+                    objects.behandling.id,
+                    saksbehandler,
+                    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
+                )
             )
 
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.nySøknadsbehandling.id}/beregn",
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn",
                 listOf(Brukerrolle.Saksbehandler)
             ) {
                 setBody(
@@ -298,7 +306,7 @@ internal class BeregnRoutesKtTest {
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.nySøknadsbehandling.id}/beregn",
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn",
                 listOf(Brukerrolle.Saksbehandler)
             ).apply {
                 assertSoftly {
@@ -309,14 +317,17 @@ internal class BeregnRoutesKtTest {
             val fraOgMed = LocalDate.of(2021, Month.JANUARY, 1)
             val tilOgMed = LocalDate.of(2021, Month.DECEMBER, 31)
 
-            objects.behandling.oppdaterBehandlingsinformasjon(
-                saksbehandler,
-                extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
+            services.søknadsbehandling.vilkårsvurder(
+                VilkårsvurderRequest(
+                    objects.behandling.id,
+                    saksbehandler,
+                    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
+                )
             )
 
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.nySøknadsbehandling.id}/beregn",
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn",
                 listOf(Brukerrolle.Saksbehandler)
             ) {
                 setBody(
@@ -351,11 +362,11 @@ internal class BeregnRoutesKtTest {
             testSusebakover()
         }) {
             val objects = setup()
-            objects.behandling.status() shouldBe Behandling.BehandlingsStatus.OPPRETTET
+            objects.behandling.status shouldBe BehandlingsStatus.OPPRETTET
 
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.nySøknadsbehandling.id}/beregn",
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn",
                 listOf(Brukerrolle.Saksbehandler)
             ) {
                 setBody(
@@ -388,15 +399,17 @@ internal class BeregnRoutesKtTest {
             val fraOgMed = LocalDate.of(2020, Month.JANUARY, 1)
             val tilOgMed = LocalDate.of(2020, Month.DECEMBER, 31)
 
-            services.behandling.oppdaterBehandlingsinformasjon(
-                objects.nySøknadsbehandling.id,
-                saksbehandler,
-                extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
+            services.søknadsbehandling.vilkårsvurder(
+                VilkårsvurderRequest(
+                    objects.behandling.id,
+                    saksbehandler,
+                    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
+                )
             )
 
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.nySøknadsbehandling.id}/beregn",
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn",
                 listOf(Brukerrolle.Saksbehandler)
             ) {
                 setBody(
@@ -427,15 +440,17 @@ internal class BeregnRoutesKtTest {
             val fraOgMed = LocalDate.of(2021, Month.JANUARY, 2)
             val tilOgMed = LocalDate.of(2021, Month.DECEMBER, 31)
 
-            services.behandling.oppdaterBehandlingsinformasjon(
-                objects.nySøknadsbehandling.id,
-                saksbehandler,
-                extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
+            services.søknadsbehandling.vilkårsvurder(
+                VilkårsvurderRequest(
+                    objects.behandling.id,
+                    saksbehandler,
+                    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
+                )
             )
 
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.nySøknadsbehandling.id}/beregn",
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn",
                 listOf(Brukerrolle.Saksbehandler)
             ) {
                 setBody(
@@ -466,15 +481,17 @@ internal class BeregnRoutesKtTest {
             val fraOgMed = LocalDate.of(2021, Month.JANUARY, 1)
             val tilOgMed = LocalDate.of(2021, Month.DECEMBER, 30)
 
-            services.behandling.oppdaterBehandlingsinformasjon(
-                objects.nySøknadsbehandling.id,
-                saksbehandler,
-                extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
+            services.søknadsbehandling.vilkårsvurder(
+                VilkårsvurderRequest(
+                    objects.behandling.id,
+                    saksbehandler,
+                    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
+                )
             )
 
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.nySøknadsbehandling.id}/beregn",
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn",
                 listOf(Brukerrolle.Saksbehandler)
             ) {
                 setBody(
@@ -505,15 +522,17 @@ internal class BeregnRoutesKtTest {
             val fraOgMed = LocalDate.of(2021, Month.JANUARY, 1)
             val tilOgMed = LocalDate.of(2022, Month.JANUARY, 31)
 
-            services.behandling.oppdaterBehandlingsinformasjon(
-                objects.nySøknadsbehandling.id,
-                saksbehandler,
-                extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
+            services.søknadsbehandling.vilkårsvurder(
+                VilkårsvurderRequest(
+                    objects.behandling.id,
+                    saksbehandler,
+                    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
+                )
             )
 
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.nySøknadsbehandling.id}/beregn",
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn",
                 listOf(Brukerrolle.Saksbehandler)
             ) {
                 setBody(
@@ -544,15 +563,17 @@ internal class BeregnRoutesKtTest {
             val fraOgMed = LocalDate.of(2021, Month.FEBRUARY, 1)
             val tilOgMed = LocalDate.of(2021, Month.JANUARY, 31)
 
-            services.behandling.oppdaterBehandlingsinformasjon(
-                objects.nySøknadsbehandling.id,
-                saksbehandler,
-                extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
+            services.søknadsbehandling.vilkårsvurder(
+                VilkårsvurderRequest(
+                    objects.behandling.id,
+                    saksbehandler,
+                    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
+                )
             )
 
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.nySøknadsbehandling.id}/beregn",
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn",
                 listOf(Brukerrolle.Saksbehandler)
             ) {
                 setBody(
@@ -583,15 +604,17 @@ internal class BeregnRoutesKtTest {
             val fraOgMed = LocalDate.of(2021, Month.JANUARY, 1)
             val tilOgMed = LocalDate.of(2021, Month.JANUARY, 31)
 
-            services.behandling.oppdaterBehandlingsinformasjon(
-                objects.nySøknadsbehandling.id,
-                saksbehandler,
-                extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
+            services.søknadsbehandling.vilkårsvurder(
+                VilkårsvurderRequest(
+                    objects.behandling.id,
+                    saksbehandler,
+                    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
+                )
             )
 
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.nySøknadsbehandling.id}/beregn",
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn",
                 listOf(Brukerrolle.Saksbehandler)
             ) {
                 setBody(
@@ -615,8 +638,7 @@ internal class BeregnRoutesKtTest {
     data class Objects(
         val sak: Sak,
         val søknad: Søknad,
-        val nySøknadsbehandling: NySøknadsbehandling,
-        val behandling: Behandling
+        val behandling: Søknadsbehandling.Vilkårsvurdert.Uavklart,
     )
 
     private fun setup(): Objects {
@@ -626,25 +648,29 @@ internal class BeregnRoutesKtTest {
             repos.sak.opprettSak(it)
         }
         val sak: Sak = repos.sak.hentSak(fnr)!!
+        val journalpostId = JournalpostId("12")
+        val oppgaveId = OppgaveId("12")
+        val søknadMedOppgave: Søknad.Journalført.MedOppgave = (sak.søknader()[0] as Søknad.Ny)
+            .journalfør(journalpostId).also { repos.søknad.oppdaterjournalpostId(it) }
+            .medOppgave(oppgaveId).also { repos.søknad.oppdaterOppgaveId(it) }
 
-        val søknadId: UUID = sak.søknader()[0].id
-
-        repos.søknad.oppdaterjournalpostId(søknadId, JournalpostId("12"))
-        repos.søknad.oppdaterOppgaveId(søknadId, OppgaveId("12"))
-
-        val nySøknadsbehandling = NySøknadsbehandling(
+        val nySøknadsbehandling = Søknadsbehandling.Vilkårsvurdert.Uavklart(
+            id = UUID.randomUUID(),
+            opprettet = sak.opprettet,
             sakId = sak.id,
-            søknadId = søknadId,
-            oppgaveId = OppgaveId("1234")
+            søknad = søknadMedOppgave,
+            oppgaveId = OppgaveId("1234"),
+            saksnummer = sak.saksnummer,
+            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
+            fnr = sak.fnr,
         )
-        repos.behandling.opprettSøknadsbehandling(
+        repos.søknadsbehandling.lagre(
             nySøknadsbehandling
         )
         return Objects(
             repos.sak.hentSak(sak.id)!!,
-            repos.søknad.hentSøknad(søknadId)!!,
+            repos.søknad.hentSøknad(søknadMedOppgave.id)!!,
             nySøknadsbehandling,
-            repos.behandling.hentBehandling(nySøknadsbehandling.id)!!
         )
     }
 }

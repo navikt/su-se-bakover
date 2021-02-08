@@ -4,8 +4,8 @@ import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.collections.shouldContain
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.database.DatabaseRepos
-import no.nav.su.se.bakover.service.behandling.BehandlingServiceImpl
 import no.nav.su.se.bakover.service.sak.SakServiceImpl
+import no.nav.su.se.bakover.service.søknadsbehandling.FerdigstillSøknadsbehandingIverksettingServiceImpl
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServiceImpl
 import org.junit.jupiter.api.Test
 import java.time.Clock
@@ -18,7 +18,6 @@ internal class ServiceBuilderTest {
                 avstemming = mock(),
                 utbetaling = mock(),
                 søknad = mock(),
-                behandling = mock(),
                 hendelseslogg = mock(),
                 sak = mock(),
                 person = mock(),
@@ -49,8 +48,8 @@ internal class ServiceBuilderTest {
             unleash = mock()
         ).let {
             (it.sak as SakServiceImpl).observers shouldContain it.statistikk
-            (it.behandling as BehandlingServiceImpl).getObservers() shouldContain it.statistikk
             (it.søknadsbehandling as SøknadsbehandlingServiceImpl).getObservers() shouldContain it.statistikk
+            (it.ferdigstillSøknadsbehandingIverksettingService as FerdigstillSøknadsbehandingIverksettingServiceImpl).getObservers() shouldContain it.statistikk
         }
     }
 }

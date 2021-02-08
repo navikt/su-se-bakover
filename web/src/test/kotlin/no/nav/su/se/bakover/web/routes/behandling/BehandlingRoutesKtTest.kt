@@ -33,12 +33,8 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.behandling.Behandling
-import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
-import no.nav.su.se.bakover.domain.behandling.extractBehandlingsinformasjon
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
-import no.nav.su.se.bakover.domain.beregning.NyBeregningForSøknadsbehandling
-import no.nav.su.se.bakover.domain.beregning.Stønadsperiode
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
@@ -47,12 +43,16 @@ import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.ProdServiceBuilder
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.BeregnRequest
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.SendTilAttesteringRequest
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.SimulerRequest
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.VilkårsvurderRequest
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
 import no.nav.su.se.bakover.web.applicationConfig
-import no.nav.su.se.bakover.web.behandlingFactory
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.fixedClock
 import no.nav.su.se.bakover.web.jwtStub
@@ -68,7 +68,7 @@ internal class BehandlingRoutesKtTest {
 
     private val saksbehandler = NavIdentBruker.Saksbehandler("AB12345")
 
-    private val repos = DatabaseBuilder.build(EmbeddedDatabase.instance(), behandlingFactory)
+    private val repos = DatabaseBuilder.build(EmbeddedDatabase.instance())
     private val services = ProdServiceBuilder.build(
         databaseRepos = repos,
         clients = TestClientsBuilder.build(applicationConfig),
@@ -88,7 +88,7 @@ internal class BehandlingRoutesKtTest {
                 val objects = setup()
                 defaultRequest(
                     HttpMethod.Get,
-                    "$sakPath/${objects.sak.id}/behandlinger/${objects.nySøknadsbehandling.id}",
+                    "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}",
                     listOf(Brukerrolle.Veileder)
                 ).apply {
                     response.status() shouldBe HttpStatusCode.Forbidden
@@ -104,11 +104,11 @@ internal class BehandlingRoutesKtTest {
                 val objects = setup()
                 defaultRequest(
                     HttpMethod.Get,
-                    "$sakPath/${objects.sak.id}/behandlinger/${objects.nySøknadsbehandling.id}",
+                    "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}",
                     listOf(Brukerrolle.Saksbehandler)
                 ).apply {
                     objectMapper.readValue<BehandlingJson>(response.content!!).let {
-                        it.id shouldBe objects.nySøknadsbehandling.id.toString()
+                        it.id shouldBe objects.søknadsbehandling.id.toString()
                         it.behandlingsinformasjon shouldNotBe null
                         it.søknad.id shouldBe objects.søknad.id.toString()
                     }
@@ -124,11 +124,11 @@ internal class BehandlingRoutesKtTest {
                 val objects = setup()
                 defaultRequest(
                     HttpMethod.Get,
-                    "$sakPath/${objects.sak.id}/behandlinger/${objects.nySøknadsbehandling.id}",
+                    "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}",
                     listOf(Brukerrolle.Attestant)
                 ).apply {
                     objectMapper.readValue<BehandlingJson>(response.content!!).let {
-                        it.id shouldBe objects.nySøknadsbehandling.id.toString()
+                        it.id shouldBe objects.søknadsbehandling.id.toString()
                         it.behandlingsinformasjon shouldNotBe null
                         it.søknad.id shouldBe objects.søknad.id.toString()
                     }
@@ -143,23 +143,24 @@ internal class BehandlingRoutesKtTest {
             testSusebakover(services = services)
         }) {
             val objects = setup()
-            services.behandling.oppdaterBehandlingsinformasjon(
-                objects.nySøknadsbehandling.id,
-                saksbehandler,
-                extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
+            services.søknadsbehandling.vilkårsvurder(
+                VilkårsvurderRequest(
+                    objects.søknadsbehandling.id,
+                    saksbehandler,
+                    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
+                )
             )
-            services.behandling.opprettBeregning(
-                NyBeregningForSøknadsbehandling.create(
-                    behandlingId = objects.nySøknadsbehandling.id,
-                    saksbehandler = saksbehandler,
-                    stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
+            services.søknadsbehandling.beregn(
+                BeregnRequest(
+                    behandlingId = objects.søknadsbehandling.id,
+                    periode = Periode.create(1.januar(2021), 31.desember(2021)),
                     fradrag = emptyList()
                 )
             )
-            services.behandling.simuler(objects.nySøknadsbehandling.id, saksbehandler)
+            services.søknadsbehandling.simuler(SimulerRequest(objects.søknadsbehandling.id, saksbehandler))
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.nySøknadsbehandling.id}/tilAttestering",
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/tilAttestering",
                 listOf(Brukerrolle.Saksbehandler)
             ) {
             }.apply {
@@ -191,23 +192,28 @@ internal class BehandlingRoutesKtTest {
             )
         }) {
             val objects = setup()
-            services.behandling.oppdaterBehandlingsinformasjon(
-                objects.nySøknadsbehandling.id,
-                saksbehandler,
-                extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
+            services.søknadsbehandling.vilkårsvurder(
+                VilkårsvurderRequest(
+                    objects.søknadsbehandling.id,
+                    saksbehandler,
+                    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
+                )
             )
-            services.behandling.opprettBeregning(
-                NyBeregningForSøknadsbehandling.create(
-                    behandlingId = objects.nySøknadsbehandling.id,
-                    saksbehandler = saksbehandler,
-                    stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
+            services.søknadsbehandling.beregn(
+                BeregnRequest(
+                    behandlingId = objects.søknadsbehandling.id,
+                    periode = Periode.create(1.januar(2021), 31.desember(2021)),
                     fradrag = emptyList(),
                 )
             )
-            services.behandling.simuler(objects.nySøknadsbehandling.id, saksbehandler)
+            services.søknadsbehandling.simuler(
+                SimulerRequest(
+                    objects.søknadsbehandling.id, saksbehandler
+                )
+            )
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.nySøknadsbehandling.id}/tilAttestering",
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/tilAttestering",
                 listOf(Brukerrolle.Saksbehandler)
             ) {
             }.apply {
@@ -245,23 +251,24 @@ internal class BehandlingRoutesKtTest {
                 }
             }
 
-            services.behandling.oppdaterBehandlingsinformasjon(
-                objects.nySøknadsbehandling.id,
-                saksbehandler,
-                extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
+            services.søknadsbehandling.vilkårsvurder(
+                VilkårsvurderRequest(
+                    objects.søknadsbehandling.id,
+                    saksbehandler,
+                    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
+                )
             )
-            services.behandling.opprettBeregning(
-                NyBeregningForSøknadsbehandling.create(
-                    behandlingId = objects.nySøknadsbehandling.id,
-                    saksbehandler = saksbehandler,
-                    stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
+            services.søknadsbehandling.beregn(
+                BeregnRequest(
+                    behandlingId = objects.søknadsbehandling.id,
+                    periode = Periode.create(1.januar(2021), 31.desember(2021)),
                     fradrag = emptyList(),
                 )
             )
 
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.nySøknadsbehandling.id}/simuler",
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/simuler",
                 listOf(Brukerrolle.Saksbehandler)
             ) {}.apply {
                 response.status() shouldBe HttpStatusCode.OK
@@ -278,24 +285,33 @@ internal class BehandlingRoutesKtTest {
             withSetupForBruker(
                 brukersNavIdent,
                 {
-                    services.behandling.oppdaterBehandlingsinformasjon(
-                        nySøknadsbehandling.id,
-                        saksbehandler,
-                        extractBehandlingsinformasjon(behandling).withAlleVilkårOppfylt()
+                    services.søknadsbehandling.vilkårsvurder(
+                        VilkårsvurderRequest(
+                            søknadsbehandling.id,
+                            saksbehandler,
+                            søknadsbehandling.behandlingsinformasjon.withAlleVilkårOppfylt()
+                        )
                     )
-                    services.behandling.opprettBeregning(
-                        NyBeregningForSøknadsbehandling.create(
-                            behandlingId = nySøknadsbehandling.id,
-                            saksbehandler = saksbehandler,
-                            stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
+                    services.søknadsbehandling.beregn(
+                        BeregnRequest(
+                            behandlingId = søknadsbehandling.id,
+                            periode =
+                            Periode.create(
+                                1.januar(2021),
+                                31.desember(2021)
+                            ),
                             fradrag = emptyList()
                         )
                     )
-                    services.behandling.simuler(nySøknadsbehandling.id, saksbehandler)
+                    services.søknadsbehandling.simuler(
+                        SimulerRequest(søknadsbehandling.id, saksbehandler)
+                    )
                         .map {
-                            services.behandling.sendTilAttestering(
-                                nySøknadsbehandling.id,
-                                NavIdentBruker.Saksbehandler(navIdentSaksbehandler)
+                            services.søknadsbehandling.sendTilAttestering(
+                                SendTilAttesteringRequest(
+                                    søknadsbehandling.id,
+                                    NavIdentBruker.Saksbehandler(navIdentSaksbehandler)
+                                )
                             )
                         }
                 }
@@ -306,7 +322,7 @@ internal class BehandlingRoutesKtTest {
             withFerdigbehandletSakForBruker(navIdentSaksbehandler) {
                 defaultRequest(
                     HttpMethod.Patch,
-                    "$sakPath/rubbish/behandlinger/${it.nySøknadsbehandling.id}/iverksett",
+                    "$sakPath/rubbish/behandlinger/${it.søknadsbehandling.id}/iverksett",
                     listOf(Brukerrolle.Saksbehandler)
                 ).apply {
                     response.status() shouldBe HttpStatusCode.Forbidden
@@ -355,7 +371,7 @@ internal class BehandlingRoutesKtTest {
             withFerdigbehandletSakForBruker(navIdentSaksbehandler) {
                 handleRequest(
                     HttpMethod.Patch,
-                    "$sakPath/${it.sak.id}/behandlinger/${it.nySøknadsbehandling.id}/iverksett"
+                    "$sakPath/${it.sak.id}/behandlinger/${it.søknadsbehandling.id}/iverksett"
                 ) {
                     addHeader(
                         HttpHeaders.Authorization,
@@ -375,7 +391,7 @@ internal class BehandlingRoutesKtTest {
             withFerdigbehandletSakForBruker(navIdentAttestant) {
                 requestSomAttestant(
                     HttpMethod.Patch,
-                    "$sakPath/${it.sak.id}/behandlinger/${it.nySøknadsbehandling.id}/iverksett"
+                    "$sakPath/${it.sak.id}/behandlinger/${it.søknadsbehandling.id}/iverksett"
                 )
                     .apply {
                         response.status() shouldBe HttpStatusCode.OK
@@ -398,24 +414,35 @@ internal class BehandlingRoutesKtTest {
             withSetupForBruker(
                 brukersNavIdent,
                 {
-                    services.behandling.oppdaterBehandlingsinformasjon(
-                        nySøknadsbehandling.id,
-                        saksbehandler,
-                        extractBehandlingsinformasjon(behandling).withAlleVilkårOppfylt()
+                    services.søknadsbehandling.vilkårsvurder(
+                        VilkårsvurderRequest(
+                            søknadsbehandling.id,
+                            saksbehandler,
+                            søknadsbehandling.behandlingsinformasjon.withAlleVilkårOppfylt()
+                        )
                     )
-                    services.behandling.opprettBeregning(
-                        NyBeregningForSøknadsbehandling.create(
-                            behandlingId = nySøknadsbehandling.id,
-                            saksbehandler = saksbehandler,
-                            stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
+                    services.søknadsbehandling.beregn(
+                        BeregnRequest(
+                            behandlingId = søknadsbehandling.id,
+                            periode = Periode.create(
+                                1.januar(2021),
+                                31.desember(2021)
+                            ),
                             fradrag = emptyList(),
                         )
                     )
-                    services.behandling.simuler(nySøknadsbehandling.id, saksbehandler)
+                    services.søknadsbehandling.simuler(
+                        SimulerRequest(
+                            søknadsbehandling.id,
+                            saksbehandler
+                        )
+                    )
                         .map {
-                            services.behandling.sendTilAttestering(
-                                nySøknadsbehandling.id,
-                                NavIdentBruker.Saksbehandler(navIdentSaksbehandler)
+                            services.søknadsbehandling.sendTilAttestering(
+                                SendTilAttesteringRequest(
+                                    søknadsbehandling.id,
+                                    NavIdentBruker.Saksbehandler(navIdentSaksbehandler)
+                                )
                             )
                         }
                 }
@@ -426,7 +453,7 @@ internal class BehandlingRoutesKtTest {
             withFerdigbehandletSakForBruker(navIdentSaksbehandler) { objects ->
                 defaultRequest(
                     HttpMethod.Patch,
-                    "$sakPath/rubbish/behandlinger/${objects.nySøknadsbehandling.id}/underkjenn",
+                    "$sakPath/rubbish/behandlinger/${objects.søknadsbehandling.id}/underkjenn",
                     listOf(Brukerrolle.Saksbehandler)
                 ).apply {
                     response.status() shouldBe HttpStatusCode.Forbidden
@@ -442,7 +469,7 @@ internal class BehandlingRoutesKtTest {
 
                 defaultRequest(
                     HttpMethod.Patch,
-                    "$sakPath/${objects.sak.id}/behandlinger/${objects.nySøknadsbehandling.id}/underkjenn",
+                    "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/underkjenn",
                     listOf(Brukerrolle.Saksbehandler)
                 ).apply {
                     response.status() shouldBe HttpStatusCode.Forbidden
@@ -455,7 +482,7 @@ internal class BehandlingRoutesKtTest {
             withFerdigbehandletSakForBruker(navIdentSaksbehandler) { objects ->
                 requestSomAttestant(
                     HttpMethod.Patch,
-                    "$sakPath/rubbish/behandlinger/${objects.nySøknadsbehandling.id}/underkjenn"
+                    "$sakPath/rubbish/behandlinger/${objects.søknadsbehandling.id}/underkjenn"
                 ).apply {
                     response.status() shouldBe HttpStatusCode.BadRequest
                 }
@@ -489,7 +516,7 @@ internal class BehandlingRoutesKtTest {
             withFerdigbehandletSakForBruker(navIdentSaksbehandler) { objects ->
                 requestSomAttestant(
                     HttpMethod.Patch,
-                    "$sakPath/${objects.sak.id}/behandlinger/${objects.nySøknadsbehandling.id}/underkjenn"
+                    "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/underkjenn"
                 ) {
                     setBody(
                         """
@@ -511,7 +538,7 @@ internal class BehandlingRoutesKtTest {
             withFerdigbehandletSakForBruker(navIdentSaksbehandler) { objects ->
                 handleRequest(
                     HttpMethod.Patch,
-                    "$sakPath/${objects.sak.id}/behandlinger/${objects.nySøknadsbehandling.id}/underkjenn"
+                    "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/underkjenn"
                 ) {
                     addHeader(
                         HttpHeaders.Authorization,
@@ -539,7 +566,7 @@ internal class BehandlingRoutesKtTest {
             withFerdigbehandletSakForBruker(navIdentAttestant) { objects ->
                 requestSomAttestant(
                     HttpMethod.Patch,
-                    "$sakPath/${objects.sak.id}/behandlinger/${objects.nySøknadsbehandling.id}/underkjenn"
+                    "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/underkjenn"
                 ) {
                     setBody("""{"kommentar":"kommentar", "grunn": "BEREGNINGEN_ER_FEIL" }""")
                 }.apply {
@@ -569,33 +596,38 @@ internal class BehandlingRoutesKtTest {
                 )
             }) {
                 val objects = setup()
-                services.behandling.oppdaterBehandlingsinformasjon(
-                    objects.nySøknadsbehandling.id,
-                    saksbehandler,
-                    extractBehandlingsinformasjon(objects.behandling).withAlleVilkårOppfylt()
+                services.søknadsbehandling.vilkårsvurder(
+                    VilkårsvurderRequest(
+                        objects.søknadsbehandling.id,
+                        saksbehandler,
+                        Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
+                    )
                 )
-                services.behandling.opprettBeregning(
-                    NyBeregningForSøknadsbehandling.create(
-                        behandlingId = objects.nySøknadsbehandling.id,
-                        saksbehandler = saksbehandler,
-                        stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
+                services.søknadsbehandling.beregn(
+                    BeregnRequest(
+                        behandlingId = objects.søknadsbehandling.id,
+                        periode = Periode.create(1.januar(2021), 31.desember(2021)),
                         fradrag = emptyList(),
                     )
                 )
-                services.behandling.simuler(objects.nySøknadsbehandling.id, saksbehandler).fold(
+                services.søknadsbehandling.simuler(
+                    SimulerRequest(objects.søknadsbehandling.id, saksbehandler)
+                ).fold(
                     { it },
                     {
 
-                        services.behandling.sendTilAttestering(
-                            objects.nySøknadsbehandling.id,
-                            saksbehandler
+                        services.søknadsbehandling.sendTilAttestering(
+                            SendTilAttesteringRequest(
+                                objects.søknadsbehandling.id,
+                                saksbehandler
+                            )
                         )
                     }
                 )
 
                 requestSomAttestant(
                     HttpMethod.Patch,
-                    "$sakPath/${objects.sak.id}/behandlinger/${objects.nySøknadsbehandling.id}/iverksett"
+                    "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/iverksett"
                 ).apply {
                     response.status() shouldBe HttpStatusCode.InternalServerError
                 }
@@ -606,8 +638,7 @@ internal class BehandlingRoutesKtTest {
     data class Objects(
         val sak: Sak,
         val søknad: Søknad,
-        val nySøknadsbehandling: NySøknadsbehandling,
-        val behandling: Behandling
+        val søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Uavklart
     )
 
     private fun setup(): Objects {
@@ -617,25 +648,29 @@ internal class BehandlingRoutesKtTest {
             repos.sak.opprettSak(it)
         }
         val sak: Sak = repos.sak.hentSak(fnr)!!
+        val journalpostId = JournalpostId("12")
+        val oppgaveId = OppgaveId("12")
+        val søknadMedOppgave: Søknad.Journalført.MedOppgave = (sak.søknader()[0] as Søknad.Ny)
+            .journalfør(journalpostId).also { repos.søknad.oppdaterjournalpostId(it) }
+            .medOppgave(oppgaveId).also { repos.søknad.oppdaterOppgaveId(it) }
 
-        val søknadId: UUID = sak.søknader()[0].id
-
-        repos.søknad.oppdaterjournalpostId(søknadId, JournalpostId("12"))
-        repos.søknad.oppdaterOppgaveId(søknadId, OppgaveId("12"))
-
-        val nySøknadsbehandling = NySøknadsbehandling(
+        val søknadsbehandling = Søknadsbehandling.Vilkårsvurdert.Uavklart(
+            id = UUID.randomUUID(),
+            opprettet = sak.opprettet,
             sakId = sak.id,
-            søknadId = søknadId,
-            oppgaveId = OppgaveId("1234")
+            søknad = søknadMedOppgave,
+            oppgaveId = OppgaveId("1234"),
+            saksnummer = sak.saksnummer,
+            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
+            fnr = sak.fnr,
         )
-        repos.behandling.opprettSøknadsbehandling(
-            nySøknadsbehandling
+        repos.søknadsbehandling.lagre(
+            søknadsbehandling
         )
         return Objects(
             repos.sak.hentSak(sak.id)!!,
-            repos.søknad.hentSøknad(søknadId)!!,
-            nySøknadsbehandling,
-            repos.behandling.hentBehandling(nySøknadsbehandling.id)!!
+            repos.søknad.hentSøknad(søknadMedOppgave.id)!!,
+            søknadsbehandling
         )
     }
 

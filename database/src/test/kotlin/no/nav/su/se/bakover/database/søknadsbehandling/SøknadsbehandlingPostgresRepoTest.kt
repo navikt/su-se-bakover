@@ -1,42 +1,32 @@
 package no.nav.su.se.bakover.database.søknadsbehandling
 
+import arrow.core.right
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeTypeOf
-import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.EmbeddedDatabase
-import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
-import no.nav.su.se.bakover.database.beregning.PersistertMånedsberegning
-import no.nav.su.se.bakover.database.beregning.TestBeregning
-import no.nav.su.se.bakover.database.beregning.toSnapshot
+import no.nav.su.se.bakover.database.avslåttBeregning
+import no.nav.su.se.bakover.database.behandlingsinformasjonMedAlleVilkårOppfylt
+import no.nav.su.se.bakover.database.beregning
 import no.nav.su.se.bakover.database.hent
+import no.nav.su.se.bakover.database.iverksattAttestering
+import no.nav.su.se.bakover.database.iverksattBrevbestillingId
+import no.nav.su.se.bakover.database.iverksattJournalpostId
+import no.nav.su.se.bakover.database.journalførtIverksettingForAvslag
+import no.nav.su.se.bakover.database.oppdatering
+import no.nav.su.se.bakover.database.saksbehandler
+import no.nav.su.se.bakover.database.simulering
+import no.nav.su.se.bakover.database.underkjentAttestering
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
-import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
-import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
-import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
-import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
-import java.util.UUID
 
 internal class SøknadsbehandlingPostgresRepoTest {
 
@@ -44,53 +34,30 @@ internal class SøknadsbehandlingPostgresRepoTest {
     private val testDataHelper = TestDataHelper(dataSource)
     private val repo = SøknadsbehandlingPostgresRepo(dataSource)
 
-    private val saksbehandlingId = UUID.randomUUID()
-    private val opprettet = Tidspunkt.now()
-    private val fnr = FnrGenerator.random()
-    private val oppgaveId = OppgaveId("oppgaveId")
-    private val journalpostId = JournalpostId("journalpostId")
-    private val tomBehandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon()
-    private val behandlingsinformasjonMedAlleVilkårOppfylt =
-        Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
-    private val behandlingsinformasjonMedAvslag =
-        Behandlingsinformasjon.lagTomBehandlingsinformasjon().withVilkårAvslått()
-
-    private val beregning = TestBeregning.toSnapshot()
-    private val avslåttBeregning = beregning.copy(
-        månedsberegninger = listOf(
-            PersistertMånedsberegning(
-                sumYtelse = 0,
-                sumFradrag = 0.0,
-                benyttetGrunnbeløp = 0,
-                sats = Sats.ORDINÆR,
-                satsbeløp = 0.0,
-                fradrag = listOf(),
-                periode = Periode.create(1.januar(2020), 31.desember(2020))
-            )
-        )
-    )
-    private val simulering = Simulering(
-        gjelderId = fnr,
-        gjelderNavn = "navn",
-        datoBeregnet = LocalDate.EPOCH,
-        nettoBeløp = 100,
-        periodeList = emptyList()
-    )
-
-    private val saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler")
-    private val attestant = NavIdentBruker.Attestant("attestant")
-    private val underkjentAttestering =
-        Attestering.Underkjent(attestant, Attestering.Underkjent.Grunn.ANDRE_FORHOLD, "kommentar")
-    private val iverksattAttestering = Attestering.Iverksatt(attestant)
-    private val utbetalingId = UUID30.randomUUID()
-    private val iverksattJournalpostId = JournalpostId("iverksattJournalpostId")
-    private val iverksattBrevbestillingId = BrevbestillingId("iverksattBrevbestillingId")
+    @Test
+    fun `kaster exception hvis brev finnes uten journalpost`() {
+        withMigratedDb {
+            val innvilget = testDataHelper.nyIverksattInnvilget().first
+                .journalfør { JournalpostId("fjernerDenneMedEnUpdate").right() }.orNull()!!
+                .distribuerBrev { BrevbestillingId("b").right() }
+                .orNull()!!
+                .also {
+                    repo.lagre(it)
+                }
+            dataSource.withSession { session ->
+                ("update behandling set iverksattJournalpostId = null where id = '${innvilget.id}'").oppdatering(emptyMap(), session)
+                shouldThrow<IllegalStateException> {
+                    repo.hent(innvilget.id)
+                }.message shouldBe "Kunne ikke bestemme eksterne iverksettingssteg for innvilgelse, iverksattJournalpostId:null, iverksattBrevbestillingId:b"
+            }
+        }
+    }
 
     @Test
     fun `hent tidligere attestering ved underkjenning`() {
         withMigratedDb {
-            innvilgetUnderkjenning().also {
-                repo.hentEventuellTidligereAttestering(saksbehandlingId).also {
+            testDataHelper.nyInnvilgetUnderkjenning().also {
+                repo.hentEventuellTidligereAttestering(it.id).also {
                     it shouldBe underkjentAttestering
                 }
             }
@@ -100,7 +67,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
     @Test
     fun `hent for sak`() {
         withMigratedDb {
-            avslåttBeregning().also {
+            testDataHelper.nyAvslåttBeregning().also {
                 dataSource.withSession { session ->
                     repo.hentForSak(it.sakId, session)
                 }
@@ -109,10 +76,74 @@ internal class SøknadsbehandlingPostgresRepoTest {
     }
 
     @Test
+    fun `hent iverksatte behandlinger uten journalposteringer`() {
+        withMigratedDb {
+
+            val innvilgetUtenJournalpost = testDataHelper.nyIverksattInnvilget().first
+
+            testDataHelper.nyIverksattInnvilget().first.journalfør { JournalpostId("1").right() }.orNull()!!.also {
+                repo.lagre(it)
+            }
+            testDataHelper.nyIverksattAvslagUtenBeregning()
+            testDataHelper.nyUavklartVilkårsvurdering()
+
+            val actual = repo.hentIverksatteBehandlingerUtenJournalposteringer()
+            actual shouldBe listOf(
+                repo.hent(innvilgetUtenJournalpost.id)
+            )
+        }
+    }
+
+    @Test
+    fun `hent iverksatte behandlinger uten brevbestillinger`() {
+        withMigratedDb {
+            // innvilget uten IverksattJournalpostId
+            testDataHelper.nyIverksattInnvilget().first
+
+            // innvilget med iverksattJournalpostId
+            val innvilgetMedJournalpost =
+                testDataHelper.nyIverksattInnvilget().first.journalfør { JournalpostId("1").right() }.orNull()!!.also {
+                    repo.lagre(it)
+                }
+            // innvilget med iverksattJournalpostId og iverksattBrevbestillingId
+            testDataHelper.nyIverksattInnvilget().first
+                .journalfør { JournalpostId("1").right() }.orNull()!!
+                .distribuerBrev { BrevbestillingId("2").right() }.orNull()!!.also {
+                repo.lagre(it)
+            }
+            // avslag med journalpost (avslag kan ikke opprettes uten journalpost)
+            val avslagUtenBeregningMedJournalpost = testDataHelper.nyIverksattAvslagUtenBeregning()
+            val avslagMedBeregningMedJournalpost =
+                testDataHelper.nyIverksattAvslagMedBeregning(journalførtIverksettingForAvslag)
+
+            // avslag med beregning med iverksattJournalpostId og iverksattBrevbestillingId
+            testDataHelper.nyIverksattAvslagMedBeregning(journalførtIverksettingForAvslag)
+                .distribuerBrev { BrevbestillingId("2").right() }.orNull()!!.also {
+                repo.lagre(it)
+            }
+
+            val actual = repo.hentIverksatteBehandlingerUtenBrevbestillinger()
+            actual.size shouldBe 3
+            actual[0] shouldBe repo.hent(innvilgetMedJournalpost.id)
+            actual[1] shouldBe repo.hent(avslagUtenBeregningMedJournalpost.id)
+            actual[2] shouldBe repo.hent(avslagMedBeregningMedJournalpost.id)
+        }
+    }
+
+    @Test
+    fun `opprett og hent behandling for utbetaling`() {
+        withMigratedDb {
+            val nySøknadsbehandling = testDataHelper.nyIverksattInnvilget()
+            val hentet = repo.hentBehandlingForUtbetaling(nySøknadsbehandling.second.id)!!
+            hentet shouldBe nySøknadsbehandling.first
+        }
+    }
+
+    @Test
     fun `kan sette inn tom saksbehandling`() {
         withMigratedDb {
-            val vilkårsvurdert = uavklartVilkårsvurdering()
-            repo.hent(saksbehandlingId).also {
+            val vilkårsvurdert = testDataHelper.nyUavklartVilkårsvurdering()
+            repo.hent(vilkårsvurdert.id).also {
                 it shouldBe vilkårsvurdert
                 it.shouldBeTypeOf<Søknadsbehandling.Vilkårsvurdert.Uavklart>()
             }
@@ -122,8 +153,8 @@ internal class SøknadsbehandlingPostgresRepoTest {
     @Test
     fun `kan oppdatere med alle vilkår oppfylt`() {
         withMigratedDb {
-            val vilkårsvurdert = innvilgetVilkårsvurdering()
-            repo.hent(saksbehandlingId).also {
+            val vilkårsvurdert = testDataHelper.nyInnvilgetVilkårsvurdering()
+            repo.hent(vilkårsvurdert.id).also {
                 it shouldBe vilkårsvurdert
                 it.shouldBeTypeOf<Søknadsbehandling.Vilkårsvurdert.Innvilget>()
             }
@@ -133,8 +164,8 @@ internal class SøknadsbehandlingPostgresRepoTest {
     @Test
     fun `kan oppdatere med vilkår som fører til avslag`() {
         withMigratedDb {
-            val vilkårsvurdert = avslåttVilkårsvurdering()
-            repo.hent(saksbehandlingId).also {
+            val vilkårsvurdert = testDataHelper.nyAvslåttVilkårsvurdering()
+            repo.hent(vilkårsvurdert.id).also {
                 it shouldBe vilkårsvurdert
                 it.shouldBeTypeOf<Søknadsbehandling.Vilkårsvurdert.Avslag>()
             }
@@ -145,10 +176,11 @@ internal class SøknadsbehandlingPostgresRepoTest {
     fun `oppdaterer status og behandlingsinformasjon og sletter beregning og simulering hvis de eksisterer`() {
 
         withMigratedDb {
-            val uavklartVilkårsvurdering = uavklartVilkårsvurdering().also {
-                repo.hent(it.id) shouldBe it
+            val uavklartVilkårsvurdering = testDataHelper.nyUavklartVilkårsvurdering().also {
+                val behandlingId = it.id
+                repo.hent(behandlingId) shouldBe it
                 dataSource.withSession {
-                    "select * from behandling where id = :id".hent(mapOf("id" to saksbehandlingId), it) {
+                    "select * from behandling where id = :id".hent(mapOf("id" to behandlingId), it) {
                         it.stringOrNull("beregning") shouldBe null
                         it.stringOrNull("simulering") shouldBe null
                     }
@@ -160,19 +192,19 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 repo.lagre(it)
                 repo.hent(it.id) shouldBe it
                 dataSource.withSession {
-                    "select * from behandling where id = :id".hent(mapOf("id" to saksbehandlingId), it) {
+                    "select * from behandling where id = :id".hent(mapOf("id" to uavklartVilkårsvurdering.id), it) {
                         it.stringOrNull("beregning") shouldNotBe null
                         it.stringOrNull("simulering") shouldBe null
                     }
                 }
             }
             val simulert = beregnet.tilSimulert(
-                simulering
+                simulering(beregnet.fnr)
             ).also {
                 repo.lagre(it)
                 repo.hent(it.id) shouldBe it
                 dataSource.withSession {
-                    "select * from behandling where id = :id".hent(mapOf("id" to saksbehandlingId), it) {
+                    "select * from behandling where id = :id".hent(mapOf("id" to uavklartVilkårsvurdering.id), it) {
                         it.stringOrNull("beregning") shouldNotBe null
                         it.stringOrNull("simulering") shouldNotBe null
                     }
@@ -180,12 +212,12 @@ internal class SøknadsbehandlingPostgresRepoTest {
             }
             // Tilbake til vilkårsvurdert
             simulert.tilVilkårsvurdert(
-                Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
+                behandlingsinformasjonMedAlleVilkårOppfylt
             ).also {
                 repo.lagre(it)
                 repo.hent(it.id) shouldBe it
                 dataSource.withSession {
-                    "select * from behandling where id = :id".hent(mapOf("id" to saksbehandlingId), it) {
+                    "select * from behandling where id = :id".hent(mapOf("id" to uavklartVilkårsvurdering.id), it) {
                         it.stringOrNull("beregning") shouldBe null
                         it.stringOrNull("simulering") shouldBe null
                     }
@@ -200,10 +232,10 @@ internal class SøknadsbehandlingPostgresRepoTest {
         fun `til attestering innvilget`() {
             withMigratedDb {
                 val nyOppgaveId = OppgaveId("tilAttesteringOppgaveId")
-                val tilAttestering = tilInnvilgetAttestering()
+                val tilAttestering = testDataHelper.nyTilInnvilgetAttestering()
                 tilAttestering.nyOppgaveId(nyOppgaveId).also {
                     repo.lagre(it)
-                    repo.hent(saksbehandlingId).also {
+                    repo.hent(it.id).also {
                         it shouldBe Søknadsbehandling.TilAttestering.Innvilget(
                             id = tilAttestering.id,
                             opprettet = tilAttestering.opprettet,
@@ -214,7 +246,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             behandlingsinformasjon = tilAttestering.behandlingsinformasjon,
                             fnr = tilAttestering.fnr,
                             beregning = beregning,
-                            simulering = simulering,
+                            simulering = simulering(tilAttestering.fnr),
                             saksbehandler = saksbehandler,
                         )
                     }
@@ -226,10 +258,10 @@ internal class SøknadsbehandlingPostgresRepoTest {
         fun `til attestering avslag uten beregning`() {
             withMigratedDb {
                 val nyOppgaveId = OppgaveId("tilAttesteringOppgaveId")
-                val tilAttestering = tilAvslåttAttesteringUtenBeregning()
+                val tilAttestering = testDataHelper.nyTilAvslåttAttesteringUtenBeregning()
                 tilAttestering.nyOppgaveId(nyOppgaveId).also {
                     repo.lagre(it)
-                    repo.hent(saksbehandlingId).also {
+                    repo.hent(it.id).also {
                         it shouldBe Søknadsbehandling.TilAttestering.Avslag.UtenBeregning(
                             id = tilAttestering.id,
                             opprettet = tilAttestering.opprettet,
@@ -250,10 +282,10 @@ internal class SøknadsbehandlingPostgresRepoTest {
         fun `til attestering avslag med beregning`() {
             withMigratedDb {
                 val nyOppgaveId = OppgaveId("tilAttesteringOppgaveId")
-                val tilAttestering = tilAvslåttAttesteringMedBeregning()
+                val tilAttestering = testDataHelper.tilAvslåttAttesteringMedBeregning()
                 tilAttestering.nyOppgaveId(nyOppgaveId).also {
                     repo.lagre(it)
-                    repo.hent(saksbehandlingId).also {
+                    repo.hent(it.id).also {
                         it shouldBe Søknadsbehandling.TilAttestering.Avslag.MedBeregning(
                             id = tilAttestering.id,
                             opprettet = tilAttestering.opprettet,
@@ -278,10 +310,10 @@ internal class SøknadsbehandlingPostgresRepoTest {
         fun `underkjent innvilget`() {
             withMigratedDb {
                 val nyOppgaveId = OppgaveId("tilAttesteringOppgaveId")
-                val tilAttestering = innvilgetUnderkjenning()
+                val tilAttestering = testDataHelper.nyInnvilgetUnderkjenning()
                 tilAttestering.nyOppgaveId(nyOppgaveId).also {
                     repo.lagre(it)
-                    repo.hent(saksbehandlingId).also {
+                    repo.hent(it.id).also {
                         it shouldBe Søknadsbehandling.Underkjent.Innvilget(
                             id = tilAttestering.id,
                             opprettet = tilAttestering.opprettet,
@@ -292,7 +324,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             behandlingsinformasjon = tilAttestering.behandlingsinformasjon,
                             fnr = tilAttestering.fnr,
                             beregning = beregning,
-                            simulering = simulering,
+                            simulering = simulering(tilAttestering.fnr),
                             saksbehandler = saksbehandler,
                             attestering = underkjentAttestering,
                         )
@@ -305,10 +337,10 @@ internal class SøknadsbehandlingPostgresRepoTest {
         fun `underkjent avslag uten beregning`() {
             withMigratedDb {
                 val nyOppgaveId = OppgaveId("tilAttesteringOppgaveId")
-                val tilAttestering = underkjenningUtenBeregning()
+                val tilAttestering = testDataHelper.nyUnderkjenningUtenBeregning()
                 tilAttestering.nyOppgaveId(nyOppgaveId).also {
                     repo.lagre(it)
-                    repo.hent(saksbehandlingId).also {
+                    repo.hent(it.id).also {
                         it shouldBe Søknadsbehandling.Underkjent.Avslag.UtenBeregning(
                             id = tilAttestering.id,
                             opprettet = tilAttestering.opprettet,
@@ -330,10 +362,10 @@ internal class SøknadsbehandlingPostgresRepoTest {
         fun `underkjent avslag med beregning`() {
             withMigratedDb {
                 val nyOppgaveId = OppgaveId("tilAttesteringOppgaveId")
-                val tilAttestering = underkjenningMedBeregning()
+                val tilAttestering = testDataHelper.nyUnderkjenningMedBeregning()
                 tilAttestering.nyOppgaveId(nyOppgaveId).also {
                     repo.lagre(it)
-                    repo.hent(saksbehandlingId).also {
+                    repo.hent(it.id).also {
                         it shouldBe Søknadsbehandling.Underkjent.Avslag.MedBeregning(
                             id = tilAttestering.id,
                             opprettet = tilAttestering.opprettet,
@@ -359,25 +391,9 @@ internal class SøknadsbehandlingPostgresRepoTest {
         fun `iverksatt avslag innvilget`() {
 
             withMigratedDb {
-                val iverksatt = iverksattInnvilget()
-                val expectedInnvilgetUtenJournalføring = Søknadsbehandling.Iverksatt.Innvilget(
-                    id = iverksatt.id,
-                    opprettet = iverksatt.opprettet,
-                    sakId = iverksatt.sakId,
-                    saksnummer = iverksatt.saksnummer,
-                    søknad = iverksatt.søknad,
-                    oppgaveId = iverksatt.oppgaveId,
-                    behandlingsinformasjon = iverksatt.behandlingsinformasjon,
-                    fnr = iverksatt.fnr,
-                    beregning = beregning,
-                    simulering = simulering,
-                    saksbehandler = saksbehandler,
-                    attestering = iverksattAttestering,
-                    eksterneIverksettingsteg = Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.VenterPåKvittering,
-                    utbetalingId = utbetalingId,
-                )
-                repo.hent(saksbehandlingId).also {
-                    it shouldBe expectedInnvilgetUtenJournalføring
+                val iverksatt = testDataHelper.nyIverksattInnvilget().first
+                repo.hent(iverksatt.id).also {
+                    it shouldBe iverksatt
                 }
 
                 val journalført =
@@ -389,7 +405,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                         eksterneIverksettingsteg = journalført
                     )
                 ).also {
-                    repo.hent(saksbehandlingId) shouldBe expectedInnvilgetUtenJournalføring.copy(
+                    repo.hent(iverksatt.id) shouldBe iverksatt.copy(
                         eksterneIverksettingsteg = journalført
                     )
                 }
@@ -404,7 +420,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                         eksterneIverksettingsteg = journalførtOgDistribuertBrev
                     )
                 ).also {
-                    repo.hent(saksbehandlingId) shouldBe expectedInnvilgetUtenJournalføring.copy(
+                    repo.hent(iverksatt.id) shouldBe iverksatt.copy(
                         eksterneIverksettingsteg = journalførtOgDistribuertBrev
                     )
                 }
@@ -414,11 +430,9 @@ internal class SøknadsbehandlingPostgresRepoTest {
 
     @Test
     fun `iverksatt avslag uten beregning`() {
+
         withMigratedDb {
-            val journalført = Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg.Journalført(
-                journalpostId = iverksattJournalpostId,
-            )
-            val iverksatt = iverksattAvslagUtenBeregning(journalført)
+            val iverksatt = testDataHelper.nyIverksattAvslagUtenBeregning()
             val expected = Søknadsbehandling.Iverksatt.Avslag.UtenBeregning(
                 id = iverksatt.id,
                 opprettet = iverksatt.opprettet,
@@ -430,10 +444,9 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 fnr = iverksatt.fnr,
                 saksbehandler = saksbehandler,
                 attestering = iverksattAttestering,
-                eksterneIverksettingsteg = journalført,
+                eksterneIverksettingsteg = journalførtIverksettingForAvslag,
             )
-            repo.hent(saksbehandlingId).also {
-
+            repo.hent(iverksatt.id).also {
                 it shouldBe expected
             }
 
@@ -447,7 +460,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     eksterneIverksettingsteg = journalførtOgDistribuertBrev
                 )
             ).also {
-                repo.hent(saksbehandlingId) shouldBe expected.copy(
+                repo.hent(iverksatt.id) shouldBe expected.copy(
                     eksterneIverksettingsteg = journalførtOgDistribuertBrev
                 )
             }
@@ -462,8 +475,8 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     journalpostId = iverksattJournalpostId,
                     brevbestillingId = iverksattBrevbestillingId,
                 )
-            val iverksatt = iverksattAvslagMedBeregning(eksterneIverksettingsteg)
-            repo.hent(saksbehandlingId).also {
+            val iverksatt = testDataHelper.nyIverksattAvslagMedBeregning(eksterneIverksettingsteg)
+            repo.hent(iverksatt.id).also {
                 it shouldBe Søknadsbehandling.Iverksatt.Avslag.MedBeregning(
                     id = iverksatt.id,
                     opprettet = iverksatt.opprettet,
@@ -481,155 +494,4 @@ internal class SøknadsbehandlingPostgresRepoTest {
             }
         }
     }
-
-    private fun uavklartVilkårsvurdering(): Søknadsbehandling.Vilkårsvurdert.Uavklart {
-        val sak: Sak = setup()
-        val søknad: Søknad.Journalført.MedOppgave = sak.søknader().first() as Søknad.Journalført.MedOppgave
-
-        return Søknadsbehandling.Vilkårsvurdert.Uavklart(
-            id = saksbehandlingId,
-            opprettet = opprettet,
-            sakId = sak.id,
-            saksnummer = sak.saksnummer,
-            søknad = søknad,
-            oppgaveId = oppgaveId,
-            behandlingsinformasjon = tomBehandlingsinformasjon,
-            fnr = sak.fnr
-        ).also {
-            repo.lagre(it)
-        }
-    }
-
-    private fun innvilgetVilkårsvurdering(): Søknadsbehandling.Vilkårsvurdert.Innvilget {
-        return uavklartVilkårsvurdering().tilVilkårsvurdert(
-            behandlingsinformasjonMedAlleVilkårOppfylt
-        ).also {
-            repo.lagre(it)
-        } as Søknadsbehandling.Vilkårsvurdert.Innvilget
-    }
-
-    private fun avslåttVilkårsvurdering(): Søknadsbehandling.Vilkårsvurdert.Avslag {
-        return uavklartVilkårsvurdering().tilVilkårsvurdert(
-            behandlingsinformasjonMedAvslag
-        ).also {
-            repo.lagre(it)
-        } as Søknadsbehandling.Vilkårsvurdert.Avslag
-    }
-
-    private fun innvilgetBeregning(): Søknadsbehandling.Beregnet.Innvilget {
-        return innvilgetVilkårsvurdering().tilBeregnet(
-            beregning
-        ).also {
-            repo.lagre(it)
-        } as Søknadsbehandling.Beregnet.Innvilget
-    }
-
-    private fun avslåttBeregning(): Søknadsbehandling.Beregnet.Avslag {
-        return innvilgetVilkårsvurdering().tilBeregnet(
-            avslåttBeregning
-        ).also {
-            repo.lagre(it)
-        } as Søknadsbehandling.Beregnet.Avslag
-    }
-
-    private fun simulert(): Søknadsbehandling.Simulert {
-        return innvilgetBeregning().tilSimulert(
-            simulering
-        ).also {
-            repo.lagre(it)
-        }
-    }
-
-    private fun tilInnvilgetAttestering(): Søknadsbehandling.TilAttestering.Innvilget {
-        return simulert().tilAttestering(
-            saksbehandler
-        ).also {
-            repo.lagre(it)
-        }
-    }
-
-    private fun tilAvslåttAttesteringMedBeregning(): Søknadsbehandling.TilAttestering.Avslag.MedBeregning {
-        return avslåttBeregning().tilAttestering(
-            saksbehandler
-        ).also {
-            repo.lagre(it)
-        }
-    }
-
-    private fun tilAvslåttAttesteringUtenBeregning(): Søknadsbehandling.TilAttestering.Avslag.UtenBeregning {
-        return avslåttVilkårsvurdering().tilAttestering(
-            saksbehandler
-        ).also {
-            repo.lagre(it)
-        }
-    }
-
-    private fun innvilgetUnderkjenning(): Søknadsbehandling.Underkjent.Innvilget {
-        return tilInnvilgetAttestering().tilUnderkjent(
-            underkjentAttestering
-        ).also {
-            repo.lagre(it)
-        }
-    }
-
-    private fun underkjenningUtenBeregning(): Søknadsbehandling.Underkjent.Avslag.UtenBeregning {
-        return tilAvslåttAttesteringUtenBeregning().tilUnderkjent(
-            underkjentAttestering
-        ).also {
-            repo.lagre(it)
-        }
-    }
-
-    private fun underkjenningMedBeregning(): Søknadsbehandling.Underkjent.Avslag.MedBeregning {
-        return tilAvslåttAttesteringMedBeregning().tilUnderkjent(
-            underkjentAttestering
-        ).also {
-            repo.lagre(it)
-        }
-    }
-
-    private fun iverksattInnvilget(): Søknadsbehandling.Iverksatt.Innvilget {
-        return tilInnvilgetAttestering().tilIverksatt(
-            iverksattAttestering, utbetalingId
-        ).also {
-            testDataHelper.opprettUtbetaling(
-                Utbetaling.OversendtUtbetaling.UtenKvittering(
-                    id = utbetalingId,
-                    opprettet = it.opprettet,
-                    sakId = it.sakId,
-                    saksnummer = it.saksnummer,
-                    fnr = it.fnr,
-                    utbetalingslinjer = listOf(),
-                    type = Utbetaling.UtbetalingsType.NY,
-                    behandler = attestant,
-                    avstemmingsnøkkel = Avstemmingsnøkkel(it.opprettet),
-                    simulering = simulering,
-                    utbetalingsrequest = Utbetalingsrequest(""),
-                )
-            )
-            repo.lagre(it)
-        }
-    }
-
-    private fun iverksattAvslagUtenBeregning(eksterneIverksettingsteg: Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg): Søknadsbehandling.Iverksatt.Avslag.UtenBeregning {
-        return tilAvslåttAttesteringUtenBeregning().tilIverksatt(
-            iverksattAttestering, eksterneIverksettingsteg
-        ).also {
-            repo.lagre(it)
-        }
-    }
-
-    private fun iverksattAvslagMedBeregning(eksterneIverksettingsteg: Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg): Søknadsbehandling.Iverksatt.Avslag.MedBeregning {
-        return tilAvslåttAttesteringMedBeregning().tilIverksatt(
-            iverksattAttestering, eksterneIverksettingsteg
-        ).also {
-            repo.lagre(it)
-        }
-    }
-
-    private fun setup() = testDataHelper.nySakMedJournalførtSøknadOgOppgave(
-        fnr = fnr,
-        oppgaveId = oppgaveId,
-        journalpostId = journalpostId
-    )
 }

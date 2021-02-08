@@ -27,7 +27,6 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.behandling.OpprettetRevurdering
@@ -54,7 +53,6 @@ import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
@@ -85,7 +83,6 @@ internal class RevurderingServiceImplTest {
         }
     )
     private val saksbehandler = NavIdentBruker.Saksbehandler("Sak S. behandler")
-    private val behandlingFactory: BehandlingFactory = BehandlingFactory(mock(), Clock.systemUTC())
     private val saksnummer = Saksnummer(nummer = 12345676)
     private val fnr = FnrGenerator.random()
     private val revurderingId = UUID.randomUUID()

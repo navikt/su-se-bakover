@@ -1,8 +1,6 @@
 package no.nav.su.se.bakover.database.søknad
 
 import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.util.UUID
 
 interface SøknadRepo {
@@ -10,8 +8,8 @@ interface SøknadRepo {
     fun opprettSøknad(søknad: Søknad.Ny)
     fun oppdaterSøknad(søknad: Søknad.Lukket)
     fun harSøknadPåbegyntBehandling(søknadId: UUID): Boolean
-    fun oppdaterjournalpostId(søknadId: UUID, journalpostId: JournalpostId)
-    fun oppdaterOppgaveId(søknadId: UUID, oppgaveId: OppgaveId)
+    fun oppdaterjournalpostId(søknad: Søknad.Journalført.UtenOppgave)
+    fun oppdaterOppgaveId(søknad: Søknad.Journalført.MedOppgave)
     fun hentSøknaderUtenJournalpost(): List<Søknad.Ny>
     fun hentSøknaderMedJournalpostMenUtenOppgave(): List<Søknad.Journalført.UtenOppgave>
 }

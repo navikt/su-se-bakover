@@ -19,10 +19,9 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
 
     class TilVilkårsvurdert(
         private val behandlingsinformasjon: Behandlingsinformasjon
-    ) : Statusovergang<Nothing, Søknadsbehandling>() {
+    ) : Statusovergang<Nothing, Søknadsbehandling.Vilkårsvurdert>() {
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Uavklart) {
-            // TODO when to patch/update behandlingsinformasjon for this style?
             result = søknadsbehandling.tilVilkårsvurdert(behandlingsinformasjon).right()
         }
 
@@ -61,7 +60,7 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
 
     class TilBeregnet(
         private val beregn: () -> Beregning
-    ) : Statusovergang<Nothing, Søknadsbehandling>() {
+    ) : Statusovergang<Nothing, Søknadsbehandling.Beregnet>() {
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Innvilget) {
             result = søknadsbehandling.tilBeregnet(beregn()).right()
@@ -92,7 +91,7 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
 
     class TilSimulert(
         private val simulering: (beregning: Beregning) -> Either<KunneIkkeSimulereBehandling, Simulering>
-    ) : Statusovergang<KunneIkkeSimulereBehandling, Søknadsbehandling>() {
+    ) : Statusovergang<KunneIkkeSimulereBehandling, Søknadsbehandling.Simulert>() {
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Innvilget) {
             simulering(søknadsbehandling.beregning)

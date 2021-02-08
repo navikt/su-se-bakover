@@ -17,12 +17,14 @@ data class Sak(
     val saksnummer: Saksnummer,
     val opprettet: Tidspunkt = Tidspunkt.now(),
     val fnr: Fnr,
-    private val søknader: List<Søknad> = emptyList(),
-    private val behandlinger: List<Søknadsbehandling> = emptyList(),
+    val søknader: List<Søknad> = emptyList(),
+    val behandlinger: List<Søknadsbehandling> = emptyList(),
     val utbetalinger: List<Utbetaling>,
 ) {
+    /* deprecated, use søknader */
     fun søknader() = søknader.toList()
 
+    /* deprecated, use behandlinger */
     fun behandlinger() = behandlinger.toList()
 }
 

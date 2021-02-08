@@ -315,7 +315,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknaderUtenJournalpost() } doReturn listOf(nySøknad)
             on { hentSøknaderMedJournalpostMenUtenOppgave() } doReturn listOf(journalførtSøknad)
-            on { oppdaterOppgaveId(any(), any()) }.doNothing()
+            on { oppdaterOppgaveId(any()) }.doNothing()
         }
 
         val sakServiceMock = mock<SakService> {
@@ -389,7 +389,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                     )
                 }
             )
-            verify(søknadRepoMock).oppdaterjournalpostId(argThat { journalførtSøknad.id }, argThat { journalførtSøknad.journalpostId })
+            verify(søknadRepoMock).oppdaterjournalpostId(argThat { journalførtSøknad.id })
             verify(søknadRepoMock).hentSøknaderMedJournalpostMenUtenOppgave()
             verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe sakId })
             verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
@@ -403,8 +403,16 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                 }
             )
             verify(søknadRepoMock).oppdaterOppgaveId(
-                argThat { it shouldBe journalførtSøknad.id },
-                argThat { it shouldBe oppgaveId }
+                argThat {
+                    it shouldBe Søknad.Journalført.MedOppgave(
+                        id = journalførtSøknad.id,
+                        opprettet = journalførtSøknad.opprettet,
+                        sakId = sakId,
+                        søknadInnhold = søknadInnhold,
+                        journalpostId = journalførtSøknad.journalpostId,
+                        oppgaveId = oppgaveId
+                    )
+                }
             )
         }
         verifyNoMoreInteractions(personServiceMock, sakServiceMock, søknadRepoMock, pdfGeneratorMock, dokArkivMock, oppgaveServiceMock)

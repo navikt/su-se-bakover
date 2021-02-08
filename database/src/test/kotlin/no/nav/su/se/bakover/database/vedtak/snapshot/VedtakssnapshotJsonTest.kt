@@ -1,13 +1,14 @@
 package no.nav.su.se.bakover.database.vedtak.snapshot
 
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.beregning.PersistertFradrag
 import no.nav.su.se.bakover.database.beregning.PersistertMånedsberegning
-import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepoTest.Companion.lagUtbetalingUtenKvittering
+import no.nav.su.se.bakover.database.fixedLocalDate
+import no.nav.su.se.bakover.database.fixedTidspunkt
+import no.nav.su.se.bakover.database.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.database.vedtak.snapshot.VedtakssnapshotJson.Companion.toJson
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -37,8 +38,6 @@ import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import java.time.LocalDate
-import java.time.ZoneOffset
-import java.time.ZonedDateTime
 import java.util.UUID
 
 internal class VedtakssnapshotJsonTest {
@@ -49,7 +48,6 @@ internal class VedtakssnapshotJsonTest {
     private val søknadId = "68c7dba7-6c5c-422f-862e-94ebae82f24d"
     private val vedtakssnapshotId = "06015ac6-07ef-4017-bd04-1e7b87b160fa"
     private val beregningId = "4111d5ee-0215-4d0f-94fc-0959f900ef2e"
-    private val tidspunkt = Tidspunkt(ZonedDateTime.of(1970, 1, 1, 1, 2, 3, 456789000, ZoneOffset.UTC).toInstant())
     private val beregningsPeriode = Periode.create(LocalDate.of(2021, 1, 1), LocalDate.of(2021, 1, 31))
     private val fnr = Fnr("12345678910")
 
@@ -57,7 +55,7 @@ internal class VedtakssnapshotJsonTest {
     fun `kan serialisere avslag`() {
         val avslagUtenBeregning = Søknadsbehandling.Iverksatt.Avslag.UtenBeregning(
             id = UUID.fromString(behandlingId),
-            opprettet = tidspunkt,
+            opprettet = fixedTidspunkt,
             sakId = UUID.fromString(sakId),
             behandlingsinformasjon = Behandlingsinformasjon
                 .lagTomBehandlingsinformasjon()
@@ -65,7 +63,7 @@ internal class VedtakssnapshotJsonTest {
                 .withVilkårAvslått(),
             søknad = Søknad.Journalført.MedOppgave(
                 id = UUID.fromString(søknadId),
-                opprettet = tidspunkt,
+                opprettet = fixedTidspunkt,
                 sakId = UUID.fromString(sakId),
                 søknadInnhold = SøknadInnholdTestdataBuilder.build(),
                 journalpostId = JournalpostId("journalpostId"),
@@ -85,7 +83,7 @@ internal class VedtakssnapshotJsonTest {
 
         val avslag = Vedtakssnapshot.Avslag(
             id = UUID.fromString(vedtakssnapshotId),
-            opprettet = tidspunkt,
+            opprettet = fixedTidspunkt,
             søknadsbehandling = avslagUtenBeregning,
             avslagsgrunner = listOf(Avslagsgrunn.PERSONLIG_OPPMØTE)
         )
@@ -95,11 +93,11 @@ internal class VedtakssnapshotJsonTest {
             {
                "type":"avslag",
                "id":"$vedtakssnapshotId",
-               "opprettet":"1970-01-01T01:02:03.456789Z",
+               "opprettet":"2021-01-01T01:02:03.456789Z",
                "avslagsgrunner":["PERSONLIG_OPPMØTE"],
                "behandling":{
                   "id":"$behandlingId",
-                  "opprettet":"1970-01-01T01:02:03.456789Z",
+                  "opprettet":"2021-01-01T01:02:03.456789Z",
                   "sakId":"$sakId",
                   "saksnummer":1234,
                   "fnr":"12345678910",
@@ -185,7 +183,7 @@ internal class VedtakssnapshotJsonTest {
                   },
                   "søknad":{
                      "id":"$søknadId",
-                     "opprettet":"1970-01-01T01:02:03.456789Z",
+                     "opprettet":"2021-01-01T01:02:03.456789Z",
                      "sakId":"$sakId",
                      "søknadInnhold":{
                         "uførevedtak":{
@@ -336,13 +334,6 @@ internal class VedtakssnapshotJsonTest {
 
     @Test
     fun `kan serialisere innvilgelse`() {
-
-        val utbetaling = lagUtbetalingUtenKvittering(
-            sakId = UUID.fromString(sakId),
-            saksnummer = Saksnummer(saksnummer),
-            fnr = fnr,
-            datoBeregnet = LocalDate.EPOCH
-        )
         val fradrag = listOf(
             PersistertFradrag(
                 fradragstype = Arbeidsinntekt,
@@ -358,7 +349,7 @@ internal class VedtakssnapshotJsonTest {
         )
         val innvilget = Søknadsbehandling.Iverksatt.Innvilget(
             id = UUID.fromString(behandlingId),
-            opprettet = tidspunkt,
+            opprettet = fixedTidspunkt,
             sakId = UUID.fromString(sakId),
             behandlingsinformasjon = Behandlingsinformasjon
                 .lagTomBehandlingsinformasjon()
@@ -366,7 +357,7 @@ internal class VedtakssnapshotJsonTest {
                 .withVilkårAvslått(),
             søknad = Søknad.Journalført.MedOppgave(
                 id = UUID.fromString(søknadId),
-                opprettet = tidspunkt,
+                opprettet = fixedTidspunkt,
                 sakId = UUID.fromString(sakId),
                 søknadInnhold = SøknadInnholdTestdataBuilder.build(),
                 journalpostId = JournalpostId("journalpostId"),
@@ -379,7 +370,7 @@ internal class VedtakssnapshotJsonTest {
             oppgaveId = OppgaveId("oppgaveId"),
             beregning = PersistertBeregning(
                 id = UUID.fromString(beregningId),
-                opprettet = tidspunkt,
+                opprettet = fixedTidspunkt,
                 sats = ORDINÆR,
                 månedsberegninger = listOf(
                     PersistertMånedsberegning(
@@ -401,23 +392,23 @@ internal class VedtakssnapshotJsonTest {
             simulering = Simulering(
                 gjelderId = fnr,
                 gjelderNavn = "gjelderNavn",
-                datoBeregnet = LocalDate.EPOCH,
+                datoBeregnet = fixedLocalDate,
                 nettoBeløp = 42,
                 periodeList = listOf(
                     SimulertPeriode(
-                        fraOgMed = LocalDate.EPOCH,
-                        tilOgMed = LocalDate.EPOCH.plusDays(30),
+                        fraOgMed = fixedLocalDate,
+                        tilOgMed = fixedLocalDate.plusDays(30),
                         utbetaling = listOf(
                             SimulertUtbetaling(
                                 fagSystemId = "fagSystemId",
                                 utbetalesTilId = fnr,
                                 utbetalesTilNavn = "utbetalesTilNavn",
-                                forfall = LocalDate.EPOCH,
+                                forfall = fixedLocalDate,
                                 feilkonto = false,
                                 detaljer = listOf(
                                     SimulertDetaljer(
-                                        faktiskFraOgMed = LocalDate.EPOCH,
-                                        faktiskTilOgMed = LocalDate.EPOCH.plusDays(30),
+                                        faktiskFraOgMed = fixedLocalDate,
+                                        faktiskTilOgMed = fixedLocalDate.plusDays(30),
                                         konto = "konto",
                                         belop = 1,
                                         tilbakeforing = false,
@@ -441,10 +432,10 @@ internal class VedtakssnapshotJsonTest {
             ),
             utbetalingId = UUID30.randomUUID(),
         )
-
+        val utbetaling = oversendtUtbetalingUtenKvittering(innvilget)
         val innvilgelse = Vedtakssnapshot.Innvilgelse(
             id = UUID.fromString(vedtakssnapshotId),
-            opprettet = tidspunkt,
+            opprettet = fixedTidspunkt,
             søknadsbehandling = innvilget,
             utbetaling = utbetaling
         )
@@ -454,10 +445,10 @@ internal class VedtakssnapshotJsonTest {
             {
                "type":"innvilgelse",
                "id":"$vedtakssnapshotId",
-               "opprettet":"1970-01-01T01:02:03.456789Z",
+               "opprettet":"2021-01-01T01:02:03.456789Z",
                "behandling":{
                   "id":"$behandlingId",
-                  "opprettet":"1970-01-01T01:02:03.456789Z",
+                  "opprettet":"2021-01-01T01:02:03.456789Z",
                   "sakId":"$sakId",
                   "saksnummer":1234,
                   "fnr":"12345678910",
@@ -472,7 +463,7 @@ internal class VedtakssnapshotJsonTest {
                   "iverksattBrevbestillingId":"iverksattBrevbestillingId",
                   "beregning":{
                     "id":"$beregningId",
-                    "opprettet":"1970-01-01T01:02:03.456789Z",
+                    "opprettet":"2021-01-01T01:02:03.456789Z",
                     "sats":"ORDINÆR",
                     "månedsberegninger":[
                         {
@@ -599,7 +590,7 @@ internal class VedtakssnapshotJsonTest {
                   },
                   "søknad":{
                      "id":"$søknadId",
-                     "opprettet":"1970-01-01T01:02:03.456789Z",
+                     "opprettet":"2021-01-01T01:02:03.456789Z",
                      "sakId":"$sakId",
                      "søknadInnhold":{
                         "uførevedtak":{
@@ -742,23 +733,23 @@ internal class VedtakssnapshotJsonTest {
                   "simulering": {
                       "gjelderId":"12345678910",
                       "gjelderNavn":"gjelderNavn",
-                      "datoBeregnet":"1970-01-01",
+                      "datoBeregnet":"2021-01-01",
                       "nettoBeløp":42,
                       "periodeList":[
                           {
-                              "fraOgMed":"1970-01-01",
-                              "tilOgMed":"1970-01-31",
+                              "fraOgMed":"2021-01-01",
+                              "tilOgMed":"2021-01-31",
                               "utbetaling":[
                                   {
                                       "fagSystemId":"fagSystemId",
                                       "utbetalesTilId":"12345678910",
                                       "utbetalesTilNavn":"utbetalesTilNavn",
-                                      "forfall":"1970-01-01",
+                                      "forfall":"2021-01-01",
                                       "feilkonto":false,
                                       "detaljer":[
                                           {
-                                              "faktiskFraOgMed":"1970-01-01",
-                                              "faktiskTilOgMed":"1970-01-31",
+                                              "faktiskFraOgMed":"2021-01-01",
+                                              "faktiskTilOgMed":"2021-01-31",
                                               "konto":"konto",
                                               "belop":1,
                                               "tilbakeforing":false,
@@ -785,16 +776,16 @@ internal class VedtakssnapshotJsonTest {
                          {
                             "id" : "${utbetaling.utbetalingslinjer[0].id}",
                             "opprettet" :"${utbetaling.utbetalingslinjer[0].opprettet}",
-                            "fraOgMed" : "1970-01-01",
-                            "tilOgMed" :"1970-01-31",
+                            "fraOgMed" : "2020-01-01",
+                            "tilOgMed" :"2020-12-31",
                             "forrigeUtbetalingslinjeId" : null,
-                            "beløp" : 3
+                            "beløp" : 25000
                          }
                       ],
                       "type":"NY",
                       "sakId":"$sakId",
                       "saksnummer":$saksnummer,
-                      "behandler":"Z123",
+                      "behandler":"attestant",
                       "avstemmingsnøkkel":{
                          "opprettet":"${utbetaling.avstemmingsnøkkel.opprettet}",
                          "nøkkel":"${utbetaling.avstemmingsnøkkel}"
@@ -802,8 +793,8 @@ internal class VedtakssnapshotJsonTest {
                       "simulering":{
                          "gjelderId":"12345678910",
                          "gjelderNavn":"gjelderNavn",
-                         "datoBeregnet":"1970-01-01",
-                         "nettoBeløp":0,
+                         "datoBeregnet":"2021-01-01",
+                         "nettoBeløp":100,
                          "periodeList":[]
                       },
                       "utbetalingsrequest":{

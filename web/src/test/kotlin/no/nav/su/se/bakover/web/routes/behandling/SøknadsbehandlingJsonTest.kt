@@ -1,14 +1,15 @@
 package no.nav.su.se.bakover.web.routes.behandling
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.web.FnrGenerator
-import no.nav.su.se.bakover.web.behandlingFactory
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.behandlingId
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.journalførtSøknadMedOppgave
-import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.nyBehandling
+import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.nySøknadsbehandling
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.oppgaveId
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.sakId
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.saksnummer
@@ -18,18 +19,18 @@ import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import java.time.format.DateTimeFormatter
 
-internal class BehandlingJsonTest {
+internal class SøknadsbehandlingJsonTest {
 
     companion object {
 
-        private val behandling = nyBehandling()
+        private val søknadsbehandling = nySøknadsbehandling()
 
         //language=JSON
         internal val behandlingJsonString =
             """
         {
           "id": "$behandlingId",
-          "opprettet": "${DateTimeFormatter.ISO_INSTANT.format(behandling.opprettet)}",
+          "opprettet": "${DateTimeFormatter.ISO_INSTANT.format(søknadsbehandling.opprettet)}",
           "behandlingsinformasjon": {
                 "uførhet": {
                     "status": "VilkårOppfylt",
@@ -109,7 +110,7 @@ internal class BehandlingJsonTest {
           },
           "søknad": $søknadJsonString,
           "beregning": $expectedBeregningJson,
-          "status": "OPPRETTET",
+          "status": "IVERKSATT_INNVILGET",
           "simulering": {
             "totalBruttoYtelse": 0,
             "perioder": []
@@ -124,24 +125,25 @@ internal class BehandlingJsonTest {
 
     @Test
     fun `should serialize to json string`() {
-        JSONAssert.assertEquals(behandlingJsonString, serialize(behandling.toJson()), true)
+        JSONAssert.assertEquals(behandlingJsonString, serialize(søknadsbehandling.toJson()), true)
     }
 
     @Test
     fun `should deserialize json string`() {
-        deserialize<BehandlingJson>(behandlingJsonString) shouldBe behandling.toJson()
+        deserialize<BehandlingJson>(behandlingJsonString) shouldBe søknadsbehandling.toJson()
     }
 
     @Test
     fun nullables() {
-        val behandlingWithNulls = behandlingFactory.createBehandling(
+        val behandlingWithNulls = Søknadsbehandling.Vilkårsvurdert.Uavklart(
             id = behandlingId,
             behandlingsinformasjon = Behandlingsinformasjon(),
             søknad = journalførtSøknadMedOppgave,
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = FnrGenerator.random(),
-            oppgaveId = oppgaveId
+            oppgaveId = oppgaveId,
+            opprettet = Tidspunkt.EPOCH
         )
         val opprettetTidspunkt = DateTimeFormatter.ISO_INSTANT.format(behandlingWithNulls.opprettet)
 

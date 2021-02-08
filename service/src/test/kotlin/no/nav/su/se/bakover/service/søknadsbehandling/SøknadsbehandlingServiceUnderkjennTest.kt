@@ -36,7 +36,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.behandling.KunneIkkeUnderkjenneBehandling
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
@@ -114,13 +113,13 @@ class SøknadsbehandlingServiceUnderkjennTest {
             personService = personServiceMock,
             behandlingMetrics = behandlingMetricsMock
         ).underkjenn(
-            UnderkjennSøknadsbehandlingRequest(
+            SøknadsbehandlingService.UnderkjennRequest(
                 behandlingId = innvilgetBehandlingTilAttestering.id,
                 attestering = underkjentAttestering
             )
         )
 
-        actual shouldBe KunneIkkeUnderkjenneBehandling.FantIkkeBehandling.left()
+        actual shouldBe SøknadsbehandlingService.KunneIkkeUnderkjenne.FantIkkeBehandling.left()
 
         inOrder(søknadsbehandlingRepoMock) {
             verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
@@ -160,7 +159,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
                 personService = personServiceMock,
                 behandlingMetrics = behandlingMetricsMock
             ).underkjenn(
-                UnderkjennSøknadsbehandlingRequest(
+                SøknadsbehandlingService.UnderkjennRequest(
                     behandlingId = behandling.id,
                     attestering = underkjentAttestering
                 )
@@ -200,7 +199,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             behandlingMetrics = behandlingMetricsMock,
             observer = observerMock
         ).underkjenn(
-            UnderkjennSøknadsbehandlingRequest(
+            SøknadsbehandlingService.UnderkjennRequest(
                 behandlingId = innvilgetBehandlingTilAttestering.id,
                 attestering = Attestering.Underkjent(
                     attestant = attestantSomErLikSaksbehandler,
@@ -210,7 +209,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             )
         )
 
-        actual shouldBe KunneIkkeUnderkjenneBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+        actual shouldBe SøknadsbehandlingService.KunneIkkeUnderkjenne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
 
         inOrder(søknadsbehandlingRepoMock) {
             verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
@@ -243,13 +242,13 @@ class SøknadsbehandlingServiceUnderkjennTest {
             personService = personServiceMock,
             behandlingMetrics = behandlingMetricsMock
         ).underkjenn(
-            UnderkjennSøknadsbehandlingRequest(
+            SøknadsbehandlingService.UnderkjennRequest(
                 behandlingId = innvilgetBehandlingTilAttestering.id,
                 attestering = underkjentAttestering
             )
         )
 
-        actual shouldBe KunneIkkeUnderkjenneBehandling.FantIkkeAktørId.left()
+        actual shouldBe SøknadsbehandlingService.KunneIkkeUnderkjenne.FantIkkeAktørId.left()
 
         inOrder(søknadsbehandlingRepoMock, personServiceMock) {
             verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
@@ -284,13 +283,13 @@ class SøknadsbehandlingServiceUnderkjennTest {
             personService = personServiceMock,
             behandlingMetrics = behandlingMetricsMock
         ).underkjenn(
-            UnderkjennSøknadsbehandlingRequest(
+            SøknadsbehandlingService.UnderkjennRequest(
                 behandlingId = innvilgetBehandlingTilAttestering.id,
                 attestering = underkjentAttestering
             )
         )
 
-        actual shouldBe KunneIkkeUnderkjenneBehandling.KunneIkkeOppretteOppgave.left()
+        actual shouldBe SøknadsbehandlingService.KunneIkkeUnderkjenne.KunneIkkeOppretteOppgave.left()
 
         inOrder(søknadsbehandlingRepoMock, personServiceMock, oppgaveServiceMock) {
             verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe innvilgetBehandlingTilAttestering.id })
@@ -332,7 +331,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             behandlingMetrics = behandlingMetricsMock,
             observer = observerMock
         ).underkjenn(
-            UnderkjennSøknadsbehandlingRequest(
+            SøknadsbehandlingService.UnderkjennRequest(
                 behandlingId = innvilgetBehandlingTilAttestering.id,
                 attestering = underkjentAttestering
             )
@@ -377,7 +376,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
             verify(observerMock).handle(
                 argThat {
-                    it shouldBe Event.Statistikk.SøknadsbehandlingUnderkjent(underkjentMedNyOppgaveIdOgAttestering)
+                    it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingUnderkjent(underkjentMedNyOppgaveIdOgAttestering)
                 }
             )
         }
@@ -413,7 +412,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             personService = personServiceMock,
             behandlingMetrics = behandlingMetricsMock
         ).underkjenn(
-            UnderkjennSøknadsbehandlingRequest(
+            SøknadsbehandlingService.UnderkjennRequest(
                 behandlingId = innvilgetBehandlingTilAttestering.id,
                 attestering = underkjentAttestering
             )

@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.AvslagGrunnetBeregning
-import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
@@ -29,7 +28,7 @@ sealed class Søknadsbehandling {
     abstract val søknad: Søknad.Journalført.MedOppgave
     abstract val oppgaveId: OppgaveId
     abstract val behandlingsinformasjon: Behandlingsinformasjon
-    abstract val status: Behandling.BehandlingsStatus
+    abstract val status: BehandlingsStatus
     abstract val fnr: Fnr
 
     abstract fun accept(visitor: SøknadsbehandlingVisitor)
@@ -123,7 +122,7 @@ sealed class Søknadsbehandling {
             override val fnr: Fnr
         ) : Vilkårsvurdert() {
 
-            override val status: Behandling.BehandlingsStatus = Behandling.BehandlingsStatus.VILKÅRSVURDERT_INNVILGET
+            override val status: BehandlingsStatus = BehandlingsStatus.VILKÅRSVURDERT_INNVILGET
 
             override fun accept(visitor: SøknadsbehandlingVisitor) {
                 visitor.visit(this)
@@ -139,9 +138,9 @@ sealed class Søknadsbehandling {
             override val oppgaveId: OppgaveId,
             override val behandlingsinformasjon: Behandlingsinformasjon,
             override val fnr: Fnr
-        ) : Vilkårsvurdert(), no.nav.su.se.bakover.domain.søknadsbehandling.Avslag {
+        ) : Vilkårsvurdert(), ErAvslag {
 
-            override val status: Behandling.BehandlingsStatus = Behandling.BehandlingsStatus.VILKÅRSVURDERT_AVSLAG
+            override val status: BehandlingsStatus = BehandlingsStatus.VILKÅRSVURDERT_AVSLAG
 
             override fun accept(visitor: SøknadsbehandlingVisitor) {
                 visitor.visit(this)
@@ -174,7 +173,7 @@ sealed class Søknadsbehandling {
             override val fnr: Fnr
         ) : Vilkårsvurdert() {
 
-            override val status: Behandling.BehandlingsStatus = Behandling.BehandlingsStatus.OPPRETTET
+            override val status: BehandlingsStatus = BehandlingsStatus.OPPRETTET
 
             override fun accept(visitor: SøknadsbehandlingVisitor) {
                 visitor.visit(this)
@@ -192,7 +191,7 @@ sealed class Søknadsbehandling {
         abstract override val fnr: Fnr
         abstract val beregning: Beregning
 
-        fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon): Søknadsbehandling =
+        fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon): Vilkårsvurdert =
             Vilkårsvurdert.opprett(
                 id,
                 opprettet,
@@ -204,7 +203,7 @@ sealed class Søknadsbehandling {
                 fnr
             )
 
-        fun tilBeregnet(beregning: Beregning): Søknadsbehandling =
+        fun tilBeregnet(beregning: Beregning): Beregnet =
             opprett(id, opprettet, sakId, saksnummer, søknad, oppgaveId, behandlingsinformasjon, fnr, beregning)
 
         fun tilSimulert(simulering: Simulering): Simulert =
@@ -270,7 +269,7 @@ sealed class Søknadsbehandling {
             override val fnr: Fnr,
             override val beregning: Beregning
         ) : Beregnet() {
-            override val status: Behandling.BehandlingsStatus = Behandling.BehandlingsStatus.BEREGNET_INNVILGET
+            override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET_INNVILGET
 
             override fun accept(visitor: SøknadsbehandlingVisitor) {
                 visitor.visit(this)
@@ -287,8 +286,8 @@ sealed class Søknadsbehandling {
             override val behandlingsinformasjon: Behandlingsinformasjon,
             override val fnr: Fnr,
             override val beregning: Beregning
-        ) : Beregnet(), no.nav.su.se.bakover.domain.søknadsbehandling.Avslag {
-            override val status: Behandling.BehandlingsStatus = Behandling.BehandlingsStatus.BEREGNET_AVSLAG
+        ) : Beregnet(), ErAvslag {
+            override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET_AVSLAG
 
             private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
                 when (val vurdering = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
@@ -331,13 +330,13 @@ sealed class Søknadsbehandling {
         val beregning: Beregning,
         val simulering: Simulering
     ) : Søknadsbehandling() {
-        override val status: Behandling.BehandlingsStatus = Behandling.BehandlingsStatus.SIMULERT
+        override val status: BehandlingsStatus = BehandlingsStatus.SIMULERT
 
         override fun accept(visitor: SøknadsbehandlingVisitor) {
             visitor.visit(this)
         }
 
-        fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon): Søknadsbehandling =
+        fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon): Vilkårsvurdert =
             Vilkårsvurdert.opprett(
                 id,
                 opprettet,
@@ -349,7 +348,7 @@ sealed class Søknadsbehandling {
                 fnr
             )
 
-        fun tilBeregnet(beregning: Beregning): Søknadsbehandling =
+        fun tilBeregnet(beregning: Beregning): Beregnet =
             Beregnet.opprett(
                 id,
                 opprettet,
@@ -362,7 +361,7 @@ sealed class Søknadsbehandling {
                 beregning
             )
 
-        fun tilSimulert(simulering: Simulering): Søknadsbehandling =
+        fun tilSimulert(simulering: Simulering): Simulert =
             Simulert(
                 id,
                 opprettet,
@@ -410,8 +409,8 @@ sealed class Søknadsbehandling {
             val simulering: Simulering,
             override val saksbehandler: NavIdentBruker.Saksbehandler
         ) : TilAttestering() {
-            override val status: Behandling.BehandlingsStatus =
-                Behandling.BehandlingsStatus.TIL_ATTESTERING_INNVILGET
+            override val status: BehandlingsStatus =
+                BehandlingsStatus.TIL_ATTESTERING_INNVILGET
 
             override fun accept(visitor: SøknadsbehandlingVisitor) {
                 visitor.visit(this)
@@ -457,11 +456,9 @@ sealed class Søknadsbehandling {
             }
         }
 
-        sealed class Avslag : TilAttestering() {
-            final override val status: Behandling.BehandlingsStatus =
-                Behandling.BehandlingsStatus.TIL_ATTESTERING_AVSLAG
-
-            abstract val avslagsgrunner: List<Avslagsgrunn>
+        sealed class Avslag : TilAttestering(), ErAvslag {
+            final override val status: BehandlingsStatus =
+                BehandlingsStatus.TIL_ATTESTERING_AVSLAG
 
             data class UtenBeregning(
                 override val id: UUID,
@@ -603,7 +600,7 @@ sealed class Søknadsbehandling {
 
         abstract fun nyOppgaveId(nyOppgaveId: OppgaveId): Underkjent
 
-        fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon): Søknadsbehandling =
+        fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon): Vilkårsvurdert =
             Vilkårsvurdert.opprett(
                 id,
                 opprettet,
@@ -634,8 +631,8 @@ sealed class Søknadsbehandling {
                 return this.copy(oppgaveId = nyOppgaveId)
             }
 
-            override val status: Behandling.BehandlingsStatus =
-                Behandling.BehandlingsStatus.UNDERKJENT_INNVILGET
+            override val status: BehandlingsStatus =
+                BehandlingsStatus.UNDERKJENT_INNVILGET
 
             override fun accept(visitor: SøknadsbehandlingVisitor) {
                 visitor.visit(this)
@@ -684,7 +681,7 @@ sealed class Søknadsbehandling {
                 )
         }
 
-        sealed class Avslag : Underkjent() {
+        sealed class Avslag : Underkjent(), ErAvslag {
             data class MedBeregning(
                 override val id: UUID,
                 override val opprettet: Tidspunkt,
@@ -697,9 +694,9 @@ sealed class Søknadsbehandling {
                 val beregning: Beregning,
                 override val saksbehandler: NavIdentBruker.Saksbehandler,
                 override val attestering: Attestering
-            ) : Avslag(), no.nav.su.se.bakover.domain.søknadsbehandling.Avslag {
-                override val status: Behandling.BehandlingsStatus =
-                    Behandling.BehandlingsStatus.UNDERKJENT_AVSLAG
+            ) : Avslag() {
+                override val status: BehandlingsStatus =
+                    BehandlingsStatus.UNDERKJENT_AVSLAG
 
                 private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
                     when (val vurdering = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
@@ -757,9 +754,9 @@ sealed class Søknadsbehandling {
                 override val fnr: Fnr,
                 override val saksbehandler: NavIdentBruker.Saksbehandler,
                 override val attestering: Attestering
-            ) : Avslag(), no.nav.su.se.bakover.domain.søknadsbehandling.Avslag {
-                override val status: Behandling.BehandlingsStatus =
-                    Behandling.BehandlingsStatus.UNDERKJENT_AVSLAG
+            ) : Avslag() {
+                override val status: BehandlingsStatus =
+                    BehandlingsStatus.UNDERKJENT_AVSLAG
 
                 override fun nyOppgaveId(nyOppgaveId: OppgaveId): UtenBeregning {
                     return this.copy(oppgaveId = nyOppgaveId)
@@ -828,8 +825,8 @@ sealed class Søknadsbehandling {
             val utbetalingId: UUID30,
             val eksterneIverksettingsteg: EksterneIverksettingsteg = EksterneIverksettingsteg.VenterPåKvittering
         ) : Iverksatt() {
-            override val status: Behandling.BehandlingsStatus =
-                Behandling.BehandlingsStatus.IVERKSATT_INNVILGET
+            override val status: BehandlingsStatus =
+                BehandlingsStatus.IVERKSATT_INNVILGET
 
             override fun accept(visitor: SøknadsbehandlingVisitor) {
                 visitor.visit(this)
@@ -898,7 +895,7 @@ sealed class Søknadsbehandling {
             }
         }
 
-        sealed class Avslag : Iverksatt(), no.nav.su.se.bakover.domain.søknadsbehandling.Avslag {
+        sealed class Avslag : Iverksatt(), ErAvslag {
             abstract val eksterneIverksettingsteg: EksterneIverksettingsteg
             abstract fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeDistribuereBrev, Avslag>
 
@@ -915,9 +912,9 @@ sealed class Søknadsbehandling {
                 override val saksbehandler: NavIdentBruker.Saksbehandler,
                 override val attestering: Attestering,
                 override val eksterneIverksettingsteg: EksterneIverksettingsteg
-            ) : Avslag(), no.nav.su.se.bakover.domain.søknadsbehandling.Avslag {
-                override val status: Behandling.BehandlingsStatus =
-                    Behandling.BehandlingsStatus.IVERKSATT_AVSLAG
+            ) : Avslag() {
+                override val status: BehandlingsStatus =
+                    BehandlingsStatus.IVERKSATT_AVSLAG
 
                 override fun accept(visitor: SøknadsbehandlingVisitor) {
                     visitor.visit(this)
@@ -956,9 +953,9 @@ sealed class Søknadsbehandling {
                 override val saksbehandler: NavIdentBruker.Saksbehandler,
                 override val attestering: Attestering,
                 override val eksterneIverksettingsteg: EksterneIverksettingsteg
-            ) : Avslag(), no.nav.su.se.bakover.domain.søknadsbehandling.Avslag {
-                override val status: Behandling.BehandlingsStatus =
-                    Behandling.BehandlingsStatus.IVERKSATT_AVSLAG
+            ) : Avslag() {
+                override val status: BehandlingsStatus =
+                    BehandlingsStatus.IVERKSATT_AVSLAG
 
                 override fun accept(visitor: SøknadsbehandlingVisitor) {
                     visitor.visit(this)
@@ -994,4 +991,20 @@ sealed class Søknadsbehandling {
             }
         }
     }
+}
+
+// TODO jah, jm: Fjern på sikt?
+enum class BehandlingsStatus {
+    OPPRETTET,
+    VILKÅRSVURDERT_INNVILGET,
+    VILKÅRSVURDERT_AVSLAG,
+    BEREGNET_INNVILGET,
+    BEREGNET_AVSLAG,
+    SIMULERT,
+    TIL_ATTESTERING_INNVILGET,
+    TIL_ATTESTERING_AVSLAG,
+    UNDERKJENT_INNVILGET,
+    UNDERKJENT_AVSLAG,
+    IVERKSATT_INNVILGET,
+    IVERKSATT_AVSLAG,
 }

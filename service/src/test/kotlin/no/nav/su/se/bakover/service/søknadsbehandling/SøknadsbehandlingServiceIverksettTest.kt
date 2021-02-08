@@ -33,9 +33,10 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
-import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.fixedClock
+import no.nav.su.se.bakover.service.statistikk.Event
+import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.junit.jupiter.api.Nested
@@ -84,14 +85,14 @@ internal class SøknadsbehandlingServiceIverksettTest {
             on { hent(any()) } doReturn null
         }
 
-        val iverksettSaksbehandlingServiceMock = mock<IverksettSøknadsbehandlingService>()
+        val iverksettSaksbehandlingServiceMock = mock<IverksettAvslåttSøknadsbehandlingService>()
 
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            iverksettBehandlingService = iverksettSaksbehandlingServiceMock
-        ).iverksett(IverksettSøknadsbehandlingRequest(behandling.id, Attestering.Iverksatt(attestant)))
+            iverksettAvslåttBehandlingService = iverksettSaksbehandlingServiceMock
+        ).iverksett(SøknadsbehandlingService.IverksettRequest(behandling.id, Attestering.Iverksatt(attestant)))
 
-        response shouldBe KunneIkkeIverksetteBehandling.FantIkkeBehandling.left()
+        response shouldBe SøknadsbehandlingService.KunneIkkeIverksette.FantIkkeBehandling.left()
 
         inOrder(søknadsbehandlingRepoMock, iverksettSaksbehandlingServiceMock) {
             verify(søknadsbehandlingRepoMock).hent(behandling.id)
@@ -110,7 +111,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             on { hent(any()) } doReturn behandling
         }
 
-        val iverksettSaksbehandlingServiceMock = mock<IverksettSøknadsbehandlingService>()
+        val iverksettSaksbehandlingServiceMock = mock<IverksettAvslåttSøknadsbehandlingService>()
 
         val utbetalingServiceMock = mock<UtbetalingService> {
             on { utbetal(any(), any(), any(), any()) } doReturn KunneIkkeUtbetale.KunneIkkeSimulere.left()
@@ -118,11 +119,11 @@ internal class SøknadsbehandlingServiceIverksettTest {
 
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            iverksettBehandlingService = iverksettSaksbehandlingServiceMock,
+            iverksettAvslåttBehandlingService = iverksettSaksbehandlingServiceMock,
             utbetalingService = utbetalingServiceMock,
-        ).iverksett(IverksettSøknadsbehandlingRequest(behandling.id, Attestering.Iverksatt(attestant)))
+        ).iverksett(SøknadsbehandlingService.IverksettRequest(behandling.id, Attestering.Iverksatt(attestant)))
 
-        response shouldBe KunneIkkeIverksetteBehandling.KunneIkkeKontrollsimulere.left()
+        response shouldBe SøknadsbehandlingService.KunneIkkeIverksette.KunneIkkeKontrollsimulere.left()
 
         inOrder(søknadsbehandlingRepoMock, utbetalingServiceMock) {
             verify(søknadsbehandlingRepoMock).hent(behandling.id)
@@ -148,7 +149,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             on { hent(any()) } doReturn behandling
         }
 
-        val iverksettSaksbehandlingServiceMock = mock<IverksettSøknadsbehandlingService>()
+        val iverksettSaksbehandlingServiceMock = mock<IverksettAvslåttSøknadsbehandlingService>()
 
         val utbetalingServiceMock = mock<UtbetalingService> {
             on {
@@ -163,11 +164,11 @@ internal class SøknadsbehandlingServiceIverksettTest {
 
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            iverksettBehandlingService = iverksettSaksbehandlingServiceMock,
+            iverksettAvslåttBehandlingService = iverksettSaksbehandlingServiceMock,
             utbetalingService = utbetalingServiceMock,
-        ).iverksett(IverksettSøknadsbehandlingRequest(behandling.id, Attestering.Iverksatt(attestant)))
+        ).iverksett(SøknadsbehandlingService.IverksettRequest(behandling.id, Attestering.Iverksatt(attestant)))
 
-        response shouldBe KunneIkkeIverksetteBehandling.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
+        response shouldBe SøknadsbehandlingService.KunneIkkeIverksette.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
 
         inOrder(søknadsbehandlingRepoMock, utbetalingServiceMock) {
             verify(søknadsbehandlingRepoMock).hent(behandling.id)
@@ -193,7 +194,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             on { hent(any()) } doReturn behandling
         }
 
-        val iverksettSaksbehandlingServiceMock = mock<IverksettSøknadsbehandlingService>()
+        val iverksettSaksbehandlingServiceMock = mock<IverksettAvslåttSøknadsbehandlingService>()
 
         val utbetalingServiceMock = mock<UtbetalingService> {
             on { utbetal(any(), any(), any(), any()) } doReturn KunneIkkeUtbetale.Protokollfeil.left()
@@ -201,11 +202,11 @@ internal class SøknadsbehandlingServiceIverksettTest {
 
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            iverksettBehandlingService = iverksettSaksbehandlingServiceMock,
+            iverksettAvslåttBehandlingService = iverksettSaksbehandlingServiceMock,
             utbetalingService = utbetalingServiceMock,
-        ).iverksett(IverksettSøknadsbehandlingRequest(behandling.id, Attestering.Iverksatt(attestant)))
+        ).iverksett(SøknadsbehandlingService.IverksettRequest(behandling.id, Attestering.Iverksatt(attestant)))
 
-        response shouldBe KunneIkkeIverksetteBehandling.KunneIkkeUtbetale.left()
+        response shouldBe SøknadsbehandlingService.KunneIkkeIverksette.KunneIkkeUtbetale.left()
 
         inOrder(søknadsbehandlingRepoMock, utbetalingServiceMock) {
             verify(søknadsbehandlingRepoMock).hent(behandling.id)
@@ -231,7 +232,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             on { hent(any()) } doReturn behandling
         }
 
-        val iverksettSaksbehandlingServiceMock = mock<IverksettSøknadsbehandlingService>()
+        val iverksettSaksbehandlingServiceMock = mock<IverksettAvslåttSøknadsbehandlingService>()
         val utbetalingServiceMock = mock<UtbetalingService> {
             on { utbetal(any(), any(), any(), any()) } doReturn utbetaling.right()
         }
@@ -239,10 +240,10 @@ internal class SøknadsbehandlingServiceIverksettTest {
 
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            iverksettBehandlingService = iverksettSaksbehandlingServiceMock,
+            iverksettAvslåttBehandlingService = iverksettSaksbehandlingServiceMock,
             behandlingMetrics = behandlingMetricsMock,
             utbetalingService = utbetalingServiceMock,
-        ).iverksett(IverksettSøknadsbehandlingRequest(behandling.id, Attestering.Iverksatt(attestant)))
+        ).iverksett(SøknadsbehandlingService.IverksettRequest(behandling.id, Attestering.Iverksatt(attestant)))
 
         val expected = Søknadsbehandling.Iverksatt.Innvilget(
             id = behandling.id,
@@ -315,28 +316,31 @@ internal class SøknadsbehandlingServiceIverksettTest {
             )
         )
 
-        val iverksettSaksbehandlingServiceMock = mock<IverksettSøknadsbehandlingService> {
+        val iverksettSaksbehandlingServiceMock = mock<IverksettAvslåttSøknadsbehandlingService> {
             on { opprettJournalpostForAvslag(any(), any()) } doReturn iverksattJournalpostId.right()
             on { distribuerBrevOgLukkOppgaveForAvslag(any()) } doReturn expectedJournalførtOgDistribuert
         }
 
         val behandlingMetricsMock = mock<BehandlingMetrics>()
+        val statistikkObserver = mock<EventObserver>()
 
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            iverksettBehandlingService = iverksettSaksbehandlingServiceMock,
-            behandlingMetrics = behandlingMetricsMock
-        ).iverksett(IverksettSøknadsbehandlingRequest(behandling.id, Attestering.Iverksatt(attestant)))
+            iverksettAvslåttBehandlingService = iverksettSaksbehandlingServiceMock,
+            behandlingMetrics = behandlingMetricsMock,
+            observer = statistikkObserver
+        ).iverksett(SøknadsbehandlingService.IverksettRequest(behandling.id, Attestering.Iverksatt(attestant)))
 
         response shouldBe expectedJournalførtOgDistribuert.right()
 
-        inOrder(søknadsbehandlingRepoMock, iverksettSaksbehandlingServiceMock, behandlingMetricsMock) {
+        inOrder(søknadsbehandlingRepoMock, iverksettSaksbehandlingServiceMock, behandlingMetricsMock, statistikkObserver) {
             verify(søknadsbehandlingRepoMock).hent(behandling.id)
             verify(iverksettSaksbehandlingServiceMock).opprettJournalpostForAvslag(behandling, attestant)
             verify(søknadsbehandlingRepoMock).lagre(expectedJournalført)
             verify(behandlingMetricsMock).incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
             verify(iverksettSaksbehandlingServiceMock).distribuerBrevOgLukkOppgaveForAvslag(expectedJournalført)
             verify(søknadsbehandlingRepoMock).lagre(expectedJournalførtOgDistribuert)
+            verify(statistikkObserver).handle(argThat { it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(expectedJournalførtOgDistribuert) })
         }
         verifyNoMoreInteractions(
             søknadsbehandlingRepoMock,
@@ -354,14 +358,14 @@ internal class SøknadsbehandlingServiceIverksettTest {
             on { hent(any()) } doReturn behandling
         }
 
-        val iverksettSaksbehandlingServiceMock = mock<IverksettSøknadsbehandlingService>()
+        val iverksettSaksbehandlingServiceMock = mock<IverksettAvslåttSøknadsbehandlingService>()
 
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            iverksettBehandlingService = iverksettSaksbehandlingServiceMock
-        ).iverksett(IverksettSøknadsbehandlingRequest(behandling.id, Attestering.Iverksatt(attestant)))
+            iverksettAvslåttBehandlingService = iverksettSaksbehandlingServiceMock
+        ).iverksett(SøknadsbehandlingService.IverksettRequest(behandling.id, Attestering.Iverksatt(attestant)))
 
-        response shouldBe KunneIkkeIverksetteBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+        response shouldBe SøknadsbehandlingService.KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
 
         inOrder(søknadsbehandlingRepoMock, iverksettSaksbehandlingServiceMock) {
             verify(søknadsbehandlingRepoMock).hent(behandling.id)
@@ -391,13 +395,13 @@ internal class SøknadsbehandlingServiceIverksettTest {
             on { hent(any()) } doReturn behandling
         }
 
-        val iverksettSaksbehandlingServiceMock = mock<IverksettSøknadsbehandlingService>()
+        val iverksettSaksbehandlingServiceMock = mock<IverksettAvslåttSøknadsbehandlingService>()
 
         assertThrows<StatusovergangVisitor.UgyldigStatusovergangException> {
             createSøknadsbehandlingService(
                 søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-                iverksettBehandlingService = iverksettSaksbehandlingServiceMock
-            ).iverksett(IverksettSøknadsbehandlingRequest(behandling.id, Attestering.Iverksatt(attestant)))
+                iverksettAvslåttBehandlingService = iverksettSaksbehandlingServiceMock
+            ).iverksett(SøknadsbehandlingService.IverksettRequest(behandling.id, Attestering.Iverksatt(attestant)))
 
             inOrder(søknadsbehandlingRepoMock, iverksettSaksbehandlingServiceMock) {
                 verify(søknadsbehandlingRepoMock).hent(behandling.id)
@@ -466,12 +470,12 @@ internal class SøknadsbehandlingServiceIverksettTest {
     inner class IverksettStatusovergangFeilMapperTest {
         @Test
         fun `mapper feil fra statusovergang til fornuftige typer for servicelaget`() {
-            SøknadsbehandlingServiceImpl.IverksettStatusovergangFeilMapper.map(Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeJournalføre) shouldBe KunneIkkeIverksetteBehandling.KunneIkkeJournalføreBrev
-            SøknadsbehandlingServiceImpl.IverksettStatusovergangFeilMapper.map(Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.KunneIkkeKontrollsimulere) shouldBe KunneIkkeIverksetteBehandling.KunneIkkeKontrollsimulere
-            SøknadsbehandlingServiceImpl.IverksettStatusovergangFeilMapper.map(Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte) shouldBe KunneIkkeIverksetteBehandling.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
-            SøknadsbehandlingServiceImpl.IverksettStatusovergangFeilMapper.map(Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.TekniskFeil) shouldBe KunneIkkeIverksetteBehandling.KunneIkkeUtbetale
-            SøknadsbehandlingServiceImpl.IverksettStatusovergangFeilMapper.map(Statusovergang.KunneIkkeIverksetteSøknadsbehandling.SaksbehandlerOgAttestantKanIkkeVæreSammePerson) shouldBe KunneIkkeIverksetteBehandling.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
-            SøknadsbehandlingServiceImpl.IverksettStatusovergangFeilMapper.map(Statusovergang.KunneIkkeIverksetteSøknadsbehandling.FantIkkePerson) shouldBe KunneIkkeIverksetteBehandling.FantIkkePerson
+            SøknadsbehandlingServiceImpl.IverksettStatusovergangFeilMapper.map(Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeJournalføre) shouldBe SøknadsbehandlingService.KunneIkkeIverksette.KunneIkkeJournalføreBrev
+            SøknadsbehandlingServiceImpl.IverksettStatusovergangFeilMapper.map(Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.KunneIkkeKontrollsimulere) shouldBe SøknadsbehandlingService.KunneIkkeIverksette.KunneIkkeKontrollsimulere
+            SøknadsbehandlingServiceImpl.IverksettStatusovergangFeilMapper.map(Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte) shouldBe SøknadsbehandlingService.KunneIkkeIverksette.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
+            SøknadsbehandlingServiceImpl.IverksettStatusovergangFeilMapper.map(Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.TekniskFeil) shouldBe SøknadsbehandlingService.KunneIkkeIverksette.KunneIkkeUtbetale
+            SøknadsbehandlingServiceImpl.IverksettStatusovergangFeilMapper.map(Statusovergang.KunneIkkeIverksetteSøknadsbehandling.SaksbehandlerOgAttestantKanIkkeVæreSammePerson) shouldBe SøknadsbehandlingService.KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
+            SøknadsbehandlingServiceImpl.IverksettStatusovergangFeilMapper.map(Statusovergang.KunneIkkeIverksetteSøknadsbehandling.FantIkkePerson) shouldBe SøknadsbehandlingService.KunneIkkeIverksette.FantIkkePerson
         }
     }
 }

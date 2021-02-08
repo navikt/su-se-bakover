@@ -8,7 +8,6 @@ import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.service.behandling.FantIkkeBehandling
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -20,8 +19,8 @@ internal class SøknadsbehandlingServiceHentTest {
         }
         createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock
-        ).hent(HentBehandlingRequest(UUID.randomUUID())).let {
-            it shouldBe FantIkkeBehandling.left()
+        ).hent(SøknadsbehandlingService.HentRequest(UUID.randomUUID())).let {
+            it shouldBe SøknadsbehandlingService.FantIkkeBehandling.left()
         }
     }
 
@@ -33,7 +32,7 @@ internal class SøknadsbehandlingServiceHentTest {
         }
         createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock
-        ).hent(HentBehandlingRequest(UUID.randomUUID())).let {
+        ).hent(SøknadsbehandlingService.HentRequest(UUID.randomUUID())).let {
             it shouldBe behandlingMock.right()
         }
     }

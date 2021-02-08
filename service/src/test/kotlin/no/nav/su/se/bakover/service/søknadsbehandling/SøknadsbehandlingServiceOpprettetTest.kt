@@ -22,7 +22,6 @@ import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.behandling.KunneIkkeOppretteSøknadsbehandling
 import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
@@ -47,7 +46,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
         )
 
         val søknadId = UUID.randomUUID()
-        service.opprett(OpprettSøknadsbehandlingRequest((søknadId))) shouldBe KunneIkkeOppretteSøknadsbehandling.FantIkkeSøknad.left()
+        service.opprett(SøknadsbehandlingService.OpprettRequest((søknadId))) shouldBe SøknadsbehandlingService.KunneIkkeOpprette.FantIkkeSøknad.left()
 
         verify(søknadServiceMock).hentSøknad(søknadId)
         verifyNoMoreInteractions(søknadServiceMock, saksbehandlingRepo)
@@ -80,7 +79,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             søknadsbehandlingRepo = saksbehandlingRepo
         )
 
-        service.opprett(OpprettSøknadsbehandlingRequest((lukketSøknad.id))) shouldBe KunneIkkeOppretteSøknadsbehandling.SøknadErLukket.left()
+        service.opprett(SøknadsbehandlingService.OpprettRequest((lukketSøknad.id))) shouldBe SøknadsbehandlingService.KunneIkkeOpprette.SøknadErLukket.left()
 
         verify(søknadServiceMock).hentSøknad(lukketSøknad.id)
         verifyNoMoreInteractions(søknadServiceMock, saksbehandlingRepo)
@@ -106,7 +105,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             søknadsbehandlingRepo = saksbehandlingRepo
         )
 
-        service.opprett(OpprettSøknadsbehandlingRequest((utenJournalpostOgOppgave.id))) shouldBe KunneIkkeOppretteSøknadsbehandling.SøknadManglerOppgave.left()
+        service.opprett(SøknadsbehandlingService.OpprettRequest((utenJournalpostOgOppgave.id))) shouldBe SøknadsbehandlingService.KunneIkkeOpprette.SøknadManglerOppgave.left()
 
         verify(søknadServiceMock).hentSøknad(utenJournalpostOgOppgave.id)
         verifyNoMoreInteractions(søknadServiceMock, saksbehandlingRepo)
@@ -137,7 +136,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             søknadRepo = søknadRepoMock
         )
 
-        service.opprett(OpprettSøknadsbehandlingRequest((søknad.id))) shouldBe KunneIkkeOppretteSøknadsbehandling.SøknadHarAlleredeBehandling.left()
+        service.opprett(SøknadsbehandlingService.OpprettRequest((søknad.id))) shouldBe SøknadsbehandlingService.KunneIkkeOpprette.SøknadHarAlleredeBehandling.left()
 
         verify(søknadServiceMock).hentSøknad(søknad.id)
         verify(søknadRepoMock).harSøknadPåbegyntBehandling(søknad.id)
@@ -184,7 +183,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             søknadRepo = søknadRepo,
             personService = mock(),
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            iverksettBehandlingService = mock(),
+            iverksettAvslåttBehandlingService = mock(),
             behandlingMetrics = mock(),
             beregningService = mock(),
         )
@@ -193,7 +192,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
         }
         behandlingService.addObserver(eventObserver)
 
-        behandlingService.opprett(OpprettSøknadsbehandlingRequest(søknad.id)).orNull()!!.shouldBeEqualToIgnoringFields(
+        behandlingService.opprett(SøknadsbehandlingService.OpprettRequest(søknad.id)).orNull()!!.shouldBeEqualToIgnoringFields(
             expectedSøknadsbehandling,
             Søknadsbehandling.Vilkårsvurdert.Uavklart::id,
             Søknadsbehandling.Vilkårsvurdert.Uavklart::opprettet,
@@ -210,7 +209,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
         )
         verify(eventObserver).handle(
             argThat {
-                it shouldBe Event.Statistikk.SøknadsbehandlingOpprettet(
+                it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingOpprettet(
                     expectedSøknadsbehandling
                 )
             }

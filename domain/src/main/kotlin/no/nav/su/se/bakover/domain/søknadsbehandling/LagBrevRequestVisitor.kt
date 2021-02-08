@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagBrevRequest
@@ -169,6 +168,6 @@ class LagBrevRequestVisitor(
     sealed class BrevRequestFeil {
         object KunneIkkeHentePerson : BrevRequestFeil()
         object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : BrevRequestFeil()
-        data class KunneIkkeLageBrevForStatus(val status: Behandling.BehandlingsStatus) : BrevRequestFeil()
+        data class KunneIkkeLageBrevForStatus(val status: BehandlingsStatus) : BrevRequestFeil()
     }
 }

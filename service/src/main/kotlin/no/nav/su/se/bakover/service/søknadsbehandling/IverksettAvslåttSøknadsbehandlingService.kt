@@ -14,15 +14,13 @@ import no.nav.su.se.bakover.domain.behandling.avslag.AvslagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Statusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.service.behandling.KunneIkkeIverksetteBehandling
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
-import no.nav.su.se.bakover.service.statistikk.EventObserver
 import org.slf4j.LoggerFactory
 import java.time.Clock
 
-class IverksettSøknadsbehandlingService(
+class IverksettAvslåttSøknadsbehandlingService(
     private val oppgaveService: OppgaveService,
     private val personService: PersonService,
     private val behandlingMetrics: BehandlingMetrics,
@@ -30,12 +28,6 @@ class IverksettSøknadsbehandlingService(
     private val microsoftGraphApiClient: MicrosoftGraphApiOppslag,
     private val brevService: BrevService,
 ) {
-    private val observers: MutableList<EventObserver> = mutableListOf()
-
-    fun addObserver(observer: EventObserver) {
-        observers.add(observer)
-    }
-
     private val log = LoggerFactory.getLogger(this::class.java)
 
     internal fun opprettJournalpostForAvslag(
@@ -74,9 +66,9 @@ class IverksettSøknadsbehandlingService(
         }
     }
 
-    private fun hentNavnForNavIdent(navIdent: NavIdentBruker): Either<KunneIkkeIverksetteBehandling.FikkIkkeHentetSaksbehandlerEllerAttestant, String> {
+    private fun hentNavnForNavIdent(navIdent: NavIdentBruker): Either<SøknadsbehandlingService.KunneIkkeIverksette.FikkIkkeHentetSaksbehandlerEllerAttestant, String> {
         return microsoftGraphApiClient.hentBrukerinformasjonForNavIdent(navIdent)
-            .mapLeft { KunneIkkeIverksetteBehandling.FikkIkkeHentetSaksbehandlerEllerAttestant }
+            .mapLeft { SøknadsbehandlingService.KunneIkkeIverksette.FikkIkkeHentetSaksbehandlerEllerAttestant }
             .map { it.displayName }
     }
 
@@ -104,12 +96,6 @@ class IverksettSøknadsbehandlingService(
                 // TODO jah: Vurder behandling.oppdaterOppgaveId(null), men den kan ikke være null atm.
                 behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.LUKKET_OPPGAVE)
             }
-
-        // TODO jah: implement version for søknadsbehandling
-        // opprettVedtakssnapshotService.opprettVedtak(
-        //     vedtakssnapshot = Vedtakssnapshot.Avslag.createFromBehandling(søknadsbehandlingUtenBrev, avslag.avslagsgrunner)
-        // )
-
         return brevResultat.getOrElse { søknadsbehandlingUtenBrev }
     }
 }
