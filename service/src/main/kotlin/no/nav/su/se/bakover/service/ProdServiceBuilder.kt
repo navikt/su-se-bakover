@@ -80,7 +80,8 @@ object ProdServiceBuilder : ServiceBuilder {
             behandlingMetrics = behandlingMetrics,
             microsoftGraphApiClient = clients.microsoftGraphApiClient,
             personService = personService,
-            brevService = brevService
+            brevService = brevService,
+            clock = clock,
         ).apply { addObserver(statistikkService) }
         val toggleService = ToggleServiceImpl(unleash)
 
@@ -129,6 +130,7 @@ object ProdServiceBuilder : ServiceBuilder {
                 microsoftGraphApiClient = clients.microsoftGraphApiClient,
                 brevService = brevService,
                 opprettVedtakssnapshotService = opprettVedtakssnapshotService,
+                clock = clock,
             ).apply {
                 addObserver(statistikkService)
             },

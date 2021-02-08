@@ -48,6 +48,7 @@ import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import org.junit.jupiter.api.Test
+import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
@@ -487,7 +488,8 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
         behandlingMetrics: BehandlingMetrics = mock(),
         microsoftGraphApiOppslag: MicrosoftGraphApiOppslag = mock(),
         brevService: BrevService = mock(),
-        eventObserver: EventObserver = mock { on { handle(any()) }.doNothing() }
+        eventObserver: EventObserver = mock { on { handle(any()) }.doNothing() },
+        clock: Clock = Clock.systemUTC()
     ) = FerdigstillSøknadsbehandingIverksettingServiceImpl(
         søknadsbehandlingRepo = søknadsbehandlingRepo,
         oppgaveService = oppgaveService,
@@ -495,5 +497,6 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
         microsoftGraphApiClient = microsoftGraphApiOppslag,
         personService = personService,
         brevService = brevService,
+        clock = clock,
     ).apply { addObserver(eventObserver) }
 }

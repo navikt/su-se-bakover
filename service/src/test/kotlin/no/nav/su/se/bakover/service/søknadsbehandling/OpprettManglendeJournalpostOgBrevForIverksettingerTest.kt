@@ -44,6 +44,7 @@ import no.nav.su.se.bakover.service.brev.KunneIkkeJournalføreBrev
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import org.junit.jupiter.api.Test
+import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
@@ -626,12 +627,14 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
         behandlingMetrics: BehandlingMetrics = mock(),
         microsoftGraphApiOppslag: MicrosoftGraphApiOppslag = mock(),
         brevService: BrevService = mock(),
+        clock: Clock = Clock.systemUTC(),
     ) = FerdigstillSøknadsbehandingIverksettingServiceImpl(
         søknadsbehandlingRepo = søknadsbehandlingRepo,
         oppgaveService = oppgaveService,
         personService = personService,
         behandlingMetrics = behandlingMetrics,
         microsoftGraphApiClient = microsoftGraphApiOppslag,
-        brevService = brevService
+        brevService = brevService,
+        clock = clock,
     )
 }

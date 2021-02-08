@@ -27,6 +27,7 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceImpl(
     private val microsoftGraphApiClient: MicrosoftGraphApiOppslag,
     private val personService: PersonService,
     private val brevService: BrevService,
+    private val clock: Clock,
 ) : FerdigstillSøknadsbehandingIverksettingService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -202,7 +203,7 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceImpl(
                 hentNavnForNavIdent(ident)
                     .mapLeft { LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant }
             },
-            clock = Clock.systemUTC(),
+            clock = clock,
         ).apply { søknadsbehandling.accept(this) }
 
         val brevRequest = visitor.brevRequest.getOrHandle {
