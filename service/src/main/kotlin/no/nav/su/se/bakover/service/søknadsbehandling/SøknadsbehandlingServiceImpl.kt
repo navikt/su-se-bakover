@@ -95,7 +95,13 @@ internal class SøknadsbehandlingServiceImpl(
 
         // Må hente fra db for å få joinet med saksnummer.
         return søknadsbehandlingRepo.hent(opprettet.id)!!.let {
-            observers.forEach { observer -> observer.handle(Event.Statistikk.SøknadsbehandlingOpprettet(it)) }
+            observers.forEach { observer ->
+                observer.handle(
+                    Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingOpprettet(
+                        it as Søknadsbehandling.Vilkårsvurdert.Uavklart
+                    )
+                )
+            }
             it.right()
         }
     }
@@ -189,7 +195,13 @@ internal class SøknadsbehandlingServiceImpl(
         behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.PERSISTERT)
         behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.OPPRETTET_OPPGAVE)
         return søknadsbehandlingMedNyOppgaveId.let {
-            observers.forEach { observer -> observer.handle(Event.Statistikk.SøknadsbehandlingTilAttestering(it)) }
+            observers.forEach { observer ->
+                observer.handle(
+                    Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingTilAttestering(
+                        it
+                    )
+                )
+            }
             it.right()
         }
     }
@@ -240,7 +252,13 @@ internal class SøknadsbehandlingServiceImpl(
                     behandlingMetrics.incrementUnderkjentCounter(BehandlingMetrics.UnderkjentHandlinger.LUKKET_OPPGAVE)
                 }
             søknadsbehandlingMedNyOppgaveId.also {
-                observers.forEach { observer -> observer.handle(Event.Statistikk.SøknadsbehandlingUnderkjent(it)) }
+                observers.forEach { observer ->
+                    observer.handle(
+                        Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingUnderkjent(
+                            it
+                        )
+                    )
+                }
             }
 
             søknadsbehandlingMedNyOppgaveId
@@ -287,7 +305,13 @@ internal class SøknadsbehandlingServiceImpl(
         }.map {
             søknadsbehandlingRepo.lagre(it)
             // TODO jah, jm: Flytt inn i FerdigstillIverksetting...
-            observers.forEach { observer -> observer.handle(Event.Statistikk.SøknadsbehandlingIverksatt(it)) }
+            observers.forEach { observer ->
+                observer.handle(
+                    Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(
+                        it
+                    )
+                )
+            }
             when (it) {
                 is Søknadsbehandling.Iverksatt.Innvilget -> {
                     log.info("Iverksatt innvilgelse for behandling ${it.id}")
@@ -363,6 +387,7 @@ internal class SøknadsbehandlingServiceImpl(
     }
 
     override fun hent(request: SøknadsbehandlingService.HentRequest): Either<SøknadsbehandlingService.FantIkkeBehandling, Søknadsbehandling> {
-        return søknadsbehandlingRepo.hent(request.behandlingId)?.right() ?: SøknadsbehandlingService.FantIkkeBehandling.left()
+        return søknadsbehandlingRepo.hent(request.behandlingId)?.right()
+            ?: SøknadsbehandlingService.FantIkkeBehandling.left()
     }
 }

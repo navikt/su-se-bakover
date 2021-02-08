@@ -21,12 +21,16 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
+import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.person.PersonService
@@ -58,7 +62,11 @@ internal class StatistikkServiceImplTest {
             on { publiser(any(), any()) }.doNothing()
         }
 
-        StatistikkServiceImpl(kafkaPublisherMock, mock(), fixedClock).publiser(StatistikkSchemaValidatorTest.gyldigBehandling)
+        StatistikkServiceImpl(
+            kafkaPublisherMock,
+            mock(),
+            fixedClock
+        ).publiser(StatistikkSchemaValidatorTest.gyldigBehandling)
         verify(kafkaPublisherMock).publiser(
             argThat { it shouldBe behandlingTopicName },
             argThat { it shouldBe objectMapper.writeValueAsString(StatistikkSchemaValidatorTest.gyldigBehandling) }
@@ -114,7 +122,8 @@ internal class StatistikkServiceImplTest {
         val kafkaPublisherMock: KafkaPublisher = mock {
             on { publiser(any(), any()) }.doNothing()
         }
-        val søknadMock: Søknad.Journalført.MedOppgave = mock { on { søknadInnhold } doReturn SøknadInnholdTestdataBuilder.build() }
+        val søknadMock: Søknad.Journalført.MedOppgave =
+            mock { on { søknadInnhold } doReturn SøknadInnholdTestdataBuilder.build() }
         val clock = Clock.fixed(1.januar(2020).endOfDay(ZoneOffset.UTC).instant, ZoneOffset.UTC)
 
         val søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Uavklart = mock {
@@ -139,6 +148,7 @@ internal class StatistikkServiceImplTest {
             versjon = clock.millis(),
             behandlingType = "SOKNAD",
             behandlingTypeBeskrivelse = "Søknad for SU Uføre",
+            behandlingStatusBeskrivelse = "Ny søknadsbehandling opprettet",
             utenlandstilsnitt = "NASJONAL",
             ansvarligEnhetKode = "4815",
             ansvarligEnhetType = "NORG",
@@ -148,7 +158,7 @@ internal class StatistikkServiceImplTest {
         )
 
         StatistikkServiceImpl(kafkaPublisherMock, mock(), clock).handle(
-            Event.Statistikk.SøknadsbehandlingOpprettet(søknadsbehandling)
+            Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingOpprettet(søknadsbehandling)
         )
 
         verify(kafkaPublisherMock).publiser(
@@ -162,7 +172,8 @@ internal class StatistikkServiceImplTest {
         val kafkaPublisherMock: KafkaPublisher = mock {
             on { publiser(any(), any()) }.doNothing()
         }
-        val søknadMock: Søknad.Journalført.MedOppgave = mock { on { søknadInnhold } doReturn SøknadInnholdTestdataBuilder.build() }
+        val søknadMock: Søknad.Journalført.MedOppgave =
+            mock { on { søknadInnhold } doReturn SøknadInnholdTestdataBuilder.build() }
         val clock = Clock.fixed(1.januar(2020).endOfDay(ZoneOffset.UTC).instant, ZoneOffset.UTC)
 
         val behandling: Søknadsbehandling.TilAttestering.Avslag.UtenBeregning = mock {
@@ -186,12 +197,13 @@ internal class StatistikkServiceImplTest {
             sakId = behandling.sakId,
             saksnummer = behandling.saksnummer.nummer,
             behandlingStatus = behandling.status,
+            behandlingStatusBeskrivelse = "Avslått søknadsbehandling iverksatt",
             versjon = clock.millis(),
             saksbehandler = "Z1595",
         )
 
         StatistikkServiceImpl(kafkaPublisherMock, mock(), clock).handle(
-            Event.Statistikk.SøknadsbehandlingTilAttestering(behandling)
+            Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingTilAttestering(behandling)
         )
 
         verify(kafkaPublisherMock).publiser(
@@ -205,7 +217,8 @@ internal class StatistikkServiceImplTest {
         val kafkaPublisherMock: KafkaPublisher = mock {
             on { publiser(any(), any()) }.doNothing()
         }
-        val søknadMock: Søknad.Journalført.MedOppgave = mock { on { søknadInnhold } doReturn SøknadInnholdTestdataBuilder.build() }
+        val søknadMock: Søknad.Journalført.MedOppgave =
+            mock { on { søknadInnhold } doReturn SøknadInnholdTestdataBuilder.build() }
         val clock = Clock.fixed(1.januar(2020).endOfDay(ZoneOffset.UTC).instant, ZoneOffset.UTC)
         val beregningMock: Beregning = mock {
             on { getPeriode() } doReturn Periode.create(1.januar(2021), 31.januar(2021))
@@ -233,6 +246,7 @@ internal class StatistikkServiceImplTest {
             sakId = behandling.sakId,
             saksnummer = behandling.saksnummer.nummer,
             behandlingStatus = behandling.status,
+            behandlingStatusBeskrivelse = "Innvilget søknadsbehandling iverksatt",
             versjon = clock.millis(),
             resultat = "Innvilget",
             saksbehandler = "55",
@@ -240,7 +254,7 @@ internal class StatistikkServiceImplTest {
         )
 
         StatistikkServiceImpl(kafkaPublisherMock, mock(), clock).handle(
-            Event.Statistikk.SøknadsbehandlingIverksatt(behandling)
+            Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(behandling)
         )
 
         verify(kafkaPublisherMock).publiser(
@@ -254,7 +268,8 @@ internal class StatistikkServiceImplTest {
         val kafkaPublisherMock: KafkaPublisher = mock {
             on { publiser(any(), any()) }.doNothing()
         }
-        val søknadMock: Søknad.Journalført.MedOppgave = mock { on { søknadInnhold } doReturn SøknadInnholdTestdataBuilder.build() }
+        val søknadMock: Søknad.Journalført.MedOppgave =
+            mock { on { søknadInnhold } doReturn SøknadInnholdTestdataBuilder.build() }
         val clock = Clock.fixed(1.januar(2020).endOfDay(ZoneOffset.UTC).instant, ZoneOffset.UTC)
 
         val behandling: Søknadsbehandling.Iverksatt.Avslag.UtenBeregning = mock {
@@ -279,6 +294,7 @@ internal class StatistikkServiceImplTest {
             sakId = behandling.sakId,
             saksnummer = behandling.saksnummer.nummer,
             behandlingStatus = behandling.status,
+            behandlingStatusBeskrivelse = "Avslått søknadsbehandling iverksatt",
             versjon = clock.millis(),
             resultat = "Avslått",
             saksbehandler = "55",
@@ -287,7 +303,62 @@ internal class StatistikkServiceImplTest {
         )
 
         StatistikkServiceImpl(kafkaPublisherMock, mock(), clock).handle(
-            Event.Statistikk.SøknadsbehandlingIverksatt(behandling)
+            Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(behandling)
+        )
+
+        verify(kafkaPublisherMock).publiser(
+            argThat { it shouldBe behandlingTopicName },
+            argThat { it shouldBe objectMapper.writeValueAsString(expected) }
+        )
+    }
+
+    @Test
+    fun `publiserer statistikk for underkjent behandling på kafka`() {
+        val kafkaPublisherMock: KafkaPublisher = mock {
+            on { publiser(any(), any()) }.doNothing()
+        }
+        val søknadMock: Søknad.Journalført.MedOppgave =
+            mock { on { søknadInnhold } doReturn SøknadInnholdTestdataBuilder.build() }
+        val clock = Clock.fixed(1.januar(2020).endOfDay(ZoneOffset.UTC).instant, ZoneOffset.UTC)
+
+        val beregning = TestBeregning
+
+        val underkjent = Søknadsbehandling.Underkjent.Innvilget(
+            id = UUID.randomUUID(),
+            opprettet = Tidspunkt.now(clock),
+            sakId = UUID.randomUUID(),
+            saksnummer = Saksnummer(0),
+            søknad = søknadMock,
+            oppgaveId = OppgaveId(value = ""),
+            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
+            fnr = FnrGenerator.random(),
+            beregning = beregning,
+            simulering = mock(),
+            saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
+            attestering = Attestering.Underkjent(
+                NavIdentBruker.Attestant("attestant"),
+                Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+                ""
+            )
+        )
+
+        val expected = Statistikk.Behandling(
+            funksjonellTid = beregning.getPeriode().getFraOgMed().startOfDay(zoneIdOslo),
+            tekniskTid = Tidspunkt.now(clock),
+            registrertDato = underkjent.opprettet.toLocalDate(zoneIdOslo),
+            mottattDato = underkjent.opprettet.toLocalDate(zoneIdOslo),
+            behandlingId = underkjent.id,
+            sakId = underkjent.sakId,
+            saksnummer = underkjent.saksnummer.nummer,
+            behandlingStatus = underkjent.status,
+            behandlingStatusBeskrivelse = "Innvilget søknadsbehandling sendt tilbake fra attestant til saksbehandler",
+            versjon = clock.millis(),
+            saksbehandler = "saksbehandler",
+            beslutter = "attestant",
+        )
+
+        StatistikkServiceImpl(kafkaPublisherMock, mock(), clock).handle(
+            Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingUnderkjent(underkjent)
         )
 
         verify(kafkaPublisherMock).publiser(

@@ -131,7 +131,7 @@ class SøknadsbehandlingServiceAttesteringTest {
             )
             verify(søknadsbehandlingRepoMock).lagre(expected)
             verify(oppgaveServiceMock).lukkOppgave(oppgaveId)
-            verify(eventObserver).handle(argThat { it shouldBe Event.Statistikk.SøknadsbehandlingTilAttestering(expected) })
+            verify(eventObserver).handle(argThat { it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingTilAttestering(expected) })
         }
         verifyNoMoreInteractions(søknadsbehandlingRepoMock, personServiceMock, oppgaveServiceMock, eventObserver)
     }
@@ -283,7 +283,7 @@ class SøknadsbehandlingServiceAttesteringTest {
             )
             verify(søknadsbehandlingRepoMock).lagre(expected)
             verify(oppgaveServiceMock).lukkOppgave(oppgaveId)
-            verify(eventObserver).handle(argThat { it shouldBe Event.Statistikk.SøknadsbehandlingTilAttestering(expected) })
+            verify(eventObserver).handle(argThat { it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingTilAttestering(expected) })
         }
         verifyNoMoreInteractions(søknadsbehandlingRepoMock, personServiceMock, oppgaveServiceMock, eventObserver)
     }

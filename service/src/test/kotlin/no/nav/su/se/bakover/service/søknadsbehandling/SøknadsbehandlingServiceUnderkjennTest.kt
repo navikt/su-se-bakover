@@ -376,7 +376,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
             verify(observerMock).handle(
                 argThat {
-                    it shouldBe Event.Statistikk.SøknadsbehandlingUnderkjent(underkjentMedNyOppgaveIdOgAttestering)
+                    it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingUnderkjent(underkjentMedNyOppgaveIdOgAttestering)
                 }
             )
         }

@@ -209,7 +209,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
         )
         verify(eventObserver).handle(
             argThat {
-                it shouldBe Event.Statistikk.SøknadsbehandlingOpprettet(
+                it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingOpprettet(
                     expectedSøknadsbehandling
                 )
             }
