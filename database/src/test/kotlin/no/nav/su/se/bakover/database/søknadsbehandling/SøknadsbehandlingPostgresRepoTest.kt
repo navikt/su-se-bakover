@@ -1,10 +1,10 @@
 package no.nav.su.se.bakover.database.søknadsbehandling
 
 import arrow.core.right
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeTypeOf
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.avslåttBeregning
@@ -15,15 +15,14 @@ import no.nav.su.se.bakover.database.iverksattAttestering
 import no.nav.su.se.bakover.database.iverksattBrevbestillingId
 import no.nav.su.se.bakover.database.iverksattJournalpostId
 import no.nav.su.se.bakover.database.journalførtIverksettingForAvslag
+import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.saksbehandler
 import no.nav.su.se.bakover.database.simulering
 import no.nav.su.se.bakover.database.underkjentAttestering
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import org.junit.jupiter.api.Nested
@@ -34,6 +33,25 @@ internal class SøknadsbehandlingPostgresRepoTest {
     private val dataSource = EmbeddedDatabase.instance()
     private val testDataHelper = TestDataHelper(dataSource)
     private val repo = SøknadsbehandlingPostgresRepo(dataSource)
+
+    @Test
+    fun `kaster exception hvis brev finnes uten journalpost`() {
+        withMigratedDb {
+            val innvilget = testDataHelper.nyIverksattInnvilget().first
+                .journalfør { JournalpostId("fjernerDenneMedEnUpdate").right() }.orNull()!!
+                .distribuerBrev { BrevbestillingId("b").right() }
+                .orNull()!!
+                .also {
+                    repo.lagre(it)
+                }
+            dataSource.withSession { session ->
+                ("update behandling set iverksattJournalpostId = null where id = '${innvilget.id}'").oppdatering(emptyMap(), session)
+                shouldThrow<IllegalStateException> {
+                    repo.hent(innvilget.id)
+                }.message shouldBe "Kunne ikke bestemme eksterne iverksettingssteg for innvilgelse, iverksattJournalpostId:null, iverksattBrevbestillingId:b"
+            }
+        }
+    }
 
     @Test
     fun `hent tidligere attestering ved underkjenning`() {
@@ -91,8 +109,8 @@ internal class SøknadsbehandlingPostgresRepoTest {
             testDataHelper.nyIverksattInnvilget().first
                 .journalfør { JournalpostId("1").right() }.orNull()!!
                 .distribuerBrev { BrevbestillingId("2").right() }.orNull()!!.also {
-                    repo.lagre(it)
-                }
+                repo.lagre(it)
+            }
             // avslag med journalpost (avslag kan ikke opprettes uten journalpost)
             val avslagUtenBeregningMedJournalpost = testDataHelper.nyIverksattAvslagUtenBeregning()
             val avslagMedBeregningMedJournalpost =
@@ -101,8 +119,8 @@ internal class SøknadsbehandlingPostgresRepoTest {
             // avslag med beregning med iverksattJournalpostId og iverksattBrevbestillingId
             testDataHelper.nyIverksattAvslagMedBeregning(journalførtIverksettingForAvslag)
                 .distribuerBrev { BrevbestillingId("2").right() }.orNull()!!.also {
-                    repo.lagre(it)
-                }
+                repo.lagre(it)
+            }
 
             val actual = repo.hentIverksatteBehandlingerUtenBrevbestillinger()
             actual.size shouldBe 3
