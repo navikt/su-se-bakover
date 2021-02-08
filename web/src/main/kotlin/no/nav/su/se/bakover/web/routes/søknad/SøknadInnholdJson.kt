@@ -210,7 +210,7 @@ data class SøknadInnholdJson(
     }
 
     data class UtenlandsoppholdJson(
-        val registrertePerioder: List<UtenlandsoppholdPeriodeJson>? = null, // TODO hestad: Set lists to emptyList
+        val registrertePerioder: List<UtenlandsoppholdPeriodeJson>? = null,
         val planlagtePerioder: List<UtenlandsoppholdPeriodeJson>? = null
     ) {
         fun toUtenlandsopphold() = Utenlandsopphold(

@@ -807,8 +807,6 @@ sealed class Søknadsbehandling {
             object FeilVedJournalføring : KunneIkkeJournalføre()
         }
 
-        // abstract fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeDistribuereBrev, Iverksatt>
-
         data class Innvilget(
             override val id: UUID,
             override val opprettet: Tidspunkt,
@@ -993,7 +991,6 @@ sealed class Søknadsbehandling {
     }
 }
 
-// TODO jah, jm: Fjern på sikt?
 enum class BehandlingsStatus {
     OPPRETTET,
     VILKÅRSVURDERT_INNVILGET,

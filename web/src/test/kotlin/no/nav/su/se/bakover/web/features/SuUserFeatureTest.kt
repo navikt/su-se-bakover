@@ -41,9 +41,7 @@ internal class SuUserFeatureTest {
                         override fun hentBrukerinformasjon(userToken: String): Either<MicrosoftGraphApiOppslagFeil, MicrosoftGraphResponse> =
                             Either.right(response)
 
-                        override fun hentBrukerinformasjonForNavIdent(navIdent: NavIdentBruker): Either<MicrosoftGraphApiOppslagFeil, MicrosoftGraphResponse> {
-                            TODO("Not yet implemented")
-                        }
+                        override fun hentBrukerinformasjonForNavIdent(navIdent: NavIdentBruker) = throw NotImplementedError("ikke i bruk")
                     }
                 )
             )
@@ -64,9 +62,7 @@ internal class SuUserFeatureTest {
                         override fun hentBrukerinformasjon(userToken: String): Either<MicrosoftGraphApiOppslagFeil, MicrosoftGraphResponse> =
                             MicrosoftGraphApiOppslagFeil.KallTilMicrosoftGraphApiFeilet.left()
 
-                        override fun hentBrukerinformasjonForNavIdent(navIdent: NavIdentBruker): Either<MicrosoftGraphApiOppslagFeil, MicrosoftGraphResponse> {
-                            TODO("Not yet implemented")
-                        }
+                        override fun hentBrukerinformasjonForNavIdent(navIdent: NavIdentBruker) = throw NotImplementedError("ikke i bruk")
                     }
                 )
             )
@@ -86,9 +82,7 @@ internal class SuUserFeatureTest {
                         override fun hentBrukerinformasjon(userToken: String): Either<MicrosoftGraphApiOppslagFeil, MicrosoftGraphResponse> =
                             MicrosoftGraphApiOppslagFeil.FeilVedHentingAvOnBehalfOfToken.left()
 
-                        override fun hentBrukerinformasjonForNavIdent(navIdent: NavIdentBruker): Either<MicrosoftGraphApiOppslagFeil, MicrosoftGraphResponse> {
-                            TODO("Not yet implemented")
-                        }
+                        override fun hentBrukerinformasjonForNavIdent(navIdent: NavIdentBruker) = throw NotImplementedError("ikke i bruk")
                     }
                 )
             )
