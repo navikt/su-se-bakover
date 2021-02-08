@@ -83,11 +83,11 @@ internal class SøknadsbehandlingServiceIverksettTest {
             on { hent(any()) } doReturn null
         }
 
-        val iverksettSaksbehandlingServiceMock = mock<IverksettSøknadsbehandlingService>()
+        val iverksettSaksbehandlingServiceMock = mock<IverksettAvslåttSøknadsbehandlingService>()
 
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            iverksettBehandlingService = iverksettSaksbehandlingServiceMock
+            iverksettAvslåttBehandlingService = iverksettSaksbehandlingServiceMock
         ).iverksett(SøknadsbehandlingService.IverksettRequest(behandling.id, Attestering.Iverksatt(attestant)))
 
         response shouldBe SøknadsbehandlingService.KunneIkkeIverksette.FantIkkeBehandling.left()
@@ -109,7 +109,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             on { hent(any()) } doReturn behandling
         }
 
-        val iverksettSaksbehandlingServiceMock = mock<IverksettSøknadsbehandlingService>()
+        val iverksettSaksbehandlingServiceMock = mock<IverksettAvslåttSøknadsbehandlingService>()
 
         val utbetalingServiceMock = mock<UtbetalingService> {
             on { utbetal(any(), any(), any(), any()) } doReturn KunneIkkeUtbetale.KunneIkkeSimulere.left()
@@ -117,7 +117,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
 
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            iverksettBehandlingService = iverksettSaksbehandlingServiceMock,
+            iverksettAvslåttBehandlingService = iverksettSaksbehandlingServiceMock,
             utbetalingService = utbetalingServiceMock,
         ).iverksett(SøknadsbehandlingService.IverksettRequest(behandling.id, Attestering.Iverksatt(attestant)))
 
@@ -147,7 +147,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             on { hent(any()) } doReturn behandling
         }
 
-        val iverksettSaksbehandlingServiceMock = mock<IverksettSøknadsbehandlingService>()
+        val iverksettSaksbehandlingServiceMock = mock<IverksettAvslåttSøknadsbehandlingService>()
 
         val utbetalingServiceMock = mock<UtbetalingService> {
             on {
@@ -162,7 +162,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
 
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            iverksettBehandlingService = iverksettSaksbehandlingServiceMock,
+            iverksettAvslåttBehandlingService = iverksettSaksbehandlingServiceMock,
             utbetalingService = utbetalingServiceMock,
         ).iverksett(SøknadsbehandlingService.IverksettRequest(behandling.id, Attestering.Iverksatt(attestant)))
 
@@ -192,7 +192,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             on { hent(any()) } doReturn behandling
         }
 
-        val iverksettSaksbehandlingServiceMock = mock<IverksettSøknadsbehandlingService>()
+        val iverksettSaksbehandlingServiceMock = mock<IverksettAvslåttSøknadsbehandlingService>()
 
         val utbetalingServiceMock = mock<UtbetalingService> {
             on { utbetal(any(), any(), any(), any()) } doReturn KunneIkkeUtbetale.Protokollfeil.left()
@@ -200,7 +200,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
 
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            iverksettBehandlingService = iverksettSaksbehandlingServiceMock,
+            iverksettAvslåttBehandlingService = iverksettSaksbehandlingServiceMock,
             utbetalingService = utbetalingServiceMock,
         ).iverksett(SøknadsbehandlingService.IverksettRequest(behandling.id, Attestering.Iverksatt(attestant)))
 
@@ -230,7 +230,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             on { hent(any()) } doReturn behandling
         }
 
-        val iverksettSaksbehandlingServiceMock = mock<IverksettSøknadsbehandlingService>()
+        val iverksettSaksbehandlingServiceMock = mock<IverksettAvslåttSøknadsbehandlingService>()
         val utbetalingServiceMock = mock<UtbetalingService> {
             on { utbetal(any(), any(), any(), any()) } doReturn utbetaling.right()
         }
@@ -238,7 +238,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
 
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            iverksettBehandlingService = iverksettSaksbehandlingServiceMock,
+            iverksettAvslåttBehandlingService = iverksettSaksbehandlingServiceMock,
             behandlingMetrics = behandlingMetricsMock,
             utbetalingService = utbetalingServiceMock,
         ).iverksett(SøknadsbehandlingService.IverksettRequest(behandling.id, Attestering.Iverksatt(attestant)))
@@ -314,7 +314,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             )
         )
 
-        val iverksettSaksbehandlingServiceMock = mock<IverksettSøknadsbehandlingService> {
+        val iverksettSaksbehandlingServiceMock = mock<IverksettAvslåttSøknadsbehandlingService> {
             on { opprettJournalpostForAvslag(any(), any()) } doReturn iverksattJournalpostId.right()
             on { distribuerBrevOgLukkOppgaveForAvslag(any()) } doReturn expectedJournalførtOgDistribuert
         }
@@ -323,7 +323,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
 
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            iverksettBehandlingService = iverksettSaksbehandlingServiceMock,
+            iverksettAvslåttBehandlingService = iverksettSaksbehandlingServiceMock,
             behandlingMetrics = behandlingMetricsMock
         ).iverksett(SøknadsbehandlingService.IverksettRequest(behandling.id, Attestering.Iverksatt(attestant)))
 
@@ -353,11 +353,11 @@ internal class SøknadsbehandlingServiceIverksettTest {
             on { hent(any()) } doReturn behandling
         }
 
-        val iverksettSaksbehandlingServiceMock = mock<IverksettSøknadsbehandlingService>()
+        val iverksettSaksbehandlingServiceMock = mock<IverksettAvslåttSøknadsbehandlingService>()
 
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            iverksettBehandlingService = iverksettSaksbehandlingServiceMock
+            iverksettAvslåttBehandlingService = iverksettSaksbehandlingServiceMock
         ).iverksett(SøknadsbehandlingService.IverksettRequest(behandling.id, Attestering.Iverksatt(attestant)))
 
         response shouldBe SøknadsbehandlingService.KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
@@ -390,12 +390,12 @@ internal class SøknadsbehandlingServiceIverksettTest {
             on { hent(any()) } doReturn behandling
         }
 
-        val iverksettSaksbehandlingServiceMock = mock<IverksettSøknadsbehandlingService>()
+        val iverksettSaksbehandlingServiceMock = mock<IverksettAvslåttSøknadsbehandlingService>()
 
         assertThrows<StatusovergangVisitor.UgyldigStatusovergangException> {
             createSøknadsbehandlingService(
                 søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-                iverksettBehandlingService = iverksettSaksbehandlingServiceMock
+                iverksettAvslåttBehandlingService = iverksettSaksbehandlingServiceMock
             ).iverksett(SøknadsbehandlingService.IverksettRequest(behandling.id, Attestering.Iverksatt(attestant)))
 
             inOrder(søknadsbehandlingRepoMock, iverksettSaksbehandlingServiceMock) {

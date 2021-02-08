@@ -183,7 +183,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             søknadRepo = søknadRepo,
             personService = mock(),
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            iverksettBehandlingService = mock(),
+            iverksettAvslåttBehandlingService = mock(),
             behandlingMetrics = mock(),
             beregningService = mock(),
         )

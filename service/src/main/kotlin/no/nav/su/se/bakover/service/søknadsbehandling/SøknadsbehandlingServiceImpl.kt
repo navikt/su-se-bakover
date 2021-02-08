@@ -45,7 +45,7 @@ internal class SøknadsbehandlingServiceImpl(
     private val utbetalingService: UtbetalingService,
     private val personService: PersonService,
     private val oppgaveService: OppgaveService,
-    private val iverksettSøknadsbehandlingService: IverksettSøknadsbehandlingService,
+    private val iverksettAvslåttSøknadsbehandlingService: IverksettAvslåttSøknadsbehandlingService,
     private val behandlingMetrics: BehandlingMetrics,
     private val beregningService: BeregningService,
     private val microsoftGraphApiClient: MicrosoftGraphApiOppslag,
@@ -294,7 +294,7 @@ internal class SøknadsbehandlingServiceImpl(
                     }
                 },
                 avslag = {
-                    iverksettSøknadsbehandlingService.opprettJournalpostForAvslag(
+                    iverksettAvslåttSøknadsbehandlingService.opprettJournalpostForAvslag(
                         it,
                         request.attestering.attestant
                     )
@@ -327,7 +327,7 @@ internal class SøknadsbehandlingServiceImpl(
                         vedtakssnapshot = Vedtakssnapshot.Avslag.createFromBehandling(it, it.avslagsgrunner)
                     )
                     behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
-                    iverksettSøknadsbehandlingService.distribuerBrevOgLukkOppgaveForAvslag(it)
+                    iverksettAvslåttSøknadsbehandlingService.distribuerBrevOgLukkOppgaveForAvslag(it)
                         .let { medPotensiellBrevbestillingId ->
                             søknadsbehandlingRepo.lagre(medPotensiellBrevbestillingId)
                             medPotensiellBrevbestillingId

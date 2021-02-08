@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.service.statistikk.StatistikkServiceImpl
 import no.nav.su.se.bakover.service.søknad.SøknadServiceImpl
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadServiceImpl
 import no.nav.su.se.bakover.service.søknadsbehandling.FerdigstillSøknadsbehandingIverksettingServiceImpl
-import no.nav.su.se.bakover.service.søknadsbehandling.IverksettSøknadsbehandlingService
+import no.nav.su.se.bakover.service.søknadsbehandling.IverksettAvslåttSøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServiceImpl
 import no.nav.su.se.bakover.service.toggles.ToggleServiceImpl
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingServiceImpl
@@ -84,7 +84,7 @@ object ProdServiceBuilder : ServiceBuilder {
         )
         val toggleService = ToggleServiceImpl(unleash)
 
-        val iverksettSaksbehandlingService = IverksettSøknadsbehandlingService(
+        val iverksettAvslåttSøknadsbehandlingService = IverksettAvslåttSøknadsbehandlingService(
             oppgaveService = oppgaveService,
             personService = personService,
             behandlingMetrics = behandlingMetrics,
@@ -123,7 +123,7 @@ object ProdServiceBuilder : ServiceBuilder {
                 utbetalingService = utbetalingService,
                 personService = personService,
                 oppgaveService = oppgaveService,
-                iverksettSøknadsbehandlingService = iverksettSaksbehandlingService,
+                iverksettAvslåttSøknadsbehandlingService = iverksettAvslåttSøknadsbehandlingService,
                 behandlingMetrics = behandlingMetrics,
                 beregningService = BeregningService(),
                 microsoftGraphApiClient = clients.microsoftGraphApiClient,
