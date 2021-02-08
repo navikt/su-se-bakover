@@ -650,7 +650,7 @@ internal class BeregnRoutesKtTest {
         val sak: Sak = repos.sak.hentSak(fnr)!!
         val journalpostId = JournalpostId("12")
         val oppgaveId = OppgaveId("12")
-        val søknadMedOppgave: Søknad.Journalført.MedOppgave = (sak.søknader()[0] as Søknad.Ny)
+        val søknadMedOppgave: Søknad.Journalført.MedOppgave = (sak.søknader[0] as Søknad.Ny)
             .journalfør(journalpostId).also { repos.søknad.oppdaterjournalpostId(it) }
             .medOppgave(oppgaveId).also { repos.søknad.oppdaterOppgaveId(it) }
 

@@ -46,7 +46,7 @@ internal class RevurderingServiceImpl(
 
         return hentSak(sakId)
             .map { sak ->
-                val tilRevurdering = sak.behandlinger()
+                val tilRevurdering = sak.behandlinger
                     .filterIsInstance(Søknadsbehandling.Iverksatt.Innvilget::class.java)
                     .filter { it.beregning.getPeriode() inneholder periode }
 

@@ -81,7 +81,7 @@ internal class SøknadServiceImpl(
                 )
                 søknadRepo.opprettSøknad(søknad)
 
-                Pair(it.copy(søknader = (it.søknader() + søknad).toMutableList()), søknad)
+                Pair(it.copy(søknader = (it.søknader + søknad)), søknad)
             }
         )
         // Ved å gjøre increment først, kan vi lage en alert dersom vi får mismatch på dette.

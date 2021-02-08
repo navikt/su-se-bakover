@@ -20,13 +20,7 @@ data class Sak(
     val søknader: List<Søknad> = emptyList(),
     val behandlinger: List<Søknadsbehandling> = emptyList(),
     val utbetalinger: List<Utbetaling>,
-) {
-    /* deprecated, use søknader */
-    fun søknader() = søknader.toList()
-
-    /* deprecated, use behandlinger */
-    fun behandlinger() = behandlinger.toList()
-}
+)
 
 data class NySak(
     val id: UUID = UUID.randomUUID(),

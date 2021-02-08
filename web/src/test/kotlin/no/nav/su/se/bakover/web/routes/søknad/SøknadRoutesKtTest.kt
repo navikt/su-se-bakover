@@ -121,7 +121,7 @@ internal class SøknadRoutesKtTest {
 
             val sakFraDb = sakRepo.hentSak(fnr)
             sakFraDb shouldNotBe null
-            sakFraDb!!.søknader() shouldHaveAtLeastSize 1
+            sakFraDb!!.søknader shouldHaveAtLeastSize 1
         }
     }
 

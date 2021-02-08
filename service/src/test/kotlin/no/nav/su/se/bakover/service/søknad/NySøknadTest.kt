@@ -277,7 +277,7 @@ class NySøknadTest {
         }
 
         nySøknad.map { (_, søknad) ->
-            søknad.opprettet shouldNotBe sak.søknader().first().opprettet
+            søknad.opprettet shouldNotBe sak.søknader.first().opprettet
         }
     }
 
