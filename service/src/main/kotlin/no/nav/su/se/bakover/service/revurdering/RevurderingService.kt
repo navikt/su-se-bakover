@@ -4,6 +4,7 @@ import arrow.core.Either
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import java.util.UUID
@@ -28,6 +29,7 @@ interface RevurderingService {
     ): Either<KunneIkkeRevurdere, Revurdering>
 
     fun lagBrevutkast(revurderingId: UUID, fritekst: String?): Either<KunneIkkeRevurdere, ByteArray>
+    fun iverksett(revurderingId: UUID, attestant: NavIdentBruker.Attestant): Either<KunneIkkeRevurdere.AttestantOgSaksbehandlerKanIkkeVæreSammePerson, IverksattRevurdering>
 }
 
 sealed class KunneIkkeRevurdere {
@@ -42,4 +44,5 @@ sealed class KunneIkkeRevurdere {
     object KanIkkeRevurdereInneværendeMånedEllerTidligere : KunneIkkeRevurdere()
     object KanIkkeRevurderePerioderMedFlereAktiveStønadsperioder : KunneIkkeRevurdere()
     object SimuleringFeilet : KunneIkkeRevurdere()
+    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeRevurdere()
 }

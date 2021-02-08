@@ -13,6 +13,7 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
@@ -33,18 +34,21 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
+import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.service.doNothing
@@ -548,6 +552,65 @@ internal class RevurderingServiceImplTest {
             verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
             verifyNoMoreInteractions(revurderingRepoMock, personServiceMock)
         }
+    }
+
+    @Test
+    fun `iverksetter en revurdering`() {
+        val attestant = NavIdentBruker.Attestant("attestant")
+
+        val testsimulering = Simulering(gjelderId = fnr, gjelderNavn = "", datoBeregnet = LocalDate.now(), nettoBeløp = 0, periodeList = listOf())
+        val iverksattRevurdering = IverksattRevurdering(
+            id = revurderingId,
+            periode = periode,
+            opprettet = Tidspunkt.EPOCH,
+            tilRevurdering = behandling,
+            saksbehandler = saksbehandler,
+            beregning = TestBeregning,
+            simulering = testsimulering,
+            oppgaveId = OppgaveId(value = "OppgaveId"),
+            attestant = attestant,
+            utbetalingId = UUID30.randomUUID()
+        )
+        val revurderingTilAttestering = mock<RevurderingTilAttestering> {
+            on { this.id } doReturn revurderingId
+            on { this.sakId } doReturn sakId
+            on { this.periode } doReturn periode
+            on { this.tilRevurdering } doReturn behandling
+            on { this.opprettet } doReturn Tidspunkt.EPOCH
+            on { this.beregning } doReturn TestBeregning
+            on { this.simulering } doReturn testsimulering
+            on { this.saksbehandler } doReturn saksbehandler
+            on { iverksett(any(), any()) } doReturn iverksattRevurdering.right()
+        }
+
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn revurderingTilAttestering
+        }
+
+        val utbetaling = mock<Utbetaling.OversendtUtbetaling.UtenKvittering> { on { id } doReturn UUID30.randomUUID() }
+        val utbetalingService = mock<UtbetalingService> {
+            on { utbetal(any(), any(), any(), any()) } doReturn utbetaling.right()
+        }
+
+        createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+            utbetalingService = utbetalingService
+        ).iverksett(
+            revurderingId = revurderingTilAttestering.id,
+            attestant = attestant,
+        )
+
+        inOrder(revurderingRepoMock, utbetalingService) {
+            verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
+            verify(utbetalingService).utbetal(
+                argThat { it shouldBe revurderingTilAttestering.sakId },
+                argThat { it shouldBe attestant },
+                argThat { it shouldBe revurderingTilAttestering.beregning },
+                argThat { it shouldBe revurderingTilAttestering.simulering },
+            )
+            verify(revurderingRepoMock).lagre(argThat { it shouldBe iverksattRevurdering })
+        }
+        verifyNoMoreInteractions(revurderingRepoMock, utbetalingService)
     }
 
     @Test

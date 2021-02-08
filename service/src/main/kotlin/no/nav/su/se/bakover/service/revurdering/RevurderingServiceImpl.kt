@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
@@ -46,6 +47,7 @@ internal class RevurderingServiceImpl(
 
         return hentSak(sakId)
             .map { sak ->
+                // TODO: `
                 val tilRevurdering = sak.behandlinger()
                     .filter { it.status() == Behandling.BehandlingsStatus.IVERKSATT_INNVILGET }
                     .filter { it.beregning()!!.getPeriode() inneholder periode }
@@ -161,6 +163,36 @@ internal class RevurderingServiceImpl(
                 lagBrevutkastForRevurderingAvInntekt(revurdering.beregning)
             }
             else -> KunneIkkeRevurdere.KunneIkkeLageBrevutkast.left()
+        }
+    }
+
+    override fun iverksett(revurderingId: UUID, attestant: NavIdentBruker.Attestant): Either<KunneIkkeRevurdere.AttestantOgSaksbehandlerKanIkkeVæreSammePerson, IverksattRevurdering> {
+        return when (val revurdering = revurderingRepo.hent(revurderingId)) {
+            is RevurderingTilAttestering -> {
+                if (attestant.navIdent == revurdering.saksbehandler.navIdent) {
+                    return KunneIkkeRevurdere.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+                }
+
+                utbetalingService.utbetal(
+                    sakId = revurdering.sakId,
+                    beregning = revurdering.beregning,
+                    simulering = revurdering.simulering,
+                    attestant = attestant,
+                ).mapLeft {
+                    KunneIkkeRevurdere.AttestantOgSaksbehandlerKanIkkeVæreSammePerson // change
+                }.map { utbetaling ->
+                    revurdering.iverksett(attestant, utbetaling.id)
+                        .fold(
+                            ifLeft = { TODO() },
+                            ifRight = {
+                                revurderingRepo.lagre(it)
+                                it
+                            }
+                        )
+                }
+            }
+            null -> TODO("fant ingen revurdering")
+            else -> TODO("fel status")
         }
     }
 }

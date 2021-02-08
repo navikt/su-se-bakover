@@ -73,6 +73,7 @@ class UtbetalingKvitteringConsumer(
             log.error("Prøver ikke å ferdigstille innvilgelse siden kvitteringen fra oppdrag ikke var OK.")
             return
         }
+        // TODO handle for revurdering
         val behandling = behandlingService.hentBehandlingForUtbetaling(utbetaling.id).getOrHandle {
             log.error("Kunne ikke ferdigstille innvilgelse - fant ikke behandling for utbetaling ${utbetaling.id}")
             return

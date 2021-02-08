@@ -8,5 +8,7 @@ create table if not exists revurdering
     simulering jsonb,
     saksbehandler text not null,
     oppgaveId text,
-    revurderingsType text
+    revurderingsType text,
+    attestant text,
+    utbetalingId varchar(30)
 );

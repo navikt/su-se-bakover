@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
@@ -372,6 +373,11 @@ open class AccessCheckProxy(
                 override fun lagBrevutkast(revurderingId: UUID, fritekst: String?): Either<KunneIkkeRevurdere, ByteArray> {
                     assertHarTilgangTilSak(revurderingId)
                     return services.revurdering.lagBrevutkast(revurderingId, fritekst)
+                }
+
+                override fun iverksett(revurderingId: UUID, attestant: NavIdentBruker.Attestant): Either<KunneIkkeRevurdere.AttestantOgSaksbehandlerKanIkkeVæreSammePerson, IverksattRevurdering> {
+                    assertHarTilgangTilSak(revurderingId)
+                    return services.revurdering.iverksett(revurderingId, attestant)
                 }
             }
         )

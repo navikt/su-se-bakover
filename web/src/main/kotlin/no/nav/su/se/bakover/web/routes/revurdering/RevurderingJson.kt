@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
@@ -19,6 +20,7 @@ internal enum class RevurderingsStatus {
     OPPRETTET,
     SIMULERT,
     TIL_ATTESTERING,
+    IVERKSATT
 }
 
 internal data class RevurdertBeregningJson(
@@ -44,7 +46,7 @@ internal data class SimulertRevurderingJson(
     val tilRevurdering: BehandlingJson,
     val beregninger: RevurdertBeregningJson,
     val saksbehandler: String
-): RevurderingJson() {
+) : RevurderingJson() {
     @JsonInclude
     val status = RevurderingsStatus.SIMULERT
 }
@@ -56,9 +58,22 @@ internal data class TilAttesteringJson(
     val tilRevurdering: BehandlingJson,
     val beregninger: RevurdertBeregningJson,
     val saksbehandler: String
-): RevurderingJson() {
+) : RevurderingJson() {
     @JsonInclude
     val status = RevurderingsStatus.TIL_ATTESTERING
+}
+
+internal data class IverksattRevurderingJson(
+    val id: String,
+    val opprettet: String,
+    val periode: PeriodeJson,
+    val tilRevurdering: BehandlingJson,
+    val beregninger: RevurdertBeregningJson,
+    val saksbehandler: String,
+    val attestant: String,
+) : RevurderingJson() {
+    @JsonInclude
+    val status = RevurderingsStatus.IVERKSATT
 }
 
 internal fun Revurdering.toJson(): RevurderingJson = when (this) {
@@ -90,6 +105,18 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
             revurdert = beregning.toJson()
         ),
         saksbehandler = saksbehandler.toString(),
+    )
+    is IverksattRevurdering -> IverksattRevurderingJson(
+        id = id.toString(),
+        opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
+        periode = periode.toJson(),
+        tilRevurdering = tilRevurdering.toJson(),
+        beregninger = RevurdertBeregningJson(
+            beregning = tilRevurdering.beregning()!!.toJson(),
+            revurdert = beregning.toJson()
+        ),
+        saksbehandler = saksbehandler.toString(),
+        attestant = attestant.toString(),
     )
     else -> throw NotImplementedError()
 }

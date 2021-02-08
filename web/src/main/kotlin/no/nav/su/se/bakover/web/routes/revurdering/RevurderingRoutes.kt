@@ -17,6 +17,7 @@ import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeRevurdere
@@ -118,6 +119,20 @@ internal fun Route.revurderingRoutes(
         }
     }
 
+    post("$revurderingPath/{revurderingId}/iverksett") {
+        call.withRevurderingId { revurderingId ->
+            revurderingService.iverksett(
+                revurderingId = revurderingId, attestant = Attestant(call.suUserContext.getNAVIdent())
+            ).fold(
+                ifLeft = { call.svar(it.tilFeilMelding()) },
+                ifRight = {
+                    call.audit("Iverksatt revurdering med id $revurderingId")
+                    call.svar(Resultat.json(OK, serialize(it.toJson())))
+                },
+            )
+        }
+    }
+
     data class BrevutkastMedFritekst(val fritekst: String?)
     post("$revurderingPath/{revurderingId}/brevutkast") {
         call.withRevurderingId { revurderingId ->
@@ -147,5 +162,6 @@ internal fun KunneIkkeRevurdere.tilFeilMelding(): Resultat {
         KunneIkkeRevurdere.KanIkkeRevurdereInneværendeMånedEllerTidligere -> BadRequest.message("Revurdering kan kun gjøres fra og med neste kalendermåned")
         KunneIkkeRevurdere.SimuleringFeilet -> InternalServerError.message("Simulering feilet")
         KunneIkkeRevurdere.KanIkkeRevurderePerioderMedFlereAktiveStønadsperioder -> InternalServerError.message("Revurderingsperioden kan ikke overlappe flere aktive stønadsperioder.") // TODO AI 03-02-2020: Temporary solution
+        KunneIkkeRevurdere.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> InternalServerError.message("Attestant og saksbehandler kan ikke være samme person")
     }
 }

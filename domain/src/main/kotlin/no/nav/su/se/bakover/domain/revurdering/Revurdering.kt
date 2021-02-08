@@ -1,7 +1,12 @@
 package no.nav.su.se.bakover.domain.revurdering
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -35,6 +40,8 @@ sealed class Revurdering {
             saksbehandler = saksbehandler
         )
     }
+
+    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson
 }
 
 data class OpprettetRevurdering(
@@ -94,6 +101,44 @@ data class RevurderingTilAttestering(
     val beregning: Beregning,
     val simulering: Simulering,
     val oppgaveId: OppgaveId
+) : Revurdering() {
+    val sakId
+        get() = this.tilRevurdering.sakId
+
+    override fun beregn(fradrag: List<Fradrag>): BeregnetRevurdering {
+        throw RuntimeException("Skal ikke kunne beregne når revurderingen er til attestering")
+    }
+    fun iverksett(attestant: NavIdentBruker.Attestant, utbetalingId: UUID30): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, IverksattRevurdering> {
+        if (saksbehandler.navIdent == attestant.navIdent) {
+            return AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+        }
+        return IverksattRevurdering(
+            id = id,
+            periode = periode,
+            opprettet = opprettet,
+            tilRevurdering = tilRevurdering,
+            saksbehandler = saksbehandler,
+            beregning = beregning,
+            simulering = simulering,
+            oppgaveId = oppgaveId,
+            attestant = attestant,
+            utbetalingId = utbetalingId
+        ).right()
+    }
+    fun underkjenn() { TODO() }
+}
+
+data class IverksattRevurdering(
+    override val id: UUID,
+    override val periode: Periode,
+    override val opprettet: Tidspunkt,
+    override val tilRevurdering: Behandling,
+    override val saksbehandler: Saksbehandler,
+    val beregning: Beregning,
+    val simulering: Simulering,
+    val oppgaveId: OppgaveId,
+    val attestant: NavIdentBruker.Attestant,
+    val utbetalingId: UUID30
 ) : Revurdering() {
     override fun beregn(fradrag: List<Fradrag>): BeregnetRevurdering {
         throw RuntimeException("Skal ikke kunne beregne når revurderingen er til attestering")
