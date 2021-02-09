@@ -41,7 +41,6 @@ import java.time.ZoneOffset
 import java.util.UUID
 
 internal class LagBrevRequestVisitorTest {
-
     @Test
     fun `responderer med feil dersom vi ikke får til å hente person`() {
         uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withVilkårAvslått())
@@ -61,8 +60,8 @@ internal class LagBrevRequestVisitorTest {
         uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt())
             .tilBeregnet(innvilgetBeregning)
             .tilSimulert(simulering)
-            .tilAttestering(NavIdentBruker.Saksbehandler(saksbehandlerNavn))
-            .tilIverksatt(Attestering.Iverksatt(NavIdentBruker.Attestant(attestantNavn)), UUID30.randomUUID())
+            .tilAttestering(saksbehandler)
+            .tilIverksatt(Attestering.Iverksatt(attestant), UUID30.randomUUID())
             .let { søknadsbehandling ->
                 LagBrevRequestVisitor(
                     hentPerson = { person.right() },
@@ -83,8 +82,9 @@ internal class LagBrevRequestVisitorTest {
                 clock = Clock.systemUTC(),
             ).apply { it.accept(this) }
                 .let {
-                    it.brevRequest shouldBe LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeLageBrevForStatus(BehandlingsStatus.OPPRETTET)
-                        .left()
+                    it.brevRequest shouldBe LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeLageBrevForStatus(
+                        BehandlingsStatus.OPPRETTET
+                    ).left()
                 }
         }
 
@@ -95,8 +95,9 @@ internal class LagBrevRequestVisitorTest {
                 clock = Clock.systemUTC(),
             ).apply { it.accept(this) }
                 .let {
-                    it.brevRequest shouldBe LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeLageBrevForStatus(BehandlingsStatus.VILKÅRSVURDERT_INNVILGET)
-                        .left()
+                    it.brevRequest shouldBe LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeLageBrevForStatus(
+                        BehandlingsStatus.VILKÅRSVURDERT_INNVILGET
+                    ).left()
                 }
         }
     }
@@ -200,7 +201,7 @@ internal class LagBrevRequestVisitorTest {
                 Behandlingsinformasjon.lagTomBehandlingsinformasjon().withVilkårAvslått()
             ) as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
-            .tilAttestering(NavIdentBruker.Saksbehandler(saksbehandlerNavn))
+            .tilAttestering(saksbehandler)
             .let { søknadsbehandling ->
                 LagBrevRequestVisitor(
                     hentPerson = { person.right() },
@@ -228,7 +229,7 @@ internal class LagBrevRequestVisitorTest {
             uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt())
                 .tilBeregnet(avslagBeregning) as Søknadsbehandling.Beregnet.Avslag
             )
-            .tilAttestering(NavIdentBruker.Saksbehandler(saksbehandlerNavn))
+            .tilAttestering(saksbehandler)
             .let { søknadsbehandling ->
                 LagBrevRequestVisitor(
                     hentPerson = { person.right() },
@@ -255,7 +256,7 @@ internal class LagBrevRequestVisitorTest {
         uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt())
             .tilBeregnet(innvilgetBeregning)
             .tilSimulert(simulering)
-            .tilAttestering(NavIdentBruker.Saksbehandler(saksbehandlerNavn))
+            .tilAttestering(saksbehandler)
             .let { søknadsbehandling ->
                 LagBrevRequestVisitor(
                     hentPerson = { person.right() },
@@ -280,10 +281,10 @@ internal class LagBrevRequestVisitorTest {
                 Behandlingsinformasjon.lagTomBehandlingsinformasjon().withVilkårAvslått()
             ) as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
-            .tilAttestering(NavIdentBruker.Saksbehandler(saksbehandlerNavn))
+            .tilAttestering(saksbehandler)
             .tilUnderkjent(
                 Attestering.Underkjent(
-                    NavIdentBruker.Attestant(attestantNavn),
+                    attestant,
                     Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
                     "kommentar"
                 )
@@ -315,10 +316,10 @@ internal class LagBrevRequestVisitorTest {
             uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt())
                 .tilBeregnet(avslagBeregning) as Søknadsbehandling.Beregnet.Avslag
             )
-            .tilAttestering(NavIdentBruker.Saksbehandler(saksbehandlerNavn))
+            .tilAttestering(saksbehandler)
             .tilUnderkjent(
                 Attestering.Underkjent(
-                    NavIdentBruker.Attestant(attestantNavn),
+                    attestant,
                     Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
                     "kommentar"
                 )
@@ -349,10 +350,10 @@ internal class LagBrevRequestVisitorTest {
         uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt())
             .tilBeregnet(innvilgetBeregning)
             .tilSimulert(simulering)
-            .tilAttestering(NavIdentBruker.Saksbehandler(saksbehandlerNavn))
+            .tilAttestering(saksbehandler)
             .tilUnderkjent(
                 Attestering.Underkjent(
-                    NavIdentBruker.Attestant(attestantNavn),
+                    attestant,
                     Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
                     "kommentar"
                 )
@@ -381,9 +382,9 @@ internal class LagBrevRequestVisitorTest {
                 Behandlingsinformasjon.lagTomBehandlingsinformasjon().withVilkårAvslått()
             ) as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
-            .tilAttestering(NavIdentBruker.Saksbehandler(saksbehandlerNavn))
+            .tilAttestering(saksbehandler)
             .tilIverksatt(
-                Attestering.Iverksatt(NavIdentBruker.Attestant(attestantNavn)),
+                Attestering.Iverksatt(attestant),
                 Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg.Journalført(JournalpostId(""))
             )
             .let { søknadsbehandling ->
@@ -413,9 +414,9 @@ internal class LagBrevRequestVisitorTest {
             uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withVilkårAvslått())
                 .tilBeregnet(avslagBeregning) as Søknadsbehandling.Beregnet.Avslag
             )
-            .tilAttestering(NavIdentBruker.Saksbehandler(saksbehandlerNavn))
+            .tilAttestering(saksbehandler)
             .tilIverksatt(
-                Attestering.Iverksatt(NavIdentBruker.Attestant(attestantNavn)),
+                Attestering.Iverksatt(attestant),
                 Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg.Journalført(JournalpostId(""))
             )
             .let { søknadsbehandling ->
@@ -444,8 +445,8 @@ internal class LagBrevRequestVisitorTest {
         uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt())
             .tilBeregnet(innvilgetBeregning)
             .tilSimulert(simulering)
-            .tilAttestering(NavIdentBruker.Saksbehandler(saksbehandlerNavn))
-            .tilIverksatt(Attestering.Iverksatt(NavIdentBruker.Attestant(attestantNavn)), UUID30.randomUUID())
+            .tilAttestering(saksbehandler)
+            .tilIverksatt(Attestering.Iverksatt(attestant), UUID30.randomUUID())
             .let { søknadsbehandling ->
                 LagBrevRequestVisitor(
                     hentPerson = { person.right() },
@@ -471,7 +472,10 @@ internal class LagBrevRequestVisitorTest {
         ),
         navn = Person.Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy")
     )
+
+    private val saksbehandler = NavIdentBruker.Saksbehandler("Z123")
     private val saksbehandlerNavn = "saksbehandler"
+    private val attestant = NavIdentBruker.Attestant("Z321")
     private val attestantNavn = "attestant"
 
     private fun hentNavn(navIdentBruker: NavIdentBruker): Either<LagBrevRequestVisitor.BrevRequestFeil, String> =

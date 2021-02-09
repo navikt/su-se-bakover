@@ -85,22 +85,22 @@ class LagBrevRequestVisitor(
     private fun hentPersonOgNavn(søknadsbehandling: Søknadsbehandling): Either<BrevRequestFeil, PersonOgNavn> {
         return hentPerson(søknadsbehandling.fnr)
             .map { person ->
-                val saksbehandlerVisitor = FinnSaksbehandlerVisitor().apply {
-                    søknadsbehandling.accept(this)
-                    saksbehandler?.let {
+                val saksbehandlerNavn = FinnSaksbehandlerVisitor().let { visitor ->
+                    søknadsbehandling.accept(visitor)
+                    visitor.saksbehandler?.let {
                         hentNavn(it).getOrHandle { return BrevRequestFeil.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left() }
                     }
                 }
-                val attestantVisitor = FinnAttestantVisitor().apply {
-                    søknadsbehandling.accept(this)
-                    attestant?.let {
+                val attestantNavn = FinnAttestantVisitor().let { visitor ->
+                    søknadsbehandling.accept(visitor)
+                    visitor.attestant?.let {
                         hentNavn(it).getOrHandle { return BrevRequestFeil.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left() }
                     }
                 }
                 PersonOgNavn(
                     person = person,
-                    saksbehandlerNavn = saksbehandlerVisitor.saksbehandler?.navIdent ?: "-",
-                    attestantNavn = attestantVisitor.attestant?.navIdent ?: "-"
+                    saksbehandlerNavn = saksbehandlerNavn ?: "-",
+                    attestantNavn = attestantNavn ?: "-"
                 )
             }
     }
