@@ -56,7 +56,6 @@ import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.applicationConfig
 import no.nav.su.se.bakover.web.argThat
-import no.nav.su.se.bakover.web.behandlingFactory
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.fixedClock
 import no.nav.su.se.bakover.web.routes.sak.SakJson
@@ -89,7 +88,7 @@ internal class SøknadRoutesKtTest {
     )
     private val søknadId = UUID.randomUUID()
 
-    private val databaseRepos = DatabaseBuilder.build(EmbeddedDatabase.instance(), behandlingFactory)
+    private val databaseRepos = DatabaseBuilder.build(EmbeddedDatabase.instance())
     private val sakRepo = databaseRepos.sak
     private val trekkSøknadRequest = LukkSøknadRequest.MedBrev.TrekkSøknad(
         søknadId = søknadId,
@@ -122,7 +121,7 @@ internal class SøknadRoutesKtTest {
 
             val sakFraDb = sakRepo.hentSak(fnr)
             sakFraDb shouldNotBe null
-            sakFraDb!!.søknader() shouldHaveAtLeastSize 1
+            sakFraDb!!.søknader shouldHaveAtLeastSize 1
         }
     }
 

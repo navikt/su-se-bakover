@@ -64,7 +64,7 @@ internal fun Revurdering.toJson(): Any = when (this) {
         opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
         tilRevurdering = tilRevurdering.toJson(),
         beregninger = RevurdertBeregningJson(
-            beregning = tilRevurdering.beregning()!!.toJson(),
+            beregning = tilRevurdering.beregning.toJson(),
             revurdert = beregning.toJson()
         ),
         saksbehandler = saksbehandler.toString(),
@@ -74,7 +74,7 @@ internal fun Revurdering.toJson(): Any = when (this) {
         opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
         tilRevurdering = tilRevurdering.toJson(),
         beregninger = RevurdertBeregningJson(
-            beregning = tilRevurdering.beregning()!!.toJson(),
+            beregning = tilRevurdering.beregning.toJson(),
             revurdert = beregning.toJson()
         ),
         saksbehandler = saksbehandler.toString(),

@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.database.utbetaling
 
 import io.kotest.matchers.types.shouldBeInstanceOf
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
+import no.nav.su.se.bakover.database.fixedTidspunkt
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -21,7 +21,7 @@ internal class UtbetalingMapperTest {
     fun `mapper til korrekte typer`() {
         UtbetalingMapper(
             id = UUID30.randomUUID(),
-            opprettet = Tidspunkt.now(),
+            opprettet = fixedTidspunkt,
             sakId = UUID.randomUUID(),
             saksnummer = Saksnummer(1234),
             fnr = Fnr(fnr = "12345678910"),
@@ -45,7 +45,7 @@ internal class UtbetalingMapperTest {
 
         UtbetalingMapper(
             id = UUID30.randomUUID(),
-            opprettet = Tidspunkt.now(),
+            opprettet = fixedTidspunkt,
             sakId = UUID.randomUUID(),
             saksnummer = Saksnummer(1234),
             fnr = Fnr(fnr = "12345678910"),
@@ -65,7 +65,7 @@ internal class UtbetalingMapperTest {
             kvittering = Kvittering(
                 utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
                 originalKvittering = "",
-                mottattTidspunkt = Tidspunkt.now()
+                mottattTidspunkt = fixedTidspunkt
 
             ),
             avstemmingId = null,

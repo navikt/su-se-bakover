@@ -8,6 +8,7 @@ import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.client.ClientError
@@ -35,6 +36,7 @@ import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.fixedClock
+import no.nav.su.se.bakover.service.fixedTidspunkt
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
@@ -125,7 +127,6 @@ class NySøknadTest {
 
         val actual = søknadService.nySøknad(søknadInnhold)
 
-        lateinit var expected: Søknad
         inOrder(
             personServiceMock,
             sakServiceMock,
@@ -145,9 +146,7 @@ class NySøknadTest {
                             sakId = it.id,
                             søknadInnhold = søknadInnhold,
                         ),
-                    ).also { nySak ->
-                        expected = nySak.søknad
-                    }
+                    )
                 }
             )
             verify(sakServiceMock).hentSak(argThat<Fnr> { it shouldBe fnr })
@@ -172,7 +171,18 @@ class NySøknadTest {
             dokArkivMock,
             oppgaveServiceMock
         )
-        actual shouldBe Pair(sak.saksnummer, expected).right()
+        actual.orNull()!!.apply {
+            first shouldBe sak.saksnummer
+            second.shouldBeEqualToIgnoringFields(
+                Søknad.Ny(
+                    id = UUID.randomUUID(), // ignored
+                    opprettet = fixedTidspunkt,
+                    sakId = UUID.randomUUID(), // ignored
+                    søknadInnhold = søknadInnhold,
+                ),
+                Søknad.Ny::id, Søknad.Ny::sakId
+            )
+        }
     }
 
     @Test
@@ -195,8 +205,8 @@ class NySøknadTest {
         }
         val søknadRepoMock: SøknadRepo = mock {
             on { opprettSøknad(any()) }.doNothing()
-            on { oppdaterjournalpostId(any(), any()) }.doNothing()
-            on { oppdaterOppgaveId(any(), any()) }.doNothing()
+            on { oppdaterjournalpostId(any()) }.doNothing()
+            on { oppdaterOppgaveId(any()) }.doNothing()
         }
         val pdfGeneratorMock: PdfGenerator = mock {
             on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
@@ -267,7 +277,7 @@ class NySøknadTest {
         }
 
         nySøknad.map { (_, søknad) ->
-            søknad.opprettet shouldNotBe sak.søknader().first().opprettet
+            søknad.opprettet shouldNotBe sak.søknader.first().opprettet
         }
     }
 
@@ -305,7 +315,6 @@ class NySøknadTest {
 
         val actual = søknadService.nySøknad(søknadInnhold)
 
-        lateinit var expectedSøknad: Søknad
         inOrder(
             personServiceMock,
             sakServiceMock,
@@ -322,9 +331,7 @@ class NySøknadTest {
                         opprettet = it.opprettet,
                         sakId = sakId,
                         søknadInnhold = søknadInnhold,
-                    ).also { søknad ->
-                        expectedSøknad = søknad
-                    }
+                    )
                 }
             )
             verify(pdfGeneratorMock).genererPdf(
@@ -359,7 +366,18 @@ class NySøknadTest {
             oppgaveServiceMock
         )
 
-        actual shouldBe Pair(sak.saksnummer, expectedSøknad).right()
+        actual.orNull()!!.apply {
+            first shouldBe sak.saksnummer
+            second.shouldBeEqualToIgnoringFields(
+                Søknad.Ny(
+                    id = UUID.randomUUID(), // ignored
+                    opprettet = fixedTidspunkt,
+                    sakId = UUID.randomUUID(), // ignored
+                    søknadInnhold = søknadInnhold,
+                ),
+                Søknad.Ny::id, Søknad.Ny::sakId
+            )
+        }
     }
 
     @Test
@@ -372,7 +390,7 @@ class NySøknadTest {
         }
         val søknadRepoMock: SøknadRepo = mock {
             on { opprettSøknad(any()) }.doNothing()
-            on { oppdaterjournalpostId(any(), any()) }.doNothing()
+            on { oppdaterjournalpostId(any()) }.doNothing()
         }
         val pdfGeneratorMock: PdfGenerator = mock {
             on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
@@ -398,7 +416,6 @@ class NySøknadTest {
         )
 
         val actual = søknadService.nySøknad(søknadInnhold)
-        lateinit var expectedSøknad: Søknad
         inOrder(
             personServiceMock,
             sakServiceMock,
@@ -416,9 +433,7 @@ class NySøknadTest {
                         opprettet = it.opprettet,
                         sakId = sakId,
                         søknadInnhold = søknadInnhold,
-                    ).also { søknad ->
-                        expectedSøknad = søknad
-                    }
+                    )
                 }
             )
             verify(pdfGeneratorMock).genererPdf(
@@ -444,15 +459,28 @@ class NySøknadTest {
                 }
             )
             verify(søknadRepoMock).oppdaterjournalpostId(
-                søknadId = argThat { it shouldBe expectedSøknad.id },
-                journalpostId = argThat { it shouldBe journalpostId }
+                argThat {
+                    it.shouldBeEqualToIgnoringFields(
+                        Søknad.Journalført.UtenOppgave(
+                            id = UUID.randomUUID(), // ignored
+                            opprettet = fixedTidspunkt,
+                            sakId = sakId,
+                            søknadInnhold = søknadInnhold,
+                            journalpostId = journalpostId,
+                        ),
+                        Søknad.Journalført.UtenOppgave::id
+                    )
+                }
             )
             verify(oppgaveServiceMock).opprettOppgave(
                 argThat {
-                    it shouldBe OppgaveConfig.Saksbehandling(
-                        journalpostId = journalpostId,
-                        søknadId = expectedSøknad.id,
-                        aktørId = person.ident.aktørId
+                    it.shouldBeEqualToIgnoringFields(
+                        OppgaveConfig.Saksbehandling(
+                            journalpostId = journalpostId,
+                            søknadId = UUID.randomUUID(), // ignored
+                            aktørId = person.ident.aktørId
+                        ),
+                        OppgaveConfig.Saksbehandling::søknadId
                     )
                 }
             )
@@ -465,8 +493,18 @@ class NySøknadTest {
             dokArkivMock,
             oppgaveServiceMock
         )
-
-        actual shouldBe Pair(sak.saksnummer, expectedSøknad).right()
+        actual.orNull()!!.apply {
+            first shouldBe sak.saksnummer
+            second.shouldBeEqualToIgnoringFields(
+                Søknad.Ny(
+                    id = UUID.randomUUID(), // ignored
+                    opprettet = fixedTidspunkt,
+                    sakId = UUID.randomUUID(), // ignored
+                    søknadInnhold = søknadInnhold,
+                ),
+                Søknad.Ny::id, Søknad.Ny::sakId
+            )
+        }
     }
 
     @Test
@@ -479,8 +517,8 @@ class NySøknadTest {
         }
         val søknadRepoMock: SøknadRepo = mock {
             on { opprettSøknad(any()) }.doNothing()
-            on { oppdaterjournalpostId(any(), any()) }.doNothing()
-            on { oppdaterOppgaveId(any(), any()) }.doNothing()
+            on { oppdaterjournalpostId(any()) }.doNothing()
+            on { oppdaterOppgaveId(any()) }.doNothing()
         }
         val pdfGeneratorMock: PdfGenerator = mock {
             on { genererPdf(any<SøknadPdfInnhold>()) } doReturn pdf.right()
@@ -506,7 +544,6 @@ class NySøknadTest {
         )
 
         val actual = søknadService.nySøknad(søknadInnhold)
-        lateinit var expectedSøknad: Søknad
         inOrder(
             personServiceMock,
             sakServiceMock,
@@ -524,9 +561,7 @@ class NySøknadTest {
                         opprettet = it.opprettet,
                         sakId = sakId,
                         søknadInnhold = søknadInnhold,
-                    ).also { søknad ->
-                        expectedSøknad = søknad
-                    }
+                    )
                 }
             )
             verify(pdfGeneratorMock).genererPdf(
@@ -552,21 +587,45 @@ class NySøknadTest {
                 }
             )
             verify(søknadRepoMock).oppdaterjournalpostId(
-                søknadId = argThat { it shouldBe expectedSøknad.id },
-                journalpostId = argThat { it shouldBe journalpostId }
+                argThat {
+                    it.shouldBeEqualToIgnoringFields(
+                        Søknad.Journalført.UtenOppgave(
+                            id = UUID.randomUUID(), // ignored
+                            opprettet = fixedTidspunkt,
+                            sakId = sakId,
+                            søknadInnhold = søknadInnhold,
+                            journalpostId = journalpostId,
+                        ),
+                        Søknad.Journalført.MedOppgave::id
+                    )
+                }
             )
             verify(oppgaveServiceMock).opprettOppgave(
                 argThat {
-                    it shouldBe OppgaveConfig.Saksbehandling(
-                        journalpostId = journalpostId,
-                        søknadId = expectedSøknad.id,
-                        aktørId = person.ident.aktørId
+                    it.shouldBeEqualToIgnoringFields(
+                        OppgaveConfig.Saksbehandling(
+                            journalpostId = journalpostId,
+                            søknadId = UUID.randomUUID(), // ignored
+                            aktørId = person.ident.aktørId
+                        ),
+                        OppgaveConfig.Saksbehandling::søknadId
                     )
                 }
             )
             verify(søknadRepoMock).oppdaterOppgaveId(
-                søknadId = argThat { it shouldBe expectedSøknad.id },
-                oppgaveId = argThat { it shouldBe oppgaveId }
+                argThat {
+                    it.shouldBeEqualToIgnoringFields(
+                        Søknad.Journalført.MedOppgave(
+                            id = UUID.randomUUID(), // ignored
+                            opprettet = fixedTidspunkt,
+                            sakId = sakId,
+                            søknadInnhold = søknadInnhold,
+                            journalpostId = journalpostId,
+                            oppgaveId = oppgaveId
+                        ),
+                        Søknad.Journalført.MedOppgave::id
+                    )
+                }
             )
         }
         verifyNoMoreInteractions(
@@ -578,6 +637,17 @@ class NySøknadTest {
             oppgaveServiceMock
         )
 
-        actual shouldBe Pair(sak.saksnummer, expectedSøknad).right()
+        actual.orNull()!!.apply {
+            first shouldBe sak.saksnummer
+            second.shouldBeEqualToIgnoringFields(
+                Søknad.Ny(
+                    id = UUID.randomUUID(), // ignored
+                    opprettet = fixedTidspunkt,
+                    sakId = UUID.randomUUID(), // ignored
+                    søknadInnhold = søknadInnhold,
+                ),
+                Søknad.Ny::id, Søknad.Ny::sakId
+            )
+        }
     }
 }

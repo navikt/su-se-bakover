@@ -27,8 +27,6 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.Behandling
-import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.behandling.OpprettetRevurdering
@@ -42,6 +40,7 @@ import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
@@ -54,7 +53,6 @@ import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
@@ -85,7 +83,6 @@ internal class RevurderingServiceImplTest {
         }
     )
     private val saksbehandler = NavIdentBruker.Saksbehandler("Sak S. behandler")
-    private val behandlingFactory: BehandlingFactory = BehandlingFactory(mock(), Clock.systemUTC())
     private val saksnummer = Saksnummer(nummer = 12345676)
     private val fnr = FnrGenerator.random()
     private val revurderingId = UUID.randomUUID()
@@ -103,8 +100,9 @@ internal class RevurderingServiceImplTest {
         )
     }
 
-    val behandling = behandlingFactory.createBehandling(
+    val behandling = Søknadsbehandling.Iverksatt.Innvilget(
         id = mock(),
+        opprettet = mock(),
         søknad = mock(),
         behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().copy(
             bosituasjon = Behandlingsinformasjon.Bosituasjon(
@@ -114,14 +112,15 @@ internal class RevurderingServiceImplTest {
                 begrunnelse = null
             )
         ),
-        status = Behandling.BehandlingsStatus.IVERKSATT_INNVILGET,
         saksbehandler = saksbehandler,
         attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("Attes T. Ant")),
         sakId = sakId,
         saksnummer = BehandlingTestUtils.saksnummer,
         fnr = fnr,
         oppgaveId = mock(),
-        beregning = beregningMock
+        beregning = beregningMock,
+        simulering = mock(),
+        utbetalingId = mock(),
     )
     val sak = Sak(
         id = sakId,
@@ -163,9 +162,8 @@ internal class RevurderingServiceImplTest {
         val sakServiceMock = mock<SakService> {
             on { hentSak(sakId) } doReturn sak.copy(
                 behandlinger = listOf(
-                    behandling.copy(
-                        status = Behandling.BehandlingsStatus.TIL_ATTESTERING_INNVILGET
-                    )
+                    mock<Søknadsbehandling.Beregnet.Innvilget>(),
+                    mock<Søknadsbehandling.Vilkårsvurdert.Uavklart>()
                 )
             ).right()
         }
@@ -189,18 +187,9 @@ internal class RevurderingServiceImplTest {
         val beregningMock = mock<Beregning> {
             on { getPeriode() } doReturn Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.desember(2021))
         }
-        val behandling = behandlingFactory.createBehandling(
-            id = mock(),
-            søknad = mock(),
-            status = Behandling.BehandlingsStatus.IVERKSATT_INNVILGET,
-            saksbehandler = saksbehandler,
-            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("Attes T. Ant")),
-            sakId = sakId,
-            saksnummer = BehandlingTestUtils.saksnummer,
-            fnr = fnr,
-            oppgaveId = mock(),
-            beregning = beregningMock
-        )
+        val behandling = mock<Søknadsbehandling.Iverksatt.Innvilget> {
+            on { beregning } doReturn beregningMock
+        }
         val sak = Sak(
             id = sakId,
             saksnummer = saksnummer,
@@ -234,19 +223,12 @@ internal class RevurderingServiceImplTest {
         val beregningMock = mock<Beregning> {
             on { getPeriode() } doReturn Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.desember(2021))
         }
-        val behandling1 = behandlingFactory.createBehandling(
-            id = mock(),
-            søknad = mock(),
-            status = Behandling.BehandlingsStatus.IVERKSATT_INNVILGET,
-            saksbehandler = saksbehandler,
-            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("Attes T. Ant")),
-            sakId = sakId,
-            saksnummer = BehandlingTestUtils.saksnummer,
-            fnr = fnr,
-            oppgaveId = mock(),
-            beregning = beregningMock
-        )
-        val behandling2 = behandling1.copy()
+        val behandling1 = mock<Søknadsbehandling.Iverksatt.Innvilget> {
+            on { beregning } doReturn beregningMock
+        }
+        val behandling2 = mock<Søknadsbehandling.Iverksatt.Innvilget> {
+            on { beregning } doReturn beregningMock
+        }
 
         val sak = Sak(
             id = sakId,
@@ -404,7 +386,7 @@ internal class RevurderingServiceImplTest {
             on { id } doReturn UUID.randomUUID()
         }
 
-        val behandlingMock = mock<Behandling> {
+        val behandlingMock = mock<Søknadsbehandling.Iverksatt.Innvilget> {
             on { fnr } doReturn fnr
             on { søknad } doReturn søknadMock
         }
@@ -481,7 +463,7 @@ internal class RevurderingServiceImplTest {
 
     @Test
     fun `sender ikke til attestering hvis henting av aktørId feiler`() {
-        val behandlingMock = mock<Behandling> {
+        val behandlingMock = mock<Søknadsbehandling.Iverksatt.Innvilget> {
             on { fnr } doReturn fnr
         }
         val simulertRevurdering = mock<SimulertRevurdering> {
@@ -515,7 +497,7 @@ internal class RevurderingServiceImplTest {
         val søknadMock = mock<Søknad.Journalført.MedOppgave> {
             on { id } doReturn UUID.randomUUID()
         }
-        val behandlingMock = mock<Behandling> {
+        val behandlingMock = mock<Søknadsbehandling.Iverksatt.Innvilget> {
             on { fnr } doReturn fnr
             on { søknad } doReturn søknadMock
         }
@@ -559,10 +541,10 @@ internal class RevurderingServiceImplTest {
             on { harEktefelle() } doReturn false
         }
 
-        val behandlingMock = mock<Behandling> {
+        val behandlingMock = mock<Søknadsbehandling.Iverksatt.Innvilget> {
             on { fnr } doReturn fnr
-            on { beregning() } doReturn mock()
-            on { behandlingsinformasjon() } doReturn behandlingsinformasjonMock
+            on { beregning } doReturn mock()
+            on { behandlingsinformasjon } doReturn behandlingsinformasjonMock
         }
 
         val simulertRevurdering = mock<SimulertRevurdering> {
@@ -612,7 +594,7 @@ internal class RevurderingServiceImplTest {
                             saksbehandlerNavn = saksbehandler.navIdent,
                             revurdertBeregning = simulertRevurdering.beregning,
                             fritekst = null,
-                            vedtattBeregning = behandlingMock.beregning()!!,
+                            vedtattBeregning = behandlingMock.beregning,
                             harEktefelle = false
                         )
                 }
@@ -630,7 +612,7 @@ internal class RevurderingServiceImplTest {
 
     @Test
     fun `får feil når vi ikke kan hente person`() {
-        val behandlingMock = mock<Behandling> {
+        val behandlingMock = mock<Søknadsbehandling.Iverksatt.Innvilget> {
             on { fnr } doReturn fnr
         }
 
@@ -671,7 +653,7 @@ internal class RevurderingServiceImplTest {
     fun `får feil når vi ikke kan hente saksbehandler navn`() {
         val person = mock<Person>()
 
-        val behandlingMock = mock<Behandling> {
+        val behandlingMock = mock<Søknadsbehandling.Iverksatt.Innvilget> {
             on { fnr } doReturn fnr
         }
 
@@ -725,10 +707,10 @@ internal class RevurderingServiceImplTest {
             on { harEktefelle() } doReturn false
         }
 
-        val behandlingMock = mock<Behandling> {
+        val behandlingMock = mock<Søknadsbehandling.Iverksatt.Innvilget> {
             on { fnr } doReturn fnr
-            on { beregning() } doReturn mock()
-            on { behandlingsinformasjon() } doReturn behandlingsinformasjonMock
+            on { beregning } doReturn mock()
+            on { behandlingsinformasjon } doReturn behandlingsinformasjonMock
         }
 
         val simulertRevurdering = mock<SimulertRevurdering> {

@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.RevurderingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.behandling.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.behandling.Revurdering
@@ -20,6 +19,7 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -46,9 +46,9 @@ internal class RevurderingServiceImpl(
 
         return hentSak(sakId)
             .map { sak ->
-                val tilRevurdering = sak.behandlinger()
-                    .filter { it.status() == Behandling.BehandlingsStatus.IVERKSATT_INNVILGET }
-                    .filter { it.beregning()!!.getPeriode() inneholder periode }
+                val tilRevurdering = sak.behandlinger
+                    .filterIsInstance(Søknadsbehandling.Iverksatt.Innvilget::class.java)
+                    .filter { it.beregning.getPeriode() inneholder periode }
 
                 if (tilRevurdering.isEmpty()) return KunneIkkeRevurdere.FantIngentingSomKanRevurderes.left()
                 if (tilRevurdering.size > 1) return KunneIkkeRevurdere.KanIkkeRevurderePerioderMedFlereAktiveStønadsperioder.left()
@@ -144,8 +144,8 @@ internal class RevurderingServiceImpl(
                 saksbehandlerNavn = saksbehandlerNavn,
                 revurdertBeregning = revurdertBeregning,
                 fritekst = fritekst,
-                vedtattBeregning = revurdering.tilRevurdering.beregning()!!,
-                harEktefelle = revurdering.tilRevurdering.behandlingsinformasjon().harEktefelle()
+                vedtattBeregning = revurdering.tilRevurdering.beregning,
+                harEktefelle = revurdering.tilRevurdering.behandlingsinformasjon.harEktefelle()
             )
 
             return brevService.lagBrev(request).mapLeft {

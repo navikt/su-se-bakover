@@ -14,20 +14,18 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.service.behandling.BehandlingService
-import no.nav.su.se.bakover.service.behandling.FantIkkeBehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.service.søknadsbehandling.FerdigstillSøknadsbehandingIverksettingService
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.fixedClock
-import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.nyBehandling
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.sakId
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.saksnummer
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringResponseTest.Companion.avstemmingsnøkkelIXml
@@ -93,7 +91,7 @@ internal class UtbetalingKvitteringConsumerTest {
                 on { oppdaterMedKvittering(any(), any()) } doReturn utbetalingMedKvittering.right()
             }
 
-            val behandlingServiceMock = mock<BehandlingService>()
+            val behandlingServiceMock = mock<FerdigstillSøknadsbehandingIverksettingService>()
             val consumer = UtbetalingKvitteringConsumer(utbetalingServiceMock, behandlingServiceMock, clock)
 
             consumer.onMessage(xmlMessage)
@@ -123,7 +121,7 @@ internal class UtbetalingKvitteringConsumerTest {
             on { oppdaterMedKvittering(any(), any()) } doReturn utbetalingMedKvittering.right()
         }
 
-        val behandlingServiceMock = mock<BehandlingService>()
+        val behandlingServiceMock = mock<FerdigstillSøknadsbehandingIverksettingService>()
         val consumer = UtbetalingKvitteringConsumer(utbetalingServiceMock, behandlingServiceMock, clock)
 
         consumer.onMessage(xmlMessage)
@@ -152,8 +150,8 @@ internal class UtbetalingKvitteringConsumerTest {
             on { oppdaterMedKvittering(any(), any()) } doReturn utbetalingMedKvittering.right()
         }
 
-        val behandlingServiceMock = mock<BehandlingService> {
-            on { hentBehandlingForUtbetaling(any()) } doReturn FantIkkeBehandling.left()
+        val behandlingServiceMock = mock<FerdigstillSøknadsbehandingIverksettingService> {
+            on { hentBehandlingForUtbetaling(any()) } doReturn null
         }
         val consumer = UtbetalingKvitteringConsumer(utbetalingServiceMock, behandlingServiceMock, clock)
 
@@ -179,7 +177,7 @@ internal class UtbetalingKvitteringConsumerTest {
             originalKvittering = xmlMessage,
             mottattTidspunkt = Tidspunkt.now(clock)
         )
-        val behandling = nyBehandling().copy(status = Behandling.BehandlingsStatus.IVERKSATT_INNVILGET)
+        val behandling = mock<Søknadsbehandling.Iverksatt.Innvilget>()
 
         val utbetalingMedKvittering = utbetaling.toKvittertUtbetaling(kvittering)
 
@@ -187,9 +185,8 @@ internal class UtbetalingKvitteringConsumerTest {
             on { oppdaterMedKvittering(any(), any()) } doReturn utbetalingMedKvittering.right()
         }
 
-        val behandlingServiceMock = mock<BehandlingService> {
+        val behandlingServiceMock = mock<FerdigstillSøknadsbehandingIverksettingService> {
             on { hentBehandlingForUtbetaling(any()) } doReturn behandling
-                .right()
         }
         val consumer = UtbetalingKvitteringConsumer(utbetalingServiceMock, behandlingServiceMock, clock)
 

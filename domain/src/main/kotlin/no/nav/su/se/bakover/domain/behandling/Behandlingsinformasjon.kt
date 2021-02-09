@@ -332,7 +332,9 @@ data class Behandlingsinformasjon(
             fun getAlder() = fødselsdato?.let { Period.between(it, LocalDate.now()).years }
         }
 
-        object IngenEktefelle : EktefellePartnerSamboer()
+        object IngenEktefelle : EktefellePartnerSamboer() {
+            override fun equals(other: Any?): Boolean = other is IngenEktefelle
+        }
 
         override fun erVilkårOppfylt(): Boolean = true
         override fun erVilkårIkkeOppfylt(): Boolean = false

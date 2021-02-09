@@ -3,17 +3,25 @@ package no.nav.su.se.bakover.web.routes.revurdering
 import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.behandling.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.behandling.SimulertRevurdering
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.routes.behandling.TestBeregning
 import no.nav.su.se.bakover.web.routes.behandling.beregning.toJson
 import no.nav.su.se.bakover.web.routes.behandling.toJson
@@ -22,11 +30,42 @@ import org.skyscreamer.jsonassert.JSONAssert
 import java.util.UUID
 
 internal class RevurderingJsonTest {
+
+    private val behandling = Søknadsbehandling.Iverksatt.Innvilget(
+        id = UUID.randomUUID(),
+        opprettet = Tidspunkt.now(),
+        sakId = UUID.randomUUID(),
+        saksnummer = Saksnummer(1569),
+        søknad = Søknad.Journalført.MedOppgave(
+            id = UUID.randomUUID(),
+            opprettet = Tidspunkt.now(),
+            sakId = UUID.randomUUID(),
+            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+            journalpostId = JournalpostId(value = ""),
+            oppgaveId = OppgaveId(value = "")
+
+        ),
+        oppgaveId = OppgaveId(value = ""),
+        behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().copy(
+            bosituasjon = Behandlingsinformasjon.Bosituasjon(
+                epsAlder = 55,
+                delerBolig = true,
+                ektemakeEllerSamboerUførFlyktning = true,
+                begrunnelse = null
+            )
+        ),
+        fnr = FnrGenerator.random(),
+        beregning = TestBeregning,
+        simulering = mock(),
+        saksbehandler = NavIdentBruker.Saksbehandler("saks"),
+        attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
+        utbetalingId = UUID30.randomUUID(),
+        eksterneIverksettingsteg = Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.VenterPåKvittering
+    )
     @Test
     fun `should serialize and deserialize OpprettetRevurdering`() {
         val id = UUID.randomUUID()
         val opprettet = Tidspunkt.now()
-        val behandling = BehandlingTestUtils.nyBehandling()
 
         val revurdering = OpprettetRevurdering(
             id = id,
@@ -53,7 +92,6 @@ internal class RevurderingJsonTest {
     fun `should serialize and deserialize SimulertRevurdering`() {
         val id = UUID.randomUUID()
         val opprettet = Tidspunkt.now()
-        val behandling = BehandlingTestUtils.nyBehandling()
         val beregning = TestBeregning
 
         val revurdering = SimulertRevurdering(
@@ -73,7 +111,7 @@ internal class RevurderingJsonTest {
             "tilRevurdering": ${serialize(behandling.toJson())},
             "beregninger":
               {
-                "beregning": ${serialize(behandling.beregning()!!.toJson())},
+                "beregning": ${serialize(behandling.beregning.toJson())},
                 "revurdert": ${serialize(beregning.toJson())}
               },
             "status": "${RevurderingsStatus.SIMULERT}",
@@ -89,7 +127,6 @@ internal class RevurderingJsonTest {
     fun `should serialize and deserialize RevurderingTilAttestering`() {
         val id = UUID.randomUUID()
         val opprettet = Tidspunkt.now()
-        val behandling = BehandlingTestUtils.nyBehandling()
         val beregning = TestBeregning
 
         val revurdering = RevurderingTilAttestering(
@@ -110,7 +147,7 @@ internal class RevurderingJsonTest {
             "tilRevurdering": ${serialize(behandling.toJson())},
             "beregninger":
               {
-                "beregning": ${serialize(behandling.beregning()!!.toJson())},
+                "beregning": ${serialize(behandling.beregning.toJson())},
                 "revurdert": ${serialize(beregning.toJson())}
               },
             "status": "${RevurderingsStatus.TIL_ATTESTERING}",

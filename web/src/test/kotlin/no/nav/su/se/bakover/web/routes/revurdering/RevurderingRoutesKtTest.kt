@@ -13,6 +13,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
@@ -22,13 +23,14 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.behandling.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -38,7 +40,6 @@ import no.nav.su.se.bakover.web.routes.behandling.TestBeregning
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
-import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
@@ -47,6 +48,38 @@ internal class RevurderingRoutesKtTest {
     private val requestPath = "$sakPath/$sakId/revurderinger"
     private val services = TestServicesBuilder.services()
     private val periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020))
+
+    private val behandling = Søknadsbehandling.Iverksatt.Innvilget(
+        id = UUID.randomUUID(),
+        opprettet = Tidspunkt.now(),
+        sakId = sakId,
+        saksnummer = Saksnummer(1569),
+        søknad = Søknad.Journalført.MedOppgave(
+            id = UUID.randomUUID(),
+            opprettet = Tidspunkt.now(),
+            sakId = sakId,
+            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+            journalpostId = JournalpostId(value = ""),
+            oppgaveId = OppgaveId(value = "")
+
+        ),
+        oppgaveId = OppgaveId(value = ""),
+        behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().copy(
+            bosituasjon = Behandlingsinformasjon.Bosituasjon(
+                epsAlder = 55,
+                delerBolig = true,
+                ektemakeEllerSamboerUførFlyktning = true,
+                begrunnelse = null
+            )
+        ),
+        fnr = FnrGenerator.random(),
+        beregning = TestBeregning,
+        simulering = mock(),
+        saksbehandler = NavIdentBruker.Saksbehandler("saks"),
+        attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
+        utbetalingId = UUID30.randomUUID(),
+        eksterneIverksettingsteg = Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.VenterPåKvittering
+    )
 
     @Test
     fun `uautoriserte kan ej opprette revurdering `() {
@@ -67,21 +100,6 @@ internal class RevurderingRoutesKtTest {
 
     @Test
     fun `kan opprette revurdering`() {
-        val behandling = BehandlingFactory(mock(), Clock.systemUTC()).createBehandling(
-            sakId = sakId,
-            saksnummer = Saksnummer(1569),
-            fnr = FnrGenerator.random(),
-            oppgaveId = OppgaveId("OppgaveId"),
-            søknad = Søknad.Journalført.MedOppgave(
-                id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(),
-                sakId = sakId,
-                søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-                journalpostId = JournalpostId(value = ""),
-                oppgaveId = OppgaveId(value = "")
-
-            )
-        )
         val opprettetRevurdering = OpprettetRevurdering(
             id = UUID.randomUUID(),
             periode = periode,
@@ -115,30 +133,6 @@ internal class RevurderingRoutesKtTest {
 
     @Test
     fun `kan opprette beregning og simulering for revurdering`() {
-        val behandling = BehandlingFactory(mock(), Clock.systemUTC()).createBehandling(
-            sakId = sakId,
-            saksnummer = Saksnummer(1569),
-            fnr = FnrGenerator.random(),
-            oppgaveId = OppgaveId("OppgaveId"),
-            søknad = Søknad.Journalført.MedOppgave(
-                id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(),
-                sakId = sakId,
-                søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-                journalpostId = JournalpostId(value = ""),
-                oppgaveId = OppgaveId(value = "")
-            ),
-            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().copy(
-                bosituasjon = Behandlingsinformasjon.Bosituasjon(
-                    epsAlder = 55,
-                    delerBolig = true,
-                    ektemakeEllerSamboerUførFlyktning = true,
-                    begrunnelse = null
-                )
-            ),
-            beregning = TestBeregning
-        )
-
         val simulertRevurdering = OpprettetRevurdering(
             id = UUID.randomUUID(),
             periode = periode,
@@ -194,30 +188,6 @@ internal class RevurderingRoutesKtTest {
 
     @Test
     fun `send til attestering`() {
-        val behandling = BehandlingFactory(mock(), Clock.systemUTC()).createBehandling(
-            sakId = sakId,
-            saksnummer = Saksnummer(1569),
-            fnr = FnrGenerator.random(),
-            oppgaveId = OppgaveId("OppgaveId"),
-            søknad = Søknad.Journalført.MedOppgave(
-                id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(),
-                sakId = sakId,
-                søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-                journalpostId = JournalpostId(value = ""),
-                oppgaveId = OppgaveId(value = "")
-            ),
-            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().copy(
-                bosituasjon = Behandlingsinformasjon.Bosituasjon(
-                    epsAlder = 55,
-                    delerBolig = true,
-                    ektemakeEllerSamboerUførFlyktning = true,
-                    begrunnelse = null
-                )
-            ),
-            beregning = TestBeregning
-        )
-
         val revurderingTilAttestering = RevurderingTilAttestering(
             id = UUID.randomUUID(),
             periode = periode,

@@ -33,7 +33,6 @@ abstract class BrevInnhold {
         @JsonInclude
         val avslagsparagrafer: List<Int> = avslagsgrunner.getDistinkteParagrafer()
 
-        @Suppress("unused")
         @JsonInclude
         val satsBeløp = beregningsperioder.firstOrNull()?.satsbeløpPerMåned
 

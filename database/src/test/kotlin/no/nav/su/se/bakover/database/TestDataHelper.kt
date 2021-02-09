@@ -1,12 +1,18 @@
 package no.nav.su.se.bakover.database
 
-import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.database.behandling.BehandlingPostgresRepo
+import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.database.beregning.PersistertMånedsberegning
+import no.nav.su.se.bakover.database.beregning.TestBeregning
+import no.nav.su.se.bakover.database.beregning.toSnapshot
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
 import no.nav.su.se.bakover.database.sak.SakPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadPostgresRepo
+import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -15,100 +21,388 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
-import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.behandling.OpprettetRevurdering
+import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
+import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
+import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
+import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import java.time.Clock
-import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneOffset
 import java.util.UUID
 import javax.sql.DataSource
 
+internal val fixedClock: Clock =
+    Clock.fixed(1.januar(2021).atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
+internal val fixedTidspunkt: Tidspunkt = Tidspunkt.now(fixedClock)
+internal val fixedLocalDate: LocalDate = fixedTidspunkt.toLocalDate(ZoneOffset.UTC)
+internal val tomBehandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon()
+internal val behandlingsinformasjonMedAlleVilkårOppfylt =
+    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
+internal val behandlingsinformasjonMedAvslag =
+    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withVilkårAvslått()
+
+internal val oppgaveId = OppgaveId("oppgaveId")
+internal val journalpostId = JournalpostId("journalpostId")
+internal val beregning = TestBeregning.toSnapshot()
+internal val avslåttBeregning = beregning.copy(
+    månedsberegninger = listOf(
+        PersistertMånedsberegning(
+            sumYtelse = 0,
+            sumFradrag = 0.0,
+            benyttetGrunnbeløp = 0,
+            sats = Sats.ORDINÆR,
+            satsbeløp = 0.0,
+            fradrag = listOf(),
+            periode = Periode.create(1.januar(2020), 31.desember(2020))
+        )
+    )
+)
+
+internal fun simulering(fnr: Fnr) = Simulering(
+    gjelderId = fnr,
+    gjelderNavn = "gjelderNavn",
+    datoBeregnet = fixedLocalDate,
+    nettoBeløp = 100,
+    periodeList = emptyList()
+)
+
+internal val saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler")
+internal val attestant = NavIdentBruker.Attestant("attestant")
+internal val underkjentAttestering =
+    Attestering.Underkjent(attestant, Attestering.Underkjent.Grunn.ANDRE_FORHOLD, "kommentar")
+internal val iverksattAttestering = Attestering.Iverksatt(attestant)
+internal val iverksattJournalpostId = JournalpostId("iverksattJournalpostId")
+internal val iverksattBrevbestillingId = BrevbestillingId("iverksattBrevbestillingId")
+internal val avstemmingsnøkkel = Avstemmingsnøkkel()
+internal fun utbetalingslinje() = Utbetalingslinje(
+    fraOgMed = 1.januar(2020),
+    tilOgMed = 31.desember(2020),
+    forrigeUtbetalingslinjeId = null,
+    beløp = 25000
+)
+
+internal fun oversendtUtbetalingUtenKvittering(
+    søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget,
+    avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.database.avstemmingsnøkkel,
+    utbetalingslinjer: List<Utbetalingslinje> = listOf(utbetalingslinje())
+) = Utbetaling.OversendtUtbetaling.UtenKvittering(
+    id = UUID30.randomUUID(),
+    opprettet = fixedTidspunkt,
+    sakId = søknadsbehandling.sakId,
+    saksnummer = søknadsbehandling.saksnummer,
+    fnr = søknadsbehandling.fnr,
+    utbetalingslinjer = utbetalingslinjer,
+    type = Utbetaling.UtbetalingsType.NY,
+    behandler = attestant,
+    avstemmingsnøkkel = avstemmingsnøkkel,
+    simulering = simulering(søknadsbehandling.fnr),
+    utbetalingsrequest = Utbetalingsrequest("<xml></xml>"),
+)
+
+internal val kvitteringOk = Kvittering(
+    utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
+    originalKvittering = "hallo",
+    mottattTidspunkt = fixedTidspunkt
+)
+internal val journalførtIverksettingForAvslag = Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg.Journalført(
+    journalpostId = iverksattJournalpostId,
+)
+
 internal class TestDataHelper(
     dataSource: DataSource = EmbeddedDatabase.instance(),
-    private val clock: Clock = Clock.systemUTC(),
+    private val clock: Clock = fixedClock,
 ) {
-    private val behandlingMetrics = mock<BehandlingMetrics>()
-    private val behandlingFactory = BehandlingFactory(behandlingMetrics, clock)
-    private val behandlingPostgresRepo = BehandlingPostgresRepo(dataSource, behandlingFactory)
     private val utbetalingRepo = UtbetalingPostgresRepo(dataSource)
     private val hendelsesloggRepo = HendelsesloggPostgresRepo(dataSource)
     private val søknadRepo = SøknadPostgresRepo(dataSource)
-    private val revurderingRepo = RevurderingPostgresRepo(dataSource, behandlingPostgresRepo)
+    private val søknadsbehandlingRepo = SøknadsbehandlingPostgresRepo(dataSource)
+    private val revurderingRepo = RevurderingPostgresRepo(dataSource, søknadsbehandlingRepo)
+    private val sakRepo = SakPostgresRepo(dataSource, søknadsbehandlingRepo)
 
-    private val behandlingRepo = behandlingPostgresRepo
-    private val sakRepo = SakPostgresRepo(dataSource, behandlingPostgresRepo)
+    fun nySakMedNySøknad(fnr: Fnr = FnrGenerator.random()): NySak {
+        return SakFactory(clock = clock).nySak(fnr, SøknadInnholdTestdataBuilder.build()).also {
+            sakRepo.opprettSak(it)
+        }
+    }
+
+    fun nySøknadForEksisterendeSak(sakId: UUID): Søknad.Ny {
+        return Søknad.Ny(
+            sakId = sakId,
+            id = UUID.randomUUID(),
+            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+            opprettet = fixedTidspunkt,
+        ).also { søknadRepo.opprettSøknad(it) }
+    }
+
+    fun nyLukketSøknadForEksisterendeSak(sakId: UUID): Søknad.Lukket {
+        return Søknad.Ny(
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
+            sakId = sakId,
+            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+        ).let { nySøknad ->
+            søknadRepo.opprettSøknad(nySøknad)
+            nySøknad.lukk(
+                lukketAv = NavIdentBruker.Saksbehandler("saksbehandler"),
+                type = Søknad.Lukket.LukketType.TRUKKET,
+                lukketTidspunkt = fixedTidspunkt
+            ).also { lukketSøknad ->
+                søknadRepo.oppdaterSøknad(lukketSøknad)
+            }
+        }
+    }
+
+    fun nySakMedJournalførtSøknad(
+        fnr: Fnr = FnrGenerator.random(),
+        journalpostId: JournalpostId = no.nav.su.se.bakover.database.journalpostId
+    ): Sak {
+        val nySak: NySak = nySakMedNySøknad(fnr)
+        nySak.søknad.journalfør(journalpostId).also { journalførtSøknad ->
+            søknadRepo.oppdaterjournalpostId(journalførtSøknad)
+        }
+        return sakRepo.hentSak(nySak.id)
+            ?: throw java.lang.IllegalStateException("Fant ikke sak rett etter vi opprettet den.")
+    }
+
+    fun journalførtSøknadForEksisterendeSak(
+        sakId: UUID,
+        journalpostId: JournalpostId = no.nav.su.se.bakover.database.journalpostId,
+    ): Søknad.Journalført.UtenOppgave {
+        return nySøknadForEksisterendeSak(sakId).journalfør(journalpostId).also {
+            søknadRepo.oppdaterjournalpostId(it)
+        }
+    }
 
     fun nySakMedJournalførtSøknadOgOppgave(
         fnr: Fnr = FnrGenerator.random(),
-        oppgaveId: OppgaveId = OppgaveId("defaultOppgaveId"),
-        journalpostId: JournalpostId = JournalpostId("defaultJournalpostId")
+        oppgaveId: OppgaveId = no.nav.su.se.bakover.database.oppgaveId,
+        journalpostId: JournalpostId = no.nav.su.se.bakover.database.journalpostId,
     ): Sak {
-        val nySak = insertSak(fnr)
-        val journalførtSøknad = nySak.søknad.journalfør(journalpostId).also {
-            søknadRepo.oppdaterjournalpostId(nySak.søknad.id, journalpostId)
+        val sak: Sak = nySakMedJournalførtSøknad(fnr, journalpostId)
+        sak.journalførtSøknad().medOppgave(oppgaveId).also {
+            søknadRepo.oppdaterOppgaveId(it)
         }
-        journalførtSøknad.medOppgave(oppgaveId).also {
-            søknadRepo.oppdaterOppgaveId(nySak.søknad.id, oppgaveId)
-        }
-
-        return sakRepo.hentSak(fnr) ?: throw RuntimeException("Feil ved henting av sak.")
+        return sakRepo.hentSak(sak.id)
+            ?: throw java.lang.IllegalStateException("Fant ikke sak rett etter vi opprettet den.")
     }
 
-    internal fun insertSak(fnr: Fnr): NySak = SakFactory(clock = clock).nySak(fnr, SøknadInnholdTestdataBuilder.build()).also {
-        sakRepo.opprettSak(it)
+    fun journalførtSøknadMedOppgaveForEksisterendeSak(
+        sakId: UUID,
+        journalpostId: JournalpostId = no.nav.su.se.bakover.database.journalpostId,
+        oppgaveId: OppgaveId = no.nav.su.se.bakover.database.oppgaveId,
+    ): Søknad.Journalført.MedOppgave {
+        return journalførtSøknadForEksisterendeSak(sakId, journalpostId).medOppgave(oppgaveId).also {
+            søknadRepo.oppdaterOppgaveId(it)
+        }
     }
 
-    fun insertSøknad(sakId: UUID): Søknad.Ny = Søknad.Ny(
-        sakId = sakId,
-        id = UUID.randomUUID(),
-        søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-        opprettet = Tidspunkt.EPOCH,
-    ).also { søknadRepo.opprettSøknad(it) }
-
-    fun insertBehandling(sakId: UUID, søknad: Søknad, oppgaveId: OppgaveId = OppgaveId("1234")): NySøknadsbehandling =
-        NySøknadsbehandling(
-            sakId = sakId,
-            søknadId = søknad.id,
-            oppgaveId = oppgaveId
-        ).also {
-            behandlingRepo.opprettSøknadsbehandling(it)
+    fun nyOversendtUtbetalingMedKvittering(
+        avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.database.avstemmingsnøkkel
+    ): Pair<Søknadsbehandling.Iverksatt.Innvilget, Utbetaling.OversendtUtbetaling.MedKvittering> {
+        val utenKvittering = nyIverksattInnvilget(avstemmingsnøkkel = avstemmingsnøkkel)
+        return utenKvittering.first to utenKvittering.second.toKvittertUtbetaling(kvitteringOk).also {
+            utbetalingRepo.oppdaterMedKvittering(it)
         }
-
-    fun opprettUtbetaling(utbetaling: Utbetaling.OversendtUtbetaling.UtenKvittering) =
-        utbetalingRepo.opprettUtbetaling(utbetaling)
+    }
 
     fun oppdaterHendelseslogg(hendelseslogg: Hendelseslogg) = hendelsesloggRepo.oppdaterHendelseslogg(hendelseslogg)
 
-    fun insertBehandlingsinformasjonMedEps(behandlingId: UUID, eps: Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle?): Behandlingsinformasjon =
-        Behandlingsinformasjon(
-            uførhet = null,
-            flyktning = null,
-            lovligOpphold = null,
-            fastOppholdINorge = null,
-            oppholdIUtlandet = null,
-            formue = null,
-            personligOppmøte = null,
-            bosituasjon = null,
-            ektefelle = eps
-        ).also {
-            behandlingRepo.oppdaterBehandlingsinformasjon(behandlingId, it)
-        }
-
-    fun insertRevurdering(behandlingId: UUID) =
+    fun nyRevurdering(innvilget: Søknadsbehandling.Iverksatt.Innvilget) =
         OpprettetRevurdering(
             id = UUID.randomUUID(),
             periode = mock(),
-            tilRevurdering = mock
-            { on { id } doReturn behandlingId },
-            opprettet = Tidspunkt(instant = Instant.now()),
-            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "1337")
+            tilRevurdering = innvilget,
+            opprettet = fixedTidspunkt,
+            saksbehandler = saksbehandler
         ).also {
             revurderingRepo.lagre(it)
         }
+
+    fun nyUavklartVilkårsvurdering(
+        sak: Sak = nySakMedJournalførtSøknadOgOppgave(),
+        søknad: Søknad.Journalført.MedOppgave = sak.journalførtSøknadMedOppgave(),
+        behandlingsinformasjon: Behandlingsinformasjon = tomBehandlingsinformasjon
+    ): Søknadsbehandling.Vilkårsvurdert.Uavklart {
+
+        return Søknadsbehandling.Vilkårsvurdert.Uavklart(
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
+            sakId = sak.id,
+            saksnummer = sak.saksnummer,
+            søknad = søknad,
+            oppgaveId = søknad.oppgaveId,
+            behandlingsinformasjon = behandlingsinformasjon,
+            fnr = sak.fnr
+        ).also {
+            søknadsbehandlingRepo.lagre(it)
+        }
+    }
+
+    internal fun nyInnvilgetVilkårsvurdering(
+        behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt
+    ): Søknadsbehandling.Vilkårsvurdert.Innvilget {
+        return nyUavklartVilkårsvurdering(behandlingsinformasjon = behandlingsinformasjon).tilVilkårsvurdert(
+            behandlingsinformasjon
+        ).also {
+            søknadsbehandlingRepo.lagre(it)
+        } as Søknadsbehandling.Vilkårsvurdert.Innvilget
+    }
+
+    internal fun nyAvslåttVilkårsvurdering(): Søknadsbehandling.Vilkårsvurdert.Avslag {
+        return nyUavklartVilkårsvurdering().tilVilkårsvurdert(
+            behandlingsinformasjonMedAvslag
+        ).also {
+            søknadsbehandlingRepo.lagre(it)
+        } as Søknadsbehandling.Vilkårsvurdert.Avslag
+    }
+
+    internal fun nyInnvilgetBeregning(
+        behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt
+    ): Søknadsbehandling.Beregnet.Innvilget {
+        return nyInnvilgetVilkårsvurdering(behandlingsinformasjon).tilBeregnet(
+            beregning
+        ).also {
+            søknadsbehandlingRepo.lagre(it)
+        } as Søknadsbehandling.Beregnet.Innvilget
+    }
+
+    internal fun nyAvslåttBeregning(): Søknadsbehandling.Beregnet.Avslag {
+        return nyInnvilgetVilkårsvurdering().tilBeregnet(
+            avslåttBeregning
+        ).also {
+            søknadsbehandlingRepo.lagre(it)
+        } as Søknadsbehandling.Beregnet.Avslag
+    }
+
+    internal fun nySimulering(
+        behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt
+    ): Søknadsbehandling.Simulert {
+        return nyInnvilgetBeregning(behandlingsinformasjon).let {
+            it.tilSimulert(simulering(it.fnr))
+        }.also {
+            søknadsbehandlingRepo.lagre(it)
+        }
+    }
+
+    internal fun nyTilInnvilgetAttestering(
+        behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt
+    ): Søknadsbehandling.TilAttestering.Innvilget {
+        return nySimulering(behandlingsinformasjon).tilAttestering(
+            saksbehandler
+        ).also {
+            søknadsbehandlingRepo.lagre(it)
+        }
+    }
+
+    internal fun tilAvslåttAttesteringMedBeregning(): Søknadsbehandling.TilAttestering.Avslag.MedBeregning {
+        return nyAvslåttBeregning().tilAttestering(
+            saksbehandler
+        ).also {
+            søknadsbehandlingRepo.lagre(it)
+        }
+    }
+
+    internal fun nyTilAvslåttAttesteringUtenBeregning(): Søknadsbehandling.TilAttestering.Avslag.UtenBeregning {
+        return nyAvslåttVilkårsvurdering().tilAttestering(
+            saksbehandler
+        ).also {
+            søknadsbehandlingRepo.lagre(it)
+        }
+    }
+
+    internal fun nyInnvilgetUnderkjenning(): Søknadsbehandling.Underkjent.Innvilget {
+        return nyTilInnvilgetAttestering().tilUnderkjent(
+            underkjentAttestering
+        ).also {
+            søknadsbehandlingRepo.lagre(it)
+        }
+    }
+
+    internal fun nyUnderkjenningUtenBeregning(): Søknadsbehandling.Underkjent.Avslag.UtenBeregning {
+        return nyTilAvslåttAttesteringUtenBeregning().tilUnderkjent(
+            underkjentAttestering
+        ).also {
+            søknadsbehandlingRepo.lagre(it)
+        }
+    }
+
+    internal fun nyUnderkjenningMedBeregning(): Søknadsbehandling.Underkjent.Avslag.MedBeregning {
+        return tilAvslåttAttesteringMedBeregning().tilUnderkjent(
+            underkjentAttestering
+        ).also {
+            søknadsbehandlingRepo.lagre(it)
+        }
+    }
+
+    internal fun nyIverksattInnvilget(
+        behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt,
+        avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.database.avstemmingsnøkkel,
+        utbetalingslinjer: List<Utbetalingslinje> = listOf(utbetalingslinje()),
+    ): Pair<Søknadsbehandling.Iverksatt.Innvilget, Utbetaling.OversendtUtbetaling.UtenKvittering> {
+        val utbetalingId = UUID30.randomUUID()
+        val innvilget = nyTilInnvilgetAttestering(behandlingsinformasjon).tilIverksatt(
+            iverksattAttestering, utbetalingId
+        )
+        val utbetaling = oversendtUtbetalingUtenKvittering(
+            søknadsbehandling = innvilget,
+            avstemmingsnøkkel = avstemmingsnøkkel,
+            utbetalingslinjer = utbetalingslinjer,
+        ).copy(id = utbetalingId)
+        utbetalingRepo.opprettUtbetaling(utbetaling)
+        søknadsbehandlingRepo.lagre(innvilget)
+        return innvilget to utbetaling
+    }
+
+    internal fun nyIverksattAvslagUtenBeregning(eksterneIverksettingsteg: Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg = journalførtIverksettingForAvslag): Søknadsbehandling.Iverksatt.Avslag.UtenBeregning {
+        return nyTilAvslåttAttesteringUtenBeregning().tilIverksatt(
+            iverksattAttestering, eksterneIverksettingsteg
+        ).also {
+            søknadsbehandlingRepo.lagre(it)
+        }
+    }
+
+    internal fun nyIverksattAvslagMedBeregning(eksterneIverksettingsteg: Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg): Søknadsbehandling.Iverksatt.Avslag.MedBeregning {
+        return tilAvslåttAttesteringMedBeregning().tilIverksatt(
+            iverksattAttestering, eksterneIverksettingsteg
+        ).also {
+            søknadsbehandlingRepo.lagre(it)
+        }
+    }
+
+    companion object {
+        /** Kaster hvis size != 1 */
+        fun Sak.journalførtSøknadMedOppgave(): Søknad.Journalført.MedOppgave {
+            kastDersomSøknadErUlikEn()
+            return søknader.first() as Søknad.Journalført.MedOppgave
+        }
+
+        /** Kaster hvis size != 1 */
+        fun Sak.journalførtSøknad(): Søknad.Journalført.UtenOppgave {
+            kastDersomSøknadErUlikEn()
+            return søknader.first() as Søknad.Journalført.UtenOppgave
+        }
+
+        /** Kaster hvis size != 1 */
+        fun Sak.søknadNy(): Søknad.Ny {
+            kastDersomSøknadErUlikEn()
+            return søknader.first() as Søknad.Ny
+        }
+
+        private fun Sak.kastDersomSøknadErUlikEn() {
+            if (søknader.size != 1) throw IllegalStateException("Var ferre/fler enn 1 søknad. Testen bør spesifisere dersom fler. Antall: ${søknader.size}")
+        }
+    }
 }

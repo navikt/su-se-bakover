@@ -1,15 +1,7 @@
 package no.nav.su.se.bakover.service.behandling
 
-import arrow.core.Either
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.mock
-import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.client.person.MicrosoftGraphResponse
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.database.behandling.BehandlingRepo
-import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
-import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Ident
@@ -17,12 +9,6 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Person.Navn
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.Behandling
-import no.nav.su.se.bakover.domain.behandling.BehandlingFactory
-import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Bosituasjon
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle
@@ -41,23 +27,12 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon.Uførhet.St
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.service.FnrGenerator
-import no.nav.su.se.bakover.service.brev.BrevService
-import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.fixedClock
-import no.nav.su.se.bakover.service.oppgave.OppgaveService
-import no.nav.su.se.bakover.service.person.PersonService
-import no.nav.su.se.bakover.service.statistikk.EventObserver
-import no.nav.su.se.bakover.service.søknad.SøknadService
-import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import java.util.UUID
 
 object BehandlingTestUtils {
 
     internal val tidspunkt = Tidspunkt.now(fixedClock)
-    internal val behandlingFactory = BehandlingFactory(mock(), fixedClock)
-    internal val observerMock: EventObserver by lazy {
-        mock { on { handle(any()) }.doNothing() }
-    }
 
     internal val sakId: UUID = UUID.fromString("268e62fb-3079-4e8d-ab32-ff9fb9eac2ec")
     internal val saksnummer = Saksnummer(999999)
@@ -76,27 +51,6 @@ object BehandlingTestUtils {
         ),
         navn = Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy")
     )
-
-    internal fun createOpprettetBehandling(): Behandling {
-        return behandlingFactory.createBehandling(
-            id = behandlingId,
-            søknad = Søknad.Journalført.MedOppgave(
-                id = søknadId,
-                opprettet = Tidspunkt.EPOCH,
-                sakId = sakId,
-                søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-                oppgaveId = søknadOppgaveId,
-                journalpostId = søknadJournalpostId
-            ),
-            status = Behandling.BehandlingsStatus.OPPRETTET,
-            saksbehandler = saksbehandler,
-            attestering = Attestering.Iverksatt(attestant),
-            sakId = sakId,
-            saksnummer = saksnummer,
-            fnr = fnr,
-            oppgaveId = søknadOppgaveId,
-        )
-    }
 
     internal val behandlingsinformasjon = Behandlingsinformasjon(
         uførhet = Uførhet(
@@ -170,36 +124,6 @@ object BehandlingTestUtils {
         )
     )
 
-    internal fun createService(
-        behandlingRepo: BehandlingRepo = mock(),
-        hendelsesloggRepo: HendelsesloggRepo = mock(),
-        utbetalingService: UtbetalingService = mock(),
-        oppgaveService: OppgaveService = mock(),
-        søknadService: SøknadService = mock(),
-        søknadRepo: SøknadRepo = mock(),
-        personService: PersonService = mock(),
-        brevService: BrevService = mock(),
-        behandlingMetrics: BehandlingMetrics = mock(),
-        microsoftGraphApiOppslag: MicrosoftGraphApiOppslag = microsoftGraphMock.oppslagMock,
-        iverksettBehandlingService: IverksettBehandlingService = mock(),
-        ferdigstillIverksettingService: FerdigstillIverksettingService = mock(),
-        observer: EventObserver = observerMock,
-    ) = BehandlingServiceImpl(
-        behandlingRepo = behandlingRepo,
-        hendelsesloggRepo = hendelsesloggRepo,
-        utbetalingService = utbetalingService,
-        oppgaveService = oppgaveService,
-        søknadService = søknadService,
-        søknadRepo = søknadRepo,
-        personService = personService,
-        brevService = brevService,
-        behandlingMetrics = behandlingMetrics,
-        clock = fixedClock,
-        microsoftGraphApiClient = microsoftGraphApiOppslag,
-        iverksettBehandlingService = iverksettBehandlingService,
-        ferdigstillIverksettingService = ferdigstillIverksettingService,
-    ).apply { addObserver(observer) }
-
     internal object microsoftGraphMock {
         val response = MicrosoftGraphResponse(
             onPremisesSamAccountName = "",
@@ -212,12 +136,5 @@ object BehandlingTestUtils {
             id = "",
             jobTitle = ""
         )
-
-        val oppslagMock: MicrosoftGraphApiOppslag by lazy {
-            mock {
-                on { hentBrukerinformasjon(any()) } doReturn Either.right(response)
-                on { hentBrukerinformasjonForNavIdent(any()) } doReturn Either.right(response)
-            }
-        }
     }
 }
