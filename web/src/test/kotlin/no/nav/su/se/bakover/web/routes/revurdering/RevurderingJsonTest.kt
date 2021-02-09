@@ -41,7 +41,12 @@ internal class RevurderingJsonTest {
             "id": "$id",
             "opprettet": "$opprettet",
             "tilRevurdering": ${serialize(behandling.toJson())},
-            "status": "${RevurderingsStatus.OPPRETTET}"
+            "status": "${RevurderingsStatus.OPPRETTET}",
+            "periode": {
+                "fraOgMed": "2020-01-01",
+                "tilOgMed": "2020-12-31"
+            },
+            "saksbehandler": "Petter"
             }
         """.trimIndent()
 
@@ -77,7 +82,11 @@ internal class RevurderingJsonTest {
                 "revurdert": ${serialize(beregning.toJson())}
               },
             "status": "${RevurderingsStatus.SIMULERT}",
-            "saksbehandler": "Petter"
+            "saksbehandler": "Petter",
+            "periode": {
+                "fraOgMed": "2020-01-01",
+                "tilOgMed": "2020-12-31"
+            }
             }
         """.trimIndent()
 
@@ -114,7 +123,11 @@ internal class RevurderingJsonTest {
                 "revurdert": ${serialize(beregning.toJson())}
               },
             "status": "${RevurderingsStatus.TIL_ATTESTERING}",
-            "saksbehandler": "Petter"
+            "saksbehandler": "Petter",
+            "periode": {
+                "fraOgMed": "2020-01-01",
+                "tilOgMed": "2020-12-31"
+            }
             }
         """.trimIndent()
 

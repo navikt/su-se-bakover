@@ -44,7 +44,6 @@ sealed class KunneIkkeIverksetteRevurdering {
     object FeilTilstand : KunneIkkeIverksetteRevurdering()
 }
 
-
 sealed class KunneIkkeRevurdere {
     object FantIkkeSak : KunneIkkeRevurdere()
     object FantIkkeRevurdering : KunneIkkeRevurdere()

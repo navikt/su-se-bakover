@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.service.behandling.BehandlingService
-import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringResponse.Companion.toKvitteringResponse
 import org.slf4j.LoggerFactory
@@ -21,7 +20,6 @@ import java.time.Clock
 class UtbetalingKvitteringConsumer(
     private val utbetalingService: UtbetalingService,
     private val behandlingService: BehandlingService,
-    private val revurderingService: RevurderingService,
     private val clock: Clock
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)

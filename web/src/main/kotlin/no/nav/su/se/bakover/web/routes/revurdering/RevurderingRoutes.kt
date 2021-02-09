@@ -127,7 +127,7 @@ internal fun Route.revurderingRoutes(
                 revurderingId = revurderingId, attestant = Attestant(call.suUserContext.getNAVIdent())
             ).fold(
                 ifLeft = {
-                    val message = when(it){
+                    val message = when (it) {
                         KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> Forbidden.message("Attestant og saksbehandler kan ikke være samme person")
                         KunneIkkeIverksetteRevurdering.FantIkkeRevurdering -> NotFound.message("Fant ikke revurdering")
                         KunneIkkeIverksetteRevurdering.FeilTilstand -> InternalServerError.message("Kun revurderinger som har blitt sendt till attestering kan revurderes")
@@ -138,7 +138,8 @@ internal fun Route.revurderingRoutes(
                             "Oppdaget inkonsistens mellom tidligere utført simulering og kontrollsimulering. Ny simulering må utføres og kontrolleres før iverksetting kan gjennomføres"
                         )
                     }
-                    call.svar(message) },
+                    call.svar(message)
+                },
                 ifRight = {
                     call.audit("Iverksatt revurdering med id $revurderingId")
                     call.svar(Resultat.json(OK, serialize(it.toJson())))

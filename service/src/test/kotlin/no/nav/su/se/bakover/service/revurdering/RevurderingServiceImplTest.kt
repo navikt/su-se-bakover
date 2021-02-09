@@ -108,7 +108,7 @@ internal class RevurderingServiceImplTest {
     }
 
     val behandling = behandlingFactory.createBehandling(
-        id = mock(),
+        id = UUID.randomUUID(),
         søknad = mock(),
         behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().copy(
             bosituasjon = Behandlingsinformasjon.Bosituasjon(
@@ -152,11 +152,12 @@ internal class RevurderingServiceImplTest {
             sakId = sakId,
             periode = periode,
             saksbehandler = saksbehandler
-        )
+        ).getOrHandle { throw RuntimeException("Skal ikke kunne skje") }
 
         inOrder(sakServiceMock, revurderingRepoMock) {
             verify(sakServiceMock).hentSak(sakId)
-            verify(revurderingRepoMock).lagre(argThat { it.right() shouldBe actual })
+            verify(revurderingRepoMock).hentRevurderingForBehandling(argThat { it shouldBe actual.tilRevurdering.id })
+            verify(revurderingRepoMock).lagre(argThat { it shouldBe actual })
         }
 
         verifyNoMoreInteractions(sakServiceMock, revurderingRepoMock)
