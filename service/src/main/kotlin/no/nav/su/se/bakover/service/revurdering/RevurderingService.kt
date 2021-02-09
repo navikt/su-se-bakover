@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.revurdering
 
 import arrow.core.Either
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
@@ -29,8 +30,20 @@ interface RevurderingService {
     ): Either<KunneIkkeRevurdere, Revurdering>
 
     fun lagBrevutkast(revurderingId: UUID, fritekst: String?): Either<KunneIkkeRevurdere, ByteArray>
-    fun iverksett(revurderingId: UUID, attestant: NavIdentBruker.Attestant): Either<KunneIkkeRevurdere.AttestantOgSaksbehandlerKanIkkeVæreSammePerson, IverksattRevurdering>
+    fun iverksett(revurderingId: UUID, attestant: NavIdentBruker.Attestant): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering>
+    fun hentRevurderingForUtbetaling(utbetalingId: UUID30): IverksattRevurdering?
 }
+
+sealed class KunneIkkeIverksetteRevurdering {
+    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteRevurdering()
+    object KunneIkkeUtbetale : KunneIkkeIverksetteRevurdering()
+    object KunneIkkeKontrollsimulere : KunneIkkeIverksetteRevurdering()
+    object SimuleringHarBlittEndretSidenSaksbehandlerSimulerte : KunneIkkeIverksetteRevurdering()
+    object KunneIkkeJournalføreBrev : KunneIkkeIverksetteRevurdering()
+    object FantIkkeRevurdering : KunneIkkeIverksetteRevurdering()
+    object FeilTilstand : KunneIkkeIverksetteRevurdering()
+}
+
 
 sealed class KunneIkkeRevurdere {
     object FantIkkeSak : KunneIkkeRevurdere()
@@ -44,5 +57,5 @@ sealed class KunneIkkeRevurdere {
     object KanIkkeRevurdereInneværendeMånedEllerTidligere : KunneIkkeRevurdere()
     object KanIkkeRevurderePerioderMedFlereAktiveStønadsperioder : KunneIkkeRevurdere()
     object SimuleringFeilet : KunneIkkeRevurdere()
-    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeRevurdere()
+    object KanIkkeRevurdereEnPeriodeMedEksisterendeRevurdering : KunneIkkeRevurdere()
 }

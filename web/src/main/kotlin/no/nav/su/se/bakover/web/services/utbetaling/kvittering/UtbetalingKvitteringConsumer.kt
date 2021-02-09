@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.service.behandling.BehandlingService
+import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringResponse.Companion.toKvitteringResponse
 import org.slf4j.LoggerFactory
@@ -20,6 +21,7 @@ import java.time.Clock
 class UtbetalingKvitteringConsumer(
     private val utbetalingService: UtbetalingService,
     private val behandlingService: BehandlingService,
+    private val revurderingService: RevurderingService,
     private val clock: Clock
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -73,7 +75,7 @@ class UtbetalingKvitteringConsumer(
             log.error("Prøver ikke å ferdigstille innvilgelse siden kvitteringen fra oppdrag ikke var OK.")
             return
         }
-        // TODO handle for revurdering
+        // TODO ai: handle for revurdering
         val behandling = behandlingService.hentBehandlingForUtbetaling(utbetaling.id).getOrHandle {
             log.error("Kunne ikke ferdigstille innvilgelse - fant ikke behandling for utbetaling ${utbetaling.id}")
             return

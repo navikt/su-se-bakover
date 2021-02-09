@@ -6,6 +6,7 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.RevurderingRepo
@@ -25,6 +26,7 @@ import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
+import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import java.util.UUID
 
@@ -47,13 +49,13 @@ internal class RevurderingServiceImpl(
 
         return hentSak(sakId)
             .map { sak ->
-                // TODO: `
                 val tilRevurdering = sak.behandlinger()
                     .filter { it.status() == Behandling.BehandlingsStatus.IVERKSATT_INNVILGET }
                     .filter { it.beregning()!!.getPeriode() inneholder periode }
 
                 if (tilRevurdering.isEmpty()) return KunneIkkeRevurdere.FantIngentingSomKanRevurderes.left()
                 if (tilRevurdering.size > 1) return KunneIkkeRevurdere.KanIkkeRevurderePerioderMedFlereAktiveStønadsperioder.left()
+                if (revurderingRepo.hentRevurderingForBehandling(tilRevurdering.single().id) != null) KunneIkkeRevurdere.KanIkkeRevurdereEnPeriodeMedEksisterendeRevurdering.left()
 
                 tilRevurdering.single().let {
                     val revurdering = OpprettetRevurdering(
@@ -166,11 +168,14 @@ internal class RevurderingServiceImpl(
         }
     }
 
-    override fun iverksett(revurderingId: UUID, attestant: NavIdentBruker.Attestant): Either<KunneIkkeRevurdere.AttestantOgSaksbehandlerKanIkkeVæreSammePerson, IverksattRevurdering> {
+    override fun iverksett(
+        revurderingId: UUID,
+        attestant: NavIdentBruker.Attestant
+    ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering> {
         return when (val revurdering = revurderingRepo.hent(revurderingId)) {
             is RevurderingTilAttestering -> {
                 if (attestant.navIdent == revurdering.saksbehandler.navIdent) {
-                    return KunneIkkeRevurdere.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+                    return KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
                 }
 
                 utbetalingService.utbetal(
@@ -178,21 +183,29 @@ internal class RevurderingServiceImpl(
                     beregning = revurdering.beregning,
                     simulering = revurdering.simulering,
                     attestant = attestant,
-                ).mapLeft {
-                    KunneIkkeRevurdere.AttestantOgSaksbehandlerKanIkkeVæreSammePerson // change
-                }.map { utbetaling ->
-                    revurdering.iverksett(attestant, utbetaling.id)
-                        .fold(
-                            ifLeft = { TODO() },
-                            ifRight = {
+                ).fold(
+                    ifLeft = {
+                        when (it) {
+                            KunneIkkeUtbetale.KunneIkkeSimulere -> KunneIkkeIverksetteRevurdering.KunneIkkeKontrollsimulere
+                            KunneIkkeUtbetale.Protokollfeil -> KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale
+                            KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> KunneIkkeIverksetteRevurdering.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
+                        }.left()
+                    },
+                    ifRight = { utbetaling ->
+                        revurdering.iverksett(attestant, utbetaling.id)
+                            .mapLeft { KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson }
+                            .map {
                                 revurderingRepo.lagre(it)
                                 it
                             }
-                        )
-                }
+                    }
+                )
             }
-            null -> TODO("fant ingen revurdering")
-            else -> TODO("fel status")
+            null -> KunneIkkeIverksetteRevurdering.FantIkkeRevurdering.left()
+            else -> KunneIkkeIverksetteRevurdering.FeilTilstand.left()
         }
     }
+
+    override fun hentRevurderingForUtbetaling(utbetalingId: UUID30): IverksattRevurdering? =
+        revurderingRepo.hentRevurderingForUtbetaling(utbetalingId)
 }
