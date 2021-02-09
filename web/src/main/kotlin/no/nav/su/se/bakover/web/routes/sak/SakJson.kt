@@ -45,8 +45,8 @@ internal data class SakJson(
             id = id.toString(),
             saksnummer = saksnummer.nummer,
             fnr = fnr.toString(),
-            søknader = søknader().map { it.toJson() },
-            behandlinger = behandlinger().map { it.toJson() },
+            søknader = søknader.map { it.toJson() },
+            behandlinger = behandlinger.map { it.toJson() },
             utbetalinger = utbetalinger.hentOversendteUtbetalingerUtenFeil()
                 .flatMap { utbetaling ->
                     utbetaling.utbetalingslinjer.map { utbetalingslinje ->
@@ -60,7 +60,7 @@ internal data class SakJson(
                     }
                 },
             utbetalingerKanStansesEllerGjenopptas = utbetalinger.kanStansesEllerGjenopptas(),
-            revurderinger = revurderinger().map { it.toJson() }
+            revurderinger = revurderinger.map { it.toJson() }
         )
     }
 }

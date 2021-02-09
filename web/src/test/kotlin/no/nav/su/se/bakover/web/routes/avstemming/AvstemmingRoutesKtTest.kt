@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.service.avstemming.AvstemmingFeilet
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.applicationConfig
-import no.nav.su.se.bakover.web.behandlingFactory
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.fixedClock
 import no.nav.su.se.bakover.web.testSusebakover
@@ -26,7 +25,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 internal class AvstemmingRoutesKtTest {
-    private val repos = DatabaseBuilder.build(EmbeddedDatabase.instance(), behandlingFactory)
+    private val repos = DatabaseBuilder.build(EmbeddedDatabase.instance())
     private val services = ProdServiceBuilder.build(
         databaseRepos = repos,
         clients = TestClientsBuilder.build(applicationConfig),

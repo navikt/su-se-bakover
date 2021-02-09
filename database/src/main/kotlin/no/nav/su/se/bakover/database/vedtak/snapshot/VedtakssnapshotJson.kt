@@ -8,10 +8,10 @@ import no.nav.su.se.bakover.database.vedtak.snapshot.VedtakssnapshotJson.Behandl
 import no.nav.su.se.bakover.database.vedtak.snapshot.VedtakssnapshotJson.Innvilgelse.Companion.toInnvilgelseJson
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
 
 internal sealed class VedtakssnapshotJson {
@@ -41,7 +41,7 @@ internal sealed class VedtakssnapshotJson {
                 return Avslag(
                     id = avslag.id.toString(),
                     opprettet = avslag.opprettet.toString(),
-                    behandling = avslag.behandling.toJson(),
+                    behandling = avslag.søknadsbehandling.toJson(),
                     avslagsgrunner = avslag.avslagsgrunner.map { it.toString() }
                 )
             }
@@ -61,16 +61,13 @@ internal sealed class VedtakssnapshotJson {
                 return Innvilgelse(
                     id = innvilgelse.id.toString(),
                     opprettet = innvilgelse.opprettet.toString(),
-                    behandling = innvilgelse.behandling.toJson(),
+                    behandling = innvilgelse.søknadsbehandling.toJson(),
                     utbetaling = innvilgelse.utbetaling
                 )
             }
         }
     }
 
-    /**
-     * Mange felter må være nullable for å støtte Behandling i nåværende tilstand.
-     */
     data class BehandlingSnapshotJson(
         val id: String,
         val opprettet: Tidspunkt,
@@ -78,40 +75,65 @@ internal sealed class VedtakssnapshotJson {
         val saksnummer: Long,
         val fnr: String,
         val status: String,
-        val saksbehandler: String?,
-        val attestering: Attestering?,
+        val saksbehandler: String,
+        val attestering: Attestering,
         val oppgaveId: String,
-        val iverksattJournalpostId: String?,
-        val iverksattBrevbestillingId: String?,
-        val beregning: PersistertBeregning?,
+        val iverksattJournalpostId: String?, // kan være null siden den kan feile og så gjøres async
+        val iverksattBrevbestillingId: String?, // kan være null siden den kan feile og så gjøres async
+        val beregning: PersistertBeregning?, // Avslag.UtenBeregning har ikke beregning
         val behandlingsinformasjon: Behandlingsinformasjon,
         val behandlingsresultat: BehandlingsresultatJson,
         val søknad: Søknad.Journalført.MedOppgave,
-        val simulering: Simulering?,
+        val simulering: Simulering?, // Kun Innvilget har simulering
     ) {
         companion object {
-            fun Behandling.toJson(): BehandlingSnapshotJson {
+            fun Søknadsbehandling.Iverksatt.Innvilget.toJson(): BehandlingSnapshotJson {
                 return BehandlingSnapshotJson(
                     id = id.toString(),
                     opprettet = opprettet,
                     sakId = sakId.toString(),
                     saksnummer = saksnummer.nummer,
                     fnr = fnr.toString(),
-                    status = status().toString(),
-                    saksbehandler = saksbehandler()?.toString(),
-                    attestering = attestering(),
-                    oppgaveId = oppgaveId().toString(),
-                    iverksattJournalpostId = iverksattJournalpostId()?.toString(),
-                    iverksattBrevbestillingId = iverksattBrevbestillingId()?.toString(),
-                    beregning = beregning()?.toSnapshot(),
-                    behandlingsinformasjon = behandlingsinformasjon(),
+                    status = status.toString(),
+                    saksbehandler = saksbehandler.toString(),
+                    attestering = attestering,
+                    oppgaveId = oppgaveId.toString(),
+                    // TODO jah: Denne vil alltid være null for innvilgelse siden vi ikke gjør dette før vi får kvitteringen
+                    iverksattJournalpostId = eksterneIverksettingsteg.journalpostId()?.toString(),
+                    // TODO jah: Denne vil alltid være null for innvilgelse siden vi ikke gjør dette før vi får kvitteringen
+                    iverksattBrevbestillingId = (eksterneIverksettingsteg as? Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.JournalførtOgDistribuertBrev)?.brevbestillingId?.toString(),
+                    beregning = beregning.toSnapshot(),
+                    behandlingsinformasjon = behandlingsinformasjon,
                     behandlingsresultat = BehandlingsresultatJson(
-                        sats = behandlingsinformasjon().bosituasjon?.utledSats()?.toString(),
-                        satsgrunn = behandlingsinformasjon().bosituasjon?.getSatsgrunn()?.toString()
-
+                        sats = behandlingsinformasjon.bosituasjon?.utledSats()?.toString(),
+                        satsgrunn = behandlingsinformasjon.bosituasjon?.getSatsgrunn()?.toString()
                     ),
                     søknad = søknad,
-                    simulering = simulering(),
+                    simulering = simulering,
+                )
+            }
+
+            fun Søknadsbehandling.Iverksatt.Avslag.toJson(): BehandlingSnapshotJson {
+                return BehandlingSnapshotJson(
+                    id = id.toString(),
+                    opprettet = opprettet,
+                    sakId = sakId.toString(),
+                    saksnummer = saksnummer.nummer,
+                    fnr = fnr.toString(),
+                    status = status.toString(),
+                    saksbehandler = saksbehandler.toString(),
+                    attestering = attestering,
+                    oppgaveId = oppgaveId.toString(),
+                    iverksattJournalpostId = eksterneIverksettingsteg.journalpostId.toString(),
+                    iverksattBrevbestillingId = (eksterneIverksettingsteg as? Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg.JournalførtOgDistribuertBrev)?.brevbestillingId?.toString(),
+                    beregning = if (this is Søknadsbehandling.Iverksatt.Avslag.MedBeregning) beregning.toSnapshot() else null,
+                    behandlingsinformasjon = behandlingsinformasjon,
+                    behandlingsresultat = BehandlingsresultatJson(
+                        sats = behandlingsinformasjon.bosituasjon?.utledSats()?.toString(),
+                        satsgrunn = behandlingsinformasjon.bosituasjon?.getSatsgrunn()?.toString()
+                    ),
+                    søknad = søknad,
+                    simulering = null,
                 )
             }
         }

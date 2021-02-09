@@ -90,7 +90,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         periode = periode.toJson(),
         tilRevurdering = tilRevurdering.toJson(),
         beregninger = RevurdertBeregningJson(
-            beregning = tilRevurdering.beregning()!!.toJson(),
+            beregning = tilRevurdering.beregning.toJson(),
             revurdert = beregning.toJson()
         ),
         saksbehandler = saksbehandler.toString(),
@@ -101,7 +101,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         periode = periode.toJson(),
         tilRevurdering = tilRevurdering.toJson(),
         beregninger = RevurdertBeregningJson(
-            beregning = tilRevurdering.beregning()!!.toJson(),
+            beregning = tilRevurdering.beregning.toJson(),
             revurdert = beregning.toJson()
         ),
         saksbehandler = saksbehandler.toString(),
@@ -112,7 +112,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         periode = periode.toJson(),
         tilRevurdering = tilRevurdering.toJson(),
         beregninger = RevurdertBeregningJson(
-            beregning = tilRevurdering.beregning()!!.toJson(),
+            beregning = tilRevurdering.beregning.toJson(),
             revurdert = beregning.toJson()
         ),
         saksbehandler = saksbehandler.toString(),

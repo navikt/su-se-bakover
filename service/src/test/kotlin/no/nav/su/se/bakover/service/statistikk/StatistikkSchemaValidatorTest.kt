@@ -3,7 +3,7 @@ package no.nav.su.se.bakover.service.statistikk
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.domain.behandling.Behandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
@@ -18,7 +18,7 @@ internal class StatistikkSchemaValidatorTest {
             behandlingId = UUID.randomUUID(),
             sakId = UUID.randomUUID(),
             saksnummer = 2021,
-            behandlingStatus = Behandling.BehandlingsStatus.IVERKSATT_AVSLAG,
+            behandlingStatus = BehandlingsStatus.IVERKSATT_AVSLAG,
         )
 
         val gyldigSak = Statistikk.Sak(

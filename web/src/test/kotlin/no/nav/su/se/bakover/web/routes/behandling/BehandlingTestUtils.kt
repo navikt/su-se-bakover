@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.routes.behandling
 
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
@@ -8,12 +9,12 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.web.FnrGenerator
-import no.nav.su.se.bakover.web.behandlingFactory
 import java.time.LocalDate
 import java.util.UUID
 
@@ -33,12 +34,15 @@ object BehandlingTestUtils {
         oppgaveId = oppgaveId,
         journalpostId = journalpostId,
     )
+    internal val fnr = FnrGenerator.random()
 
-    /**
-     * Behandling er fremdeles muterbar, så vi må påse at testene får hver sin versjon
-     */
-    internal fun nyBehandling(): Behandling = behandlingFactory.createBehandling(
+    internal fun innvilgetSøknadsbehandling() = Søknadsbehandling.Iverksatt.Innvilget(
         id = behandlingId,
+        opprettet = Tidspunkt.EPOCH,
+        sakId = sakId,
+        saksnummer = saksnummer,
+        søknad = journalførtSøknadMedOppgave,
+        oppgaveId = oppgaveId,
         behandlingsinformasjon = Behandlingsinformasjon(
             uførhet = Behandlingsinformasjon.Uførhet(
                 status = Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
@@ -110,13 +114,17 @@ object BehandlingTestUtils {
                 skjermet = null
             )
         ),
-        søknad = journalførtSøknadMedOppgave,
+        fnr = fnr,
         beregning = TestBeregning,
-        attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("kjella")),
+        simulering = Simulering(
+            gjelderId = fnr,
+            gjelderNavn = "navn",
+            datoBeregnet = LocalDate.EPOCH,
+            nettoBeløp = 1000,
+            periodeList = listOf()
+        ),
         saksbehandler = NavIdentBruker.Saksbehandler("pro-saksbehandler"),
-        sakId = sakId,
-        saksnummer = saksnummer,
-        fnr = FnrGenerator.random(),
-        oppgaveId = oppgaveId
+        attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("kjella")),
+        utbetalingId = UUID30.randomUUID()
     )
 }

@@ -3,9 +3,9 @@ package no.nav.su.se.bakover.domain
 import com.fasterxml.jackson.annotation.JsonValue
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUIDFactory
-import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import java.time.Clock
 import java.util.UUID
 
@@ -18,17 +18,11 @@ data class Sak(
     val saksnummer: Saksnummer,
     val opprettet: Tidspunkt = Tidspunkt.now(),
     val fnr: Fnr,
-    private val søknader: List<Søknad> = emptyList(),
-    private val behandlinger: List<Behandling> = emptyList(),
+    val søknader: List<Søknad> = emptyList(),
+    val behandlinger: List<Søknadsbehandling> = emptyList(),
     val utbetalinger: List<Utbetaling>,
-    private val revurderinger: List<Revurdering> = emptyList(),
-) {
-    fun søknader() = søknader.toList()
-
-    fun behandlinger() = behandlinger.toList()
-
-    fun revurderinger() = revurderinger.toList()
-}
+    val revurderinger: List<Revurdering> = emptyList(),
+)
 
 data class NySak(
     val id: UUID = UUID.randomUUID(),

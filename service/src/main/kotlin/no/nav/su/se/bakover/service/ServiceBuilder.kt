@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.database.DatabaseRepos
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
-import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -15,6 +14,8 @@ import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.StatistikkService
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
+import no.nav.su.se.bakover.service.søknadsbehandling.FerdigstillSøknadsbehandingIverksettingService
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.toggles.ToggleService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import java.time.Clock
@@ -33,7 +34,6 @@ interface ServiceBuilder {
 data class Services(
     val avstemming: AvstemmingService,
     val utbetaling: UtbetalingService,
-    val behandling: BehandlingService,
     val sak: SakService,
     val søknad: SøknadService,
     val brev: BrevService,
@@ -42,5 +42,7 @@ data class Services(
     val person: PersonService,
     val statistikk: StatistikkService,
     val toggles: ToggleService,
+    val søknadsbehandling: SøknadsbehandlingService,
+    val ferdigstillSøknadsbehandingIverksettingService: FerdigstillSøknadsbehandingIverksettingService,
     val revurdering: RevurderingService,
 )

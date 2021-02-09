@@ -89,8 +89,12 @@ class RoutesTest {
                 clients = testClients.copy(
                     personOppslag = object :
                         PersonOppslag {
-                        override fun person(fnr: Fnr): Either<KunneIkkeHentePerson, Person> = throw RuntimeException("thrown exception")
-                        override fun personForSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, Person> = throw RuntimeException("thrown exception")
+                        override fun person(fnr: Fnr): Either<KunneIkkeHentePerson, Person> =
+                            throw RuntimeException("thrown exception")
+
+                        override fun personMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, Person> =
+                            throw RuntimeException("thrown exception")
+
                         override fun aktørId(fnr: Fnr) = throw RuntimeException("thrown exception")
                         override fun sjekkTilgangTilPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Unit> = throw RuntimeException("thrown exception")
                     }

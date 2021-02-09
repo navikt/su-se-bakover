@@ -7,7 +7,6 @@ object TestServicesBuilder {
     fun services(): Services = Services(
         avstemming = mock(),
         utbetaling = mock(),
-        behandling = mock(),
         sak = mock(),
         søknad = mock(),
         brev = mock(),
@@ -16,6 +15,8 @@ object TestServicesBuilder {
         person = mock(),
         statistikk = mock(),
         toggles = mock(),
+        søknadsbehandling = mock(),
+        ferdigstillSøknadsbehandingIverksettingService = mock(),
         revurdering = mock()
     )
 }

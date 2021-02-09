@@ -17,7 +17,7 @@ class VedtakssnapshotPostgresRepo(val dataSource: DataSource) : VedtakssnapshotR
                 mapOf(
                     "id" to vedtakssnapshot.id,
                     "opprettet" to vedtakssnapshot.opprettet,
-                    "behandlingId" to vedtakssnapshot.behandling.id,
+                    "behandlingId" to vedtakssnapshot.søknadsbehandling.id,
                     "vedtakstype" to json.type,
                     "vedtak" to objectMapper.writeValueAsString(json)
                 ),

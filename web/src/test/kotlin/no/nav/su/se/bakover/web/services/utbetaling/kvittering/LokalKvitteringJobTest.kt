@@ -15,13 +15,13 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.service.behandling.BehandlingService
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.service.søknadsbehandling.FerdigstillSøknadsbehandingIverksettingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.argThat
@@ -73,14 +73,14 @@ internal class LokalKvitteringJobTest {
                 kvittering = kvittering
             ).right()
         }
-        val behandlingMock = mock<Behandling> {
+        val innvilgetSøknadsbehandling = mock<Søknadsbehandling.Iverksatt.Innvilget> {
         }
-        val behandlingServiceMock = mock<BehandlingService> {
-            on { hentBehandlingForUtbetaling(any()) } doReturn behandlingMock.right()
+        val behandlingServiceMock = mock<FerdigstillSøknadsbehandingIverksettingService> {
+            on { hentBehandlingForUtbetaling(any()) } doReturn innvilgetSøknadsbehandling
         }
         val utbetalingKvitteringConsumer = UtbetalingKvitteringConsumer(
             utbetalingService = utbetalingServiceMock,
-            behandlingService = behandlingServiceMock,
+            ferdigstillSøknadsbehandingIverksettingService = behandlingServiceMock,
             clock = fixedClock
         )
         LokalKvitteringJob(utbetalingRepoMock, utbetalingKvitteringConsumer).schedule()
@@ -94,9 +94,14 @@ internal class LokalKvitteringJobTest {
         )
 
         verify(behandlingServiceMock, timeout(1000)).ferdigstillInnvilgelse(
-            argThat { it shouldBe behandlingMock }
+            argThat { it shouldBe innvilgetSøknadsbehandling }
         )
 
-        verifyNoMoreInteractions(utbetalingRepoMock, utbetalingServiceMock, behandlingServiceMock, behandlingMock)
+        verifyNoMoreInteractions(
+            utbetalingRepoMock,
+            utbetalingServiceMock,
+            behandlingServiceMock,
+            innvilgetSøknadsbehandling
+        )
     }
 }

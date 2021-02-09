@@ -1,8 +1,7 @@
 package no.nav.su.se.bakover.service.statistikk
 
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.behandling.Behandling
-import no.nav.su.se.bakover.service.behandling.IverksattBehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 
 interface StatistikkService {
     fun publiser(statistikk: Statistikk)
@@ -15,9 +14,21 @@ interface EventObserver {
 sealed class Event {
     sealed class Statistikk : Event() {
         data class SakOpprettet(val sak: Sak) : Statistikk()
-        data class BehandlingOpprettet(val behandling: Behandling) : Statistikk()
-        data class BehandlingTilAttestering(val behandling: Behandling) : Statistikk()
-        data class BehandlingAttesteringUnderkjent(val behandling: Behandling) : Statistikk()
-        data class BehandlingIverksatt(val behandling: IverksattBehandling) : Statistikk()
+
+        sealed class SøknadsbehandlingStatistikk : Statistikk() {
+            abstract val søknadsbehandling: Søknadsbehandling
+
+            data class SøknadsbehandlingOpprettet(override val søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Uavklart) :
+                SøknadsbehandlingStatistikk()
+
+            data class SøknadsbehandlingUnderkjent(override val søknadsbehandling: Søknadsbehandling.Underkjent) :
+                SøknadsbehandlingStatistikk()
+
+            data class SøknadsbehandlingTilAttestering(override val søknadsbehandling: Søknadsbehandling.TilAttestering) :
+                SøknadsbehandlingStatistikk()
+
+            data class SøknadsbehandlingIverksatt(override val søknadsbehandling: Søknadsbehandling.Iverksatt) :
+                SøknadsbehandlingStatistikk()
+        }
     }
 }

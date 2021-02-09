@@ -26,7 +26,7 @@ internal object SøknadRepoInternal {
     fun hentSøknaderInternal(sakId: UUID, session: Session) = "select * from søknad where sakId=:sakId"
         .hentListe(mapOf("sakId" to sakId), session) {
             it.toSøknad()
-        }.toMutableList()
+        }
 }
 
 internal fun Row.toSøknad(): Søknad {

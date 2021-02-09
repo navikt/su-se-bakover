@@ -44,9 +44,7 @@ internal class MeRoutesKtTest {
                         override fun hentBrukerinformasjon(userToken: String): Either<MicrosoftGraphApiOppslagFeil, MicrosoftGraphResponse> =
                             Either.Right(microsoftGraphResponse)
 
-                        override fun hentBrukerinformasjonForNavIdent(navIdent: NavIdentBruker): Either<MicrosoftGraphApiOppslagFeil, MicrosoftGraphResponse> {
-                            TODO("Not yet implemented")
-                        }
+                        override fun hentBrukerinformasjonForNavIdent(navIdent: NavIdentBruker) = throw NotImplementedError("ikke i bruk")
                     }
                 )
             )

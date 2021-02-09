@@ -3,10 +3,8 @@ package no.nav.su.se.bakover.database.avstemming
 import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.endOfDay
-import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.oktober
@@ -14,47 +12,23 @@ import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.antall
+import no.nav.su.se.bakover.database.fixedTidspunkt
 import no.nav.su.se.bakover.database.oppdatering
-import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
-import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.oppdrag.Kvittering
-import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
-import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
-import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.Test
-import java.time.Clock
-import java.time.ZoneOffset
 
 internal class AvstemmingPostgresRepoTest {
-    private val fixedClock: Clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC)
-    private val testDataHelper = TestDataHelper(EmbeddedDatabase.instance(), fixedClock)
+
+    private val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())
     private val repo = AvstemmingPostgresRepo(EmbeddedDatabase.instance())
-    private val utbetalingRepo = UtbetalingPostgresRepo(EmbeddedDatabase.instance())
 
     @Test
     fun `henter siste avstemming`() {
         withMigratedDb {
-            val sak: Sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
-            val utbetalingUtenKvittering: Utbetaling.OversendtUtbetaling.UtenKvittering =
-                oversendtUtbetaling(sak).also {
-                    utbetalingRepo.opprettUtbetaling(it)
-                }
-            val utbetalingMedKvittering = utbetalingUtenKvittering.toKvittertUtbetaling(
-                Kvittering(
-                    utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
-                    originalKvittering = "hallo",
-                    mottattTidspunkt = Tidspunkt.now(fixedClock)
-                )
-            ).also {
-                utbetalingRepo.oppdaterMedKvittering(
-                    it
-                )
-            }
+            val utbetalingMedKvittering = testDataHelper.nyOversendtUtbetalingMedKvittering()
 
             val zero = repo.hentSisteAvstemming()
             zero shouldBe null
@@ -63,7 +37,7 @@ internal class AvstemmingPostgresRepoTest {
                 Avstemming(
                     fraOgMed = 1.januar(2020).startOfDay(),
                     tilOgMed = 2.januar(2020).startOfDay(),
-                    utbetalinger = listOf(utbetalingMedKvittering)
+                    utbetalinger = listOf(utbetalingMedKvittering.second)
                 )
             )
 
@@ -71,7 +45,7 @@ internal class AvstemmingPostgresRepoTest {
                 Avstemming(
                     fraOgMed = 3.januar(2020).startOfDay(),
                     tilOgMed = 4.januar(2020).startOfDay(),
-                    utbetalinger = listOf(utbetalingMedKvittering),
+                    utbetalinger = listOf(utbetalingMedKvittering.second),
                     avstemmingXmlRequest = "<Root></Root>"
                 )
             )
@@ -84,13 +58,12 @@ internal class AvstemmingPostgresRepoTest {
     @Test
     fun `hent utbetalinger for avstemming`() {
         withMigratedDb {
-            val sak: Sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
-            val utbetaling = oversendtUtbetaling(
-                sak = sak,
-                avstemmingsnøkkel = Avstemmingsnøkkel(11.oktober(2020).startOfDay())
-            )
-            utbetalingRepo.opprettUtbetaling(
-                utbetaling
+            val (innvilget, utbetaling) = testDataHelper.nyIverksattInnvilget(
+                avstemmingsnøkkel = Avstemmingsnøkkel(
+                    11.oktober(
+                        2020
+                    ).startOfDay()
+                )
             )
 
             EmbeddedDatabase.instance().withSession { session ->
@@ -100,9 +73,9 @@ internal class AvstemmingPostgresRepoTest {
                  """.oppdatering(
                     mapOf(
                         "id" to UUID30.randomUUID(),
-                        "opprettet" to Tidspunkt.now(fixedClock),
-                        "sakId" to sak.id,
-                        "fnr" to sak.fnr,
+                        "opprettet" to fixedTidspunkt,
+                        "sakId" to innvilget.sakId,
+                        "fnr" to innvilget.fnr,
                         "type" to "NY",
                         "behandler" to "Z123",
                         "avstemmingsnokkel" to objectMapper.writeValueAsString(
@@ -137,23 +110,15 @@ internal class AvstemmingPostgresRepoTest {
     @Test
     fun `hent utbetalinger for avstemming tidspunkt test`() {
         withMigratedDb {
-            val sak: Sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
-            val utbetaling1 = oversendtUtbetaling(
-                sak = sak,
-                avstemmingsnøkkel = Avstemmingsnøkkel(11.oktober(2020).startOfDay())
+            val utbetaling1 = testDataHelper.nyOversendtUtbetalingMedKvittering(
+                avstemmingsnøkkel = Avstemmingsnøkkel(
+                    11.oktober(2020).startOfDay()
+                )
             )
-            utbetalingRepo.opprettUtbetaling(utbetaling1)
 
-            val utbetaling2 = oversendtUtbetaling(
-                sak = sak,
-                avstemmingsnøkkel = Avstemmingsnøkkel(11.oktober(2020).endOfDay())
-            )
-            utbetalingRepo.opprettUtbetaling(utbetaling2)
-
-            utbetalingRepo.opprettUtbetaling(
-                oversendtUtbetaling(
-                    sak = sak,
-                    avstemmingsnøkkel = Avstemmingsnøkkel(12.oktober(2020).startOfDay())
+            val utbetaling2 = testDataHelper.nyOversendtUtbetalingMedKvittering(
+                avstemmingsnøkkel = Avstemmingsnøkkel(
+                    11.oktober(2020).endOfDay()
                 )
             )
 
@@ -163,33 +128,21 @@ internal class AvstemmingPostgresRepoTest {
             )
 
             utbetalinger shouldHaveSize 2
-            utbetalinger.map { it.id } shouldContainAll listOf(utbetaling1.id, utbetaling2.id)
+            utbetalinger.map { it.id } shouldContainAll listOf(utbetaling1.second.id, utbetaling2.second.id)
         }
     }
 
     @Test
     fun `oppretter avstemming og oppdaterer aktuelle utbetalinger`() {
         withMigratedDb {
-            val sak: Sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
-            val utbetalingUtenKvittering = oversendtUtbetaling(sak).also {
-                utbetalingRepo.opprettUtbetaling(it)
-            }
-            val utbetalingMedKvittering = utbetalingUtenKvittering.toKvittertUtbetaling(
-                Kvittering(
-                    utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
-                    originalKvittering = "",
-                    mottattTidspunkt = Tidspunkt.now(fixedClock)
-                )
-            ).also {
-                utbetalingRepo.oppdaterMedKvittering(it)
-            }
+            val oversendtUtbetalingMedKvittering = testDataHelper.nyOversendtUtbetalingMedKvittering()
 
             val avstemming = Avstemming(
                 id = UUID30.randomUUID(),
-                opprettet = Tidspunkt.now(fixedClock),
-                fraOgMed = Tidspunkt.now(fixedClock),
-                tilOgMed = Tidspunkt.now(fixedClock),
-                utbetalinger = listOf(utbetalingMedKvittering),
+                opprettet = fixedTidspunkt,
+                fraOgMed = fixedTidspunkt,
+                tilOgMed = fixedTidspunkt,
+                utbetalinger = listOf(oversendtUtbetalingMedKvittering.second),
                 avstemmingXmlRequest = "some xml"
             )
 
@@ -201,26 +154,4 @@ internal class AvstemmingPostgresRepoTest {
             } shouldBe 1
         }
     }
-
-    private fun oversendtUtbetaling(
-        sak: Sak,
-        avstemmingsnøkkel: Avstemmingsnøkkel = Avstemmingsnøkkel()
-    ) = Utbetaling.OversendtUtbetaling.UtenKvittering(
-        id = UUID30.randomUUID(),
-        utbetalingslinjer = listOf(),
-        sakId = sak.id,
-        saksnummer = sak.saksnummer,
-        fnr = sak.fnr,
-        simulering = Simulering(
-            gjelderId = sak.fnr,
-            gjelderNavn = "",
-            datoBeregnet = idag(),
-            nettoBeløp = 0,
-            periodeList = listOf()
-        ),
-        utbetalingsrequest = Utbetalingsrequest(""),
-        type = Utbetaling.UtbetalingsType.NY,
-        behandler = NavIdentBruker.Attestant("Z123"),
-        avstemmingsnøkkel = avstemmingsnøkkel
-    )
 }

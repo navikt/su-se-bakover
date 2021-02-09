@@ -34,7 +34,7 @@ internal fun Beregning.toJson(): BeregningJson {
                 getEpsFribeløp(getFradragStrategyName(), it.getPeriode()),
                 epsInputFradrag = epsInputFradragMap[it.getPeriode()] ?: emptyList()
             )
-        }, // TODO show fradrag/month
+        },
         fradrag = getFradrag().toJson()
     )
 }

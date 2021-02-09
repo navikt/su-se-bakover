@@ -5,8 +5,8 @@ import kotliquery.Row
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.database.behandling.BehandlingRepo
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
+import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -37,7 +38,7 @@ enum class RevurderingsType {
 
 internal class RevurderingPostgresRepo(
     private val dataSource: DataSource,
-    private val behandlingRepo: BehandlingRepo
+    internal val søknadsbehandlingRepo: SøknadsbehandlingRepo
 ) : RevurderingRepo {
     override fun hent(id: UUID): Revurdering? =
         dataSource.withSession { session ->
@@ -86,7 +87,7 @@ internal class RevurderingPostgresRepo(
         val id = uuid("id")
         val periode = string("periode").let { objectMapper.readValue<Periode>(it) }
         val opprettet = tidspunkt("opprettet")
-        val tilRevurdering = behandlingRepo.hentBehandling(uuid("behandlingId"))!!
+        val tilRevurdering = søknadsbehandlingRepo.hent(uuid("behandlingId"))!!
         val beregning = stringOrNull("beregning")?.let { objectMapper.readValue<PersistertBeregning>(it) }
         val simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) }
         val saksbehandler = string("saksbehandler")
@@ -99,7 +100,7 @@ internal class RevurderingPostgresRepo(
                 id = id,
                 periode = periode,
                 opprettet = opprettet,
-                tilRevurdering = tilRevurdering,
+                tilRevurdering as Søknadsbehandling.Iverksatt.Innvilget, // TODO AVOID CAST
                 saksbehandler = Saksbehandler(saksbehandler),
                 beregning = beregning!!,
                 simulering = simulering!!,
@@ -111,7 +112,7 @@ internal class RevurderingPostgresRepo(
                 id = id,
                 periode = periode,
                 opprettet = opprettet,
-                tilRevurdering = tilRevurdering,
+                tilRevurdering = tilRevurdering as Søknadsbehandling.Iverksatt.Innvilget, // TODO AVOID CAST
                 beregning = beregning!!,
                 simulering = simulering!!,
                 saksbehandler = Saksbehandler(saksbehandler),
@@ -121,7 +122,7 @@ internal class RevurderingPostgresRepo(
                 id = id,
                 periode = periode,
                 opprettet = opprettet,
-                tilRevurdering = tilRevurdering,
+                tilRevurdering = tilRevurdering as Søknadsbehandling.Iverksatt.Innvilget, // TODO AVOID CAST,
                 beregning = beregning!!,
                 simulering = simulering!!,
                 saksbehandler = Saksbehandler(saksbehandler)
@@ -130,13 +131,15 @@ internal class RevurderingPostgresRepo(
                 id = id,
                 periode = periode,
                 opprettet = opprettet,
-                tilRevurdering = tilRevurdering, beregning = beregning!!, saksbehandler = Saksbehandler(saksbehandler)
+                tilRevurdering = tilRevurdering as Søknadsbehandling.Iverksatt.Innvilget, // TODO AVOID CAST,
+                beregning = beregning!!,
+                saksbehandler = Saksbehandler(saksbehandler)
             )
             RevurderingsType.OPPRETTET -> OpprettetRevurdering(
                 id = id,
                 periode = periode,
                 opprettet = opprettet,
-                tilRevurdering = tilRevurdering,
+                tilRevurdering = tilRevurdering as Søknadsbehandling.Iverksatt.Innvilget, // TODO AVOID CAST,
                 saksbehandler = Saksbehandler(saksbehandler)
             )
         }
