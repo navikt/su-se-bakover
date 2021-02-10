@@ -480,7 +480,8 @@ class NySøknadTest {
                             søknadId = UUID.randomUUID(), // ignored
                             aktørId = person.ident.aktørId
                         ),
-                        OppgaveConfig.Saksbehandling::søknadId
+                        OppgaveConfig.Saksbehandling::søknadId,
+                        OppgaveConfig.Saksbehandling::saksreferanse
                     )
                 }
             )
@@ -606,9 +607,10 @@ class NySøknadTest {
                         OppgaveConfig.Saksbehandling(
                             journalpostId = journalpostId,
                             søknadId = UUID.randomUUID(), // ignored
-                            aktørId = person.ident.aktørId
+                            aktørId = person.ident.aktørId,
                         ),
-                        OppgaveConfig.Saksbehandling::søknadId
+                        OppgaveConfig.Saksbehandling::søknadId,
+                        OppgaveConfig.Saksbehandling::saksreferanse,
                     )
                 }
             )
