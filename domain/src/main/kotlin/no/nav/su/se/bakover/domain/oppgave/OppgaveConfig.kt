@@ -24,8 +24,6 @@ sealed class OppgaveConfig {
         override val aktørId: AktørId,
         override val tilordnetRessurs: NavIdentBruker? = null,
     ) : OppgaveConfig() {
-        // for å opprettholde nåværende implementasjon for søknadsbehandling i gosys,
-        // mapper vi søknadsId'en til saksreferansen
         override val saksreferanse = søknadId.toString()
         override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKNING
         override val behandlingstype = Behandlingstype.FØRSTEGANGSSØKNAD
@@ -37,8 +35,6 @@ sealed class OppgaveConfig {
         override val aktørId: AktørId,
         override val tilordnetRessurs: NavIdentBruker? = null,
     ) : OppgaveConfig() {
-        // for å opprettholde nåværende implementasjon for søknadsbehandling i gosys,
-        // mapper vi søknadsId'en til saksreferansen
         override val saksreferanse = søknadId.toString()
         override val journalpostId: JournalpostId? = null
         override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKNING

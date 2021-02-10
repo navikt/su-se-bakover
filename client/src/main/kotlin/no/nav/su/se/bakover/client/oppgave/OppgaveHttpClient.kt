@@ -85,7 +85,7 @@ internal class OppgaveHttpClient(
             is OppgaveConfig.Revurderingsbehandling, is OppgaveConfig.AttesterRevurdering ->
                 "--- ${
                 Tidspunkt.now(clock).toOppgaveFormat()
-                } - Opprettet av Supplerende Stønad ---\nsaksnummer : ${config.saksreferanse}"
+                } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}"
         }
 
         val (_, response, result) = "${connectionConfig.url}$oppgavePath".httpPost()

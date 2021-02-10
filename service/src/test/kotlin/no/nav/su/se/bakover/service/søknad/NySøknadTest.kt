@@ -477,7 +477,7 @@ class NySøknadTest {
                     it.shouldBeEqualToIgnoringFields(
                         OppgaveConfig.Saksbehandling(
                             journalpostId = journalpostId,
-                            søknadId = UUID.randomUUID(), // ignore
+                            søknadId = UUID.randomUUID(), // ignored
                             aktørId = person.ident.aktørId
                         ),
                         OppgaveConfig.Saksbehandling::søknadId,
@@ -606,7 +606,7 @@ class NySøknadTest {
                     it.shouldBeEqualToIgnoringFields(
                         OppgaveConfig.Saksbehandling(
                             journalpostId = journalpostId,
-                            søknadId = UUID.randomUUID(), // ignore
+                            søknadId = UUID.randomUUID(), // ignored
                             aktørId = person.ident.aktørId,
                         ),
                         OppgaveConfig.Saksbehandling::søknadId,
