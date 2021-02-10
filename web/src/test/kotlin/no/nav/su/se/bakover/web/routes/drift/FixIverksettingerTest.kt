@@ -11,7 +11,7 @@ import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.service.søknadsbehandling.FerdigstillSøknadsbehandingIverksettingService
+import no.nav.su.se.bakover.service.søknadsbehandling.FerdigstillIverksettingService
 import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.testSusebakover
@@ -43,14 +43,14 @@ internal class FixIverksettingerTest {
 
     @Test
     fun `fix-iverksettinger-endepunktet gir tomt resultat`() {
-        val ferdigstillIverksettingServiceMock = mock<FerdigstillSøknadsbehandingIverksettingService> {
-            on { opprettManglendeJournalpostOgBrevdistribusjon() } doReturn FerdigstillSøknadsbehandingIverksettingService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
+        val ferdigstillIverksettingServiceMock = mock<FerdigstillIverksettingService> {
+            on { opprettManglendeJournalpostOgBrevdistribusjon() } doReturn FerdigstillIverksettingService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
                 journalpostresultat = emptyList(),
                 brevbestillingsresultat = emptyList()
             )
         }
         withTestApplication({
-            testSusebakover(services = services.copy(ferdigstillSøknadsbehandingIverksettingService = ferdigstillIverksettingServiceMock))
+            testSusebakover(services = services.copy(ferdigstillIverksettingService = ferdigstillIverksettingServiceMock))
         }) {
             defaultRequest(
                 HttpMethod.Patch,
@@ -82,12 +82,12 @@ internal class FixIverksettingerTest {
     @Test
     fun `fix-iverksettinger-endepunktet med journalposteringer og bestilling av brev`() {
         val sakId = UUID.fromString("e8c3325c-4c4e-436c-90ad-7ac72f963a8c")
-        val journalført = FerdigstillSøknadsbehandingIverksettingService.OpprettetJournalpostForIverksetting(
+        val journalført = FerdigstillIverksettingService.OpprettetJournalpostForIverksetting(
             behandlingId = UUID.fromString("51c51049-6c55-40d6-8013-b99505a0ef14"),
             sakId = sakId,
             journalpostId = JournalpostId("1"),
         )
-        val bestiltBrev = FerdigstillSøknadsbehandingIverksettingService.BestiltBrev(
+        val bestiltBrev = FerdigstillIverksettingService.BestiltBrev(
             behandlingId = UUID.fromString("e38df38a-c3fc-48d1-adca-0a9264024a2e"),
             sakId = sakId,
             journalpostId = JournalpostId("2"),
@@ -96,11 +96,11 @@ internal class FixIverksettingerTest {
 
         val søknadIdJournalpost = UUID.fromString("18e19f68-029d-4731-ad4a-48d902fc92a2")
         val søknadIdOppgave = UUID.fromString("22770c98-31b0-412e-9e63-9a878330386e")
-        val ferdigstillIverksettingServiceMock = mock<FerdigstillSøknadsbehandingIverksettingService> {
-            on { opprettManglendeJournalpostOgBrevdistribusjon() } doReturn FerdigstillSøknadsbehandingIverksettingService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
+        val ferdigstillIverksettingServiceMock = mock<FerdigstillIverksettingService> {
+            on { opprettManglendeJournalpostOgBrevdistribusjon() } doReturn FerdigstillIverksettingService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
                 journalpostresultat = listOf(
                     journalført.right(),
-                    FerdigstillSøknadsbehandingIverksettingService.KunneIkkeOppretteJournalpostForIverksetting(
+                    FerdigstillIverksettingService.KunneIkkeOppretteJournalpostForIverksetting(
                         sakId,
                         søknadIdJournalpost,
                         "Fant ikke Person"
@@ -108,7 +108,7 @@ internal class FixIverksettingerTest {
                 ),
                 brevbestillingsresultat = listOf(
                     bestiltBrev.right(),
-                    FerdigstillSøknadsbehandingIverksettingService.KunneIkkeBestilleBrev(
+                    FerdigstillIverksettingService.KunneIkkeBestilleBrev(
                         sakId,
                         søknadIdOppgave,
                         JournalpostId("1"),
@@ -118,7 +118,7 @@ internal class FixIverksettingerTest {
             )
         }
         withTestApplication({
-            testSusebakover(services = services.copy(ferdigstillSøknadsbehandingIverksettingService = ferdigstillIverksettingServiceMock))
+            testSusebakover(services = services.copy(ferdigstillIverksettingService = ferdigstillIverksettingServiceMock))
         }) {
             defaultRequest(
                 HttpMethod.Patch,

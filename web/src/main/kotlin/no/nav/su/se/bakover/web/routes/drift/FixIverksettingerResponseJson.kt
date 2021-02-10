@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.routes.drift
 
-import no.nav.su.se.bakover.service.søknadsbehandling.FerdigstillSøknadsbehandingIverksettingService
+import no.nav.su.se.bakover.service.søknadsbehandling.FerdigstillIverksettingService
 
 data class FixIverksettingerResponseJson(
     val journalposteringer: Journalposteringer,
@@ -35,7 +35,7 @@ data class FixIverksettingerResponseJson(
     )
 
     companion object {
-        fun FerdigstillSøknadsbehandingIverksettingService.OpprettManglendeJournalpostOgBrevdistribusjonResultat.toJson() = FixIverksettingerResponseJson(
+        fun FerdigstillIverksettingService.OpprettManglendeJournalpostOgBrevdistribusjonResultat.toJson() = FixIverksettingerResponseJson(
             journalposteringer = Journalposteringer(
                 ok = this.journalpostresultat.mapNotNull { it.orNull() }.map {
                     Journalpost(

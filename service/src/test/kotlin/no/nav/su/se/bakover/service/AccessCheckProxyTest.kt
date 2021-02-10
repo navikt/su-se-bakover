@@ -32,7 +32,7 @@ internal class AccessCheckProxyTest {
         statistikk = mock(),
         toggles = mock(),
         søknadsbehandling = mock(),
-        ferdigstillSøknadsbehandingIverksettingService = mock(),
+        ferdigstillIverksettingService = mock(),
         revurdering = mock(),
     )
 

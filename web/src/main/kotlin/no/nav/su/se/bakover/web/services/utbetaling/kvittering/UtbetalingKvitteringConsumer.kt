@@ -10,7 +10,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
-import no.nav.su.se.bakover.service.søknadsbehandling.FerdigstillSøknadsbehandingIverksettingService
+import no.nav.su.se.bakover.service.søknadsbehandling.FerdigstillIverksettingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringResponse.Companion.toKvitteringResponse
 import org.slf4j.LoggerFactory
@@ -18,7 +18,7 @@ import java.time.Clock
 
 class UtbetalingKvitteringConsumer(
     private val utbetalingService: UtbetalingService,
-    private val ferdigstillSøknadsbehandingIverksettingService: FerdigstillSøknadsbehandingIverksettingService,
+    private val ferdigstillIverksettingService: FerdigstillIverksettingService,
     private val clock: Clock
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -72,10 +72,6 @@ class UtbetalingKvitteringConsumer(
             log.error("Prøver ikke å ferdigstille innvilgelse siden kvitteringen fra oppdrag ikke var OK.")
             return
         }
-        // TODO ai: handle for revurdering
-        val behandling = ferdigstillSøknadsbehandingIverksettingService.hentBehandlingForUtbetaling(utbetaling.id) ?: return Unit.also {
-            log.error("Kunne ikke ferdigstille innvilgelse - fant ikke behandling for utbetaling ${utbetaling.id}")
-        }
-        ferdigstillSøknadsbehandingIverksettingService.ferdigstillInnvilgelse(behandling)
+        ferdigstillIverksettingService.ferdigstillIverksetting(utbetaling.id)
     }
 }

@@ -53,7 +53,7 @@ import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukketSøknad
-import no.nav.su.se.bakover.service.søknadsbehandling.FerdigstillSøknadsbehandingIverksettingService
+import no.nav.su.se.bakover.service.søknadsbehandling.FerdigstillIverksettingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeGjenopptaUtbetalinger
@@ -283,15 +283,12 @@ open class AccessCheckProxy(
                     return services.søknadsbehandling.hent(request)
                 }
             },
-            ferdigstillSøknadsbehandingIverksettingService = object : FerdigstillSøknadsbehandingIverksettingService {
-                override fun hentBehandlingForUtbetaling(utbetalingId: UUID30) = kastKanKunKallesFraAnnenService()
+            ferdigstillIverksettingService = object : FerdigstillIverksettingService {
+                override fun ferdigstillIverksetting(utbetalingId: UUID30) = kastKanKunKallesFraAnnenService()
 
-                override fun ferdigstillInnvilgelse(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget) =
-                    kastKanKunKallesFraAnnenService()
-
-                override fun opprettManglendeJournalpostOgBrevdistribusjon(): FerdigstillSøknadsbehandingIverksettingService.OpprettManglendeJournalpostOgBrevdistribusjonResultat {
+                override fun opprettManglendeJournalpostOgBrevdistribusjon(): FerdigstillIverksettingService.OpprettManglendeJournalpostOgBrevdistribusjonResultat {
                     // Dette er et driftsendepunkt og vi vil ikke returnere kode 6/7/person-sensitive data.
-                    return services.ferdigstillSøknadsbehandingIverksettingService.opprettManglendeJournalpostOgBrevdistribusjon()
+                    return services.ferdigstillIverksettingService.opprettManglendeJournalpostOgBrevdistribusjon()
                 }
             },
             revurdering = object : RevurderingService {

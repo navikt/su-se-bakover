@@ -16,7 +16,7 @@ import no.nav.su.se.bakover.service.sak.SakServiceImpl
 import no.nav.su.se.bakover.service.statistikk.StatistikkServiceImpl
 import no.nav.su.se.bakover.service.søknad.SøknadServiceImpl
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadServiceImpl
-import no.nav.su.se.bakover.service.søknadsbehandling.FerdigstillSøknadsbehandingIverksettingServiceImpl
+import no.nav.su.se.bakover.service.søknadsbehandling.FerdigstillIverksettingServiceImpl
 import no.nav.su.se.bakover.service.søknadsbehandling.IverksettAvslåttSøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServiceImpl
 import no.nav.su.se.bakover.service.toggles.ToggleServiceImpl
@@ -75,7 +75,7 @@ object ProdServiceBuilder : ServiceBuilder {
             clock = clock
         )
         val opprettVedtakssnapshotService = OpprettVedtakssnapshotService(databaseRepos.vedtakssnapshot)
-        val ferdigstillIverksettingService = FerdigstillSøknadsbehandingIverksettingServiceImpl(
+        val ferdigstillIverksettingService = FerdigstillIverksettingServiceImpl(
             søknadsbehandlingRepo = databaseRepos.søknadsbehandling,
             oppgaveService = oppgaveService,
             behandlingMetrics = behandlingMetrics,
@@ -83,6 +83,7 @@ object ProdServiceBuilder : ServiceBuilder {
             personService = personService,
             brevService = brevService,
             clock = clock,
+            revurderingRepo = databaseRepos.revurderingRepo
         ).apply { addObserver(statistikkService) }
         val toggleService = ToggleServiceImpl(unleash)
 
@@ -135,7 +136,7 @@ object ProdServiceBuilder : ServiceBuilder {
             ).apply {
                 addObserver(statistikkService)
             },
-            ferdigstillSøknadsbehandingIverksettingService = ferdigstillIverksettingService,
+            ferdigstillIverksettingService = ferdigstillIverksettingService,
             revurdering = revurderingService
         )
     }

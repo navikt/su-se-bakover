@@ -7,9 +7,11 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.database.RevurderingRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
+import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.LagBrevRequestVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.brev.BrevService
@@ -20,7 +22,7 @@ import no.nav.su.se.bakover.service.statistikk.EventObserver
 import org.slf4j.LoggerFactory
 import java.time.Clock
 
-internal class FerdigstillSøknadsbehandingIverksettingServiceImpl(
+internal class FerdigstillIverksettingServiceImpl(
     private val søknadsbehandlingRepo: SøknadsbehandlingRepo,
     private val oppgaveService: OppgaveService,
     private val behandlingMetrics: BehandlingMetrics,
@@ -28,7 +30,8 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceImpl(
     private val personService: PersonService,
     private val brevService: BrevService,
     private val clock: Clock,
-) : FerdigstillSøknadsbehandingIverksettingService {
+    private val revurderingRepo: RevurderingRepo
+) : FerdigstillIverksettingService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     private val observers: MutableList<EventObserver> = mutableListOf()
@@ -39,13 +42,19 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceImpl(
 
     fun getObservers(): List<EventObserver> = observers.toList()
 
-    override fun hentBehandlingForUtbetaling(utbetalingId: UUID30): Søknadsbehandling.Iverksatt.Innvilget? {
-        return søknadsbehandlingRepo.hentBehandlingForUtbetaling(utbetalingId)
+    override fun ferdigstillIverksetting(utbetalingId: UUID30) {
+        val søknadsbehandling = søknadsbehandlingRepo.hentBehandlingForUtbetaling(utbetalingId)
+        val revurdering = revurderingRepo.hentRevurderingForUtbetaling(utbetalingId)
+
+        check(listOfNotNull(søknadsbehandling, revurdering).count() == 1) {
+            "Fant ingen eller mange elementer knyttet til utbetaling: $utbetalingId. Kan ikke ferdigstille iverksetting."
+        }
+
+        søknadsbehandling?.let { ferdigstillSøknadsbehandling(it) }
+        revurdering?.let { ferdigstillRevurdering(it) }
     }
 
-    override fun ferdigstillInnvilgelse(
-        søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget
-    ) {
+    private fun ferdigstillSøknadsbehandling(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget) {
         observers.forEach { observer ->
             observer.handle(Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(søknadsbehandling))
         }
@@ -53,11 +62,16 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceImpl(
         lukkOppgave(søknadsbehandling)
     }
 
-    private fun lukkOppgave(søknadsbehandling: Søknadsbehandling): Either<FerdigstillSøknadsbehandingIverksettingService.KunneIkkeFerdigstilleInnvilgelse, Unit> {
+    private fun ferdigstillRevurdering(revurdering: IverksattRevurdering) {
+        // TODO implement
+        revurdering.let { }
+    }
+
+    private fun lukkOppgave(søknadsbehandling: Søknadsbehandling): Either<FerdigstillIverksettingService.KunneIkkeFerdigstilleInnvilgelse, Unit> {
         return oppgaveService.lukkOppgaveMedSystembruker(søknadsbehandling.oppgaveId)
             .mapLeft {
                 log.error("Kunne ikke lukke oppgave ved innvilgelse for behandling ${søknadsbehandling.id}. Dette må gjøres manuelt.")
-                return FerdigstillSøknadsbehandingIverksettingService.KunneIkkeFerdigstilleInnvilgelse.KunneIkkeOppretteOppgave.left()
+                return FerdigstillIverksettingService.KunneIkkeFerdigstilleInnvilgelse.KunneIkkeOppretteOppgave.left()
             }
             .map {
                 log.info("Lukket oppgave ${søknadsbehandling.oppgaveId} ved innvilgelse for behandling ${søknadsbehandling.id}")
@@ -66,11 +80,11 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceImpl(
             }
     }
 
-    override fun opprettManglendeJournalpostOgBrevdistribusjon(): FerdigstillSøknadsbehandingIverksettingService.OpprettManglendeJournalpostOgBrevdistribusjonResultat {
-        return FerdigstillSøknadsbehandingIverksettingService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
+    override fun opprettManglendeJournalpostOgBrevdistribusjon(): FerdigstillIverksettingService.OpprettManglendeJournalpostOgBrevdistribusjonResultat {
+        return FerdigstillIverksettingService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
             journalpostresultat = opprettManglendeJournalposteringer().map {
                 it.map { behandling ->
-                    FerdigstillSøknadsbehandingIverksettingService.OpprettetJournalpostForIverksetting(
+                    FerdigstillIverksettingService.OpprettetJournalpostForIverksetting(
                         sakId = behandling.sakId,
                         behandlingId = behandling.id,
                         journalpostId = behandling.eksterneIverksettingsteg.journalpostId()!! // Skal egentlig ikke være i tilstanden VenterPåKvittering
@@ -81,11 +95,11 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceImpl(
         )
     }
 
-    private fun opprettManglendeJournalposteringer(): List<Either<FerdigstillSøknadsbehandingIverksettingService.KunneIkkeOppretteJournalpostForIverksetting, Søknadsbehandling.Iverksatt.Innvilget>> {
+    private fun opprettManglendeJournalposteringer(): List<Either<FerdigstillIverksettingService.KunneIkkeOppretteJournalpostForIverksetting, Søknadsbehandling.Iverksatt.Innvilget>> {
         return søknadsbehandlingRepo.hentIverksatteBehandlingerUtenJournalposteringer().map { søknadsbehandling ->
 
             if (søknadsbehandling.eksterneIverksettingsteg !is Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.VenterPåKvittering) {
-                return@map FerdigstillSøknadsbehandingIverksettingService.KunneIkkeOppretteJournalpostForIverksetting(
+                return@map FerdigstillIverksettingService.KunneIkkeOppretteJournalpostForIverksetting(
                     sakId = søknadsbehandling.sakId,
                     behandlingId = søknadsbehandling.id,
                     grunn = "Kunne ikke opprette journalpost for iverksetting siden den allerede eksisterer"
@@ -94,7 +108,7 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceImpl(
             return@map opprettJournalpostForInnvilgelse(
                 søknadsbehandling = søknadsbehandling,
             ).mapLeft {
-                FerdigstillSøknadsbehandingIverksettingService.KunneIkkeOppretteJournalpostForIverksetting(
+                FerdigstillIverksettingService.KunneIkkeOppretteJournalpostForIverksetting(
                     sakId = søknadsbehandling.sakId,
                     behandlingId = søknadsbehandling.id,
                     grunn = it.javaClass.simpleName
@@ -103,7 +117,7 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceImpl(
         }
     }
 
-    private fun opprettManglendeBrevbestillinger(): List<Either<FerdigstillSøknadsbehandingIverksettingService.KunneIkkeBestilleBrev, FerdigstillSøknadsbehandingIverksettingService.BestiltBrev>> {
+    private fun opprettManglendeBrevbestillinger(): List<Either<FerdigstillIverksettingService.KunneIkkeBestilleBrev, FerdigstillIverksettingService.BestiltBrev>> {
         return søknadsbehandlingRepo.hentIverksatteBehandlingerUtenBrevbestillinger().map { søknadsbehandling ->
             when (søknadsbehandling) {
                 is Søknadsbehandling.Iverksatt.Avslag -> {
@@ -117,7 +131,7 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceImpl(
                         søknadsbehandlingRepo.lagre(avslagMedJorunalpostOgDistribuertBrev)
                         behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.DISTRIBUERT_BREV)
                         (avslagMedJorunalpostOgDistribuertBrev.eksterneIverksettingsteg as Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg.JournalførtOgDistribuertBrev).let {
-                            FerdigstillSøknadsbehandingIverksettingService.BestiltBrev(
+                            FerdigstillIverksettingService.BestiltBrev(
                                 sakId = søknadsbehandling.sakId,
                                 behandlingId = søknadsbehandling.id,
                                 journalpostId = it.journalpostId,
@@ -137,7 +151,7 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceImpl(
                         søknadsbehandlingRepo.lagre(innvilgetMedJournalpostOgDistribuertBrev)
                         behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.DISTRIBUERT_BREV)
                         (innvilgetMedJournalpostOgDistribuertBrev.eksterneIverksettingsteg as Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.JournalførtOgDistribuertBrev).let {
-                            FerdigstillSøknadsbehandingIverksettingService.BestiltBrev(
+                            FerdigstillIverksettingService.BestiltBrev(
                                 sakId = søknadsbehandling.sakId,
                                 behandlingId = søknadsbehandling.id,
                                 journalpostId = it.journalpostId,
@@ -148,19 +162,19 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceImpl(
                 }
             }.mapLeft {
                 when (it) {
-                    is Søknadsbehandling.Iverksatt.KunneIkkeDistribuereBrev.AlleredeDistribuertBrev -> FerdigstillSøknadsbehandingIverksettingService.KunneIkkeBestilleBrev(
+                    is Søknadsbehandling.Iverksatt.KunneIkkeDistribuereBrev.AlleredeDistribuertBrev -> FerdigstillIverksettingService.KunneIkkeBestilleBrev(
                         sakId = søknadsbehandling.sakId,
                         behandlingId = søknadsbehandling.id,
                         journalpostId = it.journalpostId,
                         grunn = it.javaClass.simpleName
                     )
-                    is Søknadsbehandling.Iverksatt.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev -> FerdigstillSøknadsbehandingIverksettingService.KunneIkkeBestilleBrev(
+                    is Søknadsbehandling.Iverksatt.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev -> FerdigstillIverksettingService.KunneIkkeBestilleBrev(
                         sakId = søknadsbehandling.sakId,
                         behandlingId = søknadsbehandling.id,
                         journalpostId = it.journalpostId,
                         grunn = it.javaClass.simpleName
                     )
-                    is Søknadsbehandling.Iverksatt.KunneIkkeDistribuereBrev.MåJournalføresFørst -> FerdigstillSøknadsbehandingIverksettingService.KunneIkkeBestilleBrev(
+                    is Søknadsbehandling.Iverksatt.KunneIkkeDistribuereBrev.MåJournalføresFørst -> FerdigstillIverksettingService.KunneIkkeBestilleBrev(
                         sakId = søknadsbehandling.sakId,
                         behandlingId = søknadsbehandling.id,
                         journalpostId = null,
@@ -173,7 +187,7 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceImpl(
 
     private fun opprettJournalpostOgBrevbestillingForInnvilgelse(
         søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget
-    ): Either<FerdigstillSøknadsbehandingIverksettingService.KunneIkkeFerdigstilleInnvilgelse, Unit> {
+    ): Either<FerdigstillIverksettingService.KunneIkkeFerdigstilleInnvilgelse, Unit> {
 
         return opprettJournalpostForInnvilgelse(søknadsbehandling)
             .flatMap {
@@ -187,13 +201,13 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceImpl(
                     søknadsbehandlingRepo.lagre(it)
                     behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.DISTRIBUERT_BREV)
                 }
-                    .mapLeft { FerdigstillSøknadsbehandingIverksettingService.KunneIkkeFerdigstilleInnvilgelse.KunneIkkeDistribuereBrev }
+                    .mapLeft { FerdigstillIverksettingService.KunneIkkeFerdigstilleInnvilgelse.KunneIkkeDistribuereBrev }
             }
     }
 
     private fun opprettJournalpostForInnvilgelse(
         søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget,
-    ): Either<FerdigstillSøknadsbehandingIverksettingService.KunneIkkeFerdigstilleInnvilgelse, Søknadsbehandling.Iverksatt.Innvilget> {
+    ): Either<FerdigstillIverksettingService.KunneIkkeFerdigstilleInnvilgelse, Søknadsbehandling.Iverksatt.Innvilget> {
         val visitor = LagBrevRequestVisitor(
             hentPerson = { fnr ->
                 personService.hentPersonMedSystembruker(fnr)
@@ -209,10 +223,10 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceImpl(
         val brevRequest = visitor.brevRequest.getOrHandle {
             return when (it) {
                 LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> {
-                    FerdigstillSøknadsbehandingIverksettingService.KunneIkkeFerdigstilleInnvilgelse.FikkIkkeHentetSaksbehandlerEllerAttestant.left()
+                    FerdigstillIverksettingService.KunneIkkeFerdigstilleInnvilgelse.FikkIkkeHentetSaksbehandlerEllerAttestant.left()
                 }
                 LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeHentePerson -> {
-                    FerdigstillSøknadsbehandingIverksettingService.KunneIkkeFerdigstilleInnvilgelse.FantIkkePerson.left()
+                    FerdigstillIverksettingService.KunneIkkeFerdigstilleInnvilgelse.FantIkkePerson.left()
                 }
             }
         }
@@ -228,7 +242,7 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceImpl(
                 }
                 is Søknadsbehandling.Iverksatt.KunneIkkeJournalføre.FeilVedJournalføring -> {
                     log.error("Journalføring av iverksettingsbrev feilet for behandling ${søknadsbehandling.id}.")
-                    FerdigstillSøknadsbehandingIverksettingService.KunneIkkeFerdigstilleInnvilgelse.KunneIkkeOppretteJournalpost
+                    FerdigstillIverksettingService.KunneIkkeFerdigstilleInnvilgelse.KunneIkkeOppretteJournalpost
                 }
             }
         }.map {
@@ -239,9 +253,9 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceImpl(
         }
     }
 
-    private fun hentNavnForNavIdent(navIdent: NavIdentBruker): Either<FerdigstillSøknadsbehandingIverksettingService.KunneIkkeFerdigstilleInnvilgelse.FikkIkkeHentetSaksbehandlerEllerAttestant, String> {
+    private fun hentNavnForNavIdent(navIdent: NavIdentBruker): Either<FerdigstillIverksettingService.KunneIkkeFerdigstilleInnvilgelse.FikkIkkeHentetSaksbehandlerEllerAttestant, String> {
         return microsoftGraphApiClient.hentBrukerinformasjonForNavIdent(navIdent)
-            .mapLeft { FerdigstillSøknadsbehandingIverksettingService.KunneIkkeFerdigstilleInnvilgelse.FikkIkkeHentetSaksbehandlerEllerAttestant }
+            .mapLeft { FerdigstillIverksettingService.KunneIkkeFerdigstilleInnvilgelse.FikkIkkeHentetSaksbehandlerEllerAttestant }
             .map { it.displayName }
     }
 }
