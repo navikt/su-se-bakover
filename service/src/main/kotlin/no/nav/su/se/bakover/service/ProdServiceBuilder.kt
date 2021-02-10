@@ -71,7 +71,8 @@ object ProdServiceBuilder : ServiceBuilder {
             oppgaveService = oppgaveService,
             personService = personService,
             microsoftGraphApiClient = clients.microsoftGraphApiClient,
-            brevService = brevService
+            brevService = brevService,
+            clock = clock
         )
         val opprettVedtakssnapshotService = OpprettVedtakssnapshotService(databaseRepos.vedtakssnapshot)
         val ferdigstillIverksettingService = FerdigstillSøknadsbehandingIverksettingServiceImpl(

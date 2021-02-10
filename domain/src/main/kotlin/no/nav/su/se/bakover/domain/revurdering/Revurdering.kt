@@ -22,6 +22,15 @@ sealed class Revurdering {
     abstract val tilRevurdering: Søknadsbehandling.Iverksatt.Innvilget
     abstract val periode: Periode
     abstract val saksbehandler: Saksbehandler
+
+    abstract fun accept(visitor: RevurderingVisitor)
+
+    val sakId
+        get() = this.tilRevurdering.sakId
+
+    val fnr
+        get() = this.tilRevurdering.fnr
+
     open fun beregn(fradrag: List<Fradrag>): BeregnetRevurdering {
         val beregningsgrunnlag = Beregningsgrunnlag.create(
             beregningsperiode = periode,
@@ -50,7 +59,11 @@ data class OpprettetRevurdering(
     override val opprettet: Tidspunkt = Tidspunkt.now(),
     override val tilRevurdering: Søknadsbehandling.Iverksatt.Innvilget,
     override val saksbehandler: Saksbehandler,
-) : Revurdering()
+) : Revurdering() {
+    override fun accept(visitor: RevurderingVisitor) {
+        visitor.visit(this)
+    }
+}
 
 data class BeregnetRevurdering(
     override val id: UUID,
@@ -60,6 +73,10 @@ data class BeregnetRevurdering(
     override val saksbehandler: Saksbehandler,
     val beregning: Beregning
 ) : Revurdering() {
+    override fun accept(visitor: RevurderingVisitor) {
+        visitor.visit(this)
+    }
+
     fun toSimulert(simulering: Simulering) = SimulertRevurdering(
         id = id,
         periode = periode,
@@ -80,6 +97,9 @@ data class SimulertRevurdering(
     val beregning: Beregning,
     val simulering: Simulering
 ) : Revurdering() {
+    override fun accept(visitor: RevurderingVisitor) {
+        visitor.visit(this)
+    }
     fun tilAttestering(oppgaveId: OppgaveId, saksbehandler: Saksbehandler): RevurderingTilAttestering = RevurderingTilAttestering(
         id = id,
         periode = periode,
@@ -102,12 +122,15 @@ data class RevurderingTilAttestering(
     val simulering: Simulering,
     val oppgaveId: OppgaveId
 ) : Revurdering() {
-    val sakId
-        get() = this.tilRevurdering.sakId
+
+    override fun accept(visitor: RevurderingVisitor) {
+        visitor.visit(this)
+    }
 
     override fun beregn(fradrag: List<Fradrag>): BeregnetRevurdering {
         throw RuntimeException("Skal ikke kunne beregne når revurderingen er til attestering")
     }
+
     fun iverksett(attestant: NavIdentBruker.Attestant, utbetalingId: UUID30): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, IverksattRevurdering> {
         if (saksbehandler.navIdent == attestant.navIdent) {
             return AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
@@ -140,6 +163,10 @@ data class IverksattRevurdering(
     val attestant: NavIdentBruker.Attestant,
     val utbetalingId: UUID30
 ) : Revurdering() {
+    override fun accept(visitor: RevurderingVisitor) {
+        visitor.visit(this)
+    }
+
     override fun beregn(fradrag: List<Fradrag>): BeregnetRevurdering {
         throw RuntimeException("Skal ikke kunne beregne når revurderingen er til attestering")
     }

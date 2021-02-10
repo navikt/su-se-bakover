@@ -84,6 +84,8 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
 
     private val saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler")
     private val attestant = NavIdentBruker.Attestant("attestant")
+    private val saksbehandlerNavn = "Saksbehandler Saksbehandlson"
+    private val attestantNavn = "Attestant Attestantsen"
 
     private val innvilgetBehandlingUtenJournalpost = Søknadsbehandling.Iverksatt.Innvilget(
         søknad = Søknad.Journalført.MedOppgave(
@@ -272,8 +274,8 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
 
         val oppslagMock: MicrosoftGraphApiOppslag = mock {
             on { hentBrukerinformasjonForNavIdent(any()) } doReturnConsecutively listOf(
-                BehandlingTestUtils.microsoftGraphMock.response.copy(saksbehandler.navIdent).right(),
-                BehandlingTestUtils.microsoftGraphMock.response.copy(attestant.navIdent).right(),
+                BehandlingTestUtils.microsoftGraphMock.response.copy(displayName = saksbehandlerNavn).right(),
+                BehandlingTestUtils.microsoftGraphMock.response.copy(displayName = attestantNavn).right(),
             )
         }
 
@@ -325,8 +327,8 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
 
         val oppslagMock = mock<MicrosoftGraphApiOppslag> {
             on { hentBrukerinformasjonForNavIdent(any()) } doReturnConsecutively listOf(
-                BehandlingTestUtils.microsoftGraphMock.response.copy(saksbehandler.navIdent).right(),
-                BehandlingTestUtils.microsoftGraphMock.response.copy(attestant.navIdent).right(),
+                BehandlingTestUtils.microsoftGraphMock.response.copy(displayName = saksbehandlerNavn).right(),
+                BehandlingTestUtils.microsoftGraphMock.response.copy(displayName = attestantNavn).right(),
             )
         }
 
@@ -367,8 +369,8 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
                         person = person,
                         beregning = innvilgetBehandlingUtenJournalpost.beregning,
                         behandlingsinformasjon = innvilgetBehandlingUtenJournalpost.behandlingsinformasjon,
-                        saksbehandlerNavn = saksbehandler.navIdent,
-                        attestantNavn = attestant.navIdent,
+                        saksbehandlerNavn = saksbehandlerNavn,
+                        attestantNavn = attestantNavn,
                     )
                 },
                 argThat { it shouldBe innvilgetBehandlingUtenJournalpost.saksnummer }
@@ -548,8 +550,8 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
 
         val oppslagMock: MicrosoftGraphApiOppslag = mock {
             on { hentBrukerinformasjonForNavIdent(any()) } doReturnConsecutively listOf(
-                BehandlingTestUtils.microsoftGraphMock.response.copy(saksbehandler.navIdent).right(),
-                BehandlingTestUtils.microsoftGraphMock.response.copy(attestant.navIdent).right(),
+                BehandlingTestUtils.microsoftGraphMock.response.copy(displayName = saksbehandlerNavn).right(),
+                BehandlingTestUtils.microsoftGraphMock.response.copy(displayName = attestantNavn).right(),
             )
         }
 
@@ -586,8 +588,8 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
                         person = person,
                         beregning = innvilgetBehandlingUtenJournalpost.beregning,
                         behandlingsinformasjon = innvilgetBehandlingUtenJournalpost.behandlingsinformasjon,
-                        saksbehandlerNavn = saksbehandler.navIdent,
-                        attestantNavn = attestant.navIdent,
+                        saksbehandlerNavn = saksbehandlerNavn,
+                        attestantNavn = attestantNavn,
                     )
                 },
                 argThat { it shouldBe innvilgetBehandlingUtenJournalpost.saksnummer },

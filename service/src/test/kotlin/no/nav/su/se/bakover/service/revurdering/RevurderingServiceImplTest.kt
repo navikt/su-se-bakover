@@ -43,6 +43,7 @@ import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
+import no.nav.su.se.bakover.domain.søknadsbehandling.LagBrevRequestVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
@@ -51,12 +52,14 @@ import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.service.doNothing
+import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
@@ -541,7 +544,13 @@ internal class RevurderingServiceImplTest {
     fun `iverksetter en revurdering`() {
         val attestant = NavIdentBruker.Attestant("attestant")
 
-        val testsimulering = Simulering(gjelderId = fnr, gjelderNavn = "", datoBeregnet = LocalDate.now(), nettoBeløp = 0, periodeList = listOf())
+        val testsimulering = Simulering(
+            gjelderId = fnr,
+            gjelderNavn = "",
+            datoBeregnet = LocalDate.now(),
+            nettoBeløp = 0,
+            periodeList = listOf()
+        )
         val iverksattRevurdering = IverksattRevurdering(
             id = revurderingId,
             periode = periode,
@@ -611,12 +620,21 @@ internal class RevurderingServiceImplTest {
             on { behandlingsinformasjon } doReturn behandlingsinformasjonMock
         }
 
-        val simulertRevurdering = mock<SimulertRevurdering> {
-            on { id } doReturn revurderingId
-            on { tilRevurdering } doReturn behandlingMock
-            on { beregning } doReturn mock()
-            on { saksbehandler } doReturn saksbehandler
-        }
+        val simulertRevurdering = SimulertRevurdering(
+            id = revurderingId,
+            periode = periode,
+            opprettet = Tidspunkt.now(),
+            tilRevurdering = behandlingMock,
+            saksbehandler = saksbehandler,
+            beregning = TestBeregning,
+            simulering = Simulering(
+                gjelderId = fnr,
+                gjelderNavn = "Mr Test",
+                datoBeregnet = LocalDate.now(),
+                nettoBeløp = 0,
+                periodeList = listOf()
+            )
+        )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn simulertRevurdering
@@ -676,15 +694,21 @@ internal class RevurderingServiceImplTest {
 
     @Test
     fun `får feil når vi ikke kan hente person`() {
-        val behandlingMock = mock<Søknadsbehandling.Iverksatt.Innvilget> {
-            on { fnr } doReturn fnr
-        }
-
-        val simulertRevurdering = mock<SimulertRevurdering> {
-            on { id } doReturn revurderingId
-            on { tilRevurdering } doReturn behandlingMock
-            on { beregning } doReturn mock()
-        }
+        val simulertRevurdering = SimulertRevurdering(
+            id = revurderingId,
+            periode = periode,
+            opprettet = Tidspunkt.now(),
+            tilRevurdering = behandling,
+            saksbehandler = saksbehandler,
+            beregning = TestBeregning,
+            simulering = Simulering(
+                gjelderId = fnr,
+                gjelderNavn = "Mr Test",
+                datoBeregnet = LocalDate.now(),
+                nettoBeløp = 0,
+                periodeList = listOf()
+            )
+        )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn simulertRevurdering
@@ -717,16 +741,21 @@ internal class RevurderingServiceImplTest {
     fun `får feil når vi ikke kan hente saksbehandler navn`() {
         val person = mock<Person>()
 
-        val behandlingMock = mock<Søknadsbehandling.Iverksatt.Innvilget> {
-            on { fnr } doReturn fnr
-        }
-
-        val simulertRevurdering = mock<SimulertRevurdering> {
-            on { id } doReturn revurderingId
-            on { tilRevurdering } doReturn behandlingMock
-            on { saksbehandler } doReturn saksbehandler
-            on { beregning } doReturn mock()
-        }
+        val simulertRevurdering = SimulertRevurdering(
+            id = revurderingId,
+            periode = periode,
+            opprettet = Tidspunkt.now(),
+            tilRevurdering = behandling,
+            saksbehandler = saksbehandler,
+            beregning = TestBeregning,
+            simulering = Simulering(
+                gjelderId = fnr,
+                gjelderNavn = "Mr Test",
+                datoBeregnet = LocalDate.now(),
+                nettoBeløp = 0,
+                periodeList = listOf()
+            )
+        )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn simulertRevurdering
@@ -749,7 +778,7 @@ internal class RevurderingServiceImplTest {
             fritekst = null
         )
 
-        actual shouldBe KunneIkkeRevurdere.MicrosoftApiGraphFeil.left()
+        actual shouldBe KunneIkkeRevurdere.KunneIkkeLageBrevutkast.left()
 
         inOrder(revurderingRepoMock, personServiceMock, microsoftGraphApiClientMock) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
@@ -767,22 +796,21 @@ internal class RevurderingServiceImplTest {
     fun `får feil når vi ikke kan lage brev`() {
         val person = mock<Person>()
 
-        val behandlingsinformasjonMock = mock<Behandlingsinformasjon> {
-            on { harEktefelle() } doReturn false
-        }
-
-        val behandlingMock = mock<Søknadsbehandling.Iverksatt.Innvilget> {
-            on { fnr } doReturn fnr
-            on { beregning } doReturn mock()
-            on { behandlingsinformasjon } doReturn behandlingsinformasjonMock
-        }
-
-        val simulertRevurdering = mock<SimulertRevurdering> {
-            on { id } doReturn revurderingId
-            on { tilRevurdering } doReturn behandlingMock
-            on { beregning } doReturn mock()
-            on { saksbehandler } doReturn saksbehandler
-        }
+        val simulertRevurdering = SimulertRevurdering(
+            id = revurderingId,
+            periode = periode,
+            opprettet = Tidspunkt.now(),
+            tilRevurdering = behandling,
+            saksbehandler = saksbehandler,
+            beregning = TestBeregning,
+            simulering = Simulering(
+                gjelderId = fnr,
+                gjelderNavn = "Mr Test",
+                datoBeregnet = LocalDate.now(),
+                nettoBeløp = 0,
+                periodeList = listOf()
+            )
+        )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn simulertRevurdering
@@ -828,38 +856,53 @@ internal class RevurderingServiceImplTest {
 
     @Test
     fun `kan ikke lage brev med status opprettet`() {
-        val opprettetRevurdering = mock<OpprettetRevurdering>()
+        val opprettetRevurdering = OpprettetRevurdering(
+            id = UUID.randomUUID(),
+            periode = periode,
+            opprettet = Tidspunkt.now(),
+            tilRevurdering = behandling,
+            saksbehandler = saksbehandler,
+        )
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn opprettetRevurdering
         }
 
-        val actual = createRevurderingService(
-            revurderingRepo = revurderingRepoMock
-        ).lagBrevutkast(
-            revurderingId = revurderingId,
-            fritekst = null
-        )
+        assertThrows<LagBrevRequestVisitor.BrevRequestFeil.KanIkkeLageBrevrequestForInstansException> {
+            createRevurderingService(
+                revurderingRepo = revurderingRepoMock
+            ).lagBrevutkast(
+                revurderingId = revurderingId,
+                fritekst = null
+            )
+        }
 
-        actual shouldBe KunneIkkeRevurdere.KunneIkkeLageBrevutkast.left()
         verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
         verifyNoMoreInteractions(revurderingRepoMock)
     }
 
     @Test
     fun `kan ikke lage brev med status beregnet`() {
-        val beregnetRevurdering = mock<BeregnetRevurdering>()
+        val beregnetRevurdering = BeregnetRevurdering(
+            id = revurderingId,
+            periode = periode,
+            opprettet = Tidspunkt.now(),
+            tilRevurdering = behandling,
+            saksbehandler = saksbehandler,
+            beregning = TestBeregning
+        )
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn beregnetRevurdering
         }
 
-        val actual = createRevurderingService(
-            revurderingRepo = revurderingRepoMock
-        ).lagBrevutkast(
-            revurderingId = revurderingId,
-            fritekst = null
-        )
+        assertThrows<LagBrevRequestVisitor.BrevRequestFeil.KanIkkeLageBrevrequestForInstansException> {
+            createRevurderingService(
+                revurderingRepo = revurderingRepoMock
+            ).lagBrevutkast(
+                revurderingId = revurderingId,
+                fritekst = null
+            )
+        }
 
-        actual shouldBe KunneIkkeRevurdere.KunneIkkeLageBrevutkast.left()
         verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
         verifyNoMoreInteractions(revurderingRepoMock)
     }
@@ -871,7 +914,8 @@ internal class RevurderingServiceImplTest {
         oppgaveService: OppgaveService = mock(),
         personService: PersonService = mock(),
         microsoftGraphApiClient: MicrosoftGraphApiClient = mock(),
-        brevService: BrevService = mock()
+        brevService: BrevService = mock(),
+        clock: Clock = fixedClock
     ) =
         RevurderingServiceImpl(
             sakService = sakService,
@@ -880,6 +924,7 @@ internal class RevurderingServiceImplTest {
             oppgaveService = oppgaveService,
             personService = personService,
             microsoftGraphApiClient = microsoftGraphApiClient,
-            brevService = brevService
+            brevService = brevService,
+            clock = clock,
         )
 }

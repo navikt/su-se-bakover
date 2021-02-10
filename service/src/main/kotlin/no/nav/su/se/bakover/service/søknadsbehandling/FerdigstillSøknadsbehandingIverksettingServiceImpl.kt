@@ -214,9 +214,6 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceImpl(
                 LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeHentePerson -> {
                     FerdigstillSøknadsbehandingIverksettingService.KunneIkkeFerdigstilleInnvilgelse.FantIkkePerson.left()
                 }
-                is LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeLageBrevForStatus -> {
-                    FerdigstillSøknadsbehandingIverksettingService.KunneIkkeFerdigstilleInnvilgelse.FikkIkkeHentetSaksbehandlerEllerAttestant.left()
-                }
             }
         }
 

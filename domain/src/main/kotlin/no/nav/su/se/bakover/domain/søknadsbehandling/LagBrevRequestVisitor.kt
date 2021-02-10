@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
 import arrow.core.Either
-import arrow.core.getOrHandle
 import arrow.core.left
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Fnr
@@ -13,21 +12,28 @@ import no.nav.su.se.bakover.domain.behandling.avslag.AvslagBrevRequest
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
+import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Revurdering
+import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
+import no.nav.su.se.bakover.domain.revurdering.RevurderingVisitor
+import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import java.time.Clock
 
 class LagBrevRequestVisitor(
     private val hentPerson: (fnr: Fnr) -> Either<BrevRequestFeil, Person>,
     private val hentNavn: (navIdentBruker: NavIdentBruker) -> Either<BrevRequestFeil, String>,
     private val clock: Clock
-) : SøknadsbehandlingVisitor {
+) : SøknadsbehandlingVisitor, RevurderingVisitor {
     lateinit var brevRequest: Either<BrevRequestFeil, LagBrevRequest>
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Uavklart) {
-        brevRequest = BrevRequestFeil.KunneIkkeLageBrevForStatus(søknadsbehandling.status).left()
+        throw BrevRequestFeil.KanIkkeLageBrevrequestForInstansException(søknadsbehandling)
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Innvilget) {
-        brevRequest = BrevRequestFeil.KunneIkkeLageBrevForStatus(søknadsbehandling.status).left()
+        throw BrevRequestFeil.KanIkkeLageBrevrequestForInstansException(søknadsbehandling)
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Avslag) {
@@ -82,25 +88,27 @@ class LagBrevRequestVisitor(
         brevRequest = innvilget(søknadsbehandling, søknadsbehandling.beregning)
     }
 
-    private fun hentPersonOgNavn(søknadsbehandling: Søknadsbehandling): Either<BrevRequestFeil, PersonOgNavn> {
-        return hentPerson(søknadsbehandling.fnr)
+    private fun hentPersonOgNavn(
+        fnr: Fnr,
+        saksbehandler: NavIdentBruker.Saksbehandler?,
+        attestant: NavIdentBruker.Attestant?
+    ): Either<BrevRequestFeil, PersonOgNavn> {
+        return hentPerson(fnr)
             .map { person ->
-                val saksbehandlerVisitor = FinnSaksbehandlerVisitor().apply {
-                    søknadsbehandling.accept(this)
-                    saksbehandler?.let {
-                        hentNavn(it).getOrHandle { return BrevRequestFeil.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left() }
-                    }
-                }
-                val attestantVisitor = FinnAttestantVisitor().apply {
-                    søknadsbehandling.accept(this)
-                    attestant?.let {
-                        hentNavn(it).getOrHandle { return BrevRequestFeil.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left() }
-                    }
-                }
                 PersonOgNavn(
                     person = person,
-                    saksbehandlerNavn = saksbehandlerVisitor.saksbehandler?.navIdent ?: "-",
-                    attestantNavn = attestantVisitor.attestant?.navIdent ?: "-"
+                    saksbehandlerNavn = saksbehandler?.let { saksbehandler ->
+                        hentNavn(saksbehandler).fold(
+                            ifLeft = { return BrevRequestFeil.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left() },
+                            ifRight = { it }
+                        )
+                    } ?: "-",
+                    attestantNavn = attestant?.let { attestant ->
+                        hentNavn(attestant).fold(
+                            ifLeft = { return BrevRequestFeil.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left() },
+                            ifRight = { it }
+                        )
+                    } ?: "-"
                 )
             }
     }
@@ -110,25 +118,62 @@ class LagBrevRequestVisitor(
         avslagsgrunner: List<Avslagsgrunn>,
         beregning: Beregning?
     ) =
-        hentPersonOgNavn(søknadsbehandling)
-            .map {
-                requestForAvslag(
-                    personOgNavn = it,
-                    avslagsgrunner = avslagsgrunner,
-                    behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
-                    beregning = beregning,
-                )
+        hentPersonOgNavn(
+            fnr = søknadsbehandling.fnr,
+            saksbehandler = FinnSaksbehandlerVisitor().let {
+                søknadsbehandling.accept(it)
+                it.saksbehandler
+            },
+            attestant = FinnAttestantVisitor().let {
+                søknadsbehandling.accept(it)
+                it.attestant
             }
+        ).map {
+            requestForAvslag(
+                personOgNavn = it,
+                avslagsgrunner = avslagsgrunner,
+                behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
+                beregning = beregning,
+            )
+        }
 
     private fun innvilget(søknadsbehandling: Søknadsbehandling, beregning: Beregning) =
-        hentPersonOgNavn(søknadsbehandling)
-            .map {
-                requestForInnvilgelse(
-                    personOgNavn = it,
-                    behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
-                    beregning = beregning
-                )
+        hentPersonOgNavn(
+            fnr = søknadsbehandling.fnr,
+            saksbehandler = FinnSaksbehandlerVisitor().let {
+                søknadsbehandling.accept(it)
+                it.saksbehandler
+            },
+            attestant = FinnAttestantVisitor().let {
+                søknadsbehandling.accept(it)
+                it.attestant
             }
+        ).map {
+            requestForInnvilgelse(
+                personOgNavn = it,
+                behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
+                beregning = beregning
+            )
+        }
+
+    private fun innvilgelze(revurdering: Revurdering, beregning: Beregning) =
+        hentPersonOgNavn(
+            fnr = revurdering.fnr,
+            saksbehandler = revurdering.saksbehandler,
+            attestant = no.nav.su.se.bakover.domain.revurdering.FinnAttestantVisitor().let {
+                revurdering.accept(it)
+                it.attestant
+            }
+        ).map {
+            LagBrevRequest.Revurdering.Inntekt(
+                person = it.person,
+                saksbehandlerNavn = it.saksbehandlerNavn,
+                revurdertBeregning = beregning,
+                fritekst = null, // TODO: finn ut hvordan vi vill hantere fritekst
+                vedtattBeregning = revurdering.tilRevurdering.beregning,
+                harEktefelle = revurdering.tilRevurdering.behandlingsinformasjon.harEktefelle()
+            )
+        }
 
     private fun requestForAvslag(
         personOgNavn: PersonOgNavn,
@@ -168,6 +213,30 @@ class LagBrevRequestVisitor(
     sealed class BrevRequestFeil {
         object KunneIkkeHentePerson : BrevRequestFeil()
         object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : BrevRequestFeil()
-        data class KunneIkkeLageBrevForStatus(val status: BehandlingsStatus) : BrevRequestFeil()
+
+        data class KanIkkeLageBrevrequestForInstansException(
+            val instans: Any,
+            val msg: String = "Kan ikke laga brevrequest for instans av typen: ${instans::class.qualifiedName}"
+        ) : RuntimeException(msg)
+    }
+
+    override fun visit(revurdering: OpprettetRevurdering) {
+        throw BrevRequestFeil.KanIkkeLageBrevrequestForInstansException(revurdering)
+    }
+
+    override fun visit(revurdering: BeregnetRevurdering) {
+        throw BrevRequestFeil.KanIkkeLageBrevrequestForInstansException(revurdering)
+    }
+
+    override fun visit(revurdering: SimulertRevurdering) {
+        brevRequest = innvilgelze(revurdering, revurdering.beregning)
+    }
+
+    override fun visit(revurdering: RevurderingTilAttestering) {
+        brevRequest = innvilgelze(revurdering, revurdering.beregning)
+    }
+
+    override fun visit(revurdering: IverksattRevurdering) {
+        brevRequest = innvilgelze(revurdering, revurdering.beregning)
     }
 }

@@ -36,6 +36,7 @@ import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import java.time.Clock
 import java.time.ZoneOffset
 import java.util.UUID
@@ -76,27 +77,24 @@ internal class LagBrevRequestVisitorTest {
 
     @Test
     fun `responderer med feil dersom det ikke er mulig å lage brev for aktuell søknadsbehandling`() {
-        uavklart.let {
-            LagBrevRequestVisitor(
-                hentPerson = { person.right() },
-                hentNavn = { hentNavn(it) },
-                clock = Clock.systemUTC(),
-            ).apply { it.accept(this) }
-                .let {
-                    it.brevRequest shouldBe LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeLageBrevForStatus(BehandlingsStatus.OPPRETTET)
-                        .left()
-                }
+        assertThrows<LagBrevRequestVisitor.BrevRequestFeil.KanIkkeLageBrevrequestForInstansException> {
+            uavklart.let {
+                LagBrevRequestVisitor(
+                    hentPerson = { person.right() },
+                    hentNavn = { hentNavn(it) },
+                    clock = Clock.systemUTC(),
+                ).apply { it.accept(this) }
+            }
         }
 
-        uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()).let {
-            LagBrevRequestVisitor(
-                hentPerson = { person.right() },
-                hentNavn = { hentNavn(it) },
-                clock = Clock.systemUTC(),
-            ).apply { it.accept(this) }
+        assertThrows<LagBrevRequestVisitor.BrevRequestFeil.KanIkkeLageBrevrequestForInstansException> {
+            uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt())
                 .let {
-                    it.brevRequest shouldBe LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeLageBrevForStatus(BehandlingsStatus.VILKÅRSVURDERT_INNVILGET)
-                        .left()
+                    LagBrevRequestVisitor(
+                        hentPerson = { person.right() },
+                        hentNavn = { hentNavn(it) },
+                        clock = Clock.systemUTC(),
+                    ).apply { it.accept(this) }
                 }
         }
     }

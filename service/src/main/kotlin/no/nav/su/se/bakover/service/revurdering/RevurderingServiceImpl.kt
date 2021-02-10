@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.service.revurdering
 
 import arrow.core.Either
+import arrow.core.flatMap
 import arrow.core.getOrElse
-import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
@@ -11,9 +11,7 @@ import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.RevurderingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
-import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
@@ -21,6 +19,7 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
+import no.nav.su.se.bakover.domain.søknadsbehandling.LagBrevRequestVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
@@ -28,6 +27,7 @@ import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import java.time.Clock
 import java.util.UUID
 
 internal class RevurderingServiceImpl(
@@ -38,6 +38,7 @@ internal class RevurderingServiceImpl(
     private val personService: PersonService,
     private val microsoftGraphApiClient: MicrosoftGraphApiOppslag,
     private val brevService: BrevService,
+    private val clock: Clock,
 ) : RevurderingService {
 
     override fun opprettRevurdering(
@@ -135,36 +136,26 @@ internal class RevurderingServiceImpl(
     override fun lagBrevutkast(revurderingId: UUID, fritekst: String?): Either<KunneIkkeRevurdere, ByteArray> {
         val revurdering = revurderingRepo.hent(revurderingId) ?: return KunneIkkeRevurdere.FantIkkeRevurdering.left()
 
-        fun lagBrevutkastForRevurderingAvInntekt(revurdertBeregning: Beregning): Either<KunneIkkeRevurdere, ByteArray> {
-
-            val person = personService.hentPerson(revurdering.tilRevurdering.fnr)
-                .getOrHandle { return KunneIkkeRevurdere.FantIkkePerson.left() }
-
-            val saksbehandlerNavn = microsoftGraphApiClient.hentNavnForNavIdent(revurdering.saksbehandler)
-                .getOrHandle { return KunneIkkeRevurdere.MicrosoftApiGraphFeil.left() }
-
-            val request = LagBrevRequest.Revurdering.Inntekt(
-                person = person,
-                saksbehandlerNavn = saksbehandlerNavn,
-                revurdertBeregning = revurdertBeregning,
-                fritekst = fritekst,
-                vedtattBeregning = revurdering.tilRevurdering.beregning,
-                harEktefelle = revurdering.tilRevurdering.behandlingsinformasjon.harEktefelle()
-            )
-
-            return brevService.lagBrev(request).mapLeft {
-                KunneIkkeRevurdere.KunneIkkeLageBrevutkast
+        return LagBrevRequestVisitor(
+            hentPerson = { fnr ->
+                personService.hentPerson(fnr)
+                    .mapLeft { LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeHentePerson }
+            },
+            hentNavn = { ident ->
+                microsoftGraphApiClient.hentNavnForNavIdent(ident)
+                    .mapLeft { LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant }
+            },
+            clock = clock
+        ).let {
+            revurdering.accept(it)
+            it.brevRequest
+        }.mapLeft {
+            when (it) {
+                LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeRevurdere.KunneIkkeLageBrevutkast
+                LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeHentePerson -> KunneIkkeRevurdere.FantIkkePerson
             }
-        }
-
-        return when (revurdering) {
-            is SimulertRevurdering -> {
-                lagBrevutkastForRevurderingAvInntekt(revurdering.beregning)
-            }
-            is RevurderingTilAttestering -> {
-                lagBrevutkastForRevurderingAvInntekt(revurdering.beregning)
-            }
-            else -> KunneIkkeRevurdere.KunneIkkeLageBrevutkast.left()
+        }.flatMap {
+            brevService.lagBrev(it).mapLeft { KunneIkkeRevurdere.KunneIkkeLageBrevutkast }
         }
     }
 

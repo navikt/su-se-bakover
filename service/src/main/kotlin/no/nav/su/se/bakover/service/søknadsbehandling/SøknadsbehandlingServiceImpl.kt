@@ -372,9 +372,6 @@ internal class SøknadsbehandlingServiceImpl(
                 LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeHentePerson -> {
                     SøknadsbehandlingService.KunneIkkeLageBrev.FantIkkePerson.left()
                 }
-                is LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeLageBrevForStatus -> {
-                    SøknadsbehandlingService.KunneIkkeLageBrev.KanIkkeLageBrevutkastForStatus(it.status).left()
-                }
             }
         }
 
