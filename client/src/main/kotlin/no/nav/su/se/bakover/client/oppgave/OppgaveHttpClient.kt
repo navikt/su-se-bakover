@@ -79,7 +79,7 @@ internal class OppgaveHttpClient(
         val beskrivelse =
             "--- ${
             Tidspunkt.now(clock).toOppgaveFormat()
-            } - Opprettet av Supplerende Stønad ---\nSøknadId : ${config.søknadId}"
+            } - Opprettet av Supplerende Stønad ---\nSøknadId : ${config.saksreferanse}"
         val (_, response, result) = "${connectionConfig.url}$oppgavePath".httpPost()
             .authentication().bearer(token)
             .header("Accept", "application/json")
@@ -89,7 +89,7 @@ internal class OppgaveHttpClient(
                 objectMapper.writeValueAsString(
                     OppgaveRequest(
                         journalpostId = config.journalpostId?.toString(),
-                        saksreferanse = config.søknadId.toString(),
+                        saksreferanse = config.saksreferanse,
                         aktoerId = config.aktørId.toString(),
                         tema = Tema.SUPPLERENDE_STØNAD.value,
                         behandlesAvApplikasjon = "SUPSTONAD",
