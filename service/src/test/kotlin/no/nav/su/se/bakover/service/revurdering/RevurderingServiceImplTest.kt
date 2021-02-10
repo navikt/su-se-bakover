@@ -165,7 +165,7 @@ internal class RevurderingServiceImplTest {
             verify(oppgaveServiceMock).opprettOppgave(
                 argThat {
                     it shouldBe OppgaveConfig.Revurderingsbehandling(
-                        saksreferanse = saksnummer.toString(),
+                        saksnummer = saksnummer,
                         aktørId = aktørId,
                         tilordnetRessurs = null
                     )
@@ -447,7 +447,7 @@ internal class RevurderingServiceImplTest {
             verify(oppgaveServiceMock).opprettOppgave(
                 argThat {
                     it shouldBe OppgaveConfig.AttesterRevurdering(
-                        saksreferanse = saksnummer.toString(),
+                        saksnummer = saksnummer,
                         aktørId = aktørId,
                         tilordnetRessurs = null
                     )

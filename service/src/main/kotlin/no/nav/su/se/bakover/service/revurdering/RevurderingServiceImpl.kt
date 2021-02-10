@@ -59,26 +59,23 @@ internal class RevurderingServiceImpl(
                         return KunneIkkeRevurdere.FantIkkeAktørid.left()
                     }
 
-                    oppgaveService.opprettOppgave(
+                    return oppgaveService.opprettOppgave(
                         OppgaveConfig.Revurderingsbehandling(
-                            saksreferanse = søknadsbehandling.saksnummer.toString(),
+                            saksnummer = søknadsbehandling.saksnummer,
                             aktørId = aktørId,
                             tilordnetRessurs = null
                         )
-                    ).fold(
-                        ifLeft = {
-                            return KunneIkkeRevurdere.KunneIkkeOppretteOppgave.left()
-                        },
-                        ifRight = {
-                            val revurdering = OpprettetRevurdering(
-                                periode = periode,
-                                tilRevurdering = søknadsbehandling,
-                                saksbehandler = saksbehandler
-                            )
-                            revurderingRepo.lagre(revurdering)
-                            revurdering
-                        }
-                    )
+                    ).mapLeft {
+                        KunneIkkeRevurdere.KunneIkkeOppretteOppgave
+                    }.map {
+                        val revurdering = OpprettetRevurdering(
+                            periode = periode,
+                            tilRevurdering = søknadsbehandling,
+                            saksbehandler = saksbehandler
+                        )
+                        revurderingRepo.lagre(revurdering)
+                        revurdering
+                    }
                 }
             }
     }
@@ -122,7 +119,7 @@ internal class RevurderingServiceImpl(
 
                 val oppgaveId = oppgaveService.opprettOppgave(
                     OppgaveConfig.AttesterRevurdering(
-                        saksreferanse = revurdering.tilRevurdering.saksnummer.toString(),
+                        saksnummer = revurdering.tilRevurdering.saksnummer,
                         aktørId = aktørId,
                         // Første gang den sendes til attestering er attestant null, de påfølgende gangene vil den være attestanten som har underkjent.
                         // TODO: skal ikke være null. attestant kan endre seg. må legge til attestant på revurdering

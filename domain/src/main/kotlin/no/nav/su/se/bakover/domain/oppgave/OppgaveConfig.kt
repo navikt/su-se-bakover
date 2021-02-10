@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.domain.Behandlingstema
 import no.nav.su.se.bakover.domain.Behandlingstype
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Oppgavetype
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import java.util.UUID
 
@@ -46,10 +47,11 @@ sealed class OppgaveConfig {
     }
 
     data class Revurderingsbehandling(
-        override val saksreferanse: String,
+        val saksnummer: Saksnummer,
         override val aktørId: AktørId,
         override val tilordnetRessurs: NavIdentBruker? = null
     ) : OppgaveConfig() {
+        override val saksreferanse = saksnummer.toString()
         override val journalpostId: JournalpostId? = null
         override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKNING
         override val behandlingstype = Behandlingstype.REVURDERING
@@ -57,10 +59,11 @@ sealed class OppgaveConfig {
     }
 
     data class AttesterRevurdering(
-        override val saksreferanse: String,
+        val saksnummer: Saksnummer,
         override val aktørId: AktørId,
         override val tilordnetRessurs: NavIdentBruker? = null
     ) : OppgaveConfig() {
+        override val saksreferanse = saksnummer.toString()
         override val journalpostId: JournalpostId? = null
         override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKNING
         override val behandlingstype = Behandlingstype.REVURDERING

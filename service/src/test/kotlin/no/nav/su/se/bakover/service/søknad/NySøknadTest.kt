@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.service.søknad
 
-import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
@@ -478,10 +477,11 @@ class NySøknadTest {
                     it.shouldBeEqualToIgnoringFields(
                         OppgaveConfig.Saksbehandling(
                             journalpostId = journalpostId,
-                            søknadId = actual.getOrHandle { throw Exception("skal ikke skje") }.second.id,
+                            søknadId = UUID.randomUUID(), // ignore
                             aktørId = person.ident.aktørId
                         ),
-                        OppgaveConfig.Saksbehandling::søknadId
+                        OppgaveConfig.Saksbehandling::søknadId,
+                        OppgaveConfig.Saksbehandling::saksreferanse
                     )
                 }
             )
@@ -606,10 +606,11 @@ class NySøknadTest {
                     it.shouldBeEqualToIgnoringFields(
                         OppgaveConfig.Saksbehandling(
                             journalpostId = journalpostId,
-                            søknadId = actual.getOrHandle { throw Exception("skal ikke skje") }.second.id,
+                            søknadId = UUID.randomUUID(), // ignore
                             aktørId = person.ident.aktørId,
                         ),
-                        OppgaveConfig.Saksbehandling::søknadId
+                        OppgaveConfig.Saksbehandling::søknadId,
+                        OppgaveConfig.Saksbehandling::saksreferanse,
                     )
                 }
             )
