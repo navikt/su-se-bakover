@@ -30,6 +30,8 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegEtterUtbetaling
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegForAvslag
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -135,7 +137,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
         oppgaveId = OppgaveId("1"),
         opprettet = Tidspunkt.EPOCH,
         behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withVilkårAvslått(),
-        eksterneIverksettingsteg = Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg.Journalført(journalpostId),
+        eksterneIverksettingsteg = EksterneIverksettingsstegForAvslag.Journalført(journalpostId),
     )
 
     @Test
@@ -432,7 +434,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
                 innvilgetBehandlingUtenJournalpost.copy(
                     id = behandlingIdBestiltBrev,
                     sakId = sakIdBestiltBrev,
-                    eksterneIverksettingsteg = Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.Journalført(
+                    eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.Journalført(
                         journalpostId
                     )
                 )
@@ -514,7 +516,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
                     it shouldBe avslagUtenBrevbestilling.copy(
                         id = behandlingIdBestiltBrev,
                         sakId = sakIdBestiltBrev,
-                        eksterneIverksettingsteg = Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg.JournalførtOgDistribuertBrev(
+                        eksterneIverksettingsteg = EksterneIverksettingsstegForAvslag.JournalførtOgDistribuertBrev(
                             avslagUtenBrevbestilling.eksterneIverksettingsteg.journalpostId,
                             brevbestillingId
                         )
@@ -533,7 +535,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
                 innvilgetBehandlingUtenJournalpost.copy(
                     id = behandlingIdBestiltBrev,
                     sakId = sakIdBestiltBrev,
-                    eksterneIverksettingsteg = Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.Journalført(
+                    eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.Journalført(
                         journalpostIdBestiltBrev
                     )
                 ),
@@ -597,7 +599,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
             )
             verify(behandlingRepoMock).lagre(lagreCaptor.capture()).let {
                 lagreCaptor.firstValue shouldBe innvilgetBehandlingUtenJournalpost.copy(
-                    eksterneIverksettingsteg = Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.Journalført(
+                    eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.Journalført(
                         journalpostIdBestiltBrev
                     )
                 )
@@ -608,7 +610,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
                 lagreCaptor.secondValue shouldBe innvilgetBehandlingUtenJournalpost.copy(
                     id = behandlingIdBestiltBrev,
                     sakId = sakIdBestiltBrev,
-                    eksterneIverksettingsteg = Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.JournalførtOgDistribuertBrev(
+                    eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.JournalførtOgDistribuertBrev(
                         journalpostIdBestiltBrev,
                         brevbestillingId
                     )

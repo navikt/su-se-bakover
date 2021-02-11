@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegForAvslag
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
@@ -117,7 +118,7 @@ internal val kvitteringOk = Kvittering(
     originalKvittering = "hallo",
     mottattTidspunkt = fixedTidspunkt
 )
-internal val journalførtIverksettingForAvslag = Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg.Journalført(
+internal val journalførtIverksettingForAvslag = EksterneIverksettingsstegForAvslag.Journalført(
     journalpostId = iverksattJournalpostId,
 )
 
@@ -366,7 +367,7 @@ internal class TestDataHelper(
         return innvilget to utbetaling
     }
 
-    internal fun nyIverksattAvslagUtenBeregning(eksterneIverksettingsteg: Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg = journalførtIverksettingForAvslag): Søknadsbehandling.Iverksatt.Avslag.UtenBeregning {
+    internal fun nyIverksattAvslagUtenBeregning(eksterneIverksettingsteg: EksterneIverksettingsstegForAvslag = journalførtIverksettingForAvslag): Søknadsbehandling.Iverksatt.Avslag.UtenBeregning {
         return nyTilAvslåttAttesteringUtenBeregning().tilIverksatt(
             iverksattAttestering, eksterneIverksettingsteg
         ).also {
@@ -374,7 +375,7 @@ internal class TestDataHelper(
         }
     }
 
-    internal fun nyIverksattAvslagMedBeregning(eksterneIverksettingsteg: Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg): Søknadsbehandling.Iverksatt.Avslag.MedBeregning {
+    internal fun nyIverksattAvslagMedBeregning(eksterneIverksettingsteg: EksterneIverksettingsstegForAvslag): Søknadsbehandling.Iverksatt.Avslag.MedBeregning {
         return tilAvslåttAttesteringMedBeregning().tilIverksatt(
             iverksattAttestering, eksterneIverksettingsteg
         ).also {

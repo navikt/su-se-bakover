@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegForAvslag
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
@@ -305,13 +306,13 @@ internal class SøknadsbehandlingServiceIverksettTest {
             oppgaveId = behandling.oppgaveId,
             beregning = behandling.beregning,
             attestering = Attestering.Iverksatt(attestant),
-            eksterneIverksettingsteg = Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg.Journalført(
+            eksterneIverksettingsteg = EksterneIverksettingsstegForAvslag.Journalført(
                 iverksattJournalpostId
             )
         )
 
         val expectedJournalførtOgDistribuert = expectedJournalført.copy(
-            eksterneIverksettingsteg = Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg.JournalførtOgDistribuertBrev(
+            eksterneIverksettingsteg = EksterneIverksettingsstegForAvslag.JournalførtOgDistribuertBrev(
                 iverksattJournalpostId, iverksattBrevbestillingId
             )
         )

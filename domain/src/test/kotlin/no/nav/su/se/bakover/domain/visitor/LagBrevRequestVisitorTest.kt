@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegForAvslag
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -383,7 +384,7 @@ internal class LagBrevRequestVisitorTest {
             .tilAttestering(NavIdentBruker.Saksbehandler(saksbehandlerNavn))
             .tilIverksatt(
                 Attestering.Iverksatt(NavIdentBruker.Attestant(attestantNavn)),
-                Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg.Journalført(JournalpostId(""))
+                EksterneIverksettingsstegForAvslag.Journalført(JournalpostId(""))
             )
             .let { søknadsbehandling ->
                 LagBrevRequestVisitor(
@@ -415,7 +416,7 @@ internal class LagBrevRequestVisitorTest {
             .tilAttestering(NavIdentBruker.Saksbehandler(saksbehandlerNavn))
             .tilIverksatt(
                 Attestering.Iverksatt(NavIdentBruker.Attestant(attestantNavn)),
-                Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg.Journalført(JournalpostId(""))
+                EksterneIverksettingsstegForAvslag.Journalført(JournalpostId(""))
             )
             .let { søknadsbehandling ->
                 LagBrevRequestVisitor(
