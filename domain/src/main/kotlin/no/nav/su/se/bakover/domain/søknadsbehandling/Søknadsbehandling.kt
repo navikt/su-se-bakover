@@ -824,7 +824,7 @@ sealed class Søknadsbehandling : Visitable<SøknadsbehandlingVisitor> {
                 return eksterneIverksettingsteg.journalfør(journalfør).map { copy(eksterneIverksettingsteg = it) }
             }
 
-            fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeDistribuereBrev, BrevbestillingId>): Either<EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeDistribuereBrev, Innvilget> {
+            fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeDistribuereBrev, Innvilget> {
                 return eksterneIverksettingsteg.distribuerBrev(distribuerBrev)
                     .map { copy(eksterneIverksettingsteg = it) }
             }

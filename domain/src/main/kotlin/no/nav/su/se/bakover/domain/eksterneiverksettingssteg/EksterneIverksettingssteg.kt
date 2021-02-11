@@ -25,7 +25,7 @@ sealed class EksterneIverksettingsstegEtterUtbetaling {
         }
     }
 
-    fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeDistribuereBrev, BrevbestillingId>): Either<EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeDistribuereBrev, JournalførtOgDistribuertBrev> {
+    fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeDistribuereBrev, JournalførtOgDistribuertBrev> {
         return when (this) {
             is VenterPåKvittering -> EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeDistribuereBrev.MåJournalføresFørst.left()
             is Journalført -> distribuerBrev(journalpostId).map { this.medDistribuertBrev(it) }
