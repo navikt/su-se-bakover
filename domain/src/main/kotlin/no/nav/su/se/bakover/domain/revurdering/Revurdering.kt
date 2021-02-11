@@ -14,16 +14,15 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.util.UUID
 
-sealed class Revurdering {
+sealed class Revurdering : Visitable<RevurderingVisitor> {
     abstract val id: UUID
     abstract val opprettet: Tidspunkt
     abstract val tilRevurdering: Søknadsbehandling.Iverksatt.Innvilget
     abstract val periode: Periode
     abstract val saksbehandler: Saksbehandler
-
-    abstract fun accept(visitor: RevurderingVisitor)
 
     val sakId
         get() = this.tilRevurdering.sakId

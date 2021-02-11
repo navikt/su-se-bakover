@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.søknadsbehandling
+package no.nav.su.se.bakover.domain.visitor
 
 import arrow.core.Either
 import arrow.core.left
@@ -35,6 +35,7 @@ import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.Clock

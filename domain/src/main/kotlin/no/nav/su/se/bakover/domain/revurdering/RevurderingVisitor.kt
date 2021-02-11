@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.domain.revurdering
 
-interface RevurderingVisitor {
+import no.nav.su.se.bakover.domain.visitor.Visitor
+
+interface RevurderingVisitor : Visitor {
     fun visit(revurdering: OpprettetRevurdering)
     fun visit(revurdering: BeregnetRevurdering)
     fun visit(revurdering: SimulertRevurdering)

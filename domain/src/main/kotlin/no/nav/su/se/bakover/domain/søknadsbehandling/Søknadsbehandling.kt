@@ -18,9 +18,10 @@ import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.util.UUID
 
-sealed class Søknadsbehandling {
+sealed class Søknadsbehandling : Visitable<SøknadsbehandlingVisitor> {
     abstract val id: UUID
     abstract val opprettet: Tidspunkt
     abstract val sakId: UUID
@@ -30,8 +31,6 @@ sealed class Søknadsbehandling {
     abstract val behandlingsinformasjon: Behandlingsinformasjon
     abstract val status: BehandlingsStatus
     abstract val fnr: Fnr
-
-    abstract fun accept(visitor: SøknadsbehandlingVisitor)
 
     sealed class Vilkårsvurdert : Søknadsbehandling() {
         fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon): Vilkårsvurdert =

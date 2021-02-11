@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.søknadsbehandling
+package no.nav.su.se.bakover.domain.visitor
 
 import arrow.core.Either
 import arrow.core.left
@@ -19,6 +19,9 @@ import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingVisitor
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
+import no.nav.su.se.bakover.domain.søknadsbehandling.FinnSaksbehandlerVisitor
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingVisitor
 import java.time.Clock
 
 class LagBrevRequestVisitor(
@@ -37,55 +40,75 @@ class LagBrevRequestVisitor(
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Avslag) {
-        brevRequest = avslag(søknadsbehandling, søknadsbehandling.avslagsgrunner, null)
+        brevRequest = avslåttSøknadsbehandling(søknadsbehandling, søknadsbehandling.avslagsgrunner, null)
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Innvilget) {
-        brevRequest = innvilget(søknadsbehandling, søknadsbehandling.beregning)
+        brevRequest = innvilgetSøknadsbehandling(søknadsbehandling, søknadsbehandling.beregning)
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Avslag) {
-        brevRequest = avslag(søknadsbehandling, søknadsbehandling.avslagsgrunner, søknadsbehandling.beregning)
+        brevRequest = avslåttSøknadsbehandling(søknadsbehandling, søknadsbehandling.avslagsgrunner, søknadsbehandling.beregning)
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Simulert) {
-        brevRequest = innvilget(søknadsbehandling, søknadsbehandling.beregning)
+        brevRequest = innvilgetSøknadsbehandling(søknadsbehandling, søknadsbehandling.beregning)
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Innvilget) {
-        brevRequest = innvilget(søknadsbehandling, søknadsbehandling.beregning)
+        brevRequest = innvilgetSøknadsbehandling(søknadsbehandling, søknadsbehandling.beregning)
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.MedBeregning) {
-        brevRequest = avslag(søknadsbehandling, søknadsbehandling.avslagsgrunner, søknadsbehandling.beregning)
+        brevRequest = avslåttSøknadsbehandling(søknadsbehandling, søknadsbehandling.avslagsgrunner, søknadsbehandling.beregning)
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.UtenBeregning) {
-        brevRequest = avslag(søknadsbehandling, søknadsbehandling.avslagsgrunner, null)
+        brevRequest = avslåttSøknadsbehandling(søknadsbehandling, søknadsbehandling.avslagsgrunner, null)
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Avslag.UtenBeregning) {
-        brevRequest = avslag(søknadsbehandling, søknadsbehandling.avslagsgrunner, null)
+        brevRequest = avslåttSøknadsbehandling(søknadsbehandling, søknadsbehandling.avslagsgrunner, null)
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Avslag.MedBeregning) {
-        brevRequest = avslag(søknadsbehandling, søknadsbehandling.avslagsgrunner, søknadsbehandling.beregning)
+        brevRequest = avslåttSøknadsbehandling(søknadsbehandling, søknadsbehandling.avslagsgrunner, søknadsbehandling.beregning)
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Innvilget) {
-        brevRequest = innvilget(søknadsbehandling, søknadsbehandling.beregning)
+        brevRequest = innvilgetSøknadsbehandling(søknadsbehandling, søknadsbehandling.beregning)
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Iverksatt.Avslag.UtenBeregning) {
-        brevRequest = avslag(søknadsbehandling, søknadsbehandling.avslagsgrunner, null)
+        brevRequest = avslåttSøknadsbehandling(søknadsbehandling, søknadsbehandling.avslagsgrunner, null)
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Iverksatt.Avslag.MedBeregning) {
-        brevRequest = avslag(søknadsbehandling, søknadsbehandling.avslagsgrunner, søknadsbehandling.beregning)
+        brevRequest = avslåttSøknadsbehandling(søknadsbehandling, søknadsbehandling.avslagsgrunner, søknadsbehandling.beregning)
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget) {
-        brevRequest = innvilget(søknadsbehandling, søknadsbehandling.beregning)
+        brevRequest = innvilgetSøknadsbehandling(søknadsbehandling, søknadsbehandling.beregning)
+    }
+
+    override fun visit(revurdering: OpprettetRevurdering) {
+        throw BrevRequestFeil.KanIkkeLageBrevrequestForInstansException(revurdering)
+    }
+
+    override fun visit(revurdering: BeregnetRevurdering) {
+        throw BrevRequestFeil.KanIkkeLageBrevrequestForInstansException(revurdering)
+    }
+
+    override fun visit(revurdering: SimulertRevurdering) {
+        brevRequest = innvilgetRevurdering(revurdering, revurdering.beregning)
+    }
+
+    override fun visit(revurdering: RevurderingTilAttestering) {
+        brevRequest = innvilgetRevurdering(revurdering, revurdering.beregning)
+    }
+
+    override fun visit(revurdering: IverksattRevurdering) {
+        brevRequest = innvilgetRevurdering(revurdering, revurdering.beregning)
     }
 
     private fun hentPersonOgNavn(
@@ -113,7 +136,7 @@ class LagBrevRequestVisitor(
             }
     }
 
-    private fun avslag(
+    private fun avslåttSøknadsbehandling(
         søknadsbehandling: Søknadsbehandling,
         avslagsgrunner: List<Avslagsgrunn>,
         beregning: Beregning?
@@ -137,7 +160,7 @@ class LagBrevRequestVisitor(
             )
         }
 
-    private fun innvilget(søknadsbehandling: Søknadsbehandling, beregning: Beregning) =
+    private fun innvilgetSøknadsbehandling(søknadsbehandling: Søknadsbehandling, beregning: Beregning) =
         hentPersonOgNavn(
             fnr = søknadsbehandling.fnr,
             saksbehandler = FinnSaksbehandlerVisitor().let {
@@ -156,11 +179,11 @@ class LagBrevRequestVisitor(
             )
         }
 
-    private fun innvilgelze(revurdering: Revurdering, beregning: Beregning) =
+    private fun innvilgetRevurdering(revurdering: Revurdering, beregning: Beregning) =
         hentPersonOgNavn(
             fnr = revurdering.fnr,
             saksbehandler = revurdering.saksbehandler,
-            attestant = no.nav.su.se.bakover.domain.revurdering.FinnAttestantVisitor().let {
+            attestant = FinnAttestantVisitor().let {
                 revurdering.accept(it)
                 it.attestant
             }
@@ -218,25 +241,5 @@ class LagBrevRequestVisitor(
             val instans: Any,
             val msg: String = "Kan ikke laga brevrequest for instans av typen: ${instans::class.qualifiedName}"
         ) : RuntimeException(msg)
-    }
-
-    override fun visit(revurdering: OpprettetRevurdering) {
-        throw BrevRequestFeil.KanIkkeLageBrevrequestForInstansException(revurdering)
-    }
-
-    override fun visit(revurdering: BeregnetRevurdering) {
-        throw BrevRequestFeil.KanIkkeLageBrevrequestForInstansException(revurdering)
-    }
-
-    override fun visit(revurdering: SimulertRevurdering) {
-        brevRequest = innvilgelze(revurdering, revurdering.beregning)
-    }
-
-    override fun visit(revurdering: RevurderingTilAttestering) {
-        brevRequest = innvilgelze(revurdering, revurdering.beregning)
-    }
-
-    override fun visit(revurdering: IverksattRevurdering) {
-        brevRequest = innvilgelze(revurdering, revurdering.beregning)
     }
 }

@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
-interface SøknadsbehandlingVisitor {
+import no.nav.su.se.bakover.domain.visitor.Visitor
+
+interface SøknadsbehandlingVisitor : Visitor {
     fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Uavklart)
     fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Innvilget)
     fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Avslag)
