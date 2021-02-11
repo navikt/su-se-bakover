@@ -4,6 +4,8 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.database.EksterneIverksettingsstegEtterUtbetalingMapper
+import no.nav.su.se.bakover.database.EksterneIverksettingsstegForAvslagMapper
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.beregning.toSnapshot
@@ -22,8 +24,6 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegEtterUtbetaling
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegForAvslag
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -268,17 +268,10 @@ internal class SøknadsbehandlingPostgresRepo(
                 )
             }
             BehandlingsStatus.IVERKSATT_INNVILGET -> {
-                val eksterneIverksettingsteg = when {
-                    iverksattJournalpostId == null && iverksattBrevbestillingId == null -> EksterneIverksettingsstegEtterUtbetaling.VenterPåKvittering
-                    iverksattJournalpostId != null && iverksattBrevbestillingId != null -> EksterneIverksettingsstegEtterUtbetaling.JournalførtOgDistribuertBrev(
-                        journalpostId = iverksattJournalpostId,
-                        brevbestillingId = iverksattBrevbestillingId
-                    )
-                    iverksattJournalpostId != null -> EksterneIverksettingsstegEtterUtbetaling.Journalført(
-                        iverksattJournalpostId
-                    )
-                    else -> throw IllegalStateException("Kunne ikke bestemme eksterne iverksettingssteg for innvilgelse, iverksattJournalpostId:$iverksattJournalpostId, iverksattBrevbestillingId:$iverksattBrevbestillingId")
-                }
+                val eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetalingMapper.idToObject(
+                    iverksattJournalpostId,
+                    iverksattBrevbestillingId
+                )
                 Søknadsbehandling.Iverksatt.Innvilget(
                     id = behandlingId,
                     opprettet = opprettet,
@@ -297,18 +290,11 @@ internal class SøknadsbehandlingPostgresRepo(
                 )
             }
             BehandlingsStatus.IVERKSATT_AVSLAG -> {
-                val eksterneIverksettingsteg = when {
-                    iverksattJournalpostId != null && iverksattBrevbestillingId != null -> EksterneIverksettingsstegForAvslag.JournalførtOgDistribuertBrev(
-                        journalpostId = iverksattJournalpostId,
-                        brevbestillingId = iverksattBrevbestillingId
-                    )
-                    iverksattJournalpostId != null -> EksterneIverksettingsstegForAvslag.Journalført(
-                        iverksattJournalpostId
-                    )
-                    else -> throw IllegalStateException("Kunne ikke bestemme eksterne iverksettingssteg for avslag, iverksattJournalpostId:$iverksattJournalpostId, iverksattBrevbestillingId:$iverksattBrevbestillingId")
-                }
+                val eksterneIverksettingsteg = EksterneIverksettingsstegForAvslagMapper.idToObject(
+                    iverksattJournalpostId,
+                    iverksattBrevbestillingId
+                )
                 when (beregning) {
-
                     null -> Søknadsbehandling.Iverksatt.Avslag.UtenBeregning(
                         id = behandlingId,
                         opprettet = opprettet,
@@ -430,22 +416,8 @@ internal class SøknadsbehandlingPostgresRepo(
                             listOf(
                                 "attestering" to objectMapper.writeValueAsString(søknadsbehandling.attestering),
                                 "utbetalingId" to søknadsbehandling.utbetalingId,
-                                "iverksattBrevbestillingId" to when (
-                                    val e =
-                                        søknadsbehandling.eksterneIverksettingsteg
-                                ) {
-                                    is EksterneIverksettingsstegEtterUtbetaling.VenterPåKvittering,
-                                    is EksterneIverksettingsstegEtterUtbetaling.Journalført -> null
-                                    is EksterneIverksettingsstegEtterUtbetaling.JournalførtOgDistribuertBrev -> e.brevbestillingId.toString()
-                                },
-                                "iverksattJournalpostId" to when (
-                                    val e =
-                                        søknadsbehandling.eksterneIverksettingsteg
-                                ) {
-                                    is EksterneIverksettingsstegEtterUtbetaling.VenterPåKvittering -> null
-                                    is EksterneIverksettingsstegEtterUtbetaling.Journalført -> e.journalpostId.toString()
-                                    is EksterneIverksettingsstegEtterUtbetaling.JournalførtOgDistribuertBrev -> e.journalpostId.toString()
-                                },
+                                "iverksattBrevbestillingId" to EksterneIverksettingsstegEtterUtbetalingMapper.iverksattBrevbestillingId(søknadsbehandling.eksterneIverksettingsteg)?.toString(),
+                                "iverksattJournalpostId" to EksterneIverksettingsstegEtterUtbetalingMapper.iverksattJournalpostId(søknadsbehandling.eksterneIverksettingsteg)?.toString(),
                             )
                         ),
                         session = session
@@ -462,20 +434,8 @@ internal class SøknadsbehandlingPostgresRepo(
                         params = defaultParams(søknadsbehandling).plus(
                             listOf(
                                 "attestering" to objectMapper.writeValueAsString(søknadsbehandling.attestering),
-                                "iverksattBrevbestillingId" to when (
-                                    val e =
-                                        søknadsbehandling.eksterneIverksettingsteg
-                                ) {
-                                    is EksterneIverksettingsstegForAvslag.Journalført -> null
-                                    is EksterneIverksettingsstegForAvslag.JournalførtOgDistribuertBrev -> e.brevbestillingId.toString()
-                                },
-                                "iverksattJournalpostId" to when (
-                                    val e =
-                                        søknadsbehandling.eksterneIverksettingsteg
-                                ) {
-                                    is EksterneIverksettingsstegForAvslag.Journalført -> e.journalpostId.toString()
-                                    is EksterneIverksettingsstegForAvslag.JournalførtOgDistribuertBrev -> e.journalpostId.toString()
-                                },
+                                "iverksattBrevbestillingId" to EksterneIverksettingsstegForAvslagMapper.iverksattBrevbestillingId(søknadsbehandling.eksterneIverksettingsteg)?.toString(),
+                                "iverksattJournalpostId" to EksterneIverksettingsstegForAvslagMapper.iverksattJournalpostId(søknadsbehandling.eksterneIverksettingsteg)?.toString(),
                             )
                         ),
                         session = session

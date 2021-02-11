@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.service.revurdering
 
 import arrow.core.Either
-import no.nav.su.se.bakover.database.RevurderingRepo
+import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegFeil
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering

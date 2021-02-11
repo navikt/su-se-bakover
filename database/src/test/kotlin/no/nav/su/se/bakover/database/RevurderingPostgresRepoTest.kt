@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database
 
+import arrow.core.getOrHandle
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
@@ -7,8 +8,11 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.beregning.TestBeregning
+import no.nav.su.se.bakover.database.beregning.toSnapshot
+import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -19,6 +23,7 @@ import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.postgresql.util.PSQLException
+import java.time.LocalDate
 import java.util.UUID
 
 internal class RevurderingPostgresRepoTest {
@@ -352,6 +357,51 @@ internal class RevurderingPostgresRepoTest {
 
             assert(hentet is RevurderingTilAttestering)
             hentet!!.saksbehandler shouldNotBe opprettet.saksbehandler
+        }
+    }
+
+    @Test
+    fun `kan lagre og hente en iverksatt revurdering`() {
+        withMigratedDb {
+            val behandling = testDataHelper.nyOversendtUtbetalingMedKvittering().first
+            val attestant = NavIdentBruker.Attestant("Attestansson")
+
+            val opprettet = OpprettetRevurdering(
+                id = UUID.randomUUID(),
+                periode = periode,
+                opprettet = fixedTidspunkt,
+                tilRevurdering = behandling,
+                saksbehandler = saksbehandler
+            )
+            repo.lagre(opprettet)
+
+            val tilAttestering = RevurderingTilAttestering(
+                id = opprettet.id,
+                periode = periode,
+                opprettet = fixedTidspunkt,
+                tilRevurdering = behandling,
+                saksbehandler = saksbehandler,
+                beregning = TestBeregning.toSnapshot(),
+                simulering = Simulering(
+                    gjelderId = FnrGenerator.random(),
+                    gjelderNavn = "Navn Navnesson",
+                    datoBeregnet = LocalDate.now(),
+                    nettoBeløp = 5,
+                    periodeList = listOf()
+                ),
+                oppgaveId = OppgaveId(value = ""),
+            )
+            val utbetaling = testDataHelper.nyUtbetalingUtenKvittering(
+                revurderingTilAttestering = tilAttestering,
+            )
+
+            val iverksatt = tilAttestering.iverksett(
+                attestant = attestant,
+                utbetalingId = utbetaling.id
+            ).getOrHandle { throw RuntimeException("Skal ikke kunne skje") }
+
+            repo.lagre(iverksatt)
+            repo.hent(iverksatt.id) shouldBe iverksatt
         }
     }
 }

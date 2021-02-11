@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.database.beregning.PersistertMånedsberegning
 import no.nav.su.se.bakover.database.beregning.TestBeregning
 import no.nav.su.se.bakover.database.beregning.toSnapshot
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
+import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
 import no.nav.su.se.bakover.database.sak.SakPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadPostgresRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
@@ -38,6 +39,7 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import java.time.Clock
 import java.time.LocalDate
@@ -110,6 +112,24 @@ internal fun oversendtUtbetalingUtenKvittering(
     behandler = attestant,
     avstemmingsnøkkel = avstemmingsnøkkel,
     simulering = simulering(søknadsbehandling.fnr),
+    utbetalingsrequest = Utbetalingsrequest("<xml></xml>"),
+)
+
+internal fun oversendtUtbetalingUtenKvittering(
+    revurdering: RevurderingTilAttestering,
+    avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.database.avstemmingsnøkkel,
+    utbetalingslinjer: List<Utbetalingslinje> = listOf(utbetalingslinje())
+) = Utbetaling.OversendtUtbetaling.UtenKvittering(
+    id = UUID30.randomUUID(),
+    opprettet = fixedTidspunkt,
+    sakId = revurdering.tilRevurdering.sakId,
+    saksnummer = revurdering.tilRevurdering.saksnummer,
+    fnr = revurdering.fnr,
+    utbetalingslinjer = utbetalingslinjer,
+    type = Utbetaling.UtbetalingsType.NY,
+    behandler = attestant,
+    avstemmingsnøkkel = avstemmingsnøkkel,
+    simulering = simulering(revurdering.fnr),
     utbetalingsrequest = Utbetalingsrequest("<xml></xml>"),
 )
 
@@ -365,6 +385,19 @@ internal class TestDataHelper(
         utbetalingRepo.opprettUtbetaling(utbetaling)
         søknadsbehandlingRepo.lagre(innvilget)
         return innvilget to utbetaling
+    }
+
+    internal fun nyUtbetalingUtenKvittering(
+        revurderingTilAttestering: RevurderingTilAttestering,
+    ): Utbetaling.OversendtUtbetaling.UtenKvittering {
+        val utbetaling = oversendtUtbetalingUtenKvittering(
+            revurdering = revurderingTilAttestering,
+            avstemmingsnøkkel = avstemmingsnøkkel,
+            utbetalingslinjer = listOf(utbetalingslinje()),
+        ).copy(id = UUID30.randomUUID())
+
+        utbetalingRepo.opprettUtbetaling(utbetaling)
+        return utbetaling
     }
 
     internal fun nyIverksattAvslagUtenBeregning(eksterneIverksettingsteg: EksterneIverksettingsstegForAvslag = journalførtIverksettingForAvslag): Søknadsbehandling.Iverksatt.Avslag.UtenBeregning {

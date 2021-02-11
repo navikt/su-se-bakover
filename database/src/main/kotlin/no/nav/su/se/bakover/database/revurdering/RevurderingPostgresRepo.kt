@@ -1,15 +1,24 @@
-package no.nav.su.se.bakover.database
+package no.nav.su.se.bakover.database.revurdering
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.database.EksterneIverksettingsstegEtterUtbetalingMapper
+import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
+import no.nav.su.se.bakover.database.hent
+import no.nav.su.se.bakover.database.hentListe
+import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
+import no.nav.su.se.bakover.database.tidspunkt
+import no.nav.su.se.bakover.database.uuid
+import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegEtterUtbetaling
+import no.nav.su.se.bakover.domain.brev.BrevbestillingId
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -96,6 +105,9 @@ internal class RevurderingPostgresRepo(
         val attestant = stringOrNull("attestant")
         val utbetalingId = stringOrNull("utbetalingId")
 
+        val iverksattJournalpostId = stringOrNull("iverksattJournalpostId")?.let { JournalpostId(it) }
+        val iverksattBrevbestillingId = stringOrNull("iverksattBrevbestillingId")?.let { BrevbestillingId(it) }
+
         return when (RevurderingsType.valueOf(string("revurderingsType"))) {
             RevurderingsType.IVERKSATT -> IverksattRevurdering(
                 id = id,
@@ -108,7 +120,7 @@ internal class RevurderingPostgresRepo(
                 oppgaveId = OppgaveId(oppgaveId!!),
                 attestant = NavIdentBruker.Attestant(attestant!!),
                 utbetalingId = UUID30.fromString(utbetalingId!!),
-                eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.VenterPåKvittering // TODO colum for eksterne iverksettinssteg
+                eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetalingMapper.idToObject(iverksattJournalpostId, iverksattBrevbestillingId)
             )
             RevurderingsType.TIL_ATTESTERING -> RevurderingTilAttestering(
                 id = id,
@@ -152,9 +164,9 @@ internal class RevurderingPostgresRepo(
             (
                 """
                     insert into revurdering
-                        (id, opprettet, behandlingId, periode, beregning, simulering, saksbehandler, oppgaveId, revurderingsType, attestant, utbetalingId)
+                        (id, opprettet, behandlingId, periode, beregning, simulering, saksbehandler, oppgaveId, revurderingsType, attestant, utbetalingId, iverksattjournalpostid, iverksattbrevbestillingid)
                     values
-                        (:id, :opprettet, :behandlingId, to_json(:periode::json), null, null, :saksbehandler, :oppgaveId, :revurderingsType, null, null)
+                        (:id, :opprettet, :behandlingId, to_json(:periode::json), null, null, :saksbehandler, :oppgaveId, :revurderingsType, null, null, null, null)
                 """.trimIndent()
                 ).oppdatering(
                 mapOf(
@@ -261,7 +273,9 @@ internal class RevurderingPostgresRepo(
                         revurderingsType = :revurderingsType, 
                         oppgaveId = :oppgaveId,
                         attestant = :attestant,
-                        utbetalingId = :utbetalingId
+                        utbetalingId = :utbetalingId,
+                        iverksattjournalpostid = :iverksattjournalpostid,
+                        iverksattbrevbestillingid = :iverksattbrevbestillingid
                     where 
                         id = :id
                 """.trimIndent()
@@ -274,7 +288,9 @@ internal class RevurderingPostgresRepo(
                     "oppgaveId" to revurdering.oppgaveId.toString(),
                     "revurderingsType" to RevurderingsType.IVERKSATT.toString(),
                     "attestant" to revurdering.attestant.navIdent,
-                    "utbetalingId" to revurdering.utbetalingId
+                    "utbetalingId" to revurdering.utbetalingId,
+                    "iverksattjournalpostid" to EksterneIverksettingsstegEtterUtbetalingMapper.iverksattJournalpostId(revurdering.eksterneIverksettingsteg)?.toString(),
+                    "iverksattbrevbestillingid" to EksterneIverksettingsstegEtterUtbetalingMapper.iverksattBrevbestillingId(revurdering.eksterneIverksettingsteg)?.toString(),
                 ),
                 session
             )

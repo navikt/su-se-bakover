@@ -9,6 +9,8 @@ import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.database.person.PersonPostgresRepo
 import no.nav.su.se.bakover.database.person.PersonRepo
+import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
+import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.sak.SakPostgresRepo
 import no.nav.su.se.bakover.database.sak.SakRepo
 import no.nav.su.se.bakover.database.søknad.SøknadPostgresRepo

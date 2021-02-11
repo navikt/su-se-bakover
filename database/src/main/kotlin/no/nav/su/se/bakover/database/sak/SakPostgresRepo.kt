@@ -2,10 +2,10 @@ package no.nav.su.se.bakover.database.sak
 
 import kotliquery.Row
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.database.RevurderingPostgresRepo
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.oppdatering
+import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.database.tidspunkt
