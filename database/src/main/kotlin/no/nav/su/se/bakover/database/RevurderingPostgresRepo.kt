@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegEtterUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -100,13 +101,14 @@ internal class RevurderingPostgresRepo(
                 id = id,
                 periode = periode,
                 opprettet = opprettet,
-                tilRevurdering as Søknadsbehandling.Iverksatt.Innvilget, // TODO AVOID CAST
+                tilRevurdering = tilRevurdering as Søknadsbehandling.Iverksatt.Innvilget, // TODO AVOID CAST
                 saksbehandler = Saksbehandler(saksbehandler),
                 beregning = beregning!!,
                 simulering = simulering!!,
                 oppgaveId = OppgaveId(oppgaveId!!),
                 attestant = NavIdentBruker.Attestant(attestant!!),
-                utbetalingId = UUID30.fromString(utbetalingId!!)
+                utbetalingId = UUID30.fromString(utbetalingId!!),
+                eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.VenterPåKvittering // TODO colum for eksterne iverksettinssteg
             )
             RevurderingsType.TIL_ATTESTERING -> RevurderingTilAttestering(
                 id = id,

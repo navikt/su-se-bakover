@@ -115,7 +115,8 @@ internal class FerdigstillIverksettingServiceImplTest {
         ),
         oppgaveId = OppgaveId(""),
         attestant = NavIdentBruker.Attestant(navIdent = "Z321"),
-        utbetalingId = UUID30.randomUUID()
+        utbetalingId = UUID30.randomUUID(),
+        eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.VenterPåKvittering
     )
 
     @Test

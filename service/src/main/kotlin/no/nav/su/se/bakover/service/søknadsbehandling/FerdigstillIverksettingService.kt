@@ -14,7 +14,7 @@ interface FerdigstillIverksettingService {
         object FikkIkkeHentetSaksbehandlerEllerAttestant : KunneIkkeFerdigstilleInnvilgelse()
         object KunneIkkeOppretteJournalpost : KunneIkkeFerdigstilleInnvilgelse()
         object KunneIkkeDistribuereBrev : KunneIkkeFerdigstilleInnvilgelse()
-        object KunneIkkeOppretteOppgave : KunneIkkeFerdigstilleInnvilgelse()
+        object KunneIkkeLukkeOppgave : KunneIkkeFerdigstilleInnvilgelse()
         object FantIkkePerson : KunneIkkeFerdigstilleInnvilgelse()
     }
 

@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegEtterUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -561,7 +562,8 @@ internal class RevurderingServiceImplTest {
             simulering = testsimulering,
             oppgaveId = OppgaveId(value = "OppgaveId"),
             attestant = attestant,
-            utbetalingId = UUID30.randomUUID()
+            utbetalingId = UUID30.randomUUID(),
+            eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.VenterPåKvittering
         )
         val revurderingTilAttestering = mock<RevurderingTilAttestering> {
             on { this.id } doReturn revurderingId

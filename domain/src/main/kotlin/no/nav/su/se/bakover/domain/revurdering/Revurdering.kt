@@ -11,6 +11,11 @@ import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.brev.BrevbestillingId
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegEtterUtbetaling
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegFeil
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegFeil.EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeJournalføre.FeilVedJournalføring
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -99,16 +104,18 @@ data class SimulertRevurdering(
     override fun accept(visitor: RevurderingVisitor) {
         visitor.visit(this)
     }
-    fun tilAttestering(oppgaveId: OppgaveId, saksbehandler: Saksbehandler): RevurderingTilAttestering = RevurderingTilAttestering(
-        id = id,
-        periode = periode,
-        opprettet = opprettet,
-        tilRevurdering = tilRevurdering,
-        saksbehandler = saksbehandler,
-        beregning = beregning,
-        simulering = simulering,
-        oppgaveId = oppgaveId,
-    )
+
+    fun tilAttestering(oppgaveId: OppgaveId, saksbehandler: Saksbehandler): RevurderingTilAttestering =
+        RevurderingTilAttestering(
+            id = id,
+            periode = periode,
+            opprettet = opprettet,
+            tilRevurdering = tilRevurdering,
+            saksbehandler = saksbehandler,
+            beregning = beregning,
+            simulering = simulering,
+            oppgaveId = oppgaveId,
+        )
 }
 
 data class RevurderingTilAttestering(
@@ -130,7 +137,10 @@ data class RevurderingTilAttestering(
         throw RuntimeException("Skal ikke kunne beregne når revurderingen er til attestering")
     }
 
-    fun iverksett(attestant: NavIdentBruker.Attestant, utbetalingId: UUID30): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, IverksattRevurdering> {
+    fun iverksett(
+        attestant: NavIdentBruker.Attestant,
+        utbetalingId: UUID30
+    ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, IverksattRevurdering> {
         if (saksbehandler.navIdent == attestant.navIdent) {
             return AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
         }
@@ -144,10 +154,14 @@ data class RevurderingTilAttestering(
             simulering = simulering,
             oppgaveId = oppgaveId,
             attestant = attestant,
-            utbetalingId = utbetalingId
+            utbetalingId = utbetalingId,
+            eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.VenterPåKvittering
         ).right()
     }
-    fun underkjenn() { TODO() }
+
+    fun underkjenn() {
+        TODO()
+    }
 }
 
 data class IverksattRevurdering(
@@ -160,10 +174,20 @@ data class IverksattRevurdering(
     val simulering: Simulering,
     val oppgaveId: OppgaveId,
     val attestant: NavIdentBruker.Attestant,
-    val utbetalingId: UUID30
+    val utbetalingId: UUID30,
+    val eksterneIverksettingsteg: EksterneIverksettingsstegEtterUtbetaling
 ) : Revurdering() {
     override fun accept(visitor: RevurderingVisitor) {
         visitor.visit(this)
+    }
+
+    fun journalfør(journalfør: () -> Either<FeilVedJournalføring, JournalpostId>): Either<EksterneIverksettingsstegFeil.EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeJournalføre, IverksattRevurdering> {
+        return eksterneIverksettingsteg.journalfør(journalfør).map { copy(eksterneIverksettingsteg = it) }
+    }
+
+    fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<EksterneIverksettingsstegFeil.EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<EksterneIverksettingsstegFeil.EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeDistribuereBrev, IverksattRevurdering> {
+        return eksterneIverksettingsteg.distribuerBrev(distribuerBrev)
+            .map { copy(eksterneIverksettingsteg = it) }
     }
 
     override fun beregn(fradrag: List<Fradrag>): BeregnetRevurdering {
