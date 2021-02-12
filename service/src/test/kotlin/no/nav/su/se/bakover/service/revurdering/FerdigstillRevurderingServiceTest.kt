@@ -7,6 +7,8 @@ import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.doReturnConsecutively
 import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
+import com.nhaarman.mockitokotlin2.never
+import com.nhaarman.mockitokotlin2.times
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
@@ -278,6 +280,62 @@ internal class FerdigstillRevurderingServiceTest {
     }
 
     @Test
+    fun `fortsetter brevbestilling for journalført revurderinger `() {
+        val revurderingRepoMock = mock<RevurderingRepo>() {
+            on { hentRevurderingForUtbetaling(any()) } doReturn revurderingSomSkalFerdigstilles.copy(
+                eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.Journalført(iverksattJournalpostId)
+            )
+        }
+        val personServiceMock = mock<PersonService> {
+            on { hentPersonMedSystembruker(any()) } doReturn person.right()
+        }
+        val hentNavnMock = mock<MicrosoftGraphApiOppslag> {
+            on { hentBrukerinformasjonForNavIdent(any()) } doReturn microsoftGraphMock.response.right()
+        }
+        val brevServiceMock = mock<BrevService> {
+            on { distribuerBrev(any()) } doReturn iverksattBrevbestillingId.right()
+        }
+        val oppgaveServiceMock = mock<OppgaveService> {
+            on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
+        }
+
+        createFerdigstillIverksettingService(
+            revurderingRepo = revurderingRepoMock,
+            personService = personServiceMock,
+            microsoftGraphApiOppslag = hentNavnMock,
+            brevService = brevServiceMock,
+            oppgaveService = oppgaveServiceMock
+        ).ferdigstillIverksetting(utbetalingId)
+
+        inOrder(
+            revurderingRepoMock,
+            personServiceMock,
+            hentNavnMock,
+            brevServiceMock,
+            oppgaveServiceMock
+        ) {
+            verify(revurderingRepoMock).hentRevurderingForUtbetaling(utbetalingId)
+            verify(personServiceMock).hentPersonMedSystembruker(revurderingSomSkalFerdigstilles.fnr)
+            verify(hentNavnMock).hentBrukerinformasjonForNavIdent(revurderingSomSkalFerdigstilles.saksbehandler)
+            verify(hentNavnMock).hentBrukerinformasjonForNavIdent(revurderingSomSkalFerdigstilles.attestant)
+            verify(brevServiceMock, never()).journalførBrev(any(), any())
+            verify(brevServiceMock).distribuerBrev(iverksattJournalpostId)
+            verify(revurderingRepoMock).lagre(
+                argThat {
+                    it shouldBe revurderingSomSkalFerdigstilles.copy(
+                        eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.JournalførtOgDistribuertBrev(
+                            iverksattJournalpostId,
+                            iverksattBrevbestillingId
+                        )
+                    )
+                }
+            )
+            verify(oppgaveServiceMock).lukkOppgaveMedSystembruker(revurderingSomSkalFerdigstilles.oppgaveId)
+            verifyNoMoreInteractions()
+        }
+    }
+
+    @Test
     fun `kaster exception hvis brevdistribusjon feiler av tekniske årsaker`() {
         val revurderingRepoMock = mock<RevurderingRepo>() {
             on { hentRevurderingForUtbetaling(any()) } doReturn revurderingSomSkalFerdigstilles
@@ -324,6 +382,55 @@ internal class FerdigstillRevurderingServiceTest {
                 )
             )
             verify(brevServiceMock).distribuerBrev(iverksattJournalpostId)
+            verifyNoMoreInteractions()
+        }
+    }
+
+    @Test
+    fun `ferdistiller journalførte og distribuerte revurderinger`() {
+        val journalførtOgDistribuertRevurdering = revurderingSomSkalFerdigstilles.copy(
+            eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.JournalførtOgDistribuertBrev(
+                iverksattJournalpostId,
+                iverksattBrevbestillingId
+            )
+        )
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hentRevurderingForUtbetaling(any()) } doReturn journalførtOgDistribuertRevurdering
+        }
+        val personServiceMock = mock<PersonService> {
+            on { hentPersonMedSystembruker(any()) } doReturn person.right()
+        }
+        val hentNavnMock = mock<MicrosoftGraphApiOppslag> {
+            on { hentBrukerinformasjonForNavIdent(any()) } doReturn microsoftGraphMock.response.right()
+        }
+        val brevServiceMock = mock<BrevService>()
+        val oppgaveServiceMock = mock<OppgaveService> {
+            on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
+        }
+
+        createFerdigstillIverksettingService(
+            revurderingRepo = revurderingRepoMock,
+            personService = personServiceMock,
+            microsoftGraphApiOppslag = hentNavnMock,
+            brevService = brevServiceMock,
+            oppgaveService = oppgaveServiceMock
+        ).ferdigstillIverksetting(utbetalingId)
+
+        inOrder(
+            revurderingRepoMock,
+            personServiceMock,
+            hentNavnMock,
+            brevServiceMock,
+            oppgaveServiceMock
+        ) {
+            verify(revurderingRepoMock).hentRevurderingForUtbetaling(utbetalingId)
+            verify(personServiceMock).hentPersonMedSystembruker(revurderingSomSkalFerdigstilles.fnr)
+            verify(hentNavnMock).hentBrukerinformasjonForNavIdent(revurderingSomSkalFerdigstilles.saksbehandler)
+            verify(hentNavnMock).hentBrukerinformasjonForNavIdent(revurderingSomSkalFerdigstilles.attestant)
+            verify(brevServiceMock, never()).journalførBrev(any(), any())
+            verify(brevServiceMock, never()).distribuerBrev(any())
+            verify(revurderingRepoMock, times(2)).lagre(argThat { it shouldBe journalførtOgDistribuertRevurdering })
+            verify(oppgaveServiceMock).lukkOppgaveMedSystembruker(revurderingSomSkalFerdigstilles.oppgaveId)
             verifyNoMoreInteractions()
         }
     }
