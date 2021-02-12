@@ -68,7 +68,7 @@ internal class FerdigstillIverksettingServiceImpl(
         }
 
         søknadsbehandling?.let { ferdigstillSøknadsbehandlingService.ferdigstillSøknadsbehandling(søknadsbehandling) }
-        revurdering?.let { ferdigstillRevurderingService.ferdigstillRevurdering(revurdering) }
+        revurdering?.let { ferdigstillRevurderingService.ferdigstill(revurdering) }
     }
 
     override fun opprettManglendeJournalpostOgBrevdistribusjon(): FerdigstillIverksettingService.OpprettManglendeJournalpostOgBrevdistribusjonResultat {
