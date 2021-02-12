@@ -76,10 +76,18 @@ internal class OppgaveHttpClient(
     private fun opprettOppgave(config: OppgaveConfig, token: String): Either<KunneIkkeOppretteOppgave, OppgaveId> {
         val aktivDato = LocalDate.now(clock)
 
-        val beskrivelse =
-            "--- ${
-            Tidspunkt.now(clock).toOppgaveFormat()
-            } - Opprettet av Supplerende Stønad ---\nSøknadId : ${config.søknadId}"
+        val beskrivelse = when (config) {
+            is OppgaveConfig.Attestering, is OppgaveConfig.Saksbehandling ->
+                "--- ${
+                Tidspunkt.now(clock).toOppgaveFormat()
+                } - Opprettet av Supplerende Stønad ---\nSøknadId : ${config.saksreferanse}"
+
+            is OppgaveConfig.Revurderingsbehandling, is OppgaveConfig.AttesterRevurdering ->
+                "--- ${
+                Tidspunkt.now(clock).toOppgaveFormat()
+                } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}"
+        }
+
         val (_, response, result) = "${connectionConfig.url}$oppgavePath".httpPost()
             .authentication().bearer(token)
             .header("Accept", "application/json")
@@ -89,7 +97,7 @@ internal class OppgaveHttpClient(
                 objectMapper.writeValueAsString(
                     OppgaveRequest(
                         journalpostId = config.journalpostId?.toString(),
-                        saksreferanse = config.søknadId.toString(),
+                        saksreferanse = config.saksreferanse,
                         aktoerId = config.aktørId.toString(),
                         tema = Tema.SUPPLERENDE_STØNAD.value,
                         behandlesAvApplikasjon = "SUPSTONAD",

@@ -85,10 +85,10 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
             brevbestillingId
         )
 
-    private val saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler")
-    private val attestant = NavIdentBruker.Attestant("attestant")
-    private val saksbehandlerNavn = "Saksbehandler Saksbehandlson"
-    private val attestantNavn = "Attestant Attestantsen"
+    private val saksbehandler = NavIdentBruker.Saksbehandler("Z123")
+    private val saksbehandlerNavn = "saksbehandlerNavn"
+    private val attestant = NavIdentBruker.Attestant("Z321")
+    private val attestantNavn = "attestantNavn"
 
     private val innvilgetBehandlingUtenJournalpost = Søknadsbehandling.Iverksatt.Innvilget(
         søknad = Søknad.Journalført.MedOppgave(

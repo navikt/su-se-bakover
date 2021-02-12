@@ -48,7 +48,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
@@ -123,7 +122,7 @@ internal class RevurderingServiceImplTest {
         saksbehandler = saksbehandler,
         attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("Attes T. Ant")),
         sakId = sakId,
-        saksnummer = BehandlingTestUtils.saksnummer,
+        saksnummer = saksnummer,
         fnr = fnr,
         oppgaveId = mock(),
         beregning = beregningMock,
@@ -148,22 +147,43 @@ internal class RevurderingServiceImplTest {
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { lagre(any()) }.doNothing()
         }
+
+        val personServiceMock = mock<PersonService> {
+            on { hentAktørId(any()) } doReturn aktørId.right()
+        }
+
+        val oppgaveServiceMock = mock<OppgaveService> {
+            on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
+        }
+
         val actual = createRevurderingService(
             sakService = sakServiceMock,
-            revurderingRepo = revurderingRepoMock
+            revurderingRepo = revurderingRepoMock,
+            oppgaveService = oppgaveServiceMock,
+            personService = personServiceMock
         ).opprettRevurdering(
             sakId = sakId,
             periode = periode,
             saksbehandler = saksbehandler
         ).getOrHandle { throw RuntimeException("Skal ikke kunne skje") }
 
-        inOrder(sakServiceMock, revurderingRepoMock) {
+        inOrder(sakServiceMock, personServiceMock, oppgaveServiceMock, revurderingRepoMock) {
             verify(sakServiceMock).hentSak(sakId)
             verify(revurderingRepoMock).hentRevurderingForBehandling(argThat { it shouldBe actual.tilRevurdering.id })
-            verify(revurderingRepoMock).lagre(argThat { it shouldBe actual })
+            verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
+            verify(oppgaveServiceMock).opprettOppgave(
+                argThat {
+                    it shouldBe OppgaveConfig.Revurderingsbehandling(
+                        saksnummer = saksnummer,
+                        aktørId = aktørId,
+                        tilordnetRessurs = null
+                    )
+                }
+            )
+            verify(revurderingRepoMock).lagre(argThat { it.right() shouldBe actual.right() })
         }
 
-        verifyNoMoreInteractions(sakServiceMock, revurderingRepoMock)
+        verifyNoMoreInteractions(sakServiceMock, personServiceMock, oppgaveServiceMock, revurderingRepoMock)
     }
 
     @Test
@@ -398,6 +418,7 @@ internal class RevurderingServiceImplTest {
         val behandlingMock = mock<Søknadsbehandling.Iverksatt.Innvilget> {
             on { fnr } doReturn fnr
             on { søknad } doReturn søknadMock
+            on { saksnummer } doReturn saksnummer
         }
 
         val simulertRevurdering = mock<SimulertRevurdering> {
@@ -413,11 +434,9 @@ internal class RevurderingServiceImplTest {
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn simulertRevurdering
         }
-
         val personServiceMock = mock<PersonService> {
             on { hentAktørId(any()) } doReturn aktørId.right()
         }
-
         val oppgaveServiceMock = mock<OppgaveService> {
             on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
         }
@@ -436,8 +455,8 @@ internal class RevurderingServiceImplTest {
             verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
             verify(oppgaveServiceMock).opprettOppgave(
                 argThat {
-                    it shouldBe OppgaveConfig.Attestering(
-                        søknadId = simulertRevurdering.tilRevurdering.søknad.id,
+                    it shouldBe OppgaveConfig.AttesterRevurdering(
+                        saksnummer = saksnummer,
                         aktørId = aktørId,
                         tilordnetRessurs = null
                     )
@@ -509,6 +528,7 @@ internal class RevurderingServiceImplTest {
         val behandlingMock = mock<Søknadsbehandling.Iverksatt.Innvilget> {
             on { fnr } doReturn fnr
             on { søknad } doReturn søknadMock
+            on { saksnummer } doReturn saksnummer
         }
         val simulertRevurdering = mock<SimulertRevurdering> {
             on { tilRevurdering } doReturn behandlingMock

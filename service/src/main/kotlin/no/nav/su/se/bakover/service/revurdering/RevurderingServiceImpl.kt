@@ -58,14 +58,29 @@ internal class RevurderingServiceImpl(
                 if (tilRevurdering.size > 1) return KunneIkkeRevurdere.KanIkkeRevurderePerioderMedFlereAktiveStønadsperioder.left()
                 if (revurderingRepo.hentRevurderingForBehandling(tilRevurdering.single().id) != null) KunneIkkeRevurdere.KanIkkeRevurdereEnPeriodeMedEksisterendeRevurdering.left()
 
-                tilRevurdering.single().let {
-                    val revurdering = OpprettetRevurdering(
-                        periode = periode,
-                        tilRevurdering = it,
-                        saksbehandler = saksbehandler
-                    )
-                    revurderingRepo.lagre(revurdering)
-                    revurdering
+                tilRevurdering.single().let { søknadsbehandling ->
+                    val aktørId = personService.hentAktørId(søknadsbehandling.fnr).getOrElse {
+                        log.error("Fant ikke aktør-id")
+                        return KunneIkkeRevurdere.FantIkkeAktørid.left()
+                    }
+
+                    return oppgaveService.opprettOppgave(
+                        OppgaveConfig.Revurderingsbehandling(
+                            saksnummer = søknadsbehandling.saksnummer,
+                            aktørId = aktørId,
+                            tilordnetRessurs = null
+                        )
+                    ).mapLeft {
+                        KunneIkkeRevurdere.KunneIkkeOppretteOppgave
+                    }.map {
+                        val revurdering = OpprettetRevurdering(
+                            periode = periode,
+                            tilRevurdering = søknadsbehandling,
+                            saksbehandler = saksbehandler
+                        )
+                        revurderingRepo.lagre(revurdering)
+                        revurdering
+                    }
                 }
             }
     }
@@ -108,8 +123,8 @@ internal class RevurderingServiceImpl(
                 }
 
                 val oppgaveId = oppgaveService.opprettOppgave(
-                    OppgaveConfig.Attestering(
-                        revurdering.tilRevurdering.søknad.id,
+                    OppgaveConfig.AttesterRevurdering(
+                        saksnummer = revurdering.tilRevurdering.saksnummer,
                         aktørId = aktørId,
                         // Første gang den sendes til attestering er attestant null, de påfølgende gangene vil den være attestanten som har underkjent.
                         // TODO: skal ikke være null. attestant kan endre seg. må legge til attestant på revurdering
