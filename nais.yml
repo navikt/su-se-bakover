@@ -10,9 +10,6 @@ spec:
     application:
       enabled: true
       tenant: {{ tenant }}
-      replyURLs:
-        - "http://localhost:8080/callback"
-        - {{ env.BACKEND_CALLBACK_URL }}
   accessPolicy:
     inbound:
       rules:

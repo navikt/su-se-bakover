@@ -6,7 +6,6 @@
   "kafka-pool": "nav-prod",
   "env": {
     "ALLOW_CORS_ORIGIN": "supplerendestonad.nais.adeo.no",
-    "BACKEND_CALLBACK_URL": "https://su-se-bakover.nais.adeo.no/callback",
     "FRONTEND_BASE_URL": "https://supplerendestonad.nais.adeo.no",
     "VAULT_MOUNTPATH": "postgresql/prod-fss/",
     "DATABASE_NAME": "supstonad-db-prod",
