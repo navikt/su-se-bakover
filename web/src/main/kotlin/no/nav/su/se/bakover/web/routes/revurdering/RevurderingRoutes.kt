@@ -45,7 +45,7 @@ internal fun Route.revurderingRoutes(
         post("$revurderingPath/opprett") {
             call.withSakId { sakId ->
                 call.withBody<PeriodeJson> { periodeJson ->
-                    val navIdent = call.suUserContext.getNAVIdent()
+                    val navIdent = call.suUserContext.navIdent
                     periodeJson.toPeriode()
                         .mapLeft { call.svar(it) }
                         .map { periode ->
@@ -88,7 +88,7 @@ internal fun Route.revurderingRoutes(
                             ifRight = {
                                 revurderingService.beregnOgSimuler(
                                     revurderingId = revurderingId,
-                                    saksbehandler = Saksbehandler(call.suUserContext.getNAVIdent()),
+                                    saksbehandler = Saksbehandler(call.suUserContext.navIdent),
                                     fradrag = it
                                 ).fold(
                                     ifLeft = { revurderingFeilet -> call.svar(revurderingFeilet.tilFeilMelding()) },
@@ -107,7 +107,7 @@ internal fun Route.revurderingRoutes(
     post("$revurderingPath/{revurderingId}/tilAttestering") {
         call.withRevurderingId { revurderingId ->
             revurderingService.sendTilAttestering(
-                revurderingId = revurderingId, saksbehandler = Saksbehandler(call.suUserContext.getNAVIdent())
+                revurderingId = revurderingId, saksbehandler = Saksbehandler(call.suUserContext.navIdent)
             ).fold(
                 ifLeft = { call.svar(it.tilFeilMelding()) },
                 ifRight = {

@@ -36,8 +36,7 @@ internal class StansUtbetalingRoutesKtTest {
                 HttpMethod.Post,
                 "$sakPath/$sakId/utbetalinger/stans",
                 listOf(Brukerrolle.Saksbehandler)
-            ) {
-            }.apply {
+            ).apply {
                 response.status() shouldBe HttpStatusCode.NotFound
                 response.content shouldContain "Fant ikke sak"
             }
@@ -56,8 +55,7 @@ internal class StansUtbetalingRoutesKtTest {
                 HttpMethod.Post,
                 "$sakPath/$sakId/utbetalinger/stans",
                 listOf(Brukerrolle.Saksbehandler)
-            ) {
-            }.apply {
+            ).apply {
                 response.status() shouldBe HttpStatusCode.InternalServerError
                 response.content shouldContain "Simulering av stans feilet"
             }
@@ -76,8 +74,7 @@ internal class StansUtbetalingRoutesKtTest {
                 HttpMethod.Post,
                 "$sakPath/$sakId/utbetalinger/stans",
                 listOf(Brukerrolle.Saksbehandler)
-            ) {
-            }.apply {
+            ).apply {
                 response.status() shouldBe HttpStatusCode.InternalServerError
                 response.content shouldContain "Oversendelse til oppdrag feilet"
             }
@@ -96,8 +93,7 @@ internal class StansUtbetalingRoutesKtTest {
                 HttpMethod.Post,
                 "$sakPath/$sakId/utbetalinger/stans",
                 listOf(Brukerrolle.Saksbehandler)
-            ) {
-            }.apply {
+            ).apply {
                 response.status() shouldBe HttpStatusCode.InternalServerError
                 response.content shouldContain "beløp for utbetaling ulikt 0"
             }

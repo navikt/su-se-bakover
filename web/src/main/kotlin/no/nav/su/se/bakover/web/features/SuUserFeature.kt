@@ -1,15 +1,12 @@
 package no.nav.su.se.bakover.web.features
 
-import arrow.core.Either
-import arrow.core.getOrHandle
 import io.ktor.application.ApplicationCall
 import io.ktor.application.ApplicationCallPipeline
 import io.ktor.application.ApplicationFeature
 import io.ktor.application.call
 import io.ktor.application.feature
 import io.ktor.auth.Authentication
-import io.ktor.http.HttpHeaders
-import io.ktor.request.header
+import io.ktor.auth.authentication
 import io.ktor.routing.Route
 import io.ktor.routing.RouteSelector
 import io.ktor.routing.RouteSelectorEvaluation
@@ -17,22 +14,22 @@ import io.ktor.routing.RoutingResolveContext
 import io.ktor.routing.application
 import io.ktor.util.AttributeKey
 import io.ktor.util.KtorExperimentalAPI
-import io.ktor.util.pipeline.PipelineContext
 import io.ktor.util.pipeline.PipelinePhase
-import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
-import no.nav.su.se.bakover.client.person.MicrosoftGraphResponse
+import no.nav.su.se.bakover.common.ApplicationConfig
+import no.nav.su.se.bakover.web.getGroupsFromJWT
+import no.nav.su.se.bakover.web.getNAVidentFromJwt
+import no.nav.su.se.bakover.web.getNavnFromJwt
 
 /**
  * Dette er basert løst på denne bloggposten: https://www.ximedes.com/2020-09-17/role-based-authorization-in-ktor/
  */
 
 @KtorExperimentalAPI
-class SuUserFeature(configuration: Configuration) {
-    val clients = configuration.clients
+class SuUserFeature(private val configuration: Configuration) {
 
     class Configuration {
-        lateinit var clients: Clients
+        lateinit var applicationConfig: ApplicationConfig
     }
 
     fun interceptPipeline(pipeline: ApplicationCallPipeline) {
@@ -40,27 +37,8 @@ class SuUserFeature(configuration: Configuration) {
         pipeline.insertPhaseAfter(Authentication.ChallengePhase, SuUserContextPhase)
 
         pipeline.intercept(SuUserContextPhase) {
-            intercept(this)
+            SuUserContext.init(call, configuration.applicationConfig)
         }
-    }
-
-    private fun intercept(context: PipelineContext<Unit, ApplicationCall>) {
-        val suUserContext = SuUserContext.from(context.call)
-
-        if (suUserContext.isInitialized()) {
-            return
-        }
-
-        val authHeader = context.call.request.header(HttpHeaders.Authorization)
-
-        suUserContext.setUser(
-            if (authHeader != null) {
-                clients.microsoftGraphApiClient.hentBrukerinformasjon(authHeader)
-                    .mapLeft { KallMotMicrosoftGraphApiFeilet(it) }
-            } else {
-                Either.Left(ManglerAuthHeader)
-            }
-        )
     }
 
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, SuUserFeature> {
@@ -83,28 +61,20 @@ internal data class KallMotMicrosoftGraphApiFeilet(val feil: MicrosoftGraphApiOp
     SuUserFeaturefeil("Kall mot Microsoft Graph Api feilet")
 internal object FantBrukerMenManglerNAVIdent : SuUserFeaturefeil("Bruker mangler NAVIdent")
 
-class SuUserContext(val call: ApplicationCall) {
-    private var _user: Either<SuUserFeaturefeil, MicrosoftGraphResponse>? = null
-
-    val user: MicrosoftGraphResponse
-        get() = _user
-            ?.getOrHandle { throw it }
-            ?: throw IkkeInitialisert
-
-    internal fun setUser(u: Either<SuUserFeaturefeil, MicrosoftGraphResponse>) {
-        _user = u
-    }
+class SuUserContext(val call: ApplicationCall, applicationConfig: ApplicationConfig) {
+    val navIdent: String = getNAVidentFromJwt(applicationConfig, call.authentication.principal)
+    val navn: String = getNavnFromJwt(applicationConfig, call.authentication.principal)
+    val grupper = getGroupsFromJWT(applicationConfig, call.authentication.principal)
 
     companion object {
         private val AttributeKey = AttributeKey<SuUserContext>("SuUserContext")
 
+        internal fun init(call: ApplicationCall, applicationConfig: ApplicationConfig) =
+            call.attributes.put(AttributeKey, SuUserContext(call, applicationConfig))
+
         internal fun from(call: ApplicationCall) =
-            call.attributes.computeIfAbsent(AttributeKey) { SuUserContext(call) }
+            call.attributes[AttributeKey]
     }
-
-    internal fun isInitialized() = _user != null
-
-    fun getNAVIdent(): String = user.onPremisesSamAccountName ?: throw FantBrukerMenManglerNAVIdent
 }
 
 val ApplicationCall.suUserContext: SuUserContext

@@ -17,7 +17,6 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 data class MicrosoftGraphResponse(
-    val onPremisesSamAccountName: String?,
     val displayName: String,
     val givenName: String,
     val mail: String,
