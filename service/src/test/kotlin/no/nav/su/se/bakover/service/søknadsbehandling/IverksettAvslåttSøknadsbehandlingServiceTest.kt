@@ -64,7 +64,6 @@ internal class IverksettAvslåttSøknadsbehandlingServiceTest {
         navn = Person.Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy")
     )
     private val graphApiResponse = MicrosoftGraphResponse(
-        onPremisesSamAccountName = "",
         displayName = "Nav Navesen",
         givenName = "",
         mail = "",

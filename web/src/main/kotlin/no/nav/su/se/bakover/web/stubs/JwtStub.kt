@@ -17,6 +17,8 @@ internal class JwtStub(
     fun createJwtToken(
         subject: String = "enSaksbehandler",
         roller: List<Brukerrolle> = listOf(Brukerrolle.Saksbehandler, Brukerrolle.Attestant, Brukerrolle.Veileder),
+        navIdent: String? = "Z990Lokal",
+        navn: String? = "Brukerens navn",
         audience: String = applicationConfig.azure.clientId,
         expiresAt: Date = Date.from(Instant.now().plus(1L, ChronoUnit.DAYS)),
         issuer: String = AuthStubCommonConfig.issuer
@@ -24,6 +26,8 @@ internal class JwtStub(
         return JWT.create()
             .withIssuer(issuer)
             .withAudience(audience)
+            .withClaim("NAVident", navIdent)
+            .withClaim("name", navn)
             .withKeyId(AuthStubCommonConfig.keyId)
             .withSubject(subject)
             .withArrayClaim("groups", roller.map(::toAzureTestGroup).toTypedArray())

@@ -20,7 +20,7 @@ import no.nav.su.se.bakover.web.features.suUserContext
 import java.util.UUID
 
 internal fun ApplicationCall.audit(msg: String) {
-    sikkerLogg.info("${suUserContext.getNAVIdent()} $msg")
+    sikkerLogg.info("${suUserContext.navIdent} $msg")
 }
 
 internal fun getGroupsFromJWT(applicationConfig: ApplicationConfig, principal: Principal?): List<String> =
@@ -42,6 +42,20 @@ private fun getGroupsFromJWT(applicationConfig: ApplicationConfig, payload: Payl
         }
     } else {
         payload.getClaim("groups").asList(String::class.java)
+    }
+
+internal fun getNAVidentFromJwt(applicationConfig: ApplicationConfig, principal: Principal?): String =
+    if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
+        "Z9999999"
+    } else {
+        (principal as JWTPrincipal).payload.getClaim("NAVident").asString()
+    }
+
+internal fun getNavnFromJwt(applicationConfig: ApplicationConfig, principal: Principal?): String =
+    if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
+        "Ulrik Utvikler"
+    } else {
+        (principal as JWTPrincipal).payload.getClaim("name").asString()
     }
 
 internal fun String.toUUID() =

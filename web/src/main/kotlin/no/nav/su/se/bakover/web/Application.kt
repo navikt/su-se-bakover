@@ -43,7 +43,7 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
 import no.nav.su.se.bakover.service.AccessCheckProxy
-import no.nav.su.se.bakover.service.ProdServiceBuilder
+import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.Tilgangssjekkfeil
 import no.nav.su.se.bakover.web.features.Authorization
@@ -106,7 +106,7 @@ internal fun Application.susebakover(
                 clock = clock,
             ).build(applicationConfig),
     services: Services = if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {
-        ProdServiceBuilder.build(
+        ServiceBuilder.build(
             databaseRepos = databaseRepos,
             clients = clients,
             behandlingMetrics = behandlingMetrics,
@@ -122,7 +122,7 @@ internal fun Application.susebakover(
             )
         )
     } else {
-        ProdServiceBuilder.build(
+        ServiceBuilder.build(
             databaseRepos = databaseRepos,
             clients = clients,
             behandlingMetrics = behandlingMetrics,
@@ -230,7 +230,7 @@ internal fun Application.susebakover(
     install(XForwardedHeaderSupport)
 
     install(SuUserFeature) {
-        this.clients = clients
+        this.applicationConfig = applicationConfig
     }
 
     routing {

@@ -13,7 +13,7 @@ import java.time.Clock
 internal class ServiceBuilderTest {
     @Test
     fun `StatistikkService observerer SakService`() {
-        ProdServiceBuilder.build(
+        ServiceBuilder.build(
             databaseRepos = DatabaseRepos(
                 avstemming = mock(),
                 utbetaling = mock(),

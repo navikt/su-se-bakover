@@ -68,8 +68,7 @@ internal class GjenopptaUtbetalingRoutesKtTest {
                 HttpMethod.Post,
                 "$sakPath/$sakId/utbetalinger/gjenoppta",
                 listOf(Brukerrolle.Saksbehandler)
-            ) {
-            }.apply {
+            ).apply {
                 response.status() shouldBe HttpStatusCode.NotFound
                 response.content shouldContain "Fant ikke sak"
             }
@@ -97,8 +96,7 @@ internal class GjenopptaUtbetalingRoutesKtTest {
                 HttpMethod.Post,
                 "$sakPath/$sakId/utbetalinger/gjenoppta",
                 listOf(Brukerrolle.Saksbehandler)
-            ) {
-            }.apply {
+            ).apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
                 response.content shouldContain "Ingen utbetalinger"
             }
@@ -126,8 +124,7 @@ internal class GjenopptaUtbetalingRoutesKtTest {
                 HttpMethod.Post,
                 "$sakPath/$sakId/utbetalinger/gjenoppta",
                 listOf(Brukerrolle.Saksbehandler)
-            ) {
-            }.apply {
+            ).apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
                 response.content shouldContain "Siste utbetaling er ikke en stans"
             }
@@ -155,8 +152,7 @@ internal class GjenopptaUtbetalingRoutesKtTest {
                 HttpMethod.Post,
                 "$sakPath/$sakId/utbetalinger/gjenoppta",
                 listOf(Brukerrolle.Saksbehandler)
-            ) {
-            }.apply {
+            ).apply {
                 response.status() shouldBe HttpStatusCode.InternalServerError
                 response.content shouldContain "Simulering feilet"
             }
@@ -184,8 +180,7 @@ internal class GjenopptaUtbetalingRoutesKtTest {
                 HttpMethod.Post,
                 "$sakPath/$sakId/utbetalinger/gjenoppta",
                 listOf(Brukerrolle.Saksbehandler)
-            ) {
-            }.apply {
+            ).apply {
                 response.status() shouldBe HttpStatusCode.InternalServerError
                 response.content shouldContain "Oversendelse til oppdrag feilet"
             }
@@ -233,8 +228,7 @@ internal class GjenopptaUtbetalingRoutesKtTest {
                 HttpMethod.Post,
                 "$sakPath/$sakId/utbetalinger/gjenoppta",
                 listOf(Brukerrolle.Saksbehandler)
-            ) {
-            }.apply {
+            ).apply {
                 response.status() shouldBe HttpStatusCode.OK
                 objectMapper.readValue<SakJson>(response.content!!) shouldBe sak.toJson()
             }

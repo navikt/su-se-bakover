@@ -31,8 +31,8 @@ internal fun Route.meRoutes(applicationConfig: ApplicationConfig, azureGroupMapp
             HttpStatusCode.OK,
             serialize(
                 UserData(
-                    navn = call.suUserContext.user.displayName,
-                    navIdent = call.suUserContext.getNAVIdent(),
+                    navn = call.suUserContext.navn,
+                    navIdent = call.suUserContext.navIdent,
                     roller = roller
                 )
             )

@@ -119,7 +119,7 @@ internal fun Route.behandlingRoutes(
                     søknadsbehandlingService.vilkårsvurder(
                         VilkårsvurderRequest(
                             behandlingId = behandlingId,
-                            saksbehandler = Saksbehandler(call.suUserContext.getNAVIdent()),
+                            saksbehandler = Saksbehandler(call.suUserContext.navIdent),
                             behandlingsinformasjon = behandlingsinformasjonFromJson(body)
                         )
                     ).mapLeft {
@@ -143,7 +143,7 @@ internal fun Route.behandlingRoutes(
         post("$behandlingPath/{behandlingId}/beregn") {
             call.withBehandlingId { behandlingId ->
                 call.withBody<NyBeregningForSøknadsbehandlingJson> { body ->
-                    body.toDomain(behandlingId, Saksbehandler(call.suUserContext.getNAVIdent()))
+                    body.toDomain(behandlingId, Saksbehandler(call.suUserContext.navIdent))
                         .mapLeft { call.svar(it) }
                         .map {
                             søknadsbehandlingService.beregn(
@@ -211,7 +211,7 @@ internal fun Route.behandlingRoutes(
                 søknadsbehandlingService.simuler(
                     SimulerRequest(
                         behandlingId = behandlingId,
-                        saksbehandler = Saksbehandler(call.suUserContext.getNAVIdent())
+                        saksbehandler = Saksbehandler(call.suUserContext.navIdent)
                     )
                 ).fold(
                     {
@@ -238,7 +238,7 @@ internal fun Route.behandlingRoutes(
         post("$behandlingPath/{behandlingId}/tilAttestering") {
             call.withBehandlingId { behandlingId ->
                 call.withSakId {
-                    val saksBehandler = Saksbehandler(call.suUserContext.getNAVIdent())
+                    val saksBehandler = Saksbehandler(call.suUserContext.navIdent)
                     søknadsbehandlingService.sendTilAttestering(
                         SendTilAttesteringRequest(
                             behandlingId = behandlingId,
@@ -307,7 +307,7 @@ internal fun Route.behandlingRoutes(
         patch("$behandlingPath/{behandlingId}/iverksett") {
             call.withBehandlingId { behandlingId ->
 
-                val navIdent = call.suUserContext.getNAVIdent()
+                val navIdent = call.suUserContext.navIdent
 
                 søknadsbehandlingService.iverksett(
                     IverksettRequest(
@@ -335,7 +335,7 @@ internal fun Route.behandlingRoutes(
 
     authorize(Brukerrolle.Attestant) {
         patch("$behandlingPath/{behandlingId}/underkjenn") {
-            val navIdent = call.suUserContext.getNAVIdent()
+            val navIdent = call.suUserContext.navIdent
 
             call.withBehandlingId { behandlingId ->
                 Either.catch { deserialize<UnderkjennBody>(call) }.fold(

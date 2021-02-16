@@ -28,7 +28,7 @@ internal fun Route.stansutbetalingRoutes(
             call.withSakId { sakId ->
                 utbetalingService.stansUtbetalinger(
                     sakId = sakId,
-                    saksbehandler = call.suUserContext.getNAVIdent().let { Saksbehandler(it) }
+                    saksbehandler = call.suUserContext.navIdent.let { Saksbehandler(it) }
                 ).fold(
                     {
                         when (it) {

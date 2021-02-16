@@ -9,7 +9,6 @@ import java.util.UUID
 
 object MicrosoftGraphApiClientStub : MicrosoftGraphApiOppslag {
     private val response = MicrosoftGraphResponse(
-        onPremisesSamAccountName = "Z990Lokal",
         displayName = "Testbruker, Lokal",
         givenName = "Lokal",
         mail = "lokal.testbruker@nav.no",
