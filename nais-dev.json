@@ -5,9 +5,7 @@
   "tenant": "trygdeetaten.no",
   "kafka-pool": "nav-dev",
   "env": {
-    "ALLOW_CORS_ORIGIN": "supplerendestonad.dev.adeo.no",
     "BACKEND_CALLBACK_URL": "https://su-se-bakover.dev.adeo.no/callback",
-    "FRONTEND_BASE_URL": "https://supplerendestonad.dev.adeo.no",
     "VAULT_MOUNTPATH": "postgresql/preprod-fss/",
     "DATABASE_NAME": "supstonad-db-dev",
     "DATABASE_JDBC_URL": "jdbc:postgresql://b27dbvl009.preprod.local:5432/supstonad-db-dev",

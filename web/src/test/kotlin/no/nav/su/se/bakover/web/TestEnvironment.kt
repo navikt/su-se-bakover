@@ -33,7 +33,6 @@ val applicationConfig = ApplicationConfig(
     naisCluster = null,
     leaderPodLookupPath = "leaderPodLookupPath",
     pdfgenLocal = false,
-    corsAllowOrigin = "corsAllowOrigin",
     serviceUser = ApplicationConfig.ServiceUserConfig(
         username = "serviceUserTestUsername",
         password = "serviceUserTestPassword",

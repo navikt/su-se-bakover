@@ -6,7 +6,6 @@ import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.auth.authenticate
-import io.ktor.features.CORS
 import io.ktor.features.CallId
 import io.ktor.features.CallLogging
 import io.ktor.features.ContentNegotiation
@@ -15,11 +14,7 @@ import io.ktor.features.XForwardedHeaderSupport
 import io.ktor.features.callIdMdc
 import io.ktor.features.generate
 import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpHeaders.WWWAuthenticate
 import io.ktor.http.HttpHeaders.XCorrelationId
-import io.ktor.http.HttpMethod.Companion.Options
-import io.ktor.http.HttpMethod.Companion.Patch
 import io.ktor.http.HttpStatusCode
 import io.ktor.jackson.JacksonConverter
 import io.ktor.locations.Locations
@@ -135,19 +130,6 @@ internal fun Application.susebakover(
         },
     accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services)
 ) {
-    install(CORS) {
-        method(Options)
-        method(Patch)
-        header(HttpHeaders.Authorization)
-        header("refresh_token")
-        header(XCorrelationId)
-        allowNonSimpleContentTypes = true
-        exposeHeader(WWWAuthenticate)
-        exposeHeader("access_token")
-        exposeHeader("refresh_token")
-        host(applicationConfig.corsAllowOrigin, listOf("http", "https"))
-    }
-
     install(StatusPages) {
         exception<Tilgangssjekkfeil> {
             when (it.feil) {

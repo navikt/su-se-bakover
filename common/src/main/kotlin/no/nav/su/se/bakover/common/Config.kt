@@ -40,7 +40,6 @@ data class ApplicationConfig(
     val naisCluster: NaisCluster?,
     val leaderPodLookupPath: String,
     val pdfgenLocal: Boolean,
-    val corsAllowOrigin: String,
     val serviceUser: ServiceUserConfig,
     val azure: AzureConfig,
     val oppdrag: OppdragConfig,
@@ -110,7 +109,7 @@ data class ApplicationConfig(
             )
 
             fun createLocalConfig() = AzureConfig(
-                clientSecret = getEnvironmentVariableOrThrow("AZURE_APP_CLIENT_SECRET"),
+                clientSecret = getEnvironmentVariableOrDefault("AZURE_APP_CLIENT_SECRET", "Denne brukes bare dersom man bruker en reell PDL/Oppgave-integrasjon o.l."),
                 wellKnownUrl = getEnvironmentVariableOrDefault(
                     "AZURE_APP_WELL_KNOWN_URL",
                     "http://localhost:4321/default/.well-known/openid-configuration"
@@ -384,7 +383,6 @@ data class ApplicationConfig(
             naisCluster = naisCluster(),
             leaderPodLookupPath = getEnvironmentVariableOrThrow("ELECTOR_PATH"),
             pdfgenLocal = false,
-            corsAllowOrigin = getEnvironmentVariableOrThrow("ALLOW_CORS_ORIGIN"),
             serviceUser = ServiceUserConfig.createFromEnvironmentVariables(),
             azure = AzureConfig.createFromEnvironmentVariables(),
             oppdrag = OppdragConfig.createFromEnvironmentVariables(),
@@ -399,7 +397,6 @@ data class ApplicationConfig(
             naisCluster = naisCluster(),
             leaderPodLookupPath = "",
             pdfgenLocal = getEnvironmentVariableOrDefault("PDFGEN_LOCAL", "false").toBoolean(),
-            corsAllowOrigin = "localhost:1234",
             serviceUser = ServiceUserConfig.createLocalConfig(),
             azure = AzureConfig.createLocalConfig(),
             oppdrag = OppdragConfig.createLocalConfig(),
