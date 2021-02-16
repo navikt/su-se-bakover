@@ -126,7 +126,6 @@ object BehandlingTestUtils {
 
     internal object microsoftGraphMock {
         val response = MicrosoftGraphResponse(
-            onPremisesSamAccountName = "",
             displayName = "Nav Navesen",
             givenName = "",
             mail = "",

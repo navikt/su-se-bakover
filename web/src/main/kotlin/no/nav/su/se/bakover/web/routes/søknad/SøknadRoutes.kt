@@ -103,7 +103,7 @@ internal fun Route.søknadRoutes(
                 LukkSøknadInputHandler.handle(
                     body = call.receiveTextUTF8(),
                     søknadId = søknadId,
-                    saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.getNAVIdent())
+                    saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent)
                 ).mapLeft {
                     call.svar(BadRequest.message("Ugyldig input"))
                 }.map { request ->
@@ -125,7 +125,7 @@ internal fun Route.søknadRoutes(
                 LukkSøknadInputHandler.handle(
                     body = call.receiveTextUTF8(),
                     søknadId = søknadId,
-                    saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.getNAVIdent())
+                    saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent)
                 ).mapLeft {
                     call.svar(BadRequest.message("Ugyldig input"))
                 }.map { request ->

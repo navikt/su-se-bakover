@@ -245,7 +245,7 @@ internal fun Application.susebakover(
     install(XForwardedHeaderSupport)
 
     install(SuUserFeature) {
-        this.clients = clients
+        this.applicationConfig = applicationConfig
     }
 
     routing {

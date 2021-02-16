@@ -115,7 +115,7 @@ fun TestApplicationEngine.defaultRequest(
     method: HttpMethod,
     uri: String,
     roller: List<Brukerrolle>,
-    setup: TestApplicationRequest.() -> Unit = {}
+    setup: TestApplicationRequest.() -> Unit = {},
 ): TestApplicationCall {
     return handleRequest(method, uri) {
         addHeader(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
@@ -124,17 +124,39 @@ fun TestApplicationEngine.defaultRequest(
     }
 }
 
+fun TestApplicationEngine.defaultRequest(
+    method: HttpMethod,
+    uri: String,
+    roller: List<Brukerrolle>,
+    navIdent: String,
+    setup: TestApplicationRequest.() -> Unit = {},
+): TestApplicationCall {
+    return handleRequest(method, uri) {
+        addHeader(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
+        addHeader(HttpHeaders.Authorization, jwtStub.createJwtToken(roller = roller, navIdent = navIdent).asBearerToken())
+        setup()
+    }
+}
+
 fun TestApplicationEngine.requestSomAttestant(
     method: HttpMethod,
     uri: String,
-    setup: TestApplicationRequest.() -> Unit = {}
+    navIdent: String? = null,
+    setup: TestApplicationRequest.() -> Unit = {},
 ): TestApplicationCall {
     return handleRequest(method, uri) {
         addHeader(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
         addHeader(
             HttpHeaders.Authorization,
-            jwtStub.createJwtToken(roller = listOf(Brukerrolle.Attestant)).asBearerToken()
+            jwtStub.createJwtToken(roller = listOf(Brukerrolle.Attestant), navIdent = navIdent).asBearerToken()
         )
         setup()
     }
+}
+
+fun TestApplicationEngine.requestSomAttestant(
+    method: HttpMethod,
+    uri: String,
+): TestApplicationCall {
+    return requestSomAttestant(method, uri, null) {}
 }

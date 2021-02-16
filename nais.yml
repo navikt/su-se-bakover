@@ -10,9 +10,14 @@ spec:
     application:
       enabled: true
       tenant: {{ tenant }}
-      replyURLs:
-        - "http://localhost:8080/callback"
-        - {{ env.BACKEND_CALLBACK_URL }}
+      claims:
+        extra:
+          - "NAVident"
+        groups:
+          - id: {{ env.AZURE_GROUP_ATTESTANT }}
+          - id: {{ env.AZURE_GROUP_SAKSBEHANDLER }}
+          - id: {{ env.AZURE_GROUP_VEILEDER }}
+          - id: {{ env.AZURE_GROUP_DRIFT }}
   accessPolicy:
     inbound:
       rules:
@@ -40,13 +45,6 @@ spec:
     pool: {{ kafka-pool }}
   vault:
     enabled: true
-    paths:
-      - mountPath: /var/run/secrets/nais.io/vault
-        kvPath: /secret/supstonad/{{ secret_env }}
-      - mountPath: /var/run/secrets/nais.io/vault/su-se-bakover
-        kvPath: /kv/{{ cluster }}/fss/su-se-bakover/default
-      - mountPath: /var/run/secrets/nais.io/srvuser
-        kvPath: /serviceuser/data/{{ secret_env }}/srvsupstonad
   env:
      {{#each env}}
       - name: {{@key}}
