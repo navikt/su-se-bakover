@@ -25,6 +25,7 @@ import io.ktor.routing.Route
 import io.ktor.routing.routing
 import io.ktor.util.KtorExperimentalAPI
 import no.finn.unleash.DefaultUnleash
+import no.finn.unleash.FakeUnleash
 import no.finn.unleash.util.UnleashConfig
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ProdClientsBuilder
@@ -44,7 +45,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
 import no.nav.su.se.bakover.service.AccessCheckProxy
 import no.nav.su.se.bakover.service.ProdServiceBuilder
 import no.nav.su.se.bakover.service.Services
-import no.nav.su.se.bakover.service.StubServiceBuilder
 import no.nav.su.se.bakover.service.Tilgangssjekkfeil
 import no.nav.su.se.bakover.web.features.Authorization
 import no.nav.su.se.bakover.web.features.AuthorizationException
@@ -105,29 +105,32 @@ internal fun Application.susebakover(
                 jmsConfig,
                 clock = clock,
             ).build(applicationConfig),
-    services: Services =
-        with(
-            if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais)
-                ProdServiceBuilder
-            else
-                StubServiceBuilder
-        ) {
-            build(
-                databaseRepos = databaseRepos,
-                clients = clients,
-                behandlingMetrics = behandlingMetrics,
-                søknadMetrics = søknadMetrics,
-                clock = clock,
-                unleash = DefaultUnleash(
-                    UnleashConfig.builder()
-                        .appName(applicationConfig.unleash.appName)
-                        .instanceId(applicationConfig.unleash.appName)
-                        .unleashAPI(applicationConfig.unleash.unleashUrl)
-                        .build(),
-                    IsNotProdStrategy(applicationConfig.naisCluster == ApplicationConfig.NaisCluster.Prod)
-                )
+    services: Services = if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {
+        ProdServiceBuilder.build(
+            databaseRepos = databaseRepos,
+            clients = clients,
+            behandlingMetrics = behandlingMetrics,
+            søknadMetrics = søknadMetrics,
+            clock = clock,
+            unleash = DefaultUnleash(
+                UnleashConfig.builder()
+                    .appName(applicationConfig.unleash.appName)
+                    .instanceId(applicationConfig.unleash.appName)
+                    .unleashAPI(applicationConfig.unleash.unleashUrl)
+                    .build(),
+                IsNotProdStrategy(applicationConfig.naisCluster == ApplicationConfig.NaisCluster.Prod)
             )
-        },
+        )
+    } else {
+        ProdServiceBuilder.build(
+            databaseRepos = databaseRepos,
+            clients = clients,
+            behandlingMetrics = behandlingMetrics,
+            søknadMetrics = søknadMetrics,
+            clock = clock,
+            unleash = FakeUnleash()
+        )
+    },
     accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services)
 ) {
     install(StatusPages) {

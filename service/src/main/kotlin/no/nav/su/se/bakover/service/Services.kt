@@ -1,10 +1,5 @@
 package no.nav.su.se.bakover.service
 
-import no.finn.unleash.Unleash
-import no.nav.su.se.bakover.client.Clients
-import no.nav.su.se.bakover.database.DatabaseRepos
-import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
-import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
@@ -18,18 +13,6 @@ import no.nav.su.se.bakover.service.søknadsbehandling.FerdigstillSøknadsbehand
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.toggles.ToggleService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
-import java.time.Clock
-
-interface ServiceBuilder {
-    fun build(
-        databaseRepos: DatabaseRepos,
-        clients: Clients,
-        behandlingMetrics: BehandlingMetrics,
-        søknadMetrics: SøknadMetrics,
-        clock: Clock,
-        unleash: Unleash,
-    ): Services
-}
 
 data class Services(
     val avstemming: AvstemmingService,

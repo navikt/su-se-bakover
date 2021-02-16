@@ -24,8 +24,8 @@ import no.nav.su.se.bakover.service.utbetaling.UtbetalingServiceImpl
 import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
 import java.time.Clock
 
-object ProdServiceBuilder : ServiceBuilder {
-    override fun build(
+object ProdServiceBuilder {
+    fun build(
         databaseRepos: DatabaseRepos,
         clients: Clients,
         behandlingMetrics: BehandlingMetrics,
