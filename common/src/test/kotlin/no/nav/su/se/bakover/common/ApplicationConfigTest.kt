@@ -12,7 +12,6 @@ internal class ApplicationConfigTest {
         naisCluster = ApplicationConfig.NaisCluster.Prod,
         leaderPodLookupPath = "leaderPodLookupPath",
         pdfgenLocal = false,
-        corsAllowOrigin = "corsAllowOrigin",
         serviceUser = ApplicationConfig.ServiceUserConfig(
             username = "username",
             password = "password"
@@ -130,8 +129,6 @@ internal class ApplicationConfigTest {
                 "STS_URL" to "stsUrl",
                 "SKJERMING_URL" to "skjermingUrl",
                 "ELECTOR_PATH" to "leaderPodLookupPath",
-                "ALLOW_CORS_ORIGIN" to "corsAllowOrigin",
-                "FRONTEND_BASE_URL" to "frontendBaseUrl",
             )
         ) {
             ApplicationConfig.createFromEnvironmentVariables() shouldBe expectedApplicationConfig
@@ -154,7 +151,6 @@ internal class ApplicationConfigTest {
             ApplicationConfig.createLocalConfig() shouldBe expectedApplicationConfig.copy(
                 runtimeEnvironment = ApplicationConfig.RuntimeEnvironment.Local,
                 naisCluster = null,
-                corsAllowOrigin = "localhost:1234",
                 leaderPodLookupPath = "",
                 serviceUser = ApplicationConfig.ServiceUserConfig(
                     username = "unused",

@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
-import no.nav.su.se.bakover.service.ProdServiceBuilder
+import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.avstemming.AvstemmingFeilet
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.web.TestClientsBuilder
@@ -26,7 +26,7 @@ import java.time.format.DateTimeFormatter
 
 internal class AvstemmingRoutesKtTest {
     private val repos = DatabaseBuilder.build(EmbeddedDatabase.instance())
-    private val services = ProdServiceBuilder.build(
+    private val services = ServiceBuilder.build(
         databaseRepos = repos,
         clients = TestClientsBuilder.build(applicationConfig),
         behandlingMetrics = mock(),

@@ -5,6 +5,7 @@ import com.auth0.jwt.algorithms.Algorithm
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.stubs.AuthStubCommonConfig
 import no.nav.su.se.bakover.domain.Brukerrolle
+import org.jetbrains.annotations.TestOnly
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.Date
@@ -12,6 +13,7 @@ import java.util.Date
 internal class JwtStub(
     private val applicationConfig: ApplicationConfig
 ) {
+    @TestOnly
     fun createJwtToken(
         subject: String = "enSaksbehandler",
         roller: List<Brukerrolle> = listOf(Brukerrolle.Saksbehandler, Brukerrolle.Attestant, Brukerrolle.Veileder),
@@ -43,7 +45,7 @@ internal class JwtStub(
             Brukerrolle.Drift -> applicationConfig.azure.groups.drift
         }
 }
-
+@TestOnly
 fun String.asBearerToken(): String {
     return "Bearer $this"
 }
