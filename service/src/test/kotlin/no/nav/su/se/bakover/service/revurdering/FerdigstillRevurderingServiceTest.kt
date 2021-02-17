@@ -13,7 +13,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
-import no.nav.su.se.bakover.client.person.MicrosoftGraphResponse
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.januar
@@ -44,6 +43,7 @@ import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeDistribuereBrev
@@ -130,20 +130,6 @@ internal class FerdigstillRevurderingServiceTest {
         navn = Person.Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy")
     )
 
-    private object microsoftGraphMock {
-        val response = MicrosoftGraphResponse(
-            onPremisesSamAccountName = "",
-            displayName = "Nav Navesen",
-            givenName = "",
-            mail = "",
-            officeLocation = "",
-            surname = "",
-            userPrincipalName = "",
-            id = "",
-            jobTitle = ""
-        )
-    }
-
     @Test
     fun `kaster exception hvis vi ikke finner person ved opprettelse av brev`() {
         val revurderingRepoMock = mock<RevurderingRepo>() {
@@ -211,7 +197,7 @@ internal class FerdigstillRevurderingServiceTest {
         }
         val hentNavnMock = mock<MicrosoftGraphApiOppslag> {
             on { hentBrukerinformasjonForNavIdent(any()) } doReturnConsecutively listOf(
-                microsoftGraphMock.response.right(),
+                BehandlingTestUtils.microsoftGraphMock.response.right(),
                 MicrosoftGraphApiOppslagFeil.FantIkkeBrukerForNavIdent.left()
             )
         }
@@ -246,7 +232,7 @@ internal class FerdigstillRevurderingServiceTest {
             on { hentPersonMedSystembruker(any()) } doReturn person.right()
         }
         val hentNavnMock = mock<MicrosoftGraphApiOppslag> {
-            on { hentBrukerinformasjonForNavIdent(any()) } doReturn microsoftGraphMock.response.right()
+            on { hentBrukerinformasjonForNavIdent(any()) } doReturn BehandlingTestUtils.microsoftGraphMock.response.right()
         }
         val brevServiceMock = mock<BrevService> {
             on { journalførBrev(any(), any()) } doReturn KunneIkkeJournalføreBrev.KunneIkkeOppretteJournalpost.left()
@@ -290,7 +276,7 @@ internal class FerdigstillRevurderingServiceTest {
             on { hentPersonMedSystembruker(any()) } doReturn person.right()
         }
         val hentNavnMock = mock<MicrosoftGraphApiOppslag> {
-            on { hentBrukerinformasjonForNavIdent(any()) } doReturn microsoftGraphMock.response.right()
+            on { hentBrukerinformasjonForNavIdent(any()) } doReturn BehandlingTestUtils.microsoftGraphMock.response.right()
         }
         val brevServiceMock = mock<BrevService> {
             on { distribuerBrev(any()) } doReturn iverksattBrevbestillingId.right()
@@ -344,7 +330,7 @@ internal class FerdigstillRevurderingServiceTest {
             on { hentPersonMedSystembruker(any()) } doReturn person.right()
         }
         val hentNavnMock = mock<MicrosoftGraphApiOppslag> {
-            on { hentBrukerinformasjonForNavIdent(any()) } doReturn microsoftGraphMock.response.right()
+            on { hentBrukerinformasjonForNavIdent(any()) } doReturn BehandlingTestUtils.microsoftGraphMock.response.right()
         }
         val brevServiceMock = mock<BrevService> {
             on { journalførBrev(any(), any()) } doReturn iverksattJournalpostId.right()
@@ -401,7 +387,7 @@ internal class FerdigstillRevurderingServiceTest {
             on { hentPersonMedSystembruker(any()) } doReturn person.right()
         }
         val hentNavnMock = mock<MicrosoftGraphApiOppslag> {
-            on { hentBrukerinformasjonForNavIdent(any()) } doReturn microsoftGraphMock.response.right()
+            on { hentBrukerinformasjonForNavIdent(any()) } doReturn BehandlingTestUtils.microsoftGraphMock.response.right()
         }
         val brevServiceMock = mock<BrevService>()
         val oppgaveServiceMock = mock<OppgaveService> {
@@ -444,7 +430,7 @@ internal class FerdigstillRevurderingServiceTest {
             on { hentPersonMedSystembruker(any()) } doReturn person.right()
         }
         val hentNavnMock = mock<MicrosoftGraphApiOppslag> {
-            on { hentBrukerinformasjonForNavIdent(any()) } doReturn microsoftGraphMock.response.right()
+            on { hentBrukerinformasjonForNavIdent(any()) } doReturn BehandlingTestUtils.microsoftGraphMock.response.right()
         }
         val brevServiceMock = mock<BrevService> {
             on { journalførBrev(any(), any()) } doReturn iverksattJournalpostId.right()

@@ -6,7 +6,6 @@ import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.auth.authenticate
-import io.ktor.features.CORS
 import io.ktor.features.CallId
 import io.ktor.features.CallLogging
 import io.ktor.features.ContentNegotiation
@@ -15,11 +14,7 @@ import io.ktor.features.XForwardedHeaderSupport
 import io.ktor.features.callIdMdc
 import io.ktor.features.generate
 import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpHeaders.WWWAuthenticate
 import io.ktor.http.HttpHeaders.XCorrelationId
-import io.ktor.http.HttpMethod.Companion.Options
-import io.ktor.http.HttpMethod.Companion.Patch
 import io.ktor.http.HttpStatusCode
 import io.ktor.jackson.JacksonConverter
 import io.ktor.locations.Locations
@@ -30,6 +25,7 @@ import io.ktor.routing.Route
 import io.ktor.routing.routing
 import io.ktor.util.KtorExperimentalAPI
 import no.finn.unleash.DefaultUnleash
+import no.finn.unleash.FakeUnleash
 import no.finn.unleash.util.UnleashConfig
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ProdClientsBuilder
@@ -47,9 +43,8 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
 import no.nav.su.se.bakover.service.AccessCheckProxy
-import no.nav.su.se.bakover.service.ProdServiceBuilder
+import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
-import no.nav.su.se.bakover.service.StubServiceBuilder
 import no.nav.su.se.bakover.service.Tilgangssjekkfeil
 import no.nav.su.se.bakover.web.features.Authorization
 import no.nav.su.se.bakover.web.features.AuthorizationException
@@ -76,6 +71,7 @@ import no.nav.su.se.bakover.web.routes.person.personRoutes
 import no.nav.su.se.bakover.web.routes.revurdering.revurderingRoutes
 import no.nav.su.se.bakover.web.routes.sak.sakRoutes
 import no.nav.su.se.bakover.web.routes.søknad.søknadRoutes
+import no.nav.su.se.bakover.web.routes.togglePaths
 import no.nav.su.se.bakover.web.routes.toggleRoutes
 import no.nav.su.se.bakover.web.routes.utbetaling.gjenoppta.gjenopptaUtbetalingRoutes
 import no.nav.su.se.bakover.web.routes.utbetaling.stans.stansutbetalingRoutes
@@ -110,44 +106,34 @@ internal fun Application.susebakover(
                 jmsConfig,
                 clock = clock,
             ).build(applicationConfig),
-    services: Services =
-        with(
-            if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais)
-                ProdServiceBuilder
-            else
-                StubServiceBuilder
-        ) {
-            build(
-                databaseRepos = databaseRepos,
-                clients = clients,
-                behandlingMetrics = behandlingMetrics,
-                søknadMetrics = søknadMetrics,
-                clock = clock,
-                unleash = DefaultUnleash(
-                    UnleashConfig.builder()
-                        .appName(applicationConfig.unleash.appName)
-                        .instanceId(applicationConfig.unleash.appName)
-                        .unleashAPI(applicationConfig.unleash.unleashUrl)
-                        .build(),
-                    IsNotProdStrategy(applicationConfig.naisCluster == ApplicationConfig.NaisCluster.Prod)
-                )
+    services: Services = if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {
+        ServiceBuilder.build(
+            databaseRepos = databaseRepos,
+            clients = clients,
+            behandlingMetrics = behandlingMetrics,
+            søknadMetrics = søknadMetrics,
+            clock = clock,
+            unleash = DefaultUnleash(
+                UnleashConfig.builder()
+                    .appName(applicationConfig.unleash.appName)
+                    .instanceId(applicationConfig.unleash.appName)
+                    .unleashAPI(applicationConfig.unleash.unleashUrl)
+                    .build(),
+                IsNotProdStrategy(applicationConfig.naisCluster == ApplicationConfig.NaisCluster.Prod)
             )
-        },
+        )
+    } else {
+        ServiceBuilder.build(
+            databaseRepos = databaseRepos,
+            clients = clients,
+            behandlingMetrics = behandlingMetrics,
+            søknadMetrics = søknadMetrics,
+            clock = clock,
+            unleash = FakeUnleash()
+        )
+    },
     accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services)
 ) {
-    install(CORS) {
-        method(Options)
-        method(Patch)
-        header(HttpHeaders.Authorization)
-        header("refresh_token")
-        header(XCorrelationId)
-        allowNonSimpleContentTypes = true
-        exposeHeader(WWWAuthenticate)
-        exposeHeader("access_token")
-        exposeHeader("refresh_token")
-        host(applicationConfig.corsAllowOrigin, listOf("http", "https"))
-    }
-
     install(StatusPages) {
         exception<Tilgangssjekkfeil> {
             when (it.feil) {
@@ -233,6 +219,7 @@ internal fun Application.susebakover(
         filter { call ->
             if (call.request.httpMethod.value == "OPTIONS") return@filter false
             if (call.pathShouldBeExcluded(naisPaths)) return@filter false
+            if (call.pathShouldBeExcluded(togglePaths)) return@filter false
             if (call.pathShouldBeExcluded(personPath)) return@filter false
 
             return@filter true
@@ -245,7 +232,7 @@ internal fun Application.susebakover(
     install(XForwardedHeaderSupport)
 
     install(SuUserFeature) {
-        this.clients = clients
+        this.applicationConfig = applicationConfig
     }
 
     routing {

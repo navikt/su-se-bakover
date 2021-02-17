@@ -134,17 +134,16 @@ internal class RevurderingServiceImpl(
         val vedtattBeregningsperioder =
             beregningForRevurdering.tilRevurdering.beregning.getMånedsberegninger().map { it.getPeriode() to it }
                 .toMap()
-        val revurdertBeregningsperioder =
-            beregningForRevurdering.beregning.getMånedsberegninger().map { it.getPeriode() to it }.toMap()
 
-        return revurdertBeregningsperioder.all { (periode, månedsberegning) ->
-            månedsberegning.endringErStørreEllerLik10Prosent(
-                vedtattBeregningsperioder[periode]!!
+        return beregningForRevurdering.beregning.getMånedsberegninger().let {
+            val førsteUtbetaling = it.first()
+            førsteUtbetaling.differanseErStørreEllerLik10Prosent(
+                vedtattBeregningsperioder[førsteUtbetaling.getPeriode()]!!
             )
         }
     }
 
-    private fun Månedsberegning.endringErStørreEllerLik10Prosent(otherMånedsberegning: Månedsberegning) =
+    private fun Månedsberegning.differanseErStørreEllerLik10Prosent(otherMånedsberegning: Månedsberegning) =
         abs(this.getSumYtelse() - otherMånedsberegning.getSumYtelse()) >= (0.1 * this.getSumYtelse())
 
     override fun sendTilAttestering(

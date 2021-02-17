@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.database.DatabaseRepos
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.service.AccessCheckProxy
-import no.nav.su.se.bakover.service.ProdServiceBuilder
+import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.web.stubs.JwtStub
 import no.nav.su.se.bakover.web.stubs.asBearerToken
@@ -33,7 +33,6 @@ val applicationConfig = ApplicationConfig(
     naisCluster = null,
     leaderPodLookupPath = "leaderPodLookupPath",
     pdfgenLocal = false,
-    corsAllowOrigin = "corsAllowOrigin",
     serviceUser = ApplicationConfig.ServiceUserConfig(
         username = "serviceUserTestUsername",
         password = "serviceUserTestPassword",
@@ -91,7 +90,7 @@ internal fun Application.testSusebakover(
     clock: Clock = fixedClock,
     clients: Clients = TestClientsBuilder.build(applicationConfig),
     databaseRepos: DatabaseRepos = DatabaseBuilder.build(EmbeddedDatabase.instance()),
-    services: Services = ProdServiceBuilder.build( // build actual clients
+    services: Services = ServiceBuilder.build( // build actual clients
         databaseRepos = databaseRepos,
         clients = clients,
         behandlingMetrics = mock(),
@@ -115,7 +114,7 @@ fun TestApplicationEngine.defaultRequest(
     method: HttpMethod,
     uri: String,
     roller: List<Brukerrolle>,
-    setup: TestApplicationRequest.() -> Unit = {}
+    setup: TestApplicationRequest.() -> Unit = {},
 ): TestApplicationCall {
     return handleRequest(method, uri) {
         addHeader(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
@@ -124,17 +123,39 @@ fun TestApplicationEngine.defaultRequest(
     }
 }
 
+fun TestApplicationEngine.defaultRequest(
+    method: HttpMethod,
+    uri: String,
+    roller: List<Brukerrolle>,
+    navIdent: String,
+    setup: TestApplicationRequest.() -> Unit = {},
+): TestApplicationCall {
+    return handleRequest(method, uri) {
+        addHeader(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
+        addHeader(HttpHeaders.Authorization, jwtStub.createJwtToken(roller = roller, navIdent = navIdent).asBearerToken())
+        setup()
+    }
+}
+
 fun TestApplicationEngine.requestSomAttestant(
     method: HttpMethod,
     uri: String,
-    setup: TestApplicationRequest.() -> Unit = {}
+    navIdent: String? = null,
+    setup: TestApplicationRequest.() -> Unit = {},
 ): TestApplicationCall {
     return handleRequest(method, uri) {
         addHeader(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
         addHeader(
             HttpHeaders.Authorization,
-            jwtStub.createJwtToken(roller = listOf(Brukerrolle.Attestant)).asBearerToken()
+            jwtStub.createJwtToken(roller = listOf(Brukerrolle.Attestant), navIdent = navIdent).asBearerToken()
         )
         setup()
     }
+}
+
+fun TestApplicationEngine.requestSomAttestant(
+    method: HttpMethod,
+    uri: String,
+): TestApplicationCall {
+    return requestSomAttestant(method, uri, null) {}
 }

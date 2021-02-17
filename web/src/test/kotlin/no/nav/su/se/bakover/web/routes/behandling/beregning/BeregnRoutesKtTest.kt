@@ -28,7 +28,7 @@ import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.service.ProdServiceBuilder
+import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.VilkårsvurderRequest
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.TestClientsBuilder
@@ -48,7 +48,7 @@ internal class BeregnRoutesKtTest {
     private val saksbehandler = NavIdentBruker.Saksbehandler("AB12345")
 
     private val repos = DatabaseBuilder.build(EmbeddedDatabase.instance())
-    private val services = ProdServiceBuilder.build(
+    private val services = ServiceBuilder.build(
         databaseRepos = repos,
         clients = TestClientsBuilder.build(applicationConfig),
         behandlingMetrics = mock(),

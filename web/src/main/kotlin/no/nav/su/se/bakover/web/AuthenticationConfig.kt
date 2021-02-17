@@ -9,6 +9,8 @@ import io.ktor.auth.jwt.jwt
 import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.web.stubs.JwkProviderStub
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.net.URL
 import java.util.concurrent.TimeUnit
 
@@ -16,6 +18,8 @@ internal fun Application.configureAuthentication(
     oAuth: OAuth,
     applicationConfig: ApplicationConfig
 ) {
+    val log: Logger = LoggerFactory.getLogger("Application.configureAuthentication()")
+
     val jwkConfig = oAuth.jwkConfig()
     val jwkProvider =
         if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test) {
@@ -40,7 +44,13 @@ internal fun Application.configureAuthentication(
                     requireNotNull(credentials.payload.audience) {
                         "Auth: Missing audience in token"
                     }
-                    require(credentials.payload.audience.contains(applicationConfig.azure.clientId)) {
+                    require(
+                        credentials.payload.audience.any {
+                            it == applicationConfig.azure.clientId ||
+                                // TODO jah, ia: En tilpasning for mock-oauth. Vi kan f.eks. bytte til en mer Azure-spesifikk mock.
+                                it == """api://${applicationConfig.azure.clientId}/.default"""
+                        }
+                    ) {
                         "Auth: Valid audience not found in claims"
                     }
                     val allowedGroups = applicationConfig.azure.groups.asList()
@@ -49,6 +59,7 @@ internal fun Application.configureAuthentication(
                     }
                     JWTPrincipal(credentials.payload)
                 } catch (e: Throwable) {
+                    log.debug("Auth: Validation error during authentication", e)
                     null
                 }
             }

@@ -16,9 +16,6 @@ import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
-import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
-import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
-import no.nav.su.se.bakover.client.person.MicrosoftGraphResponse
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.januar
@@ -44,7 +41,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.service.ProdServiceBuilder
+import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.BeregnRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.SendTilAttesteringRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.SimulerRequest
@@ -69,7 +66,7 @@ internal class BehandlingRoutesKtTest {
     private val saksbehandler = NavIdentBruker.Saksbehandler("AB12345")
 
     private val repos = DatabaseBuilder.build(EmbeddedDatabase.instance())
-    private val services = ProdServiceBuilder.build(
+    private val services = ServiceBuilder.build(
         databaseRepos = repos,
         clients = TestClientsBuilder.build(applicationConfig),
         behandlingMetrics = mock(),
@@ -162,8 +159,7 @@ internal class BehandlingRoutesKtTest {
                 HttpMethod.Post,
                 "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/tilAttestering",
                 listOf(Brukerrolle.Saksbehandler)
-            ) {
-            }.apply {
+            ).apply {
                 response.status() shouldBe HttpStatusCode.OK
                 val behandlingJson = deserialize<BehandlingJson>(response.content!!)
                 behandlingJson.status shouldBe "TIL_ATTESTERING_INNVILGET"
@@ -215,8 +211,7 @@ internal class BehandlingRoutesKtTest {
                 HttpMethod.Post,
                 "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/tilAttestering",
                 listOf(Brukerrolle.Saksbehandler)
-            ) {
-            }.apply {
+            ).apply {
                 response.status() shouldBe HttpStatusCode.InternalServerError
                 response.content shouldContain "Kunne ikke opprette oppgave for attestering"
             }
@@ -234,7 +229,7 @@ internal class BehandlingRoutesKtTest {
                 HttpMethod.Post,
                 "$sakPath/${objects.sak.id}/behandlinger/blabla/simuler",
                 listOf(Brukerrolle.Saksbehandler)
-            ) {}.apply {
+            ).apply {
                 assertSoftly {
                     response.status() shouldBe HttpStatusCode.BadRequest
                     response.content shouldContain "ikke en gyldig UUID"
@@ -270,7 +265,7 @@ internal class BehandlingRoutesKtTest {
                 HttpMethod.Post,
                 "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/simuler",
                 listOf(Brukerrolle.Saksbehandler)
-            ) {}.apply {
+            ).apply {
                 response.status() shouldBe HttpStatusCode.OK
             }
         }
@@ -279,11 +274,9 @@ internal class BehandlingRoutesKtTest {
     @Nested
     inner class `Iverksetting av behandling` {
         private fun <R> withFerdigbehandletSakForBruker(
-            brukersNavIdent: String,
             test: TestApplicationEngine.(objects: Objects) -> R
         ) =
             withSetupForBruker(
-                brukersNavIdent,
                 {
                     services.søknadsbehandling.vilkårsvurder(
                         VilkårsvurderRequest(
@@ -319,11 +312,12 @@ internal class BehandlingRoutesKtTest {
 
         @Test
         fun `Forbidden når bruker ikke er attestant`() {
-            withFerdigbehandletSakForBruker(navIdentSaksbehandler) {
+            withFerdigbehandletSakForBruker {
                 defaultRequest(
                     HttpMethod.Patch,
                     "$sakPath/rubbish/behandlinger/${it.søknadsbehandling.id}/iverksett",
-                    listOf(Brukerrolle.Saksbehandler)
+                    listOf(Brukerrolle.Saksbehandler),
+                    navIdentSaksbehandler
                 ).apply {
                     response.status() shouldBe HttpStatusCode.Forbidden
                 }
@@ -340,13 +334,21 @@ internal class BehandlingRoutesKtTest {
 
         @Test
         fun `BadRequest når behandlingId er ugyldig uuid eller NotFound når den ikke finnes`() {
-            withFerdigbehandletSakForBruker(navIdentSaksbehandler) {
-                requestSomAttestant(HttpMethod.Patch, "$sakPath/rubbish/behandlinger/${UUID.randomUUID()}/iverksett")
+            withFerdigbehandletSakForBruker {
+                requestSomAttestant(
+                    HttpMethod.Patch,
+                    "$sakPath/rubbish/behandlinger/${UUID.randomUUID()}/iverksett",
+                    navIdentSaksbehandler
+                )
                     .apply {
                         response.status() shouldBe HttpStatusCode.NotFound
                     }
 
-                requestSomAttestant(HttpMethod.Patch, "$sakPath/rubbish/behandlinger/rubbish/iverksett")
+                requestSomAttestant(
+                    HttpMethod.Patch,
+                    "$sakPath/rubbish/behandlinger/rubbish/iverksett",
+                    navIdentSaksbehandler
+                )
                     .apply {
                         response.status() shouldBe HttpStatusCode.BadRequest
                     }
@@ -355,10 +357,11 @@ internal class BehandlingRoutesKtTest {
 
         @Test
         fun `NotFound når behandling ikke eksisterer`() {
-            withFerdigbehandletSakForBruker(navIdentSaksbehandler) {
+            withFerdigbehandletSakForBruker {
                 requestSomAttestant(
                     HttpMethod.Patch,
-                    "$sakPath/${it.sak.id}/behandlinger/${UUID.randomUUID()}/iverksett"
+                    "$sakPath/${it.sak.id}/behandlinger/${UUID.randomUUID()}/iverksett",
+                    navIdentSaksbehandler
                 )
                     .apply {
                         response.status() shouldBe HttpStatusCode.NotFound
@@ -368,16 +371,17 @@ internal class BehandlingRoutesKtTest {
 
         @Test
         fun `Forbidden når den som behandlet saken prøver å attestere seg selv`() {
-            withFerdigbehandletSakForBruker(navIdentSaksbehandler) {
+            withFerdigbehandletSakForBruker {
                 handleRequest(
                     HttpMethod.Patch,
-                    "$sakPath/${it.sak.id}/behandlinger/${it.søknadsbehandling.id}/iverksett"
+                    "$sakPath/${it.sak.id}/behandlinger/${it.søknadsbehandling.id}/iverksett",
                 ) {
                     addHeader(
                         HttpHeaders.Authorization,
                         jwtStub.createJwtToken(
                             subject = "random",
-                            roller = listOf(Brukerrolle.Attestant)
+                            roller = listOf(Brukerrolle.Attestant),
+                            navIdent = navIdentSaksbehandler
                         ).asBearerToken()
                     )
                 }.apply {
@@ -388,10 +392,11 @@ internal class BehandlingRoutesKtTest {
 
         @Test
         fun `OK når bruker er attestant, og sak ble behandlet av en annen person`() {
-            withFerdigbehandletSakForBruker(navIdentAttestant) {
+            withFerdigbehandletSakForBruker {
                 requestSomAttestant(
                     HttpMethod.Patch,
-                    "$sakPath/${it.sak.id}/behandlinger/${it.søknadsbehandling.id}/iverksett"
+                    "$sakPath/${it.sak.id}/behandlinger/${it.søknadsbehandling.id}/iverksett",
+                    navIdentAttestant
                 )
                     .apply {
                         response.status() shouldBe HttpStatusCode.OK
@@ -408,11 +413,9 @@ internal class BehandlingRoutesKtTest {
     @Nested
     inner class `Underkjenning av behandling` {
         private fun <R> withFerdigbehandletSakForBruker(
-            brukersNavIdent: String,
             test: TestApplicationEngine.(objects: Objects) -> R
         ) =
             withSetupForBruker(
-                brukersNavIdent,
                 {
                     services.søknadsbehandling.vilkårsvurder(
                         VilkårsvurderRequest(
@@ -450,11 +453,12 @@ internal class BehandlingRoutesKtTest {
 
         @Test
         fun `Forbidden når bruker ikke er attestant`() {
-            withFerdigbehandletSakForBruker(navIdentSaksbehandler) { objects ->
+            withFerdigbehandletSakForBruker { objects ->
                 defaultRequest(
                     HttpMethod.Patch,
                     "$sakPath/rubbish/behandlinger/${objects.søknadsbehandling.id}/underkjenn",
-                    listOf(Brukerrolle.Saksbehandler)
+                    listOf(Brukerrolle.Saksbehandler),
+                    navIdentSaksbehandler
                 ).apply {
                     response.status() shouldBe HttpStatusCode.Forbidden
                 }
@@ -479,17 +483,19 @@ internal class BehandlingRoutesKtTest {
 
         @Test
         fun `BadRequest når sakId eller behandlingId er ugyldig`() {
-            withFerdigbehandletSakForBruker(navIdentSaksbehandler) { objects ->
+            withFerdigbehandletSakForBruker { objects ->
                 requestSomAttestant(
                     HttpMethod.Patch,
-                    "$sakPath/rubbish/behandlinger/${objects.søknadsbehandling.id}/underkjenn"
+                    "$sakPath/rubbish/behandlinger/${objects.søknadsbehandling.id}/underkjenn",
+                    navIdentSaksbehandler
                 ).apply {
                     response.status() shouldBe HttpStatusCode.BadRequest
                 }
 
                 requestSomAttestant(
                     HttpMethod.Patch,
-                    "$sakPath/${objects.sak.id}/behandlinger/rubbish/underkjenn"
+                    "$sakPath/${objects.sak.id}/behandlinger/rubbish/underkjenn",
+                    navIdentSaksbehandler
                 ).apply {
                     response.status() shouldBe HttpStatusCode.BadRequest
                 }
@@ -498,10 +504,11 @@ internal class BehandlingRoutesKtTest {
 
         @Test
         fun `NotFound når behandling ikke finnes`() {
-            withFerdigbehandletSakForBruker(navIdentSaksbehandler) { objects ->
+            withFerdigbehandletSakForBruker { objects ->
                 requestSomAttestant(
                     HttpMethod.Patch,
-                    "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/underkjenn"
+                    "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/underkjenn",
+                    navIdentSaksbehandler
                 ) {
                     setBody("""{"kommentar":"b", "grunn": "BEREGNINGEN_ER_FEIL"}""")
                 }.apply {
@@ -513,10 +520,11 @@ internal class BehandlingRoutesKtTest {
 
         @Test
         fun `BadRequest når kommentar ikke er oppgitt`() {
-            withFerdigbehandletSakForBruker(navIdentSaksbehandler) { objects ->
+            withFerdigbehandletSakForBruker { objects ->
                 requestSomAttestant(
                     HttpMethod.Patch,
-                    "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/underkjenn"
+                    "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/underkjenn",
+                    navIdentSaksbehandler
                 ) {
                     setBody(
                         """
@@ -535,16 +543,17 @@ internal class BehandlingRoutesKtTest {
 
         @Test
         fun `Forbidden når saksbehandler og attestant er samme person`() {
-            withFerdigbehandletSakForBruker(navIdentSaksbehandler) { objects ->
+            withFerdigbehandletSakForBruker { objects ->
                 handleRequest(
                     HttpMethod.Patch,
-                    "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/underkjenn"
+                    "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/underkjenn",
                 ) {
                     addHeader(
                         HttpHeaders.Authorization,
                         jwtStub.createJwtToken(
                             subject = "S123456",
-                            roller = listOf(Brukerrolle.Attestant)
+                            roller = listOf(Brukerrolle.Attestant),
+                            navIdent = navIdentSaksbehandler
                         ).asBearerToken()
                     )
                     setBody(
@@ -563,10 +572,11 @@ internal class BehandlingRoutesKtTest {
 
         @Test
         fun `OK når alt er som det skal være`() {
-            withFerdigbehandletSakForBruker(navIdentAttestant) { objects ->
+            withFerdigbehandletSakForBruker { objects ->
                 requestSomAttestant(
                     HttpMethod.Patch,
-                    "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/underkjenn"
+                    "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/underkjenn",
+                    navIdentAttestant
                 ) {
                     setBody("""{"kommentar":"kommentar", "grunn": "BEREGNINGEN_ER_FEIL" }""")
                 }.apply {
@@ -591,7 +601,6 @@ internal class BehandlingRoutesKtTest {
                                     Utbetalingsrequest("")
                                 ).left()
                         },
-                        microsoftGraphApiClient = graphApiClientForNavIdent(navIdentAttestant)
                     )
                 )
             }) {
@@ -677,49 +686,13 @@ internal class BehandlingRoutesKtTest {
     val navIdentSaksbehandler = "random-saksbehandler-id"
     val navIdentAttestant = "random-attestant-id"
 
-    fun graphApiClientForNavIdent(navIdent: String) =
-        object : MicrosoftGraphApiOppslag {
-            override fun hentBrukerinformasjon(userToken: String): Either<MicrosoftGraphApiOppslagFeil, MicrosoftGraphResponse> =
-                Either.right(
-                    MicrosoftGraphResponse(
-                        onPremisesSamAccountName = navIdent,
-                        displayName = "displayName",
-                        givenName = "givenName",
-                        mail = "mail",
-                        officeLocation = "officeLocation",
-                        surname = "surname",
-                        userPrincipalName = "userPrincipalName",
-                        id = "id",
-                        jobTitle = "jobTitle",
-                    )
-                )
-
-            override fun hentBrukerinformasjonForNavIdent(navIdent: NavIdentBruker): Either<MicrosoftGraphApiOppslagFeil, MicrosoftGraphResponse> =
-                Either.right(
-                    MicrosoftGraphResponse(
-                        onPremisesSamAccountName = navIdent.toString(),
-                        displayName = "displayName",
-                        givenName = "givenName",
-                        mail = "mail",
-                        officeLocation = "officeLocation",
-                        surname = "surname",
-                        userPrincipalName = "userPrincipalName",
-                        id = "id",
-                        jobTitle = "jobTitle",
-                    )
-                )
-        }
-
     fun <R> withSetupForBruker(
-        brukersNavIdent: String,
         s: Objects.() -> Unit,
         test: TestApplicationEngine.(objects: Objects) -> R
     ) =
         withTestApplication({
             testSusebakover(
-                clients = testClients.copy(
-                    microsoftGraphApiClient = graphApiClientForNavIdent(brukersNavIdent)
-                )
+                clients = testClients
             )
         }) {
             val objects = setup()

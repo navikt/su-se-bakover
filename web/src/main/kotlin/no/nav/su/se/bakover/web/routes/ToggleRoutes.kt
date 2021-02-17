@@ -16,6 +16,8 @@ import no.nav.su.se.bakover.web.svar
 
 private const val TOGGLES_PATH = "/toggles"
 
+internal val togglePaths = listOf(TOGGLES_PATH)
+
 internal fun Route.toggleRoutes(toggleService: ToggleService) {
 
     get("$TOGGLES_PATH/{toggleName}") {

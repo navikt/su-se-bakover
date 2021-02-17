@@ -26,7 +26,7 @@ internal fun Route.gjenopptaUtbetalingRoutes(
     authorize(Brukerrolle.Saksbehandler) {
         post("$sakPath/{sakId}/utbetalinger/gjenoppta") {
             call.withSakId { sakId ->
-                service.gjenopptaUtbetalinger(sakId, NavIdentBruker.Saksbehandler(call.suUserContext.getNAVIdent()))
+                service.gjenopptaUtbetalinger(sakId, NavIdentBruker.Saksbehandler(call.suUserContext.navIdent))
                     .fold(
                         {
                             when (it) {

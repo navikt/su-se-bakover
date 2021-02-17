@@ -12,7 +12,6 @@ internal class ApplicationConfigTest {
         naisCluster = ApplicationConfig.NaisCluster.Prod,
         leaderPodLookupPath = "leaderPodLookupPath",
         pdfgenLocal = false,
-        corsAllowOrigin = "corsAllowOrigin",
         serviceUser = ApplicationConfig.ServiceUserConfig(
             username = "username",
             password = "password"
@@ -107,7 +106,6 @@ internal class ApplicationConfigTest {
                 "AZURE_APP_CLIENT_SECRET" to "clientSecret",
                 "AZURE_APP_WELL_KNOWN_URL" to "wellKnownUrl",
                 "AZURE_APP_CLIENT_ID" to "clientId",
-                "BACKEND_CALLBACK_URL" to "backendCallbackUrl",
                 "AZURE_GROUP_ATTESTANT" to "attestant",
                 "AZURE_GROUP_SAKSBEHANDLER" to "saksbehandler",
                 "AZURE_GROUP_VEILEDER" to "veileder",
@@ -131,8 +129,6 @@ internal class ApplicationConfigTest {
                 "STS_URL" to "stsUrl",
                 "SKJERMING_URL" to "skjermingUrl",
                 "ELECTOR_PATH" to "leaderPodLookupPath",
-                "ALLOW_CORS_ORIGIN" to "corsAllowOrigin",
-                "FRONTEND_BASE_URL" to "frontendBaseUrl",
             )
         ) {
             ApplicationConfig.createFromEnvironmentVariables() shouldBe expectedApplicationConfig
@@ -146,7 +142,6 @@ internal class ApplicationConfigTest {
                 "AZURE_APP_CLIENT_SECRET" to "clientSecret",
                 "AZURE_APP_WELL_KNOWN_URL" to "wellKnownUrl",
                 "AZURE_APP_CLIENT_ID" to "clientId",
-                "BACKEND_CALLBACK_URL" to "backendCallbackUrl",
                 "AZURE_GROUP_ATTESTANT" to "attestant",
                 "AZURE_GROUP_SAKSBEHANDLER" to "saksbehandler",
                 "AZURE_GROUP_VEILEDER" to "veileder",
@@ -156,7 +151,6 @@ internal class ApplicationConfigTest {
             ApplicationConfig.createLocalConfig() shouldBe expectedApplicationConfig.copy(
                 runtimeEnvironment = ApplicationConfig.RuntimeEnvironment.Local,
                 naisCluster = null,
-                corsAllowOrigin = "localhost:1234",
                 leaderPodLookupPath = "",
                 serviceUser = ApplicationConfig.ServiceUserConfig(
                     username = "unused",
