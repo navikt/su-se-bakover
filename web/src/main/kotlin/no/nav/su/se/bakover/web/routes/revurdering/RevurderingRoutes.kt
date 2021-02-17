@@ -37,33 +37,33 @@ import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withRevurderingId
 import no.nav.su.se.bakover.web.withSakId
+import java.time.LocalDate
 
 internal const val revurderingPath = "$sakPath/{sakId}/revurderinger"
 
+internal data class OpprettRevurderingBody(val fraOgMed: LocalDate)
 @KtorExperimentalAPI
 internal fun Route.revurderingRoutes(
     revurderingService: RevurderingService
 ) {
+    // { fraOgMed: dato }
     authorize(Brukerrolle.Saksbehandler) {
         post("$revurderingPath/opprett") {
             call.withSakId { sakId ->
-                call.withBody<PeriodeJson> { periodeJson ->
+                call.withBody<OpprettRevurderingBody> { request ->
                     val navIdent = call.suUserContext.getNAVIdent()
-                    periodeJson.toPeriode()
-                        .mapLeft { call.svar(it) }
-                        .map { periode ->
-                            revurderingService.opprettRevurdering(
-                                sakId,
-                                periode = periode,
-                                saksbehandler = Saksbehandler(navIdent)
-                            ).fold(
-                                ifLeft = { call.svar(it.tilFeilMelding()) },
-                                ifRight = {
-                                    call.audit("Opprettet en ny revurdering på sak med id $sakId")
-                                    call.svar(Resultat.json(Created, serialize(it.toJson())))
-                                },
-                            )
-                        }
+
+                    revurderingService.opprettRevurdering(
+                        sakId,
+                        fraOgMed = request.fraOgMed,
+                        saksbehandler = Saksbehandler(navIdent)
+                    ).fold(
+                        ifLeft = { call.svar(it.tilFeilMelding()) },
+                        ifRight = {
+                            call.audit("Opprettet en ny revurdering på sak med id $sakId")
+                            call.svar(Resultat.json(Created, serialize(it.toJson())))
+                        },
+                    )
                 }
             }
         }
@@ -128,7 +128,9 @@ internal fun Route.revurderingRoutes(
             ).fold(
                 ifLeft = {
                     val message = when (it) {
-                        KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> Forbidden.message("Attestant og saksbehandler kan ikke være samme person")
+                        KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> Forbidden.message(
+                            "Attestant og saksbehandler kan ikke være samme person"
+                        )
                         KunneIkkeIverksetteRevurdering.FantIkkeRevurdering -> NotFound.message("Fant ikke revurdering")
                         KunneIkkeIverksetteRevurdering.FeilTilstand -> InternalServerError.message("Kun revurderinger som har blitt sendt till attestering kan revurderes")
                         KunneIkkeIverksetteRevurdering.KunneIkkeJournalføreBrev -> InternalServerError.message("Feil ved journalføring av vedtaksbrev")
@@ -178,5 +180,6 @@ internal fun KunneIkkeRevurdere.tilFeilMelding(): Resultat {
         KunneIkkeRevurdere.SimuleringFeilet -> InternalServerError.message("Simulering feilet")
         KunneIkkeRevurdere.KanIkkeRevurderePerioderMedFlereAktiveStønadsperioder -> InternalServerError.message("Revurderingsperioden kan ikke overlappe flere aktive stønadsperioder.") // TODO AI 03-02-2020: Temporary solution
         KunneIkkeRevurdere.KanIkkeRevurdereEnPeriodeMedEksisterendeRevurdering -> InternalServerError.message("Kan ikke revurdere en behandling som allerede har en eksisterende revurdering") // TODO Temporary solution
+        KunneIkkeRevurdere.EndringerIUtbetalingMåVareStørreEnn10Prosent -> TODO()
     }
 }

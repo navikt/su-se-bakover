@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -28,7 +29,9 @@ import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import java.time.Clock
+import java.time.LocalDate
 import java.util.UUID
+import kotlin.math.abs
 
 internal class RevurderingServiceImpl(
     private val sakService: SakService,
@@ -43,16 +46,22 @@ internal class RevurderingServiceImpl(
 
     override fun opprettRevurdering(
         sakId: UUID,
-        periode: Periode,
+        fraOgMed: LocalDate,
         saksbehandler: NavIdentBruker.Saksbehandler
     ): Either<KunneIkkeRevurdere, Revurdering> {
-        if (!periode.erPeriodenIMånederEtter()) return KunneIkkeRevurdere.KanIkkeRevurdereInneværendeMånedEllerTidligere.left()
+
+        val dagensDato = LocalDate.now(clock)
+        if (!fraOgMed.isAfter(dagensDato.withDayOfMonth(dagensDato.lengthOfMonth()))) return KunneIkkeRevurdere.KanIkkeRevurdereInneværendeMånedEllerTidligere.left()
 
         return hentSak(sakId)
             .map { sak ->
+                val revurderingsPeriode = Periode.create(
+                    fraOgMed = fraOgMed,
+                    tilOgMed = sak.utbetalinger.map { it.senesteDato() }.maxByOrNull { it }!!
+                )
                 val tilRevurdering = sak.behandlinger
                     .filterIsInstance(Søknadsbehandling.Iverksatt.Innvilget::class.java)
-                    .filter { it.beregning.getPeriode() inneholder periode }
+                    .filter { it.beregning.getPeriode() inneholder revurderingsPeriode }
 
                 if (tilRevurdering.isEmpty()) return KunneIkkeRevurdere.FantIngentingSomKanRevurderes.left()
                 if (tilRevurdering.size > 1) return KunneIkkeRevurdere.KanIkkeRevurderePerioderMedFlereAktiveStønadsperioder.left()
@@ -74,7 +83,7 @@ internal class RevurderingServiceImpl(
                         KunneIkkeRevurdere.KunneIkkeOppretteOppgave
                     }.map {
                         val revurdering = OpprettetRevurdering(
-                            periode = periode,
+                            periode = revurderingsPeriode,
                             tilRevurdering = søknadsbehandling,
                             saksbehandler = saksbehandler
                         )
@@ -93,6 +102,8 @@ internal class RevurderingServiceImpl(
         return when (val revurdering = revurderingRepo.hent(revurderingId)) {
             is BeregnetRevurdering, is OpprettetRevurdering, is SimulertRevurdering -> {
                 val beregnetRevurdering = revurdering.beregn(fradrag)
+                if (!endringerAvUtbetalingerErStørreEnn10Prosent(beregnetRevurdering)) return KunneIkkeRevurdere.EndringerIUtbetalingMåVareStørreEnn10Prosent.left()
+
                 utbetalingService.simulerUtbetaling(
                     sakId = beregnetRevurdering.tilRevurdering.sakId,
                     saksbehandler = saksbehandler,
@@ -110,6 +121,31 @@ internal class RevurderingServiceImpl(
             }
         }
     }
+
+    /**
+     * § 10. Endringar
+     * Endring av stønaden må utgjøre minst en 10% endring för att det skal gå igenom.
+     * Denna løsningen baserer sig på att vi sjekker om alle måneder utgør minst en 10% endring.
+     * AI 16.02.2020
+     */
+    private fun endringerAvUtbetalingerErStørreEnn10Prosent(
+        beregningForRevurdering: BeregnetRevurdering
+    ): Boolean {
+        val vedtattBeregningsperioder =
+            beregningForRevurdering.tilRevurdering.beregning.getMånedsberegninger().map { it.getPeriode() to it }
+                .toMap()
+        val revurdertBeregningsperioder =
+            beregningForRevurdering.beregning.getMånedsberegninger().map { it.getPeriode() to it }.toMap()
+
+        return revurdertBeregningsperioder.all { (periode, månedsberegning) ->
+            månedsberegning.endringErStørreEllerLik10Prosent(
+                vedtattBeregningsperioder[periode]!!
+            )
+        }
+    }
+
+    private fun Månedsberegning.endringErStørreEllerLik10Prosent(otherMånedsberegning: Månedsberegning) =
+        abs(this.getSumYtelse() - otherMånedsberegning.getSumYtelse()) >= (0.1 * this.getSumYtelse())
 
     override fun sendTilAttestering(
         revurderingId: UUID,

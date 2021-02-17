@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.getOrHandle
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.person.PersonRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
@@ -60,6 +59,7 @@ import no.nav.su.se.bakover.service.utbetaling.KunneIkkeGjenopptaUtbetalinger
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeStanseUtbetalinger
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import java.time.LocalDate
 import java.util.UUID
 
 open class AccessCheckProxy(
@@ -294,11 +294,11 @@ open class AccessCheckProxy(
             revurdering = object : RevurderingService {
                 override fun opprettRevurdering(
                     sakId: UUID,
-                    periode: Periode,
+                    fraOgMed: LocalDate,
                     saksbehandler: NavIdentBruker.Saksbehandler
                 ): Either<KunneIkkeRevurdere, Revurdering> {
                     assertHarTilgangTilSak(sakId)
-                    return services.revurdering.opprettRevurdering(sakId, periode, saksbehandler)
+                    return services.revurdering.opprettRevurdering(sakId, fraOgMed, saksbehandler)
                 }
 
                 override fun beregnOgSimuler(

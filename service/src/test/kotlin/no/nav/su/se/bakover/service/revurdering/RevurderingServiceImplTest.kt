@@ -14,12 +14,14 @@ import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.startOfDay
+import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -30,6 +32,11 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.beregning.MånedsberegningFactory
+import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegEtterUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -94,17 +101,14 @@ internal class RevurderingServiceImplTest {
     private val fnr = FnrGenerator.random()
     private val revurderingId = UUID.randomUUID()
     private val aktørId = AktørId("aktørId")
+
     private val beregningMock = mock<Beregning> {
-        on { getPeriode() } doReturn Periode.create(
-            fraOgMed = dagensDato,
-            tilOgMed = dagensDato.let {
-                LocalDate.of(
-                    it.year + 1,
-                    it.month,
-                    it.lengthOfMonth()
-                )
-            }
-        )
+        on { getPeriode() } doReturn periode
+        on { getMånedsberegninger() } doReturn periode.tilMånedsperioder()
+            .map { MånedsberegningFactory.ny(it, Sats.HØY, listOf()) }
+        on { getFradrag() } doReturn listOf()
+        on { getSumYtelse() } doReturn periode.tilMånedsperioder()
+            .sumBy { MånedsberegningFactory.ny(it, Sats.HØY, listOf()).getSumYtelse() }
     }
 
     val behandling = Søknadsbehandling.Iverksatt.Innvilget(
@@ -136,7 +140,11 @@ internal class RevurderingServiceImplTest {
         fnr = fnr,
         søknader = listOf(),
         behandlinger = listOf(behandling),
-        utbetalinger = listOf()
+        utbetalinger = listOf(
+            mock {
+                on { senesteDato() } doReturn periode.getTilOgMed()
+            }
+        )
     )
 
     @Test
@@ -163,7 +171,7 @@ internal class RevurderingServiceImplTest {
             personService = personServiceMock
         ).opprettRevurdering(
             sakId = sakId,
-            periode = periode,
+            fraOgMed = periode.getFraOgMed(),
             saksbehandler = saksbehandler
         ).getOrHandle { throw RuntimeException("Skal ikke kunne skje") }
 
@@ -201,7 +209,7 @@ internal class RevurderingServiceImplTest {
             sakService = sakServiceMock
         ).opprettRevurdering(
             sakId = sakId,
-            periode = periode,
+            fraOgMed = periode.getFraOgMed(),
             saksbehandler = saksbehandler
         )
 
@@ -226,7 +234,7 @@ internal class RevurderingServiceImplTest {
             fnr = fnr,
             søknader = listOf(),
             behandlinger = listOf(behandling),
-            utbetalinger = listOf()
+            utbetalinger = sak.utbetalinger
         )
 
         val sakServiceMock = mock<SakService> {
@@ -237,7 +245,7 @@ internal class RevurderingServiceImplTest {
             sakService = sakServiceMock
         ).opprettRevurdering(
             sakId = sakId,
-            periode = periode,
+            fraOgMed = periode.getFraOgMed(),
             saksbehandler = saksbehandler
         )
 
@@ -248,7 +256,6 @@ internal class RevurderingServiceImplTest {
 
     @Test
     fun `kan ikke revurdere når stønadsperioden overlapper flere aktive stønadsperioder`() {
-        val revurderingsperiode = Periode.create(1.juni(2021), 31.august(2021))
         val beregningMock = mock<Beregning> {
             on { getPeriode() } doReturn Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.desember(2021))
         }
@@ -266,7 +273,7 @@ internal class RevurderingServiceImplTest {
             fnr = fnr,
             søknader = listOf(),
             behandlinger = listOf(behandling1, behandling2),
-            utbetalinger = listOf()
+            utbetalinger = sak.utbetalinger
         )
 
         val sakServiceMock = mock<SakService> {
@@ -274,10 +281,11 @@ internal class RevurderingServiceImplTest {
         }
 
         val actual = createRevurderingService(
-            sakService = sakServiceMock
+            sakService = sakServiceMock,
+            clock = Clock.fixed(1.februar(2021).startOfDay(zoneIdOslo).instant, zoneIdOslo)
         ).opprettRevurdering(
             sakId = sakId,
-            periode = revurderingsperiode,
+            fraOgMed = 1.juni(2021),
             saksbehandler = saksbehandler
         )
 
@@ -290,10 +298,7 @@ internal class RevurderingServiceImplTest {
     fun `oppretter ikke en revurdering hvis perioden er i samme måned`() {
         val actual = createRevurderingService().opprettRevurdering(
             sakId = sakId,
-            periode = Periode.create(
-                fraOgMed = 1.januar(2021),
-                tilOgMed = 31.desember(2021)
-            ),
+            fraOgMed = 1.januar(2021),
             saksbehandler = saksbehandler
         )
 
@@ -326,7 +331,15 @@ internal class RevurderingServiceImplTest {
         ).beregnOgSimuler(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
-            fradrag = listOf()
+            fradrag = listOf(
+                FradragFactory.ny(
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 10000.0,
+                    periode = behandling.beregning.getPeriode(),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER
+                )
+            )
         ).getOrHandle {
             throw Exception("Vi skal få tilbake en simulert revurdering")
         }
@@ -341,6 +354,30 @@ internal class RevurderingServiceImplTest {
             verify(revurderingRepoMock).lagre(argThat { it shouldBe actual })
         }
         verifyNoMoreInteractions(revurderingRepoMock, utbetalingServiceMock)
+    }
+
+    @Test
+    fun `Revurderingen går ikke gjennom hvis endring av utbetaling er under ti prosent`() {
+        val opprettetRevurdering = OpprettetRevurdering(
+            id = revurderingId,
+            periode = periode,
+            opprettet = Tidspunkt.EPOCH,
+            tilRevurdering = behandling,
+            saksbehandler = saksbehandler
+        )
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(revurderingId) } doReturn opprettetRevurdering
+        }
+
+        val actual = createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+        ).beregnOgSimuler(
+            revurderingId = revurderingId,
+            saksbehandler = saksbehandler,
+            fradrag = listOf()
+        )
+
+        actual shouldBe KunneIkkeRevurdere.EndringerIUtbetalingMåVareStørreEnn10Prosent.left()
     }
 
     @Test
@@ -398,7 +435,15 @@ internal class RevurderingServiceImplTest {
         ).beregnOgSimuler(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
-            fradrag = listOf()
+            fradrag = listOf(
+                FradragFactory.ny(
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 10000.0,
+                    periode = behandling.beregning.getPeriode(),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER
+                )
+            )
         )
 
         actual shouldBe KunneIkkeRevurdere.SimuleringFeilet.left()

@@ -2,19 +2,19 @@ package no.nav.su.se.bakover.service.revurdering
 
 import arrow.core.Either
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
+import java.time.LocalDate
 import java.util.UUID
 
 interface RevurderingService {
 
     fun opprettRevurdering(
         sakId: UUID,
-        periode: Periode,
+        fraOgMed: LocalDate,
         saksbehandler: NavIdentBruker.Saksbehandler
     ): Either<KunneIkkeRevurdere, Revurdering>
 
@@ -57,4 +57,5 @@ sealed class KunneIkkeRevurdere {
     object KanIkkeRevurderePerioderMedFlereAktiveStønadsperioder : KunneIkkeRevurdere()
     object SimuleringFeilet : KunneIkkeRevurdere()
     object KanIkkeRevurdereEnPeriodeMedEksisterendeRevurdering : KunneIkkeRevurdere()
+    object EndringerIUtbetalingMåVareStørreEnn10Prosent : KunneIkkeRevurdere()
 }
