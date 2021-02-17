@@ -53,8 +53,14 @@ data class Periode private constructor(
     }
 
     sealed class UgyldigPeriode {
-        object FraOgMedDatoMåVæreFørsteDagIMåneden : UgyldigPeriode()
-        object TilOgMedDatoMåVæreSisteDagIMåneden : UgyldigPeriode()
-        object FraOgMedDatoMåVæreFørTilOgMedDato : UgyldigPeriode()
+        object FraOgMedDatoMåVæreFørsteDagIMåneden : UgyldigPeriode() {
+            override fun toString(): String = this.javaClass.simpleName
+        }
+        object TilOgMedDatoMåVæreSisteDagIMåneden : UgyldigPeriode() {
+            override fun toString(): String = this.javaClass.simpleName
+        }
+        object FraOgMedDatoMåVæreFørTilOgMedDato : UgyldigPeriode() {
+            override fun toString(): String = this.javaClass.simpleName
+        }
     }
 }

@@ -25,6 +25,8 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -139,23 +141,43 @@ internal class RevurderingRoutesKtTest {
 
     @Test
     fun `kan opprette beregning og simulering for revurdering`() {
+        val månedsberegninger = listOf<Månedsberegning>(
+            mock {
+                on { getSumYtelse() } doReturn 1
+                on { getPeriode() } doReturn TestBeregning.getPeriode()
+                on { getSats() } doReturn TestBeregning.getSats()
+            }
+        )
+
+        val beregning = mock<Beregning> {
+            on { getMånedsberegninger() } doReturn månedsberegninger
+            on { getId() } doReturn TestBeregning.getId()
+            on { getSumYtelse() } doReturn TestBeregning.getSumYtelse()
+            on { getFradrag() } doReturn TestBeregning.getFradrag()
+            on { getFradragStrategyName() } doReturn TestBeregning.getFradragStrategyName()
+            on { getOpprettet() } doReturn TestBeregning.getOpprettet()
+            on { getSats() } doReturn TestBeregning.getSats()
+            on { getSumFradrag() } doReturn TestBeregning.getSumFradrag()
+            on { getPeriode() } doReturn TestBeregning.getPeriode()
+        }
+
         val beregnetRevurdering = OpprettetRevurdering(
             id = UUID.randomUUID(),
             periode = TestBeregning.getPeriode(),
             opprettet = Tidspunkt.now(),
-            tilRevurdering = behandling,
+            tilRevurdering = behandling.copy(beregning = beregning),
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "")
         ).beregn(
             listOf(
                 FradragFactory.ny(
                     type = Fradragstype.BidragEtterEkteskapsloven,
-                    månedsbeløp = 6000.0,
+                    månedsbeløp = 12.0,
                     periode = TestBeregning.getMånedsberegninger()[0].getPeriode(),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER
                 )
             )
-        )
+        ).orNull()!!
 
         val simulertRevurdering = when (beregnetRevurdering) {
             is BeregnetRevurdering.Innvilget -> {

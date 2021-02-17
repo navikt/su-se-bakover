@@ -209,7 +209,7 @@ internal class FinnAttestantVisitorTest {
         saksbehandler = NavIdentBruker.Saksbehandler("Petter")
     )
 
-    private val beregnetRevurdering = when (val a = revurdering.beregn(emptyList())) {
+    private val beregnetRevurdering = when (val a = revurdering.beregn(emptyList()).orNull()!!) {
         is BeregnetRevurdering.Innvilget -> { a }
         else -> throw RuntimeException("Skal ikke skje")
     }
