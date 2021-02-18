@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
-import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import java.time.LocalDate
 import java.util.UUID
 
@@ -22,7 +21,7 @@ interface RevurderingService {
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
         fradrag: List<Fradrag>
-    ): Either<KunneIkkeRevurdere, SimulertRevurdering>
+    ): Either<KunneIkkeRevurdere, Revurdering>
 
     fun sendTilAttestering(
         revurderingId: UUID,

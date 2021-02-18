@@ -25,10 +25,14 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegEtterUtbetaling
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -41,6 +45,7 @@ import no.nav.su.se.bakover.web.routes.behandling.TestBeregning
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
+import java.lang.RuntimeException
 import java.time.LocalDate
 import java.util.UUID
 
@@ -134,22 +139,38 @@ internal class RevurderingRoutesKtTest {
 
     @Test
     fun `kan opprette beregning og simulering for revurdering`() {
-        val simulertRevurdering = OpprettetRevurdering(
+        val beregnetRevurdering = OpprettetRevurdering(
             id = UUID.randomUUID(),
-            periode = periode,
+            periode = TestBeregning.getPeriode(),
             opprettet = Tidspunkt.now(),
             tilRevurdering = behandling,
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "")
-        ).beregn(emptyList())
-            .toSimulert(
-                Simulering(
-                    gjelderId = behandling.fnr,
-                    gjelderNavn = "Test",
-                    datoBeregnet = LocalDate.now(),
-                    nettoBeløp = 0,
-                    periodeList = listOf()
+        ).beregn(
+            listOf(
+                FradragFactory.ny(
+                    type = Fradragstype.BidragEtterEkteskapsloven,
+                    månedsbeløp = 6000.0,
+                    periode = TestBeregning.getMånedsberegninger()[0].getPeriode(),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER
                 )
             )
+        )
+
+        val simulertRevurdering = when (beregnetRevurdering) {
+            is BeregnetRevurdering.Innvilget -> {
+                beregnetRevurdering.toSimulert(
+                    Simulering(
+                        gjelderId = behandling.fnr,
+                        gjelderNavn = "Test",
+                        datoBeregnet = LocalDate.now(),
+                        nettoBeløp = 0,
+                        periodeList = listOf()
+                    )
+                )
+            }
+            is BeregnetRevurdering.Avslag -> throw RuntimeException("Revurderingen må ha en endring på minst 10 prosent")
+        }
 
         val revurderingServiceMock = mock<RevurderingService> {
             on { beregnOgSimuler(any(), any(), any()) } doReturn simulertRevurdering.right()

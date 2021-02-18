@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
+import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegEtterUtbetaling
@@ -21,6 +22,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.util.UUID
+import kotlin.math.abs
 
 sealed class Revurdering : Visitable<RevurderingVisitor> {
     abstract val id: UUID
@@ -42,16 +44,28 @@ sealed class Revurdering : Visitable<RevurderingVisitor> {
                 ?: 0.0,
             fradragFraSaksbehandler = fradrag
         )
+        val revurdertBeregning = tilRevurdering.behandlingsinformasjon.bosituasjon!!.getBeregningStrategy()
+            .beregn(beregningsgrunnlag)
 
-        return BeregnetRevurdering(
-            tilRevurdering = tilRevurdering,
-            id = id,
-            periode = periode,
-            opprettet = Tidspunkt.now(),
-            beregning = tilRevurdering.behandlingsinformasjon.bosituasjon!!.getBeregningStrategy()
-                .beregn(beregningsgrunnlag),
-            saksbehandler = saksbehandler
-        )
+        return if (endringerAvUtbetalingerErStørreEllerLik10Prosent(tilRevurdering.beregning, revurdertBeregning)) {
+            BeregnetRevurdering.Innvilget(
+                tilRevurdering = tilRevurdering,
+                id = id,
+                periode = periode,
+                opprettet = Tidspunkt.now(),
+                beregning = revurdertBeregning,
+                saksbehandler = saksbehandler
+            )
+        } else {
+            BeregnetRevurdering.Avslag(
+                tilRevurdering = tilRevurdering,
+                id = id,
+                periode = periode,
+                opprettet = Tidspunkt.now(),
+                beregning = revurdertBeregning,
+                saksbehandler = saksbehandler
+            )
+        }
     }
 
     object AttestantOgSaksbehandlerKanIkkeVæreSammePerson
@@ -69,27 +83,45 @@ data class OpprettetRevurdering(
     }
 }
 
-data class BeregnetRevurdering(
-    override val id: UUID,
-    override val periode: Periode,
-    override val opprettet: Tidspunkt,
-    override val tilRevurdering: Søknadsbehandling.Iverksatt.Innvilget,
-    override val saksbehandler: Saksbehandler,
-    val beregning: Beregning
-) : Revurdering() {
+sealed class BeregnetRevurdering : Revurdering() {
+    abstract override val id: UUID
+    abstract override val periode: Periode
+    abstract override val opprettet: Tidspunkt
+    abstract override val tilRevurdering: Søknadsbehandling.Iverksatt.Innvilget
+    abstract override val saksbehandler: Saksbehandler
+    abstract val beregning: Beregning
+
     override fun accept(visitor: RevurderingVisitor) {
         visitor.visit(this)
     }
 
-    fun toSimulert(simulering: Simulering) = SimulertRevurdering(
-        id = id,
-        periode = periode,
-        opprettet = opprettet,
-        tilRevurdering = tilRevurdering,
-        beregning = beregning,
-        simulering = simulering,
-        saksbehandler = saksbehandler
-    )
+    data class Innvilget(
+        override val id: UUID,
+        override val periode: Periode,
+        override val opprettet: Tidspunkt,
+        override val tilRevurdering: Søknadsbehandling.Iverksatt.Innvilget,
+        override val saksbehandler: Saksbehandler,
+        override val beregning: Beregning,
+    ) : BeregnetRevurdering() {
+        fun toSimulert(simulering: Simulering) = SimulertRevurdering(
+            id = id,
+            periode = periode,
+            opprettet = opprettet,
+            tilRevurdering = tilRevurdering,
+            beregning = beregning,
+            simulering = simulering,
+            saksbehandler = saksbehandler
+        )
+    }
+
+    data class Avslag(
+        override val id: UUID,
+        override val periode: Periode,
+        override val opprettet: Tidspunkt,
+        override val tilRevurdering: Søknadsbehandling.Iverksatt.Innvilget,
+        override val saksbehandler: Saksbehandler,
+        override val beregning: Beregning,
+    ) : BeregnetRevurdering()
 }
 
 data class SimulertRevurdering(
@@ -194,3 +226,23 @@ data class IverksattRevurdering(
         throw RuntimeException("Skal ikke kunne beregne når revurderingen er til attestering")
     }
 }
+
+/**
+ * § 10. Endringar
+ * Endring av stønaden må utgjøre minst en 10% endring för att det skal gå igenom.
+ * Denna løsningen baserer sig på att vi sjekker om alle måneder utgør minst en 10% endring.
+ * AI 16.02.2020
+ */
+private fun endringerAvUtbetalingerErStørreEllerLik10Prosent(vedtattBeregning: Beregning, revurdertBeregning: Beregning): Boolean {
+    val vedtattBeregningsperioder = vedtattBeregning.getMånedsberegninger().map { it.getPeriode() to it }.toMap()
+
+    return revurdertBeregning.getMånedsberegninger().let {
+        val førsteUtbetaling = it.first()
+        førsteUtbetaling.differanseErStørreEllerLik10Prosent(
+            vedtattBeregningsperioder[førsteUtbetaling.getPeriode()]!!
+        )
+    }
+}
+
+private fun Månedsberegning.differanseErStørreEllerLik10Prosent(otherMånedsberegning: Månedsberegning) =
+    abs(this.getSumYtelse() - otherMånedsberegning.getSumYtelse()) >= (0.1 * this.getSumYtelse())

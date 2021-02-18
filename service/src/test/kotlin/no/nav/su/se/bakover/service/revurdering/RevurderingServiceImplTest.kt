@@ -10,6 +10,7 @@ import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -341,8 +342,9 @@ internal class RevurderingServiceImplTest {
                 )
             )
         ).getOrHandle {
-            throw Exception("Vi skal få tilbake en simulert revurdering")
+            throw Exception("Vi skal få tilbake en revurdering")
         }
+        if (actual !is SimulertRevurdering) throw RuntimeException("Skal returnere en simulert revurdering")
 
         inOrder(revurderingRepoMock, utbetalingServiceMock) {
             verify(revurderingRepoMock).hent(revurderingId)
@@ -375,9 +377,9 @@ internal class RevurderingServiceImplTest {
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
             fradrag = listOf()
-        )
+        ).getOrHandle { throw RuntimeException("Skal gå å revurdere") }
 
-        actual shouldBe KunneIkkeRevurdere.EndringerIUtbetalingMåVareStørreEnn10Prosent.left()
+        actual.shouldBeInstanceOf<BeregnetRevurdering.Avslag>()
     }
 
     @Test
@@ -949,7 +951,7 @@ internal class RevurderingServiceImplTest {
 
     @Test
     fun `kan ikke lage brev med status beregnet`() {
-        val beregnetRevurdering = BeregnetRevurdering(
+        val beregnetRevurdering = BeregnetRevurdering.Innvilget(
             id = revurderingId,
             periode = periode,
             opprettet = Tidspunkt.now(),

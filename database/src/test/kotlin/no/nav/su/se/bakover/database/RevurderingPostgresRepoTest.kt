@@ -93,7 +93,7 @@ internal class RevurderingPostgresRepoTest {
 
             repo.lagre(opprettet)
 
-            val beregnetRevurdering = BeregnetRevurdering(
+            val beregnetRevurdering = BeregnetRevurdering.Innvilget(
                 id = opprettet.id,
                 periode = opprettet.periode,
                 opprettet = opprettet.opprettet,
@@ -103,7 +103,7 @@ internal class RevurderingPostgresRepoTest {
             )
 
             repo.lagre(beregnetRevurdering)
-            assert(repo.hent(opprettet.id) is BeregnetRevurdering)
+            assert(repo.hent(opprettet.id) is BeregnetRevurdering.Innvilget)
         }
     }
 
@@ -121,7 +121,7 @@ internal class RevurderingPostgresRepoTest {
 
             repo.lagre(opprettet)
 
-            val beregnet = BeregnetRevurdering(
+            val beregnet = BeregnetRevurdering.Innvilget(
                 id = opprettet.id,
                 periode = opprettet.periode,
                 opprettet = opprettet.opprettet,
@@ -132,7 +132,7 @@ internal class RevurderingPostgresRepoTest {
 
             repo.lagre(beregnet)
 
-            val nyBeregnet = BeregnetRevurdering(
+            val nyBeregnet = BeregnetRevurdering.Innvilget(
                 id = beregnet.id,
                 periode = beregnet.periode,
                 opprettet = beregnet.opprettet,
@@ -165,7 +165,7 @@ internal class RevurderingPostgresRepoTest {
 
             repo.lagre(opprettet)
 
-            val beregnet = BeregnetRevurdering(
+            val beregnet = BeregnetRevurdering.Innvilget(
                 id = opprettet.id,
                 periode = opprettet.periode,
                 opprettet = opprettet.opprettet,
@@ -214,7 +214,7 @@ internal class RevurderingPostgresRepoTest {
 
             repo.lagre(opprettet)
 
-            val beregnet = BeregnetRevurdering(
+            val beregnet = BeregnetRevurdering.Innvilget(
                 id = opprettet.id,
                 periode = opprettet.periode,
                 opprettet = opprettet.opprettet,
@@ -245,7 +245,7 @@ internal class RevurderingPostgresRepoTest {
             repo.lagre(beregnet)
             val hentet = repo.hent(opprettet.id)
 
-            assert(hentet is BeregnetRevurdering)
+            assert(hentet is BeregnetRevurdering.Innvilget)
         }
     }
 
@@ -263,7 +263,7 @@ internal class RevurderingPostgresRepoTest {
 
             repo.lagre(opprettet)
 
-            val beregnet = BeregnetRevurdering(
+            val beregnet = BeregnetRevurdering.Innvilget(
                 id = opprettet.id,
                 periode = opprettet.periode,
                 opprettet = opprettet.opprettet,
@@ -317,7 +317,7 @@ internal class RevurderingPostgresRepoTest {
 
             repo.lagre(opprettet)
 
-            val beregnet = BeregnetRevurdering(
+            val beregnet = BeregnetRevurdering.Innvilget(
                 id = opprettet.id,
                 periode = opprettet.periode,
                 opprettet = opprettet.opprettet,

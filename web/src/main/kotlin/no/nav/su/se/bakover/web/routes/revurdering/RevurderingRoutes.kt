@@ -95,9 +95,9 @@ internal fun Route.revurderingRoutes(
                                     fradrag = it
                                 ).fold(
                                     ifLeft = { revurderingFeilet -> call.svar(revurderingFeilet.tilFeilMelding()) },
-                                    ifRight = { simulertRevurdering ->
+                                    ifRight = { revurdering ->
                                         call.audit("Opprettet en ny revurdering beregning og simulering på sak med id $sakId")
-                                        call.svar(Resultat.json(Created, serialize(simulertRevurdering.toJson())))
+                                        call.svar(Resultat.json(Created, serialize(revurdering.toJson())))
                                     },
                                 )
                             }

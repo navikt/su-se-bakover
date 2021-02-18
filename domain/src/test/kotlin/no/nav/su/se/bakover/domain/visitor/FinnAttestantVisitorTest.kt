@@ -15,7 +15,13 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
+import no.nav.su.se.bakover.domain.beregning.MånedsberegningFactory
+import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import org.junit.jupiter.api.Test
@@ -174,6 +180,23 @@ internal class FinnAttestantVisitorTest {
     private val iverksattAvslagSøknadsbehandling =
         tilAttesteringAvslagSøknadsbehandlng.tilIverksatt(Attestering.Iverksatt(attestant), mock())
 
+    private val beregningMock = mock<Beregning> {
+        on { getMånedsberegninger() } doReturn listOf(
+            MånedsberegningFactory.ny(
+                periode = Periode.create(1.januar(2021), 31.januar(2021)),
+                sats = Sats.HØY,
+                fradrag = listOf(
+                    FradragFactory.ny(
+                        type = Fradragstype.Arbeidsinntekt,
+                        månedsbeløp = 5000.0,
+                        periode = Periode.create(1.januar(2021), 31.januar(2021)),
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER
+                    )
+                )
+            )
+        )
+    }
     private val revurdering = OpprettetRevurdering(
         id = UUID.randomUUID(),
         periode = Periode.create(1.januar(2021), 31.januar(2021)),
@@ -181,11 +204,15 @@ internal class FinnAttestantVisitorTest {
         tilRevurdering = mock() {
             on { behandlingsinformasjon } doReturn Behandlingsinformasjon.lagTomBehandlingsinformasjon()
                 .withAlleVilkårOppfylt()
+            on { beregning } doReturn beregningMock
         },
         saksbehandler = NavIdentBruker.Saksbehandler("Petter")
     )
 
-    private val beregnetRevurdering = revurdering.beregn(emptyList())
+    private val beregnetRevurdering = when (val a = revurdering.beregn(emptyList())) {
+        is BeregnetRevurdering.Innvilget -> { a }
+        else -> throw RuntimeException("Skal ikke skje")
+    }
     private val simulertRevurdering = beregnetRevurdering.toSimulert(mock())
     private val tilAttesteringRevurdering = simulertRevurdering.tilAttestering(mock(), saksbehandler)
     private val iverksattRevurdering = tilAttesteringRevurdering.iverksett(attestant, UUID30.randomUUID())

@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -31,7 +30,6 @@ import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
-import kotlin.math.abs
 
 internal class RevurderingServiceImpl(
     private val sakService: SakService,
@@ -98,22 +96,25 @@ internal class RevurderingServiceImpl(
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
         fradrag: List<Fradrag>
-    ): Either<KunneIkkeRevurdere, SimulertRevurdering> {
+    ): Either<KunneIkkeRevurdere, Revurdering> {
         return when (val revurdering = revurderingRepo.hent(revurderingId)) {
             is BeregnetRevurdering, is OpprettetRevurdering, is SimulertRevurdering -> {
-                val beregnetRevurdering = revurdering.beregn(fradrag)
-                if (!endringerAvUtbetalingerErStørreEnn10Prosent(beregnetRevurdering)) return KunneIkkeRevurdere.EndringerIUtbetalingMåVareStørreEnn10Prosent.left()
+                when (val beregnetRevurdering = revurdering.beregn(fradrag)) {
+                    is BeregnetRevurdering.Avslag -> { beregnetRevurdering.right() }
+                    is BeregnetRevurdering.Innvilget -> {
 
-                utbetalingService.simulerUtbetaling(
-                    sakId = beregnetRevurdering.tilRevurdering.sakId,
-                    saksbehandler = saksbehandler,
-                    beregning = beregnetRevurdering.beregning
-                ).mapLeft {
-                    KunneIkkeRevurdere.SimuleringFeilet
-                }.map {
-                    val simulert = beregnetRevurdering.toSimulert(it.simulering)
-                    revurderingRepo.lagre(simulert)
-                    simulert
+                        utbetalingService.simulerUtbetaling(
+                            sakId = beregnetRevurdering.tilRevurdering.sakId,
+                            saksbehandler = saksbehandler,
+                            beregning = beregnetRevurdering.beregning
+                        ).mapLeft {
+                            KunneIkkeRevurdere.SimuleringFeilet
+                        }.map {
+                            val simulert = beregnetRevurdering.toSimulert(it.simulering)
+                            revurderingRepo.lagre(simulert)
+                            simulert
+                        }
+                    }
                 }
             }
             else -> {
@@ -121,30 +122,6 @@ internal class RevurderingServiceImpl(
             }
         }
     }
-
-    /**
-     * § 10. Endringar
-     * Endring av stønaden må utgjøre minst en 10% endring för att det skal gå igenom.
-     * Denna løsningen baserer sig på att vi sjekker om alle måneder utgør minst en 10% endring.
-     * AI 16.02.2020
-     */
-    private fun endringerAvUtbetalingerErStørreEnn10Prosent(
-        beregningForRevurdering: BeregnetRevurdering
-    ): Boolean {
-        val vedtattBeregningsperioder =
-            beregningForRevurdering.tilRevurdering.beregning.getMånedsberegninger().map { it.getPeriode() to it }
-                .toMap()
-
-        return beregningForRevurdering.beregning.getMånedsberegninger().let {
-            val førsteUtbetaling = it.first()
-            førsteUtbetaling.differanseErStørreEllerLik10Prosent(
-                vedtattBeregningsperioder[førsteUtbetaling.getPeriode()]!!
-            )
-        }
-    }
-
-    private fun Månedsberegning.differanseErStørreEllerLik10Prosent(otherMånedsberegning: Månedsberegning) =
-        abs(this.getSumYtelse() - otherMånedsberegning.getSumYtelse()) >= (0.1 * this.getSumYtelse())
 
     override fun sendTilAttestering(
         revurderingId: UUID,

@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
@@ -18,6 +19,8 @@ sealed class RevurderingJson
 
 internal enum class RevurderingsStatus {
     OPPRETTET,
+    BEREGNET_INNVILGET,
+    BEREGNET_AVSLAG,
     SIMULERT,
     TIL_ATTESTERING,
     IVERKSATT
@@ -37,6 +40,19 @@ internal data class OpprettetRevurderingJson(
 ) : RevurderingJson() {
     @JsonInclude
     val status = RevurderingsStatus.OPPRETTET
+}
+
+internal data class BeregnetRevurderingJson(
+    val id: String,
+    val opprettet: String,
+    val periode: PeriodeJson,
+    val tilRevurdering: BehandlingJson,
+    val beregninger: RevurdertBeregningJson,
+    val saksbehandler: String,
+    val erInnvilget: Boolean,
+) : RevurderingJson() {
+    @JsonInclude
+    val status = if (erInnvilget) RevurderingsStatus.BEREGNET_INNVILGET else RevurderingsStatus.BEREGNET_AVSLAG
 }
 
 internal data class SimulertRevurderingJson(
@@ -117,6 +133,18 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         ),
         saksbehandler = saksbehandler.toString(),
         attestant = attestant.toString(),
+    )
+    is BeregnetRevurdering -> BeregnetRevurderingJson(
+        id = id.toString(),
+        opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
+        periode = periode.toJson(),
+        tilRevurdering = tilRevurdering.toJson(),
+        beregninger = RevurdertBeregningJson(
+            beregning = tilRevurdering.beregning.toJson(),
+            revurdert = beregning.toJson()
+        ),
+        saksbehandler = saksbehandler.toString(),
+        erInnvilget = this is BeregnetRevurdering.Innvilget
     )
     else -> throw NotImplementedError()
 }

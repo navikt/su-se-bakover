@@ -40,7 +40,8 @@ interface RevurderingRepo {
 
 enum class RevurderingsType {
     OPPRETTET,
-    BEREGNET,
+    BEREGNET_INNVILGET,
+    BEREGNET_AVSLAG,
     SIMULERT,
     TIL_ATTESTERING,
     IVERKSATT,
@@ -141,7 +142,15 @@ internal class RevurderingPostgresRepo(
                 simulering = simulering!!,
                 saksbehandler = Saksbehandler(saksbehandler)
             )
-            RevurderingsType.BEREGNET -> BeregnetRevurdering(
+            RevurderingsType.BEREGNET_INNVILGET -> BeregnetRevurdering.Innvilget(
+                id = id,
+                periode = periode,
+                opprettet = opprettet,
+                tilRevurdering = tilRevurdering as Søknadsbehandling.Iverksatt.Innvilget, // TODO AVOID CAST,
+                beregning = beregning!!,
+                saksbehandler = Saksbehandler(saksbehandler)
+            )
+            RevurderingsType.BEREGNET_AVSLAG -> BeregnetRevurdering.Avslag(
                 id = id,
                 periode = periode,
                 opprettet = opprettet,
@@ -200,7 +209,10 @@ internal class RevurderingPostgresRepo(
                     "id" to revurdering.id,
                     "saksbehandler" to revurdering.saksbehandler.navIdent,
                     "beregning" to objectMapper.writeValueAsString(revurdering.beregning),
-                    "revurderingsType" to RevurderingsType.BEREGNET.toString()
+                    "revurderingsType" to when (revurdering) {
+                        is BeregnetRevurdering.Innvilget -> RevurderingsType.BEREGNET_INNVILGET.toString()
+                        is BeregnetRevurdering.Avslag -> RevurderingsType.BEREGNET_AVSLAG.toString()
+                    }
                 ),
                 session
             )
