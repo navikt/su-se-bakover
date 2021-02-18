@@ -58,7 +58,6 @@ internal class RevurderingPostgresRepoTest {
         withMigratedDb {
             val behandling = testDataHelper.nyOversendtUtbetalingMedKvittering().first
 
-
             val opprettetRevurdering = OpprettetRevurdering(
                 id = UUID.randomUUID(),
                 periode = periode,
@@ -94,330 +93,330 @@ internal class RevurderingPostgresRepoTest {
         }
     }
 
-        @Test
-        fun `kan kan overskrive en opprettet med beregnet`() {
-            withMigratedDb {
-                val behandling = testDataHelper.nyOversendtUtbetalingMedKvittering().first
+    @Test
+    fun `kan kan overskrive en opprettet med beregnet`() {
+        withMigratedDb {
+            val behandling = testDataHelper.nyOversendtUtbetalingMedKvittering().first
 
-                val opprettet = OpprettetRevurdering(
-                    id = UUID.randomUUID(),
-                    periode = periode,
-                    opprettet = fixedTidspunkt,
-                    tilRevurdering = behandling,
-                    saksbehandler = saksbehandler
-                )
+            val opprettet = OpprettetRevurdering(
+                id = UUID.randomUUID(),
+                periode = periode,
+                opprettet = fixedTidspunkt,
+                tilRevurdering = behandling,
+                saksbehandler = saksbehandler
+            )
 
-                repo.lagre(opprettet)
+            repo.lagre(opprettet)
 
-                val beregnetRevurdering = BeregnetRevurdering.Innvilget(
-                    id = opprettet.id,
-                    periode = opprettet.periode,
-                    opprettet = opprettet.opprettet,
-                    tilRevurdering = behandling,
-                    saksbehandler = saksbehandler,
-                    beregning = TestBeregning
-                )
+            val beregnetRevurdering = BeregnetRevurdering.Innvilget(
+                id = opprettet.id,
+                periode = opprettet.periode,
+                opprettet = opprettet.opprettet,
+                tilRevurdering = behandling,
+                saksbehandler = saksbehandler,
+                beregning = TestBeregning
+            )
 
-                repo.lagre(beregnetRevurdering)
-                assert(repo.hent(opprettet.id) is BeregnetRevurdering.Innvilget)
-            }
-        }
-
-        @Test
-        fun `beregnet kan overskrives med ny beregnet`() {
-            withMigratedDb {
-                val behandling = testDataHelper.nyOversendtUtbetalingMedKvittering().first
-                val opprettet = OpprettetRevurdering(
-                    id = UUID.randomUUID(),
-                    periode = periode,
-                    opprettet = fixedTidspunkt,
-                    tilRevurdering = behandling,
-                    saksbehandler = saksbehandler
-                )
-
-                repo.lagre(opprettet)
-
-                val beregnet = BeregnetRevurdering.Innvilget(
-                    id = opprettet.id,
-                    periode = opprettet.periode,
-                    opprettet = opprettet.opprettet,
-                    tilRevurdering = behandling,
-                    saksbehandler = opprettet.saksbehandler,
-                    beregning = TestBeregning
-                )
-
-                repo.lagre(beregnet)
-
-                val nyBeregnet = BeregnetRevurdering.Innvilget(
-                    id = beregnet.id,
-                    periode = beregnet.periode,
-                    opprettet = beregnet.opprettet,
-                    tilRevurdering = beregnet.tilRevurdering,
-                    saksbehandler = Saksbehandler("ny saksbehandler"),
-                    beregning = beregnet.beregning
-                )
-
-                repo.lagre(nyBeregnet)
-
-                val hentet = repo.hent(opprettet.id)
-
-                hentet shouldNotBe opprettet
-                hentet shouldNotBe beregnet
-                hentet!!.saksbehandler shouldBe nyBeregnet.saksbehandler
-            }
-        }
-
-        @Test
-        fun `kan overskrive en beregnet med simulert`() {
-            withMigratedDb {
-                val behandling = testDataHelper.nyOversendtUtbetalingMedKvittering().first
-                val opprettet = OpprettetRevurdering(
-                    id = UUID.randomUUID(),
-                    periode = periode,
-                    opprettet = fixedTidspunkt,
-                    tilRevurdering = behandling,
-                    saksbehandler = saksbehandler
-                )
-
-                repo.lagre(opprettet)
-
-                val beregnet = BeregnetRevurdering.Innvilget(
-                    id = opprettet.id,
-                    periode = opprettet.periode,
-                    opprettet = opprettet.opprettet,
-                    tilRevurdering = behandling,
-                    saksbehandler = opprettet.saksbehandler,
-                    beregning = TestBeregning
-                )
-
-                repo.lagre(beregnet)
-
-                val simulert = SimulertRevurdering(
-                    id = beregnet.id,
-                    periode = beregnet.periode,
-                    opprettet = beregnet.opprettet,
-                    tilRevurdering = beregnet.tilRevurdering,
-                    saksbehandler = beregnet.saksbehandler,
-                    beregning = beregnet.beregning,
-                    simulering = Simulering(
-                        gjelderId = FnrGenerator.random(),
-                        gjelderNavn = "et navn for simulering",
-                        datoBeregnet = 1.januar(2021),
-                        nettoBeløp = 200,
-                        periodeList = listOf()
-                    )
-                )
-
-                repo.lagre(simulert)
-
-                val hentet = repo.hent(opprettet.id)
-
-                assert(hentet is SimulertRevurdering)
-            }
-        }
-
-        @Test
-        fun `kan overskrive en simulert med en beregnet`() {
-            withMigratedDb {
-                val behandling = testDataHelper.nyOversendtUtbetalingMedKvittering().first
-                val opprettet = OpprettetRevurdering(
-                    id = UUID.randomUUID(),
-                    periode = periode,
-                    opprettet = fixedTidspunkt,
-                    tilRevurdering = behandling,
-                    saksbehandler = saksbehandler
-                )
-
-                repo.lagre(opprettet)
-
-                val beregnet = BeregnetRevurdering.Innvilget(
-                    id = opprettet.id,
-                    periode = opprettet.periode,
-                    opprettet = opprettet.opprettet,
-                    tilRevurdering = behandling,
-                    saksbehandler = opprettet.saksbehandler,
-                    beregning = TestBeregning
-                )
-
-                repo.lagre(beregnet)
-
-                val simulert = SimulertRevurdering(
-                    id = beregnet.id,
-                    periode = beregnet.periode,
-                    opprettet = beregnet.opprettet,
-                    tilRevurdering = beregnet.tilRevurdering,
-                    saksbehandler = beregnet.saksbehandler,
-                    beregning = beregnet.beregning,
-                    simulering = Simulering(
-                        gjelderId = FnrGenerator.random(),
-                        gjelderNavn = "et navn for simulering",
-                        datoBeregnet = 1.januar(2021),
-                        nettoBeløp = 200,
-                        periodeList = listOf()
-                    )
-                )
-
-                repo.lagre(simulert)
-                repo.lagre(beregnet)
-                val hentet = repo.hent(opprettet.id)
-
-                assert(hentet is BeregnetRevurdering.Innvilget)
-            }
-        }
-
-        @Test
-        fun `kan overskrive en simulert med en til attestering`() {
-            withMigratedDb {
-                val behandling = testDataHelper.nyOversendtUtbetalingMedKvittering().first
-                val opprettet = OpprettetRevurdering(
-                    id = UUID.randomUUID(),
-                    periode = periode,
-                    opprettet = fixedTidspunkt,
-                    tilRevurdering = behandling,
-                    saksbehandler = saksbehandler
-                )
-
-                repo.lagre(opprettet)
-
-                val beregnet = BeregnetRevurdering.Innvilget(
-                    id = opprettet.id,
-                    periode = opprettet.periode,
-                    opprettet = opprettet.opprettet,
-                    tilRevurdering = behandling,
-                    saksbehandler = opprettet.saksbehandler,
-                    beregning = TestBeregning
-                )
-
-                repo.lagre(beregnet)
-
-                val simulert = SimulertRevurdering(
-                    id = beregnet.id,
-                    periode = beregnet.periode,
-                    opprettet = beregnet.opprettet,
-                    tilRevurdering = beregnet.tilRevurdering,
-                    saksbehandler = beregnet.saksbehandler,
-                    beregning = beregnet.beregning,
-                    simulering = Simulering(
-                        gjelderId = FnrGenerator.random(),
-                        gjelderNavn = "et navn for simulering",
-                        datoBeregnet = 1.januar(2021),
-                        nettoBeløp = 200,
-                        periodeList = listOf()
-                    )
-                )
-
-                repo.lagre(simulert)
-
-                val tilAttestering =
-                    simulert.tilAttestering(oppgaveId = OppgaveId("oppgaveId"), saksbehandler = saksbehandler)
-
-                repo.lagre(tilAttestering)
-
-                val hentet = repo.hent(opprettet.id)
-
-                assert(hentet is RevurderingTilAttestering)
-            }
-        }
-
-        @Test
-        fun `saksbehandler som sender til attestering overskriver saksbehandlere som var før`() {
-            withMigratedDb {
-                val behandling = testDataHelper.nyOversendtUtbetalingMedKvittering().first
-                val opprettet = OpprettetRevurdering(
-                    id = UUID.randomUUID(),
-                    periode = periode,
-                    opprettet = fixedTidspunkt,
-                    tilRevurdering = behandling,
-                    saksbehandler = saksbehandler
-                )
-
-                repo.lagre(opprettet)
-
-                val beregnet = BeregnetRevurdering.Innvilget(
-                    id = opprettet.id,
-                    periode = opprettet.periode,
-                    opprettet = opprettet.opprettet,
-                    tilRevurdering = behandling,
-                    saksbehandler = opprettet.saksbehandler,
-                    beregning = TestBeregning
-                )
-
-                repo.lagre(beregnet)
-
-                val simulert = SimulertRevurdering(
-                    id = beregnet.id,
-                    periode = beregnet.periode,
-                    opprettet = beregnet.opprettet,
-                    tilRevurdering = beregnet.tilRevurdering,
-                    saksbehandler = beregnet.saksbehandler,
-                    beregning = beregnet.beregning,
-                    simulering = Simulering(
-                        gjelderId = FnrGenerator.random(),
-                        gjelderNavn = "et navn for simulering",
-                        datoBeregnet = 1.januar(2021),
-                        nettoBeløp = 200,
-                        periodeList = listOf()
-                    )
-                )
-
-                repo.lagre(simulert)
-
-                val tilAttestering = simulert.tilAttestering(
-                    oppgaveId = OppgaveId("oppgaveId"),
-                    saksbehandler = Saksbehandler("Ny saksbehandler")
-                )
-
-                repo.lagre(tilAttestering)
-
-                val hentet = repo.hent(opprettet.id)
-
-                assert(hentet is RevurderingTilAttestering)
-                hentet!!.saksbehandler shouldNotBe opprettet.saksbehandler
-            }
-        }
-
-        @Test
-        fun `kan lagre og hente en iverksatt revurdering`() {
-            withMigratedDb {
-                val behandling = testDataHelper.nyOversendtUtbetalingMedKvittering().first
-                val attestant = NavIdentBruker.Attestant("Attestansson")
-
-                val opprettet = OpprettetRevurdering(
-                    id = UUID.randomUUID(),
-                    periode = periode,
-                    opprettet = fixedTidspunkt,
-                    tilRevurdering = behandling,
-                    saksbehandler = saksbehandler
-                )
-                repo.lagre(opprettet)
-
-                val tilAttestering = RevurderingTilAttestering(
-                    id = opprettet.id,
-                    periode = periode,
-                    opprettet = fixedTidspunkt,
-                    tilRevurdering = behandling,
-                    saksbehandler = saksbehandler,
-                    beregning = TestBeregning.toSnapshot(),
-                    simulering = Simulering(
-                        gjelderId = FnrGenerator.random(),
-                        gjelderNavn = "Navn Navnesson",
-                        datoBeregnet = LocalDate.now(),
-                        nettoBeløp = 5,
-                        periodeList = listOf()
-                    ),
-                    oppgaveId = OppgaveId(value = ""),
-                )
-                val utbetaling = testDataHelper.nyUtbetalingUtenKvittering(
-                    revurderingTilAttestering = tilAttestering,
-                )
-
-                val iverksatt = tilAttestering.iverksett(
-                    attestant = attestant,
-                    utbetalingId = utbetaling.id
-                ).getOrHandle { throw RuntimeException("Skal ikke kunne skje") }
-
-                repo.lagre(iverksatt)
-                repo.hent(iverksatt.id) shouldBe iverksatt
-            }
+            repo.lagre(beregnetRevurdering)
+            assert(repo.hent(opprettet.id) is BeregnetRevurdering.Innvilget)
         }
     }
+
+    @Test
+    fun `beregnet kan overskrives med ny beregnet`() {
+        withMigratedDb {
+            val behandling = testDataHelper.nyOversendtUtbetalingMedKvittering().first
+            val opprettet = OpprettetRevurdering(
+                id = UUID.randomUUID(),
+                periode = periode,
+                opprettet = fixedTidspunkt,
+                tilRevurdering = behandling,
+                saksbehandler = saksbehandler
+            )
+
+            repo.lagre(opprettet)
+
+            val beregnet = BeregnetRevurdering.Innvilget(
+                id = opprettet.id,
+                periode = opprettet.periode,
+                opprettet = opprettet.opprettet,
+                tilRevurdering = behandling,
+                saksbehandler = opprettet.saksbehandler,
+                beregning = TestBeregning
+            )
+
+            repo.lagre(beregnet)
+
+            val nyBeregnet = BeregnetRevurdering.Innvilget(
+                id = beregnet.id,
+                periode = beregnet.periode,
+                opprettet = beregnet.opprettet,
+                tilRevurdering = beregnet.tilRevurdering,
+                saksbehandler = Saksbehandler("ny saksbehandler"),
+                beregning = beregnet.beregning
+            )
+
+            repo.lagre(nyBeregnet)
+
+            val hentet = repo.hent(opprettet.id)
+
+            hentet shouldNotBe opprettet
+            hentet shouldNotBe beregnet
+            hentet!!.saksbehandler shouldBe nyBeregnet.saksbehandler
+        }
+    }
+
+    @Test
+    fun `kan overskrive en beregnet med simulert`() {
+        withMigratedDb {
+            val behandling = testDataHelper.nyOversendtUtbetalingMedKvittering().first
+            val opprettet = OpprettetRevurdering(
+                id = UUID.randomUUID(),
+                periode = periode,
+                opprettet = fixedTidspunkt,
+                tilRevurdering = behandling,
+                saksbehandler = saksbehandler
+            )
+
+            repo.lagre(opprettet)
+
+            val beregnet = BeregnetRevurdering.Innvilget(
+                id = opprettet.id,
+                periode = opprettet.periode,
+                opprettet = opprettet.opprettet,
+                tilRevurdering = behandling,
+                saksbehandler = opprettet.saksbehandler,
+                beregning = TestBeregning
+            )
+
+            repo.lagre(beregnet)
+
+            val simulert = SimulertRevurdering(
+                id = beregnet.id,
+                periode = beregnet.periode,
+                opprettet = beregnet.opprettet,
+                tilRevurdering = beregnet.tilRevurdering,
+                saksbehandler = beregnet.saksbehandler,
+                beregning = beregnet.beregning,
+                simulering = Simulering(
+                    gjelderId = FnrGenerator.random(),
+                    gjelderNavn = "et navn for simulering",
+                    datoBeregnet = 1.januar(2021),
+                    nettoBeløp = 200,
+                    periodeList = listOf()
+                )
+            )
+
+            repo.lagre(simulert)
+
+            val hentet = repo.hent(opprettet.id)
+
+            assert(hentet is SimulertRevurdering)
+        }
+    }
+
+    @Test
+    fun `kan overskrive en simulert med en beregnet`() {
+        withMigratedDb {
+            val behandling = testDataHelper.nyOversendtUtbetalingMedKvittering().first
+            val opprettet = OpprettetRevurdering(
+                id = UUID.randomUUID(),
+                periode = periode,
+                opprettet = fixedTidspunkt,
+                tilRevurdering = behandling,
+                saksbehandler = saksbehandler
+            )
+
+            repo.lagre(opprettet)
+
+            val beregnet = BeregnetRevurdering.Innvilget(
+                id = opprettet.id,
+                periode = opprettet.periode,
+                opprettet = opprettet.opprettet,
+                tilRevurdering = behandling,
+                saksbehandler = opprettet.saksbehandler,
+                beregning = TestBeregning
+            )
+
+            repo.lagre(beregnet)
+
+            val simulert = SimulertRevurdering(
+                id = beregnet.id,
+                periode = beregnet.periode,
+                opprettet = beregnet.opprettet,
+                tilRevurdering = beregnet.tilRevurdering,
+                saksbehandler = beregnet.saksbehandler,
+                beregning = beregnet.beregning,
+                simulering = Simulering(
+                    gjelderId = FnrGenerator.random(),
+                    gjelderNavn = "et navn for simulering",
+                    datoBeregnet = 1.januar(2021),
+                    nettoBeløp = 200,
+                    periodeList = listOf()
+                )
+            )
+
+            repo.lagre(simulert)
+            repo.lagre(beregnet)
+            val hentet = repo.hent(opprettet.id)
+
+            assert(hentet is BeregnetRevurdering.Innvilget)
+        }
+    }
+
+    @Test
+    fun `kan overskrive en simulert med en til attestering`() {
+        withMigratedDb {
+            val behandling = testDataHelper.nyOversendtUtbetalingMedKvittering().first
+            val opprettet = OpprettetRevurdering(
+                id = UUID.randomUUID(),
+                periode = periode,
+                opprettet = fixedTidspunkt,
+                tilRevurdering = behandling,
+                saksbehandler = saksbehandler
+            )
+
+            repo.lagre(opprettet)
+
+            val beregnet = BeregnetRevurdering.Innvilget(
+                id = opprettet.id,
+                periode = opprettet.periode,
+                opprettet = opprettet.opprettet,
+                tilRevurdering = behandling,
+                saksbehandler = opprettet.saksbehandler,
+                beregning = TestBeregning
+            )
+
+            repo.lagre(beregnet)
+
+            val simulert = SimulertRevurdering(
+                id = beregnet.id,
+                periode = beregnet.periode,
+                opprettet = beregnet.opprettet,
+                tilRevurdering = beregnet.tilRevurdering,
+                saksbehandler = beregnet.saksbehandler,
+                beregning = beregnet.beregning,
+                simulering = Simulering(
+                    gjelderId = FnrGenerator.random(),
+                    gjelderNavn = "et navn for simulering",
+                    datoBeregnet = 1.januar(2021),
+                    nettoBeløp = 200,
+                    periodeList = listOf()
+                )
+            )
+
+            repo.lagre(simulert)
+
+            val tilAttestering =
+                simulert.tilAttestering(oppgaveId = OppgaveId("oppgaveId"), saksbehandler = saksbehandler)
+
+            repo.lagre(tilAttestering)
+
+            val hentet = repo.hent(opprettet.id)
+
+            assert(hentet is RevurderingTilAttestering)
+        }
+    }
+
+    @Test
+    fun `saksbehandler som sender til attestering overskriver saksbehandlere som var før`() {
+        withMigratedDb {
+            val behandling = testDataHelper.nyOversendtUtbetalingMedKvittering().first
+            val opprettet = OpprettetRevurdering(
+                id = UUID.randomUUID(),
+                periode = periode,
+                opprettet = fixedTidspunkt,
+                tilRevurdering = behandling,
+                saksbehandler = saksbehandler
+            )
+
+            repo.lagre(opprettet)
+
+            val beregnet = BeregnetRevurdering.Innvilget(
+                id = opprettet.id,
+                periode = opprettet.periode,
+                opprettet = opprettet.opprettet,
+                tilRevurdering = behandling,
+                saksbehandler = opprettet.saksbehandler,
+                beregning = TestBeregning
+            )
+
+            repo.lagre(beregnet)
+
+            val simulert = SimulertRevurdering(
+                id = beregnet.id,
+                periode = beregnet.periode,
+                opprettet = beregnet.opprettet,
+                tilRevurdering = beregnet.tilRevurdering,
+                saksbehandler = beregnet.saksbehandler,
+                beregning = beregnet.beregning,
+                simulering = Simulering(
+                    gjelderId = FnrGenerator.random(),
+                    gjelderNavn = "et navn for simulering",
+                    datoBeregnet = 1.januar(2021),
+                    nettoBeløp = 200,
+                    periodeList = listOf()
+                )
+            )
+
+            repo.lagre(simulert)
+
+            val tilAttestering = simulert.tilAttestering(
+                oppgaveId = OppgaveId("oppgaveId"),
+                saksbehandler = Saksbehandler("Ny saksbehandler")
+            )
+
+            repo.lagre(tilAttestering)
+
+            val hentet = repo.hent(opprettet.id)
+
+            assert(hentet is RevurderingTilAttestering)
+            hentet!!.saksbehandler shouldNotBe opprettet.saksbehandler
+        }
+    }
+
+    @Test
+    fun `kan lagre og hente en iverksatt revurdering`() {
+        withMigratedDb {
+            val behandling = testDataHelper.nyOversendtUtbetalingMedKvittering().first
+            val attestant = NavIdentBruker.Attestant("Attestansson")
+
+            val opprettet = OpprettetRevurdering(
+                id = UUID.randomUUID(),
+                periode = periode,
+                opprettet = fixedTidspunkt,
+                tilRevurdering = behandling,
+                saksbehandler = saksbehandler
+            )
+            repo.lagre(opprettet)
+
+            val tilAttestering = RevurderingTilAttestering(
+                id = opprettet.id,
+                periode = periode,
+                opprettet = fixedTidspunkt,
+                tilRevurdering = behandling,
+                saksbehandler = saksbehandler,
+                beregning = TestBeregning.toSnapshot(),
+                simulering = Simulering(
+                    gjelderId = FnrGenerator.random(),
+                    gjelderNavn = "Navn Navnesson",
+                    datoBeregnet = LocalDate.now(),
+                    nettoBeløp = 5,
+                    periodeList = listOf()
+                ),
+                oppgaveId = OppgaveId(value = ""),
+            )
+            val utbetaling = testDataHelper.nyUtbetalingUtenKvittering(
+                revurderingTilAttestering = tilAttestering,
+            )
+
+            val iverksatt = tilAttestering.iverksett(
+                attestant = attestant,
+                utbetalingId = utbetaling.id
+            ).getOrHandle { throw RuntimeException("Skal ikke kunne skje") }
+
+            repo.lagre(iverksatt)
+            repo.hent(iverksatt.id) shouldBe iverksatt
+        }
+    }
+}

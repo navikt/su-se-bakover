@@ -91,7 +91,6 @@ internal fun Route.revurderingRoutes(
         }
     }
 
-
     data class BeregningForRevurderingBody(
         val periode: PeriodeJson,
         val fradrag: List<FradragJson>,
