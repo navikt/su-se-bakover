@@ -100,9 +100,11 @@ internal class RevurderingServiceImpl(
         return when (val revurdering = revurderingRepo.hent(revurderingId)) {
             is BeregnetRevurdering, is OpprettetRevurdering, is SimulertRevurdering -> {
                 when (val beregnetRevurdering = revurdering.beregn(fradrag)) {
-                    is BeregnetRevurdering.Avslag -> { beregnetRevurdering.right() }
+                    is BeregnetRevurdering.Avslag -> {
+                        revurderingRepo.lagre(beregnetRevurdering)
+                        beregnetRevurdering.right()
+                    }
                     is BeregnetRevurdering.Innvilget -> {
-
                         utbetalingService.simulerUtbetaling(
                             sakId = beregnetRevurdering.tilRevurdering.sakId,
                             saksbehandler = saksbehandler,

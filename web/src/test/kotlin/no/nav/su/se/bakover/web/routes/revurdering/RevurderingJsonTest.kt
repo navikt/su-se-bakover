@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegEtterUtbetaling
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
@@ -93,6 +94,82 @@ internal class RevurderingJsonTest {
 
         JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson()), true)
         deserialize<OpprettetRevurderingJson>(revurderingJson) shouldBe revurdering.toJson()
+    }
+
+    @Test
+    fun `should serialize and deserialize BeregnetInnvilget`() {
+        val id = UUID.randomUUID()
+        val opprettet = Tidspunkt.now()
+        val beregning = TestBeregning
+
+        val revurdering = BeregnetRevurdering.Innvilget(
+            id = id,
+            periode = Periode.create(1.januar(2020), 31.desember(2020)),
+            opprettet = opprettet,
+            tilRevurdering = behandling,
+            saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
+            beregning = beregning,
+        )
+
+        val revurderingJson = """
+            {
+            "id": "$id",
+            "opprettet": "$opprettet",
+            "tilRevurdering": ${serialize(behandling.toJson())},
+            "beregninger":
+              {
+                "beregning": ${serialize(behandling.beregning.toJson())},
+                "revurdert": ${serialize(beregning.toJson())}
+              },
+            "status": "${RevurderingsStatus.BEREGNET_INNVILGET}",
+            "saksbehandler": "Petter",
+            "periode": {
+                "fraOgMed": "2020-01-01",
+                "tilOgMed": "2020-12-31"
+            }
+            }
+        """.trimIndent()
+
+        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson()), true)
+        deserialize<BeregnetRevurderingJson.Innvilget>(revurderingJson) shouldBe revurdering.toJson()
+    }
+
+    @Test
+    fun `should serialize and deserialize BeregnetAvslag`() {
+        val id = UUID.randomUUID()
+        val opprettet = Tidspunkt.now()
+        val beregning = TestBeregning
+
+        val revurdering = BeregnetRevurdering.Avslag(
+            id = id,
+            periode = Periode.create(1.januar(2020), 31.desember(2020)),
+            opprettet = opprettet,
+            tilRevurdering = behandling,
+            saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
+            beregning = beregning,
+        )
+
+        val revurderingJson = """
+            {
+            "id": "$id",
+            "opprettet": "$opprettet",
+            "tilRevurdering": ${serialize(behandling.toJson())},
+            "beregninger":
+              {
+                "beregning": ${serialize(behandling.beregning.toJson())},
+                "revurdert": ${serialize(beregning.toJson())}
+              },
+            "status": "${RevurderingsStatus.BEREGNET_AVSLAG}",
+            "saksbehandler": "Petter",
+            "periode": {
+                "fraOgMed": "2020-01-01",
+                "tilOgMed": "2020-12-31"
+            }
+            }
+        """.trimIndent()
+
+        JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson()), true)
+        deserialize<BeregnetRevurderingJson.Avslag>(revurderingJson) shouldBe revurdering.toJson()
     }
 
     @Test

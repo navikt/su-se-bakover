@@ -42,17 +42,37 @@ internal data class OpprettetRevurderingJson(
     val status = RevurderingsStatus.OPPRETTET
 }
 
-internal data class BeregnetRevurderingJson(
-    val id: String,
-    val opprettet: String,
-    val periode: PeriodeJson,
-    val tilRevurdering: BehandlingJson,
-    val beregninger: RevurdertBeregningJson,
-    val saksbehandler: String,
-    val erInnvilget: Boolean,
-) : RevurderingJson() {
-    @JsonInclude
-    val status = if (erInnvilget) RevurderingsStatus.BEREGNET_INNVILGET else RevurderingsStatus.BEREGNET_AVSLAG
+internal sealed class BeregnetRevurderingJson : RevurderingJson() {
+    abstract val id: String
+    abstract val opprettet: String
+    abstract val periode: PeriodeJson
+    abstract val tilRevurdering: BehandlingJson
+    abstract val beregninger: RevurdertBeregningJson
+    abstract val saksbehandler: String
+
+    data class Innvilget(
+        override val id: String,
+        override val opprettet: String,
+        override val periode: PeriodeJson,
+        override val tilRevurdering: BehandlingJson,
+        override val beregninger: RevurdertBeregningJson,
+        override val saksbehandler: String
+    ) : BeregnetRevurderingJson() {
+        @JsonInclude
+        val status = RevurderingsStatus.BEREGNET_INNVILGET
+    }
+
+    data class Avslag(
+        override val id: String,
+        override val opprettet: String,
+        override val periode: PeriodeJson,
+        override val tilRevurdering: BehandlingJson,
+        override val beregninger: RevurdertBeregningJson,
+        override val saksbehandler: String
+    ) : BeregnetRevurderingJson() {
+        @JsonInclude
+        val status = RevurderingsStatus.BEREGNET_AVSLAG
+    }
 }
 
 internal data class SimulertRevurderingJson(
@@ -134,7 +154,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         saksbehandler = saksbehandler.toString(),
         attestant = attestant.toString(),
     )
-    is BeregnetRevurdering -> BeregnetRevurderingJson(
+    is BeregnetRevurdering.Innvilget -> BeregnetRevurderingJson.Innvilget(
         id = id.toString(),
         opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
         periode = periode.toJson(),
@@ -144,7 +164,17 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
             revurdert = beregning.toJson()
         ),
         saksbehandler = saksbehandler.toString(),
-        erInnvilget = this is BeregnetRevurdering.Innvilget
+    )
+    is BeregnetRevurdering.Avslag -> BeregnetRevurderingJson.Avslag(
+        id = id.toString(),
+        opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
+        periode = periode.toJson(),
+        tilRevurdering = tilRevurdering.toJson(),
+        beregninger = RevurdertBeregningJson(
+            beregning = tilRevurdering.beregning.toJson(),
+            revurdert = beregning.toJson()
+        ),
+        saksbehandler = saksbehandler.toString(),
     )
     else -> throw NotImplementedError()
 }
