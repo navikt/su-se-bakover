@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
+import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import java.time.LocalDate
 import java.util.UUID
@@ -16,6 +17,12 @@ interface RevurderingService {
         fraOgMed: LocalDate,
         saksbehandler: NavIdentBruker.Saksbehandler
     ): Either<KunneIkkeRevurdere, Revurdering>
+
+    fun oppdaterRevurderingsperiode(
+        revurderingId: UUID,
+        fraOgMed: LocalDate,
+        saksbehandler: NavIdentBruker.Saksbehandler
+    ): Either<KunneIkkeRevurdere, OpprettetRevurdering>
 
     fun beregnOgSimuler(
         revurderingId: UUID,
@@ -56,5 +63,4 @@ sealed class KunneIkkeRevurdere {
     object KanIkkeRevurderePerioderMedFlereAktiveStønadsperioder : KunneIkkeRevurdere()
     object SimuleringFeilet : KunneIkkeRevurdere()
     object KanIkkeRevurdereEnPeriodeMedEksisterendeRevurdering : KunneIkkeRevurdere()
-    object EndringerIUtbetalingMåVareStørreEnn10Prosent : KunneIkkeRevurdere()
 }

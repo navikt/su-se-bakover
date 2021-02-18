@@ -92,6 +92,25 @@ internal class RevurderingServiceImpl(
             }
     }
 
+    override fun oppdaterRevurderingsperiode(
+        revurderingId: UUID,
+        fraOgMed: LocalDate,
+        saksbehandler: NavIdentBruker.Saksbehandler
+    ): Either<KunneIkkeRevurdere, OpprettetRevurdering> {
+        val revurdering = revurderingRepo.hent(revurderingId) ?: return KunneIkkeRevurdere.FantIkkeRevurdering.left()
+
+        val newAndFreshRevurdering = OpprettetRevurdering(
+            id = revurdering.id,
+            periode = Periode.create(fraOgMed, revurdering.periode.getTilOgMed()),
+            opprettet = revurdering.opprettet,
+            tilRevurdering = revurdering.tilRevurdering,
+            saksbehandler = saksbehandler,
+        )
+
+        revurderingRepo.lagre(newAndFreshRevurdering)
+        return newAndFreshRevurdering.right()
+    }
+
     override fun beregnOgSimuler(
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,

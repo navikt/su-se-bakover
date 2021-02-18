@@ -176,6 +176,19 @@ internal class RevurderingPostgresRepo(
                         (id, opprettet, behandlingId, periode, beregning, simulering, saksbehandler, oppgaveId, revurderingsType, attestant, utbetalingId, iverksattjournalpostid, iverksattbrevbestillingid)
                     values
                         (:id, :opprettet, :behandlingId, to_json(:periode::json), null, null, :saksbehandler, :oppgaveId, :revurderingsType, null, null, null, null)
+                        ON CONFLICT(id) do update set
+                        id=:id,
+                        opprettet=:opprettet,
+                        behandlingId=:behandlingId,
+                        periode=to_json(:periode::json),
+                        beregning=null,
+                        simulering=null,
+                        saksbehandler=:saksbehandler,
+                        oppgaveId=:oppgaveId,
+                        revurderingsType=:revurderingsType,
+                        attestant=null, utbetalingId=null,
+                        iverksattjournalpostid=null,
+                        iverksattbrevbestillingid=null
                 """.trimIndent()
                 ).oppdatering(
                 mapOf(

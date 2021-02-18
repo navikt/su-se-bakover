@@ -46,7 +46,6 @@ internal data class OpprettRevurderingBody(val fraOgMed: LocalDate)
 internal fun Route.revurderingRoutes(
     revurderingService: RevurderingService
 ) {
-    // { fraOgMed: dato }
     authorize(Brukerrolle.Saksbehandler) {
         post("$revurderingPath/opprett") {
             call.withSakId { sakId ->
@@ -68,6 +67,30 @@ internal fun Route.revurderingRoutes(
             }
         }
     }
+
+    data class OppdaterRevurderingsperiodeBody(val fraOgMed: LocalDate)
+    authorize(Brukerrolle.Saksbehandler) {
+        post("$revurderingPath/{revurderingId}/oppdaterPeriode") {
+            call.withRevurderingId { revurderingId ->
+                call.withBody<OppdaterRevurderingsperiodeBody> { request ->
+                    val navIdent = call.suUserContext.navIdent
+
+                    revurderingService.oppdaterRevurderingsperiode(
+                        revurderingId,
+                        fraOgMed = request.fraOgMed,
+                        saksbehandler = Saksbehandler(navIdent)
+                    ).fold(
+                        ifLeft = { call.svar(it.tilFeilMelding()) },
+                        ifRight = {
+                            call.audit("Oppdaterte perioden på revurdering med id: $revurderingId")
+                            call.svar(Resultat.json(Created, serialize(it.toJson())))
+                        },
+                    )
+                }
+            }
+        }
+    }
+
 
     data class BeregningForRevurderingBody(
         val periode: PeriodeJson,
@@ -180,6 +203,5 @@ internal fun KunneIkkeRevurdere.tilFeilMelding(): Resultat {
         KunneIkkeRevurdere.SimuleringFeilet -> InternalServerError.message("Simulering feilet")
         KunneIkkeRevurdere.KanIkkeRevurderePerioderMedFlereAktiveStønadsperioder -> InternalServerError.message("Revurderingsperioden kan ikke overlappe flere aktive stønadsperioder.") // TODO AI 03-02-2020: Temporary solution
         KunneIkkeRevurdere.KanIkkeRevurdereEnPeriodeMedEksisterendeRevurdering -> InternalServerError.message("Kan ikke revurdere en behandling som allerede har en eksisterende revurdering") // TODO Temporary solution
-        KunneIkkeRevurdere.EndringerIUtbetalingMåVareStørreEnn10Prosent -> TODO()
     }
 }

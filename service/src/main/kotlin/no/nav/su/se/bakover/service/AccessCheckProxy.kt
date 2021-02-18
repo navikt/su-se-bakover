@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
+import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -298,6 +299,15 @@ open class AccessCheckProxy(
                 ): Either<KunneIkkeRevurdere, Revurdering> {
                     assertHarTilgangTilSak(sakId)
                     return services.revurdering.opprettRevurdering(sakId, fraOgMed, saksbehandler)
+                }
+
+                override fun oppdaterRevurderingsperiode(
+                    revurderingId: UUID,
+                    fraOgMed: LocalDate,
+                    saksbehandler: NavIdentBruker.Saksbehandler
+                ): Either<KunneIkkeRevurdere, OpprettetRevurdering> {
+                    assertHarTilgangTilRevurdering(revurderingId)
+                    return services.revurdering.oppdaterRevurderingsperiode(revurderingId, fraOgMed, saksbehandler)
                 }
 
                 override fun beregnOgSimuler(

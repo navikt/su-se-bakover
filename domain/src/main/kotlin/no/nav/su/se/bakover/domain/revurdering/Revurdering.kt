@@ -230,7 +230,8 @@ data class IverksattRevurdering(
 /**
  * § 10. Endringar
  * Endring av stønaden må utgjøre minst en 10% endring för att det skal gå igenom.
- * Denna løsningen baserer sig på att vi sjekker om alle måneder utgør minst en 10% endring.
+ * Løsningen sjekker om første måneden utgør minst en 10% endring. Dette baserer sig på
+ * att man må revurdere hela stønadsperioden frem i tid.
  * AI 16.02.2020
  */
 private fun endringerAvUtbetalingerErStørreEllerLik10Prosent(vedtattBeregning: Beregning, revurdertBeregning: Beregning): Boolean {
