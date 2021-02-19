@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.client.stubs.oppdrag
 
 import arrow.core.Either
 import arrow.core.right
-import no.nav.su.se.bakover.common.filterMap
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -27,7 +26,7 @@ object SimuleringStub : SimuleringClient {
 
     private fun simulerNyUtbetaling(utbetaling: Utbetaling, saksnummer: Saksnummer): Simulering {
         val perioder = utbetaling.utbetalingslinjer.flatMap { utbetalingslinje ->
-            Periode.create(utbetalingslinje.fraOgMed, utbetalingslinje.tilOgMed).tilMånedsperioder().filterMap {
+            Periode.create(utbetalingslinje.fraOgMed, utbetalingslinje.tilOgMed).tilMånedsperioder().mapNotNull {
                 if (utbetalingslinje.beløp > 0) {
                     SimulertPeriode(
                         fraOgMed = it.getFraOgMed(),

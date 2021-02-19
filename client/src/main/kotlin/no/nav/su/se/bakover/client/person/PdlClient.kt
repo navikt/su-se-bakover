@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.client.person.PdlData.Navn
 import no.nav.su.se.bakover.client.person.Variables.Companion.AKTORID
 import no.nav.su.se.bakover.client.person.Variables.Companion.FOLKEREGISTERIDENT
 import no.nav.su.se.bakover.client.sts.TokenOppslag
-import no.nav.su.se.bakover.common.filterMap
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
@@ -64,7 +63,7 @@ internal class PdlClient(
                 person.bostedsadresse,
                 person.oppholdsadresse,
                 person.kontaktadresse
-            ).filterMap { it.firstOrNull() }.finnRiktigAdresseformatOgMapTilPdlAdresse()
+            ).mapNotNull { it.firstOrNull() }.finnRiktigAdresseformatOgMapTilPdlAdresse()
 
             PdlData(
                 ident = Ident(pdlIdent.fnr, pdlIdent.aktørId),

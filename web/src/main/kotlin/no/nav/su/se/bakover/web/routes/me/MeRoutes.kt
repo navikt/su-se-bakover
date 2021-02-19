@@ -7,7 +7,6 @@ import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import no.nav.su.se.bakover.common.ApplicationConfig
-import no.nav.su.se.bakover.common.filterMap
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.web.AzureGroupMapper
@@ -25,7 +24,7 @@ internal fun Route.meRoutes(applicationConfig: ApplicationConfig, azureGroupMapp
     get("/me") {
         val roller =
             getGroupsFromJWT(applicationConfig, call.authentication.principal)
-                .filterMap { azureGroupMapper.fromAzureGroup(it) }
+                .mapNotNull { azureGroupMapper.fromAzureGroup(it) }
 
         call.respond(
             HttpStatusCode.OK,
