@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.revurdering
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -11,6 +12,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
+import no.nav.su.se.bakover.domain.beregning.RevurdertBeregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegEtterUtbetaling
@@ -37,15 +39,22 @@ sealed class Revurdering : Visitable<RevurderingVisitor> {
     val fnr
         get() = this.tilRevurdering.fnr
 
-    open fun beregn(fradrag: List<Fradrag>): BeregnetRevurdering {
+    open fun beregn(fradrag: List<Fradrag>): Either<KunneIkkeBeregneRevurdering, BeregnetRevurdering> {
         val beregningsgrunnlag = Beregningsgrunnlag.create(
             beregningsperiode = periode,
             forventetInntektPerÅr = tilRevurdering.behandlingsinformasjon.uførhet?.forventetInntekt?.toDouble()
                 ?: 0.0,
             fradragFraSaksbehandler = fradrag
         )
-        val revurdertBeregning = tilRevurdering.behandlingsinformasjon.bosituasjon!!.getBeregningStrategy()
-            .beregn(beregningsgrunnlag)
+
+        val beregningStrategy = tilRevurdering.behandlingsinformasjon.bosituasjon!!.getBeregningStrategy()
+        val revurdertBeregning: Beregning = RevurdertBeregning.fraSøknadsbehandling(
+            vedtattBeregning = tilRevurdering.beregning,
+            beregningsgrunnlag = beregningsgrunnlag,
+            beregningsstrategi = beregningStrategy,
+        ).getOrElse {
+            return KunneIkkeBeregneRevurdering.NesteMånedErUtenforStønadsperioden.left()
+        }
 
         return if (endringerAvUtbetalingerErStørreEllerLik10Prosent(tilRevurdering.beregning, revurdertBeregning)) {
             BeregnetRevurdering.Innvilget(
@@ -65,10 +74,13 @@ sealed class Revurdering : Visitable<RevurderingVisitor> {
                 beregning = revurdertBeregning,
                 saksbehandler = saksbehandler
             )
-        }
+        }.right()
     }
 
     object AttestantOgSaksbehandlerKanIkkeVæreSammePerson
+    sealed class KunneIkkeBeregneRevurdering {
+        object NesteMånedErUtenforStønadsperioden : KunneIkkeBeregneRevurdering()
+    }
 }
 
 data class OpprettetRevurdering(
@@ -165,7 +177,7 @@ data class RevurderingTilAttestering(
         visitor.visit(this)
     }
 
-    override fun beregn(fradrag: List<Fradrag>): BeregnetRevurdering {
+    override fun beregn(fradrag: List<Fradrag>): Either<KunneIkkeBeregneRevurdering, BeregnetRevurdering> {
         throw RuntimeException("Skal ikke kunne beregne når revurderingen er til attestering")
     }
 
@@ -222,7 +234,7 @@ data class IverksattRevurdering(
             .map { copy(eksterneIverksettingsteg = it) }
     }
 
-    override fun beregn(fradrag: List<Fradrag>): BeregnetRevurdering {
+    override fun beregn(fradrag: List<Fradrag>): Either<KunneIkkeBeregneRevurdering, BeregnetRevurdering> {
         throw RuntimeException("Skal ikke kunne beregne når revurderingen er til attestering")
     }
 }

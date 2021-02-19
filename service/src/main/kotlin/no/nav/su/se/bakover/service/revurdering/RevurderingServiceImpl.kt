@@ -118,7 +118,7 @@ internal class RevurderingServiceImpl(
     ): Either<KunneIkkeRevurdere, Revurdering> {
         return when (val revurdering = revurderingRepo.hent(revurderingId)) {
             is BeregnetRevurdering, is OpprettetRevurdering, is SimulertRevurdering -> {
-                when (val beregnetRevurdering = revurdering.beregn(fradrag)) {
+                when (val beregnetRevurdering = revurdering.beregn(fradrag).getOrElse { return KunneIkkeRevurdere.NesteMånedErUtenforStønadsperioden.left() }) {
                     is BeregnetRevurdering.Avslag -> {
                         revurderingRepo.lagre(beregnetRevurdering)
                         beregnetRevurdering.right()

@@ -82,8 +82,8 @@ internal class LokalKvitteringJobTest {
             clock = fixedClock
         )
         LokalKvitteringJob(utbetalingRepoMock, utbetalingKvitteringConsumer).schedule()
-        verify(utbetalingRepoMock, timeout(1000)).hentUkvitterteUtbetalinger()
-        verify(utbetalingServiceMock, timeout(1000)).oppdaterMedKvittering(
+        verify(utbetalingRepoMock, timeout(3000)).hentUkvitterteUtbetalinger()
+        verify(utbetalingServiceMock, timeout(3000)).oppdaterMedKvittering(
             avstemmingsnøkkel = argThat { it shouldBe utbetaling.avstemmingsnøkkel },
             kvittering = argThat { it shouldBe kvittering.copy(originalKvittering = it.originalKvittering) }
         )
