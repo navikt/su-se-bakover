@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.client.stubs.oppdrag
 
 import arrow.core.Either
 import arrow.core.right
+import no.nav.su.se.bakover.common.filterMap
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -26,24 +27,28 @@ object SimuleringStub : SimuleringClient {
 
     private fun simulerNyUtbetaling(utbetaling: Utbetaling, saksnummer: Saksnummer): Simulering {
         val perioder = utbetaling.utbetalingslinjer.flatMap { utbetalingslinje ->
-            Periode.create(utbetalingslinje.fraOgMed, utbetalingslinje.tilOgMed).tilMånedsperioder().map {
-                SimulertPeriode(
-                    fraOgMed = it.getFraOgMed(),
-                    tilOgMed = it.getTilOgMed(),
-                    utbetaling = listOf(
-                        SimulertUtbetaling(
-                            fagSystemId = saksnummer.toString(),
-                            feilkonto = false,
-                            forfall = it.getTilOgMed(),
-                            utbetalesTilId = utbetaling.fnr,
-                            utbetalesTilNavn = "MYGG LUR",
-                            detaljer = listOf(
-                                createYtelse(it.getFraOgMed(), it.getTilOgMed(), utbetalingslinje.beløp),
-                                createForskuddsskatt(it.getFraOgMed(), it.getTilOgMed(), utbetalingslinje.beløp)
+            Periode.create(utbetalingslinje.fraOgMed, utbetalingslinje.tilOgMed).tilMånedsperioder().filterMap {
+                if (utbetalingslinje.beløp > 0) {
+                    SimulertPeriode(
+                        fraOgMed = it.getFraOgMed(),
+                        tilOgMed = it.getTilOgMed(),
+                        utbetaling = listOf(
+                            SimulertUtbetaling(
+                                fagSystemId = saksnummer.toString(),
+                                feilkonto = false,
+                                forfall = it.getTilOgMed(),
+                                utbetalesTilId = utbetaling.fnr,
+                                utbetalesTilNavn = "MYGG LUR",
+                                detaljer = listOf(
+                                    createYtelse(it.getFraOgMed(), it.getTilOgMed(), utbetalingslinje.beløp),
+                                    createForskuddsskatt(it.getFraOgMed(), it.getTilOgMed(), utbetalingslinje.beløp)
+                                )
                             )
                         )
                     )
-                )
+                } else {
+                    null
+                }
             }
         }
 
