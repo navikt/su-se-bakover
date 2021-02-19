@@ -4,7 +4,7 @@ repositories {
 
 val ktorVersion = "1.4.1"
 val orgJsonVersion = "20201115"
-val micrometerRegistryPrometheusVersion = "1.6.3"
+val micrometerRegistryPrometheusVersion = "1.6.4"
 
 dependencies {
     implementation(project(":common"))

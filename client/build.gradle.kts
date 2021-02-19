@@ -1,7 +1,7 @@
 val fuelVersion = "2.3.1"
 val wireMockVersion = "2.27.2"
 val orgJsonVersion = "20201115"
-val tjenestespesifikasjonVersion = "1.2020.10.07-08.40-90b3ab7bad15"
+val tjenestespesifikasjonVersion = "1.2021.01.21-11.34-02f5eb27bb76"
 val cxfVersion = "3.4.2"
 val jettyVersion = "9.4.36.v20210114"
 
@@ -25,7 +25,7 @@ dependencies {
     implementation("javax.jws:javax.jws-api:1.1")
     // Fails to find SAAJMetaFactoryImpl when either missing or if you upgrade to 2.0.0
     implementation("com.sun.xml.messaging.saaj:saaj-impl:1.5.2")
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.12.0")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.12.1")
 
     implementation(enforcedPlatform("org.eclipse.jetty:jetty-bom:$jettyVersion")) {
         because("https://app.snyk.io/vuln/SNYK-JAVA-JUNIT-1017047")

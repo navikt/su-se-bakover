@@ -5,7 +5,7 @@ buildscript {
 }
 
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "1.4.21"
+    id("org.jetbrains.kotlin.jvm") version "1.4.30"
     id("org.jlleitschuh.gradle.ktlint") version "9.4.1"
     id("com.github.ben-manes.versions") version "0.36.0" // Finds latest versions
     id("se.patrikerdes.use-latest-versions") version "0.2.15"
@@ -32,16 +32,16 @@ allprojects {
             }
         }
     }
-    val junitJupiterVersion = "5.7.0"
+    val junitJupiterVersion = "5.7.1"
     val arrowVersion = "0.11.0"
-    val kotestVersion = "4.3.1"
+    val kotestVersion = "4.4.1"
     val jacksonVersion = "2.12.1"
     val ktlintVersion = "0.40.0"
     val bouncycastleVersion = "1.68"
     dependencies {
         api(kotlin("stdlib-jdk8"))
 
-        implementation("org.jetbrains.kotlin:kotlin-reflect:1.4.21")
+        implementation("org.jetbrains.kotlin:kotlin-reflect:1.4.30")
         implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
         implementation("io.arrow-kt:arrow-core:$arrowVersion")
         implementation("io.arrow-kt:arrow-syntax:$arrowVersion")
@@ -49,11 +49,11 @@ allprojects {
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$jacksonVersion")
         implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
         implementation("ch.qos.logback:logback-classic:1.2.3")
-        implementation("net.logstash.logback:logstash-logback-encoder:6.5")
+        implementation("net.logstash.logback:logstash-logback-encoder:6.6")
         implementation("io.github.cdimascio:dotenv-kotlin:6.2.2")
         implementation("org.apache.kafka:kafka-clients:2.7.0")
-        implementation("com.networknt:json-schema-validator:1.0.45")
-        implementation("no.finn.unleash:unleash-client-java:4.0.1")
+        implementation("com.networknt:json-schema-validator:1.0.49")
+        implementation("no.finn.unleash:unleash-client-java:4.1.0")
 
         // The 9.2.1.0 version fails to connect to the MQ server (hostname becomes null?)
         implementation("com.ibm.mq:com.ibm.mq.allclient:9.2.0.1")
