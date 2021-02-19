@@ -32,7 +32,6 @@ import no.nav.su.se.bakover.client.ProdClientsBuilder
 import no.nav.su.se.bakover.client.StubClientsBuilder
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.JmsConfig
-import no.nav.su.se.bakover.common.filterMap
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.DatabaseBuilder
@@ -198,7 +197,7 @@ internal fun Application.susebakover(
     install(Authorization) {
         getRoller { principal ->
             getGroupsFromJWT(applicationConfig, principal)
-                .filterMap { azureGroupMapper.fromAzureGroup(it) }
+                .mapNotNull { azureGroupMapper.fromAzureGroup(it) }
                 .toSet()
         }
     }
