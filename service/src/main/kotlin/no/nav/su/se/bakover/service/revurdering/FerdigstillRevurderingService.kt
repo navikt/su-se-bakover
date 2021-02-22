@@ -16,13 +16,12 @@ import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.søknadsbehandling.FerdigstillIverksettingService
-import no.nav.su.se.bakover.service.søknadsbehandling.FerdigstillIverksettingServiceImpl
 import org.slf4j.LoggerFactory
 
 internal class FerdigstillRevurderingService(
     private val brevService: BrevService,
     private val revurderingRepo: RevurderingRepo,
-    private val ferdigstillIverksettingService: FerdigstillIverksettingServiceImpl
+    private val ferdigstillIverksettingService: FerdigstillIverksettingService
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 

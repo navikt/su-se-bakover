@@ -75,7 +75,7 @@ internal class FerdigstillIverksettingServiceImpl(
         return opprettManglendeJournalpostOgBrevdistribusjonService.opprettManglendeJournalpostOgBrevdistribusjon()
     }
 
-    fun lagBrevRequest(visitable: Visitable<LagBrevRequestVisitor>): Either<KunneIkkeFerdigstilleInnvilgelse, LagBrevRequest> {
+    override fun lagBrevRequest(visitable: Visitable<LagBrevRequestVisitor>): Either<KunneIkkeFerdigstilleInnvilgelse, LagBrevRequest> {
         return LagBrevRequestVisitor(
             hentPerson = { fnr ->
                 personService.hentPersonMedSystembruker(fnr)
@@ -108,7 +108,7 @@ internal class FerdigstillIverksettingServiceImpl(
             .map { it.displayName }
     }
 
-    fun lukkOppgave(
+    override fun lukkOppgave(
         oppgaveId: OppgaveId
     ): Either<KunneIkkeFerdigstilleInnvilgelse.KunneIkkeLukkeOppgave, Unit> {
         return oppgaveService.lukkOppgaveMedSystembruker(oppgaveId)

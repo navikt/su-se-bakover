@@ -32,6 +32,8 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
+import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.service.avstemming.AvstemmingFeilet
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.brev.BrevService
@@ -284,12 +286,14 @@ open class AccessCheckProxy(
                 }
             },
             ferdigstillIverksettingService = object : FerdigstillIverksettingService {
-                override fun ferdigstillIverksetting(utbetalingId: UUID30) = kastKanKunKallesFraAnnenService()
 
                 override fun opprettManglendeJournalpostOgBrevdistribusjon(): FerdigstillIverksettingService.OpprettManglendeJournalpostOgBrevdistribusjonResultat {
                     // Dette er et driftsendepunkt og vi vil ikke returnere kode 6/7/person-sensitive data.
                     return services.ferdigstillIverksettingService.opprettManglendeJournalpostOgBrevdistribusjon()
                 }
+                override fun ferdigstillIverksetting(utbetalingId: UUID30) = kastKanKunKallesFraAnnenService()
+                override fun lagBrevRequest(visitable: Visitable<LagBrevRequestVisitor>) = kastKanKunKallesFraAnnenService()
+                override fun lukkOppgave(oppgaveId: OppgaveId) = kastKanKunKallesFraAnnenService()
             },
             revurdering = object : RevurderingService {
                 override fun opprettRevurdering(
