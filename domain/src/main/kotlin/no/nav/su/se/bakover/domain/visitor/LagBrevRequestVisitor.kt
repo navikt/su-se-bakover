@@ -26,18 +26,18 @@ import java.time.Clock
 import kotlin.reflect.KClass
 
 class LagBrevRequestVisitor(
-    private val hentPerson: (fnr: Fnr) -> Either<BrevRequestFeil, Person>,
-    private val hentNavn: (navIdentBruker: NavIdentBruker) -> Either<BrevRequestFeil, String>,
+    private val hentPerson: (fnr: Fnr) -> Either<KunneIkkeLageBrevRequest.KunneIkkeHentePerson, Person>,
+    private val hentNavn: (navIdentBruker: NavIdentBruker) -> Either<KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant, String>,
     private val clock: Clock
 ) : SøknadsbehandlingVisitor, RevurderingVisitor {
-    lateinit var brevRequest: Either<BrevRequestFeil, LagBrevRequest>
+    lateinit var brevRequest: Either<KunneIkkeLageBrevRequest, LagBrevRequest>
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Uavklart) {
-        throw BrevRequestFeil.KanIkkeLageBrevrequestForInstansException(søknadsbehandling::class)
+        throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstansException(søknadsbehandling::class)
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Innvilget) {
-        throw BrevRequestFeil.KanIkkeLageBrevrequestForInstansException(søknadsbehandling::class)
+        throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstansException(søknadsbehandling::class)
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Avslag) {
@@ -93,11 +93,11 @@ class LagBrevRequestVisitor(
     }
 
     override fun visit(revurdering: OpprettetRevurdering) {
-        throw BrevRequestFeil.KanIkkeLageBrevrequestForInstansException(revurdering::class)
+        throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstansException(revurdering::class)
     }
 
     override fun visit(revurdering: BeregnetRevurdering) {
-        throw BrevRequestFeil.KanIkkeLageBrevrequestForInstansException(revurdering::class)
+        throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstansException(revurdering::class)
     }
 
     override fun visit(revurdering: SimulertRevurdering) {
@@ -116,20 +116,20 @@ class LagBrevRequestVisitor(
         fnr: Fnr,
         saksbehandler: NavIdentBruker.Saksbehandler?,
         attestant: NavIdentBruker.Attestant?
-    ): Either<BrevRequestFeil, PersonOgNavn> {
+    ): Either<KunneIkkeLageBrevRequest, PersonOgNavn> {
         return hentPerson(fnr)
             .map { person ->
                 PersonOgNavn(
                     person = person,
                     saksbehandlerNavn = saksbehandler?.let { saksbehandler ->
                         hentNavn(saksbehandler).fold(
-                            ifLeft = { return BrevRequestFeil.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left() },
+                            ifLeft = { return KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left() },
                             ifRight = { it }
                         )
                     } ?: "-",
                     attestantNavn = attestant?.let { attestant ->
                         hentNavn(attestant).fold(
-                            ifLeft = { return BrevRequestFeil.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left() },
+                            ifLeft = { return KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left() },
                             ifRight = { it }
                         )
                     } ?: "-"
@@ -234,9 +234,9 @@ class LagBrevRequestVisitor(
         val attestantNavn: String
     )
 
-    sealed class BrevRequestFeil {
-        object KunneIkkeHentePerson : BrevRequestFeil()
-        object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : BrevRequestFeil()
+    sealed class KunneIkkeLageBrevRequest {
+        object KunneIkkeHentePerson : KunneIkkeLageBrevRequest()
+        object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeLageBrevRequest()
 
         data class KanIkkeLageBrevrequestForInstansException(
             val instans: KClass<*>,

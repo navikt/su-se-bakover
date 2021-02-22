@@ -79,11 +79,11 @@ internal class FerdigstillIverksettingServiceImpl(
         return LagBrevRequestVisitor(
             hentPerson = { fnr ->
                 personService.hentPersonMedSystembruker(fnr)
-                    .mapLeft { LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeHentePerson }
+                    .mapLeft { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson }
             },
             hentNavn = { ident ->
                 hentNavnForNavIdent(ident)
-                    .mapLeft { LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant }
+                    .mapLeft { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant }
             },
             clock = clock,
         ).let { visitor ->
@@ -91,10 +91,10 @@ internal class FerdigstillIverksettingServiceImpl(
             visitor.brevRequest
                 .mapLeft {
                     when (it) {
-                        LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> {
+                        LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> {
                             KunneIkkeFerdigstilleInnvilgelse.FikkIkkeHentetSaksbehandlerEllerAttestant
                         }
-                        LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeHentePerson -> {
+                        LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson -> {
                             KunneIkkeFerdigstilleInnvilgelse.FantIkkePerson
                         }
                     }

@@ -355,21 +355,21 @@ internal class SøknadsbehandlingServiceImpl(
         val visitor = LagBrevRequestVisitor(
             hentPerson = { fnr ->
                 personService.hentPerson(fnr)
-                    .mapLeft { LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeHentePerson }
+                    .mapLeft { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson }
             },
             hentNavn = { ident ->
                 hentNavnForNavIdent(ident)
-                    .mapLeft { LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant }
+                    .mapLeft { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant }
             },
             clock = clock,
         ).apply { søknadsbehandling.accept(this) }
 
         val brevRequest = visitor.brevRequest.getOrHandle {
             return when (it) {
-                LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> {
+                LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> {
                     SøknadsbehandlingService.KunneIkkeLageBrev.FikkIkkeHentetSaksbehandlerEllerAttestant.left()
                 }
-                LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeHentePerson -> {
+                LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson -> {
                     SøknadsbehandlingService.KunneIkkeLageBrev.FantIkkePerson.left()
                 }
             }

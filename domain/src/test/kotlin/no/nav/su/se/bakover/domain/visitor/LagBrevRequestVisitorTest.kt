@@ -49,11 +49,11 @@ internal class LagBrevRequestVisitorTest {
         uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withVilkårAvslått())
             .let { søknadsbehandling ->
                 LagBrevRequestVisitor(
-                    hentPerson = { LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeHentePerson.left() },
+                    hentPerson = { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson.left() },
                     hentNavn = { hentNavn(it) },
                     clock = clock,
                 ).apply { søknadsbehandling.accept(this) }.let {
-                    it.brevRequest shouldBe LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeHentePerson.left()
+                    it.brevRequest shouldBe LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson.left()
                 }
             }
     }
@@ -68,17 +68,17 @@ internal class LagBrevRequestVisitorTest {
             .let { søknadsbehandling ->
                 LagBrevRequestVisitor(
                     hentPerson = { person.right() },
-                    hentNavn = { LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left() },
+                    hentNavn = { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left() },
                     clock = clock,
                 ).apply { søknadsbehandling.accept(this) }.let {
-                    it.brevRequest shouldBe LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
+                    it.brevRequest shouldBe LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
                 }
             }
     }
 
     @Test
     fun `responderer med feil dersom det ikke er mulig å lage brev for aktuell søknadsbehandling`() {
-        assertThrows<LagBrevRequestVisitor.BrevRequestFeil.KanIkkeLageBrevrequestForInstansException> {
+        assertThrows<LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstansException> {
             uavklart.let {
                 LagBrevRequestVisitor(
                     hentPerson = { person.right() },
@@ -88,7 +88,7 @@ internal class LagBrevRequestVisitorTest {
             }
         }
 
-        assertThrows<LagBrevRequestVisitor.BrevRequestFeil.KanIkkeLageBrevrequestForInstansException> {
+        assertThrows<LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstansException> {
             uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt())
                 .let {
                     LagBrevRequestVisitor(
@@ -476,7 +476,7 @@ internal class LagBrevRequestVisitorTest {
     private val attestant = NavIdentBruker.Attestant("Z321")
     private val attestantNavn = "attestant"
 
-    private fun hentNavn(navIdentBruker: NavIdentBruker): Either<LagBrevRequestVisitor.BrevRequestFeil, String> =
+    private fun hentNavn(navIdentBruker: NavIdentBruker): Either<LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant, String> =
         when (navIdentBruker) {
             is NavIdentBruker.Attestant -> attestantNavn.right()
             is NavIdentBruker.Saksbehandler -> saksbehandlerNavn.right()

@@ -192,11 +192,11 @@ internal class RevurderingServiceImpl(
         return LagBrevRequestVisitor(
             hentPerson = { fnr ->
                 personService.hentPerson(fnr)
-                    .mapLeft { LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeHentePerson }
+                    .mapLeft { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson }
             },
             hentNavn = { ident ->
                 microsoftGraphApiClient.hentNavnForNavIdent(ident)
-                    .mapLeft { LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant }
+                    .mapLeft { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant }
             },
             clock = clock
         ).let {
@@ -204,8 +204,8 @@ internal class RevurderingServiceImpl(
             it.brevRequest
         }.mapLeft {
             when (it) {
-                LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeRevurdere.KunneIkkeLageBrevutkast
-                LagBrevRequestVisitor.BrevRequestFeil.KunneIkkeHentePerson -> KunneIkkeRevurdere.FantIkkePerson
+                LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeRevurdere.KunneIkkeLageBrevutkast
+                LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson -> KunneIkkeRevurdere.FantIkkePerson
             }
         }.flatMap {
             brevService.lagBrev(it).mapLeft { KunneIkkeRevurdere.KunneIkkeLageBrevutkast }
