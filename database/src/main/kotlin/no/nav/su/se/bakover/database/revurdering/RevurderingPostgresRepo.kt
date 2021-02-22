@@ -51,6 +51,7 @@ internal class RevurderingPostgresRepo(
     private val dataSource: DataSource,
     internal val søknadsbehandlingRepo: SøknadsbehandlingRepo
 ) : RevurderingRepo {
+
     override fun hent(id: UUID): Revurdering? =
         dataSource.withSession { session ->
             "select * from revurdering where id = :id"
@@ -71,10 +72,7 @@ internal class RevurderingPostgresRepo(
         dataSource.withSession { session ->
             "select * from revurdering where utbetalingId = :utbetalingId"
                 .hent(mapOf("utbetalingId" to utbetalingId), session) {
-                    when (val revurdering = it.toRevurdering()) {
-                        is IverksattRevurdering -> revurdering
-                        else -> null
-                    }
+                    it.toRevurdering() as? IverksattRevurdering
                 }
         }
 
@@ -94,7 +92,7 @@ internal class RevurderingPostgresRepo(
                 it.toRevurdering()
             }
 
-    fun Row.toRevurdering(): Revurdering {
+    private fun Row.toRevurdering(): Revurdering {
         val id = uuid("id")
         val periode = string("periode").let { objectMapper.readValue<Periode>(it) }
         val opprettet = tidspunkt("opprettet")
