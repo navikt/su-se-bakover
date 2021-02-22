@@ -78,7 +78,7 @@ internal class LagBrevRequestVisitorTest {
 
     @Test
     fun `responderer med feil dersom det ikke er mulig å lage brev for aktuell søknadsbehandling`() {
-        assertThrows<LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstansException> {
+        assertThrows<LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans> {
             uavklart.let {
                 LagBrevRequestVisitor(
                     hentPerson = { person.right() },
@@ -88,7 +88,7 @@ internal class LagBrevRequestVisitorTest {
             }
         }
 
-        assertThrows<LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstansException> {
+        assertThrows<LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans> {
             uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt())
                 .let {
                     LagBrevRequestVisitor(

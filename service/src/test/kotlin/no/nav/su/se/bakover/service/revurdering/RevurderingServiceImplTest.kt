@@ -943,7 +943,7 @@ internal class RevurderingServiceImplTest {
             on { hent(any()) } doReturn opprettetRevurdering
         }
 
-        assertThrows<LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstansException> {
+        assertThrows<LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans> {
             createRevurderingService(
                 revurderingRepo = revurderingRepoMock
             ).lagBrevutkast(
@@ -970,7 +970,7 @@ internal class RevurderingServiceImplTest {
             on { hent(any()) } doReturn beregnetRevurdering
         }
 
-        assertThrows<LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstansException> {
+        assertThrows<LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans> {
             createRevurderingService(
                 revurderingRepo = revurderingRepoMock
             ).lagBrevutkast(

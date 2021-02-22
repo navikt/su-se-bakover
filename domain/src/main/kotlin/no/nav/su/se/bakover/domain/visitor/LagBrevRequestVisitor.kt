@@ -33,11 +33,11 @@ class LagBrevRequestVisitor(
     lateinit var brevRequest: Either<KunneIkkeLageBrevRequest, LagBrevRequest>
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Uavklart) {
-        throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstansException(søknadsbehandling::class)
+        throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(søknadsbehandling::class)
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Innvilget) {
-        throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstansException(søknadsbehandling::class)
+        throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(søknadsbehandling::class)
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Avslag) {
@@ -93,11 +93,11 @@ class LagBrevRequestVisitor(
     }
 
     override fun visit(revurdering: OpprettetRevurdering) {
-        throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstansException(revurdering::class)
+        throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(revurdering::class)
     }
 
     override fun visit(revurdering: BeregnetRevurdering) {
-        throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstansException(revurdering::class)
+        throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(revurdering::class)
     }
 
     override fun visit(revurdering: SimulertRevurdering) {
@@ -238,7 +238,7 @@ class LagBrevRequestVisitor(
         object KunneIkkeHentePerson : KunneIkkeLageBrevRequest()
         object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeLageBrevRequest()
 
-        data class KanIkkeLageBrevrequestForInstansException(
+        data class KanIkkeLageBrevrequestForInstans(
             val instans: KClass<*>,
             val msg: String = "Kan ikke lage brevrequest for instans av typen: ${instans.qualifiedName}"
         ) : RuntimeException(msg)

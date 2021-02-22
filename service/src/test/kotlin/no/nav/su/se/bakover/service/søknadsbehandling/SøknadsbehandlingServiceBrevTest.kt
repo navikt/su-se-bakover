@@ -177,7 +177,7 @@ internal class SøknadsbehandlingServiceBrevTest {
             on { hent(any()) } doReturn behandlingMock
         }
 
-        assertThrows<LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstansException> {
+        assertThrows<LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans> {
             createSøknadsbehandlingService(
                 søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             ).brev(SøknadsbehandlingService.BrevRequest(beregnetAvslag.id))
