@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.visitor
 
 import arrow.core.Either
+import arrow.core.getOrElse
 import arrow.core.left
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Fnr
@@ -122,16 +123,14 @@ class LagBrevRequestVisitor(
                 PersonOgNavn(
                     person = person,
                     saksbehandlerNavn = saksbehandler?.let { saksbehandler ->
-                        hentNavn(saksbehandler).fold(
-                            ifLeft = { return KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left() },
-                            ifRight = { it }
-                        )
+                        hentNavn(saksbehandler).getOrElse {
+                            return KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
+                        }
                     } ?: "-",
                     attestantNavn = attestant?.let { attestant ->
-                        hentNavn(attestant).fold(
-                            ifLeft = { return KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left() },
-                            ifRight = { it }
-                        )
+                        hentNavn(attestant).getOrElse {
+                            return KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
+                        }
                     } ?: "-"
                 )
             }
