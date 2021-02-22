@@ -96,7 +96,7 @@ internal class RevurderingPostgresRepo(
         val id = uuid("id")
         val periode = string("periode").let { objectMapper.readValue<Periode>(it) }
         val opprettet = tidspunkt("opprettet")
-        val tilRevurdering = søknadsbehandlingRepo.hent(uuid("behandlingId"))!!
+        val tilRevurdering = søknadsbehandlingRepo.hent(uuid("behandlingId"))!! as Søknadsbehandling.Iverksatt.Innvilget
         val beregning = stringOrNull("beregning")?.let { objectMapper.readValue<PersistertBeregning>(it) }
         val simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) }
         val saksbehandler = string("saksbehandler")
@@ -112,7 +112,7 @@ internal class RevurderingPostgresRepo(
                 id = id,
                 periode = periode,
                 opprettet = opprettet,
-                tilRevurdering = tilRevurdering as Søknadsbehandling.Iverksatt.Innvilget, // TODO AVOID CAST
+                tilRevurdering = tilRevurdering,
                 saksbehandler = Saksbehandler(saksbehandler),
                 beregning = beregning!!,
                 simulering = simulering!!,
@@ -125,7 +125,7 @@ internal class RevurderingPostgresRepo(
                 id = id,
                 periode = periode,
                 opprettet = opprettet,
-                tilRevurdering = tilRevurdering as Søknadsbehandling.Iverksatt.Innvilget, // TODO AVOID CAST
+                tilRevurdering = tilRevurdering,
                 beregning = beregning!!,
                 simulering = simulering!!,
                 saksbehandler = Saksbehandler(saksbehandler),
@@ -135,7 +135,7 @@ internal class RevurderingPostgresRepo(
                 id = id,
                 periode = periode,
                 opprettet = opprettet,
-                tilRevurdering = tilRevurdering as Søknadsbehandling.Iverksatt.Innvilget, // TODO AVOID CAST,
+                tilRevurdering = tilRevurdering,
                 beregning = beregning!!,
                 simulering = simulering!!,
                 saksbehandler = Saksbehandler(saksbehandler)
@@ -144,7 +144,7 @@ internal class RevurderingPostgresRepo(
                 id = id,
                 periode = periode,
                 opprettet = opprettet,
-                tilRevurdering = tilRevurdering as Søknadsbehandling.Iverksatt.Innvilget, // TODO AVOID CAST,
+                tilRevurdering = tilRevurdering,
                 beregning = beregning!!,
                 saksbehandler = Saksbehandler(saksbehandler)
             )
@@ -152,7 +152,7 @@ internal class RevurderingPostgresRepo(
                 id = id,
                 periode = periode,
                 opprettet = opprettet,
-                tilRevurdering = tilRevurdering as Søknadsbehandling.Iverksatt.Innvilget, // TODO AVOID CAST,
+                tilRevurdering = tilRevurdering,
                 beregning = beregning!!,
                 saksbehandler = Saksbehandler(saksbehandler)
             )
@@ -160,7 +160,7 @@ internal class RevurderingPostgresRepo(
                 id = id,
                 periode = periode,
                 opprettet = opprettet,
-                tilRevurdering = tilRevurdering as Søknadsbehandling.Iverksatt.Innvilget, // TODO AVOID CAST,
+                tilRevurdering = tilRevurdering,
                 saksbehandler = Saksbehandler(saksbehandler)
             )
         }

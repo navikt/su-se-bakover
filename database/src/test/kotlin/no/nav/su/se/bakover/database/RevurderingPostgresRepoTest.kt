@@ -420,9 +420,8 @@ internal class RevurderingPostgresRepoTest {
             repo.hentRevurderingForUtbetaling(iverksatt.utbetalingId) shouldBe iverksatt
             repo.hentRevurderingForBehandling(iverksatt.tilRevurdering.id) shouldBe iverksatt
             ds.withSession {
-                repo.hentRevurderingerForSak(iverksatt.sakId,it) shouldBe listOf(iverksatt)
+                repo.hentRevurderingerForSak(iverksatt.sakId, it) shouldBe listOf(iverksatt)
             }
-
         }
     }
 }
