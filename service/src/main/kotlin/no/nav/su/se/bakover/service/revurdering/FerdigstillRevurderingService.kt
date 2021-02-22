@@ -69,8 +69,11 @@ internal class FerdigstillRevurderingService(
         }
     }
 
-    // TODO: logging?
-    private fun lukkOppgave(oppgaveId: OppgaveId) = ferdigstillIverksettingService.lukkOppgave(oppgaveId)
+    private fun lukkOppgave(oppgaveId: OppgaveId) = ferdigstillIverksettingService.lukkOppgave(oppgaveId).mapLeft {
+        log.error("Kunne ikke lukke oppgave $oppgaveId ved innvilgelse av revurdering. Dette må gjøres manuelt.")
+    }.map {
+        log.info("Lukket oppgave $oppgaveId ved innvilgelse av revurdering.")
+    }
 
     internal data class KunneIkkeLageBrevRequestException(
         private val revurdering: Revurdering,

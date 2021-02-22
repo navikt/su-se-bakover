@@ -15,10 +15,18 @@ data class Stønadsperiode private constructor(
         }
 
         fun tryCreate(periode: Periode): Either<UgyldigStønadsperiode, Stønadsperiode> {
-            if (periode.getFraOgMed().year < 2021) { return UgyldigStønadsperiode.FraOgMedDatoKanIkkeVæreFør2021.left() }
-            if (periode.getAntallMåneder() > 12) { return UgyldigStønadsperiode.PeriodeKanIkkeVæreLengreEnn12Måneder.left() }
+            if (periode.getFraOgMed().year < 2021) {
+                return UgyldigStønadsperiode.FraOgMedDatoKanIkkeVæreFør2021.left()
+            }
+            if (periode.getAntallMåneder() > 12) {
+                return UgyldigStønadsperiode.PeriodeKanIkkeVæreLengreEnn12Måneder.left()
+            }
 
             return Stønadsperiode(periode).right()
+        }
+
+        fun List<Stønadsperiode>.sisteStønadsperiode(): Stønadsperiode? {
+            return this.maxByOrNull { it.periode.getFraOgMed() }
         }
     }
 

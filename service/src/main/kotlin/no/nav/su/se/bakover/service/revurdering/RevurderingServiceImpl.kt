@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.beregning.Stønadsperiode.Companion.sisteStønadsperiode
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -54,10 +55,7 @@ internal class RevurderingServiceImpl(
 
         return hentSak(sakId)
             .map { sak ->
-                val revurderingsPeriode = Periode.create(
-                    fraOgMed = fraOgMed,
-                    tilOgMed = sak.utbetalinger.map { it.senesteDato() }.maxByOrNull { it }!!
-                )
+                val revurderingsPeriode = sak.hentStønadsperioder().sisteStønadsperiode()!!.periode
                 val tilRevurdering = sak.behandlinger
                     .filterIsInstance(Søknadsbehandling.Iverksatt.Innvilget::class.java)
                     .filter { it.beregning.getPeriode() inneholder revurderingsPeriode }

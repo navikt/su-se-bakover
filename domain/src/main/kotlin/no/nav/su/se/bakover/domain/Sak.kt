@@ -3,6 +3,8 @@ package no.nav.su.se.bakover.domain
 import com.fasterxml.jackson.annotation.JsonValue
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUIDFactory
+import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.beregning.Stønadsperiode
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -22,7 +24,18 @@ data class Sak(
     val behandlinger: List<Søknadsbehandling> = emptyList(),
     val utbetalinger: List<Utbetaling>,
     val revurderinger: List<Revurdering> = emptyList(),
-)
+) {
+    fun hentStønadsperioder(): List<Stønadsperiode> {
+        return utbetalinger.map {
+            Stønadsperiode.create(
+                Periode.create(
+                    fraOgMed = it.tidligsteDato(),
+                    tilOgMed = it.senesteDato(),
+                )
+            )
+        }
+    }
+}
 
 data class NySak(
     val id: UUID = UUID.randomUUID(),

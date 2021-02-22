@@ -176,5 +176,4 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         ),
         saksbehandler = saksbehandler.toString(),
     )
-    else -> throw NotImplementedError()
 }

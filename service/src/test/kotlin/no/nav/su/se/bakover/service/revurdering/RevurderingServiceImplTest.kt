@@ -144,6 +144,7 @@ internal class RevurderingServiceImplTest {
         utbetalinger = listOf(
             mock {
                 on { senesteDato() } doReturn periode.getTilOgMed()
+                on { tidligsteDato() } doReturn periode.getFraOgMed()
             }
         )
     )
@@ -258,7 +259,7 @@ internal class RevurderingServiceImplTest {
     @Test
     fun `kan ikke revurdere når stønadsperioden overlapper flere aktive stønadsperioder`() {
         val beregningMock = mock<Beregning> {
-            on { getPeriode() } doReturn Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.desember(2021))
+            on { getPeriode() } doReturn periode
         }
         val behandling1 = mock<Søknadsbehandling.Iverksatt.Innvilget> {
             on { beregning } doReturn beregningMock
