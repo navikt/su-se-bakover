@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.FinnSaksbehandlerVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingVisitor
 import java.time.Clock
+import kotlin.reflect.KClass
 
 class LagBrevRequestVisitor(
     private val hentPerson: (fnr: Fnr) -> Either<BrevRequestFeil, Person>,
@@ -32,11 +33,11 @@ class LagBrevRequestVisitor(
     lateinit var brevRequest: Either<BrevRequestFeil, LagBrevRequest>
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Uavklart) {
-        throw BrevRequestFeil.KanIkkeLageBrevrequestForInstansException(søknadsbehandling)
+        throw BrevRequestFeil.KanIkkeLageBrevrequestForInstansException(søknadsbehandling::class)
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Innvilget) {
-        throw BrevRequestFeil.KanIkkeLageBrevrequestForInstansException(søknadsbehandling)
+        throw BrevRequestFeil.KanIkkeLageBrevrequestForInstansException(søknadsbehandling::class)
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Avslag) {
@@ -92,11 +93,11 @@ class LagBrevRequestVisitor(
     }
 
     override fun visit(revurdering: OpprettetRevurdering) {
-        throw BrevRequestFeil.KanIkkeLageBrevrequestForInstansException(revurdering)
+        throw BrevRequestFeil.KanIkkeLageBrevrequestForInstansException(revurdering::class)
     }
 
     override fun visit(revurdering: BeregnetRevurdering) {
-        throw BrevRequestFeil.KanIkkeLageBrevrequestForInstansException(revurdering)
+        throw BrevRequestFeil.KanIkkeLageBrevrequestForInstansException(revurdering::class)
     }
 
     override fun visit(revurdering: SimulertRevurdering) {
@@ -238,8 +239,8 @@ class LagBrevRequestVisitor(
         object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : BrevRequestFeil()
 
         data class KanIkkeLageBrevrequestForInstansException(
-            val instans: Any,
-            val msg: String = "Kan ikke laga brevrequest for instans av typen: ${instans::class.qualifiedName}"
+            val instans: KClass<*>,
+            val msg: String = "Kan ikke lage brevrequest for instans av typen: ${instans.qualifiedName}"
         ) : RuntimeException(msg)
     }
 }
