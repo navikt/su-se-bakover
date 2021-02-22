@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database
 
 import arrow.core.getOrHandle
+import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -412,7 +413,7 @@ internal class RevurderingPostgresRepoTest {
 
             val iverksatt = tilAttestering.iverksett(
                 attestant = attestant,
-                utbetalingId = utbetaling.id
+                utbetal = { utbetaling.id.right() },
             ).getOrHandle { throw RuntimeException("Skal ikke kunne skje") }
 
             repo.lagre(iverksatt)

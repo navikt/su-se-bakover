@@ -216,38 +216,38 @@ internal class RevurderingServiceImpl(
     ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering> {
         return when (val revurdering = revurderingRepo.hent(revurderingId)) {
             is RevurderingTilAttestering -> {
-                if (attestant.navIdent == revurdering.saksbehandler.navIdent) {
-                    return KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
-                }
-
-                utbetalingService.utbetal(
-                    sakId = revurdering.sakId,
-                    beregning = revurdering.beregning,
-                    simulering = revurdering.simulering,
-                    attestant = attestant,
-                ).fold(
-                    ifLeft = {
+                val iverksattRevurdering = revurdering.iverksett(attestant) {
+                    utbetalingService.utbetal(
+                        sakId = revurdering.sakId,
+                        beregning = revurdering.beregning,
+                        simulering = revurdering.simulering,
+                        attestant = attestant,
+                    ).mapLeft {
                         when (it) {
-                            KunneIkkeUtbetale.KunneIkkeSimulere -> KunneIkkeIverksetteRevurdering.KunneIkkeKontrollsimulere
-                            KunneIkkeUtbetale.Protokollfeil -> KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale
-                            KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> KunneIkkeIverksetteRevurdering.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
-                        }.left()
-                    },
-                    ifRight = { utbetaling ->
-                        revurdering.iverksett(attestant, utbetaling.id)
-                            .mapLeft { KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson }
-                            .map {
-                                revurderingRepo.lagre(it)
-                                it
-                            }
+                            KunneIkkeUtbetale.KunneIkkeSimulere -> RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale.KunneIkkeSimulere
+                            KunneIkkeUtbetale.Protokollfeil -> RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale.Protokollfeil
+                            KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
+                        }
+                    }.map {
+                        it.id
                     }
-                )
+                }.getOrHandle {
+                    return when (it) {
+                        RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
+                        RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale.KunneIkkeSimulere -> KunneIkkeIverksetteRevurdering.KunneIkkeKontrollsimulere
+                        RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale.Protokollfeil -> KunneIkkeIverksetteRevurdering.KunneIkkeKontrollsimulere
+                        RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale
+                    }.left()
+                }
+                revurderingRepo.lagre(iverksattRevurdering)
+                return iverksattRevurdering.right()
             }
             null -> KunneIkkeIverksetteRevurdering.FantIkkeRevurdering.left()
             else -> KunneIkkeIverksetteRevurdering.FeilTilstand.left()
         }
     }
 
-    override fun hentRevurderingForUtbetaling(utbetalingId: UUID30): IverksattRevurdering? =
-        revurderingRepo.hentRevurderingForUtbetaling(utbetalingId)
+    override fun hentRevurderingForUtbetaling(utbetalingId: UUID30): IverksattRevurdering? {
+        return revurderingRepo.hentRevurderingForUtbetaling(utbetalingId)
+    }
 }

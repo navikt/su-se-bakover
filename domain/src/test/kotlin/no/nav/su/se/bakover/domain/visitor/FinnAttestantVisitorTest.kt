@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.visitor
 
+import arrow.core.right
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
@@ -215,5 +216,5 @@ internal class FinnAttestantVisitorTest {
     }
     private val simulertRevurdering = beregnetRevurdering.toSimulert(mock())
     private val tilAttesteringRevurdering = simulertRevurdering.tilAttestering(mock(), saksbehandler)
-    private val iverksattRevurdering = tilAttesteringRevurdering.iverksett(attestant, UUID30.randomUUID())
+    private val iverksattRevurdering = tilAttesteringRevurdering.iverksett(attestant) { UUID30.randomUUID().right() }
 }

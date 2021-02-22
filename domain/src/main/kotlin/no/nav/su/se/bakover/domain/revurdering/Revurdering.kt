@@ -204,26 +204,37 @@ data class RevurderingTilAttestering(
         throw RuntimeException("Skal ikke kunne beregne når revurderingen er til attestering")
     }
 
+    sealed class KunneIkkeIverksetteRevurdering {
+        object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteRevurdering()
+        sealed class KunneIkkeUtbetale : KunneIkkeIverksetteRevurdering() {
+            object SimuleringHarBlittEndretSidenSaksbehandlerSimulerte : KunneIkkeUtbetale()
+            object Protokollfeil : KunneIkkeUtbetale()
+            object KunneIkkeSimulere : KunneIkkeUtbetale()
+        }
+    }
+
     fun iverksett(
         attestant: NavIdentBruker.Attestant,
-        utbetalingId: UUID30
-    ): Either<AttestantOgSaksbehandlerKanIkkeVæreSammePerson, IverksattRevurdering> {
+        utbetal: () -> Either<KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale, UUID30>
+    ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering> {
         if (saksbehandler.navIdent == attestant.navIdent) {
-            return AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+            return KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
         }
-        return IverksattRevurdering(
-            id = id,
-            periode = periode,
-            opprettet = opprettet,
-            tilRevurdering = tilRevurdering,
-            saksbehandler = saksbehandler,
-            beregning = beregning,
-            simulering = simulering,
-            oppgaveId = oppgaveId,
-            attestant = attestant,
-            utbetalingId = utbetalingId,
-            eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.VenterPåKvittering
-        ).right()
+        return utbetal().map {
+            IverksattRevurdering(
+                id = id,
+                periode = periode,
+                opprettet = opprettet,
+                tilRevurdering = tilRevurdering,
+                saksbehandler = saksbehandler,
+                beregning = beregning,
+                simulering = simulering,
+                oppgaveId = oppgaveId,
+                attestant = attestant,
+                utbetalingId = it,
+                eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.VenterPåKvittering
+            )
+        }
     }
 
     fun underkjenn() {

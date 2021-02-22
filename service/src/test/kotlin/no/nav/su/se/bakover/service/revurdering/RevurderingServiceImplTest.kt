@@ -620,6 +620,7 @@ internal class RevurderingServiceImplTest {
             nettoBeløp = 0,
             periodeList = listOf()
         )
+        val utbetalingId = UUID30.randomUUID()
         val iverksattRevurdering = IverksattRevurdering(
             id = revurderingId,
             periode = periode,
@@ -630,49 +631,54 @@ internal class RevurderingServiceImplTest {
             simulering = testsimulering,
             oppgaveId = OppgaveId(value = "OppgaveId"),
             attestant = attestant,
-            utbetalingId = UUID30.randomUUID(),
+            utbetalingId = utbetalingId,
             eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.VenterPåKvittering
         )
-        val revurderingTilAttestering = mock<RevurderingTilAttestering> {
-            on { this.id } doReturn revurderingId
-            on { this.sakId } doReturn sakId
-            on { this.periode } doReturn periode
-            on { this.tilRevurdering } doReturn behandling
-            on { this.opprettet } doReturn Tidspunkt.EPOCH
-            on { this.beregning } doReturn TestBeregning
-            on { this.simulering } doReturn testsimulering
-            on { this.saksbehandler } doReturn saksbehandler
-            on { iverksett(any(), any()) } doReturn iverksattRevurdering.right()
-        }
+        val revurderingTilAttestering = RevurderingTilAttestering(
+            id = revurderingId,
+            periode = periode,
+            opprettet = Tidspunkt.EPOCH,
+            tilRevurdering = behandling,
+            oppgaveId = OppgaveId(value = "OppgaveId"),
+            beregning = TestBeregning,
+            simulering = testsimulering,
+            saksbehandler = saksbehandler,
+        )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn revurderingTilAttestering
         }
 
-        val utbetaling = mock<Utbetaling.OversendtUtbetaling.UtenKvittering> { on { id } doReturn UUID30.randomUUID() }
-        val utbetalingService = mock<UtbetalingService> {
-            on { utbetal(any(), any(), any(), any()) } doReturn utbetaling.right()
+        val utbetalingMock = mock<Utbetaling.OversendtUtbetaling.UtenKvittering> {
+            on { id } doReturn utbetalingId
+        }
+        val utbetalingServiceMock = mock<UtbetalingService> {
+            on { utbetal(any(), any(), any(), any()) } doReturn utbetalingMock.right()
         }
 
         createRevurderingService(
             revurderingRepo = revurderingRepoMock,
-            utbetalingService = utbetalingService
+            utbetalingService = utbetalingServiceMock
         ).iverksett(
             revurderingId = revurderingTilAttestering.id,
             attestant = attestant,
-        )
-
-        inOrder(revurderingRepoMock, utbetalingService) {
+        ) shouldBe iverksattRevurdering.right()
+        inOrder(revurderingRepoMock, utbetalingMock, utbetalingServiceMock) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
-            verify(utbetalingService).utbetal(
-                argThat { it shouldBe revurderingTilAttestering.sakId },
-                argThat { it shouldBe attestant },
-                argThat { it shouldBe revurderingTilAttestering.beregning },
-                argThat { it shouldBe revurderingTilAttestering.simulering },
+            verify(utbetalingServiceMock).utbetal(
+                sakId = argThat { it shouldBe revurderingTilAttestering.sakId },
+                attestant = argThat { it shouldBe attestant },
+                beregning = argThat { it shouldBe revurderingTilAttestering.beregning },
+                simulering = argThat { it shouldBe revurderingTilAttestering.simulering },
             )
+            verify(utbetalingMock).id
             verify(revurderingRepoMock).lagre(argThat { it shouldBe iverksattRevurdering })
         }
-        verifyNoMoreInteractions(revurderingRepoMock, utbetalingService)
+        verifyNoMoreInteractions(
+            revurderingRepoMock,
+            utbetalingServiceMock,
+            utbetalingMock
+        )
     }
 
     @Test
