@@ -341,9 +341,7 @@ open class AccessCheckProxy(
                     return services.revurdering.iverksett(revurderingId, attestant)
                 }
 
-                override fun hentRevurderingForUtbetaling(utbetalingId: UUID30): IverksattRevurdering? {
-                    return services.revurdering.hentRevurderingForUtbetaling(utbetalingId)
-                }
+                override fun hentRevurderingForUtbetaling(utbetalingId: UUID30) = kastKanKunKallesFraAnnenService()
             }
         )
     }
