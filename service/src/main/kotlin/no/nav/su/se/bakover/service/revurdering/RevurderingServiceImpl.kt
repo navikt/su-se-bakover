@@ -64,7 +64,7 @@ internal class RevurderingServiceImpl(
 
                 if (tilRevurdering.isEmpty()) return KunneIkkeRevurdere.FantIngentingSomKanRevurderes.left()
                 if (tilRevurdering.size > 1) return KunneIkkeRevurdere.KanIkkeRevurderePerioderMedFlereAktiveStønadsperioder.left()
-                if (revurderingRepo.hentRevurderingForBehandling(tilRevurdering.single().id) != null) KunneIkkeRevurdere.KanIkkeRevurdereEnPeriodeMedEksisterendeRevurdering.left()
+                if (revurderingRepo.hentRevurderingForBehandling(tilRevurdering.single().id) != null) return KunneIkkeRevurdere.KanIkkeRevurdereEnPeriodeMedEksisterendeRevurdering.left()
 
                 tilRevurdering.single().let { søknadsbehandling ->
                     val aktørId = personService.hentAktørId(søknadsbehandling.fnr).getOrElse {
