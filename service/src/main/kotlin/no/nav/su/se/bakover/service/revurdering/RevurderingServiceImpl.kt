@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.revurdering
 import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.getOrElse
+import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
@@ -97,18 +98,22 @@ internal class RevurderingServiceImpl(
         fraOgMed: LocalDate,
         saksbehandler: NavIdentBruker.Saksbehandler
     ): Either<KunneIkkeRevurdere, OpprettetRevurdering> {
+
         val revurdering = revurderingRepo.hent(revurderingId) ?: return KunneIkkeRevurdere.FantIkkeRevurdering.left()
 
-        val newAndFreshRevurdering = OpprettetRevurdering(
-            id = revurdering.id,
-            periode = Periode.create(fraOgMed, revurdering.periode.getTilOgMed()),
-            opprettet = revurdering.opprettet,
-            tilRevurdering = revurdering.tilRevurdering,
-            saksbehandler = saksbehandler,
-        )
-
-        revurderingRepo.lagre(newAndFreshRevurdering)
-        return newAndFreshRevurdering.right()
+        // TODO jah: Her holder det kanskje ikke å bruke samme tilOgMed som forrige gang. Hva om vi har byttet stønadsperiode?
+        val nyPeriode = Periode.tryCreate(fraOgMed, revurdering.periode.getTilOgMed()).getOrHandle {
+            return KunneIkkeRevurdere.UgyldigPeriode(it).left()
+        }
+        return when (revurdering) {
+            is OpprettetRevurdering -> revurdering.oppdaterPeriode(nyPeriode).right()
+            is BeregnetRevurdering -> revurdering.oppdaterPeriode(nyPeriode).right()
+            is SimulertRevurdering -> revurdering.oppdaterPeriode(nyPeriode).right()
+            else -> KunneIkkeRevurdere.UgyldigTilstand(revurdering::class, OpprettetRevurdering::class).left()
+        }.map {
+            revurderingRepo.lagre(it)
+            it
+        }
     }
 
     override fun beregnOgSimuler(

@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.revurdering
 
 import arrow.core.Either
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
@@ -9,6 +10,7 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import java.time.LocalDate
 import java.util.UUID
+import kotlin.reflect.KClass
 
 interface RevurderingService {
 
@@ -64,4 +66,6 @@ sealed class KunneIkkeRevurdere {
     object NesteMånedErUtenforStønadsperioden : KunneIkkeRevurdere()
     object SimuleringFeilet : KunneIkkeRevurdere()
     object KanIkkeRevurdereEnPeriodeMedEksisterendeRevurdering : KunneIkkeRevurdere()
+    data class UgyldigPeriode(val subError: Periode.UgyldigPeriode) : KunneIkkeRevurdere()
+    data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) : KunneIkkeRevurdere()
 }

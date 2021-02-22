@@ -154,7 +154,7 @@ internal fun Route.revurderingRoutes(
                             "Attestant og saksbehandler kan ikke være samme person"
                         )
                         KunneIkkeIverksetteRevurdering.FantIkkeRevurdering -> NotFound.message("Fant ikke revurdering")
-                        KunneIkkeIverksetteRevurdering.FeilTilstand -> InternalServerError.message("Kun revurderinger som har blitt sendt till attestering kan revurderes")
+                        KunneIkkeIverksetteRevurdering.FeilTilstand -> InternalServerError.message("Kun revurderinger som har blitt sendt til attestering kan revurderes")
                         KunneIkkeIverksetteRevurdering.KunneIkkeJournalføreBrev -> InternalServerError.message("Feil ved journalføring av vedtaksbrev")
                         KunneIkkeIverksetteRevurdering.KunneIkkeKontrollsimulere -> InternalServerError.message("Kunne ikke utføre kontrollsimulering")
                         KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale -> InternalServerError.message("Kunne ikke utføre utbetaling")
@@ -203,5 +203,7 @@ internal fun KunneIkkeRevurdere.tilFeilMelding(): Resultat {
         KunneIkkeRevurdere.SimuleringFeilet -> InternalServerError.message("Simulering feilet")
         KunneIkkeRevurdere.KanIkkeRevurderePerioderMedFlereAktiveStønadsperioder -> InternalServerError.message("Revurderingsperioden kan ikke overlappe flere aktive stønadsperioder.") // TODO AI 03-02-2020: Temporary solution
         KunneIkkeRevurdere.KanIkkeRevurdereEnPeriodeMedEksisterendeRevurdering -> InternalServerError.message("Kan ikke revurdere en behandling som allerede har en eksisterende revurdering") // TODO Temporary solution
+        is KunneIkkeRevurdere.UgyldigTilstand -> BadRequest.message("Kan ikke gå fra tilstanden ${this.fra.simpleName} til tilstanden  ${this.til.simpleName} ")
+        is KunneIkkeRevurdere.UgyldigPeriode -> BadRequest.message(this.subError.toString())
     }
 }

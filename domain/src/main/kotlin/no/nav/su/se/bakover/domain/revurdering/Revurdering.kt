@@ -93,6 +93,14 @@ data class OpprettetRevurdering(
     override fun accept(visitor: RevurderingVisitor) {
         visitor.visit(this)
     }
+
+    fun oppdaterPeriode(periode: Periode) = OpprettetRevurdering(
+        id = id,
+        periode = periode,
+        opprettet = opprettet,
+        tilRevurdering = tilRevurdering,
+        saksbehandler = saksbehandler,
+    )
 }
 
 sealed class BeregnetRevurdering : Revurdering() {
@@ -106,6 +114,14 @@ sealed class BeregnetRevurdering : Revurdering() {
     override fun accept(visitor: RevurderingVisitor) {
         visitor.visit(this)
     }
+
+    fun oppdaterPeriode(periode: Periode) = OpprettetRevurdering(
+        id = id,
+        periode = periode,
+        opprettet = opprettet,
+        tilRevurdering = tilRevurdering,
+        saksbehandler = saksbehandler,
+    )
 
     data class Innvilget(
         override val id: UUID,
@@ -149,17 +165,24 @@ data class SimulertRevurdering(
         visitor.visit(this)
     }
 
-    fun tilAttestering(oppgaveId: OppgaveId, saksbehandler: Saksbehandler): RevurderingTilAttestering =
-        RevurderingTilAttestering(
-            id = id,
-            periode = periode,
-            opprettet = opprettet,
-            tilRevurdering = tilRevurdering,
-            saksbehandler = saksbehandler,
-            beregning = beregning,
-            simulering = simulering,
-            oppgaveId = oppgaveId,
-        )
+    fun tilAttestering(oppgaveId: OppgaveId, saksbehandler: Saksbehandler) = RevurderingTilAttestering(
+        id = id,
+        periode = periode,
+        opprettet = opprettet,
+        tilRevurdering = tilRevurdering,
+        saksbehandler = saksbehandler,
+        beregning = beregning,
+        simulering = simulering,
+        oppgaveId = oppgaveId,
+    )
+
+    fun oppdaterPeriode(periode: Periode) = OpprettetRevurdering(
+        id = id,
+        periode = periode,
+        opprettet = opprettet,
+        tilRevurdering = tilRevurdering,
+        saksbehandler = saksbehandler,
+    )
 }
 
 data class RevurderingTilAttestering(
