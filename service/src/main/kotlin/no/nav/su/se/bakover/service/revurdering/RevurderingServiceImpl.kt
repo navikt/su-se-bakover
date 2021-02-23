@@ -8,6 +8,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
@@ -51,7 +52,7 @@ internal class RevurderingServiceImpl(
     ): Either<KunneIkkeRevurdere, Revurdering> {
 
         val dagensDato = LocalDate.now(clock)
-        if (!fraOgMed.isAfter(dagensDato.withDayOfMonth(dagensDato.lengthOfMonth()))) return KunneIkkeRevurdere.KanIkkeRevurdereInneværendeMånedEllerTidligere.left()
+        if (!fraOgMed.isAfter(dagensDato.endOfMonth())) return KunneIkkeRevurdere.KanIkkeRevurdereInneværendeMånedEllerTidligere.left()
 
         return hentSak(sakId)
             .map { sak ->

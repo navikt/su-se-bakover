@@ -342,9 +342,7 @@ internal class RevurderingServiceImplTest {
                     tilhører = FradragTilhører.BRUKER
                 )
             )
-        ).getOrHandle {
-            throw Exception("Vi skal få tilbake en revurdering")
-        }
+        ).getOrHandle { throw Exception("Vi skal få tilbake en revurdering") }
         if (actual !is SimulertRevurdering) throw RuntimeException("Skal returnere en simulert revurdering")
 
         inOrder(revurderingRepoMock, utbetalingServiceMock) {
