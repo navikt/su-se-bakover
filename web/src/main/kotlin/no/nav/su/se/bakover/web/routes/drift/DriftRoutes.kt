@@ -9,7 +9,7 @@ import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.service.søknad.SøknadService
-import no.nav.su.se.bakover.service.søknadsbehandling.FerdigstillSøknadsbehandingIverksettingService
+import no.nav.su.se.bakover.service.søknadsbehandling.FerdigstillIverksettingService
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.drift.FixIverksettingerResponseJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.drift.FixSøknaderResponseJson.Companion.toJson
@@ -19,7 +19,7 @@ internal const val DRIFT_PATH = "/drift"
 @KtorExperimentalAPI
 internal fun Route.driftRoutes(
     søknadService: SøknadService,
-    ferdigstillSøknadsbehandingIverksettingService: FerdigstillSøknadsbehandingIverksettingService,
+    ferdigstillIverksettingService: FerdigstillIverksettingService,
 ) {
     authorize(Brukerrolle.Drift) {
         patch("$DRIFT_PATH/søknader/fix") {
@@ -34,7 +34,7 @@ internal fun Route.driftRoutes(
 
     authorize(Brukerrolle.Drift) {
         patch("$DRIFT_PATH/iverksettinger/fix") {
-            ferdigstillSøknadsbehandingIverksettingService.opprettManglendeJournalpostOgBrevdistribusjon().let {
+            ferdigstillIverksettingService.opprettManglendeJournalpostOgBrevdistribusjon().let {
                 call.respond(
                     if (it.harFeil()) HttpStatusCode.InternalServerError else HttpStatusCode.OK,
                     serialize(it.toJson())

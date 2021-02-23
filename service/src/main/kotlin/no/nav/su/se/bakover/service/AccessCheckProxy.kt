@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.getOrHandle
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.person.PersonRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
@@ -15,8 +14,6 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
-import no.nav.su.se.bakover.domain.behandling.Revurdering
-import no.nav.su.se.bakover.domain.behandling.SimulertRevurdering
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
@@ -30,13 +27,19 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
+import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
+import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.service.avstemming.AvstemmingFeilet
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeRevurdere
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
@@ -51,13 +54,14 @@ import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukketSøknad
-import no.nav.su.se.bakover.service.søknadsbehandling.FerdigstillSøknadsbehandingIverksettingService
+import no.nav.su.se.bakover.service.søknadsbehandling.FerdigstillIverksettingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeGjenopptaUtbetalinger
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeStanseUtbetalinger
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import java.time.LocalDate
 import java.util.UUID
 
 open class AccessCheckProxy(
@@ -281,32 +285,40 @@ open class AccessCheckProxy(
                     return services.søknadsbehandling.hent(request)
                 }
             },
-            ferdigstillSøknadsbehandingIverksettingService = object : FerdigstillSøknadsbehandingIverksettingService {
-                override fun hentBehandlingForUtbetaling(utbetalingId: UUID30) = kastKanKunKallesFraAnnenService()
+            ferdigstillIverksettingService = object : FerdigstillIverksettingService {
 
-                override fun ferdigstillInnvilgelse(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget) =
-                    kastKanKunKallesFraAnnenService()
-
-                override fun opprettManglendeJournalpostOgBrevdistribusjon(): FerdigstillSøknadsbehandingIverksettingService.OpprettManglendeJournalpostOgBrevdistribusjonResultat {
+                override fun opprettManglendeJournalpostOgBrevdistribusjon(): FerdigstillIverksettingService.OpprettManglendeJournalpostOgBrevdistribusjonResultat {
                     // Dette er et driftsendepunkt og vi vil ikke returnere kode 6/7/person-sensitive data.
-                    return services.ferdigstillSøknadsbehandingIverksettingService.opprettManglendeJournalpostOgBrevdistribusjon()
+                    return services.ferdigstillIverksettingService.opprettManglendeJournalpostOgBrevdistribusjon()
                 }
+                override fun ferdigstillIverksetting(utbetalingId: UUID30) = kastKanKunKallesFraAnnenService()
+                override fun lagBrevRequest(visitable: Visitable<LagBrevRequestVisitor>) = kastKanKunKallesFraAnnenService()
+                override fun lukkOppgave(oppgaveId: OppgaveId) = kastKanKunKallesFraAnnenService()
             },
             revurdering = object : RevurderingService {
                 override fun opprettRevurdering(
                     sakId: UUID,
-                    periode: Periode,
+                    fraOgMed: LocalDate,
                     saksbehandler: NavIdentBruker.Saksbehandler
                 ): Either<KunneIkkeRevurdere, Revurdering> {
                     assertHarTilgangTilSak(sakId)
-                    return services.revurdering.opprettRevurdering(sakId, periode, saksbehandler)
+                    return services.revurdering.opprettRevurdering(sakId, fraOgMed, saksbehandler)
+                }
+
+                override fun oppdaterRevurderingsperiode(
+                    revurderingId: UUID,
+                    fraOgMed: LocalDate,
+                    saksbehandler: NavIdentBruker.Saksbehandler
+                ): Either<KunneIkkeRevurdere, OpprettetRevurdering> {
+                    assertHarTilgangTilRevurdering(revurderingId)
+                    return services.revurdering.oppdaterRevurderingsperiode(revurderingId, fraOgMed, saksbehandler)
                 }
 
                 override fun beregnOgSimuler(
                     revurderingId: UUID,
                     saksbehandler: NavIdentBruker.Saksbehandler,
                     fradrag: List<Fradrag>
-                ): Either<KunneIkkeRevurdere, SimulertRevurdering> {
+                ): Either<KunneIkkeRevurdere, Revurdering> {
                     assertHarTilgangTilSak(revurderingId)
                     return services.revurdering.beregnOgSimuler(
                         revurderingId = revurderingId,
@@ -327,6 +339,13 @@ open class AccessCheckProxy(
                     assertHarTilgangTilSak(revurderingId)
                     return services.revurdering.lagBrevutkast(revurderingId, fritekst)
                 }
+
+                override fun iverksett(revurderingId: UUID, attestant: NavIdentBruker.Attestant): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering> {
+                    assertHarTilgangTilSak(revurderingId)
+                    return services.revurdering.iverksett(revurderingId, attestant)
+                }
+
+                override fun hentRevurderingForUtbetaling(utbetalingId: UUID30) = kastKanKunKallesFraAnnenService()
             }
         )
     }

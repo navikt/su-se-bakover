@@ -251,7 +251,7 @@ internal fun Application.susebakover(
                     avstemmingRoutes(accessProtectedServices.avstemming)
                     stansutbetalingRoutes(accessProtectedServices.utbetaling)
                     gjenopptaUtbetalingRoutes(accessProtectedServices.utbetaling)
-                    driftRoutes(accessProtectedServices.søknad, accessProtectedServices.ferdigstillSøknadsbehandingIverksettingService)
+                    driftRoutes(accessProtectedServices.søknad, accessProtectedServices.ferdigstillIverksettingService)
                     revurderingRoutes(accessProtectedServices.revurdering)
                 }
             }
@@ -259,7 +259,7 @@ internal fun Application.susebakover(
     }
     val utbetalingKvitteringConsumer = UtbetalingKvitteringConsumer(
         utbetalingService = services.utbetaling,
-        ferdigstillSøknadsbehandingIverksettingService = services.ferdigstillSøknadsbehandingIverksettingService,
+        ferdigstillIverksettingService = services.ferdigstillIverksettingService,
         clock = clock,
     )
     if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {
@@ -272,7 +272,7 @@ internal fun Application.susebakover(
             avstemmingService = services.avstemming,
             leaderPodLookup = clients.leaderPodLookup
         ).schedule()
-    } else {
+    } else if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
         LokalKvitteringJob(databaseRepos.utbetaling, utbetalingKvitteringConsumer).schedule()
     }
 }

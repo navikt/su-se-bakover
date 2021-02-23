@@ -24,6 +24,8 @@ fun idag(clock: Clock = Clock.systemUTC()): LocalDate = LocalDate.now(clock)
 
 fun LocalDate.startOfDay(zoneId: ZoneId = zoneIdOslo) = this.atStartOfDay().toTidspunkt(zoneId)
 fun LocalDate.endOfDay(zoneId: ZoneId = zoneIdOslo) = this.atStartOfDay().plusDays(1).minusNanos(1).toTidspunkt(zoneId)
+fun LocalDate.startOfMonth() = this.withDayOfMonth(1)
+fun LocalDate.endOfMonth() = this.withDayOfMonth(this.lengthOfMonth())
 fun LocalDate.between(fraOgMed: LocalDate, tilOgMed: LocalDate) =
     (this == fraOgMed || this == tilOgMed) || this.isAfter(fraOgMed) && this.isBefore(tilOgMed)
 

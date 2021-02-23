@@ -10,6 +10,7 @@ import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.domain.Fnr
@@ -19,8 +20,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.service.søknadsbehandling.FerdigstillSøknadsbehandingIverksettingService
+import no.nav.su.se.bakover.service.søknadsbehandling.FerdigstillIverksettingService
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.web.FnrGenerator
@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.saksnummer
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringResponseTest.Companion.avstemmingsnøkkelIXml
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringResponseTest.Companion.kvitteringXml
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.mockito.internal.verification.Times
 import java.time.Clock
 import java.time.ZoneOffset
@@ -57,8 +58,7 @@ internal class UtbetalingKvitteringConsumerTest {
     )
 
     @Test
-    fun `should throw when unknown utbetalingId`() {
-
+    fun `kaster exception ved ukjent utbetalings id`() {
         val serviceMock = mock<UtbetalingService> {
             on { oppdaterMedKvittering(eq(avstemmingsnøkkel), any()) } doReturn FantIkkeUtbetaling.left()
         }
@@ -73,39 +73,40 @@ internal class UtbetalingKvitteringConsumerTest {
     }
 
     @Test
-    fun `should add kvittering uten å ferdigstille behandling for stans of gjenoppta`() {
-        val xmlMessage = kvitteringXml(UtbetalingKvitteringResponse.Alvorlighetsgrad.ALVORLIG_FEIL)
-        listOf(Utbetaling.UtbetalingsType.GJENOPPTA, Utbetaling.UtbetalingsType.STANS).forEach { utbetalingstype ->
+    fun `prøver ikke å ferdigstille dersom utbetalingstype er stans eller gjennoppta`() {
+        val xmlMessage = kvitteringXml(UtbetalingKvitteringResponse.Alvorlighetsgrad.OK)
+        listOf(Utbetaling.UtbetalingsType.GJENOPPTA, Utbetaling.UtbetalingsType.STANS)
+            .forEach { utbetalingstype ->
+                val utbetaling = utbetalingUtenKvittering.copy(type = utbetalingstype)
 
-            val utbetaling = utbetalingUtenKvittering.copy(type = utbetalingstype)
+                val kvittering = Kvittering(
+                    utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
+                    originalKvittering = xmlMessage,
+                    mottattTidspunkt = Tidspunkt.now(clock)
+                )
 
-            val kvittering = Kvittering(
-                utbetalingsstatus = Kvittering.Utbetalingsstatus.FEIL,
-                originalKvittering = xmlMessage,
-                mottattTidspunkt = Tidspunkt.now(clock)
-            )
+                val utbetalingMedKvittering = utbetaling.toKvittertUtbetaling(kvittering)
 
-            val utbetalingMedKvittering = utbetaling.toKvittertUtbetaling(kvittering)
+                val utbetalingServiceMock = mock<UtbetalingService> {
+                    on { oppdaterMedKvittering(any(), any()) } doReturn utbetalingMedKvittering.right()
+                }
 
-            val utbetalingServiceMock = mock<UtbetalingService> {
-                on { oppdaterMedKvittering(any(), any()) } doReturn utbetalingMedKvittering.right()
+                val ferdigstillIverksettingService = mock<FerdigstillIverksettingService>()
+                val consumer =
+                    UtbetalingKvitteringConsumer(utbetalingServiceMock, ferdigstillIverksettingService, clock)
+
+                consumer.onMessage(xmlMessage)
+
+                verify(utbetalingServiceMock).oppdaterMedKvittering(
+                    avstemmingsnøkkel = argThat { it shouldBe avstemmingsnøkkel },
+                    kvittering = argThat { it shouldBe kvittering }
+                )
+                verifyNoMoreInteractions(utbetalingServiceMock, ferdigstillIverksettingService)
             }
-
-            val behandlingServiceMock = mock<FerdigstillSøknadsbehandingIverksettingService>()
-            val consumer = UtbetalingKvitteringConsumer(utbetalingServiceMock, behandlingServiceMock, clock)
-
-            consumer.onMessage(xmlMessage)
-
-            verify(utbetalingServiceMock, Times(1)).oppdaterMedKvittering(
-                avstemmingsnøkkel = argThat { it shouldBe avstemmingsnøkkel },
-                kvittering = argThat { it shouldBe kvittering }
-            )
-            verifyNoMoreInteractions(utbetalingServiceMock, behandlingServiceMock)
-        }
     }
 
     @Test
-    fun `prøver ikke ferdigstille behandling dersom kvittering er feil`() {
+    fun `prøver ikke ferdigstille dersom kvittering er feil`() {
         val xmlMessage = kvitteringXml(UtbetalingKvitteringResponse.Alvorlighetsgrad.ALVORLIG_FEIL)
         val utbetaling = utbetalingUtenKvittering.copy(type = Utbetaling.UtbetalingsType.NY)
 
@@ -121,54 +122,20 @@ internal class UtbetalingKvitteringConsumerTest {
             on { oppdaterMedKvittering(any(), any()) } doReturn utbetalingMedKvittering.right()
         }
 
-        val behandlingServiceMock = mock<FerdigstillSøknadsbehandingIverksettingService>()
-        val consumer = UtbetalingKvitteringConsumer(utbetalingServiceMock, behandlingServiceMock, clock)
+        val ferdigstillIverksettingServiceMock = mock<FerdigstillIverksettingService>()
+        val consumer = UtbetalingKvitteringConsumer(utbetalingServiceMock, ferdigstillIverksettingServiceMock, clock)
 
         consumer.onMessage(xmlMessage)
 
-        verify(utbetalingServiceMock, Times(1)).oppdaterMedKvittering(
+        verify(utbetalingServiceMock).oppdaterMedKvittering(
             avstemmingsnøkkel = argThat { it shouldBe avstemmingsnøkkel },
             kvittering = argThat { it shouldBe kvittering }
         )
-        verifyNoMoreInteractions(utbetalingServiceMock, behandlingServiceMock)
+        verifyNoMoreInteractions(utbetalingServiceMock, ferdigstillIverksettingServiceMock)
     }
 
     @Test
-    fun `kan ikke ferdigstille behandling hvis den ikke finnes`() {
-        val xmlMessage = kvitteringXml(UtbetalingKvitteringResponse.Alvorlighetsgrad.OK_MED_VARSEL)
-        val utbetaling = utbetalingUtenKvittering.copy(type = Utbetaling.UtbetalingsType.NY)
-
-        val kvittering = Kvittering(
-            utbetalingsstatus = Kvittering.Utbetalingsstatus.OK_MED_VARSEL,
-            originalKvittering = xmlMessage,
-            mottattTidspunkt = Tidspunkt.now(clock)
-        )
-
-        val utbetalingMedKvittering = utbetaling.toKvittertUtbetaling(kvittering)
-
-        val utbetalingServiceMock = mock<UtbetalingService> {
-            on { oppdaterMedKvittering(any(), any()) } doReturn utbetalingMedKvittering.right()
-        }
-
-        val behandlingServiceMock = mock<FerdigstillSøknadsbehandingIverksettingService> {
-            on { hentBehandlingForUtbetaling(any()) } doReturn null
-        }
-        val consumer = UtbetalingKvitteringConsumer(utbetalingServiceMock, behandlingServiceMock, clock)
-
-        consumer.onMessage(xmlMessage)
-
-        verify(utbetalingServiceMock, Times(1)).oppdaterMedKvittering(
-            avstemmingsnøkkel = argThat { it shouldBe avstemmingsnøkkel },
-            kvittering = argThat { it shouldBe kvittering }
-        )
-        verify(behandlingServiceMock).hentBehandlingForUtbetaling(
-            argThat { it shouldBe utbetaling.id }
-        )
-        verifyNoMoreInteractions(utbetalingServiceMock, behandlingServiceMock)
-    }
-
-    @Test
-    fun `ferdigstiller behandling hvis den finnes`() {
+    fun `kaller tjeneste for å ferdigstille hvis utbetaling er kvittert ok `() {
         val xmlMessage = kvitteringXml(UtbetalingKvitteringResponse.Alvorlighetsgrad.OK)
         val utbetaling = utbetalingUtenKvittering.copy(type = Utbetaling.UtbetalingsType.NY)
 
@@ -177,32 +144,63 @@ internal class UtbetalingKvitteringConsumerTest {
             originalKvittering = xmlMessage,
             mottattTidspunkt = Tidspunkt.now(clock)
         )
-        val behandling = mock<Søknadsbehandling.Iverksatt.Innvilget>()
-
         val utbetalingMedKvittering = utbetaling.toKvittertUtbetaling(kvittering)
 
         val utbetalingServiceMock = mock<UtbetalingService> {
             on { oppdaterMedKvittering(any(), any()) } doReturn utbetalingMedKvittering.right()
         }
 
-        val behandlingServiceMock = mock<FerdigstillSøknadsbehandingIverksettingService> {
-            on { hentBehandlingForUtbetaling(any()) } doReturn behandling
-        }
-        val consumer = UtbetalingKvitteringConsumer(utbetalingServiceMock, behandlingServiceMock, clock)
+        val ferdigstillIverksettingServiceMock = mock<FerdigstillIverksettingService> {}
+        val consumer = UtbetalingKvitteringConsumer(utbetalingServiceMock, ferdigstillIverksettingServiceMock, clock)
 
         consumer.onMessage(xmlMessage)
 
-        verify(utbetalingServiceMock, Times(1)).oppdaterMedKvittering(
+        verify(utbetalingServiceMock).oppdaterMedKvittering(
             avstemmingsnøkkel = argThat { it shouldBe avstemmingsnøkkel },
             kvittering = argThat { it shouldBe kvittering }
         )
-        verify(behandlingServiceMock).hentBehandlingForUtbetaling(
+
+        verify(ferdigstillIverksettingServiceMock).ferdigstillIverksetting(
             argThat { it shouldBe utbetaling.id }
         )
+        verifyNoMoreInteractions(utbetalingServiceMock, ferdigstillIverksettingServiceMock)
+    }
 
-        verify(behandlingServiceMock).ferdigstillInnvilgelse(
-            argThat { it shouldBe behandling }
+    @Test
+    fun `kaster videre eventuelle exceptions fra kall til ferdigstill`() {
+        val xmlMessage = kvitteringXml(UtbetalingKvitteringResponse.Alvorlighetsgrad.OK)
+        val utbetaling = utbetalingUtenKvittering.copy(type = Utbetaling.UtbetalingsType.NY)
+
+        val kvittering = Kvittering(
+            utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
+            originalKvittering = xmlMessage,
+            mottattTidspunkt = Tidspunkt.now(clock)
         )
-        verifyNoMoreInteractions(utbetalingServiceMock, behandlingServiceMock)
+        val utbetalingMedKvittering = utbetaling.toKvittertUtbetaling(kvittering)
+
+        val utbetalingServiceMock = mock<UtbetalingService> {
+            on { oppdaterMedKvittering(any(), any()) } doReturn utbetalingMedKvittering.right()
+        }
+
+        val ferdigstillIverksettingServiceMock = mock<FerdigstillIverksettingService> {
+            on { ferdigstillIverksetting(any()) }.thenThrow(IllegalArgumentException("Kastet fra FerdigstillIverksettingService"))
+        }
+
+        val consumer = UtbetalingKvitteringConsumer(utbetalingServiceMock, ferdigstillIverksettingServiceMock, clock)
+
+        assertThrows<RuntimeException> {
+            consumer.onMessage(xmlMessage)
+        }.let {
+            it.message shouldContain "Kastet fra FerdigstillIverksettingService"
+        }
+
+        verify(utbetalingServiceMock).oppdaterMedKvittering(
+            avstemmingsnøkkel = argThat { it shouldBe avstemmingsnøkkel },
+            kvittering = argThat { it shouldBe kvittering }
+        )
+
+        verify(ferdigstillIverksettingServiceMock).ferdigstillIverksetting(
+            argThat { it shouldBe utbetaling.id }
+        )
     }
 }

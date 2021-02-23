@@ -21,7 +21,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.service.søknadsbehandling.FerdigstillSøknadsbehandingIverksettingService
+import no.nav.su.se.bakover.service.søknadsbehandling.FerdigstillIverksettingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.argThat
@@ -73,34 +73,28 @@ internal class LokalKvitteringJobTest {
                 kvittering = kvittering
             ).right()
         }
-        val innvilgetSøknadsbehandling = mock<Søknadsbehandling.Iverksatt.Innvilget> {
-        }
-        val behandlingServiceMock = mock<FerdigstillSøknadsbehandingIverksettingService> {
-            on { hentBehandlingForUtbetaling(any()) } doReturn innvilgetSøknadsbehandling
-        }
+        val innvilgetSøknadsbehandling = mock<Søknadsbehandling.Iverksatt.Innvilget> {}
+        val ferdigstillIverksettingServiceMock = mock<FerdigstillIverksettingService>()
+
         val utbetalingKvitteringConsumer = UtbetalingKvitteringConsumer(
             utbetalingService = utbetalingServiceMock,
-            ferdigstillSøknadsbehandingIverksettingService = behandlingServiceMock,
+            ferdigstillIverksettingService = ferdigstillIverksettingServiceMock,
             clock = fixedClock
         )
         LokalKvitteringJob(utbetalingRepoMock, utbetalingKvitteringConsumer).schedule()
-        verify(utbetalingRepoMock, timeout(1000)).hentUkvitterteUtbetalinger()
-        verify(utbetalingServiceMock, timeout(1000)).oppdaterMedKvittering(
+        verify(utbetalingRepoMock, timeout(3000)).hentUkvitterteUtbetalinger()
+        verify(utbetalingServiceMock, timeout(3000)).oppdaterMedKvittering(
             avstemmingsnøkkel = argThat { it shouldBe utbetaling.avstemmingsnøkkel },
             kvittering = argThat { it shouldBe kvittering.copy(originalKvittering = it.originalKvittering) }
         )
-        verify(behandlingServiceMock, timeout(1000)).hentBehandlingForUtbetaling(
+        verify(ferdigstillIverksettingServiceMock, timeout(1000)).ferdigstillIverksetting(
             argThat { it shouldBe utbetaling.id }
-        )
-
-        verify(behandlingServiceMock, timeout(1000)).ferdigstillInnvilgelse(
-            argThat { it shouldBe innvilgetSøknadsbehandling }
         )
 
         verifyNoMoreInteractions(
             utbetalingRepoMock,
             utbetalingServiceMock,
-            behandlingServiceMock,
+            ferdigstillIverksettingServiceMock,
             innvilgetSøknadsbehandling
         )
     }

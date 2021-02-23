@@ -8,6 +8,7 @@ import io.ktor.application.call
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.Created
+import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
@@ -17,8 +18,10 @@ import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeRevurdere
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.Resultat
@@ -34,9 +37,11 @@ import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withRevurderingId
 import no.nav.su.se.bakover.web.withSakId
+import java.time.LocalDate
 
 internal const val revurderingPath = "$sakPath/{sakId}/revurderinger"
 
+internal data class OpprettRevurderingBody(val fraOgMed: LocalDate)
 @KtorExperimentalAPI
 internal fun Route.revurderingRoutes(
     revurderingService: RevurderingService
@@ -44,23 +49,43 @@ internal fun Route.revurderingRoutes(
     authorize(Brukerrolle.Saksbehandler) {
         post("$revurderingPath/opprett") {
             call.withSakId { sakId ->
-                call.withBody<PeriodeJson> { periodeJson ->
+                call.withBody<OpprettRevurderingBody> { request ->
                     val navIdent = call.suUserContext.navIdent
-                    periodeJson.toPeriode()
-                        .mapLeft { call.svar(it) }
-                        .map { periode ->
-                            revurderingService.opprettRevurdering(
-                                sakId,
-                                periode = periode,
-                                saksbehandler = Saksbehandler(navIdent)
-                            ).fold(
-                                ifLeft = { call.svar(it.tilFeilMelding()) },
-                                ifRight = {
-                                    call.audit("Opprettet en ny revurdering på sak med id $sakId")
-                                    call.svar(Resultat.json(Created, serialize(it.toJson())))
-                                },
-                            )
-                        }
+
+                    revurderingService.opprettRevurdering(
+                        sakId,
+                        fraOgMed = request.fraOgMed,
+                        saksbehandler = Saksbehandler(navIdent)
+                    ).fold(
+                        ifLeft = { call.svar(it.tilFeilMelding()) },
+                        ifRight = {
+                            call.audit("Opprettet en ny revurdering på sak med id $sakId")
+                            call.svar(Resultat.json(Created, serialize(it.toJson())))
+                        },
+                    )
+                }
+            }
+        }
+    }
+
+    data class OppdaterRevurderingsperiodeBody(val fraOgMed: LocalDate)
+    authorize(Brukerrolle.Saksbehandler) {
+        post("$revurderingPath/{revurderingId}/oppdaterPeriode") {
+            call.withRevurderingId { revurderingId ->
+                call.withBody<OppdaterRevurderingsperiodeBody> { request ->
+                    val navIdent = call.suUserContext.navIdent
+
+                    revurderingService.oppdaterRevurderingsperiode(
+                        revurderingId,
+                        fraOgMed = request.fraOgMed,
+                        saksbehandler = Saksbehandler(navIdent)
+                    ).fold(
+                        ifLeft = { call.svar(it.tilFeilMelding()) },
+                        ifRight = {
+                            call.audit("Oppdaterte perioden på revurdering med id: $revurderingId")
+                            call.svar(Resultat.json(Created, serialize(it.toJson())))
+                        },
+                    )
                 }
             }
         }
@@ -92,9 +117,9 @@ internal fun Route.revurderingRoutes(
                                     fradrag = it
                                 ).fold(
                                     ifLeft = { revurderingFeilet -> call.svar(revurderingFeilet.tilFeilMelding()) },
-                                    ifRight = { simulertRevurdering ->
+                                    ifRight = { revurdering ->
                                         call.audit("Opprettet en ny revurdering beregning og simulering på sak med id $sakId")
-                                        call.svar(Resultat.json(Created, serialize(simulertRevurdering.toJson())))
+                                        call.svar(Resultat.json(Created, serialize(revurdering.toJson())))
                                     },
                                 )
                             }
@@ -112,6 +137,35 @@ internal fun Route.revurderingRoutes(
                 ifLeft = { call.svar(it.tilFeilMelding()) },
                 ifRight = {
                     call.audit("Sendt revurdering til attestering med id $revurderingId")
+                    call.svar(Resultat.json(OK, serialize(it.toJson())))
+                },
+            )
+        }
+    }
+
+    post("$revurderingPath/{revurderingId}/iverksett") {
+        call.withRevurderingId { revurderingId ->
+            revurderingService.iverksett(
+                revurderingId = revurderingId, attestant = Attestant(call.suUserContext.navIdent)
+            ).fold(
+                ifLeft = {
+                    val message = when (it) {
+                        KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> Forbidden.message(
+                            "Attestant og saksbehandler kan ikke være samme person"
+                        )
+                        KunneIkkeIverksetteRevurdering.FantIkkeRevurdering -> NotFound.message("Fant ikke revurdering")
+                        KunneIkkeIverksetteRevurdering.FeilTilstand -> InternalServerError.message("Kun revurderinger som har blitt sendt til attestering kan revurderes")
+                        KunneIkkeIverksetteRevurdering.KunneIkkeJournalføreBrev -> InternalServerError.message("Feil ved journalføring av vedtaksbrev")
+                        KunneIkkeIverksetteRevurdering.KunneIkkeKontrollsimulere -> InternalServerError.message("Kunne ikke utføre kontrollsimulering")
+                        KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale -> InternalServerError.message("Kunne ikke utføre utbetaling")
+                        KunneIkkeIverksetteRevurdering.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> InternalServerError.message(
+                            "Oppdaget inkonsistens mellom tidligere utført simulering og kontrollsimulering. Ny simulering må utføres og kontrolleres før iverksetting kan gjennomføres"
+                        )
+                    }
+                    call.svar(message)
+                },
+                ifRight = {
+                    call.audit("Iverksatt revurdering med id $revurderingId")
                     call.svar(Resultat.json(OK, serialize(it.toJson())))
                 },
             )
@@ -145,7 +199,11 @@ internal fun KunneIkkeRevurdere.tilFeilMelding(): Resultat {
         KunneIkkeRevurdere.KunneIkkeLageBrevutkast -> InternalServerError.message("Kunne ikke lage brev")
         KunneIkkeRevurdere.MicrosoftApiGraphFeil -> InternalServerError.message("Kunne ikke slå opp saksbehandler")
         KunneIkkeRevurdere.KanIkkeRevurdereInneværendeMånedEllerTidligere -> BadRequest.message("Revurdering kan kun gjøres fra og med neste kalendermåned")
+        KunneIkkeRevurdere.NesteMånedErUtenforStønadsperioden -> BadRequest.message("Kan ikke revurdere etter stønadsperioden")
         KunneIkkeRevurdere.SimuleringFeilet -> InternalServerError.message("Simulering feilet")
         KunneIkkeRevurdere.KanIkkeRevurderePerioderMedFlereAktiveStønadsperioder -> InternalServerError.message("Revurderingsperioden kan ikke overlappe flere aktive stønadsperioder.") // TODO AI 03-02-2020: Temporary solution
+        KunneIkkeRevurdere.KanIkkeRevurdereEnPeriodeMedEksisterendeRevurdering -> InternalServerError.message("Kan ikke revurdere en behandling som allerede har en eksisterende revurdering") // TODO Temporary solution
+        is KunneIkkeRevurdere.UgyldigTilstand -> BadRequest.message("Kan ikke gå fra tilstanden ${this.fra.simpleName} til tilstanden  ${this.til.simpleName} ")
+        is KunneIkkeRevurdere.UgyldigPeriode -> BadRequest.message(this.subError.toString())
     }
 }

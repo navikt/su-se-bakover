@@ -17,6 +17,10 @@ import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.mars
+import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
@@ -25,10 +29,12 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegEtterUtbetaling
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
@@ -48,17 +54,20 @@ import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
-internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
+internal class FerdigstillIverksettingServiceImplTest {
 
     private val iverksattOppgaveId = OppgaveId("iverksattOppgaveId")
 
     private val iverksattJournalpostId = JournalpostId("iverksattJournalpostId")
 
     private val iverksattBrevbestillingId = BrevbestillingId("iverattBrevbestillingId")
+
+    private val utbetalingId = UUID30.randomUUID()
 
     private val innvilgetBehandlingUtenJournalpost = Søknadsbehandling.Iverksatt.Innvilget(
         id = UUID.randomUUID(),
@@ -86,13 +95,71 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
         ),
         behandlingsinformasjon = behandlingsinformasjon,
         fnr = fnr,
+        utbetalingId = utbetalingId,
+        eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.VenterPåKvittering
+    )
+
+    private val iverksattRevurdering = IverksattRevurdering(
+        id = UUID.randomUUID(),
+        periode = Periode.create(1.januar(2021), 31.mars(2021)),
+        opprettet = Tidspunkt.EPOCH,
+        tilRevurdering = innvilgetBehandlingUtenJournalpost,
+        saksbehandler = NavIdentBruker.Saksbehandler("Z123"),
+        beregning = TestBeregning,
+        simulering = Simulering(
+            gjelderId = innvilgetBehandlingUtenJournalpost.fnr,
+            gjelderNavn = "",
+            datoBeregnet = LocalDate.EPOCH,
+            nettoBeløp = 0,
+            periodeList = listOf()
+        ),
+        oppgaveId = OppgaveId(""),
+        attestant = NavIdentBruker.Attestant(navIdent = "Z321"),
         utbetalingId = UUID30.randomUUID(),
-        eksterneIverksettingsteg = Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.VenterPåKvittering
+        eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.VenterPåKvittering
     )
 
     @Test
+    fun `kaster exception hvis det ikke finnes noe som kan ferdigstilles for aktuell utbetaling`() {
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo>() {
+            on { hentBehandlingForUtbetaling(any()) } doReturn null
+        }
+
+        val revurderingRepoMock = mock<RevurderingRepo>() {
+            on { hentRevurderingForUtbetaling(any()) } doReturn null
+        }
+
+        assertThrows<IllegalStateException> {
+            createFerdigstillIverksettingService(
+                søknadsbehandlingRepo = søknadsbehandlingRepoMock,
+                revurderingRepo = revurderingRepoMock
+            ).ferdigstillIverksetting(UUID30.randomUUID())
+        }
+    }
+
+    @Test
+    fun `kaster exception hvis det finnes mange ting som kan ferdigstilles for aktuell utbetaling`() {
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo>() {
+            on { hentBehandlingForUtbetaling(any()) } doReturn innvilgetBehandlingUtenJournalpost
+        }
+
+        val revurderingRepoMock = mock<RevurderingRepo>() {
+            on { hentRevurderingForUtbetaling(any()) } doReturn iverksattRevurdering
+        }
+
+        assertThrows<IllegalStateException> {
+            createFerdigstillIverksettingService(
+                søknadsbehandlingRepo = søknadsbehandlingRepoMock,
+                revurderingRepo = revurderingRepoMock
+            ).ferdigstillIverksetting(UUID30.randomUUID())
+        }
+    }
+
+    @Test
     fun `Kunne ikke opprette journalpost hvis vi ikke finner saksbehandler`() {
-        val behandlingRepoMock = mock<SøknadsbehandlingRepo>()
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo>() {
+            on { hentBehandlingForUtbetaling(any()) } doReturn innvilgetBehandlingUtenJournalpost
+        }
 
         val personServiceMock = mock<PersonService> {
             on { hentPersonMedSystembruker(any()) } doReturn person.right()
@@ -111,24 +178,31 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
 
         val statistikkObserver = mock<EventObserver>()
 
-        val actual = createService(
-            søknadsbehandlingRepo = behandlingRepoMock,
+        val actual = createFerdigstillIverksettingService(
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
             microsoftGraphApiOppslag = oppslagMock,
             eventObserver = statistikkObserver
-        ).ferdigstillInnvilgelse(innvilgetBehandlingUtenJournalpost)
+        ).ferdigstillIverksetting(utbetalingId)
 
         actual shouldBe Unit
 
         inOrder(
-            behandlingRepoMock,
+            søknadsbehandlingRepoMock,
             personServiceMock,
             oppslagMock,
             oppgaveServiceMock,
             statistikkObserver
         ) {
-            verify(statistikkObserver).handle(argThat { it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(innvilgetBehandlingUtenJournalpost) })
+            verify(søknadsbehandlingRepoMock).hentBehandlingForUtbetaling(utbetalingId)
+            verify(statistikkObserver).handle(
+                argThat {
+                    it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(
+                        innvilgetBehandlingUtenJournalpost
+                    )
+                }
+            )
             verify(personServiceMock).hentPersonMedSystembruker(fnr)
             verify(oppslagMock).hentBrukerinformasjonForNavIdent(
                 argThat {
@@ -138,7 +212,7 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
             verify(oppgaveServiceMock).lukkOppgaveMedSystembruker(argThat { it shouldBe iverksattOppgaveId })
         }
         verifyNoMoreInteractions(
-            behandlingRepoMock,
+            søknadsbehandlingRepoMock,
             personServiceMock,
             oppslagMock,
             oppgaveServiceMock
@@ -147,7 +221,9 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
 
     @Test
     fun `Kunne ikke opprette journalpost hvis vi ikke finner attestant`() {
-        val behandlingRepoMock = mock<SøknadsbehandlingRepo>()
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo>() {
+            on { hentBehandlingForUtbetaling(any()) } doReturn innvilgetBehandlingUtenJournalpost
+        }
 
         val personServiceMock = mock<PersonService> {
             on { hentPersonMedSystembruker(any()) } doReturn person.right()
@@ -164,20 +240,21 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
             on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
         }
 
-        val actual = createService(
-            søknadsbehandlingRepo = behandlingRepoMock,
+        val actual = createFerdigstillIverksettingService(
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
             microsoftGraphApiOppslag = oppslagMock,
-        ).ferdigstillInnvilgelse(innvilgetBehandlingUtenJournalpost)
+        ).ferdigstillIverksetting(utbetalingId)
         actual shouldBe Unit
 
         inOrder(
-            behandlingRepoMock,
+            søknadsbehandlingRepoMock,
             personServiceMock,
             oppslagMock,
             oppgaveServiceMock
         ) {
+            verify(søknadsbehandlingRepoMock).hentBehandlingForUtbetaling(utbetalingId)
             verify(personServiceMock).hentPersonMedSystembruker(fnr)
             argumentCaptor<NavIdentBruker>().apply {
                 verify(oppslagMock, times(2)).hentBrukerinformasjonForNavIdent(capture())
@@ -187,7 +264,7 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
             verify(oppgaveServiceMock).lukkOppgaveMedSystembruker(argThat { it shouldBe iverksattOppgaveId })
         }
         verifyNoMoreInteractions(
-            behandlingRepoMock,
+            søknadsbehandlingRepoMock,
             personServiceMock,
             oppslagMock,
             oppgaveServiceMock
@@ -196,7 +273,9 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
 
     @Test
     fun `Kunne ikke opprette journalpost hvis vi ikke finner person`() {
-        val behandlingRepoMock = mock<SøknadsbehandlingRepo>()
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo>() {
+            on { hentBehandlingForUtbetaling(any()) } doReturn innvilgetBehandlingUtenJournalpost
+        }
 
         val personServiceMock = mock<PersonService> {
             on { hentPersonMedSystembruker(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
@@ -212,27 +291,29 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
             on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
         }
 
-        val actual = createService(
-            søknadsbehandlingRepo = behandlingRepoMock,
+        val actual = createFerdigstillIverksettingService(
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
             microsoftGraphApiOppslag = oppslagMock,
             brevService = brevServiceMock
 
-        ).ferdigstillInnvilgelse(innvilgetBehandlingUtenJournalpost)
+        ).ferdigstillIverksetting(utbetalingId)
 
         actual shouldBe Unit
 
         inOrder(
+            søknadsbehandlingRepoMock,
             personServiceMock,
             oppgaveServiceMock,
             oppslagMock
         ) {
+            verify(søknadsbehandlingRepoMock).hentBehandlingForUtbetaling(utbetalingId)
             verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe fnr })
             verify(oppgaveServiceMock).lukkOppgaveMedSystembruker(argThat { it shouldBe iverksattOppgaveId })
         }
         verifyNoMoreInteractions(
-            behandlingRepoMock,
+            søknadsbehandlingRepoMock,
             brevServiceMock,
             personServiceMock,
             oppslagMock,
@@ -242,7 +323,9 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
 
     @Test
     fun `Kan ikke journalføre eller distribuere brev hvis journalføring feiler`() {
-        val saksbehandlingRepoMock = mock<SøknadsbehandlingRepo>()
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo>() {
+            on { hentBehandlingForUtbetaling(any()) } doReturn innvilgetBehandlingUtenJournalpost
+        }
 
         val personServiceMock = mock<PersonService> {
             on { hentPersonMedSystembruker(any()) } doReturn person.right()
@@ -263,26 +346,33 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
 
         val statistikkObserver = mock<EventObserver>()
 
-        val actual = createService(
-            søknadsbehandlingRepo = saksbehandlingRepoMock,
+        val actual = createFerdigstillIverksettingService(
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             personService = personServiceMock,
             microsoftGraphApiOppslag = oppslagMock,
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
             eventObserver = statistikkObserver
-        ).ferdigstillInnvilgelse(innvilgetBehandlingUtenJournalpost)
+        ).ferdigstillIverksetting(utbetalingId)
 
         actual shouldBe Unit
 
         inOrder(
-            saksbehandlingRepoMock,
+            søknadsbehandlingRepoMock,
             personServiceMock,
             oppslagMock,
             brevServiceMock,
             oppgaveServiceMock,
             statistikkObserver
         ) {
-            verify(statistikkObserver).handle(argThat { it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(innvilgetBehandlingUtenJournalpost) })
+            verify(søknadsbehandlingRepoMock).hentBehandlingForUtbetaling(utbetalingId)
+            verify(statistikkObserver).handle(
+                argThat {
+                    it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(
+                        innvilgetBehandlingUtenJournalpost
+                    )
+                }
+            )
             verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe fnr })
             argumentCaptor<NavIdentBruker>().apply {
                 verify(oppslagMock, times(2)).hentBrukerinformasjonForNavIdent(capture())
@@ -304,7 +394,7 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
             verify(oppgaveServiceMock).lukkOppgaveMedSystembruker(argThat { it shouldBe iverksattOppgaveId })
         }
         verifyNoMoreInteractions(
-            saksbehandlingRepoMock,
+            søknadsbehandlingRepoMock,
             personServiceMock,
             oppslagMock,
             oppgaveServiceMock
@@ -313,7 +403,9 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
 
     @Test
     fun `Kunne ikke distribuere brev`() {
-        val saksbehandlingRepoMock = mock<SøknadsbehandlingRepo>()
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo>() {
+            on { hentBehandlingForUtbetaling(any()) } doReturn innvilgetBehandlingUtenJournalpost
+        }
 
         val personServiceMock = mock<PersonService> {
             on { hentPersonMedSystembruker(any()) } doReturn person.right()
@@ -335,23 +427,24 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
             on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
         }
 
-        val actual = createService(
-            søknadsbehandlingRepo = saksbehandlingRepoMock,
+        val actual = createFerdigstillIverksettingService(
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
             microsoftGraphApiOppslag = oppslagMock,
             brevService = brevServiceMock,
-        ).ferdigstillInnvilgelse(innvilgetBehandlingUtenJournalpost)
+        ).ferdigstillIverksetting(utbetalingId)
 
         actual shouldBe Unit
 
         inOrder(
-            saksbehandlingRepoMock,
+            søknadsbehandlingRepoMock,
             personServiceMock,
             oppslagMock,
             brevServiceMock,
             oppgaveServiceMock
         ) {
+            verify(søknadsbehandlingRepoMock).hentBehandlingForUtbetaling(utbetalingId)
             verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe fnr })
             argumentCaptor<NavIdentBruker>().apply {
                 verify(oppslagMock, times(2)).hentBrukerinformasjonForNavIdent(capture())
@@ -370,10 +463,10 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
                 },
                 argThat { it shouldBe saksnummer },
             )
-            verify(saksbehandlingRepoMock).lagre(
+            verify(søknadsbehandlingRepoMock).lagre(
                 argThat {
                     it shouldBe innvilgetBehandlingUtenJournalpost.copy(
-                        eksterneIverksettingsteg = Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.Journalført(
+                        eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.Journalført(
                             iverksattJournalpostId
                         )
                     )
@@ -387,7 +480,7 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
             verify(oppgaveServiceMock).lukkOppgaveMedSystembruker(argThat { it shouldBe iverksattOppgaveId })
         }
         verifyNoMoreInteractions(
-            saksbehandlingRepoMock,
+            søknadsbehandlingRepoMock,
             personServiceMock,
             oppslagMock,
             brevServiceMock,
@@ -397,7 +490,9 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
 
     @Test
     fun `journalfører og distribuerer brev for iverksatt innvilget`() {
-        val saksbehandlingRepoMock = mock<SøknadsbehandlingRepo>()
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo>() {
+            on { hentBehandlingForUtbetaling(any()) } doReturn innvilgetBehandlingUtenJournalpost
+        }
 
         val personServiceMock = mock<PersonService> {
             on { hentPersonMedSystembruker(any()) } doReturn person.right()
@@ -421,18 +516,25 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
 
         val statistikkObserver = mock<EventObserver>()
 
-        val actual = createService(
-            søknadsbehandlingRepo = saksbehandlingRepoMock,
+        val actual = createFerdigstillIverksettingService(
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
             microsoftGraphApiOppslag = oppslagMock,
             brevService = brevServiceMock,
             eventObserver = statistikkObserver
-        ).ferdigstillInnvilgelse(innvilgetBehandlingUtenJournalpost)
+        ).ferdigstillIverksetting(utbetalingId)
 
         actual shouldBe Unit
 
-        verify(statistikkObserver).handle(argThat { it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(innvilgetBehandlingUtenJournalpost) })
+        verify(søknadsbehandlingRepoMock).hentBehandlingForUtbetaling(utbetalingId)
+        verify(statistikkObserver).handle(
+            argThat {
+                it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(
+                    innvilgetBehandlingUtenJournalpost
+                )
+            }
+        )
         verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe fnr })
         argumentCaptor<NavIdentBruker>().apply {
             verify(oppslagMock, times(2)).hentBrukerinformasjonForNavIdent(capture())
@@ -452,14 +554,14 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
             argThat { it shouldBe saksnummer },
         )
         argumentCaptor<Søknadsbehandling>().apply {
-            verify(saksbehandlingRepoMock, times(2)).lagre(capture())
+            verify(søknadsbehandlingRepoMock, times(2)).lagre(capture())
             firstValue shouldBe innvilgetBehandlingUtenJournalpost.copy(
-                eksterneIverksettingsteg = Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.Journalført(
+                eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.Journalført(
                     iverksattJournalpostId
                 )
             )
             secondValue shouldBe innvilgetBehandlingUtenJournalpost.copy(
-                eksterneIverksettingsteg = Søknadsbehandling.Iverksatt.Innvilget.EksterneIverksettingsteg.JournalførtOgDistribuertBrev(
+                eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.JournalførtOgDistribuertBrev(
                     iverksattJournalpostId,
                     iverksattBrevbestillingId
                 )
@@ -473,7 +575,7 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
         verify(oppgaveServiceMock).lukkOppgaveMedSystembruker(argThat { it shouldBe iverksattOppgaveId })
 
         verifyNoMoreInteractions(
-            saksbehandlingRepoMock,
+            søknadsbehandlingRepoMock,
             brevServiceMock,
             personServiceMock,
             oppslagMock,
@@ -481,7 +583,7 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
         )
     }
 
-    private fun createService(
+    private fun createFerdigstillIverksettingService(
         søknadsbehandlingRepo: SøknadsbehandlingRepo = mock(),
         oppgaveService: OppgaveService = mock(),
         personService: PersonService = mock(),
@@ -489,8 +591,9 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
         microsoftGraphApiOppslag: MicrosoftGraphApiOppslag = mock(),
         brevService: BrevService = mock(),
         eventObserver: EventObserver = mock { on { handle(any()) }.doNothing() },
-        clock: Clock = Clock.systemUTC()
-    ) = FerdigstillSøknadsbehandingIverksettingServiceImpl(
+        clock: Clock = Clock.systemUTC(),
+        revurderingRepo: RevurderingRepo = mock()
+    ) = FerdigstillIverksettingServiceImpl(
         søknadsbehandlingRepo = søknadsbehandlingRepo,
         oppgaveService = oppgaveService,
         behandlingMetrics = behandlingMetrics,
@@ -498,5 +601,6 @@ internal class FerdigstillSøknadsbehandingIverksettingServiceTest {
         personService = personService,
         brevService = brevService,
         clock = clock,
+        revurderingRepo
     ).apply { addObserver(eventObserver) }
 }

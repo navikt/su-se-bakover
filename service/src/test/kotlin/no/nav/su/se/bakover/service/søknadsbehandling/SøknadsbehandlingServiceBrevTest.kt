@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
 import no.nav.su.se.bakover.service.beregning.TestBeregning
@@ -28,6 +29,7 @@ import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.service.person.PersonService
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import java.util.UUID
 
 internal class SøknadsbehandlingServiceBrevTest {
@@ -165,7 +167,7 @@ internal class SøknadsbehandlingServiceBrevTest {
     }
 
     @Test
-    fun `svarer med feil hvis det ikke er mulig å opprette brev for aktuell behandling`() {
+    fun `kaster exception hvis det ikke er mulig å opprette brev for aktuell behandling`() {
         val behandlingMock = mock<Søknadsbehandling.Vilkårsvurdert.Uavklart> {
             on { accept(any()) }.thenCallRealMethod()
             on { status } doReturn BehandlingsStatus.OPPRETTET
@@ -175,10 +177,10 @@ internal class SøknadsbehandlingServiceBrevTest {
             on { hent(any()) } doReturn behandlingMock
         }
 
-        createSøknadsbehandlingService(
-            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-        ).brev(SøknadsbehandlingService.BrevRequest(beregnetAvslag.id)).let {
-            it shouldBe SøknadsbehandlingService.KunneIkkeLageBrev.KanIkkeLageBrevutkastForStatus(BehandlingsStatus.OPPRETTET).left()
+        assertThrows<LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans> {
+            createSøknadsbehandlingService(
+                søknadsbehandlingRepo = søknadsbehandlingRepoMock,
+            ).brev(SøknadsbehandlingService.BrevRequest(beregnetAvslag.id))
         }
     }
 }

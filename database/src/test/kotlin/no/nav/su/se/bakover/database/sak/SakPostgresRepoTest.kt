@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test
 internal class SakPostgresRepoTest {
 
     private val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())
-    private val repo = SakPostgresRepo(EmbeddedDatabase.instance(), mock())
+    private val repo = SakPostgresRepo(EmbeddedDatabase.instance(), mock(), mock())
 
     @Test
     fun `opprett og hent sak`() {

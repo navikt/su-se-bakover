@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.oppdatering
+import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.database.tidspunkt
@@ -19,7 +20,8 @@ import javax.sql.DataSource
 
 internal class SakPostgresRepo(
     private val dataSource: DataSource,
-    private val søknadsbehandlingRepo: SøknadsbehandlingRepo
+    private val søknadsbehandlingRepo: SøknadsbehandlingRepo,
+    private val revurderingRepo: RevurderingPostgresRepo
 ) : SakRepo {
     override fun hentSak(sakId: UUID) = dataSource.withSession { hentSakInternal(sakId, it) }
     override fun hentSak(fnr: Fnr) = dataSource.withSession { hentSakInternal(fnr, it) }
@@ -57,7 +59,8 @@ internal class SakPostgresRepo(
             opprettet = tidspunkt("opprettet"),
             søknader = SøknadRepoInternal.hentSøknaderInternal(sakId, session),
             behandlinger = søknadsbehandlingRepo.hentForSak(sakId, session),
-            utbetalinger = UtbetalingInternalRepo.hentUtbetalinger(sakId, session)
+            utbetalinger = UtbetalingInternalRepo.hentUtbetalinger(sakId, session),
+            revurderinger = revurderingRepo.hentRevurderingerForSak(sakId, session)
         )
     }
 }

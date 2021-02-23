@@ -3,22 +3,24 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 import arrow.core.Either
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
+import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
+import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.util.UUID
 
-interface FerdigstillSøknadsbehandingIverksettingService {
-    fun hentBehandlingForUtbetaling(utbetalingId: UUID30): Søknadsbehandling.Iverksatt.Innvilget?
-
-    fun ferdigstillInnvilgelse(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget)
-
+interface FerdigstillIverksettingService {
+    fun ferdigstillIverksetting(utbetalingId: UUID30)
     fun opprettManglendeJournalpostOgBrevdistribusjon(): OpprettManglendeJournalpostOgBrevdistribusjonResultat
+    fun lagBrevRequest(visitable: Visitable<LagBrevRequestVisitor>): Either<KunneIkkeFerdigstilleInnvilgelse, LagBrevRequest>
+    fun lukkOppgave(oppgaveId: OppgaveId): Either<KunneIkkeFerdigstilleInnvilgelse.KunneIkkeLukkeOppgave, Unit>
 
     sealed class KunneIkkeFerdigstilleInnvilgelse {
         object FikkIkkeHentetSaksbehandlerEllerAttestant : KunneIkkeFerdigstilleInnvilgelse()
         object KunneIkkeOppretteJournalpost : KunneIkkeFerdigstilleInnvilgelse()
         object KunneIkkeDistribuereBrev : KunneIkkeFerdigstilleInnvilgelse()
-        object KunneIkkeOppretteOppgave : KunneIkkeFerdigstilleInnvilgelse()
+        object KunneIkkeLukkeOppgave : KunneIkkeFerdigstilleInnvilgelse()
         object FantIkkePerson : KunneIkkeFerdigstilleInnvilgelse()
     }
 

@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegForAvslag
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -103,9 +104,9 @@ internal class StatusovergangTest {
     private val attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"))
     private val utbetalingId = UUID30.randomUUID()
     private val journalførtIverksettingsteg =
-        Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg.Journalført(JournalpostId("journalpostId"))
+        EksterneIverksettingsstegForAvslag.Journalført(JournalpostId("journalpostId"))
     private val distribuertIverksettingssteg =
-        Søknadsbehandling.Iverksatt.Avslag.EksterneIverksettingsteg.JournalførtOgDistribuertBrev(
+        EksterneIverksettingsstegForAvslag.JournalførtOgDistribuertBrev(
             journalpostId = JournalpostId("journalpostId"),
             brevbestillingId = BrevbestillingId("brevbesttilingId")
         )
