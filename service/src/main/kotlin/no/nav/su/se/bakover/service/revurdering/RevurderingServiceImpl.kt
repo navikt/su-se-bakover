@@ -141,9 +141,8 @@ internal class RevurderingServiceImpl(
                     }
                 }
             }
-            else -> {
-                throw RuntimeException("Skal ikke kunne beregne når revurderingen er til attestering")
-            }
+            null -> return KunneIkkeRevurdere.FantIkkeRevurdering.left()
+            else -> return KunneIkkeRevurdere.UgyldigTilstand(revurdering::class, SimulertRevurdering::class).left()
         }
     }
 
@@ -173,7 +172,8 @@ internal class RevurderingServiceImpl(
 
                 revurdering.tilAttestering(oppgaveId, saksbehandler)
             }
-            else -> throw RuntimeException("Revurdering er ikke i riktig status for å sendes til attestering")
+            null -> return KunneIkkeRevurdere.FantIkkeRevurdering.left()
+            else -> return KunneIkkeRevurdere.UgyldigTilstand(revurdering::class, RevurderingTilAttestering::class).left()
         }
 
         revurderingRepo.lagre(tilAttestering)

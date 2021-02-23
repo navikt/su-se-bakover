@@ -400,15 +400,15 @@ internal class RevurderingServiceImplTest {
             on { hent(revurderingId) } doReturn revurderingTilAttestering
         }
 
-        assertThrows<RuntimeException> {
-            createRevurderingService(
-                revurderingRepo = revurderingRepoMock,
-            ).beregnOgSimuler(
-                revurderingId = revurderingId,
-                saksbehandler = saksbehandler,
-                fradrag = listOf()
-            )
-        }
+        val result = createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+        ).beregnOgSimuler(
+            revurderingId = revurderingId,
+            saksbehandler = saksbehandler,
+            fradrag = listOf()
+        )
+        result shouldBe KunneIkkeRevurdere.UgyldigTilstand(RevurderingTilAttestering::class, SimulertRevurdering::class)
+            .left()
 
         verify(revurderingRepoMock).hent(revurderingId)
         verifyNoMoreInteractions(revurderingRepoMock)
@@ -524,14 +524,14 @@ internal class RevurderingServiceImplTest {
             on { hent(revurderingId) } doReturn opprettetRevurdering
         }
 
-        assertThrows<java.lang.RuntimeException> {
-            createRevurderingService(
-                revurderingRepo = revurderingRepoMock
-            ).sendTilAttestering(
-                revurderingId = revurderingId,
-                saksbehandler = saksbehandler,
-            )
-        }
+        val result = createRevurderingService(
+            revurderingRepo = revurderingRepoMock
+        ).sendTilAttestering(
+            revurderingId = revurderingId,
+            saksbehandler = saksbehandler,
+        )
+
+        result shouldBe KunneIkkeRevurdere.UgyldigTilstand(OpprettetRevurdering::class, RevurderingTilAttestering::class).left()
 
         verify(revurderingRepoMock).hent(revurderingId)
         verifyNoMoreInteractions(revurderingRepoMock)
