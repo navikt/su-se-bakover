@@ -144,9 +144,9 @@ internal class StatistikkServiceImplTest {
             behandlingId = søknadsbehandling.id,
             sakId = søknadsbehandling.sakId,
             saksnummer = søknadsbehandling.saksnummer.nummer,
-            behandlingStatus = søknadsbehandling.status,
+            behandlingStatus = søknadsbehandling.status.toString(),
             versjon = clock.millis(),
-            behandlingType = "SOKNAD",
+            behandlingType = Statistikk.BehandlingType.SOKNAD,
             behandlingTypeBeskrivelse = "Søknad for SU Uføre",
             behandlingStatusBeskrivelse = "Ny søknadsbehandling opprettet",
             utenlandstilsnitt = "NASJONAL",
@@ -196,10 +196,12 @@ internal class StatistikkServiceImplTest {
             behandlingId = behandling.id,
             sakId = behandling.sakId,
             saksnummer = behandling.saksnummer.nummer,
-            behandlingStatus = behandling.status,
+            behandlingStatus = behandling.status.toString(),
             behandlingStatusBeskrivelse = "Avslått søknadsbehandling iverksatt",
             versjon = clock.millis(),
             saksbehandler = "Z1595",
+            behandlingType = Statistikk.BehandlingType.SOKNAD,
+            behandlingTypeBeskrivelse = Statistikk.BehandlingType.SOKNAD.beskrivelse,
         )
 
         StatistikkServiceImpl(kafkaPublisherMock, mock(), clock).handle(
@@ -245,12 +247,14 @@ internal class StatistikkServiceImplTest {
             behandlingId = behandling.id,
             sakId = behandling.sakId,
             saksnummer = behandling.saksnummer.nummer,
-            behandlingStatus = behandling.status,
+            behandlingStatus = behandling.status.toString(),
             behandlingStatusBeskrivelse = "Innvilget søknadsbehandling iverksatt",
             versjon = clock.millis(),
             resultat = "Innvilget",
             saksbehandler = "55",
             beslutter = "56",
+            behandlingType = Statistikk.BehandlingType.SOKNAD,
+            behandlingTypeBeskrivelse = Statistikk.BehandlingType.SOKNAD.beskrivelse
         )
 
         StatistikkServiceImpl(kafkaPublisherMock, mock(), clock).handle(
@@ -293,13 +297,15 @@ internal class StatistikkServiceImplTest {
             behandlingId = behandling.id,
             sakId = behandling.sakId,
             saksnummer = behandling.saksnummer.nummer,
-            behandlingStatus = behandling.status,
+            behandlingStatus = behandling.status.toString(),
             behandlingStatusBeskrivelse = "Avslått søknadsbehandling iverksatt",
             versjon = clock.millis(),
             resultat = "Avslått",
             saksbehandler = "55",
             beslutter = "56",
-            resultatBegrunnelse = "UFØRHET,UTENLANDSOPPHOLD_OVER_90_DAGER"
+            resultatBegrunnelse = "UFØRHET,UTENLANDSOPPHOLD_OVER_90_DAGER",
+            behandlingType = Statistikk.BehandlingType.SOKNAD,
+            behandlingTypeBeskrivelse = Statistikk.BehandlingType.SOKNAD.beskrivelse
         )
 
         StatistikkServiceImpl(kafkaPublisherMock, mock(), clock).handle(
@@ -350,11 +356,13 @@ internal class StatistikkServiceImplTest {
             behandlingId = underkjent.id,
             sakId = underkjent.sakId,
             saksnummer = underkjent.saksnummer.nummer,
-            behandlingStatus = underkjent.status,
+            behandlingStatus = underkjent.status.toString(),
             behandlingStatusBeskrivelse = "Innvilget søknadsbehandling sendt tilbake fra attestant til saksbehandler",
             versjon = clock.millis(),
             saksbehandler = "saksbehandler",
             beslutter = "attestant",
+            behandlingType = Statistikk.BehandlingType.SOKNAD,
+            behandlingTypeBeskrivelse = Statistikk.BehandlingType.SOKNAD.beskrivelse,
         )
 
         StatistikkServiceImpl(kafkaPublisherMock, mock(), clock).handle(
