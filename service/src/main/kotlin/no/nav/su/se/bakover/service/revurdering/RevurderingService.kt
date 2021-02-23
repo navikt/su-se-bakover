@@ -49,13 +49,13 @@ sealed class KunneIkkeIverksetteRevurdering {
     object SimuleringHarBlittEndretSidenSaksbehandlerSimulerte : KunneIkkeIverksetteRevurdering()
     object KunneIkkeJournalføreBrev : KunneIkkeIverksetteRevurdering()
     object FantIkkeRevurdering : KunneIkkeIverksetteRevurdering()
-    object FeilTilstand : KunneIkkeIverksetteRevurdering()
+    data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
+        KunneIkkeIverksetteRevurdering()
 }
 
 sealed class KunneIkkeRevurdere {
     object FantIkkeSak : KunneIkkeRevurdere()
     object FantIkkeRevurdering : KunneIkkeRevurdere()
-    object MicrosoftApiGraphFeil : KunneIkkeRevurdere()
     object FantIngentingSomKanRevurderes : KunneIkkeRevurdere()
     object FantIkkePerson : KunneIkkeRevurdere()
     object FantIkkeAktørid : KunneIkkeRevurdere()
@@ -63,7 +63,7 @@ sealed class KunneIkkeRevurdere {
     object KunneIkkeLageBrevutkast : KunneIkkeRevurdere()
     object KanIkkeRevurdereInneværendeMånedEllerTidligere : KunneIkkeRevurdere()
     object KanIkkeRevurderePerioderMedFlereAktiveStønadsperioder : KunneIkkeRevurdere()
-    object NesteMånedErUtenforStønadsperioden : KunneIkkeRevurdere()
+    object KanIkkeVelgeSisteMånedVedNedgangIStønaden : KunneIkkeRevurdere()
     object SimuleringFeilet : KunneIkkeRevurdere()
     object KanIkkeRevurdereEnPeriodeMedEksisterendeRevurdering : KunneIkkeRevurdere()
     data class UgyldigPeriode(val subError: Periode.UgyldigPeriode) : KunneIkkeRevurdere()

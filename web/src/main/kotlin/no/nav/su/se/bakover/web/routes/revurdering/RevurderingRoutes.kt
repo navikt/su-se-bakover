@@ -26,9 +26,9 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeRevurdere
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
+import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
-import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.routes.behandling.beregning.FradragJson
 import no.nav.su.se.bakover.web.routes.behandling.beregning.FradragJson.Companion.toFradrag
 import no.nav.su.se.bakover.web.routes.behandling.beregning.PeriodeJson
@@ -150,16 +150,33 @@ internal fun Route.revurderingRoutes(
             ).fold(
                 ifLeft = {
                     val message = when (it) {
-                        KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> Forbidden.message(
-                            "Attestant og saksbehandler kan ikke være samme person"
+                        KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> Forbidden.errorJson(
+                            "Attestant og saksbehandler kan ikke være samme person",
+                            "attestant_og_saksbehandler_kan_ikke_være_samme_person",
                         )
-                        KunneIkkeIverksetteRevurdering.FantIkkeRevurdering -> NotFound.message("Fant ikke revurdering")
-                        KunneIkkeIverksetteRevurdering.FeilTilstand -> InternalServerError.message("Kun revurderinger som har blitt sendt til attestering kan revurderes")
-                        KunneIkkeIverksetteRevurdering.KunneIkkeJournalføreBrev -> InternalServerError.message("Feil ved journalføring av vedtaksbrev")
-                        KunneIkkeIverksetteRevurdering.KunneIkkeKontrollsimulere -> InternalServerError.message("Kunne ikke utføre kontrollsimulering")
-                        KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale -> InternalServerError.message("Kunne ikke utføre utbetaling")
-                        KunneIkkeIverksetteRevurdering.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> InternalServerError.message(
-                            "Oppdaget inkonsistens mellom tidligere utført simulering og kontrollsimulering. Ny simulering må utføres og kontrolleres før iverksetting kan gjennomføres"
+                        KunneIkkeIverksetteRevurdering.FantIkkeRevurdering -> NotFound.errorJson(
+                            "Fant ikke revurdering",
+                            "fant_ikke_revurdering",
+                        )
+                        is KunneIkkeIverksetteRevurdering.UgyldigTilstand -> BadRequest.errorJson(
+                            "Kan ikke gå fra tilstanden ${it.fra.simpleName} til tilstanden ${it.til.simpleName}",
+                            "ugyldig_tilstandsovergang",
+                        )
+                        KunneIkkeIverksetteRevurdering.KunneIkkeJournalføreBrev -> InternalServerError.errorJson(
+                            "Feil ved journalføring av vedtaksbrev",
+                            "kunne_ikke_journalføre_brev",
+                        )
+                        KunneIkkeIverksetteRevurdering.KunneIkkeKontrollsimulere -> InternalServerError.errorJson(
+                            "Kunne ikke utføre kontrollsimulering",
+                            "kunne_ikke_kontrollsimulere",
+                        )
+                        KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale -> InternalServerError.errorJson(
+                            "Kunne ikke utføre utbetaling",
+                            "kunne_ikke_utbetale",
+                        )
+                        KunneIkkeIverksetteRevurdering.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> InternalServerError.errorJson(
+                            "Oppdaget inkonsistens mellom tidligere utført simulering og kontrollsimulering. Ny simulering må utføres og kontrolleres før iverksetting kan gjennomføres",
+                            "simulering_har_blitt_endret_siden_saksbehandler_simulerte",
                         )
                     }
                     call.svar(message)
@@ -190,20 +207,65 @@ internal fun Route.revurderingRoutes(
 
 internal fun KunneIkkeRevurdere.tilFeilMelding(): Resultat {
     return when (this) {
-        KunneIkkeRevurdere.FantIkkeSak -> NotFound.message("Fant ikke sak")
-        KunneIkkeRevurdere.FantIngentingSomKanRevurderes -> NotFound.message("Ingen behandlinger som kan revurderes for angitt periode")
-        KunneIkkeRevurdere.FantIkkeAktørid -> NotFound.message("Fant ikke aktør id")
-        KunneIkkeRevurdere.KunneIkkeOppretteOppgave -> InternalServerError.message("Kunne ikke opprette oppgave")
-        KunneIkkeRevurdere.FantIkkePerson -> InternalServerError.message("Fant ikke person")
-        KunneIkkeRevurdere.FantIkkeRevurdering -> NotFound.message("Fant ikke revurdering")
-        KunneIkkeRevurdere.KunneIkkeLageBrevutkast -> InternalServerError.message("Kunne ikke lage brev")
-        KunneIkkeRevurdere.MicrosoftApiGraphFeil -> InternalServerError.message("Kunne ikke slå opp saksbehandler")
-        KunneIkkeRevurdere.KanIkkeRevurdereInneværendeMånedEllerTidligere -> BadRequest.message("Revurdering kan kun gjøres fra og med neste kalendermåned")
-        KunneIkkeRevurdere.NesteMånedErUtenforStønadsperioden -> BadRequest.message("Kan ikke revurdere etter stønadsperioden")
-        KunneIkkeRevurdere.SimuleringFeilet -> InternalServerError.message("Simulering feilet")
-        KunneIkkeRevurdere.KanIkkeRevurderePerioderMedFlereAktiveStønadsperioder -> InternalServerError.message("Revurderingsperioden kan ikke overlappe flere aktive stønadsperioder.") // TODO AI 03-02-2020: Temporary solution
-        KunneIkkeRevurdere.KanIkkeRevurdereEnPeriodeMedEksisterendeRevurdering -> InternalServerError.message("Kan ikke revurdere en behandling som allerede har en eksisterende revurdering") // TODO Temporary solution
-        is KunneIkkeRevurdere.UgyldigTilstand -> BadRequest.message("Kan ikke gå fra tilstanden ${this.fra.simpleName} til tilstanden  ${this.til.simpleName} ")
-        is KunneIkkeRevurdere.UgyldigPeriode -> BadRequest.message(this.subError.toString())
+        KunneIkkeRevurdere.FantIkkeSak -> NotFound.errorJson(
+            "Fant ikke sak",
+            "fant_ikke_sak",
+        )
+        KunneIkkeRevurdere.FantIngentingSomKanRevurderes -> NotFound.errorJson(
+            "Ingen behandlinger som kan revurderes for angitt periode",
+            "ingenting_å_revurdere_i_perioden",
+        )
+        KunneIkkeRevurdere.FantIkkeAktørid -> NotFound.errorJson(
+            "Fant ikke aktør id",
+            "fant_ikke_aktør_id",
+        )
+        KunneIkkeRevurdere.KunneIkkeOppretteOppgave -> InternalServerError.errorJson(
+            "Kunne ikke opprette oppgave",
+            "kunne_ikke_opprette_oppgave",
+        )
+        KunneIkkeRevurdere.FantIkkePerson -> InternalServerError.errorJson(
+            "Fant ikke person",
+            "fant_ikke_person",
+        )
+        KunneIkkeRevurdere.FantIkkeRevurdering -> NotFound.errorJson(
+            "Fant ikke revurdering",
+            "fant_ikke_revurdering"
+        )
+        KunneIkkeRevurdere.KunneIkkeLageBrevutkast -> InternalServerError.errorJson(
+            "Kunne ikke lage brev",
+            "kunne_ikke_lage_brev",
+        )
+        KunneIkkeRevurdere.KanIkkeRevurdereInneværendeMånedEllerTidligere -> BadRequest.errorJson(
+            // TODO jah: På sikt vil vi kunne revurdere tilbake i tid også.
+            "Revurdering kan kun gjøres fra og med neste kalendermåned",
+            "tidligest_neste_måned",
+        )
+        KunneIkkeRevurdere.KanIkkeVelgeSisteMånedVedNedgangIStønaden -> BadRequest.errorJson(
+            "Kan ikke velge siste måned av stønadsperioden ved nedgang i stønaden",
+            "siste_måned_ved_nedgang_i_stønaden",
+        )
+        KunneIkkeRevurdere.SimuleringFeilet -> InternalServerError.errorJson(
+            "Simulering feilet",
+            "simulering_feilet",
+        )
+
+        KunneIkkeRevurdere.KanIkkeRevurderePerioderMedFlereAktiveStønadsperioder -> InternalServerError.errorJson(
+            // TODO AI 03-02-2020: Midlertidig løsning. På sikt vil vi støtte flere aktive stønadsperioder og denne feilmeldingen forsvinner.
+            "Revurderingsperioden kan ikke overlappe flere aktive stønadsperioder",
+            "flere_aktive_stønadsperioder",
+        )
+        KunneIkkeRevurdere.KanIkkeRevurdereEnPeriodeMedEksisterendeRevurdering -> InternalServerError.errorJson(
+            // TODO AI: Midlertidig løsning. På sikt vil vi støtte å revurdere en revurdering.
+            "Kan ikke revurdere en behandling som allerede har en eksisterende revurdering",
+            "finnes_en_eksisterende_revurdering",
+        )
+        is KunneIkkeRevurdere.UgyldigTilstand -> BadRequest.errorJson(
+            "Kan ikke gå fra tilstanden ${this.fra.simpleName} til tilstanden ${this.til.simpleName}",
+            "ugyldig_tilstandsovergang",
+        )
+        is KunneIkkeRevurdere.UgyldigPeriode -> BadRequest.errorJson(
+            this.subError.toString(),
+            "ugyldig_periode",
+        )
     }
 }
