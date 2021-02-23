@@ -8,12 +8,12 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.beregning.Stønadsperiode.Companion.sisteStønadsperiode
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -56,7 +56,18 @@ internal class RevurderingServiceImpl(
 
         return hentSak(sakId)
             .map { sak ->
-                val revurderingsPeriode = sak.hentStønadsperioder().sisteStønadsperiode()!!.periode
+                val revurderingsPeriode = sak.hentStønadsperioder().filter {
+                    fraOgMed.between(it.periode)
+                }.map {
+                    Periode.create(fraOgMed, it.periode.getTilOgMed())
+                }.let {
+                    if (it.isEmpty()) {
+                        return KunneIkkeRevurdere.FantIngentingSomKanRevurderes.left()
+                    } else if (it.size > 1) {
+                        KunneIkkeRevurdere.KanIkkeRevurderePerioderMedFlereAktiveStønadsperioder.left()
+                    }
+                    it.first()
+                }
                 val tilRevurdering = sak.behandlinger
                     .filterIsInstance(Søknadsbehandling.Iverksatt.Innvilget::class.java)
                     .filter { it.beregning.getPeriode() inneholder revurderingsPeriode }

@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.common
 
+import no.nav.su.se.bakover.common.periode.Periode
 import java.time.Clock
 import java.time.LocalDate
 import java.time.Month
@@ -24,8 +25,9 @@ fun idag(clock: Clock = Clock.systemUTC()): LocalDate = LocalDate.now(clock)
 
 fun LocalDate.startOfDay(zoneId: ZoneId = zoneIdOslo) = this.atStartOfDay().toTidspunkt(zoneId)
 fun LocalDate.endOfDay(zoneId: ZoneId = zoneIdOslo) = this.atStartOfDay().plusDays(1).minusNanos(1).toTidspunkt(zoneId)
-fun LocalDate.startOfMonth() = this.withDayOfMonth(1)
-fun LocalDate.endOfMonth() = this.withDayOfMonth(this.lengthOfMonth())
+fun LocalDate.startOfMonth(): LocalDate = this.withDayOfMonth(1)
+fun LocalDate.endOfMonth(): LocalDate = this.withDayOfMonth(this.lengthOfMonth())
+fun LocalDate.between(periode: Periode) = this.between(periode.getFraOgMed(), periode.getTilOgMed())
 fun LocalDate.between(fraOgMed: LocalDate, tilOgMed: LocalDate) =
     (this == fraOgMed || this == tilOgMed) || this.isAfter(fraOgMed) && this.isBefore(tilOgMed)
 
