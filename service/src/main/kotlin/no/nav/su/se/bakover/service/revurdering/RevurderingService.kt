@@ -18,7 +18,7 @@ interface RevurderingService {
         sakId: UUID,
         fraOgMed: LocalDate,
         saksbehandler: NavIdentBruker.Saksbehandler
-    ): Either<KunneIkkeRevurdere, Revurdering>
+    ): Either<KunneIkkeOppretteRevurdering, Revurdering>
 
     fun oppdaterRevurderingsperiode(
         revurderingId: UUID,
@@ -51,6 +51,17 @@ sealed class KunneIkkeIverksetteRevurdering {
     object FantIkkeRevurdering : KunneIkkeIverksetteRevurdering()
     data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
         KunneIkkeIverksetteRevurdering()
+}
+
+sealed class KunneIkkeOppretteRevurdering {
+    object FantIkkeSak : KunneIkkeOppretteRevurdering()
+    object FantIngentingSomKanRevurderes : KunneIkkeOppretteRevurdering()
+    object FantIkkeAktørid : KunneIkkeOppretteRevurdering()
+    object KunneIkkeOppretteOppgave : KunneIkkeOppretteRevurdering()
+    object KanIkkeRevurdereInneværendeMånedEllerTidligere : KunneIkkeOppretteRevurdering()
+    object KanIkkeRevurderePerioderMedFlereAktiveStønadsperioder : KunneIkkeOppretteRevurdering()
+    object KanIkkeRevurdereEnPeriodeMedEksisterendeRevurdering : KunneIkkeOppretteRevurdering()
+    data class UgyldigPeriode(val subError: Periode.UgyldigPeriode) : KunneIkkeOppretteRevurdering()
 }
 
 sealed class KunneIkkeRevurdere {

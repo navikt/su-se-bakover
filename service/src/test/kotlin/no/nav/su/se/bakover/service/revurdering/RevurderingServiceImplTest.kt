@@ -9,21 +9,13 @@ import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
-import com.nhaarman.mockitokotlin2.verifyZeroInteractions
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.februar
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.juni
-import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.startOfDay
-import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -60,7 +52,6 @@ import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
-import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -151,198 +142,6 @@ internal class RevurderingServiceImplTest {
             }
         )
     )
-
-    @Test
-    fun `oppretter en revurdering`() {
-        val sakServiceMock = mock<SakService> {
-            on { hentSak(sakId) } doReturn sak.right()
-        }
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            on { lagre(any()) }.doNothing()
-        }
-
-        val personServiceMock = mock<PersonService> {
-            on { hentAktørId(any()) } doReturn aktørId.right()
-        }
-
-        val oppgaveServiceMock = mock<OppgaveService> {
-            on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
-        }
-
-        val revurderingService = createRevurderingService(
-            sakService = sakServiceMock,
-            revurderingRepo = revurderingRepoMock,
-            oppgaveService = oppgaveServiceMock,
-            personService = personServiceMock
-        )
-        val eventObserver: EventObserver = mock {
-            on { handle(any()) }.doNothing()
-        }
-        revurderingService.addObserver(eventObserver)
-
-        val actual = revurderingService.opprettRevurdering(
-            sakId = sakId,
-            fraOgMed = periode.getFraOgMed(),
-            saksbehandler = saksbehandler
-        ).getOrHandle { throw RuntimeException("Skal ikke kunne skje") }
-
-        inOrder(sakServiceMock, personServiceMock, oppgaveServiceMock, revurderingRepoMock, eventObserver) {
-            verify(sakServiceMock).hentSak(sakId)
-            verify(revurderingRepoMock).hentRevurderingForBehandling(argThat { it shouldBe actual.tilRevurdering.id })
-            verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
-            verify(oppgaveServiceMock).opprettOppgave(
-                argThat {
-                    it shouldBe OppgaveConfig.Revurderingsbehandling(
-                        saksnummer = saksnummer,
-                        aktørId = aktørId,
-                        tilordnetRessurs = null
-                    )
-                }
-            )
-            verify(revurderingRepoMock).lagre(argThat { it.right() shouldBe actual.right() })
-            verify(eventObserver).handle(
-                argThat {
-                    it shouldBe Event.Statistikk.RevurderingStatistikk.RevurderingOpprettet(
-                        actual as OpprettetRevurdering
-                    )
-                }
-            )
-        }
-
-        verifyNoMoreInteractions(sakServiceMock, personServiceMock, oppgaveServiceMock, revurderingRepoMock)
-    }
-
-    @Test
-    fun `kan ikke revurdere når ingen behandlinger er IVERKSATT_INNVILGET`() {
-        val sakServiceMock = mock<SakService> {
-            on { hentSak(sakId) } doReturn sak.copy(
-                behandlinger = listOf(
-                    mock<Søknadsbehandling.Beregnet.Innvilget>(),
-                    mock<Søknadsbehandling.Vilkårsvurdert.Uavklart>()
-                )
-            ).right()
-        }
-
-        val eventObserver: EventObserver = mock {
-            on { handle(any()) }.doNothing()
-        }
-
-        val revurderingService = createRevurderingService(
-            sakService = sakServiceMock
-        ).apply { addObserver(eventObserver) }
-
-        val actual = revurderingService.opprettRevurdering(
-            sakId = sakId,
-            fraOgMed = periode.getFraOgMed(),
-            saksbehandler = saksbehandler
-        )
-
-        actual shouldBe KunneIkkeRevurdere.FantIngentingSomKanRevurderes.left()
-        verify(sakServiceMock).hentSak(sakId)
-        verifyNoMoreInteractions(sakServiceMock)
-        verifyZeroInteractions(eventObserver)
-    }
-
-    @Test
-    fun `kan ikke revurdere når stønadsperioden ikke inneholder revurderingsperioden`() {
-
-        val beregningMock = mock<Beregning> {
-            on { getPeriode() } doReturn Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.desember(2021))
-        }
-        val behandling = mock<Søknadsbehandling.Iverksatt.Innvilget> {
-            on { beregning } doReturn beregningMock
-        }
-        val sak = Sak(
-            id = sakId,
-            saksnummer = saksnummer,
-            opprettet = Tidspunkt.now(),
-            fnr = fnr,
-            søknader = listOf(),
-            behandlinger = listOf(behandling),
-            utbetalinger = sak.utbetalinger
-        )
-
-        val sakServiceMock = mock<SakService> {
-            on { hentSak(sakId) } doReturn sak.right()
-        }
-
-        val eventObserver: EventObserver = mock {
-            on { handle(any()) }.doNothing()
-        }
-
-        val revurderingService = createRevurderingService(
-            sakService = sakServiceMock
-        ).apply { addObserver(eventObserver) }
-
-        val actual = revurderingService.opprettRevurdering(
-            sakId = sakId,
-            fraOgMed = periode.getFraOgMed(),
-            saksbehandler = saksbehandler
-        )
-
-        actual shouldBe KunneIkkeRevurdere.FantIngentingSomKanRevurderes.left()
-        verify(sakServiceMock).hentSak(sakId)
-        verifyNoMoreInteractions(sakServiceMock)
-        verifyZeroInteractions(eventObserver)
-    }
-
-    @Test
-    fun `kan ikke revurdere når stønadsperioden overlapper flere aktive stønadsperioder`() {
-        val beregningMock = mock<Beregning> {
-            on { getPeriode() } doReturn periode
-        }
-        val behandling1 = mock<Søknadsbehandling.Iverksatt.Innvilget> {
-            on { beregning } doReturn beregningMock
-        }
-        val behandling2 = mock<Søknadsbehandling.Iverksatt.Innvilget> {
-            on { beregning } doReturn beregningMock
-        }
-
-        val sak = Sak(
-            id = sakId,
-            saksnummer = saksnummer,
-            opprettet = Tidspunkt.now(),
-            fnr = fnr,
-            søknader = listOf(),
-            behandlinger = listOf(behandling1, behandling2),
-            utbetalinger = sak.utbetalinger
-        )
-
-        val sakServiceMock = mock<SakService> {
-            on { hentSak(sakId) } doReturn sak.right()
-        }
-
-        val eventObserver: EventObserver = mock {
-            on { handle(any()) }.doNothing()
-        }
-
-        val revurderingService = createRevurderingService(
-            sakService = sakServiceMock,
-            clock = Clock.fixed(1.februar(2021).startOfDay(zoneIdOslo).instant, zoneIdOslo)
-        ).apply { addObserver(eventObserver) }
-
-        val actual = revurderingService.opprettRevurdering(
-            sakId = sakId,
-            fraOgMed = 1.juni(2021),
-            saksbehandler = saksbehandler
-        )
-
-        actual shouldBe KunneIkkeRevurdere.KanIkkeRevurderePerioderMedFlereAktiveStønadsperioder.left()
-        verify(sakServiceMock).hentSak(sakId)
-        verifyNoMoreInteractions(sakServiceMock)
-        verifyZeroInteractions(eventObserver)
-    }
-
-    @Test
-    fun `oppretter ikke en revurdering hvis perioden er i samme måned`() {
-        val actual = createRevurderingService().opprettRevurdering(
-            sakId = sakId,
-            fraOgMed = 1.januar(2021),
-            saksbehandler = saksbehandler
-        )
-
-        actual shouldBe KunneIkkeRevurdere.KanIkkeRevurdereInneværendeMånedEllerTidligere.left()
-    }
 
     @Test
     fun `kan beregne og simulere`() {
@@ -524,9 +323,7 @@ internal class RevurderingServiceImplTest {
             on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
         }
 
-        val eventObserver: EventObserver = mock {
-            on { handle(any()) }.doNothing()
-        }
+        val eventObserver: EventObserver = mock()
 
         val revurderingService = createRevurderingService(
             revurderingRepo = revurderingRepoMock,
@@ -706,9 +503,7 @@ internal class RevurderingServiceImplTest {
         val utbetalingServiceMock = mock<UtbetalingService> {
             on { utbetal(any(), any(), any(), any()) } doReturn utbetalingMock.right()
         }
-        val eventObserver: EventObserver = mock {
-            on { handle(any()) }.doNothing()
-        }
+        val eventObserver: EventObserver = mock()
 
         createRevurderingService(
             revurderingRepo = revurderingRepoMock,

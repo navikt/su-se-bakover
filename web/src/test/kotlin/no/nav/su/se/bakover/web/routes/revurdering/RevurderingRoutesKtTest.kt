@@ -52,91 +52,44 @@ import java.time.LocalDate
 import java.util.UUID
 
 internal class RevurderingRoutesKtTest {
-    private val sakId = UUID.randomUUID()
-    private val requestPath = "$sakPath/$sakId/revurderinger"
-    private val services = TestServicesBuilder.services()
-    private val periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020))
+    companion object {
 
-    private val behandling = Søknadsbehandling.Iverksatt.Innvilget(
-        id = UUID.randomUUID(),
-        opprettet = Tidspunkt.now(),
-        sakId = sakId,
-        saksnummer = Saksnummer(1569),
-        søknad = Søknad.Journalført.MedOppgave(
+        internal val sakId = UUID.randomUUID()
+        internal val requestPath = "$sakPath/$sakId/revurderinger"
+        internal val testServices = TestServicesBuilder.services()
+        internal val periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020))
+
+        internal val innvilgetSøknadsbehandling = Søknadsbehandling.Iverksatt.Innvilget(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(),
             sakId = sakId,
-            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-            journalpostId = JournalpostId(value = ""),
-            oppgaveId = OppgaveId(value = "")
+            saksnummer = Saksnummer(1569),
+            søknad = Søknad.Journalført.MedOppgave(
+                id = UUID.randomUUID(),
+                opprettet = Tidspunkt.now(),
+                sakId = sakId,
+                søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+                journalpostId = JournalpostId(value = ""),
+                oppgaveId = OppgaveId(value = "")
 
-        ),
-        oppgaveId = OppgaveId(value = ""),
-        behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().copy(
-            bosituasjon = Behandlingsinformasjon.Bosituasjon(
-                epsAlder = 55,
-                delerBolig = true,
-                ektemakeEllerSamboerUførFlyktning = true,
-                begrunnelse = null
-            )
-        ),
-        fnr = FnrGenerator.random(),
-        beregning = TestBeregning,
-        simulering = mock(),
-        saksbehandler = NavIdentBruker.Saksbehandler("saks"),
-        attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
-        utbetalingId = UUID30.randomUUID(),
-        eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.VenterPåKvittering
-    )
-
-    @Test
-    fun `uautoriserte kan ej opprette revurdering `() {
-        withTestApplication({
-            testSusebakover()
-        }) {
-            defaultRequest(
-                HttpMethod.Post,
-                "$requestPath/opprett",
-                listOf(Brukerrolle.Veileder)
-            ) {
-                setBody("""{ "fraOgMed": "${periode.getFraOgMed()}", "tilOgMed": "${periode.getTilOgMed()}"}""")
-            }.apply {
-                response.status() shouldBe HttpStatusCode.Forbidden
-            }
-        }
-    }
-
-    @Test
-    fun `kan opprette revurdering`() {
-        val opprettetRevurdering = OpprettetRevurdering(
-            id = UUID.randomUUID(),
-            periode = periode,
-            opprettet = Tidspunkt.now(),
-            tilRevurdering = behandling,
-            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "")
-
+            ),
+            oppgaveId = OppgaveId(value = ""),
+            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().copy(
+                bosituasjon = Behandlingsinformasjon.Bosituasjon(
+                    epsAlder = 55,
+                    delerBolig = true,
+                    ektemakeEllerSamboerUførFlyktning = true,
+                    begrunnelse = null
+                )
+            ),
+            fnr = FnrGenerator.random(),
+            beregning = TestBeregning,
+            simulering = mock(),
+            saksbehandler = NavIdentBruker.Saksbehandler("saks"),
+            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
+            utbetalingId = UUID30.randomUUID(),
+            eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.VenterPåKvittering
         )
-        val revurderingServiceMock = mock<RevurderingService> {
-            on { opprettRevurdering(any(), any(), any()) } doReturn opprettetRevurdering.right()
-        }
-
-        withTestApplication({
-            testSusebakover(services = services.copy(revurdering = revurderingServiceMock))
-        }) {
-            defaultRequest(
-                HttpMethod.Post,
-                "$requestPath/opprett",
-                listOf(Brukerrolle.Saksbehandler)
-            ) {
-                setBody("""{ "fraOgMed": "${periode.getFraOgMed()}", "tilOgMed": "${periode.getTilOgMed()}"}""")
-            }.apply {
-                response.status() shouldBe HttpStatusCode.Created
-                response.content
-                val actualResponse = objectMapper.readValue<OpprettetRevurderingJson>(response.content!!)
-                actualResponse.id shouldBe opprettetRevurdering.id.toString()
-                actualResponse.status shouldBe RevurderingsStatus.OPPRETTET
-            }
-        }
     }
 
     @Test
@@ -165,7 +118,7 @@ internal class RevurderingRoutesKtTest {
             id = UUID.randomUUID(),
             periode = TestBeregning.getPeriode(),
             opprettet = Tidspunkt.now(),
-            tilRevurdering = behandling.copy(beregning = beregning),
+            tilRevurdering = innvilgetSøknadsbehandling.copy(beregning = beregning),
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "")
         ).beregn(
             listOf(
@@ -183,7 +136,7 @@ internal class RevurderingRoutesKtTest {
             is BeregnetRevurdering.Innvilget -> {
                 beregnetRevurdering.toSimulert(
                     Simulering(
-                        gjelderId = behandling.fnr,
+                        gjelderId = innvilgetSøknadsbehandling.fnr,
                         gjelderNavn = "Test",
                         datoBeregnet = LocalDate.now(),
                         nettoBeløp = 0,
@@ -201,7 +154,7 @@ internal class RevurderingRoutesKtTest {
         val periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020))
 
         withTestApplication({
-            testSusebakover(services = services.copy(revurdering = revurderingServiceMock))
+            testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
         }) {
             defaultRequest(
                 HttpMethod.Post,
@@ -236,11 +189,11 @@ internal class RevurderingRoutesKtTest {
             id = UUID.randomUUID(),
             periode = periode,
             opprettet = Tidspunkt.now(),
-            tilRevurdering = behandling,
+            tilRevurdering = innvilgetSøknadsbehandling,
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = ""),
             beregning = TestBeregning,
             simulering = Simulering(
-                gjelderId = behandling.fnr,
+                gjelderId = innvilgetSøknadsbehandling.fnr,
                 gjelderNavn = "Test",
                 datoBeregnet = LocalDate.now(),
                 nettoBeløp = 0,
@@ -254,7 +207,7 @@ internal class RevurderingRoutesKtTest {
         }
 
         withTestApplication({
-            testSusebakover(services = services.copy(revurdering = revurderingServiceMock))
+            testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
         }) {
             defaultRequest(
                 HttpMethod.Post,
