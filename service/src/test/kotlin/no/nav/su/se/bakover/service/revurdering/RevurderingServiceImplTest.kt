@@ -9,6 +9,7 @@ import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
+import com.nhaarman.mockitokotlin2.verifyZeroInteractions
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
@@ -64,6 +65,8 @@ import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
+import no.nav.su.se.bakover.service.statistikk.Event
+import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -166,18 +169,24 @@ internal class RevurderingServiceImplTest {
             on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
         }
 
-        val actual = createRevurderingService(
+        val revurderingService = createRevurderingService(
             sakService = sakServiceMock,
             revurderingRepo = revurderingRepoMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock
-        ).opprettRevurdering(
+        )
+        val eventObserver: EventObserver = mock {
+            on { handle(any()) }.doNothing()
+        }
+        revurderingService.addObserver(eventObserver)
+
+        val actual = revurderingService.opprettRevurdering(
             sakId = sakId,
             fraOgMed = periode.getFraOgMed(),
             saksbehandler = saksbehandler
         ).getOrHandle { throw RuntimeException("Skal ikke kunne skje") }
 
-        inOrder(sakServiceMock, personServiceMock, oppgaveServiceMock, revurderingRepoMock) {
+        inOrder(sakServiceMock, personServiceMock, oppgaveServiceMock, revurderingRepoMock, eventObserver) {
             verify(sakServiceMock).hentSak(sakId)
             verify(revurderingRepoMock).hentRevurderingForBehandling(argThat { it shouldBe actual.tilRevurdering.id })
             verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
@@ -191,6 +200,13 @@ internal class RevurderingServiceImplTest {
                 }
             )
             verify(revurderingRepoMock).lagre(argThat { it.right() shouldBe actual.right() })
+            verify(eventObserver).handle(
+                argThat {
+                    it shouldBe Event.Statistikk.RevurderingStatistikk.RevurderingOpprettet(
+                        actual as OpprettetRevurdering
+                    )
+                }
+            )
         }
 
         verifyNoMoreInteractions(sakServiceMock, personServiceMock, oppgaveServiceMock, revurderingRepoMock)
@@ -207,9 +223,15 @@ internal class RevurderingServiceImplTest {
             ).right()
         }
 
-        val actual = createRevurderingService(
+        val eventObserver: EventObserver = mock {
+            on { handle(any()) }.doNothing()
+        }
+
+        val revurderingService = createRevurderingService(
             sakService = sakServiceMock
-        ).opprettRevurdering(
+        ).apply { addObserver(eventObserver) }
+
+        val actual = revurderingService.opprettRevurdering(
             sakId = sakId,
             fraOgMed = periode.getFraOgMed(),
             saksbehandler = saksbehandler
@@ -218,6 +240,7 @@ internal class RevurderingServiceImplTest {
         actual shouldBe KunneIkkeRevurdere.FantIngentingSomKanRevurderes.left()
         verify(sakServiceMock).hentSak(sakId)
         verifyNoMoreInteractions(sakServiceMock)
+        verifyZeroInteractions(eventObserver)
     }
 
     @Test
@@ -243,9 +266,15 @@ internal class RevurderingServiceImplTest {
             on { hentSak(sakId) } doReturn sak.right()
         }
 
-        val actual = createRevurderingService(
+        val eventObserver: EventObserver = mock {
+            on { handle(any()) }.doNothing()
+        }
+
+        val revurderingService = createRevurderingService(
             sakService = sakServiceMock
-        ).opprettRevurdering(
+        ).apply { addObserver(eventObserver) }
+
+        val actual = revurderingService.opprettRevurdering(
             sakId = sakId,
             fraOgMed = periode.getFraOgMed(),
             saksbehandler = saksbehandler
@@ -254,6 +283,7 @@ internal class RevurderingServiceImplTest {
         actual shouldBe KunneIkkeRevurdere.FantIngentingSomKanRevurderes.left()
         verify(sakServiceMock).hentSak(sakId)
         verifyNoMoreInteractions(sakServiceMock)
+        verifyZeroInteractions(eventObserver)
     }
 
     @Test
@@ -282,10 +312,16 @@ internal class RevurderingServiceImplTest {
             on { hentSak(sakId) } doReturn sak.right()
         }
 
-        val actual = createRevurderingService(
+        val eventObserver: EventObserver = mock {
+            on { handle(any()) }.doNothing()
+        }
+
+        val revurderingService = createRevurderingService(
             sakService = sakServiceMock,
             clock = Clock.fixed(1.februar(2021).startOfDay(zoneIdOslo).instant, zoneIdOslo)
-        ).opprettRevurdering(
+        ).apply { addObserver(eventObserver) }
+
+        val actual = revurderingService.opprettRevurdering(
             sakId = sakId,
             fraOgMed = 1.juni(2021),
             saksbehandler = saksbehandler
@@ -294,6 +330,7 @@ internal class RevurderingServiceImplTest {
         actual shouldBe KunneIkkeRevurdere.KanIkkeRevurderePerioderMedFlereAktiveStønadsperioder.left()
         verify(sakServiceMock).hentSak(sakId)
         verifyNoMoreInteractions(sakServiceMock)
+        verifyZeroInteractions(eventObserver)
     }
 
     @Test
@@ -487,16 +524,22 @@ internal class RevurderingServiceImplTest {
             on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
         }
 
-        val actual = createRevurderingService(
+        val eventObserver: EventObserver = mock {
+            on { handle(any()) }.doNothing()
+        }
+
+        val revurderingService = createRevurderingService(
             revurderingRepo = revurderingRepoMock,
             personService = personServiceMock,
             oppgaveService = oppgaveServiceMock
-        ).sendTilAttestering(
+        ).apply { addObserver(eventObserver) }
+
+        val actual = revurderingService.sendTilAttestering(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
-        )
+        ).getOrHandle { throw RuntimeException("Skal ikke kunne skje") }
 
-        inOrder(revurderingRepoMock, personServiceMock, oppgaveServiceMock) {
+        inOrder(revurderingRepoMock, personServiceMock, oppgaveServiceMock, eventObserver) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
             verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
             verify(oppgaveServiceMock).opprettOppgave(
@@ -508,7 +551,14 @@ internal class RevurderingServiceImplTest {
                     )
                 }
             )
-            verify(revurderingRepoMock).lagre(argThat { it.right() shouldBe actual })
+            verify(revurderingRepoMock).lagre(argThat { it shouldBe actual })
+            verify(eventObserver).handle(
+                argThat {
+                    it shouldBe Event.Statistikk.RevurderingStatistikk.RevurderingTilAttestering(
+                        actual as RevurderingTilAttestering
+                    )
+                }
+            )
         }
 
         verifyNoMoreInteractions(revurderingRepoMock, personServiceMock, oppgaveServiceMock)
@@ -529,7 +579,10 @@ internal class RevurderingServiceImplTest {
             saksbehandler = saksbehandler,
         )
 
-        result shouldBe KunneIkkeRevurdere.UgyldigTilstand(OpprettetRevurdering::class, RevurderingTilAttestering::class).left()
+        result shouldBe KunneIkkeRevurdere.UgyldigTilstand(
+            OpprettetRevurdering::class,
+            RevurderingTilAttestering::class
+        ).left()
 
         verify(revurderingRepoMock).hent(revurderingId)
         verifyNoMoreInteractions(revurderingRepoMock)
@@ -653,15 +706,20 @@ internal class RevurderingServiceImplTest {
         val utbetalingServiceMock = mock<UtbetalingService> {
             on { utbetal(any(), any(), any(), any()) } doReturn utbetalingMock.right()
         }
+        val eventObserver: EventObserver = mock {
+            on { handle(any()) }.doNothing()
+        }
 
         createRevurderingService(
             revurderingRepo = revurderingRepoMock,
             utbetalingService = utbetalingServiceMock
-        ).iverksett(
-            revurderingId = revurderingTilAttestering.id,
-            attestant = attestant,
-        ) shouldBe iverksattRevurdering.right()
-        inOrder(revurderingRepoMock, utbetalingMock, utbetalingServiceMock) {
+        )
+            .apply { addObserver(eventObserver) }
+            .iverksett(
+                revurderingId = revurderingTilAttestering.id,
+                attestant = attestant,
+            ) shouldBe iverksattRevurdering.right()
+        inOrder(revurderingRepoMock, utbetalingMock, utbetalingServiceMock, eventObserver) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
             verify(utbetalingServiceMock).utbetal(
                 sakId = argThat { it shouldBe revurderingTilAttestering.sakId },
@@ -671,6 +729,7 @@ internal class RevurderingServiceImplTest {
             )
             verify(utbetalingMock).id
             verify(revurderingRepoMock).lagre(argThat { it shouldBe iverksattRevurdering })
+            verify(eventObserver).handle(argThat { it shouldBe Event.Statistikk.RevurderingStatistikk.RevurderingIverksatt(iverksattRevurdering) })
         }
         verifyNoMoreInteractions(
             revurderingRepoMock,
