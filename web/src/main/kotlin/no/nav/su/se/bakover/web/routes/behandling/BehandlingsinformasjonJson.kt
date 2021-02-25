@@ -28,10 +28,10 @@ internal data class BehandlingsinformasjonJson(
                 fastOppholdINorge = fastOppholdINorge?.toJson(),
                 institusjonsopphold = institusjonsopphold?.toJson(),
                 oppholdIUtlandet = oppholdIUtlandet?.toJson(),
-                formue = formue?.toJson(),
+                formue = formue?.toJson(ektefelle),
                 personligOppmøte = personligOppmøte?.toJson(),
                 bosituasjon = bosituasjon?.toJson(),
-                utledetSats = bosituasjon?.utledSats(),
+                utledetSats = utledSats(),
                 ektefelle = ektefelle?.toJson(),
             )
     }
@@ -91,7 +91,6 @@ internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
         formue = b.formue?.let { f ->
             Behandlingsinformasjon.Formue(
                 status = Behandlingsinformasjon.Formue.Status.valueOf(f.status),
-                borSøkerMedEPS = f.borSøkerMedEPS,
                 verdier = Behandlingsinformasjon.Formue.Verdier(
                     verdiIkkePrimærbolig = f.verdier?.verdiIkkePrimærbolig,
                     verdiEiendommer = f.verdier?.verdiEiendommer,
@@ -125,7 +124,6 @@ internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
         },
         bosituasjon = b.bosituasjon?.let { s ->
             Behandlingsinformasjon.Bosituasjon(
-                epsAlder = s.epsAlder,
                 delerBolig = s.delerBolig,
                 ektemakeEllerSamboerUførFlyktning = s.ektemakeEllerSamboerUførFlyktning,
                 begrunnelse = s.begrunnelse
@@ -183,11 +181,11 @@ internal fun Behandlingsinformasjon.OppholdIUtlandet.toJson() =
         begrunnelse = begrunnelse
     )
 
-internal fun Behandlingsinformasjon.Formue.toJson() =
+internal fun Behandlingsinformasjon.Formue.toJson(ektefellePartnerSamboer: Behandlingsinformasjon.EktefellePartnerSamboer?) =
     FormueJson(
         status = status.name,
         verdier = this.verdier?.toJson(),
-        borSøkerMedEPS = this.borSøkerMedEPS,
+        borSøkerMedEPS = (ektefellePartnerSamboer as? Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle) != null,
         epsVerdier = this.epsVerdier?.toJson(),
         begrunnelse = begrunnelse
     )
@@ -212,7 +210,6 @@ internal fun Behandlingsinformasjon.PersonligOppmøte.toJson() =
 
 internal fun Behandlingsinformasjon.Bosituasjon.toJson() =
     BosituasjonJson(
-        epsAlder = epsAlder,
         delerBolig = delerBolig,
         ektemakeEllerSamboerUførFlyktning = ektemakeEllerSamboerUførFlyktning,
         begrunnelse = begrunnelse
@@ -242,7 +239,7 @@ internal fun FlyktningJson.isValid() =
 internal fun LovligOppholdJson.isValid() =
     enumContains<Behandlingsinformasjon.LovligOpphold.Status>(status)
 
-internal fun BosituasjonJson.isValid() = epsAlder != null || delerBolig != null
+internal fun BosituasjonJson.isValid() = ektemakeEllerSamboerUførFlyktning != null || delerBolig != null
 
 internal fun PersonligOppmøteJson.isValid() =
     enumContains<Behandlingsinformasjon.PersonligOppmøte.Status>(status)
@@ -315,7 +312,6 @@ internal data class PersonligOppmøteJson(
 )
 
 internal data class BosituasjonJson(
-    val epsAlder: Int?,
     val delerBolig: Boolean?,
     val ektemakeEllerSamboerUførFlyktning: Boolean?,
     val begrunnelse: String?

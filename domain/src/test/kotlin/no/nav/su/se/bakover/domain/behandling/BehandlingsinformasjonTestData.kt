@@ -1,5 +1,8 @@
 package no.nav.su.se.bakover.domain.behandling
 
+import no.nav.su.se.bakover.domain.Fnr
+import java.time.LocalDate
+
 object BehandlingsinformasjonTestData {
 
     val behandlingsinformasjonMedAlleVilkårOppfylt = Behandlingsinformasjon(
@@ -9,10 +12,10 @@ object BehandlingsinformasjonTestData {
         fastOppholdINorge = FastOppholdINorge.Oppfylt,
         institusjonsopphold = Institusjonsopphold.Oppfylt,
         oppholdIUtlandet = OppholdIUtlandet.Oppfylt,
-        formue = Formue.Oppfylt,
+        formue = Formue.OppfyltMedEPS,
         personligOppmøte = PersonligOppmøte.Oppfylt,
-        bosituasjon = Bosituasjon.Oppfylt,
-        ektefelle = EktefellePartnerSamboer.Oppfylt
+        bosituasjon = Bosituasjon.OppfyltDelerIkkeBolig,
+        ektefelle = EktefellePartnerSamboer.OppfyltIngenEPS
     )
 
     object Uførhet {
@@ -112,9 +115,8 @@ object BehandlingsinformasjonTestData {
     }
 
     object Formue {
-        val Oppfylt = Behandlingsinformasjon.Formue(
+        val OppfyltMedEPS = Behandlingsinformasjon.Formue(
             status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
-            borSøkerMedEPS = true,
             verdier = Behandlingsinformasjon.Formue.Verdier(
                 verdiIkkePrimærbolig = 0,
                 verdiEiendommer = 0,
@@ -137,9 +139,23 @@ object BehandlingsinformasjonTestData {
             ),
             begrunnelse = "ok"
         )
+        val OppfyltUtenEPS = Behandlingsinformasjon.Formue(
+            status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
+            verdier = Behandlingsinformasjon.Formue.Verdier(
+                verdiIkkePrimærbolig = 0,
+                verdiEiendommer = 0,
+                verdiKjøretøy = 12000,
+                innskudd = 0,
+                verdipapir = 0,
+                pengerSkyldt = 0,
+                kontanter = 1500,
+                depositumskonto = 0
+            ),
+            epsVerdier = null,
+            begrunnelse = "ok"
+        )
         val IkkeOppfylt = Behandlingsinformasjon.Formue(
             status = Behandlingsinformasjon.Formue.Status.VilkårIkkeOppfylt,
-            borSøkerMedEPS = true,
             verdier = Behandlingsinformasjon.Formue.Verdier(
                 verdiIkkePrimærbolig = 999999999,
                 verdiEiendommer = 50000,
@@ -165,7 +181,6 @@ object BehandlingsinformasjonTestData {
         val Uavklart = Behandlingsinformasjon.Formue(
             status = Behandlingsinformasjon.Formue.Status.MåInnhenteMerInformasjon,
             verdier = null,
-            borSøkerMedEPS = false,
             epsVerdier = null,
             begrunnelse = null
         )
@@ -187,15 +202,60 @@ object BehandlingsinformasjonTestData {
     }
 
     object Bosituasjon {
-        val Oppfylt = Behandlingsinformasjon.Bosituasjon(
-            epsAlder = null,
+        val OppfyltDelerBolig = Behandlingsinformasjon.Bosituasjon(
+            delerBolig = true,
+            begrunnelse = "det stemmer",
+            ektemakeEllerSamboerUførFlyktning = null,
+        )
+        val OppfyltDelerIkkeBolig = Behandlingsinformasjon.Bosituasjon(
             delerBolig = false,
+            begrunnelse = "det stemmer",
+            ektemakeEllerSamboerUførFlyktning = null,
+        )
+        val IkkeOppfylltDelerBoligIkkeUtfyllt = Behandlingsinformasjon.Bosituasjon(
+            delerBolig = null,
+            begrunnelse = "det stemmer",
+            ektemakeEllerSamboerUførFlyktning = true,
+        )
+        val OppfyltEPSUførFlyktning = Behandlingsinformasjon.Bosituasjon(
+            delerBolig = null,
+            begrunnelse = "det stemmer",
+            ektemakeEllerSamboerUførFlyktning = true,
+        )
+        val OppfyltEPSIkkeUførFlyktning = Behandlingsinformasjon.Bosituasjon(
+            delerBolig = null,
+            begrunnelse = "det stemmer",
+            ektemakeEllerSamboerUførFlyktning = false,
+        )
+        val OppfyltEPSUførFlyktningIkkeUtfyllt = Behandlingsinformasjon.Bosituasjon(
+            delerBolig = true,
+            begrunnelse = "det stemmer",
+            ektemakeEllerSamboerUførFlyktning = null,
+        )
+        val IkkeOppfylltBeggeVerdierNull = Behandlingsinformasjon.Bosituasjon(
+            delerBolig = null,
             begrunnelse = "det stemmer",
             ektemakeEllerSamboerUførFlyktning = null,
         )
     }
 
     object EktefellePartnerSamboer {
-        val Oppfylt = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle
+        val OppfyltIngenEPS = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle
+        val OppyltEPSOverEllerLik67 = Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle(
+            fnr = Fnr(fnr = "12345678901"),
+            navn = null,
+            kjønn = null,
+            fødselsdato = LocalDate.of(1900, 1, 1),
+            adressebeskyttelse = null,
+            skjermet = null
+        )
+        val OppyltEPSUnder67 = Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle(
+            fnr = Fnr(fnr = "12345678901"),
+            navn = null,
+            kjønn = null,
+            fødselsdato = LocalDate.now(),
+            adressebeskyttelse = null,
+            skjermet = null
+        )
     }
 }
