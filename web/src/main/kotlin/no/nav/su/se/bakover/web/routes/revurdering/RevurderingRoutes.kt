@@ -41,32 +41,11 @@ import java.time.LocalDate
 
 internal const val revurderingPath = "$sakPath/{sakId}/revurderinger"
 
-internal data class OpprettRevurderingBody(val fraOgMed: LocalDate)
 @KtorExperimentalAPI
 internal fun Route.revurderingRoutes(
     revurderingService: RevurderingService
 ) {
-    authorize(Brukerrolle.Saksbehandler) {
-        post("$revurderingPath/opprett") {
-            call.withSakId { sakId ->
-                call.withBody<OpprettRevurderingBody> { request ->
-                    val navIdent = call.suUserContext.navIdent
-
-                    revurderingService.opprettRevurdering(
-                        sakId,
-                        fraOgMed = request.fraOgMed,
-                        saksbehandler = Saksbehandler(navIdent)
-                    ).fold(
-                        ifLeft = { call.svar(it.tilFeilMelding()) },
-                        ifRight = {
-                            call.audit("Opprettet en ny revurdering på sak med id $sakId")
-                            call.svar(Resultat.json(Created, serialize(it.toJson())))
-                        },
-                    )
-                }
-            }
-        }
-    }
+    opprettRevurderingRoute(revurderingService)
 
     data class OppdaterRevurderingsperiodeBody(val fraOgMed: LocalDate)
     authorize(Brukerrolle.Saksbehandler) {
