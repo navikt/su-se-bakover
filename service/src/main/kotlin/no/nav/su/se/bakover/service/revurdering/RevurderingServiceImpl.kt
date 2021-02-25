@@ -28,6 +28,8 @@ import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
+import no.nav.su.se.bakover.service.statistikk.Event
+import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import java.time.Clock
@@ -44,6 +46,12 @@ internal class RevurderingServiceImpl(
     private val brevService: BrevService,
     private val clock: Clock,
 ) : RevurderingService {
+    private val observers: MutableList<EventObserver> = mutableListOf()
+    fun addObserver(observer: EventObserver) {
+        observers.add(observer)
+    }
+
+    fun getObservers(): List<EventObserver> = observers.toList()
 
     override fun opprettRevurdering(
         sakId: UUID,
@@ -97,6 +105,13 @@ internal class RevurderingServiceImpl(
                             saksbehandler = saksbehandler
                         )
                         revurderingRepo.lagre(revurdering)
+                        observers.forEach { observer ->
+                            observer.handle(
+                                Event.Statistikk.RevurderingStatistikk.RevurderingOpprettet(
+                                    revurdering
+                                )
+                            )
+                        }
                         revurdering
                     }
                 }
@@ -188,10 +203,18 @@ internal class RevurderingServiceImpl(
                 revurdering.tilAttestering(oppgaveId, saksbehandler)
             }
             null -> return KunneIkkeRevurdere.FantIkkeRevurdering.left()
-            else -> return KunneIkkeRevurdere.UgyldigTilstand(revurdering::class, RevurderingTilAttestering::class).left()
+            else -> return KunneIkkeRevurdere.UgyldigTilstand(revurdering::class, RevurderingTilAttestering::class)
+                .left()
         }
 
         revurderingRepo.lagre(tilAttestering)
+        observers.forEach { observer ->
+            observer.handle(
+                Event.Statistikk.RevurderingStatistikk.RevurderingTilAttestering(
+                    tilAttestering
+                )
+            )
+        }
 
         return tilAttestering.right()
     }
@@ -255,6 +278,11 @@ internal class RevurderingServiceImpl(
                     }.left()
                 }
                 revurderingRepo.lagre(iverksattRevurdering)
+                observers.forEach { observer ->
+                    observer.handle(
+                        Event.Statistikk.RevurderingStatistikk.RevurderingIverksatt(iverksattRevurdering)
+                    )
+                }
                 return iverksattRevurdering.right()
             }
             null -> KunneIkkeIverksetteRevurdering.FantIkkeRevurdering.left()

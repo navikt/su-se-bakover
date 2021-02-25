@@ -13,6 +13,8 @@ internal class SøknadsbehandlingStatistikkMapper(
     private val clock: Clock
 ) {
     fun map(søknadsbehandling: Søknadsbehandling): Statistikk.Behandling = Statistikk.Behandling(
+        behandlingType = Statistikk.BehandlingType.SOKNAD,
+        behandlingTypeBeskrivelse = Statistikk.BehandlingType.SOKNAD.beskrivelse,
         funksjonellTid = FunksjonellTidMapper.map(søknadsbehandling),
         tekniskTid = Tidspunkt.now(clock),
         registrertDato = RegistrertDatoMapper.map(søknadsbehandling),
@@ -20,7 +22,7 @@ internal class SøknadsbehandlingStatistikkMapper(
         behandlingId = søknadsbehandling.id,
         sakId = søknadsbehandling.sakId,
         saksnummer = søknadsbehandling.saksnummer.nummer,
-        behandlingStatus = BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(søknadsbehandling.status).status,
+        behandlingStatus = BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(søknadsbehandling.status).status.toString(),
         behandlingStatusBeskrivelse = BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(søknadsbehandling.status).beskrivelse,
         versjon = clock.millis()
     ).apply {

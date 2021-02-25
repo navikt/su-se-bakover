@@ -18,7 +18,9 @@ internal class StatistikkSchemaValidatorTest {
             behandlingId = UUID.randomUUID(),
             sakId = UUID.randomUUID(),
             saksnummer = 2021,
-            behandlingStatus = BehandlingsStatus.IVERKSATT_AVSLAG,
+            behandlingStatus = BehandlingsStatus.IVERKSATT_AVSLAG.toString(),
+            behandlingType = Statistikk.BehandlingType.SOKNAD,
+            behandlingTypeBeskrivelse = Statistikk.BehandlingType.SOKNAD.beskrivelse
         )
 
         val gyldigSak = Statistikk.Sak(
