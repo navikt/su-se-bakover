@@ -128,7 +128,7 @@ internal fun Application.susebakover(
             behandlingMetrics = behandlingMetrics,
             søknadMetrics = søknadMetrics,
             clock = clock,
-            unleash = FakeUnleash()
+            unleash = FakeUnleash().apply { enableAll() }
         )
     },
     accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services)
