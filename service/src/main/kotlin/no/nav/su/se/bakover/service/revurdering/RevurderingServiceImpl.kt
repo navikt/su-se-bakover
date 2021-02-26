@@ -87,6 +87,7 @@ internal class RevurderingServiceImpl(
             return KunneIkkeOppretteRevurdering.FantIkkeAktørid.left()
         }
 
+        // TODO ai 25.02.2021 - Oppgaven skal egentligen ikke opprettes her. Den burde egentligen komma utifra melding av endring, som skal føres til revurdering.
         return oppgaveService.opprettOppgave(
             OppgaveConfig.Revurderingsbehandling(
                 saksnummer = søknadsbehandling.saksnummer,
@@ -99,7 +100,8 @@ internal class RevurderingServiceImpl(
             OpprettetRevurdering(
                 periode = periode,
                 tilRevurdering = søknadsbehandling,
-                saksbehandler = saksbehandler
+                saksbehandler = saksbehandler,
+                oppgaveId = it
             ).also {
                 revurderingRepo.lagre(it)
                 observers.forEach { observer ->
@@ -195,7 +197,10 @@ internal class RevurderingServiceImpl(
                     return KunneIkkeRevurdere.KunneIkkeOppretteOppgave.left()
                 }
 
-                revurdering.tilAttestering(oppgaveId, saksbehandler)
+                oppgaveService.lukkOppgave(revurdering.oppgaveId).fold(
+                    ifLeft = { return KunneIkkeRevurdere.KunneIkkeLukkeOppgave.left() },
+                    ifRight = { revurdering.tilAttestering(oppgaveId, saksbehandler) }
+                )
             }
             null -> return KunneIkkeRevurdere.FantIkkeRevurdering.left()
             else -> return KunneIkkeRevurdere.UgyldigTilstand(revurdering::class, RevurderingTilAttestering::class)

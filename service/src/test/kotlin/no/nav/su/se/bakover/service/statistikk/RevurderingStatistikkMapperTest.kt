@@ -34,6 +34,7 @@ internal class RevurderingStatistikkMapperTest {
                 on { saksnummer } doReturn Saksnummer(49L)
             },
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "7"),
+            oppgaveId = OppgaveId("oppgaveid")
         )
 
         RevurderingStatistikkMapper(fixedClock).map(opprettetRevurdering) shouldBe Statistikk.Behandling(

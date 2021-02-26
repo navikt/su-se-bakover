@@ -71,6 +71,7 @@ sealed class KunneIkkeRevurdere {
     object FantIkkePerson : KunneIkkeRevurdere()
     object FantIkkeAktørid : KunneIkkeRevurdere()
     object KunneIkkeOppretteOppgave : KunneIkkeRevurdere()
+    object KunneIkkeLukkeOppgave : KunneIkkeRevurdere()
     object KunneIkkeLageBrevutkast : KunneIkkeRevurdere()
     object KanIkkeRevurdereInneværendeMånedEllerTidligere : KunneIkkeRevurdere()
     object KanIkkeRevurderePerioderMedFlereAktiveStønadsperioder : KunneIkkeRevurdere()
