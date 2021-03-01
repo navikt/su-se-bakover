@@ -32,10 +32,10 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.behandling.TestBeregning
-import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesKtTest.Companion.innvilgetSøknadsbehandling
-import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesKtTest.Companion.periode
-import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesKtTest.Companion.requestPath
-import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesKtTest.Companion.testServices
+import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.Companion.innvilgetSøknadsbehandling
+import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.Companion.periode
+import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.Companion.requestPath
+import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.Companion.testServices
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
@@ -174,7 +174,6 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                     "code":"ugyldig_periode"
                 }
             """.trimIndent()
-
         )
     }
 
@@ -189,7 +188,6 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                     "code":"fant_ikke_revurdering"
                 }
             """.trimIndent()
-
         )
     }
 

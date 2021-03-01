@@ -20,10 +20,10 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesKtTest.Companion.innvilgetSøknadsbehandling
-import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesKtTest.Companion.periode
-import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesKtTest.Companion.requestPath
-import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesKtTest.Companion.testServices
+import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.Companion.innvilgetSøknadsbehandling
+import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.Companion.periode
+import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.Companion.requestPath
+import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.Companion.testServices
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
@@ -31,15 +31,6 @@ import java.util.UUID
 
 internal class OpprettRevurderingRouteKtTest {
     private val validBody = """{ "fraOgMed": "${periode.getFraOgMed()}"}"""
-
-    private val opprettetRevurdering = OpprettetRevurdering(
-        id = UUID.randomUUID(),
-        periode = periode,
-        opprettet = Tidspunkt.now(),
-        tilRevurdering = innvilgetSøknadsbehandling,
-        saksbehandler = NavIdentBruker.Saksbehandler("")
-
-    )
 
     @Test
     fun `uautoriserte kan ikke opprette revurdering`() {
@@ -110,7 +101,6 @@ internal class OpprettRevurderingRouteKtTest {
                     "code":"fant_ikke_sak"
                 }
             """.trimIndent()
-
         )
     }
 
@@ -125,14 +115,13 @@ internal class OpprettRevurderingRouteKtTest {
                     "code":"ingenting_å_revurdere_i_perioden"
                 }
             """.trimIndent()
-
         )
     }
 
     @Test
     fun `fant ikke aktør id`() {
         shouldMapErrorCorrectly(
-            error = KunneIkkeOppretteRevurdering.FantIkkeAktørid,
+            error = KunneIkkeOppretteRevurdering.FantIkkeAktørId,
             expectedStatusCode = HttpStatusCode.NotFound,
             expectedJsonResponse = """
                 {
@@ -140,7 +129,6 @@ internal class OpprettRevurderingRouteKtTest {
                     "code":"fant_ikke_aktør_id"
                 }
             """.trimIndent()
-
         )
     }
 
@@ -155,7 +143,6 @@ internal class OpprettRevurderingRouteKtTest {
                     "code":"kunne_ikke_opprette_oppgave"
                 }
             """.trimIndent()
-
         )
     }
 

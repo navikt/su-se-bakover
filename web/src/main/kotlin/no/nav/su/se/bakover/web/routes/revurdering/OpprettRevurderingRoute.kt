@@ -56,7 +56,7 @@ internal fun Route.opprettRevurderingRoute(
 private fun KunneIkkeOppretteRevurdering.tilResultat(): Resultat {
     return when (this) {
         KunneIkkeOppretteRevurdering.FantIkkeSak -> fantIkkeSak
-        KunneIkkeOppretteRevurdering.FantIkkeAktørid -> fantIkkeAktørId
+        KunneIkkeOppretteRevurdering.FantIkkeAktørId -> fantIkkeAktørId
         KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
         is KunneIkkeOppretteRevurdering.UgyldigPeriode -> ugyldigPeriode(this.subError)
         KunneIkkeOppretteRevurdering.FantIngentingSomKanRevurderes -> HttpStatusCode.NotFound.errorJson(

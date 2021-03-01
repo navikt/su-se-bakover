@@ -9,19 +9,21 @@ import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
-import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppdatereRevurderingsperiode
+import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeSendeRevurderingTilAttestering
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.defaultRequest
+import no.nav.su.se.bakover.web.routes.behandling.TestBeregning
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.Companion.innvilgetSøknadsbehandling
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.Companion.periode
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.Companion.requestPath
@@ -29,25 +31,23 @@ import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.Com
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
+import java.time.LocalDate
 import java.util.UUID
 
-internal class OppdaterRevurderingsperiodeRouteKtTest {
-    private val validBody = """{ "fraOgMed": "${periode.getFraOgMed()}"}"""
+internal class SendRevurderingTilAttesteringRouteKtTest {
 
     private val revurderingId = UUID.randomUUID()
 
     @Test
-    fun `uautoriserte kan ikke oppdatere revurderingsperioden`() {
+    fun `uautoriserte kan ikke sende revurdering til attestering`() {
         withTestApplication({
             testSusebakover()
         }) {
             defaultRequest(
                 HttpMethod.Post,
-                "$requestPath/$revurderingId/oppdaterPeriode",
+                "$requestPath/$revurderingId/tilAttestering",
                 listOf(Brukerrolle.Veileder)
-            ) {
-                setBody(validBody)
-            }.apply {
+            ).apply {
                 response.status() shouldBe HttpStatusCode.Forbidden
                 JSONAssert.assertEquals(
                     """
@@ -61,19 +61,27 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
             }
         }
     }
-
     @Test
-    fun `kan oppdatere revurderingsperioden`() {
-        val opprettetRevurdering = OpprettetRevurdering(
+    fun `send til attestering`() {
+        val revurderingTilAttestering = RevurderingTilAttestering(
             id = UUID.randomUUID(),
             periode = periode,
             opprettet = Tidspunkt.now(),
             tilRevurdering = innvilgetSøknadsbehandling,
-            saksbehandler = NavIdentBruker.Saksbehandler("")
-
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = ""),
+            beregning = TestBeregning,
+            simulering = Simulering(
+                gjelderId = innvilgetSøknadsbehandling.fnr,
+                gjelderNavn = "Test",
+                datoBeregnet = LocalDate.now(),
+                nettoBeløp = 0,
+                periodeList = listOf()
+            ),
+            oppgaveId = OppgaveId("OppgaveId")
         )
+
         val revurderingServiceMock = mock<RevurderingService> {
-            on { oppdaterRevurderingsperiode(any(), any(), any()) } doReturn opprettetRevurdering.right()
+            on { sendTilAttestering(any(), any()) } doReturn revurderingTilAttestering.right()
         }
 
         withTestApplication({
@@ -81,15 +89,13 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
         }) {
             defaultRequest(
                 HttpMethod.Post,
-                "$requestPath/$revurderingId/oppdaterPeriode",
+                "$requestPath/${revurderingTilAttestering.id}/tilAttestering",
                 listOf(Brukerrolle.Saksbehandler)
-            ) {
-                setBody("""{ "fraOgMed": "${periode.getFraOgMed()}"}""")
-            }.apply {
-                response.status() shouldBe HttpStatusCode.Created
-                val actualResponse = objectMapper.readValue<OpprettetRevurderingJson>(response.content!!)
-                actualResponse.id shouldBe opprettetRevurdering.id.toString()
-                actualResponse.status shouldBe RevurderingsStatus.OPPRETTET
+            ).apply {
+                response.status() shouldBe HttpStatusCode.OK
+                val actualResponse = objectMapper.readValue<TilAttesteringJson>(response.content!!)
+                actualResponse.id shouldBe revurderingTilAttestering.id.toString()
+                actualResponse.status shouldBe RevurderingsStatus.TIL_ATTESTERING
             }
         }
     }
@@ -97,7 +103,7 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
     @Test
     fun `ugyldig fraOgMed dato`() {
         shouldMapErrorCorrectly(
-            error = KunneIkkeOppdatereRevurderingsperiode.UgyldigPeriode(
+            error = KunneIkkeSendeRevurderingTilAttestering.UgyldigPeriode(
                 Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden
             ),
             expectedStatusCode = HttpStatusCode.BadRequest,
@@ -114,7 +120,7 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
     @Test
     fun `fant ikke revurdering`() {
         shouldMapErrorCorrectly(
-            error = KunneIkkeOppdatereRevurderingsperiode.FantIkkeRevurdering,
+            error = KunneIkkeSendeRevurderingTilAttestering.FantIkkeRevurdering,
             expectedStatusCode = HttpStatusCode.NotFound,
             expectedJsonResponse = """
                 {
@@ -122,34 +128,13 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
                     "code":"fant_ikke_revurdering"
                 }
             """.trimIndent()
-
-        )
-    }
-
-    @Test
-    fun `perioden må være innenfor allerede valgt stønadsperiode`() {
-        shouldMapErrorCorrectly(
-            error = KunneIkkeOppdatereRevurderingsperiode.PeriodenMåVæreInnenforAlleredeValgtStønadsperiode(
-                Periode.create(
-                    fraOgMed = 1.januar(2020),
-                    tilOgMed = 31.januar(2020),
-                )
-            ),
-            expectedStatusCode = HttpStatusCode.BadRequest,
-            expectedJsonResponse = """
-                {
-                    "message":"Perioden må være innenfor allerede valgt stønadsperiode",
-                    "code":"perioden_må_være_innenfor_stønadsperioden"
-                }
-            """.trimIndent()
-
         )
     }
 
     @Test
     fun `ugyldig tilstand`() {
         shouldMapErrorCorrectly(
-            error = KunneIkkeOppdatereRevurderingsperiode.UgyldigTilstand(
+            error = KunneIkkeSendeRevurderingTilAttestering.UgyldigTilstand(
                 fra = IverksattRevurdering::class,
                 til = OpprettetRevurdering::class,
             ),
@@ -160,17 +145,44 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
                     "code":"ugyldig_periode"
                 }
             """.trimIndent()
+        )
+    }
 
+    @Test
+    fun `fant ikke aktør id`() {
+        shouldMapErrorCorrectly(
+            error = KunneIkkeSendeRevurderingTilAttestering.FantIkkeAktørId,
+            expectedStatusCode = HttpStatusCode.NotFound,
+            expectedJsonResponse = """
+                {
+                    "message":"Fant ikke aktør id",
+                    "code":"fant_ikke_aktør_id"
+                }
+            """.trimIndent()
+        )
+    }
+
+    @Test
+    fun `kunne ikke opprette oppgave`() {
+        shouldMapErrorCorrectly(
+            error = KunneIkkeSendeRevurderingTilAttestering.KunneIkkeOppretteOppgave,
+            expectedStatusCode = HttpStatusCode.InternalServerError,
+            expectedJsonResponse = """
+                {
+                    "message":"Kunne ikke opprette oppgave",
+                    "code":"kunne_ikke_opprette_oppgave"
+                }
+            """.trimIndent()
         )
     }
 
     private fun shouldMapErrorCorrectly(
-        error: KunneIkkeOppdatereRevurderingsperiode,
+        error: KunneIkkeSendeRevurderingTilAttestering,
         expectedStatusCode: HttpStatusCode,
         expectedJsonResponse: String
     ) {
         val revurderingServiceMock = mock<RevurderingService> {
-            on { oppdaterRevurderingsperiode(any(), any(), any()) } doReturn error.left()
+            on { sendTilAttestering(any(), any()) } doReturn error.left()
         }
 
         withTestApplication({
@@ -178,11 +190,9 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
         }) {
             defaultRequest(
                 HttpMethod.Post,
-                "$requestPath/$revurderingId/oppdaterPeriode",
+                "$requestPath/$revurderingId/tilAttestering",
                 listOf(Brukerrolle.Saksbehandler)
-            ) {
-                setBody(validBody)
-            }.apply {
+            ).apply {
                 response.status() shouldBe expectedStatusCode
                 JSONAssert.assertEquals(
                     expectedJsonResponse,

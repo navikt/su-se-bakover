@@ -376,7 +376,7 @@ internal class RevurderingServiceImplTest {
             saksbehandler = saksbehandler,
         )
 
-        result shouldBe KunneIkkeRevurdere.UgyldigTilstand(
+        result shouldBe KunneIkkeSendeRevurderingTilAttestering.UgyldigTilstand(
             OpprettetRevurdering::class,
             RevurderingTilAttestering::class
         ).left()
@@ -408,7 +408,7 @@ internal class RevurderingServiceImplTest {
             saksbehandler = saksbehandler,
         )
 
-        actual shouldBe KunneIkkeRevurdere.FantIkkeAktørid.left()
+        actual shouldBe KunneIkkeSendeRevurderingTilAttestering.FantIkkeAktørId.left()
 
         inOrder(revurderingRepoMock) {
             verify(revurderingRepoMock).hent(revurderingId)
@@ -448,7 +448,7 @@ internal class RevurderingServiceImplTest {
             saksbehandler = saksbehandler,
         )
 
-        actual shouldBe KunneIkkeRevurdere.KunneIkkeOppretteOppgave.left()
+        actual shouldBe KunneIkkeSendeRevurderingTilAttestering.KunneIkkeOppretteOppgave.left()
 
         inOrder(revurderingRepoMock, personServiceMock) {
             verify(revurderingRepoMock).hent(revurderingId)

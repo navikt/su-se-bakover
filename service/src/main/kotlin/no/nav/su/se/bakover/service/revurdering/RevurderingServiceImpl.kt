@@ -84,7 +84,7 @@ internal class RevurderingServiceImpl(
 
         val aktørId = personService.hentAktørId(søknadsbehandling.fnr).getOrElse {
             log.error("Fant ikke aktør-id")
-            return KunneIkkeOppretteRevurdering.FantIkkeAktørid.left()
+            return KunneIkkeOppretteRevurdering.FantIkkeAktørId.left()
         }
 
         return oppgaveService.opprettOppgave(
@@ -181,12 +181,12 @@ internal class RevurderingServiceImpl(
     override fun sendTilAttestering(
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler
-    ): Either<KunneIkkeRevurdere, Revurdering> {
+    ): Either<KunneIkkeSendeRevurderingTilAttestering, Revurdering> {
         val tilAttestering = when (val revurdering = revurderingRepo.hent(revurderingId)) {
             is SimulertRevurdering -> {
                 val aktørId = personService.hentAktørId(revurdering.tilRevurdering.fnr).getOrElse {
                     log.error("Fant ikke aktør-id")
-                    return KunneIkkeRevurdere.FantIkkeAktørid.left()
+                    return KunneIkkeSendeRevurderingTilAttestering.FantIkkeAktørId.left()
                 }
 
                 val oppgaveId = oppgaveService.opprettOppgave(
@@ -199,13 +199,13 @@ internal class RevurderingServiceImpl(
                     )
                 ).getOrElse {
                     log.error("Kunne ikke opprette Attesteringsoppgave. Avbryter handlingen.")
-                    return KunneIkkeRevurdere.KunneIkkeOppretteOppgave.left()
+                    return KunneIkkeSendeRevurderingTilAttestering.KunneIkkeOppretteOppgave.left()
                 }
 
                 revurdering.tilAttestering(oppgaveId, saksbehandler)
             }
-            null -> return KunneIkkeRevurdere.FantIkkeRevurdering.left()
-            else -> return KunneIkkeRevurdere.UgyldigTilstand(revurdering::class, RevurderingTilAttestering::class)
+            null -> return KunneIkkeSendeRevurderingTilAttestering.FantIkkeRevurdering.left()
+            else -> return KunneIkkeSendeRevurderingTilAttestering.UgyldigTilstand(revurdering::class, RevurderingTilAttestering::class)
                 .left()
         }
 

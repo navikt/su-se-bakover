@@ -35,7 +35,7 @@ interface RevurderingService {
     fun sendTilAttestering(
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler
-    ): Either<KunneIkkeRevurdere, Revurdering>
+    ): Either<KunneIkkeSendeRevurderingTilAttestering, Revurdering>
 
     fun lagBrevutkast(revurderingId: UUID, fritekst: String?): Either<KunneIkkeRevurdere, ByteArray>
     fun iverksett(revurderingId: UUID, attestant: NavIdentBruker.Attestant): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering>
@@ -56,7 +56,7 @@ sealed class KunneIkkeIverksetteRevurdering {
 sealed class KunneIkkeOppretteRevurdering {
     object FantIkkeSak : KunneIkkeOppretteRevurdering()
     object FantIngentingSomKanRevurderes : KunneIkkeOppretteRevurdering()
-    object FantIkkeAktørid : KunneIkkeOppretteRevurdering()
+    object FantIkkeAktørId : KunneIkkeOppretteRevurdering()
     object KunneIkkeOppretteOppgave : KunneIkkeOppretteRevurdering()
     object KanIkkeRevurdereInneværendeMånedEllerTidligere : KunneIkkeOppretteRevurdering()
     object KanIkkeRevurderePerioderMedFlereAktiveStønadsperioder : KunneIkkeOppretteRevurdering()
@@ -77,6 +77,14 @@ sealed class KunneIkkeBeregneOgSimulereRevurdering {
     object KanIkkeVelgeSisteMånedVedNedgangIStønaden : KunneIkkeBeregneOgSimulereRevurdering()
     data class UgyldigPeriode(val subError: Periode.UgyldigPeriode) : KunneIkkeBeregneOgSimulereRevurdering()
     data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) : KunneIkkeBeregneOgSimulereRevurdering()
+}
+
+sealed class KunneIkkeSendeRevurderingTilAttestering {
+    object FantIkkeRevurdering : KunneIkkeSendeRevurderingTilAttestering()
+    object FantIkkeAktørId : KunneIkkeSendeRevurderingTilAttestering()
+    object KunneIkkeOppretteOppgave : KunneIkkeSendeRevurderingTilAttestering()
+    data class UgyldigPeriode(val subError: Periode.UgyldigPeriode) : KunneIkkeSendeRevurderingTilAttestering()
+    data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) : KunneIkkeSendeRevurderingTilAttestering()
 }
 
 sealed class KunneIkkeRevurdere {

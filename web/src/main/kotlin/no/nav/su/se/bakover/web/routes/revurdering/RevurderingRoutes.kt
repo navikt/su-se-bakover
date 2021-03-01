@@ -13,7 +13,6 @@ import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
-import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeRevurdere
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
@@ -41,19 +40,7 @@ internal fun Route.revurderingRoutes(
 
     beregnOgSimulerRevurdering(revurderingService)
 
-    post("$revurderingPath/{revurderingId}/tilAttestering") {
-        call.withRevurderingId { revurderingId ->
-            revurderingService.sendTilAttestering(
-                revurderingId = revurderingId, saksbehandler = Saksbehandler(call.suUserContext.navIdent)
-            ).fold(
-                ifLeft = { call.svar(it.tilFeilMelding()) },
-                ifRight = {
-                    call.audit("Sendt revurdering til attestering med id $revurderingId")
-                    call.svar(Resultat.json(OK, serialize(it.toJson())))
-                },
-            )
-        }
-    }
+    sendRevurderingTilAttestering(revurderingService)
 
     post("$revurderingPath/{revurderingId}/iverksett") {
         call.withRevurderingId { revurderingId ->
