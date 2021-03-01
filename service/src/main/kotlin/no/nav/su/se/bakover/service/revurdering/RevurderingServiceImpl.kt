@@ -198,7 +198,10 @@ internal class RevurderingServiceImpl(
                 }
 
                 oppgaveService.lukkOppgave(revurdering.oppgaveId).fold(
-                    ifLeft = { return KunneIkkeRevurdere.KunneIkkeLukkeOppgave.left() },
+                    ifLeft = {
+                        log.error("Kunne ikke lukke oppgaven med id ${revurdering.oppgaveId}, knyttet til revurderingen. Oppgaven må lukkes manuelt.")
+                        return KunneIkkeRevurdere.KunneIkkeLukkeOppgave.left()
+                    },
                     ifRight = { revurdering.tilAttestering(oppgaveId, saksbehandler) }
                 )
             }

@@ -327,7 +327,7 @@ internal class RevurderingPostgresRepoTest {
             repo.lagre(simulert)
 
             val tilAttestering =
-                simulert.tilAttestering(attesteringsoppgaveId = OppgaveId("oppgaveId"), saksbehandler = saksbehandler)
+                simulert.tilAttestering(attesteringsoppgaveId = OppgaveId("attesteringsoppgaveId"), saksbehandler = saksbehandler)
 
             repo.lagre(tilAttestering)
 
@@ -384,7 +384,7 @@ internal class RevurderingPostgresRepoTest {
             repo.lagre(simulert)
 
             val tilAttestering = simulert.tilAttestering(
-                attesteringsoppgaveId = OppgaveId("oppgaveId"),
+                attesteringsoppgaveId = OppgaveId("attesteringsoppgaveId"),
                 saksbehandler = Saksbehandler("Ny saksbehandler")
             )
 
