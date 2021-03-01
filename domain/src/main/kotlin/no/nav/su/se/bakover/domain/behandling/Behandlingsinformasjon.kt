@@ -73,6 +73,63 @@ data class Behandlingsinformasjon(
         return false
     }
 
+    @JsonIgnore
+    fun utledSats(): Sats? = getBeregningStrategy()?.sats()
+
+    /**
+     * Vi returnerer null når beregning strategy er uavklart
+     */
+    @JsonIgnore
+    internal fun getBeregningStrategy(): BeregningStrategy? {
+        if (bosituasjon == null || ektefelle == null) {
+            return null
+        }
+
+        if (bosituasjon.delerBolig == null && bosituasjon.ektemakeEllerSamboerUførFlyktning == null) {
+            return null
+        }
+
+        return when (ektefelle) {
+            is EktefellePartnerSamboer.Ektefelle -> when {
+                bosituasjon.ektemakeEllerSamboerUførFlyktning == null -> throw IllegalStateException("ektemakeEllerSamboerUførFlyktning kan ikke være null når det finnes EPS")
+                else -> when {
+                    ektefelle.getAlder()!! >= 67 -> BeregningStrategy.Eps67EllerEldre
+                    bosituasjon.ektemakeEllerSamboerUførFlyktning == true -> BeregningStrategy.EpsUnder67ÅrOgUførFlyktning
+                    else -> BeregningStrategy.EpsUnder67År
+                }
+            }
+            EktefellePartnerSamboer.IngenEktefelle -> when (bosituasjon.delerBolig) {
+                null -> throw IllegalStateException("delerBolig kan ikke være null når det ikke finnes EPS")
+                false -> BeregningStrategy.BorAlene
+                true -> BeregningStrategy.BorMedVoksne
+            }
+        }
+    }
+
+    @JsonIgnore
+    fun getSatsgrunn(): Satsgrunn? {
+        if (bosituasjon == null || ektefelle == null) {
+            return null
+        }
+
+        return when (ektefelle) {
+            is EktefellePartnerSamboer.Ektefelle -> when {
+                ektefelle.getAlder()!! >= 67 -> DELER_BOLIG_MED_EKTEMAKE_SAMBOER_67_ELLER_ELDRE
+                else -> when (bosituasjon.ektemakeEllerSamboerUførFlyktning) {
+                    true -> DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67_UFØR_FLYKTNING
+                    false -> DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67
+                    null -> null
+                }
+            }
+            EktefellePartnerSamboer.IngenEktefelle -> when (bosituasjon.delerBolig) {
+                true -> DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN
+                false -> Satsgrunn.ENSLIG
+                null -> null
+            }
+            null -> null
+        }
+    }
+
     fun harEktefelle(): Boolean {
         return ektefelle is EktefellePartnerSamboer.Ektefelle
     }
@@ -189,7 +246,6 @@ data class Behandlingsinformasjon(
     data class Formue(
         val status: Status,
         val verdier: Verdier?,
-        val borSøkerMedEPS: Boolean,
         val epsVerdier: Verdier?,
         val begrunnelse: String?
     ) : Base() {
@@ -247,68 +303,23 @@ data class Behandlingsinformasjon(
     }
 
     data class Bosituasjon(
-        val epsAlder: Int?,
         val delerBolig: Boolean?,
         val ektemakeEllerSamboerUførFlyktning: Boolean?,
         val begrunnelse: String?
     ) : Base() {
-
-        @JsonIgnore
-        fun utledSats(): Sats = getBeregningStrategy().sats()
-
-        @JsonIgnore
-        internal fun getBeregningStrategy(): BeregningStrategy {
-            if (epsAlder == null && delerBolig == false) {
-                return BeregningStrategy.BorAlene
-            } else {
-                if (delerBolig == true) {
-                    return BeregningStrategy.BorMedVoksne
-                }
-                if (epsAlder != null) {
-                    if (epsAlder >= 67) {
-                        return BeregningStrategy.Eps67EllerEldre
-                    }
-                    if (ektemakeEllerSamboerUførFlyktning == true) {
-                        return BeregningStrategy.EpsUnder67ÅrOgUførFlyktning
-                    }
-                    return BeregningStrategy.EpsUnder67År
-                }
-                throw RuntimeException("Uhåndtert case for beregning strategy: epsAlder: $epsAlder, delerBolig: $delerBolig, ektemakeEllerSamboerUførFlyktning: $ektemakeEllerSamboerUførFlyktning")
-            }
-        }
-
         override fun erVilkårOppfylt(): Boolean {
-            if (epsAlder == null && delerBolig == null) {
+            if (ektemakeEllerSamboerUførFlyktning == null && delerBolig == null) {
                 return false
             }
-            if (epsAlder != null) {
-                if (epsAlder < 67) {
-                    return ektemakeEllerSamboerUførFlyktning != null
-                }
-                if (epsAlder >= 67) {
-                    return ektemakeEllerSamboerUførFlyktning == null
-                }
+            if (ektemakeEllerSamboerUførFlyktning != null && delerBolig != null) {
+                throw IllegalStateException("ektemakeEllerSamboerUførFlyktning og delerBolig kan ikke begge være true samtidig")
             }
-            return delerBolig != null
+            return true
         }
 
         override fun erVilkårIkkeOppfylt(): Boolean = false
 
         override fun avslagsgrunn(): Avslagsgrunn? = null
-
-        @JsonIgnore
-        fun getSatsgrunn(): Satsgrunn {
-            val eps67EllerEldre = epsAlder != null && epsAlder >= 67
-            val epsUnder67 = epsAlder != null && epsAlder < 67
-            return when {
-                delerBolig == false -> Satsgrunn.ENSLIG
-                delerBolig == true -> DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN
-                eps67EllerEldre -> DELER_BOLIG_MED_EKTEMAKE_SAMBOER_67_ELLER_ELDRE
-                epsUnder67 && ektemakeEllerSamboerUførFlyktning == false -> DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67
-                epsUnder67 && ektemakeEllerSamboerUførFlyktning == true -> DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67_UFØR_FLYKTNING
-                else -> throw IllegalStateException("Kunne ikke utlede satsgrunn")
-            }
-        }
     }
 
     @JsonTypeInfo(

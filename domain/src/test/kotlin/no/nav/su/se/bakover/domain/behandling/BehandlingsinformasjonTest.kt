@@ -1,8 +1,12 @@
 package no.nav.su.se.bakover.domain.behandling
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.domain.behandling.BehandlingsinformasjonTestData.behandlingsinformasjonMedAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
+import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
+import no.nav.su.se.bakover.domain.beregning.Sats
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import no.nav.su.se.bakover.domain.behandling.BehandlingsinformasjonTestData as TestData
 
 internal class BehandlingsinformasjonTest {
@@ -110,8 +114,8 @@ internal class BehandlingsinformasjonTest {
             oppholdIUtlandet = TestData.OppholdIUtlandet.Uavklart,
             formue = TestData.Formue.Uavklart,
             personligOppmøte = TestData.PersonligOppmøte.Uavklart,
-            bosituasjon = TestData.Bosituasjon.Oppfylt,
-            ektefelle = TestData.EktefellePartnerSamboer.Oppfylt,
+            bosituasjon = TestData.Bosituasjon.OppfyltDelerIkkeBolig,
+            ektefelle = TestData.EktefellePartnerSamboer.OppfyltIngenEPS,
         )
 
         ikkeOppfyltFastOpphold.erInnvilget() shouldBe false
@@ -127,10 +131,10 @@ internal class BehandlingsinformasjonTest {
             fastOppholdINorge = TestData.FastOppholdINorge.Uavklart,
             institusjonsopphold = TestData.Institusjonsopphold.Oppfylt,
             oppholdIUtlandet = TestData.OppholdIUtlandet.IkkeOppfylt,
-            formue = TestData.Formue.Oppfylt,
+            formue = TestData.Formue.OppfyltMedEPS,
             personligOppmøte = TestData.PersonligOppmøte.Uavklart,
-            bosituasjon = TestData.Bosituasjon.Oppfylt,
-            ektefelle = TestData.EktefellePartnerSamboer.Oppfylt,
+            bosituasjon = TestData.Bosituasjon.OppfyltDelerIkkeBolig,
+            ektefelle = TestData.EktefellePartnerSamboer.OppfyltIngenEPS,
         )
 
         ikkeOppfyltOppholdIUtlandet.erInnvilget() shouldBe false
@@ -146,13 +150,158 @@ internal class BehandlingsinformasjonTest {
             fastOppholdINorge = TestData.FastOppholdINorge.Uavklart,
             institusjonsopphold = TestData.Institusjonsopphold.Oppfylt,
             oppholdIUtlandet = TestData.OppholdIUtlandet.Uavklart,
-            formue = TestData.Formue.Oppfylt,
+            formue = TestData.Formue.OppfyltMedEPS,
             personligOppmøte = TestData.PersonligOppmøte.Uavklart,
-            bosituasjon = TestData.Bosituasjon.Oppfylt,
-            ektefelle = TestData.EktefellePartnerSamboer.Oppfylt,
+            bosituasjon = TestData.Bosituasjon.OppfyltDelerIkkeBolig,
+            ektefelle = TestData.EktefellePartnerSamboer.OppfyltIngenEPS,
         )
 
         uferdig.erInnvilget() shouldBe false
         uferdig.erAvslag() shouldBe false
+    }
+
+    @Test
+    fun `bosituasjon er null skal returnere null`() {
+        val ferdig = behandlingsinformasjonMedAlleVilkårOppfylt.copy(
+            formue = TestData.Formue.OppfyltMedEPS,
+            bosituasjon = null,
+            ektefelle = TestData.EktefellePartnerSamboer.OppfyltIngenEPS,
+        )
+        ferdig.getBeregningStrategy() shouldBe null
+        ferdig.getSatsgrunn() shouldBe null
+        ferdig.getBeregningStrategy()?.sats() shouldBe null
+    }
+
+    @Test
+    fun `ektefelle er null skal returnere null`() {
+        val ferdig = behandlingsinformasjonMedAlleVilkårOppfylt.copy(
+            formue = TestData.Formue.OppfyltMedEPS,
+            bosituasjon = TestData.Bosituasjon.OppfyltEPSUførFlyktning,
+            ektefelle = null,
+        )
+        ferdig.getBeregningStrategy() shouldBe null
+        ferdig.getSatsgrunn() shouldBe null
+        ferdig.getBeregningStrategy()?.sats() shouldBe null
+    }
+
+    @Test
+    fun `ektefelle og bosituasjon er null skal returnere null`() {
+        val ferdig = behandlingsinformasjonMedAlleVilkårOppfylt.copy(
+            formue = TestData.Formue.OppfyltMedEPS,
+            bosituasjon = null,
+            ektefelle = null,
+        )
+        ferdig.getBeregningStrategy() shouldBe null
+        ferdig.getSatsgrunn() shouldBe null
+        ferdig.getBeregningStrategy()?.sats() shouldBe null
+    }
+
+    @Test
+    fun `delerBolig og EPSUførFlyktning er null skal returnere null`() {
+        val ferdig = behandlingsinformasjonMedAlleVilkårOppfylt.copy(
+            formue = TestData.Formue.OppfyltMedEPS,
+            bosituasjon = TestData.Bosituasjon.IkkeOppfylltBeggeVerdierNull,
+            ektefelle = TestData.EktefellePartnerSamboer.OppfyltIngenEPS,
+        )
+        ferdig.getBeregningStrategy() shouldBe null
+        ferdig.getSatsgrunn() shouldBe null
+        ferdig.getBeregningStrategy()?.sats() shouldBe null
+    }
+
+    @Test
+    fun `Har EPS over 67, ufør flyktning ikke fyllt ut`() {
+        val ferdig = behandlingsinformasjonMedAlleVilkårOppfylt.copy(
+            formue = TestData.Formue.OppfyltMedEPS,
+            bosituasjon = TestData.Bosituasjon.OppfyltEPSUførFlyktningIkkeUtfyllt,
+            ektefelle = TestData.EktefellePartnerSamboer.OppyltEPSOverEllerLik67,
+        )
+        assertThrows<IllegalStateException> {
+            ferdig.getBeregningStrategy()
+            ferdig.getBeregningStrategy()?.sats()
+        }
+        ferdig.getSatsgrunn() shouldBe Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_67_ELLER_ELDRE
+    }
+
+    @Test
+    fun `EPS over 67 skal returnerene Eps67EllerEldre uansett om ufør flykting eller ikke`() {
+        val uførFlyktningTrue = behandlingsinformasjonMedAlleVilkårOppfylt.copy(
+            formue = TestData.Formue.OppfyltMedEPS,
+            bosituasjon = TestData.Bosituasjon.OppfyltEPSUførFlyktning,
+            ektefelle = TestData.EktefellePartnerSamboer.OppyltEPSOverEllerLik67,
+        )
+        uførFlyktningTrue.getBeregningStrategy() shouldBe BeregningStrategy.Eps67EllerEldre
+        uførFlyktningTrue.getSatsgrunn() shouldBe Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_67_ELLER_ELDRE
+        uførFlyktningTrue.getBeregningStrategy()?.sats() shouldBe Sats.ORDINÆR
+
+        val uførFlyktningFalse = behandlingsinformasjonMedAlleVilkårOppfylt.copy(
+            formue = TestData.Formue.OppfyltMedEPS,
+            bosituasjon = TestData.Bosituasjon.OppfyltEPSIkkeUførFlyktning,
+            ektefelle = TestData.EktefellePartnerSamboer.OppyltEPSOverEllerLik67,
+        )
+        uførFlyktningFalse.getBeregningStrategy() shouldBe BeregningStrategy.Eps67EllerEldre
+        uførFlyktningTrue.getSatsgrunn() shouldBe Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_67_ELLER_ELDRE
+        uførFlyktningTrue.getBeregningStrategy()?.sats() shouldBe Sats.ORDINÆR
+    }
+
+    @Test
+    fun `EPS under 67 og ufør flyktning`() {
+        val ferdig = behandlingsinformasjonMedAlleVilkårOppfylt.copy(
+            formue = TestData.Formue.OppfyltMedEPS,
+            bosituasjon = TestData.Bosituasjon.OppfyltEPSUførFlyktning,
+            ektefelle = TestData.EktefellePartnerSamboer.OppyltEPSUnder67,
+        )
+        ferdig.getBeregningStrategy() shouldBe BeregningStrategy.EpsUnder67ÅrOgUførFlyktning
+        ferdig.getSatsgrunn() shouldBe Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67_UFØR_FLYKTNING
+        ferdig.getBeregningStrategy()?.sats() shouldBe Sats.ORDINÆR
+    }
+
+    @Test
+    fun `EPS under 67 og ikke ufør flyktning`() {
+        val ferdig = behandlingsinformasjonMedAlleVilkårOppfylt.copy(
+            formue = TestData.Formue.OppfyltMedEPS,
+            bosituasjon = TestData.Bosituasjon.OppfyltEPSIkkeUførFlyktning,
+            ektefelle = TestData.EktefellePartnerSamboer.OppyltEPSUnder67,
+        )
+        ferdig.getBeregningStrategy() shouldBe BeregningStrategy.EpsUnder67År
+        ferdig.getSatsgrunn() shouldBe Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67
+        ferdig.getBeregningStrategy()?.sats() shouldBe Sats.HØY
+    }
+
+    @Test
+    fun `har ikke EPS og deler bolig ikke fyllt ut`() {
+        val ferdig = behandlingsinformasjonMedAlleVilkårOppfylt.copy(
+            formue = TestData.Formue.OppfyltUtenEPS,
+            bosituasjon = TestData.Bosituasjon.IkkeOppfylltDelerBoligIkkeUtfyllt,
+            ektefelle = TestData.EktefellePartnerSamboer.OppfyltIngenEPS,
+        )
+        assertThrows<IllegalStateException> {
+            ferdig.getBeregningStrategy()
+            ferdig.getBeregningStrategy()?.sats()
+        }
+        ferdig.getSatsgrunn() shouldBe null
+    }
+
+    @Test
+    fun `har ikke EPS og deler bolig`() {
+        val ferdig = behandlingsinformasjonMedAlleVilkårOppfylt.copy(
+            formue = TestData.Formue.OppfyltUtenEPS,
+            bosituasjon = TestData.Bosituasjon.OppfyltDelerBolig,
+            ektefelle = TestData.EktefellePartnerSamboer.OppfyltIngenEPS,
+        )
+        ferdig.getBeregningStrategy() shouldBe BeregningStrategy.BorMedVoksne
+        ferdig.getSatsgrunn() shouldBe Satsgrunn.DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN
+        ferdig.getBeregningStrategy()?.sats() shouldBe Sats.ORDINÆR
+    }
+
+    @Test
+    fun `har ikke EPS og ikke deler bolig`() {
+        val ferdig = behandlingsinformasjonMedAlleVilkårOppfylt.copy(
+            formue = TestData.Formue.OppfyltUtenEPS,
+            bosituasjon = TestData.Bosituasjon.OppfyltDelerIkkeBolig,
+            ektefelle = TestData.EktefellePartnerSamboer.OppfyltIngenEPS,
+        )
+        ferdig.getBeregningStrategy() shouldBe BeregningStrategy.BorAlene
+        ferdig.getSatsgrunn() shouldBe Satsgrunn.ENSLIG
+        ferdig.getBeregningStrategy()?.sats() shouldBe Sats.HØY
     }
 }
