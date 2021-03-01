@@ -108,12 +108,13 @@ internal class PersonPostgresRepo(
         return dataSource.withSession { session ->
             """
                SELECT
-                    sak.fnr søkersFnr,
-                    behandling.behandlingsinformasjon->'ektefelle'->>'fnr' epsFnr
-               FROM revurdering
-               INNER JOIN behandling on behandling.id = revurdering.behandlingid
-               INNER JOIN sak ON sak.id = behandling.sakId
-               WHERE revurdering.id=:revurderingId
+                    s.fnr søkersFnr,
+                    v.behandlingsinformasjon->'ektefelle'->>'fnr' epsFnr
+               FROM revurdering r
+               INNER JOIN behandling_vedtak bv on bv.vedtakId = r.vedtakId
+               INNER JOIN vedtak v on v.id = bv.vedtakId
+               INNER JOIN sak s ON s.id = bv.sakId
+               WHERE r.id=:revurderingId
             """
                 .trimMargin()
                 .hentListe(mapOf("revurderingId" to revurderingId), session) {

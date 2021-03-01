@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
+import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
@@ -23,6 +24,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Statusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.forsøkStatusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.statusovergang
+import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.service.beregning.BeregningService
@@ -53,6 +55,7 @@ internal class SøknadsbehandlingServiceImpl(
     private val brevService: BrevService,
     private val opprettVedtakssnapshotService: OpprettVedtakssnapshotService,
     private val clock: Clock,
+    private val vedtakRepo: VedtakRepo
 ) : SøknadsbehandlingService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -313,6 +316,9 @@ internal class SøknadsbehandlingServiceImpl(
                         vedtakssnapshot = Vedtakssnapshot.Innvilgelse.createFromBehandling(it, utbetaling!!)
                     )
                     behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
+
+                    vedtakRepo.lagre(Vedtak.InnvilgetStønad.fromSøknadsbehandling(it))
+
                     it
                 }
                 is Søknadsbehandling.Iverksatt.Avslag -> {

@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.beregning.Stønadsperiode
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import java.time.Clock
 import java.util.UUID
 
@@ -24,6 +25,7 @@ data class Sak(
     val behandlinger: List<Søknadsbehandling> = emptyList(),
     val utbetalinger: List<Utbetaling>,
     val revurderinger: List<Revurdering> = emptyList(),
+    val vedtakListe: List<Vedtak> = emptyList()
 ) {
     fun hentStønadsperioder(): List<Stønadsperiode> {
         return utbetalinger.map {

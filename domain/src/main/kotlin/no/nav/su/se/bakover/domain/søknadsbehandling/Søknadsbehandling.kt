@@ -21,19 +21,16 @@ import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettin
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.vedtak.IBehandling
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.util.UUID
 
-sealed class Søknadsbehandling : Visitable<SøknadsbehandlingVisitor> {
-    abstract val id: UUID
+sealed class Søknadsbehandling : IBehandling, Visitable<SøknadsbehandlingVisitor> {
     abstract val opprettet: Tidspunkt
-    abstract val sakId: UUID
-    abstract val saksnummer: Saksnummer
     abstract val søknad: Søknad.Journalført.MedOppgave
     abstract val oppgaveId: OppgaveId
     abstract val behandlingsinformasjon: Behandlingsinformasjon
     abstract val status: BehandlingsStatus
-    abstract val fnr: Fnr
 
     sealed class Vilkårsvurdert : Søknadsbehandling() {
         fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon): Vilkårsvurdert =
