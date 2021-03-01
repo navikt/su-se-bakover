@@ -56,7 +56,7 @@ sealed class Revurdering : Visitable<RevurderingVisitor> {
             beregningsgrunnlag = beregningsgrunnlag,
             beregningsstrategi = beregningStrategy,
         ).getOrElse {
-            return KunneIkkeBeregneRevurdering.NesteMånedErUtenforStønadsperioden.left()
+            return KunneIkkeBeregneRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden.left()
         }
 
         return if (endringerAvUtbetalingerErStørreEllerLik10Prosent(tilRevurdering.beregning, revurdertBeregning)) {
@@ -80,9 +80,8 @@ sealed class Revurdering : Visitable<RevurderingVisitor> {
         }.right()
     }
 
-    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson
     sealed class KunneIkkeBeregneRevurdering {
-        object NesteMånedErUtenforStønadsperioden : KunneIkkeBeregneRevurdering()
+        object KanIkkeVelgeSisteMånedVedNedgangIStønaden : KunneIkkeBeregneRevurdering()
     }
 }
 

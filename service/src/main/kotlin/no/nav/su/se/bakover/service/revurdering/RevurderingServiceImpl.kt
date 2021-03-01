@@ -143,12 +143,16 @@ internal class RevurderingServiceImpl(
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
         fradrag: List<Fradrag>
-    ): Either<KunneIkkeRevurdere, Revurdering> {
+    ): Either<KunneIkkeBeregneOgSimulereRevurdering, Revurdering> {
         return when (val revurdering = revurderingRepo.hent(revurderingId)) {
             is BeregnetRevurdering, is OpprettetRevurdering, is SimulertRevurdering -> {
                 when (
                     val beregnetRevurdering = revurdering.beregn(fradrag)
-                        .getOrElse { return KunneIkkeRevurdere.KanIkkeVelgeSisteMånedVedNedgangIStønaden.left() }
+                        .getOrHandle {
+                            return when (it) {
+                                Revurdering.KunneIkkeBeregneRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden -> KunneIkkeBeregneOgSimulereRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden
+                            }.left()
+                        }
                 ) {
                     is BeregnetRevurdering.Avslag -> {
                         revurderingRepo.lagre(beregnetRevurdering)
@@ -160,7 +164,7 @@ internal class RevurderingServiceImpl(
                             saksbehandler = saksbehandler,
                             beregning = beregnetRevurdering.beregning
                         ).mapLeft {
-                            KunneIkkeRevurdere.SimuleringFeilet
+                            KunneIkkeBeregneOgSimulereRevurdering.SimuleringFeilet
                         }.map {
                             val simulert = beregnetRevurdering.toSimulert(it.simulering)
                             revurderingRepo.lagre(simulert)
@@ -169,8 +173,8 @@ internal class RevurderingServiceImpl(
                     }
                 }
             }
-            null -> return KunneIkkeRevurdere.FantIkkeRevurdering.left()
-            else -> return KunneIkkeRevurdere.UgyldigTilstand(revurdering::class, SimulertRevurdering::class).left()
+            null -> return KunneIkkeBeregneOgSimulereRevurdering.FantIkkeRevurdering.left()
+            else -> return KunneIkkeBeregneOgSimulereRevurdering.UgyldigTilstand(revurdering::class, SimulertRevurdering::class).left()
         }
     }
 

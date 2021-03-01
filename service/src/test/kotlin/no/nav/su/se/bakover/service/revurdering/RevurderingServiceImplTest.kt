@@ -241,7 +241,7 @@ internal class RevurderingServiceImplTest {
             saksbehandler = saksbehandler,
             fradrag = listOf()
         )
-        result shouldBe KunneIkkeRevurdere.UgyldigTilstand(RevurderingTilAttestering::class, SimulertRevurdering::class)
+        result shouldBe KunneIkkeBeregneOgSimulereRevurdering.UgyldigTilstand(RevurderingTilAttestering::class, SimulertRevurdering::class)
             .left()
 
         verify(revurderingRepoMock).hent(revurderingId)
@@ -283,7 +283,7 @@ internal class RevurderingServiceImplTest {
             )
         )
 
-        actual shouldBe KunneIkkeRevurdere.SimuleringFeilet.left()
+        actual shouldBe KunneIkkeBeregneOgSimulereRevurdering.SimuleringFeilet.left()
 
         inOrder(revurderingRepoMock) {
             verify(revurderingRepoMock).hent(revurderingId)

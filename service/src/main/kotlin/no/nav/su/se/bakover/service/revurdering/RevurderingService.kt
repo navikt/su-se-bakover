@@ -30,7 +30,7 @@ interface RevurderingService {
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
         fradrag: List<Fradrag>
-    ): Either<KunneIkkeRevurdere, Revurdering>
+    ): Either<KunneIkkeBeregneOgSimulereRevurdering, Revurdering>
 
     fun sendTilAttestering(
         revurderingId: UUID,
@@ -69,6 +69,14 @@ sealed class KunneIkkeOppdatereRevurderingsperiode {
     data class PeriodenMåVæreInnenforAlleredeValgtStønadsperiode(val periode: Periode) : KunneIkkeOppdatereRevurderingsperiode()
     data class UgyldigPeriode(val subError: Periode.UgyldigPeriode) : KunneIkkeOppdatereRevurderingsperiode()
     data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) : KunneIkkeOppdatereRevurderingsperiode()
+}
+
+sealed class KunneIkkeBeregneOgSimulereRevurdering {
+    object FantIkkeRevurdering : KunneIkkeBeregneOgSimulereRevurdering()
+    object SimuleringFeilet : KunneIkkeBeregneOgSimulereRevurdering()
+    object KanIkkeVelgeSisteMånedVedNedgangIStønaden : KunneIkkeBeregneOgSimulereRevurdering()
+    data class UgyldigPeriode(val subError: Periode.UgyldigPeriode) : KunneIkkeBeregneOgSimulereRevurdering()
+    data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) : KunneIkkeBeregneOgSimulereRevurdering()
 }
 
 sealed class KunneIkkeRevurdere {

@@ -1,13 +1,8 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
-import arrow.core.Either
-import arrow.core.getOrHandle
-import arrow.core.left
-import arrow.core.right
 import io.ktor.application.call
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
-import io.ktor.http.HttpStatusCode.Companion.Created
 import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
@@ -19,7 +14,6 @@ import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeRevurdere
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
@@ -27,15 +21,13 @@ import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.suUserContext
-import no.nav.su.se.bakover.web.routes.behandling.beregning.FradragJson
-import no.nav.su.se.bakover.web.routes.behandling.beregning.FradragJson.Companion.toFradrag
-import no.nav.su.se.bakover.web.routes.behandling.beregning.PeriodeJson
 import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresponser.fantIkkeRevurdering
+import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresponser.fantIkkeSak
+import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withRevurderingId
-import no.nav.su.se.bakover.web.withSakId
 
 internal const val revurderingPath = "$sakPath/{sakId}/revurderinger"
 
@@ -47,43 +39,7 @@ internal fun Route.revurderingRoutes(
 
     oppdaterRevurderingsperiodeRoute(revurderingService)
 
-    data class BeregningForRevurderingBody(
-        val periode: PeriodeJson,
-        val fradrag: List<FradragJson>,
-    ) {
-        fun toDomain(): Either<Resultat, List<Fradrag>> {
-            val periode = periode.toPeriode().getOrHandle { return it.left() }
-            val fradrag = fradrag.toFradrag(periode).getOrHandle { return it.left() }
-
-            return fradrag.right()
-        }
-    }
-
-    post("$revurderingPath/{revurderingId}/beregnOgSimuler") {
-        call.withSakId { sakId ->
-            call.withRevurderingId { revurderingId ->
-                call.withBody<BeregningForRevurderingBody> { body ->
-                    body.toDomain()
-                        .fold(
-                            ifLeft = { call.svar(it) },
-                            ifRight = {
-                                revurderingService.beregnOgSimuler(
-                                    revurderingId = revurderingId,
-                                    saksbehandler = Saksbehandler(call.suUserContext.navIdent),
-                                    fradrag = it
-                                ).fold(
-                                    ifLeft = { revurderingFeilet -> call.svar(revurderingFeilet.tilFeilMelding()) },
-                                    ifRight = { revurdering ->
-                                        call.audit("Opprettet en ny revurdering beregning og simulering på sak med id $sakId")
-                                        call.svar(Resultat.json(Created, serialize(revurdering.toJson())))
-                                    },
-                                )
-                            }
-                        )
-                }
-            }
-        }
-    }
+    beregnOgSimulerRevurdering(revurderingService)
 
     post("$revurderingPath/{revurderingId}/tilAttestering") {
         call.withRevurderingId { revurderingId ->
@@ -111,10 +67,7 @@ internal fun Route.revurderingRoutes(
                             "attestant_og_saksbehandler_kan_ikke_være_samme_person",
                         )
                         KunneIkkeIverksetteRevurdering.FantIkkeRevurdering -> fantIkkeRevurdering
-                        is KunneIkkeIverksetteRevurdering.UgyldigTilstand -> BadRequest.errorJson(
-                            "Kan ikke gå fra tilstanden ${it.fra.simpleName} til tilstanden ${it.til.simpleName}",
-                            "ugyldig_tilstandsovergang",
-                        )
+                        is KunneIkkeIverksetteRevurdering.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
                         KunneIkkeIverksetteRevurdering.KunneIkkeJournalføreBrev -> InternalServerError.errorJson(
                             "Feil ved journalføring av vedtaksbrev",
                             "kunne_ikke_journalføre_brev",
@@ -160,10 +113,7 @@ internal fun Route.revurderingRoutes(
 
 internal fun KunneIkkeRevurdere.tilFeilMelding(): Resultat {
     return when (this) {
-        KunneIkkeRevurdere.FantIkkeSak -> NotFound.errorJson(
-            "Fant ikke sak",
-            "fant_ikke_sak",
-        )
+        KunneIkkeRevurdere.FantIkkeSak -> fantIkkeSak
         KunneIkkeRevurdere.FantIngentingSomKanRevurderes -> NotFound.errorJson(
             "Ingen behandlinger som kan revurderes for angitt periode",
             "ingenting_å_revurdere_i_perioden",
@@ -180,10 +130,7 @@ internal fun KunneIkkeRevurdere.tilFeilMelding(): Resultat {
             "Fant ikke person",
             "fant_ikke_person",
         )
-        KunneIkkeRevurdere.FantIkkeRevurdering -> NotFound.errorJson(
-            "Fant ikke revurdering",
-            "fant_ikke_revurdering"
-        )
+        KunneIkkeRevurdere.FantIkkeRevurdering -> fantIkkeRevurdering
         KunneIkkeRevurdere.KunneIkkeLageBrevutkast -> InternalServerError.errorJson(
             "Kunne ikke lage brev",
             "kunne_ikke_lage_brev",
