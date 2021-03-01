@@ -10,7 +10,7 @@ import java.util.UUID
 import javax.sql.DataSource
 
 private fun sjekkUgyldigParameternavn(params: Map<String, Any?>) {
-    require(params.keys.none { it.contains(Regex.fromLiteral("[æÆøØåÅ]")) }) { "Parameter-mapping forstår ikke særnorske tegn" }
+    require(params.keys.none { it.contains(Regex("[æÆøØåÅ]")) }) { "Parameter-mapping forstår ikke særnorske tegn" }
 }
 
 internal fun String.oppdatering(
@@ -46,8 +46,19 @@ internal fun Row.tidspunkt(name: String) = this.instant(name).toTidspunkt()
 internal fun Session.inClauseWith(values: List<String>): Array =
     this.connection.underlying.createArrayOf("text", values.toTypedArray())
 
+internal fun <T> DataSource.withSession(session: Session?, block: (session: Session) -> T): T =
+    if (session == null) {
+        withSession { block(it) }
+    } else {
+        block(session)
+    }
+
 internal fun <T> DataSource.withSession(block: (session: Session) -> T): T {
     return using(sessionOf(this)) { block(it) }
+}
+
+internal fun <T> DataSource.withTransaction(block: (session: TransactionalSession) -> T): T {
+    return using(sessionOf(this)) { s -> s.transaction { block(it) } }
 }
 
 internal fun String.antall(
