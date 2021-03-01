@@ -345,7 +345,8 @@ internal class SøknadsbehandlingServiceIverksettTest {
             søknadsbehandlingRepoMock,
             iverksettSaksbehandlingServiceMock,
             behandlingMetricsMock,
-            statistikkObserver
+            statistikkObserver,
+            vedtakRepoMock
         ) {
             verify(søknadsbehandlingRepoMock).hent(behandling.id)
             verify(iverksettSaksbehandlingServiceMock).opprettJournalpostForAvslag(behandling, attestant)
@@ -353,6 +354,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             verify(behandlingMetricsMock).incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
             verify(iverksettSaksbehandlingServiceMock).distribuerBrevOgLukkOppgaveForAvslag(expectedJournalført)
             verify(søknadsbehandlingRepoMock).lagre(expectedJournalførtOgDistribuert)
+            verify(vedtakRepoMock).lagre(argThat { it.behandling shouldBe expectedJournalførtOgDistribuert })
             verify(statistikkObserver).handle(
                 argThat {
                     it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(
@@ -364,7 +366,6 @@ internal class SøknadsbehandlingServiceIverksettTest {
         verifyNoMoreInteractions(
             søknadsbehandlingRepoMock,
             iverksettSaksbehandlingServiceMock,
-            vedtakRepoMock
         )
     }
 

@@ -6,6 +6,7 @@ import kotliquery.param
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.EksterneIverksettingsstegEtterUtbetalingMapper
+import no.nav.su.se.bakover.database.EksterneIverksettingsstegForAvslagMapper
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.beregning.toSnapshot
@@ -16,7 +17,7 @@ import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid
-import no.nav.su.se.bakover.database.uuid30
+import no.nav.su.se.bakover.database.uuid30OrNull
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.database.withTransaction
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -61,6 +62,7 @@ internal class VedtakPosgresRepo(
     override fun lagre(vedtak: Vedtak) {
         when (vedtak) {
             is Vedtak.InnvilgetStønad -> lagre(vedtak)
+            is Vedtak.AvslåttStønad -> lagre(vedtak)
         }
     }
 
@@ -171,28 +173,59 @@ internal class VedtakPosgresRepo(
         val saksbehandler = stringOrNull("saksbehandler")?.let { NavIdentBruker.Saksbehandler(it) }!!
         val attestant = stringOrNull("attestant")?.let { NavIdentBruker.Attestant(it) }!!
         val behandlingsinformasjon = objectMapper.readValue<Behandlingsinformasjon>(string("behandlingsinformasjon"))
-        val utbetalingId = uuid30("utbetalingId")
-        val beregning = stringOrNull("beregning")?.let { objectMapper.readValue<PersistertBeregning>(it) }!!
-        val simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) }!!
+        val utbetalingId = uuid30OrNull("utbetalingId")
+        val beregning = stringOrNull("beregning")?.let { objectMapper.readValue<PersistertBeregning>(it) }
+        val simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) }
         val iverksattJournalpostId = stringOrNull("iverksattJournalpostId")?.let { JournalpostId(it) }
         val iverksattBrevbestillingId = stringOrNull("iverksattBrevbestillingId")?.let { BrevbestillingId(it) }
 
-        return Vedtak.InnvilgetStønad(
-            id = id,
-            opprettet = opprettet,
-            periode = Periode.create(fraOgMed, tilOgMed),
-            behandling = behandling,
-            behandlingsinformasjon = behandlingsinformasjon,
-            beregning = beregning,
-            simulering = simulering,
-            saksbehandler = saksbehandler,
-            attestant = attestant,
-            utbetalingId = utbetalingId,
-            eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetalingMapper.idToObject(
-                iverksattJournalpostId,
-                iverksattBrevbestillingId
+        // TODO fix this hacky mapping
+        return when {
+            utbetalingId != null && beregning != null && simulering != null -> Vedtak.InnvilgetStønad(
+                id = id,
+                opprettet = opprettet,
+                periode = Periode.create(fraOgMed, tilOgMed),
+                behandling = behandling,
+                behandlingsinformasjon = behandlingsinformasjon,
+                beregning = beregning,
+                simulering = simulering,
+                saksbehandler = saksbehandler,
+                attestant = attestant,
+                utbetalingId = utbetalingId,
+                eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetalingMapper.idToObject(
+                    iverksattJournalpostId,
+                    iverksattBrevbestillingId
+                )
             )
-        )
+            utbetalingId == null && beregning != null -> Vedtak.AvslåttStønad.MedBeregning(
+                id = id,
+                opprettet = opprettet,
+                periode = Periode.create(fraOgMed, tilOgMed),
+                behandling = behandling,
+                behandlingsinformasjon = behandlingsinformasjon,
+                beregning = beregning,
+                saksbehandler = saksbehandler,
+                attestant = attestant,
+                eksterneIverksettingsteg = EksterneIverksettingsstegForAvslagMapper.idToObject(
+                    iverksattJournalpostId,
+                    iverksattBrevbestillingId
+                )
+            )
+            utbetalingId == null && beregning == null -> Vedtak.AvslåttStønad.UtenBeregning(
+                id = id,
+                opprettet = opprettet,
+                periode = Periode.create(fraOgMed, tilOgMed),
+                behandling = behandling,
+                behandlingsinformasjon = behandlingsinformasjon,
+                saksbehandler = saksbehandler,
+                attestant = attestant,
+                eksterneIverksettingsteg = EksterneIverksettingsstegForAvslagMapper.idToObject(
+                    iverksattJournalpostId,
+                    iverksattBrevbestillingId
+                )
+            )
+            else -> throw IllegalStateException("Alvorlig feil i mapping")
+        }
     }
 
     private fun lagre(vedtak: Vedtak.InnvilgetStønad) {
@@ -222,8 +255,8 @@ internal class VedtakPosgresRepo(
                     :utbetalingid,
                     to_json(:simulering::json),
                     to_json(:beregning::json),
-                    :iverksattjournalpostid,
-                    :iverksattbrevbestillingid
+                    :iverksattjournalpostId,
+                    :iverksattbrevbestillingId
                 )
             """.trimIndent()
                 .oppdatering(
@@ -264,6 +297,76 @@ internal class VedtakPosgresRepo(
                         )
                     else ->
                         throw IllegalArgumentException("vedtak.behandling er av ukjent type. Den må være en revurdering eller en søknadsbehandling.")
+                },
+                tx
+            )
+        }
+    }
+
+    private fun lagre(vedtak: Vedtak.AvslåttStønad) {
+        val beregning = when (vedtak) {
+            is Vedtak.AvslåttStønad.MedBeregning -> vedtak.beregning
+            is Vedtak.AvslåttStønad.UtenBeregning -> null
+        }
+        dataSource.withTransaction { tx ->
+            """
+                insert into vedtak(
+                    id,
+                    opprettet,
+                    fraOgMed,
+                    tilOgMed,
+                    saksbehandler,
+                    attestant,
+                    behandlingsinformasjon,
+                    utbetalingid,
+                    simulering,
+                    beregning,
+                    iverksattjournalpostid,
+                    iverksattbrevbestillingid
+                ) values (
+                    :id,
+                    :opprettet,
+                    :fraOgMed,
+                    :tilOgMed,
+                    :saksbehandler,
+                    :attestant,
+                    to_json(:behandlingsinformasjon::json),
+                    :utbetalingid,
+                    to_json(:simulering::json),
+                    to_json(:beregning::json),
+                    :iverksattjournalpostId,
+                    :iverksattbrevbestillingId
+                )
+            """.trimIndent()
+                .oppdatering(
+                    mapOf(
+                        "id" to vedtak.id,
+                        "opprettet" to vedtak.opprettet,
+                        "fraOgMed" to vedtak.periode.getFraOgMed(),
+                        "tilOgMed" to vedtak.periode.getTilOgMed(),
+                        "saksbehandler" to vedtak.saksbehandler,
+                        "attestant" to vedtak.attestant,
+                        "beregning" to beregning?.let { objectMapper.writeValueAsString(it.toSnapshot()) },
+                        "behandlingsinformasjon" to objectMapper.writeValueAsString(vedtak.behandlingsinformasjon),
+                        "iverksattjournalpostId" to EksterneIverksettingsstegForAvslagMapper.iverksattJournalpostId(
+                            vedtak.eksterneIverksettingsteg
+                        )?.toString(),
+                        "iverksattbrevbestillingId" to EksterneIverksettingsstegForAvslagMapper.iverksattBrevbestillingId(
+                            vedtak.eksterneIverksettingsteg
+                        )?.toString(),
+                    ),
+                    tx
+                )
+
+            lagreBehandlingVedtakKnytning(
+                when (vedtak.behandling) {
+                    is Søknadsbehandling ->
+                        BehandlingVedtakKnytning.ForSøknadsbehandling(
+                            vedtakId = vedtak.id,
+                            sakId = vedtak.behandling.sakId,
+                            søknadsbehandlingId = vedtak.behandling.id
+                        )
+                    else -> throw IllegalArgumentException("Vedtak.behandling er av ukjent type. Støtter bare søknadsbehandling inntil videre")
                 },
                 tx
             )

@@ -41,6 +41,7 @@ internal fun <T> String.hentListe(
 
 internal fun Row.uuid(name: String) = UUID.fromString(string(name))
 internal fun Row.uuid30(name: String) = UUID30.fromString(string(name))
+internal fun Row.uuid30OrNull(name: String) = stringOrNull(name)?.let { UUID30.fromString(it) }
 internal fun Row.tidspunkt(name: String) = this.instant(name).toTidspunkt()
 
 internal fun Session.inClauseWith(values: List<String>): Array =

@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegEtterUtbetaling
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegForAvslag
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -38,7 +39,11 @@ interface IVedtakSomGirUtbetaling : IVedtak {
     val eksterneIverksettingsteg: EksterneIverksettingsstegEtterUtbetaling
 }
 
-interface IVedtakSomIkkeGirUtbetaling : IVedtak
+interface IVedtakSomIkkeGirUtbetaling : IVedtak {
+    val saksbehandler: NavIdentBruker.Saksbehandler
+    val attestant: NavIdentBruker.Attestant
+    val eksterneIverksettingsteg: EksterneIverksettingsstegForAvslag
+}
 
 sealed class Vedtak : IVedtak {
     data class InnvilgetStønad(
@@ -55,29 +60,77 @@ sealed class Vedtak : IVedtak {
         override val eksterneIverksettingsteg: EksterneIverksettingsstegEtterUtbetaling,
     ) : Vedtak(), IVedtakSomGirUtbetaling {
         companion object {
-            fun fromSøknadsbehandling(b: Søknadsbehandling.Iverksatt.Innvilget) = InnvilgetStønad(
-                periode = b.beregning.getPeriode(),
-                behandling = b,
-                behandlingsinformasjon = b.behandlingsinformasjon,
-                beregning = b.beregning,
-                simulering = b.simulering,
-                saksbehandler = b.saksbehandler,
-                attestant = b.attestering.attestant,
-                utbetalingId = b.utbetalingId,
-                eksterneIverksettingsteg = b.eksterneIverksettingsteg,
+            fun fromSøknadsbehandling(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget) = InnvilgetStønad(
+                periode = søknadsbehandling.beregning.getPeriode(),
+                behandling = søknadsbehandling,
+                behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
+                beregning = søknadsbehandling.beregning,
+                simulering = søknadsbehandling.simulering,
+                saksbehandler = søknadsbehandling.saksbehandler,
+                attestant = søknadsbehandling.attestering.attestant,
+                utbetalingId = søknadsbehandling.utbetalingId,
+                eksterneIverksettingsteg = søknadsbehandling.eksterneIverksettingsteg,
             )
 
-            fun fromRevurdering(r: IverksattRevurdering) = InnvilgetStønad(
-                behandling = r,
-                behandlingsinformasjon = r.tilRevurdering.behandlingsinformasjon,
-                periode = r.beregning.getPeriode(),
-                beregning = r.beregning,
-                simulering = r.simulering,
-                saksbehandler = r.saksbehandler,
-                attestant = r.attestant,
-                utbetalingId = r.utbetalingId,
-                eksterneIverksettingsteg = r.eksterneIverksettingsteg
+            fun fromRevurdering(revurdering: IverksattRevurdering) = InnvilgetStønad(
+                behandling = revurdering,
+                behandlingsinformasjon = revurdering.tilRevurdering.behandlingsinformasjon,
+                periode = revurdering.beregning.getPeriode(),
+                beregning = revurdering.beregning,
+                simulering = revurdering.simulering,
+                saksbehandler = revurdering.saksbehandler,
+                attestant = revurdering.attestant,
+                utbetalingId = revurdering.utbetalingId,
+                eksterneIverksettingsteg = revurdering.eksterneIverksettingsteg
             )
         }
+    }
+
+    sealed class AvslåttStønad : Vedtak(), IVedtakSomIkkeGirUtbetaling {
+        companion object {
+            fun fromSøknadsbehandlingMedBeregning(avslag: Søknadsbehandling.Iverksatt.Avslag.MedBeregning) =
+                MedBeregning(
+                    periode = avslag.beregning.getPeriode(),
+                    behandling = avslag,
+                    behandlingsinformasjon = avslag.behandlingsinformasjon,
+                    beregning = avslag.beregning,
+                    saksbehandler = avslag.saksbehandler,
+                    attestant = avslag.attestering.attestant,
+                    eksterneIverksettingsteg = avslag.eksterneIverksettingsteg,
+                )
+
+            // TODO fix periode for avslag uten beregning
+            // fun fromSøknadsbehandlingUtenBeregning(avslag: Søknadsbehandling.Iverksatt.Avslag.UtenBeregning) = UtenBeregning(
+            //     periode = avslag.beregning.getPeriode(),
+            //     behandling = avslag,
+            //     behandlingsinformasjon = avslag.behandlingsinformasjon,
+            //     saksbehandler = avslag.saksbehandler,
+            //     attestant = avslag.attestering.attestant,
+            //     eksterneIverksettingsteg = avslag.eksterneIverksettingsteg,
+            // )
+        }
+
+        data class UtenBeregning(
+            override val id: UUID = UUID.randomUUID(),
+            override val opprettet: Tidspunkt = Tidspunkt.now(),
+            override val periode: Periode,
+            override val behandling: IBehandling,
+            override val behandlingsinformasjon: Behandlingsinformasjon,
+            override val saksbehandler: NavIdentBruker.Saksbehandler,
+            override val attestant: NavIdentBruker.Attestant,
+            override val eksterneIverksettingsteg: EksterneIverksettingsstegForAvslag,
+        ) : AvslåttStønad()
+
+        data class MedBeregning(
+            override val id: UUID = UUID.randomUUID(),
+            override val opprettet: Tidspunkt = Tidspunkt.now(),
+            override val periode: Periode,
+            override val behandling: IBehandling,
+            override val behandlingsinformasjon: Behandlingsinformasjon,
+            val beregning: Beregning,
+            override val saksbehandler: NavIdentBruker.Saksbehandler,
+            override val attestant: NavIdentBruker.Attestant,
+            override val eksterneIverksettingsteg: EksterneIverksettingsstegForAvslag,
+        ) : AvslåttStønad()
     }
 }

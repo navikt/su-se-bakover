@@ -330,6 +330,15 @@ internal class SøknadsbehandlingServiceImpl(
                     iverksettAvslåttSøknadsbehandlingService.distribuerBrevOgLukkOppgaveForAvslag(it)
                         .let { medPotensiellBrevbestillingId ->
                             søknadsbehandlingRepo.lagre(medPotensiellBrevbestillingId)
+                            when (medPotensiellBrevbestillingId) {
+                                is Søknadsbehandling.Iverksatt.Avslag.MedBeregning -> vedtakRepo.lagre(
+                                    Vedtak.AvslåttStønad.fromSøknadsbehandlingMedBeregning(
+                                        medPotensiellBrevbestillingId
+                                    )
+                                )
+                                // TODO fix
+                                is Søknadsbehandling.Iverksatt.Avslag.UtenBeregning -> throw NotImplementedError()
+                            }
                             medPotensiellBrevbestillingId
                         }.also {
                             observers.forEach { observer ->
