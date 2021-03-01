@@ -113,7 +113,6 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
                     "code":"ugyldig_periode"
                 }
             """.trimIndent()
-
         )
     }
 

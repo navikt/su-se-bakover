@@ -52,7 +52,7 @@ internal class IverksettRevurderingRouteKtTest {
                 JSONAssert.assertEquals(
                     """
                     {
-                        "message":"Bruker mangler en av de tillatte rollene: Saksbehandler."
+                        "message":"Bruker mangler en av de tillatte rollene: Attestant."
                     }
                     """.trimIndent(),
                     response.content,
@@ -94,7 +94,7 @@ internal class IverksettRevurderingRouteKtTest {
             defaultRequest(
                 HttpMethod.Post,
                 "$requestPath/${iverksattRevurdering.id}/iverksett",
-                listOf(Brukerrolle.Saksbehandler)
+                listOf(Brukerrolle.Attestant)
             ).apply {
                 response.status() shouldBe HttpStatusCode.OK
                 val actualResponse = objectMapper.readValue<TilAttesteringJson>(response.content!!)
@@ -220,7 +220,7 @@ internal class IverksettRevurderingRouteKtTest {
             defaultRequest(
                 HttpMethod.Post,
                 "$requestPath/$revurderingId/iverksett",
-                listOf(Brukerrolle.Saksbehandler)
+                listOf(Brukerrolle.Attestant)
             ).apply {
                 response.status() shouldBe expectedStatusCode
                 JSONAssert.assertEquals(

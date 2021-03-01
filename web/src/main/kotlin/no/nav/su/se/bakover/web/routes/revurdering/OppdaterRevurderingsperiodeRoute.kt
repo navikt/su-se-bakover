@@ -55,10 +55,10 @@ private fun KunneIkkeOppdatereRevurderingsperiode.tilResultat(): Resultat {
     return when (this) {
         is KunneIkkeOppdatereRevurderingsperiode.UgyldigPeriode -> GenerelleRevurderingsfeilresponser.ugyldigPeriode(this.subError)
         is KunneIkkeOppdatereRevurderingsperiode.FantIkkeRevurdering -> fantIkkeRevurdering
+        is KunneIkkeOppdatereRevurderingsperiode.UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)
         is KunneIkkeOppdatereRevurderingsperiode.PeriodenMåVæreInnenforAlleredeValgtStønadsperiode -> HttpStatusCode.BadRequest.errorJson(
             "Perioden må være innenfor allerede valgt stønadsperiode",
             "perioden_må_være_innenfor_stønadsperioden",
         )
-        is KunneIkkeOppdatereRevurderingsperiode.UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)
     }
 }

@@ -6,6 +6,8 @@ import arrow.core.left
 import arrow.core.right
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.HttpStatusCode.Companion.BadRequest
+import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.routing.Route
 import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
@@ -14,6 +16,11 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering.FantIkkeRevurdering
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering.SimuleringFeilet
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering.UgyldigPeriode
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering.UgyldigTilstand
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
@@ -82,14 +89,14 @@ internal fun Route.beregnOgSimulerRevurdering(
 
 private fun KunneIkkeBeregneOgSimulereRevurdering.tilResultat(): Resultat {
     return when (this) {
-        is KunneIkkeBeregneOgSimulereRevurdering.UgyldigPeriode -> ugyldigPeriode(this.subError)
-        is KunneIkkeBeregneOgSimulereRevurdering.FantIkkeRevurdering -> fantIkkeRevurdering
-        is KunneIkkeBeregneOgSimulereRevurdering.UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)
-        is KunneIkkeBeregneOgSimulereRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden -> HttpStatusCode.BadRequest.errorJson(
+        is UgyldigPeriode -> ugyldigPeriode(this.subError)
+        is FantIkkeRevurdering -> fantIkkeRevurdering
+        is UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)
+        is KanIkkeVelgeSisteMånedVedNedgangIStønaden -> BadRequest.errorJson(
             "Kan ikke velge siste måned av stønadsperioden ved nedgang i stønaden",
             "siste_måned_ved_nedgang_i_stønaden",
         )
-        is KunneIkkeBeregneOgSimulereRevurdering.SimuleringFeilet -> HttpStatusCode.InternalServerError.errorJson(
+        is SimuleringFeilet -> InternalServerError.errorJson(
             "Simulering feilet",
             "simulering_feilet",
         )

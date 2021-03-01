@@ -37,8 +37,12 @@ interface RevurderingService {
         saksbehandler: NavIdentBruker.Saksbehandler
     ): Either<KunneIkkeSendeRevurderingTilAttestering, Revurdering>
 
-    fun lagBrevutkast(revurderingId: UUID, fritekst: String?): Either<KunneIkkeRevurdere, ByteArray>
-    fun iverksett(revurderingId: UUID, attestant: NavIdentBruker.Attestant): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering>
+    fun lagBrevutkast(revurderingId: UUID, fritekst: String?): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray>
+    fun iverksett(
+        revurderingId: UUID,
+        attestant: NavIdentBruker.Attestant
+    ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering>
+
     fun hentRevurderingForUtbetaling(utbetalingId: UUID30): IverksattRevurdering?
 }
 
@@ -89,19 +93,9 @@ sealed class KunneIkkeIverksetteRevurdering {
     ) : KunneIkkeIverksetteRevurdering()
 }
 
-sealed class KunneIkkeRevurdere {
-    object FantIkkeSak : KunneIkkeRevurdere()
-    object FantIkkeRevurdering : KunneIkkeRevurdere()
-    object FantIngentingSomKanRevurderes : KunneIkkeRevurdere()
-    object FantIkkePerson : KunneIkkeRevurdere()
-    object FantIkkeAktørid : KunneIkkeRevurdere()
-    object KunneIkkeOppretteOppgave : KunneIkkeRevurdere()
-    object KunneIkkeLageBrevutkast : KunneIkkeRevurdere()
-    object KanIkkeRevurdereInneværendeMånedEllerTidligere : KunneIkkeRevurdere()
-    object KanIkkeRevurderePerioderMedFlereAktiveStønadsperioder : KunneIkkeRevurdere()
-    object KanIkkeVelgeSisteMånedVedNedgangIStønaden : KunneIkkeRevurdere()
-    object SimuleringFeilet : KunneIkkeRevurdere()
-    object KanIkkeRevurdereEnPeriodeMedEksisterendeRevurdering : KunneIkkeRevurdere()
-    data class UgyldigPeriode(val subError: Periode.UgyldigPeriode) : KunneIkkeRevurdere()
-    data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) : KunneIkkeRevurdere()
+sealed class KunneIkkeLageBrevutkastForRevurdering {
+    object FantIkkeRevurdering : KunneIkkeLageBrevutkastForRevurdering()
+    object KunneIkkeLageBrevutkast : KunneIkkeLageBrevutkastForRevurdering()
+    object FantIkkePerson : KunneIkkeLageBrevutkastForRevurdering()
+    object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeLageBrevutkastForRevurdering()
 }

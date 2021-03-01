@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -65,7 +64,7 @@ internal class RevurderingServiceImpl(
         if (!fraOgMed.isAfter(dagensDato.endOfMonth())) {
             return KunneIkkeOppretteRevurdering.KanIkkeRevurdereInneværendeMånedEllerTidligere.left()
         }
-        val sak = hentSak(sakId).getOrElse {
+        val sak = sakService.hentSak(sakId).getOrElse {
             return KunneIkkeOppretteRevurdering.FantIkkeSak.left()
         }
         val tilRevurdering = sak.behandlinger
@@ -221,13 +220,12 @@ internal class RevurderingServiceImpl(
         return tilAttestering.right()
     }
 
-    private fun hentSak(sakId: UUID): Either<KunneIkkeRevurdere.FantIkkeSak, Sak> {
-        return sakService.hentSak(sakId)
-            .mapLeft { KunneIkkeRevurdere.FantIkkeSak }
-    }
-
-    override fun lagBrevutkast(revurderingId: UUID, fritekst: String?): Either<KunneIkkeRevurdere, ByteArray> {
-        val revurdering = revurderingRepo.hent(revurderingId) ?: return KunneIkkeRevurdere.FantIkkeRevurdering.left()
+    override fun lagBrevutkast(
+        revurderingId: UUID,
+        fritekst: String?
+    ): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray> {
+        val revurdering = revurderingRepo.hent(revurderingId)
+            ?: return KunneIkkeLageBrevutkastForRevurdering.FantIkkeRevurdering.left()
 
         return LagBrevRequestVisitor(
             hentPerson = { fnr ->
@@ -244,11 +242,11 @@ internal class RevurderingServiceImpl(
             it.brevRequest
         }.mapLeft {
             when (it) {
-                LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeRevurdere.KunneIkkeLageBrevutkast
-                LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson -> KunneIkkeRevurdere.FantIkkePerson
+                LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeLageBrevutkastForRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant
+                LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson -> KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson
             }
         }.flatMap {
-            brevService.lagBrev(it).mapLeft { KunneIkkeRevurdere.KunneIkkeLageBrevutkast }
+            brevService.lagBrev(it).mapLeft { KunneIkkeLageBrevutkastForRevurdering.KunneIkkeLageBrevutkast }
         }
     }
 

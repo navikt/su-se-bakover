@@ -654,7 +654,7 @@ internal class RevurderingServiceImplTest {
             fritekst = null
         )
 
-        actual shouldBe KunneIkkeRevurdere.FantIkkePerson.left()
+        actual shouldBe KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson.left()
 
         inOrder(revurderingRepoMock, personServiceMock) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
@@ -706,7 +706,7 @@ internal class RevurderingServiceImplTest {
             fritekst = null
         )
 
-        actual shouldBe KunneIkkeRevurdere.KunneIkkeLageBrevutkast.left()
+        actual shouldBe KunneIkkeLageBrevutkastForRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
 
         inOrder(revurderingRepoMock, personServiceMock, microsoftGraphApiClientMock) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
@@ -766,7 +766,7 @@ internal class RevurderingServiceImplTest {
             fritekst = null
         )
 
-        actual shouldBe KunneIkkeRevurdere.KunneIkkeLageBrevutkast.left()
+        actual shouldBe KunneIkkeLageBrevutkastForRevurdering.KunneIkkeLageBrevutkast.left()
 
         inOrder(revurderingRepoMock, personServiceMock, microsoftGraphApiClientMock) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })

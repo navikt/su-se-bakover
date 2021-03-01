@@ -41,9 +41,9 @@ import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeLageBrevutkastForRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppdatereRevurderingsperiode
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering
-import no.nav.su.se.bakover.service.revurdering.KunneIkkeRevurdere
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeSendeRevurderingTilAttestering
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
@@ -339,7 +339,10 @@ open class AccessCheckProxy(
                     return services.revurdering.sendTilAttestering(revurderingId, saksbehandler)
                 }
 
-                override fun lagBrevutkast(revurderingId: UUID, fritekst: String?): Either<KunneIkkeRevurdere, ByteArray> {
+                override fun lagBrevutkast(
+                    revurderingId: UUID,
+                    fritekst: String?
+                ): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray> {
                     assertHarTilgangTilSak(revurderingId)
                     return services.revurdering.lagBrevutkast(revurderingId, fritekst)
                 }
