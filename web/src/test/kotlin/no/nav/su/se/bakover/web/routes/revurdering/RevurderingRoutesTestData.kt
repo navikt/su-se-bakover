@@ -22,44 +22,42 @@ import no.nav.su.se.bakover.web.routes.behandling.TestBeregning
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import java.util.UUID
 
-internal class RevurderingRoutesTestData {
-    companion object {
+object RevurderingRoutesTestData {
 
-        internal val sakId = UUID.randomUUID()
-        internal val requestPath = "$sakPath/$sakId/revurderinger"
-        internal val testServices = TestServicesBuilder.services()
-        internal val periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020))
+    internal val sakId = UUID.randomUUID()
+    internal val requestPath = "$sakPath/$sakId/revurderinger"
+    internal val testServices = TestServicesBuilder.services()
+    internal val periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020))
 
-        internal val innvilgetSøknadsbehandling = Søknadsbehandling.Iverksatt.Innvilget(
+    internal val innvilgetSøknadsbehandling = Søknadsbehandling.Iverksatt.Innvilget(
+        id = UUID.randomUUID(),
+        opprettet = Tidspunkt.now(),
+        sakId = sakId,
+        saksnummer = Saksnummer(1569),
+        søknad = Søknad.Journalført.MedOppgave(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(),
             sakId = sakId,
-            saksnummer = Saksnummer(1569),
-            søknad = Søknad.Journalført.MedOppgave(
-                id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(),
-                sakId = sakId,
-                søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-                journalpostId = JournalpostId(value = ""),
-                oppgaveId = OppgaveId(value = "")
+            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+            journalpostId = JournalpostId(value = ""),
+            oppgaveId = OppgaveId(value = "")
 
-            ),
-            oppgaveId = OppgaveId(value = ""),
-            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().copy(
-                bosituasjon = Behandlingsinformasjon.Bosituasjon(
-                    epsAlder = 55,
-                    delerBolig = true,
-                    ektemakeEllerSamboerUførFlyktning = true,
-                    begrunnelse = null
-                )
-            ),
-            fnr = FnrGenerator.random(),
-            beregning = TestBeregning,
-            simulering = mock(),
-            saksbehandler = NavIdentBruker.Saksbehandler("saks"),
-            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
-            utbetalingId = UUID30.randomUUID(),
-            eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.VenterPåKvittering
-        )
-    }
+        ),
+        oppgaveId = OppgaveId(value = ""),
+        behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().copy(
+            bosituasjon = Behandlingsinformasjon.Bosituasjon(
+                epsAlder = 55,
+                delerBolig = true,
+                ektemakeEllerSamboerUførFlyktning = true,
+                begrunnelse = null
+            )
+        ),
+        fnr = FnrGenerator.random(),
+        beregning = TestBeregning,
+        simulering = mock(),
+        saksbehandler = NavIdentBruker.Saksbehandler("saks"),
+        attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
+        utbetalingId = UUID30.randomUUID(),
+        eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.VenterPåKvittering
+    )
 }

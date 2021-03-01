@@ -42,17 +42,6 @@ interface RevurderingService {
     fun hentRevurderingForUtbetaling(utbetalingId: UUID30): IverksattRevurdering?
 }
 
-sealed class KunneIkkeIverksetteRevurdering {
-    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteRevurdering()
-    object KunneIkkeUtbetale : KunneIkkeIverksetteRevurdering()
-    object KunneIkkeKontrollsimulere : KunneIkkeIverksetteRevurdering()
-    object SimuleringHarBlittEndretSidenSaksbehandlerSimulerte : KunneIkkeIverksetteRevurdering()
-    object KunneIkkeJournalføreBrev : KunneIkkeIverksetteRevurdering()
-    object FantIkkeRevurdering : KunneIkkeIverksetteRevurdering()
-    data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
-        KunneIkkeIverksetteRevurdering()
-}
-
 sealed class KunneIkkeOppretteRevurdering {
     object FantIkkeSak : KunneIkkeOppretteRevurdering()
     object FantIngentingSomKanRevurderes : KunneIkkeOppretteRevurdering()
@@ -85,6 +74,19 @@ sealed class KunneIkkeSendeRevurderingTilAttestering {
     object KunneIkkeOppretteOppgave : KunneIkkeSendeRevurderingTilAttestering()
     data class UgyldigPeriode(val subError: Periode.UgyldigPeriode) : KunneIkkeSendeRevurderingTilAttestering()
     data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) : KunneIkkeSendeRevurderingTilAttestering()
+}
+
+sealed class KunneIkkeIverksetteRevurdering {
+    object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteRevurdering()
+    object KunneIkkeUtbetale : KunneIkkeIverksetteRevurdering()
+    object KunneIkkeKontrollsimulere : KunneIkkeIverksetteRevurdering()
+    object SimuleringHarBlittEndretSidenSaksbehandlerSimulerte : KunneIkkeIverksetteRevurdering()
+    object KunneIkkeJournalføreBrev : KunneIkkeIverksetteRevurdering()
+    object FantIkkeRevurdering : KunneIkkeIverksetteRevurdering()
+    data class UgyldigTilstand(
+        val fra: KClass<out Revurdering>,
+        val til: KClass<out Revurdering>
+    ) : KunneIkkeIverksetteRevurdering()
 }
 
 sealed class KunneIkkeRevurdere {

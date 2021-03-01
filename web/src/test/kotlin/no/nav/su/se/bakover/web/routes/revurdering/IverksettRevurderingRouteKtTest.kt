@@ -11,16 +11,16 @@ import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegEtterUtbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
-import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
-import no.nav.su.se.bakover.service.revurdering.KunneIkkeSendeRevurderingTilAttestering
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.behandling.TestBeregning
@@ -34,18 +34,18 @@ import org.skyscreamer.jsonassert.JSONAssert
 import java.time.LocalDate
 import java.util.UUID
 
-internal class SendRevurderingTilAttesteringRouteKtTest {
+internal class IverksettRevurderingRouteKtTest {
 
     private val revurderingId = UUID.randomUUID()
 
     @Test
-    fun `uautoriserte kan ikke sende revurdering til attestering`() {
+    fun `uautoriserte kan ikke iverksette revurdering`() {
         withTestApplication({
             testSusebakover()
         }) {
             defaultRequest(
                 HttpMethod.Post,
-                "$requestPath/$revurderingId/tilAttestering",
+                "$requestPath/$revurderingId/iverksett",
                 listOf(Brukerrolle.Veileder)
             ).apply {
                 response.status() shouldBe HttpStatusCode.Forbidden
@@ -61,9 +61,10 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             }
         }
     }
+
     @Test
-    fun `send til attestering`() {
-        val revurderingTilAttestering = RevurderingTilAttestering(
+    fun `iverksett revurdering`() {
+        val iverksattRevurdering = IverksattRevurdering(
             id = UUID.randomUUID(),
             periode = periode,
             opprettet = Tidspunkt.now(),
@@ -77,11 +78,14 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
                 nettoBeløp = 0,
                 periodeList = listOf()
             ),
-            oppgaveId = OppgaveId("OppgaveId")
+            oppgaveId = OppgaveId("OppgaveId"),
+            attestant = NavIdentBruker.Attestant("attestant"),
+            utbetalingId = UUID30.randomUUID(),
+            eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.VenterPåKvittering
         )
 
         val revurderingServiceMock = mock<RevurderingService> {
-            on { sendTilAttestering(any(), any()) } doReturn revurderingTilAttestering.right()
+            on { iverksett(any(), any()) } doReturn iverksattRevurdering.right()
         }
 
         withTestApplication({
@@ -89,38 +93,21 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
         }) {
             defaultRequest(
                 HttpMethod.Post,
-                "$requestPath/${revurderingTilAttestering.id}/tilAttestering",
+                "$requestPath/${iverksattRevurdering.id}/iverksett",
                 listOf(Brukerrolle.Saksbehandler)
             ).apply {
                 response.status() shouldBe HttpStatusCode.OK
                 val actualResponse = objectMapper.readValue<TilAttesteringJson>(response.content!!)
-                actualResponse.id shouldBe revurderingTilAttestering.id.toString()
+                actualResponse.id shouldBe iverksattRevurdering.id.toString()
                 actualResponse.status shouldBe RevurderingsStatus.TIL_ATTESTERING
             }
         }
     }
 
     @Test
-    fun `ugyldig fraOgMed dato`() {
-        shouldMapErrorCorrectly(
-            error = KunneIkkeSendeRevurderingTilAttestering.UgyldigPeriode(
-                Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden
-            ),
-            expectedStatusCode = HttpStatusCode.BadRequest,
-            expectedJsonResponse = """
-                {
-                    "message":"FraOgMedDatoMåVæreFørsteDagIMåneden",
-                    "code":"ugyldig_periode"
-                }
-            """.trimIndent()
-
-        )
-    }
-
-    @Test
     fun `fant ikke revurdering`() {
         shouldMapErrorCorrectly(
-            error = KunneIkkeSendeRevurderingTilAttestering.FantIkkeRevurdering,
+            error = KunneIkkeIverksetteRevurdering.FantIkkeRevurdering,
             expectedStatusCode = HttpStatusCode.NotFound,
             expectedJsonResponse = """
                 {
@@ -134,7 +121,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
     @Test
     fun `ugyldig tilstand`() {
         shouldMapErrorCorrectly(
-            error = KunneIkkeSendeRevurderingTilAttestering.UgyldigTilstand(
+            error = KunneIkkeIverksetteRevurdering.UgyldigTilstand(
                 fra = IverksattRevurdering::class,
                 til = OpprettetRevurdering::class,
             ),
@@ -149,40 +136,82 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
     }
 
     @Test
-    fun `fant ikke aktør id`() {
+    fun `attestant og saksbehandler kan ikke være samme person`() {
         shouldMapErrorCorrectly(
-            error = KunneIkkeSendeRevurderingTilAttestering.FantIkkeAktørId,
-            expectedStatusCode = HttpStatusCode.NotFound,
+            error = KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson,
+            expectedStatusCode = HttpStatusCode.Forbidden,
             expectedJsonResponse = """
                 {
-                    "message":"Fant ikke aktør id",
-                    "code":"fant_ikke_aktør_id"
+                    "message":"Attestant og saksbehandler kan ikke være samme person",
+                    "code":"attestant_og_saksbehandler_kan_ikke_være_samme_person"
                 }
             """.trimIndent()
         )
     }
 
     @Test
-    fun `kunne ikke opprette oppgave`() {
+    fun `kunne ikke journalføre brev`() {
         shouldMapErrorCorrectly(
-            error = KunneIkkeSendeRevurderingTilAttestering.KunneIkkeOppretteOppgave,
+            error = KunneIkkeIverksetteRevurdering.KunneIkkeJournalføreBrev,
             expectedStatusCode = HttpStatusCode.InternalServerError,
             expectedJsonResponse = """
                 {
-                    "message":"Kunne ikke opprette oppgave",
-                    "code":"kunne_ikke_opprette_oppgave"
+                    "message":"Feil ved journalføring av vedtaksbrev",
+                    "code":"kunne_ikke_journalføre_brev"
+                }
+            """.trimIndent()
+        )
+    }
+
+    @Test
+    fun `kunne ikke kontrollsimulere`() {
+        shouldMapErrorCorrectly(
+            error = KunneIkkeIverksetteRevurdering.KunneIkkeKontrollsimulere,
+            expectedStatusCode = HttpStatusCode.InternalServerError,
+            expectedJsonResponse = """
+                {
+                    "message":"Kunne ikke utføre kontrollsimulering",
+                    "code":"kunne_ikke_kontrollsimulere"
+                }
+            """.trimIndent()
+        )
+    }
+
+    @Test
+    fun `kunne ikke utbetale`() {
+        shouldMapErrorCorrectly(
+            error = KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale,
+            expectedStatusCode = HttpStatusCode.InternalServerError,
+            expectedJsonResponse = """
+                {
+                    "message":"Kunne ikke utføre utbetaling",
+                    "code":"kunne_ikke_utbetale"
+                }
+            """.trimIndent()
+        )
+    }
+
+    @Test
+    fun `simulering har blitt endret siden saksbehandler simulerte`() {
+        shouldMapErrorCorrectly(
+            error = KunneIkkeIverksetteRevurdering.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte,
+            expectedStatusCode = HttpStatusCode.InternalServerError,
+            expectedJsonResponse = """
+                {
+                    "message":"Oppdaget inkonsistens mellom tidligere utført simulering og kontrollsimulering. Ny simulering må utføres og kontrolleres før iverksetting kan gjennomføres",
+                    "code":"simulering_har_blitt_endret_siden_saksbehandler_simulerte"
                 }
             """.trimIndent()
         )
     }
 
     private fun shouldMapErrorCorrectly(
-        error: KunneIkkeSendeRevurderingTilAttestering,
+        error: KunneIkkeIverksetteRevurdering,
         expectedStatusCode: HttpStatusCode,
         expectedJsonResponse: String
     ) {
         val revurderingServiceMock = mock<RevurderingService> {
-            on { sendTilAttestering(any(), any()) } doReturn error.left()
+            on { iverksett(any(), any()) } doReturn error.left()
         }
 
         withTestApplication({
@@ -190,7 +219,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
         }) {
             defaultRequest(
                 HttpMethod.Post,
-                "$requestPath/$revurderingId/tilAttestering",
+                "$requestPath/$revurderingId/iverksett",
                 listOf(Brukerrolle.Saksbehandler)
             ).apply {
                 response.status() shouldBe expectedStatusCode

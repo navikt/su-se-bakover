@@ -3,26 +3,19 @@ package no.nav.su.se.bakover.web.routes.revurdering
 import io.ktor.application.call
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
-import io.ktor.http.HttpStatusCode.Companion.Forbidden
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
-import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.response.respondBytes
 import io.ktor.routing.Route
 import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
-import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
-import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeRevurdere
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.errorJson
-import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresponser.fantIkkeRevurdering
 import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresponser.fantIkkeSak
-import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
@@ -42,45 +35,7 @@ internal fun Route.revurderingRoutes(
 
     sendRevurderingTilAttestering(revurderingService)
 
-    post("$revurderingPath/{revurderingId}/iverksett") {
-        call.withRevurderingId { revurderingId ->
-            revurderingService.iverksett(
-                revurderingId = revurderingId, attestant = Attestant(call.suUserContext.navIdent)
-            ).fold(
-                ifLeft = {
-                    val message = when (it) {
-                        KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson -> Forbidden.errorJson(
-                            "Attestant og saksbehandler kan ikke være samme person",
-                            "attestant_og_saksbehandler_kan_ikke_være_samme_person",
-                        )
-                        KunneIkkeIverksetteRevurdering.FantIkkeRevurdering -> fantIkkeRevurdering
-                        is KunneIkkeIverksetteRevurdering.UgyldigTilstand -> ugyldigTilstand(it.fra, it.til)
-                        KunneIkkeIverksetteRevurdering.KunneIkkeJournalføreBrev -> InternalServerError.errorJson(
-                            "Feil ved journalføring av vedtaksbrev",
-                            "kunne_ikke_journalføre_brev",
-                        )
-                        KunneIkkeIverksetteRevurdering.KunneIkkeKontrollsimulere -> InternalServerError.errorJson(
-                            "Kunne ikke utføre kontrollsimulering",
-                            "kunne_ikke_kontrollsimulere",
-                        )
-                        KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale -> InternalServerError.errorJson(
-                            "Kunne ikke utføre utbetaling",
-                            "kunne_ikke_utbetale",
-                        )
-                        KunneIkkeIverksetteRevurdering.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> InternalServerError.errorJson(
-                            "Oppdaget inkonsistens mellom tidligere utført simulering og kontrollsimulering. Ny simulering må utføres og kontrolleres før iverksetting kan gjennomføres",
-                            "simulering_har_blitt_endret_siden_saksbehandler_simulerte",
-                        )
-                    }
-                    call.svar(message)
-                },
-                ifRight = {
-                    call.audit("Iverksatt revurdering med id $revurderingId")
-                    call.svar(Resultat.json(OK, serialize(it.toJson())))
-                },
-            )
-        }
-    }
+    iverksettRevurderingRoute(revurderingService)
 
     data class BrevutkastMedFritekst(val fritekst: String?)
     post("$revurderingPath/{revurderingId}/brevutkast") {

@@ -20,10 +20,10 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.Companion.innvilgetSøknadsbehandling
-import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.Companion.periode
-import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.Companion.requestPath
-import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.Companion.testServices
+import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.innvilgetSøknadsbehandling
+import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.periode
+import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.requestPath
+import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.testServices
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert

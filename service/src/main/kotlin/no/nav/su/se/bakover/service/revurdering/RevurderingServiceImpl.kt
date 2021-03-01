@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -46,11 +47,12 @@ internal class RevurderingServiceImpl(
     private val brevService: BrevService,
     private val clock: Clock,
 ) : RevurderingService {
+
     private val observers: MutableList<EventObserver> = mutableListOf()
+
     fun addObserver(observer: EventObserver) {
         observers.add(observer)
     }
-
     fun getObservers(): List<EventObserver> = observers.toList()
 
     override fun opprettRevurdering(
@@ -208,7 +210,6 @@ internal class RevurderingServiceImpl(
             else -> return KunneIkkeSendeRevurderingTilAttestering.UgyldigTilstand(revurdering::class, RevurderingTilAttestering::class)
                 .left()
         }
-
         revurderingRepo.lagre(tilAttestering)
         observers.forEach { observer ->
             observer.handle(
@@ -217,12 +218,13 @@ internal class RevurderingServiceImpl(
                 )
             )
         }
-
         return tilAttestering.right()
     }
 
-    private fun hentSak(sakId: UUID) = sakService.hentSak(sakId)
-        .mapLeft { KunneIkkeRevurdere.FantIkkeSak }
+    private fun hentSak(sakId: UUID): Either<KunneIkkeRevurdere.FantIkkeSak, Sak> {
+        return sakService.hentSak(sakId)
+            .mapLeft { KunneIkkeRevurdere.FantIkkeSak }
+    }
 
     override fun lagBrevutkast(revurderingId: UUID, fritekst: String?): Either<KunneIkkeRevurdere, ByteArray> {
         val revurdering = revurderingRepo.hent(revurderingId) ?: return KunneIkkeRevurdere.FantIkkeRevurdering.left()
