@@ -177,7 +177,7 @@ internal class RevurderingServiceImpl(
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler
     ): Either<KunneIkkeRevurdere, Revurdering> {
-        val revurdering = revurderingRepo.hent(revurderingId)
+        val revurdering = revurderingRepo.hent(revurderingId) ?: return KunneIkkeRevurdere.FantIkkeRevurdering.left()
 
         val tilAttestering = when (revurdering) {
             is SimulertRevurdering -> {
@@ -201,7 +201,6 @@ internal class RevurderingServiceImpl(
 
                 revurdering.tilAttestering(oppgaveId, saksbehandler)
             }
-            null -> return KunneIkkeRevurdere.FantIkkeRevurdering.left()
             else -> return KunneIkkeRevurdere.UgyldigTilstand(revurdering::class, RevurderingTilAttestering::class)
                 .left()
         }
