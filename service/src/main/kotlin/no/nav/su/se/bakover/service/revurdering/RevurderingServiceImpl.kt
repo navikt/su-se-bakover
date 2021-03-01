@@ -28,6 +28,8 @@ import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
+import no.nav.su.se.bakover.service.statistikk.Event
+import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import java.time.Clock
@@ -44,63 +46,71 @@ internal class RevurderingServiceImpl(
     private val brevService: BrevService,
     private val clock: Clock,
 ) : RevurderingService {
+    private val observers: MutableList<EventObserver> = mutableListOf()
+    fun addObserver(observer: EventObserver) {
+        observers.add(observer)
+    }
+
+    fun getObservers(): List<EventObserver> = observers.toList()
 
     override fun opprettRevurdering(
         sakId: UUID,
         fraOgMed: LocalDate,
         saksbehandler: NavIdentBruker.Saksbehandler
-    ): Either<KunneIkkeRevurdere, Revurdering> {
+    ): Either<KunneIkkeOppretteRevurdering, Revurdering> {
 
         val dagensDato = LocalDate.now(clock)
-        if (!fraOgMed.isAfter(dagensDato.endOfMonth())) return KunneIkkeRevurdere.KanIkkeRevurdereInneværendeMånedEllerTidligere.left()
+        if (!fraOgMed.isAfter(dagensDato.endOfMonth())) {
+            return KunneIkkeOppretteRevurdering.KanIkkeRevurdereInneværendeMånedEllerTidligere.left()
+        }
+        val sak = hentSak(sakId).getOrElse {
+            return KunneIkkeOppretteRevurdering.FantIkkeSak.left()
+        }
+        val tilRevurdering = sak.behandlinger
+            .filterIsInstance(Søknadsbehandling.Iverksatt.Innvilget::class.java)
+            .filter { fraOgMed.between(it.beregning.getPeriode()) }
 
-        return hentSak(sakId)
-            .map { sak ->
-                val revurderingsPeriode = sak.hentStønadsperioder().filter {
-                    fraOgMed.between(it.periode)
-                }.map {
-                    Periode.create(fraOgMed, it.periode.getTilOgMed())
-                }.let {
-                    if (it.isEmpty()) {
-                        return KunneIkkeRevurdere.FantIngentingSomKanRevurderes.left()
-                    } else if (it.size > 1) {
-                        KunneIkkeRevurdere.KanIkkeRevurderePerioderMedFlereAktiveStønadsperioder.left()
-                    }
-                    it.first()
-                }
-                val tilRevurdering = sak.behandlinger
-                    .filterIsInstance(Søknadsbehandling.Iverksatt.Innvilget::class.java)
-                    .filter { it.beregning.getPeriode() inneholder revurderingsPeriode }
+        val søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget = when {
+            tilRevurdering.isEmpty() -> return KunneIkkeOppretteRevurdering.FantIngentingSomKanRevurderes.left()
+            tilRevurdering.size > 1 -> return KunneIkkeOppretteRevurdering.KanIkkeRevurderePerioderMedFlereAktiveStønadsperioder.left()
+            revurderingRepo.hentRevurderingForBehandling(tilRevurdering.single().id) != null -> {
+                return KunneIkkeOppretteRevurdering.KanIkkeRevurdereEnPeriodeMedEksisterendeRevurdering.left()
+            }
+            else -> tilRevurdering.single()
+        }
+        val periode = Periode.tryCreate(fraOgMed, søknadsbehandling.beregning.getPeriode().getTilOgMed()).getOrHandle {
+            return KunneIkkeOppretteRevurdering.UgyldigPeriode(it).left()
+        }
 
-                if (tilRevurdering.isEmpty()) return KunneIkkeRevurdere.FantIngentingSomKanRevurderes.left()
-                if (tilRevurdering.size > 1) return KunneIkkeRevurdere.KanIkkeRevurderePerioderMedFlereAktiveStønadsperioder.left()
-                if (revurderingRepo.hentRevurderingForBehandling(tilRevurdering.single().id) != null) return KunneIkkeRevurdere.KanIkkeRevurdereEnPeriodeMedEksisterendeRevurdering.left()
+        val aktørId = personService.hentAktørId(søknadsbehandling.fnr).getOrElse {
+            log.error("Fant ikke aktør-id")
+            return KunneIkkeOppretteRevurdering.FantIkkeAktørid.left()
+        }
 
-                tilRevurdering.single().let { søknadsbehandling ->
-                    val aktørId = personService.hentAktørId(søknadsbehandling.fnr).getOrElse {
-                        log.error("Fant ikke aktør-id")
-                        return KunneIkkeRevurdere.FantIkkeAktørid.left()
-                    }
-
-                    return oppgaveService.opprettOppgave(
-                        OppgaveConfig.Revurderingsbehandling(
-                            saksnummer = søknadsbehandling.saksnummer,
-                            aktørId = aktørId,
-                            tilordnetRessurs = null
+        return oppgaveService.opprettOppgave(
+            OppgaveConfig.Revurderingsbehandling(
+                saksnummer = søknadsbehandling.saksnummer,
+                aktørId = aktørId,
+                tilordnetRessurs = null
+            )
+        ).mapLeft {
+            KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave
+        }.map {
+            OpprettetRevurdering(
+                periode = periode,
+                tilRevurdering = søknadsbehandling,
+                saksbehandler = saksbehandler
+            ).also {
+                revurderingRepo.lagre(it)
+                observers.forEach { observer ->
+                    observer.handle(
+                        Event.Statistikk.RevurderingStatistikk.RevurderingOpprettet(
+                            it
                         )
-                    ).mapLeft {
-                        KunneIkkeRevurdere.KunneIkkeOppretteOppgave
-                    }.map {
-                        val revurdering = OpprettetRevurdering(
-                            periode = revurderingsPeriode,
-                            tilRevurdering = søknadsbehandling,
-                            saksbehandler = saksbehandler
-                        )
-                        revurderingRepo.lagre(revurdering)
-                        revurdering
-                    }
+                    )
                 }
             }
+        }
     }
 
     override fun oppdaterRevurderingsperiode(
@@ -188,10 +198,18 @@ internal class RevurderingServiceImpl(
                 revurdering.tilAttestering(oppgaveId, saksbehandler)
             }
             null -> return KunneIkkeRevurdere.FantIkkeRevurdering.left()
-            else -> return KunneIkkeRevurdere.UgyldigTilstand(revurdering::class, RevurderingTilAttestering::class).left()
+            else -> return KunneIkkeRevurdere.UgyldigTilstand(revurdering::class, RevurderingTilAttestering::class)
+                .left()
         }
 
         revurderingRepo.lagre(tilAttestering)
+        observers.forEach { observer ->
+            observer.handle(
+                Event.Statistikk.RevurderingStatistikk.RevurderingTilAttestering(
+                    tilAttestering
+                )
+            )
+        }
 
         return tilAttestering.right()
     }
@@ -255,6 +273,11 @@ internal class RevurderingServiceImpl(
                     }.left()
                 }
                 revurderingRepo.lagre(iverksattRevurdering)
+                observers.forEach { observer ->
+                    observer.handle(
+                        Event.Statistikk.RevurderingStatistikk.RevurderingIverksatt(iverksattRevurdering)
+                    )
+                }
                 return iverksattRevurdering.right()
             }
             null -> KunneIkkeIverksetteRevurdering.FantIkkeRevurdering.left()

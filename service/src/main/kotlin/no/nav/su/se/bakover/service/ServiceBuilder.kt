@@ -73,7 +73,7 @@ object ServiceBuilder {
             microsoftGraphApiClient = clients.microsoftGraphApiClient,
             brevService = brevService,
             clock = clock,
-        )
+        ).apply { addObserver(statistikkService) }
         val opprettVedtakssnapshotService = OpprettVedtakssnapshotService(databaseRepos.vedtakssnapshot)
         val ferdigstillIverksettingService = FerdigstillIverksettingServiceImpl(
             søknadsbehandlingRepo = databaseRepos.søknadsbehandling,

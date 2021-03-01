@@ -1,6 +1,10 @@
 package no.nav.su.se.bakover.service.statistikk
 
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
+import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Revurdering
+import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 
 interface StatistikkService {
@@ -29,6 +33,19 @@ sealed class Event {
 
             data class SøknadsbehandlingIverksatt(override val søknadsbehandling: Søknadsbehandling.Iverksatt) :
                 SøknadsbehandlingStatistikk()
+        }
+
+        sealed class RevurderingStatistikk : Statistikk() {
+            abstract val revurdering: Revurdering
+
+            data class RevurderingOpprettet(override val revurdering: OpprettetRevurdering) :
+                RevurderingStatistikk()
+
+            data class RevurderingTilAttestering(override val revurdering: no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering) :
+                RevurderingStatistikk()
+
+            data class RevurderingIverksatt(override val revurdering: IverksattRevurdering) :
+                RevurderingStatistikk()
         }
     }
 }

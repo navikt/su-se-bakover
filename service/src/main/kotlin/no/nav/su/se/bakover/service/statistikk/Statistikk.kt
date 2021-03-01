@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import java.time.LocalDate
 import java.util.UUID
 
@@ -39,9 +38,9 @@ sealed class Statistikk {
         val sakId: UUID,
         @JsonSerialize(using = ToStringSerializer::class)
         val saksnummer: Long,
-        val behandlingType: String = "SOKNAD",
-        val behandlingTypeBeskrivelse: String? = "Søknad for SU Uføre",
-        val behandlingStatus: BehandlingsStatus,
+        val behandlingType: BehandlingType,
+        val behandlingTypeBeskrivelse: String?,
+        val behandlingStatus: String,
         val behandlingStatusBeskrivelse: String? = null,
         val utenlandstilsnitt: String = "NASJONAL",
         val utenlandstilsnittBeskrivelse: String? = null,
@@ -68,4 +67,8 @@ sealed class Statistikk {
     ) : Statistikk()
 
     data class Aktør(val aktorId: Int, val rolle: String, val rolleBeskrivelse: String)
+    enum class BehandlingType(val beskrivelse: String) {
+        SOKNAD("Søknad for SU Uføre"),
+        REVURDERING("Revurdering av søknad for SU Uføre")
+    }
 }
