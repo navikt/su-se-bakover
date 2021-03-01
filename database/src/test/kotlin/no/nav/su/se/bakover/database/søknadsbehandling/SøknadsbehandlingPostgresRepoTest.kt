@@ -5,6 +5,11 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeTypeOf
+import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.februar
+import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.mars
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.avslåttBeregning
@@ -29,6 +34,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 
 internal class SøknadsbehandlingPostgresRepoTest {
 
@@ -95,6 +101,30 @@ internal class SøknadsbehandlingPostgresRepoTest {
             )
         }
     }
+
+    @Test
+    fun `hent iverksatte behandlinger som er aktive`() {
+        withMigratedDb {
+
+            iverksattInnvilget(1.desember(2020), 31.januar(2021)).first
+            val iverksattStartFebruar = iverksattInnvilget(1.februar(2021), 28.februar(2021)).first
+            val iverksattSluttFebruar = iverksattInnvilget(1.desember(2020), 28.februar(2021)).first
+            val iverksattSluttMars = iverksattInnvilget(1.desember(2020), 31.mars(2021)).first
+            iverksattInnvilget(1.mars(2021), 31.mars(2021)).first
+
+            val actual = repo.hentAktiveInnvilgetBehandlinger(28.februar(2021))
+
+            actual shouldBe listOf(
+                repo.hent(iverksattSluttFebruar.id),
+                repo.hent(iverksattSluttMars.id),
+                repo.hent(iverksattStartFebruar.id),
+            )
+
+            actual shouldBe repo.hentAktiveInnvilgetBehandlinger(1.februar(2021))
+        }
+    }
+
+    private fun iverksattInnvilget(fom: LocalDate, tom: LocalDate) = testDataHelper.nyIverksattInnvilget(periode = Periode.create(fom, tom))
 
     @Test
     fun `hent iverksatte behandlinger uten brevbestillinger`() {
@@ -189,7 +219,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 }
             }
             val beregnet = uavklartVilkårsvurdering.tilBeregnet(
-                beregning = beregning
+                beregning = beregning()
             ).also {
                 repo.lagre(it)
                 repo.hent(it.id) shouldBe it
@@ -247,7 +277,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             oppgaveId = nyOppgaveId,
                             behandlingsinformasjon = tilAttestering.behandlingsinformasjon,
                             fnr = tilAttestering.fnr,
-                            beregning = beregning,
+                            beregning = beregning(),
                             simulering = simulering(tilAttestering.fnr),
                             saksbehandler = saksbehandler,
                         )
@@ -325,7 +355,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             oppgaveId = nyOppgaveId,
                             behandlingsinformasjon = tilAttestering.behandlingsinformasjon,
                             fnr = tilAttestering.fnr,
-                            beregning = beregning,
+                            beregning = beregning(),
                             simulering = simulering(tilAttestering.fnr),
                             saksbehandler = saksbehandler,
                             attestering = underkjentAttestering,

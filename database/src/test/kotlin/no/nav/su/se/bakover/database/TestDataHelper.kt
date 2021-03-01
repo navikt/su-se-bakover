@@ -59,8 +59,8 @@ internal val behandlingsinformasjonMedAvslag =
 
 internal val oppgaveId = OppgaveId("oppgaveId")
 internal val journalpostId = JournalpostId("journalpostId")
-internal val beregning = TestBeregning.toSnapshot()
-internal val avslåttBeregning = beregning.copy(
+internal fun beregning(periode: Periode = TestBeregning.getPeriode()) = TestBeregning.toSnapshot().copy(periode = periode)
+internal val avslåttBeregning = beregning().copy(
     månedsberegninger = listOf(
         PersistertMånedsberegning(
             sumYtelse = 0,
@@ -291,10 +291,11 @@ internal class TestDataHelper(
     }
 
     internal fun nyInnvilgetBeregning(
-        behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt
+        behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt,
+        periode: Periode = TestBeregning.getPeriode(),
     ): Søknadsbehandling.Beregnet.Innvilget {
         return nyInnvilgetVilkårsvurdering(behandlingsinformasjon).tilBeregnet(
-            beregning
+            beregning(periode)
         ).also {
             søknadsbehandlingRepo.lagre(it)
         } as Søknadsbehandling.Beregnet.Innvilget
@@ -309,9 +310,10 @@ internal class TestDataHelper(
     }
 
     internal fun nySimulering(
-        behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt
+        behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt,
+        periode: Periode = TestBeregning.getPeriode(),
     ): Søknadsbehandling.Simulert {
-        return nyInnvilgetBeregning(behandlingsinformasjon).let {
+        return nyInnvilgetBeregning(behandlingsinformasjon, periode).let {
             it.tilSimulert(simulering(it.fnr))
         }.also {
             søknadsbehandlingRepo.lagre(it)
@@ -319,9 +321,10 @@ internal class TestDataHelper(
     }
 
     internal fun nyTilInnvilgetAttestering(
-        behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt
+        behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt,
+        periode: Periode = TestBeregning.getPeriode(),
     ): Søknadsbehandling.TilAttestering.Innvilget {
-        return nySimulering(behandlingsinformasjon).tilAttestering(
+        return nySimulering(behandlingsinformasjon, periode).tilAttestering(
             saksbehandler
         ).also {
             søknadsbehandlingRepo.lagre(it)
@@ -372,9 +375,10 @@ internal class TestDataHelper(
         behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt,
         avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.database.avstemmingsnøkkel,
         utbetalingslinjer: List<Utbetalingslinje> = listOf(utbetalingslinje()),
+        periode: Periode = TestBeregning.getPeriode()
     ): Pair<Søknadsbehandling.Iverksatt.Innvilget, Utbetaling.OversendtUtbetaling.UtenKvittering> {
         val utbetalingId = UUID30.randomUUID()
-        val innvilget = nyTilInnvilgetAttestering(behandlingsinformasjon).tilIverksatt(
+        val innvilget = nyTilInnvilgetAttestering(behandlingsinformasjon, periode).tilIverksatt(
             iverksattAttestering, utbetalingId
         )
         val utbetaling = oversendtUtbetalingUtenKvittering(

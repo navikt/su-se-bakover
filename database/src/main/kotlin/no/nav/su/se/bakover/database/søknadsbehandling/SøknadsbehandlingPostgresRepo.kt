@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import java.time.LocalDate
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -88,6 +89,23 @@ internal class SøknadsbehandlingPostgresRepo(
                 .hentListe(emptyMap(), session) { row ->
                     row.toSaksbehandling(session)
                 }.filterIsInstance<Søknadsbehandling.Iverksatt>()
+        }
+    }
+
+    override fun hentAktiveInnvilgetBehandlinger(aktivDato: LocalDate): List<Søknadsbehandling.Iverksatt.Innvilget> {
+        return dataSource.withSession { session ->
+            (
+                "select b.*, s.fnr, s.saksnummer " +
+                    "from behandling b " +
+                    "inner join sak s on s.id = b.sakId " +
+                    "where status = 'IVERKSATT_INNVILGET' " +
+                    "and (b.beregning->'periode'->>'fraOgMed')::DATE <= :dato " +
+                    "and (b.beregning->'periode'->>'tilOgMed')::DATE >= :dato " +
+                    "order by (b.beregning->'periode'->>'fraOgMed')::DATE, (b.beregning->'periode'->>'tilOgMed')::DATE, b.opprettet"
+                )
+                .hentListe(mapOf("dato" to aktivDato), session) { row ->
+                    row.toSaksbehandling(session)
+                }.filterIsInstance<Søknadsbehandling.Iverksatt.Innvilget>()
         }
     }
 
