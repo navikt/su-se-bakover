@@ -177,7 +177,9 @@ internal class RevurderingServiceImpl(
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler
     ): Either<KunneIkkeRevurdere, Revurdering> {
-        val tilAttestering = when (val revurdering = revurderingRepo.hent(revurderingId)) {
+        val revurdering = revurderingRepo.hent(revurderingId)
+
+        val tilAttestering = when (revurdering) {
             is SimulertRevurdering -> {
                 val aktørId = personService.hentAktørId(revurdering.tilRevurdering.fnr).getOrElse {
                     log.error("Fant ikke aktør-id")
@@ -197,17 +199,15 @@ internal class RevurderingServiceImpl(
                     return KunneIkkeRevurdere.KunneIkkeOppretteOppgave.left()
                 }
 
-                oppgaveService.lukkOppgave(revurdering.oppgaveId).fold(
-                    ifLeft = {
-                        log.error("Kunne ikke lukke oppgaven med id ${revurdering.oppgaveId}, knyttet til revurderingen. Oppgaven må lukkes manuelt.")
-                        return KunneIkkeRevurdere.KunneIkkeLukkeOppgave.left()
-                    },
-                    ifRight = { revurdering.tilAttestering(oppgaveId, saksbehandler) }
-                )
+                revurdering.tilAttestering(oppgaveId, saksbehandler)
             }
             null -> return KunneIkkeRevurdere.FantIkkeRevurdering.left()
             else -> return KunneIkkeRevurdere.UgyldigTilstand(revurdering::class, RevurderingTilAttestering::class)
                 .left()
+        }
+
+        oppgaveService.lukkOppgave(revurdering.oppgaveId).mapLeft {
+            log.error("Kunne ikke lukke oppgaven med id ${revurdering.oppgaveId}, knyttet til revurderingen. Oppgaven må lukkes manuelt.")
         }
 
         revurderingRepo.lagre(tilAttestering)
