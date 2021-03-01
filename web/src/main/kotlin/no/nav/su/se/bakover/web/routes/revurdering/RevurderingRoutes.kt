@@ -17,7 +17,6 @@ import io.ktor.routing.Route
 import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.serialize
-import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
@@ -27,17 +26,16 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.errorJson
-import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.routes.behandling.beregning.FradragJson
 import no.nav.su.se.bakover.web.routes.behandling.beregning.FradragJson.Companion.toFradrag
 import no.nav.su.se.bakover.web.routes.behandling.beregning.PeriodeJson
+import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresponser.fantIkkeRevurdering
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withRevurderingId
 import no.nav.su.se.bakover.web.withSakId
-import java.time.LocalDate
 
 internal const val revurderingPath = "$sakPath/{sakId}/revurderinger"
 
@@ -47,28 +45,7 @@ internal fun Route.revurderingRoutes(
 ) {
     opprettRevurderingRoute(revurderingService)
 
-    data class OppdaterRevurderingsperiodeBody(val fraOgMed: LocalDate)
-    authorize(Brukerrolle.Saksbehandler) {
-        post("$revurderingPath/{revurderingId}/oppdaterPeriode") {
-            call.withRevurderingId { revurderingId ->
-                call.withBody<OppdaterRevurderingsperiodeBody> { request ->
-                    val navIdent = call.suUserContext.navIdent
-
-                    revurderingService.oppdaterRevurderingsperiode(
-                        revurderingId,
-                        fraOgMed = request.fraOgMed,
-                        saksbehandler = Saksbehandler(navIdent)
-                    ).fold(
-                        ifLeft = { call.svar(it.tilFeilMelding()) },
-                        ifRight = {
-                            call.audit("Oppdaterte perioden på revurdering med id: $revurderingId")
-                            call.svar(Resultat.json(Created, serialize(it.toJson())))
-                        },
-                    )
-                }
-            }
-        }
-    }
+    oppdaterRevurderingsperiodeRoute(revurderingService)
 
     data class BeregningForRevurderingBody(
         val periode: PeriodeJson,
@@ -133,10 +110,7 @@ internal fun Route.revurderingRoutes(
                             "Attestant og saksbehandler kan ikke være samme person",
                             "attestant_og_saksbehandler_kan_ikke_være_samme_person",
                         )
-                        KunneIkkeIverksetteRevurdering.FantIkkeRevurdering -> NotFound.errorJson(
-                            "Fant ikke revurdering",
-                            "fant_ikke_revurdering",
-                        )
+                        KunneIkkeIverksetteRevurdering.FantIkkeRevurdering -> fantIkkeRevurdering
                         is KunneIkkeIverksetteRevurdering.UgyldigTilstand -> BadRequest.errorJson(
                             "Kan ikke gå fra tilstanden ${it.fra.simpleName} til tilstanden ${it.til.simpleName}",
                             "ugyldig_tilstandsovergang",

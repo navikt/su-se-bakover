@@ -28,15 +28,17 @@ import java.time.LocalDate
 internal fun Route.opprettRevurderingRoute(
     revurderingService: RevurderingService
 ) {
+    data class Body(val fraOgMed: LocalDate)
+
     authorize(Brukerrolle.Saksbehandler) {
         post("$revurderingPath/opprett") {
             call.withSakId { sakId ->
-                call.withBody<Body> { request ->
+                call.withBody<Body> { body ->
                     val navIdent = call.suUserContext.navIdent
 
                     revurderingService.opprettRevurdering(
-                        sakId,
-                        fraOgMed = request.fraOgMed,
+                        sakId = sakId,
+                        fraOgMed = body.fraOgMed,
                         saksbehandler = NavIdentBruker.Saksbehandler(navIdent)
                     ).fold(
                         ifLeft = { call.svar(it.tilResultat()) },
@@ -51,14 +53,12 @@ internal fun Route.opprettRevurderingRoute(
     }
 }
 
-private class Body(val fraOgMed: LocalDate)
-
 private fun KunneIkkeOppretteRevurdering.tilResultat(): Resultat {
     return when (this) {
         KunneIkkeOppretteRevurdering.FantIkkeSak -> fantIkkeSak
         KunneIkkeOppretteRevurdering.FantIkkeAktørid -> fantIkkeAktørId
         KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
-        is KunneIkkeOppretteRevurdering.UgyldigPeriode -> ugyldigPeriode(this)
+        is KunneIkkeOppretteRevurdering.UgyldigPeriode -> ugyldigPeriode(this.subError)
         KunneIkkeOppretteRevurdering.FantIngentingSomKanRevurderes -> HttpStatusCode.NotFound.errorJson(
             "Ingen behandlinger som kan revurderes for angitt periode",
             "ingenting_å_revurdere_i_perioden",

@@ -40,6 +40,7 @@ import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppdatereRevurderingsperiode
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeRevurdere
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
@@ -310,7 +311,7 @@ open class AccessCheckProxy(
                     revurderingId: UUID,
                     fraOgMed: LocalDate,
                     saksbehandler: NavIdentBruker.Saksbehandler
-                ): Either<KunneIkkeRevurdere, OpprettetRevurdering> {
+                ): Either<KunneIkkeOppdatereRevurderingsperiode, OpprettetRevurdering> {
                     assertHarTilgangTilRevurdering(revurderingId)
                     return services.revurdering.oppdaterRevurderingsperiode(revurderingId, fraOgMed, saksbehandler)
                 }

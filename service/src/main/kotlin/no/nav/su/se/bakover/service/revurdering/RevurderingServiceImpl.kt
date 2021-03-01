@@ -117,19 +117,22 @@ internal class RevurderingServiceImpl(
         revurderingId: UUID,
         fraOgMed: LocalDate,
         saksbehandler: NavIdentBruker.Saksbehandler
-    ): Either<KunneIkkeRevurdere, OpprettetRevurdering> {
+    ): Either<KunneIkkeOppdatereRevurderingsperiode, OpprettetRevurdering> {
 
-        val revurdering = revurderingRepo.hent(revurderingId) ?: return KunneIkkeRevurdere.FantIkkeRevurdering.left()
+        val revurdering = revurderingRepo.hent(revurderingId) ?: return KunneIkkeOppdatereRevurderingsperiode.FantIkkeRevurdering.left()
 
+        if (!fraOgMed.between(revurdering.periode)) {
+            return KunneIkkeOppdatereRevurderingsperiode.PeriodenMåVæreInnenforAlleredeValgtStønadsperiode(revurdering.periode).left()
+        }
         // TODO jah: Her holder det kanskje ikke å bruke samme tilOgMed som forrige gang. Hva om vi har byttet stønadsperiode?
         val nyPeriode = Periode.tryCreate(fraOgMed, revurdering.periode.getTilOgMed()).getOrHandle {
-            return KunneIkkeRevurdere.UgyldigPeriode(it).left()
+            return KunneIkkeOppdatereRevurderingsperiode.UgyldigPeriode(it).left()
         }
         return when (revurdering) {
             is OpprettetRevurdering -> revurdering.oppdaterPeriode(nyPeriode).right()
             is BeregnetRevurdering -> revurdering.oppdaterPeriode(nyPeriode).right()
             is SimulertRevurdering -> revurdering.oppdaterPeriode(nyPeriode).right()
-            else -> KunneIkkeRevurdere.UgyldigTilstand(revurdering::class, OpprettetRevurdering::class).left()
+            else -> KunneIkkeOppdatereRevurderingsperiode.UgyldigTilstand(revurdering::class, OpprettetRevurdering::class).left()
         }.map {
             revurderingRepo.lagre(it)
             it
