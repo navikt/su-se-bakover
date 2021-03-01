@@ -50,11 +50,11 @@ sealed class Revurdering : Visitable<RevurderingVisitor> {
             fradragFraSaksbehandler = fradrag
         )
 
-        val beregningStrategy = tilRevurdering.behandlingsinformasjon.bosituasjon!!.getBeregningStrategy()
+        val beregningStrategy = tilRevurdering.behandlingsinformasjon.getBeregningStrategy()
         val revurdertBeregning: Beregning = RevurdertBeregning.fraSøknadsbehandling(
             vedtattBeregning = tilRevurdering.beregning,
             beregningsgrunnlag = beregningsgrunnlag,
-            beregningsstrategi = beregningStrategy,
+            beregningsstrategi = beregningStrategy!!,
         ).getOrElse {
             return KunneIkkeBeregneRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden.left()
         }

@@ -81,7 +81,6 @@ object BehandlingTestUtils {
         ),
         formue = Formue(
             status = Formue.Status.VilkårOppfylt,
-            borSøkerMedEPS = true,
             verdier = Verdier(
                 verdiIkkePrimærbolig = 0,
                 verdiEiendommer = 0,
@@ -109,7 +108,6 @@ object BehandlingTestUtils {
             begrunnelse = null
         ),
         bosituasjon = Bosituasjon(
-            epsAlder = null,
             delerBolig = false,
             ektemakeEllerSamboerUførFlyktning = false,
             begrunnelse = null

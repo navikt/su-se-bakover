@@ -53,7 +53,9 @@ internal fun Route.oppdaterRevurderingsperiodeRoute(
 
 private fun KunneIkkeOppdatereRevurderingsperiode.tilResultat(): Resultat {
     return when (this) {
-        is KunneIkkeOppdatereRevurderingsperiode.UgyldigPeriode -> GenerelleRevurderingsfeilresponser.ugyldigPeriode(this.subError)
+        is KunneIkkeOppdatereRevurderingsperiode.UgyldigPeriode -> GenerelleRevurderingsfeilresponser.ugyldigPeriode(
+            this.subError
+        )
         is KunneIkkeOppdatereRevurderingsperiode.FantIkkeRevurdering -> fantIkkeRevurdering
         is KunneIkkeOppdatereRevurderingsperiode.UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)
         is KunneIkkeOppdatereRevurderingsperiode.PeriodenMåVæreInnenforAlleredeValgtStønadsperiode -> HttpStatusCode.BadRequest.errorJson(

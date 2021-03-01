@@ -113,7 +113,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                     månedsbeløp = 12.0,
                     periode = TestBeregning.getMånedsberegninger()[0].getPeriode(),
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
+                    tilhører = FradragTilhører.BRUKER,
                 )
             )
         ).orNull()!!

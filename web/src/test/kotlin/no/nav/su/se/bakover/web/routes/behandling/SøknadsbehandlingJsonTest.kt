@@ -88,7 +88,6 @@ internal class SøknadsbehandlingJsonTest {
                     "begrunnelse": null
                 },
                 "bosituasjon": {
-                    "epsAlder": null,
                     "delerBolig": false,
                     "ektemakeEllerSamboerUførFlyktning": false,
                     "begrunnelse": null

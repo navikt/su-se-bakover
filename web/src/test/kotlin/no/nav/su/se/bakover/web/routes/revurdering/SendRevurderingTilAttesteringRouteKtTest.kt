@@ -61,6 +61,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             }
         }
     }
+
     @Test
     fun `send til attestering`() {
         val revurderingTilAttestering = RevurderingTilAttestering(
