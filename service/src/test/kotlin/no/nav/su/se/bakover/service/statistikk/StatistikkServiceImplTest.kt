@@ -35,6 +35,7 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.vedtak.IBehandling
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.beregning.TestBeregning
@@ -391,13 +392,16 @@ internal class StatistikkServiceImplTest {
         val clock = Clock.fixed(1.januar(2020).endOfDay(ZoneOffset.UTC).instant, ZoneOffset.UTC)
         val beregning = TestBeregning
 
+        val behandlingMock = mock<IBehandling> {
+            on { sakId } doReturn UUID.randomUUID()
+            on { saksnummer } doReturn Saksnummer(49L)
+        }
         val opprettetRevurdering = OpprettetRevurdering(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(clock),
             tilRevurdering = mock {
-                on { sakId } doReturn UUID.randomUUID()
+                on { behandling } doReturn behandlingMock
                 on { id } doReturn UUID.randomUUID()
-                on { saksnummer } doReturn Saksnummer(55L)
             },
             saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
             periode = beregning.getPeriode()
@@ -438,13 +442,16 @@ internal class StatistikkServiceImplTest {
         val clock = Clock.fixed(1.januar(2020).endOfDay(ZoneOffset.UTC).instant, ZoneOffset.UTC)
         val beregning = TestBeregning
 
+        val behandlingMock = mock<IBehandling> {
+            on { sakId } doReturn UUID.randomUUID()
+            on { saksnummer } doReturn Saksnummer(49L)
+        }
         val revurderingTilAttestering = RevurderingTilAttestering(
             id = UUID.randomUUID(),
             opprettet = LocalDate.now(clock).atStartOfDay().toTidspunkt(zoneIdOslo),
             tilRevurdering = mock {
-                on { sakId } doReturn UUID.randomUUID()
+                on { behandling } doReturn behandlingMock
                 on { id } doReturn UUID.randomUUID()
-                on { saksnummer } doReturn Saksnummer(55L)
             },
             saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
             periode = beregning.getPeriode(),
@@ -494,13 +501,16 @@ internal class StatistikkServiceImplTest {
         val clock = Clock.fixed(1.januar(2020).endOfDay(ZoneOffset.UTC).instant, ZoneOffset.UTC)
         val beregning = TestBeregning
 
+        val behandlingMock = mock<IBehandling> {
+            on { sakId } doReturn UUID.randomUUID()
+            on { saksnummer } doReturn Saksnummer(49L)
+        }
         val iverksattRevurdering = IverksattRevurdering(
             id = UUID.randomUUID(),
             opprettet = LocalDate.now(clock).atStartOfDay().toTidspunkt(zoneIdOslo),
             tilRevurdering = mock {
-                on { sakId } doReturn UUID.randomUUID()
                 on { id } doReturn UUID.randomUUID()
-                on { saksnummer } doReturn Saksnummer(55L)
+                on { behandling } doReturn behandlingMock
             },
             saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
             periode = beregning.getPeriode(),

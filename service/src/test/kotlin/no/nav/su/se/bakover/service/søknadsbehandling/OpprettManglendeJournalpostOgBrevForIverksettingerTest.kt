@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
+import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -633,7 +634,8 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
         microsoftGraphApiOppslag: MicrosoftGraphApiOppslag = mock(),
         brevService: BrevService = mock(),
         clock: Clock = Clock.systemUTC(),
-        revurderingRepo: RevurderingRepo = mock()
+        revurderingRepo: RevurderingRepo = mock(),
+        vedtakRepo: VedtakRepo = mock()
     ) = FerdigstillIverksettingServiceImpl(
         søknadsbehandlingRepo = søknadsbehandlingRepo,
         oppgaveService = oppgaveService,
@@ -642,6 +644,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
         microsoftGraphApiClient = microsoftGraphApiOppslag,
         brevService = brevService,
         clock = clock,
-        revurderingRepo = revurderingRepo
+        revurderingRepo = revurderingRepo,
+        vedtakRepo = vedtakRepo
     )
 }

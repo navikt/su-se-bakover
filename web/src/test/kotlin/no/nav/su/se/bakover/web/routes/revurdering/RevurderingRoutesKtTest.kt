@@ -38,6 +38,7 @@ import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -47,7 +48,6 @@ import no.nav.su.se.bakover.web.routes.behandling.TestBeregning
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
-import java.lang.RuntimeException
 import java.time.LocalDate
 import java.util.UUID
 
@@ -59,36 +59,38 @@ internal class RevurderingRoutesKtTest {
         internal val testServices = TestServicesBuilder.services()
         internal val periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020))
 
-        internal val innvilgetSøknadsbehandling = Søknadsbehandling.Iverksatt.Innvilget(
-            id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(),
-            sakId = sakId,
-            saksnummer = Saksnummer(1569),
-            søknad = Søknad.Journalført.MedOppgave(
+        internal val vedtak = Vedtak.InnvilgetStønad.fromSøknadsbehandling(
+            Søknadsbehandling.Iverksatt.Innvilget(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(),
                 sakId = sakId,
-                søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-                journalpostId = JournalpostId(value = ""),
-                oppgaveId = OppgaveId(value = "")
+                saksnummer = Saksnummer(1569),
+                søknad = Søknad.Journalført.MedOppgave(
+                    id = UUID.randomUUID(),
+                    opprettet = Tidspunkt.now(),
+                    sakId = sakId,
+                    søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+                    journalpostId = JournalpostId(value = ""),
+                    oppgaveId = OppgaveId(value = "")
 
-            ),
-            oppgaveId = OppgaveId(value = ""),
-            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().copy(
-                bosituasjon = Behandlingsinformasjon.Bosituasjon(
-                    epsAlder = 55,
-                    delerBolig = true,
-                    ektemakeEllerSamboerUførFlyktning = true,
-                    begrunnelse = null
-                )
-            ),
-            fnr = FnrGenerator.random(),
-            beregning = TestBeregning,
-            simulering = mock(),
-            saksbehandler = NavIdentBruker.Saksbehandler("saks"),
-            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
-            utbetalingId = UUID30.randomUUID(),
-            eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.VenterPåKvittering
+                ),
+                oppgaveId = OppgaveId(value = ""),
+                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().copy(
+                    bosituasjon = Behandlingsinformasjon.Bosituasjon(
+                        epsAlder = 55,
+                        delerBolig = true,
+                        ektemakeEllerSamboerUførFlyktning = true,
+                        begrunnelse = null
+                    )
+                ),
+                fnr = FnrGenerator.random(),
+                beregning = TestBeregning,
+                simulering = mock(),
+                saksbehandler = NavIdentBruker.Saksbehandler("saks"),
+                attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
+                utbetalingId = UUID30.randomUUID(),
+                eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.VenterPåKvittering
+            )
         )
     }
 
@@ -118,7 +120,7 @@ internal class RevurderingRoutesKtTest {
             id = UUID.randomUUID(),
             periode = TestBeregning.getPeriode(),
             opprettet = Tidspunkt.now(),
-            tilRevurdering = innvilgetSøknadsbehandling.copy(beregning = beregning),
+            tilRevurdering = vedtak.copy(beregning = beregning),
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "")
         ).beregn(
             listOf(
@@ -136,7 +138,7 @@ internal class RevurderingRoutesKtTest {
             is BeregnetRevurdering.Innvilget -> {
                 beregnetRevurdering.toSimulert(
                     Simulering(
-                        gjelderId = innvilgetSøknadsbehandling.fnr,
+                        gjelderId = vedtak.behandling.fnr,
                         gjelderNavn = "Test",
                         datoBeregnet = LocalDate.now(),
                         nettoBeløp = 0,
@@ -165,7 +167,7 @@ internal class RevurderingRoutesKtTest {
                     """{
                     "periode": { "fraOgMed": "${periode.getFraOgMed()}", "tilOgMed": "${periode.getTilOgMed()}"},
                     "fradrag": []
-                    } 
+                    }
                     """.trimIndent()
                 )
             }.apply {
@@ -189,11 +191,11 @@ internal class RevurderingRoutesKtTest {
             id = UUID.randomUUID(),
             periode = periode,
             opprettet = Tidspunkt.now(),
-            tilRevurdering = innvilgetSøknadsbehandling,
+            tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = ""),
             beregning = TestBeregning,
             simulering = Simulering(
-                gjelderId = innvilgetSøknadsbehandling.fnr,
+                gjelderId = vedtak.behandling.fnr,
                 gjelderNavn = "Test",
                 datoBeregnet = LocalDate.now(),
                 nettoBeløp = 0,

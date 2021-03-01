@@ -72,11 +72,11 @@ internal class RevurderingServiceImpl(
 
         val tilRevurdering = sak.vedtakListe
             .filterIsInstance<IVedtakSomGirUtbetaling>()
-            .filter { fraOgMed.between(it.beregning.getPeriode()) }
-            .maxByOrNull { it.opprettet.toString() }
+            .filter { fraOgMed.between(it.periode) }
+            .maxByOrNull { it.opprettet.instant }
             ?: return KunneIkkeOppretteRevurdering.FantIngentingSomKanRevurderes.left()
 
-        val periode = Periode.tryCreate(fraOgMed, tilRevurdering.beregning.getPeriode().getTilOgMed()).getOrHandle {
+        val periode = Periode.tryCreate(fraOgMed, tilRevurdering.periode.getTilOgMed()).getOrHandle {
             return KunneIkkeOppretteRevurdering.UgyldigPeriode(it).left()
         }
 

@@ -41,9 +41,6 @@ sealed class Revurdering : IBehandling, Visitable<RevurderingVisitor> {
     override val fnr: Fnr
         get() = tilRevurdering.behandling.fnr
 
-    val saksnummer
-        get() = this.tilRevurdering.saksnummer
-
     open fun beregn(fradrag: List<Fradrag>): Either<KunneIkkeBeregneRevurdering, BeregnetRevurdering> {
         val beregningsgrunnlag = Beregningsgrunnlag.create(
             beregningsperiode = periode,

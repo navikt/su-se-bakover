@@ -20,10 +20,10 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesKtTest.Companion.innvilgetSøknadsbehandling
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesKtTest.Companion.periode
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesKtTest.Companion.requestPath
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesKtTest.Companion.testServices
+import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesKtTest.Companion.vedtak
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
@@ -36,7 +36,7 @@ internal class OpprettRevurderingRouteKtTest {
         id = UUID.randomUUID(),
         periode = periode,
         opprettet = Tidspunkt.now(),
-        tilRevurdering = innvilgetSøknadsbehandling,
+        tilRevurdering = vedtak,
         saksbehandler = NavIdentBruker.Saksbehandler("")
 
     )
@@ -73,7 +73,7 @@ internal class OpprettRevurderingRouteKtTest {
             id = UUID.randomUUID(),
             periode = periode,
             opprettet = Tidspunkt.now(),
-            tilRevurdering = innvilgetSøknadsbehandling,
+            tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler("")
 
         )

@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
+import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -41,6 +42,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
@@ -69,36 +71,38 @@ internal class FerdigstillRevurderingServiceTest {
     private val søknadId: UUID = UUID.randomUUID()
     private val fnr = FnrGenerator.random()
 
-    private val søknadsbehandlingTilRevurdering = Søknadsbehandling.Iverksatt.Innvilget(
-        id = UUID.randomUUID(),
-        sakId = sakId,
-        opprettet = Tidspunkt.EPOCH,
-        saksbehandler = NavIdentBruker.Saksbehandler("s11"),
-        attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("a22")),
-        oppgaveId = OppgaveId("23"),
-        saksnummer = saksnummer,
-        søknad = Søknad.Journalført.MedOppgave(
-            id = søknadId,
-            opprettet = Tidspunkt.EPOCH,
+    private val søknadsbehandlingTilRevurdering = Vedtak.InnvilgetStønad.fromSøknadsbehandling(
+        Søknadsbehandling.Iverksatt.Innvilget(
+            id = UUID.randomUUID(),
             sakId = sakId,
-            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-            oppgaveId = OppgaveId("56"),
-            journalpostId = JournalpostId("315")
-        ),
-        beregning = TestBeregning,
-        simulering = Simulering(
-            gjelderId = fnr,
-            gjelderNavn = "",
-            datoBeregnet = LocalDate.EPOCH,
-            nettoBeløp = 0,
-            periodeList = listOf()
-        ),
-        behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-        fnr = fnr,
-        utbetalingId = UUID30.randomUUID(),
-        eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.JournalførtOgDistribuertBrev(
-            journalpostId = JournalpostId("515"),
-            brevbestillingId = BrevbestillingId("551")
+            opprettet = Tidspunkt.EPOCH,
+            saksbehandler = NavIdentBruker.Saksbehandler("s11"),
+            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("a22")),
+            oppgaveId = OppgaveId("23"),
+            saksnummer = saksnummer,
+            søknad = Søknad.Journalført.MedOppgave(
+                id = søknadId,
+                opprettet = Tidspunkt.EPOCH,
+                sakId = sakId,
+                søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+                oppgaveId = OppgaveId("56"),
+                journalpostId = JournalpostId("315")
+            ),
+            beregning = TestBeregning,
+            simulering = Simulering(
+                gjelderId = fnr,
+                gjelderNavn = "",
+                datoBeregnet = LocalDate.EPOCH,
+                nettoBeløp = 0,
+                periodeList = listOf()
+            ),
+            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
+            fnr = fnr,
+            utbetalingId = UUID30.randomUUID(),
+            eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.JournalførtOgDistribuertBrev(
+                journalpostId = JournalpostId("515"),
+                brevbestillingId = BrevbestillingId("551")
+            )
         )
     )
 
@@ -493,7 +497,8 @@ internal class FerdigstillRevurderingServiceTest {
         brevService: BrevService = mock(),
         eventObserver: EventObserver = mock { on { handle(any()) }.doNothing() },
         clock: Clock = Clock.systemUTC(),
-        revurderingRepo: RevurderingRepo = mock()
+        revurderingRepo: RevurderingRepo = mock(),
+        vedtakRepo: VedtakRepo = mock()
     ) = FerdigstillIverksettingServiceImpl(
         søknadsbehandlingRepo = søknadsbehandlingRepo,
         oppgaveService = oppgaveService,
@@ -502,6 +507,7 @@ internal class FerdigstillRevurderingServiceTest {
         personService = personService,
         brevService = brevService,
         clock = clock,
-        revurderingRepo
+        revurderingRepo,
+        vedtakRepo = vedtakRepo
     ).apply { addObserver(eventObserver) }
 }
