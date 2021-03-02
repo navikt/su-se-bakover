@@ -400,7 +400,8 @@ internal class StatistikkServiceImplTest {
                 on { saksnummer } doReturn Saksnummer(55L)
             },
             saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-            periode = beregning.getPeriode()
+            periode = beregning.getPeriode(),
+            oppgaveId = OppgaveId("oppgaveid")
         )
 
         val expected = Statistikk.Behandling(

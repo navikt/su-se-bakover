@@ -167,6 +167,7 @@ internal class OpprettRevurderingServiceTest {
             opprettet = actual.opprettet,
             tilRevurdering = sak.behandlinger.first() as Søknadsbehandling.Iverksatt.Innvilget,
             saksbehandler = saksbehandler,
+            oppgaveId = OppgaveId("oppgaveId")
         )
         inOrder(sakServiceMock, personServiceMock, oppgaveServiceMock, revurderingRepoMock) {
             verify(sakServiceMock).hentSak(sakId)
@@ -329,6 +330,7 @@ internal class OpprettRevurderingServiceTest {
             opprettet = Tidspunkt.EPOCH,
             tilRevurdering = sak.behandlinger.first() as Søknadsbehandling.Iverksatt.Innvilget,
             saksbehandler = saksbehandler,
+            oppgaveId = OppgaveId("oppgaveid")
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {

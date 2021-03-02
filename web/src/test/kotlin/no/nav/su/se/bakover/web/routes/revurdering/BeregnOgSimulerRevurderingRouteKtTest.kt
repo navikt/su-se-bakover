@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
@@ -105,7 +106,8 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
             periode = TestBeregning.getPeriode(),
             opprettet = Tidspunkt.now(),
             tilRevurdering = innvilgetSøknadsbehandling.copy(beregning = beregning),
-            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "")
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = ""),
+            oppgaveId = OppgaveId("oppgaveid")
         ).beregn(
             listOf(
                 FradragFactory.ny(

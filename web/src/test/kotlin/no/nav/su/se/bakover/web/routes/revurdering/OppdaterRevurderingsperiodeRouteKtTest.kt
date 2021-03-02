@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppdatereRevurderingsperiode
@@ -69,8 +70,8 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
             periode = periode,
             opprettet = Tidspunkt.now(),
             tilRevurdering = innvilgetSøknadsbehandling,
-            saksbehandler = NavIdentBruker.Saksbehandler("")
-
+            saksbehandler = NavIdentBruker.Saksbehandler(""),
+            oppgaveId = OppgaveId("oppgaveId"),
         )
         val revurderingServiceMock = mock<RevurderingService> {
             on { oppdaterRevurderingsperiode(any(), any(), any()) } doReturn opprettetRevurdering.right()

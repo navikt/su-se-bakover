@@ -1,0 +1,1 @@
+delete from revurdering where oppgaveid is null;

@@ -88,6 +88,7 @@ internal class RevurderingServiceImpl(
             return KunneIkkeOppretteRevurdering.FantIkkeAktørId.left()
         }
 
+        // TODO ai 25.02.2021 - Oppgaven skal egentligen ikke opprettes her. Den burde egentligen komma utifra melding av endring, som skal føres til revurdering.
         return oppgaveService.opprettOppgave(
             OppgaveConfig.Revurderingsbehandling(
                 saksnummer = søknadsbehandling.saksnummer,
@@ -96,11 +97,12 @@ internal class RevurderingServiceImpl(
             )
         ).mapLeft {
             KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave
-        }.map {
+        }.map { oppgaveId ->
             OpprettetRevurdering(
                 periode = periode,
                 tilRevurdering = søknadsbehandling,
-                saksbehandler = saksbehandler
+                saksbehandler = saksbehandler,
+                oppgaveId = oppgaveId,
             ).also {
                 revurderingRepo.lagre(it)
                 observers.forEach { observer ->
@@ -183,7 +185,9 @@ internal class RevurderingServiceImpl(
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler
     ): Either<KunneIkkeSendeRevurderingTilAttestering, Revurdering> {
-        val tilAttestering = when (val revurdering = revurderingRepo.hent(revurderingId)) {
+        val revurdering = revurderingRepo.hent(revurderingId) ?: return KunneIkkeSendeRevurderingTilAttestering.FantIkkeRevurdering.left()
+
+        val tilAttestering = when (revurdering) {
             is SimulertRevurdering -> {
                 val aktørId = personService.hentAktørId(revurdering.tilRevurdering.fnr).getOrElse {
                     log.error("Fant ikke aktør-id")
@@ -205,10 +209,14 @@ internal class RevurderingServiceImpl(
 
                 revurdering.tilAttestering(oppgaveId, saksbehandler)
             }
-            null -> return KunneIkkeSendeRevurderingTilAttestering.FantIkkeRevurdering.left()
             else -> return KunneIkkeSendeRevurderingTilAttestering.UgyldigTilstand(revurdering::class, RevurderingTilAttestering::class)
                 .left()
         }
+
+        oppgaveService.lukkOppgave(revurdering.oppgaveId).mapLeft {
+            log.error("Kunne ikke lukke oppgaven med id ${revurdering.oppgaveId}, knyttet til revurderingen. Oppgaven må lukkes manuelt.")
+        }
+
         revurderingRepo.lagre(tilAttestering)
         observers.forEach { observer ->
             observer.handle(
