@@ -25,12 +25,12 @@ interface IBehandling {
 interface IVedtak {
     val id: UUID
     val opprettet: Tidspunkt
-    val periode: Periode
     val behandling: IBehandling
     val behandlingsinformasjon: Behandlingsinformasjon
 }
 
 interface IVedtakSomGirUtbetaling : IVedtak {
+    val periode: Periode
     val beregning: Beregning
     val simulering: Simulering
     val saksbehandler: NavIdentBruker.Saksbehandler
@@ -90,7 +90,6 @@ sealed class Vedtak : IVedtak {
         companion object {
             fun fromSøknadsbehandlingMedBeregning(avslag: Søknadsbehandling.Iverksatt.Avslag.MedBeregning) =
                 MedBeregning(
-                    periode = avslag.beregning.getPeriode(),
                     behandling = avslag,
                     behandlingsinformasjon = avslag.behandlingsinformasjon,
                     beregning = avslag.beregning,
@@ -99,21 +98,19 @@ sealed class Vedtak : IVedtak {
                     eksterneIverksettingsteg = avslag.eksterneIverksettingsteg,
                 )
 
-            // TODO fix periode for avslag uten beregning
-            // fun fromSøknadsbehandlingUtenBeregning(avslag: Søknadsbehandling.Iverksatt.Avslag.UtenBeregning) = UtenBeregning(
-            //     periode = avslag.beregning.getPeriode(),
-            //     behandling = avslag,
-            //     behandlingsinformasjon = avslag.behandlingsinformasjon,
-            //     saksbehandler = avslag.saksbehandler,
-            //     attestant = avslag.attestering.attestant,
-            //     eksterneIverksettingsteg = avslag.eksterneIverksettingsteg,
-            // )
+            fun fromSøknadsbehandlingUtenBeregning(avslag: Søknadsbehandling.Iverksatt.Avslag.UtenBeregning) =
+                UtenBeregning(
+                    behandling = avslag,
+                    behandlingsinformasjon = avslag.behandlingsinformasjon,
+                    saksbehandler = avslag.saksbehandler,
+                    attestant = avslag.attestering.attestant,
+                    eksterneIverksettingsteg = avslag.eksterneIverksettingsteg,
+                )
         }
 
         data class UtenBeregning(
             override val id: UUID = UUID.randomUUID(),
             override val opprettet: Tidspunkt = Tidspunkt.now(),
-            override val periode: Periode,
             override val behandling: IBehandling,
             override val behandlingsinformasjon: Behandlingsinformasjon,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
@@ -124,7 +121,6 @@ sealed class Vedtak : IVedtak {
         data class MedBeregning(
             override val id: UUID = UUID.randomUUID(),
             override val opprettet: Tidspunkt = Tidspunkt.now(),
-            override val periode: Periode,
             override val behandling: IBehandling,
             override val behandlingsinformasjon: Behandlingsinformasjon,
             val beregning: Beregning,

@@ -336,8 +336,11 @@ internal class SøknadsbehandlingServiceImpl(
                                         medPotensiellBrevbestillingId
                                     )
                                 )
-                                // TODO fix
-                                is Søknadsbehandling.Iverksatt.Avslag.UtenBeregning -> throw NotImplementedError()
+                                is Søknadsbehandling.Iverksatt.Avslag.UtenBeregning -> vedtakRepo.lagre(
+                                    Vedtak.AvslåttStønad.fromSøknadsbehandlingUtenBeregning(
+                                        medPotensiellBrevbestillingId
+                                    )
+                                )
                             }
                             medPotensiellBrevbestillingId
                         }.also {

@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.database.vedtak
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
-import kotliquery.param
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.EksterneIverksettingsstegEtterUtbetalingMapper
@@ -158,8 +157,8 @@ internal class VedtakPosgresRepo(
     private fun Row.toVedtak(session: Session): Vedtak {
         val id = uuid("id")
         val opprettet = tidspunkt("opprettet")
-        val fraOgMed = localDate("fraOgMed")
-        val tilOgMed = localDate("tilOgMed")
+        val fraOgMed = localDateOrNull("fraOgMed")
+        val tilOgMed = localDateOrNull("tilOgMed")
 
         val behandling = when (val knytning = hentBehandlingVedtakKnytning(id, session)) {
             is BehandlingVedtakKnytning.ForSøknadsbehandling ->
@@ -184,7 +183,7 @@ internal class VedtakPosgresRepo(
             utbetalingId != null && beregning != null && simulering != null -> Vedtak.InnvilgetStønad(
                 id = id,
                 opprettet = opprettet,
-                periode = Periode.create(fraOgMed, tilOgMed),
+                periode = Periode.create(fraOgMed!!, tilOgMed!!),
                 behandling = behandling,
                 behandlingsinformasjon = behandlingsinformasjon,
                 beregning = beregning,
@@ -200,7 +199,6 @@ internal class VedtakPosgresRepo(
             utbetalingId == null && beregning != null -> Vedtak.AvslåttStønad.MedBeregning(
                 id = id,
                 opprettet = opprettet,
-                periode = Periode.create(fraOgMed, tilOgMed),
                 behandling = behandling,
                 behandlingsinformasjon = behandlingsinformasjon,
                 beregning = beregning,
@@ -214,7 +212,6 @@ internal class VedtakPosgresRepo(
             utbetalingId == null && beregning == null -> Vedtak.AvslåttStønad.UtenBeregning(
                 id = id,
                 opprettet = opprettet,
-                periode = Periode.create(fraOgMed, tilOgMed),
                 behandling = behandling,
                 behandlingsinformasjon = behandlingsinformasjon,
                 saksbehandler = saksbehandler,
@@ -342,8 +339,8 @@ internal class VedtakPosgresRepo(
                     mapOf(
                         "id" to vedtak.id,
                         "opprettet" to vedtak.opprettet,
-                        "fraOgMed" to vedtak.periode.getFraOgMed(),
-                        "tilOgMed" to vedtak.periode.getTilOgMed(),
+                        "fraOgMed" to null,
+                        "tilOgMed" to null,
                         "saksbehandler" to vedtak.saksbehandler,
                         "attestant" to vedtak.attestant,
                         "beregning" to beregning?.let { objectMapper.writeValueAsString(it.toSnapshot()) },
@@ -383,11 +380,11 @@ internal class VedtakPosgresRepo(
                 is BehandlingVedtakKnytning.ForSøknadsbehandling ->
                     mapOf(
                         "soknadsbehandlingId" to knytning.søknadsbehandlingId,
-                        "revurderingId" to null.param<UUID>()
+                        "revurderingId" to null
                     )
                 is BehandlingVedtakKnytning.ForRevurdering ->
                     mapOf(
-                        "soknadsbehandlingId" to null.param<UUID>(),
+                        "soknadsbehandlingId" to null,
                         "revurderingId" to knytning.revurderingId
                     )
             }
