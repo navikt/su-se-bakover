@@ -1,9 +1,8 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
 import arrow.core.Either
+import arrow.core.flatMap
 import arrow.core.getOrHandle
-import arrow.core.left
-import arrow.core.right
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
@@ -46,40 +45,32 @@ internal fun Route.beregnOgSimulerRevurdering(
         val periode: PeriodeJson,
         val fradrag: List<FradragJson>,
     ) {
-        fun toDomain(): Either<Resultat, List<Fradrag>> {
-            val periode = periode.toPeriode().getOrHandle { return it.left() }
-            val fradrag = fradrag.toFradrag(periode).getOrHandle { return it.left() }
-
-            return fradrag.right()
-        }
+        fun toDomain(): Either<Resultat, List<Fradrag>> =
+            periode.toPeriode()
+                .flatMap { fradrag.toFradrag(it) }
     }
     authorize(Brukerrolle.Saksbehandler) {
         post("$revurderingPath/{revurderingId}/beregnOgSimuler") {
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->
                     call.withBody<BeregningForRevurderingBody> { body ->
-                        body.toDomain()
-                            .fold(
-                                ifLeft = { call.svar(it) },
-                                ifRight = {
-                                    revurderingService.beregnOgSimuler(
-                                        revurderingId = revurderingId,
-                                        saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
-                                        fradrag = it
-                                    ).fold(
-                                        ifLeft = { revurderingFeilet -> call.svar(revurderingFeilet.tilResultat()) },
-                                        ifRight = { revurdering ->
-                                            call.audit("Opprettet en ny revurdering beregning og simulering på sak med id $sakId")
-                                            call.svar(
-                                                Resultat.json(
-                                                    HttpStatusCode.Created,
-                                                    serialize(revurdering.toJson())
-                                                )
-                                            )
-                                        },
+                        val resultat = body.toDomain()
+                            .flatMap { fradrag ->
+                                revurderingService.beregnOgSimuler(
+                                    revurderingId = revurderingId,
+                                    saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
+                                    fradrag = fradrag
+                                ).mapLeft {
+                                    it.tilResultat()
+                                }.map { revurdering ->
+                                    call.audit("Opprettet en ny revurdering beregning og simulering på sak med id $sakId")
+                                    Resultat.json(
+                                        HttpStatusCode.Created,
+                                        serialize(revurdering.toJson())
                                     )
                                 }
-                            )
+                            }.getOrHandle { it }
+                        call.svar(resultat)
                     }
                 }
             }
