@@ -24,8 +24,12 @@ internal class RevurdertBeregning private constructor(revurdertBeregning: Beregn
             vedtattBeregning: Beregning,
             beregningsgrunnlag: Beregningsgrunnlag,
             beregningsstrategi: BeregningStrategy,
+            beregnMedVirkningNesteMånedDersomStønadenGårNed: Boolean = false,
         ): Either<NesteMånedErUtenforStønadsperioden, Beregning> {
             val revurdertBeregning = beregningsstrategi.beregn(beregningsgrunnlag)
+            if (!beregnMedVirkningNesteMånedDersomStønadenGårNed) {
+                return revurdertBeregning.right()
+            }
 
             return when {
                 revurdertBeregning.getMånedsberegninger().first()
