@@ -119,7 +119,10 @@ internal class RevurderingPostgresRepo(
                 oppgaveId = OppgaveId(oppgaveId!!),
                 attestant = NavIdentBruker.Attestant(attestant!!),
                 utbetalingId = UUID30.fromString(utbetalingId!!),
-                eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetalingMapper.idToObject(iverksattJournalpostId, iverksattBrevbestillingId)
+                eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetalingMapper.idToObject(
+                    iverksattJournalpostId,
+                    iverksattBrevbestillingId
+                )
             )
             RevurderingsType.TIL_ATTESTERING -> RevurderingTilAttestering(
                 id = id,
@@ -138,7 +141,8 @@ internal class RevurderingPostgresRepo(
                 tilRevurdering = tilRevurdering,
                 beregning = beregning!!,
                 simulering = simulering!!,
-                saksbehandler = Saksbehandler(saksbehandler)
+                saksbehandler = Saksbehandler(saksbehandler),
+                oppgaveId = OppgaveId(oppgaveId!!)
             )
             RevurderingsType.BEREGNET_INNVILGET -> BeregnetRevurdering.Innvilget(
                 id = id,
@@ -146,7 +150,8 @@ internal class RevurderingPostgresRepo(
                 opprettet = opprettet,
                 tilRevurdering = tilRevurdering,
                 beregning = beregning!!,
-                saksbehandler = Saksbehandler(saksbehandler)
+                saksbehandler = Saksbehandler(saksbehandler),
+                oppgaveId = OppgaveId(oppgaveId!!)
             )
             RevurderingsType.BEREGNET_AVSLAG -> BeregnetRevurdering.Avslag(
                 id = id,
@@ -154,14 +159,16 @@ internal class RevurderingPostgresRepo(
                 opprettet = opprettet,
                 tilRevurdering = tilRevurdering,
                 beregning = beregning!!,
-                saksbehandler = Saksbehandler(saksbehandler)
+                saksbehandler = Saksbehandler(saksbehandler),
+                oppgaveId = OppgaveId(oppgaveId!!)
             )
             RevurderingsType.OPPRETTET -> OpprettetRevurdering(
                 id = id,
                 periode = periode,
                 opprettet = opprettet,
                 tilRevurdering = tilRevurdering,
-                saksbehandler = Saksbehandler(saksbehandler)
+                saksbehandler = Saksbehandler(saksbehandler),
+                oppgaveId = OppgaveId(oppgaveId!!)
             )
         }
     }
@@ -195,7 +202,8 @@ internal class RevurderingPostgresRepo(
                     "opprettet" to revurdering.opprettet,
                     "behandlingId" to revurdering.tilRevurdering.id,
                     "saksbehandler" to revurdering.saksbehandler.navIdent,
-                    "revurderingsType" to RevurderingsType.OPPRETTET.toString()
+                    "revurderingsType" to RevurderingsType.OPPRETTET.toString(),
+                    "oppgaveId" to revurdering.oppgaveId.toString(),
                 ),
                 session
             )
@@ -312,8 +320,12 @@ internal class RevurderingPostgresRepo(
                     "revurderingsType" to RevurderingsType.IVERKSATT.toString(),
                     "attestant" to revurdering.attestant.navIdent,
                     "utbetalingId" to revurdering.utbetalingId,
-                    "iverksattjournalpostid" to EksterneIverksettingsstegEtterUtbetalingMapper.iverksattJournalpostId(revurdering.eksterneIverksettingsteg)?.toString(),
-                    "iverksattbrevbestillingid" to EksterneIverksettingsstegEtterUtbetalingMapper.iverksattBrevbestillingId(revurdering.eksterneIverksettingsteg)?.toString(),
+                    "iverksattjournalpostid" to EksterneIverksettingsstegEtterUtbetalingMapper.iverksattJournalpostId(
+                        revurdering.eksterneIverksettingsteg
+                    )?.toString(),
+                    "iverksattbrevbestillingid" to EksterneIverksettingsstegEtterUtbetalingMapper.iverksattBrevbestillingId(
+                        revurdering.eksterneIverksettingsteg
+                    )?.toString(),
                 ),
                 session
             )

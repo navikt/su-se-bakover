@@ -119,7 +119,8 @@ internal class RevurderingRoutesKtTest {
             periode = TestBeregning.getPeriode(),
             opprettet = Tidspunkt.now(),
             tilRevurdering = innvilgetSøknadsbehandling.copy(beregning = beregning),
-            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "")
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = ""),
+            oppgaveId = OppgaveId("oppgaveid")
         ).beregn(
             listOf(
                 FradragFactory.ny(

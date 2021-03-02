@@ -47,7 +47,8 @@ internal class RevurderingPostgresRepoTest {
                 periode = periode,
                 opprettet = fixedTidspunkt,
                 tilRevurdering = behandling,
-                saksbehandler = saksbehandler
+                saksbehandler = saksbehandler,
+                oppgaveId = OppgaveId("oppgaveid")
             )
             repo.lagre(opprettet)
             repo.hent(opprettet.id) shouldBe opprettet
@@ -65,6 +66,7 @@ internal class RevurderingPostgresRepoTest {
                 opprettet = fixedTidspunkt,
                 tilRevurdering = behandling,
                 saksbehandler = saksbehandler,
+                oppgaveId = OppgaveId("oppgaveid")
             )
             repo.lagre(opprettetRevurdering)
             val beregnetRevurdering = BeregnetRevurdering.Innvilget(
@@ -73,7 +75,8 @@ internal class RevurderingPostgresRepoTest {
                 opprettet = fixedTidspunkt,
                 tilRevurdering = behandling,
                 saksbehandler = saksbehandler,
-                beregning = TestBeregning.toSnapshot()
+                beregning = TestBeregning.toSnapshot(),
+                oppgaveId = OppgaveId("oppgaveid")
             )
 
             repo.lagre(beregnetRevurdering)
@@ -84,7 +87,8 @@ internal class RevurderingPostgresRepoTest {
                 periode = Periode.create(1.juni(2020), 30.juni(2020)),
                 opprettet = Tidspunkt.now(),
                 tilRevurdering = beregnetRevurdering.tilRevurdering,
-                saksbehandler = saksbehandler
+                saksbehandler = saksbehandler,
+                oppgaveId = OppgaveId("oppgaveid")
             )
 
             repo.lagre(revurderingMedNyPeriode)
@@ -104,7 +108,8 @@ internal class RevurderingPostgresRepoTest {
                 periode = periode,
                 opprettet = fixedTidspunkt,
                 tilRevurdering = behandling,
-                saksbehandler = saksbehandler
+                saksbehandler = saksbehandler,
+                oppgaveId = OppgaveId("oppgaveid")
             )
 
             repo.lagre(opprettet)
@@ -115,7 +120,8 @@ internal class RevurderingPostgresRepoTest {
                 opprettet = opprettet.opprettet,
                 tilRevurdering = behandling,
                 saksbehandler = saksbehandler,
-                beregning = TestBeregning
+                beregning = TestBeregning,
+                oppgaveId = OppgaveId("oppgaveid")
             )
 
             repo.lagre(beregnetRevurdering)
@@ -132,7 +138,8 @@ internal class RevurderingPostgresRepoTest {
                 periode = periode,
                 opprettet = fixedTidspunkt,
                 tilRevurdering = behandling,
-                saksbehandler = saksbehandler
+                saksbehandler = saksbehandler,
+                oppgaveId = OppgaveId("oppgaveid")
             )
 
             repo.lagre(opprettet)
@@ -143,7 +150,8 @@ internal class RevurderingPostgresRepoTest {
                 opprettet = opprettet.opprettet,
                 tilRevurdering = behandling,
                 saksbehandler = opprettet.saksbehandler,
-                beregning = TestBeregning
+                beregning = TestBeregning,
+                oppgaveId = OppgaveId("oppgaveid")
             )
 
             repo.lagre(beregnet)
@@ -154,7 +162,8 @@ internal class RevurderingPostgresRepoTest {
                 opprettet = beregnet.opprettet,
                 tilRevurdering = beregnet.tilRevurdering,
                 saksbehandler = Saksbehandler("ny saksbehandler"),
-                beregning = beregnet.beregning
+                beregning = beregnet.beregning,
+                oppgaveId = OppgaveId("oppgaveid")
             )
 
             repo.lagre(nyBeregnet)
@@ -176,7 +185,8 @@ internal class RevurderingPostgresRepoTest {
                 periode = periode,
                 opprettet = fixedTidspunkt,
                 tilRevurdering = behandling,
-                saksbehandler = saksbehandler
+                saksbehandler = saksbehandler,
+                oppgaveId = OppgaveId("oppgaveid")
             )
 
             repo.lagre(opprettet)
@@ -187,7 +197,8 @@ internal class RevurderingPostgresRepoTest {
                 opprettet = opprettet.opprettet,
                 tilRevurdering = behandling,
                 saksbehandler = opprettet.saksbehandler,
-                beregning = TestBeregning
+                beregning = TestBeregning,
+                oppgaveId = OppgaveId("oppgaveid")
             )
 
             repo.lagre(beregnet)
@@ -199,6 +210,7 @@ internal class RevurderingPostgresRepoTest {
                 tilRevurdering = beregnet.tilRevurdering,
                 saksbehandler = beregnet.saksbehandler,
                 beregning = beregnet.beregning,
+                oppgaveId = OppgaveId("oppgaveid"),
                 simulering = Simulering(
                     gjelderId = FnrGenerator.random(),
                     gjelderNavn = "et navn for simulering",
@@ -225,7 +237,8 @@ internal class RevurderingPostgresRepoTest {
                 periode = periode,
                 opprettet = fixedTidspunkt,
                 tilRevurdering = behandling,
-                saksbehandler = saksbehandler
+                saksbehandler = saksbehandler,
+                oppgaveId = OppgaveId("oppgaveid")
             )
 
             repo.lagre(opprettet)
@@ -236,7 +249,8 @@ internal class RevurderingPostgresRepoTest {
                 opprettet = opprettet.opprettet,
                 tilRevurdering = behandling,
                 saksbehandler = opprettet.saksbehandler,
-                beregning = TestBeregning
+                beregning = TestBeregning,
+                oppgaveId = OppgaveId("oppgaveid")
             )
 
             repo.lagre(beregnet)
@@ -248,6 +262,7 @@ internal class RevurderingPostgresRepoTest {
                 tilRevurdering = beregnet.tilRevurdering,
                 saksbehandler = beregnet.saksbehandler,
                 beregning = beregnet.beregning,
+                oppgaveId = OppgaveId("oppgaveid"),
                 simulering = Simulering(
                     gjelderId = FnrGenerator.random(),
                     gjelderNavn = "et navn for simulering",
@@ -274,7 +289,8 @@ internal class RevurderingPostgresRepoTest {
                 periode = periode,
                 opprettet = fixedTidspunkt,
                 tilRevurdering = behandling,
-                saksbehandler = saksbehandler
+                saksbehandler = saksbehandler,
+                oppgaveId = OppgaveId("oppgaveid")
             )
 
             repo.lagre(opprettet)
@@ -285,7 +301,8 @@ internal class RevurderingPostgresRepoTest {
                 opprettet = opprettet.opprettet,
                 tilRevurdering = behandling,
                 saksbehandler = opprettet.saksbehandler,
-                beregning = TestBeregning
+                beregning = TestBeregning,
+                oppgaveId = OppgaveId("oppgaveid")
             )
 
             repo.lagre(beregnet)
@@ -297,6 +314,7 @@ internal class RevurderingPostgresRepoTest {
                 tilRevurdering = beregnet.tilRevurdering,
                 saksbehandler = beregnet.saksbehandler,
                 beregning = beregnet.beregning,
+                oppgaveId = OppgaveId("oppgaveid"),
                 simulering = Simulering(
                     gjelderId = FnrGenerator.random(),
                     gjelderNavn = "et navn for simulering",
@@ -309,7 +327,7 @@ internal class RevurderingPostgresRepoTest {
             repo.lagre(simulert)
 
             val tilAttestering =
-                simulert.tilAttestering(oppgaveId = OppgaveId("oppgaveId"), saksbehandler = saksbehandler)
+                simulert.tilAttestering(attesteringsoppgaveId = OppgaveId("attesteringsoppgaveId"), saksbehandler = saksbehandler)
 
             repo.lagre(tilAttestering)
 
@@ -328,7 +346,8 @@ internal class RevurderingPostgresRepoTest {
                 periode = periode,
                 opprettet = fixedTidspunkt,
                 tilRevurdering = behandling,
-                saksbehandler = saksbehandler
+                saksbehandler = saksbehandler,
+                oppgaveId = OppgaveId("oppgaveid")
             )
 
             repo.lagre(opprettet)
@@ -339,7 +358,8 @@ internal class RevurderingPostgresRepoTest {
                 opprettet = opprettet.opprettet,
                 tilRevurdering = behandling,
                 saksbehandler = opprettet.saksbehandler,
-                beregning = TestBeregning
+                beregning = TestBeregning,
+                oppgaveId = OppgaveId("oppgaveid")
             )
 
             repo.lagre(beregnet)
@@ -351,6 +371,7 @@ internal class RevurderingPostgresRepoTest {
                 tilRevurdering = beregnet.tilRevurdering,
                 saksbehandler = beregnet.saksbehandler,
                 beregning = beregnet.beregning,
+                oppgaveId = OppgaveId("oppgaveid"),
                 simulering = Simulering(
                     gjelderId = FnrGenerator.random(),
                     gjelderNavn = "et navn for simulering",
@@ -363,7 +384,7 @@ internal class RevurderingPostgresRepoTest {
             repo.lagre(simulert)
 
             val tilAttestering = simulert.tilAttestering(
-                oppgaveId = OppgaveId("oppgaveId"),
+                attesteringsoppgaveId = OppgaveId("attesteringsoppgaveId"),
                 saksbehandler = Saksbehandler("Ny saksbehandler")
             )
 
@@ -387,7 +408,8 @@ internal class RevurderingPostgresRepoTest {
                 periode = periode,
                 opprettet = fixedTidspunkt,
                 tilRevurdering = behandling,
-                saksbehandler = saksbehandler
+                saksbehandler = saksbehandler,
+                oppgaveId = OppgaveId("oppgaveid")
             )
             repo.lagre(opprettet)
 

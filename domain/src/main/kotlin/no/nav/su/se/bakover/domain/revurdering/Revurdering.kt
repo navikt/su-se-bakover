@@ -32,6 +32,7 @@ sealed class Revurdering : Visitable<RevurderingVisitor> {
     abstract val tilRevurdering: Søknadsbehandling.Iverksatt.Innvilget
     abstract val periode: Periode
     abstract val saksbehandler: Saksbehandler
+    abstract val oppgaveId: OppgaveId
 
     val sakId
         get() = this.tilRevurdering.sakId
@@ -66,7 +67,8 @@ sealed class Revurdering : Visitable<RevurderingVisitor> {
                 periode = periode,
                 opprettet = Tidspunkt.now(),
                 beregning = revurdertBeregning,
-                saksbehandler = saksbehandler
+                saksbehandler = saksbehandler,
+                oppgaveId = oppgaveId
             )
         } else {
             BeregnetRevurdering.Avslag(
@@ -75,7 +77,8 @@ sealed class Revurdering : Visitable<RevurderingVisitor> {
                 periode = periode,
                 opprettet = Tidspunkt.now(),
                 beregning = revurdertBeregning,
-                saksbehandler = saksbehandler
+                saksbehandler = saksbehandler,
+                oppgaveId = oppgaveId
             )
         }.right()
     }
@@ -92,6 +95,7 @@ data class OpprettetRevurdering(
     override val opprettet: Tidspunkt = Tidspunkt.now(),
     override val tilRevurdering: Søknadsbehandling.Iverksatt.Innvilget,
     override val saksbehandler: Saksbehandler,
+    override val oppgaveId: OppgaveId,
 ) : Revurdering() {
     override fun accept(visitor: RevurderingVisitor) {
         visitor.visit(this)
@@ -103,6 +107,7 @@ data class OpprettetRevurdering(
         opprettet = opprettet,
         tilRevurdering = tilRevurdering,
         saksbehandler = saksbehandler,
+        oppgaveId = oppgaveId
     )
 }
 
@@ -112,6 +117,7 @@ sealed class BeregnetRevurdering : Revurdering() {
     abstract override val opprettet: Tidspunkt
     abstract override val tilRevurdering: Søknadsbehandling.Iverksatt.Innvilget
     abstract override val saksbehandler: Saksbehandler
+    abstract override val oppgaveId: OppgaveId
     abstract val beregning: Beregning
 
     override fun accept(visitor: RevurderingVisitor) {
@@ -124,6 +130,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         opprettet = opprettet,
         tilRevurdering = tilRevurdering,
         saksbehandler = saksbehandler,
+        oppgaveId = oppgaveId
     )
 
     data class Innvilget(
@@ -133,6 +140,8 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val tilRevurdering: Søknadsbehandling.Iverksatt.Innvilget,
         override val saksbehandler: Saksbehandler,
         override val beregning: Beregning,
+        override val oppgaveId: OppgaveId,
+
     ) : BeregnetRevurdering() {
         fun toSimulert(simulering: Simulering) = SimulertRevurdering(
             id = id,
@@ -141,7 +150,8 @@ sealed class BeregnetRevurdering : Revurdering() {
             tilRevurdering = tilRevurdering,
             beregning = beregning,
             simulering = simulering,
-            saksbehandler = saksbehandler
+            saksbehandler = saksbehandler,
+            oppgaveId = oppgaveId
         )
     }
 
@@ -152,6 +162,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val tilRevurdering: Søknadsbehandling.Iverksatt.Innvilget,
         override val saksbehandler: Saksbehandler,
         override val beregning: Beregning,
+        override val oppgaveId: OppgaveId,
     ) : BeregnetRevurdering()
 }
 
@@ -161,6 +172,7 @@ data class SimulertRevurdering(
     override val opprettet: Tidspunkt,
     override val tilRevurdering: Søknadsbehandling.Iverksatt.Innvilget,
     override val saksbehandler: Saksbehandler,
+    override val oppgaveId: OppgaveId,
     val beregning: Beregning,
     val simulering: Simulering
 ) : Revurdering() {
@@ -168,7 +180,7 @@ data class SimulertRevurdering(
         visitor.visit(this)
     }
 
-    fun tilAttestering(oppgaveId: OppgaveId, saksbehandler: Saksbehandler) = RevurderingTilAttestering(
+    fun tilAttestering(attesteringsoppgaveId: OppgaveId, saksbehandler: Saksbehandler) = RevurderingTilAttestering(
         id = id,
         periode = periode,
         opprettet = opprettet,
@@ -176,7 +188,7 @@ data class SimulertRevurdering(
         saksbehandler = saksbehandler,
         beregning = beregning,
         simulering = simulering,
-        oppgaveId = oppgaveId,
+        oppgaveId = attesteringsoppgaveId,
     )
 
     fun oppdaterPeriode(periode: Periode) = OpprettetRevurdering(
@@ -185,6 +197,7 @@ data class SimulertRevurdering(
         opprettet = opprettet,
         tilRevurdering = tilRevurdering,
         saksbehandler = saksbehandler,
+        oppgaveId = oppgaveId
     )
 }
 
@@ -196,7 +209,7 @@ data class RevurderingTilAttestering(
     override val saksbehandler: Saksbehandler,
     val beregning: Beregning,
     val simulering: Simulering,
-    val oppgaveId: OppgaveId
+    override val oppgaveId: OppgaveId
 ) : Revurdering() {
 
     override fun accept(visitor: RevurderingVisitor) {
@@ -251,9 +264,9 @@ data class IverksattRevurdering(
     override val opprettet: Tidspunkt,
     override val tilRevurdering: Søknadsbehandling.Iverksatt.Innvilget,
     override val saksbehandler: Saksbehandler,
+    override val oppgaveId: OppgaveId,
     val beregning: Beregning,
     val simulering: Simulering,
-    val oppgaveId: OppgaveId,
     val attestant: NavIdentBruker.Attestant,
     val utbetalingId: UUID30,
     val eksterneIverksettingsteg: EksterneIverksettingsstegEtterUtbetaling
