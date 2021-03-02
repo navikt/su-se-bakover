@@ -120,11 +120,12 @@ internal class RevurderingServiceImplTest {
             søknad = mock(),
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().copy(
                 bosituasjon = Behandlingsinformasjon.Bosituasjon(
-                    epsAlder = null,
+
                     delerBolig = false,
                     ektemakeEllerSamboerUførFlyktning = null,
                     begrunnelse = null
-                )
+                ),
+                ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle
             ),
             saksbehandler = saksbehandler,
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("Attes T. Ant")),

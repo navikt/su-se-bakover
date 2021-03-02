@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.database.søknadsbehandling
 
 import arrow.core.right
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeTypeOf
@@ -126,9 +127,9 @@ internal class SøknadsbehandlingPostgresRepoTest {
 
             val actual = repo.hentIverksatteBehandlingerUtenBrevbestillinger()
             actual.size shouldBe 3
-            actual[0] shouldBe repo.hent(innvilgetMedJournalpost.id)
-            actual[1] shouldBe repo.hent(avslagUtenBeregningMedJournalpost.id)
-            actual[2] shouldBe repo.hent(avslagMedBeregningMedJournalpost.id)
+            actual shouldContain repo.hent(innvilgetMedJournalpost.id)
+            actual shouldContain repo.hent(avslagUtenBeregningMedJournalpost.id)
+            actual shouldContain repo.hent(avslagMedBeregningMedJournalpost.id)
         }
     }
 

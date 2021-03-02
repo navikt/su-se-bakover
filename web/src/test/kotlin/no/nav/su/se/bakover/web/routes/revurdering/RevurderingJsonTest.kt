@@ -51,7 +51,7 @@ internal class RevurderingJsonTest {
             oppgaveId = OppgaveId(value = ""),
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().copy(
                 bosituasjon = Behandlingsinformasjon.Bosituasjon(
-                    epsAlder = 55,
+
                     delerBolig = true,
                     ektemakeEllerSamboerUførFlyktning = true,
                     begrunnelse = null

@@ -13,8 +13,8 @@ class BeregningStrategyFactory {
                 ?: 0.0,
             fradragFraSaksbehandler = fradrag
         )
-        val strategy = søknadsbehandling.behandlingsinformasjon.bosituasjon!!.getBeregningStrategy()
-        return strategy.beregn(beregningsgrunnlag)
+        val strategy = søknadsbehandling.behandlingsinformasjon.getBeregningStrategy()
+        return strategy!!.beregn(beregningsgrunnlag)
     }
 }
 

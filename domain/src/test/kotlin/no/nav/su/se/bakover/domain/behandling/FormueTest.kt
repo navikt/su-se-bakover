@@ -11,7 +11,6 @@ internal class FormueTest {
         Behandlingsinformasjon.Formue(
             status = Behandlingsinformasjon.Formue.Status.MåInnhenteMerInformasjon,
             verdier = null,
-            borSøkerMedEPS = false,
             epsVerdier = null,
             begrunnelse = "null"
         ).let {
@@ -25,7 +24,6 @@ internal class FormueTest {
         Behandlingsinformasjon.Formue(
             status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
             verdier = null,
-            borSøkerMedEPS = false,
             epsVerdier = null,
             begrunnelse = "null"
         ).erVilkårOppfylt() shouldBe true
@@ -36,7 +34,6 @@ internal class FormueTest {
         Behandlingsinformasjon.Formue(
             status = Behandlingsinformasjon.Formue.Status.VilkårIkkeOppfylt,
             verdier = null,
-            borSøkerMedEPS = false,
             epsVerdier = null,
             begrunnelse = "null"
         ).erVilkårOppfylt() shouldBe false
@@ -44,7 +41,6 @@ internal class FormueTest {
         Behandlingsinformasjon.Formue(
             status = Behandlingsinformasjon.Formue.Status.MåInnhenteMerInformasjon,
             verdier = null,
-            borSøkerMedEPS = false,
             epsVerdier = null,
             begrunnelse = "null"
         ).erVilkårOppfylt() shouldBe false
@@ -55,7 +51,6 @@ internal class FormueTest {
         Behandlingsinformasjon.Formue(
             status = Behandlingsinformasjon.Formue.Status.VilkårIkkeOppfylt,
             verdier = null,
-            borSøkerMedEPS = false,
             epsVerdier = null,
             begrunnelse = "null"
         ).avslagsgrunn() shouldBe Avslagsgrunn.FORMUE
@@ -66,7 +61,6 @@ internal class FormueTest {
         Behandlingsinformasjon.Formue(
             status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
             verdier = null,
-            borSøkerMedEPS = false,
             epsVerdier = null,
             begrunnelse = "null"
         ).avslagsgrunn() shouldBe null
