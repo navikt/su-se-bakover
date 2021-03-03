@@ -43,13 +43,20 @@ object BehandlingTestUtils {
     internal val søknadJournalpostId = JournalpostId("søknadJournalpostId")
     internal val søknadOppgaveId = OppgaveId("søknadOppgaveId")
     internal val fnr = FnrGenerator.random()
-
     internal val person = Person(
         ident = Ident(
             fnr = fnr,
             aktørId = AktørId(aktørId = "123")
         ),
         navn = Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy")
+    )
+    internal val ektefelle = Ektefelle(
+        fnr = Fnr("17087524256"),
+        navn = Navn("fornavn", null, "etternavn"),
+        kjønn = null,
+        fødselsdato = null,
+        adressebeskyttelse = null,
+        skjermet = null
     )
 
     internal val behandlingsinformasjon = Behandlingsinformasjon(
@@ -108,18 +115,12 @@ object BehandlingTestUtils {
             begrunnelse = null
         ),
         bosituasjon = Bosituasjon(
+            ektefelle = ektefelle,
             delerBolig = false,
             ektemakeEllerSamboerUførFlyktning = false,
             begrunnelse = null
         ),
-        ektefelle = Ektefelle(
-            fnr = Fnr("17087524256"),
-            navn = Navn("fornavn", null, "etternavn"),
-            kjønn = null,
-            fødselsdato = null,
-            adressebeskyttelse = null,
-            skjermet = null
-        )
+        ektefelle = ektefelle
     )
 
     internal object microsoftGraphMock {

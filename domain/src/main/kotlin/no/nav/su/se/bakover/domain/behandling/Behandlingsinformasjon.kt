@@ -80,7 +80,6 @@ data class Behandlingsinformasjon(
      */
     @JsonIgnore
     internal fun getBeregningStrategy(): BeregningStrategy? {
-
         if (bosituasjon == null || ektefelle == null) {
             return null
         }
@@ -275,8 +274,7 @@ data class Behandlingsinformasjon(
     }
 
     data class Bosituasjon(
-        @JsonIgnore
-        private val ektefelle: EktefellePartnerSamboer?,
+        val ektefelle: EktefellePartnerSamboer?,
         val delerBolig: Boolean?,
         val ektemakeEllerSamboerUførFlyktning: Boolean?,
         val begrunnelse: String?

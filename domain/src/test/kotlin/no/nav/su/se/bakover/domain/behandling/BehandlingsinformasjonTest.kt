@@ -13,13 +13,13 @@ internal class BehandlingsinformasjonTest {
 
     @Test
     fun `alle vilkår må være innvilget for at summen av vilkår skal være innvilget`() {
-        TestData.behandlingsinformasjonMedAlleVilkårOppfylt.erInnvilget() shouldBe true
-        TestData.behandlingsinformasjonMedAlleVilkårOppfylt.erAvslag() shouldBe false
+        behandlingsinformasjonMedAlleVilkårOppfylt.erInnvilget() shouldBe true
+        behandlingsinformasjonMedAlleVilkårOppfylt.erAvslag() shouldBe false
     }
 
     @Test
     fun `et vilkår som ikke er oppfylt fører til at summen er avslått`() {
-        val info = TestData.behandlingsinformasjonMedAlleVilkårOppfylt.copy(
+        val info = behandlingsinformasjonMedAlleVilkårOppfylt.copy(
             lovligOpphold = TestData.LovligOpphold.IkkeOppfylt
         )
         info.erInnvilget() shouldBe false
@@ -28,7 +28,7 @@ internal class BehandlingsinformasjonTest {
 
     @Test
     fun `lister ut alle avslagsgrunner for vilkår som ikke er oppfylt`() {
-        val info = TestData.behandlingsinformasjonMedAlleVilkårOppfylt.copy(
+        val info = behandlingsinformasjonMedAlleVilkårOppfylt.copy(
             uførhet = TestData.Uførhet.IkkeOppfylt,
             lovligOpphold = TestData.LovligOpphold.IkkeOppfylt
         )
@@ -37,12 +37,12 @@ internal class BehandlingsinformasjonTest {
 
     @Test
     fun `ingen avslagsgrunn dersom alle vilkår er oppfylt`() {
-        TestData.behandlingsinformasjonMedAlleVilkårOppfylt.utledAvslagsgrunner() shouldBe emptyList()
+        behandlingsinformasjonMedAlleVilkårOppfylt.utledAvslagsgrunner() shouldBe emptyList()
     }
 
     @Test
     fun `dersom uførhet er vurdert men ikke oppfylt skal man få avslag`() {
-        val info = TestData.behandlingsinformasjonMedAlleVilkårOppfylt.copy(
+        val info = behandlingsinformasjonMedAlleVilkårOppfylt.copy(
             uførhet = TestData.Uførhet.IkkeOppfylt
         )
         info.erInnvilget() shouldBe false
@@ -52,7 +52,7 @@ internal class BehandlingsinformasjonTest {
 
     @Test
     fun `dersom flyktning er vurdert men ikke oppfylt skal man få avslag`() {
-        val info = TestData.behandlingsinformasjonMedAlleVilkårOppfylt.copy(
+        val info = behandlingsinformasjonMedAlleVilkårOppfylt.copy(
             flyktning = TestData.Flyktning.IkkeOppfylt
         )
         info.erInnvilget() shouldBe false
@@ -62,7 +62,7 @@ internal class BehandlingsinformasjonTest {
 
     @Test
     fun `dersom man mangler vurdering av et vilkår er det ikke innvilget, men ikke nødvendigvis avslag`() {
-        val info = TestData.behandlingsinformasjonMedAlleVilkårOppfylt.copy(
+        val info = behandlingsinformasjonMedAlleVilkårOppfylt.copy(
             lovligOpphold = null
         )
         info.erInnvilget() shouldBe false
@@ -197,33 +197,7 @@ internal class BehandlingsinformasjonTest {
     }
 
     @Test
-    fun `delerBolig og EPSUførFlyktning er null skal returnere null`() {
-        val ferdig = behandlingsinformasjonMedAlleVilkårOppfylt.copy(
-            formue = TestData.Formue.OppfyltMedEPS,
-            bosituasjon = TestData.Bosituasjon.IkkeOppfylltBeggeVerdierNull,
-            ektefelle = TestData.EktefellePartnerSamboer.OppfyltIngenEPS,
-        )
-        ferdig.getBeregningStrategy() shouldBe null
-        ferdig.getSatsgrunn() shouldBe null
-        ferdig.getBeregningStrategy()?.sats() shouldBe null
-    }
-
-    @Test
-    fun `Har EPS over 67, ufør flyktning ikke fyllt ut`() {
-        val ferdig = behandlingsinformasjonMedAlleVilkårOppfylt.copy(
-            formue = TestData.Formue.OppfyltMedEPS,
-            bosituasjon = TestData.Bosituasjon.OppfyltEPSUførFlyktningIkkeUtfyllt,
-            ektefelle = TestData.EktefellePartnerSamboer.OppyltEPSOverEllerLik67,
-        )
-        assertThrows<IllegalStateException> {
-            ferdig.getBeregningStrategy()
-            ferdig.getBeregningStrategy()?.sats()
-        }
-        ferdig.getSatsgrunn() shouldBe Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_67_ELLER_ELDRE
-    }
-
-    @Test
-    fun `EPS over 67 skal returnerene Eps67EllerEldre uansett om ufør flykting eller ikke`() {
+    fun `EPS over 67 skal returnerene Eps67EllerEldre uansett om ufør flykting fyllt ut eller ikke`() {
         val uførFlyktningTrue = behandlingsinformasjonMedAlleVilkårOppfylt.copy(
             formue = TestData.Formue.OppfyltMedEPS,
             bosituasjon = TestData.Bosituasjon.OppfyltEPSUførFlyktning,
@@ -241,6 +215,31 @@ internal class BehandlingsinformasjonTest {
         uførFlyktningFalse.getBeregningStrategy() shouldBe BeregningStrategy.Eps67EllerEldre
         uførFlyktningTrue.getSatsgrunn() shouldBe Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_67_ELLER_ELDRE
         uførFlyktningTrue.getBeregningStrategy()?.sats() shouldBe Sats.ORDINÆR
+
+        val uføreFlyktningIkkeFylltUt = behandlingsinformasjonMedAlleVilkårOppfylt.copy(
+            formue = TestData.Formue.OppfyltMedEPS,
+            bosituasjon = TestData.Bosituasjon.OppfyltEPSUførFlyktningIkkeUtfyllt,
+            ektefelle = TestData.EktefellePartnerSamboer.OppyltEPSOverEllerLik67,
+        )
+        uføreFlyktningIkkeFylltUt.getBeregningStrategy() shouldBe BeregningStrategy.Eps67EllerEldre
+        uføreFlyktningIkkeFylltUt.getSatsgrunn() shouldBe Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_67_ELLER_ELDRE
+        uføreFlyktningIkkeFylltUt.getBeregningStrategy()?.sats() shouldBe Sats.ORDINÆR
+
+    }
+
+    @Test
+    fun `EPS under 67 og ufør flyktning ikke fyllt ut skal throwe IllegalStateException`() {
+        val ferdig = behandlingsinformasjonMedAlleVilkårOppfylt.copy(
+            formue = TestData.Formue.OppfyltMedEPS,
+            bosituasjon = TestData.Bosituasjon.OppfyltEPSUførFlyktningIkkeUtfyllt,
+            ektefelle = TestData.EktefellePartnerSamboer.OppyltEPSUnder67,
+        )
+
+        assertThrows<IllegalStateException> {
+            ferdig.getBeregningStrategy()
+            ferdig.getSatsgrunn()
+            ferdig.getBeregningStrategy()?.sats()
+        }
     }
 
     @Test
@@ -277,8 +276,8 @@ internal class BehandlingsinformasjonTest {
         assertThrows<IllegalStateException> {
             ferdig.getBeregningStrategy()
             ferdig.getBeregningStrategy()?.sats()
+            ferdig.getSatsgrunn()
         }
-        ferdig.getSatsgrunn() shouldBe null
     }
 
     @Test
