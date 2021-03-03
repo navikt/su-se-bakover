@@ -9,6 +9,7 @@ internal class BosituasjonTest {
     @Test
     fun `vilkår er oppfyllt når delerBolig eller EPS-uførFlyktning er ikke null`() {
         val info = Behandlingsinformasjon.Bosituasjon(
+            ektefelle = BehandlingsinformasjonTestData.EktefellePartnerSamboer.OppfyltIngenEPS,
             delerBolig = false,
             ektemakeEllerSamboerUførFlyktning = null,
             begrunnelse = null
@@ -19,6 +20,7 @@ internal class BosituasjonTest {
     @Test
     fun `vilkår er ikke oppfyllt når delerBolig og EPS-uførFlyktning er ikke null`() {
         val info = Behandlingsinformasjon.Bosituasjon(
+            ektefelle = BehandlingsinformasjonTestData.EktefellePartnerSamboer.OppyltEPSUnder67,
             delerBolig = false,
             ektemakeEllerSamboerUførFlyktning = false,
             begrunnelse = null
@@ -31,6 +33,7 @@ internal class BosituasjonTest {
     @Test
     fun `vilkår er ikke oppfyllt når delerBolig og EPS-uførFlyktning er null`() {
         val info = Behandlingsinformasjon.Bosituasjon(
+            ektefelle = BehandlingsinformasjonTestData.EktefellePartnerSamboer.OppyltEPSUnder67,
             delerBolig = null,
             ektemakeEllerSamboerUførFlyktning = null,
             begrunnelse = null
