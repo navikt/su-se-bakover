@@ -25,7 +25,7 @@ internal class RevurdertBeregning private constructor(revurdertBeregning: Beregn
             beregningsgrunnlag: Beregningsgrunnlag,
             beregningsstrategi: BeregningStrategy,
             beregnMedVirkningNesteMånedDersomStønadenGårNed: Boolean = false,
-        ): Either<NesteMånedErUtenforStønadsperioden, Beregning> {
+        ): Either<KanIkkeVelgeSisteMånedVedNedgangIStønaden, Beregning> {
             val revurdertBeregning = beregningsstrategi.beregn(beregningsgrunnlag)
             if (!beregnMedVirkningNesteMånedDersomStønadenGårNed) {
                 return revurdertBeregning.right()
@@ -47,13 +47,13 @@ internal class RevurdertBeregning private constructor(revurdertBeregning: Beregn
 /**
 Når revurderingsperioden kun har 1 måned og utbetalt beløp er redusert, blir det feil å returnere en beregning
  */
-object NesteMånedErUtenforStønadsperioden
+object KanIkkeVelgeSisteMånedVedNedgangIStønaden
 
 private fun beregnMedVirkningFraOgMedMånedenEtter(
     revurdertBeregning: Beregning
-): Either<NesteMånedErUtenforStønadsperioden, Beregning> {
+): Either<KanIkkeVelgeSisteMånedVedNedgangIStønaden, Beregning> {
     if (revurdertBeregning.getMånedsberegninger().size < 2) {
-        return NesteMånedErUtenforStønadsperioden.left()
+        return KanIkkeVelgeSisteMånedVedNedgangIStønaden.left()
     }
     val nyPeriode = Periode.create(
         revurdertBeregning.getPeriode().getFraOgMed().plusMonths(1),

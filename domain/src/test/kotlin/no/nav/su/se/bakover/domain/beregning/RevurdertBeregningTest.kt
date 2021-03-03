@@ -194,7 +194,7 @@ internal class RevurdertBeregningTest {
             beregnMedVirkningNesteMånedDersomStønadenGårNed = true,
         )
 
-        actual.shouldBe(NesteMånedErUtenforStønadsperioden.left())
+        actual.shouldBe(KanIkkeVelgeSisteMånedVedNedgangIStønaden.left())
     }
 
     @Test

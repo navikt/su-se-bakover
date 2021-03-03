@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
+import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.nhaarman.mockitokotlin2.any
@@ -13,83 +14,69 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegEtterUtbetaling
-import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
-import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
-import no.nav.su.se.bakover.web.FnrGenerator
-import no.nav.su.se.bakover.web.TestServicesBuilder
 import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.behandling.TestBeregning
-import no.nav.su.se.bakover.web.routes.sak.sakPath
+import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.innvilgetSøknadsbehandling
+import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.periode
+import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.requestPath
+import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.testServices
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
-import java.lang.RuntimeException
+import org.skyscreamer.jsonassert.JSONAssert
 import java.time.LocalDate
 import java.util.UUID
 
-internal class RevurderingRoutesKtTest {
-    companion object {
+internal class BeregnOgSimulerRevurderingRouteKtTest {
+    private val validBody = """
+        {
+            "periode": { "fraOgMed": "${periode.getFraOgMed()}", "tilOgMed": "${periode.getTilOgMed()}"},
+            "fradrag": []
+        } 
+    """.trimIndent()
 
-        internal val sakId = UUID.randomUUID()
-        internal val requestPath = "$sakPath/$sakId/revurderinger"
-        internal val testServices = TestServicesBuilder.services()
-        internal val periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020))
+    private val revurderingId = UUID.randomUUID()
 
-        internal val innvilgetSøknadsbehandling = Søknadsbehandling.Iverksatt.Innvilget(
-            id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(),
-            sakId = sakId,
-            saksnummer = Saksnummer(1569),
-            søknad = Søknad.Journalført.MedOppgave(
-                id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(),
-                sakId = sakId,
-                søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-                journalpostId = JournalpostId(value = ""),
-                oppgaveId = OppgaveId(value = "")
-
-            ),
-            oppgaveId = OppgaveId(value = ""),
-            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().copy(
-                bosituasjon = Behandlingsinformasjon.Bosituasjon(
-                    delerBolig = true,
-                    ektemakeEllerSamboerUførFlyktning = true,
-                    begrunnelse = null
-                ),
-                ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle
-            ),
-            fnr = FnrGenerator.random(),
-            beregning = TestBeregning,
-            simulering = mock(),
-            saksbehandler = NavIdentBruker.Saksbehandler("saks"),
-            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
-            utbetalingId = UUID30.randomUUID(),
-            eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.VenterPåKvittering
-        )
+    @Test
+    fun `uautoriserte kan ikke beregne og simulere revurdering`() {
+        withTestApplication({
+            testSusebakover()
+        }) {
+            defaultRequest(
+                HttpMethod.Post,
+                "$requestPath/$revurderingId/beregnOgSimuler",
+                listOf(Brukerrolle.Veileder)
+            ) {
+                setBody(validBody)
+            }.apply {
+                response.status() shouldBe HttpStatusCode.Forbidden
+                JSONAssert.assertEquals(
+                    """
+                    {
+                        "message":"Bruker mangler en av de tillatte rollene: Saksbehandler."
+                    }
+                    """.trimIndent(),
+                    response.content,
+                    true
+                )
+            }
+        }
     }
 
     @Test
@@ -128,7 +115,7 @@ internal class RevurderingRoutesKtTest {
                     månedsbeløp = 12.0,
                     periode = TestBeregning.getMånedsberegninger()[0].getPeriode(),
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
+                    tilhører = FradragTilhører.BRUKER,
                 )
             )
         ).orNull()!!
@@ -152,8 +139,6 @@ internal class RevurderingRoutesKtTest {
             on { beregnOgSimuler(any(), any(), any()) } doReturn simulertRevurdering.right()
         }
 
-        val periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020))
-
         withTestApplication({
             testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
         }) {
@@ -162,13 +147,7 @@ internal class RevurderingRoutesKtTest {
                 "$requestPath/${simulertRevurdering.id}/beregnOgSimuler",
                 listOf(Brukerrolle.Saksbehandler)
             ) {
-                setBody(
-                    """{
-                    "periode": { "fraOgMed": "${periode.getFraOgMed()}", "tilOgMed": "${periode.getTilOgMed()}"},
-                    "fradrag": []
-                    } 
-                    """.trimIndent()
-                )
+                setBody(validBody)
             }.apply {
                 response.status() shouldBe HttpStatusCode.Created
                 val actualResponse = objectMapper.readValue<SimulertRevurderingJson>(response.content!!)
@@ -185,26 +164,90 @@ internal class RevurderingRoutesKtTest {
     }
 
     @Test
-    fun `send til attestering`() {
-        val revurderingTilAttestering = RevurderingTilAttestering(
-            id = UUID.randomUUID(),
-            periode = periode,
-            opprettet = Tidspunkt.now(),
-            tilRevurdering = innvilgetSøknadsbehandling,
-            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = ""),
-            beregning = TestBeregning,
-            simulering = Simulering(
-                gjelderId = innvilgetSøknadsbehandling.fnr,
-                gjelderNavn = "Test",
-                datoBeregnet = LocalDate.now(),
-                nettoBeløp = 0,
-                periodeList = listOf()
+    fun `ugyldig fraOgMed dato`() {
+        shouldMapErrorCorrectly(
+            error = KunneIkkeBeregneOgSimulereRevurdering.UgyldigPeriode(
+                Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden
             ),
-            oppgaveId = OppgaveId("OppgaveId")
+            expectedStatusCode = HttpStatusCode.BadRequest,
+            expectedJsonResponse = """
+                {
+                    "message":"FraOgMedDatoMåVæreFørsteDagIMåneden",
+                    "code":"ugyldig_periode"
+                }
+            """.trimIndent()
         )
+    }
 
+    @Test
+    fun `fant ikke revurdering`() {
+        shouldMapErrorCorrectly(
+            error = KunneIkkeBeregneOgSimulereRevurdering.FantIkkeRevurdering,
+            expectedStatusCode = HttpStatusCode.NotFound,
+            expectedJsonResponse = """
+                {
+                    "message":"Fant ikke revurdering",
+                    "code":"fant_ikke_revurdering"
+                }
+            """.trimIndent()
+        )
+    }
+
+    @Test
+    fun `ugyldig tilstand`() {
+        shouldMapErrorCorrectly(
+            error = KunneIkkeBeregneOgSimulereRevurdering.UgyldigTilstand(
+                fra = IverksattRevurdering::class,
+                til = OpprettetRevurdering::class,
+            ),
+            expectedStatusCode = HttpStatusCode.BadRequest,
+            expectedJsonResponse = """
+                {
+                    "message":"Kan ikke gå fra tilstanden IverksattRevurdering til tilstanden OpprettetRevurdering",
+                    "code":"ugyldig_periode"
+                }
+            """.trimIndent()
+
+        )
+    }
+
+    @Test
+    fun `kan ikke velge siste måned ved nedgang i stønaden`() {
+        shouldMapErrorCorrectly(
+            error = KunneIkkeBeregneOgSimulereRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden,
+            expectedStatusCode = HttpStatusCode.BadRequest,
+            expectedJsonResponse = """
+                {
+                    "message":"Kan ikke velge siste måned av stønadsperioden ved nedgang i stønaden",
+                    "code":"siste_måned_ved_nedgang_i_stønaden"
+                }
+            """.trimIndent()
+
+        )
+    }
+
+    @Test
+    fun `simulering feilet`() {
+        shouldMapErrorCorrectly(
+            error = KunneIkkeBeregneOgSimulereRevurdering.SimuleringFeilet,
+            expectedStatusCode = HttpStatusCode.InternalServerError,
+            expectedJsonResponse = """
+                {
+                    "message":"Simulering feilet",
+                    "code":"simulering_feilet"
+                }
+            """.trimIndent()
+
+        )
+    }
+
+    private fun shouldMapErrorCorrectly(
+        error: KunneIkkeBeregneOgSimulereRevurdering,
+        expectedStatusCode: HttpStatusCode,
+        expectedJsonResponse: String
+    ) {
         val revurderingServiceMock = mock<RevurderingService> {
-            on { sendTilAttestering(any(), any()) } doReturn revurderingTilAttestering.right()
+            on { beregnOgSimuler(any(), any(), any()) } doReturn error.left()
         }
 
         withTestApplication({
@@ -212,13 +255,17 @@ internal class RevurderingRoutesKtTest {
         }) {
             defaultRequest(
                 HttpMethod.Post,
-                "$requestPath/${revurderingTilAttestering.id}/tilAttestering",
+                "$requestPath/$revurderingId/beregnOgSimuler",
                 listOf(Brukerrolle.Saksbehandler)
-            ).apply {
-                response.status() shouldBe HttpStatusCode.OK
-                val actualResponse = objectMapper.readValue<TilAttesteringJson>(response.content!!)
-                actualResponse.id shouldBe revurderingTilAttestering.id.toString()
-                actualResponse.status shouldBe RevurderingsStatus.TIL_ATTESTERING
+            ) {
+                setBody(validBody)
+            }.apply {
+                response.status() shouldBe expectedStatusCode
+                JSONAssert.assertEquals(
+                    expectedJsonResponse,
+                    response.content,
+                    true
+                )
             }
         }
     }
