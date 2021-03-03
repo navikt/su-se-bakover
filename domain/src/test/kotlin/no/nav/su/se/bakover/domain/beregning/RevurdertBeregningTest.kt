@@ -144,7 +144,7 @@ internal class RevurdertBeregningTest {
             beregningsstrategi = BeregningStrategy.BorAlene
         )
 
-        actual.shouldBe(NesteMånedErUtenforStønadsperioden.left())
+        actual.shouldBe(KanIkkeVelgeSisteMånedVedNedgangIStønaden.left())
     }
 
     @Test

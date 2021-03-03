@@ -46,11 +46,12 @@ internal class RevurderingServiceImpl(
     private val brevService: BrevService,
     private val clock: Clock,
 ) : RevurderingService {
+
     private val observers: MutableList<EventObserver> = mutableListOf()
+
     fun addObserver(observer: EventObserver) {
         observers.add(observer)
     }
-
     fun getObservers(): List<EventObserver> = observers.toList()
 
     override fun opprettRevurdering(
@@ -63,7 +64,7 @@ internal class RevurderingServiceImpl(
         if (!fraOgMed.isAfter(dagensDato.endOfMonth())) {
             return KunneIkkeOppretteRevurdering.KanIkkeRevurdereInneværendeMånedEllerTidligere.left()
         }
-        val sak = hentSak(sakId).getOrElse {
+        val sak = sakService.hentSak(sakId).getOrElse {
             return KunneIkkeOppretteRevurdering.FantIkkeSak.left()
         }
         val tilRevurdering = sak.behandlinger
@@ -84,7 +85,7 @@ internal class RevurderingServiceImpl(
 
         val aktørId = personService.hentAktørId(søknadsbehandling.fnr).getOrElse {
             log.error("Fant ikke aktør-id")
-            return KunneIkkeOppretteRevurdering.FantIkkeAktørid.left()
+            return KunneIkkeOppretteRevurdering.FantIkkeAktørId.left()
         }
 
         // TODO ai 25.02.2021 - Oppgaven skal egentligen ikke opprettes her. Den burde egentligen komma utifra melding av endring, som skal føres til revurdering.
@@ -96,12 +97,12 @@ internal class RevurderingServiceImpl(
             )
         ).mapLeft {
             KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave
-        }.map {
+        }.map { oppgaveId ->
             OpprettetRevurdering(
                 periode = periode,
                 tilRevurdering = søknadsbehandling,
                 saksbehandler = saksbehandler,
-                oppgaveId = it
+                oppgaveId = oppgaveId,
             ).also {
                 revurderingRepo.lagre(it)
                 observers.forEach { observer ->
@@ -119,19 +120,22 @@ internal class RevurderingServiceImpl(
         revurderingId: UUID,
         fraOgMed: LocalDate,
         saksbehandler: NavIdentBruker.Saksbehandler
-    ): Either<KunneIkkeRevurdere, OpprettetRevurdering> {
+    ): Either<KunneIkkeOppdatereRevurderingsperiode, OpprettetRevurdering> {
 
-        val revurdering = revurderingRepo.hent(revurderingId) ?: return KunneIkkeRevurdere.FantIkkeRevurdering.left()
+        val revurdering = revurderingRepo.hent(revurderingId) ?: return KunneIkkeOppdatereRevurderingsperiode.FantIkkeRevurdering.left()
 
+        if (!fraOgMed.between(revurdering.periode)) {
+            return KunneIkkeOppdatereRevurderingsperiode.PeriodenMåVæreInnenforAlleredeValgtStønadsperiode(revurdering.periode).left()
+        }
         // TODO jah: Her holder det kanskje ikke å bruke samme tilOgMed som forrige gang. Hva om vi har byttet stønadsperiode?
         val nyPeriode = Periode.tryCreate(fraOgMed, revurdering.periode.getTilOgMed()).getOrHandle {
-            return KunneIkkeRevurdere.UgyldigPeriode(it).left()
+            return KunneIkkeOppdatereRevurderingsperiode.UgyldigPeriode(it).left()
         }
         return when (revurdering) {
             is OpprettetRevurdering -> revurdering.oppdaterPeriode(nyPeriode).right()
             is BeregnetRevurdering -> revurdering.oppdaterPeriode(nyPeriode).right()
             is SimulertRevurdering -> revurdering.oppdaterPeriode(nyPeriode).right()
-            else -> KunneIkkeRevurdere.UgyldigTilstand(revurdering::class, OpprettetRevurdering::class).left()
+            else -> KunneIkkeOppdatereRevurderingsperiode.UgyldigTilstand(revurdering::class, OpprettetRevurdering::class).left()
         }.map {
             revurderingRepo.lagre(it)
             it
@@ -142,12 +146,16 @@ internal class RevurderingServiceImpl(
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
         fradrag: List<Fradrag>
-    ): Either<KunneIkkeRevurdere, Revurdering> {
+    ): Either<KunneIkkeBeregneOgSimulereRevurdering, Revurdering> {
         return when (val revurdering = revurderingRepo.hent(revurderingId)) {
             is BeregnetRevurdering, is OpprettetRevurdering, is SimulertRevurdering -> {
                 when (
                     val beregnetRevurdering = revurdering.beregn(fradrag)
-                        .getOrElse { return KunneIkkeRevurdere.KanIkkeVelgeSisteMånedVedNedgangIStønaden.left() }
+                        .getOrHandle {
+                            return when (it) {
+                                Revurdering.KunneIkkeBeregneRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden -> KunneIkkeBeregneOgSimulereRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden
+                            }.left()
+                        }
                 ) {
                     is BeregnetRevurdering.Avslag -> {
                         revurderingRepo.lagre(beregnetRevurdering)
@@ -159,7 +167,7 @@ internal class RevurderingServiceImpl(
                             saksbehandler = saksbehandler,
                             beregning = beregnetRevurdering.beregning
                         ).mapLeft {
-                            KunneIkkeRevurdere.SimuleringFeilet
+                            KunneIkkeBeregneOgSimulereRevurdering.SimuleringFeilet
                         }.map {
                             val simulert = beregnetRevurdering.toSimulert(it.simulering)
                             revurderingRepo.lagre(simulert)
@@ -168,22 +176,22 @@ internal class RevurderingServiceImpl(
                     }
                 }
             }
-            null -> return KunneIkkeRevurdere.FantIkkeRevurdering.left()
-            else -> return KunneIkkeRevurdere.UgyldigTilstand(revurdering::class, SimulertRevurdering::class).left()
+            null -> return KunneIkkeBeregneOgSimulereRevurdering.FantIkkeRevurdering.left()
+            else -> return KunneIkkeBeregneOgSimulereRevurdering.UgyldigTilstand(revurdering::class, SimulertRevurdering::class).left()
         }
     }
 
     override fun sendTilAttestering(
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler
-    ): Either<KunneIkkeRevurdere, Revurdering> {
-        val revurdering = revurderingRepo.hent(revurderingId) ?: return KunneIkkeRevurdere.FantIkkeRevurdering.left()
+    ): Either<KunneIkkeSendeRevurderingTilAttestering, Revurdering> {
+        val revurdering = revurderingRepo.hent(revurderingId) ?: return KunneIkkeSendeRevurderingTilAttestering.FantIkkeRevurdering.left()
 
         val tilAttestering = when (revurdering) {
             is SimulertRevurdering -> {
                 val aktørId = personService.hentAktørId(revurdering.tilRevurdering.fnr).getOrElse {
                     log.error("Fant ikke aktør-id")
-                    return KunneIkkeRevurdere.FantIkkeAktørid.left()
+                    return KunneIkkeSendeRevurderingTilAttestering.FantIkkeAktørId.left()
                 }
 
                 val oppgaveId = oppgaveService.opprettOppgave(
@@ -196,12 +204,12 @@ internal class RevurderingServiceImpl(
                     )
                 ).getOrElse {
                     log.error("Kunne ikke opprette Attesteringsoppgave. Avbryter handlingen.")
-                    return KunneIkkeRevurdere.KunneIkkeOppretteOppgave.left()
+                    return KunneIkkeSendeRevurderingTilAttestering.KunneIkkeOppretteOppgave.left()
                 }
 
                 revurdering.tilAttestering(oppgaveId, saksbehandler)
             }
-            else -> return KunneIkkeRevurdere.UgyldigTilstand(revurdering::class, RevurderingTilAttestering::class)
+            else -> return KunneIkkeSendeRevurderingTilAttestering.UgyldigTilstand(revurdering::class, RevurderingTilAttestering::class)
                 .left()
         }
 
@@ -217,15 +225,15 @@ internal class RevurderingServiceImpl(
                 )
             )
         }
-
         return tilAttestering.right()
     }
 
-    private fun hentSak(sakId: UUID) = sakService.hentSak(sakId)
-        .mapLeft { KunneIkkeRevurdere.FantIkkeSak }
-
-    override fun lagBrevutkast(revurderingId: UUID, fritekst: String?): Either<KunneIkkeRevurdere, ByteArray> {
-        val revurdering = revurderingRepo.hent(revurderingId) ?: return KunneIkkeRevurdere.FantIkkeRevurdering.left()
+    override fun lagBrevutkast(
+        revurderingId: UUID,
+        fritekst: String?
+    ): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray> {
+        val revurdering = revurderingRepo.hent(revurderingId)
+            ?: return KunneIkkeLageBrevutkastForRevurdering.FantIkkeRevurdering.left()
 
         return LagBrevRequestVisitor(
             hentPerson = { fnr ->
@@ -242,11 +250,11 @@ internal class RevurderingServiceImpl(
             it.brevRequest
         }.mapLeft {
             when (it) {
-                LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeRevurdere.KunneIkkeLageBrevutkast
-                LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson -> KunneIkkeRevurdere.FantIkkePerson
+                LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> KunneIkkeLageBrevutkastForRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant
+                LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson -> KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson
             }
         }.flatMap {
-            brevService.lagBrev(it).mapLeft { KunneIkkeRevurdere.KunneIkkeLageBrevutkast }
+            brevService.lagBrev(it).mapLeft { KunneIkkeLageBrevutkastForRevurdering.KunneIkkeLageBrevutkast }
         }
     }
 

@@ -408,7 +408,7 @@ internal class OpprettRevurderingServiceTest {
             saksbehandler = saksbehandler
         )
 
-        actual shouldBe KunneIkkeOppretteRevurdering.FantIkkeAktørid.left()
+        actual shouldBe KunneIkkeOppretteRevurdering.FantIkkeAktørId.left()
         verify(sakServiceMock).hentSak(sakId)
         verify(revurderingRepoMock).hentRevurderingForBehandling(argThat { it shouldBe sak.behandlinger[0].id })
         verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
