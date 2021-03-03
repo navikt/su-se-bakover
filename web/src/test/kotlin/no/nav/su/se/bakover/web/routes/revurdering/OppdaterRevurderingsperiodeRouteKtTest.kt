@@ -12,13 +12,15 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
-import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppdatereRevurderingsperiode
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.periode
@@ -30,17 +32,19 @@ import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import java.util.UUID
 
-internal class OpprettRevurderingRouteKtTest {
+internal class OppdaterRevurderingsperiodeRouteKtTest {
     private val validBody = """{ "fraOgMed": "${periode.getFraOgMed()}"}"""
 
+    private val revurderingId = UUID.randomUUID()
+
     @Test
-    fun `uautoriserte kan ikke opprette revurdering`() {
+    fun `uautoriserte kan ikke oppdatere revurderingsperioden`() {
         withTestApplication({
             testSusebakover()
         }) {
             defaultRequest(
                 HttpMethod.Post,
-                "$requestPath/opprett",
+                "$requestPath/$revurderingId/oppdaterPeriode",
                 listOf(Brukerrolle.Veileder)
             ) {
                 setBody(validBody)
@@ -60,17 +64,17 @@ internal class OpprettRevurderingRouteKtTest {
     }
 
     @Test
-    fun `kan opprette revurdering`() {
+    fun `kan oppdatere revurderingsperioden`() {
         val opprettetRevurdering = OpprettetRevurdering(
             id = UUID.randomUUID(),
             periode = periode,
             opprettet = Tidspunkt.now(),
             tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler(""),
-            oppgaveId = OppgaveId("oppgaveid")
+            oppgaveId = OppgaveId("oppgaveId"),
         )
         val revurderingServiceMock = mock<RevurderingService> {
-            on { opprettRevurdering(any(), any(), any()) } doReturn opprettetRevurdering.right()
+            on { oppdaterRevurderingsperiode(any(), any(), any()) } doReturn opprettetRevurdering.right()
         }
 
         withTestApplication({
@@ -78,7 +82,7 @@ internal class OpprettRevurderingRouteKtTest {
         }) {
             defaultRequest(
                 HttpMethod.Post,
-                "$requestPath/opprett",
+                "$requestPath/$revurderingId/oppdaterPeriode",
                 listOf(Brukerrolle.Saksbehandler)
             ) {
                 setBody("""{ "fraOgMed": "${periode.getFraOgMed()}"}""")
@@ -92,110 +96,9 @@ internal class OpprettRevurderingRouteKtTest {
     }
 
     @Test
-    fun `fant ikke sak`() {
-        shouldMapErrorCorrectly(
-            error = KunneIkkeOppretteRevurdering.FantIkkeSak,
-            expectedStatusCode = HttpStatusCode.NotFound,
-            expectedJsonResponse = """
-                {
-                    "message":"Fant ikke sak",
-                    "code":"fant_ikke_sak"
-                }
-            """.trimIndent()
-        )
-    }
-
-    @Test
-    fun `fant ingenting som kan revurderes`() {
-        shouldMapErrorCorrectly(
-            error = KunneIkkeOppretteRevurdering.FantIngentingSomKanRevurderes,
-            expectedStatusCode = HttpStatusCode.NotFound,
-            expectedJsonResponse = """
-                {
-                    "message":"Ingen behandlinger som kan revurderes for angitt periode",
-                    "code":"ingenting_å_revurdere_i_perioden"
-                }
-            """.trimIndent()
-        )
-    }
-
-    @Test
-    fun `fant ikke aktør id`() {
-        shouldMapErrorCorrectly(
-            error = KunneIkkeOppretteRevurdering.FantIkkeAktørId,
-            expectedStatusCode = HttpStatusCode.NotFound,
-            expectedJsonResponse = """
-                {
-                    "message":"Fant ikke aktør id",
-                    "code":"fant_ikke_aktør_id"
-                }
-            """.trimIndent()
-        )
-    }
-
-    @Test
-    fun `kunne ikke opprette oppgave`() {
-        shouldMapErrorCorrectly(
-            error = KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave,
-            expectedStatusCode = HttpStatusCode.InternalServerError,
-            expectedJsonResponse = """
-                {
-                    "message":"Kunne ikke opprette oppgave",
-                    "code":"kunne_ikke_opprette_oppgave"
-                }
-            """.trimIndent()
-        )
-    }
-
-    @Test
-    fun `kunne ikke revurdere inneværende måned eller tidligere`() {
-        shouldMapErrorCorrectly(
-            error = KunneIkkeOppretteRevurdering.KanIkkeRevurdereInneværendeMånedEllerTidligere,
-            expectedStatusCode = HttpStatusCode.BadRequest,
-            expectedJsonResponse = """
-                {
-                    "message":"Revurdering kan kun gjøres fra og med neste kalendermåned",
-                    "code":"tidligest_neste_måned"
-                }
-            """.trimIndent()
-
-        )
-    }
-
-    @Test
-    fun `kan ikke revurdere perioder med flere aktive stønadsperioder`() {
-        shouldMapErrorCorrectly(
-            error = KunneIkkeOppretteRevurdering.KanIkkeRevurderePerioderMedFlereAktiveStønadsperioder,
-            expectedStatusCode = HttpStatusCode.BadRequest,
-            expectedJsonResponse = """
-                {
-                    "message":"Revurderingsperioden kan ikke overlappe flere aktive stønadsperioder",
-                    "code":"flere_aktive_stønadsperioder"
-                }
-            """.trimIndent()
-
-        )
-    }
-
-    @Test
-    fun `kan ikke revurdere en periode med eksisterende revurdering`() {
-        shouldMapErrorCorrectly(
-            error = KunneIkkeOppretteRevurdering.KanIkkeRevurdereEnPeriodeMedEksisterendeRevurdering,
-            expectedStatusCode = HttpStatusCode.BadRequest,
-            expectedJsonResponse = """
-                {
-                    "message":"Kan ikke revurdere en behandling som allerede har en eksisterende revurdering",
-                    "code":"finnes_en_eksisterende_revurdering"
-                }
-            """.trimIndent()
-
-        )
-    }
-
-    @Test
     fun `ugyldig fraOgMed dato`() {
         shouldMapErrorCorrectly(
-            error = KunneIkkeOppretteRevurdering.UgyldigPeriode(
+            error = KunneIkkeOppdatereRevurderingsperiode.UgyldigPeriode(
                 Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden
             ),
             expectedStatusCode = HttpStatusCode.BadRequest,
@@ -209,13 +112,66 @@ internal class OpprettRevurderingRouteKtTest {
         )
     }
 
+    @Test
+    fun `fant ikke revurdering`() {
+        shouldMapErrorCorrectly(
+            error = KunneIkkeOppdatereRevurderingsperiode.FantIkkeRevurdering,
+            expectedStatusCode = HttpStatusCode.NotFound,
+            expectedJsonResponse = """
+                {
+                    "message":"Fant ikke revurdering",
+                    "code":"fant_ikke_revurdering"
+                }
+            """.trimIndent()
+
+        )
+    }
+
+    @Test
+    fun `perioden må være innenfor allerede valgt stønadsperiode`() {
+        shouldMapErrorCorrectly(
+            error = KunneIkkeOppdatereRevurderingsperiode.PeriodenMåVæreInnenforAlleredeValgtStønadsperiode(
+                Periode.create(
+                    fraOgMed = 1.januar(2020),
+                    tilOgMed = 31.januar(2020),
+                )
+            ),
+            expectedStatusCode = HttpStatusCode.BadRequest,
+            expectedJsonResponse = """
+                {
+                    "message":"Perioden må være innenfor allerede valgt stønadsperiode",
+                    "code":"perioden_må_være_innenfor_stønadsperioden"
+                }
+            """.trimIndent()
+
+        )
+    }
+
+    @Test
+    fun `ugyldig tilstand`() {
+        shouldMapErrorCorrectly(
+            error = KunneIkkeOppdatereRevurderingsperiode.UgyldigTilstand(
+                fra = IverksattRevurdering::class,
+                til = OpprettetRevurdering::class,
+            ),
+            expectedStatusCode = HttpStatusCode.BadRequest,
+            expectedJsonResponse = """
+                {
+                    "message":"Kan ikke gå fra tilstanden IverksattRevurdering til tilstanden OpprettetRevurdering",
+                    "code":"ugyldig_periode"
+                }
+            """.trimIndent()
+
+        )
+    }
+
     private fun shouldMapErrorCorrectly(
-        error: KunneIkkeOppretteRevurdering,
+        error: KunneIkkeOppdatereRevurderingsperiode,
         expectedStatusCode: HttpStatusCode,
         expectedJsonResponse: String
     ) {
         val revurderingServiceMock = mock<RevurderingService> {
-            on { opprettRevurdering(any(), any(), any()) } doReturn error.left()
+            on { oppdaterRevurderingsperiode(any(), any(), any()) } doReturn error.left()
         }
 
         withTestApplication({
@@ -223,7 +179,7 @@ internal class OpprettRevurderingRouteKtTest {
         }) {
             defaultRequest(
                 HttpMethod.Post,
-                "$requestPath/opprett",
+                "$requestPath/$revurderingId/oppdaterPeriode",
                 listOf(Brukerrolle.Saksbehandler)
             ) {
                 setBody(validBody)

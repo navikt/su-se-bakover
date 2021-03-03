@@ -408,7 +408,7 @@ internal class RevurderingServiceImplTest {
             saksbehandler = saksbehandler,
             fradrag = listOf()
         )
-        result shouldBe KunneIkkeRevurdere.UgyldigTilstand(RevurderingTilAttestering::class, SimulertRevurdering::class)
+        result shouldBe KunneIkkeBeregneOgSimulereRevurdering.UgyldigTilstand(RevurderingTilAttestering::class, SimulertRevurdering::class)
             .left()
 
         verify(revurderingRepoMock).hent(revurderingId)
@@ -451,7 +451,7 @@ internal class RevurderingServiceImplTest {
             )
         )
 
-        actual shouldBe KunneIkkeRevurdere.SimuleringFeilet.left()
+        actual shouldBe KunneIkkeBeregneOgSimulereRevurdering.SimuleringFeilet.left()
 
         inOrder(revurderingRepoMock) {
             verify(revurderingRepoMock).hent(revurderingId)
@@ -539,7 +539,7 @@ internal class RevurderingServiceImplTest {
             saksbehandler = saksbehandler,
         )
 
-        result shouldBe KunneIkkeRevurdere.UgyldigTilstand(
+        result shouldBe KunneIkkeSendeRevurderingTilAttestering.UgyldigTilstand(
             OpprettetRevurdering::class,
             RevurderingTilAttestering::class
         ).left()
@@ -568,7 +568,7 @@ internal class RevurderingServiceImplTest {
             saksbehandler = saksbehandler,
         )
 
-        actual shouldBe KunneIkkeRevurdere.FantIkkeAktørid.left()
+        actual shouldBe KunneIkkeSendeRevurderingTilAttestering.FantIkkeAktørId.left()
 
         inOrder(revurderingRepoMock) {
             verify(revurderingRepoMock).hent(revurderingId)
@@ -601,7 +601,7 @@ internal class RevurderingServiceImplTest {
             saksbehandler = saksbehandler,
         )
 
-        actual shouldBe KunneIkkeRevurdere.KunneIkkeOppretteOppgave.left()
+        actual shouldBe KunneIkkeSendeRevurderingTilAttestering.KunneIkkeOppretteOppgave.left()
 
         inOrder(revurderingRepoMock, personServiceMock) {
             verify(revurderingRepoMock).hent(revurderingId)
@@ -819,7 +819,7 @@ internal class RevurderingServiceImplTest {
             fritekst = null
         )
 
-        actual shouldBe KunneIkkeRevurdere.FantIkkePerson.left()
+        actual shouldBe KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson.left()
 
         inOrder(revurderingRepoMock, personServiceMock) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
@@ -872,7 +872,7 @@ internal class RevurderingServiceImplTest {
             fritekst = null
         )
 
-        actual shouldBe KunneIkkeRevurdere.KunneIkkeLageBrevutkast.left()
+        actual shouldBe KunneIkkeLageBrevutkastForRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
 
         inOrder(revurderingRepoMock, personServiceMock, microsoftGraphApiClientMock) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
@@ -933,7 +933,7 @@ internal class RevurderingServiceImplTest {
             fritekst = null
         )
 
-        actual shouldBe KunneIkkeRevurdere.KunneIkkeLageBrevutkast.left()
+        actual shouldBe KunneIkkeLageBrevutkastForRevurdering.KunneIkkeLageBrevutkast.left()
 
         inOrder(revurderingRepoMock, personServiceMock, microsoftGraphApiClientMock) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
