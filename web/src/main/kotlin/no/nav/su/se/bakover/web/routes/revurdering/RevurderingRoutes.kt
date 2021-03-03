@@ -246,5 +246,9 @@ internal fun KunneIkkeRevurdere.tilFeilMelding(): Resultat {
             this.subError.toString(),
             "ugyldig_periode",
         )
+        KunneIkkeRevurdere.KunneIkkeLukkeOppgave -> InternalServerError.errorJson(
+            "Kunne ikke lukke oppgave",
+            "kunne_ikke_lukke_oppgave"
+        )
     }
 }

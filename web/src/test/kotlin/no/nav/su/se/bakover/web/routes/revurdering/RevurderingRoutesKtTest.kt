@@ -122,7 +122,8 @@ internal class RevurderingRoutesKtTest {
             periode = TestBeregning.getPeriode(),
             opprettet = Tidspunkt.now(),
             tilRevurdering = vedtak.copy(beregning = beregning),
-            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "")
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = ""),
+            oppgaveId = OppgaveId("oppgaveid")
         ).beregn(
             listOf(
                 FradragFactory.ny(
@@ -168,7 +169,7 @@ internal class RevurderingRoutesKtTest {
                     """{
                     "periode": { "fraOgMed": "${periode.getFraOgMed()}", "tilOgMed": "${periode.getTilOgMed()}"},
                     "fradrag": []
-                    }
+                    } 
                     """.trimIndent()
                 )
             }.apply {

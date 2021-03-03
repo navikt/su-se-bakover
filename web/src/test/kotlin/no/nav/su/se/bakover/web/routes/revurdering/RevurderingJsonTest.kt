@@ -77,7 +77,8 @@ internal class RevurderingJsonTest {
             periode = Periode.create(1.januar(2020), 31.desember(2020)),
             opprettet = opprettet,
             tilRevurdering = vedtak,
-            saksbehandler = NavIdentBruker.Saksbehandler("Petter")
+            saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
+            oppgaveId = OppgaveId("oppgaveid")
         )
 
         val revurderingJson = """
@@ -111,6 +112,7 @@ internal class RevurderingJsonTest {
             tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
             beregning = beregning,
+            oppgaveId = OppgaveId("oppgaveid")
         )
 
         val revurderingJson = """
@@ -149,6 +151,7 @@ internal class RevurderingJsonTest {
             tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
             beregning = beregning,
+            oppgaveId = OppgaveId("oppgaveid")
         )
 
         val revurderingJson = """
@@ -187,7 +190,8 @@ internal class RevurderingJsonTest {
             tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
             beregning = beregning,
-            simulering = mock()
+            simulering = mock(),
+            oppgaveId = OppgaveId("oppgaveid")
         )
 
         val revurderingJson = """

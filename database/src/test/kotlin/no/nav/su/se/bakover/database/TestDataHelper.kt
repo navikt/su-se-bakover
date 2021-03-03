@@ -256,7 +256,8 @@ internal class TestDataHelper(
             periode = mock(),
             tilRevurdering = innvilget,
             opprettet = fixedTidspunkt,
-            saksbehandler = saksbehandler
+            saksbehandler = saksbehandler,
+            oppgaveId = OppgaveId("oppgaveid")
         ).also {
             revurderingRepo.lagre(it)
         }

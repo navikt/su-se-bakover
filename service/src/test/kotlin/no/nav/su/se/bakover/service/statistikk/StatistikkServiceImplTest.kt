@@ -404,7 +404,8 @@ internal class StatistikkServiceImplTest {
                 on { id } doReturn UUID.randomUUID()
             },
             saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-            periode = beregning.getPeriode()
+            periode = beregning.getPeriode(),
+            oppgaveId = OppgaveId("oppgaveid")
         )
 
         val expected = Statistikk.Behandling(

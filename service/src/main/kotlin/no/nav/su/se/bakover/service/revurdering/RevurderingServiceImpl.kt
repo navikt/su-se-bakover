@@ -85,6 +85,7 @@ internal class RevurderingServiceImpl(
             return KunneIkkeOppretteRevurdering.FantIkkeAktørid.left()
         }
 
+        // TODO ai 25.02.2021 - Oppgaven skal egentligen ikke opprettes her. Den burde egentligen komma utifra melding av endring, som skal føres til revurdering.
         return oppgaveService.opprettOppgave(
             OppgaveConfig.Revurderingsbehandling(
                 saksnummer = tilRevurdering.behandling.saksnummer,
@@ -97,7 +98,8 @@ internal class RevurderingServiceImpl(
             OpprettetRevurdering(
                 periode = periode,
                 tilRevurdering = tilRevurdering,
-                saksbehandler = saksbehandler
+                saksbehandler = saksbehandler,
+                oppgaveId = it
             ).also {
                 revurderingRepo.lagre(it)
                 observers.forEach { observer ->
@@ -173,7 +175,9 @@ internal class RevurderingServiceImpl(
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler
     ): Either<KunneIkkeRevurdere, Revurdering> {
-        val tilAttestering = when (val revurdering = revurderingRepo.hent(revurderingId)) {
+        val revurdering = revurderingRepo.hent(revurderingId) ?: return KunneIkkeRevurdere.FantIkkeRevurdering.left()
+
+        val tilAttestering = when (revurdering) {
             is SimulertRevurdering -> {
                 val aktørId = personService.hentAktørId(revurdering.fnr).getOrElse {
                     log.error("Fant ikke aktør-id")
@@ -195,9 +199,12 @@ internal class RevurderingServiceImpl(
 
                 revurdering.tilAttestering(oppgaveId, saksbehandler)
             }
-            null -> return KunneIkkeRevurdere.FantIkkeRevurdering.left()
             else -> return KunneIkkeRevurdere.UgyldigTilstand(revurdering::class, RevurderingTilAttestering::class)
                 .left()
+        }
+
+        oppgaveService.lukkOppgave(revurdering.oppgaveId).mapLeft {
+            log.error("Kunne ikke lukke oppgaven med id ${revurdering.oppgaveId}, knyttet til revurderingen. Oppgaven må lukkes manuelt.")
         }
 
         revurderingRepo.lagre(tilAttestering)

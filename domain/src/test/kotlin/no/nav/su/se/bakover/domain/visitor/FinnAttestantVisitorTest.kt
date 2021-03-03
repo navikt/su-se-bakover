@@ -207,7 +207,8 @@ internal class FinnAttestantVisitorTest {
                 .withAlleVilkårOppfylt()
             on { beregning } doReturn beregningMock
         },
-        saksbehandler = NavIdentBruker.Saksbehandler("Petter")
+        saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
+        oppgaveId = OppgaveId("oppgaveid")
     )
 
     private val beregnetRevurdering = when (val a = revurdering.beregn(emptyList()).orNull()!!) {

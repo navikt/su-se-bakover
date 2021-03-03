@@ -106,7 +106,7 @@ internal class OpprettRevurderingServiceTest {
             .sumBy { MånedsberegningFactory.ny(it, Sats.HØY, listOf()).getSumYtelse() }
     }
 
-    private val innvilgetSøknadsbehandling = Søknadsbehandling.Iverksatt.Innvilget(
+    private fun createInnvilgetBehandling() = Søknadsbehandling.Iverksatt.Innvilget(
         id = mock(),
         opprettet = mock(),
         søknad = mock(),
@@ -134,9 +134,9 @@ internal class OpprettRevurderingServiceTest {
         opprettet = Tidspunkt.now(),
         fnr = fnr,
         søknader = listOf(),
-        behandlinger = listOf(innvilgetSøknadsbehandling),
+        behandlinger = listOf(createInnvilgetBehandling()),
         utbetalinger = createUtbetalinger(),
-        vedtakListe = listOf(Vedtak.InnvilgetStønad.fromSøknadsbehandling(innvilgetSøknadsbehandling))
+        vedtakListe = listOf(Vedtak.InnvilgetStønad.fromSøknadsbehandling(createInnvilgetBehandling()))
     )
 
     private fun createUtbetalinger(): List<Utbetaling> = listOf(
@@ -181,6 +181,7 @@ internal class OpprettRevurderingServiceTest {
             opprettet = actual.opprettet,
             tilRevurdering = sak.vedtakListe.first() as IVedtakSomGirUtbetaling,
             saksbehandler = saksbehandler,
+            oppgaveId = OppgaveId("oppgaveId")
         )
         inOrder(sakServiceMock, personServiceMock, oppgaveServiceMock, revurderingRepoMock) {
             verify(sakServiceMock).hentSak(sakId)

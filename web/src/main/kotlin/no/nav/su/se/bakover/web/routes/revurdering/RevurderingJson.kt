@@ -54,7 +54,7 @@ internal sealed class BeregnetRevurderingJson : RevurderingJson() {
         override val periode: PeriodeJson,
         override val tilRevurdering: VedtakJson,
         override val beregninger: RevurdertBeregningJson,
-        override val saksbehandler: String
+        override val saksbehandler: String,
     ) : BeregnetRevurderingJson() {
         @JsonInclude
         val status = RevurderingsStatus.BEREGNET_INNVILGET
@@ -66,7 +66,7 @@ internal sealed class BeregnetRevurderingJson : RevurderingJson() {
         override val periode: PeriodeJson,
         override val tilRevurdering: VedtakJson,
         override val beregninger: RevurdertBeregningJson,
-        override val saksbehandler: String
+        override val saksbehandler: String,
     ) : BeregnetRevurderingJson() {
         @JsonInclude
         val status = RevurderingsStatus.BEREGNET_AVSLAG
@@ -79,7 +79,7 @@ internal data class SimulertRevurderingJson(
     val periode: PeriodeJson,
     val tilRevurdering: VedtakJson,
     val beregninger: RevurdertBeregningJson,
-    val saksbehandler: String
+    val saksbehandler: String,
 ) : RevurderingJson() {
     @JsonInclude
     val status = RevurderingsStatus.SIMULERT
@@ -91,7 +91,7 @@ internal data class TilAttesteringJson(
     val periode: PeriodeJson,
     val tilRevurdering: VedtakJson,
     val beregninger: RevurdertBeregningJson,
-    val saksbehandler: String
+    val saksbehandler: String,
 ) : RevurderingJson() {
     @JsonInclude
     val status = RevurderingsStatus.TIL_ATTESTERING
@@ -116,7 +116,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
         periode = periode.toJson(),
         tilRevurdering = tilRevurdering.toJson(),
-        saksbehandler = saksbehandler.toString()
+        saksbehandler = saksbehandler.toString(),
     )
     is SimulertRevurdering -> SimulertRevurderingJson(
         id = id.toString(),

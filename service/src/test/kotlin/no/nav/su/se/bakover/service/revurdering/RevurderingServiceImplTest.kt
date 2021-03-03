@@ -316,6 +316,7 @@ internal class RevurderingServiceImplTest {
             opprettet = Tidspunkt.EPOCH,
             tilRevurdering = søknadsbehandlingVedtak,
             saksbehandler = saksbehandler,
+            oppgaveId = OppgaveId("oppgaveid")
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -365,7 +366,8 @@ internal class RevurderingServiceImplTest {
             periode = periode,
             opprettet = Tidspunkt.EPOCH,
             tilRevurdering = søknadsbehandlingVedtak,
-            saksbehandler = saksbehandler
+            saksbehandler = saksbehandler,
+            oppgaveId = OppgaveId("oppgaveid")
         )
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn opprettetRevurdering
@@ -421,6 +423,7 @@ internal class RevurderingServiceImplTest {
             opprettet = Tidspunkt.EPOCH,
             tilRevurdering = søknadsbehandlingVedtak,
             saksbehandler = saksbehandler,
+            oppgaveId = OppgaveId("oppgaveid"),
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -468,6 +471,7 @@ internal class RevurderingServiceImplTest {
             on { beregning } doReturn mock()
             on { simulering } doReturn mock()
             on { tilAttestering(any(), any()) } doReturn mock()
+            on { oppgaveId } doReturn OppgaveId("oppgaveid")
         }
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -478,6 +482,7 @@ internal class RevurderingServiceImplTest {
         }
         val oppgaveServiceMock = mock<OppgaveService> {
             on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
+            on { lukkOppgave(any()) } doReturn Unit.right()
         }
 
         val eventObserver: EventObserver = mock()
@@ -505,6 +510,7 @@ internal class RevurderingServiceImplTest {
                     )
                 }
             )
+            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe simulertRevurdering.oppgaveId })
             verify(revurderingRepoMock).lagre(argThat { it shouldBe actual })
             verify(eventObserver).handle(
                 argThat {
@@ -671,7 +677,13 @@ internal class RevurderingServiceImplTest {
             )
             verify(utbetalingMock).id
             verify(revurderingRepoMock).lagre(argThat { it shouldBe iverksattRevurdering })
-            verify(eventObserver).handle(argThat { it shouldBe Event.Statistikk.RevurderingStatistikk.RevurderingIverksatt(iverksattRevurdering) })
+            verify(eventObserver).handle(
+                argThat {
+                    it shouldBe Event.Statistikk.RevurderingStatistikk.RevurderingIverksatt(
+                        iverksattRevurdering
+                    )
+                }
+            )
         }
         verifyNoMoreInteractions(
             revurderingRepoMock,
@@ -712,7 +724,8 @@ internal class RevurderingServiceImplTest {
                 datoBeregnet = LocalDate.now(),
                 nettoBeløp = 0,
                 periodeList = listOf()
-            )
+            ),
+            oppgaveId = OppgaveId("oppgaveid")
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -780,6 +793,7 @@ internal class RevurderingServiceImplTest {
             tilRevurdering = søknadsbehandlingVedtak,
             saksbehandler = saksbehandler,
             beregning = TestBeregning,
+            oppgaveId = OppgaveId("oppgaveid"),
             simulering = Simulering(
                 gjelderId = fnr,
                 gjelderNavn = "Mr Test",
@@ -827,6 +841,7 @@ internal class RevurderingServiceImplTest {
             tilRevurdering = søknadsbehandlingVedtak,
             saksbehandler = saksbehandler,
             beregning = TestBeregning,
+            oppgaveId = OppgaveId("oppgaveid"),
             simulering = Simulering(
                 gjelderId = fnr,
                 gjelderNavn = "Mr Test",
@@ -882,6 +897,7 @@ internal class RevurderingServiceImplTest {
             tilRevurdering = søknadsbehandlingVedtak,
             saksbehandler = saksbehandler,
             beregning = TestBeregning,
+            oppgaveId = OppgaveId("oppgaveid"),
             simulering = Simulering(
                 gjelderId = fnr,
                 gjelderNavn = "Mr Test",
@@ -941,6 +957,7 @@ internal class RevurderingServiceImplTest {
             opprettet = Tidspunkt.now(),
             tilRevurdering = søknadsbehandlingVedtak,
             saksbehandler = saksbehandler,
+            oppgaveId = OppgaveId("oppgaveid")
         )
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn opprettetRevurdering
@@ -967,7 +984,8 @@ internal class RevurderingServiceImplTest {
             opprettet = Tidspunkt.now(),
             tilRevurdering = søknadsbehandlingVedtak,
             saksbehandler = saksbehandler,
-            beregning = TestBeregning
+            beregning = TestBeregning,
+            oppgaveId = OppgaveId("oppgaveid")
         )
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn beregnetRevurdering

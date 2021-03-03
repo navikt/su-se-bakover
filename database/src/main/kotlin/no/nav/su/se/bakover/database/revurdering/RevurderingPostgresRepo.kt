@@ -160,7 +160,8 @@ internal class RevurderingPostgresRepo(
                 tilRevurdering = tilRevurdering,
                 beregning = beregning!!,
                 simulering = simulering!!,
-                saksbehandler = Saksbehandler(saksbehandler)
+                saksbehandler = Saksbehandler(saksbehandler),
+                oppgaveId = OppgaveId(oppgaveId!!)
             )
             RevurderingsType.BEREGNET_INNVILGET -> BeregnetRevurdering.Innvilget(
                 id = id,
@@ -168,7 +169,8 @@ internal class RevurderingPostgresRepo(
                 opprettet = opprettet,
                 tilRevurdering = tilRevurdering,
                 beregning = beregning!!,
-                saksbehandler = Saksbehandler(saksbehandler)
+                saksbehandler = Saksbehandler(saksbehandler),
+                oppgaveId = OppgaveId(oppgaveId!!)
             )
             RevurderingsType.BEREGNET_AVSLAG -> BeregnetRevurdering.Avslag(
                 id = id,
@@ -176,14 +178,16 @@ internal class RevurderingPostgresRepo(
                 opprettet = opprettet,
                 tilRevurdering = tilRevurdering,
                 beregning = beregning!!,
-                saksbehandler = Saksbehandler(saksbehandler)
+                saksbehandler = Saksbehandler(saksbehandler),
+                oppgaveId = OppgaveId(oppgaveId!!)
             )
             RevurderingsType.OPPRETTET -> OpprettetRevurdering(
                 id = id,
                 periode = periode,
                 opprettet = opprettet,
                 tilRevurdering = tilRevurdering,
-                saksbehandler = Saksbehandler(saksbehandler)
+                saksbehandler = Saksbehandler(saksbehandler),
+                oppgaveId = OppgaveId(oppgaveId!!)
             )
         }
     }
@@ -217,6 +221,7 @@ internal class RevurderingPostgresRepo(
                     "opprettet" to revurdering.opprettet,
                     "saksbehandler" to revurdering.saksbehandler.navIdent,
                     "revurderingsType" to RevurderingsType.OPPRETTET.toString(),
+                    "oppgaveId" to revurdering.oppgaveId.toString(),
                     "opprinneligVedtakId" to revurdering.tilRevurdering.id
                 ),
                 session
