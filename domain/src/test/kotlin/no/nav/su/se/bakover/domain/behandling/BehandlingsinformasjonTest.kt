@@ -224,7 +224,6 @@ internal class BehandlingsinformasjonTest {
         uføreFlyktningIkkeFylltUt.getBeregningStrategy() shouldBe BeregningStrategy.Eps67EllerEldre
         uføreFlyktningIkkeFylltUt.getSatsgrunn() shouldBe Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_67_ELLER_ELDRE
         uføreFlyktningIkkeFylltUt.getBeregningStrategy()?.sats() shouldBe Sats.ORDINÆR
-
     }
 
     @Test
