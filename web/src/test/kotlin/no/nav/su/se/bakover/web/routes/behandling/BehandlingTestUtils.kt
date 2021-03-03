@@ -35,6 +35,14 @@ object BehandlingTestUtils {
         journalpostId = journalpostId,
     )
     internal val fnr = FnrGenerator.random()
+    internal val ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle(
+        fnr = Fnr("17087524256"),
+        navn = Person.Navn("fornavn", null, "etternavn"),
+        kjønn = null,
+        fødselsdato = LocalDate.of(1975, 8, 17),
+        adressebeskyttelse = null,
+        skjermet = null
+    )
 
     internal fun innvilgetSøknadsbehandling() = Søknadsbehandling.Iverksatt.Innvilget(
         id = behandlingId,
@@ -99,18 +107,12 @@ object BehandlingTestUtils {
                 begrunnelse = null
             ),
             bosituasjon = Behandlingsinformasjon.Bosituasjon(
+                ektefelle = ektefelle,
                 delerBolig = false,
                 ektemakeEllerSamboerUførFlyktning = false,
                 begrunnelse = null
             ),
-            ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle(
-                fnr = Fnr("17087524256"),
-                navn = Person.Navn("fornavn", null, "etternavn"),
-                kjønn = null,
-                fødselsdato = LocalDate.of(1975, 8, 17),
-                adressebeskyttelse = null,
-                skjermet = null
-            )
+            ektefelle = ektefelle
         ),
         fnr = fnr,
         beregning = TestBeregning,

@@ -169,6 +169,9 @@ internal class VedtakssnapshotJsonTest {
                         "begrunnelse":null
                      },
                      "bosituasjon":{
+                        "ektefelle":{
+                        "type":"IngenEktefelle"
+                     },
                         "delerBolig":false,
                         "ektemakeEllerSamboerUførFlyktning":null,
                         "begrunnelse":null
@@ -574,6 +577,9 @@ internal class VedtakssnapshotJsonTest {
                         "begrunnelse":null
                      },
                      "bosituasjon":{
+                        "ektefelle":{
+                        "type":"IngenEktefelle"
+                     },
                         "delerBolig":false,
                         "ektemakeEllerSamboerUførFlyktning":null,
                         "begrunnelse":null

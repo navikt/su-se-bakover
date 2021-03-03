@@ -124,24 +124,27 @@ internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
         },
         bosituasjon = b.bosituasjon?.let { s ->
             Behandlingsinformasjon.Bosituasjon(
+                ektefelle = b.ektefelle?.let { toEktefelle(it) },
                 delerBolig = s.delerBolig,
                 ektemakeEllerSamboerUførFlyktning = s.ektemakeEllerSamboerUførFlyktning,
                 begrunnelse = s.begrunnelse
             )
         },
-        ektefelle = b.ektefelle?.let { e ->
-            if (e.fnr != null) {
-                Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle(
-                    fnr = e.fnr,
-                    navn = e.navn,
-                    kjønn = e.kjønn,
-                    fødselsdato = e.fødselsdato,
-                    adressebeskyttelse = e.adressebeskyttelse,
-                    skjermet = e.skjermet,
-                )
-            } else Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle
-        }
+        ektefelle = b.ektefelle?.let { e -> toEktefelle(e) }
     )
+
+internal fun toEktefelle(ektefelleJson: EktefelleJson): Behandlingsinformasjon.EktefellePartnerSamboer {
+    return if (ektefelleJson.fnr != null) {
+        Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle(
+            fnr = ektefelleJson.fnr,
+            navn = ektefelleJson.navn,
+            kjønn = ektefelleJson.kjønn,
+            fødselsdato = ektefelleJson.fødselsdato,
+            adressebeskyttelse = ektefelleJson.adressebeskyttelse,
+            skjermet = ektefelleJson.skjermet,
+        )
+    } else Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle
+}
 
 internal fun Behandlingsinformasjon.Uførhet.toJson() =
     UførhetJson(

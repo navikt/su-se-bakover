@@ -99,6 +99,7 @@ internal class OpprettRevurderingServiceTest {
         søknad = mock(),
         behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().copy(
             bosituasjon = Behandlingsinformasjon.Bosituasjon(
+                ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
                 delerBolig = false,
                 ektemakeEllerSamboerUførFlyktning = null,
                 begrunnelse = null
