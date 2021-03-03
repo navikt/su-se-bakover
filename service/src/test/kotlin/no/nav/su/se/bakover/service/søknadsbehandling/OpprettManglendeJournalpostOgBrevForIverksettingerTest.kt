@@ -379,7 +379,6 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
                 },
                 argThat { it shouldBe innvilgetBehandlingUtenJournalpost.saksnummer }
             )
-
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenBrevbestillinger()
         }
         verifyNoMoreInteractions(
@@ -495,9 +494,12 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
             on { distribuerBrev(any()) } doReturn brevbestillingId.right()
         }
 
+        val vedtakRepo = mock<VedtakRepo>()
+
         val actual = createService(
             søknadsbehandlingRepo = behandlingRepoMock,
             brevService = brevServiceMock,
+            vedtakRepo = vedtakRepo
         ).opprettManglendeJournalpostOgBrevdistribusjon()
 
         actual shouldBe FerdigstillIverksettingService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
@@ -508,6 +510,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
         inOrder(
             behandlingRepoMock,
             brevServiceMock,
+            vedtakRepo
         ) {
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenJournalposteringer()
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenBrevbestillinger()
@@ -524,6 +527,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
                     )
                 }
             )
+            verify(vedtakRepo).oppdaterBrevbestillingIdForSøknadsbehandling(behandlingIdBestiltBrev, brevbestillingId)
         }
         verifyNoMoreInteractions(behandlingRepoMock, brevServiceMock)
     }
@@ -559,11 +563,14 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
             )
         }
 
+        val vedtakRepo = mock<VedtakRepo>()
+
         val actual = createService(
             søknadsbehandlingRepo = behandlingRepoMock,
             brevService = brevServiceMock,
             personService = personServiceMock,
             microsoftGraphApiOppslag = oppslagMock,
+            vedtakRepo = vedtakRepo
         ).opprettManglendeJournalpostOgBrevdistribusjon()
 
         actual shouldBe FerdigstillIverksettingService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
@@ -577,6 +584,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
             oppslagMock,
             brevServiceMock,
             brevServiceMock,
+            vedtakRepo
         ) {
             verify(behandlingRepoMock).hentIverksatteBehandlingerUtenJournalposteringer()
             verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe fnr })
@@ -598,6 +606,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
                 },
                 argThat { it shouldBe innvilgetBehandlingUtenJournalpost.saksnummer },
             )
+            verify(vedtakRepo).oppdaterJournalpostForSøknadsbehandling(innvilgetBehandlingUtenJournalpost.id, journalpostIdBestiltBrev)
             verify(behandlingRepoMock).lagre(lagreCaptor.capture()).let {
                 lagreCaptor.firstValue shouldBe innvilgetBehandlingUtenJournalpost.copy(
                     eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.Journalført(
@@ -616,6 +625,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
                         brevbestillingId
                     )
                 )
+                verify(vedtakRepo).oppdaterBrevbestillingIdForSøknadsbehandling(behandlingIdBestiltBrev, brevbestillingId)
             }
         }
         verifyNoMoreInteractions(

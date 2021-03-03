@@ -289,12 +289,15 @@ internal class FerdigstillRevurderingServiceTest {
             on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
         }
 
+        val vedtakRepoMock = mock<VedtakRepo>()
+
         createFerdigstillIverksettingService(
             revurderingRepo = revurderingRepoMock,
             personService = personServiceMock,
             microsoftGraphApiOppslag = hentNavnMock,
             brevService = brevServiceMock,
-            oppgaveService = oppgaveServiceMock
+            oppgaveService = oppgaveServiceMock,
+            vedtakRepo = vedtakRepoMock
         ).ferdigstillIverksetting(utbetalingId)
 
         inOrder(
@@ -302,7 +305,8 @@ internal class FerdigstillRevurderingServiceTest {
             personServiceMock,
             hentNavnMock,
             brevServiceMock,
-            oppgaveServiceMock
+            oppgaveServiceMock,
+            vedtakRepoMock
         ) {
             verify(revurderingRepoMock).hentRevurderingForUtbetaling(utbetalingId)
             verify(personServiceMock).hentPersonMedSystembruker(revurderingSomSkalFerdigstilles.fnr)
@@ -310,6 +314,7 @@ internal class FerdigstillRevurderingServiceTest {
             verify(hentNavnMock).hentBrukerinformasjonForNavIdent(revurderingSomSkalFerdigstilles.attestant)
             verify(brevServiceMock, never()).journalførBrev(any(), any())
             verify(brevServiceMock).distribuerBrev(iverksattJournalpostId)
+            verify(vedtakRepoMock).oppdaterBrevbestillingIdForRevurdering(revurderingSomSkalFerdigstilles.id, iverksattBrevbestillingId)
             verify(revurderingRepoMock).lagre(
                 argThat {
                     it shouldBe revurderingSomSkalFerdigstilles.copy(
@@ -398,12 +403,15 @@ internal class FerdigstillRevurderingServiceTest {
             on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
         }
 
+        val vedtakRepoMock = mock<VedtakRepo>()
+
         createFerdigstillIverksettingService(
             revurderingRepo = revurderingRepoMock,
             personService = personServiceMock,
             microsoftGraphApiOppslag = hentNavnMock,
             brevService = brevServiceMock,
-            oppgaveService = oppgaveServiceMock
+            oppgaveService = oppgaveServiceMock,
+            vedtakRepo = vedtakRepoMock
         ).ferdigstillIverksetting(utbetalingId)
 
         inOrder(
@@ -411,7 +419,8 @@ internal class FerdigstillRevurderingServiceTest {
             personServiceMock,
             hentNavnMock,
             brevServiceMock,
-            oppgaveServiceMock
+            oppgaveServiceMock,
+            vedtakRepoMock
         ) {
             verify(revurderingRepoMock).hentRevurderingForUtbetaling(utbetalingId)
             verify(personServiceMock).hentPersonMedSystembruker(revurderingSomSkalFerdigstilles.fnr)
@@ -444,12 +453,15 @@ internal class FerdigstillRevurderingServiceTest {
             on { lukkOppgaveMedSystembruker(any()) } doReturn KunneIkkeLukkeOppgave.left()
         }
 
+        val vedtakRepoMock = mock<VedtakRepo>()
+
         createFerdigstillIverksettingService(
             revurderingRepo = revurderingRepoMock,
             personService = personServiceMock,
             microsoftGraphApiOppslag = hentNavnMock,
             brevService = brevServiceMock,
-            oppgaveService = oppgaveServiceMock
+            oppgaveService = oppgaveServiceMock,
+            vedtakRepo = vedtakRepoMock
         ).ferdigstillIverksetting(utbetalingId)
 
         inOrder(
@@ -457,7 +469,8 @@ internal class FerdigstillRevurderingServiceTest {
             personServiceMock,
             hentNavnMock,
             brevServiceMock,
-            oppgaveServiceMock
+            oppgaveServiceMock,
+            vedtakRepoMock
         ) {
             verify(revurderingRepoMock).hentRevurderingForUtbetaling(utbetalingId)
             verify(personServiceMock).hentPersonMedSystembruker(revurderingSomSkalFerdigstilles.fnr)
@@ -467,6 +480,7 @@ internal class FerdigstillRevurderingServiceTest {
                 argThat { it.shouldBeTypeOf<LagBrevRequest.Revurdering.Inntekt>() },
                 argThat { it shouldBe saksnummer }
             )
+            verify(vedtakRepoMock).oppdaterJournalpostForRevurdering(revurderingSomSkalFerdigstilles.id, iverksattJournalpostId)
             verify(revurderingRepoMock).lagre(
                 revurderingSomSkalFerdigstilles.copy(
                     eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.Journalført(
@@ -475,6 +489,7 @@ internal class FerdigstillRevurderingServiceTest {
                 )
             )
             verify(brevServiceMock).distribuerBrev(iverksattJournalpostId)
+            verify(vedtakRepoMock).oppdaterBrevbestillingIdForRevurdering(revurderingSomSkalFerdigstilles.id, iverksattBrevbestillingId)
             verify(revurderingRepoMock).lagre(
                 revurderingSomSkalFerdigstilles.copy(
                     eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.JournalførtOgDistribuertBrev(

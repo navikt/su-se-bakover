@@ -516,6 +516,8 @@ internal class FerdigstillIverksettingServiceImplTest {
             on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
         }
 
+        val vedtakRepoMock = mock<VedtakRepo>()
+
         val statistikkObserver = mock<EventObserver>()
 
         val actual = createFerdigstillIverksettingService(
@@ -524,7 +526,8 @@ internal class FerdigstillIverksettingServiceImplTest {
             personService = personServiceMock,
             microsoftGraphApiOppslag = oppslagMock,
             brevService = brevServiceMock,
-            eventObserver = statistikkObserver
+            eventObserver = statistikkObserver,
+            vedtakRepo = vedtakRepoMock
         ).ferdigstillIverksetting(utbetalingId)
 
         actual shouldBe Unit
@@ -575,13 +578,16 @@ internal class FerdigstillIverksettingServiceImplTest {
             }
         )
         verify(oppgaveServiceMock).lukkOppgaveMedSystembruker(argThat { it shouldBe iverksattOppgaveId })
+        verify(vedtakRepoMock).oppdaterJournalpostForSøknadsbehandling(innvilgetBehandlingUtenJournalpost.id, iverksattJournalpostId)
+        verify(vedtakRepoMock).oppdaterBrevbestillingIdForSøknadsbehandling(innvilgetBehandlingUtenJournalpost.id, iverksattBrevbestillingId)
 
         verifyNoMoreInteractions(
             søknadsbehandlingRepoMock,
             brevServiceMock,
             personServiceMock,
             oppslagMock,
-            oppgaveServiceMock
+            oppgaveServiceMock,
+            vedtakRepoMock
         )
     }
 

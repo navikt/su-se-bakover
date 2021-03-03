@@ -47,7 +47,8 @@ internal class FerdigstillIverksettingServiceImpl(
         søknadsbehandlingRepo = søknadsbehandlingRepo,
         brevService = brevService,
         ferdigstillSøknadsbehandlingService = ferdigstillSøknadsbehandlingService,
-        behandlingMetrics = behandlingMetrics
+        behandlingMetrics = behandlingMetrics,
+        vedtakRepo = vedtakRepo
     )
     private val ferdigstillRevurderingService = FerdigstillRevurderingService(
         brevService = brevService,

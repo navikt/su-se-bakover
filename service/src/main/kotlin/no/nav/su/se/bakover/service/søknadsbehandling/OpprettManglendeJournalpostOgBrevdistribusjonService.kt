@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 import arrow.core.Either
 import arrow.core.left
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
+import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegEtterUtbetaling
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegFeil
@@ -16,8 +17,8 @@ internal class OpprettManglendeJournalpostOgBrevdistribusjonService(
     private val søknadsbehandlingRepo: SøknadsbehandlingRepo,
     private val brevService: BrevService,
     private val ferdigstillSøknadsbehandlingService: FerdigstillSøknadsbehandlingService,
-    private val behandlingMetrics: BehandlingMetrics
-
+    private val behandlingMetrics: BehandlingMetrics,
+    private val vedtakRepo: VedtakRepo
 ) {
     fun opprettManglendeJournalpostOgBrevdistribusjon(): FerdigstillIverksettingService.OpprettManglendeJournalpostOgBrevdistribusjonResultat {
         return FerdigstillIverksettingService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
@@ -87,14 +88,14 @@ internal class OpprettManglendeJournalpostOgBrevdistribusjonService(
                     }.map { avslagMedJorunalpostOgDistribuertBrev ->
                         søknadsbehandlingRepo.lagre(avslagMedJorunalpostOgDistribuertBrev)
                         behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.DISTRIBUERT_BREV)
-                        (avslagMedJorunalpostOgDistribuertBrev.eksterneIverksettingsteg as EksterneIverksettingsstegForAvslag.JournalførtOgDistribuertBrev).let {
-                            FerdigstillIverksettingService.BestiltBrev(
-                                sakId = søknadsbehandling.sakId,
-                                behandlingId = søknadsbehandling.id,
-                                journalpostId = it.journalpostId,
-                                brevbestillingId = it.brevbestillingId,
-                            )
-                        }
+                        val steg = (avslagMedJorunalpostOgDistribuertBrev.eksterneIverksettingsteg as EksterneIverksettingsstegForAvslag.JournalførtOgDistribuertBrev)
+                        vedtakRepo.oppdaterBrevbestillingIdForSøknadsbehandling(søknadsbehandling.id, steg.brevbestillingId)
+                        FerdigstillIverksettingService.BestiltBrev(
+                            sakId = søknadsbehandling.sakId,
+                            behandlingId = søknadsbehandling.id,
+                            journalpostId = steg.journalpostId,
+                            brevbestillingId = steg.brevbestillingId,
+                        )
                     }
                 }
                 is Søknadsbehandling.Iverksatt.Innvilget -> {
@@ -129,14 +130,14 @@ internal class OpprettManglendeJournalpostOgBrevdistribusjonService(
                     }.map { innvilgetMedJournalpostOgDistribuertBrev ->
                         søknadsbehandlingRepo.lagre(innvilgetMedJournalpostOgDistribuertBrev)
                         behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.DISTRIBUERT_BREV)
-                        (innvilgetMedJournalpostOgDistribuertBrev.eksterneIverksettingsteg as EksterneIverksettingsstegEtterUtbetaling.JournalførtOgDistribuertBrev).let {
-                            FerdigstillIverksettingService.BestiltBrev(
-                                sakId = søknadsbehandling.sakId,
-                                behandlingId = søknadsbehandling.id,
-                                journalpostId = it.journalpostId,
-                                brevbestillingId = it.brevbestillingId,
-                            )
-                        }
+                        val steg = (innvilgetMedJournalpostOgDistribuertBrev.eksterneIverksettingsteg as EksterneIverksettingsstegEtterUtbetaling.JournalførtOgDistribuertBrev)
+                        vedtakRepo.oppdaterBrevbestillingIdForSøknadsbehandling(søknadsbehandling.id, steg.brevbestillingId)
+                        FerdigstillIverksettingService.BestiltBrev(
+                            sakId = søknadsbehandling.sakId,
+                            behandlingId = søknadsbehandling.id,
+                            journalpostId = steg.journalpostId,
+                            brevbestillingId = steg.brevbestillingId,
+                        )
                     }
                 }
             }
