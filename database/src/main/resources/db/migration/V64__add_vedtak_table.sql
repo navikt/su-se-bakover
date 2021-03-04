@@ -32,9 +32,13 @@ create table if not exists behandling_vedtak
 
 -- Populer vedtaktabellen (og knytningstabellen) med eksisterende søknadsbehandlinger og revurderinger
 WITH b AS (
-    SELECT *, uuid_generate_v4() vedtakId
-    FROM behandling
-    WHERE status IN ('IVERKSATT_INNVILGET', 'IVERKSATT_AVSLAG')
+    SELECT
+           b.*,
+           uuid_generate_v4() vedtakId,
+           vs.opprettet opprettetTidspunkt
+    FROM behandling b
+    JOIN vedtakssnapshot vs ON vs.behandlingid = b.id
+    WHERE b.status IN ('IVERKSATT_INNVILGET', 'IVERKSATT_AVSLAG')
 ),
      v as (
          INSERT INTO vedtak (
@@ -51,7 +55,7 @@ WITH b AS (
                              iverksattjournalpostid,
                              iverksattBrevbestillingId
              ) (SELECT b.vedtakId,
-                       NOW(),
+                       b.opprettetTidspunkt,
                        (b.beregning -> 'periode' ->> 'fraOgMed')::date,
                        (b.beregning -> 'periode' ->> 'tilOgMed')::date,
                        b.saksbehandler,
@@ -134,15 +138,15 @@ INTO behandling_vedtak(id,
 
 -- Endre revurdering-tabell: bytt ut behandlingId med vedtakId
 ALTER TABLE revurdering
-    ADD COLUMN opprinneligVedtakId uuid references vedtak (id);
+    ADD COLUMN vedtakSomRevurderesId uuid references vedtak (id);
 
 UPDATE revurdering
-SET opprinneligVedtakId = subquery.vedtakid
+SET vedtakSomRevurderesId = subquery.vedtakid
 FROM (SELECT * FROM behandling_vedtak) AS subquery
 WHERE subquery.søknadsbehandlingId = revurdering.behandlingid;
 
 ALTER TABLE revurdering
-    ALTER COLUMN opprinneligVedtakId SET NOT NULL;
+    ALTER COLUMN vedtakSomRevurderesId SET NOT NULL;
 
 ALTER TABLE revurdering
     DROP COLUMN behandlingid;

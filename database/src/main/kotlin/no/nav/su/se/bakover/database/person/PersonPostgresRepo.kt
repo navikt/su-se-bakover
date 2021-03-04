@@ -111,7 +111,7 @@ internal class PersonPostgresRepo(
                     s.fnr søkersFnr,
                     v.behandlingsinformasjon->'ektefelle'->>'fnr' epsFnr
                FROM revurdering r
-               INNER JOIN behandling_vedtak bv on bv.vedtakId = r.opprinneligVedtakId
+               INNER JOIN behandling_vedtak bv on bv.vedtakId = r.vedtakSomRevurderesId
                INNER JOIN vedtak v on v.id = bv.vedtakId
                INNER JOIN sak s ON s.id = bv.sakId
                WHERE r.id=:revurderingId

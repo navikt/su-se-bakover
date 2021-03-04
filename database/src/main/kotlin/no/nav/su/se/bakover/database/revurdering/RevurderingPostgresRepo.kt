@@ -104,7 +104,7 @@ internal class RevurderingPostgresRepo(
             FROM
                 revurdering r
                 INNER JOIN behandling_vedtak bv
-                    ON r.opprinneligVedtakId = bv.vedtakId
+                    ON r.vedtakSomRevurderesId = bv.vedtakId
             WHERE bv.sakid=:sakId
         """.trimIndent()
             .hentListe(mapOf("sakId" to sakId), session) {
@@ -115,7 +115,7 @@ internal class RevurderingPostgresRepo(
         val id = uuid("id")
         val periode = string("periode").let { objectMapper.readValue<Periode>(it) }
         val opprettet = tidspunkt("opprettet")
-        val tilRevurdering = vedtakRepo.hent(uuid("opprinneligVedtakId"), session)!! as IVedtakSomGirUtbetaling
+        val tilRevurdering = vedtakRepo.hent(uuid("vedtakSomRevurderesId"), session)!! as IVedtakSomGirUtbetaling
         val beregning = stringOrNull("beregning")?.let { objectMapper.readValue<PersistertBeregning>(it) }
         val simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) }
         val saksbehandler = string("saksbehandler")
@@ -197,9 +197,9 @@ internal class RevurderingPostgresRepo(
             (
                 """
                     insert into revurdering
-                        (id, opprettet, periode, beregning, simulering, saksbehandler, oppgaveId, revurderingsType, attestant, utbetalingId, iverksattjournalpostid, iverksattbrevbestillingid, opprinneligVedtakId)
+                        (id, opprettet, periode, beregning, simulering, saksbehandler, oppgaveId, revurderingsType, attestant, utbetalingId, iverksattjournalpostid, iverksattbrevbestillingid, vedtakSomRevurderesId)
                     values
-                        (:id, :opprettet, to_json(:periode::json), null, null, :saksbehandler, :oppgaveId, :revurderingsType, null, null, null, null, :opprinneligVedtakId)
+                        (:id, :opprettet, to_json(:periode::json), null, null, :saksbehandler, :oppgaveId, :revurderingsType, null, null, null, null, :vedtakSomRevurderesId)
                         ON CONFLICT(id) do update set
                         id=:id,
                         opprettet=:opprettet,
@@ -212,7 +212,7 @@ internal class RevurderingPostgresRepo(
                         attestant=null, utbetalingId=null,
                         iverksattjournalpostid=null,
                         iverksattbrevbestillingid=null,
-                        opprinneligVedtakId=:opprinneligVedtakId
+                        vedtakSomRevurderesId=:vedtakSomRevurderesId
                 """.trimIndent()
                 ).oppdatering(
                 mapOf(
@@ -222,7 +222,7 @@ internal class RevurderingPostgresRepo(
                     "saksbehandler" to revurdering.saksbehandler.navIdent,
                     "revurderingsType" to RevurderingsType.OPPRETTET.toString(),
                     "oppgaveId" to revurdering.oppgaveId.toString(),
-                    "opprinneligVedtakId" to revurdering.tilRevurdering.id
+                    "vedtakSomRevurderesId" to revurdering.tilRevurdering.id
                 ),
                 session
             )
