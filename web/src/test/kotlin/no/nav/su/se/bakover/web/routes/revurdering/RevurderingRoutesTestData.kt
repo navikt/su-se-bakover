@@ -48,7 +48,7 @@ object RevurderingRoutesTestData {
             oppgaveId = OppgaveId(value = ""),
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().copy(
                 bosituasjon = Behandlingsinformasjon.Bosituasjon(
-
+                    ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
                     delerBolig = true,
                     ektemakeEllerSamboerUførFlyktning = true,
                     begrunnelse = null

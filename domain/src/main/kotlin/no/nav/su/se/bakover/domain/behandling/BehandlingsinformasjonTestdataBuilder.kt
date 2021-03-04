@@ -64,11 +64,12 @@ fun Behandlingsinformasjon.withAlleVilkårOppfylt() =
             begrunnelse = personligOppmøte?.begrunnelse
         ),
         bosituasjon = Behandlingsinformasjon.Bosituasjon(
+            ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
             delerBolig = bosituasjon?.delerBolig ?: false,
             ektemakeEllerSamboerUførFlyktning = bosituasjon?.ektemakeEllerSamboerUførFlyktning,
             begrunnelse = bosituasjon?.begrunnelse,
         ),
-        ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle
+        ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
     )
 
 @TestOnly

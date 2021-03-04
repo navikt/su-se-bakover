@@ -203,36 +203,43 @@ object BehandlingsinformasjonTestData {
 
     object Bosituasjon {
         val OppfyltDelerBolig = Behandlingsinformasjon.Bosituasjon(
+            ektefelle = EktefellePartnerSamboer.OppfyltIngenEPS,
             delerBolig = true,
             begrunnelse = "det stemmer",
             ektemakeEllerSamboerUførFlyktning = null,
         )
         val OppfyltDelerIkkeBolig = Behandlingsinformasjon.Bosituasjon(
+            ektefelle = EktefellePartnerSamboer.OppfyltIngenEPS,
             delerBolig = false,
             begrunnelse = "det stemmer",
             ektemakeEllerSamboerUførFlyktning = null,
         )
         val IkkeOppfylltDelerBoligIkkeUtfyllt = Behandlingsinformasjon.Bosituasjon(
+            ektefelle = EktefellePartnerSamboer.OppfyltIngenEPS,
             delerBolig = null,
             begrunnelse = "det stemmer",
             ektemakeEllerSamboerUførFlyktning = true,
         )
         val OppfyltEPSUførFlyktning = Behandlingsinformasjon.Bosituasjon(
+            ektefelle = EktefellePartnerSamboer.OppyltEPSUnder67,
             delerBolig = null,
             begrunnelse = "det stemmer",
             ektemakeEllerSamboerUførFlyktning = true,
         )
         val OppfyltEPSIkkeUførFlyktning = Behandlingsinformasjon.Bosituasjon(
+            ektefelle = EktefellePartnerSamboer.OppyltEPSUnder67,
             delerBolig = null,
             begrunnelse = "det stemmer",
             ektemakeEllerSamboerUførFlyktning = false,
         )
         val OppfyltEPSUførFlyktningIkkeUtfyllt = Behandlingsinformasjon.Bosituasjon(
-            delerBolig = true,
+            ektefelle = EktefellePartnerSamboer.OppyltEPSOverEllerLik67,
+            delerBolig = null,
             begrunnelse = "det stemmer",
             ektemakeEllerSamboerUførFlyktning = null,
         )
         val IkkeOppfylltBeggeVerdierNull = Behandlingsinformasjon.Bosituasjon(
+            ektefelle = EktefellePartnerSamboer.OppfyltIngenEPS,
             delerBolig = null,
             begrunnelse = "det stemmer",
             ektemakeEllerSamboerUførFlyktning = null,
