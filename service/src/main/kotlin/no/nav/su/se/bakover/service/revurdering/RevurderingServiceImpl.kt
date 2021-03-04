@@ -124,11 +124,11 @@ internal class RevurderingServiceImpl(
 
         val revurdering = revurderingRepo.hent(revurderingId) ?: return KunneIkkeOppdatereRevurderingsperiode.FantIkkeRevurdering.left()
 
-        if (!fraOgMed.between(revurdering.periode)) {
+        val stønadsperiode = revurdering.tilRevurdering.beregning.getPeriode()
+        if (!fraOgMed.between(stønadsperiode)) {
             return KunneIkkeOppdatereRevurderingsperiode.PeriodenMåVæreInnenforAlleredeValgtStønadsperiode(revurdering.periode).left()
         }
-        // TODO jah: Her holder det kanskje ikke å bruke samme tilOgMed som forrige gang. Hva om vi har byttet stønadsperiode?
-        val nyPeriode = Periode.tryCreate(fraOgMed, revurdering.periode.getTilOgMed()).getOrHandle {
+        val nyPeriode = Periode.tryCreate(fraOgMed, stønadsperiode.getTilOgMed()).getOrHandle {
             return KunneIkkeOppdatereRevurderingsperiode.UgyldigPeriode(it).left()
         }
         return when (revurdering) {
