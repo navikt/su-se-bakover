@@ -11,11 +11,11 @@ import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegEtterUtbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
-import no.nav.su.se.bakover.domain.vedtak.IBehandling
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.util.UUID
@@ -25,7 +25,7 @@ internal class RevurderingStatistikkMapperTest {
 
     @Test
     fun `mapper opprettet revurdering`() {
-        val behandlingMock = mock<IBehandling> {
+        val behandlingMock = mock<Behandling> {
             on { sakId } doReturn UUID.randomUUID()
             on { saksnummer } doReturn Saksnummer(49L)
         }
@@ -83,7 +83,7 @@ internal class RevurderingStatistikkMapperTest {
     fun `mapper iverksatt revurdering`() {
         val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021))
 
-        val behandlingMock = mock<IBehandling> {
+        val behandlingMock = mock<Behandling> {
             on { sakId } doReturn UUID.randomUUID()
             on { saksnummer } doReturn Saksnummer(49L)
         }

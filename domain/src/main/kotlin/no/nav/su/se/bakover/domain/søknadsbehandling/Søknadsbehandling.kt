@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.AvslagGrunnetBeregning
+import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
@@ -21,11 +22,10 @@ import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettin
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.domain.vedtak.IBehandling
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.util.UUID
 
-sealed class Søknadsbehandling : IBehandling, Visitable<SøknadsbehandlingVisitor> {
+sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisitor> {
     abstract val opprettet: Tidspunkt
     abstract val søknad: Søknad.Journalført.MedOppgave
     abstract val oppgaveId: OppgaveId

@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.MånedsberegningFactory
@@ -45,8 +46,6 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.domain.vedtak.IBehandling
-import no.nav.su.se.bakover.domain.vedtak.IVedtakSomGirUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
@@ -179,7 +178,7 @@ internal class OpprettRevurderingServiceTest {
             id = actual.id,
             periode = periode,
             opprettet = actual.opprettet,
-            tilRevurdering = sak.vedtakListe.first() as IVedtakSomGirUtbetaling,
+            tilRevurdering = sak.vedtakListe.first() as Vedtak.InnvilgetStønad,
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("oppgaveId")
         )
@@ -290,7 +289,7 @@ internal class OpprettRevurderingServiceTest {
 
     @Test
     fun `for en ny revurdering vil det tas utgangspunkt i nyeste vedtak hvor fraOgMed er inni perioden`() {
-        val behandlingMock = mock<IBehandling> {
+        val behandlingMock = mock<Behandling> {
             on { fnr } doReturn FnrGenerator.random()
             on { saksnummer } doReturn Saksnummer(1337)
         }
@@ -367,7 +366,7 @@ internal class OpprettRevurderingServiceTest {
     @Test
     fun `kan revurdere en periode med eksisterende revurdering`() {
         val sak = createSak().let {
-            val opprinneligVedtak = it.vedtakListe.first() as IVedtakSomGirUtbetaling
+            val opprinneligVedtak = it.vedtakListe.first() as Vedtak.InnvilgetStønad
             val revurdering = IverksattRevurdering(
                 id = UUID.randomUUID(),
                 periode = periode,

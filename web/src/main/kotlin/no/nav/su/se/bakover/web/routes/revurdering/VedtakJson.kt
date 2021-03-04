@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
-import no.nav.su.se.bakover.domain.vedtak.IVedtakSomGirUtbetaling
+import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingsinformasjonJson
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingsinformasjonJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.behandling.SimuleringJson
@@ -28,7 +28,7 @@ internal data class VedtakJson(
     val periode: PeriodeJson,
 )
 
-internal fun IVedtakSomGirUtbetaling.toJson(): VedtakJson = VedtakJson(
+internal fun Vedtak.InnvilgetStønad.toJson(): VedtakJson = VedtakJson(
     id = id.toString(),
     opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
     behandlingsinformasjon = behandlingsinformasjon.toJson(),

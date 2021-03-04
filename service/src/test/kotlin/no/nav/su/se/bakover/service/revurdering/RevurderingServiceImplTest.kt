@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.MånedsberegningFactory
@@ -49,8 +50,6 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.domain.vedtak.IBehandling
-import no.nav.su.se.bakover.domain.vedtak.IVedtakSomGirUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.service.FnrGenerator
@@ -701,11 +700,11 @@ internal class RevurderingServiceImplTest {
             on { harEktefelle() } doReturn false
         }
 
-        val behandlingMock = mock<IBehandling> {
+        val behandlingMock = mock<Behandling> {
             on { fnr } doReturn fnr
         }
 
-        val vedtakMock = mock<IVedtakSomGirUtbetaling> {
+        val vedtakMock = mock<Vedtak.InnvilgetStønad> {
             on { behandling } doReturn behandlingMock
             on { beregning } doReturn mock()
             on { behandlingsinformasjon } doReturn behandlingsinformasjonMock

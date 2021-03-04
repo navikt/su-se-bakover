@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
@@ -23,15 +24,14 @@ import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettin
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.domain.vedtak.IBehandling
-import no.nav.su.se.bakover.domain.vedtak.IVedtakSomGirUtbetaling
+import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.util.UUID
 import kotlin.math.abs
 
-sealed class Revurdering : IBehandling, Visitable<RevurderingVisitor> {
+sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
     abstract val opprettet: Tidspunkt
-    abstract val tilRevurdering: IVedtakSomGirUtbetaling
+    abstract val tilRevurdering: Vedtak.InnvilgetStønad
     abstract val periode: Periode
     abstract val saksbehandler: Saksbehandler
     abstract val oppgaveId: OppgaveId
@@ -91,7 +91,7 @@ data class OpprettetRevurdering(
     override val id: UUID = UUID.randomUUID(),
     override val periode: Periode,
     override val opprettet: Tidspunkt = Tidspunkt.now(),
-    override val tilRevurdering: IVedtakSomGirUtbetaling,
+    override val tilRevurdering: Vedtak.InnvilgetStønad,
     override val saksbehandler: Saksbehandler,
     override val oppgaveId: OppgaveId,
 ) : Revurdering() {
@@ -113,7 +113,7 @@ sealed class BeregnetRevurdering : Revurdering() {
     abstract override val id: UUID
     abstract override val periode: Periode
     abstract override val opprettet: Tidspunkt
-    abstract override val tilRevurdering: IVedtakSomGirUtbetaling
+    abstract override val tilRevurdering: Vedtak.InnvilgetStønad
     abstract override val saksbehandler: Saksbehandler
     abstract override val oppgaveId: OppgaveId
     abstract val beregning: Beregning
@@ -135,7 +135,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val id: UUID,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
-        override val tilRevurdering: IVedtakSomGirUtbetaling,
+        override val tilRevurdering: Vedtak.InnvilgetStønad,
         override val saksbehandler: Saksbehandler,
         override val beregning: Beregning,
         override val oppgaveId: OppgaveId,
@@ -157,7 +157,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val id: UUID,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
-        override val tilRevurdering: IVedtakSomGirUtbetaling,
+        override val tilRevurdering: Vedtak.InnvilgetStønad,
         override val saksbehandler: Saksbehandler,
         override val beregning: Beregning,
         override val oppgaveId: OppgaveId,
@@ -168,7 +168,7 @@ data class SimulertRevurdering(
     override val id: UUID,
     override val periode: Periode,
     override val opprettet: Tidspunkt,
-    override val tilRevurdering: IVedtakSomGirUtbetaling,
+    override val tilRevurdering: Vedtak.InnvilgetStønad,
     override val saksbehandler: Saksbehandler,
     override val oppgaveId: OppgaveId,
     val beregning: Beregning,
@@ -203,7 +203,7 @@ data class RevurderingTilAttestering(
     override val id: UUID,
     override val periode: Periode,
     override val opprettet: Tidspunkt,
-    override val tilRevurdering: IVedtakSomGirUtbetaling,
+    override val tilRevurdering: Vedtak.InnvilgetStønad,
     override val saksbehandler: Saksbehandler,
     val beregning: Beregning,
     val simulering: Simulering,
@@ -260,7 +260,7 @@ data class IverksattRevurdering(
     override val id: UUID,
     override val periode: Periode,
     override val opprettet: Tidspunkt,
-    override val tilRevurdering: IVedtakSomGirUtbetaling,
+    override val tilRevurdering: Vedtak.InnvilgetStønad,
     override val saksbehandler: Saksbehandler,
     override val oppgaveId: OppgaveId,
     val beregning: Beregning,

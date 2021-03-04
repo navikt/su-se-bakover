@@ -23,7 +23,6 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
-import no.nav.su.se.bakover.domain.vedtak.IVedtakSomGirUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.service.brev.BrevService
@@ -72,7 +71,7 @@ internal class RevurderingServiceImpl(
         }
 
         val tilRevurdering = sak.vedtakListe
-            .filterIsInstance<IVedtakSomGirUtbetaling>()
+            .filterIsInstance<Vedtak.InnvilgetStønad>()
             .filter { fraOgMed.between(it.periode) }
             .maxByOrNull { it.opprettet.instant }
             ?: return KunneIkkeOppretteRevurdering.FantIngentingSomKanRevurderes.left()

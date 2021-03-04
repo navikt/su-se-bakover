@@ -42,7 +42,6 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.domain.vedtak.IVedtakSomGirUtbetaling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import java.time.Clock
 import java.time.LocalDate
@@ -250,7 +249,7 @@ internal class TestDataHelper(
             vedtakRepo.lagre(it)
         }
 
-    fun nyRevurdering(innvilget: IVedtakSomGirUtbetaling) =
+    fun nyRevurdering(innvilget: Vedtak.InnvilgetStønad) =
         OpprettetRevurdering(
             id = UUID.randomUUID(),
             periode = mock(),
