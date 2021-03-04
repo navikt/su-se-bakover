@@ -6,7 +6,9 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
+import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegEtterUtbetaling
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegFeil
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.brev.BrevService
@@ -19,6 +21,7 @@ internal class FerdigstillSøknadsbehandlingService(
     private val behandlingMetrics: BehandlingMetrics,
     private val brevService: BrevService,
     private val ferdigstillIverksettingService: FerdigstillIverksettingServiceImpl,
+    private val vedtakRepo: VedtakRepo
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
     private val observers: MutableList<EventObserver> = mutableListOf()
@@ -55,14 +58,22 @@ internal class FerdigstillSøknadsbehandlingService(
     ): Either<FerdigstillIverksettingService.KunneIkkeFerdigstilleInnvilgelse, Unit> {
 
         return opprettJournalpostForInnvilgelse(søknadsbehandling)
-            .flatMap {
-                it.distribuerBrev { journalpostId ->
+            .flatMap { s ->
+                s.distribuerBrev { journalpostId ->
                     brevService.distribuerBrev(journalpostId).mapLeft {
                         EksterneIverksettingsstegFeil.EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev(
                             journalpostId
                         )
                     }
                 }.map {
+                    when (val steg = it.eksterneIverksettingsteg) {
+                        is EksterneIverksettingsstegEtterUtbetaling.JournalførtOgDistribuertBrev -> vedtakRepo.oppdaterBrevbestillingIdForSøknadsbehandling(
+                            søknadsbehandlingId = it.id,
+                            brevbestillingId = steg.brevbestillingId
+                        )
+                        else -> {
+                        }
+                    }
                     søknadsbehandlingRepo.lagre(it)
                     behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.DISTRIBUERT_BREV)
                 }
@@ -92,6 +103,15 @@ internal class FerdigstillSøknadsbehandlingService(
                 }
             }
         }.map {
+            when (val steg = it.eksterneIverksettingsteg) {
+                is EksterneIverksettingsstegEtterUtbetaling.Journalført -> vedtakRepo.oppdaterJournalpostForSøknadsbehandling(
+                    søknadsbehandlingId = it.id,
+                    journalpostId = steg.journalpostId
+                )
+                else -> {
+                }
+            }
+
             søknadsbehandlingRepo.lagre(it)
             log.info("Journalført iverksettingsbrev $it for behandling ${søknadsbehandling.id}")
             behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.JOURNALFØRT)

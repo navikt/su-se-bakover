@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
+import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
@@ -36,6 +37,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.attestant
@@ -103,7 +105,7 @@ internal class FerdigstillIverksettingServiceImplTest {
         id = UUID.randomUUID(),
         periode = Periode.create(1.januar(2021), 31.mars(2021)),
         opprettet = Tidspunkt.EPOCH,
-        tilRevurdering = innvilgetBehandlingUtenJournalpost,
+        tilRevurdering = Vedtak.InnvilgetStønad.fromSøknadsbehandling(innvilgetBehandlingUtenJournalpost),
         saksbehandler = NavIdentBruker.Saksbehandler("Z123"),
         beregning = TestBeregning,
         simulering = Simulering(
@@ -514,6 +516,8 @@ internal class FerdigstillIverksettingServiceImplTest {
             on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
         }
 
+        val vedtakRepoMock = mock<VedtakRepo>()
+
         val statistikkObserver = mock<EventObserver>()
 
         val actual = createFerdigstillIverksettingService(
@@ -522,7 +526,8 @@ internal class FerdigstillIverksettingServiceImplTest {
             personService = personServiceMock,
             microsoftGraphApiOppslag = oppslagMock,
             brevService = brevServiceMock,
-            eventObserver = statistikkObserver
+            eventObserver = statistikkObserver,
+            vedtakRepo = vedtakRepoMock
         ).ferdigstillIverksetting(utbetalingId)
 
         actual shouldBe Unit
@@ -573,13 +578,16 @@ internal class FerdigstillIverksettingServiceImplTest {
             }
         )
         verify(oppgaveServiceMock).lukkOppgaveMedSystembruker(argThat { it shouldBe iverksattOppgaveId })
+        verify(vedtakRepoMock).oppdaterJournalpostForSøknadsbehandling(innvilgetBehandlingUtenJournalpost.id, iverksattJournalpostId)
+        verify(vedtakRepoMock).oppdaterBrevbestillingIdForSøknadsbehandling(innvilgetBehandlingUtenJournalpost.id, iverksattBrevbestillingId)
 
         verifyNoMoreInteractions(
             søknadsbehandlingRepoMock,
             brevServiceMock,
             personServiceMock,
             oppslagMock,
-            oppgaveServiceMock
+            oppgaveServiceMock,
+            vedtakRepoMock
         )
     }
 
@@ -592,7 +600,8 @@ internal class FerdigstillIverksettingServiceImplTest {
         brevService: BrevService = mock(),
         eventObserver: EventObserver = mock { on { handle(any()) }.doNothing() },
         clock: Clock = Clock.systemUTC(),
-        revurderingRepo: RevurderingRepo = mock()
+        revurderingRepo: RevurderingRepo = mock(),
+        vedtakRepo: VedtakRepo = mock()
     ) = FerdigstillIverksettingServiceImpl(
         søknadsbehandlingRepo = søknadsbehandlingRepo,
         oppgaveService = oppgaveService,
@@ -601,6 +610,7 @@ internal class FerdigstillIverksettingServiceImplTest {
         personService = personService,
         brevService = brevService,
         clock = clock,
-        revurderingRepo
+        revurderingRepo = revurderingRepo,
+        vedtakRepo = vedtakRepo
     ).apply { addObserver(eventObserver) }
 }

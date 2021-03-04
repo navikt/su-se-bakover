@@ -15,12 +15,14 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.beregning.TestBeregning
+import no.nav.su.se.bakover.service.beregning.TestBeregningSomGirAvslag
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -124,6 +126,7 @@ internal class SøknadsbehandlingStatistikkMapperTest {
         @Test
         fun `funksjonell til settes til opprettet for behandling dersom beregning ikke er tilgjengelig`() {
             SøknadsbehandlingStatistikkMapper.FunksjonellTidMapper.map(uavklartSøknadsbehandling) shouldBe uavklartSøknadsbehandling.opprettet
+            SøknadsbehandlingStatistikkMapper.FunksjonellTidMapper.map(avslåttBeregnetSøknadsbehandling) shouldBe avslåttBeregnetSøknadsbehandling.opprettet
         }
 
         @Test
@@ -280,7 +283,14 @@ internal class SøknadsbehandlingStatistikkMapperTest {
     )
 
     private val beregning = TestBeregning
-
+    private val avslagBeregning = TestBeregningSomGirAvslag
+    private val avslåttBeregnetSøknadsbehandling = (
+        uavklartSøknadsbehandling.tilVilkårsvurdert(
+            Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
+        )
+            .tilBeregnet(avslagBeregning) as Søknadsbehandling.Beregnet.Avslag
+        )
+        .tilAttestering(NavIdentBruker.Saksbehandler("jonny"))
     private val beregnetSøknadsbehandling = uavklartSøknadsbehandling.tilBeregnet(beregning)
     private val simulertSøknadsbehandling = beregnetSøknadsbehandling.tilSimulert(mock())
     private val tilAttesteringSøknadsbehandling =

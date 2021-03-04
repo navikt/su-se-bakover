@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
+import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
@@ -238,12 +239,14 @@ internal class SøknadsbehandlingServiceIverksettTest {
             on { utbetal(any(), any(), any(), any()) } doReturn utbetaling.right()
         }
         val behandlingMetricsMock = mock<BehandlingMetrics>()
+        val vedtakRepoMock = mock<VedtakRepo>()
 
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             iverksettAvslåttBehandlingService = iverksettSaksbehandlingServiceMock,
             behandlingMetrics = behandlingMetricsMock,
             utbetalingService = utbetalingServiceMock,
+            vedtakRepo = vedtakRepoMock
         ).iverksett(SøknadsbehandlingService.IverksettRequest(behandling.id, Attestering.Iverksatt(attestant)))
 
         val expected = Søknadsbehandling.Iverksatt.Innvilget(
@@ -267,7 +270,8 @@ internal class SøknadsbehandlingServiceIverksettTest {
         inOrder(
             søknadsbehandlingRepoMock,
             behandlingMetricsMock,
-            utbetalingServiceMock
+            utbetalingServiceMock,
+            vedtakRepoMock
         ) {
             verify(søknadsbehandlingRepoMock).hent(behandling.id)
             verify(utbetalingServiceMock).utbetal(
@@ -278,6 +282,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             )
             verify(søknadsbehandlingRepoMock).lagre(expected)
             verify(behandlingMetricsMock).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
+            verify(vedtakRepoMock).lagre(argThat { it.behandling shouldBe expected })
         }
         verifyNoMoreInteractions(
             søknadsbehandlingRepoMock,
@@ -293,6 +298,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn behandling
         }
+        val vedtakRepoMock = mock<VedtakRepo>()
 
         val expectedJournalført = Søknadsbehandling.Iverksatt.Avslag.MedBeregning(
             id = behandling.id,
@@ -329,23 +335,37 @@ internal class SøknadsbehandlingServiceIverksettTest {
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             iverksettAvslåttBehandlingService = iverksettSaksbehandlingServiceMock,
             behandlingMetrics = behandlingMetricsMock,
-            observer = statistikkObserver
+            observer = statistikkObserver,
+            vedtakRepo = vedtakRepoMock
         ).iverksett(SøknadsbehandlingService.IverksettRequest(behandling.id, Attestering.Iverksatt(attestant)))
 
         response shouldBe expectedJournalførtOgDistribuert.right()
 
-        inOrder(søknadsbehandlingRepoMock, iverksettSaksbehandlingServiceMock, behandlingMetricsMock, statistikkObserver) {
+        inOrder(
+            søknadsbehandlingRepoMock,
+            iverksettSaksbehandlingServiceMock,
+            behandlingMetricsMock,
+            statistikkObserver,
+            vedtakRepoMock
+        ) {
             verify(søknadsbehandlingRepoMock).hent(behandling.id)
             verify(iverksettSaksbehandlingServiceMock).opprettJournalpostForAvslag(behandling, attestant)
             verify(søknadsbehandlingRepoMock).lagre(expectedJournalført)
             verify(behandlingMetricsMock).incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
             verify(iverksettSaksbehandlingServiceMock).distribuerBrevOgLukkOppgaveForAvslag(expectedJournalført)
             verify(søknadsbehandlingRepoMock).lagre(expectedJournalførtOgDistribuert)
-            verify(statistikkObserver).handle(argThat { it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(expectedJournalførtOgDistribuert) })
+            verify(vedtakRepoMock).lagre(argThat { it.behandling shouldBe expectedJournalførtOgDistribuert })
+            verify(statistikkObserver).handle(
+                argThat {
+                    it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(
+                        expectedJournalførtOgDistribuert
+                    )
+                }
+            )
         }
         verifyNoMoreInteractions(
             søknadsbehandlingRepoMock,
-            iverksettSaksbehandlingServiceMock
+            iverksettSaksbehandlingServiceMock,
         )
     }
 

@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegEtterUtbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
@@ -24,14 +25,17 @@ internal class RevurderingStatistikkMapperTest {
 
     @Test
     fun `mapper opprettet revurdering`() {
+        val behandlingMock = mock<Behandling> {
+            on { sakId } doReturn UUID.randomUUID()
+            on { saksnummer } doReturn Saksnummer(49L)
+        }
         val opprettetRevurdering = OpprettetRevurdering(
             id = UUID.randomUUID(),
             periode = Periode.create(1.januar(2021), 31.januar(2021)),
             opprettet = Tidspunkt.now(fixedClock),
             tilRevurdering = mock {
-                on { sakId } doReturn UUID.randomUUID()
+                on { behandling } doReturn behandlingMock
                 on { id } doReturn UUID.randomUUID()
-                on { saksnummer } doReturn Saksnummer(49L)
             },
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "7"),
             oppgaveId = OppgaveId("oppgaveid")
@@ -79,14 +83,17 @@ internal class RevurderingStatistikkMapperTest {
     fun `mapper iverksatt revurdering`() {
         val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021))
 
+        val behandlingMock = mock<Behandling> {
+            on { sakId } doReturn UUID.randomUUID()
+            on { saksnummer } doReturn Saksnummer(49L)
+        }
         val iverksattRevurdering = IverksattRevurdering(
             id = UUID.randomUUID(),
             periode = periode,
             opprettet = Tidspunkt.now(fixedClock),
             tilRevurdering = mock {
-                on { sakId } doReturn UUID.randomUUID()
+                on { behandling } doReturn behandlingMock
                 on { id } doReturn UUID.randomUUID()
-                on { saksnummer } doReturn Saksnummer(66L)
             },
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "99"),
             beregning = mock {

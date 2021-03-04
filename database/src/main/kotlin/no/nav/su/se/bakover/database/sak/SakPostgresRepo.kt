@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingInternalRepo
+import no.nav.su.se.bakover.database.vedtak.VedtakPosgresRepo
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NySak
@@ -21,7 +22,8 @@ import javax.sql.DataSource
 internal class SakPostgresRepo(
     private val dataSource: DataSource,
     private val søknadsbehandlingRepo: SøknadsbehandlingRepo,
-    private val revurderingRepo: RevurderingPostgresRepo
+    private val revurderingRepo: RevurderingPostgresRepo,
+    private val vedtakPosgresRepo: VedtakPosgresRepo
 ) : SakRepo {
     override fun hentSak(sakId: UUID) = dataSource.withSession { hentSakInternal(sakId, it) }
     override fun hentSak(fnr: Fnr) = dataSource.withSession { hentSakInternal(fnr, it) }
@@ -60,7 +62,8 @@ internal class SakPostgresRepo(
             søknader = SøknadRepoInternal.hentSøknaderInternal(sakId, session),
             behandlinger = søknadsbehandlingRepo.hentForSak(sakId, session),
             utbetalinger = UtbetalingInternalRepo.hentUtbetalinger(sakId, session),
-            revurderinger = revurderingRepo.hentRevurderingerForSak(sakId, session)
+            revurderinger = revurderingRepo.hentRevurderingerForSak(sakId, session),
+            vedtakListe = vedtakPosgresRepo.hentForSakId(sakId, session)
         )
     }
 }

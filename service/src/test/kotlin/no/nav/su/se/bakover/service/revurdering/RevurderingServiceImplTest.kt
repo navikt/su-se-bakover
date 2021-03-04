@@ -15,15 +15,19 @@ import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
+import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.MånedsberegningFactory
@@ -46,12 +50,14 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
+import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -106,28 +112,30 @@ internal class RevurderingServiceImplTest {
             .sumBy { MånedsberegningFactory.ny(it, Sats.HØY, listOf()).getSumYtelse() }
     }
 
-    val behandling = Søknadsbehandling.Iverksatt.Innvilget(
-        id = mock(),
-        opprettet = mock(),
-        søknad = mock(),
-        behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().copy(
-            bosituasjon = Behandlingsinformasjon.Bosituasjon(
-                ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
-                delerBolig = false,
-                ektemakeEllerSamboerUførFlyktning = null,
-                begrunnelse = null
+    val søknadsbehandlingVedtak = Vedtak.InnvilgetStønad.fromSøknadsbehandling(
+        Søknadsbehandling.Iverksatt.Innvilget(
+            id = mock(),
+            opprettet = mock(),
+            søknad = mock(),
+            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().copy(
+                bosituasjon = Behandlingsinformasjon.Bosituasjon(
+                    ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
+                    delerBolig = false,
+                    ektemakeEllerSamboerUførFlyktning = null,
+                    begrunnelse = null
+                ),
+                ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle
             ),
-            ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle
-        ),
-        saksbehandler = saksbehandler,
-        attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("Attes T. Ant")),
-        sakId = sakId,
-        saksnummer = saksnummer,
-        fnr = fnr,
-        oppgaveId = mock(),
-        beregning = beregningMock,
-        simulering = mock(),
-        utbetalingId = mock(),
+            saksbehandler = saksbehandler,
+            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("Attes T. Ant")),
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            oppgaveId = mock(),
+            beregning = beregningMock,
+            simulering = mock(),
+            utbetalingId = mock(),
+        )
     )
     val sak = Sak(
         id = sakId,
@@ -135,14 +143,169 @@ internal class RevurderingServiceImplTest {
         opprettet = Tidspunkt.now(),
         fnr = fnr,
         søknader = listOf(),
-        behandlinger = listOf(behandling),
         utbetalinger = listOf(
             mock {
                 on { senesteDato() } doReturn periode.getTilOgMed()
                 on { tidligsteDato() } doReturn periode.getFraOgMed()
             }
-        )
+        ),
+        vedtakListe = listOf(søknadsbehandlingVedtak)
     )
+
+    @Test
+    fun `oppretter en revurdering`() {
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(sakId) } doReturn sak.right()
+        }
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { lagre(any()) }.doNothing()
+        }
+
+        val personServiceMock = mock<PersonService> {
+            on { hentAktørId(any()) } doReturn aktørId.right()
+        }
+
+        val oppgaveServiceMock = mock<OppgaveService> {
+            on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
+        }
+
+        val actual = createRevurderingService(
+            sakService = sakServiceMock,
+            revurderingRepo = revurderingRepoMock,
+            oppgaveService = oppgaveServiceMock,
+            personService = personServiceMock
+        ).opprettRevurdering(
+            sakId = sakId,
+            fraOgMed = periode.getFraOgMed(),
+            saksbehandler = saksbehandler
+        ).getOrHandle { throw RuntimeException("Skal ikke kunne skje") }
+
+        inOrder(sakServiceMock, personServiceMock, oppgaveServiceMock, revurderingRepoMock) {
+            verify(sakServiceMock).hentSak(sakId)
+            verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
+            verify(oppgaveServiceMock).opprettOppgave(
+                argThat {
+                    it shouldBe OppgaveConfig.Revurderingsbehandling(
+                        saksnummer = saksnummer,
+                        aktørId = aktørId,
+                        tilordnetRessurs = null
+                    )
+                }
+            )
+            verify(revurderingRepoMock).lagre(argThat { it.right() shouldBe actual.right() })
+        }
+
+        verifyNoMoreInteractions(sakServiceMock, personServiceMock, oppgaveServiceMock, revurderingRepoMock)
+    }
+
+    @Test
+    fun `kan ikke revurdere når det ikke eksisterer vedtak`() {
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(sakId) } doReturn sak.copy(
+                vedtakListe = emptyList()
+            ).right()
+        }
+
+        val actual = createRevurderingService(
+            sakService = sakServiceMock
+        ).opprettRevurdering(
+            sakId = sakId,
+            fraOgMed = periode.getFraOgMed(),
+            saksbehandler = saksbehandler
+        )
+
+        actual shouldBe KunneIkkeOppretteRevurdering.FantIngentingSomKanRevurderes.left()
+        verify(sakServiceMock).hentSak(sakId)
+        verifyNoMoreInteractions(sakServiceMock)
+    }
+
+    @Test
+    fun `kan ikke revurdere når stønadsperioden ikke inneholder revurderingsperioden`() {
+
+        val beregningMock = mock<Beregning> {
+            on { getPeriode() } doReturn Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.desember(2021))
+        }
+        val behandling = mock<Søknadsbehandling.Iverksatt.Innvilget> {
+            on { beregning } doReturn beregningMock
+        }
+        val sak = Sak(
+            id = sakId,
+            saksnummer = saksnummer,
+            opprettet = Tidspunkt.now(),
+            fnr = fnr,
+            søknader = listOf(),
+            behandlinger = listOf(behandling),
+            utbetalinger = sak.utbetalinger
+        )
+
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(sakId) } doReturn sak.right()
+        }
+
+        val actual = createRevurderingService(
+            sakService = sakServiceMock
+        ).opprettRevurdering(
+            sakId = sakId,
+            fraOgMed = periode.getFraOgMed(),
+            saksbehandler = saksbehandler
+        )
+
+        actual shouldBe KunneIkkeOppretteRevurdering.FantIngentingSomKanRevurderes.left()
+        verify(sakServiceMock).hentSak(sakId)
+        verifyNoMoreInteractions(sakServiceMock)
+    }
+
+    // TODO vi har vel muligens ikke helt deifnert hvordan dette skal fungere "etter" vedtak er innført
+    // @Test
+    // fun `kan ikke revurdere når stønadsperioden overlapper flere aktive stønadsperioder`() {
+    //     val beregningMock = mock<Beregning> {
+    //         on { getPeriode() } doReturn periode
+    //     }
+    //     val behandling1 = mock<Søknadsbehandling.Iverksatt.Innvilget> {
+    //         on { beregning } doReturn beregningMock
+    //     }
+    //     val behandling2 = mock<Søknadsbehandling.Iverksatt.Innvilget> {
+    //         on { beregning } doReturn beregningMock
+    //     }
+    //
+    //     val sak = Sak(
+    //         id = sakId,
+    //         saksnummer = saksnummer,
+    //         opprettet = Tidspunkt.now(),
+    //         fnr = fnr,
+    //         søknader = listOf(),
+    //         behandlinger = listOf(behandling1, behandling2),
+    //         utbetalinger = sak.utbetalinger
+    //     )
+    //
+    //     val sakServiceMock = mock<SakService> {
+    //         on { hentSak(sakId) } doReturn sak.right()
+    //     }
+    //
+    //     val actual = createRevurderingService(
+    //         sakService = sakServiceMock,
+    //         clock = Clock.fixed(1.februar(2021).startOfDay(zoneIdOslo).instant, zoneIdOslo)
+    //     ).opprettRevurdering(
+    //         sakId = sakId,
+    //         fraOgMed = 1.juni(2021),
+    //         saksbehandler = saksbehandler
+    //     )
+    //
+    //     actual shouldBe KunneIkkeRevurdere.KanIkkeRevurderePerioderMedFlereAktiveStønadsperioder.left()
+    //     verify(sakServiceMock).hentSak(sakId)
+    //     verifyNoMoreInteractions(sakServiceMock)
+    // }
+
+    @Test
+    fun `oppretter ikke en revurdering hvis perioden er i samme måned`() {
+        val actual = createRevurderingService().opprettRevurdering(
+            sakId = sakId,
+            fraOgMed = 1.januar(2021),
+            saksbehandler = saksbehandler
+        )
+
+        actual shouldBe KunneIkkeOppretteRevurdering.KanIkkeRevurdereInneværendeMånedEllerTidligere.left()
+    }
 
     @Test
     fun `kan beregne og simulere`() {
@@ -150,7 +313,7 @@ internal class RevurderingServiceImplTest {
             id = revurderingId,
             periode = periode,
             opprettet = Tidspunkt.EPOCH,
-            tilRevurdering = behandling,
+            tilRevurdering = søknadsbehandlingVedtak,
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("oppgaveid")
         )
@@ -175,7 +338,7 @@ internal class RevurderingServiceImplTest {
                 FradragFactory.ny(
                     type = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = 10000.0,
-                    periode = behandling.beregning.getPeriode(),
+                    periode = søknadsbehandlingVedtak.beregning.getPeriode(),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER
                 )
@@ -201,7 +364,7 @@ internal class RevurderingServiceImplTest {
             id = revurderingId,
             periode = periode,
             opprettet = Tidspunkt.EPOCH,
-            tilRevurdering = behandling,
+            tilRevurdering = søknadsbehandlingVedtak,
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("oppgaveid")
         )
@@ -226,7 +389,7 @@ internal class RevurderingServiceImplTest {
             id = revurderingId,
             periode = periode,
             opprettet = Tidspunkt.EPOCH,
-            tilRevurdering = behandling,
+            tilRevurdering = søknadsbehandlingVedtak,
             saksbehandler = saksbehandler,
             beregning = mock(),
             simulering = mock(),
@@ -257,7 +420,7 @@ internal class RevurderingServiceImplTest {
             id = revurderingId,
             periode = periode,
             opprettet = Tidspunkt.EPOCH,
-            tilRevurdering = behandling,
+            tilRevurdering = søknadsbehandlingVedtak,
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("oppgaveid"),
         )
@@ -280,7 +443,7 @@ internal class RevurderingServiceImplTest {
                 FradragFactory.ny(
                     type = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = 10000.0,
-                    periode = behandling.beregning.getPeriode(),
+                    periode = søknadsbehandlingVedtak.beregning.getPeriode(),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER
                 )
@@ -297,20 +460,12 @@ internal class RevurderingServiceImplTest {
 
     @Test
     fun `sender til attestering`() {
-        val søknadMock = mock<Søknad.Journalført.MedOppgave> {
-            on { id } doReturn UUID.randomUUID()
-        }
-
-        val behandlingMock = mock<Søknadsbehandling.Iverksatt.Innvilget> {
-            on { fnr } doReturn fnr
-            on { søknad } doReturn søknadMock
-            on { saksnummer } doReturn saksnummer
-        }
-
         val simulertRevurdering = mock<SimulertRevurdering> {
+            on { fnr } doReturn fnr
+            on { saksnummer } doReturn saksnummer
             on { id } doReturn revurderingId
             on { periode } doReturn periode
-            on { tilRevurdering } doReturn behandlingMock
+            on { tilRevurdering } doReturn søknadsbehandlingVedtak
             on { opprettet } doReturn Tidspunkt.EPOCH
             on { beregning } doReturn mock()
             on { simulering } doReturn mock()
@@ -394,11 +549,8 @@ internal class RevurderingServiceImplTest {
 
     @Test
     fun `sender ikke til attestering hvis henting av aktørId feiler`() {
-        val behandlingMock = mock<Søknadsbehandling.Iverksatt.Innvilget> {
-            on { fnr } doReturn fnr
-        }
         val simulertRevurdering = mock<SimulertRevurdering> {
-            on { tilRevurdering } doReturn behandlingMock
+            on { fnr } doReturn fnr
         }
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn simulertRevurdering
@@ -425,16 +577,9 @@ internal class RevurderingServiceImplTest {
 
     @Test
     fun `sender ikke til attestering hvis oppretting av oppgave feiler`() {
-        val søknadMock = mock<Søknad.Journalført.MedOppgave> {
-            on { id } doReturn UUID.randomUUID()
-        }
-        val behandlingMock = mock<Søknadsbehandling.Iverksatt.Innvilget> {
-            on { fnr } doReturn fnr
-            on { søknad } doReturn søknadMock
-            on { saksnummer } doReturn saksnummer
-        }
         val simulertRevurdering = mock<SimulertRevurdering> {
-            on { tilRevurdering } doReturn behandlingMock
+            on { fnr } doReturn fnr
+            on { saksnummer } doReturn saksnummer
         }
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn simulertRevurdering
@@ -480,7 +625,7 @@ internal class RevurderingServiceImplTest {
             id = revurderingId,
             periode = periode,
             opprettet = Tidspunkt.EPOCH,
-            tilRevurdering = behandling,
+            tilRevurdering = søknadsbehandlingVedtak,
             saksbehandler = saksbehandler,
             beregning = TestBeregning,
             simulering = testsimulering,
@@ -493,7 +638,7 @@ internal class RevurderingServiceImplTest {
             id = revurderingId,
             periode = periode,
             opprettet = Tidspunkt.EPOCH,
-            tilRevurdering = behandling,
+            tilRevurdering = søknadsbehandlingVedtak,
             oppgaveId = OppgaveId(value = "OppgaveId"),
             beregning = TestBeregning,
             simulering = testsimulering,
@@ -555,8 +700,12 @@ internal class RevurderingServiceImplTest {
             on { harEktefelle() } doReturn false
         }
 
-        val behandlingMock = mock<Søknadsbehandling.Iverksatt.Innvilget> {
+        val behandlingMock = mock<Behandling> {
             on { fnr } doReturn fnr
+        }
+
+        val vedtakMock = mock<Vedtak.InnvilgetStønad> {
+            on { behandling } doReturn behandlingMock
             on { beregning } doReturn mock()
             on { behandlingsinformasjon } doReturn behandlingsinformasjonMock
         }
@@ -565,7 +714,7 @@ internal class RevurderingServiceImplTest {
             id = revurderingId,
             periode = periode,
             opprettet = Tidspunkt.now(),
-            tilRevurdering = behandlingMock,
+            tilRevurdering = vedtakMock,
             saksbehandler = saksbehandler,
             beregning = TestBeregning,
             simulering = Simulering(
@@ -618,7 +767,7 @@ internal class RevurderingServiceImplTest {
                             saksbehandlerNavn = saksbehandler.navIdent,
                             revurdertBeregning = simulertRevurdering.beregning,
                             fritekst = null,
-                            vedtattBeregning = behandlingMock.beregning,
+                            vedtattBeregning = vedtakMock.beregning,
                             harEktefelle = false
                         )
                 }
@@ -640,7 +789,7 @@ internal class RevurderingServiceImplTest {
             id = revurderingId,
             periode = periode,
             opprettet = Tidspunkt.now(),
-            tilRevurdering = behandling,
+            tilRevurdering = søknadsbehandlingVedtak,
             saksbehandler = saksbehandler,
             beregning = TestBeregning,
             oppgaveId = OppgaveId("oppgaveid"),
@@ -688,7 +837,7 @@ internal class RevurderingServiceImplTest {
             id = revurderingId,
             periode = periode,
             opprettet = Tidspunkt.now(),
-            tilRevurdering = behandling,
+            tilRevurdering = søknadsbehandlingVedtak,
             saksbehandler = saksbehandler,
             beregning = TestBeregning,
             oppgaveId = OppgaveId("oppgaveid"),
@@ -744,7 +893,7 @@ internal class RevurderingServiceImplTest {
             id = revurderingId,
             periode = periode,
             opprettet = Tidspunkt.now(),
-            tilRevurdering = behandling,
+            tilRevurdering = søknadsbehandlingVedtak,
             saksbehandler = saksbehandler,
             beregning = TestBeregning,
             oppgaveId = OppgaveId("oppgaveid"),
@@ -805,7 +954,7 @@ internal class RevurderingServiceImplTest {
             id = UUID.randomUUID(),
             periode = periode,
             opprettet = Tidspunkt.now(),
-            tilRevurdering = behandling,
+            tilRevurdering = søknadsbehandlingVedtak,
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("oppgaveid")
         )
@@ -832,7 +981,7 @@ internal class RevurderingServiceImplTest {
             id = revurderingId,
             periode = periode,
             opprettet = Tidspunkt.now(),
-            tilRevurdering = behandling,
+            tilRevurdering = søknadsbehandlingVedtak,
             saksbehandler = saksbehandler,
             beregning = TestBeregning,
             oppgaveId = OppgaveId("oppgaveid")
@@ -862,7 +1011,8 @@ internal class RevurderingServiceImplTest {
         personService: PersonService = mock(),
         microsoftGraphApiClient: MicrosoftGraphApiClient = mock(),
         brevService: BrevService = mock(),
-        clock: Clock = fixedClock
+        clock: Clock = fixedClock,
+        vedtakRepo: VedtakRepo = mock()
     ) =
         RevurderingServiceImpl(
             sakService = sakService,
@@ -873,5 +1023,6 @@ internal class RevurderingServiceImplTest {
             microsoftGraphApiClient = microsoftGraphApiClient,
             brevService = brevService,
             clock = clock,
+            vedtakRepo = vedtakRepo,
         )
 }

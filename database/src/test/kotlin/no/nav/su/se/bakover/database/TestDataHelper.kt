@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.database.sak.SakPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadPostgresRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
+import no.nav.su.se.bakover.database.vedtak.VedtakPosgresRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NySak
@@ -41,6 +42,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import java.time.Clock
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -122,8 +124,8 @@ internal fun oversendtUtbetalingUtenKvittering(
 ) = Utbetaling.OversendtUtbetaling.UtenKvittering(
     id = UUID30.randomUUID(),
     opprettet = fixedTidspunkt,
-    sakId = revurdering.tilRevurdering.sakId,
-    saksnummer = revurdering.tilRevurdering.saksnummer,
+    sakId = revurdering.sakId,
+    saksnummer = revurdering.saksnummer,
     fnr = revurdering.fnr,
     utbetalingslinjer = utbetalingslinjer,
     type = Utbetaling.UtbetalingsType.NY,
@@ -150,8 +152,9 @@ internal class TestDataHelper(
     private val hendelsesloggRepo = HendelsesloggPostgresRepo(dataSource)
     private val søknadRepo = SøknadPostgresRepo(dataSource)
     private val søknadsbehandlingRepo = SøknadsbehandlingPostgresRepo(dataSource)
-    private val revurderingRepo = RevurderingPostgresRepo(dataSource, søknadsbehandlingRepo)
-    private val sakRepo = SakPostgresRepo(dataSource, søknadsbehandlingRepo, revurderingRepo)
+    val revurderingRepo = RevurderingPostgresRepo(dataSource, søknadsbehandlingRepo)
+    val vedtakRepo = VedtakPosgresRepo(dataSource, søknadsbehandlingRepo, revurderingRepo)
+    private val sakRepo = SakPostgresRepo(dataSource, søknadsbehandlingRepo, revurderingRepo, vedtakRepo)
 
     fun nySakMedNySøknad(fnr: Fnr = FnrGenerator.random()): NySak {
         return SakFactory(clock = clock).nySak(fnr, SøknadInnholdTestdataBuilder.build()).also {
@@ -241,7 +244,12 @@ internal class TestDataHelper(
 
     fun oppdaterHendelseslogg(hendelseslogg: Hendelseslogg) = hendelsesloggRepo.oppdaterHendelseslogg(hendelseslogg)
 
-    fun nyRevurdering(innvilget: Søknadsbehandling.Iverksatt.Innvilget) =
+    fun vedtakForSøknadsbehandling(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget) =
+        Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling).also {
+            vedtakRepo.lagre(it)
+        }
+
+    fun nyRevurdering(innvilget: Vedtak.InnvilgetStønad) =
         OpprettetRevurdering(
             id = UUID.randomUUID(),
             periode = mock(),

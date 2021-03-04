@@ -24,10 +24,10 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.behandling.TestBeregning
-import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.innvilgetSøknadsbehandling
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.periode
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.requestPath
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.testServices
+import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.vedtak
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
@@ -68,11 +68,11 @@ internal class IverksettRevurderingRouteKtTest {
             id = UUID.randomUUID(),
             periode = periode,
             opprettet = Tidspunkt.now(),
-            tilRevurdering = innvilgetSøknadsbehandling,
+            tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = ""),
             beregning = TestBeregning,
             simulering = Simulering(
-                gjelderId = innvilgetSøknadsbehandling.fnr,
+                gjelderId = vedtak.behandling.fnr,
                 gjelderNavn = "Test",
                 datoBeregnet = LocalDate.now(),
                 nettoBeløp = 0,

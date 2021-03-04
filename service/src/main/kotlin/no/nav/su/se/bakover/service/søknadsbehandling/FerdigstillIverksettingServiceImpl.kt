@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
+import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
@@ -28,7 +29,8 @@ internal class FerdigstillIverksettingServiceImpl(
     private val personService: PersonService,
     private val brevService: BrevService,
     private val clock: Clock,
-    private val revurderingRepo: RevurderingRepo
+    private val revurderingRepo: RevurderingRepo,
+    private val vedtakRepo: VedtakRepo
 ) : FerdigstillIverksettingService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -38,18 +40,21 @@ internal class FerdigstillIverksettingServiceImpl(
         søknadsbehandlingRepo = søknadsbehandlingRepo,
         behandlingMetrics = behandlingMetrics,
         brevService = brevService,
-        ferdigstillIverksettingService = this
+        ferdigstillIverksettingService = this,
+        vedtakRepo = vedtakRepo
     )
     private val opprettManglendeJournalpostOgBrevdistribusjonService = OpprettManglendeJournalpostOgBrevdistribusjonService(
         søknadsbehandlingRepo = søknadsbehandlingRepo,
         brevService = brevService,
         ferdigstillSøknadsbehandlingService = ferdigstillSøknadsbehandlingService,
-        behandlingMetrics = behandlingMetrics
+        behandlingMetrics = behandlingMetrics,
+        vedtakRepo = vedtakRepo
     )
     private val ferdigstillRevurderingService = FerdigstillRevurderingService(
         brevService = brevService,
         revurderingRepo = revurderingRepo,
-        ferdigstillIverksettingService = this
+        ferdigstillIverksettingService = this,
+        vedtakRepo = vedtakRepo
     )
 
     fun addObserver(observer: EventObserver) {

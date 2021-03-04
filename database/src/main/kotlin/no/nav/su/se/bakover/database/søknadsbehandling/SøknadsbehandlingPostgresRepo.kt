@@ -66,6 +66,15 @@ internal class SøknadsbehandlingPostgresRepo(
         }
     }
 
+    override fun hent(id: UUID, session: Session): Søknadsbehandling? {
+        return dataSource.withSession(session) { s ->
+            "select b.*, s.fnr, s.saksnummer from behandling b inner join sak s on s.id = b.sakId where b.id=:id"
+                .hent(mapOf("id" to id), s) { row ->
+                    row.toSaksbehandling(s)
+                }
+        }
+    }
+
     override fun hentForSak(sakId: UUID, session: Session): List<Søknadsbehandling> {
         return "select b.*, s.fnr, s.saksnummer from behandling b inner join sak s on s.id = b.sakId where b.sakId=:sakId"
             .hentListe(mapOf("sakId" to sakId), session) {

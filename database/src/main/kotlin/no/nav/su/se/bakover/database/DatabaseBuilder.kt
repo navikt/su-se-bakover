@@ -19,6 +19,8 @@ import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgr
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
+import no.nav.su.se.bakover.database.vedtak.VedtakPosgresRepo
+import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.database.vedtak.snapshot.VedtakssnapshotPostgresRepo
 import no.nav.su.se.bakover.database.vedtak.snapshot.VedtakssnapshotRepo
 import javax.sql.DataSource
@@ -52,17 +54,21 @@ object DatabaseBuilder {
 
     private fun buildInternal(dataSource: DataSource): DatabaseRepos {
         val saksbehandlingRepo = SøknadsbehandlingPostgresRepo(dataSource)
+
         val revurderingRepo = RevurderingPostgresRepo(dataSource, saksbehandlingRepo)
+        val vedtakRepo = VedtakPosgresRepo(dataSource, saksbehandlingRepo, revurderingRepo)
+
         return DatabaseRepos(
             avstemming = AvstemmingPostgresRepo(dataSource),
             utbetaling = UtbetalingPostgresRepo(dataSource),
             søknad = SøknadPostgresRepo(dataSource),
             hendelseslogg = HendelsesloggPostgresRepo(dataSource),
-            sak = SakPostgresRepo(dataSource, saksbehandlingRepo, revurderingRepo),
+            sak = SakPostgresRepo(dataSource, saksbehandlingRepo, revurderingRepo, vedtakRepo),
             person = PersonPostgresRepo(dataSource),
             vedtakssnapshot = VedtakssnapshotPostgresRepo(dataSource),
             søknadsbehandling = saksbehandlingRepo,
-            revurderingRepo = revurderingRepo
+            revurderingRepo = revurderingRepo,
+            vedtakRepo = vedtakRepo
         )
     }
 }
@@ -77,4 +83,5 @@ data class DatabaseRepos(
     val vedtakssnapshot: VedtakssnapshotRepo,
     val søknadsbehandling: SøknadsbehandlingRepo,
     val revurderingRepo: RevurderingRepo,
+    val vedtakRepo: VedtakRepo,
 )
