@@ -57,14 +57,7 @@ internal class RevurderingPostgresRepo(
 
     override fun hent(id: UUID): Revurdering? =
         dataSource.withSession { session ->
-            """
-                SELECT *
-                FROM revurdering
-                WHERE id = :id
-            """.trimIndent()
-                .hent(mapOf("id" to id), session) { row ->
-                    row.toRevurdering(session)
-                }
+            hent(id, session)
         }
 
     override fun hent(id: UUID, session: Session): Revurdering? =

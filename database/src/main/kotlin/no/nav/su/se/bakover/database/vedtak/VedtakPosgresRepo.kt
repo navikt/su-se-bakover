@@ -452,7 +452,7 @@ internal class VedtakPosgresRepo(
                 }
             }
 
-    sealed class BehandlingVedtakKnytning {
+    private sealed class BehandlingVedtakKnytning {
         abstract val id: UUID
         abstract val vedtakId: UUID
         abstract val sakId: UUID
