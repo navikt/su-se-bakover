@@ -27,7 +27,6 @@ internal class SakPostgresRepo(
     override fun hentSak(fnr: Fnr) = dataSource.withSession { hentSakInternal(fnr, it) }
     override fun hentSak(saksnummer: Saksnummer) = dataSource.withSession { hentSakInternal(saksnummer, it) }
 
-
     override fun opprettSak(sak: NySak) {
         dataSource.withSession { session ->
             """

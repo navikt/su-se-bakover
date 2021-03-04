@@ -49,9 +49,8 @@ internal fun Route.sakRoutes(
                     }
                 )
             }
-            else -> Unit
+            else -> call.svar(BadRequest.message("Må oppgi saksnummer eller fødselsnummer"))
         }
-
     }
 
     get("$sakPath/{sakId}") {
@@ -65,5 +64,3 @@ internal fun Route.sakRoutes(
         }
     }
 }
-
-
