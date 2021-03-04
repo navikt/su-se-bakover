@@ -11,6 +11,8 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import java.time.Clock
 import java.util.UUID
 
+// TODO ai: Bytt till string
+// husk database endring
 data class Saksnummer(@JsonValue val nummer: Long) {
     override fun toString() = nummer.toString()
 }

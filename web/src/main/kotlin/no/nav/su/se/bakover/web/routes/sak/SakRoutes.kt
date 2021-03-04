@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withSakId
+import no.nav.su.se.bakover.web.withSaksnummer
 
 internal const val sakPath = "/saker"
 
@@ -24,17 +25,33 @@ internal fun Route.sakRoutes(
     sakService: SakService
 ) {
     get(sakPath) {
-        call.lesFnr("fnr").fold(
-            ifLeft = { call.svar(BadRequest.message(it)) },
-            ifRight = { fnr ->
-                sakService.hentSak(fnr)
-                    .mapLeft { call.svar(NotFound.message("Fant ikke noen sak for person: $fnr")) }
-                    .map {
-                        call.audit("Hentet sak for fnr: $fnr")
-                        call.svar(Resultat.json(OK, serialize((it.toJson()))))
-                    }
+        when {
+            call.parameters.contains("saksnummer") -> {
+                call.withSaksnummer { saksnummer ->
+                    call.svar(
+                        sakService.hentSak(saksnummer).fold(
+                            { NotFound.message("Fant ikke sak med saksnummer: $saksnummer") },
+                            { Resultat.json(OK, serialize((it.toJson()))) }
+                        )
+                    )
+                }
             }
-        )
+            call.parameters.contains("fnr") -> {
+                call.lesFnr("fnr").fold(
+                    ifLeft = { call.svar(BadRequest.message(it)) },
+                    ifRight = { fnr ->
+                        sakService.hentSak(fnr)
+                            .mapLeft { call.svar(NotFound.message("Fant ikke noen sak for person: $fnr")) }
+                            .map {
+                                call.audit("Hentet sak for fnr: $fnr")
+                                call.svar(Resultat.json(OK, serialize((it.toJson()))))
+                            }
+                    }
+                )
+            }
+            else -> Unit
+        }
+
     }
 
     get("$sakPath/{sakId}") {
@@ -48,3 +65,5 @@ internal fun Route.sakRoutes(
         }
     }
 }
+
+
