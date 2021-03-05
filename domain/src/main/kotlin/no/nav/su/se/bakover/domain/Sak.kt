@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import java.time.Clock
 import java.util.UUID
 
-// TODO ai 04.04.2021: Bytt till String og husk database endring
+// TODO ai 04.04.2021: Legg till validering av saksnummer
 data class Saksnummer(@JsonValue val nummer: Long) {
     override fun toString() = nummer.toString()
 }
