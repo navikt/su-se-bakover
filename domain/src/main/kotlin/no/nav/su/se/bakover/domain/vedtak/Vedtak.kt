@@ -4,17 +4,22 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.behandling.AvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
+import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegEtterUtbetaling
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegForAvslag
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
+import no.nav.su.se.bakover.domain.søknadsbehandling.ErAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.util.UUID
 
-sealed class Vedtak {
+sealed class Vedtak : Visitable<VedtakVisitor> {
     abstract val id: UUID
     abstract val opprettet: Tidspunkt
     abstract val behandling: Behandling
@@ -58,9 +63,13 @@ sealed class Vedtak {
                 eksterneIverksettingsteg = revurdering.eksterneIverksettingsteg
             )
         }
+
+        override fun accept(visitor: VedtakVisitor) {
+            visitor.visit(this)
+        }
     }
 
-    sealed class AvslåttStønad : Vedtak() {
+    sealed class AvslåttStønad : Vedtak(), ErAvslag {
         abstract val saksbehandler: NavIdentBruker.Saksbehandler
         abstract val attestant: NavIdentBruker.Attestant
         abstract val eksterneIverksettingsteg: EksterneIverksettingsstegForAvslag
@@ -94,7 +103,14 @@ sealed class Vedtak {
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val attestant: NavIdentBruker.Attestant,
             override val eksterneIverksettingsteg: EksterneIverksettingsstegForAvslag,
-        ) : AvslåttStønad()
+        ) : AvslåttStønad() {
+            override fun accept(visitor: VedtakVisitor) {
+                visitor.visit(this)
+            }
+
+            // TODO jm: disse bør sannsynligvis peristeres.
+            override val avslagsgrunner: List<Avslagsgrunn> = behandlingsinformasjon.utledAvslagsgrunner()
+        }
 
         data class MedBeregning(
             override val id: UUID = UUID.randomUUID(),
@@ -105,6 +121,19 @@ sealed class Vedtak {
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val attestant: NavIdentBruker.Attestant,
             override val eksterneIverksettingsteg: EksterneIverksettingsstegForAvslag,
-        ) : AvslåttStønad()
+        ) : AvslåttStønad() {
+            private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
+                when (val vurdering = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
+                    is AvslagGrunnetBeregning.Ja -> listOf(vurdering.avslagsgrunn)
+                    is AvslagGrunnetBeregning.Nei -> emptyList()
+                }
+
+            override fun accept(visitor: VedtakVisitor) {
+                visitor.visit(this)
+            }
+
+            // TODO jm: disse bør sannsynligvis peristeres.
+            override val avslagsgrunner: List<Avslagsgrunn> = behandlingsinformasjon.utledAvslagsgrunner() + avslagsgrunnForBeregning
+        }
     }
 }

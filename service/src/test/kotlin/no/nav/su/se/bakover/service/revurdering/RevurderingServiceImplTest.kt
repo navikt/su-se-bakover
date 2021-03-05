@@ -767,7 +767,6 @@ internal class RevurderingServiceImplTest {
                             saksbehandlerNavn = saksbehandler.navIdent,
                             revurdertBeregning = simulertRevurdering.beregning,
                             fritekst = null,
-                            vedtattBeregning = vedtakMock.beregning,
                             harEktefelle = false
                         )
                 }

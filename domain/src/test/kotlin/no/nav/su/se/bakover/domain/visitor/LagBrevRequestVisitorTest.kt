@@ -32,11 +32,14 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegEtterUtbetaling
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegForAvslag
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.Clock
@@ -460,6 +463,159 @@ internal class LagBrevRequestVisitorTest {
                     ).right()
                 }
             }
+    }
+
+    @Test
+    fun `lager request for vedtak om innvilget stønad`() {
+        val søknadsbehandling = uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt())
+            .tilBeregnet(innvilgetBeregning)
+            .tilSimulert(simulering)
+            .tilAttestering(saksbehandler)
+            .tilIverksatt(Attestering.Iverksatt(attestant), UUID30.randomUUID())
+
+        val innvilgetVedtak = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling)
+
+        val brevSøknadsbehandling = LagBrevRequestVisitor(
+            hentPerson = { person.right() },
+            hentNavn = { hentNavn(it) },
+            clock = clock,
+        ).apply { søknadsbehandling.accept(this) }
+
+        val brevVedtak = LagBrevRequestVisitor(
+            hentPerson = { person.right() },
+            hentNavn = { hentNavn(it) },
+            clock = clock,
+        ).apply { innvilgetVedtak.accept(this) }
+
+        brevSøknadsbehandling.brevRequest shouldBe brevVedtak.brevRequest
+
+        LagBrevRequest.InnvilgetVedtak(
+            person = person,
+            beregning = innvilgetBeregning,
+            behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
+            saksbehandlerNavn = saksbehandlerNavn,
+            attestantNavn = attestantNavn,
+        ).right()
+    }
+
+    @Test
+    fun `lager request for vedtak om avslått stønad med beregning`() {
+        val søknadsbehandling = (
+            uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt())
+                .tilBeregnet(avslagBeregning) as Søknadsbehandling.Beregnet.Avslag
+            )
+            .tilAttestering(saksbehandler)
+            .tilIverksatt(Attestering.Iverksatt(attestant), EksterneIverksettingsstegForAvslag.Journalført(JournalpostId("jp")))
+
+        val avslåttVedtak = Vedtak.AvslåttStønad.fromSøknadsbehandlingMedBeregning(søknadsbehandling)
+
+        val brevSøknadsbehandling = LagBrevRequestVisitor(
+            hentPerson = { person.right() },
+            hentNavn = { hentNavn(it) },
+            clock = clock,
+        ).apply { søknadsbehandling.accept(this) }
+
+        val brevVedtak = LagBrevRequestVisitor(
+            hentPerson = { person.right() },
+            hentNavn = { hentNavn(it) },
+            clock = clock,
+        ).apply { avslåttVedtak.accept(this) }
+
+        brevSøknadsbehandling.brevRequest shouldBe brevVedtak.brevRequest
+
+        AvslagBrevRequest(
+            person = person,
+            avslag = Avslag(
+                opprettet = Tidspunkt.now(clock),
+                avslagsgrunner = listOf(Avslagsgrunn.UFØRHET, Avslagsgrunn.FOR_HØY_INNTEKT),
+                harEktefelle = false,
+                beregning = avslagBeregning
+            ),
+            saksbehandlerNavn = saksbehandlerNavn,
+            attestantNavn = attestantNavn
+        ).right()
+    }
+
+    @Test
+    fun `lager request for vedtak om avslått stønad uten beregning`() {
+        val søknadsbehandling = (uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withVilkårAvslått()) as Søknadsbehandling.Vilkårsvurdert.Avslag)
+            .tilAttestering(saksbehandler)
+            .tilIverksatt(Attestering.Iverksatt(attestant), EksterneIverksettingsstegForAvslag.Journalført(JournalpostId("jp")))
+
+        val avslåttVedtak = Vedtak.AvslåttStønad.fromSøknadsbehandlingUtenBeregning(søknadsbehandling)
+
+        val brevSøknadsbehandling = LagBrevRequestVisitor(
+            hentPerson = { person.right() },
+            hentNavn = { hentNavn(it) },
+            clock = clock,
+        ).apply { søknadsbehandling.accept(this) }
+
+        val brevVedtak = LagBrevRequestVisitor(
+            hentPerson = { person.right() },
+            hentNavn = { hentNavn(it) },
+            clock = clock,
+        ).apply { avslåttVedtak.accept(this) }
+
+        brevSøknadsbehandling.brevRequest shouldBe brevVedtak.brevRequest
+
+        AvslagBrevRequest(
+            person = person,
+            avslag = Avslag(
+                opprettet = Tidspunkt.now(clock),
+                avslagsgrunner = listOf(Avslagsgrunn.UFØRHET, Avslagsgrunn.FOR_HØY_INNTEKT),
+                harEktefelle = false,
+                beregning = null
+            ),
+            saksbehandlerNavn = saksbehandlerNavn,
+            attestantNavn = attestantNavn
+        ).right()
+    }
+
+    @Test
+    fun `lager request for vedtak om revurdering av inntekt`() {
+        val søknadsbehandling = uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt())
+            .tilBeregnet(innvilgetBeregning)
+            .tilSimulert(simulering)
+            .tilAttestering(saksbehandler)
+            .tilIverksatt(Attestering.Iverksatt(attestant), UUID30.randomUUID())
+
+        val revurdering = IverksattRevurdering(
+            id = UUID.randomUUID(),
+            periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+            opprettet = Tidspunkt.now(clock),
+            tilRevurdering = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling),
+            saksbehandler = saksbehandler,
+            oppgaveId = OppgaveId("15"),
+            beregning = innvilgetBeregning,
+            simulering = simulering,
+            attestant = attestant,
+            utbetalingId = UUID30.randomUUID(),
+            eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.VenterPåKvittering
+        )
+
+        val avslåttVedtak = Vedtak.InnvilgetStønad.fromRevurdering(revurdering)
+
+        val brevRevurdering = LagBrevRequestVisitor(
+            hentPerson = { person.right() },
+            hentNavn = { hentNavn(it) },
+            clock = clock,
+        ).apply { revurdering.accept(this) }
+
+        val brevVedtak = LagBrevRequestVisitor(
+            hentPerson = { person.right() },
+            hentNavn = { hentNavn(it) },
+            clock = clock,
+        ).apply { avslåttVedtak.accept(this) }
+
+        brevRevurdering.brevRequest shouldBe brevVedtak.brevRequest
+
+        LagBrevRequest.Revurdering.Inntekt(
+            person = person,
+            saksbehandlerNavn = saksbehandlerNavn,
+            revurdertBeregning = revurdering.beregning,
+            fritekst = null,
+            harEktefelle = false
+        ).right()
     }
 
     private val clock = Clock.fixed(1.januar(2021).startOfDay(zoneIdOslo).instant, ZoneOffset.UTC)
