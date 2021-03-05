@@ -285,6 +285,10 @@ open class AccessCheckProxy(
                     assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.hent(request)
                 }
+
+                override fun hentAktiveBehandlinger(request: SøknadsbehandlingService.HentAktiveRequest): Either<SøknadsbehandlingService.KunneIkkeHenteAktiveBehandlinger, List<Søknadsbehandling.Iverksatt.Innvilget>> {
+                    return services.søknadsbehandling.hentAktiveBehandlinger(request)
+                }
             },
             ferdigstillIverksettingService = object : FerdigstillIverksettingService {
 
