@@ -1,5 +1,8 @@
 package no.nav.su.se.bakover.domain
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import com.fasterxml.jackson.annotation.JsonValue
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUIDFactory
@@ -14,6 +17,15 @@ import java.util.UUID
 // TODO ai 04.04.2021: Legg till validering av saksnummer
 data class Saksnummer(@JsonValue val nummer: Long) {
     override fun toString() = nummer.toString()
+
+    companion object {
+        fun tryParse(saksnummer: String): Either<UgyldigSaksnummer, Saksnummer> =
+            if (isNumeric(saksnummer)) Saksnummer(saksnummer.toLong()).right() else UgyldigSaksnummer.left()
+
+        private fun isNumeric(saksnummer: String) = saksnummer.chars().allMatch(Character::isDigit)
+    }
+
+    object UgyldigSaksnummer
 }
 
 data class Sak(

@@ -102,9 +102,13 @@ suspend fun ApplicationCall.withSaksnummer(ifRight: suspend (Saksnummer) -> Unit
     this.parameter("saksnummer").fold(
         ifLeft = { this.svar(HttpStatusCode.BadRequest.message(it)) },
         ifRight = {
-            val erSaksnummer = it.chars().allMatch(Character::isDigit)
-
-            if (erSaksnummer) ifRight(Saksnummer(it.toLong())) else this.svar(HttpStatusCode.BadRequest.message("Er ikke ett gyldigt tall"))
+            Saksnummer.tryParse(it)
+                .mapLeft {
+                    this.svar(HttpStatusCode.BadRequest.message("Er ikke ett gyldigt tall"))
+                }
+                .map { saksnummer ->
+                    ifRight(saksnummer)
+                }
         }
     )
 }
