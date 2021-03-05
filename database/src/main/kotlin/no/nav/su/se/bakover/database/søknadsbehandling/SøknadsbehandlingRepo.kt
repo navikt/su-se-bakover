@@ -10,6 +10,7 @@ import java.util.UUID
 interface SøknadsbehandlingRepo {
     fun lagre(søknadsbehandling: Søknadsbehandling)
     fun hent(id: UUID): Søknadsbehandling?
+    fun hent(id: UUID, session: Session): Søknadsbehandling?
     fun hentForSak(sakId: UUID, session: Session): List<Søknadsbehandling>
     fun hentEventuellTidligereAttestering(id: UUID): Attestering?
     fun hentIverksatteBehandlingerUtenJournalposteringer(): List<Søknadsbehandling.Iverksatt.Innvilget>

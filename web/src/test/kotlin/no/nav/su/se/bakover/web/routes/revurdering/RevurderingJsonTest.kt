@@ -3,67 +3,26 @@ package no.nav.su.se.bakover.web.routes.revurdering
 import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegEtterUtbetaling
-import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.routes.behandling.TestBeregning
 import no.nav.su.se.bakover.web.routes.behandling.beregning.toJson
 import no.nav.su.se.bakover.web.routes.behandling.toJson
+import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.vedtak
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import java.util.UUID
 
 internal class RevurderingJsonTest {
-
-    private val behandling = Søknadsbehandling.Iverksatt.Innvilget(
-        id = UUID.randomUUID(),
-        opprettet = Tidspunkt.now(),
-        sakId = UUID.randomUUID(),
-        saksnummer = Saksnummer(1569),
-        søknad = Søknad.Journalført.MedOppgave(
-            id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(),
-            sakId = UUID.randomUUID(),
-            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-            journalpostId = JournalpostId(value = ""),
-            oppgaveId = OppgaveId(value = "")
-
-        ),
-        oppgaveId = OppgaveId(value = ""),
-        behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().copy(
-            bosituasjon = Behandlingsinformasjon.Bosituasjon(
-                epsAlder = 55,
-                delerBolig = true,
-                ektemakeEllerSamboerUførFlyktning = true,
-                begrunnelse = null
-            )
-        ),
-        fnr = FnrGenerator.random(),
-        beregning = TestBeregning,
-        simulering = mock(),
-        saksbehandler = NavIdentBruker.Saksbehandler("saks"),
-        attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
-        utbetalingId = UUID30.randomUUID(),
-        eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.VenterPåKvittering
-    )
 
     @Test
     fun `should serialize and deserialize OpprettetRevurdering`() {
@@ -74,15 +33,16 @@ internal class RevurderingJsonTest {
             id = id,
             periode = Periode.create(1.januar(2020), 31.desember(2020)),
             opprettet = opprettet,
-            tilRevurdering = behandling,
-            saksbehandler = NavIdentBruker.Saksbehandler("Petter")
+            tilRevurdering = vedtak,
+            saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
+            oppgaveId = OppgaveId("oppgaveid"),
         )
 
         val revurderingJson = """
             {
             "id": "$id",
             "opprettet": "$opprettet",
-            "tilRevurdering": ${serialize(behandling.toJson())},
+            "tilRevurdering": ${serialize(vedtak.toJson())},
             "status": "${RevurderingsStatus.OPPRETTET}",
             "periode": {
                 "fraOgMed": "2020-01-01",
@@ -106,19 +66,20 @@ internal class RevurderingJsonTest {
             id = id,
             periode = Periode.create(1.januar(2020), 31.desember(2020)),
             opprettet = opprettet,
-            tilRevurdering = behandling,
+            tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
             beregning = beregning,
+            oppgaveId = OppgaveId("oppgaveid")
         )
 
         val revurderingJson = """
             {
             "id": "$id",
             "opprettet": "$opprettet",
-            "tilRevurdering": ${serialize(behandling.toJson())},
+            "tilRevurdering": ${serialize(vedtak.toJson())},
             "beregninger":
               {
-                "beregning": ${serialize(behandling.beregning.toJson())},
+                "beregning": ${serialize(vedtak.beregning.toJson())},
                 "revurdert": ${serialize(beregning.toJson())}
               },
             "status": "${RevurderingsStatus.BEREGNET_INNVILGET}",
@@ -144,19 +105,20 @@ internal class RevurderingJsonTest {
             id = id,
             periode = Periode.create(1.januar(2020), 31.desember(2020)),
             opprettet = opprettet,
-            tilRevurdering = behandling,
+            tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
             beregning = beregning,
+            oppgaveId = OppgaveId("oppgaveid")
         )
 
         val revurderingJson = """
             {
             "id": "$id",
             "opprettet": "$opprettet",
-            "tilRevurdering": ${serialize(behandling.toJson())},
+            "tilRevurdering": ${serialize(vedtak.toJson())},
             "beregninger":
               {
-                "beregning": ${serialize(behandling.beregning.toJson())},
+                "beregning": ${serialize(vedtak.beregning.toJson())},
                 "revurdert": ${serialize(beregning.toJson())}
               },
             "status": "${RevurderingsStatus.BEREGNET_AVSLAG}",
@@ -182,20 +144,21 @@ internal class RevurderingJsonTest {
             id = id,
             periode = Periode.create(1.januar(2020), 31.desember(2020)),
             opprettet = opprettet,
-            tilRevurdering = behandling,
+            tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
             beregning = beregning,
-            simulering = mock()
+            simulering = mock(),
+            oppgaveId = OppgaveId("oppgaveid")
         )
 
         val revurderingJson = """
             {
             "id": "$id",
             "opprettet": "$opprettet",
-            "tilRevurdering": ${serialize(behandling.toJson())},
+            "tilRevurdering": ${serialize(vedtak.toJson())},
             "beregninger":
               {
-                "beregning": ${serialize(behandling.beregning.toJson())},
+                "beregning": ${serialize(vedtak.beregning.toJson())},
                 "revurdert": ${serialize(beregning.toJson())}
               },
             "status": "${RevurderingsStatus.SIMULERT}",
@@ -221,7 +184,7 @@ internal class RevurderingJsonTest {
             id = id,
             periode = Periode.create(1.januar(2020), 31.desember(2020)),
             opprettet = opprettet,
-            tilRevurdering = behandling,
+            tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
             beregning = beregning,
             simulering = mock(),
@@ -232,10 +195,10 @@ internal class RevurderingJsonTest {
             {
             "id": "$id",
             "opprettet": "$opprettet",
-            "tilRevurdering": ${serialize(behandling.toJson())},
+            "tilRevurdering": ${serialize(vedtak.toJson())},
             "beregninger":
               {
-                "beregning": ${serialize(behandling.beregning.toJson())},
+                "beregning": ${serialize(vedtak.beregning.toJson())},
                 "revurdert": ${serialize(beregning.toJson())}
               },
             "status": "${RevurderingsStatus.TIL_ATTESTERING}",

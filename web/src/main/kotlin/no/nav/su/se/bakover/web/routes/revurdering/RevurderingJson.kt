@@ -7,12 +7,10 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
-import no.nav.su.se.bakover.web.routes.behandling.BehandlingJson
 import no.nav.su.se.bakover.web.routes.behandling.beregning.BeregningJson
 import no.nav.su.se.bakover.web.routes.behandling.beregning.PeriodeJson
 import no.nav.su.se.bakover.web.routes.behandling.beregning.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.behandling.beregning.toJson
-import no.nav.su.se.bakover.web.routes.behandling.toJson
 import java.time.format.DateTimeFormatter
 
 sealed class RevurderingJson
@@ -35,7 +33,7 @@ internal data class OpprettetRevurderingJson(
     val id: String,
     val opprettet: String,
     val periode: PeriodeJson,
-    val tilRevurdering: BehandlingJson,
+    val tilRevurdering: VedtakJson,
     val saksbehandler: String,
 ) : RevurderingJson() {
     @JsonInclude
@@ -46,7 +44,7 @@ internal sealed class BeregnetRevurderingJson : RevurderingJson() {
     abstract val id: String
     abstract val opprettet: String
     abstract val periode: PeriodeJson
-    abstract val tilRevurdering: BehandlingJson
+    abstract val tilRevurdering: VedtakJson
     abstract val beregninger: RevurdertBeregningJson
     abstract val saksbehandler: String
 
@@ -54,9 +52,9 @@ internal sealed class BeregnetRevurderingJson : RevurderingJson() {
         override val id: String,
         override val opprettet: String,
         override val periode: PeriodeJson,
-        override val tilRevurdering: BehandlingJson,
+        override val tilRevurdering: VedtakJson,
         override val beregninger: RevurdertBeregningJson,
-        override val saksbehandler: String
+        override val saksbehandler: String,
     ) : BeregnetRevurderingJson() {
         @JsonInclude
         val status = RevurderingsStatus.BEREGNET_INNVILGET
@@ -66,9 +64,9 @@ internal sealed class BeregnetRevurderingJson : RevurderingJson() {
         override val id: String,
         override val opprettet: String,
         override val periode: PeriodeJson,
-        override val tilRevurdering: BehandlingJson,
+        override val tilRevurdering: VedtakJson,
         override val beregninger: RevurdertBeregningJson,
-        override val saksbehandler: String
+        override val saksbehandler: String,
     ) : BeregnetRevurderingJson() {
         @JsonInclude
         val status = RevurderingsStatus.BEREGNET_AVSLAG
@@ -79,9 +77,9 @@ internal data class SimulertRevurderingJson(
     val id: String,
     val opprettet: String,
     val periode: PeriodeJson,
-    val tilRevurdering: BehandlingJson,
+    val tilRevurdering: VedtakJson,
     val beregninger: RevurdertBeregningJson,
-    val saksbehandler: String
+    val saksbehandler: String,
 ) : RevurderingJson() {
     @JsonInclude
     val status = RevurderingsStatus.SIMULERT
@@ -91,9 +89,9 @@ internal data class TilAttesteringJson(
     val id: String,
     val opprettet: String,
     val periode: PeriodeJson,
-    val tilRevurdering: BehandlingJson,
+    val tilRevurdering: VedtakJson,
     val beregninger: RevurdertBeregningJson,
-    val saksbehandler: String
+    val saksbehandler: String,
 ) : RevurderingJson() {
     @JsonInclude
     val status = RevurderingsStatus.TIL_ATTESTERING
@@ -103,7 +101,7 @@ internal data class IverksattRevurderingJson(
     val id: String,
     val opprettet: String,
     val periode: PeriodeJson,
-    val tilRevurdering: BehandlingJson,
+    val tilRevurdering: VedtakJson,
     val beregninger: RevurdertBeregningJson,
     val saksbehandler: String,
     val attestant: String,
@@ -118,7 +116,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
         periode = periode.toJson(),
         tilRevurdering = tilRevurdering.toJson(),
-        saksbehandler = saksbehandler.toString()
+        saksbehandler = saksbehandler.toString(),
     )
     is SimulertRevurdering -> SimulertRevurderingJson(
         id = id.toString(),

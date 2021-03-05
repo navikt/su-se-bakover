@@ -40,14 +40,15 @@ internal class RevurderingPostgresRepoTest {
     @Test
     fun `kan lagre og hente en revurdering`() {
         withMigratedDb {
-            val behandling = testDataHelper.nyOversendtUtbetalingMedKvittering().first
+            val vedtak = testDataHelper.vedtakForSøknadsbehandling(testDataHelper.nyOversendtUtbetalingMedKvittering().first)
 
             val opprettet = OpprettetRevurdering(
                 id = UUID.randomUUID(),
                 periode = periode,
                 opprettet = fixedTidspunkt,
-                tilRevurdering = behandling,
-                saksbehandler = saksbehandler
+                tilRevurdering = vedtak,
+                saksbehandler = saksbehandler,
+                oppgaveId = OppgaveId("oppgaveid")
             )
             repo.lagre(opprettet)
             repo.hent(opprettet.id) shouldBe opprettet
@@ -57,23 +58,25 @@ internal class RevurderingPostgresRepoTest {
     @Test
     fun `kan oppdatere revurderingsperiode`() {
         withMigratedDb {
-            val behandling = testDataHelper.nyOversendtUtbetalingMedKvittering().first
+            val vedtak = testDataHelper.vedtakForSøknadsbehandling(testDataHelper.nyOversendtUtbetalingMedKvittering().first)
 
             val opprettetRevurdering = OpprettetRevurdering(
                 id = UUID.randomUUID(),
                 periode = periode,
                 opprettet = fixedTidspunkt,
-                tilRevurdering = behandling,
+                tilRevurdering = vedtak,
                 saksbehandler = saksbehandler,
+                oppgaveId = OppgaveId("oppgaveid")
             )
             repo.lagre(opprettetRevurdering)
             val beregnetRevurdering = BeregnetRevurdering.Innvilget(
                 id = opprettetRevurdering.id,
                 periode = periode,
                 opprettet = fixedTidspunkt,
-                tilRevurdering = behandling,
+                tilRevurdering = vedtak,
                 saksbehandler = saksbehandler,
-                beregning = TestBeregning.toSnapshot()
+                beregning = TestBeregning.toSnapshot(),
+                oppgaveId = OppgaveId("oppgaveid")
             )
 
             repo.lagre(beregnetRevurdering)
@@ -84,7 +87,8 @@ internal class RevurderingPostgresRepoTest {
                 periode = Periode.create(1.juni(2020), 30.juni(2020)),
                 opprettet = Tidspunkt.now(),
                 tilRevurdering = beregnetRevurdering.tilRevurdering,
-                saksbehandler = saksbehandler
+                saksbehandler = saksbehandler,
+                oppgaveId = OppgaveId("oppgaveid")
             )
 
             repo.lagre(revurderingMedNyPeriode)
@@ -97,14 +101,15 @@ internal class RevurderingPostgresRepoTest {
     @Test
     fun `kan kan overskrive en opprettet med beregnet`() {
         withMigratedDb {
-            val behandling = testDataHelper.nyOversendtUtbetalingMedKvittering().first
+            val vedtak = testDataHelper.vedtakForSøknadsbehandling(testDataHelper.nyOversendtUtbetalingMedKvittering().first)
 
             val opprettet = OpprettetRevurdering(
                 id = UUID.randomUUID(),
                 periode = periode,
                 opprettet = fixedTidspunkt,
-                tilRevurdering = behandling,
-                saksbehandler = saksbehandler
+                tilRevurdering = vedtak,
+                saksbehandler = saksbehandler,
+                oppgaveId = OppgaveId("oppgaveid")
             )
 
             repo.lagre(opprettet)
@@ -113,9 +118,10 @@ internal class RevurderingPostgresRepoTest {
                 id = opprettet.id,
                 periode = opprettet.periode,
                 opprettet = opprettet.opprettet,
-                tilRevurdering = behandling,
+                tilRevurdering = vedtak,
                 saksbehandler = saksbehandler,
-                beregning = TestBeregning
+                beregning = TestBeregning,
+                oppgaveId = OppgaveId("oppgaveid")
             )
 
             repo.lagre(beregnetRevurdering)
@@ -126,13 +132,14 @@ internal class RevurderingPostgresRepoTest {
     @Test
     fun `beregnet kan overskrives med ny beregnet`() {
         withMigratedDb {
-            val behandling = testDataHelper.nyOversendtUtbetalingMedKvittering().first
+            val vedtak = testDataHelper.vedtakForSøknadsbehandling(testDataHelper.nyOversendtUtbetalingMedKvittering().first)
             val opprettet = OpprettetRevurdering(
                 id = UUID.randomUUID(),
                 periode = periode,
                 opprettet = fixedTidspunkt,
-                tilRevurdering = behandling,
-                saksbehandler = saksbehandler
+                tilRevurdering = vedtak,
+                saksbehandler = saksbehandler,
+                oppgaveId = OppgaveId("oppgaveid")
             )
 
             repo.lagre(opprettet)
@@ -141,9 +148,10 @@ internal class RevurderingPostgresRepoTest {
                 id = opprettet.id,
                 periode = opprettet.periode,
                 opprettet = opprettet.opprettet,
-                tilRevurdering = behandling,
+                tilRevurdering = vedtak,
                 saksbehandler = opprettet.saksbehandler,
-                beregning = TestBeregning
+                beregning = TestBeregning,
+                oppgaveId = OppgaveId("oppgaveid")
             )
 
             repo.lagre(beregnet)
@@ -154,7 +162,8 @@ internal class RevurderingPostgresRepoTest {
                 opprettet = beregnet.opprettet,
                 tilRevurdering = beregnet.tilRevurdering,
                 saksbehandler = Saksbehandler("ny saksbehandler"),
-                beregning = beregnet.beregning
+                beregning = beregnet.beregning,
+                oppgaveId = OppgaveId("oppgaveid")
             )
 
             repo.lagre(nyBeregnet)
@@ -170,13 +179,14 @@ internal class RevurderingPostgresRepoTest {
     @Test
     fun `kan overskrive en beregnet med simulert`() {
         withMigratedDb {
-            val behandling = testDataHelper.nyOversendtUtbetalingMedKvittering().first
+            val vedtak = testDataHelper.vedtakForSøknadsbehandling(testDataHelper.nyOversendtUtbetalingMedKvittering().first)
             val opprettet = OpprettetRevurdering(
                 id = UUID.randomUUID(),
                 periode = periode,
                 opprettet = fixedTidspunkt,
-                tilRevurdering = behandling,
-                saksbehandler = saksbehandler
+                tilRevurdering = vedtak,
+                saksbehandler = saksbehandler,
+                oppgaveId = OppgaveId("oppgaveid")
             )
 
             repo.lagre(opprettet)
@@ -185,9 +195,10 @@ internal class RevurderingPostgresRepoTest {
                 id = opprettet.id,
                 periode = opprettet.periode,
                 opprettet = opprettet.opprettet,
-                tilRevurdering = behandling,
+                tilRevurdering = vedtak,
                 saksbehandler = opprettet.saksbehandler,
-                beregning = TestBeregning
+                beregning = TestBeregning,
+                oppgaveId = OppgaveId("oppgaveid")
             )
 
             repo.lagre(beregnet)
@@ -199,6 +210,7 @@ internal class RevurderingPostgresRepoTest {
                 tilRevurdering = beregnet.tilRevurdering,
                 saksbehandler = beregnet.saksbehandler,
                 beregning = beregnet.beregning,
+                oppgaveId = OppgaveId("oppgaveid"),
                 simulering = Simulering(
                     gjelderId = FnrGenerator.random(),
                     gjelderNavn = "et navn for simulering",
@@ -219,13 +231,14 @@ internal class RevurderingPostgresRepoTest {
     @Test
     fun `kan overskrive en simulert med en beregnet`() {
         withMigratedDb {
-            val behandling = testDataHelper.nyOversendtUtbetalingMedKvittering().first
+            val vedtak = testDataHelper.vedtakForSøknadsbehandling(testDataHelper.nyOversendtUtbetalingMedKvittering().first)
             val opprettet = OpprettetRevurdering(
                 id = UUID.randomUUID(),
                 periode = periode,
                 opprettet = fixedTidspunkt,
-                tilRevurdering = behandling,
-                saksbehandler = saksbehandler
+                tilRevurdering = vedtak,
+                saksbehandler = saksbehandler,
+                oppgaveId = OppgaveId("oppgaveid")
             )
 
             repo.lagre(opprettet)
@@ -234,9 +247,10 @@ internal class RevurderingPostgresRepoTest {
                 id = opprettet.id,
                 periode = opprettet.periode,
                 opprettet = opprettet.opprettet,
-                tilRevurdering = behandling,
+                tilRevurdering = vedtak,
                 saksbehandler = opprettet.saksbehandler,
-                beregning = TestBeregning
+                beregning = TestBeregning,
+                oppgaveId = OppgaveId("oppgaveid")
             )
 
             repo.lagre(beregnet)
@@ -248,6 +262,7 @@ internal class RevurderingPostgresRepoTest {
                 tilRevurdering = beregnet.tilRevurdering,
                 saksbehandler = beregnet.saksbehandler,
                 beregning = beregnet.beregning,
+                oppgaveId = OppgaveId("oppgaveid"),
                 simulering = Simulering(
                     gjelderId = FnrGenerator.random(),
                     gjelderNavn = "et navn for simulering",
@@ -268,13 +283,14 @@ internal class RevurderingPostgresRepoTest {
     @Test
     fun `kan overskrive en simulert med en til attestering`() {
         withMigratedDb {
-            val behandling = testDataHelper.nyOversendtUtbetalingMedKvittering().first
+            val vedtak = testDataHelper.vedtakForSøknadsbehandling(testDataHelper.nyOversendtUtbetalingMedKvittering().first)
             val opprettet = OpprettetRevurdering(
                 id = UUID.randomUUID(),
                 periode = periode,
                 opprettet = fixedTidspunkt,
-                tilRevurdering = behandling,
-                saksbehandler = saksbehandler
+                tilRevurdering = vedtak,
+                saksbehandler = saksbehandler,
+                oppgaveId = OppgaveId("oppgaveid")
             )
 
             repo.lagre(opprettet)
@@ -283,9 +299,10 @@ internal class RevurderingPostgresRepoTest {
                 id = opprettet.id,
                 periode = opprettet.periode,
                 opprettet = opprettet.opprettet,
-                tilRevurdering = behandling,
+                tilRevurdering = vedtak,
                 saksbehandler = opprettet.saksbehandler,
-                beregning = TestBeregning
+                beregning = TestBeregning,
+                oppgaveId = OppgaveId("oppgaveid")
             )
 
             repo.lagre(beregnet)
@@ -297,6 +314,7 @@ internal class RevurderingPostgresRepoTest {
                 tilRevurdering = beregnet.tilRevurdering,
                 saksbehandler = beregnet.saksbehandler,
                 beregning = beregnet.beregning,
+                oppgaveId = OppgaveId("oppgaveid"),
                 simulering = Simulering(
                     gjelderId = FnrGenerator.random(),
                     gjelderNavn = "et navn for simulering",
@@ -309,7 +327,7 @@ internal class RevurderingPostgresRepoTest {
             repo.lagre(simulert)
 
             val tilAttestering =
-                simulert.tilAttestering(oppgaveId = OppgaveId("oppgaveId"), saksbehandler = saksbehandler)
+                simulert.tilAttestering(attesteringsoppgaveId = OppgaveId("attesteringsoppgaveId"), saksbehandler = saksbehandler)
 
             repo.lagre(tilAttestering)
 
@@ -322,13 +340,14 @@ internal class RevurderingPostgresRepoTest {
     @Test
     fun `saksbehandler som sender til attestering overskriver saksbehandlere som var før`() {
         withMigratedDb {
-            val behandling = testDataHelper.nyOversendtUtbetalingMedKvittering().first
+            val vedtak = testDataHelper.vedtakForSøknadsbehandling(testDataHelper.nyOversendtUtbetalingMedKvittering().first)
             val opprettet = OpprettetRevurdering(
                 id = UUID.randomUUID(),
                 periode = periode,
                 opprettet = fixedTidspunkt,
-                tilRevurdering = behandling,
-                saksbehandler = saksbehandler
+                tilRevurdering = vedtak,
+                saksbehandler = saksbehandler,
+                oppgaveId = OppgaveId("oppgaveid")
             )
 
             repo.lagre(opprettet)
@@ -337,9 +356,10 @@ internal class RevurderingPostgresRepoTest {
                 id = opprettet.id,
                 periode = opprettet.periode,
                 opprettet = opprettet.opprettet,
-                tilRevurdering = behandling,
+                tilRevurdering = vedtak,
                 saksbehandler = opprettet.saksbehandler,
-                beregning = TestBeregning
+                beregning = TestBeregning,
+                oppgaveId = OppgaveId("oppgaveid")
             )
 
             repo.lagre(beregnet)
@@ -351,6 +371,7 @@ internal class RevurderingPostgresRepoTest {
                 tilRevurdering = beregnet.tilRevurdering,
                 saksbehandler = beregnet.saksbehandler,
                 beregning = beregnet.beregning,
+                oppgaveId = OppgaveId("oppgaveid"),
                 simulering = Simulering(
                     gjelderId = FnrGenerator.random(),
                     gjelderNavn = "et navn for simulering",
@@ -363,7 +384,7 @@ internal class RevurderingPostgresRepoTest {
             repo.lagre(simulert)
 
             val tilAttestering = simulert.tilAttestering(
-                oppgaveId = OppgaveId("oppgaveId"),
+                attesteringsoppgaveId = OppgaveId("attesteringsoppgaveId"),
                 saksbehandler = Saksbehandler("Ny saksbehandler")
             )
 
@@ -379,15 +400,16 @@ internal class RevurderingPostgresRepoTest {
     @Test
     fun `kan lagre og hente en iverksatt revurdering`() {
         withMigratedDb {
-            val behandling = testDataHelper.nyOversendtUtbetalingMedKvittering().first
+            val vedtak = testDataHelper.vedtakForSøknadsbehandling(testDataHelper.nyOversendtUtbetalingMedKvittering().first)
             val attestant = NavIdentBruker.Attestant("Attestansson")
 
             val opprettet = OpprettetRevurdering(
                 id = UUID.randomUUID(),
                 periode = periode,
                 opprettet = fixedTidspunkt,
-                tilRevurdering = behandling,
-                saksbehandler = saksbehandler
+                tilRevurdering = vedtak,
+                saksbehandler = saksbehandler,
+                oppgaveId = OppgaveId("oppgaveid")
             )
             repo.lagre(opprettet)
 
@@ -395,7 +417,7 @@ internal class RevurderingPostgresRepoTest {
                 id = opprettet.id,
                 periode = periode,
                 opprettet = fixedTidspunkt,
-                tilRevurdering = behandling,
+                tilRevurdering = vedtak,
                 saksbehandler = saksbehandler,
                 beregning = TestBeregning.toSnapshot(),
                 simulering = Simulering(
@@ -419,7 +441,6 @@ internal class RevurderingPostgresRepoTest {
             repo.lagre(iverksatt)
             repo.hent(iverksatt.id) shouldBe iverksatt
             repo.hentRevurderingForUtbetaling(iverksatt.utbetalingId) shouldBe iverksatt
-            repo.hentRevurderingForBehandling(iverksatt.tilRevurdering.id) shouldBe iverksatt
             ds.withSession {
                 repo.hentRevurderingerForSak(iverksatt.sakId, it) shouldBe listOf(iverksatt)
             }

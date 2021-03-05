@@ -37,7 +37,6 @@ fun Behandlingsinformasjon.withAlleVilkårOppfylt() =
         ),
         formue = Behandlingsinformasjon.Formue(
             status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
-            borSøkerMedEPS = formue?.borSøkerMedEPS ?: false,
             verdier = Behandlingsinformasjon.Formue.Verdier(
                 verdiIkkePrimærbolig = formue?.verdier?.verdiIkkePrimærbolig ?: 0,
                 verdiEiendommer = formue?.verdier?.verdiEiendommer ?: 0,
@@ -65,12 +64,12 @@ fun Behandlingsinformasjon.withAlleVilkårOppfylt() =
             begrunnelse = personligOppmøte?.begrunnelse
         ),
         bosituasjon = Behandlingsinformasjon.Bosituasjon(
-            epsAlder = null,
+            ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
             delerBolig = bosituasjon?.delerBolig ?: false,
             ektemakeEllerSamboerUførFlyktning = bosituasjon?.ektemakeEllerSamboerUførFlyktning,
             begrunnelse = bosituasjon?.begrunnelse,
         ),
-        ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle
+        ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
     )
 
 @TestOnly

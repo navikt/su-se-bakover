@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.database.søknad
 
-import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeTypeOf
 import io.kotest.matchers.types.shouldNotBeTypeOf
@@ -10,7 +9,6 @@ import no.nav.su.se.bakover.database.TestDataHelper.Companion.journalførtSøkna
 import no.nav.su.se.bakover.database.TestDataHelper.Companion.journalførtSøknadMedOppgave
 import no.nav.su.se.bakover.database.fixedTidspunkt
 import no.nav.su.se.bakover.database.hentListe
-import no.nav.su.se.bakover.database.sak.SakPostgresRepo
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
@@ -26,7 +24,6 @@ internal class SøknadPostgresRepoTest {
 
     private val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())
     private val søknadRepo = SøknadPostgresRepo(EmbeddedDatabase.instance())
-    private val sakRepo = SakPostgresRepo(EmbeddedDatabase.instance(), mock(), mock())
 
     @Test
     fun `opprett og hent søknad`() {

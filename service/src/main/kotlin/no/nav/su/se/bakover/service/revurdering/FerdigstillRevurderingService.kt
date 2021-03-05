@@ -1,9 +1,12 @@
 package no.nav.su.se.bakover.service.revurdering
 
 import arrow.core.Either
+import arrow.core.flatMap
 import arrow.core.right
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
+import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegEtterUtbetaling
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegFeil.EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeDistribuereBrev
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegFeil.EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeDistribuereBrev.AlleredeDistribuertBrev
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegFeil.EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev
@@ -21,23 +24,40 @@ import org.slf4j.LoggerFactory
 internal class FerdigstillRevurderingService(
     private val brevService: BrevService,
     private val revurderingRepo: RevurderingRepo,
-    private val ferdigstillIverksettingService: FerdigstillIverksettingService
+    private val ferdigstillIverksettingService: FerdigstillIverksettingService,
+    private val vedtakRepo: VedtakRepo
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
     fun ferdigstill(revurdering: IverksattRevurdering) {
         ferdigstillIverksettingService.lagBrevRequest(revurdering)
             .mapLeft { throw KunneIkkeLageBrevRequestException(revurdering, it) }
-            .map { brevRequest ->
+            .flatMap { brevRequest ->
                 journalfør(revurdering, brevRequest)
-                    .map { journalførtRevurdering ->
-                        revurderingRepo.lagre(journalførtRevurdering)
-                        distribuerBrev(journalførtRevurdering)
-                            .map { journalførtOgDistribuert ->
-                                revurderingRepo.lagre(journalførtOgDistribuert)
-                                lukkOppgave(journalførtOgDistribuert.oppgaveId)
-                            }
+            }
+            .flatMap { journalførtRevurdering ->
+                when (val steg = journalførtRevurdering.eksterneIverksettingsteg) {
+                    is EksterneIverksettingsstegEtterUtbetaling.Journalført -> vedtakRepo.oppdaterJournalpostForRevurdering(
+                        revurderingId = journalførtRevurdering.id,
+                        journalpostId = steg.journalpostId
+                    )
+                    else -> {
                     }
+                }
+                revurderingRepo.lagre(journalførtRevurdering)
+                distribuerBrev(journalførtRevurdering)
+            }
+            .map { journalførtOgDistribuert ->
+                when (val steg = journalførtOgDistribuert.eksterneIverksettingsteg) {
+                    is EksterneIverksettingsstegEtterUtbetaling.JournalførtOgDistribuertBrev -> vedtakRepo.oppdaterBrevbestillingIdForRevurdering(
+                        revurderingId = journalførtOgDistribuert.id,
+                        brevbestillingId = steg.brevbestillingId
+                    )
+                    else -> {
+                    }
+                }
+                revurderingRepo.lagre(journalførtOgDistribuert)
+                lukkOppgave(journalførtOgDistribuert.oppgaveId)
             }
     }
 
@@ -46,7 +66,7 @@ internal class FerdigstillRevurderingService(
         brevRequest: LagBrevRequest
     ): Either<KunneIkkeJournalføre, IverksattRevurdering> {
         return revurdering.journalfør {
-            brevService.journalførBrev(brevRequest, revurdering.tilRevurdering.saksnummer)
+            brevService.journalførBrev(brevRequest, revurdering.saksnummer)
                 .mapLeft { FeilVedJournalføring }
         }.mapLeft {
             return when (it) {

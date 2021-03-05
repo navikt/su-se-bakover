@@ -33,10 +33,25 @@ object EmbeddedDatabase {
 fun withMigratedDb(test: () -> Unit) {
     EmbeddedDatabase.instance().also {
         clean(it)
-        Flyway(it, DB_NAME).migrate()
+        it.migrateToLatest()
         test()
     }
 }
+
+/**
+ * Use-case for denne er i utgangspunktet dersom man trenger å skrive en test på en migrering
+ */
+@Suppress("unused")
+fun withDbMigratedToVersion(v: Int, test: () -> Unit) {
+    EmbeddedDatabase.instance().also {
+        clean(it)
+        Flyway(it, DB_NAME).migrateTo(v)
+        test()
+    }
+}
+
+fun DataSource.migrateToLatest() =
+    Flyway(this, DB_NAME).migrate()
 
 internal fun clean(dataSource: DataSource) = Flyway.configure()
     .dataSource(dataSource)

@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingInternalRepo
+import no.nav.su.se.bakover.database.vedtak.VedtakPosgresRepo
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NySak
@@ -21,10 +22,12 @@ import javax.sql.DataSource
 internal class SakPostgresRepo(
     private val dataSource: DataSource,
     private val søknadsbehandlingRepo: SøknadsbehandlingRepo,
-    private val revurderingRepo: RevurderingPostgresRepo
+    private val revurderingRepo: RevurderingPostgresRepo,
+    private val vedtakPosgresRepo: VedtakPosgresRepo
 ) : SakRepo {
     override fun hentSak(sakId: UUID) = dataSource.withSession { hentSakInternal(sakId, it) }
     override fun hentSak(fnr: Fnr) = dataSource.withSession { hentSakInternal(fnr, it) }
+    override fun hentSak(saksnummer: Saksnummer) = dataSource.withSession { hentSakInternal(saksnummer, it) }
 
     override fun opprettSak(sak: NySak) {
         dataSource.withSession { session ->
@@ -50,6 +53,9 @@ internal class SakPostgresRepo(
     internal fun hentSakInternal(sakId: UUID, session: Session): Sak? = "select * from sak where id=:sakId"
         .hent(mapOf("sakId" to sakId), session) { it.toSak(session) }
 
+    internal fun hentSakInternal(saksnummer: Saksnummer, session: Session): Sak? = "select * from sak where saksnummer=:saksnummer"
+        .hent(mapOf("saksnummer" to saksnummer.nummer), session) { it.toSak(session) }
+
     internal fun Row.toSak(session: Session): Sak {
         val sakId = UUID.fromString(string("id"))
         return Sak(
@@ -60,7 +66,8 @@ internal class SakPostgresRepo(
             søknader = SøknadRepoInternal.hentSøknaderInternal(sakId, session),
             behandlinger = søknadsbehandlingRepo.hentForSak(sakId, session),
             utbetalinger = UtbetalingInternalRepo.hentUtbetalinger(sakId, session),
-            revurderinger = revurderingRepo.hentRevurderingerForSak(sakId, session)
+            revurderinger = revurderingRepo.hentRevurderingerForSak(sakId, session),
+            vedtakListe = vedtakPosgresRepo.hentForSakId(sakId, session)
         )
     }
 }

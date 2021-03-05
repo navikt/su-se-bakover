@@ -5,10 +5,6 @@ import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.behandling.Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_67_ELLER_ELDRE
-import no.nav.su.se.bakover.domain.behandling.Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67
-import no.nav.su.se.bakover.domain.behandling.Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67_UFØR_FLYKTNING
-import no.nav.su.se.bakover.domain.behandling.Satsgrunn.DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.Sats
@@ -71,6 +67,38 @@ data class Behandlingsinformasjon(
             }
         }
         return false
+    }
+
+    @JsonIgnore
+    fun utledSats(): Sats? = getBeregningStrategy()?.sats()
+
+    @JsonIgnore
+    fun getSatsgrunn(): Satsgrunn? = getBeregningStrategy()?.satsgrunn()
+
+    /**
+     * Vi returnerer null når beregning strategy er uavklart
+     */
+    @JsonIgnore
+    internal fun getBeregningStrategy(): BeregningStrategy? {
+        if (bosituasjon == null || ektefelle == null) {
+            return null
+        }
+
+        return when (ektefelle) {
+            is EktefellePartnerSamboer.Ektefelle -> when {
+                ektefelle.er67EllerEldre() -> BeregningStrategy.Eps67EllerEldre
+                else -> when (bosituasjon.ektemakeEllerSamboerUførFlyktning) {
+                    null -> throw IllegalStateException("ektemakeEllerSamboerUførFlyktning kan ikke være null når det finnes EPS")
+                    true -> BeregningStrategy.EpsUnder67ÅrOgUførFlyktning
+                    false -> BeregningStrategy.EpsUnder67År
+                }
+            }
+            EktefellePartnerSamboer.IngenEktefelle -> when (bosituasjon.delerBolig) {
+                null -> throw IllegalStateException("delerBolig kan ikke være null når det ikke finnes EPS")
+                true -> BeregningStrategy.BorMedVoksne
+                false -> BeregningStrategy.BorAlene
+            }
+        }
     }
 
     fun harEktefelle(): Boolean {
@@ -189,7 +217,6 @@ data class Behandlingsinformasjon(
     data class Formue(
         val status: Status,
         val verdier: Verdier?,
-        val borSøkerMedEPS: Boolean,
         val epsVerdier: Verdier?,
         val begrunnelse: String?
     ) : Base() {
@@ -247,68 +274,25 @@ data class Behandlingsinformasjon(
     }
 
     data class Bosituasjon(
-        val epsAlder: Int?,
+        val ektefelle: EktefellePartnerSamboer?,
         val delerBolig: Boolean?,
         val ektemakeEllerSamboerUførFlyktning: Boolean?,
         val begrunnelse: String?
     ) : Base() {
-
-        @JsonIgnore
-        fun utledSats(): Sats = getBeregningStrategy().sats()
-
-        @JsonIgnore
-        internal fun getBeregningStrategy(): BeregningStrategy {
-            if (epsAlder == null && delerBolig == false) {
-                return BeregningStrategy.BorAlene
-            } else {
-                if (delerBolig == true) {
-                    return BeregningStrategy.BorMedVoksne
-                }
-                if (epsAlder != null) {
-                    if (epsAlder >= 67) {
-                        return BeregningStrategy.Eps67EllerEldre
-                    }
-                    if (ektemakeEllerSamboerUførFlyktning == true) {
-                        return BeregningStrategy.EpsUnder67ÅrOgUførFlyktning
-                    }
-                    return BeregningStrategy.EpsUnder67År
-                }
-                throw RuntimeException("Uhåndtert case for beregning strategy: epsAlder: $epsAlder, delerBolig: $delerBolig, ektemakeEllerSamboerUførFlyktning: $ektemakeEllerSamboerUførFlyktning")
-            }
-        }
-
         override fun erVilkårOppfylt(): Boolean {
-            if (epsAlder == null && delerBolig == null) {
+            val ektefelleEr67EllerEldre = (ektefelle as? EktefellePartnerSamboer.Ektefelle)?.er67EllerEldre()
+            if ((ektefelleEr67EllerEldre == false && ektemakeEllerSamboerUførFlyktning == null) && delerBolig == null) {
                 return false
             }
-            if (epsAlder != null) {
-                if (epsAlder < 67) {
-                    return ektemakeEllerSamboerUførFlyktning != null
-                }
-                if (epsAlder >= 67) {
-                    return ektemakeEllerSamboerUførFlyktning == null
-                }
+            if (ektemakeEllerSamboerUførFlyktning != null && delerBolig != null) {
+                throw IllegalStateException("ektemakeEllerSamboerUførFlyktning og delerBolig kan ikke begge være true samtidig")
             }
-            return delerBolig != null
+            return true
         }
 
         override fun erVilkårIkkeOppfylt(): Boolean = false
 
         override fun avslagsgrunn(): Avslagsgrunn? = null
-
-        @JsonIgnore
-        fun getSatsgrunn(): Satsgrunn {
-            val eps67EllerEldre = epsAlder != null && epsAlder >= 67
-            val epsUnder67 = epsAlder != null && epsAlder < 67
-            return when {
-                delerBolig == false -> Satsgrunn.ENSLIG
-                delerBolig == true -> DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN
-                eps67EllerEldre -> DELER_BOLIG_MED_EKTEMAKE_SAMBOER_67_ELLER_ELDRE
-                epsUnder67 && ektemakeEllerSamboerUførFlyktning == false -> DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67
-                epsUnder67 && ektemakeEllerSamboerUførFlyktning == true -> DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67_UFØR_FLYKTNING
-                else -> throw IllegalStateException("Kunne ikke utlede satsgrunn")
-            }
-        }
     }
 
     @JsonTypeInfo(
@@ -329,7 +313,14 @@ data class Behandlingsinformasjon(
             val adressebeskyttelse: String?,
             val skjermet: Boolean?
         ) : EktefellePartnerSamboer() {
-            fun getAlder() = fødselsdato?.let { Period.between(it, LocalDate.now()).years }
+            // TODO jah: Hva når fødselsdato er null?
+            fun getAlder(): Int? = fødselsdato?.let { Period.between(it, LocalDate.now()).years }
+
+            /**
+             * TODO jah: Hva når fødselsdato er null?
+             * @throws NullPointerException
+             */
+            fun er67EllerEldre(): Boolean = getAlder()!! >= 67
         }
 
         object IngenEktefelle : EktefellePartnerSamboer() {

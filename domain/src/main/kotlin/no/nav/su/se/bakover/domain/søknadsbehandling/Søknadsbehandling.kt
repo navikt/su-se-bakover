@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.AvslagGrunnetBeregning
+import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
@@ -24,16 +25,12 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.util.UUID
 
-sealed class Søknadsbehandling : Visitable<SøknadsbehandlingVisitor> {
-    abstract val id: UUID
+sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisitor> {
     abstract val opprettet: Tidspunkt
-    abstract val sakId: UUID
-    abstract val saksnummer: Saksnummer
     abstract val søknad: Søknad.Journalført.MedOppgave
     abstract val oppgaveId: OppgaveId
     abstract val behandlingsinformasjon: Behandlingsinformasjon
     abstract val status: BehandlingsStatus
-    abstract val fnr: Fnr
 
     sealed class Vilkårsvurdert : Søknadsbehandling() {
         fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon): Vilkårsvurdert =

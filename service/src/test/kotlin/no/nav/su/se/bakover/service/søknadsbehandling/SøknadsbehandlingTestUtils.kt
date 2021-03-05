@@ -5,6 +5,7 @@ import com.nhaarman.mockitokotlin2.mock
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
+import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.service.beregning.BeregningService
 import no.nav.su.se.bakover.service.brev.BrevService
@@ -32,6 +33,7 @@ internal fun createSøknadsbehandlingService(
     brevService: BrevService = mock(),
     opprettVedtakssnapshotService: OpprettVedtakssnapshotService = mock(),
     clock: Clock = Clock.systemUTC(),
+    vedtakRepo: VedtakRepo = mock()
 ) = SøknadsbehandlingServiceImpl(
     søknadService,
     søknadRepo,
@@ -46,4 +48,5 @@ internal fun createSøknadsbehandlingService(
     brevService,
     opprettVedtakssnapshotService,
     clock,
+    vedtakRepo
 ).apply { addObserver(observer) }

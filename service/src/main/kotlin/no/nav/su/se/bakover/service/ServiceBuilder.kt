@@ -73,6 +73,7 @@ object ServiceBuilder {
             microsoftGraphApiClient = clients.microsoftGraphApiClient,
             brevService = brevService,
             clock = clock,
+            vedtakRepo = databaseRepos.vedtakRepo
         ).apply { addObserver(statistikkService) }
         val opprettVedtakssnapshotService = OpprettVedtakssnapshotService(databaseRepos.vedtakssnapshot)
         val ferdigstillIverksettingService = FerdigstillIverksettingServiceImpl(
@@ -83,7 +84,8 @@ object ServiceBuilder {
             personService = personService,
             brevService = brevService,
             clock = clock,
-            revurderingRepo = databaseRepos.revurderingRepo
+            revurderingRepo = databaseRepos.revurderingRepo,
+            vedtakRepo = databaseRepos.vedtakRepo
         ).apply { addObserver(statistikkService) }
         val toggleService = ToggleServiceImpl(unleash)
 
@@ -133,6 +135,7 @@ object ServiceBuilder {
                 brevService = brevService,
                 opprettVedtakssnapshotService = opprettVedtakssnapshotService,
                 clock = clock,
+                vedtakRepo = databaseRepos.vedtakRepo
             ).apply {
                 addObserver(statistikkService)
             },

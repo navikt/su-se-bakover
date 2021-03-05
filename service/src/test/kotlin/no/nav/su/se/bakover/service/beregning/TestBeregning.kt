@@ -27,13 +27,23 @@ internal object TestBeregning : Beregning {
     override fun getFradragStrategyName(): FradragStrategyName = FradragStrategyName.Enslig
 }
 
+internal object TestMånedsberegning : Månedsberegning {
+    override fun getSumYtelse(): Int = 8637
+    override fun getSumFradrag(): Double = 12000.0
+    override fun getBenyttetGrunnbeløp(): Int = 99858
+    override fun getSats(): Sats = Sats.HØY
+    override fun getSatsbeløp(): Double = 20637.32
+    override fun getFradrag(): List<Fradrag> = listOf(TestFradrag)
+    override fun getPeriode(): Periode = Periode.create(1.januar(2020), 31.januar(2020))
+}
+
 internal object TestBeregningSomGirAvslag : Beregning {
     private val id = UUID.randomUUID()
     private val tidspunkt = Tidspunkt.now()
     override fun getId(): UUID = id
     override fun getOpprettet(): Tidspunkt = tidspunkt
     override fun getSats(): Sats = Sats.HØY
-    override fun getMånedsberegninger(): List<Månedsberegning> = listOf(TestMånedsberegning)
+    override fun getMånedsberegninger(): List<Månedsberegning> = listOf(TestMånedsberegningSomGirAvslag)
     override fun getFradrag(): List<Fradrag> = listOf(TestFradrag)
     override fun getSumYtelse(): Int = -200
     override fun getSumFradrag(): Double = 12000.0
@@ -41,8 +51,8 @@ internal object TestBeregningSomGirAvslag : Beregning {
     override fun getFradragStrategyName(): FradragStrategyName = FradragStrategyName.Enslig
 }
 
-internal object TestMånedsberegning : Månedsberegning {
-    override fun getSumYtelse(): Int = 8637
+internal object TestMånedsberegningSomGirAvslag : Månedsberegning {
+    override fun getSumYtelse(): Int = 0
     override fun getSumFradrag(): Double = 12000.0
     override fun getBenyttetGrunnbeløp(): Int = 99858
     override fun getSats(): Sats = Sats.HØY

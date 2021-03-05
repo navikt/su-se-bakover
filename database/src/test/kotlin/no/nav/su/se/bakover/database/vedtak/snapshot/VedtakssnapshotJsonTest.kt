@@ -152,7 +152,6 @@ internal class VedtakssnapshotJsonTest {
                            "kontanter":0,
                            "depositumskonto":0
                         },
-                        "borSøkerMedEPS":false,
                         "epsVerdier":{
                            "verdiIkkePrimærbolig":0,
                            "verdiEiendommer":0,
@@ -170,7 +169,9 @@ internal class VedtakssnapshotJsonTest {
                         "begrunnelse":null
                      },
                      "bosituasjon":{
-                        "epsAlder":null,
+                        "ektefelle":{
+                        "type":"IngenEktefelle"
+                     },
                         "delerBolig":false,
                         "ektemakeEllerSamboerUførFlyktning":null,
                         "begrunnelse":null
@@ -559,7 +560,6 @@ internal class VedtakssnapshotJsonTest {
                            "kontanter":0,
                            "depositumskonto":0
                         },
-                        "borSøkerMedEPS":false,
                         "epsVerdier":{
                            "verdiIkkePrimærbolig":0,
                            "verdiEiendommer":0,
@@ -577,7 +577,9 @@ internal class VedtakssnapshotJsonTest {
                         "begrunnelse":null
                      },
                      "bosituasjon":{
-                        "epsAlder":null,
+                        "ektefelle":{
+                        "type":"IngenEktefelle"
+                     },
                         "delerBolig":false,
                         "ektemakeEllerSamboerUførFlyktning":null,
                         "begrunnelse":null

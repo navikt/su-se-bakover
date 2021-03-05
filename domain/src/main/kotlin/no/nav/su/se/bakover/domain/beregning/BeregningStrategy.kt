@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.beregning
 
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.behandling.Satsgrunn
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -13,14 +14,15 @@ class BeregningStrategyFactory {
                 ?: 0.0,
             fradragFraSaksbehandler = fradrag
         )
-        val strategy = søknadsbehandling.behandlingsinformasjon.bosituasjon!!.getBeregningStrategy()
-        return strategy.beregn(beregningsgrunnlag)
+        val strategy = søknadsbehandling.behandlingsinformasjon.getBeregningStrategy()
+        return strategy!!.beregn(beregningsgrunnlag)
     }
 }
 
 internal sealed class BeregningStrategy {
     abstract fun fradragStrategy(): FradragStrategy
     abstract fun sats(): Sats
+    abstract fun satsgrunn(): Satsgrunn
     fun beregn(beregningsgrunnlag: Beregningsgrunnlag): Beregning {
         return BeregningFactory.ny(
             periode = beregningsgrunnlag.beregningsperiode,
@@ -33,27 +35,30 @@ internal sealed class BeregningStrategy {
     object BorAlene : BeregningStrategy() {
         override fun fradragStrategy(): FradragStrategy = FradragStrategy.Enslig
         override fun sats(): Sats = Sats.HØY
+        override fun satsgrunn(): Satsgrunn = Satsgrunn.ENSLIG
     }
 
     object BorMedVoksne : BeregningStrategy() {
         override fun fradragStrategy(): FradragStrategy = FradragStrategy.Enslig
         override fun sats(): Sats = Sats.ORDINÆR
+        override fun satsgrunn(): Satsgrunn = Satsgrunn.DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN
     }
 
-    // Alle som er over 67, skal få denne begrunnelse, selv om man i praksis kan si EPS over 67 + mottar SU
-    // i frontend
     object Eps67EllerEldre : BeregningStrategy() {
         override fun fradragStrategy(): FradragStrategy = FradragStrategy.EpsOver67År
         override fun sats(): Sats = Sats.ORDINÆR
+        override fun satsgrunn(): Satsgrunn = Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_67_ELLER_ELDRE
     }
 
     object EpsUnder67ÅrOgUførFlyktning : BeregningStrategy() {
         override fun fradragStrategy(): FradragStrategy = FradragStrategy.EpsUnder67ÅrOgUførFlyktning
         override fun sats(): Sats = Sats.ORDINÆR
+        override fun satsgrunn(): Satsgrunn = Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67_UFØR_FLYKTNING
     }
 
     object EpsUnder67År : BeregningStrategy() {
         override fun fradragStrategy(): FradragStrategy = FradragStrategy.EpsUnder67År
         override fun sats(): Sats = Sats.HØY
+        override fun satsgrunn(): Satsgrunn = Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67
     }
 }

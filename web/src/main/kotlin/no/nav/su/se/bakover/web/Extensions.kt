@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.web.features.suUserContext
 import java.util.UUID
 
@@ -94,6 +95,21 @@ suspend fun ApplicationCall.withSakId(ifRight: suspend (UUID) -> Unit) {
     this.lesUUID("sakId").fold(
         ifLeft = { this.svar(HttpStatusCode.BadRequest.message(it)) },
         ifRight = { ifRight(it) }
+    )
+}
+
+suspend fun ApplicationCall.withSaksnummer(ifRight: suspend (Saksnummer) -> Unit) {
+    this.parameter("saksnummer").fold(
+        ifLeft = { this.svar(HttpStatusCode.BadRequest.message(it)) },
+        ifRight = {
+            Saksnummer.tryParse(it)
+                .mapLeft {
+                    this.svar(HttpStatusCode.BadRequest.message("Er ikke ett gyldigt tall"))
+                }
+                .map { saksnummer ->
+                    ifRight(saksnummer)
+                }
+        }
     )
 }
 

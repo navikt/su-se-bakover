@@ -116,14 +116,11 @@ internal class SøknadsbehandlingStatistikkMapper(
     internal object FunksjonellTidMapper {
         fun map(søknadsbehandling: Søknadsbehandling) = when (søknadsbehandling) {
             is Søknadsbehandling.Vilkårsvurdert.Uavklart -> søknadsbehandling.opprettet
-            is Søknadsbehandling.Iverksatt.Avslag.MedBeregning -> søknadsbehandling.beregning.startOfFirstDay()
-            is Søknadsbehandling.Iverksatt.Avslag.UtenBeregning -> søknadsbehandling.opprettet
+            is Søknadsbehandling.Iverksatt.Avslag -> søknadsbehandling.opprettet
             is Søknadsbehandling.Iverksatt.Innvilget -> søknadsbehandling.beregning.startOfFirstDay()
-            is Søknadsbehandling.TilAttestering.Avslag.MedBeregning -> søknadsbehandling.beregning.startOfFirstDay()
-            is Søknadsbehandling.TilAttestering.Avslag.UtenBeregning -> søknadsbehandling.opprettet
+            is Søknadsbehandling.TilAttestering.Avslag -> søknadsbehandling.opprettet
             is Søknadsbehandling.TilAttestering.Innvilget -> søknadsbehandling.beregning.startOfFirstDay()
-            is Søknadsbehandling.Underkjent.Avslag.MedBeregning -> søknadsbehandling.beregning.startOfFirstDay()
-            is Søknadsbehandling.Underkjent.Avslag.UtenBeregning -> søknadsbehandling.opprettet
+            is Søknadsbehandling.Underkjent.Avslag -> søknadsbehandling.opprettet
             is Søknadsbehandling.Underkjent.Innvilget -> søknadsbehandling.beregning.startOfFirstDay()
             else -> throw ManglendeStatistikkMappingException(this, søknadsbehandling::class.java)
         }
@@ -143,5 +140,5 @@ internal class SøknadsbehandlingStatistikkMapper(
 data class ManglendeStatistikkMappingException(
     private val mapper: Any,
     private val clazz: Class<*>,
-    val msg: String = "${mapper::class.qualifiedName} støtter ikke mapping for klasse $${clazz.name}"
+    val msg: String = "${mapper::class.qualifiedName} støtter ikke mapping for klasse ${clazz.name}"
 ) : RuntimeException(msg)
