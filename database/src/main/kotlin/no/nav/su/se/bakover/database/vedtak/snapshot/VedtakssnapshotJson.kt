@@ -9,8 +9,7 @@ import no.nav.su.se.bakover.database.vedtak.snapshot.VedtakssnapshotJson.Innvilg
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegEtterUtbetaling
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegForAvslag
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -103,7 +102,7 @@ internal sealed class VedtakssnapshotJson {
                     // TODO jah: Denne vil alltid være null for innvilgelse siden vi ikke gjør dette før vi får kvitteringen
                     iverksattJournalpostId = eksterneIverksettingsteg.journalpostId()?.toString(),
                     // TODO jah: Denne vil alltid være null for innvilgelse siden vi ikke gjør dette før vi får kvitteringen
-                    iverksattBrevbestillingId = (eksterneIverksettingsteg as? EksterneIverksettingsstegEtterUtbetaling.JournalførtOgDistribuertBrev)?.brevbestillingId?.toString(),
+                    iverksattBrevbestillingId = (eksterneIverksettingsteg as? JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev)?.brevbestillingId?.toString(),
                     beregning = beregning.toSnapshot(),
                     behandlingsinformasjon = behandlingsinformasjon,
                     behandlingsresultat = BehandlingsresultatJson(
@@ -126,8 +125,8 @@ internal sealed class VedtakssnapshotJson {
                     saksbehandler = saksbehandler.toString(),
                     attestering = attestering,
                     oppgaveId = oppgaveId.toString(),
-                    iverksattJournalpostId = eksterneIverksettingsteg.journalpostId.toString(),
-                    iverksattBrevbestillingId = (eksterneIverksettingsteg as? EksterneIverksettingsstegForAvslag.JournalførtOgDistribuertBrev)?.brevbestillingId?.toString(),
+                    iverksattJournalpostId = eksterneIverksettingsteg.journalpostId()?.toString(),
+                    iverksattBrevbestillingId = (eksterneIverksettingsteg as? JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev)?.brevbestillingId?.toString(),
                     beregning = if (this is Søknadsbehandling.Iverksatt.Avslag.MedBeregning) beregning.toSnapshot() else null,
                     behandlingsinformasjon = behandlingsinformasjon,
                     behandlingsresultat = BehandlingsresultatJson(

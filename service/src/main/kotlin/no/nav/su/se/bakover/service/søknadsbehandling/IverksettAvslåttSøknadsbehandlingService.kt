@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagBrevRequest
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegFeil.EksterneIverksettingsstegForAvslagFeil
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjonFeil
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Statusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -77,11 +77,11 @@ class IverksettAvslåttSøknadsbehandlingService(
         søknadsbehandlingUtenBrev: Søknadsbehandling.Iverksatt.Avslag,
     ): Søknadsbehandling.Iverksatt.Avslag {
 
-        val brevResultat: Either<EksterneIverksettingsstegForAvslagFeil.KunneIkkeDistribuereBrev, Søknadsbehandling.Iverksatt.Avslag> =
+        val brevResultat: Either<JournalføringOgBrevdistribusjonFeil.KunneIkkeDistribuereBrev, Søknadsbehandling.Iverksatt.Avslag> =
             søknadsbehandlingUtenBrev.distribuerBrev { journalpostId ->
                 brevService.distribuerBrev(journalpostId)
                     .mapLeft {
-                        EksterneIverksettingsstegForAvslagFeil.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev(
+                        JournalføringOgBrevdistribusjonFeil.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev(
                             journalpostId
                         )
                     }.map {

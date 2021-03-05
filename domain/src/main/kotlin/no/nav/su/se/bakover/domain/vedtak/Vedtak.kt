@@ -10,8 +10,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegEtterUtbetaling
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegForAvslag
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.ErAvslag
@@ -36,7 +35,7 @@ sealed class Vedtak : Visitable<VedtakVisitor> {
         val saksbehandler: NavIdentBruker.Saksbehandler,
         val attestant: NavIdentBruker.Attestant,
         val utbetalingId: UUID30,
-        val eksterneIverksettingsteg: EksterneIverksettingsstegEtterUtbetaling,
+        val eksterneIverksettingsteg: JournalføringOgBrevdistribusjon,
     ) : Vedtak() {
         companion object {
             fun fromSøknadsbehandling(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget) = InnvilgetStønad(
@@ -72,7 +71,7 @@ sealed class Vedtak : Visitable<VedtakVisitor> {
     sealed class AvslåttStønad : Vedtak(), ErAvslag {
         abstract val saksbehandler: NavIdentBruker.Saksbehandler
         abstract val attestant: NavIdentBruker.Attestant
-        abstract val eksterneIverksettingsteg: EksterneIverksettingsstegForAvslag
+        abstract val eksterneIverksettingsteg: JournalføringOgBrevdistribusjon
 
         companion object {
             fun fromSøknadsbehandlingMedBeregning(avslag: Søknadsbehandling.Iverksatt.Avslag.MedBeregning) =
@@ -102,7 +101,7 @@ sealed class Vedtak : Visitable<VedtakVisitor> {
             override val behandlingsinformasjon: Behandlingsinformasjon,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val attestant: NavIdentBruker.Attestant,
-            override val eksterneIverksettingsteg: EksterneIverksettingsstegForAvslag,
+            override val eksterneIverksettingsteg: JournalføringOgBrevdistribusjon,
         ) : AvslåttStønad() {
             override fun accept(visitor: VedtakVisitor) {
                 visitor.visit(this)
@@ -120,7 +119,7 @@ sealed class Vedtak : Visitable<VedtakVisitor> {
             val beregning: Beregning,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val attestant: NavIdentBruker.Attestant,
-            override val eksterneIverksettingsteg: EksterneIverksettingsstegForAvslag,
+            override val eksterneIverksettingsteg: JournalføringOgBrevdistribusjon,
         ) : AvslåttStønad() {
             private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
                 when (val vurdering = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {

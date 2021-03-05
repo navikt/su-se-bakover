@@ -4,8 +4,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.database.EksterneIverksettingsstegEtterUtbetalingMapper
-import no.nav.su.se.bakover.database.EksterneIverksettingsstegForAvslagMapper
+import no.nav.su.se.bakover.database.JournalføringOgBrevdistribusjonMapper
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.beregning.toSnapshot
@@ -191,7 +190,7 @@ internal class VedtakPosgresRepo(
                 saksbehandler = saksbehandler,
                 attestant = attestant,
                 utbetalingId = utbetalingId,
-                eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetalingMapper.idToObject(
+                eksterneIverksettingsteg = JournalføringOgBrevdistribusjonMapper.idToObject(
                     iverksattJournalpostId,
                     iverksattBrevbestillingId
                 )
@@ -204,7 +203,7 @@ internal class VedtakPosgresRepo(
                 beregning = beregning,
                 saksbehandler = saksbehandler,
                 attestant = attestant,
-                eksterneIverksettingsteg = EksterneIverksettingsstegForAvslagMapper.idToObject(
+                eksterneIverksettingsteg = JournalføringOgBrevdistribusjonMapper.idToObject(
                     iverksattJournalpostId,
                     iverksattBrevbestillingId
                 )
@@ -216,7 +215,7 @@ internal class VedtakPosgresRepo(
                 behandlingsinformasjon = behandlingsinformasjon,
                 saksbehandler = saksbehandler,
                 attestant = attestant,
-                eksterneIverksettingsteg = EksterneIverksettingsstegForAvslagMapper.idToObject(
+                eksterneIverksettingsteg = JournalføringOgBrevdistribusjonMapper.idToObject(
                     iverksattJournalpostId,
                     iverksattBrevbestillingId
                 )
@@ -268,10 +267,10 @@ internal class VedtakPosgresRepo(
                         "simulering" to objectMapper.writeValueAsString(vedtak.simulering),
                         "beregning" to objectMapper.writeValueAsString(vedtak.beregning.toSnapshot()),
                         "behandlingsinformasjon" to objectMapper.writeValueAsString(vedtak.behandlingsinformasjon),
-                        "iverksattjournalpostId" to EksterneIverksettingsstegEtterUtbetalingMapper.iverksattJournalpostId(
+                        "iverksattjournalpostId" to JournalføringOgBrevdistribusjonMapper.iverksattJournalpostId(
                             vedtak.eksterneIverksettingsteg
                         )?.toString(),
-                        "iverksattbrevbestillingId" to EksterneIverksettingsstegEtterUtbetalingMapper.iverksattBrevbestillingId(
+                        "iverksattbrevbestillingId" to JournalføringOgBrevdistribusjonMapper.iverksattBrevbestillingId(
                             vedtak.eksterneIverksettingsteg
                         )?.toString(),
                     ),
@@ -345,10 +344,10 @@ internal class VedtakPosgresRepo(
                         "attestant" to vedtak.attestant,
                         "beregning" to beregning?.let { objectMapper.writeValueAsString(it.toSnapshot()) },
                         "behandlingsinformasjon" to objectMapper.writeValueAsString(vedtak.behandlingsinformasjon),
-                        "iverksattjournalpostId" to EksterneIverksettingsstegForAvslagMapper.iverksattJournalpostId(
+                        "iverksattjournalpostId" to JournalføringOgBrevdistribusjonMapper.iverksattJournalpostId(
                             vedtak.eksterneIverksettingsteg
                         )?.toString(),
-                        "iverksattbrevbestillingId" to EksterneIverksettingsstegForAvslagMapper.iverksattBrevbestillingId(
+                        "iverksattbrevbestillingId" to JournalføringOgBrevdistribusjonMapper.iverksattBrevbestillingId(
                             vedtak.eksterneIverksettingsteg
                         )?.toString(),
                     ),

@@ -30,7 +30,7 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegEtterUtbetaling
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -98,7 +98,7 @@ internal class FerdigstillIverksettingServiceImplTest {
         behandlingsinformasjon = behandlingsinformasjon,
         fnr = fnr,
         utbetalingId = utbetalingId,
-        eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.VenterPåKvittering
+        eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert
     )
 
     private val iverksattRevurdering = IverksattRevurdering(
@@ -118,7 +118,7 @@ internal class FerdigstillIverksettingServiceImplTest {
         oppgaveId = OppgaveId(""),
         attestant = NavIdentBruker.Attestant(navIdent = "Z321"),
         utbetalingId = UUID30.randomUUID(),
-        eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.VenterPåKvittering
+        eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert
     )
 
     @Test
@@ -468,7 +468,7 @@ internal class FerdigstillIverksettingServiceImplTest {
             verify(søknadsbehandlingRepoMock).lagre(
                 argThat {
                     it shouldBe innvilgetBehandlingUtenJournalpost.copy(
-                        eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.Journalført(
+                        eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.Journalført(
                             iverksattJournalpostId
                         )
                     )
@@ -561,12 +561,12 @@ internal class FerdigstillIverksettingServiceImplTest {
         argumentCaptor<Søknadsbehandling>().apply {
             verify(søknadsbehandlingRepoMock, times(2)).lagre(capture())
             firstValue shouldBe innvilgetBehandlingUtenJournalpost.copy(
-                eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.Journalført(
+                eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.Journalført(
                     iverksattJournalpostId
                 )
             )
             secondValue shouldBe innvilgetBehandlingUtenJournalpost.copy(
-                eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.JournalførtOgDistribuertBrev(
+                eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
                     iverksattJournalpostId,
                     iverksattBrevbestillingId
                 )

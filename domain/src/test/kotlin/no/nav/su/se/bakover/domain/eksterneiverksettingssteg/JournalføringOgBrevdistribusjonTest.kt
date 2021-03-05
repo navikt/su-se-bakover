@@ -8,28 +8,28 @@ import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import com.nhaarman.mockitokotlin2.verifyZeroInteractions
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegEtterUtbetaling.Journalført
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegEtterUtbetaling.JournalførtOgDistribuertBrev
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegEtterUtbetaling.VenterPåKvittering
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegFeil.EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeDistribuereBrev
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegFeil.EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeJournalføre.AlleredeJournalført
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegFeil.EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeJournalføre.FeilVedJournalføring
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon.Journalført
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjonFeil.KunneIkkeDistribuereBrev
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjonFeil.KunneIkkeJournalføre.AlleredeJournalført
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjonFeil.KunneIkkeJournalføre.FeilVedJournalføring
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
-internal class EksterneIverksettingsstegEtterUtbetalingTest {
+internal class JournalføringOgBrevdistribusjonTest {
     @Nested
     inner class Journalføring {
         private val skalIkkeBliKaltVedJournalføring = mock<Either<FeilVedJournalføring, JournalpostId>>()
         @Test
         fun `journalfører venter på kvittering og oppdaterer status`() {
-            VenterPåKvittering.journalfør { okJournalføring() } shouldBe Journalført(journalpostId).right()
+            IkkeJournalførtEllerDistribuert.journalfør { okJournalføring() } shouldBe Journalført(journalpostId).right()
         }
 
         @Test
         fun `svarer med feil dersom journalføring feiler`() {
-            VenterPåKvittering.journalfør { errorJournalføring() } shouldBe FeilVedJournalføring.left()
+            IkkeJournalførtEllerDistribuert.journalfør { errorJournalføring() } shouldBe FeilVedJournalføring.left()
         }
 
         @Test
@@ -57,7 +57,7 @@ internal class EksterneIverksettingsstegEtterUtbetalingTest {
 
         @Test
         fun `skal ikke kunne distribuera brev når vi ikke har journalført`() {
-            VenterPåKvittering.distribuerBrev { skalIkkeBliKaltVedBrevDistribusjon } shouldBe KunneIkkeDistribuereBrev.MåJournalføresFørst.left()
+            IkkeJournalførtEllerDistribuert.distribuerBrev { skalIkkeBliKaltVedBrevDistribusjon } shouldBe KunneIkkeDistribuereBrev.MåJournalføresFørst.left()
             verifyZeroInteractions(skalIkkeBliKaltVedBrevDistribusjon)
         }
 

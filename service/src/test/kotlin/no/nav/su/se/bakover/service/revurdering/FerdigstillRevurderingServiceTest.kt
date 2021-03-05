@@ -34,7 +34,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegEtterUtbetaling
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeLukkeOppgave
@@ -99,7 +99,7 @@ internal class FerdigstillRevurderingServiceTest {
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
             fnr = fnr,
             utbetalingId = UUID30.randomUUID(),
-            eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.JournalførtOgDistribuertBrev(
+            eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
                 journalpostId = JournalpostId("515"),
                 brevbestillingId = BrevbestillingId("551")
             )
@@ -123,7 +123,7 @@ internal class FerdigstillRevurderingServiceTest {
         oppgaveId = OppgaveId(""),
         attestant = NavIdentBruker.Attestant(navIdent = "Z321"),
         utbetalingId = utbetalingId,
-        eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.VenterPåKvittering
+        eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert
     )
 
     private val person = Person(
@@ -273,7 +273,7 @@ internal class FerdigstillRevurderingServiceTest {
     fun `fortsetter brevbestilling for journalført revurderinger `() {
         val revurderingRepoMock = mock<RevurderingRepo>() {
             on { hentRevurderingForUtbetaling(any()) } doReturn revurderingSomSkalFerdigstilles.copy(
-                eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.Journalført(iverksattJournalpostId)
+                eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.Journalført(iverksattJournalpostId)
             )
         }
         val personServiceMock = mock<PersonService> {
@@ -318,7 +318,7 @@ internal class FerdigstillRevurderingServiceTest {
             verify(revurderingRepoMock).lagre(
                 argThat {
                     it shouldBe revurderingSomSkalFerdigstilles.copy(
-                        eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.JournalførtOgDistribuertBrev(
+                        eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
                             iverksattJournalpostId,
                             iverksattBrevbestillingId
                         )
@@ -371,7 +371,7 @@ internal class FerdigstillRevurderingServiceTest {
             )
             verify(revurderingRepoMock).lagre(
                 revurderingSomSkalFerdigstilles.copy(
-                    eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.Journalført(
+                    eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.Journalført(
                         iverksattJournalpostId
                     )
                 )
@@ -384,7 +384,7 @@ internal class FerdigstillRevurderingServiceTest {
     @Test
     fun `ferdistiller journalførte og distribuerte revurderinger`() {
         val journalførtOgDistribuertRevurdering = revurderingSomSkalFerdigstilles.copy(
-            eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.JournalførtOgDistribuertBrev(
+            eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
                 iverksattJournalpostId,
                 iverksattBrevbestillingId
             )
@@ -483,7 +483,7 @@ internal class FerdigstillRevurderingServiceTest {
             verify(vedtakRepoMock).oppdaterJournalpostForRevurdering(revurderingSomSkalFerdigstilles.id, iverksattJournalpostId)
             verify(revurderingRepoMock).lagre(
                 revurderingSomSkalFerdigstilles.copy(
-                    eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.Journalført(
+                    eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.Journalført(
                         iverksattJournalpostId
                     )
                 )
@@ -492,7 +492,7 @@ internal class FerdigstillRevurderingServiceTest {
             verify(vedtakRepoMock).oppdaterBrevbestillingIdForRevurdering(revurderingSomSkalFerdigstilles.id, iverksattBrevbestillingId)
             verify(revurderingRepoMock).lagre(
                 revurderingSomSkalFerdigstilles.copy(
-                    eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.JournalførtOgDistribuertBrev(
+                    eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
                         iverksattJournalpostId,
                         iverksattBrevbestillingId
                     )

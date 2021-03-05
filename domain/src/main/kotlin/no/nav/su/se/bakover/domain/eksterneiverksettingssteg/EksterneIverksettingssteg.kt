@@ -3,45 +3,46 @@ package no.nav.su.se.bakover.domain.eksterneiverksettingssteg
 import arrow.core.Either
 import arrow.core.left
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegFeil.EksterneIverksettingsstegEtterUtbetalingFeil
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegFeil.EksterneIverksettingsstegForAvslagFeil
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert.medJournalpost
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 
-sealed class EksterneIverksettingsstegEtterUtbetaling {
+sealed class JournalføringOgBrevdistribusjon {
     abstract fun journalpostId(): JournalpostId?
-    fun journalfør(journalfør: () -> Either<EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeJournalføre, Journalført> {
+    fun journalfør(journalfør: () -> Either<JournalføringOgBrevdistribusjonFeil.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<JournalføringOgBrevdistribusjonFeil.KunneIkkeJournalføre, Journalført> {
         return when (this) {
-            is VenterPåKvittering -> {
+            is IkkeJournalførtEllerDistribuert -> {
                 journalfør().map { medJournalpost(it) }
             }
             is Journalført -> {
-                EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeJournalføre.AlleredeJournalført(journalpostId)
-                    .left()
+                JournalføringOgBrevdistribusjonFeil.KunneIkkeJournalføre.AlleredeJournalført(journalpostId).left()
             }
             is JournalførtOgDistribuertBrev -> {
-                EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeJournalføre.AlleredeJournalført(journalpostId)
-                    .left()
+                JournalføringOgBrevdistribusjonFeil.KunneIkkeJournalføre.AlleredeJournalført(journalpostId).left()
             }
         }
     }
 
-    fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeDistribuereBrev, JournalførtOgDistribuertBrev> {
+    fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<JournalføringOgBrevdistribusjonFeil.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<JournalføringOgBrevdistribusjonFeil.KunneIkkeDistribuereBrev, JournalførtOgDistribuertBrev> {
         return when (this) {
-            is VenterPåKvittering -> EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeDistribuereBrev.MåJournalføresFørst.left()
-            is Journalført -> distribuerBrev(journalpostId).map { this.medDistribuertBrev(it) }
-            is JournalførtOgDistribuertBrev -> EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeDistribuereBrev.AlleredeDistribuertBrev(
-                journalpostId
-            ).left()
+            is IkkeJournalførtEllerDistribuert -> {
+                JournalføringOgBrevdistribusjonFeil.KunneIkkeDistribuereBrev.MåJournalføresFørst.left()
+            }
+            is Journalført -> {
+                distribuerBrev(journalpostId).map { this.medDistribuertBrev(it) }
+            }
+            is JournalførtOgDistribuertBrev -> {
+                JournalføringOgBrevdistribusjonFeil.KunneIkkeDistribuereBrev.AlleredeDistribuertBrev(journalpostId).left()
+            }
         }
     }
 
-    object VenterPåKvittering : EksterneIverksettingsstegEtterUtbetaling() {
+    object IkkeJournalførtEllerDistribuert : JournalføringOgBrevdistribusjon() {
         fun medJournalpost(journalpostId: JournalpostId): Journalført = Journalført(journalpostId)
 
         override fun journalpostId(): JournalpostId? = null
     }
 
-    data class Journalført(val journalpostId: JournalpostId) : EksterneIverksettingsstegEtterUtbetaling() {
+    data class Journalført(val journalpostId: JournalpostId) : JournalføringOgBrevdistribusjon() {
         fun medDistribuertBrev(brevbestillingId: BrevbestillingId): JournalførtOgDistribuertBrev =
             JournalførtOgDistribuertBrev(journalpostId, brevbestillingId)
 
@@ -51,56 +52,20 @@ sealed class EksterneIverksettingsstegEtterUtbetaling {
     data class JournalførtOgDistribuertBrev(
         val journalpostId: JournalpostId,
         val brevbestillingId: BrevbestillingId
-    ) : EksterneIverksettingsstegEtterUtbetaling() {
+    ) : JournalføringOgBrevdistribusjon() {
         override fun journalpostId() = journalpostId
     }
 }
 
-sealed class EksterneIverksettingsstegForAvslag {
-    abstract val journalpostId: JournalpostId
-
-    fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<EksterneIverksettingsstegForAvslagFeil.KunneIkkeDistribuereBrev, BrevbestillingId>): Either<EksterneIverksettingsstegForAvslagFeil.KunneIkkeDistribuereBrev, JournalførtOgDistribuertBrev> =
-        when (this) {
-            is Journalført -> distribuerBrev(journalpostId).map { this.medDistribuertBrev(it) }
-            is JournalførtOgDistribuertBrev -> EksterneIverksettingsstegForAvslagFeil.KunneIkkeDistribuereBrev.AlleredeDistribuertBrev(
-                journalpostId
-            ).left()
-        }
-
-    data class Journalført(override val journalpostId: JournalpostId) : EksterneIverksettingsstegForAvslag() {
-        fun medDistribuertBrev(brevbestillingId: BrevbestillingId): JournalførtOgDistribuertBrev =
-            JournalførtOgDistribuertBrev(journalpostId, brevbestillingId)
+sealed class JournalføringOgBrevdistribusjonFeil {
+    sealed class KunneIkkeDistribuereBrev : JournalføringOgBrevdistribusjonFeil() {
+        object MåJournalføresFørst : KunneIkkeDistribuereBrev()
+        data class AlleredeDistribuertBrev(val journalpostId: JournalpostId) : KunneIkkeDistribuereBrev()
+        data class FeilVedDistribueringAvBrev(val journalpostId: JournalpostId) : KunneIkkeDistribuereBrev()
     }
 
-    data class JournalførtOgDistribuertBrev(
-        override val journalpostId: JournalpostId,
-        val brevbestillingId: BrevbestillingId
-    ) : EksterneIverksettingsstegForAvslag()
-}
-
-sealed class EksterneIverksettingsstegFeil {
-    sealed class EksterneIverksettingsstegEtterUtbetalingFeil : EksterneIverksettingsstegFeil() {
-        sealed class KunneIkkeDistribuereBrev : EksterneIverksettingsstegEtterUtbetalingFeil() {
-            object MåJournalføresFørst : KunneIkkeDistribuereBrev()
-            data class AlleredeDistribuertBrev(val journalpostId: JournalpostId) : KunneIkkeDistribuereBrev()
-            data class FeilVedDistribueringAvBrev(val journalpostId: JournalpostId) : KunneIkkeDistribuereBrev()
-        }
-
-        sealed class KunneIkkeJournalføre : EksterneIverksettingsstegEtterUtbetalingFeil() {
-            data class AlleredeJournalført(val journalpostId: JournalpostId) : KunneIkkeJournalføre()
-            object FeilVedJournalføring : KunneIkkeJournalføre()
-        }
-    }
-
-    sealed class EksterneIverksettingsstegForAvslagFeil : EksterneIverksettingsstegFeil() {
-        sealed class KunneIkkeDistribuereBrev : EksterneIverksettingsstegForAvslagFeil() {
-            data class AlleredeDistribuertBrev(val journalpostId: JournalpostId) : KunneIkkeDistribuereBrev()
-            data class FeilVedDistribueringAvBrev(val journalpostId: JournalpostId) : KunneIkkeDistribuereBrev()
-        }
-
-        sealed class KunneIkkeJournalføre : EksterneIverksettingsstegForAvslagFeil() {
-            data class AlleredeJournalført(val journalpostId: JournalpostId) : KunneIkkeJournalføre()
-            object FeilVedJournalføring : KunneIkkeJournalføre()
-        }
+    sealed class KunneIkkeJournalføre : JournalføringOgBrevdistribusjonFeil() {
+        data class AlleredeJournalført(val journalpostId: JournalpostId) : KunneIkkeJournalføre()
+        object FeilVedJournalføring : KunneIkkeJournalføre()
     }
 }

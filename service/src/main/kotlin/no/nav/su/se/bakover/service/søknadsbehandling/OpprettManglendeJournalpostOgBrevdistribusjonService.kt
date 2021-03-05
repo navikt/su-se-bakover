@@ -5,9 +5,8 @@ import arrow.core.left
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegEtterUtbetaling
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegFeil
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegForAvslag
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjonFeil
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.brev.BrevService
@@ -37,7 +36,7 @@ internal class OpprettManglendeJournalpostOgBrevdistribusjonService(
 
     fun opprettManglendeJournalposteringer(): List<Either<FerdigstillIverksettingService.KunneIkkeOppretteJournalpostForIverksetting, Søknadsbehandling.Iverksatt.Innvilget>> {
         return søknadsbehandlingRepo.hentIverksatteBehandlingerUtenJournalposteringer().map { søknadsbehandling ->
-            if (søknadsbehandling.eksterneIverksettingsteg !is EksterneIverksettingsstegEtterUtbetaling.VenterPåKvittering) {
+            if (søknadsbehandling.eksterneIverksettingsteg !is JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert) {
                 return@map FerdigstillIverksettingService.KunneIkkeOppretteJournalpostForIverksetting(
                     sakId = søknadsbehandling.sakId,
                     behandlingId = søknadsbehandling.id,
@@ -62,13 +61,21 @@ internal class OpprettManglendeJournalpostOgBrevdistribusjonService(
                 is Søknadsbehandling.Iverksatt.Avslag -> {
                     søknadsbehandling.distribuerBrev { journalpostId ->
                         brevService.distribuerBrev(journalpostId).mapLeft {
-                            EksterneIverksettingsstegFeil.EksterneIverksettingsstegForAvslagFeil.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev(
+                            JournalføringOgBrevdistribusjonFeil.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev(
                                 journalpostId
                             )
                         }
                     }.mapLeft {
                         when (it) {
-                            is EksterneIverksettingsstegFeil.EksterneIverksettingsstegForAvslagFeil.KunneIkkeDistribuereBrev.AlleredeDistribuertBrev -> {
+                            JournalføringOgBrevdistribusjonFeil.KunneIkkeDistribuereBrev.MåJournalføresFørst -> {
+                                kunneIkkeBestilleBrev(
+                                    søknadsbehandling.sakId,
+                                    søknadsbehandling.id,
+                                    null,
+                                    it
+                                )
+                            }
+                            is JournalføringOgBrevdistribusjonFeil.KunneIkkeDistribuereBrev.AlleredeDistribuertBrev -> {
                                 kunneIkkeBestilleBrev(
                                     søknadsbehandling.sakId,
                                     søknadsbehandling.id,
@@ -76,7 +83,7 @@ internal class OpprettManglendeJournalpostOgBrevdistribusjonService(
                                     it
                                 )
                             }
-                            is EksterneIverksettingsstegFeil.EksterneIverksettingsstegForAvslagFeil.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev -> {
+                            is JournalføringOgBrevdistribusjonFeil.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev -> {
                                 kunneIkkeBestilleBrev(
                                     søknadsbehandling.sakId,
                                     søknadsbehandling.id,
@@ -88,7 +95,7 @@ internal class OpprettManglendeJournalpostOgBrevdistribusjonService(
                     }.map { avslagMedJorunalpostOgDistribuertBrev ->
                         søknadsbehandlingRepo.lagre(avslagMedJorunalpostOgDistribuertBrev)
                         behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.DISTRIBUERT_BREV)
-                        val steg = (avslagMedJorunalpostOgDistribuertBrev.eksterneIverksettingsteg as EksterneIverksettingsstegForAvslag.JournalførtOgDistribuertBrev)
+                        val steg = (avslagMedJorunalpostOgDistribuertBrev.eksterneIverksettingsteg as JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev)
                         vedtakRepo.oppdaterBrevbestillingIdForSøknadsbehandling(søknadsbehandling.id, steg.brevbestillingId)
                         FerdigstillIverksettingService.BestiltBrev(
                             sakId = søknadsbehandling.sakId,
@@ -101,13 +108,13 @@ internal class OpprettManglendeJournalpostOgBrevdistribusjonService(
                 is Søknadsbehandling.Iverksatt.Innvilget -> {
                     søknadsbehandling.distribuerBrev { journalpostId ->
                         brevService.distribuerBrev(journalpostId).mapLeft {
-                            EksterneIverksettingsstegFeil.EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev(
+                            JournalføringOgBrevdistribusjonFeil.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev(
                                 journalpostId
                             )
                         }
                     }.mapLeft {
                         when (it) {
-                            is EksterneIverksettingsstegFeil.EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeDistribuereBrev.AlleredeDistribuertBrev -> {
+                            is JournalføringOgBrevdistribusjonFeil.KunneIkkeDistribuereBrev.AlleredeDistribuertBrev -> {
                                 kunneIkkeBestilleBrev(
                                     søknadsbehandling.sakId,
                                     søknadsbehandling.id,
@@ -115,7 +122,7 @@ internal class OpprettManglendeJournalpostOgBrevdistribusjonService(
                                     it
                                 )
                             }
-                            is EksterneIverksettingsstegFeil.EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev -> {
+                            is JournalføringOgBrevdistribusjonFeil.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev -> {
                                 kunneIkkeBestilleBrev(
                                     søknadsbehandling.sakId,
                                     søknadsbehandling.id,
@@ -123,14 +130,14 @@ internal class OpprettManglendeJournalpostOgBrevdistribusjonService(
                                     it
                                 )
                             }
-                            EksterneIverksettingsstegFeil.EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeDistribuereBrev.MåJournalføresFørst -> {
+                            JournalføringOgBrevdistribusjonFeil.KunneIkkeDistribuereBrev.MåJournalføresFørst -> {
                                 kunneIkkeBestilleBrev(søknadsbehandling.sakId, søknadsbehandling.id, null, it)
                             }
                         }
                     }.map { innvilgetMedJournalpostOgDistribuertBrev ->
                         søknadsbehandlingRepo.lagre(innvilgetMedJournalpostOgDistribuertBrev)
                         behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.DISTRIBUERT_BREV)
-                        val steg = (innvilgetMedJournalpostOgDistribuertBrev.eksterneIverksettingsteg as EksterneIverksettingsstegEtterUtbetaling.JournalførtOgDistribuertBrev)
+                        val steg = (innvilgetMedJournalpostOgDistribuertBrev.eksterneIverksettingsteg as JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev)
                         vedtakRepo.oppdaterBrevbestillingIdForSøknadsbehandling(søknadsbehandling.id, steg.brevbestillingId)
                         FerdigstillIverksettingService.BestiltBrev(
                             sakId = søknadsbehandling.sakId,

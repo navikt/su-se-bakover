@@ -31,8 +31,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegEtterUtbetaling
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegForAvslag
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -138,7 +137,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
         oppgaveId = OppgaveId("1"),
         opprettet = Tidspunkt.EPOCH,
         behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withVilkårAvslått(),
-        eksterneIverksettingsteg = EksterneIverksettingsstegForAvslag.Journalført(journalpostId),
+        eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.Journalført(journalpostId),
     )
 
     @Test
@@ -434,7 +433,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
                 innvilgetBehandlingUtenJournalpost.copy(
                     id = behandlingIdBestiltBrev,
                     sakId = sakIdBestiltBrev,
-                    eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.Journalført(
+                    eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.Journalført(
                         journalpostId
                     )
                 )
@@ -520,8 +519,8 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
                     it shouldBe avslagUtenBrevbestilling.copy(
                         id = behandlingIdBestiltBrev,
                         sakId = sakIdBestiltBrev,
-                        eksterneIverksettingsteg = EksterneIverksettingsstegForAvslag.JournalførtOgDistribuertBrev(
-                            avslagUtenBrevbestilling.eksterneIverksettingsteg.journalpostId,
+                        eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
+                            avslagUtenBrevbestilling.eksterneIverksettingsteg.journalpostId()!!,
                             brevbestillingId
                         )
                     )
@@ -540,7 +539,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
                 innvilgetBehandlingUtenJournalpost.copy(
                     id = behandlingIdBestiltBrev,
                     sakId = sakIdBestiltBrev,
-                    eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.Journalført(
+                    eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.Journalført(
                         journalpostIdBestiltBrev
                     )
                 ),
@@ -609,7 +608,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
             verify(vedtakRepo).oppdaterJournalpostForSøknadsbehandling(innvilgetBehandlingUtenJournalpost.id, journalpostIdBestiltBrev)
             verify(behandlingRepoMock).lagre(lagreCaptor.capture()).let {
                 lagreCaptor.firstValue shouldBe innvilgetBehandlingUtenJournalpost.copy(
-                    eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.Journalført(
+                    eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.Journalført(
                         journalpostIdBestiltBrev
                     )
                 )
@@ -620,7 +619,7 @@ internal class OpprettManglendeJournalpostOgBrevForIverksettingerTest {
                 lagreCaptor.secondValue shouldBe innvilgetBehandlingUtenJournalpost.copy(
                     id = behandlingIdBestiltBrev,
                     sakId = sakIdBestiltBrev,
-                    eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.JournalførtOgDistribuertBrev(
+                    eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
                         journalpostIdBestiltBrev,
                         brevbestillingId
                     )

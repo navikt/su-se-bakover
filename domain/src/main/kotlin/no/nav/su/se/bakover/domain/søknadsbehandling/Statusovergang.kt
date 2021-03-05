@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegForAvslag
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 
@@ -197,7 +197,7 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
             result = if (saksbehandlerOgAttestantErForskjellig(søknadsbehandling, attestering)) {
                 avslag(søknadsbehandling)
                     .mapLeft { KunneIkkeIverksetteSøknadsbehandling.KunneIkkeJournalføre }
-                    .map { søknadsbehandling.tilIverksatt(attestering, EksterneIverksettingsstegForAvslag.Journalført(it)) }
+                    .map { søknadsbehandling.tilIverksatt(attestering, JournalføringOgBrevdistribusjon.Journalført(it)) }
             } else {
                 KunneIkkeIverksetteSøknadsbehandling.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
             }
@@ -207,7 +207,7 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
             result = if (saksbehandlerOgAttestantErForskjellig(søknadsbehandling, attestering)) {
                 avslag(søknadsbehandling)
                     .mapLeft { KunneIkkeIverksetteSøknadsbehandling.KunneIkkeJournalføre }
-                    .map { søknadsbehandling.tilIverksatt(attestering, EksterneIverksettingsstegForAvslag.Journalført(it)) }
+                    .map { søknadsbehandling.tilIverksatt(attestering, JournalføringOgBrevdistribusjon.Journalført(it)) }
             } else {
                 KunneIkkeIverksetteSøknadsbehandling.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
             }

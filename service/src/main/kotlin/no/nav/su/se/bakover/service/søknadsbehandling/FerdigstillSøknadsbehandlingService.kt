@@ -8,8 +8,8 @@ import arrow.core.right
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegEtterUtbetaling
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegFeil
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjonFeil
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.statistikk.Event
@@ -61,13 +61,13 @@ internal class FerdigstillSøknadsbehandlingService(
             .flatMap { s ->
                 s.distribuerBrev { journalpostId ->
                     brevService.distribuerBrev(journalpostId).mapLeft {
-                        EksterneIverksettingsstegFeil.EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev(
+                        JournalføringOgBrevdistribusjonFeil.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev(
                             journalpostId
                         )
                     }
                 }.map {
                     when (val steg = it.eksterneIverksettingsteg) {
-                        is EksterneIverksettingsstegEtterUtbetaling.JournalførtOgDistribuertBrev -> vedtakRepo.oppdaterBrevbestillingIdForSøknadsbehandling(
+                        is JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev -> vedtakRepo.oppdaterBrevbestillingIdForSøknadsbehandling(
                             søknadsbehandlingId = it.id,
                             brevbestillingId = steg.brevbestillingId
                         )
@@ -90,21 +90,21 @@ internal class FerdigstillSøknadsbehandlingService(
 
         return søknadsbehandling.journalfør {
             brevService.journalførBrev(brevRequest, søknadsbehandling.saksnummer)
-                .mapLeft { EksterneIverksettingsstegFeil.EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeJournalføre.FeilVedJournalføring }
+                .mapLeft { JournalføringOgBrevdistribusjonFeil.KunneIkkeJournalføre.FeilVedJournalføring }
         }.mapLeft {
             when (it) {
-                is EksterneIverksettingsstegFeil.EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeJournalføre.AlleredeJournalført -> {
+                is JournalføringOgBrevdistribusjonFeil.KunneIkkeJournalføre.AlleredeJournalført -> {
                     log.info("Behandlingen er allerede journalført med journalpostId ${it.journalpostId}")
                     return søknadsbehandling.right()
                 }
-                is EksterneIverksettingsstegFeil.EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeJournalføre.FeilVedJournalføring -> {
+                is JournalføringOgBrevdistribusjonFeil.KunneIkkeJournalføre.FeilVedJournalføring -> {
                     log.error("Journalføring av iverksettingsbrev feilet for behandling ${søknadsbehandling.id}.")
                     FerdigstillIverksettingService.KunneIkkeFerdigstilleInnvilgelse.KunneIkkeOppretteJournalpost
                 }
             }
         }.map {
             when (val steg = it.eksterneIverksettingsteg) {
-                is EksterneIverksettingsstegEtterUtbetaling.Journalført -> vedtakRepo.oppdaterJournalpostForSøknadsbehandling(
+                is JournalføringOgBrevdistribusjon.Journalført -> vedtakRepo.oppdaterJournalpostForSøknadsbehandling(
                     søknadsbehandlingId = it.id,
                     journalpostId = steg.journalpostId
                 )

@@ -5,7 +5,7 @@ import kotliquery.Row
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.database.EksterneIverksettingsstegEtterUtbetalingMapper
+import no.nav.su.se.bakover.database.JournalføringOgBrevdistribusjonMapper
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.hent
@@ -131,7 +131,7 @@ internal class RevurderingPostgresRepo(
                 oppgaveId = OppgaveId(oppgaveId!!),
                 attestant = NavIdentBruker.Attestant(attestant!!),
                 utbetalingId = UUID30.fromString(utbetalingId!!),
-                eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetalingMapper.idToObject(
+                eksterneIverksettingsteg = JournalføringOgBrevdistribusjonMapper.idToObject(
                     iverksattJournalpostId,
                     iverksattBrevbestillingId
                 )
@@ -332,10 +332,10 @@ internal class RevurderingPostgresRepo(
                     "revurderingsType" to RevurderingsType.IVERKSATT.toString(),
                     "attestant" to revurdering.attestant.navIdent,
                     "utbetalingId" to revurdering.utbetalingId,
-                    "iverksattjournalpostid" to EksterneIverksettingsstegEtterUtbetalingMapper.iverksattJournalpostId(
+                    "iverksattjournalpostid" to JournalføringOgBrevdistribusjonMapper.iverksattJournalpostId(
                         revurdering.eksterneIverksettingsteg
                     )?.toString(),
-                    "iverksattbrevbestillingid" to EksterneIverksettingsstegEtterUtbetalingMapper.iverksattBrevbestillingId(
+                    "iverksattbrevbestillingid" to JournalføringOgBrevdistribusjonMapper.iverksattBrevbestillingId(
                         revurdering.eksterneIverksettingsteg
                     )?.toString(),
                 ),

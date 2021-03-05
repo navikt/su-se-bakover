@@ -27,7 +27,7 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
 import no.nav.su.se.bakover.domain.behandling.avslag.AvslagBrevRequest
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegForAvslag
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -278,7 +278,7 @@ internal class IverksettAvslåttSøknadsbehandlingServiceTest {
         }
 
         response shouldBe behandling.copy(
-            eksterneIverksettingsteg = EksterneIverksettingsstegForAvslag.JournalførtOgDistribuertBrev(
+            eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
                 journalpostId, brevbestillingId
             )
         )
@@ -310,7 +310,7 @@ internal class IverksettAvslåttSøknadsbehandlingServiceTest {
     private fun iverksattAvslag() = avslagTilAttestering()
         .tilIverksatt(
             Attestering.Iverksatt(attestant),
-            EksterneIverksettingsstegForAvslag.Journalført(journalpostId)
+            JournalføringOgBrevdistribusjon.Journalført(journalpostId)
         )
 
     private fun createService(

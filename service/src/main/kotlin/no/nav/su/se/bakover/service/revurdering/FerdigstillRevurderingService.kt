@@ -6,14 +6,14 @@ import arrow.core.right
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegEtterUtbetaling
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegFeil.EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeDistribuereBrev
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegFeil.EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeDistribuereBrev.AlleredeDistribuertBrev
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegFeil.EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegFeil.EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeDistribuereBrev.MåJournalføresFørst
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegFeil.EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeJournalføre
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegFeil.EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeJournalføre.AlleredeJournalført
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegFeil.EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeJournalføre.FeilVedJournalføring
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjonFeil.KunneIkkeDistribuereBrev
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjonFeil.KunneIkkeDistribuereBrev.AlleredeDistribuertBrev
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjonFeil.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjonFeil.KunneIkkeDistribuereBrev.MåJournalføresFørst
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjonFeil.KunneIkkeJournalføre
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjonFeil.KunneIkkeJournalføre.AlleredeJournalført
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjonFeil.KunneIkkeJournalføre.FeilVedJournalføring
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
@@ -37,7 +37,7 @@ internal class FerdigstillRevurderingService(
             }
             .flatMap { journalførtRevurdering ->
                 when (val steg = journalførtRevurdering.eksterneIverksettingsteg) {
-                    is EksterneIverksettingsstegEtterUtbetaling.Journalført -> vedtakRepo.oppdaterJournalpostForRevurdering(
+                    is JournalføringOgBrevdistribusjon.Journalført -> vedtakRepo.oppdaterJournalpostForRevurdering(
                         revurderingId = journalførtRevurdering.id,
                         journalpostId = steg.journalpostId
                     )
@@ -49,7 +49,7 @@ internal class FerdigstillRevurderingService(
             }
             .map { journalførtOgDistribuert ->
                 when (val steg = journalførtOgDistribuert.eksterneIverksettingsteg) {
-                    is EksterneIverksettingsstegEtterUtbetaling.JournalførtOgDistribuertBrev -> vedtakRepo.oppdaterBrevbestillingIdForRevurdering(
+                    is JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev -> vedtakRepo.oppdaterBrevbestillingIdForRevurdering(
                         revurderingId = journalførtOgDistribuert.id,
                         brevbestillingId = steg.brevbestillingId
                     )
