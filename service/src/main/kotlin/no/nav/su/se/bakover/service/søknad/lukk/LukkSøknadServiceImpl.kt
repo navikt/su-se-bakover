@@ -23,6 +23,8 @@ import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
+import no.nav.su.se.bakover.service.statistikk.Event
+import no.nav.su.se.bakover.service.statistikk.EventObserver
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.UUID
@@ -37,6 +39,11 @@ internal class LukkSøknadServiceImpl(
     private val clock: Clock,
 ) : LukkSøknadService {
     private val log = LoggerFactory.getLogger(this::class.java)
+    private val observers = mutableListOf<EventObserver>()
+
+    fun addObserver(observer: EventObserver) {
+        observers.add(observer)
+    }
 
     override fun lukkSøknad(request: LukkSøknadRequest): Either<KunneIkkeLukkeSøknad, LukketSøknad> {
         val søknad = hentSøknad(request.søknadId).getOrHandle {
@@ -79,14 +86,24 @@ internal class LukkSøknadServiceImpl(
                                     } else lukketSøknad
                                     ).right()
                             }.map {
-                                lukketSøknad
+                                lukketSøknad.also {
+                                    observers.forEach { observer ->
+                                        observer.handle(
+                                            Event.Statistikk.SøknadStatistikk.SøknadLukket(søknad, it.sak.saksnummer)
+                                        )
+                                    }
+                                }
                             }
                     }
             }
         }
     }
 
-    private fun lukkSøknad(person: Person, request: LukkSøknadRequest, søknad: Søknad): Either<KunneIkkeLukkeSøknad, LukketSøknad> {
+    private fun lukkSøknad(
+        person: Person,
+        request: LukkSøknadRequest,
+        søknad: Søknad
+    ): Either<KunneIkkeLukkeSøknad, LukketSøknad> {
         return when (request) {
             is LukkSøknadRequest.MedBrev -> lukkSøknadMedBrev(person, request, søknad)
             is LukkSøknadRequest.UtenBrev -> {
@@ -121,8 +138,17 @@ internal class LukkSøknadServiceImpl(
 
     private fun lagBrevRequest(person: Person, søknad: Søknad, request: LukkSøknadRequest.MedBrev): LagBrevRequest {
         return when (request) {
-            is LukkSøknadRequest.MedBrev.TrekkSøknad -> TrukketSøknadBrevRequest(person, søknad, request.trukketDato, hentNavnForNavIdent(request.saksbehandler).getOrHandle { "" })
-            is LukkSøknadRequest.MedBrev.AvvistSøknad -> AvvistSøknadBrevRequest(person, request.brevConfig, hentNavnForNavIdent(request.saksbehandler).getOrHandle { "" })
+            is LukkSøknadRequest.MedBrev.TrekkSøknad -> TrukketSøknadBrevRequest(
+                person,
+                søknad,
+                request.trukketDato,
+                hentNavnForNavIdent(request.saksbehandler).getOrHandle { "" }
+            )
+            is LukkSøknadRequest.MedBrev.AvvistSøknad -> AvvistSøknadBrevRequest(
+                person,
+                request.brevConfig,
+                hentNavnForNavIdent(request.saksbehandler).getOrHandle { "" }
+            )
         }
     }
 
@@ -166,7 +192,8 @@ internal class LukkSøknadServiceImpl(
                     return LukketSøknad.MedMangler.KunneIkkeDistribuereBrev(hentSak(søknad.sakId)).right()
                 }
                 .flatMap { brevbestillingId ->
-                    val lukketSøknadMedBrevbestillingId = lukketSøknadMedJournalpostId.medBrevbestillingId(brevbestillingId)
+                    val lukketSøknadMedBrevbestillingId =
+                        lukketSøknadMedJournalpostId.medBrevbestillingId(brevbestillingId)
                     søknadRepo.oppdaterSøknad(lukketSøknadMedBrevbestillingId)
                     log.info("Lukket søknad ${søknad.id} med journalpostId $journalpostId og bestilt brev $brevbestillingId")
                     LukketSøknad.UtenMangler(hentSak(søknad.sakId)).right()

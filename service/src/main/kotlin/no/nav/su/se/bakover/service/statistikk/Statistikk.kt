@@ -70,7 +70,8 @@ sealed class Statistikk {
             REVURDERING("Revurdering av søknad for SU Uføre")
         }
         enum class SøknadStatus(val beskrivelse: String) {
-            SØKNAD_MOTTATT("Søknaden er mottatt")
+            SØKNAD_MOTTATT("Søknaden er mottatt"),
+            SØKNAD_LUKKET("Søknaden er lukket")
         }
     }
 

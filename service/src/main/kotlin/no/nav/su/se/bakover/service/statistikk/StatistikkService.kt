@@ -20,7 +20,14 @@ interface EventObserver {
 sealed class Event {
     sealed class Statistikk : Event() {
         data class SakOpprettet(val sak: Sak) : Statistikk()
-        data class SøknadMottat(val søknad: Søknad, val saksnummer: Saksnummer) : Statistikk()
+
+        sealed class SøknadStatistikk : Statistikk() {
+            abstract val søknad: Søknad
+            abstract val saksnummer: Saksnummer
+
+            data class SøknadMottat(override val søknad: Søknad, override val saksnummer: Saksnummer) : SøknadStatistikk()
+            data class SøknadLukket(override val søknad: Søknad, override val saksnummer: Saksnummer) : SøknadStatistikk()
+        }
 
         sealed class SøknadsbehandlingStatistikk : Statistikk() {
             abstract val søknadsbehandling: Søknadsbehandling

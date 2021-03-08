@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
@@ -591,7 +592,49 @@ internal class StatistikkServiceImplTest {
         )
 
         StatistikkServiceImpl(kafkaPublisherMock, mock(), clock).handle(
-            Event.Statistikk.SøknadMottat(søknad, saksnummer)
+            Event.Statistikk.SøknadStatistikk.SøknadMottat(søknad, saksnummer)
+        )
+
+        verify(kafkaPublisherMock).publiser(
+            argThat { it shouldBe behandlingTopicName },
+            argThat { it shouldBe objectMapper.writeValueAsString(expected) }
+        )
+    }
+    @Test
+    fun `publiserer statistikk for lukket søknad på kafka`() {
+        val kafkaPublisherMock: KafkaPublisher = mock {
+            on { publiser(any(), any()) }.doNothing()
+        }
+        val clock = Clock.fixed(1.januar(2020).endOfDay(ZoneOffset.UTC).instant, ZoneOffset.UTC)
+        val saksnummer = Saksnummer(2049L)
+        val søknad = Søknad.Journalført.MedOppgave(
+            id = UUID.randomUUID(),
+            opprettet = Tidspunkt.now(clock),
+            sakId = UUID.randomUUID(),
+            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+            journalpostId = JournalpostId("journalpostid"),
+            oppgaveId = OppgaveId("oppgaveid"),
+        )
+
+        val expected = Statistikk.Behandling(
+            funksjonellTid = søknad.opprettet,
+            tekniskTid = søknad.opprettet,
+            registrertDato = søknad.opprettet.toLocalDate(zoneIdOslo),
+            mottattDato = søknad.opprettet.toLocalDate(zoneIdOslo),
+            behandlingId = søknad.id,
+            sakId = søknad.sakId,
+            saksnummer = saksnummer.nummer,
+            behandlingStatus = Statistikk.Behandling.SøknadStatus.SØKNAD_LUKKET.name,
+            behandlingStatusBeskrivelse = Statistikk.Behandling.SøknadStatus.SØKNAD_LUKKET.beskrivelse,
+            versjon = clock.millis(),
+            behandlingType = Statistikk.Behandling.BehandlingType.SOKNAD,
+            behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.SOKNAD.beskrivelse,
+            relatertBehandlingId = null,
+            totrinnsbehandling = false
+        )
+
+        StatistikkServiceImpl(kafkaPublisherMock, mock(), clock).handle(
+            Event.Statistikk.SøknadStatistikk.SøknadLukket(søknad, saksnummer)
         )
 
         verify(kafkaPublisherMock).publiser(

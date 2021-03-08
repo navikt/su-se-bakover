@@ -95,7 +95,7 @@ internal class SøknadServiceImpl(
         observers.forEach {
             observer ->
             observer.handle(
-                Event.Statistikk.SøknadMottat(søknad, sak.saksnummer)
+                Event.Statistikk.SøknadStatistikk.SøknadMottat(søknad, sak.saksnummer)
             )
         }
         return Pair(sak.saksnummer, søknad).right()

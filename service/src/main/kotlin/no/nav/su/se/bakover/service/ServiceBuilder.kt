@@ -114,7 +114,9 @@ object ServiceBuilder {
                 personService = personService,
                 microsoftGraphApiClient = clients.microsoftGraphApiClient,
                 clock = clock,
-            ),
+            ).apply {
+                addObserver(statistikkService)
+            },
             oppgave = oppgaveService,
             person = personService,
             statistikk = statistikkService,
