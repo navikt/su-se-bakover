@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.database.vedtak
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.JournalføringOgBrevdistribusjonMapper
@@ -37,6 +38,7 @@ interface VedtakRepo {
     fun oppdaterBrevbestillingIdForSøknadsbehandling(søknadsbehandlingId: UUID, brevbestillingId: BrevbestillingId)
     fun oppdaterJournalpostForRevurdering(revurderingId: UUID, journalpostId: JournalpostId)
     fun oppdaterBrevbestillingIdForRevurdering(revurderingId: UUID, brevbestillingId: BrevbestillingId)
+    fun hentForUtbetaling(utbetalingId: UUID30): Vedtak.InnvilgetStønad
 }
 
 internal class VedtakPosgresRepo(
@@ -140,6 +142,19 @@ internal class VedtakPosgresRepo(
                     ),
                     it
                 )
+        }
+    }
+
+    override fun hentForUtbetaling(utbetalingId: UUID30): Vedtak.InnvilgetStønad {
+        return dataSource.withSession { session ->
+            """
+                SELECT *
+                FROM vedtak
+                WHERE utbetalingId = :utbetalingId
+            """.trimIndent()
+                .hent(mapOf("utbetalingId" to utbetalingId), session) {
+                    it.toVedtak(session)
+                } as Vedtak.InnvilgetStønad
         }
     }
 

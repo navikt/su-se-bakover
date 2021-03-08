@@ -3,7 +3,9 @@ package no.nav.su.se.bakover.service.vedtak
 import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
@@ -20,6 +22,7 @@ import org.slf4j.LoggerFactory
 import java.time.Clock
 
 interface FerdigstillVedtakService {
+    fun ferdigstillVedtakEtterUtbetaling(utbetalingId: UUID30)
     fun journalførOgLagre(vedtak: Vedtak): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeJournalføreBrev, Vedtak>
     fun distribuerOgLagre(vedtak: Vedtak): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeDistribuereBrev, Vedtak>
     fun lukkOppgave(vedtak: Vedtak): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Vedtak>
@@ -54,6 +57,40 @@ internal class FerdigstillVedtakServiceImpl(
     private val clock: Clock
 ) : FerdigstillVedtakService {
     private val log = LoggerFactory.getLogger(this::class.java)
+
+    /**
+     * Entry point for kvittering consumer.
+     */
+    override fun ferdigstillVedtakEtterUtbetaling(utbetalingId: UUID30) {
+        val vedtak = vedtakRepo.hentForUtbetaling(utbetalingId)
+        ferdigstillVedtak(vedtak).getOrHandle {
+            throw KunneIkkeFerdigstilleVedtakException(vedtak, it)
+        }
+    }
+
+    fun ferdigstillVedtak(vedtak: Vedtak): Either<KunneIkkeFerdigstilleVedtak, Vedtak> {
+        val journalførtVedtak = journalførOgLagre(vedtak).getOrHandle { feilVedJournalføring ->
+            when (feilVedJournalføring) {
+                is KunneIkkeFerdigstilleVedtak.KunneIkkeJournalføreBrev.AlleredeJournalført -> vedtak
+                else -> return feilVedJournalføring.left()
+            }
+        }
+
+        val distribuertVedtak = distribuerOgLagre(journalførtVedtak).getOrHandle { feilVedDistribusjon ->
+            when (feilVedDistribusjon) {
+                is KunneIkkeFerdigstilleVedtak.KunneIkkeDistribuereBrev.AlleredeDistribuert -> journalførtVedtak
+                else -> return feilVedDistribusjon.left()
+            }
+        }
+
+        lukkOppgave(distribuertVedtak)
+            .fold(
+                { log.error("Kunne ikke lukke oppgave: ${vedtak.behandling.oppgaveId} for behandling: ${vedtak.behandling.id}") },
+                { log.info("Lukket oppgave: ${vedtak.behandling.oppgaveId} for behandling:${vedtak.behandling.id}") }
+            )
+
+        return distribuertVedtak.right()
+    }
 
     override fun journalførOgLagre(vedtak: Vedtak): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeJournalføreBrev, Vedtak> {
         val brevRequest = lagBrevRequest(vedtak).getOrHandle { return it.left() }
@@ -140,4 +177,10 @@ internal class FerdigstillVedtakServiceImpl(
                 vedtak
             }
     }
+
+    internal data class KunneIkkeFerdigstilleVedtakException(
+        private val vedtak: Vedtak,
+        private val error: KunneIkkeFerdigstilleVedtak,
+        val msg: String = "Kunne ikke ferdigstille vedtakId: ${vedtak.id}. Original feil: ${error::class.qualifiedName}"
+    ) : RuntimeException(msg)
 }
