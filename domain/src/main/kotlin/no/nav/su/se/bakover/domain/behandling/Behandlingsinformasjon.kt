@@ -1,5 +1,8 @@
 package no.nav.su.se.bakover.domain.behandling
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
@@ -70,35 +73,47 @@ data class Behandlingsinformasjon(
     }
 
     @JsonIgnore
-    fun utledSats(): Sats? = getBeregningStrategy()?.sats()
+    fun utledSats(): Either<UfullstendigBehandlingsinformasjon, Sats> {
+        return getBeregningStrategy().map { it.sats() }
+    }
 
     @JsonIgnore
-    fun getSatsgrunn(): Satsgrunn? = getBeregningStrategy()?.satsgrunn()
+    fun getSatsgrunn(): Either<UfullstendigBehandlingsinformasjon, Satsgrunn> {
+        return getBeregningStrategy().map { it.satsgrunn() }
+    }
 
-    /**
-     * Vi returnerer null når beregning strategy er uavklart
-     */
     @JsonIgnore
-    internal fun getBeregningStrategy(): BeregningStrategy? {
-        if (bosituasjon == null || ektefelle == null) {
-            return null
-        }
+    internal fun getBeregningStrategy(): Either<UfullstendigBehandlingsinformasjon, BeregningStrategy> {
+        if (ektefelle == null) return UfullstendigBehandlingsinformasjon.EktefelleErUbesvart.left()
+        if (bosituasjon == null) return UfullstendigBehandlingsinformasjon.BosituasjonErUbesvart.left()
 
         return when (ektefelle) {
             is EktefellePartnerSamboer.Ektefelle -> when {
                 ektefelle.er67EllerEldre() -> BeregningStrategy.Eps67EllerEldre
                 else -> when (bosituasjon.ektemakeEllerSamboerUførFlyktning) {
-                    null -> throw IllegalStateException("ektemakeEllerSamboerUførFlyktning kan ikke være null når det finnes EPS")
+                    null -> return UfullstendigBehandlingsinformasjon.EpsUførFlyktningErUbesvart.left()
                     true -> BeregningStrategy.EpsUnder67ÅrOgUførFlyktning
                     false -> BeregningStrategy.EpsUnder67År
                 }
             }
             EktefellePartnerSamboer.IngenEktefelle -> when (bosituasjon.delerBolig) {
-                null -> throw IllegalStateException("delerBolig kan ikke være null når det ikke finnes EPS")
+                null -> return UfullstendigBehandlingsinformasjon.DelerBoligErUbesvart.left()
                 true -> BeregningStrategy.BorMedVoksne
                 false -> BeregningStrategy.BorAlene
             }
-        }
+        }.right()
+    }
+
+    /** Gjelder for utleding av sats, satsgrunn og beregningsstrategi */
+    sealed class UfullstendigBehandlingsinformasjon {
+        object BosituasjonErUbesvart : UfullstendigBehandlingsinformasjon()
+        object EktefelleErUbesvart : UfullstendigBehandlingsinformasjon()
+
+        /** Dersom man bor med ektefelle kan ikke bosituasjon->ektemakeEllerSamboerUførFlyktning være ubesvart */
+        object EpsUførFlyktningErUbesvart : UfullstendigBehandlingsinformasjon()
+
+        /** Når man ikke bor med ektefelle kan ikke bosituasjon->deler_bolig være ubesvart */
+        object DelerBoligErUbesvart : UfullstendigBehandlingsinformasjon()
     }
 
     fun harEktefelle(): Boolean {
