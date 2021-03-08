@@ -5,6 +5,7 @@ import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.util.KtorExperimentalAPI
+import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.HentAktiveRequest
 import java.time.LocalDate
@@ -24,19 +25,42 @@ internal fun Route.frikortRoutes(
             ?.let { LocalDate.parse(it, DateTimeFormatter.ISO_DATE) }
             ?: LocalDate.now()
         val aktiveBehandlinger = søknadsbehandlingService.hentAktiveBehandlinger(HentAktiveRequest(aktivDato)).mapLeft {
-
         }.map {
             it.map {
-            FrikortJson(
-                fnr = it.fnr.toString(),
-                fraOgMed = it.beregning.getPeriode().getFraOgMed().toString(),
-                tilOgMed = it.beregning.getPeriode().getTilOgMed().toString()
-            )
-        }}
+                FrikortJson(
+                    fnr = it.fnr.toString(),
+                    fraOgMed = it.beregning.getPeriode().getFraOgMed().toString(),
+                    tilOgMed = it.beregning.getPeriode().getTilOgMed().toString()
+                )
+            }
+        }
         call.respond(aktiveBehandlinger)
     }
     // }
 }
+
+internal fun Route.frikortVedtakRoutes(
+    vedtakRepo: VedtakRepo
+) {
+    // val log = LoggerFactory.getLogger(this::class.java)
+
+    // authorize(Brukerrolle.Saksbehandler) {
+    get("$frikortPath") {
+        val aktivDato = call.parameters["aktivDato"] // YYYY-MM-DD  TODO legge inn hyggeligere feilmelding
+            ?.let { LocalDate.parse(it, DateTimeFormatter.ISO_DATE) }
+            ?: LocalDate.now()
+        val aktiveBehandlinger = vedtakRepo.hentAktive(aktivDato).map {
+                FrikortJson(
+                    fnr = it.behandling.fnr.toString(),
+                    fraOgMed = it.beregning.getPeriode().getFraOgMed().toString(),
+                    tilOgMed = it.beregning.getPeriode().getTilOgMed().toString()
+                )
+        }
+        call.respond(aktiveBehandlinger)
+    }
+    // }
+}
+
 
 data class FrikortJson(
     val fnr: String,

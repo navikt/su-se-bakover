@@ -39,7 +39,7 @@ internal fun Application.configureAuthentication(
 
     val stsJwkConfig = tokenOppslag.jwkConfig()
     val jwkStsProvider =
-        if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test) {
+        if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test || applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
             JwkProviderStub
         } else {
             JwkProviderBuilder(URL(stsJwkConfig.getString("jwks_uri")))
@@ -84,9 +84,9 @@ internal fun Application.configureAuthentication(
         jwt("frikort") {
             verifier(jwkStsProvider, jwkConfig.getString("issuer"))
             realm = "su-se-bakover"
-            validate {
-                //TODO her må vi validere. Finne regler for autorisasjon
-                null
+            validate { credentials ->
+                // TODO her må vi validere. Finne regler for autorisasjon
+                JWTPrincipal(credentials.payload)
             }
         }
     }
