@@ -139,9 +139,9 @@ internal class StatusovergangTest {
         tilAttesteringAvslagBeregning.tilUnderkjent(underkjentAttestering)
     private val iverksattInnvilget = tilAttesteringInnvilget.tilIverksatt(attestering, utbetalingId)
     private val iverksattAvslagVilkår =
-        tilAttesteringAvslagVilkår.tilIverksatt(attestering, journalførtIverksettingsteg)
+        tilAttesteringAvslagVilkår.tilIverksatt(attestering)
     private val iverksattAvslagBeregning =
-        tilAttesteringAvslagBeregning.tilIverksatt(attestering, journalførtIverksettingsteg)
+        tilAttesteringAvslagBeregning.tilIverksatt(attestering)
 
     @Nested
     inner class TilVilkårsvurdert {
@@ -712,10 +712,8 @@ internal class StatusovergangTest {
             forsøkStatusovergang(
                 tilAttesteringAvslagVilkår,
                 Statusovergang.TilIverksatt(
-                    attestering = attestering,
-                    innvilget = { throw IllegalStateException() },
-                    avslag = { JournalpostId("journalpostId").right() }
-                )
+                    attestering = attestering
+                ) { throw IllegalStateException() }
             ) shouldBe iverksattAvslagVilkår.right()
         }
 
@@ -724,10 +722,8 @@ internal class StatusovergangTest {
             forsøkStatusovergang(
                 tilAttesteringAvslagBeregning,
                 Statusovergang.TilIverksatt(
-                    attestering = attestering,
-                    innvilget = { throw IllegalStateException() },
-                    avslag = { JournalpostId("journalpostId").right() }
-                )
+                    attestering = attestering
+                ) { throw IllegalStateException() }
             ) shouldBe iverksattAvslagBeregning.right()
         }
 
@@ -736,10 +732,8 @@ internal class StatusovergangTest {
             forsøkStatusovergang(
                 tilAttesteringInnvilget,
                 Statusovergang.TilIverksatt(
-                    attestering = attestering,
-                    innvilget = { utbetalingId.right() },
-                    avslag = { throw IllegalStateException() }
-                )
+                    attestering = attestering
+                ) { utbetalingId.right() }
             ) shouldBe iverksattInnvilget.right()
         }
 
@@ -748,10 +742,8 @@ internal class StatusovergangTest {
             forsøkStatusovergang(
                 tilAttesteringAvslagVilkår.copy(saksbehandler = NavIdentBruker.Saksbehandler(attestering.attestant.navIdent)),
                 Statusovergang.TilIverksatt(
-                    attestering = attestering,
-                    innvilget = { throw IllegalStateException() },
-                    avslag = { JournalpostId("journalpostId").right() }
-                )
+                    attestering = attestering
+                ) { throw IllegalStateException() }
             ) shouldBe Statusovergang.KunneIkkeIverksetteSøknadsbehandling.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
         }
 
@@ -760,10 +752,8 @@ internal class StatusovergangTest {
             forsøkStatusovergang(
                 tilAttesteringAvslagBeregning.copy(saksbehandler = NavIdentBruker.Saksbehandler(attestering.attestant.navIdent)),
                 Statusovergang.TilIverksatt(
-                    attestering = attestering,
-                    innvilget = { throw IllegalStateException() },
-                    avslag = { JournalpostId("journalpostId").right() }
-                )
+                    attestering = attestering
+                ) { throw IllegalStateException() }
             ) shouldBe Statusovergang.KunneIkkeIverksetteSøknadsbehandling.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
         }
 
@@ -772,10 +762,8 @@ internal class StatusovergangTest {
             forsøkStatusovergang(
                 tilAttesteringInnvilget.copy(saksbehandler = NavIdentBruker.Saksbehandler(attestering.attestant.navIdent)),
                 Statusovergang.TilIverksatt(
-                    attestering = attestering,
-                    innvilget = { UUID30.randomUUID().right() },
-                    avslag = { throw IllegalStateException() }
-                )
+                    attestering = attestering
+                ) { UUID30.randomUUID().right() }
             ) shouldBe Statusovergang.KunneIkkeIverksetteSøknadsbehandling.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
         }
 

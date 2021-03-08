@@ -33,7 +33,6 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
-import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
@@ -384,8 +383,7 @@ internal class LagBrevRequestVisitorTest {
             )
             .tilAttestering(saksbehandler)
             .tilIverksatt(
-                Attestering.Iverksatt(attestant),
-                JournalføringOgBrevdistribusjon.Journalført(JournalpostId(""))
+                Attestering.Iverksatt(attestant)
             )
             .let { søknadsbehandling ->
                 LagBrevRequestVisitor(
@@ -416,8 +414,7 @@ internal class LagBrevRequestVisitorTest {
             )
             .tilAttestering(saksbehandler)
             .tilIverksatt(
-                Attestering.Iverksatt(attestant),
-                JournalføringOgBrevdistribusjon.Journalført(JournalpostId(""))
+                Attestering.Iverksatt(attestant)
             )
             .let { søknadsbehandling ->
                 LagBrevRequestVisitor(
@@ -504,7 +501,7 @@ internal class LagBrevRequestVisitorTest {
                 .tilBeregnet(avslagBeregning) as Søknadsbehandling.Beregnet.Avslag
             )
             .tilAttestering(saksbehandler)
-            .tilIverksatt(Attestering.Iverksatt(attestant), JournalføringOgBrevdistribusjon.Journalført(JournalpostId("jp")))
+            .tilIverksatt(Attestering.Iverksatt(attestant))
 
         val avslåttVedtak = Vedtak.AvslåttStønad.fromSøknadsbehandlingMedBeregning(søknadsbehandling)
 
@@ -539,7 +536,7 @@ internal class LagBrevRequestVisitorTest {
     fun `lager request for vedtak om avslått stønad uten beregning`() {
         val søknadsbehandling = (uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withVilkårAvslått()) as Søknadsbehandling.Vilkårsvurdert.Avslag)
             .tilAttestering(saksbehandler)
-            .tilIverksatt(Attestering.Iverksatt(attestant), JournalføringOgBrevdistribusjon.Journalført(JournalpostId("jp")))
+            .tilIverksatt(Attestering.Iverksatt(attestant))
 
         val avslåttVedtak = Vedtak.AvslåttStønad.fromSøknadsbehandlingUtenBeregning(søknadsbehandling)
 

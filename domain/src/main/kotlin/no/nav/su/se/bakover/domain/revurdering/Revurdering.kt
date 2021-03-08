@@ -33,7 +33,6 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
     abstract val tilRevurdering: Vedtak.InnvilgetStønad
     abstract val periode: Periode
     abstract val saksbehandler: Saksbehandler
-    abstract val oppgaveId: OppgaveId
     override val sakId: UUID
         get() = tilRevurdering.behandling.sakId
     override val saksnummer: Saksnummer

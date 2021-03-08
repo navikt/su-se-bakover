@@ -17,10 +17,10 @@ import no.nav.su.se.bakover.service.statistikk.StatistikkServiceImpl
 import no.nav.su.se.bakover.service.søknad.SøknadServiceImpl
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadServiceImpl
 import no.nav.su.se.bakover.service.søknadsbehandling.FerdigstillIverksettingServiceImpl
-import no.nav.su.se.bakover.service.søknadsbehandling.IverksettAvslåttSøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServiceImpl
 import no.nav.su.se.bakover.service.toggles.ToggleServiceImpl
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingServiceImpl
+import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakServiceImpl
 import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
 import java.time.Clock
 
@@ -87,16 +87,17 @@ object ServiceBuilder {
             revurderingRepo = databaseRepos.revurderingRepo,
             vedtakRepo = databaseRepos.vedtakRepo
         ).apply { addObserver(statistikkService) }
-        val toggleService = ToggleServiceImpl(unleash)
 
-        val iverksettAvslåttSøknadsbehandlingService = IverksettAvslåttSøknadsbehandlingService(
-            oppgaveService = oppgaveService,
-            personService = personService,
-            behandlingMetrics = behandlingMetrics,
-            microsoftGraphApiClient = clients.microsoftGraphApiClient,
-            clock = clock,
+        val ferdigstillVedtakService = FerdigstillVedtakServiceImpl(
             brevService = brevService,
+            oppgaveService = oppgaveService,
+            vedtakRepo = databaseRepos.vedtakRepo,
+            personService = personService,
+            microsoftGraphApiOppslag = clients.microsoftGraphApiClient,
+            clock = clock
         )
+
+        val toggleService = ToggleServiceImpl(unleash)
 
         return Services(
             avstemming = AvstemmingServiceImpl(
@@ -128,14 +129,14 @@ object ServiceBuilder {
                 utbetalingService = utbetalingService,
                 personService = personService,
                 oppgaveService = oppgaveService,
-                iverksettAvslåttSøknadsbehandlingService = iverksettAvslåttSøknadsbehandlingService,
                 behandlingMetrics = behandlingMetrics,
                 beregningService = BeregningService(),
                 microsoftGraphApiClient = clients.microsoftGraphApiClient,
                 brevService = brevService,
                 opprettVedtakssnapshotService = opprettVedtakssnapshotService,
                 clock = clock,
-                vedtakRepo = databaseRepos.vedtakRepo
+                vedtakRepo = databaseRepos.vedtakRepo,
+                ferdigstillVedtakService = ferdigstillVedtakService
             ).apply {
                 addObserver(statistikkService)
             },

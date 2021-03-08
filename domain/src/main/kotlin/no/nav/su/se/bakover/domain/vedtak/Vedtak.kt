@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.vedtak
 
+import arrow.core.Either
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
@@ -10,7 +11,10 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjonFeil
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.ErAvslag
@@ -23,6 +27,10 @@ sealed class Vedtak : Visitable<VedtakVisitor> {
     abstract val opprettet: Tidspunkt
     abstract val behandling: Behandling
     abstract val behandlingsinformasjon: Behandlingsinformasjon
+    abstract val eksterneIverksettingsteg: JournalføringOgBrevdistribusjon
+
+    abstract fun journalfør(journalfør: () -> Either<JournalføringOgBrevdistribusjonFeil.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<JournalføringOgBrevdistribusjonFeil.KunneIkkeJournalføre, Vedtak>
+    abstract fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<JournalføringOgBrevdistribusjonFeil.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<JournalføringOgBrevdistribusjonFeil.KunneIkkeDistribuereBrev, Vedtak>
 
     data class InnvilgetStønad(
         override val id: UUID = UUID.randomUUID(),
@@ -35,7 +43,7 @@ sealed class Vedtak : Visitable<VedtakVisitor> {
         val saksbehandler: NavIdentBruker.Saksbehandler,
         val attestant: NavIdentBruker.Attestant,
         val utbetalingId: UUID30,
-        val eksterneIverksettingsteg: JournalføringOgBrevdistribusjon,
+        override val eksterneIverksettingsteg: JournalføringOgBrevdistribusjon,
     ) : Vedtak() {
         companion object {
             fun fromSøknadsbehandling(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget) = InnvilgetStønad(
@@ -66,12 +74,20 @@ sealed class Vedtak : Visitable<VedtakVisitor> {
         override fun accept(visitor: VedtakVisitor) {
             visitor.visit(this)
         }
+
+        override fun journalfør(journalfør: () -> Either<JournalføringOgBrevdistribusjonFeil.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<JournalføringOgBrevdistribusjonFeil.KunneIkkeJournalføre, InnvilgetStønad> {
+            return eksterneIverksettingsteg.journalfør(journalfør).map { copy(eksterneIverksettingsteg = it) }
+        }
+
+        override fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<JournalføringOgBrevdistribusjonFeil.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<JournalføringOgBrevdistribusjonFeil.KunneIkkeDistribuereBrev, InnvilgetStønad> {
+            return eksterneIverksettingsteg.distribuerBrev(distribuerBrev)
+                .map { copy(eksterneIverksettingsteg = it) }
+        }
     }
 
     sealed class AvslåttStønad : Vedtak(), ErAvslag {
         abstract val saksbehandler: NavIdentBruker.Saksbehandler
         abstract val attestant: NavIdentBruker.Attestant
-        abstract val eksterneIverksettingsteg: JournalføringOgBrevdistribusjon
 
         companion object {
             fun fromSøknadsbehandlingMedBeregning(avslag: Søknadsbehandling.Iverksatt.Avslag.MedBeregning) =
@@ -109,6 +125,15 @@ sealed class Vedtak : Visitable<VedtakVisitor> {
 
             // TODO jm: disse bør sannsynligvis peristeres.
             override val avslagsgrunner: List<Avslagsgrunn> = behandlingsinformasjon.utledAvslagsgrunner()
+
+            override fun journalfør(journalfør: () -> Either<JournalføringOgBrevdistribusjonFeil.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<JournalføringOgBrevdistribusjonFeil.KunneIkkeJournalføre, UtenBeregning> {
+                return eksterneIverksettingsteg.journalfør(journalfør).map { copy(eksterneIverksettingsteg = it) }
+            }
+
+            override fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<JournalføringOgBrevdistribusjonFeil.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<JournalføringOgBrevdistribusjonFeil.KunneIkkeDistribuereBrev, UtenBeregning> {
+                return eksterneIverksettingsteg.distribuerBrev(distribuerBrev)
+                    .map { copy(eksterneIverksettingsteg = it) }
+            }
         }
 
         data class MedBeregning(
@@ -133,6 +158,15 @@ sealed class Vedtak : Visitable<VedtakVisitor> {
 
             // TODO jm: disse bør sannsynligvis peristeres.
             override val avslagsgrunner: List<Avslagsgrunn> = behandlingsinformasjon.utledAvslagsgrunner() + avslagsgrunnForBeregning
+
+            override fun journalfør(journalfør: () -> Either<JournalføringOgBrevdistribusjonFeil.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<JournalføringOgBrevdistribusjonFeil.KunneIkkeJournalføre, MedBeregning> {
+                return eksterneIverksettingsteg.journalfør(journalfør).map { copy(eksterneIverksettingsteg = it) }
+            }
+
+            override fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<JournalføringOgBrevdistribusjonFeil.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<JournalføringOgBrevdistribusjonFeil.KunneIkkeDistribuereBrev, MedBeregning> {
+                return eksterneIverksettingsteg.distribuerBrev(distribuerBrev)
+                    .map { copy(eksterneIverksettingsteg = it) }
+            }
         }
     }
 }

@@ -26,7 +26,6 @@ import java.util.UUID
 sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisitor> {
     abstract val opprettet: Tidspunkt
     abstract val søknad: Søknad.Journalført.MedOppgave
-    abstract val oppgaveId: OppgaveId
     abstract val behandlingsinformasjon: Behandlingsinformasjon
     abstract val status: BehandlingsStatus
 
@@ -495,8 +494,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 }
 
                 fun tilIverksatt(
-                    attestering: Attestering,
-                    eksterneIverksettingsteg: JournalføringOgBrevdistribusjon
+                    attestering: Attestering
                 ): Iverksatt.Avslag.UtenBeregning {
                     return Iverksatt.Avslag.UtenBeregning(
                         id,
@@ -509,7 +507,6 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                         fnr,
                         saksbehandler,
                         attestering,
-                        eksterneIverksettingsteg
                     )
                 }
             }
@@ -561,8 +558,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 }
 
                 fun tilIverksatt(
-                    attestering: Attestering,
-                    eksterneIverksettingsteg: JournalføringOgBrevdistribusjon
+                    attestering: Attestering
                 ): Iverksatt.Avslag.MedBeregning {
                     return Iverksatt.Avslag.MedBeregning(
                         id,
@@ -576,7 +572,6 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                         beregning,
                         saksbehandler,
                         attestering,
-                        eksterneIverksettingsteg
                     )
                 }
             }
@@ -841,7 +836,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 val beregning: Beregning,
                 override val saksbehandler: NavIdentBruker.Saksbehandler,
                 override val attestering: Attestering,
-                override val eksterneIverksettingsteg: JournalføringOgBrevdistribusjon
+                override val eksterneIverksettingsteg: JournalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert
             ) : Avslag() {
                 override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_AVSLAG
 
@@ -875,7 +870,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 override val fnr: Fnr,
                 override val saksbehandler: NavIdentBruker.Saksbehandler,
                 override val attestering: Attestering,
-                override val eksterneIverksettingsteg: JournalføringOgBrevdistribusjon
+                override val eksterneIverksettingsteg: JournalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert
             ) : Avslag() {
                 override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_AVSLAG
 

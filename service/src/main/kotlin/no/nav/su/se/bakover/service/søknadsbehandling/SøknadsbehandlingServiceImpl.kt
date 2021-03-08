@@ -36,6 +36,7 @@ import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -48,14 +49,14 @@ internal class SøknadsbehandlingServiceImpl(
     private val utbetalingService: UtbetalingService,
     private val personService: PersonService,
     private val oppgaveService: OppgaveService,
-    private val iverksettAvslåttSøknadsbehandlingService: IverksettAvslåttSøknadsbehandlingService,
     private val behandlingMetrics: BehandlingMetrics,
     private val beregningService: BeregningService,
     private val microsoftGraphApiClient: MicrosoftGraphApiOppslag,
     private val brevService: BrevService,
     private val opprettVedtakssnapshotService: OpprettVedtakssnapshotService,
     private val clock: Clock,
-    private val vedtakRepo: VedtakRepo
+    private val vedtakRepo: VedtakRepo,
+    private val ferdigstillVedtakService: FerdigstillVedtakService
 ) : SøknadsbehandlingService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -265,7 +266,6 @@ internal class SøknadsbehandlingServiceImpl(
                     )
                 }
             }
-
             søknadsbehandlingMedNyOppgaveId
         }
     }
@@ -278,80 +278,93 @@ internal class SøknadsbehandlingServiceImpl(
         return forsøkStatusovergang(
             søknadsbehandling = søknadsbehandling,
             statusovergang = Statusovergang.TilIverksatt(
-                attestering = request.attestering,
-                innvilget = {
-                    utbetalingService.utbetal(
-                        sakId = it.sakId,
-                        attestant = request.attestering.attestant,
-                        beregning = it.beregning,
-                        simulering = it.simulering
-                    ).mapLeft {
-                        log.error("Kunne ikke innvilge behandling ${søknadsbehandling.id} siden utbetaling feilet. Feiltype: $it")
-                        when (it) {
-                            KunneIkkeUtbetale.KunneIkkeSimulere -> Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.KunneIkkeKontrollsimulere
-                            KunneIkkeUtbetale.Protokollfeil -> Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.TekniskFeil
-                            KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
-                        }
-                    }.map {
-                        // Dersom vi skal unngå denne hacken må Iverksatt.Innvilget innholde denne istedenfor kun IDen
-                        utbetaling = it
-                        it.id
+                attestering = request.attestering
+            ) {
+                utbetalingService.utbetal(
+                    sakId = it.sakId,
+                    attestant = request.attestering.attestant,
+                    beregning = it.beregning,
+                    simulering = it.simulering
+                ).mapLeft {
+                    log.error("Kunne ikke innvilge behandling ${søknadsbehandling.id} siden utbetaling feilet. Feiltype: $it")
+                    when (it) {
+                        KunneIkkeUtbetale.KunneIkkeSimulere -> Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.KunneIkkeKontrollsimulere
+                        KunneIkkeUtbetale.Protokollfeil -> Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.TekniskFeil
+                        KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
                     }
-                },
-                avslag = {
-                    iverksettAvslåttSøknadsbehandlingService.opprettJournalpostForAvslag(
-                        it,
-                        request.attestering.attestant
-                    )
+                }.map {
+                    // Dersom vi skal unngå denne hacken må Iverksatt.Innvilget innholde denne istedenfor kun IDen
+                    utbetaling = it
+                    it.id
                 }
-            )
+            }
         ).mapLeft {
             IverksettStatusovergangFeilMapper.map(it)
-        }.map {
-            søknadsbehandlingRepo.lagre(it)
-            when (it) {
+        }.map { iverksattBehandling ->
+            when (iverksattBehandling) {
                 is Søknadsbehandling.Iverksatt.Innvilget -> {
-                    log.info("Iverksatt innvilgelse for behandling ${it.id}")
+                    søknadsbehandlingRepo.lagre(iverksattBehandling)
+                    vedtakRepo.lagre(opprettVedtak(iverksattBehandling))
+
+                    log.info("Iverksatt innvilgelse for behandling ${iverksattBehandling.id}")
                     opprettVedtakssnapshotService.opprettVedtak(
-                        vedtakssnapshot = Vedtakssnapshot.Innvilgelse.createFromBehandling(it, utbetaling!!)
+                        vedtakssnapshot = Vedtakssnapshot.Innvilgelse.createFromBehandling(iverksattBehandling, utbetaling!!)
                     )
                     behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
-
-                    vedtakRepo.lagre(Vedtak.InnvilgetStønad.fromSøknadsbehandling(it))
-
-                    it
+                    iverksattBehandling
                 }
                 is Søknadsbehandling.Iverksatt.Avslag -> {
-                    log.info("Iverksatt avslag for behandling ${it.id}")
+                    log.info("Iverksatt avslag for behandling ${iverksattBehandling.id}")
                     opprettVedtakssnapshotService.opprettVedtak(
-                        vedtakssnapshot = Vedtakssnapshot.Avslag.createFromBehandling(it, it.avslagsgrunner)
+                        vedtakssnapshot = Vedtakssnapshot.Avslag.createFromBehandling(iverksattBehandling, iverksattBehandling.avslagsgrunner)
                     )
                     behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
-                    iverksettAvslåttSøknadsbehandlingService.distribuerBrevOgLukkOppgaveForAvslag(it)
-                        .let { medPotensiellBrevbestillingId ->
-                            søknadsbehandlingRepo.lagre(medPotensiellBrevbestillingId)
-                            when (medPotensiellBrevbestillingId) {
-                                is Søknadsbehandling.Iverksatt.Avslag.MedBeregning -> vedtakRepo.lagre(
-                                    Vedtak.AvslåttStønad.fromSøknadsbehandlingMedBeregning(
-                                        medPotensiellBrevbestillingId
-                                    )
-                                )
-                                is Søknadsbehandling.Iverksatt.Avslag.UtenBeregning -> vedtakRepo.lagre(
-                                    Vedtak.AvslåttStønad.fromSøknadsbehandlingUtenBeregning(
-                                        medPotensiellBrevbestillingId
-                                    )
-                                )
-                            }
-                            medPotensiellBrevbestillingId
+
+                    val vedtak = opprettVedtak(iverksattBehandling)
+
+                    // TODO jm: se litt nærmere på hvordan vi ønsker at dette oppfører seg.
+                    return ferdigstillVedtakService.journalførOgLagre(opprettVedtak(iverksattBehandling))
+                        .mapLeft {
+                            log.error("Journalføring av brev for vedtakId:${vedtak.id} feilet.")
+                            SøknadsbehandlingService.KunneIkkeIverksette.KunneIkkeJournalføreBrev
+                        }.map { journalførtVedtak ->
+                            søknadsbehandlingRepo.lagre(iverksattBehandling)
+
+                            behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.JOURNALFØRT)
+                            ferdigstillVedtakService.distribuerOgLagre(journalførtVedtak)
+                                .mapLeft {
+                                    log.error("Distribusjon av brev for vedtakId: ${journalførtVedtak.id} feilet. Må ryddes opp manuelt.")
+                                }.map {
+                                    behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.DISTRIBUERT_BREV)
+                                }
+                            ferdigstillVedtakService.lukkOppgave(journalførtVedtak)
+                                .mapLeft {
+                                    log.error("Lukking av oppgave for behandlingId: ${journalførtVedtak.behandling.oppgaveId} feilet. Må ryddes opp manuelt.")
+                                }.map {
+                                    behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.LUKKET_OPPGAVE)
+                                }
+                            iverksattBehandling
                         }.also {
                             observers.forEach { observer ->
                                 observer.handle(
-                                    Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(it)
+                                    Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(iverksattBehandling)
                                 )
                             }
                         }
                 }
             }
+        }
+    }
+
+    private fun opprettVedtak(iverksattBehandling: Søknadsbehandling.Iverksatt): Vedtak = when (iverksattBehandling) {
+        is Søknadsbehandling.Iverksatt.Innvilget -> {
+            Vedtak.InnvilgetStønad.fromSøknadsbehandling(iverksattBehandling)
+        }
+        is Søknadsbehandling.Iverksatt.Avslag.MedBeregning -> {
+            Vedtak.AvslåttStønad.fromSøknadsbehandlingMedBeregning(iverksattBehandling)
+        }
+        is Søknadsbehandling.Iverksatt.Avslag.UtenBeregning -> {
+            Vedtak.AvslåttStønad.fromSøknadsbehandlingUtenBeregning(iverksattBehandling)
         }
     }
 

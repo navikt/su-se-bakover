@@ -411,16 +411,16 @@ internal class TestDataHelper(
 
     internal fun nyIverksattAvslagUtenBeregning(eksterneIverksettingsteg: JournalføringOgBrevdistribusjon = journalførtIverksettingForAvslag): Søknadsbehandling.Iverksatt.Avslag.UtenBeregning {
         return nyTilAvslåttAttesteringUtenBeregning().tilIverksatt(
-            iverksattAttestering, eksterneIverksettingsteg
-        ).also {
+            iverksattAttestering
+        ).copy(eksterneIverksettingsteg = eksterneIverksettingsteg).also {
             søknadsbehandlingRepo.lagre(it)
         }
     }
 
     internal fun nyIverksattAvslagMedBeregning(eksterneIverksettingsteg: JournalføringOgBrevdistribusjon): Søknadsbehandling.Iverksatt.Avslag.MedBeregning {
         return tilAvslåttAttesteringMedBeregning().tilIverksatt(
-            iverksattAttestering, eksterneIverksettingsteg
-        ).also {
+            iverksattAttestering
+        ).copy(eksterneIverksettingsteg = eksterneIverksettingsteg).also {
             søknadsbehandlingRepo.lagre(it)
         }
     }
