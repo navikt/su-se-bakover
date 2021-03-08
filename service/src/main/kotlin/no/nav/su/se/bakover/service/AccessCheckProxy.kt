@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.service.avstemming.AvstemmingFeilet
@@ -65,6 +66,7 @@ import no.nav.su.se.bakover.service.utbetaling.KunneIkkeGjenopptaUtbetalinger
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeStanseUtbetalinger
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.service.vedtak.VedtakService
 import java.time.LocalDate
 import java.util.UUID
 
@@ -364,6 +366,11 @@ open class AccessCheckProxy(
                 }
 
                 override fun hentRevurderingForUtbetaling(utbetalingId: UUID30) = kastKanKunKallesFraAnnenService()
+            },
+            vedtakService = object : VedtakService {
+                override fun hentAktive(fomDato: LocalDate): List<Vedtak.InnvilgetStønad> {
+                    return services.vedtakService.hentAktive(fomDato)
+                }
             }
         )
     }

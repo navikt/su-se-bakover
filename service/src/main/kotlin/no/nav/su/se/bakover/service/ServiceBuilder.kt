@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.service.søknadsbehandling.IverksettAvslåttSøknads
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServiceImpl
 import no.nav.su.se.bakover.service.toggles.ToggleServiceImpl
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingServiceImpl
+import no.nav.su.se.bakover.service.vedtak.VedtakServiceImpl
 import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
 import java.time.Clock
 
@@ -98,6 +99,10 @@ object ServiceBuilder {
             brevService = brevService,
         )
 
+        val vedtakService = VedtakServiceImpl(
+            vedtakRepo = databaseRepos.vedtakRepo
+        )
+
         return Services(
             avstemming = AvstemmingServiceImpl(
                 repo = databaseRepos.avstemming,
@@ -140,7 +145,8 @@ object ServiceBuilder {
                 addObserver(statistikkService)
             },
             ferdigstillIverksettingService = ferdigstillIverksettingService,
-            revurdering = revurderingService
+            revurdering = revurderingService,
+            vedtakService = vedtakService,
         )
     }
 }
