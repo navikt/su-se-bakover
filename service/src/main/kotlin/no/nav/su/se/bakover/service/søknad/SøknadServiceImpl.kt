@@ -25,6 +25,8 @@ import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
+import no.nav.su.se.bakover.service.statistikk.Event
+import no.nav.su.se.bakover.service.statistikk.EventObserver
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.UUID
@@ -41,6 +43,9 @@ internal class SøknadServiceImpl(
     private val clock: Clock,
 ) : SøknadService {
     private val log = LoggerFactory.getLogger(this::class.java)
+    private val observers = mutableListOf<EventObserver>()
+
+    fun addObserver(observer: EventObserver) = observers.add(observer)
 
     override fun nySøknad(søknadInnhold: SøknadInnhold): Either<KunneIkkeOppretteSøknad, Pair<Saksnummer, Søknad>> {
         val innsendtFødselsnummer: Fnr = søknadInnhold.personopplysninger.fnr
@@ -87,6 +92,12 @@ internal class SøknadServiceImpl(
         // Ved å gjøre increment først, kan vi lage en alert dersom vi får mismatch på dette.
         søknadMetrics.incrementNyCounter(SøknadMetrics.NyHandlinger.PERSISTERT)
         opprettJournalpostOgOppgave(sak.saksnummer, person, søknad)
+        observers.forEach {
+            observer ->
+            observer.handle(
+                Event.Statistikk.SøknadMottat(søknad, sak.saksnummer)
+            )
+        }
         return Pair(sak.saksnummer, søknad).right()
     }
 

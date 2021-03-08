@@ -63,7 +63,9 @@ object ServiceBuilder {
             oppgaveService = oppgaveService,
             søknadMetrics = søknadMetrics,
             clock = clock,
-        )
+        ).apply {
+            addObserver(statistikkService)
+        }
         val revurderingService = RevurderingServiceImpl(
             sakService = sakService,
             utbetalingService = utbetalingService,

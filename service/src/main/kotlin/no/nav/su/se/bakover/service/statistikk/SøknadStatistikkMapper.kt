@@ -1,0 +1,40 @@
+package no.nav.su.se.bakover.service.statistikk
+
+import no.nav.su.se.bakover.common.zoneIdOslo
+import no.nav.su.se.bakover.domain.ForNav
+import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Søknad
+import java.time.Clock
+
+internal class SøknadStatistikkMapper(private val clock: Clock) {
+    fun map(søknad: Søknad, saksnummer: Saksnummer) = Statistikk.Behandling(
+        funksjonellTid = søknad.opprettet,
+        tekniskTid = søknad.opprettet,
+        mottattDato = when (val forNav = søknad.søknadInnhold.forNav) {
+            is ForNav.Papirsøknad -> forNav.mottaksdatoForSøknad
+            is ForNav.DigitalSøknad -> søknad.opprettet.toLocalDate(zoneIdOslo)
+        },
+        registrertDato = søknad.opprettet.toLocalDate(zoneIdOslo),
+        behandlingId = søknad.id,
+        relatertBehandlingId = null,
+        sakId = søknad.sakId,
+        saksnummer = saksnummer.nummer,
+        behandlingType = Statistikk.Behandling.BehandlingType.SOKNAD,
+        behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.SOKNAD.beskrivelse,
+        behandlingStatus = Statistikk.Behandling.SøknadStatus.SØKNAD_MOTTATT.name,
+        behandlingStatusBeskrivelse = Statistikk.Behandling.SøknadStatus.SØKNAD_MOTTATT.beskrivelse,
+        totrinnsbehandling = false,
+        versjon = clock.millis(),
+        resultat = null,
+        resultatBegrunnelse = null,
+        resultatBegrunnelseBeskrivelse = null,
+        resultatBeskrivelse = null,
+        beslutter = null,
+        saksbehandler = null,
+        behandlingOpprettetAv = null,
+        behandlingOpprettetType = null,
+        behandlingOpprettetTypeBeskrivelse = null,
+        datoForUttak = null,
+        datoForUtbetaling = null
+    )
+}

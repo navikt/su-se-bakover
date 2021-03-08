@@ -13,8 +13,8 @@ internal class SøknadsbehandlingStatistikkMapper(
     private val clock: Clock
 ) {
     fun map(søknadsbehandling: Søknadsbehandling): Statistikk.Behandling = Statistikk.Behandling(
-        behandlingType = Statistikk.BehandlingType.SOKNAD,
-        behandlingTypeBeskrivelse = Statistikk.BehandlingType.SOKNAD.beskrivelse,
+        behandlingType = Statistikk.Behandling.BehandlingType.SOKNAD,
+        behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.SOKNAD.beskrivelse,
         funksjonellTid = FunksjonellTidMapper.map(søknadsbehandling),
         tekniskTid = Tidspunkt.now(clock),
         registrertDato = RegistrertDatoMapper.map(søknadsbehandling),
@@ -113,6 +113,7 @@ internal class SøknadsbehandlingStatistikkMapper(
         }
     }
 
+    // TODO ai 08.03.2021: Se over dette igen, misstänker att det har blivit misstolkat
     internal object FunksjonellTidMapper {
         fun map(søknadsbehandling: Søknadsbehandling) = when (søknadsbehandling) {
             is Søknadsbehandling.Vilkårsvurdert.Uavklart -> søknadsbehandling.opprettet

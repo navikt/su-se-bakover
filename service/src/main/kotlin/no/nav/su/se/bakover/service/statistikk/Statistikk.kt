@@ -33,7 +33,7 @@ sealed class Statistikk {
         val tekniskTid: Tidspunkt,
         val mottattDato: LocalDate,
         val registrertDato: LocalDate,
-        val behandlingId: UUID,
+        val behandlingId: UUID?,
         val relatertBehandlingId: UUID? = null,
         val sakId: UUID,
         @JsonSerialize(using = ToStringSerializer::class)
@@ -64,11 +64,15 @@ sealed class Statistikk {
         val behandlingOpprettetTypeBeskrivelse: String? = null,
         val datoForUttak: String? = null,
         val datoForUtbetaling: String? = null,
-    ) : Statistikk()
+    ) : Statistikk() {
+        enum class BehandlingType(val beskrivelse: String) {
+            SOKNAD("Søknad for SU Uføre"),
+            REVURDERING("Revurdering av søknad for SU Uføre")
+        }
+        enum class SøknadStatus(val beskrivelse: String) {
+            SØKNAD_MOTTATT("Søknaden er mottatt")
+        }
+    }
 
     data class Aktør(val aktorId: Int, val rolle: String, val rolleBeskrivelse: String)
-    enum class BehandlingType(val beskrivelse: String) {
-        SOKNAD("Søknad for SU Uføre"),
-        REVURDERING("Revurdering av søknad for SU Uføre")
-    }
 }

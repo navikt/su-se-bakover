@@ -155,7 +155,7 @@ internal class StatistikkServiceImplTest {
             saksnummer = søknadsbehandling.saksnummer.nummer,
             behandlingStatus = søknadsbehandling.status.toString(),
             versjon = clock.millis(),
-            behandlingType = Statistikk.BehandlingType.SOKNAD,
+            behandlingType = Statistikk.Behandling.BehandlingType.SOKNAD,
             behandlingTypeBeskrivelse = "Søknad for SU Uføre",
             behandlingStatusBeskrivelse = "Ny søknadsbehandling opprettet",
             utenlandstilsnitt = "NASJONAL",
@@ -209,8 +209,8 @@ internal class StatistikkServiceImplTest {
             behandlingStatusBeskrivelse = "Avslått søknadsbehandling iverksatt",
             versjon = clock.millis(),
             saksbehandler = "Z1595",
-            behandlingType = Statistikk.BehandlingType.SOKNAD,
-            behandlingTypeBeskrivelse = Statistikk.BehandlingType.SOKNAD.beskrivelse,
+            behandlingType = Statistikk.Behandling.BehandlingType.SOKNAD,
+            behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.SOKNAD.beskrivelse,
         )
 
         StatistikkServiceImpl(kafkaPublisherMock, mock(), clock).handle(
@@ -262,8 +262,8 @@ internal class StatistikkServiceImplTest {
             resultat = "Innvilget",
             saksbehandler = "55",
             beslutter = "56",
-            behandlingType = Statistikk.BehandlingType.SOKNAD,
-            behandlingTypeBeskrivelse = Statistikk.BehandlingType.SOKNAD.beskrivelse
+            behandlingType = Statistikk.Behandling.BehandlingType.SOKNAD,
+            behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.SOKNAD.beskrivelse
         )
 
         StatistikkServiceImpl(kafkaPublisherMock, mock(), clock).handle(
@@ -313,8 +313,8 @@ internal class StatistikkServiceImplTest {
             saksbehandler = "55",
             beslutter = "56",
             resultatBegrunnelse = "UFØRHET,UTENLANDSOPPHOLD_OVER_90_DAGER",
-            behandlingType = Statistikk.BehandlingType.SOKNAD,
-            behandlingTypeBeskrivelse = Statistikk.BehandlingType.SOKNAD.beskrivelse
+            behandlingType = Statistikk.Behandling.BehandlingType.SOKNAD,
+            behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.SOKNAD.beskrivelse
         )
 
         StatistikkServiceImpl(kafkaPublisherMock, mock(), clock).handle(
@@ -370,8 +370,8 @@ internal class StatistikkServiceImplTest {
             versjon = clock.millis(),
             saksbehandler = "saksbehandler",
             beslutter = "attestant",
-            behandlingType = Statistikk.BehandlingType.SOKNAD,
-            behandlingTypeBeskrivelse = Statistikk.BehandlingType.SOKNAD.beskrivelse,
+            behandlingType = Statistikk.Behandling.BehandlingType.SOKNAD,
+            behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.SOKNAD.beskrivelse,
         )
 
         StatistikkServiceImpl(kafkaPublisherMock, mock(), clock).handle(
@@ -420,8 +420,8 @@ internal class StatistikkServiceImplTest {
             behandlingStatusBeskrivelse = "Ny revurdering opprettet",
             versjon = clock.millis(),
             saksbehandler = "saksbehandler",
-            behandlingType = Statistikk.BehandlingType.REVURDERING,
-            behandlingTypeBeskrivelse = Statistikk.BehandlingType.REVURDERING.beskrivelse,
+            behandlingType = Statistikk.Behandling.BehandlingType.REVURDERING,
+            behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.REVURDERING.beskrivelse,
             relatertBehandlingId = opprettetRevurdering.tilRevurdering.id
         )
 
@@ -479,8 +479,8 @@ internal class StatistikkServiceImplTest {
             behandlingStatusBeskrivelse = "Revurdering sendt til attestering",
             versjon = clock.millis(),
             saksbehandler = "saksbehandler",
-            behandlingType = Statistikk.BehandlingType.REVURDERING,
-            behandlingTypeBeskrivelse = Statistikk.BehandlingType.REVURDERING.beskrivelse,
+            behandlingType = Statistikk.Behandling.BehandlingType.REVURDERING,
+            behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.REVURDERING.beskrivelse,
             relatertBehandlingId = revurderingTilAttestering.tilRevurdering.id
         )
 
@@ -541,8 +541,8 @@ internal class StatistikkServiceImplTest {
             behandlingStatusBeskrivelse = "Revurdering iverksatt",
             versjon = clock.millis(),
             saksbehandler = "saksbehandler",
-            behandlingType = Statistikk.BehandlingType.REVURDERING,
-            behandlingTypeBeskrivelse = Statistikk.BehandlingType.REVURDERING.beskrivelse,
+            behandlingType = Statistikk.Behandling.BehandlingType.REVURDERING,
+            behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.REVURDERING.beskrivelse,
             relatertBehandlingId = iverksattRevurdering.tilRevurdering.id,
             resultat = "Innvilget",
             resultatBegrunnelse = "Endring i søkers inntekt",
@@ -551,6 +551,47 @@ internal class StatistikkServiceImplTest {
 
         StatistikkServiceImpl(kafkaPublisherMock, mock(), clock).handle(
             Event.Statistikk.RevurderingStatistikk.RevurderingIverksatt(iverksattRevurdering)
+        )
+
+        verify(kafkaPublisherMock).publiser(
+            argThat { it shouldBe behandlingTopicName },
+            argThat { it shouldBe objectMapper.writeValueAsString(expected) }
+        )
+    }
+
+    @Test
+    fun `publiserer statistikk for mottat søknad på kafka`() {
+        val kafkaPublisherMock: KafkaPublisher = mock {
+            on { publiser(any(), any()) }.doNothing()
+        }
+        val clock = Clock.fixed(1.januar(2020).endOfDay(ZoneOffset.UTC).instant, ZoneOffset.UTC)
+        val saksnummer = Saksnummer(2049L)
+        val søknad = Søknad.Ny(
+            id = UUID.randomUUID(),
+            opprettet = Tidspunkt.now(clock),
+            sakId = UUID.randomUUID(),
+            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
+        )
+
+        val expected = Statistikk.Behandling(
+            funksjonellTid = søknad.opprettet,
+            tekniskTid = søknad.opprettet,
+            registrertDato = søknad.opprettet.toLocalDate(zoneIdOslo),
+            mottattDato = søknad.opprettet.toLocalDate(zoneIdOslo),
+            behandlingId = søknad.id,
+            sakId = søknad.sakId,
+            saksnummer = saksnummer.nummer,
+            behandlingStatus = Statistikk.Behandling.SøknadStatus.SØKNAD_MOTTATT.name,
+            behandlingStatusBeskrivelse = Statistikk.Behandling.SøknadStatus.SØKNAD_MOTTATT.beskrivelse,
+            versjon = clock.millis(),
+            behandlingType = Statistikk.Behandling.BehandlingType.SOKNAD,
+            behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.SOKNAD.beskrivelse,
+            relatertBehandlingId = null,
+            totrinnsbehandling = false
+        )
+
+        StatistikkServiceImpl(kafkaPublisherMock, mock(), clock).handle(
+            Event.Statistikk.SøknadMottat(søknad, saksnummer)
         )
 
         verify(kafkaPublisherMock).publiser(

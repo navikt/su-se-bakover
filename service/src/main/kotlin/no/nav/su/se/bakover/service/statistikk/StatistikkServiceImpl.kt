@@ -60,9 +60,9 @@ internal class StatistikkServiceImpl(
                     }
                 )
             }
-            is Event.Statistikk.SøknadsbehandlingStatistikk -> {
+            is Event.Statistikk.SøknadMottat -> publiser(SøknadStatistikkMapper(clock).map(event.søknad, event.saksnummer))
+            is Event.Statistikk.SøknadsbehandlingStatistikk ->
                 publiser(SøknadsbehandlingStatistikkMapper(clock).map(event.søknadsbehandling))
-            }
             is Event.Statistikk.RevurderingStatistikk -> {
                 publiser(RevurderingStatistikkMapper(clock).map(event.revurdering))
             }
