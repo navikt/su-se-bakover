@@ -31,7 +31,7 @@ internal data class BehandlingsinformasjonJson(
                 formue = formue?.toJson(ektefelle),
                 personligOppmøte = personligOppmøte?.toJson(),
                 bosituasjon = bosituasjon?.toJson(),
-                utledetSats = utledSats(),
+                utledetSats = utledSats().orNull(),
                 ektefelle = ektefelle?.toJson(),
             )
     }

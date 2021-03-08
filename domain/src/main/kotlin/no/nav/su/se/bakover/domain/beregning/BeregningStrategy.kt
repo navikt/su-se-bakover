@@ -15,7 +15,8 @@ class BeregningStrategyFactory {
             fradragFraSaksbehandler = fradrag
         )
         val strategy = søknadsbehandling.behandlingsinformasjon.getBeregningStrategy()
-        return strategy!!.beregn(beregningsgrunnlag)
+        // TODO jah: Kan vurdere å legge på en left her (KanIkkeBeregne.UfullstendigBehandlingsinformasjon
+        return strategy.orNull()!!.beregn(beregningsgrunnlag)
     }
 }
 
