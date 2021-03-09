@@ -87,7 +87,6 @@ interface FerdigstillVedtakService {
     }
 }
 
-// TODO handle statistikk?
 internal class FerdigstillVedtakServiceImpl(
     private val brevService: BrevService,
     private val oppgaveService: OppgaveService,

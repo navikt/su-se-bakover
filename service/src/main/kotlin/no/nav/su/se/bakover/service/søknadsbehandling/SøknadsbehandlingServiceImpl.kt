@@ -311,44 +311,42 @@ internal class SøknadsbehandlingServiceImpl(
                         vedtakssnapshot = Vedtakssnapshot.Innvilgelse.createFromBehandling(iverksattBehandling, utbetaling!!)
                     )
                     behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
-                    iverksattBehandling
+                    iverksattBehandling.also {
+                        observers.forEach { observer ->
+                            observer.handle(Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(iverksattBehandling))
+                        }
+                    }
                 }
                 is Søknadsbehandling.Iverksatt.Avslag -> {
                     log.info("Iverksatt avslag for behandling ${iverksattBehandling.id}")
                     opprettVedtakssnapshotService.opprettVedtak(
                         vedtakssnapshot = Vedtakssnapshot.Avslag.createFromBehandling(iverksattBehandling, iverksattBehandling.avslagsgrunner)
                     )
-                    behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
-
                     val vedtak = opprettVedtak(iverksattBehandling)
 
                     // TODO jm: se litt nærmere på hvordan vi ønsker at dette oppfører seg.
-                    return ferdigstillVedtakService.journalførOgLagre(opprettVedtak(iverksattBehandling))
+                    return ferdigstillVedtakService.journalførOgLagre(vedtak)
                         .mapLeft {
                             log.error("Journalføring av brev for vedtakId:${vedtak.id} feilet.")
                             SøknadsbehandlingService.KunneIkkeIverksette.KunneIkkeJournalføreBrev
                         }.map { journalførtVedtak ->
                             søknadsbehandlingRepo.lagre(iverksattBehandling)
+                            behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
 
-                            behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.JOURNALFØRT)
                             ferdigstillVedtakService.distribuerOgLagre(journalførtVedtak)
                                 .mapLeft {
                                     log.error("Distribusjon av brev for vedtakId: ${journalførtVedtak.id} feilet. Må ryddes opp manuelt.")
-                                }.map {
-                                    behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.DISTRIBUERT_BREV)
                                 }
                             ferdigstillVedtakService.lukkOppgave(journalførtVedtak)
                                 .mapLeft {
                                     log.error("Lukking av oppgave for behandlingId: ${journalførtVedtak.behandling.oppgaveId} feilet. Må ryddes opp manuelt.")
-                                }.map {
-                                    behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.LUKKET_OPPGAVE)
                                 }
-                            iverksattBehandling
-                        }.also {
-                            observers.forEach { observer ->
-                                observer.handle(
-                                    Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(iverksattBehandling)
-                                )
+                            iverksattBehandling.also {
+                                observers.forEach { observer ->
+                                    observer.handle(
+                                        Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(iverksattBehandling)
+                                    )
+                                }
                             }
                         }
                 }
