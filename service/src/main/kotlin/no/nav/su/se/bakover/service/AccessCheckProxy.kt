@@ -154,6 +154,13 @@ open class AccessCheckProxy(
                         }
                 }
 
+                override fun hentSak(saksnummer: Saksnummer): Either<FantIkkeSak, Sak> {
+                    return services.sak.hentSak(saksnummer)
+                        .also {
+                            it.map { sak -> assertHarTilgangTilSak(sak.id) }
+                        }
+                }
+
                 override fun opprettSak(sak: NySak) {
                     assertHarTilgangTilPerson(sak.fnr)
 

@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.revurdering
 
 import arrow.core.Either
 import arrow.core.getOrElse
+import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -12,6 +13,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Behandling
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
@@ -47,12 +49,14 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
                 ?: 0.0,
             fradragFraSaksbehandler = fradrag
         )
-
-        val beregningStrategy = tilRevurdering.behandlingsinformasjon.getBeregningStrategy()
+        // TODO jah: Også mulig å ta inn beregningsstrategi slik at man kan validere dette på service-nivå
+        val beregningStrategy = tilRevurdering.behandlingsinformasjon.getBeregningStrategy().getOrHandle {
+            return KunneIkkeBeregneRevurdering.UfullstendigBehandlingsinformasjon(it).left()
+        }
         val revurdertBeregning: Beregning = RevurdertBeregning.fraSøknadsbehandling(
             vedtattBeregning = tilRevurdering.beregning,
             beregningsgrunnlag = beregningsgrunnlag,
-            beregningsstrategi = beregningStrategy!!,
+            beregningsstrategi = beregningStrategy,
         ).getOrElse {
             return KunneIkkeBeregneRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden.left()
         }
@@ -82,6 +86,9 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
 
     sealed class KunneIkkeBeregneRevurdering {
         object KanIkkeVelgeSisteMånedVedNedgangIStønaden : KunneIkkeBeregneRevurdering()
+        data class UfullstendigBehandlingsinformasjon(
+            val bakenforliggendeGrunn: Behandlingsinformasjon.UfullstendigBehandlingsinformasjon
+        ) : KunneIkkeBeregneRevurdering()
     }
 }
 
@@ -292,7 +299,10 @@ data class IverksattRevurdering(
  * att man må revurdere hela stønadsperioden frem i tid.
  * AI 16.02.2020
  */
-private fun endringerAvUtbetalingerErStørreEllerLik10Prosent(vedtattBeregning: Beregning, revurdertBeregning: Beregning): Boolean {
+private fun endringerAvUtbetalingerErStørreEllerLik10Prosent(
+    vedtattBeregning: Beregning,
+    revurdertBeregning: Beregning
+): Boolean {
     val vedtattBeregningsperioder = vedtattBeregning.getMånedsberegninger().map { it.getPeriode() to it }.toMap()
 
     return revurdertBeregning.getMånedsberegninger().let {

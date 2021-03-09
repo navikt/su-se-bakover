@@ -26,9 +26,10 @@ interface LagBrevRequest {
                 fradato = beregning.getPeriode().getFraOgMed().formatMonthYear(),
                 tildato = beregning.getPeriode().getTilOgMed().formatMonthYear(),
                 sats = beregning.getSats().toString().toLowerCase(),
-                satsGrunn = behandlingsinformasjon.getSatsgrunn()!!,
+                // TODO jah: Vi burde sannsynligvis ikke ta inn BehandlingsInformasjon direkte her. Da kan vi heller validere ting lenger ut.
+                satsGrunn = behandlingsinformasjon.getSatsgrunn().orNull()!!,
                 satsBeløp = beregning.getSats().månedsbeløp(beregning.getPeriode().getTilOgMed()),
-                harEktefelle = behandlingsinformasjon.ektefelle != Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
+                harEktefelle = behandlingsinformasjon.harEktefelle(),
                 beregningsperioder = LagBrevinnholdForBeregning(beregning).brevInnhold,
                 saksbehandlerNavn = saksbehandlerNavn,
                 attestantNavn = attestantNavn

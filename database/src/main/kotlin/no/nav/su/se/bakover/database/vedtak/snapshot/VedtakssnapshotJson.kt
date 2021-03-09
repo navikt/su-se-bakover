@@ -106,8 +106,8 @@ internal sealed class VedtakssnapshotJson {
                     beregning = beregning.toSnapshot(),
                     behandlingsinformasjon = behandlingsinformasjon,
                     behandlingsresultat = BehandlingsresultatJson(
-                        sats = behandlingsinformasjon.utledSats()?.toString(),
-                        satsgrunn = behandlingsinformasjon.getSatsgrunn()?.toString()
+                        sats = behandlingsinformasjon.utledSats().orNull()?.toString(),
+                        satsgrunn = behandlingsinformasjon.getSatsgrunn().orNull()?.toString()
                     ),
                     søknad = søknad,
                     simulering = simulering,
@@ -130,8 +130,8 @@ internal sealed class VedtakssnapshotJson {
                     beregning = if (this is Søknadsbehandling.Iverksatt.Avslag.MedBeregning) beregning.toSnapshot() else null,
                     behandlingsinformasjon = behandlingsinformasjon,
                     behandlingsresultat = BehandlingsresultatJson(
-                        sats = behandlingsinformasjon.utledSats()?.toString(),
-                        satsgrunn = behandlingsinformasjon.getSatsgrunn()?.toString()
+                        sats = behandlingsinformasjon.utledSats().orNull()?.toString(),
+                        satsgrunn = behandlingsinformasjon.getSatsgrunn().orNull()?.toString()
                     ),
                     søknad = søknad,
                     simulering = null,

@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.database.sak.SakRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import org.slf4j.LoggerFactory
@@ -24,6 +25,10 @@ internal class SakServiceImpl(
 
     override fun hentSak(fnr: Fnr): Either<FantIkkeSak, Sak> {
         return sakRepo.hentSak(fnr)?.right() ?: FantIkkeSak.left()
+    }
+
+    override fun hentSak(saksnummer: Saksnummer): Either<FantIkkeSak, Sak> {
+        return sakRepo.hentSak(saksnummer)?.right() ?: FantIkkeSak.left()
     }
 
     override fun opprettSak(sak: NySak) {

@@ -27,6 +27,7 @@ internal class SakPostgresRepo(
 ) : SakRepo {
     override fun hentSak(sakId: UUID) = dataSource.withSession { hentSakInternal(sakId, it) }
     override fun hentSak(fnr: Fnr) = dataSource.withSession { hentSakInternal(fnr, it) }
+    override fun hentSak(saksnummer: Saksnummer) = dataSource.withSession { hentSakInternal(saksnummer, it) }
 
     override fun opprettSak(sak: NySak) {
         dataSource.withSession { session ->
@@ -51,6 +52,9 @@ internal class SakPostgresRepo(
 
     internal fun hentSakInternal(sakId: UUID, session: Session): Sak? = "select * from sak where id=:sakId"
         .hent(mapOf("sakId" to sakId), session) { it.toSak(session) }
+
+    internal fun hentSakInternal(saksnummer: Saksnummer, session: Session): Sak? = "select * from sak where saksnummer=:saksnummer"
+        .hent(mapOf("saksnummer" to saksnummer.nummer), session) { it.toSak(session) }
 
     internal fun Row.toSak(session: Session): Sak {
         val sakId = UUID.fromString(string("id"))

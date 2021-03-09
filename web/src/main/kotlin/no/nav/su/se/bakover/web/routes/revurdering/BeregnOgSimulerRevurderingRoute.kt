@@ -91,5 +91,9 @@ private fun KunneIkkeBeregneOgSimulereRevurdering.tilResultat(): Resultat {
             "Simulering feilet",
             "simulering_feilet",
         )
+        is KunneIkkeBeregneOgSimulereRevurdering.UfullstendigBehandlingsinformasjon -> InternalServerError.errorJson(
+            "Ufullstendig behandlingsinformasjon",
+            "ufullstendig_behandlingsinformasjon",
+        )
     }
 }
