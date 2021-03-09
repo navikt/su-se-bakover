@@ -94,7 +94,8 @@ object ServiceBuilder {
             vedtakRepo = databaseRepos.vedtakRepo,
             personService = personService,
             microsoftGraphApiOppslag = clients.microsoftGraphApiClient,
-            clock = clock
+            clock = clock,
+            utbetalingRepo = databaseRepos.utbetaling
         )
 
         val toggleService = ToggleServiceImpl(unleash)

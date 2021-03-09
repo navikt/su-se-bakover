@@ -39,6 +39,8 @@ interface VedtakRepo {
     fun oppdaterJournalpostForRevurdering(revurderingId: UUID, journalpostId: JournalpostId)
     fun oppdaterBrevbestillingIdForRevurdering(revurderingId: UUID, brevbestillingId: BrevbestillingId)
     fun hentForUtbetaling(utbetalingId: UUID30): Vedtak.InnvilgetStønad
+    fun hentUtenJournalpost(): List<Vedtak>
+    fun hentUtenBrevbestilling(): List<Vedtak>
 }
 
 internal class VedtakPosgresRepo(
@@ -155,6 +157,32 @@ internal class VedtakPosgresRepo(
                 .hent(mapOf("utbetalingId" to utbetalingId), session) {
                     it.toVedtak(session)
                 } as Vedtak.InnvilgetStønad
+        }
+    }
+
+    override fun hentUtenJournalpost(): List<Vedtak> {
+        return dataSource.withSession { session ->
+            """
+                SELECT *
+                FROM vedtak
+                WHERE iverksattJournalpostId is null and iverksattBrevbestillingId is null
+            """.trimIndent()
+                .hentListe(emptyMap(), session) {
+                    it.toVedtak(session)
+                }
+        }
+    }
+
+    override fun hentUtenBrevbestilling(): List<Vedtak> {
+        return dataSource.withSession { session ->
+            """
+                SELECT *
+                FROM vedtak
+                WHERE iverksattJournalpostId is not null and iverksattBrevbestillingId is null
+            """.trimIndent()
+                .hentListe(emptyMap(), session) {
+                    it.toVedtak(session)
+                }
         }
     }
 
