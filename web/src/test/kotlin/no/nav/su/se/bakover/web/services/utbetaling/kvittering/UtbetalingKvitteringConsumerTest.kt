@@ -20,9 +20,9 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.service.søknadsbehandling.FerdigstillIverksettingService
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.fixedClock
@@ -91,9 +91,8 @@ internal class UtbetalingKvitteringConsumerTest {
                     on { oppdaterMedKvittering(any(), any()) } doReturn utbetalingMedKvittering.right()
                 }
 
-                val ferdigstillIverksettingService = mock<FerdigstillIverksettingService>()
-                val consumer =
-                    UtbetalingKvitteringConsumer(utbetalingServiceMock, ferdigstillIverksettingService, clock)
+                val ferdigstillVedtakServiceMock = mock<FerdigstillVedtakService>()
+                val consumer = UtbetalingKvitteringConsumer(utbetalingServiceMock, ferdigstillVedtakServiceMock, clock)
 
                 consumer.onMessage(xmlMessage)
 
@@ -101,7 +100,7 @@ internal class UtbetalingKvitteringConsumerTest {
                     avstemmingsnøkkel = argThat { it shouldBe avstemmingsnøkkel },
                     kvittering = argThat { it shouldBe kvittering }
                 )
-                verifyNoMoreInteractions(utbetalingServiceMock, ferdigstillIverksettingService)
+                verifyNoMoreInteractions(utbetalingServiceMock, ferdigstillVedtakServiceMock)
             }
     }
 
@@ -122,7 +121,7 @@ internal class UtbetalingKvitteringConsumerTest {
             on { oppdaterMedKvittering(any(), any()) } doReturn utbetalingMedKvittering.right()
         }
 
-        val ferdigstillIverksettingServiceMock = mock<FerdigstillIverksettingService>()
+        val ferdigstillIverksettingServiceMock = mock<FerdigstillVedtakService>()
         val consumer = UtbetalingKvitteringConsumer(utbetalingServiceMock, ferdigstillIverksettingServiceMock, clock)
 
         consumer.onMessage(xmlMessage)
@@ -150,8 +149,8 @@ internal class UtbetalingKvitteringConsumerTest {
             on { oppdaterMedKvittering(any(), any()) } doReturn utbetalingMedKvittering.right()
         }
 
-        val ferdigstillIverksettingServiceMock = mock<FerdigstillIverksettingService> {}
-        val consumer = UtbetalingKvitteringConsumer(utbetalingServiceMock, ferdigstillIverksettingServiceMock, clock)
+        val ferdigstillVedtakServiceMock = mock<FerdigstillVedtakService> {}
+        val consumer = UtbetalingKvitteringConsumer(utbetalingServiceMock, ferdigstillVedtakServiceMock, clock)
 
         consumer.onMessage(xmlMessage)
 
@@ -160,10 +159,10 @@ internal class UtbetalingKvitteringConsumerTest {
             kvittering = argThat { it shouldBe kvittering }
         )
 
-        verify(ferdigstillIverksettingServiceMock).ferdigstillIverksetting(
+        verify(ferdigstillVedtakServiceMock).ferdigstillVedtakEtterUtbetaling(
             argThat { it shouldBe utbetaling.id }
         )
-        verifyNoMoreInteractions(utbetalingServiceMock, ferdigstillIverksettingServiceMock)
+        verifyNoMoreInteractions(utbetalingServiceMock, ferdigstillVedtakServiceMock)
     }
 
     @Test
@@ -182,11 +181,11 @@ internal class UtbetalingKvitteringConsumerTest {
             on { oppdaterMedKvittering(any(), any()) } doReturn utbetalingMedKvittering.right()
         }
 
-        val ferdigstillIverksettingServiceMock = mock<FerdigstillIverksettingService> {
-            on { ferdigstillIverksetting(any()) }.thenThrow(IllegalArgumentException("Kastet fra FerdigstillIverksettingService"))
+        val ferdigstillVedtakServiceMock = mock<FerdigstillVedtakService> {
+            on { ferdigstillVedtakEtterUtbetaling(any()) }.thenThrow(IllegalArgumentException("Kastet fra FerdigstillIverksettingService"))
         }
 
-        val consumer = UtbetalingKvitteringConsumer(utbetalingServiceMock, ferdigstillIverksettingServiceMock, clock)
+        val consumer = UtbetalingKvitteringConsumer(utbetalingServiceMock, ferdigstillVedtakServiceMock, clock)
 
         assertThrows<RuntimeException> {
             consumer.onMessage(xmlMessage)
@@ -199,7 +198,7 @@ internal class UtbetalingKvitteringConsumerTest {
             kvittering = argThat { it shouldBe kvittering }
         )
 
-        verify(ferdigstillIverksettingServiceMock).ferdigstillIverksetting(
+        verify(ferdigstillVedtakServiceMock).ferdigstillVedtakEtterUtbetaling(
             argThat { it shouldBe utbetaling.id }
         )
     }

@@ -251,7 +251,7 @@ internal fun Application.susebakover(
                     avstemmingRoutes(accessProtectedServices.avstemming)
                     stansutbetalingRoutes(accessProtectedServices.utbetaling)
                     gjenopptaUtbetalingRoutes(accessProtectedServices.utbetaling)
-                    driftRoutes(accessProtectedServices.søknad, accessProtectedServices.ferdigstillIverksettingService)
+                    driftRoutes(accessProtectedServices.søknad, accessProtectedServices.ferdigstillVedtak)
                     revurderingRoutes(accessProtectedServices.revurdering)
                 }
             }
@@ -259,7 +259,7 @@ internal fun Application.susebakover(
     }
     val utbetalingKvitteringConsumer = UtbetalingKvitteringConsumer(
         utbetalingService = services.utbetaling,
-        ferdigstillIverksettingService = services.ferdigstillIverksettingService,
+        ferdigstillVedtakService = services.ferdigstillVedtak,
         clock = clock,
     )
     if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {

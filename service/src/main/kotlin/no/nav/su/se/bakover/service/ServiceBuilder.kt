@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.service.sak.SakServiceImpl
 import no.nav.su.se.bakover.service.statistikk.StatistikkServiceImpl
 import no.nav.su.se.bakover.service.søknad.SøknadServiceImpl
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadServiceImpl
-import no.nav.su.se.bakover.service.søknadsbehandling.FerdigstillIverksettingServiceImpl
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServiceImpl
 import no.nav.su.se.bakover.service.toggles.ToggleServiceImpl
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingServiceImpl
@@ -76,17 +75,6 @@ object ServiceBuilder {
             vedtakRepo = databaseRepos.vedtakRepo
         ).apply { addObserver(statistikkService) }
         val opprettVedtakssnapshotService = OpprettVedtakssnapshotService(databaseRepos.vedtakssnapshot)
-        val ferdigstillIverksettingService = FerdigstillIverksettingServiceImpl(
-            søknadsbehandlingRepo = databaseRepos.søknadsbehandling,
-            oppgaveService = oppgaveService,
-            behandlingMetrics = behandlingMetrics,
-            microsoftGraphApiClient = clients.microsoftGraphApiClient,
-            personService = personService,
-            brevService = brevService,
-            clock = clock,
-            revurderingRepo = databaseRepos.revurderingRepo,
-            vedtakRepo = databaseRepos.vedtakRepo
-        ).apply { addObserver(statistikkService) }
 
         val ferdigstillVedtakService = FerdigstillVedtakServiceImpl(
             brevService = brevService,
@@ -141,7 +129,7 @@ object ServiceBuilder {
             ).apply {
                 addObserver(statistikkService)
             },
-            ferdigstillIverksettingService = ferdigstillIverksettingService,
+            ferdigstillVedtak = ferdigstillVedtakService,
             revurdering = revurderingService
         )
     }

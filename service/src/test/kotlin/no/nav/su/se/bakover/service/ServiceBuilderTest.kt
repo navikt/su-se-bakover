@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.database.DatabaseRepos
 import no.nav.su.se.bakover.service.revurdering.RevurderingServiceImpl
 import no.nav.su.se.bakover.service.sak.SakServiceImpl
-import no.nav.su.se.bakover.service.søknadsbehandling.FerdigstillIverksettingServiceImpl
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServiceImpl
 import org.junit.jupiter.api.Test
 import java.time.Clock
@@ -52,7 +51,8 @@ internal class ServiceBuilderTest {
             (it.sak as SakServiceImpl).observers shouldContain it.statistikk
             (it.søknadsbehandling as SøknadsbehandlingServiceImpl).getObservers() shouldContain it.statistikk
             (it.revurdering as RevurderingServiceImpl).getObservers() shouldContain it.statistikk
-            (it.ferdigstillIverksettingService as FerdigstillIverksettingServiceImpl).getObservers() shouldContain it.statistikk
+            // TODO add statistikk
+//            (it.ferdigstillVedtak as FerdigstillVedtakService).getObservers() shouldContain it.statistikk
         }
     }
 }
