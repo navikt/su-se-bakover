@@ -34,10 +34,6 @@ interface VedtakRepo {
     fun hentForSakId(sakId: UUID, session: Session? = null): List<Vedtak>
     fun hent(id: UUID, session: Session? = null): Vedtak?
     fun lagre(vedtak: Vedtak)
-    fun oppdaterJournalpostForSøknadsbehandling(søknadsbehandlingId: UUID, journalpostId: JournalpostId)
-    fun oppdaterBrevbestillingIdForSøknadsbehandling(søknadsbehandlingId: UUID, brevbestillingId: BrevbestillingId)
-    fun oppdaterJournalpostForRevurdering(revurderingId: UUID, journalpostId: JournalpostId)
-    fun oppdaterBrevbestillingIdForRevurdering(revurderingId: UUID, brevbestillingId: BrevbestillingId)
     fun hentForUtbetaling(utbetalingId: UUID30): Vedtak.InnvilgetStønad
     fun hentUtenJournalpost(): List<Vedtak>
     fun hentUtenBrevbestilling(): List<Vedtak>
@@ -65,85 +61,6 @@ internal class VedtakPosgresRepo(
         when (vedtak) {
             is Vedtak.InnvilgetStønad -> lagre(vedtak)
             is Vedtak.AvslåttStønad -> lagre(vedtak)
-        }
-    }
-
-    override fun oppdaterJournalpostForSøknadsbehandling(søknadsbehandlingId: UUID, journalpostId: JournalpostId) {
-        dataSource.withSession {
-            """
-            UPDATE vedtak
-                SET iverksattjournalpostid = :iverksattjournalpostid
-            FROM behandling_vedtak
-            WHERE behandling_vedtak.vedtakid = vedtak.id
-                AND behandling_vedtak.søknadsbehandlingid = :soknadsbehandlingid
-            """.trimIndent()
-                .oppdatering(
-                    mapOf(
-                        "iverksattjournalpostid" to journalpostId,
-                        "soknadsbehandlingid" to søknadsbehandlingId
-                    ),
-                    it
-                )
-        }
-    }
-
-    override fun oppdaterBrevbestillingIdForSøknadsbehandling(
-        søknadsbehandlingId: UUID,
-        brevbestillingId: BrevbestillingId
-    ) {
-        dataSource.withSession {
-            """
-            UPDATE vedtak
-                SET iverksattbrevbestillingid = :iverksattbrevbestillingid
-            FROM behandling_vedtak
-            WHERE behandling_vedtak.vedtakid = vedtak.id
-                AND behandling_vedtak.søknadsbehandlingid = :soknadsbehandlingid
-            """.trimIndent()
-                .oppdatering(
-                    mapOf(
-                        "iverksattbrevbestillingid" to brevbestillingId,
-                        "soknadsbehandlingid" to søknadsbehandlingId
-                    ),
-                    it
-                )
-        }
-    }
-
-    override fun oppdaterJournalpostForRevurdering(revurderingId: UUID, journalpostId: JournalpostId) {
-        dataSource.withSession {
-            """
-            UPDATE vedtak
-                SET iverksattjournalpostid = :iverksattjournalpostid
-            FROM behandling_vedtak
-            WHERE behandling_vedtak.vedtakid = vedtak.id
-                AND behandling_vedtak.revurderingId = :revurderingId
-            """.trimIndent()
-                .oppdatering(
-                    mapOf(
-                        "iverksattjournalpostid" to journalpostId,
-                        "revurderingId" to revurderingId
-                    ),
-                    it
-                )
-        }
-    }
-
-    override fun oppdaterBrevbestillingIdForRevurdering(revurderingId: UUID, brevbestillingId: BrevbestillingId) {
-        dataSource.withSession {
-            """
-            UPDATE vedtak
-                SET iverksattbrevbestillingid = :iverksattbrevbestillingid
-            FROM behandling_vedtak
-            WHERE behandling_vedtak.vedtakid = vedtak.id
-                AND behandling_vedtak.revurderingId = :revurderingId
-            """.trimIndent()
-                .oppdatering(
-                    mapOf(
-                        "iverksattbrevbestillingid" to brevbestillingId,
-                        "revurderingId" to revurderingId
-                    ),
-                    it
-                )
         }
     }
 
