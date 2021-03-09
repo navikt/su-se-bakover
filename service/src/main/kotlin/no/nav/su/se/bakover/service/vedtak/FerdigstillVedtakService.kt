@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
@@ -86,7 +87,6 @@ interface FerdigstillVedtakService {
     }
 }
 
-// TODO handle metrics?
 // TODO handle statistikk?
 internal class FerdigstillVedtakServiceImpl(
     private val brevService: BrevService,
@@ -95,7 +95,8 @@ internal class FerdigstillVedtakServiceImpl(
     private val personService: PersonService,
     private val microsoftGraphApiOppslag: MicrosoftGraphApiOppslag,
     private val clock: Clock,
-    private val utbetalingRepo: UtbetalingRepo
+    private val utbetalingRepo: UtbetalingRepo,
+    private val behandlingMetrics: BehandlingMetrics
 ) : FerdigstillVedtakService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -229,6 +230,7 @@ internal class FerdigstillVedtakServiceImpl(
             }
         }.map { journalførtVedtak ->
             vedtakRepo.lagre(journalførtVedtak)
+            incrementJournalført(journalførtVedtak)
             journalførtVedtak
         }
     }
@@ -251,6 +253,7 @@ internal class FerdigstillVedtakServiceImpl(
             }
         }.map { distribuertVedtak ->
             vedtakRepo.lagre(distribuertVedtak)
+            incrementDistribuert(vedtak)
             distribuertVedtak
         }
     }
@@ -295,6 +298,7 @@ internal class FerdigstillVedtakServiceImpl(
             .mapLeft {
                 KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave
             }.map {
+                incrementLukketOppgave(vedtak)
                 vedtak
             }
     }
@@ -308,6 +312,39 @@ internal class FerdigstillVedtakServiceImpl(
         journalpostId = vedtak.eksterneIverksettingsteg.journalpostId(),
         grunn = error.javaClass.simpleName
     )
+
+    private fun incrementJournalført(vedtak: Vedtak) {
+        when (vedtak) {
+            is Vedtak.AvslåttStønad -> {
+                behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.JOURNALFØRT)
+            }
+            is Vedtak.InnvilgetStønad -> {
+                behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.JOURNALFØRT)
+            }
+        }
+    }
+
+    private fun incrementDistribuert(vedtak: Vedtak) {
+        when (vedtak) {
+            is Vedtak.AvslåttStønad -> {
+                behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.DISTRIBUERT_BREV)
+            }
+            is Vedtak.InnvilgetStønad -> {
+                behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.DISTRIBUERT_BREV)
+            }
+        }
+    }
+
+    private fun incrementLukketOppgave(vedtak: Vedtak) {
+        when (vedtak) {
+            is Vedtak.AvslåttStønad -> {
+                behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.LUKKET_OPPGAVE)
+            }
+            is Vedtak.InnvilgetStønad -> {
+                behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.LUKKET_OPPGAVE)
+            }
+        }
+    }
 
     internal data class KunneIkkeFerdigstilleVedtakException(
         private val vedtak: Vedtak,
