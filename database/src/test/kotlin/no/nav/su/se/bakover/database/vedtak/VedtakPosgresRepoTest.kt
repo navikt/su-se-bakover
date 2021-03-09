@@ -7,6 +7,9 @@ import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.journalførtIverksettingForAvslag
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
+import no.nav.su.se.bakover.domain.brev.BrevbestillingId
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
@@ -118,6 +121,51 @@ internal class VedtakPosgresRepoTest {
                         it.stringOrNull("revurderingId") shouldBe null
                     }
             }
+        }
+    }
+
+    @Test
+    fun `oppdaterer vedtak med journalpost og brevbestilling`() {
+        withMigratedDb {
+            val søknadsbehandling = testDataHelper.nyIverksattAvslagMedBeregning(JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert)
+            val vedtak = Vedtak.AvslåttStønad.fromSøknadsbehandlingMedBeregning(søknadsbehandling)
+
+            vedtakRepo.lagre(vedtak)
+            vedtakRepo.lagre(
+                vedtak.copy(
+                    eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
+                        journalpostId = JournalpostId("jp"),
+                        brevbestillingId = BrevbestillingId(("bi"))
+                    )
+                )
+            )
+            vedtakRepo.hent(vedtak.id)!! shouldBe vedtak.copy(
+                eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
+                    journalpostId = JournalpostId("jp"),
+                    brevbestillingId = BrevbestillingId(("bi"))
+                )
+            )
+        }
+
+        withMigratedDb {
+            val (søknadsbehandling, _) = testDataHelper.nyIverksattInnvilget()
+            val vedtak = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling)
+
+            vedtakRepo.lagre(vedtak)
+            vedtakRepo.lagre(
+                vedtak.copy(
+                    eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
+                        journalpostId = JournalpostId("jp"),
+                        brevbestillingId = BrevbestillingId(("bi"))
+                    )
+                )
+            )
+            vedtakRepo.hent(vedtak.id)!! shouldBe vedtak.copy(
+                eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
+                    journalpostId = JournalpostId("jp"),
+                    brevbestillingId = BrevbestillingId(("bi"))
+                )
+            )
         }
     }
 }

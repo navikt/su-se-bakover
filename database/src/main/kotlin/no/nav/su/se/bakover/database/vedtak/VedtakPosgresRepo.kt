@@ -270,7 +270,7 @@ internal class VedtakPosgresRepo(
     private fun lagre(vedtak: Vedtak.InnvilgetStønad) {
         dataSource.withTransaction { tx ->
             """
-                insert into vedtak(
+                INSERT INTO vedtak(
                     id,
                     opprettet,
                     fraOgMed,
@@ -283,7 +283,7 @@ internal class VedtakPosgresRepo(
                     beregning,
                     iverksattjournalpostid,
                     iverksattbrevbestillingid
-                ) values (
+                ) VALUES (
                     :id,
                     :opprettet,
                     :fraOgMed,
@@ -296,7 +296,9 @@ internal class VedtakPosgresRepo(
                     to_json(:beregning::json),
                     :iverksattjournalpostId,
                     :iverksattbrevbestillingId
-                )
+                ) ON CONFLICT(id) DO UPDATE SET
+                    iverksattjournalpostid = :iverksattjournalpostId,
+                    iverksattbrevbestillingid = :iverksattbrevbestillingId
             """.trimIndent()
                 .oppdatering(
                     mapOf(
@@ -375,7 +377,9 @@ internal class VedtakPosgresRepo(
                     to_json(:beregning::json),
                     :iverksattjournalpostId,
                     :iverksattbrevbestillingId
-                )
+                )  ON CONFLICT(id) DO UPDATE SET
+                    iverksattjournalpostid = :iverksattjournalpostId,
+                    iverksattbrevbestillingid = :iverksattbrevbestillingId
             """.trimIndent()
                 .oppdatering(
                     mapOf(
