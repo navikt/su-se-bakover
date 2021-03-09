@@ -240,12 +240,14 @@ internal class SøknadsbehandlingServiceIverksettTest {
         }
         val behandlingMetricsMock = mock<BehandlingMetrics>()
         val vedtakRepoMock = mock<VedtakRepo>()
+        val statistikkObserver = mock<EventObserver>()
 
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             utbetalingService = utbetalingServiceMock,
             behandlingMetrics = behandlingMetricsMock,
-            vedtakRepo = vedtakRepoMock
+            vedtakRepo = vedtakRepoMock,
+            observer = statistikkObserver,
         ).iverksett(SøknadsbehandlingService.IverksettRequest(behandling.id, Attestering.Iverksatt(attestant)))
 
         val expected = Søknadsbehandling.Iverksatt.Innvilget(
@@ -270,7 +272,8 @@ internal class SøknadsbehandlingServiceIverksettTest {
             søknadsbehandlingRepoMock,
             behandlingMetricsMock,
             utbetalingServiceMock,
-            vedtakRepoMock
+            vedtakRepoMock,
+            statistikkObserver
         ) {
             verify(søknadsbehandlingRepoMock).hent(behandling.id)
             verify(utbetalingServiceMock).utbetal(
@@ -282,6 +285,11 @@ internal class SøknadsbehandlingServiceIverksettTest {
             verify(søknadsbehandlingRepoMock).lagre(expected)
             verify(vedtakRepoMock).lagre(argThat { it.behandling shouldBe expected })
             verify(behandlingMetricsMock).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
+            verify(statistikkObserver).handle(
+                argThat {
+                    it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(expected)
+                }
+            )
         }
         verifyNoMoreInteractions(
             søknadsbehandlingRepoMock,
@@ -348,19 +356,14 @@ internal class SøknadsbehandlingServiceIverksettTest {
             ferdigstillVedtakService
         ) {
             verify(søknadsbehandlingRepoMock).hent(behandling.id)
-            verify(behandlingMetricsMock).incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
             verify(ferdigstillVedtakService).journalførOgLagre(any())
             verify(søknadsbehandlingRepoMock).lagre(expectedAvslag)
-            verify(behandlingMetricsMock).incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.JOURNALFØRT)
+            verify(behandlingMetricsMock).incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
             verify(ferdigstillVedtakService).distribuerOgLagre(any())
-            verify(behandlingMetricsMock).incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.DISTRIBUERT_BREV)
             verify(ferdigstillVedtakService).lukkOppgave(any())
-            verify(behandlingMetricsMock).incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.LUKKET_OPPGAVE)
             verify(statistikkObserver).handle(
                 argThat {
-                    it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(
-                        expectedAvslag
-                    )
+                    it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(expectedAvslag)
                 }
             )
         }
