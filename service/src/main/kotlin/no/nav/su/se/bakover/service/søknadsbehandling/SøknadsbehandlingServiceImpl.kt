@@ -311,6 +311,7 @@ internal class SøknadsbehandlingServiceImpl(
                         vedtakssnapshot = Vedtakssnapshot.Innvilgelse.createFromBehandling(iverksattBehandling, utbetaling!!)
                     )
                     behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
+
                     iverksattBehandling.also {
                         observers.forEach { observer ->
                             observer.handle(Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(iverksattBehandling))
@@ -318,19 +319,19 @@ internal class SøknadsbehandlingServiceImpl(
                     }
                 }
                 is Søknadsbehandling.Iverksatt.Avslag -> {
-                    log.info("Iverksatt avslag for behandling ${iverksattBehandling.id}")
-                    opprettVedtakssnapshotService.opprettVedtak(
-                        vedtakssnapshot = Vedtakssnapshot.Avslag.createFromBehandling(iverksattBehandling, iverksattBehandling.avslagsgrunner)
-                    )
                     val vedtak = opprettVedtak(iverksattBehandling)
-
-                    // TODO jm: se litt nærmere på hvordan vi ønsker at dette oppfører seg.
                     return ferdigstillVedtakService.journalførOgLagre(vedtak)
                         .mapLeft {
-                            log.error("Journalføring av brev for vedtakId:${vedtak.id} feilet.")
+                            log.error("Journalføring av vedtak for behandling: ${vedtak.behandling.id} feilet.")
                             SøknadsbehandlingService.KunneIkkeIverksette.KunneIkkeJournalføreBrev
                         }.map { journalførtVedtak ->
                             søknadsbehandlingRepo.lagre(iverksattBehandling)
+
+                            log.info("Iverksatt avslag for behandling: ${iverksattBehandling.id}, vedtak: ${vedtak.id}")
+                            opprettVedtakssnapshotService.opprettVedtak(
+                                vedtakssnapshot = Vedtakssnapshot.Avslag.createFromBehandling(iverksattBehandling, iverksattBehandling.avslagsgrunner)
+                            )
+
                             behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
 
                             ferdigstillVedtakService.distribuerOgLagre(journalførtVedtak)

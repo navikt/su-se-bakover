@@ -45,6 +45,7 @@ import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
+import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -319,6 +320,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         }
 
         val vedtakRepoMock = mock<VedtakRepo>()
+        val opprettVedtakssnapshotService = mock<OpprettVedtakssnapshotService>()
 
         val expectedAvslag = Søknadsbehandling.Iverksatt.Avslag.MedBeregning(
             id = behandling.id,
@@ -343,7 +345,8 @@ internal class SøknadsbehandlingServiceIverksettTest {
             behandlingMetrics = behandlingMetricsMock,
             observer = statistikkObserver,
             vedtakRepo = vedtakRepoMock,
-            ferdigstillVedtakService = ferdigstillVedtakService
+            ferdigstillVedtakService = ferdigstillVedtakService,
+            opprettVedtakssnapshotService = opprettVedtakssnapshotService
         ).iverksett(SøknadsbehandlingService.IverksettRequest(behandling.id, Attestering.Iverksatt(attestant)))
 
         response shouldBe expectedAvslag.right()
@@ -353,11 +356,13 @@ internal class SøknadsbehandlingServiceIverksettTest {
             behandlingMetricsMock,
             statistikkObserver,
             vedtakRepoMock,
-            ferdigstillVedtakService
+            ferdigstillVedtakService,
+            opprettVedtakssnapshotService
         ) {
             verify(søknadsbehandlingRepoMock).hent(behandling.id)
             verify(ferdigstillVedtakService).journalførOgLagre(any())
             verify(søknadsbehandlingRepoMock).lagre(expectedAvslag)
+            verify(opprettVedtakssnapshotService).opprettVedtak(any())
             verify(behandlingMetricsMock).incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
             verify(ferdigstillVedtakService).distribuerOgLagre(any())
             verify(ferdigstillVedtakService).lukkOppgave(any())
