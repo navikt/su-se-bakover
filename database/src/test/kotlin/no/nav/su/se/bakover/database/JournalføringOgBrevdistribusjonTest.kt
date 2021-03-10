@@ -8,49 +8,49 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
-internal class JournalføringOgBrevdistribusjonMapperTest {
+internal class JournalføringOgBrevdistribusjonTest {
     @Nested
     inner class EtterUtbetaling {
         @Test
         fun `manglende journalpostid og brevbestillingsid ger status venterPåKvittering`() {
-            JournalføringOgBrevdistribusjonMapper.idToObject(
+            JournalføringOgBrevdistribusjon.fromId(
                 iverksattJournalpostId = null,
                 iverksattBrevbestillingId = null
             ) shouldBe JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert.also {
-                JournalføringOgBrevdistribusjonMapper.iverksattJournalpostId(it) shouldBe null
-                JournalføringOgBrevdistribusjonMapper.iverksattBrevbestillingId(it) shouldBe null
+                JournalføringOgBrevdistribusjon.iverksattJournalpostId(it) shouldBe null
+                JournalføringOgBrevdistribusjon.iverksattBrevbestillingId(it) shouldBe null
             }
         }
 
         @Test
         fun `kun journalpostid ger status journalført`() {
-            JournalføringOgBrevdistribusjonMapper.idToObject(
+            JournalføringOgBrevdistribusjon.fromId(
                 iverksattJournalpostId = JournalpostId("13"),
                 iverksattBrevbestillingId = null
             ) shouldBe JournalføringOgBrevdistribusjon.Journalført(JournalpostId("13")).also {
-                JournalføringOgBrevdistribusjonMapper.iverksattJournalpostId(it) shouldBe JournalpostId("13")
-                JournalføringOgBrevdistribusjonMapper.iverksattBrevbestillingId(it) shouldBe null
+                JournalføringOgBrevdistribusjon.iverksattJournalpostId(it) shouldBe JournalpostId("13")
+                JournalføringOgBrevdistribusjon.iverksattBrevbestillingId(it) shouldBe null
             }
         }
 
         @Test
         fun `både journalpostid og brevbestillingsid ger status JournalførtOgDistribuertBrev`() {
-            JournalføringOgBrevdistribusjonMapper.idToObject(
+            JournalføringOgBrevdistribusjon.fromId(
                 iverksattJournalpostId = JournalpostId("13"),
                 iverksattBrevbestillingId = BrevbestillingId("45")
             ) shouldBe JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
                 JournalpostId("13"),
                 BrevbestillingId("45")
             ).also {
-                JournalføringOgBrevdistribusjonMapper.iverksattJournalpostId(it) shouldBe JournalpostId("13")
-                JournalføringOgBrevdistribusjonMapper.iverksattBrevbestillingId(it) shouldBe BrevbestillingId("45")
+                JournalføringOgBrevdistribusjon.iverksattJournalpostId(it) shouldBe JournalpostId("13")
+                JournalføringOgBrevdistribusjon.iverksattBrevbestillingId(it) shouldBe BrevbestillingId("45")
             }
         }
 
         @Test
         fun `brevbestillingsid uten journalpostid skal kaste exception`() {
             assertThrows<IllegalStateException> {
-                JournalføringOgBrevdistribusjonMapper.idToObject(
+                JournalføringOgBrevdistribusjon.fromId(
                     iverksattJournalpostId = null,
                     iverksattBrevbestillingId = BrevbestillingId("45")
                 )
@@ -62,33 +62,33 @@ internal class JournalføringOgBrevdistribusjonMapperTest {
     inner class Avslag {
         @Test
         fun `kun journalpostid ger status journalført`() {
-            JournalføringOgBrevdistribusjonMapper.idToObject(
+            JournalføringOgBrevdistribusjon.fromId(
                 iverksattJournalpostId = JournalpostId("13"),
                 iverksattBrevbestillingId = null
             ) shouldBe JournalføringOgBrevdistribusjon.Journalført(JournalpostId("13")).also {
-                JournalføringOgBrevdistribusjonMapper.iverksattJournalpostId(it) shouldBe JournalpostId("13")
-                JournalføringOgBrevdistribusjonMapper.iverksattBrevbestillingId(it) shouldBe null
+                JournalføringOgBrevdistribusjon.iverksattJournalpostId(it) shouldBe JournalpostId("13")
+                JournalføringOgBrevdistribusjon.iverksattBrevbestillingId(it) shouldBe null
             }
         }
 
         @Test
         fun `både journalpostid og brevbestillingsid ger status JournalførtOgDistribuertBrev`() {
-            JournalføringOgBrevdistribusjonMapper.idToObject(
+            JournalføringOgBrevdistribusjon.fromId(
                 iverksattJournalpostId = JournalpostId("13"),
                 iverksattBrevbestillingId = BrevbestillingId("45")
             ) shouldBe JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
                 JournalpostId("13"),
                 BrevbestillingId("45")
             ).also {
-                JournalføringOgBrevdistribusjonMapper.iverksattJournalpostId(it) shouldBe JournalpostId("13")
-                JournalføringOgBrevdistribusjonMapper.iverksattBrevbestillingId(it) shouldBe BrevbestillingId("45")
+                JournalføringOgBrevdistribusjon.iverksattJournalpostId(it) shouldBe JournalpostId("13")
+                JournalføringOgBrevdistribusjon.iverksattBrevbestillingId(it) shouldBe BrevbestillingId("45")
             }
         }
 
         @Test
         fun `brevbestillingsid uten journalpostid skal kaste exception`() {
             assertThrows<IllegalStateException> {
-                JournalføringOgBrevdistribusjonMapper.idToObject(
+                JournalføringOgBrevdistribusjon.fromId(
                     iverksattJournalpostId = null,
                     iverksattBrevbestillingId = BrevbestillingId("45")
                 )

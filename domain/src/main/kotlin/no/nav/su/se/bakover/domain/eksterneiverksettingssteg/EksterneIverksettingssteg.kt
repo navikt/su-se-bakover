@@ -7,6 +7,40 @@ import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBre
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 
 sealed class JournalføringOgBrevdistribusjon {
+    companion object {
+        fun fromId(
+            iverksattJournalpostId: JournalpostId?,
+            iverksattBrevbestillingId: BrevbestillingId?
+        ): JournalføringOgBrevdistribusjon = when {
+            iverksattJournalpostId == null && iverksattBrevbestillingId == null -> {
+                IkkeJournalførtEllerDistribuert
+            }
+            iverksattJournalpostId != null && iverksattBrevbestillingId != null -> {
+                JournalførtOgDistribuertBrev(journalpostId = iverksattJournalpostId, brevbestillingId = iverksattBrevbestillingId)
+            }
+            iverksattJournalpostId != null -> {
+                Journalført(iverksattJournalpostId)
+            }
+            else -> {
+                throw IllegalStateException("Kunne ikke bestemme eksterne iverksettingssteg for innvilgelse, iverksattJournalpostId:$iverksattJournalpostId, iverksattBrevbestillingId:$iverksattBrevbestillingId")
+            }
+        }
+
+        fun iverksattJournalpostId(e: JournalføringOgBrevdistribusjon): JournalpostId? =
+            when (e) {
+                is IkkeJournalførtEllerDistribuert -> null
+                is Journalført -> e.journalpostId
+                is JournalførtOgDistribuertBrev -> e.journalpostId
+            }
+
+        fun iverksattBrevbestillingId(e: JournalføringOgBrevdistribusjon): BrevbestillingId? =
+            when (e) {
+                is IkkeJournalførtEllerDistribuert,
+                is Journalført -> null
+                is JournalførtOgDistribuertBrev -> e.brevbestillingId
+            }
+    }
+
     abstract fun journalpostId(): JournalpostId?
     fun journalfør(journalfør: () -> Either<JournalføringOgBrevdistribusjonFeil.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<JournalføringOgBrevdistribusjonFeil.KunneIkkeJournalføre, Journalført> {
         return when (this) {

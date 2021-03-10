@@ -4,7 +4,6 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.database.JournalføringOgBrevdistribusjonMapper
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.beregning.toSnapshot
@@ -23,6 +22,7 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -276,7 +276,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 )
             }
             BehandlingsStatus.IVERKSATT_INNVILGET -> {
-                val eksterneIverksettingsteg = JournalføringOgBrevdistribusjonMapper.idToObject(
+                val eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.fromId(
                     iverksattJournalpostId,
                     iverksattBrevbestillingId
                 )
@@ -298,7 +298,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 )
             }
             BehandlingsStatus.IVERKSATT_AVSLAG -> {
-                val eksterneIverksettingsteg = JournalføringOgBrevdistribusjonMapper.idToObject(
+                val eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.fromId(
                     iverksattJournalpostId,
                     iverksattBrevbestillingId
                 )
@@ -424,8 +424,8 @@ internal class SøknadsbehandlingPostgresRepo(
                             listOf(
                                 "attestering" to objectMapper.writeValueAsString(søknadsbehandling.attestering),
                                 "utbetalingId" to søknadsbehandling.utbetalingId,
-                                "iverksattBrevbestillingId" to JournalføringOgBrevdistribusjonMapper.iverksattBrevbestillingId(søknadsbehandling.eksterneIverksettingsteg)?.toString(),
-                                "iverksattJournalpostId" to JournalføringOgBrevdistribusjonMapper.iverksattJournalpostId(søknadsbehandling.eksterneIverksettingsteg)?.toString(),
+                                "iverksattBrevbestillingId" to JournalføringOgBrevdistribusjon.iverksattBrevbestillingId(søknadsbehandling.eksterneIverksettingsteg)?.toString(),
+                                "iverksattJournalpostId" to JournalføringOgBrevdistribusjon.iverksattJournalpostId(søknadsbehandling.eksterneIverksettingsteg)?.toString(),
                             )
                         ),
                         session = session
@@ -442,8 +442,8 @@ internal class SøknadsbehandlingPostgresRepo(
                         params = defaultParams(søknadsbehandling).plus(
                             listOf(
                                 "attestering" to objectMapper.writeValueAsString(søknadsbehandling.attestering),
-                                "iverksattBrevbestillingId" to JournalføringOgBrevdistribusjonMapper.iverksattBrevbestillingId(søknadsbehandling.eksterneIverksettingsteg)?.toString(),
-                                "iverksattJournalpostId" to JournalføringOgBrevdistribusjonMapper.iverksattJournalpostId(søknadsbehandling.eksterneIverksettingsteg)?.toString(),
+                                "iverksattBrevbestillingId" to JournalføringOgBrevdistribusjon.iverksattBrevbestillingId(søknadsbehandling.eksterneIverksettingsteg)?.toString(),
+                                "iverksattJournalpostId" to JournalføringOgBrevdistribusjon.iverksattJournalpostId(søknadsbehandling.eksterneIverksettingsteg)?.toString(),
                             )
                         ),
                         session = session

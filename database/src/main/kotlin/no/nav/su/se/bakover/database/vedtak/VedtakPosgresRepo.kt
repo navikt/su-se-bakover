@@ -5,7 +5,6 @@ import kotliquery.Row
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.database.JournalføringOgBrevdistribusjonMapper
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.beregning.toSnapshot
@@ -22,6 +21,7 @@ import no.nav.su.se.bakover.database.withTransaction
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
@@ -150,7 +150,7 @@ internal class VedtakPosgresRepo(
                 saksbehandler = saksbehandler,
                 attestant = attestant,
                 utbetalingId = utbetalingId,
-                eksterneIverksettingsteg = JournalføringOgBrevdistribusjonMapper.idToObject(
+                eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.fromId(
                     iverksattJournalpostId,
                     iverksattBrevbestillingId
                 )
@@ -163,7 +163,7 @@ internal class VedtakPosgresRepo(
                 beregning = beregning,
                 saksbehandler = saksbehandler,
                 attestant = attestant,
-                eksterneIverksettingsteg = JournalføringOgBrevdistribusjonMapper.idToObject(
+                eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.fromId(
                     iverksattJournalpostId,
                     iverksattBrevbestillingId
                 )
@@ -175,7 +175,7 @@ internal class VedtakPosgresRepo(
                 behandlingsinformasjon = behandlingsinformasjon,
                 saksbehandler = saksbehandler,
                 attestant = attestant,
-                eksterneIverksettingsteg = JournalføringOgBrevdistribusjonMapper.idToObject(
+                eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.fromId(
                     iverksattJournalpostId,
                     iverksattBrevbestillingId
                 )
@@ -229,10 +229,10 @@ internal class VedtakPosgresRepo(
                         "simulering" to objectMapper.writeValueAsString(vedtak.simulering),
                         "beregning" to objectMapper.writeValueAsString(vedtak.beregning.toSnapshot()),
                         "behandlingsinformasjon" to objectMapper.writeValueAsString(vedtak.behandlingsinformasjon),
-                        "iverksattjournalpostId" to JournalføringOgBrevdistribusjonMapper.iverksattJournalpostId(
+                        "iverksattjournalpostId" to JournalføringOgBrevdistribusjon.iverksattJournalpostId(
                             vedtak.eksterneIverksettingsteg
                         )?.toString(),
-                        "iverksattbrevbestillingId" to JournalføringOgBrevdistribusjonMapper.iverksattBrevbestillingId(
+                        "iverksattbrevbestillingId" to JournalføringOgBrevdistribusjon.iverksattBrevbestillingId(
                             vedtak.eksterneIverksettingsteg
                         )?.toString(),
                     ),
@@ -308,10 +308,10 @@ internal class VedtakPosgresRepo(
                         "attestant" to vedtak.attestant,
                         "beregning" to beregning?.let { objectMapper.writeValueAsString(it.toSnapshot()) },
                         "behandlingsinformasjon" to objectMapper.writeValueAsString(vedtak.behandlingsinformasjon),
-                        "iverksattjournalpostId" to JournalføringOgBrevdistribusjonMapper.iverksattJournalpostId(
+                        "iverksattjournalpostId" to JournalføringOgBrevdistribusjon.iverksattJournalpostId(
                             vedtak.eksterneIverksettingsteg
                         )?.toString(),
-                        "iverksattbrevbestillingId" to JournalføringOgBrevdistribusjonMapper.iverksattBrevbestillingId(
+                        "iverksattbrevbestillingId" to JournalføringOgBrevdistribusjon.iverksattBrevbestillingId(
                             vedtak.eksterneIverksettingsteg
                         )?.toString(),
                     ),
