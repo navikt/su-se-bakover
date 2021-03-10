@@ -150,7 +150,7 @@ internal class VedtakPosgresRepo(
                 saksbehandler = saksbehandler,
                 attestant = attestant,
                 utbetalingId = utbetalingId,
-                eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.fromId(
+                journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.fromId(
                     iverksattJournalpostId,
                     iverksattBrevbestillingId
                 )
@@ -163,7 +163,7 @@ internal class VedtakPosgresRepo(
                 beregning = beregning,
                 saksbehandler = saksbehandler,
                 attestant = attestant,
-                eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.fromId(
+                journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.fromId(
                     iverksattJournalpostId,
                     iverksattBrevbestillingId
                 )
@@ -175,7 +175,7 @@ internal class VedtakPosgresRepo(
                 behandlingsinformasjon = behandlingsinformasjon,
                 saksbehandler = saksbehandler,
                 attestant = attestant,
-                eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.fromId(
+                journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.fromId(
                     iverksattJournalpostId,
                     iverksattBrevbestillingId
                 )
@@ -230,10 +230,10 @@ internal class VedtakPosgresRepo(
                         "beregning" to objectMapper.writeValueAsString(vedtak.beregning.toSnapshot()),
                         "behandlingsinformasjon" to objectMapper.writeValueAsString(vedtak.behandlingsinformasjon),
                         "iverksattjournalpostId" to JournalføringOgBrevdistribusjon.iverksattJournalpostId(
-                            vedtak.eksterneIverksettingsteg
+                            vedtak.journalføringOgBrevdistribusjon
                         )?.toString(),
                         "iverksattbrevbestillingId" to JournalføringOgBrevdistribusjon.iverksattBrevbestillingId(
-                            vedtak.eksterneIverksettingsteg
+                            vedtak.journalføringOgBrevdistribusjon
                         )?.toString(),
                     ),
                     tx
@@ -309,10 +309,10 @@ internal class VedtakPosgresRepo(
                         "beregning" to beregning?.let { objectMapper.writeValueAsString(it.toSnapshot()) },
                         "behandlingsinformasjon" to objectMapper.writeValueAsString(vedtak.behandlingsinformasjon),
                         "iverksattjournalpostId" to JournalføringOgBrevdistribusjon.iverksattJournalpostId(
-                            vedtak.eksterneIverksettingsteg
+                            vedtak.journalføringOgBrevdistribusjon
                         )?.toString(),
                         "iverksattbrevbestillingId" to JournalføringOgBrevdistribusjon.iverksattBrevbestillingId(
-                            vedtak.eksterneIverksettingsteg
+                            vedtak.journalføringOgBrevdistribusjon
                         )?.toString(),
                     ),
                     tx

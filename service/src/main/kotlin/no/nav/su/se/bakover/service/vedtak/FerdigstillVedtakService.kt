@@ -148,7 +148,7 @@ internal class FerdigstillVedtakServiceImpl(
                     FerdigstillVedtakService.OpprettetJournalpostForIverksetting(
                         sakId = journalførtVedtak.behandling.sakId,
                         behandlingId = journalførtVedtak.behandling.id,
-                        journalpostId = journalførtVedtak.eksterneIverksettingsteg.journalpostId()!!
+                        journalpostId = journalførtVedtak.journalføringOgBrevdistribusjon.journalpostId()!!
                     )
                 }
         }
@@ -173,7 +173,7 @@ internal class FerdigstillVedtakServiceImpl(
                     kunneIkkeBestilleBrev(vedtak, it)
                 }
                 .map { distribuertVedtak ->
-                    val steg = (distribuertVedtak.eksterneIverksettingsteg as JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev)
+                    val steg = (distribuertVedtak.journalføringOgBrevdistribusjon as JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev)
                     FerdigstillVedtakService.BestiltBrev(
                         sakId = distribuertVedtak.behandling.sakId,
                         behandlingId = distribuertVedtak.behandling.id,
@@ -308,7 +308,7 @@ internal class FerdigstillVedtakServiceImpl(
     ) = FerdigstillVedtakService.KunneIkkeBestilleBrev(
         sakId = vedtak.behandling.sakId,
         behandlingId = vedtak.behandling.id,
-        journalpostId = vedtak.eksterneIverksettingsteg.journalpostId(),
+        journalpostId = vedtak.journalføringOgBrevdistribusjon.journalpostId(),
         grunn = error.javaClass.simpleName
     )
 

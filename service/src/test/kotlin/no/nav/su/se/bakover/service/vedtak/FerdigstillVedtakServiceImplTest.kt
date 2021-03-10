@@ -486,7 +486,7 @@ internal class FerdigstillVedtakServiceImplTest {
             behandlingMetrics = behandlingMetricsMock
         ).journalførOgLagre(vedtak)
 
-        response shouldBe vedtak.copy(eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.Journalført(iverksattJournalpostId)).right()
+        response shouldBe vedtak.copy(journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(iverksattJournalpostId)).right()
 
         inOrder(
             personServiceMock,
@@ -508,7 +508,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 },
                 argThat { it shouldBe vedtak.behandling.saksnummer }
             )
-            verify(vedtakRepoMock).lagre(vedtak.copy(eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.Journalført(iverksattJournalpostId)))
+            verify(vedtakRepoMock).lagre(vedtak.copy(journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(iverksattJournalpostId)))
             verify(behandlingMetricsMock).incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.JOURNALFØRT)
         }
     }
@@ -594,7 +594,7 @@ internal class FerdigstillVedtakServiceImplTest {
             behandlingMetrics = behandlingMetricsMock
         ).distribuerOgLagre(vedtak)
 
-        response shouldBe vedtak.copy(eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(iverksattJournalpostId, iverksattBrevbestillingId)).right()
+        response shouldBe vedtak.copy(journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(iverksattJournalpostId, iverksattBrevbestillingId)).right()
 
         inOrder(
             brevServiceMock,
@@ -602,7 +602,7 @@ internal class FerdigstillVedtakServiceImplTest {
             behandlingMetricsMock,
         ) {
             verify(brevServiceMock).distribuerBrev(iverksattJournalpostId)
-            verify(vedtakRepoMock).lagre(vedtak.copy(eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(iverksattJournalpostId, iverksattBrevbestillingId)))
+            verify(vedtakRepoMock).lagre(vedtak.copy(journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(iverksattJournalpostId, iverksattBrevbestillingId)))
             verify(behandlingMetricsMock).incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.DISTRIBUERT_BREV)
         }
     }
@@ -775,7 +775,7 @@ internal class FerdigstillVedtakServiceImplTest {
             verify(brevServiceMock).journalførBrev(any(), any())
             verify(vedtakRepoMock).lagre(
                 argThat {
-                    it shouldBe avslagsVedtak.copy(eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.Journalført(iverksattJournalpostId))
+                    it shouldBe avslagsVedtak.copy(journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(iverksattJournalpostId))
                 }
             )
             verify(behandlingMetricsMock).incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.JOURNALFØRT)
@@ -836,7 +836,7 @@ internal class FerdigstillVedtakServiceImplTest {
             verify(brevServiceMock).distribuerBrev(iverksattJournalpostId)
             verify(vedtakRepoMock).lagre(
                 argThat {
-                    it shouldBe innvilgelseUtenBrevbestilling.copy(eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(iverksattJournalpostId, iverksattBrevbestillingId))
+                    it shouldBe innvilgelseUtenBrevbestilling.copy(journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(iverksattJournalpostId, iverksattBrevbestillingId))
                 }
             )
             verify(behandlingMetricsMock).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.DISTRIBUERT_BREV)
@@ -980,8 +980,8 @@ internal class FerdigstillVedtakServiceImplTest {
             )
         )
 
-    private fun journalførtAvslagsVedtak() = avslagsVedtak().copy(eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.Journalført(iverksattJournalpostId))
-    private fun journalførtOgDistribuertAvslagsVedtak() = avslagsVedtak().copy(eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(iverksattJournalpostId, iverksattBrevbestillingId))
+    private fun journalførtAvslagsVedtak() = avslagsVedtak().copy(journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(iverksattJournalpostId))
+    private fun journalførtOgDistribuertAvslagsVedtak() = avslagsVedtak().copy(journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(iverksattJournalpostId, iverksattBrevbestillingId))
 
     private fun innvilgetVedtak() =
         Vedtak.InnvilgetStønad.fromSøknadsbehandling(
@@ -1009,8 +1009,8 @@ internal class FerdigstillVedtakServiceImplTest {
             )
         )
 
-    private fun journalførtInnvilgetVedtak() = innvilgetVedtak().copy(eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.Journalført(iverksattJournalpostId))
-    private fun journalførtOgDistribuertInnvilgetVedtak() = innvilgetVedtak().copy(eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(iverksattJournalpostId, iverksattBrevbestillingId))
+    private fun journalførtInnvilgetVedtak() = innvilgetVedtak().copy(journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(iverksattJournalpostId))
+    private fun journalførtOgDistribuertInnvilgetVedtak() = innvilgetVedtak().copy(journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(iverksattJournalpostId, iverksattBrevbestillingId))
 
     private val person = Person(
         ident = Ident(

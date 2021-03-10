@@ -27,7 +27,7 @@ sealed class Vedtak : Visitable<VedtakVisitor> {
     abstract val opprettet: Tidspunkt
     abstract val behandling: Behandling
     abstract val behandlingsinformasjon: Behandlingsinformasjon
-    abstract val eksterneIverksettingsteg: JournalføringOgBrevdistribusjon
+    abstract val journalføringOgBrevdistribusjon: JournalføringOgBrevdistribusjon
 
     abstract fun journalfør(journalfør: () -> Either<JournalføringOgBrevdistribusjonFeil.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<JournalføringOgBrevdistribusjonFeil.KunneIkkeJournalføre, Vedtak>
     abstract fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<JournalføringOgBrevdistribusjonFeil.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<JournalføringOgBrevdistribusjonFeil.KunneIkkeDistribuereBrev, Vedtak>
@@ -43,7 +43,7 @@ sealed class Vedtak : Visitable<VedtakVisitor> {
         val saksbehandler: NavIdentBruker.Saksbehandler,
         val attestant: NavIdentBruker.Attestant,
         val utbetalingId: UUID30,
-        override val eksterneIverksettingsteg: JournalføringOgBrevdistribusjon,
+        override val journalføringOgBrevdistribusjon: JournalføringOgBrevdistribusjon,
     ) : Vedtak() {
         companion object {
             fun fromSøknadsbehandling(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget) = InnvilgetStønad(
@@ -55,7 +55,7 @@ sealed class Vedtak : Visitable<VedtakVisitor> {
                 saksbehandler = søknadsbehandling.saksbehandler,
                 attestant = søknadsbehandling.attestering.attestant,
                 utbetalingId = søknadsbehandling.utbetalingId,
-                eksterneIverksettingsteg = søknadsbehandling.eksterneIverksettingsteg,
+                journalføringOgBrevdistribusjon = søknadsbehandling.eksterneIverksettingsteg,
             )
 
             fun fromRevurdering(revurdering: IverksattRevurdering) = InnvilgetStønad(
@@ -67,7 +67,7 @@ sealed class Vedtak : Visitable<VedtakVisitor> {
                 saksbehandler = revurdering.saksbehandler,
                 attestant = revurdering.attestant,
                 utbetalingId = revurdering.utbetalingId,
-                eksterneIverksettingsteg = revurdering.eksterneIverksettingsteg
+                journalføringOgBrevdistribusjon = revurdering.eksterneIverksettingsteg
             )
         }
 
@@ -76,12 +76,12 @@ sealed class Vedtak : Visitable<VedtakVisitor> {
         }
 
         override fun journalfør(journalfør: () -> Either<JournalføringOgBrevdistribusjonFeil.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<JournalføringOgBrevdistribusjonFeil.KunneIkkeJournalføre, InnvilgetStønad> {
-            return eksterneIverksettingsteg.journalfør(journalfør).map { copy(eksterneIverksettingsteg = it) }
+            return journalføringOgBrevdistribusjon.journalfør(journalfør).map { copy(journalføringOgBrevdistribusjon = it) }
         }
 
         override fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<JournalføringOgBrevdistribusjonFeil.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<JournalføringOgBrevdistribusjonFeil.KunneIkkeDistribuereBrev, InnvilgetStønad> {
-            return eksterneIverksettingsteg.distribuerBrev(distribuerBrev)
-                .map { copy(eksterneIverksettingsteg = it) }
+            return journalføringOgBrevdistribusjon.distribuerBrev(distribuerBrev)
+                .map { copy(journalføringOgBrevdistribusjon = it) }
         }
     }
 
@@ -97,7 +97,7 @@ sealed class Vedtak : Visitable<VedtakVisitor> {
                     beregning = avslag.beregning,
                     saksbehandler = avslag.saksbehandler,
                     attestant = avslag.attestering.attestant,
-                    eksterneIverksettingsteg = avslag.eksterneIverksettingsteg,
+                    journalføringOgBrevdistribusjon = avslag.eksterneIverksettingsteg,
                 )
 
             fun fromSøknadsbehandlingUtenBeregning(avslag: Søknadsbehandling.Iverksatt.Avslag.UtenBeregning) =
@@ -106,7 +106,7 @@ sealed class Vedtak : Visitable<VedtakVisitor> {
                     behandlingsinformasjon = avslag.behandlingsinformasjon,
                     saksbehandler = avslag.saksbehandler,
                     attestant = avslag.attestering.attestant,
-                    eksterneIverksettingsteg = avslag.eksterneIverksettingsteg,
+                    journalføringOgBrevdistribusjon = avslag.eksterneIverksettingsteg,
                 )
         }
 
@@ -117,7 +117,7 @@ sealed class Vedtak : Visitable<VedtakVisitor> {
             override val behandlingsinformasjon: Behandlingsinformasjon,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val attestant: NavIdentBruker.Attestant,
-            override val eksterneIverksettingsteg: JournalføringOgBrevdistribusjon,
+            override val journalføringOgBrevdistribusjon: JournalføringOgBrevdistribusjon,
         ) : AvslåttStønad() {
             override fun accept(visitor: VedtakVisitor) {
                 visitor.visit(this)
@@ -127,12 +127,12 @@ sealed class Vedtak : Visitable<VedtakVisitor> {
             override val avslagsgrunner: List<Avslagsgrunn> = behandlingsinformasjon.utledAvslagsgrunner()
 
             override fun journalfør(journalfør: () -> Either<JournalføringOgBrevdistribusjonFeil.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<JournalføringOgBrevdistribusjonFeil.KunneIkkeJournalføre, UtenBeregning> {
-                return eksterneIverksettingsteg.journalfør(journalfør).map { copy(eksterneIverksettingsteg = it) }
+                return journalføringOgBrevdistribusjon.journalfør(journalfør).map { copy(journalføringOgBrevdistribusjon = it) }
             }
 
             override fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<JournalføringOgBrevdistribusjonFeil.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<JournalføringOgBrevdistribusjonFeil.KunneIkkeDistribuereBrev, UtenBeregning> {
-                return eksterneIverksettingsteg.distribuerBrev(distribuerBrev)
-                    .map { copy(eksterneIverksettingsteg = it) }
+                return journalføringOgBrevdistribusjon.distribuerBrev(distribuerBrev)
+                    .map { copy(journalføringOgBrevdistribusjon = it) }
             }
         }
 
@@ -144,7 +144,7 @@ sealed class Vedtak : Visitable<VedtakVisitor> {
             val beregning: Beregning,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val attestant: NavIdentBruker.Attestant,
-            override val eksterneIverksettingsteg: JournalføringOgBrevdistribusjon,
+            override val journalføringOgBrevdistribusjon: JournalføringOgBrevdistribusjon,
         ) : AvslåttStønad() {
             private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
                 when (val vurdering = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
@@ -160,12 +160,12 @@ sealed class Vedtak : Visitable<VedtakVisitor> {
             override val avslagsgrunner: List<Avslagsgrunn> = behandlingsinformasjon.utledAvslagsgrunner() + avslagsgrunnForBeregning
 
             override fun journalfør(journalfør: () -> Either<JournalføringOgBrevdistribusjonFeil.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<JournalføringOgBrevdistribusjonFeil.KunneIkkeJournalføre, MedBeregning> {
-                return eksterneIverksettingsteg.journalfør(journalfør).map { copy(eksterneIverksettingsteg = it) }
+                return journalføringOgBrevdistribusjon.journalfør(journalfør).map { copy(journalføringOgBrevdistribusjon = it) }
             }
 
             override fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<JournalføringOgBrevdistribusjonFeil.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<JournalføringOgBrevdistribusjonFeil.KunneIkkeDistribuereBrev, MedBeregning> {
-                return eksterneIverksettingsteg.distribuerBrev(distribuerBrev)
-                    .map { copy(eksterneIverksettingsteg = it) }
+                return journalføringOgBrevdistribusjon.distribuerBrev(distribuerBrev)
+                    .map { copy(journalføringOgBrevdistribusjon = it) }
             }
         }
     }

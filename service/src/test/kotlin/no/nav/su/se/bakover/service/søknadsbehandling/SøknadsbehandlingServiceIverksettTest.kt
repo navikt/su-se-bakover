@@ -308,10 +308,10 @@ internal class SøknadsbehandlingServiceIverksettTest {
 
         val ferdigstillVedtakService = mock<FerdigstillVedtakService>() { mock ->
             doAnswer { it ->
-                (it.arguments[0] as Vedtak.AvslåttStønad.MedBeregning).copy(eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.Journalført(iverksattJournalpostId)).right()
+                (it.arguments[0] as Vedtak.AvslåttStønad.MedBeregning).copy(journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(iverksattJournalpostId)).right()
             }.whenever(mock).journalførOgLagre(any())
             doAnswer {
-                (it.arguments[0] as Vedtak.AvslåttStønad.MedBeregning).copy(eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(iverksattJournalpostId, iverksattBrevbestillingId)).right()
+                (it.arguments[0] as Vedtak.AvslåttStønad.MedBeregning).copy(journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(iverksattJournalpostId, iverksattBrevbestillingId)).right()
             }.whenever(mock).distribuerOgLagre(any())
             doAnswer {
                 (it.arguments[0] as Vedtak.AvslåttStønad.MedBeregning).right()

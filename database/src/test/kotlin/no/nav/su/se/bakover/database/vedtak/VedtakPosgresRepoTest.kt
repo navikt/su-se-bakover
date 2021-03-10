@@ -84,7 +84,7 @@ internal class VedtakPosgresRepoTest {
                 oppgaveId = OppgaveId(""),
                 attestant = søknadsbehandlingVedtak.attestant,
                 utbetalingId = søknadsbehandlingVedtak.utbetalingId,
-                eksterneIverksettingsteg = søknadsbehandlingVedtak.eksterneIverksettingsteg
+                eksterneIverksettingsteg = søknadsbehandlingVedtak.journalføringOgBrevdistribusjon
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 
@@ -133,14 +133,14 @@ internal class VedtakPosgresRepoTest {
             vedtakRepo.lagre(vedtak)
             vedtakRepo.lagre(
                 vedtak.copy(
-                    eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
+                    journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
                         journalpostId = JournalpostId("jp"),
                         brevbestillingId = BrevbestillingId(("bi"))
                     )
                 )
             )
             vedtakRepo.hent(vedtak.id)!! shouldBe vedtak.copy(
-                eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
+                journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
                     journalpostId = JournalpostId("jp"),
                     brevbestillingId = BrevbestillingId(("bi"))
                 )
@@ -154,14 +154,14 @@ internal class VedtakPosgresRepoTest {
             vedtakRepo.lagre(vedtak)
             vedtakRepo.lagre(
                 vedtak.copy(
-                    eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
+                    journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
                         journalpostId = JournalpostId("jp"),
                         brevbestillingId = BrevbestillingId(("bi"))
                     )
                 )
             )
             vedtakRepo.hent(vedtak.id)!! shouldBe vedtak.copy(
-                eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
+                journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
                     journalpostId = JournalpostId("jp"),
                     brevbestillingId = BrevbestillingId(("bi"))
                 )
