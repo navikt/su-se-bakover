@@ -42,30 +42,30 @@ sealed class JournalføringOgBrevdistribusjon {
     }
 
     abstract fun journalpostId(): JournalpostId?
-    fun journalfør(journalfør: () -> Either<JournalføringOgBrevdistribusjonFeil.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<JournalføringOgBrevdistribusjonFeil.KunneIkkeJournalføre, Journalført> {
+    fun journalfør(journalfør: () -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre, Journalført> {
         return when (this) {
             is IkkeJournalførtEllerDistribuert -> {
                 journalfør().map { medJournalpost(it) }
             }
             is Journalført -> {
-                JournalføringOgBrevdistribusjonFeil.KunneIkkeJournalføre.AlleredeJournalført(journalpostId).left()
+                KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.AlleredeJournalført(journalpostId).left()
             }
             is JournalførtOgDistribuertBrev -> {
-                JournalføringOgBrevdistribusjonFeil.KunneIkkeJournalføre.AlleredeJournalført(journalpostId).left()
+                KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.AlleredeJournalført(journalpostId).left()
             }
         }
     }
 
-    fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<JournalføringOgBrevdistribusjonFeil.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<JournalføringOgBrevdistribusjonFeil.KunneIkkeDistribuereBrev, JournalførtOgDistribuertBrev> {
+    fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev, JournalførtOgDistribuertBrev> {
         return when (this) {
             is IkkeJournalførtEllerDistribuert -> {
-                JournalføringOgBrevdistribusjonFeil.KunneIkkeDistribuereBrev.MåJournalføresFørst.left()
+                KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.MåJournalføresFørst.left()
             }
             is Journalført -> {
                 distribuerBrev(journalpostId).map { this.medDistribuertBrev(it) }
             }
             is JournalførtOgDistribuertBrev -> {
-                JournalføringOgBrevdistribusjonFeil.KunneIkkeDistribuereBrev.AlleredeDistribuertBrev(journalpostId).left()
+                KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.AlleredeDistribuertBrev(journalpostId).left()
             }
         }
     }
@@ -91,14 +91,14 @@ sealed class JournalføringOgBrevdistribusjon {
     }
 }
 
-sealed class JournalføringOgBrevdistribusjonFeil {
-    sealed class KunneIkkeDistribuereBrev : JournalføringOgBrevdistribusjonFeil() {
+sealed class KunneIkkeJournalføreOgDistribuereBrev {
+    sealed class KunneIkkeDistribuereBrev : KunneIkkeJournalføreOgDistribuereBrev() {
         object MåJournalføresFørst : KunneIkkeDistribuereBrev()
         data class AlleredeDistribuertBrev(val journalpostId: JournalpostId) : KunneIkkeDistribuereBrev()
         data class FeilVedDistribueringAvBrev(val journalpostId: JournalpostId) : KunneIkkeDistribuereBrev()
     }
 
-    sealed class KunneIkkeJournalføre : JournalføringOgBrevdistribusjonFeil() {
+    sealed class KunneIkkeJournalføre : KunneIkkeJournalføreOgDistribuereBrev() {
         data class AlleredeJournalført(val journalpostId: JournalpostId) : KunneIkkeJournalføre()
         object FeilVedJournalføring : KunneIkkeJournalføre()
     }
