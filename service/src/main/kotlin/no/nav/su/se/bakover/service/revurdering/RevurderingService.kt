@@ -70,6 +70,7 @@ sealed class KunneIkkeBeregneOgSimulereRevurdering {
     object KanIkkeVelgeSisteMånedVedNedgangIStønaden : KunneIkkeBeregneOgSimulereRevurdering()
     data class UgyldigPeriode(val subError: Periode.UgyldigPeriode) : KunneIkkeBeregneOgSimulereRevurdering()
     data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) : KunneIkkeBeregneOgSimulereRevurdering()
+    object UfullstendigBehandlingsinformasjon : KunneIkkeBeregneOgSimulereRevurdering()
 }
 
 sealed class KunneIkkeSendeRevurderingTilAttestering {
