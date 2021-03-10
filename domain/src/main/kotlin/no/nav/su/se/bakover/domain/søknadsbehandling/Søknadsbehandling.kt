@@ -24,7 +24,6 @@ import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.util.UUID
 
 sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisitor> {
-    abstract val opprettet: Tidspunkt
     abstract val søknad: Søknad.Journalført.MedOppgave
     abstract val behandlingsinformasjon: Behandlingsinformasjon
     abstract val status: BehandlingsStatus

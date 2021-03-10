@@ -31,7 +31,6 @@ import java.util.UUID
 import kotlin.math.abs
 
 sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
-    abstract val opprettet: Tidspunkt
     abstract val tilRevurdering: Vedtak.InnvilgetStønad
     abstract val periode: Periode
     abstract val saksbehandler: Saksbehandler
