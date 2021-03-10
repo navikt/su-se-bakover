@@ -7,7 +7,7 @@ import java.time.LocalDate
 class VedtakServiceImpl(
     private val vedtakRepo: VedtakRepo
 ) : VedtakService {
-    override fun hentAktive(fomDato: LocalDate) : List<Vedtak.InnvilgetStønad> {
+    override fun hentAktive(fomDato: LocalDate): List<Vedtak.InnvilgetStønad> {
         return vedtakRepo.hentAktive(fomDato)
     }
 }

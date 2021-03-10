@@ -241,7 +241,7 @@ internal fun Application.susebakover(
 
         authenticate("frikort") {
             frikortRoutes(services.søknadsbehandling)
-            frikortVedtakRoutes(databaseRepos.vedtakRepo)
+            frikortVedtakRoutes(services.vedtakService)
         }
 
         authenticate("jwt") {

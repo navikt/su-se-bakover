@@ -102,6 +102,18 @@ internal class VedtakPosgresRepoTest {
     }
 
     @Test
+    fun `hent alle aktive vedtak`() {
+        withMigratedDb {
+            val (søknadsbehandling, _) = testDataHelper.nyIverksattInnvilget()
+            val søknadsbehandlingVedtak = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling)
+            vedtakRepo.lagre(søknadsbehandlingVedtak)
+
+            val actual = vedtakRepo.hentAktive(søknadsbehandlingVedtak.periode.getFraOgMed())
+            actual.first() shouldBe søknadsbehandlingVedtak
+        }
+    }
+
+    @Test
     fun `oppdaterer koblingstabell mellom søknadsbehandling og vedtak ved lagring av vedtak for avslått søknadsbehandling`() {
         withMigratedDb {
             val søknadsbehandling = testDataHelper.nyIverksattAvslagMedBeregning(journalførtIverksettingForAvslag)

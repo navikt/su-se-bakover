@@ -156,14 +156,14 @@ internal class VedtakPosgresRepo(
                 }
         }
 
-    override fun hentAktive(dato: LocalDate, session: Session?) : List<Vedtak.InnvilgetStønad> =
+    override fun hentAktive(dato: LocalDate, session: Session?): List<Vedtak.InnvilgetStønad> =
         dataSource.withSession(session) { s ->
             """
             select * from vedtak 
-            where behandling->>status = 'IVERKSATT_INNVILGET'
-             and (behandling->beregning->'periode'->>'fraOgMed')::DATE <= :dato
-             and (behandling->beregning->'periode'->>'tilOgMed')::DATE >= :dato
-            order by (behandling->beregning->'periode'->>'fraOgMed')::DATE, (behandling->beregning->'periode'->>'tilOgMed')::DATE, behandling->beregning->opprettet
+            where fraogmed <= :dato
+              and tilogmed >= :dato
+            order by fraogmed, tilogmed, opprettet
+
             """.trimIndent()
                 .hentListe(mapOf("dato" to dato), s) {
                     it.toVedtak(s) as Vedtak.InnvilgetStønad
