@@ -366,7 +366,7 @@ internal class VedtakPosgresRepo(
                     :sakId,
                     :soknadsbehandlingId,
                     :revurderingId
-                )
+                ) ON CONFLICT ON CONSTRAINT unique_vedtakid DO NOTHING
         """.trimIndent()
             .oppdatering(
                 map,

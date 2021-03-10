@@ -168,4 +168,31 @@ internal class VedtakPosgresRepoTest {
             )
         }
     }
+
+    @Test
+    fun `kobler ikke den samme behandlingen og vedtaket flere ganger ved oppdatering av vedtak`() {
+        withMigratedDb {
+            val (søknadsbehandling, _) = testDataHelper.nyIverksattInnvilget()
+            val vedtak = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling)
+
+            vedtakRepo.lagre(vedtak)
+            vedtakRepo.lagre(
+                vedtak.copy(
+                    journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
+                        journalpostId = JournalpostId("jp"),
+                        brevbestillingId = BrevbestillingId(("bi"))
+                    )
+                )
+            )
+
+            datasource.withSession { session ->
+                """
+                        SELECT count(*) from behandling_vedtak where vedtakId = :vedtakId
+                """.trimIndent()
+                    .hent(mapOf("vedtakId" to vedtak.id), session) {
+                        it.int("count") shouldBe 1
+                    }
+            }
+        }
+    }
 }
