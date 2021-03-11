@@ -82,11 +82,18 @@ internal fun Application.configureAuthentication(
             }
         }
         jwt("frikort") {
-            verifier(jwkStsProvider, jwkConfig.getString("issuer"))
+            verifier(jwkStsProvider, stsJwkConfig.getString("issuer"))
             realm = "su-se-bakover"
             validate { credentials ->
-                // TODO her må vi validere. Finne regler for autorisasjon
-                JWTPrincipal(credentials.payload)
+                try {
+                    require(credentials.payload.subject == applicationConfig.frikort.clientId) {
+                        "Frikort Auth: Invalid subject"
+                    }
+                    JWTPrincipal(credentials.payload)
+                } catch (e: Throwable) {
+                    log.debug("Frikort Auth: Validation error during authentication", e)
+                    null
+                }
             }
         }
     }

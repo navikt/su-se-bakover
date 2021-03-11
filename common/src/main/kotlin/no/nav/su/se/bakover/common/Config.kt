@@ -42,6 +42,7 @@ data class ApplicationConfig(
     val pdfgenLocal: Boolean,
     val serviceUser: ServiceUserConfig,
     val azure: AzureConfig,
+    val frikort: FrikortConfig,
     val oppdrag: OppdragConfig,
     val database: DatabaseConfig,
     val clientsConfig: ClientsConfig,
@@ -76,6 +77,20 @@ data class ApplicationConfig(
             fun createLocalConfig() = ServiceUserConfig(
                 username = "unused",
                 password = "unused",
+            )
+        }
+    }
+
+    data class FrikortConfig(
+        val clientId: String,
+    ) {
+        companion object {
+            fun createFromEnvironmentVariables() = FrikortConfig(
+                clientId = getEnvironmentVariableOrThrow("FRIKORT_CLIENT_ID")
+            )
+
+            fun createLocalConfig() = FrikortConfig(
+                clientId = getEnvironmentVariableOrDefault("FRIKORT_CLIENT_ID", "frikort")
             )
         }
     }
@@ -385,6 +400,7 @@ data class ApplicationConfig(
             pdfgenLocal = false,
             serviceUser = ServiceUserConfig.createFromEnvironmentVariables(),
             azure = AzureConfig.createFromEnvironmentVariables(),
+            frikort = FrikortConfig.createFromEnvironmentVariables(),
             oppdrag = OppdragConfig.createFromEnvironmentVariables(),
             database = DatabaseConfig.createFromEnvironmentVariables(),
             clientsConfig = ClientsConfig.createFromEnvironmentVariables(),
@@ -399,6 +415,7 @@ data class ApplicationConfig(
             pdfgenLocal = getEnvironmentVariableOrDefault("PDFGEN_LOCAL", "false").toBoolean(),
             serviceUser = ServiceUserConfig.createLocalConfig(),
             azure = AzureConfig.createLocalConfig(),
+            frikort = FrikortConfig.createLocalConfig(),
             oppdrag = OppdragConfig.createLocalConfig(),
             database = DatabaseConfig.createLocalConfig(),
             clientsConfig = ClientsConfig.createLocalConfig(),

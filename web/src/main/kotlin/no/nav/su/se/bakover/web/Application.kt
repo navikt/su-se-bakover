@@ -45,7 +45,6 @@ import no.nav.su.se.bakover.service.AccessCheckProxy
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.Tilgangssjekkfeil
-import no.nav.su.se.bakover.web.external.frikortRoutes
 import no.nav.su.se.bakover.web.external.frikortVedtakRoutes
 import no.nav.su.se.bakover.web.features.Authorization
 import no.nav.su.se.bakover.web.features.AuthorizationException
@@ -240,7 +239,6 @@ internal fun Application.susebakover(
         toggleRoutes(services.toggles)
 
         authenticate("frikort") {
-            frikortRoutes(services.søknadsbehandling)
             frikortVedtakRoutes(services.vedtakService)
         }
 
