@@ -38,6 +38,7 @@ interface RevurderingRepo {
     fun hent(id: UUID): Revurdering?
     fun hent(id: UUID, session: Session): Revurdering?
     fun hentRevurderingForUtbetaling(utbetalingId: UUID30): IverksattRevurdering?
+    fun hentEventuellTidligereAttestering(id: UUID): Attestering?
     fun lagre(revurdering: Revurdering)
 }
 
@@ -48,6 +49,7 @@ enum class RevurderingsType {
     SIMULERT,
     TIL_ATTESTERING,
     IVERKSATT,
+    UNDERKJENT,
 }
 
 internal class RevurderingPostgresRepo(
@@ -81,6 +83,16 @@ internal class RevurderingPostgresRepo(
                 }
         }
 
+    override fun hentEventuellTidligereAttestering(id: UUID): Attestering? =
+        dataSource.withSession { session ->
+            "select * from revurdering where id = :id"
+                .hent(mapOf("id" to id), session) { row ->
+                    row.stringOrNull("attestering")?.let {
+                        objectMapper.readValue(it)
+                    }
+                }
+        }
+
     override fun lagre(revurdering: Revurdering) {
         when (revurdering) {
             is OpprettetRevurdering -> lagre(revurdering)
@@ -88,7 +100,7 @@ internal class RevurderingPostgresRepo(
             is SimulertRevurdering -> lagre(revurdering)
             is RevurderingTilAttestering -> lagre(revurdering)
             is IverksattRevurdering -> lagre(revurdering)
-            is UnderkjentRevurdering -> TODO()
+            is UnderkjentRevurdering -> lagre(revurdering)
         }
     }
 
@@ -122,6 +134,17 @@ internal class RevurderingPostgresRepo(
         val iverksattBrevbestillingId = stringOrNull("iverksattBrevbestillingId")?.let { BrevbestillingId(it) }
 
         return when (RevurderingsType.valueOf(string("revurderingsType"))) {
+            RevurderingsType.UNDERKJENT -> UnderkjentRevurdering(
+                id = id,
+                periode = periode,
+                opprettet = opprettet,
+                tilRevurdering = tilRevurdering,
+                saksbehandler = Saksbehandler(saksbehandler),
+                beregning = beregning!!,
+                simulering = simulering!!,
+                oppgaveId = OppgaveId(oppgaveId!!),
+                attestering = attestering!!,
+            )
             RevurderingsType.IVERKSATT -> IverksattRevurdering(
                 id = id,
                 periode = periode,
@@ -340,6 +363,30 @@ internal class RevurderingPostgresRepo(
                     "iverksattbrevbestillingid" to JournalføringOgBrevdistribusjon.iverksattBrevbestillingId(
                         revurdering.eksterneIverksettingsteg
                     )?.toString(),
+                ),
+                session
+            )
+        }
+
+    private fun lagre(revurdering: UnderkjentRevurdering) =
+        dataSource.withSession { session ->
+            (
+                """
+                    update
+                        revurdering
+                    set
+                        revurderingsType = :revurderingsType,
+                        oppgaveId = :oppgaveId,
+                        attestering = to_json(:attestering::json)
+                    where
+                        id = :id
+                """.trimIndent()
+                ).oppdatering(
+                mapOf(
+                    "id" to revurdering.id,
+                    "oppgaveId" to revurdering.oppgaveId.toString(),
+                    "revurderingsType" to RevurderingsType.UNDERKJENT.toString(),
+                    "attestering" to objectMapper.writeValueAsString(revurdering.attestering),
                 ),
                 session
             )

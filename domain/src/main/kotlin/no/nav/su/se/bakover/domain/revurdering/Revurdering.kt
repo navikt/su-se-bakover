@@ -319,6 +319,17 @@ data class UnderkjentRevurdering(
         visitor.visit(this)
     }
 
+    fun tilAttestering(oppgaveId: OppgaveId, saksbehandler: Saksbehandler) = RevurderingTilAttestering(
+        id = id,
+        periode = periode,
+        opprettet = opprettet,
+        tilRevurdering = tilRevurdering,
+        saksbehandler = saksbehandler,
+        beregning = beregning,
+        simulering = simulering,
+        oppgaveId = oppgaveId,
+    )
+
     fun nyOppgaveId(nyOppgaveId: OppgaveId): UnderkjentRevurdering {
         return this.copy(oppgaveId = nyOppgaveId)
     }

@@ -500,6 +500,7 @@ internal class RevurderingServiceImplTest {
         inOrder(revurderingRepoMock, personServiceMock, oppgaveServiceMock, eventObserver) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
             verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
+            verify(revurderingRepoMock).hentEventuellTidligereAttestering(argThat { it shouldBe revurderingId })
             verify(oppgaveServiceMock).opprettOppgave(
                 argThat {
                     it shouldBe OppgaveConfig.AttesterRevurdering(
@@ -583,6 +584,7 @@ internal class RevurderingServiceImplTest {
         }
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn simulertRevurdering
+            on { hentEventuellTidligereAttestering(any()) } doReturn mock()
         }
         val personServiceMock = mock<PersonService> {
             on { hentAktørId(any()) } doReturn aktørId.right()
@@ -605,6 +607,8 @@ internal class RevurderingServiceImplTest {
         inOrder(revurderingRepoMock, personServiceMock) {
             verify(revurderingRepoMock).hent(revurderingId)
             verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
+            verify(revurderingRepoMock).hentEventuellTidligereAttestering(revurderingId)
+
             verifyNoMoreInteractions(revurderingRepoMock, personServiceMock)
         }
     }
