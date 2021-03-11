@@ -109,5 +109,11 @@ sealed class KunneIkkeUnderkjenneRevurdering {
     object FantIkkeRevurdering : KunneIkkeUnderkjenneRevurdering()
     object KunneIkkeLageBrevutkast : KunneIkkeUnderkjenneRevurdering()
     object FantIkkePerson : KunneIkkeUnderkjenneRevurdering()
+    object FantIkkeAktørId : KunneIkkeUnderkjenneRevurdering()
     object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeUnderkjenneRevurdering()
+    data class UgyldigTilstand(
+        val fra: KClass<out Revurdering>,
+        val til: KClass<out Revurdering>
+    ) : KunneIkkeUnderkjenneRevurdering()
+    object KunneIkkeOppretteOppgave: KunneIkkeUnderkjenneRevurdering()
 }

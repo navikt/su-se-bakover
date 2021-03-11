@@ -256,8 +256,20 @@ data class RevurderingTilAttestering(
         }
     }
 
-    fun underkjenn() {
-        TODO()
+    fun underkjenn(
+        attestering: Attestering
+    ): UnderkjentRevurdering {
+        return UnderkjentRevurdering(
+            id = id,
+            periode = periode,
+            opprettet = opprettet,
+            tilRevurdering = tilRevurdering,
+            saksbehandler = saksbehandler,
+            beregning = beregning,
+            simulering = simulering,
+            oppgaveId = oppgaveId,
+            attestering = attestering
+        )
     }
 }
 
@@ -305,6 +317,10 @@ data class UnderkjentRevurdering(
 ) : Revurdering() {
     override fun accept(visitor: RevurderingVisitor) {
         visitor.visit(this)
+    }
+
+    fun nyOppgaveId(nyOppgaveId: OppgaveId): UnderkjentRevurdering{
+        return this.copy(oppgaveId = nyOppgaveId)
     }
 }
 

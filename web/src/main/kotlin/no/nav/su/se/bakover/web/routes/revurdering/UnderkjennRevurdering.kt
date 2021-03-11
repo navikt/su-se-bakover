@@ -21,7 +21,10 @@ import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.routes.behandling.enumContains
+import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresponser.fantIkkeAktørId
 import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresponser.fantIkkeRevurdering
+import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresponser.kunneIkkeOppretteOppgave
+import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withRevurderingId
 
@@ -70,6 +73,12 @@ internal fun Route.underkjennRevurdering(
                                         KunneIkkeUnderkjenneRevurdering.KunneIkkeLageBrevutkast -> HttpStatusCode.InternalServerError.errorJson(
                                             "Kunne ikke lage brevutkast",
                                             "kunne_ikke_lage_brevutkast",
+                                        )
+                                        KunneIkkeUnderkjenneRevurdering.FantIkkeAktørId -> fantIkkeAktørId
+                                        KunneIkkeUnderkjenneRevurdering.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
+                                        is KunneIkkeUnderkjenneRevurdering.UgyldigTilstand -> ugyldigTilstand(
+                                            it.fra,
+                                            it.til
                                         )
                                     }
                                     call.svar(resultat)
