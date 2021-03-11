@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -288,6 +289,22 @@ data class IverksattRevurdering(
 
     override fun beregn(fradrag: List<Fradrag>): Either<KunneIkkeBeregneRevurdering, BeregnetRevurdering> {
         throw RuntimeException("Skal ikke kunne beregne når revurderingen er til attestering")
+    }
+}
+
+data class UnderkjentRevurdering(
+    override val id: UUID,
+    override val periode: Periode,
+    override val opprettet: Tidspunkt,
+    override val tilRevurdering: Vedtak.InnvilgetStønad,
+    override val saksbehandler: Saksbehandler,
+    val beregning: Beregning,
+    val simulering: Simulering,
+    override val oppgaveId: OppgaveId,
+    val attestering: Attestering
+) : Revurdering() {
+    override fun accept(visitor: RevurderingVisitor) {
+        visitor.visit(this)
     }
 }
 

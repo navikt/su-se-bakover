@@ -22,7 +22,7 @@ import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withRevurderingId
 
 @KtorExperimentalAPI
-internal fun Route.brutkastForRevurdering(
+internal fun Route.brevutkastForRevurdering(
     revurderingService: RevurderingService
 ) {
     authorize(Brukerrolle.Saksbehandler) {

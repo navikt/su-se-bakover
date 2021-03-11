@@ -1,12 +1,16 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
+import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
+import no.nav.su.se.bakover.web.routes.behandling.AttesteringJson
+import no.nav.su.se.bakover.web.routes.behandling.UnderkjennelseJson
 import no.nav.su.se.bakover.web.routes.behandling.beregning.BeregningJson
 import no.nav.su.se.bakover.web.routes.behandling.beregning.PeriodeJson
 import no.nav.su.se.bakover.web.routes.behandling.beregning.PeriodeJson.Companion.toJson
@@ -21,7 +25,8 @@ internal enum class RevurderingsStatus {
     BEREGNET_AVSLAG,
     SIMULERT,
     TIL_ATTESTERING,
-    IVERKSATT
+    IVERKSATT,
+    UNDERKJENT
 }
 
 internal data class RevurdertBeregningJson(
@@ -110,6 +115,19 @@ internal data class IverksattRevurderingJson(
     val status = RevurderingsStatus.IVERKSATT
 }
 
+internal data class UnderkjentRevurderingJson(
+    val id: String,
+    val opprettet: String,
+    val periode: PeriodeJson,
+    val tilRevurdering: VedtakJson,
+    val beregninger: RevurdertBeregningJson,
+    val saksbehandler: String,
+    val attestering: AttesteringJson
+) : RevurderingJson() {
+    @JsonInclude
+    val status = RevurderingsStatus.UNDERKJENT
+}
+
 internal fun Revurdering.toJson(): RevurderingJson = when (this) {
     is OpprettetRevurdering -> OpprettetRevurderingJson(
         id = id.toString(),
@@ -173,5 +191,29 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
             revurdert = beregning.toJson()
         ),
         saksbehandler = saksbehandler.toString(),
+    )
+    is UnderkjentRevurdering -> UnderkjentRevurderingJson(
+        id = id.toString(),
+        opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
+        periode = periode.toJson(),
+        tilRevurdering = tilRevurdering.toJson(),
+        beregninger = RevurdertBeregningJson(
+            beregning = tilRevurdering.beregning.toJson(),
+            revurdert = beregning.toJson()
+        ),
+        saksbehandler = saksbehandler.toString(),
+        attestering = when (val attestering = attestering) {
+                is Attestering.Iverksatt -> AttesteringJson(
+                    attestant = attestering.attestant.navIdent,
+                    underkjennelse = null
+                )
+                is Attestering.Underkjent -> AttesteringJson(
+                    attestant = attestering.attestant.navIdent,
+                    underkjennelse = UnderkjennelseJson(
+                        grunn = attestering.grunn.toString(),
+                        kommentar = attestering.kommentar
+                    )
+                )
+            }
     )
 }

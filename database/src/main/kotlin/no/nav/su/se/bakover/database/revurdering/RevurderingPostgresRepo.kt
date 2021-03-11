@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
+import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import java.util.UUID
 import javax.sql.DataSource
@@ -87,6 +88,7 @@ internal class RevurderingPostgresRepo(
             is SimulertRevurdering -> lagre(revurdering)
             is RevurderingTilAttestering -> lagre(revurdering)
             is IverksattRevurdering -> lagre(revurdering)
+            is UnderkjentRevurdering -> TODO()
         }
     }
 
