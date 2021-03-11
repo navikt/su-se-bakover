@@ -205,10 +205,6 @@ internal class FerdigstillVedtakServiceImpl(
         }
 
         lukkOppgave(distribuertVedtak)
-            .fold(
-                { log.error("Kunne ikke lukke oppgave: ${vedtak.behandling.oppgaveId} for behandling: ${vedtak.behandling.id}") },
-                { log.info("Lukket oppgave: ${vedtak.behandling.oppgaveId} for behandling:${vedtak.behandling.id}") }
-            )
 
         return distribuertVedtak.right()
     }
@@ -228,6 +224,7 @@ internal class FerdigstillVedtakServiceImpl(
                 }
             }
         }.map { journalførtVedtak ->
+            log.info("Journalført brev for vedtak: ${journalførtVedtak.id}")
             vedtakRepo.lagre(journalførtVedtak)
             incrementJournalført(journalførtVedtak)
             journalførtVedtak
@@ -251,6 +248,7 @@ internal class FerdigstillVedtakServiceImpl(
                 }
             }
         }.map { distribuertVedtak ->
+            log.info("Bestilt distribusjon av brev for vedtak: ${distribuertVedtak.id}")
             vedtakRepo.lagre(distribuertVedtak)
             incrementDistribuert(vedtak)
             distribuertVedtak
@@ -295,8 +293,10 @@ internal class FerdigstillVedtakServiceImpl(
     override fun lukkOppgave(vedtak: Vedtak): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Vedtak> {
         return oppgaveService.lukkOppgave(vedtak.behandling.oppgaveId)
             .mapLeft {
+                log.error("Kunne ikke lukke oppgave: ${vedtak.behandling.oppgaveId} for behandling: ${vedtak.behandling.id}")
                 KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave
             }.map {
+                log.info("Lukket oppgave: ${vedtak.behandling.oppgaveId} for behandling: ${vedtak.behandling.id}")
                 incrementLukketOppgave(vedtak)
                 vedtak
             }
