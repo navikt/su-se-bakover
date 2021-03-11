@@ -89,7 +89,7 @@ internal class LukkSøknadServiceImpl(
                                 lukketSøknad.also {
                                     observers.forEach { observer ->
                                         observer.handle(
-                                            Event.Statistikk.SøknadStatistikk.SøknadLukket(søknad, it.sak.saksnummer)
+                                            Event.Statistikk.SøknadStatistikk.SøknadLukket(it.søknad, it.sak.saksnummer)
                                         )
                                     }
                                 }

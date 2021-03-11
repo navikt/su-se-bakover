@@ -240,7 +240,7 @@ internal class LukkSøknadServiceImplTest {
             )
             verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
             verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
-            verify(observerMock).handle(argThat { it shouldBe Event.Statistikk.SøknadStatistikk.SøknadLukket(journalførtSøknadMedOppgave, sak.saksnummer) })
+            verify(observerMock).handle(argThat { it shouldBe Event.Statistikk.SøknadStatistikk.SøknadLukket(actual.søknad, sak.saksnummer) })
         }
         verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock, observerMock)
     }
