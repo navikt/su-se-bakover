@@ -41,8 +41,8 @@ internal class SøknadsbehandlingServiceOpprettetTest {
         val saksbehandlingRepo = mock<SøknadsbehandlingRepo>()
 
         val service = createSøknadsbehandlingService(
-            søknadService = søknadServiceMock,
-            søknadsbehandlingRepo = saksbehandlingRepo
+            søknadsbehandlingRepo = saksbehandlingRepo,
+            søknadService = søknadServiceMock
         )
 
         val søknadId = UUID.randomUUID()
@@ -75,8 +75,8 @@ internal class SøknadsbehandlingServiceOpprettetTest {
         val saksbehandlingRepo = mock<SøknadsbehandlingRepo>()
 
         val service = createSøknadsbehandlingService(
-            søknadService = søknadServiceMock,
-            søknadsbehandlingRepo = saksbehandlingRepo
+            søknadsbehandlingRepo = saksbehandlingRepo,
+            søknadService = søknadServiceMock
         )
 
         service.opprett(SøknadsbehandlingService.OpprettRequest((lukketSøknad.id))) shouldBe SøknadsbehandlingService.KunneIkkeOpprette.SøknadErLukket.left()
@@ -101,8 +101,8 @@ internal class SøknadsbehandlingServiceOpprettetTest {
         val saksbehandlingRepo = mock<SøknadsbehandlingRepo>()
 
         val service = createSøknadsbehandlingService(
-            søknadService = søknadServiceMock,
-            søknadsbehandlingRepo = saksbehandlingRepo
+            søknadsbehandlingRepo = saksbehandlingRepo,
+            søknadService = søknadServiceMock
         )
 
         service.opprett(SøknadsbehandlingService.OpprettRequest((utenJournalpostOgOppgave.id))) shouldBe SøknadsbehandlingService.KunneIkkeOpprette.SøknadManglerOppgave.left()
@@ -131,8 +131,8 @@ internal class SøknadsbehandlingServiceOpprettetTest {
         val saksbehandlingRepo = mock<SøknadsbehandlingRepo>()
 
         val service = createSøknadsbehandlingService(
-            søknadService = søknadServiceMock,
             søknadsbehandlingRepo = saksbehandlingRepo,
+            søknadService = søknadServiceMock,
             søknadRepo = søknadRepoMock
         )
 
@@ -177,13 +177,12 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             on { hent(any()) } doReturn expectedSøknadsbehandling
         }
         val behandlingService = createSøknadsbehandlingService(
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             utbetalingService = mock(),
             oppgaveService = mock(),
             søknadService = søknadService,
             søknadRepo = søknadRepo,
             personService = mock(),
-            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            iverksettAvslåttBehandlingService = mock(),
             behandlingMetrics = mock(),
             beregningService = mock(),
         )

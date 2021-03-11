@@ -9,10 +9,10 @@ import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.StatistikkService
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
-import no.nav.su.se.bakover.service.søknadsbehandling.FerdigstillIverksettingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.toggles.ToggleService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 
 data class Services(
     val avstemming: AvstemmingService,
@@ -26,6 +26,6 @@ data class Services(
     val statistikk: StatistikkService,
     val toggles: ToggleService,
     val søknadsbehandling: SøknadsbehandlingService,
-    val ferdigstillIverksettingService: FerdigstillIverksettingService,
+    val ferdigstillVedtak: FerdigstillVedtakService,
     val revurdering: RevurderingService,
 )

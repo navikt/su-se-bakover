@@ -36,7 +36,7 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.MånedsberegningFactory
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegEtterUtbetaling
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
@@ -378,7 +378,7 @@ internal class OpprettRevurderingServiceTest {
                 beregning = opprinneligVedtak.beregning,
                 simulering = opprinneligVedtak.simulering,
                 oppgaveId = OppgaveId("null"),
-                eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.JournalførtOgDistribuertBrev(
+                eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
                     JournalpostId("ajour"),
                     BrevbestillingId("abrev")
                 ),

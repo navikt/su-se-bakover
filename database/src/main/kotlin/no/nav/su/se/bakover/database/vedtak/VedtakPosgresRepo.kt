@@ -2,10 +2,9 @@ package no.nav.su.se.bakover.database.vedtak
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.database.EksterneIverksettingsstegEtterUtbetalingMapper
-import no.nav.su.se.bakover.database.EksterneIverksettingsstegForAvslagMapper
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.beregning.toSnapshot
@@ -22,6 +21,7 @@ import no.nav.su.se.bakover.database.withTransaction
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
@@ -34,10 +34,9 @@ interface VedtakRepo {
     fun hentForSakId(sakId: UUID, session: Session? = null): List<Vedtak>
     fun hent(id: UUID, session: Session? = null): Vedtak?
     fun lagre(vedtak: Vedtak)
-    fun oppdaterJournalpostForSøknadsbehandling(søknadsbehandlingId: UUID, journalpostId: JournalpostId)
-    fun oppdaterBrevbestillingIdForSøknadsbehandling(søknadsbehandlingId: UUID, brevbestillingId: BrevbestillingId)
-    fun oppdaterJournalpostForRevurdering(revurderingId: UUID, journalpostId: JournalpostId)
-    fun oppdaterBrevbestillingIdForRevurdering(revurderingId: UUID, brevbestillingId: BrevbestillingId)
+    fun hentForUtbetaling(utbetalingId: UUID30): Vedtak.InnvilgetStønad
+    fun hentUtenJournalpost(): List<Vedtak>
+    fun hentUtenBrevbestilling(): List<Vedtak>
 }
 
 internal class VedtakPosgresRepo(
@@ -65,82 +64,42 @@ internal class VedtakPosgresRepo(
         }
     }
 
-    override fun oppdaterJournalpostForSøknadsbehandling(søknadsbehandlingId: UUID, journalpostId: JournalpostId) {
-        dataSource.withSession {
+    override fun hentForUtbetaling(utbetalingId: UUID30): Vedtak.InnvilgetStønad {
+        return dataSource.withSession { session ->
             """
-            UPDATE vedtak
-                SET iverksattjournalpostid = :iverksattjournalpostid
-            FROM behandling_vedtak
-            WHERE behandling_vedtak.vedtakid = vedtak.id
-                AND behandling_vedtak.søknadsbehandlingid = :soknadsbehandlingid
+                SELECT *
+                FROM vedtak
+                WHERE utbetalingId = :utbetalingId
             """.trimIndent()
-                .oppdatering(
-                    mapOf(
-                        "iverksattjournalpostid" to journalpostId,
-                        "soknadsbehandlingid" to søknadsbehandlingId
-                    ),
-                    it
-                )
+                .hent(mapOf("utbetalingId" to utbetalingId), session) {
+                    it.toVedtak(session)
+                } as Vedtak.InnvilgetStønad
         }
     }
 
-    override fun oppdaterBrevbestillingIdForSøknadsbehandling(
-        søknadsbehandlingId: UUID,
-        brevbestillingId: BrevbestillingId
-    ) {
-        dataSource.withSession {
+    override fun hentUtenJournalpost(): List<Vedtak> {
+        return dataSource.withSession { session ->
             """
-            UPDATE vedtak
-                SET iverksattbrevbestillingid = :iverksattbrevbestillingid
-            FROM behandling_vedtak
-            WHERE behandling_vedtak.vedtakid = vedtak.id
-                AND behandling_vedtak.søknadsbehandlingid = :soknadsbehandlingid
+                SELECT *
+                FROM vedtak
+                WHERE iverksattJournalpostId is null and iverksattBrevbestillingId is null
             """.trimIndent()
-                .oppdatering(
-                    mapOf(
-                        "iverksattbrevbestillingid" to brevbestillingId,
-                        "soknadsbehandlingid" to søknadsbehandlingId
-                    ),
-                    it
-                )
+                .hentListe(emptyMap(), session) {
+                    it.toVedtak(session)
+                }
         }
     }
 
-    override fun oppdaterJournalpostForRevurdering(revurderingId: UUID, journalpostId: JournalpostId) {
-        dataSource.withSession {
+    override fun hentUtenBrevbestilling(): List<Vedtak> {
+        return dataSource.withSession { session ->
             """
-            UPDATE vedtak
-                SET iverksattjournalpostid = :iverksattjournalpostid
-            FROM behandling_vedtak
-            WHERE behandling_vedtak.vedtakid = vedtak.id
-                AND behandling_vedtak.revurderingId = :revurderingId
+                SELECT *
+                FROM vedtak
+                WHERE iverksattJournalpostId is not null and iverksattBrevbestillingId is null
             """.trimIndent()
-                .oppdatering(
-                    mapOf(
-                        "iverksattjournalpostid" to journalpostId,
-                        "revurderingId" to revurderingId
-                    ),
-                    it
-                )
-        }
-    }
-
-    override fun oppdaterBrevbestillingIdForRevurdering(revurderingId: UUID, brevbestillingId: BrevbestillingId) {
-        dataSource.withSession {
-            """
-            UPDATE vedtak
-                SET iverksattbrevbestillingid = :iverksattbrevbestillingid
-            FROM behandling_vedtak
-            WHERE behandling_vedtak.vedtakid = vedtak.id
-                AND behandling_vedtak.revurderingId = :revurderingId
-            """.trimIndent()
-                .oppdatering(
-                    mapOf(
-                        "iverksattbrevbestillingid" to brevbestillingId,
-                        "revurderingId" to revurderingId
-                    ),
-                    it
-                )
+                .hentListe(emptyMap(), session) {
+                    it.toVedtak(session)
+                }
         }
     }
 
@@ -191,7 +150,7 @@ internal class VedtakPosgresRepo(
                 saksbehandler = saksbehandler,
                 attestant = attestant,
                 utbetalingId = utbetalingId,
-                eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetalingMapper.idToObject(
+                journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.fromId(
                     iverksattJournalpostId,
                     iverksattBrevbestillingId
                 )
@@ -204,7 +163,7 @@ internal class VedtakPosgresRepo(
                 beregning = beregning,
                 saksbehandler = saksbehandler,
                 attestant = attestant,
-                eksterneIverksettingsteg = EksterneIverksettingsstegForAvslagMapper.idToObject(
+                journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.fromId(
                     iverksattJournalpostId,
                     iverksattBrevbestillingId
                 )
@@ -216,7 +175,7 @@ internal class VedtakPosgresRepo(
                 behandlingsinformasjon = behandlingsinformasjon,
                 saksbehandler = saksbehandler,
                 attestant = attestant,
-                eksterneIverksettingsteg = EksterneIverksettingsstegForAvslagMapper.idToObject(
+                journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.fromId(
                     iverksattJournalpostId,
                     iverksattBrevbestillingId
                 )
@@ -228,7 +187,7 @@ internal class VedtakPosgresRepo(
     private fun lagre(vedtak: Vedtak.InnvilgetStønad) {
         dataSource.withTransaction { tx ->
             """
-                insert into vedtak(
+                INSERT INTO vedtak(
                     id,
                     opprettet,
                     fraOgMed,
@@ -241,7 +200,7 @@ internal class VedtakPosgresRepo(
                     beregning,
                     iverksattjournalpostid,
                     iverksattbrevbestillingid
-                ) values (
+                ) VALUES (
                     :id,
                     :opprettet,
                     :fraOgMed,
@@ -254,7 +213,9 @@ internal class VedtakPosgresRepo(
                     to_json(:beregning::json),
                     :iverksattjournalpostId,
                     :iverksattbrevbestillingId
-                )
+                ) ON CONFLICT(id) DO UPDATE SET
+                    iverksattjournalpostid = :iverksattjournalpostId,
+                    iverksattbrevbestillingid = :iverksattbrevbestillingId
             """.trimIndent()
                 .oppdatering(
                     mapOf(
@@ -268,11 +229,11 @@ internal class VedtakPosgresRepo(
                         "simulering" to objectMapper.writeValueAsString(vedtak.simulering),
                         "beregning" to objectMapper.writeValueAsString(vedtak.beregning.toSnapshot()),
                         "behandlingsinformasjon" to objectMapper.writeValueAsString(vedtak.behandlingsinformasjon),
-                        "iverksattjournalpostId" to EksterneIverksettingsstegEtterUtbetalingMapper.iverksattJournalpostId(
-                            vedtak.eksterneIverksettingsteg
+                        "iverksattjournalpostId" to JournalføringOgBrevdistribusjon.iverksattJournalpostId(
+                            vedtak.journalføringOgBrevdistribusjon
                         )?.toString(),
-                        "iverksattbrevbestillingId" to EksterneIverksettingsstegEtterUtbetalingMapper.iverksattBrevbestillingId(
-                            vedtak.eksterneIverksettingsteg
+                        "iverksattbrevbestillingId" to JournalføringOgBrevdistribusjon.iverksattBrevbestillingId(
+                            vedtak.journalføringOgBrevdistribusjon
                         )?.toString(),
                     ),
                     tx
@@ -333,7 +294,9 @@ internal class VedtakPosgresRepo(
                     to_json(:beregning::json),
                     :iverksattjournalpostId,
                     :iverksattbrevbestillingId
-                )
+                )  ON CONFLICT(id) DO UPDATE SET
+                    iverksattjournalpostid = :iverksattjournalpostId,
+                    iverksattbrevbestillingid = :iverksattbrevbestillingId
             """.trimIndent()
                 .oppdatering(
                     mapOf(
@@ -345,11 +308,11 @@ internal class VedtakPosgresRepo(
                         "attestant" to vedtak.attestant,
                         "beregning" to beregning?.let { objectMapper.writeValueAsString(it.toSnapshot()) },
                         "behandlingsinformasjon" to objectMapper.writeValueAsString(vedtak.behandlingsinformasjon),
-                        "iverksattjournalpostId" to EksterneIverksettingsstegForAvslagMapper.iverksattJournalpostId(
-                            vedtak.eksterneIverksettingsteg
+                        "iverksattjournalpostId" to JournalføringOgBrevdistribusjon.iverksattJournalpostId(
+                            vedtak.journalføringOgBrevdistribusjon
                         )?.toString(),
-                        "iverksattbrevbestillingId" to EksterneIverksettingsstegForAvslagMapper.iverksattBrevbestillingId(
-                            vedtak.eksterneIverksettingsteg
+                        "iverksattbrevbestillingId" to JournalføringOgBrevdistribusjon.iverksattBrevbestillingId(
+                            vedtak.journalføringOgBrevdistribusjon
                         )?.toString(),
                     ),
                     tx
@@ -403,7 +366,7 @@ internal class VedtakPosgresRepo(
                     :sakId,
                     :soknadsbehandlingId,
                     :revurderingId
-                )
+                ) ON CONFLICT ON CONSTRAINT unique_vedtakid DO NOTHING
         """.trimIndent()
             .oppdatering(
                 map,

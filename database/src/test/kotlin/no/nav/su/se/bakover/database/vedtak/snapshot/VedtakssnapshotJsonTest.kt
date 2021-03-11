@@ -26,8 +26,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører.BRUKER
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype.Arbeidsinntekt
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegEtterUtbetaling
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegForAvslag
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType.YTEL
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -76,7 +75,7 @@ internal class VedtakssnapshotJsonTest {
             saksnummer = Saksnummer(1234),
             fnr = fnr,
             oppgaveId = OppgaveId("oppgaveId"),
-            eksterneIverksettingsteg = EksterneIverksettingsstegForAvslag.JournalførtOgDistribuertBrev(
+            eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
                 journalpostId = JournalpostId("iverksattJournalpostId"),
                 brevbestillingId = BrevbestillingId("iverksattBrevbestillingId"),
 
@@ -429,7 +428,7 @@ internal class VedtakssnapshotJsonTest {
                     )
                 )
             ),
-            eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.JournalførtOgDistribuertBrev(
+            eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
                 journalpostId = JournalpostId("iverksattJournalpostId"),
                 brevbestillingId = BrevbestillingId("iverksattBrevbestillingId"),
             ),
