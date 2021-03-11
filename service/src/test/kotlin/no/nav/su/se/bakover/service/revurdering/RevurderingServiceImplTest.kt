@@ -630,7 +630,7 @@ internal class RevurderingServiceImplTest {
             beregning = TestBeregning,
             simulering = testsimulering,
             oppgaveId = OppgaveId(value = "OppgaveId"),
-            attestant = attestant,
+            attestering = Attestering.Iverksatt(attestant),
             utbetalingId = utbetalingId,
             eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert
         )

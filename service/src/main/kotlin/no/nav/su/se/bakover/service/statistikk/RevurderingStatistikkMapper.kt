@@ -36,7 +36,7 @@ internal class RevurderingStatistikkMapper(private val clock: Clock) {
                     copy(
                         resultat = "Innvilget",
                         resultatBegrunnelse = "Endring i søkers inntekt", // TODO ai: Må støtte flere grunner for revurdering senare
-                        beslutter = revurdering.attestant.navIdent
+                        beslutter = revurdering.attestering.attestant.navIdent
                     )
                 }
                 else -> throw ManglendeStatistikkMappingException(this, revurdering::class.java)

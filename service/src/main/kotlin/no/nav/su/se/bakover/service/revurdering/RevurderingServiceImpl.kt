@@ -308,7 +308,7 @@ internal class RevurderingServiceImpl(
         val revurdering = revurderingRepo.hent(revurderingId)
             ?: return KunneIkkeUnderkjenneRevurdering.FantIkkeRevurdering.left()
 
-       return when(revurdering){
+        return when (revurdering) {
             is RevurderingTilAttestering -> {
                 val underkjent = revurdering.underkjenn(attestering)
 

@@ -115,5 +115,5 @@ sealed class KunneIkkeUnderkjenneRevurdering {
         val fra: KClass<out Revurdering>,
         val til: KClass<out Revurdering>
     ) : KunneIkkeUnderkjenneRevurdering()
-    object KunneIkkeOppretteOppgave: KunneIkkeUnderkjenneRevurdering()
+    object KunneIkkeOppretteOppgave : KunneIkkeUnderkjenneRevurdering()
 }

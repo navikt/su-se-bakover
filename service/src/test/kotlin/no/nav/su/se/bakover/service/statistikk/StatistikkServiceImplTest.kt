@@ -524,7 +524,7 @@ internal class StatistikkServiceImplTest {
                 periodeList = listOf()
             ),
             oppgaveId = OppgaveId("55"),
-            attestant = NavIdentBruker.Attestant("attestant"),
+            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
             utbetalingId = UUID30.randomUUID(),
             eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert
         )

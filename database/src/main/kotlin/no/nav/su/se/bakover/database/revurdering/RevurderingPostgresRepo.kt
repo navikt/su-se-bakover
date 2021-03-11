@@ -16,8 +16,8 @@ import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.database.vedtak.VedtakPosgresRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.database.withSession
-import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -115,7 +115,7 @@ internal class RevurderingPostgresRepo(
         val simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) }
         val saksbehandler = string("saksbehandler")
         val oppgaveId = stringOrNull("oppgaveid")
-        val attestant = stringOrNull("attestant")
+        val attestering = stringOrNull("attestering")?.let { objectMapper.readValue<Attestering>(it) }
         val utbetalingId = stringOrNull("utbetalingid")
 
         val iverksattJournalpostId = stringOrNull("iverksattJournalpostId")?.let { JournalpostId(it) }
@@ -131,7 +131,7 @@ internal class RevurderingPostgresRepo(
                 beregning = beregning!!,
                 simulering = simulering!!,
                 oppgaveId = OppgaveId(oppgaveId!!),
-                attestant = NavIdentBruker.Attestant(attestant!!),
+                attestering = attestering!!,
                 utbetalingId = UUID30.fromString(utbetalingId!!),
                 eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.fromId(
                     iverksattJournalpostId,
@@ -192,7 +192,7 @@ internal class RevurderingPostgresRepo(
             (
                 """
                     insert into revurdering
-                        (id, opprettet, periode, beregning, simulering, saksbehandler, oppgaveId, revurderingsType, attestant, utbetalingId, iverksattjournalpostid, iverksattbrevbestillingid, vedtakSomRevurderesId)
+                        (id, opprettet, periode, beregning, simulering, saksbehandler, oppgaveId, revurderingsType, attestering, utbetalingId, iverksattjournalpostid, iverksattbrevbestillingid, vedtakSomRevurderesId)
                     values
                         (:id, :opprettet, to_json(:periode::json), null, null, :saksbehandler, :oppgaveId, :revurderingsType, null, null, null, null, :vedtakSomRevurderesId)
                         ON CONFLICT(id) do update set
@@ -204,7 +204,7 @@ internal class RevurderingPostgresRepo(
                         saksbehandler=:saksbehandler,
                         oppgaveId=:oppgaveId,
                         revurderingsType=:revurderingsType,
-                        attestant=null, utbetalingId=null,
+                        attestering=null, utbetalingId=null,
                         iverksattjournalpostid=null,
                         iverksattbrevbestillingid=null,
                         vedtakSomRevurderesId=:vedtakSomRevurderesId
@@ -317,7 +317,7 @@ internal class RevurderingPostgresRepo(
                         simulering = to_json(:simulering::json),
                         revurderingsType = :revurderingsType,
                         oppgaveId = :oppgaveId,
-                        attestant = :attestant,
+                        attestering = to_json(:attestering::json),
                         utbetalingId = :utbetalingId,
                         iverksattjournalpostid = :iverksattjournalpostid,
                         iverksattbrevbestillingid = :iverksattbrevbestillingid
@@ -332,7 +332,7 @@ internal class RevurderingPostgresRepo(
                     "simulering" to objectMapper.writeValueAsString(revurdering.simulering),
                     "oppgaveId" to revurdering.oppgaveId.toString(),
                     "revurderingsType" to RevurderingsType.IVERKSATT.toString(),
-                    "attestant" to revurdering.attestant.navIdent,
+                    "attestering" to objectMapper.writeValueAsString(revurdering.attestering),
                     "utbetalingId" to revurdering.utbetalingId,
                     "iverksattjournalpostid" to JournalføringOgBrevdistribusjon.iverksattJournalpostId(
                         revurdering.eksterneIverksettingsteg

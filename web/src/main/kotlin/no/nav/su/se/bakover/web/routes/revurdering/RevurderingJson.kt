@@ -168,7 +168,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
             revurdert = beregning.toJson()
         ),
         saksbehandler = saksbehandler.toString(),
-        attestant = attestant.toString(),
+        attestant = attestering.toString(),
     )
     is BeregnetRevurdering.Innvilget -> BeregnetRevurderingJson.Innvilget(
         id = id.toString(),
@@ -203,17 +203,17 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         ),
         saksbehandler = saksbehandler.toString(),
         attestering = when (val attestering = attestering) {
-                is Attestering.Iverksatt -> AttesteringJson(
-                    attestant = attestering.attestant.navIdent,
-                    underkjennelse = null
+            is Attestering.Iverksatt -> AttesteringJson(
+                attestant = attestering.attestant.navIdent,
+                underkjennelse = null
+            )
+            is Attestering.Underkjent -> AttesteringJson(
+                attestant = attestering.attestant.navIdent,
+                underkjennelse = UnderkjennelseJson(
+                    grunn = attestering.grunn.toString(),
+                    kommentar = attestering.kommentar
                 )
-                is Attestering.Underkjent -> AttesteringJson(
-                    attestant = attestering.attestant.navIdent,
-                    underkjennelse = UnderkjennelseJson(
-                        grunn = attestering.grunn.toString(),
-                        kommentar = attestering.kommentar
-                    )
-                )
-            }
+            )
+        }
     )
 }

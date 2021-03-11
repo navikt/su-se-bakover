@@ -249,7 +249,7 @@ data class RevurderingTilAttestering(
                 beregning = beregning,
                 simulering = simulering,
                 oppgaveId = oppgaveId,
-                attestant = attestant,
+                attestering = Attestering.Iverksatt(attestant),
                 utbetalingId = it,
                 eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert
             )
@@ -282,7 +282,7 @@ data class IverksattRevurdering(
     override val oppgaveId: OppgaveId,
     val beregning: Beregning,
     val simulering: Simulering,
-    val attestant: NavIdentBruker.Attestant,
+    val attestering: Attestering,
     val utbetalingId: UUID30,
     val eksterneIverksettingsteg: JournalføringOgBrevdistribusjon
 ) : Revurdering() {
@@ -319,7 +319,7 @@ data class UnderkjentRevurdering(
         visitor.visit(this)
     }
 
-    fun nyOppgaveId(nyOppgaveId: OppgaveId): UnderkjentRevurdering{
+    fun nyOppgaveId(nyOppgaveId: OppgaveId): UnderkjentRevurdering {
         return this.copy(oppgaveId = nyOppgaveId)
     }
 }

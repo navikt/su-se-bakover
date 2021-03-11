@@ -53,7 +53,7 @@ class FinnAttestantVisitor : SøknadsbehandlingVisitor, RevurderingVisitor {
     override fun visit(revurdering: SimulertRevurdering) {}
     override fun visit(revurdering: RevurderingTilAttestering) {}
     override fun visit(revurdering: IverksattRevurdering) {
-        attestant = revurdering.attestant
+        attestant = revurdering.attestering.attestant
     }
     override fun visit(revurdering: UnderkjentRevurdering) {
         attestant = revurdering.attestering.attestant
