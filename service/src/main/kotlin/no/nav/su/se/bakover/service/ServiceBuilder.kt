@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.service.sak.SakServiceImpl
 import no.nav.su.se.bakover.service.statistikk.StatistikkServiceImpl
 import no.nav.su.se.bakover.service.søknad.SøknadServiceImpl
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadServiceImpl
+import no.nav.su.se.bakover.service.søknadsbehandling.GrunnlagsdataServiceImpl
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServiceImpl
 import no.nav.su.se.bakover.service.toggles.ToggleServiceImpl
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingServiceImpl
@@ -131,7 +132,8 @@ object ServiceBuilder {
                 addObserver(statistikkService)
             },
             ferdigstillVedtak = ferdigstillVedtakService,
-            revurdering = revurderingService
+            revurdering = revurderingService,
+            grunnlagsdataService = GrunnlagsdataServiceImpl(),
         )
     }
 }
