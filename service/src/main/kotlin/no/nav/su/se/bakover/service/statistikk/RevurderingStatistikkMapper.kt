@@ -26,7 +26,8 @@ internal class RevurderingStatistikkMapper(private val clock: Clock) {
             behandlingStatusBeskrivelse = BehandlingStatusBeskrivelseMapper.map(revurdering),
             versjon = clock.millis(),
             saksbehandler = revurdering.saksbehandler.navIdent,
-            relatertBehandlingId = revurdering.tilRevurdering.id
+            relatertBehandlingId = revurdering.tilRevurdering.id,
+            avsluttet = false
         ).apply {
             return when (revurdering) {
                 is OpprettetRevurdering -> this
@@ -35,7 +36,8 @@ internal class RevurderingStatistikkMapper(private val clock: Clock) {
                     copy(
                         resultat = "Innvilget",
                         resultatBegrunnelse = "Endring i søkers inntekt", // TODO ai: Må støtte flere grunner for revurdering senare
-                        beslutter = revurdering.attestering.attestant.navIdent
+                        beslutter = revurdering.attestering.attestant.navIdent,
+                        avsluttet = true
                     )
                 }
                 is UnderkjentRevurdering -> {

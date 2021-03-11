@@ -24,7 +24,8 @@ internal class SøknadsbehandlingStatistikkMapper(
         saksnummer = søknadsbehandling.saksnummer.nummer,
         behandlingStatus = BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(søknadsbehandling.status).status.toString(),
         behandlingStatusBeskrivelse = BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(søknadsbehandling.status).beskrivelse,
-        versjon = clock.millis()
+        versjon = clock.millis(),
+        avsluttet = false,
     ).apply {
         return when (søknadsbehandling) {
             is Søknadsbehandling.Vilkårsvurdert.Uavklart -> {
@@ -35,7 +36,8 @@ internal class SøknadsbehandlingStatistikkMapper(
                     saksbehandler = søknadsbehandling.saksbehandler.navIdent,
                     beslutter = søknadsbehandling.attestering.attestant.navIdent,
                     resultat = ResultatOgBegrunnelseMapper.map(søknadsbehandling).resultat,
-                    resultatBegrunnelse = ResultatOgBegrunnelseMapper.map(søknadsbehandling).begrunnelse
+                    resultatBegrunnelse = ResultatOgBegrunnelseMapper.map(søknadsbehandling).begrunnelse,
+                    avsluttet = true
                 )
             }
             is Søknadsbehandling.TilAttestering -> {

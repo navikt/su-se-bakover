@@ -20,7 +20,8 @@ internal class StatistikkSchemaValidatorTest {
             saksnummer = 2021,
             behandlingStatus = BehandlingsStatus.IVERKSATT_AVSLAG.toString(),
             behandlingType = Statistikk.Behandling.BehandlingType.SOKNAD,
-            behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.SOKNAD.beskrivelse
+            behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.SOKNAD.beskrivelse,
+            avsluttet = true,
         )
 
         val gyldigSak = Statistikk.Sak(

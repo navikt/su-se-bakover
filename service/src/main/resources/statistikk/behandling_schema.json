@@ -7,7 +7,6 @@
     "tekniskTid",
     "mottattDato",
     "registrertDato",
-    "behandlingId",
     "sakId",
     "saksnummer",
     "behandlingType",
@@ -19,7 +18,8 @@
     "behandlendeEnhetType",
     "totrinnsbehandling",
     "avsender",
-    "versjon"
+    "versjon",
+    "avsluttet"
   ],
   "type": "object",
   "properties": {
@@ -165,6 +165,10 @@
     "versjon": {
       "type": "number",
       "description":"Angir på hvilken versjon av kildekoden JSON stringen er generert på bakgrunn av. "
+    },
+    "avsluttet": {
+      "type": "boolean",
+      "description":"Angir om behandlingen er ferdigbehandlet."
     }
   }
 }

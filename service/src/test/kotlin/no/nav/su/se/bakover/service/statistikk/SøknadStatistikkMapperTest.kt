@@ -5,9 +5,11 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.common.zoneIdOslo
+import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import org.junit.jupiter.api.Test
@@ -62,24 +64,30 @@ internal class SøknadStatistikkMapperTest {
             behandlingOpprettetType = null,
             behandlingOpprettetTypeBeskrivelse = null,
             datoForUttak = null,
-            datoForUtbetaling = null
+            datoForUtbetaling = null,
+            avsluttet = false,
         )
     }
     @Test
     fun `mapper lukket søknad`() {
         val saksnummer = Saksnummer(2079L)
-        val søknad = Søknad.Journalført.MedOppgave(
+        val søknad = Søknad.Lukket(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(fixedClock),
             sakId = UUID.randomUUID(),
             søknadInnhold = SøknadInnholdTestdataBuilder.build(),
             journalpostId = JournalpostId("journalpostid"),
             oppgaveId = OppgaveId("oppgaveid"),
+            lukketTidspunkt = Tidspunkt.now(fixedClock),
+            lukketAv = NavIdentBruker.Saksbehandler(navIdent = "Mr Lukker"),
+            lukketType = Søknad.Lukket.LukketType.AVVIST,
+            lukketJournalpostId = JournalpostId("journalpostid"),
+            lukketBrevbestillingId = BrevbestillingId("brevbestillingid"),
         )
 
         SøknadStatistikkMapper(fixedClock).map(søknad, saksnummer, Statistikk.Behandling.SøknadStatus.SØKNAD_LUKKET) shouldBe Statistikk.Behandling(
-            funksjonellTid = søknad.opprettet,
-            tekniskTid = søknad.opprettet,
+            funksjonellTid = søknad.lukketTidspunkt,
+            tekniskTid = søknad.lukketTidspunkt,
             mottattDato = søknad.opprettet.toLocalDate(zoneIdOslo),
             registrertDato = søknad.opprettet.toLocalDate(zoneIdOslo),
             behandlingId = søknad.id,
@@ -106,12 +114,13 @@ internal class SøknadStatistikkMapperTest {
             resultatBegrunnelseBeskrivelse = null,
             resultatBeskrivelse = null,
             beslutter = null,
-            saksbehandler = null,
+            saksbehandler = "Mr Lukker",
             behandlingOpprettetAv = null,
             behandlingOpprettetType = null,
             behandlingOpprettetTypeBeskrivelse = null,
             datoForUttak = null,
-            datoForUtbetaling = null
+            datoForUtbetaling = null,
+            avsluttet = true
         )
     }
 }

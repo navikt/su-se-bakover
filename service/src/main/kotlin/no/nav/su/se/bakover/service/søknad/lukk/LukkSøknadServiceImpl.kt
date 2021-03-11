@@ -82,7 +82,7 @@ internal class LukkSøknadServiceImpl(
                                 log.warn("Kunne ikke lukke oppgave ${søknad.oppgaveId} for søknad ${søknad.id}")
                                 return (
                                     if (lukketSøknad is LukketSøknad.UtenMangler) {
-                                        LukketSøknad.MedMangler.KunneIkkeLukkeOppgave(lukketSøknad.sak)
+                                        LukketSøknad.MedMangler.KunneIkkeLukkeOppgave(lukketSøknad.sak, lukketSøknad.søknad)
                                     } else lukketSøknad
                                     ).right()
                             }.map {
@@ -107,8 +107,8 @@ internal class LukkSøknadServiceImpl(
         return when (request) {
             is LukkSøknadRequest.MedBrev -> lukkSøknadMedBrev(person, request, søknad)
             is LukkSøknadRequest.UtenBrev -> {
-                lukkSøknadUtenBrev(request, søknad)
-                LukketSøknad.UtenMangler(sak = hentSak(søknad.sakId)).right()
+                val lukketSøknad = lukkSøknadUtenBrev(request, søknad)
+                LukketSøknad.UtenMangler(sak = hentSak(søknad.sakId), lukketSøknad).right()
             }
         }
     }
@@ -164,9 +164,11 @@ internal class LukkSøknadServiceImpl(
     private fun lukkSøknadUtenBrev(
         request: LukkSøknadRequest.UtenBrev,
         søknad: Søknad
-    ) {
+    ): Søknad.Lukket {
         val lukketSøknad = søknad.lukk(request, Tidspunkt.now(clock))
         søknadRepo.oppdaterSøknad(lukketSøknad)
+
+        return lukketSøknad
     }
 
     private fun lukkSøknadMedBrev(
@@ -189,14 +191,14 @@ internal class LukkSøknadServiceImpl(
                 .mapLeft {
                     søknadRepo.oppdaterSøknad(lukketSøknadMedJournalpostId)
                     log.error("Lukket søknad ${søknad.id} med journalpostId $journalpostId. Det skjedde en feil ved brevbestilling som må følges opp manuelt")
-                    return LukketSøknad.MedMangler.KunneIkkeDistribuereBrev(hentSak(søknad.sakId)).right()
+                    return LukketSøknad.MedMangler.KunneIkkeDistribuereBrev(hentSak(søknad.sakId), lukketSøknadMedJournalpostId).right()
                 }
                 .flatMap { brevbestillingId ->
                     val lukketSøknadMedBrevbestillingId =
                         lukketSøknadMedJournalpostId.medBrevbestillingId(brevbestillingId)
                     søknadRepo.oppdaterSøknad(lukketSøknadMedBrevbestillingId)
                     log.info("Lukket søknad ${søknad.id} med journalpostId $journalpostId og bestilt brev $brevbestillingId")
-                    LukketSøknad.UtenMangler(hentSak(søknad.sakId)).right()
+                    LukketSøknad.UtenMangler(hentSak(søknad.sakId), lukketSøknadMedBrevbestillingId).right()
                 }
         }
     }

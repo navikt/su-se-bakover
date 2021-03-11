@@ -64,6 +64,7 @@ sealed class Statistikk {
         val behandlingOpprettetTypeBeskrivelse: String? = null,
         val datoForUttak: String? = null,
         val datoForUtbetaling: String? = null,
+        val avsluttet: Boolean,
     ) : Statistikk() {
         enum class BehandlingType(val beskrivelse: String) {
             SOKNAD("Søknad for SU Uføre"),

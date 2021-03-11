@@ -69,7 +69,8 @@ internal class SøknadsbehandlingStatistikkMapperTest {
             behandlingOpprettetType = null,
             behandlingOpprettetTypeBeskrivelse = null,
             datoForUttak = null,
-            datoForUtbetaling = null
+            datoForUtbetaling = null,
+            avsluttet = false
         )
     }
 
@@ -109,8 +110,8 @@ internal class SøknadsbehandlingStatistikkMapperTest {
             behandlingOpprettetType = null,
             behandlingOpprettetTypeBeskrivelse = null,
             datoForUttak = null,
-            datoForUtbetaling = null
-
+            datoForUtbetaling = null,
+            avsluttet = true
         )
     }
 

@@ -7,7 +7,11 @@ import no.nav.su.se.bakover.domain.Søknad
 import java.time.Clock
 
 internal class SøknadStatistikkMapper(private val clock: Clock) {
-    fun map(søknad: Søknad, saksnummer: Saksnummer, søknadStatus: Statistikk.Behandling.SøknadStatus): Statistikk.Behandling =
+    fun map(
+        søknad: Søknad,
+        saksnummer: Saksnummer,
+        søknadStatus: Statistikk.Behandling.SøknadStatus
+    ): Statistikk.Behandling =
         Statistikk.Behandling(
             funksjonellTid = when (søknad) {
                 is Søknad.Lukket -> søknad.lukketTidspunkt
@@ -37,11 +41,18 @@ internal class SøknadStatistikkMapper(private val clock: Clock) {
             resultatBegrunnelseBeskrivelse = null,
             resultatBeskrivelse = null,
             beslutter = null,
-            saksbehandler = null,
+            saksbehandler = when (søknad) {
+                is Søknad.Lukket -> søknad.lukketAv.toString()
+                else -> null
+            },
             behandlingOpprettetAv = null,
             behandlingOpprettetType = null,
             behandlingOpprettetTypeBeskrivelse = null,
             datoForUttak = null,
-            datoForUtbetaling = null
+            datoForUtbetaling = null,
+            avsluttet = when (søknad) {
+                is Søknad.Lukket -> true
+                else -> false
+            }
         )
 }

@@ -165,6 +165,7 @@ internal class StatistikkServiceImplTest {
             behandlendeEnhetKode = "4815",
             behandlendeEnhetType = "NORG",
             avsender = "su-se-bakover",
+            avsluttet = false,
         )
 
         StatistikkServiceImpl(kafkaPublisherMock, mock(), clock).handle(
@@ -212,6 +213,7 @@ internal class StatistikkServiceImplTest {
             saksbehandler = "Z1595",
             behandlingType = Statistikk.Behandling.BehandlingType.SOKNAD,
             behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.SOKNAD.beskrivelse,
+            avsluttet = false,
         )
 
         StatistikkServiceImpl(kafkaPublisherMock, mock(), clock).handle(
@@ -264,7 +266,8 @@ internal class StatistikkServiceImplTest {
             saksbehandler = "55",
             beslutter = "56",
             behandlingType = Statistikk.Behandling.BehandlingType.SOKNAD,
-            behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.SOKNAD.beskrivelse
+            behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.SOKNAD.beskrivelse,
+            avsluttet = true
         )
 
         StatistikkServiceImpl(kafkaPublisherMock, mock(), clock).handle(
@@ -315,7 +318,8 @@ internal class StatistikkServiceImplTest {
             beslutter = "56",
             resultatBegrunnelse = "UFØRHET,UTENLANDSOPPHOLD_OVER_90_DAGER",
             behandlingType = Statistikk.Behandling.BehandlingType.SOKNAD,
-            behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.SOKNAD.beskrivelse
+            behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.SOKNAD.beskrivelse,
+            avsluttet = true
         )
 
         StatistikkServiceImpl(kafkaPublisherMock, mock(), clock).handle(
@@ -373,6 +377,7 @@ internal class StatistikkServiceImplTest {
             beslutter = "attestant",
             behandlingType = Statistikk.Behandling.BehandlingType.SOKNAD,
             behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.SOKNAD.beskrivelse,
+            avsluttet = false
         )
 
         StatistikkServiceImpl(kafkaPublisherMock, mock(), clock).handle(
@@ -423,7 +428,8 @@ internal class StatistikkServiceImplTest {
             saksbehandler = "saksbehandler",
             behandlingType = Statistikk.Behandling.BehandlingType.REVURDERING,
             behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.REVURDERING.beskrivelse,
-            relatertBehandlingId = opprettetRevurdering.tilRevurdering.id
+            relatertBehandlingId = opprettetRevurdering.tilRevurdering.id,
+            avsluttet = false,
         )
 
         StatistikkServiceImpl(kafkaPublisherMock, mock(), clock).handle(
@@ -482,7 +488,8 @@ internal class StatistikkServiceImplTest {
             saksbehandler = "saksbehandler",
             behandlingType = Statistikk.Behandling.BehandlingType.REVURDERING,
             behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.REVURDERING.beskrivelse,
-            relatertBehandlingId = revurderingTilAttestering.tilRevurdering.id
+            relatertBehandlingId = revurderingTilAttestering.tilRevurdering.id,
+            avsluttet = false
         )
 
         StatistikkServiceImpl(kafkaPublisherMock, mock(), clock).handle(
@@ -547,7 +554,8 @@ internal class StatistikkServiceImplTest {
             relatertBehandlingId = iverksattRevurdering.tilRevurdering.id,
             resultat = "Innvilget",
             resultatBegrunnelse = "Endring i søkers inntekt",
-            beslutter = "attestant"
+            beslutter = "attestant",
+            avsluttet = true,
         )
 
         StatistikkServiceImpl(kafkaPublisherMock, mock(), clock).handle(
@@ -588,7 +596,8 @@ internal class StatistikkServiceImplTest {
             behandlingType = Statistikk.Behandling.BehandlingType.SOKNAD,
             behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.SOKNAD.beskrivelse,
             relatertBehandlingId = null,
-            totrinnsbehandling = false
+            totrinnsbehandling = false,
+            avsluttet = false,
         )
 
         StatistikkServiceImpl(kafkaPublisherMock, mock(), clock).handle(
@@ -630,7 +639,8 @@ internal class StatistikkServiceImplTest {
             behandlingType = Statistikk.Behandling.BehandlingType.SOKNAD,
             behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.SOKNAD.beskrivelse,
             relatertBehandlingId = null,
-            totrinnsbehandling = false
+            totrinnsbehandling = false,
+            avsluttet = false
         )
 
         StatistikkServiceImpl(kafkaPublisherMock, mock(), clock).handle(
