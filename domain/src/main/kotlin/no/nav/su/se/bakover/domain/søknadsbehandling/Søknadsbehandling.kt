@@ -15,10 +15,8 @@ import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegEtterUtbetaling
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegFeil.EksterneIverksettingsstegEtterUtbetalingFeil
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegFeil.EksterneIverksettingsstegForAvslagFeil
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegForAvslag
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.KunneIkkeJournalføreOgDistribuereBrev
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -26,9 +24,7 @@ import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.util.UUID
 
 sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisitor> {
-    abstract val opprettet: Tidspunkt
     abstract val søknad: Søknad.Journalført.MedOppgave
-    abstract val oppgaveId: OppgaveId
     abstract val behandlingsinformasjon: Behandlingsinformasjon
     abstract val status: BehandlingsStatus
 
@@ -497,8 +493,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 }
 
                 fun tilIverksatt(
-                    attestering: Attestering,
-                    eksterneIverksettingsteg: EksterneIverksettingsstegForAvslag
+                    attestering: Attestering
                 ): Iverksatt.Avslag.UtenBeregning {
                     return Iverksatt.Avslag.UtenBeregning(
                         id,
@@ -511,7 +506,6 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                         fnr,
                         saksbehandler,
                         attestering,
-                        eksterneIverksettingsteg
                     )
                 }
             }
@@ -563,8 +557,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 }
 
                 fun tilIverksatt(
-                    attestering: Attestering,
-                    eksterneIverksettingsteg: EksterneIverksettingsstegForAvslag
+                    attestering: Attestering
                 ): Iverksatt.Avslag.MedBeregning {
                     return Iverksatt.Avslag.MedBeregning(
                         id,
@@ -578,7 +571,6 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                         beregning,
                         saksbehandler,
                         attestering,
-                        eksterneIverksettingsteg
                     )
                 }
             }
@@ -809,7 +801,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val attestering: Attestering,
             val utbetalingId: UUID30,
-            val eksterneIverksettingsteg: EksterneIverksettingsstegEtterUtbetaling = EksterneIverksettingsstegEtterUtbetaling.VenterPåKvittering
+            val eksterneIverksettingsteg: JournalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert
         ) : Iverksatt() {
             override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_INNVILGET
 
@@ -817,19 +809,19 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 visitor.visit(this)
             }
 
-            fun journalfør(journalfør: () -> Either<EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeJournalføre, Innvilget> {
+            fun journalfør(journalfør: () -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre, Innvilget> {
                 return eksterneIverksettingsteg.journalfør(journalfør).map { copy(eksterneIverksettingsteg = it) }
             }
 
-            fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeDistribuereBrev, Innvilget> {
+            fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev, Innvilget> {
                 return eksterneIverksettingsteg.distribuerBrev(distribuerBrev)
                     .map { copy(eksterneIverksettingsteg = it) }
             }
         }
 
         sealed class Avslag : Iverksatt(), ErAvslag {
-            abstract val eksterneIverksettingsteg: EksterneIverksettingsstegForAvslag
-            abstract fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<EksterneIverksettingsstegForAvslagFeil.KunneIkkeDistribuereBrev, BrevbestillingId>): Either<EksterneIverksettingsstegForAvslagFeil.KunneIkkeDistribuereBrev, Avslag>
+            abstract val eksterneIverksettingsteg: JournalføringOgBrevdistribusjon
+            abstract fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev, Avslag>
 
             data class MedBeregning(
                 override val id: UUID,
@@ -843,7 +835,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 val beregning: Beregning,
                 override val saksbehandler: NavIdentBruker.Saksbehandler,
                 override val attestering: Attestering,
-                override val eksterneIverksettingsteg: EksterneIverksettingsstegForAvslag
+                override val eksterneIverksettingsteg: JournalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert
             ) : Avslag() {
                 override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_AVSLAG
 
@@ -857,7 +849,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                         is AvslagGrunnetBeregning.Nei -> emptyList()
                     }
 
-                override fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<EksterneIverksettingsstegForAvslagFeil.KunneIkkeDistribuereBrev, BrevbestillingId>): Either<EksterneIverksettingsstegForAvslagFeil.KunneIkkeDistribuereBrev, MedBeregning> {
+                override fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev, MedBeregning> {
                     return eksterneIverksettingsteg.distribuerBrev(distribuerBrev)
                         .map { copy(eksterneIverksettingsteg = it) }
                 }
@@ -877,7 +869,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 override val fnr: Fnr,
                 override val saksbehandler: NavIdentBruker.Saksbehandler,
                 override val attestering: Attestering,
-                override val eksterneIverksettingsteg: EksterneIverksettingsstegForAvslag
+                override val eksterneIverksettingsteg: JournalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert
             ) : Avslag() {
                 override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_AVSLAG
 
@@ -885,7 +877,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                     visitor.visit(this)
                 }
 
-                override fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<EksterneIverksettingsstegForAvslagFeil.KunneIkkeDistribuereBrev, BrevbestillingId>): Either<EksterneIverksettingsstegForAvslagFeil.KunneIkkeDistribuereBrev, UtenBeregning> {
+                override fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev, UtenBeregning> {
                     return eksterneIverksettingsteg.distribuerBrev(distribuerBrev)
                         .map { copy(eksterneIverksettingsteg = it) }
                 }

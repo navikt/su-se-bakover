@@ -28,8 +28,7 @@ import no.nav.su.se.bakover.database.underkjentAttestering
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegEtterUtbetaling
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegForAvslag
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -430,7 +429,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 }
 
                 val journalført =
-                    EksterneIverksettingsstegEtterUtbetaling.Journalført(
+                    JournalføringOgBrevdistribusjon.Journalført(
                         journalpostId = iverksattJournalpostId
                     )
                 repo.lagre(
@@ -444,7 +443,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 }
 
                 val journalførtOgDistribuertBrev =
-                    EksterneIverksettingsstegEtterUtbetaling.JournalførtOgDistribuertBrev(
+                    JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
                         journalpostId = iverksattJournalpostId,
                         brevbestillingId = iverksattBrevbestillingId,
                     )
@@ -484,7 +483,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
             }
 
             val journalførtOgDistribuertBrev =
-                EksterneIverksettingsstegForAvslag.JournalførtOgDistribuertBrev(
+                JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
                     journalpostId = iverksattJournalpostId,
                     brevbestillingId = iverksattBrevbestillingId,
                 )
@@ -504,7 +503,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
     fun `iverksatt avslag med beregning`() {
         withMigratedDb {
             val eksterneIverksettingsteg =
-                EksterneIverksettingsstegForAvslag.JournalførtOgDistribuertBrev(
+                JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
                     journalpostId = iverksattJournalpostId,
                     brevbestillingId = iverksattBrevbestillingId,
                 )

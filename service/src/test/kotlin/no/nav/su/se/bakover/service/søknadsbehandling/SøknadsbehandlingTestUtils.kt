@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
 import java.time.Clock
 
@@ -26,14 +27,14 @@ internal fun createSøknadsbehandlingService(
     søknadRepo: SøknadRepo = mock(),
     personService: PersonService = mock(),
     behandlingMetrics: BehandlingMetrics = mock(),
-    iverksettAvslåttBehandlingService: IverksettAvslåttSøknadsbehandlingService = mock(),
     observer: EventObserver = mock { on { handle(any()) }.doNothing() },
     beregningService: BeregningService = mock(),
     microsoftGraphApiOppslag: MicrosoftGraphApiOppslag = mock(),
     brevService: BrevService = mock(),
     opprettVedtakssnapshotService: OpprettVedtakssnapshotService = mock(),
     clock: Clock = Clock.systemUTC(),
-    vedtakRepo: VedtakRepo = mock()
+    vedtakRepo: VedtakRepo = mock(),
+    ferdigstillVedtakService: FerdigstillVedtakService = mock()
 ) = SøknadsbehandlingServiceImpl(
     søknadService,
     søknadRepo,
@@ -41,12 +42,12 @@ internal fun createSøknadsbehandlingService(
     utbetalingService,
     personService,
     oppgaveService,
-    iverksettAvslåttBehandlingService,
     behandlingMetrics,
     beregningService,
     microsoftGraphApiOppslag,
     brevService,
     opprettVedtakssnapshotService,
     clock,
-    vedtakRepo
+    vedtakRepo,
+    ferdigstillVedtakService,
 ).apply { addObserver(observer) }

@@ -11,6 +11,9 @@ import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.journalførtIverksettingForAvslag
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
+import no.nav.su.se.bakover.domain.brev.BrevbestillingId
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
@@ -85,7 +88,7 @@ internal class VedtakPosgresRepoTest {
                 oppgaveId = OppgaveId(""),
                 attestant = søknadsbehandlingVedtak.attestant,
                 utbetalingId = søknadsbehandlingVedtak.utbetalingId,
-                eksterneIverksettingsteg = søknadsbehandlingVedtak.eksterneIverksettingsteg
+                eksterneIverksettingsteg = søknadsbehandlingVedtak.journalføringOgBrevdistribusjon
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 
@@ -134,6 +137,78 @@ internal class VedtakPosgresRepoTest {
                     .hent(mapOf("vedtakId" to vedtak.id), session) {
                         it.stringOrNull("søknadsbehandlingId") shouldBe søknadsbehandling.id.toString()
                         it.stringOrNull("revurderingId") shouldBe null
+                    }
+            }
+        }
+    }
+
+    @Test
+    fun `oppdaterer vedtak med journalpost og brevbestilling`() {
+        withMigratedDb {
+            val søknadsbehandling = testDataHelper.nyIverksattAvslagMedBeregning(JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert)
+            val vedtak = Vedtak.AvslåttStønad.fromSøknadsbehandlingMedBeregning(søknadsbehandling)
+
+            vedtakRepo.lagre(vedtak)
+            vedtakRepo.lagre(
+                vedtak.copy(
+                    journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
+                        journalpostId = JournalpostId("jp"),
+                        brevbestillingId = BrevbestillingId(("bi"))
+                    )
+                )
+            )
+            vedtakRepo.hent(vedtak.id)!! shouldBe vedtak.copy(
+                journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
+                    journalpostId = JournalpostId("jp"),
+                    brevbestillingId = BrevbestillingId(("bi"))
+                )
+            )
+        }
+
+        withMigratedDb {
+            val (søknadsbehandling, _) = testDataHelper.nyIverksattInnvilget()
+            val vedtak = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling)
+
+            vedtakRepo.lagre(vedtak)
+            vedtakRepo.lagre(
+                vedtak.copy(
+                    journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
+                        journalpostId = JournalpostId("jp"),
+                        brevbestillingId = BrevbestillingId(("bi"))
+                    )
+                )
+            )
+            vedtakRepo.hent(vedtak.id)!! shouldBe vedtak.copy(
+                journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
+                    journalpostId = JournalpostId("jp"),
+                    brevbestillingId = BrevbestillingId(("bi"))
+                )
+            )
+        }
+    }
+
+    @Test
+    fun `kobler ikke den samme behandlingen og vedtaket flere ganger ved oppdatering av vedtak`() {
+        withMigratedDb {
+            val (søknadsbehandling, _) = testDataHelper.nyIverksattInnvilget()
+            val vedtak = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling)
+
+            vedtakRepo.lagre(vedtak)
+            vedtakRepo.lagre(
+                vedtak.copy(
+                    journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
+                        journalpostId = JournalpostId("jp"),
+                        brevbestillingId = BrevbestillingId(("bi"))
+                    )
+                )
+            )
+
+            datasource.withSession { session ->
+                """
+                        SELECT count(*) from behandling_vedtak where vedtakId = :vedtakId
+                """.trimIndent()
+                    .hent(mapOf("vedtakId" to vedtak.id), session) {
+                        it.int("count") shouldBe 1
                     }
             }
         }

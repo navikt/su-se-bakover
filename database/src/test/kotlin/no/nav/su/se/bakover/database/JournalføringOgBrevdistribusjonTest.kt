@@ -2,56 +2,55 @@ package no.nav.su.se.bakover.database
 
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegEtterUtbetaling
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegForAvslag
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
-internal class EksterneIverksettingsstegMapperTest {
+internal class JournalføringOgBrevdistribusjonTest {
     @Nested
     inner class EtterUtbetaling {
         @Test
         fun `manglende journalpostid og brevbestillingsid ger status venterPåKvittering`() {
-            EksterneIverksettingsstegEtterUtbetalingMapper.idToObject(
+            JournalføringOgBrevdistribusjon.fromId(
                 iverksattJournalpostId = null,
                 iverksattBrevbestillingId = null
-            ) shouldBe EksterneIverksettingsstegEtterUtbetaling.VenterPåKvittering.also {
-                EksterneIverksettingsstegEtterUtbetalingMapper.iverksattJournalpostId(it) shouldBe null
-                EksterneIverksettingsstegEtterUtbetalingMapper.iverksattBrevbestillingId(it) shouldBe null
+            ) shouldBe JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert.also {
+                JournalføringOgBrevdistribusjon.iverksattJournalpostId(it) shouldBe null
+                JournalføringOgBrevdistribusjon.iverksattBrevbestillingId(it) shouldBe null
             }
         }
 
         @Test
         fun `kun journalpostid ger status journalført`() {
-            EksterneIverksettingsstegEtterUtbetalingMapper.idToObject(
+            JournalføringOgBrevdistribusjon.fromId(
                 iverksattJournalpostId = JournalpostId("13"),
                 iverksattBrevbestillingId = null
-            ) shouldBe EksterneIverksettingsstegEtterUtbetaling.Journalført(JournalpostId("13")).also {
-                EksterneIverksettingsstegEtterUtbetalingMapper.iverksattJournalpostId(it) shouldBe JournalpostId("13")
-                EksterneIverksettingsstegEtterUtbetalingMapper.iverksattBrevbestillingId(it) shouldBe null
+            ) shouldBe JournalføringOgBrevdistribusjon.Journalført(JournalpostId("13")).also {
+                JournalføringOgBrevdistribusjon.iverksattJournalpostId(it) shouldBe JournalpostId("13")
+                JournalføringOgBrevdistribusjon.iverksattBrevbestillingId(it) shouldBe null
             }
         }
 
         @Test
         fun `både journalpostid og brevbestillingsid ger status JournalførtOgDistribuertBrev`() {
-            EksterneIverksettingsstegEtterUtbetalingMapper.idToObject(
+            JournalføringOgBrevdistribusjon.fromId(
                 iverksattJournalpostId = JournalpostId("13"),
                 iverksattBrevbestillingId = BrevbestillingId("45")
-            ) shouldBe EksterneIverksettingsstegEtterUtbetaling.JournalførtOgDistribuertBrev(
+            ) shouldBe JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
                 JournalpostId("13"),
                 BrevbestillingId("45")
             ).also {
-                EksterneIverksettingsstegEtterUtbetalingMapper.iverksattJournalpostId(it) shouldBe JournalpostId("13")
-                EksterneIverksettingsstegEtterUtbetalingMapper.iverksattBrevbestillingId(it) shouldBe BrevbestillingId("45")
+                JournalføringOgBrevdistribusjon.iverksattJournalpostId(it) shouldBe JournalpostId("13")
+                JournalføringOgBrevdistribusjon.iverksattBrevbestillingId(it) shouldBe BrevbestillingId("45")
             }
         }
 
         @Test
         fun `brevbestillingsid uten journalpostid skal kaste exception`() {
             assertThrows<IllegalStateException> {
-                EksterneIverksettingsstegEtterUtbetalingMapper.idToObject(
+                JournalføringOgBrevdistribusjon.fromId(
                     iverksattJournalpostId = null,
                     iverksattBrevbestillingId = BrevbestillingId("45")
                 )
@@ -63,33 +62,33 @@ internal class EksterneIverksettingsstegMapperTest {
     inner class Avslag {
         @Test
         fun `kun journalpostid ger status journalført`() {
-            EksterneIverksettingsstegForAvslagMapper.idToObject(
+            JournalføringOgBrevdistribusjon.fromId(
                 iverksattJournalpostId = JournalpostId("13"),
                 iverksattBrevbestillingId = null
-            ) shouldBe EksterneIverksettingsstegForAvslag.Journalført(JournalpostId("13")).also {
-                EksterneIverksettingsstegForAvslagMapper.iverksattJournalpostId(it) shouldBe JournalpostId("13")
-                EksterneIverksettingsstegForAvslagMapper.iverksattBrevbestillingId(it) shouldBe null
+            ) shouldBe JournalføringOgBrevdistribusjon.Journalført(JournalpostId("13")).also {
+                JournalføringOgBrevdistribusjon.iverksattJournalpostId(it) shouldBe JournalpostId("13")
+                JournalføringOgBrevdistribusjon.iverksattBrevbestillingId(it) shouldBe null
             }
         }
 
         @Test
         fun `både journalpostid og brevbestillingsid ger status JournalførtOgDistribuertBrev`() {
-            EksterneIverksettingsstegForAvslagMapper.idToObject(
+            JournalføringOgBrevdistribusjon.fromId(
                 iverksattJournalpostId = JournalpostId("13"),
                 iverksattBrevbestillingId = BrevbestillingId("45")
-            ) shouldBe EksterneIverksettingsstegForAvslag.JournalførtOgDistribuertBrev(
+            ) shouldBe JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
                 JournalpostId("13"),
                 BrevbestillingId("45")
             ).also {
-                EksterneIverksettingsstegForAvslagMapper.iverksattJournalpostId(it) shouldBe JournalpostId("13")
-                EksterneIverksettingsstegForAvslagMapper.iverksattBrevbestillingId(it) shouldBe BrevbestillingId("45")
+                JournalføringOgBrevdistribusjon.iverksattJournalpostId(it) shouldBe JournalpostId("13")
+                JournalføringOgBrevdistribusjon.iverksattBrevbestillingId(it) shouldBe BrevbestillingId("45")
             }
         }
 
         @Test
         fun `brevbestillingsid uten journalpostid skal kaste exception`() {
             assertThrows<IllegalStateException> {
-                EksterneIverksettingsstegForAvslagMapper.idToObject(
+                JournalføringOgBrevdistribusjon.fromId(
                     iverksattJournalpostId = null,
                     iverksattBrevbestillingId = BrevbestillingId("45")
                 )

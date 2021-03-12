@@ -33,8 +33,6 @@ import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
-import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
-import no.nav.su.se.bakover.domain.visitor.Visitable
 import no.nav.su.se.bakover.service.avstemming.AvstemmingFeilet
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.brev.BrevService
@@ -59,13 +57,13 @@ import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukketSøknad
-import no.nav.su.se.bakover.service.søknadsbehandling.FerdigstillIverksettingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeGjenopptaUtbetalinger
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeStanseUtbetalinger
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import java.time.LocalDate
 import java.util.UUID
@@ -302,15 +300,23 @@ open class AccessCheckProxy(
                     return services.søknadsbehandling.hentAktiveBehandlinger(request)
                 }
             },
-            ferdigstillIverksettingService = object : FerdigstillIverksettingService {
+            ferdigstillVedtak = object : FerdigstillVedtakService {
+                override fun ferdigstillVedtakEtterUtbetaling(utbetalingId: UUID30): Unit =
+                    kastKanKunKallesFraAnnenService()
 
-                override fun opprettManglendeJournalpostOgBrevdistribusjon(): FerdigstillIverksettingService.OpprettManglendeJournalpostOgBrevdistribusjonResultat {
+                override fun opprettManglendeJournalposterOgBrevbestillinger(): FerdigstillVedtakService.OpprettManglendeJournalpostOgBrevdistribusjonResultat {
                     // Dette er et driftsendepunkt og vi vil ikke returnere kode 6/7/person-sensitive data.
-                    return services.ferdigstillIverksettingService.opprettManglendeJournalpostOgBrevdistribusjon()
+                    return services.ferdigstillVedtak.opprettManglendeJournalposterOgBrevbestillinger()
                 }
-                override fun ferdigstillIverksetting(utbetalingId: UUID30) = kastKanKunKallesFraAnnenService()
-                override fun lagBrevRequest(visitable: Visitable<LagBrevRequestVisitor>) = kastKanKunKallesFraAnnenService()
-                override fun lukkOppgave(oppgaveId: OppgaveId) = kastKanKunKallesFraAnnenService()
+
+                override fun journalførOgLagre(vedtak: Vedtak): Either<FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeJournalføreBrev, Vedtak> =
+                    kastKanKunKallesFraAnnenService()
+
+                override fun distribuerOgLagre(vedtak: Vedtak): Either<FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeDistribuereBrev, Vedtak> =
+                    kastKanKunKallesFraAnnenService()
+
+                override fun lukkOppgave(vedtak: Vedtak): Either<FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Vedtak> =
+                    kastKanKunKallesFraAnnenService()
             },
             revurdering = object : RevurderingService {
                 override fun opprettRevurdering(

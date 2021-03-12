@@ -97,8 +97,8 @@ class SøknadsbehandlingServiceAttesteringTest {
 
         val actual = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
+            personService = personServiceMock,
             observer = eventObserver
         ).sendTilAttestering(SøknadsbehandlingService.SendTilAttesteringRequest(simulertBehandling.id, saksbehandler))
 
@@ -148,8 +148,8 @@ class SøknadsbehandlingServiceAttesteringTest {
 
         val actual = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
+            personService = personServiceMock,
             observer = eventObserver
         ).sendTilAttestering(SøknadsbehandlingService.SendTilAttesteringRequest(simulertBehandling.id, saksbehandler))
 
@@ -176,8 +176,8 @@ class SøknadsbehandlingServiceAttesteringTest {
 
         val actual = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
+            personService = personServiceMock,
             observer = eventObserver
         ).sendTilAttestering(SøknadsbehandlingService.SendTilAttesteringRequest(simulertBehandling.id, saksbehandler))
 
@@ -206,8 +206,8 @@ class SøknadsbehandlingServiceAttesteringTest {
 
         val actual = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
+            personService = personServiceMock,
             observer = eventObserver
         ).sendTilAttestering(SøknadsbehandlingService.SendTilAttesteringRequest(simulertBehandling.id, saksbehandler))
 
@@ -249,8 +249,8 @@ class SøknadsbehandlingServiceAttesteringTest {
 
         val actual = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
+            personService = personServiceMock,
             observer = eventObserver
         ).sendTilAttestering(SøknadsbehandlingService.SendTilAttesteringRequest(simulertBehandling.id, saksbehandler))
 

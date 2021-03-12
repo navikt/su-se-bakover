@@ -20,9 +20,8 @@ import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.RevurdertBeregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegEtterUtbetaling
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegFeil
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegFeil.EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeJournalføre.FeilVedJournalføring
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.KunneIkkeJournalføreOgDistribuereBrev
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -32,11 +31,9 @@ import java.util.UUID
 import kotlin.math.abs
 
 sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
-    abstract val opprettet: Tidspunkt
     abstract val tilRevurdering: Vedtak.InnvilgetStønad
     abstract val periode: Periode
     abstract val saksbehandler: Saksbehandler
-    abstract val oppgaveId: OppgaveId
     override val sakId: UUID
         get() = tilRevurdering.behandling.sakId
     override val saksnummer: Saksnummer
@@ -253,7 +250,7 @@ data class RevurderingTilAttestering(
                 oppgaveId = oppgaveId,
                 attestant = attestant,
                 utbetalingId = it,
-                eksterneIverksettingsteg = EksterneIverksettingsstegEtterUtbetaling.VenterPåKvittering
+                eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert
             )
         }
     }
@@ -274,17 +271,17 @@ data class IverksattRevurdering(
     val simulering: Simulering,
     val attestant: NavIdentBruker.Attestant,
     val utbetalingId: UUID30,
-    val eksterneIverksettingsteg: EksterneIverksettingsstegEtterUtbetaling
+    val eksterneIverksettingsteg: JournalføringOgBrevdistribusjon
 ) : Revurdering() {
     override fun accept(visitor: RevurderingVisitor) {
         visitor.visit(this)
     }
 
-    fun journalfør(journalfør: () -> Either<FeilVedJournalføring, JournalpostId>): Either<EksterneIverksettingsstegFeil.EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeJournalføre, IverksattRevurdering> {
+    fun journalfør(journalfør: () -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre, IverksattRevurdering> {
         return eksterneIverksettingsteg.journalfør(journalfør).map { copy(eksterneIverksettingsteg = it) }
     }
 
-    fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<EksterneIverksettingsstegFeil.EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<EksterneIverksettingsstegFeil.EksterneIverksettingsstegEtterUtbetalingFeil.KunneIkkeDistribuereBrev, IverksattRevurdering> {
+    fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev, IverksattRevurdering> {
         return eksterneIverksettingsteg.distribuerBrev(distribuerBrev)
             .map { copy(eksterneIverksettingsteg = it) }
     }

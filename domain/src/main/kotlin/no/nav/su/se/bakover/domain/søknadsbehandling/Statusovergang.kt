@@ -8,8 +8,6 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.EksterneIverksettingsstegForAvslag
-import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 
 abstract class Statusovergang<L, T> : StatusovergangVisitor {
@@ -189,15 +187,12 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
 
     class TilIverksatt(
         private val attestering: Attestering,
-        private val innvilget: (søknadsbehandling: Søknadsbehandling.TilAttestering.Innvilget) -> Either<KunneIkkeIverksetteSøknadsbehandling, UUID30>,
-        private val avslag: (søknadsbehandling: Søknadsbehandling.TilAttestering.Avslag) -> Either<KunneIkkeIverksetteSøknadsbehandling, JournalpostId>
+        private val innvilget: (søknadsbehandling: Søknadsbehandling.TilAttestering.Innvilget) -> Either<KunneIkkeIverksetteSøknadsbehandling, UUID30>
     ) : Statusovergang<KunneIkkeIverksetteSøknadsbehandling, Søknadsbehandling.Iverksatt>() {
 
         override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Avslag.UtenBeregning) {
             result = if (saksbehandlerOgAttestantErForskjellig(søknadsbehandling, attestering)) {
-                avslag(søknadsbehandling)
-                    .mapLeft { KunneIkkeIverksetteSøknadsbehandling.KunneIkkeJournalføre }
-                    .map { søknadsbehandling.tilIverksatt(attestering, EksterneIverksettingsstegForAvslag.Journalført(it)) }
+                søknadsbehandling.tilIverksatt(attestering).right()
             } else {
                 KunneIkkeIverksetteSøknadsbehandling.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
             }
@@ -205,9 +200,7 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
 
         override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Avslag.MedBeregning) {
             result = if (saksbehandlerOgAttestantErForskjellig(søknadsbehandling, attestering)) {
-                avslag(søknadsbehandling)
-                    .mapLeft { KunneIkkeIverksetteSøknadsbehandling.KunneIkkeJournalføre }
-                    .map { søknadsbehandling.tilIverksatt(attestering, EksterneIverksettingsstegForAvslag.Journalført(it)) }
+                søknadsbehandling.tilIverksatt(attestering).right()
             } else {
                 KunneIkkeIverksetteSøknadsbehandling.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
             }

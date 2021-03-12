@@ -21,8 +21,8 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.service.søknadsbehandling.FerdigstillIverksettingService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.argThat
 import org.junit.jupiter.api.Test
@@ -74,11 +74,11 @@ internal class LokalKvitteringJobTest {
             ).right()
         }
         val innvilgetSøknadsbehandling = mock<Søknadsbehandling.Iverksatt.Innvilget> {}
-        val ferdigstillIverksettingServiceMock = mock<FerdigstillIverksettingService>()
+        val ferdigstillVedtakServiceMock = mock<FerdigstillVedtakService>()
 
         val utbetalingKvitteringConsumer = UtbetalingKvitteringConsumer(
             utbetalingService = utbetalingServiceMock,
-            ferdigstillIverksettingService = ferdigstillIverksettingServiceMock,
+            ferdigstillVedtakService = ferdigstillVedtakServiceMock,
             clock = fixedClock
         )
         LokalKvitteringJob(utbetalingRepoMock, utbetalingKvitteringConsumer).schedule()
@@ -87,14 +87,14 @@ internal class LokalKvitteringJobTest {
             avstemmingsnøkkel = argThat { it shouldBe utbetaling.avstemmingsnøkkel },
             kvittering = argThat { it shouldBe kvittering.copy(originalKvittering = it.originalKvittering) }
         )
-        verify(ferdigstillIverksettingServiceMock, timeout(1000)).ferdigstillIverksetting(
+        verify(ferdigstillVedtakServiceMock, timeout(1000)).ferdigstillVedtakEtterUtbetaling(
             argThat { it shouldBe utbetaling.id }
         )
 
         verifyNoMoreInteractions(
             utbetalingRepoMock,
             utbetalingServiceMock,
-            ferdigstillIverksettingServiceMock,
+            ferdigstillVedtakServiceMock,
             innvilgetSøknadsbehandling
         )
     }
