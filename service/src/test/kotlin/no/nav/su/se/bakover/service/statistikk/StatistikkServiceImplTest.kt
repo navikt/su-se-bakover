@@ -468,7 +468,7 @@ internal class StatistikkServiceImplTest {
         )
 
         val expected = Statistikk.Behandling(
-            funksjonellTid = revurderingTilAttestering.opprettet,
+            funksjonellTid = Tidspunkt.now(clock),
             tekniskTid = Tidspunkt.now(clock),
             registrertDato = revurderingTilAttestering.opprettet.toLocalDate(zoneIdOslo),
             mottattDato = revurderingTilAttestering.opprettet.toLocalDate(zoneIdOslo),
@@ -530,7 +530,7 @@ internal class StatistikkServiceImplTest {
         )
 
         val expected = Statistikk.Behandling(
-            funksjonellTid = iverksattRevurdering.opprettet,
+            funksjonellTid = Tidspunkt.now(clock),
             tekniskTid = Tidspunkt.now(clock),
             registrertDato = iverksattRevurdering.opprettet.toLocalDate(zoneIdOslo),
             mottattDato = iverksattRevurdering.opprettet.toLocalDate(zoneIdOslo),

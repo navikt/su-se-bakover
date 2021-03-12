@@ -1,9 +1,7 @@
 package no.nav.su.se.bakover.service.statistikk
 
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.common.zoneIdOslo
-import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
@@ -17,7 +15,7 @@ internal class RevurderingStatistikkMapper(private val clock: Clock) {
         Statistikk.Behandling(
             behandlingType = Statistikk.BehandlingType.REVURDERING,
             behandlingTypeBeskrivelse = Statistikk.BehandlingType.REVURDERING.beskrivelse,
-            funksjonellTid = FunksjonellTidMapper.map(revurdering),
+            funksjonellTid = Tidspunkt.now(clock),
             tekniskTid = Tidspunkt.now(clock),
             registrertDato = revurdering.opprettet.toLocalDate(zoneIdOslo),
             mottattDato = revurdering.opprettet.toLocalDate(zoneIdOslo),
@@ -48,18 +46,6 @@ internal class RevurderingStatistikkMapper(private val clock: Clock) {
                 else -> throw ManglendeStatistikkMappingException(this, revurdering::class.java)
             }
         }
-    }
-
-    internal object FunksjonellTidMapper {
-        fun map(revurdering: Revurdering) = when (revurdering) {
-            is OpprettetRevurdering -> revurdering.opprettet
-            is RevurderingTilAttestering -> revurdering.beregning.startOfFirstDay()
-            is IverksattRevurdering -> revurdering.beregning.startOfFirstDay()
-            is UnderkjentRevurdering -> TODO() // ?
-            else -> throw ManglendeStatistikkMappingException(this, revurdering::class.java)
-        }
-
-        private fun Beregning.startOfFirstDay() = getPeriode().getFraOgMed().startOfDay(zoneIdOslo)
     }
 
     internal object BehandlingStatusBeskrivelseMapper {
