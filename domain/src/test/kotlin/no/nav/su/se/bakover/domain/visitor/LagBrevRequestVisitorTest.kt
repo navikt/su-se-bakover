@@ -584,7 +584,7 @@ internal class LagBrevRequestVisitorTest {
             oppgaveId = OppgaveId("15"),
             beregning = innvilgetBeregning,
             simulering = simulering,
-            attestant = attestant,
+            attestering = Attestering.Iverksatt(attestant),
             utbetalingId = UUID30.randomUUID(),
             eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert
         )
