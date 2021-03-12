@@ -16,13 +16,7 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
-import no.nav.su.se.bakover.web.routes.behandling.AttesteringJson
-import no.nav.su.se.bakover.web.routes.behandling.BehandlingsinformasjonJson
-import no.nav.su.se.bakover.web.routes.behandling.SimuleringJson
 import no.nav.su.se.bakover.web.routes.behandling.TestBeregning
-import no.nav.su.se.bakover.web.routes.behandling.UnderkjennelseJson
-import no.nav.su.se.bakover.web.routes.behandling.beregning.BeregningJson
-import no.nav.su.se.bakover.web.routes.behandling.beregning.PeriodeJson
 import no.nav.su.se.bakover.web.routes.behandling.beregning.toJson
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.vedtak
 import org.junit.jupiter.api.Test
@@ -220,7 +214,6 @@ internal class RevurderingJsonTest {
         JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson()), true)
         deserialize<TilAttesteringJson>(revurderingJson) shouldBe revurdering.toJson()
     }
-
 
     @Test
     fun `should serialize and deserialize UnderkjentRevurdering`() {
