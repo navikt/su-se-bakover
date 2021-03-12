@@ -57,7 +57,7 @@ internal fun Route.grunnlagsdataRoute(
                 call.withBehandlingId { behandlingId ->
                     call.withBody<Body> { body ->
                         body.toDomain().map {
-                            grunnlagsdataService.leggTilUførerunnlag(sakId, behandlingId, it)
+                            grunnlagsdataService.leggTilUførerunnlag(sakId, behandlingId, listOf(it))
                         }
                     }
                 }

@@ -371,7 +371,7 @@ open class AccessCheckProxy(
                 override fun hentRevurderingForUtbetaling(utbetalingId: UUID30) = kastKanKunKallesFraAnnenService()
             },
             grunnlagsdataService = object : GrunnlagsdataService {
-                override fun leggTilUførerunnlag(sakId: UUID, behandlingId: UUID, uføregrunnlag: BehandlingUføregrunnlag) {
+                override fun leggTilUførerunnlag(sakId: UUID, behandlingId: UUID, uføregrunnlag: List<BehandlingUføregrunnlag>) {
                     assertHarTilgangTilBehandling(behandlingId)
                     return services.grunnlagsdataService.leggTilUførerunnlag(sakId, behandlingId, uføregrunnlag)
                 }

@@ -5,6 +5,9 @@ import no.nav.su.se.bakover.common.ApplicationConfig.DatabaseConfig.RotatingCred
 import no.nav.su.se.bakover.common.ApplicationConfig.DatabaseConfig.StaticCredentials
 import no.nav.su.se.bakover.database.avstemming.AvstemmingPostgresRepo
 import no.nav.su.se.bakover.database.avstemming.AvstemmingRepo
+import no.nav.su.se.bakover.database.grunnlag.GrunnlagPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.GrunnlagRepo
+import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.database.person.PersonPostgresRepo
@@ -58,6 +61,8 @@ object DatabaseBuilder {
         val revurderingRepo = RevurderingPostgresRepo(dataSource, saksbehandlingRepo)
         val vedtakRepo = VedtakPosgresRepo(dataSource, saksbehandlingRepo, revurderingRepo)
 
+        val uføregrunnlagRepo = UføregrunnlagPostgresRepo(dataSource)
+
         return DatabaseRepos(
             avstemming = AvstemmingPostgresRepo(dataSource),
             utbetaling = UtbetalingPostgresRepo(dataSource),
@@ -68,7 +73,10 @@ object DatabaseBuilder {
             vedtakssnapshot = VedtakssnapshotPostgresRepo(dataSource),
             søknadsbehandling = saksbehandlingRepo,
             revurderingRepo = revurderingRepo,
-            vedtakRepo = vedtakRepo
+            vedtakRepo = vedtakRepo,
+            grunnlagRepo = GrunnlagPostgresRepo(
+                uføregrunnlagRepo
+            )
         )
     }
 }
@@ -84,4 +92,5 @@ data class DatabaseRepos(
     val søknadsbehandling: SøknadsbehandlingRepo,
     val revurderingRepo: RevurderingRepo,
     val vedtakRepo: VedtakRepo,
+    val grunnlagRepo: GrunnlagRepo
 )

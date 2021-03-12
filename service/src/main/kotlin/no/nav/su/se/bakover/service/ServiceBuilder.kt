@@ -133,7 +133,7 @@ object ServiceBuilder {
             },
             ferdigstillVedtak = ferdigstillVedtakService,
             revurdering = revurderingService,
-            grunnlagsdataService = GrunnlagsdataServiceImpl(),
+            grunnlagsdataService = GrunnlagsdataServiceImpl(databaseRepos.grunnlagRepo),
         )
     }
 }
