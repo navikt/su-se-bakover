@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
+import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import java.time.Clock
 
 internal class RevurderingStatistikkMapper(private val clock: Clock) {
@@ -39,6 +40,11 @@ internal class RevurderingStatistikkMapper(private val clock: Clock) {
                         beslutter = revurdering.attestering.attestant.navIdent
                     )
                 }
+                is UnderkjentRevurdering -> {
+                    copy(
+                        beslutter = revurdering.attestering.attestant.navIdent
+                    )
+                }
                 else -> throw ManglendeStatistikkMappingException(this, revurdering::class.java)
             }
         }
@@ -49,6 +55,7 @@ internal class RevurderingStatistikkMapper(private val clock: Clock) {
             is OpprettetRevurdering -> revurdering.opprettet
             is RevurderingTilAttestering -> revurdering.beregning.startOfFirstDay()
             is IverksattRevurdering -> revurdering.beregning.startOfFirstDay()
+            is UnderkjentRevurdering -> TODO() // ?
             else -> throw ManglendeStatistikkMappingException(this, revurdering::class.java)
         }
 
@@ -61,6 +68,7 @@ internal class RevurderingStatistikkMapper(private val clock: Clock) {
                 is OpprettetRevurdering -> "Ny revurdering opprettet"
                 is RevurderingTilAttestering -> "Revurdering sendt til attestering"
                 is IverksattRevurdering -> "Revurdering iverksatt"
+                is UnderkjentRevurdering -> "Revurdering underkjent"
                 else -> throw ManglendeStatistikkMappingException(this, revurdering::class.java)
             }
     }

@@ -255,47 +255,6 @@ internal class RevurderingServiceImplTest {
         verifyNoMoreInteractions(sakServiceMock)
     }
 
-    // TODO vi har vel muligens ikke helt deifnert hvordan dette skal fungere "etter" vedtak er innført
-    // @Test
-    // fun `kan ikke revurdere når stønadsperioden overlapper flere aktive stønadsperioder`() {
-    //     val beregningMock = mock<Beregning> {
-    //         on { getPeriode() } doReturn periode
-    //     }
-    //     val behandling1 = mock<Søknadsbehandling.Iverksatt.Innvilget> {
-    //         on { beregning } doReturn beregningMock
-    //     }
-    //     val behandling2 = mock<Søknadsbehandling.Iverksatt.Innvilget> {
-    //         on { beregning } doReturn beregningMock
-    //     }
-    //
-    //     val sak = Sak(
-    //         id = sakId,
-    //         saksnummer = saksnummer,
-    //         opprettet = Tidspunkt.now(),
-    //         fnr = fnr,
-    //         søknader = listOf(),
-    //         behandlinger = listOf(behandling1, behandling2),
-    //         utbetalinger = sak.utbetalinger
-    //     )
-    //
-    //     val sakServiceMock = mock<SakService> {
-    //         on { hentSak(sakId) } doReturn sak.right()
-    //     }
-    //
-    //     val actual = createRevurderingService(
-    //         sakService = sakServiceMock,
-    //         clock = Clock.fixed(1.februar(2021).startOfDay(zoneIdOslo).instant, zoneIdOslo)
-    //     ).opprettRevurdering(
-    //         sakId = sakId,
-    //         fraOgMed = 1.juni(2021),
-    //         saksbehandler = saksbehandler
-    //     )
-    //
-    //     actual shouldBe KunneIkkeRevurdere.KanIkkeRevurderePerioderMedFlereAktiveStønadsperioder.left()
-    //     verify(sakServiceMock).hentSak(sakId)
-    //     verifyNoMoreInteractions(sakServiceMock)
-    // }
-
     @Test
     fun `oppretter ikke en revurdering hvis perioden er i samme måned`() {
         val actual = createRevurderingService().opprettRevurdering(
@@ -693,6 +652,77 @@ internal class RevurderingServiceImplTest {
             utbetalingServiceMock,
             utbetalingMock
         )
+    }
+
+    @Test
+    fun `underkjenner en revurdering`() {
+        val tilAttestering = RevurderingTilAttestering(
+            id = revurderingId,
+            periode = periode,
+            opprettet = Tidspunkt.EPOCH,
+            tilRevurdering = søknadsbehandlingVedtak,
+            saksbehandler = saksbehandler,
+            beregning = beregningMock,
+            simulering = mock(),
+            oppgaveId = OppgaveId("oppgaveId")
+        )
+
+        val attestering = Attestering.Underkjent(
+            attestant = NavIdentBruker.Attestant(navIdent = "123"),
+            grunn = Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
+            kommentar = "pls math"
+        )
+
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(revurderingId) } doReturn tilAttestering
+        }
+
+        val personServiceMock = mock<PersonService> {
+            on { hentAktørId(any()) } doReturn aktørId.right()
+        }
+        val oppgaveServiceMock = mock<OppgaveService> {
+            on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
+            on { lukkOppgave(any()) } doReturn Unit.right()
+        }
+
+        val eventObserver: EventObserver = mock()
+
+        val revurderingService = createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+            personService = personServiceMock,
+            oppgaveService = oppgaveServiceMock
+        ).apply { addObserver(eventObserver) }
+
+        val actual = revurderingService.underkjenn(
+            revurderingId = revurderingId,
+            attestering = attestering,
+        ).getOrHandle { throw RuntimeException("Skal ikke kunne skje") }
+
+        actual shouldBe tilAttestering.underkjenn(attestering)
+
+        inOrder(revurderingRepoMock, personServiceMock, oppgaveServiceMock, eventObserver) {
+            verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
+            verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
+            verify(oppgaveServiceMock).opprettOppgave(
+                argThat {
+                    it shouldBe OppgaveConfig.Revurderingsbehandling(
+                        saksnummer = saksnummer,
+                        aktørId = aktørId,
+                        tilordnetRessurs = saksbehandler
+                    )
+                }
+            )
+            verify(revurderingRepoMock).lagre(argThat { it shouldBe actual })
+            verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe tilAttestering.oppgaveId })
+
+            verify(eventObserver).handle(
+                argThat {
+                    it shouldBe Event.Statistikk.RevurderingStatistikk.RevurderingUnderkjent(actual)
+                }
+            )
+        }
+
+        verifyNoMoreInteractions(revurderingRepoMock, personServiceMock, oppgaveServiceMock)
     }
 
     @Test

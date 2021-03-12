@@ -16,12 +16,14 @@ import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgr
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
+import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
@@ -444,6 +446,72 @@ internal class RevurderingPostgresRepoTest {
             ds.withSession {
                 repo.hentRevurderingerForSak(iverksatt.sakId, it) shouldBe listOf(iverksatt)
             }
+        }
+    }
+
+    @Test
+    fun `kan lagre og hente en underkjent revurdering`() {
+        withMigratedDb {
+            val vedtak =
+                testDataHelper.vedtakForSøknadsbehandling(testDataHelper.nyOversendtUtbetalingMedKvittering().first)
+            val opprettet = OpprettetRevurdering(
+                id = UUID.randomUUID(),
+                periode = periode,
+                opprettet = fixedTidspunkt,
+                tilRevurdering = vedtak,
+                saksbehandler = saksbehandler,
+                oppgaveId = OppgaveId("oppgaveid")
+            )
+
+            repo.lagre(opprettet)
+
+            val beregnet = BeregnetRevurdering.Innvilget(
+                id = opprettet.id,
+                periode = opprettet.periode,
+                opprettet = opprettet.opprettet,
+                tilRevurdering = vedtak,
+                saksbehandler = opprettet.saksbehandler,
+                beregning = TestBeregning,
+                oppgaveId = OppgaveId("oppgaveid")
+            )
+
+            repo.lagre(beregnet)
+
+            val simulert = SimulertRevurdering(
+                id = beregnet.id,
+                periode = beregnet.periode,
+                opprettet = beregnet.opprettet,
+                tilRevurdering = beregnet.tilRevurdering,
+                saksbehandler = beregnet.saksbehandler,
+                beregning = beregnet.beregning,
+                oppgaveId = OppgaveId("oppgaveid"),
+                simulering = Simulering(
+                    gjelderId = FnrGenerator.random(),
+                    gjelderNavn = "et navn for simulering",
+                    datoBeregnet = 1.januar(2021),
+                    nettoBeløp = 200,
+                    periodeList = listOf()
+                )
+            )
+
+            repo.lagre(simulert)
+
+            val tilAttestering =
+                simulert.tilAttestering(
+                    attesteringsoppgaveId = OppgaveId("attesteringsoppgaveId"),
+                    saksbehandler = saksbehandler
+                )
+
+            val attestering = Attestering.Underkjent(
+                attestant = NavIdentBruker.Attestant(navIdent = "123"),
+                grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+                kommentar = "feil"
+            )
+
+            repo.lagre(tilAttestering.underkjenn(attestering))
+
+            assert(repo.hent(opprettet.id) is UnderkjentRevurdering)
+            repo.hentEventuellTidligereAttestering(opprettet.id) shouldBe attestering
         }
     }
 }

@@ -208,7 +208,7 @@ internal class RevurderingServiceImpl(
             log.error("Fant ikke aktør-id")
             return KunneIkkeSendeRevurderingTilAttestering.FantIkkeAktørId.left()
         }
-        // TODO ai: LOLOLOOOOLOLOLOL lag test for this
+
         val tilordnetRessurs = revurderingRepo.hentEventuellTidligereAttestering(revurderingId)?.attestant
 
         val oppgaveId = oppgaveService.opprettOppgave(
@@ -361,6 +361,12 @@ internal class RevurderingServiceImpl(
                     }.map {
                         log.info("Lukket attesteringsoppgave $eksisterendeOppgaveId ved underkjenning av revurdering")
                     }
+
+                observers.forEach { observer ->
+                    observer.handle(
+                        Event.Statistikk.RevurderingStatistikk.RevurderingUnderkjent(underkjent)
+                    )
+                }
 
                 underkjent.right()
             }

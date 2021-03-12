@@ -4,7 +4,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
-import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
+import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 
 interface StatistikkService {
@@ -45,6 +45,9 @@ sealed class Event {
                 RevurderingStatistikk()
 
             data class RevurderingIverksatt(override val revurdering: IverksattRevurdering) :
+                RevurderingStatistikk()
+
+            data class RevurderingUnderkjent(override val revurdering: UnderkjentRevurdering) :
                 RevurderingStatistikk()
         }
     }
