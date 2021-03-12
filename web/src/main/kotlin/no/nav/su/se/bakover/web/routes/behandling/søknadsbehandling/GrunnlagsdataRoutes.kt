@@ -18,7 +18,9 @@ import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.behandling.beregning.PeriodeJson
+import no.nav.su.se.bakover.web.routes.behandling.jsonBody
 import no.nav.su.se.bakover.web.routes.sak.sakPath
+import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBehandlingId
 import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withSakId
@@ -36,7 +38,9 @@ internal fun Route.grunnlagsdataRoute(
     ) {
 
         fun toDomain(): Either<Resultat, BehandlingUføregrunnlag> {
-            val periode = periode.toPeriode().getOrHandle { return it.left() }
+            val periode = periode.toPeriode().getOrHandle {
+                return it.left()
+            }
             val validUføregrad = Uføregrad.tryParse(uføregrad).getOrElse {
                 return HttpStatusCode.BadRequest.errorJson(
                     message = "Uføregrad må være mellom en og hundre",
@@ -55,9 +59,13 @@ internal fun Route.grunnlagsdataRoute(
         post("$grunnlagsdataPath/uføre") {
             call.withSakId { sakId ->
                 call.withBehandlingId { behandlingId ->
-                    call.withBody<Body> { body ->
-                        body.toDomain().map {
-                            grunnlagsdataService.leggTilUførerunnlag(sakId, behandlingId, listOf(it))
+                    call.withBody<List<Body>> { body ->
+                        body.map {element->
+                            val resultat = element.toDomain().map {
+                                grunnlagsdataService.leggTilUførerunnlag(sakId, behandlingId, listOf(it))
+                                Resultat.json(HttpStatusCode.Created,("""{"status":"received ok - will probably return something here"}"""))
+                            }.getOrHandle { it }
+                            call.svar(resultat)
                         }
                     }
                 }
