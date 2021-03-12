@@ -5,64 +5,32 @@ import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.util.KtorExperimentalAPI
+import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.service.vedtak.VedtakService
+import java.time.Clock
 import java.time.LocalDate
+import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 
 internal const val frikortPath = "/frikort"
-
-// @KtorExperimentalAPI
-// internal fun Route.frikortRoutes(
-//     søknadsbehandlingService: SøknadsbehandlingService
-// ) {
-//     // val log = LoggerFactory.getLogger(this::class.java)
-//
-//     // authorize(Brukerrolle.Saksbehandler) {
-//     get("$frikortPath/sdf") {
-//         val aktivDato = call.parameters["aktivDato"] // YYYY-MM-DD  TODO legge inn hyggeligere feilmelding
-//             ?.let { LocalDate.parse(it, DateTimeFormatter.ISO_DATE) }
-//             ?: LocalDate.now()
-//         val aktiveBehandlinger = søknadsbehandlingService.hentAktiveBehandlinger(
-//             SøknadsbehandlingService.HentAktiveRequest(
-//                 aktivDato
-//             )
-//         ).mapLeft {
-//             throw IllegalArgumentException("hallo")
-//         }.map {
-//             it.map {
-//                 FrikortJson(
-//                     fnr = it.fnr.toString(),
-//                     fraOgMed = it.beregning.getPeriode().getFraOgMed().toString(),
-//                     tilOgMed = it.beregning.getPeriode().getTilOgMed().toString()
-//                 )
-//             }
-//         }
-//         call.respond(aktiveBehandlinger)
-//     }
-//     // }
-// }
+internal val formatter = DateTimeFormatter.ofPattern("yyyy-MM")
 
 @KtorExperimentalAPI
 internal fun Route.frikortVedtakRoutes(
-    vedtakService: VedtakService
+    vedtakService: VedtakService,
+    clock: Clock
 ) {
-    get("$frikortPath") {
-        val aktivDato = call.parameters["aktivDato"] // YYYY-MM-DD  TODO legge inn hyggeligere feilmelding
-            ?.let { LocalDate.parse(it, DateTimeFormatter.ISO_DATE) }
-            ?: LocalDate.now()
+    get("$frikortPath/{aktivDato?}") {
+        val aktivDato = call.parameters["aktivDato"] // YYYY-MM  2021-02
+            ?.let { YearMonth.parse(it, formatter).atDay(1) }
+            ?: Tidspunkt.now(clock).toLocalDate(zoneIdOslo)
         val aktiveBehandlinger = vedtakService.hentAktive(aktivDato).map {
-            FrikortJson(
-                fnr = it.behandling.fnr.toString(),
-                fraOgMed = it.beregning.getPeriode().getFraOgMed().toString(),
-                tilOgMed = it.beregning.getPeriode().getTilOgMed().toString()
-            )
+            it.behandling.fnr
         }
-        call.respond(aktiveBehandlinger)
+        call.respond(object { val dato = aktivDato.toFrikortFormat(); val fnr = aktiveBehandlinger })
     }
 }
 
-data class FrikortJson(
-    val fnr: String,
-    val fraOgMed: String,
-    val tilOgMed: String
-)
+fun LocalDate.toFrikortFormat(): String = formatter
+    .withZone(zoneIdOslo).format(this)

@@ -39,7 +39,7 @@ internal fun Application.configureAuthentication(
 
     val stsJwkConfig = tokenOppslag.jwkConfig()
     val jwkStsProvider =
-        if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test || applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
+        if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Test || applicationConfig.frikort.useStubForSts) {
             JwkProviderStub
         } else {
             JwkProviderBuilder(URL(stsJwkConfig.getString("jwks_uri")))
@@ -86,7 +86,7 @@ internal fun Application.configureAuthentication(
             realm = "su-se-bakover"
             validate { credentials ->
                 try {
-                    require(credentials.payload.subject == applicationConfig.frikort.clientId) {
+                    require(credentials.payload.subject == applicationConfig.frikort.serviceUsername || credentials.payload.subject == applicationConfig.serviceUser.username) {
                         "Frikort Auth: Invalid subject"
                     }
                     JWTPrincipal(credentials.payload)

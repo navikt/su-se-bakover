@@ -239,7 +239,7 @@ internal fun Application.susebakover(
         toggleRoutes(services.toggles)
 
         authenticate("frikort") {
-            frikortVedtakRoutes(services.vedtakService)
+            frikortVedtakRoutes(services.vedtakService, clock)
         }
 
         authenticate("jwt") {

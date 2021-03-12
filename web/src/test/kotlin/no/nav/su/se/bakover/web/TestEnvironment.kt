@@ -49,7 +49,8 @@ val applicationConfig = ApplicationConfig(
         )
     ),
     frikort = ApplicationConfig.FrikortConfig(
-        clientId = "frikort"
+        serviceUsername = "frikort",
+        useStubForSts = true
     ),
     oppdrag = ApplicationConfig.OppdragConfig(
         mqQueueManager = "testMqQueueManager",

@@ -82,15 +82,18 @@ data class ApplicationConfig(
     }
 
     data class FrikortConfig(
-        val clientId: String,
+        val serviceUsername: String,
+        val useStubForSts: Boolean,
     ) {
         companion object {
             fun createFromEnvironmentVariables() = FrikortConfig(
-                clientId = getEnvironmentVariableOrThrow("FRIKORT_CLIENT_ID")
+                serviceUsername = getEnvironmentVariableOrThrow("FRIKORT_SERVICE_USERNAME"),
+                useStubForSts = false
             )
 
             fun createLocalConfig() = FrikortConfig(
-                clientId = getEnvironmentVariableOrDefault("FRIKORT_CLIENT_ID", "frikort")
+                serviceUsername = getEnvironmentVariableOrDefault("FRIKORT_SERVICE_USERNAME", "frikort"),
+                useStubForSts = getEnvironmentVariableOrDefault("USE_STUB_FOR_STS", "true") == "true"
             )
         }
     }
@@ -305,7 +308,10 @@ data class ApplicationConfig(
                 pdfgenUrl = "mocked",
                 dokarkivUrl = "mocked",
                 kodeverkUrl = "mocked",
-                stsUrl = "mocked",
+                stsUrl = getEnvironmentVariableOrDefault(
+                    "STS_URL",
+                    "mocked"
+                ),
                 skjermingUrl = "mocked",
                 dkifUrl = "mocked",
             )
