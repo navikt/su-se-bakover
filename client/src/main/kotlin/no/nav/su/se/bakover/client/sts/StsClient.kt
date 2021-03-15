@@ -12,6 +12,7 @@ internal class StsClient(
     private val password: String
 ) : TokenOppslag {
     private var stsToken: StsToken? = null
+    private val wellKnownUrl = "$baseUrl/.well-known/openid-configuration"
 
     override fun token(): String {
         if (!isValid(stsToken)) {
@@ -26,6 +27,14 @@ internal class StsClient(
             )
         }
         return stsToken?.accessToken!!
+    }
+
+    override fun jwkConfig(): JSONObject {
+        val (_, _, result) = wellKnownUrl.httpGet().responseString()
+        return result.fold(
+            { JSONObject(it) },
+            { throw RuntimeException("Could not get JWK config from url $wellKnownUrl, error:$it") }
+        )
     }
 
     private data class StsToken(

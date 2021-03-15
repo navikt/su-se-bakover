@@ -17,6 +17,7 @@ object TestServicesBuilder {
         toggles = mock(),
         søknadsbehandling = mock(),
         ferdigstillVedtak = mock(),
-        revurdering = mock()
+        revurdering = mock(),
+        vedtakService = mock(),
     )
 }

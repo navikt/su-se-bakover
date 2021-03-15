@@ -64,6 +64,7 @@ import no.nav.su.se.bakover.service.utbetaling.KunneIkkeStanseUtbetalinger
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
+import no.nav.su.se.bakover.service.vedtak.VedtakService
 import java.time.LocalDate
 import java.util.UUID
 
@@ -294,6 +295,10 @@ open class AccessCheckProxy(
                     assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.hent(request)
                 }
+
+                override fun hentAktiveBehandlinger(request: SøknadsbehandlingService.HentAktiveRequest): Either<SøknadsbehandlingService.KunneIkkeHenteAktiveBehandlinger, List<Søknadsbehandling.Iverksatt.Innvilget>> {
+                    return services.søknadsbehandling.hentAktiveBehandlinger(request)
+                }
             },
             ferdigstillVedtak = object : FerdigstillVedtakService {
                 override fun ferdigstillVedtakEtterUtbetaling(utbetalingId: UUID30): Unit =
@@ -367,6 +372,11 @@ open class AccessCheckProxy(
                 }
 
                 override fun hentRevurderingForUtbetaling(utbetalingId: UUID30) = kastKanKunKallesFraAnnenService()
+            },
+            vedtakService = object : VedtakService {
+                override fun hentAktive(fomDato: LocalDate): List<Vedtak.InnvilgetStønad> {
+                    return services.vedtakService.hentAktive(fomDato)
+                }
             }
         )
     }

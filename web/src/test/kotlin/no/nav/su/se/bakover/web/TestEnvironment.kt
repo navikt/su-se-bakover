@@ -48,6 +48,10 @@ val applicationConfig = ApplicationConfig(
             drift = "testAzureGroupDrift",
         )
     ),
+    frikort = ApplicationConfig.FrikortConfig(
+        serviceUsername = "frikort",
+        useStubForSts = true
+    ),
     oppdrag = ApplicationConfig.OppdragConfig(
         mqQueueManager = "testMqQueueManager",
         mqPort = -22,

@@ -45,6 +45,7 @@ import no.nav.su.se.bakover.service.AccessCheckProxy
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.Services
 import no.nav.su.se.bakover.service.Tilgangssjekkfeil
+import no.nav.su.se.bakover.web.external.frikortVedtakRoutes
 import no.nav.su.se.bakover.web.features.Authorization
 import no.nav.su.se.bakover.web.features.AuthorizationException
 import no.nav.su.se.bakover.web.features.FantBrukerMenManglerNAVIdent
@@ -191,7 +192,7 @@ internal fun Application.susebakover(
     installMetrics(prometheusMeterRegistry)
     naisRoutes(collectorRegistry)
 
-    configureAuthentication(clients.oauth, applicationConfig)
+    configureAuthentication(clients.oauth, applicationConfig, clients.tokenOppslag)
     val azureGroupMapper = AzureGroupMapper(applicationConfig.azure.groups)
 
     install(Authorization) {
@@ -236,6 +237,10 @@ internal fun Application.susebakover(
 
     routing {
         toggleRoutes(services.toggles)
+
+        authenticate("frikort") {
+            frikortVedtakRoutes(services.vedtakService, clock)
+        }
 
         authenticate("jwt") {
             withUser {

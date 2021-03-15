@@ -1,6 +1,10 @@
 package no.nav.su.se.bakover.database.vedtak
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.februar
+import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.mars
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.hent
@@ -101,6 +105,20 @@ internal class VedtakPosgresRepoTest {
                         it.stringOrNull("revurderingId") shouldBe iverksattRevurdering.id.toString()
                     }
             }
+        }
+    }
+
+    @Test
+    fun `hent alle aktive vedtak`() {
+        withMigratedDb {
+            val (søknadsbehandling, _) = testDataHelper.nyIverksattInnvilget()
+            val vedtakSomErAktivt = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling).copy(periode = Periode.create(1.februar(2021), 31.mars(2021)))
+            val vedtakUtenforAktivPeriode = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling).copy(periode = Periode.create(1.januar(2021), 31.januar(2021)))
+            vedtakRepo.lagre(vedtakSomErAktivt)
+            vedtakRepo.lagre(vedtakUtenforAktivPeriode)
+
+            val actual = vedtakRepo.hentAktive(1.februar(2021))
+            actual.first() shouldBe vedtakSomErAktivt
         }
     }
 

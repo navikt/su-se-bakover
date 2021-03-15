@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.toggles.ToggleService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
+import no.nav.su.se.bakover.service.vedtak.VedtakService
 
 data class Services(
     val avstemming: AvstemmingService,
@@ -28,4 +29,5 @@ data class Services(
     val søknadsbehandling: SøknadsbehandlingService,
     val ferdigstillVedtak: FerdigstillVedtakService,
     val revurdering: RevurderingService,
+    val vedtakService: VedtakService,
 )

@@ -27,12 +27,14 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import java.time.LocalDate
 import java.util.UUID
 import javax.sql.DataSource
 
 interface VedtakRepo {
     fun hentForSakId(sakId: UUID, session: Session? = null): List<Vedtak>
     fun hent(id: UUID, session: Session? = null): Vedtak?
+    fun hentAktive(dato: LocalDate, session: Session? = null): List<Vedtak.InnvilgetStønad>
     fun lagre(vedtak: Vedtak)
     fun hentForUtbetaling(utbetalingId: UUID30): Vedtak.InnvilgetStønad
     fun hentUtenJournalpost(): List<Vedtak>
@@ -110,6 +112,20 @@ internal class VedtakPosgresRepo(
             """.trimIndent()
                 .hent(mapOf("id" to id), s) {
                     it.toVedtak(s)
+                }
+        }
+
+    override fun hentAktive(dato: LocalDate, session: Session?): List<Vedtak.InnvilgetStønad> =
+        dataSource.withSession(session) { s ->
+            """
+            select * from vedtak 
+            where fraogmed <= :dato
+              and tilogmed >= :dato
+            order by fraogmed, tilogmed, opprettet
+
+            """.trimIndent()
+                .hentListe(mapOf("dato" to dato), s) {
+                    it.toVedtak(s) as Vedtak.InnvilgetStønad
                 }
         }
 

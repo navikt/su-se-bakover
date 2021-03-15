@@ -418,4 +418,8 @@ internal class SøknadsbehandlingServiceImpl(
         return søknadsbehandlingRepo.hent(request.behandlingId)?.right()
             ?: SøknadsbehandlingService.FantIkkeBehandling.left()
     }
+
+    override fun hentAktiveBehandlinger(request: SøknadsbehandlingService.HentAktiveRequest): Either<SøknadsbehandlingService.KunneIkkeHenteAktiveBehandlinger, List<Søknadsbehandling.Iverksatt.Innvilget>> {
+        return søknadsbehandlingRepo.hentAktiveInnvilgedeBehandlinger(request.aktivDato).right()
+    }
 }
