@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.external
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
+import io.kotest.matchers.string.shouldContain
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -56,6 +57,24 @@ internal class FrikortRoutesKtTest {
             }
         }.apply {
             assertEquals(HttpStatusCode.OK, response.status())
+        }
+    }
+
+    @Test
+    fun `sjekk feilmelding ved ugyldig dato`() {
+        withTestApplication({
+            testSusebakover()
+        }) {
+            handleRequest(HttpMethod.Get, "$frikortPath/202121") {
+                addHeader(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
+                addHeader(
+                    HttpHeaders.Authorization,
+                    jwtStub.createJwtToken(subject = applicationConfig.frikort.serviceUsername).asBearerToken()
+                )
+            }
+        }.apply {
+            assertEquals(HttpStatusCode.BadRequest, response.status())
+            response.content shouldContain("Ugyldig dato - dato må være på format YYYY-MM")
         }
     }
 
