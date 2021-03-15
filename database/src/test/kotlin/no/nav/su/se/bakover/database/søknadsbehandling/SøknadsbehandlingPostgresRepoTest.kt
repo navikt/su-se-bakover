@@ -112,7 +112,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
             val iverksattSluttMars = iverksattInnvilget(1.desember(2020), 31.mars(2021)).first
             iverksattInnvilget(1.mars(2021), 31.mars(2021)).first
 
-            val actual = repo.hentAktiveInnvilgetBehandlinger(28.februar(2021))
+            val actual = repo.hentAktiveInnvilgedeBehandlinger(28.februar(2021))
 
             actual shouldBe listOf(
                 repo.hent(iverksattSluttFebruar.id),
@@ -120,7 +120,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 repo.hent(iverksattStartFebruar.id),
             )
 
-            actual shouldBe repo.hentAktiveInnvilgetBehandlinger(1.februar(2021))
+            actual shouldBe repo.hentAktiveInnvilgedeBehandlinger(1.februar(2021))
         }
     }
 

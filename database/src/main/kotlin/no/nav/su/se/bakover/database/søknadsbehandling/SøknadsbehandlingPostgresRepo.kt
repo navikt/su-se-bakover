@@ -100,7 +100,7 @@ internal class SøknadsbehandlingPostgresRepo(
         }
     }
 
-    override fun hentAktiveInnvilgetBehandlinger(aktivDato: LocalDate): List<Søknadsbehandling.Iverksatt.Innvilget> {
+    override fun hentAktiveInnvilgedeBehandlinger(aktivDato: LocalDate): List<Søknadsbehandling.Iverksatt.Innvilget> {
         return dataSource.withSession { session ->
             (
                 "select b.*, s.fnr, s.saksnummer " +

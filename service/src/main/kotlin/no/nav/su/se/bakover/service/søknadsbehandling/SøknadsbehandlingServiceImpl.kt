@@ -420,6 +420,6 @@ internal class SøknadsbehandlingServiceImpl(
     }
 
     override fun hentAktiveBehandlinger(request: SøknadsbehandlingService.HentAktiveRequest): Either<SøknadsbehandlingService.KunneIkkeHenteAktiveBehandlinger, List<Søknadsbehandling.Iverksatt.Innvilget>> {
-        return søknadsbehandlingRepo.hentAktiveInnvilgetBehandlinger(request.aktivDato).right()
+        return søknadsbehandlingRepo.hentAktiveInnvilgedeBehandlinger(request.aktivDato).right()
     }
 }

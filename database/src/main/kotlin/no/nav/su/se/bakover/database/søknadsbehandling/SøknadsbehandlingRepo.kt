@@ -15,6 +15,6 @@ interface SøknadsbehandlingRepo {
     fun hentEventuellTidligereAttestering(id: UUID): Attestering?
     fun hentIverksatteBehandlingerUtenJournalposteringer(): List<Søknadsbehandling.Iverksatt.Innvilget>
     fun hentIverksatteBehandlingerUtenBrevbestillinger(): List<Søknadsbehandling.Iverksatt>
-    fun hentAktiveInnvilgetBehandlinger(aktivDato: LocalDate): List<Søknadsbehandling.Iverksatt.Innvilget>
+    fun hentAktiveInnvilgedeBehandlinger(aktivDato: LocalDate): List<Søknadsbehandling.Iverksatt.Innvilget>
     fun hentBehandlingForUtbetaling(utbetalingId: UUID30): Søknadsbehandling.Iverksatt.Innvilget?
 }
