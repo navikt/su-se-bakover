@@ -36,6 +36,7 @@ sealed class Statistikk {
         val behandlingId: UUID?,
         val relatertBehandlingId: UUID? = null,
         val sakId: UUID,
+        val søknadId: UUID? = null,
         @JsonSerialize(using = ToStringSerializer::class)
         val saksnummer: Long,
         val behandlingType: BehandlingType,

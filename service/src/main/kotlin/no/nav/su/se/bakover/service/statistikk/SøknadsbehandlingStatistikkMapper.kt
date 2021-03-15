@@ -21,6 +21,7 @@ internal class SøknadsbehandlingStatistikkMapper(
         mottattDato = søknadsbehandling.opprettet.toLocalDate(zoneIdOslo),
         behandlingId = søknadsbehandling.id,
         sakId = søknadsbehandling.sakId,
+        søknadId = søknadsbehandling.søknad.id,
         saksnummer = søknadsbehandling.saksnummer.nummer,
         behandlingStatus = BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(søknadsbehandling.status).status.toString(),
         behandlingStatusBeskrivelse = BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(søknadsbehandling.status).beskrivelse,

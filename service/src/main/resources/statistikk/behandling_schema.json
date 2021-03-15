@@ -169,6 +169,10 @@
     "avsluttet": {
       "type": "boolean",
       "description":"Angir om behandlingen er ferdigbehandlet."
+    },
+    "søknadId": {
+      "type": "string",
+      "description":"Id på søknaden som behandlingen er knyttet til."
     }
   }
 }
