@@ -374,7 +374,7 @@ internal class OpprettRevurderingServiceTest {
                 opprettet = Tidspunkt.EPOCH,
                 tilRevurdering = opprinneligVedtak,
                 saksbehandler = saksbehandler,
-                attestant = opprinneligVedtak.attestant,
+                attestering = Attestering.Iverksatt(opprinneligVedtak.attestant),
                 beregning = opprinneligVedtak.beregning,
                 simulering = opprinneligVedtak.simulering,
                 oppgaveId = OppgaveId("null"),

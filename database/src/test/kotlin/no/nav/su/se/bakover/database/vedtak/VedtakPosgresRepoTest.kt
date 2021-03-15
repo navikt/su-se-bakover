@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.journalførtIverksettingForAvslag
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -86,7 +87,7 @@ internal class VedtakPosgresRepoTest {
                 beregning = søknadsbehandlingVedtak.beregning,
                 simulering = søknadsbehandlingVedtak.simulering,
                 oppgaveId = OppgaveId(""),
-                attestant = søknadsbehandlingVedtak.attestant,
+                attestering = Attestering.Iverksatt(søknadsbehandlingVedtak.attestant),
                 utbetalingId = søknadsbehandlingVedtak.utbetalingId,
                 eksterneIverksettingsteg = søknadsbehandlingVedtak.journalføringOgBrevdistribusjon
             )

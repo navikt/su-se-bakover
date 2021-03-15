@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -23,6 +24,7 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
+import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.service.brev.BrevService
@@ -54,6 +56,7 @@ internal class RevurderingServiceImpl(
     fun addObserver(observer: EventObserver) {
         observers.add(observer)
     }
+
     fun getObservers(): List<EventObserver> = observers.toList()
 
     override fun opprettRevurdering(
@@ -119,11 +122,13 @@ internal class RevurderingServiceImpl(
         saksbehandler: NavIdentBruker.Saksbehandler
     ): Either<KunneIkkeOppdatereRevurderingsperiode, OpprettetRevurdering> {
 
-        val revurdering = revurderingRepo.hent(revurderingId) ?: return KunneIkkeOppdatereRevurderingsperiode.FantIkkeRevurdering.left()
+        val revurdering = revurderingRepo.hent(revurderingId)
+            ?: return KunneIkkeOppdatereRevurderingsperiode.FantIkkeRevurdering.left()
 
         val stønadsperiode = revurdering.tilRevurdering.beregning.getPeriode()
         if (!fraOgMed.between(stønadsperiode)) {
-            return KunneIkkeOppdatereRevurderingsperiode.PeriodenMåVæreInnenforAlleredeValgtStønadsperiode(revurdering.periode).left()
+            return KunneIkkeOppdatereRevurderingsperiode.PeriodenMåVæreInnenforAlleredeValgtStønadsperiode(revurdering.periode)
+                .left()
         }
         val nyPeriode = Periode.tryCreate(fraOgMed, stønadsperiode.getTilOgMed()).getOrHandle {
             return KunneIkkeOppdatereRevurderingsperiode.UgyldigPeriode(it).left()
@@ -132,7 +137,10 @@ internal class RevurderingServiceImpl(
             is OpprettetRevurdering -> revurdering.oppdaterPeriode(nyPeriode).right()
             is BeregnetRevurdering -> revurdering.oppdaterPeriode(nyPeriode).right()
             is SimulertRevurdering -> revurdering.oppdaterPeriode(nyPeriode).right()
-            else -> KunneIkkeOppdatereRevurderingsperiode.UgyldigTilstand(revurdering::class, OpprettetRevurdering::class).left()
+            else -> KunneIkkeOppdatereRevurderingsperiode.UgyldigTilstand(
+                revurdering::class,
+                OpprettetRevurdering::class
+            ).left()
         }.map {
             revurderingRepo.lagre(it)
             it
@@ -175,7 +183,10 @@ internal class RevurderingServiceImpl(
                 }
             }
             null -> return KunneIkkeBeregneOgSimulereRevurdering.FantIkkeRevurdering.left()
-            else -> return KunneIkkeBeregneOgSimulereRevurdering.UgyldigTilstand(revurdering::class, SimulertRevurdering::class).left()
+            else -> return KunneIkkeBeregneOgSimulereRevurdering.UgyldigTilstand(
+                revurdering::class,
+                SimulertRevurdering::class
+            ).left()
         }
     }
 
@@ -183,36 +194,46 @@ internal class RevurderingServiceImpl(
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler
     ): Either<KunneIkkeSendeRevurderingTilAttestering, Revurdering> {
-        val revurdering = revurderingRepo.hent(revurderingId) ?: return KunneIkkeSendeRevurderingTilAttestering.FantIkkeRevurdering.left()
+        val revurdering = revurderingRepo.hent(revurderingId)
+            ?: return KunneIkkeSendeRevurderingTilAttestering.FantIkkeRevurdering.left()
 
-        val tilAttestering = when (revurdering) {
-            is SimulertRevurdering -> {
-                val aktørId = personService.hentAktørId(revurdering.fnr).getOrElse {
-                    log.error("Fant ikke aktør-id")
-                    return KunneIkkeSendeRevurderingTilAttestering.FantIkkeAktørId.left()
-                }
+        if (!(revurdering is SimulertRevurdering || revurdering is UnderkjentRevurdering)) {
+            return KunneIkkeSendeRevurderingTilAttestering.UgyldigTilstand(
+                revurdering::class,
+                RevurderingTilAttestering::class
+            ).left()
+        }
 
-                val oppgaveId = oppgaveService.opprettOppgave(
-                    OppgaveConfig.AttesterRevurdering(
-                        saksnummer = revurdering.saksnummer,
-                        aktørId = aktørId,
-                        // Første gang den sendes til attestering er attestant null, de påfølgende gangene vil den være attestanten som har underkjent.
-                        // TODO: skal ikke være null. attestant kan endre seg. må legge til attestant på revurdering
-                        tilordnetRessurs = null
-                    )
-                ).getOrElse {
-                    log.error("Kunne ikke opprette Attesteringsoppgave. Avbryter handlingen.")
-                    return KunneIkkeSendeRevurderingTilAttestering.KunneIkkeOppretteOppgave.left()
-                }
+        val aktørId = personService.hentAktørId(revurdering.fnr).getOrElse {
+            log.error("Fant ikke aktør-id")
+            return KunneIkkeSendeRevurderingTilAttestering.FantIkkeAktørId.left()
+        }
 
-                revurdering.tilAttestering(oppgaveId, saksbehandler)
-            }
-            else -> return KunneIkkeSendeRevurderingTilAttestering.UgyldigTilstand(revurdering::class, RevurderingTilAttestering::class)
-                .left()
+        val tilordnetRessurs = revurderingRepo.hentEventuellTidligereAttestering(revurderingId)?.attestant
+
+        val oppgaveId = oppgaveService.opprettOppgave(
+            OppgaveConfig.AttesterRevurdering(
+                saksnummer = revurdering.saksnummer,
+                aktørId = aktørId,
+                // Første gang den sendes til attestering er attestant null, de påfølgende gangene vil den være attestanten som har underkjent.
+                tilordnetRessurs = tilordnetRessurs
+            )
+        ).getOrElse {
+            log.error("Kunne ikke opprette Attesteringsoppgave. Avbryter handlingen.")
+            return KunneIkkeSendeRevurderingTilAttestering.KunneIkkeOppretteOppgave.left()
         }
 
         oppgaveService.lukkOppgave(revurdering.oppgaveId).mapLeft {
             log.error("Kunne ikke lukke oppgaven med id ${revurdering.oppgaveId}, knyttet til revurderingen. Oppgaven må lukkes manuelt.")
+        }
+
+        val tilAttestering = when (revurdering) {
+            is SimulertRevurdering -> revurdering.tilAttestering(oppgaveId, saksbehandler)
+            is UnderkjentRevurdering -> revurdering.tilAttestering(oppgaveId, saksbehandler)
+            else -> return KunneIkkeSendeRevurderingTilAttestering.UgyldigTilstand(
+                revurdering::class,
+                RevurderingTilAttestering::class
+            ).left()
         }
 
         revurderingRepo.lagre(tilAttestering)
@@ -300,6 +321,58 @@ internal class RevurderingServiceImpl(
             else -> KunneIkkeIverksetteRevurdering.UgyldigTilstand(revurdering::class, IverksattRevurdering::class)
                 .left()
         }
+    }
+
+    override fun underkjenn(
+        revurderingId: UUID,
+        attestering: Attestering
+    ): Either<KunneIkkeUnderkjenneRevurdering, UnderkjentRevurdering> {
+        val revurdering = revurderingRepo.hent(revurderingId)
+            ?: return KunneIkkeUnderkjenneRevurdering.FantIkkeRevurdering.left()
+
+        if (revurdering !is RevurderingTilAttestering) {
+            return KunneIkkeUnderkjenneRevurdering.UgyldigTilstand(
+                revurdering::class,
+                RevurderingTilAttestering::class
+            ).left()
+        }
+
+        val aktørId = personService.hentAktørId(revurdering.fnr).getOrElse {
+            log.error("Fant ikke aktør-id for revurdering: ${revurdering.id}")
+            return KunneIkkeUnderkjenneRevurdering.FantIkkeAktørId.left()
+        }
+
+        val nyOppgaveId = oppgaveService.opprettOppgave(
+            OppgaveConfig.Revurderingsbehandling(
+                saksnummer = revurdering.saksnummer,
+                aktørId = aktørId,
+                tilordnetRessurs = revurdering.saksbehandler
+            )
+        ).getOrElse {
+            log.error("revurdering ${revurdering.id} ble ikke underkjent. Klarte ikke opprette behandlingsoppgave")
+            return@underkjenn KunneIkkeUnderkjenneRevurdering.KunneIkkeOppretteOppgave.left()
+        }
+
+        val underkjent = revurdering.underkjenn(attestering, nyOppgaveId)
+
+        revurderingRepo.lagre(underkjent)
+
+        val eksisterendeOppgaveId = revurdering.oppgaveId
+
+        oppgaveService.lukkOppgave(eksisterendeOppgaveId)
+            .mapLeft {
+                log.error("Kunne ikke lukke attesteringsoppgave $eksisterendeOppgaveId ved underkjenning av revurdering. Dette må gjøres manuelt.")
+            }.map {
+                log.info("Lukket attesteringsoppgave $eksisterendeOppgaveId ved underkjenning av revurdering")
+            }
+
+        observers.forEach { observer ->
+            observer.handle(
+                Event.Statistikk.RevurderingStatistikk.RevurderingUnderkjent(underkjent)
+            )
+        }
+
+        return underkjent.right()
     }
 
     override fun hentRevurderingForUtbetaling(utbetalingId: UUID30): IverksattRevurdering? {

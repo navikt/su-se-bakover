@@ -65,7 +65,7 @@ sealed class Vedtak : Visitable<VedtakVisitor> {
                 beregning = revurdering.beregning,
                 simulering = revurdering.simulering,
                 saksbehandler = revurdering.saksbehandler,
-                attestant = revurdering.attestant,
+                attestant = revurdering.attestering.attestant,
                 utbetalingId = revurdering.utbetalingId,
                 journalføringOgBrevdistribusjon = revurdering.eksterneIverksettingsteg
             )

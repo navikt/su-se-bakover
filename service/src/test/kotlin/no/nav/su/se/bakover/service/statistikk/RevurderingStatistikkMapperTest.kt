@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -101,7 +102,7 @@ internal class RevurderingStatistikkMapperTest {
             },
             simulering = mock(),
             oppgaveId = OppgaveId(value = "7"),
-            attestant = NavIdentBruker.Attestant(navIdent = "2"),
+            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant(navIdent = "2")),
             utbetalingId = UUID30.randomUUID(),
             eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert
 

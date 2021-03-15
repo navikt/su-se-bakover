@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -248,15 +249,28 @@ data class RevurderingTilAttestering(
                 beregning = beregning,
                 simulering = simulering,
                 oppgaveId = oppgaveId,
-                attestant = attestant,
+                attestering = Attestering.Iverksatt(attestant),
                 utbetalingId = it,
                 eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert
             )
         }
     }
 
-    fun underkjenn() {
-        TODO()
+    fun underkjenn(
+        attestering: Attestering,
+        oppgaveId: OppgaveId
+    ): UnderkjentRevurdering {
+        return UnderkjentRevurdering(
+            id = id,
+            periode = periode,
+            opprettet = opprettet,
+            tilRevurdering = tilRevurdering,
+            saksbehandler = saksbehandler,
+            beregning = beregning,
+            simulering = simulering,
+            oppgaveId = oppgaveId,
+            attestering = attestering
+        )
     }
 }
 
@@ -269,7 +283,7 @@ data class IverksattRevurdering(
     override val oppgaveId: OppgaveId,
     val beregning: Beregning,
     val simulering: Simulering,
-    val attestant: NavIdentBruker.Attestant,
+    val attestering: Attestering.Iverksatt,
     val utbetalingId: UUID30,
     val eksterneIverksettingsteg: JournalføringOgBrevdistribusjon
 ) : Revurdering() {
@@ -288,6 +302,37 @@ data class IverksattRevurdering(
 
     override fun beregn(fradrag: List<Fradrag>): Either<KunneIkkeBeregneRevurdering, BeregnetRevurdering> {
         throw RuntimeException("Skal ikke kunne beregne når revurderingen er til attestering")
+    }
+}
+
+data class UnderkjentRevurdering(
+    override val id: UUID,
+    override val periode: Periode,
+    override val opprettet: Tidspunkt,
+    override val tilRevurdering: Vedtak.InnvilgetStønad,
+    override val saksbehandler: Saksbehandler,
+    val beregning: Beregning,
+    val simulering: Simulering,
+    override val oppgaveId: OppgaveId,
+    val attestering: Attestering
+) : Revurdering() {
+    override fun accept(visitor: RevurderingVisitor) {
+        visitor.visit(this)
+    }
+
+    fun tilAttestering(oppgaveId: OppgaveId, saksbehandler: Saksbehandler) = RevurderingTilAttestering(
+        id = id,
+        periode = periode,
+        opprettet = opprettet,
+        tilRevurdering = tilRevurdering,
+        saksbehandler = saksbehandler,
+        beregning = beregning,
+        simulering = simulering,
+        oppgaveId = oppgaveId,
+    )
+
+    fun nyOppgaveId(nyOppgaveId: OppgaveId): UnderkjentRevurdering {
+        return this.copy(oppgaveId = nyOppgaveId)
     }
 }
 

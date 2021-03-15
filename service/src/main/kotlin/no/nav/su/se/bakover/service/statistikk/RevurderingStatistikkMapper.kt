@@ -1,13 +1,12 @@
 package no.nav.su.se.bakover.service.statistikk
 
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.common.zoneIdOslo
-import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
+import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import java.time.Clock
 
 internal class RevurderingStatistikkMapper(private val clock: Clock) {
@@ -16,7 +15,7 @@ internal class RevurderingStatistikkMapper(private val clock: Clock) {
         Statistikk.Behandling(
             behandlingType = Statistikk.BehandlingType.REVURDERING,
             behandlingTypeBeskrivelse = Statistikk.BehandlingType.REVURDERING.beskrivelse,
-            funksjonellTid = FunksjonellTidMapper.map(revurdering),
+            funksjonellTid = Tidspunkt.now(clock),
             tekniskTid = Tidspunkt.now(clock),
             registrertDato = revurdering.opprettet.toLocalDate(zoneIdOslo),
             mottattDato = revurdering.opprettet.toLocalDate(zoneIdOslo),
@@ -36,23 +35,17 @@ internal class RevurderingStatistikkMapper(private val clock: Clock) {
                     copy(
                         resultat = "Innvilget",
                         resultatBegrunnelse = "Endring i søkers inntekt", // TODO ai: Må støtte flere grunner for revurdering senare
-                        beslutter = revurdering.attestant.navIdent
+                        beslutter = revurdering.attestering.attestant.navIdent
+                    )
+                }
+                is UnderkjentRevurdering -> {
+                    copy(
+                        beslutter = revurdering.attestering.attestant.navIdent
                     )
                 }
                 else -> throw ManglendeStatistikkMappingException(this, revurdering::class.java)
             }
         }
-    }
-
-    internal object FunksjonellTidMapper {
-        fun map(revurdering: Revurdering) = when (revurdering) {
-            is OpprettetRevurdering -> revurdering.opprettet
-            is RevurderingTilAttestering -> revurdering.beregning.startOfFirstDay()
-            is IverksattRevurdering -> revurdering.beregning.startOfFirstDay()
-            else -> throw ManglendeStatistikkMappingException(this, revurdering::class.java)
-        }
-
-        private fun Beregning.startOfFirstDay() = getPeriode().getFraOgMed().startOfDay(zoneIdOslo)
     }
 
     internal object BehandlingStatusBeskrivelseMapper {
@@ -61,6 +54,7 @@ internal class RevurderingStatistikkMapper(private val clock: Clock) {
                 is OpprettetRevurdering -> "Ny revurdering opprettet"
                 is RevurderingTilAttestering -> "Revurdering sendt til attestering"
                 is IverksattRevurdering -> "Revurdering iverksatt"
+                is UnderkjentRevurdering -> "Revurdering underkjent"
                 else -> throw ManglendeStatistikkMappingException(this, revurdering::class.java)
             }
     }

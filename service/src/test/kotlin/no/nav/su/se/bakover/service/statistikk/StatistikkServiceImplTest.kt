@@ -468,7 +468,7 @@ internal class StatistikkServiceImplTest {
         )
 
         val expected = Statistikk.Behandling(
-            funksjonellTid = revurderingTilAttestering.opprettet,
+            funksjonellTid = Tidspunkt.now(clock),
             tekniskTid = Tidspunkt.now(clock),
             registrertDato = revurderingTilAttestering.opprettet.toLocalDate(zoneIdOslo),
             mottattDato = revurderingTilAttestering.opprettet.toLocalDate(zoneIdOslo),
@@ -524,13 +524,13 @@ internal class StatistikkServiceImplTest {
                 periodeList = listOf()
             ),
             oppgaveId = OppgaveId("55"),
-            attestant = NavIdentBruker.Attestant("attestant"),
+            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
             utbetalingId = UUID30.randomUUID(),
             eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert
         )
 
         val expected = Statistikk.Behandling(
-            funksjonellTid = iverksattRevurdering.opprettet,
+            funksjonellTid = Tidspunkt.now(clock),
             tekniskTid = Tidspunkt.now(clock),
             registrertDato = iverksattRevurdering.opprettet.toLocalDate(zoneIdOslo),
             mottattDato = iverksattRevurdering.opprettet.toLocalDate(zoneIdOslo),
