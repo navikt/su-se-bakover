@@ -168,7 +168,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
             revurdert = beregning.toJson()
         ),
         saksbehandler = saksbehandler.toString(),
-        attestant = attestering.toString(),
+        attestant = attestering.attestant.toString(),
     )
     is BeregnetRevurdering.Innvilget -> BeregnetRevurderingJson.Innvilget(
         id = id.toString(),

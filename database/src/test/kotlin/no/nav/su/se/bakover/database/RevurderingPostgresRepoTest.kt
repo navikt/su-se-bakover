@@ -508,7 +508,7 @@ internal class RevurderingPostgresRepoTest {
                 kommentar = "feil"
             )
 
-            repo.lagre(tilAttestering.underkjenn(attestering))
+            repo.lagre(tilAttestering.underkjenn(attestering, OppgaveId("nyOppgaveId")))
 
             assert(repo.hent(opprettet.id) is UnderkjentRevurdering)
             repo.hentEventuellTidligereAttestering(opprettet.id) shouldBe attestering

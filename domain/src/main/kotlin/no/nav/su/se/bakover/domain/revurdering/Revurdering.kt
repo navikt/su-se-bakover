@@ -283,7 +283,7 @@ data class IverksattRevurdering(
     override val oppgaveId: OppgaveId,
     val beregning: Beregning,
     val simulering: Simulering,
-    val attestering: Attestering,
+    val attestering: Attestering.Iverksatt,
     val utbetalingId: UUID30,
     val eksterneIverksettingsteg: JournalføringOgBrevdistribusjon
 ) : Revurdering() {

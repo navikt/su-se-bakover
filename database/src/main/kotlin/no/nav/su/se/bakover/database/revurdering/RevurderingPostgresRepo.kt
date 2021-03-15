@@ -154,7 +154,7 @@ internal class RevurderingPostgresRepo(
                 beregning = beregning!!,
                 simulering = simulering!!,
                 oppgaveId = OppgaveId(oppgaveId!!),
-                attestering = attestering!!,
+                attestering = attestering!! as Attestering.Iverksatt,
                 utbetalingId = UUID30.fromString(utbetalingId!!),
                 eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.fromId(
                     iverksattJournalpostId,
