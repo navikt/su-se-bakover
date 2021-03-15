@@ -217,7 +217,7 @@ internal class RevurderingPostgresRepo(
                     insert into revurdering
                         (id, opprettet, periode, beregning, simulering, saksbehandler, oppgaveId, revurderingsType, attestering, utbetalingId, iverksattjournalpostid, iverksattbrevbestillingid, vedtakSomRevurderesId)
                     values
-                        (:id, :opprettet, to_json(:periode::json), null, null, :saksbehandler, :oppgaveId, :revurderingsType, null, null, null, null, :vedtakSomRevurderesId)
+                        (:id, :opprettet, to_json(:periode::json), null, null, :saksbehandler, :oppgaveId, '${RevurderingsType.OPPRETTET}', null, null, null, null, :vedtakSomRevurderesId)
                         ON CONFLICT(id) do update set
                         id=:id,
                         opprettet=:opprettet,
@@ -226,7 +226,7 @@ internal class RevurderingPostgresRepo(
                         simulering=null,
                         saksbehandler=:saksbehandler,
                         oppgaveId=:oppgaveId,
-                        revurderingsType=:revurderingsType,
+                        revurderingsType='${RevurderingsType.OPPRETTET}',
                         attestering=null, utbetalingId=null,
                         iverksattjournalpostid=null,
                         iverksattbrevbestillingid=null,
@@ -238,7 +238,6 @@ internal class RevurderingPostgresRepo(
                     "periode" to objectMapper.writeValueAsString(revurdering.periode),
                     "opprettet" to revurdering.opprettet,
                     "saksbehandler" to revurdering.saksbehandler.navIdent,
-                    "revurderingsType" to RevurderingsType.OPPRETTET.toString(),
                     "oppgaveId" to revurdering.oppgaveId.toString(),
                     "vedtakSomRevurderesId" to revurdering.tilRevurdering.id
                 ),
@@ -284,7 +283,7 @@ internal class RevurderingPostgresRepo(
                         saksbehandler = :saksbehandler,
                         beregning = to_json(:beregning::json),
                         simulering = to_json(:simulering::json),
-                        revurderingsType = :revurderingsType
+                        revurderingsType = '${RevurderingsType.SIMULERT}'
                     where
                         id = :id
                 """.trimIndent()
@@ -294,7 +293,6 @@ internal class RevurderingPostgresRepo(
                     "saksbehandler" to revurdering.saksbehandler.navIdent,
                     "beregning" to objectMapper.writeValueAsString(revurdering.beregning),
                     "simulering" to objectMapper.writeValueAsString(revurdering.simulering),
-                    "revurderingsType" to RevurderingsType.SIMULERT.toString()
                 ),
                 session
             )
@@ -310,7 +308,7 @@ internal class RevurderingPostgresRepo(
                         saksbehandler = :saksbehandler,
                         beregning = to_json(:beregning::json),
                         simulering = to_json(:simulering::json),
-                        revurderingsType = :revurderingsType,
+                        revurderingsType = '${RevurderingsType.TIL_ATTESTERING}',
                         oppgaveId = :oppgaveId
                     where
                         id = :id
@@ -322,7 +320,6 @@ internal class RevurderingPostgresRepo(
                     "beregning" to objectMapper.writeValueAsString(revurdering.beregning),
                     "simulering" to objectMapper.writeValueAsString(revurdering.simulering),
                     "oppgaveId" to revurdering.oppgaveId.toString(),
-                    "revurderingsType" to RevurderingsType.TIL_ATTESTERING.toString()
                 ),
                 session
             )
@@ -338,7 +335,7 @@ internal class RevurderingPostgresRepo(
                         saksbehandler = :saksbehandler,
                         beregning = to_json(:beregning::json),
                         simulering = to_json(:simulering::json),
-                        revurderingsType = :revurderingsType,
+                        revurderingsType = '${RevurderingsType.IVERKSATT}',
                         oppgaveId = :oppgaveId,
                         attestering = to_json(:attestering::json),
                         utbetalingId = :utbetalingId,
@@ -354,7 +351,6 @@ internal class RevurderingPostgresRepo(
                     "beregning" to objectMapper.writeValueAsString(revurdering.beregning),
                     "simulering" to objectMapper.writeValueAsString(revurdering.simulering),
                     "oppgaveId" to revurdering.oppgaveId.toString(),
-                    "revurderingsType" to RevurderingsType.IVERKSATT.toString(),
                     "attestering" to objectMapper.writeValueAsString(revurdering.attestering),
                     "utbetalingId" to revurdering.utbetalingId,
                     "iverksattjournalpostid" to JournalføringOgBrevdistribusjon.iverksattJournalpostId(
@@ -375,7 +371,7 @@ internal class RevurderingPostgresRepo(
                     update
                         revurdering
                     set
-                        revurderingsType = :revurderingsType,
+                        revurderingsType = '${RevurderingsType.UNDERKJENT}',
                         oppgaveId = :oppgaveId,
                         attestering = to_json(:attestering::json)
                     where
@@ -385,7 +381,6 @@ internal class RevurderingPostgresRepo(
                 mapOf(
                     "id" to revurdering.id,
                     "oppgaveId" to revurdering.oppgaveId.toString(),
-                    "revurderingsType" to RevurderingsType.UNDERKJENT.toString(),
                     "attestering" to objectMapper.writeValueAsString(revurdering.attestering),
                 ),
                 session
