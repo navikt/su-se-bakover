@@ -70,10 +70,6 @@ internal fun Route.underkjennRevurdering(
                                             "Kunne ikke hente navn for saksbehandler eller attestant",
                                             "navneoppslag_feilet",
                                         )
-                                        KunneIkkeUnderkjenneRevurdering.KunneIkkeLageBrevutkast -> HttpStatusCode.InternalServerError.errorJson(
-                                            "Kunne ikke lage brevutkast",
-                                            "kunne_ikke_lage_brevutkast",
-                                        )
                                         KunneIkkeUnderkjenneRevurdering.FantIkkeAktørId -> fantIkkeAktørId
                                         KunneIkkeUnderkjenneRevurdering.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
                                         is KunneIkkeUnderkjenneRevurdering.UgyldigTilstand -> ugyldigTilstand(

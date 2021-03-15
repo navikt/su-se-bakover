@@ -107,7 +107,6 @@ sealed class KunneIkkeLageBrevutkastForRevurdering {
 
 sealed class KunneIkkeUnderkjenneRevurdering {
     object FantIkkeRevurdering : KunneIkkeUnderkjenneRevurdering()
-    object KunneIkkeLageBrevutkast : KunneIkkeUnderkjenneRevurdering()
     object FantIkkePerson : KunneIkkeUnderkjenneRevurdering()
     object FantIkkeAktørId : KunneIkkeUnderkjenneRevurdering()
     object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeUnderkjenneRevurdering()
