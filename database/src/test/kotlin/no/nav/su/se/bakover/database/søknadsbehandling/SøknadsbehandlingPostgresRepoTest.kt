@@ -6,10 +6,6 @@ import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeTypeOf
-import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.februar
-import no.nav.su.se.bakover.common.januar
-import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.TestDataHelper
@@ -99,28 +95,6 @@ internal class SøknadsbehandlingPostgresRepoTest {
             actual shouldBe listOf(
                 repo.hent(innvilgetUtenJournalpost.id)
             )
-        }
-    }
-
-    @Test
-    fun `hent iverksatte behandlinger som er aktive`() {
-        withMigratedDb {
-
-            iverksattInnvilget(1.desember(2020), 31.januar(2021)).first
-            val iverksattStartFebruar = iverksattInnvilget(1.februar(2021), 28.februar(2021)).first
-            val iverksattSluttFebruar = iverksattInnvilget(1.desember(2020), 28.februar(2021)).first
-            val iverksattSluttMars = iverksattInnvilget(1.desember(2020), 31.mars(2021)).first
-            iverksattInnvilget(1.mars(2021), 31.mars(2021)).first
-
-            val actual = repo.hentAktiveInnvilgedeBehandlinger(28.februar(2021))
-
-            actual shouldBe listOf(
-                repo.hent(iverksattSluttFebruar.id),
-                repo.hent(iverksattSluttMars.id),
-                repo.hent(iverksattStartFebruar.id),
-            )
-
-            actual shouldBe repo.hentAktiveInnvilgedeBehandlinger(1.februar(2021))
         }
     }
 

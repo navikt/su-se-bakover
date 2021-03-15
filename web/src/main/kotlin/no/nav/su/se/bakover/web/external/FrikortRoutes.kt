@@ -21,14 +21,16 @@ internal fun Route.frikortVedtakRoutes(
     vedtakService: VedtakService,
     clock: Clock
 ) {
+    // Her kan man få kode 6 og kode 7...
     get("$frikortPath/{aktivDato?}") {
         val aktivDato = call.parameters["aktivDato"] // YYYY-MM  2021-02
             ?.let { YearMonth.parse(it, formatter).atDay(1) }
             ?: Tidspunkt.now(clock).toLocalDate(zoneIdOslo)
-        val aktiveBehandlinger = vedtakService.hentAktive(aktivDato).map {
-            it.behandling.fnr
-        }
-        call.respond(object { val dato = aktivDato.toFrikortFormat(); val fnr = aktiveBehandlinger })
+        val aktiveBehandlinger = vedtakService.hentAktiveFnr(aktivDato)
+        call.respond(object {
+            val dato = aktivDato.toFrikortFormat()
+            val fnr = aktiveBehandlinger
+        })
     }
 }
 

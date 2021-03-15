@@ -295,10 +295,6 @@ open class AccessCheckProxy(
                     assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.hent(request)
                 }
-
-                override fun hentAktiveBehandlinger(request: SøknadsbehandlingService.HentAktiveRequest): Either<SøknadsbehandlingService.KunneIkkeHenteAktiveBehandlinger, List<Søknadsbehandling.Iverksatt.Innvilget>> {
-                    return services.søknadsbehandling.hentAktiveBehandlinger(request)
-                }
             },
             ferdigstillVedtak = object : FerdigstillVedtakService {
                 override fun ferdigstillVedtakEtterUtbetaling(utbetalingId: UUID30): Unit =
@@ -374,8 +370,8 @@ open class AccessCheckProxy(
                 override fun hentRevurderingForUtbetaling(utbetalingId: UUID30) = kastKanKunKallesFraAnnenService()
             },
             vedtakService = object : VedtakService {
-                override fun hentAktive(fomDato: LocalDate): List<Vedtak.InnvilgetStønad> {
-                    return services.vedtakService.hentAktive(fomDato)
+                override fun hentAktiveFnr(fomDato: LocalDate): List<Fnr> {
+                    return services.vedtakService.hentAktiveFnr(fomDato)
                 }
             }
         )

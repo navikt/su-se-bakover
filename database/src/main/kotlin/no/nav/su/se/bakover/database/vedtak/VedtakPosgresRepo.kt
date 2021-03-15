@@ -125,8 +125,8 @@ internal class VedtakPosgresRepo(
 
             """.trimIndent()
                 .hentListe(mapOf("dato" to dato), s) {
-                    it.toVedtak(s) as Vedtak.InnvilgetStønad
-                }
+                    it.toVedtak(s)
+                }.filterIsInstance<Vedtak.InnvilgetStønad>()
         }
 
     private fun Row.toVedtak(session: Session): Vedtak {

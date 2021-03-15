@@ -11,8 +11,6 @@ import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.behandling.Behandling
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.web.DEFAULT_CALL_ID
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -43,7 +41,7 @@ internal class FrikortRoutesKtTest {
     @Test
     fun `secure endpoint ok med gyldig token`() {
         val vedtakServiceMock = mock<VedtakService> {
-            on { hentAktive(any()) } doReturn emptyList()
+            on { hentAktiveFnr(any()) } doReturn emptyList()
         }
 
         withTestApplication({
@@ -65,15 +63,8 @@ internal class FrikortRoutesKtTest {
     fun `sjekk default dato`() {
         val frikortJsonString = """{"dato":"2021-01","fnr":["42920322544"]}"""
 
-        val behandlingMock = mock<Behandling> {
-            on { fnr } doReturn Fnr("42920322544")
-        }
-        val vedtakMock = mock<Vedtak.InnvilgetStønad> {
-            on { behandling } doReturn behandlingMock
-        }
-
         val vedtakServiceMock = mock<VedtakService> {
-            on { hentAktive(any()) } doReturn listOf(vedtakMock)
+            on { hentAktiveFnr(any()) } doReturn listOf(Fnr("42920322544"))
         }
 
         withTestApplication({
@@ -95,15 +86,31 @@ internal class FrikortRoutesKtTest {
     fun `sjekk angitt dato`() {
         val frikortJsonString = """{"dato":"2021-02","fnr":["42920322544"]}"""
 
-        val behandlingMock = mock<Behandling> {
-            on { fnr } doReturn Fnr("42920322544")
-        }
-        val vedtakMock = mock<Vedtak.InnvilgetStønad> {
-            on { behandling } doReturn behandlingMock
+        val vedtakServiceMock = mock<VedtakService> {
+            on { hentAktiveFnr(any()) } doReturn listOf(Fnr("42920322544"))
         }
 
+        withTestApplication({
+            testSusebakover(services = testServices.copy(vedtakService = vedtakServiceMock), clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC))
+        }) {
+            handleRequest(HttpMethod.Get, "$frikortPath/2021-02") {
+                addHeader(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
+                addHeader(
+                    HttpHeaders.Authorization,
+                    jwtStub.createJwtToken(subject = applicationConfig.frikort.serviceUsername).asBearerToken()
+                )
+            }
+        }.apply {
+            JSONAssert.assertEquals(frikortJsonString, response.content, true)
+        }
+    }
+
+    @Test
+    fun `ingen funnet gir tomt array`() {
+        val frikortJsonString = """{"dato":"2021-02","fnr":[]}"""
+
         val vedtakServiceMock = mock<VedtakService> {
-            on { hentAktive(any()) } doReturn listOf(vedtakMock)
+            on { hentAktiveFnr(any()) } doReturn emptyList()
         }
 
         withTestApplication({

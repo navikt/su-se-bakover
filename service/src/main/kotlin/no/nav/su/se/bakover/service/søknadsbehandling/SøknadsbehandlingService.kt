@@ -21,7 +21,6 @@ interface SøknadsbehandlingService {
     fun iverksett(request: IverksettRequest): Either<KunneIkkeIverksette, Søknadsbehandling.Iverksatt>
     fun brev(request: BrevRequest): Either<KunneIkkeLageBrev, ByteArray>
     fun hent(request: HentRequest): Either<FantIkkeBehandling, Søknadsbehandling>
-    fun hentAktiveBehandlinger(request: HentAktiveRequest): Either<KunneIkkeHenteAktiveBehandlinger, List<Søknadsbehandling.Iverksatt.Innvilget>>
 
     data class OpprettRequest(
         val søknadId: UUID
