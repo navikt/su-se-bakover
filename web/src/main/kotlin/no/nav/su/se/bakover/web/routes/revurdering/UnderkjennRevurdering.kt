@@ -44,7 +44,10 @@ data class UnderkjennBody(
                 kommentar = this.kommentar
             ).right()
         }
-        return Resultat.message(HttpStatusCode.BadRequest, "Ugyldig body").left()
+        return HttpStatusCode.BadRequest.errorJson(
+            message = "Grunn er feil, eller kommentar finnes ikke.",
+            code = "ugyldig_body"
+        ).left()
     }
 }
 
@@ -72,15 +75,7 @@ internal fun Route.underkjennRevurdering(
                                 ).fold(
                                     ifLeft = {
                                         val resultat = when (it) {
-                                            KunneIkkeUnderkjenneRevurdering.FantIkkePerson -> HttpStatusCode.InternalServerError.errorJson(
-                                                "Fant ikke person",
-                                                "fant_ikke_person",
-                                            )
                                             KunneIkkeUnderkjenneRevurdering.FantIkkeRevurdering -> fantIkkeRevurdering
-                                            KunneIkkeUnderkjenneRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> HttpStatusCode.InternalServerError.errorJson(
-                                                "Kunne ikke hente navn for saksbehandler eller attestant",
-                                                "navneoppslag_feilet",
-                                            )
                                             KunneIkkeUnderkjenneRevurdering.FantIkkeAktørId -> fantIkkeAktørId
                                             KunneIkkeUnderkjenneRevurdering.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
                                             is KunneIkkeUnderkjenneRevurdering.UgyldigTilstand -> ugyldigTilstand(
