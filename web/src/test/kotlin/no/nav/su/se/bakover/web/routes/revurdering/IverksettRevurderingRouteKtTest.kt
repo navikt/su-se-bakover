@@ -130,7 +130,7 @@ internal class IverksettRevurderingRouteKtTest {
             expectedJsonResponse = """
                 {
                     "message":"Kan ikke gå fra tilstanden IverksattRevurdering til tilstanden OpprettetRevurdering",
-                    "code":"ugyldig_periode"
+                    "code":"ugyldig_tilstand"
                 }
             """.trimIndent()
         )

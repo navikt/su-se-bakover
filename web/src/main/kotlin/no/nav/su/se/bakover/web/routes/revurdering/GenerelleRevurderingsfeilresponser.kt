@@ -37,7 +37,7 @@ internal object GenerelleRevurderingsfeilresponser {
     fun ugyldigTilstand(fra: KClass<out Revurdering>, til: KClass<out Revurdering>): Resultat {
         return BadRequest.errorJson(
             "Kan ikke gå fra tilstanden ${fra.simpleName} til tilstanden ${til.simpleName}",
-            "ugyldig_periode"
+            "ugyldig_tilstand"
         )
     }
 }
