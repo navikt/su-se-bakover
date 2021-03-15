@@ -9,8 +9,8 @@ import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.database.withTransaction
-import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata.BehandlingUføregrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata.Uføregrad
+import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata.Uføregrunnlag
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -18,8 +18,9 @@ internal class UføregrunnlagPostgresRepo(
     private val dataSource: DataSource
 ) : UføregrunnlagRepo {
 
-    override fun lagre(behandlingId: UUID, uføregrunnlag: List<BehandlingUføregrunnlag>) {
+    override fun lagre(behandlingId: UUID, uføregrunnlag: List<Uføregrunnlag>) {
         dataSource.withTransaction { tx ->
+            slettForBehandlingId(behandlingId)
             uføregrunnlag.forEach {
                 lagre(it, tx)
                 koble(behandlingId, it.id, tx)
@@ -27,7 +28,7 @@ internal class UføregrunnlagPostgresRepo(
         }
     }
 
-    override fun hent(behandlingId: UUID): List<BehandlingUføregrunnlag> {
+    override fun hent(behandlingId: UUID): List<Uføregrunnlag> {
         return dataSource.withSession { sesison ->
             """
                 select * from grunnlag_uføre gu
@@ -46,6 +47,23 @@ internal class UføregrunnlagPostgresRepo(
         }
     }
 
+    private fun slettForBehandlingId(behandlingId: UUID) {
+        dataSource.withSession { session ->
+            """
+                delete from grunnlag_uføre gu 
+                using behandling_grunnlag bg 
+                where bg.uføre_grunnlag_id=gu.id 
+                and bg.behandlingId = :behandlingId
+            """.trimIndent()
+                .oppdatering(
+                    mapOf(
+                        "behandlingId" to behandlingId
+                    ),
+                    session
+                )
+        }
+    }
+
     override fun slett(uføregrunnlagId: UUID) {
         dataSource.withSession { session ->
             """
@@ -60,8 +78,8 @@ internal class UføregrunnlagPostgresRepo(
         }
     }
 
-    private fun Row.toUføregrunnlag(): BehandlingUføregrunnlag {
-        return BehandlingUføregrunnlag(
+    private fun Row.toUføregrunnlag(): Uføregrunnlag {
+        return Uføregrunnlag(
             id = uuid("id"),
             opprettet = tidspunkt("opprettet"),
             periode = Periode.create(localDate("fom"), localDate("tom")),
@@ -70,7 +88,7 @@ internal class UføregrunnlagPostgresRepo(
         )
     }
 
-    private fun lagre(uføregrunnlag: BehandlingUføregrunnlag, session: Session) {
+    private fun lagre(uføregrunnlag: Uføregrunnlag, session: Session) {
         """
             insert into grunnlag_uføre
             (

@@ -1,24 +1,31 @@
 package no.nav.su.se.bakover.web.routes.behandling.søknadsbehandling
 
 import arrow.core.Either
+import arrow.core.extensions.either.applicative.applicative
+import arrow.core.extensions.list.traverse.traverse
+import arrow.core.fix
 import arrow.core.getOrElse
 import arrow.core.getOrHandle
+import arrow.core.identity
 import arrow.core.left
 import arrow.core.right
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.HttpStatusCode.Companion.Created
 import io.ktor.routing.Route
 import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
-import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata.BehandlingUføregrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata.Uføregrad
+import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata.Uføregrunnlag
 import no.nav.su.se.bakover.service.søknadsbehandling.GrunnlagsdataService
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.behandling.beregning.PeriodeJson
-import no.nav.su.se.bakover.web.routes.behandling.jsonBody
+import no.nav.su.se.bakover.web.routes.behandling.toJson
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBehandlingId
@@ -29,7 +36,8 @@ const val grunnlagsdataPath = "$sakPath/{sakId}/behandlinger/{behandlingId}/grun
 
 @KtorExperimentalAPI
 internal fun Route.grunnlagsdataRoute(
-    grunnlagsdataService: GrunnlagsdataService
+    grunnlagsdataService: GrunnlagsdataService,
+    søknadsbehandlingService: SøknadsbehandlingService,
 ) {
     data class Body(
         val periode: PeriodeJson,
@@ -37,7 +45,7 @@ internal fun Route.grunnlagsdataRoute(
         val forventetInntekt: Int,
     ) {
 
-        fun toDomain(): Either<Resultat, BehandlingUføregrunnlag> {
+        fun toDomain(): Either<Resultat, Uføregrunnlag> {
             val periode = periode.toPeriode().getOrHandle {
                 return it.left()
             }
@@ -47,11 +55,19 @@ internal fun Route.grunnlagsdataRoute(
                     code = "uføregrad_må_være_mellom_en_og_hundre",
                 ).left()
             }
-            return BehandlingUføregrunnlag(
+            return Uføregrunnlag(
                 periode = periode,
                 uføregrad = validUføregrad,
                 forventetInntekt = forventetInntekt
             ).right()
+        }
+    }
+
+    fun List<Body>.toDomain(): Either<Resultat, List<Uføregrunnlag>> {
+        return this.map {
+            it.toDomain()
+        }.traverse(Either.applicative(), ::identity).fix().map {
+            it.fix()
         }
     }
 
@@ -60,13 +76,16 @@ internal fun Route.grunnlagsdataRoute(
             call.withSakId { sakId ->
                 call.withBehandlingId { behandlingId ->
                     call.withBody<List<Body>> { body ->
-                        body.map {element->
-                            val resultat = element.toDomain().map {
-                                grunnlagsdataService.leggTilUførerunnlag(sakId, behandlingId, listOf(it))
-                                Resultat.json(HttpStatusCode.Created,("""{"status":"received ok - will probably return something here"}"""))
-                            }.getOrHandle { it }
-                            call.svar(resultat)
-                        }
+                        val uføregrunnlagsjson = body.toDomain()
+                        val resultat = uføregrunnlagsjson.map {
+                            grunnlagsdataService.leggTilUførerunnlag(sakId, behandlingId, it)
+                            val behandlingMedGrunnlagsdata =
+                                søknadsbehandlingService.hent(SøknadsbehandlingService.HentRequest(behandlingId))
+                                    .orNull()!!
+                                    .toJson()
+                            Resultat.json(Created, serialize(behandlingMedGrunnlagsdata))
+                        }.getOrHandle { it }
+                        call.svar(resultat)
                     }
                 }
             }

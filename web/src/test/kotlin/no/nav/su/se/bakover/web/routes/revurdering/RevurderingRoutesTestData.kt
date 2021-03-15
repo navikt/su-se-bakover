@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBre
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata.Grunnlagsdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -61,7 +62,8 @@ object RevurderingRoutesTestData {
             saksbehandler = NavIdentBruker.Saksbehandler("saks"),
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
             utbetalingId = UUID30.randomUUID(),
-            eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert
+            grunnlagsdata = Grunnlagsdata.EMPTY,
+            eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
         )
     )
 }

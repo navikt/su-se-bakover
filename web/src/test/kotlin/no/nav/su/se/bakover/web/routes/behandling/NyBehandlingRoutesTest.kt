@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata.Grunnlagsdata
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.TestServicesBuilder
@@ -48,6 +49,7 @@ class NyBehandlingRoutesTest {
             oppgaveId = OppgaveId("oppgaveId"),
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             fnr = FnrGenerator.random(),
+            grunnlagsdata = Grunnlagsdata.EMPTY,
         )
         val saksbehandlingServiceMock = mock<SøknadsbehandlingService> {
             on { opprett(any()) } doReturn søknadsbehandling.right()

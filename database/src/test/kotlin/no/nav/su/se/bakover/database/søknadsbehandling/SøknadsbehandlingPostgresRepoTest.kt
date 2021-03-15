@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.avslåttBeregning
 import no.nav.su.se.bakover.database.behandlingsinformasjonMedAlleVilkårOppfylt
 import no.nav.su.se.bakover.database.beregning
+import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.iverksattAttestering
 import no.nav.su.se.bakover.database.iverksattBrevbestillingId
@@ -27,6 +28,7 @@ import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBre
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata.Grunnlagsdata
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
@@ -34,7 +36,8 @@ internal class SøknadsbehandlingPostgresRepoTest {
 
     private val dataSource = EmbeddedDatabase.instance()
     private val testDataHelper = TestDataHelper(dataSource)
-    private val repo = SøknadsbehandlingPostgresRepo(dataSource)
+    private val uføregrunnlagPostgresRepo = UføregrunnlagPostgresRepo(dataSource)
+    private val repo = SøknadsbehandlingPostgresRepo(dataSource, uføregrunnlagPostgresRepo)
 
     @Test
     fun `kaster exception hvis brev finnes uten journalpost`() {
@@ -47,7 +50,10 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     repo.lagre(it)
                 }
             dataSource.withSession { session ->
-                ("update behandling set iverksattJournalpostId = null where id = '${innvilget.id}'").oppdatering(emptyMap(), session)
+                ("update behandling set iverksattJournalpostId = null where id = '${innvilget.id}'").oppdatering(
+                    emptyMap(),
+                    session
+                )
                 shouldThrow<IllegalStateException> {
                     repo.hent(innvilget.id)
                 }.message shouldBe "Kunne ikke bestemme eksterne iverksettingssteg for innvilgelse, iverksattJournalpostId:null, iverksattBrevbestillingId:b"
@@ -250,6 +256,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             beregning = beregning,
                             simulering = simulering(tilAttestering.fnr),
                             saksbehandler = saksbehandler,
+                            grunnlagsdata = Grunnlagsdata.EMPTY,
                         )
                     }
                 }
@@ -274,6 +281,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             behandlingsinformasjon = tilAttestering.behandlingsinformasjon,
                             fnr = tilAttestering.fnr,
                             saksbehandler = saksbehandler,
+                            grunnlagsdata = Grunnlagsdata.EMPTY,
                         )
                     }
                 }
@@ -299,6 +307,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             fnr = tilAttestering.fnr,
                             beregning = avslåttBeregning,
                             saksbehandler = saksbehandler,
+                            grunnlagsdata = Grunnlagsdata.EMPTY,
                         )
                     }
                 }
@@ -329,6 +338,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             simulering = simulering(tilAttestering.fnr),
                             saksbehandler = saksbehandler,
                             attestering = underkjentAttestering,
+                            grunnlagsdata = Grunnlagsdata.EMPTY,
                         )
                     }
                 }
@@ -354,6 +364,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             fnr = tilAttestering.fnr,
                             saksbehandler = saksbehandler,
                             attestering = underkjentAttestering,
+                            grunnlagsdata = Grunnlagsdata.EMPTY,
                         )
                     }
                 }
@@ -380,6 +391,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             beregning = avslåttBeregning,
                             saksbehandler = saksbehandler,
                             attestering = underkjentAttestering,
+                            grunnlagsdata = Grunnlagsdata.EMPTY,
                         )
                     }
                 }
@@ -447,6 +459,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 saksbehandler = saksbehandler,
                 attestering = iverksattAttestering,
                 eksterneIverksettingsteg = journalførtIverksettingForAvslag,
+                grunnlagsdata = Grunnlagsdata.EMPTY,
             )
             repo.hent(iverksatt.id).also {
                 it shouldBe expected
@@ -491,7 +504,8 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     beregning = avslåttBeregning,
                     saksbehandler = saksbehandler,
                     attestering = iverksattAttestering,
-                    eksterneIverksettingsteg = eksterneIverksettingsteg
+                    eksterneIverksettingsteg = eksterneIverksettingsteg,
+                    grunnlagsdata = Grunnlagsdata.EMPTY,
                 )
             }
         }

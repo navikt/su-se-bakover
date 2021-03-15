@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Statusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.forsøkStatusovergang
+import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata.Grunnlagsdata
 import no.nav.su.se.bakover.domain.søknadsbehandling.statusovergang
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
@@ -94,7 +95,8 @@ internal class SøknadsbehandlingServiceImpl(
             søknad = søknad,
             oppgaveId = søknad.oppgaveId,
             fnr = søknad.søknadInnhold.personopplysninger.fnr,
-            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon()
+            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
+            grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
         søknadsbehandlingRepo.lagre(opprettet)

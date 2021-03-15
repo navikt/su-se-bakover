@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata.Grunnlagsdata
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.behandlingsinformasjon
@@ -49,6 +50,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
         saksnummer = Saksnummer(0),
         fnr = FnrGenerator.random(),
         oppgaveId = oppgaveId,
+        grunnlagsdata = Grunnlagsdata.EMPTY,
     )
 
     @Test
@@ -93,12 +95,13 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
         val expected = Søknadsbehandling.Vilkårsvurdert.Innvilget(
             id = opprettetBehandling.id,
             opprettet = opprettetBehandling.opprettet,
-            behandlingsinformasjon = behandlingsinformasjon,
-            søknad = opprettetBehandling.søknad,
             sakId = opprettetBehandling.sakId,
             saksnummer = opprettetBehandling.saksnummer,
-            fnr = opprettetBehandling.fnr,
+            søknad = opprettetBehandling.søknad,
             oppgaveId = opprettetBehandling.oppgaveId,
+            behandlingsinformasjon = behandlingsinformasjon,
+            fnr = opprettetBehandling.fnr,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
         response shouldBe expected.right()
@@ -136,6 +139,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
             saksnummer = opprettetBehandling.saksnummer,
             fnr = opprettetBehandling.fnr,
             oppgaveId = opprettetBehandling.oppgaveId,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
         response shouldBe expected.right()

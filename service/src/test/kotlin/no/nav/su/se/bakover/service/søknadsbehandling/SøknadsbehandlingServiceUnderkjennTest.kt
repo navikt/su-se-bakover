@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata.Grunnlagsdata
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.beregning.TestBeregning
@@ -86,7 +87,8 @@ class SøknadsbehandlingServiceUnderkjennTest {
         sakId = sakId,
         saksnummer = saksnummer,
         fnr = fnr,
-        oppgaveId = oppgaveId
+        oppgaveId = oppgaveId,
+        grunnlagsdata = Grunnlagsdata.EMPTY,
     )
 
     private val oppgaveConfig = OppgaveConfig.Saksbehandling(
@@ -349,7 +351,8 @@ class SøknadsbehandlingServiceUnderkjennTest {
             beregning = innvilgetBehandlingTilAttestering.beregning,
             simulering = innvilgetBehandlingTilAttestering.simulering,
             saksbehandler = innvilgetBehandlingTilAttestering.saksbehandler,
-            attestering = underkjentAttestering
+            attestering = underkjentAttestering,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
         actual shouldBe underkjentMedNyOppgaveIdOgAttestering.right()
@@ -430,7 +433,8 @@ class SøknadsbehandlingServiceUnderkjennTest {
             beregning = innvilgetBehandlingTilAttestering.beregning,
             simulering = innvilgetBehandlingTilAttestering.simulering,
             saksbehandler = innvilgetBehandlingTilAttestering.saksbehandler,
-            attestering = underkjentAttestering
+            attestering = underkjentAttestering,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
         actual shouldBe underkjentMedNyOppgaveIdOgAttestering.right()

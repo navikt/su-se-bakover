@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata.Grunnlagsdata
 import no.nav.su.se.bakover.web.FnrGenerator
 import java.time.LocalDate
 import java.util.UUID
@@ -125,6 +126,7 @@ object BehandlingTestUtils {
         ),
         saksbehandler = NavIdentBruker.Saksbehandler("pro-saksbehandler"),
         attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("kjella")),
-        utbetalingId = UUID30.randomUUID()
+        utbetalingId = UUID30.randomUUID(),
+        grunnlagsdata = Grunnlagsdata.EMPTY,
     )
 }

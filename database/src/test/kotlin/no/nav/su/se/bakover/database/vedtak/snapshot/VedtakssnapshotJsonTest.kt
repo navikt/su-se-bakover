@@ -35,6 +35,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata.Grunnlagsdata
 import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
@@ -75,6 +76,7 @@ internal class VedtakssnapshotJsonTest {
             saksnummer = Saksnummer(1234),
             fnr = fnr,
             oppgaveId = OppgaveId("oppgaveId"),
+            grunnlagsdata = Grunnlagsdata.EMPTY,
             eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
                 journalpostId = JournalpostId("iverksattJournalpostId"),
                 brevbestillingId = BrevbestillingId("iverksattBrevbestillingId"),
@@ -428,11 +430,12 @@ internal class VedtakssnapshotJsonTest {
                     )
                 )
             ),
+            utbetalingId = UUID30.randomUUID(),
+            grunnlagsdata = Grunnlagsdata.EMPTY,
             eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
                 journalpostId = JournalpostId("iverksattJournalpostId"),
                 brevbestillingId = BrevbestillingId("iverksattBrevbestillingId"),
             ),
-            utbetalingId = UUID30.randomUUID(),
         )
         val utbetaling = oversendtUtbetalingUtenKvittering(innvilget)
         val innvilgelse = Vedtakssnapshot.Innvilgelse(

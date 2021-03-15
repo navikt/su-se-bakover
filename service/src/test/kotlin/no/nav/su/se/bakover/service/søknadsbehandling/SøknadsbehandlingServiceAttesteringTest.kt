@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata.Grunnlagsdata
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.beregning.TestBeregning
@@ -70,7 +71,8 @@ class SøknadsbehandlingServiceAttesteringTest {
         sakId = sakId,
         saksnummer = saksnummer,
         fnr = fnr,
-        oppgaveId = oppgaveId
+        oppgaveId = oppgaveId,
+        grunnlagsdata = Grunnlagsdata.EMPTY,
     )
 
     private val saksbehandler = NavIdentBruker.Saksbehandler("Z12345")
@@ -113,7 +115,8 @@ class SøknadsbehandlingServiceAttesteringTest {
             saksnummer = simulertBehandling.saksnummer,
             fnr = simulertBehandling.fnr,
             oppgaveId = nyOppgaveId,
-            saksbehandler = saksbehandler
+            saksbehandler = saksbehandler,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
         actual shouldBe expected.right()
@@ -265,7 +268,8 @@ class SøknadsbehandlingServiceAttesteringTest {
             saksnummer = simulertBehandling.saksnummer,
             fnr = simulertBehandling.fnr,
             oppgaveId = nyOppgaveId,
-            saksbehandler = saksbehandler
+            saksbehandler = saksbehandler,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
         actual shouldBe expected.right()

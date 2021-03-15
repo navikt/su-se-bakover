@@ -7,7 +7,7 @@ import java.util.UUID
 /**
  * @throws IllegalArgumentException hvis forventetInntekt er negativ
  */
-data class BehandlingUføregrunnlag(
+data class Uføregrunnlag(
     val id: UUID = UUID.randomUUID(),
     val opprettet: Tidspunkt = Tidspunkt.now(),
     val periode: Periode,

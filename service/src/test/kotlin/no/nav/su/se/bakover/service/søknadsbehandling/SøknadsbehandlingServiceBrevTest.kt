@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata.Grunnlagsdata
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
@@ -45,7 +46,8 @@ internal class SøknadsbehandlingServiceBrevTest {
         oppgaveId = OppgaveId("0"),
         beregning = TestBeregning,
         simulering = mock(),
-        saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler")
+        saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
+        grunnlagsdata = Grunnlagsdata.EMPTY,
     )
 
     private val person = Person(

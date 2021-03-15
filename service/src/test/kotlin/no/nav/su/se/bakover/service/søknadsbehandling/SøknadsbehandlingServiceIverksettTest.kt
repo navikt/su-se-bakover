@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Statusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata.Grunnlagsdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
@@ -264,7 +265,8 @@ internal class SøknadsbehandlingServiceIverksettTest {
             beregning = behandling.beregning,
             simulering = behandling.simulering,
             attestering = Attestering.Iverksatt(attestant),
-            utbetalingId = utbetalingId
+            utbetalingId = utbetalingId,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
         response shouldBe expected.right()
@@ -334,7 +336,8 @@ internal class SøknadsbehandlingServiceIverksettTest {
             oppgaveId = behandling.oppgaveId,
             beregning = behandling.beregning,
             attestering = Attestering.Iverksatt(attestant),
-            eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert
+            eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
         val behandlingMetricsMock = mock<BehandlingMetrics>()
@@ -410,12 +413,13 @@ internal class SøknadsbehandlingServiceIverksettTest {
             Søknadsbehandling.Vilkårsvurdert.Innvilget(
                 id = it.id,
                 opprettet = it.opprettet,
-                søknad = it.søknad,
-                behandlingsinformasjon = it.behandlingsinformasjon,
                 sakId = it.sakId,
                 saksnummer = it.saksnummer,
+                søknad = it.søknad,
+                oppgaveId = søknadOppgaveId,
+                behandlingsinformasjon = it.behandlingsinformasjon,
                 fnr = it.fnr,
-                oppgaveId = søknadOppgaveId
+                grunnlagsdata = Grunnlagsdata.EMPTY,
             )
         }
 
@@ -460,6 +464,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             oppgaveId = søknadOppgaveId,
             beregning = beregning,
             simulering = simulering,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
     private fun avslagTilAttestering() =
@@ -481,6 +486,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             saksbehandler = saksbehandler,
             oppgaveId = søknadOppgaveId,
             beregning = beregning,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
     private val beregning = TestBeregning

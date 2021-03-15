@@ -11,8 +11,8 @@ import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.antall
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
-import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata.BehandlingUføregrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata.Uføregrad
+import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata.Uføregrunnlag
 import org.junit.jupiter.api.Test
 
 internal class UføregrunnlagPostgresRepoTest {
@@ -25,13 +25,13 @@ internal class UføregrunnlagPostgresRepoTest {
         withMigratedDb {
             val behandling = testDataHelper.nyUavklartVilkårsvurdering()
 
-            val uføregrunnlag1 = BehandlingUføregrunnlag(
+            val uføregrunnlag1 = Uføregrunnlag(
                 periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.april(2021)),
                 uføregrad = Uføregrad.parse(100),
                 forventetInntekt = 0
             )
 
-            val uføregrunnlag2 = BehandlingUføregrunnlag(
+            val uføregrunnlag2 = Uføregrunnlag(
                 periode = Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.desember(2021)),
                 uføregrad = Uføregrad.parse(80),
                 forventetInntekt = 14000

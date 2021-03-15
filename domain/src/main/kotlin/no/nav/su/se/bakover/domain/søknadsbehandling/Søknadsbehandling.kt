@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.KunneIkkeJournalfø
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata.Grunnlagsdata
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.util.UUID
 
@@ -27,6 +28,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
     abstract val søknad: Søknad.Journalført.MedOppgave
     abstract val behandlingsinformasjon: Behandlingsinformasjon
     abstract val status: BehandlingsStatus
+    abstract val grunnlagsdata: Grunnlagsdata
 
     sealed class Vilkårsvurdert : Søknadsbehandling() {
         fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon): Vilkårsvurdert =
@@ -38,7 +40,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 søknad,
                 oppgaveId,
                 this.behandlingsinformasjon.patch(behandlingsinformasjon),
-                fnr
+                fnr,
+                grunnlagsdata,
             )
 
         fun tilBeregnet(beregning: Beregning): Beregnet =
@@ -51,7 +54,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 oppgaveId,
                 behandlingsinformasjon,
                 fnr,
-                beregning
+                beregning,
+                grunnlagsdata,
             )
 
         companion object {
@@ -63,7 +67,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 søknad: Søknad.Journalført.MedOppgave,
                 oppgaveId: OppgaveId,
                 behandlingsinformasjon: Behandlingsinformasjon,
-                fnr: Fnr
+                fnr: Fnr,
+                grunnlagsdata: Grunnlagsdata,
             ): Vilkårsvurdert {
                 return when {
                     behandlingsinformasjon.erInnvilget() -> {
@@ -75,7 +80,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                             søknad,
                             oppgaveId,
                             behandlingsinformasjon,
-                            fnr
+                            fnr,
+                            grunnlagsdata,
                         )
                     }
                     behandlingsinformasjon.erAvslag() -> {
@@ -87,7 +93,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                             søknad,
                             oppgaveId,
                             behandlingsinformasjon,
-                            fnr
+                            fnr,
+                            grunnlagsdata,
                         )
                     }
                     else -> {
@@ -99,7 +106,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                             søknad,
                             oppgaveId,
                             behandlingsinformasjon,
-                            fnr
+                            fnr,
+                            grunnlagsdata,
                         )
                     }
                 }
@@ -114,7 +122,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
             override val søknad: Søknad.Journalført.MedOppgave,
             override val oppgaveId: OppgaveId,
             override val behandlingsinformasjon: Behandlingsinformasjon,
-            override val fnr: Fnr
+            override val fnr: Fnr,
+            override val grunnlagsdata: Grunnlagsdata,
         ) : Vilkårsvurdert() {
 
             override val status: BehandlingsStatus = BehandlingsStatus.VILKÅRSVURDERT_INNVILGET
@@ -132,7 +141,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
             override val søknad: Søknad.Journalført.MedOppgave,
             override val oppgaveId: OppgaveId,
             override val behandlingsinformasjon: Behandlingsinformasjon,
-            override val fnr: Fnr
+            override val fnr: Fnr,
+            override val grunnlagsdata: Grunnlagsdata,
         ) : Vilkårsvurdert(), ErAvslag {
 
             override val status: BehandlingsStatus = BehandlingsStatus.VILKÅRSVURDERT_AVSLAG
@@ -152,6 +162,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                     behandlingsinformasjon,
                     fnr,
                     saksbehandler,
+                    grunnlagsdata,
                 )
 
             override val avslagsgrunner: List<Avslagsgrunn> = behandlingsinformasjon.utledAvslagsgrunner()
@@ -165,7 +176,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
             override val søknad: Søknad.Journalført.MedOppgave,
             override val oppgaveId: OppgaveId,
             override val behandlingsinformasjon: Behandlingsinformasjon,
-            override val fnr: Fnr
+            override val fnr: Fnr,
+            override val grunnlagsdata: Grunnlagsdata,
         ) : Vilkårsvurdert() {
 
             override val status: BehandlingsStatus = BehandlingsStatus.OPPRETTET
@@ -177,13 +189,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
     }
 
     sealed class Beregnet : Søknadsbehandling() {
-        abstract override val id: UUID
-        abstract override val opprettet: Tidspunkt
-        abstract override val sakId: UUID
-        abstract override val søknad: Søknad.Journalført.MedOppgave
-        abstract override val oppgaveId: OppgaveId
         abstract override val behandlingsinformasjon: Behandlingsinformasjon
-        abstract override val fnr: Fnr
         abstract val beregning: Beregning
 
         fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon): Vilkårsvurdert =
@@ -195,11 +201,23 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 søknad,
                 oppgaveId,
                 this.behandlingsinformasjon.patch(behandlingsinformasjon),
-                fnr
+                fnr,
+                grunnlagsdata,
             )
 
         fun tilBeregnet(beregning: Beregning): Beregnet =
-            opprett(id, opprettet, sakId, saksnummer, søknad, oppgaveId, behandlingsinformasjon, fnr, beregning)
+            opprett(
+                id,
+                opprettet,
+                sakId,
+                saksnummer,
+                søknad,
+                oppgaveId,
+                behandlingsinformasjon,
+                fnr,
+                beregning,
+                grunnlagsdata,
+            )
 
         fun tilSimulert(simulering: Simulering): Simulert =
             Simulert(
@@ -212,7 +230,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 behandlingsinformasjon,
                 fnr,
                 beregning,
-                simulering
+                simulering,
+                grunnlagsdata,
             )
 
         companion object {
@@ -225,7 +244,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 oppgaveId: OppgaveId,
                 behandlingsinformasjon: Behandlingsinformasjon,
                 fnr: Fnr,
-                beregning: Beregning
+                beregning: Beregning,
+                grunnlagsdata: Grunnlagsdata,
             ): Beregnet =
                 when (VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
                     is AvslagGrunnetBeregning.Ja -> Avslag(
@@ -237,7 +257,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                         oppgaveId,
                         behandlingsinformasjon,
                         fnr,
-                        beregning
+                        beregning,
+                        grunnlagsdata,
                     )
                     AvslagGrunnetBeregning.Nei -> Innvilget(
                         id,
@@ -248,7 +269,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                         oppgaveId,
                         behandlingsinformasjon,
                         fnr,
-                        beregning
+                        beregning,
+                        grunnlagsdata,
                     )
                 }
         }
@@ -262,7 +284,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
             override val oppgaveId: OppgaveId,
             override val behandlingsinformasjon: Behandlingsinformasjon,
             override val fnr: Fnr,
-            override val beregning: Beregning
+            override val beregning: Beregning,
+            override val grunnlagsdata: Grunnlagsdata,
         ) : Beregnet() {
             override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET_INNVILGET
 
@@ -280,7 +303,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
             override val oppgaveId: OppgaveId,
             override val behandlingsinformasjon: Behandlingsinformasjon,
             override val fnr: Fnr,
-            override val beregning: Beregning
+            override val beregning: Beregning,
+            override val grunnlagsdata: Grunnlagsdata,
         ) : Beregnet(), ErAvslag {
             override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET_AVSLAG
 
@@ -306,6 +330,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                     fnr,
                     beregning,
                     saksbehandler,
+                    grunnlagsdata,
                 )
 
             override val avslagsgrunner: List<Avslagsgrunn> =
@@ -323,7 +348,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
         override val behandlingsinformasjon: Behandlingsinformasjon,
         override val fnr: Fnr,
         val beregning: Beregning,
-        val simulering: Simulering
+        val simulering: Simulering,
+        override val grunnlagsdata: Grunnlagsdata,
     ) : Søknadsbehandling() {
         override val status: BehandlingsStatus = BehandlingsStatus.SIMULERT
 
@@ -340,7 +366,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 søknad,
                 oppgaveId,
                 this.behandlingsinformasjon.patch(behandlingsinformasjon),
-                fnr
+                fnr,
+                grunnlagsdata,
             )
 
         fun tilBeregnet(beregning: Beregning): Beregnet =
@@ -353,7 +380,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 oppgaveId,
                 behandlingsinformasjon,
                 fnr,
-                beregning
+                beregning,
+                grunnlagsdata,
             )
 
         fun tilSimulert(simulering: Simulering): Simulert =
@@ -367,7 +395,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 behandlingsinformasjon,
                 fnr,
                 beregning,
-                simulering
+                simulering,
+                grunnlagsdata,
             )
 
         fun tilAttestering(saksbehandler: NavIdentBruker.Saksbehandler): TilAttestering.Innvilget =
@@ -383,6 +412,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 beregning,
                 simulering,
                 saksbehandler,
+                grunnlagsdata,
             )
     }
 
@@ -402,7 +432,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
             override val fnr: Fnr,
             val beregning: Beregning,
             val simulering: Simulering,
-            override val saksbehandler: NavIdentBruker.Saksbehandler
+            override val saksbehandler: NavIdentBruker.Saksbehandler,
+            override val grunnlagsdata: Grunnlagsdata,
         ) : TilAttestering() {
             override val status: BehandlingsStatus =
                 BehandlingsStatus.TIL_ATTESTERING_INNVILGET
@@ -428,7 +459,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                     beregning,
                     simulering,
                     saksbehandler,
-                    attestering
+                    attestering,
+                    grunnlagsdata,
                 )
             }
 
@@ -446,7 +478,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                     simulering,
                     saksbehandler,
                     attestering,
-                    utbetalingId
+                    utbetalingId,
+                    grunnlagsdata,
                 )
             }
         }
@@ -464,7 +497,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 override val oppgaveId: OppgaveId,
                 override val behandlingsinformasjon: Behandlingsinformasjon,
                 override val fnr: Fnr,
-                override val saksbehandler: NavIdentBruker.Saksbehandler
+                override val saksbehandler: NavIdentBruker.Saksbehandler,
+                override val grunnlagsdata: Grunnlagsdata,
             ) : Avslag() {
 
                 override val avslagsgrunner = behandlingsinformasjon.utledAvslagsgrunner()
@@ -488,7 +522,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                         behandlingsinformasjon,
                         fnr,
                         saksbehandler,
-                        attestering
+                        attestering,
+                        grunnlagsdata,
                     )
                 }
 
@@ -506,6 +541,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                         fnr,
                         saksbehandler,
                         attestering,
+                        grunnlagsdata,
                     )
                 }
             }
@@ -520,7 +556,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 override val behandlingsinformasjon: Behandlingsinformasjon,
                 override val fnr: Fnr,
                 val beregning: Beregning,
-                override val saksbehandler: NavIdentBruker.Saksbehandler
+                override val saksbehandler: NavIdentBruker.Saksbehandler,
+                override val grunnlagsdata: Grunnlagsdata,
             ) : Avslag() {
 
                 private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
@@ -552,7 +589,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                         fnr,
                         beregning,
                         saksbehandler,
-                        attestering
+                        attestering,
+                        grunnlagsdata,
                     )
                 }
 
@@ -571,6 +609,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                         beregning,
                         saksbehandler,
                         attestering,
+                        grunnlagsdata,
                     )
                 }
             }
@@ -600,7 +639,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 søknad,
                 oppgaveId,
                 this.behandlingsinformasjon.patch(behandlingsinformasjon),
-                fnr
+                fnr,
+                grunnlagsdata,
             )
 
         data class Innvilget(
@@ -615,7 +655,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
             val beregning: Beregning,
             val simulering: Simulering,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
-            override val attestering: Attestering
+            override val attestering: Attestering,
+            override val grunnlagsdata: Grunnlagsdata,
         ) : Underkjent() {
 
             override fun nyOppgaveId(nyOppgaveId: OppgaveId): Innvilget {
@@ -639,7 +680,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                     oppgaveId,
                     behandlingsinformasjon,
                     fnr,
-                    beregning
+                    beregning,
+                    grunnlagsdata,
                 )
 
             fun tilSimulert(simulering: Simulering): Simulert =
@@ -653,7 +695,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                     behandlingsinformasjon,
                     fnr,
                     beregning,
-                    simulering
+                    simulering,
+                    grunnlagsdata,
                 )
 
             fun tilAttestering(saksbehandler: NavIdentBruker.Saksbehandler): TilAttestering.Innvilget =
@@ -669,6 +712,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                     beregning,
                     simulering,
                     saksbehandler,
+                    grunnlagsdata,
                 )
         }
 
@@ -684,7 +728,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 override val fnr: Fnr,
                 val beregning: Beregning,
                 override val saksbehandler: NavIdentBruker.Saksbehandler,
-                override val attestering: Attestering
+                override val attestering: Attestering,
+                override val grunnlagsdata: Grunnlagsdata,
             ) : Avslag() {
                 override val status: BehandlingsStatus =
                     BehandlingsStatus.UNDERKJENT_AVSLAG
@@ -713,7 +758,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                         oppgaveId,
                         behandlingsinformasjon,
                         fnr,
-                        beregning
+                        beregning,
+                        grunnlagsdata,
                     )
 
                 fun tilAttestering(saksbehandler: NavIdentBruker.Saksbehandler): TilAttestering.Avslag.MedBeregning =
@@ -728,6 +774,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                         fnr,
                         beregning,
                         saksbehandler,
+                        grunnlagsdata,
                     )
 
                 override val avslagsgrunner: List<Avslagsgrunn> =
@@ -744,7 +791,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 override val behandlingsinformasjon: Behandlingsinformasjon,
                 override val fnr: Fnr,
                 override val saksbehandler: NavIdentBruker.Saksbehandler,
-                override val attestering: Attestering
+                override val attestering: Attestering,
+                override val grunnlagsdata: Grunnlagsdata,
             ) : Avslag() {
                 override val status: BehandlingsStatus =
                     BehandlingsStatus.UNDERKJENT_AVSLAG
@@ -768,6 +816,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                         behandlingsinformasjon,
                         fnr,
                         saksbehandler,
+                        grunnlagsdata,
                     )
 
                 override val avslagsgrunner: List<Avslagsgrunn> = behandlingsinformasjon.utledAvslagsgrunner()
@@ -801,6 +850,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val attestering: Attestering,
             val utbetalingId: UUID30,
+            override val grunnlagsdata: Grunnlagsdata,
             val eksterneIverksettingsteg: JournalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert
         ) : Iverksatt() {
             override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_INNVILGET
@@ -835,6 +885,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 val beregning: Beregning,
                 override val saksbehandler: NavIdentBruker.Saksbehandler,
                 override val attestering: Attestering,
+                override val grunnlagsdata: Grunnlagsdata,
                 override val eksterneIverksettingsteg: JournalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert
             ) : Avslag() {
                 override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_AVSLAG
@@ -869,6 +920,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 override val fnr: Fnr,
                 override val saksbehandler: NavIdentBruker.Saksbehandler,
                 override val attestering: Attestering,
+                override val grunnlagsdata: Grunnlagsdata,
                 override val eksterneIverksettingsteg: JournalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert
             ) : Avslag() {
                 override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_AVSLAG

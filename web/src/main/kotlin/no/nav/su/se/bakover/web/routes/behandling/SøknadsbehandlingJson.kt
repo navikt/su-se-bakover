@@ -1,13 +1,11 @@
 package no.nav.su.se.bakover.web.routes.behandling
 
-import io.ktor.http.HttpStatusCode
-import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingsinformasjonJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.behandling.SimuleringJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.behandling.beregning.toJson
+import no.nav.su.se.bakover.web.routes.behandling.søknadsbehandling.toJson
 import no.nav.su.se.bakover.web.routes.søknad.toJson
 import java.time.format.DateTimeFormatter
 
@@ -24,6 +22,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
             saksbehandler = null,
             beregning = null,
             simulering = null,
+            grunnlag = saksbehandling.grunnlagsdata.toJson(),
         )
         is Søknadsbehandling.Beregnet -> {
             BehandlingJson(
@@ -36,7 +35,8 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 attestering = null,
                 saksbehandler = null,
                 beregning = saksbehandling.beregning.toJson(),
-                simulering = null
+                simulering = null,
+                grunnlag = saksbehandling.grunnlagsdata.toJson(),
             )
         }
         is Søknadsbehandling.Simulert -> {
@@ -50,7 +50,8 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 attestering = null,
                 saksbehandler = null,
                 beregning = saksbehandling.beregning.toJson(),
-                simulering = saksbehandling.simulering.toJson()
+                simulering = saksbehandling.simulering.toJson(),
+                grunnlag = saksbehandling.grunnlagsdata.toJson(),
             )
         }
         is Søknadsbehandling.TilAttestering.Innvilget -> {
@@ -64,7 +65,8 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 attestering = null,
                 saksbehandler = saksbehandling.saksbehandler.toString(),
                 beregning = saksbehandling.beregning.toJson(),
-                simulering = saksbehandling.simulering.toJson()
+                simulering = saksbehandling.simulering.toJson(),
+                grunnlag = saksbehandling.grunnlagsdata.toJson(),
             )
         }
         is Søknadsbehandling.TilAttestering.Avslag.MedBeregning -> {
@@ -78,7 +80,8 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 attestering = null,
                 saksbehandler = saksbehandling.saksbehandler.toString(),
                 beregning = saksbehandling.beregning.toJson(),
-                simulering = null
+                simulering = null,
+                grunnlag = saksbehandling.grunnlagsdata.toJson(),
             )
         }
         is Søknadsbehandling.TilAttestering.Avslag.UtenBeregning -> {
@@ -92,7 +95,8 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 attestering = null,
                 saksbehandler = saksbehandling.saksbehandler.toString(),
                 beregning = null,
-                simulering = null
+                simulering = null,
+                grunnlag = saksbehandling.grunnlagsdata.toJson(),
             )
         }
         is Søknadsbehandling.Underkjent.Innvilget -> {
@@ -120,7 +124,8 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 },
                 saksbehandler = saksbehandling.saksbehandler.toString(),
                 beregning = saksbehandling.beregning.toJson(),
-                simulering = saksbehandling.simulering.toJson()
+                simulering = saksbehandling.simulering.toJson(),
+                grunnlag = saksbehandling.grunnlagsdata.toJson(),
             )
         }
         is Søknadsbehandling.Underkjent.Avslag.UtenBeregning -> {
@@ -148,7 +153,8 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 },
                 saksbehandler = saksbehandling.saksbehandler.toString(),
                 beregning = null,
-                simulering = null
+                simulering = null,
+                grunnlag = saksbehandling.grunnlagsdata.toJson(),
             )
         }
         is Søknadsbehandling.Underkjent.Avslag.MedBeregning -> {
@@ -176,7 +182,8 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 },
                 saksbehandler = saksbehandling.saksbehandler.toString(),
                 beregning = saksbehandling.beregning.toJson(),
-                simulering = null
+                simulering = null,
+                grunnlag = saksbehandling.grunnlagsdata.toJson(),
             )
         }
         is Søknadsbehandling.Iverksatt.Avslag.MedBeregning -> {
@@ -204,7 +211,8 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 },
                 saksbehandler = saksbehandling.saksbehandler.toString(),
                 beregning = saksbehandling.beregning.toJson(),
-                simulering = null
+                simulering = null,
+                grunnlag = saksbehandling.grunnlagsdata.toJson(),
             )
         }
         is Søknadsbehandling.Iverksatt.Avslag.UtenBeregning -> {
@@ -232,7 +240,8 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 },
                 saksbehandler = saksbehandling.saksbehandler.toString(),
                 beregning = null,
-                simulering = null
+                simulering = null,
+                grunnlag = saksbehandling.grunnlagsdata.toJson(),
             )
         }
         is Søknadsbehandling.Iverksatt.Innvilget -> {
@@ -260,12 +269,9 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 },
                 saksbehandler = saksbehandling.saksbehandler.toString(),
                 beregning = saksbehandling.beregning.toJson(),
-                simulering = saksbehandling.simulering.toJson()
+                simulering = saksbehandling.simulering.toJson(),
+                grunnlag = saksbehandling.grunnlagsdata.toJson(),
             )
         }
     }
-}
-
-internal fun HttpStatusCode.jsonBody(søknadsbehandling: Søknadsbehandling): Resultat {
-    return Resultat.json(this, serialize(søknadsbehandling.toJson()))
 }

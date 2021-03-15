@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.routes.behandling
 
 import no.nav.su.se.bakover.web.routes.behandling.beregning.BeregningJson
+import no.nav.su.se.bakover.web.routes.behandling.søknadsbehandling.GrunnlagsdataJson
 import no.nav.su.se.bakover.web.routes.hendelse.HendelseJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadJson
 import java.util.UUID
@@ -16,5 +17,6 @@ internal data class BehandlingJson(
     val attestering: AttesteringJson?,
     val saksbehandler: String?,
     val sakId: UUID,
-    val hendelser: List<HendelseJson>? = emptyList()
+    val hendelser: List<HendelseJson>? = emptyList(),
+    val grunnlag: GrunnlagsdataJson,
 )

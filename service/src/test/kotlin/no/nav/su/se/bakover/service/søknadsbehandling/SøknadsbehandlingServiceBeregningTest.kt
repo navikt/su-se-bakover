@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata.Grunnlagsdata
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.tidspunkt
@@ -36,7 +37,8 @@ class SøknadsbehandlingServiceBeregningTest {
     private val vilkårsvurdertBehandling = Søknadsbehandling.Vilkårsvurdert.Innvilget(
         id = UUID.randomUUID(),
         opprettet = tidspunkt,
-        behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
+        sakId = sakId,
+        saksnummer = Saksnummer(0),
         søknad = Søknad.Journalført.MedOppgave(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.EPOCH,
@@ -45,10 +47,10 @@ class SøknadsbehandlingServiceBeregningTest {
             oppgaveId = OppgaveId("o"),
             journalpostId = JournalpostId("j"),
         ),
-        sakId = sakId,
-        saksnummer = Saksnummer(0),
-        fnr = FnrGenerator.random(),
         oppgaveId = OppgaveId("o"),
+        behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
+        fnr = FnrGenerator.random(),
+        grunnlagsdata = Grunnlagsdata.EMPTY,
     )
 
     @Test
@@ -82,7 +84,8 @@ class SøknadsbehandlingServiceBeregningTest {
             saksnummer = vilkårsvurdertBehandling.saksnummer,
             fnr = vilkårsvurdertBehandling.fnr,
             oppgaveId = vilkårsvurdertBehandling.oppgaveId,
-            beregning = TestBeregning
+            beregning = TestBeregning,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
         response shouldBe expected.right()

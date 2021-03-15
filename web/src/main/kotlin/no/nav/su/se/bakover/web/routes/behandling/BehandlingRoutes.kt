@@ -15,6 +15,7 @@ import io.ktor.routing.get
 import io.ktor.routing.patch
 import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
@@ -90,7 +91,7 @@ internal fun Route.behandlingRoutes(
                                 },
                                 {
                                     call.audit("Opprettet behandling på sak: $sakId og søknadId: $søknadId")
-                                    call.svar(Created.jsonBody(it))
+                                    call.svar(Resultat.json(Created, serialize(it.toJson())))
                                 }
                             )
                     }
@@ -106,7 +107,7 @@ internal fun Route.behandlingRoutes(
                     call.svar(NotFound.message("Fant ikke behandling med id $behandlingId"))
                 }.map {
                     call.audit("Hentet behandling med id $behandlingId")
-                    call.svar(OK.jsonBody(it))
+                    call.svar(Resultat.json(OK, serialize(it.toJson())))
                 }
             }
         }
@@ -132,7 +133,7 @@ internal fun Route.behandlingRoutes(
                         )
                     }.map {
                         call.audit("Oppdaterte behandlingsinformasjon med behandlingsid $behandlingId")
-                        call.svar(OK.jsonBody(it))
+                        call.svar(Resultat.json(OK, serialize(it.toJson())))
                     }
                 }
             }
@@ -162,7 +163,7 @@ internal fun Route.behandlingRoutes(
                                     call.svar(resultat)
                                 }.map { behandling ->
                                     call.audit("Opprettet en ny beregning på søknadsbehandling med id $behandlingId")
-                                    call.svar(Created.jsonBody(behandling))
+                                    call.svar(Resultat.json(OK, serialize(behandling.toJson())))
                                 }
                         }
                 }
@@ -227,7 +228,7 @@ internal fun Route.behandlingRoutes(
                     },
                     {
                         call.audit("Oppdatert simulering for behandling med id $behandlingId")
-                        call.svar(OK.jsonBody(it))
+                        call.svar(Resultat.json(OK, serialize(it.toJson())))
                     }
                 )
             }
@@ -261,7 +262,7 @@ internal fun Route.behandlingRoutes(
                         },
                         {
                             call.audit("Sendte behandling med id $behandlingId til attestering")
-                            call.svar(OK.jsonBody(it))
+                            call.svar(Resultat.json(OK, serialize(it.toJson())))
                         }
                     )
                 }
@@ -320,7 +321,7 @@ internal fun Route.behandlingRoutes(
                     },
                     {
                         call.audit("Iverksatte behandling med id: $behandlingId")
-                        call.svar(OK.jsonBody(it))
+                        call.svar(Resultat.json(OK, serialize(it.toJson())))
                     }
                 )
             }
@@ -374,7 +375,7 @@ internal fun Route.behandlingRoutes(
                                 },
                                 ifRight = {
                                     call.audit("Underkjente behandling med id: $behandlingId")
-                                    call.svar(OK.jsonBody(it))
+                                    call.svar(Resultat.json(OK, serialize(it.toJson())))
                                 }
                             )
                         } else {

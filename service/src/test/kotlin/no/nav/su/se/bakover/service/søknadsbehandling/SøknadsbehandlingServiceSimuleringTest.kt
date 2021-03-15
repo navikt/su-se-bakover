@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata.Grunnlagsdata
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
@@ -59,7 +60,8 @@ internal class SøknadsbehandlingServiceSimuleringTest {
             saksnummer = beregnetBehandling.saksnummer,
             fnr = beregnetBehandling.fnr,
             oppgaveId = beregnetBehandling.oppgaveId,
-            simulering = simulering
+            simulering = simulering,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
         response shouldBe expected.right()
@@ -142,7 +144,8 @@ internal class SøknadsbehandlingServiceSimuleringTest {
         sakId = sakId,
         saksnummer = saksnummer,
         fnr = fnr,
-        oppgaveId = oppgaveId
+        oppgaveId = oppgaveId,
+        grunnlagsdata = Grunnlagsdata.EMPTY,
     )
 
     private val simulering = Simulering(

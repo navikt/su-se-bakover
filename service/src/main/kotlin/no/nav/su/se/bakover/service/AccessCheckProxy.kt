@@ -32,7 +32,7 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata.BehandlingUføregrunnlag
+import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata.Uføregrunnlag
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.avstemming.AvstemmingFeilet
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
@@ -371,7 +371,7 @@ open class AccessCheckProxy(
                 override fun hentRevurderingForUtbetaling(utbetalingId: UUID30) = kastKanKunKallesFraAnnenService()
             },
             grunnlagsdataService = object : GrunnlagsdataService {
-                override fun leggTilUførerunnlag(sakId: UUID, behandlingId: UUID, uføregrunnlag: List<BehandlingUføregrunnlag>) {
+                override fun leggTilUførerunnlag(sakId: UUID, behandlingId: UUID, uføregrunnlag: List<Uføregrunnlag>) {
                     assertHarTilgangTilBehandling(behandlingId)
                     return services.grunnlagsdataService.leggTilUførerunnlag(sakId, behandlingId, uføregrunnlag)
                 }

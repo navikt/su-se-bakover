@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata.Grunnlagsdata
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.behandlingId
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.innvilgetSøknadsbehandling
@@ -142,7 +143,8 @@ internal class SøknadsbehandlingJsonTest {
             saksnummer = saksnummer,
             fnr = FnrGenerator.random(),
             oppgaveId = oppgaveId,
-            opprettet = Tidspunkt.EPOCH
+            opprettet = Tidspunkt.EPOCH,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
         )
         val opprettetTidspunkt = DateTimeFormatter.ISO_INSTANT.format(behandlingWithNulls.opprettet)
 

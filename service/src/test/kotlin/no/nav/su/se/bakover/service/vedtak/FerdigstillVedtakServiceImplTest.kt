@@ -42,6 +42,7 @@ import no.nav.su.se.bakover.domain.oppgave.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata.Grunnlagsdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
@@ -976,7 +977,8 @@ internal class FerdigstillVedtakServiceImplTest {
                 saksbehandler = saksbehandler,
                 oppgaveId = oppgaveId,
                 beregning = TestBeregning,
-                attestering = Attestering.Iverksatt(attestant)
+                attestering = Attestering.Iverksatt(attestant),
+                grunnlagsdata = Grunnlagsdata.EMPTY,
             )
         )
 
@@ -1005,7 +1007,8 @@ internal class FerdigstillVedtakServiceImplTest {
                 beregning = TestBeregning,
                 attestering = Attestering.Iverksatt(attestant),
                 simulering = mock(),
-                utbetalingId = UUID30.randomUUID()
+                utbetalingId = UUID30.randomUUID(),
+                grunnlagsdata = Grunnlagsdata.EMPTY,
             )
         )
 

@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.beregning.TestBeregning
 import no.nav.su.se.bakover.database.beregning.toSnapshot
+import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
@@ -28,7 +29,8 @@ import java.util.UUID
 
 internal class RevurderingPostgresRepoTest {
     private val ds = EmbeddedDatabase.instance()
-    private val søknadsbehandlingRepo: SøknadsbehandlingRepo = SøknadsbehandlingPostgresRepo(ds)
+    private val uføregrunnlagPostgresRepo = UføregrunnlagPostgresRepo(ds)
+    private val søknadsbehandlingRepo: SøknadsbehandlingRepo = SøknadsbehandlingPostgresRepo(ds, uføregrunnlagPostgresRepo)
     private val repo: RevurderingPostgresRepo = RevurderingPostgresRepo(ds, søknadsbehandlingRepo)
     private val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())
     private val saksbehandler = Saksbehandler("Sak S. Behandler")

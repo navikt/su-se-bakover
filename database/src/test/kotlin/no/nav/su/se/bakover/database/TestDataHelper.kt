@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.beregning.PersistertMånedsberegning
 import no.nav.su.se.bakover.database.beregning.TestBeregning
 import no.nav.su.se.bakover.database.beregning.toSnapshot
+import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
 import no.nav.su.se.bakover.database.sak.SakPostgresRepo
@@ -42,6 +43,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata.Grunnlagsdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import java.time.Clock
 import java.time.LocalDate
@@ -151,7 +153,8 @@ internal class TestDataHelper(
     private val utbetalingRepo = UtbetalingPostgresRepo(dataSource)
     private val hendelsesloggRepo = HendelsesloggPostgresRepo(dataSource)
     private val søknadRepo = SøknadPostgresRepo(dataSource)
-    private val søknadsbehandlingRepo = SøknadsbehandlingPostgresRepo(dataSource)
+    private val uføregrunnlagPostgresRepo = UføregrunnlagPostgresRepo(dataSource)
+    private val søknadsbehandlingRepo = SøknadsbehandlingPostgresRepo(dataSource, uføregrunnlagPostgresRepo)
     val revurderingRepo = RevurderingPostgresRepo(dataSource, søknadsbehandlingRepo)
     val vedtakRepo = VedtakPosgresRepo(dataSource, søknadsbehandlingRepo, revurderingRepo)
     private val sakRepo = SakPostgresRepo(dataSource, søknadsbehandlingRepo, revurderingRepo, vedtakRepo)
@@ -275,7 +278,8 @@ internal class TestDataHelper(
             søknad = søknad,
             oppgaveId = søknad.oppgaveId,
             behandlingsinformasjon = behandlingsinformasjon,
-            fnr = sak.fnr
+            fnr = sak.fnr,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
         ).also {
             søknadsbehandlingRepo.lagre(it)
         }
