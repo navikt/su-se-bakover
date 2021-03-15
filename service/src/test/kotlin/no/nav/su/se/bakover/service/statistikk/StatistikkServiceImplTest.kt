@@ -602,7 +602,7 @@ internal class StatistikkServiceImplTest {
         )
 
         StatistikkServiceImpl(kafkaPublisherMock, mock(), clock).handle(
-            Event.Statistikk.SøknadStatistikk.SøknadMottat(søknad, saksnummer)
+            Event.Statistikk.SøknadStatistikk.SøknadMottatt(søknad, saksnummer)
         )
 
         verify(kafkaPublisherMock).publiser(

@@ -60,7 +60,7 @@ internal class StatistikkServiceImpl(
                     }
                 )
             }
-            is Event.Statistikk.SøknadStatistikk.SøknadMottat ->
+            is Event.Statistikk.SøknadStatistikk.SøknadMottatt ->
                 publiser(SøknadStatistikkMapper(clock).map(event.søknad, event.saksnummer, Statistikk.Behandling.SøknadStatus.SØKNAD_MOTTATT))
             is Event.Statistikk.SøknadStatistikk.SøknadLukket ->
                 publiser(SøknadStatistikkMapper(clock).map(event.søknad, event.saksnummer, Statistikk.Behandling.SøknadStatus.SØKNAD_LUKKET))

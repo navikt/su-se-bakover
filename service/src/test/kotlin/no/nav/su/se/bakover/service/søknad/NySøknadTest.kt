@@ -285,7 +285,7 @@ class NySøknadTest {
                 }
             )
         }
-        verify(observerMock).handle(argThat { it shouldBe Event.Statistikk.SøknadStatistikk.SøknadMottat(nySøknad.orNull()!!.second, sak.saksnummer) })
+        verify(observerMock).handle(argThat { it shouldBe Event.Statistikk.SøknadStatistikk.SøknadMottatt(nySøknad.orNull()!!.second, sak.saksnummer) })
 
         nySøknad.map { (_, søknad) ->
             søknad.opprettet shouldNotBe sak.søknader.first().opprettet
