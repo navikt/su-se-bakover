@@ -680,8 +680,9 @@ internal class RevurderingServiceImplTest {
         val personServiceMock = mock<PersonService> {
             on { hentAktørId(any()) } doReturn aktørId.right()
         }
+        val nyOppgaveId = OppgaveId("nyOppgaveId")
         val oppgaveServiceMock = mock<OppgaveService> {
-            on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
+            on { opprettOppgave(any()) } doReturn nyOppgaveId.right()
             on { lukkOppgave(any()) } doReturn Unit.right()
         }
 
@@ -698,7 +699,9 @@ internal class RevurderingServiceImplTest {
             attestering = attestering,
         ).getOrHandle { throw RuntimeException("Skal ikke kunne skje") }
 
-        actual shouldBe tilAttestering.underkjenn(attestering)
+        actual shouldBe tilAttestering.underkjenn(
+            attestering, nyOppgaveId
+        )
 
         inOrder(revurderingRepoMock, personServiceMock, oppgaveServiceMock, eventObserver) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })

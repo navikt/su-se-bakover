@@ -257,7 +257,8 @@ data class RevurderingTilAttestering(
     }
 
     fun underkjenn(
-        attestering: Attestering
+        attestering: Attestering,
+        oppgaveId: OppgaveId
     ): UnderkjentRevurdering {
         return UnderkjentRevurdering(
             id = id,

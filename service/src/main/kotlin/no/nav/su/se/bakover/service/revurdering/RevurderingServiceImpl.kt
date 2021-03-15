@@ -337,28 +337,27 @@ internal class RevurderingServiceImpl(
             ).left()
         }
 
-        val underkjent = revurdering.underkjenn(attestering)
-
-        val aktørId = personService.hentAktørId(underkjent.fnr).getOrElse {
-            log.error("Fant ikke aktør-id for revurdering: ${underkjent.id}")
+        val aktørId = personService.hentAktørId(revurdering.fnr).getOrElse {
+            log.error("Fant ikke aktør-id for revurdering: ${revurdering.id}")
             return KunneIkkeUnderkjenneRevurdering.FantIkkeAktørId.left()
         }
 
-        val eksisterendeOppgaveId = underkjent.oppgaveId
         val nyOppgaveId = oppgaveService.opprettOppgave(
             OppgaveConfig.Revurderingsbehandling(
-                saksnummer = underkjent.saksnummer,
+                saksnummer = revurdering.saksnummer,
                 aktørId = aktørId,
-                tilordnetRessurs = underkjent.saksbehandler
+                tilordnetRessurs = revurdering.saksbehandler
             )
         ).getOrElse {
-            log.error("revurdering ${underkjent.id} ble ikke underkjent. Klarte ikke opprette behandlingsoppgave")
+            log.error("revurdering ${revurdering.id} ble ikke underkjent. Klarte ikke opprette behandlingsoppgave")
             return@underkjenn KunneIkkeUnderkjenneRevurdering.KunneIkkeOppretteOppgave.left()
         }
 
-        val underkjentRevurderingMedNyOppgaveId = underkjent.nyOppgaveId(nyOppgaveId)
+        val underkjent = revurdering.underkjenn(attestering, nyOppgaveId)
 
-        revurderingRepo.lagre(underkjentRevurderingMedNyOppgaveId)
+        revurderingRepo.lagre(underkjent)
+
+        val eksisterendeOppgaveId = revurdering.oppgaveId
 
         oppgaveService.lukkOppgave(eksisterendeOppgaveId)
             .mapLeft {
