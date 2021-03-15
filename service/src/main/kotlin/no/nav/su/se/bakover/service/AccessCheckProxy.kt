@@ -373,6 +373,7 @@ open class AccessCheckProxy(
                     revurderingId: UUID,
                     attestering: Attestering
                 ): Either<KunneIkkeUnderkjenneRevurdering, UnderkjentRevurdering> {
+                    assertHarTilgangTilSak(revurderingId)
                     return services.revurdering.underkjenn(revurderingId, attestering)
                 }
 
