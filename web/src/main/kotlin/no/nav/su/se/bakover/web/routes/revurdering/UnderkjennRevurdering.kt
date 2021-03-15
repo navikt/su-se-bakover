@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
 import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.routing.Route
@@ -32,7 +34,18 @@ data class UnderkjennBody(
     val grunn: String,
     val kommentar: String
 ) {
-    fun valid() = enumContains<Attestering.Underkjent.Grunn>(grunn) && kommentar.isNotBlank()
+    private fun valid() = enumContains<Attestering.Underkjent.Grunn>(grunn) && kommentar.isNotBlank()
+
+    internal fun toDomain(navIdent: String): Either<Resultat, Attestering.Underkjent> {
+        if (valid()) {
+            return Attestering.Underkjent(
+                attestant = NavIdentBruker.Attestant(navIdent),
+                grunn = Attestering.Underkjent.Grunn.valueOf(this.grunn),
+                kommentar = this.kommentar
+            ).right()
+        }
+        return Resultat.message(HttpStatusCode.BadRequest, "Ugyldig body").left()
+    }
 }
 
 @KtorExperimentalAPI
@@ -46,47 +59,44 @@ internal fun Route.underkjennRevurdering(
             call.withRevurderingId { revurderingId ->
                 Either.catch { deserialize<UnderkjennBody>(call) }.fold(
                     ifLeft = {
-                        log.info("Ugyldig behandling-body: ", it)
+                        log.info("Ugyldig body: ", it)
                         call.svar(HttpStatusCode.BadRequest.message("Ugyldig body"))
                     },
                     ifRight = { body ->
-                        if (body.valid()) {
-                            revurderingService.underkjenn(
-                                revurderingId = revurderingId,
-                                attestering = Attestering.Underkjent(
-                                    attestant = NavIdentBruker.Attestant(navIdent),
-                                    grunn = Attestering.Underkjent.Grunn.valueOf(body.grunn),
-                                    kommentar = body.kommentar
-                                )
-                            ).fold(
-                                ifLeft = {
-                                    val resultat = when (it) {
-                                        KunneIkkeUnderkjenneRevurdering.FantIkkePerson -> HttpStatusCode.InternalServerError.errorJson(
-                                            "Fant ikke person",
-                                            "fant_ikke_person",
-                                        )
-                                        KunneIkkeUnderkjenneRevurdering.FantIkkeRevurdering -> fantIkkeRevurdering
-                                        KunneIkkeUnderkjenneRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> HttpStatusCode.InternalServerError.errorJson(
-                                            "Kunne ikke hente navn for saksbehandler eller attestant",
-                                            "navneoppslag_feilet",
-                                        )
-                                        KunneIkkeUnderkjenneRevurdering.FantIkkeAktørId -> fantIkkeAktørId
-                                        KunneIkkeUnderkjenneRevurdering.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
-                                        is KunneIkkeUnderkjenneRevurdering.UgyldigTilstand -> ugyldigTilstand(
-                                            it.fra,
-                                            it.til
-                                        )
+                        body.toDomain(navIdent).fold(
+                            ifLeft = { call.svar(it) },
+                            ifRight = { underkjent ->
+                                revurderingService.underkjenn(
+                                    revurderingId = revurderingId,
+                                    attestering = underkjent
+                                ).fold(
+                                    ifLeft = {
+                                        val resultat = when (it) {
+                                            KunneIkkeUnderkjenneRevurdering.FantIkkePerson -> HttpStatusCode.InternalServerError.errorJson(
+                                                "Fant ikke person",
+                                                "fant_ikke_person",
+                                            )
+                                            KunneIkkeUnderkjenneRevurdering.FantIkkeRevurdering -> fantIkkeRevurdering
+                                            KunneIkkeUnderkjenneRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> HttpStatusCode.InternalServerError.errorJson(
+                                                "Kunne ikke hente navn for saksbehandler eller attestant",
+                                                "navneoppslag_feilet",
+                                            )
+                                            KunneIkkeUnderkjenneRevurdering.FantIkkeAktørId -> fantIkkeAktørId
+                                            KunneIkkeUnderkjenneRevurdering.KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
+                                            is KunneIkkeUnderkjenneRevurdering.UgyldigTilstand -> ugyldigTilstand(
+                                                it.fra,
+                                                it.til
+                                            )
+                                        }
+                                        call.svar(resultat)
+                                    },
+                                    ifRight = {
+                                        call.audit("Underkjente behandling med id: $revurderingId")
+                                        call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson())))
                                     }
-                                    call.svar(resultat)
-                                },
-                                ifRight = {
-                                    call.audit("Underkjente behandling med id: $revurderingId")
-                                    call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson())))
-                                }
-                            )
-                        } else {
-                            call.svar(HttpStatusCode.BadRequest.message("Må angi en begrunnelse"))
-                        }
+                                )
+                            }
+                        )
                     }
                 )
             }
