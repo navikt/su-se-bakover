@@ -120,6 +120,11 @@ internal class TidspunktTest {
         1.januar(2020).endOfDay(zoneIdOslo).toLocalDate(zoneIdOslo) shouldBe LocalDate.of(2020, Month.JANUARY, 1)
     }
 
+    @Test
+    fun `plusser på tid`() {
+        Tidspunkt(instant).plus(1, ChronoUnit.DAYS).toString() shouldBe "1970-01-02T01:01:01.123456Z"
+    }
+
     data class NestedSerialization(
         val tidspunkt: Tidspunkt,
         val other: String = "other values"
