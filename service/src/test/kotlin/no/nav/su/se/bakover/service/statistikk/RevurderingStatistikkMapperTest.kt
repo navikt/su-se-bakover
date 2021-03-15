@@ -39,7 +39,8 @@ internal class RevurderingStatistikkMapperTest {
                 on { id } doReturn UUID.randomUUID()
             },
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "7"),
-            oppgaveId = OppgaveId("oppgaveid")
+            oppgaveId = OppgaveId("oppgaveid"),
+            fritekstTilBrev = ""
         )
 
         RevurderingStatistikkMapper(fixedClock).map(opprettetRevurdering) shouldBe Statistikk.Behandling(
@@ -104,8 +105,8 @@ internal class RevurderingStatistikkMapperTest {
             oppgaveId = OppgaveId(value = "7"),
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant(navIdent = "2")),
             utbetalingId = UUID30.randomUUID(),
-            eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert
-
+            eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
+            fritekstTilBrev = ""
         )
         RevurderingStatistikkMapper(fixedClock).map(iverksattRevurdering) shouldBe Statistikk.Behandling(
             funksjonellTid = iverksattRevurdering.opprettet,

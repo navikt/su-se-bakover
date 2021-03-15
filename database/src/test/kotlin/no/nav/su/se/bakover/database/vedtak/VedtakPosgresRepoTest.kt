@@ -89,7 +89,8 @@ internal class VedtakPosgresRepoTest {
                 oppgaveId = OppgaveId(""),
                 attestering = Attestering.Iverksatt(søknadsbehandlingVedtak.attestant),
                 utbetalingId = søknadsbehandlingVedtak.utbetalingId,
-                eksterneIverksettingsteg = søknadsbehandlingVedtak.journalføringOgBrevdistribusjon
+                eksterneIverksettingsteg = søknadsbehandlingVedtak.journalføringOgBrevdistribusjon,
+                fritekstTilBrev = ""
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 

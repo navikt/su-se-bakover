@@ -48,7 +48,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
         {
             "periode": { "fraOgMed": "${periode.getFraOgMed()}", "tilOgMed": "${periode.getTilOgMed()}"},
             "fradrag": []
-        } 
+        }
     """.trimIndent()
 
     private val revurderingId = UUID.randomUUID()
@@ -107,7 +107,8 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
             opprettet = Tidspunkt.now(),
             tilRevurdering = vedtak.copy(beregning = beregning),
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = ""),
-            oppgaveId = OppgaveId("oppgaveid")
+            oppgaveId = OppgaveId("oppgaveid"),
+            fritekstTilBrev = ""
         ).beregn(
             listOf(
                 FradragFactory.ny(

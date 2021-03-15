@@ -208,7 +208,8 @@ internal class FinnAttestantVisitorTest {
             on { beregning } doReturn beregningMock
         },
         saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
-        oppgaveId = OppgaveId("oppgaveid")
+        oppgaveId = OppgaveId("oppgaveid"),
+        fritekstTilBrev = ""
     )
 
     private val beregnetRevurdering = when (val a = revurdering.beregn(emptyList()).orNull()!!) {
@@ -216,6 +217,6 @@ internal class FinnAttestantVisitorTest {
         else -> throw RuntimeException("Skal ikke skje")
     }
     private val simulertRevurdering = beregnetRevurdering.toSimulert(mock())
-    private val tilAttesteringRevurdering = simulertRevurdering.tilAttestering(mock(), saksbehandler)
+    private val tilAttesteringRevurdering = simulertRevurdering.tilAttestering(mock(), saksbehandler, "fritekst til brevet")
     private val iverksattRevurdering = tilAttesteringRevurdering.iverksett(attestant) { UUID30.randomUUID().right() }
 }

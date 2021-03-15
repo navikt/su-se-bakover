@@ -9,6 +9,7 @@ import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
@@ -78,11 +79,12 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
                 nettoBeløp = 0,
                 periodeList = listOf()
             ),
-            oppgaveId = OppgaveId("OppgaveId")
+            oppgaveId = OppgaveId("OppgaveId"),
+            fritekstTilBrev = ""
         )
 
         val revurderingServiceMock = mock<RevurderingService> {
-            on { sendTilAttestering(any(), any()) } doReturn revurderingTilAttestering.right()
+            on { sendTilAttestering(any(), any(), any()) } doReturn revurderingTilAttestering.right()
         }
 
         withTestApplication({
@@ -92,7 +94,9 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
                 HttpMethod.Post,
                 "$requestPath/${revurderingTilAttestering.id}/tilAttestering",
                 listOf(Brukerrolle.Saksbehandler)
-            ).apply {
+            ) {
+                setBody("""{ "fritekstTilBrev": "Friteksten" }""")
+            }.apply {
                 response.status() shouldBe HttpStatusCode.OK
                 val actualResponse = objectMapper.readValue<TilAttesteringJson>(response.content!!)
                 actualResponse.id shouldBe revurderingTilAttestering.id.toString()
@@ -182,7 +186,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
         expectedJsonResponse: String
     ) {
         val revurderingServiceMock = mock<RevurderingService> {
-            on { sendTilAttestering(any(), any()) } doReturn error.left()
+            on { sendTilAttestering(any(), any(), any()) } doReturn error.left()
         }
 
         withTestApplication({
@@ -191,8 +195,10 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             defaultRequest(
                 HttpMethod.Post,
                 "$requestPath/$revurderingId/tilAttestering",
-                listOf(Brukerrolle.Saksbehandler)
-            ).apply {
+                listOf(Brukerrolle.Saksbehandler),
+            ) {
+                setBody("""{ "fritekstTilBrev": "Dette er friteksten" }""")
+            }.apply {
                 response.status() shouldBe expectedStatusCode
                 JSONAssert.assertEquals(
                     expectedJsonResponse,

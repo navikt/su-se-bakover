@@ -42,7 +42,7 @@ interface LagBrevRequest {
             private val person: Person,
             private val saksbehandlerNavn: String,
             private val revurdertBeregning: Beregning,
-            private val fritekst: String?,
+            private val fritekst: String,
             private val harEktefelle: Boolean,
         ) : Revurdering() {
             override fun getPerson(): Person = person

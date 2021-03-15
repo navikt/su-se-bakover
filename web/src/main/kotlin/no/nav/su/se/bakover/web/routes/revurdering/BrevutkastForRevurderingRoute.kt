@@ -26,7 +26,9 @@ internal fun Route.brevutkastForRevurdering(
     revurderingService: RevurderingService
 ) {
     authorize(Brukerrolle.Saksbehandler) {
-        data class Body(val fritekst: String?)
+
+        data class Body(val fritekst: String)
+
         post("$revurderingPath/{revurderingId}/brevutkast") {
             call.withRevurderingId { revurderingId ->
                 call.withBody<Body> { body ->

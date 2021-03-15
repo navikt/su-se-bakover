@@ -181,7 +181,8 @@ internal class OpprettRevurderingServiceTest {
             opprettet = actual.opprettet,
             tilRevurdering = sak.vedtakListe.first() as Vedtak.InnvilgetStønad,
             saksbehandler = saksbehandler,
-            oppgaveId = OppgaveId("oppgaveId")
+            oppgaveId = OppgaveId("oppgaveId"),
+            fritekstTilBrev = ""
         )
         inOrder(sakServiceMock, personServiceMock, oppgaveServiceMock, revurderingRepoMock) {
             verify(sakServiceMock).hentSak(sakId)
@@ -382,7 +383,8 @@ internal class OpprettRevurderingServiceTest {
                     JournalpostId("ajour"),
                     BrevbestillingId("abrev")
                 ),
-                utbetalingId = opprinneligVedtak.utbetalingId
+                utbetalingId = opprinneligVedtak.utbetalingId,
+                fritekstTilBrev = ""
             )
             it.copy(
                 revurderinger = listOf(

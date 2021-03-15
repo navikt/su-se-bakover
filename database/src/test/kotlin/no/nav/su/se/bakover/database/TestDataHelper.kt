@@ -256,7 +256,8 @@ internal class TestDataHelper(
             tilRevurdering = innvilget,
             opprettet = fixedTidspunkt,
             saksbehandler = saksbehandler,
-            oppgaveId = OppgaveId("oppgaveid")
+            oppgaveId = OppgaveId("oppgaveid"),
+            fritekstTilBrev = ""
         ).also {
             revurderingRepo.lagre(it)
         }
