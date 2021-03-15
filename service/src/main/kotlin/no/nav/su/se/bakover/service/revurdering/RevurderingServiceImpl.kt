@@ -330,51 +330,50 @@ internal class RevurderingServiceImpl(
         val revurdering = revurderingRepo.hent(revurderingId)
             ?: return KunneIkkeUnderkjenneRevurdering.FantIkkeRevurdering.left()
 
-        return when (revurdering) {
-            is RevurderingTilAttestering -> {
-                val underkjent = revurdering.underkjenn(attestering)
-
-                val aktørId = personService.hentAktørId(underkjent.fnr).getOrElse {
-                    log.error("Fant ikke aktør-id for revurdering: ${underkjent.id}")
-                    return KunneIkkeUnderkjenneRevurdering.FantIkkeAktørId.left()
-                }
-
-                val eksisterendeOppgaveId = underkjent.oppgaveId
-                val nyOppgaveId = oppgaveService.opprettOppgave(
-                    OppgaveConfig.Revurderingsbehandling(
-                        saksnummer = underkjent.saksnummer,
-                        aktørId = aktørId,
-                        tilordnetRessurs = underkjent.saksbehandler
-                    )
-                ).getOrElse {
-                    log.error("revurdering ${underkjent.id} ble ikke underkjent. Klarte ikke opprette behandlingsoppgave")
-                    return@underkjenn KunneIkkeUnderkjenneRevurdering.KunneIkkeOppretteOppgave.left()
-                }
-
-                val underkjentRevurderingMedNyOppgaveId = underkjent.nyOppgaveId(nyOppgaveId)
-
-                revurderingRepo.lagre(underkjentRevurderingMedNyOppgaveId)
-
-                oppgaveService.lukkOppgave(eksisterendeOppgaveId)
-                    .mapLeft {
-                        log.error("Kunne ikke lukke attesteringsoppgave $eksisterendeOppgaveId ved underkjenning av revurdering. Dette må gjøres manuelt.")
-                    }.map {
-                        log.info("Lukket attesteringsoppgave $eksisterendeOppgaveId ved underkjenning av revurdering")
-                    }
-
-                observers.forEach { observer ->
-                    observer.handle(
-                        Event.Statistikk.RevurderingStatistikk.RevurderingUnderkjent(underkjent)
-                    )
-                }
-
-                underkjent.right()
-            }
-            else -> KunneIkkeUnderkjenneRevurdering.UgyldigTilstand(
+        if (revurdering !is RevurderingTilAttestering) {
+            return KunneIkkeUnderkjenneRevurdering.UgyldigTilstand(
                 revurdering::class,
                 RevurderingTilAttestering::class
             ).left()
         }
+
+        val underkjent = revurdering.underkjenn(attestering)
+
+        val aktørId = personService.hentAktørId(underkjent.fnr).getOrElse {
+            log.error("Fant ikke aktør-id for revurdering: ${underkjent.id}")
+            return KunneIkkeUnderkjenneRevurdering.FantIkkeAktørId.left()
+        }
+
+        val eksisterendeOppgaveId = underkjent.oppgaveId
+        val nyOppgaveId = oppgaveService.opprettOppgave(
+            OppgaveConfig.Revurderingsbehandling(
+                saksnummer = underkjent.saksnummer,
+                aktørId = aktørId,
+                tilordnetRessurs = underkjent.saksbehandler
+            )
+        ).getOrElse {
+            log.error("revurdering ${underkjent.id} ble ikke underkjent. Klarte ikke opprette behandlingsoppgave")
+            return@underkjenn KunneIkkeUnderkjenneRevurdering.KunneIkkeOppretteOppgave.left()
+        }
+
+        val underkjentRevurderingMedNyOppgaveId = underkjent.nyOppgaveId(nyOppgaveId)
+
+        revurderingRepo.lagre(underkjentRevurderingMedNyOppgaveId)
+
+        oppgaveService.lukkOppgave(eksisterendeOppgaveId)
+            .mapLeft {
+                log.error("Kunne ikke lukke attesteringsoppgave $eksisterendeOppgaveId ved underkjenning av revurdering. Dette må gjøres manuelt.")
+            }.map {
+                log.info("Lukket attesteringsoppgave $eksisterendeOppgaveId ved underkjenning av revurdering")
+            }
+
+        observers.forEach { observer ->
+            observer.handle(
+                Event.Statistikk.RevurderingStatistikk.RevurderingUnderkjent(underkjent)
+            )
+        }
+
+        return underkjent.right()
     }
 
     override fun hentRevurderingForUtbetaling(utbetalingId: UUID30): IverksattRevurdering? {
