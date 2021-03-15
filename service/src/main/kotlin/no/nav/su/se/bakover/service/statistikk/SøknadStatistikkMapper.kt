@@ -36,7 +36,10 @@ internal class SøknadStatistikkMapper(private val clock: Clock) {
             behandlingStatusBeskrivelse = søknadStatus.beskrivelse,
             totrinnsbehandling = false,
             versjon = clock.millis(),
-            resultat = null,
+            resultat = when (søknad) {
+                is Søknad.Lukket -> søknad.lukketType.value
+                else -> null
+            },
             resultatBegrunnelse = null,
             resultatBegrunnelseBeskrivelse = null,
             resultatBeskrivelse = null,

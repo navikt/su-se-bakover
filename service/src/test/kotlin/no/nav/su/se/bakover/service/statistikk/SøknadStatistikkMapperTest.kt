@@ -109,7 +109,7 @@ internal class SøknadStatistikkMapperTest {
             versjon = fixedClock.millis(),
             vedtaksDato = null,
             vedtakId = null,
-            resultat = null,
+            resultat = "AVVIST",
             resultatBegrunnelse = null,
             resultatBegrunnelseBeskrivelse = null,
             resultatBeskrivelse = null,

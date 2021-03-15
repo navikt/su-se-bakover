@@ -647,6 +647,7 @@ internal class StatistikkServiceImplTest {
             relatertBehandlingId = null,
             totrinnsbehandling = false,
             avsluttet = true,
+            resultat = "AVVIST",
             saksbehandler = søknad.lukketAv.toString()
         )
 
