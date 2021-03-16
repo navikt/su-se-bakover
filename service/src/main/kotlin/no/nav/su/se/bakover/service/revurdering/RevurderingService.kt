@@ -41,6 +41,7 @@ interface RevurderingService {
     ): Either<KunneIkkeSendeRevurderingTilAttestering, Revurdering>
 
     fun lagBrevutkast(revurderingId: UUID, fritekst: String): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray>
+    fun hentBrevutkast(revurderingId: UUID): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray>
     fun iverksett(
         revurderingId: UUID,
         attestant: NavIdentBruker.Attestant

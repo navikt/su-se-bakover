@@ -366,6 +366,11 @@ open class AccessCheckProxy(
                     return services.revurdering.lagBrevutkast(revurderingId, fritekst)
                 }
 
+                override fun hentBrevutkast(revurderingId: UUID): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray> {
+                    assertHarTilgangTilSak(revurderingId)
+                    return services.revurdering.hentBrevutkast(revurderingId)
+                }
+
                 override fun iverksett(revurderingId: UUID, attestant: NavIdentBruker.Attestant): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering> {
                     assertHarTilgangTilSak(revurderingId)
                     return services.revurdering.iverksett(revurderingId, attestant)
