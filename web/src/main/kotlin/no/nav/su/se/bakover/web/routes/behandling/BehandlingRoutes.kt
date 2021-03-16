@@ -163,7 +163,7 @@ internal fun Route.behandlingRoutes(
                                     call.svar(resultat)
                                 }.map { behandling ->
                                     call.audit("Opprettet en ny beregning på søknadsbehandling med id $behandlingId")
-                                    call.svar(Resultat.json(OK, serialize(behandling.toJson())))
+                                    call.svar(Resultat.json(Created, serialize(behandling.toJson())))
                                 }
                         }
                 }

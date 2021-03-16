@@ -50,7 +50,11 @@ internal class RevurderingJsonTest {
                 "fraOgMed": "2020-01-01",
                 "tilOgMed": "2020-12-31"
             },
-            "saksbehandler": "Petter"
+            "saksbehandler": "Petter",
+            "grunnlag": {
+              "uføre":[]
+            }
+            }
             }
         """.trimIndent()
 
@@ -90,6 +94,10 @@ internal class RevurderingJsonTest {
             "periode": {
                 "fraOgMed": "2020-01-01",
                 "tilOgMed": "2020-12-31"
+            },
+            "grunnlag": {
+              "uføre":[]
+            }
             }
             }
         """.trimIndent()
@@ -130,6 +138,9 @@ internal class RevurderingJsonTest {
             "periode": {
                 "fraOgMed": "2020-01-01",
                 "tilOgMed": "2020-12-31"
+            },
+            "grunnlag": {
+              "uføre":[]
             }
             }
         """.trimIndent()
@@ -171,6 +182,10 @@ internal class RevurderingJsonTest {
             "periode": {
                 "fraOgMed": "2020-01-01",
                 "tilOgMed": "2020-12-31"
+            },
+            "grunnlag": {
+              "uføre":[]
+            }
             }
             }
         """.trimIndent()
@@ -212,6 +227,10 @@ internal class RevurderingJsonTest {
             "periode": {
                 "fraOgMed": "2020-01-01",
                 "tilOgMed": "2020-12-31"
+            },
+            "grunnlag": {
+              "uføre":[]
+            }
             }
             }
         """.trimIndent()

@@ -118,7 +118,10 @@ internal class SøknadsbehandlingJsonTest {
           "attestering" : { "attestant" : "kjella", "underkjennelse":  null},
           "saksbehandler" : "pro-saksbehandler",
           "sakId": "$sakId",
-          "hendelser": []
+          "hendelser": [],
+          "grunnlag": {
+            "uføre":[]
+          }
         }
             """.trimIndent()
     }
@@ -174,7 +177,10 @@ internal class SøknadsbehandlingJsonTest {
           "attestering": null,
           "saksbehandler": null,
           "sakId": "$sakId",
-          "hendelser": []
+          "hendelser": [],
+          "grunnlag": {
+            "uføre":[]
+          }
         }
         """
 
