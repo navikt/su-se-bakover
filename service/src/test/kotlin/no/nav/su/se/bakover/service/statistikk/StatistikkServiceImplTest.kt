@@ -407,7 +407,8 @@ internal class StatistikkServiceImplTest {
             },
             saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
             periode = beregning.getPeriode(),
-            oppgaveId = OppgaveId("oppgaveid")
+            oppgaveId = OppgaveId("oppgaveid"),
+            grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
         val expected = Statistikk.Behandling(
@@ -466,7 +467,8 @@ internal class StatistikkServiceImplTest {
                 nettoBeløp = 100,
                 periodeList = listOf()
             ),
-            oppgaveId = OppgaveId("55")
+            oppgaveId = OppgaveId("55"),
+            grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
         val expected = Statistikk.Behandling(
@@ -526,6 +528,7 @@ internal class StatistikkServiceImplTest {
                 periodeList = listOf()
             ),
             oppgaveId = OppgaveId("55"),
+            grunnlagsdata = Grunnlagsdata.EMPTY,
             attestant = NavIdentBruker.Attestant("attestant"),
             utbetalingId = UUID30.randomUUID(),
             eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert

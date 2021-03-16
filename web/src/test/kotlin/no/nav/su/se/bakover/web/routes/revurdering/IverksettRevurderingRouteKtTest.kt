@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
+import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata.Grunnlagsdata
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.defaultRequest
@@ -79,6 +80,7 @@ internal class IverksettRevurderingRouteKtTest {
                 periodeList = listOf()
             ),
             oppgaveId = OppgaveId("OppgaveId"),
+            grunnlagsdata = Grunnlagsdata.EMPTY,
             attestant = NavIdentBruker.Attestant("attestant"),
             utbetalingId = UUID30.randomUUID(),
             eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert

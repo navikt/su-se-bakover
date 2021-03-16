@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
+import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata.Grunnlagsdata
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.defaultRequest
@@ -67,7 +68,8 @@ internal class OpprettRevurderingRouteKtTest {
             opprettet = Tidspunkt.now(),
             tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler(""),
-            oppgaveId = OppgaveId("oppgaveid")
+            oppgaveId = OppgaveId("oppgaveid"),
+            grunnlagsdata = Grunnlagsdata.EMPTY,
         )
         val revurderingServiceMock = mock<RevurderingService> {
             on { opprettRevurdering(any(), any(), any()) } doReturn opprettetRevurdering.right()

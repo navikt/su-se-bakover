@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.beregning.PersistertMånedsberegning
 import no.nav.su.se.bakover.database.beregning.TestBeregning
 import no.nav.su.se.bakover.database.beregning.toSnapshot
+import no.nav.su.se.bakover.database.grunnlag.GrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
@@ -154,8 +155,11 @@ internal class TestDataHelper(
     private val hendelsesloggRepo = HendelsesloggPostgresRepo(dataSource)
     private val søknadRepo = SøknadPostgresRepo(dataSource)
     private val uføregrunnlagPostgresRepo = UføregrunnlagPostgresRepo(dataSource)
-    private val søknadsbehandlingRepo = SøknadsbehandlingPostgresRepo(dataSource, uføregrunnlagPostgresRepo)
-    val revurderingRepo = RevurderingPostgresRepo(dataSource, søknadsbehandlingRepo)
+    private val grunnlagRepo = GrunnlagPostgresRepo(
+        uføregrunnlagRepo = uføregrunnlagPostgresRepo
+    )
+    private val søknadsbehandlingRepo = SøknadsbehandlingPostgresRepo(dataSource, grunnlagRepo)
+    val revurderingRepo = RevurderingPostgresRepo(dataSource, søknadsbehandlingRepo, grunnlagRepo)
     val vedtakRepo = VedtakPosgresRepo(dataSource, søknadsbehandlingRepo, revurderingRepo)
     private val sakRepo = SakPostgresRepo(dataSource, søknadsbehandlingRepo, revurderingRepo, vedtakRepo)
 
@@ -259,7 +263,8 @@ internal class TestDataHelper(
             tilRevurdering = innvilget,
             opprettet = fixedTidspunkt,
             saksbehandler = saksbehandler,
-            oppgaveId = OppgaveId("oppgaveid")
+            oppgaveId = OppgaveId("oppgaveid"),
+            grunnlagsdata = Grunnlagsdata.EMPTY,
         ).also {
             revurderingRepo.lagre(it)
         }

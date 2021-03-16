@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.avslåttBeregning
 import no.nav.su.se.bakover.database.behandlingsinformasjonMedAlleVilkårOppfylt
 import no.nav.su.se.bakover.database.beregning
+import no.nav.su.se.bakover.database.grunnlag.GrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.iverksattAttestering
@@ -37,7 +38,10 @@ internal class SøknadsbehandlingPostgresRepoTest {
     private val dataSource = EmbeddedDatabase.instance()
     private val testDataHelper = TestDataHelper(dataSource)
     private val uføregrunnlagPostgresRepo = UføregrunnlagPostgresRepo(dataSource)
-    private val repo = SøknadsbehandlingPostgresRepo(dataSource, uføregrunnlagPostgresRepo)
+    private val grunnlagRepo = GrunnlagPostgresRepo(
+        uføregrunnlagRepo = uføregrunnlagPostgresRepo
+    )
+    private val repo = SøknadsbehandlingPostgresRepo(dataSource, grunnlagRepo)
 
     @Test
     fun `kaster exception hvis brev finnes uten journalpost`() {

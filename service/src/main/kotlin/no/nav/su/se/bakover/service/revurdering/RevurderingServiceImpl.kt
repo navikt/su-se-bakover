@@ -31,6 +31,8 @@ import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
+import no.nav.su.se.bakover.service.søknadsbehandling.GrunnlagsdataService
+import no.nav.su.se.bakover.service.søknadsbehandling.OpprettGrunnlagForRevurdering
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import java.time.Clock
@@ -46,7 +48,8 @@ internal class RevurderingServiceImpl(
     private val microsoftGraphApiClient: MicrosoftGraphApiOppslag,
     private val brevService: BrevService,
     private val clock: Clock,
-    internal val vedtakRepo: VedtakRepo
+    private val vedtakRepo: VedtakRepo,
+    private val grunnlagsdataService: GrunnlagsdataService
 ) : RevurderingService {
 
     private val observers: MutableList<EventObserver> = mutableListOf()
@@ -85,6 +88,13 @@ internal class RevurderingServiceImpl(
             return KunneIkkeOppretteRevurdering.FantIkkeAktørId.left()
         }
 
+        val grunnlag = OpprettGrunnlagForRevurdering(
+            sakId = sakId,
+            periode = periode,
+            vedtakRepo = vedtakRepo,
+            clock = clock
+        ).grunnlag
+
         // TODO ai 25.02.2021 - Oppgaven skal egentligen ikke opprettes her. Den burde egentligen komma utifra melding av endring, som skal føres til revurdering.
         return oppgaveService.opprettOppgave(
             OppgaveConfig.Revurderingsbehandling(
@@ -100,7 +110,9 @@ internal class RevurderingServiceImpl(
                 tilRevurdering = tilRevurdering,
                 saksbehandler = saksbehandler,
                 oppgaveId = oppgaveId,
+                grunnlagsdata = grunnlag
             ).also {
+                grunnlagsdataService.leggTilUførerunnlag(it.sakId, it.id, it.grunnlagsdata.uføregrunnlag)
                 revurderingRepo.lagre(it)
                 observers.forEach { observer ->
                     observer.handle(

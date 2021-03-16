@@ -57,9 +57,14 @@ object DatabaseBuilder {
 
     private fun buildInternal(dataSource: DataSource): DatabaseRepos {
         val uføregrunnlagRepo = UføregrunnlagPostgresRepo(dataSource)
-        val saksbehandlingRepo = SøknadsbehandlingPostgresRepo(dataSource, uføregrunnlagRepo)
 
-        val revurderingRepo = RevurderingPostgresRepo(dataSource, saksbehandlingRepo)
+        val grunnlagRepo = GrunnlagPostgresRepo(
+            uføregrunnlagRepo = uføregrunnlagRepo
+        )
+
+        val saksbehandlingRepo = SøknadsbehandlingPostgresRepo(dataSource, grunnlagRepo)
+
+        val revurderingRepo = RevurderingPostgresRepo(dataSource, saksbehandlingRepo, grunnlagRepo)
         val vedtakRepo = VedtakPosgresRepo(dataSource, saksbehandlingRepo, revurderingRepo)
 
         return DatabaseRepos(
@@ -73,9 +78,7 @@ object DatabaseBuilder {
             søknadsbehandling = saksbehandlingRepo,
             revurderingRepo = revurderingRepo,
             vedtakRepo = vedtakRepo,
-            grunnlagRepo = GrunnlagPostgresRepo(
-                uføregrunnlagRepo
-            )
+            grunnlagRepo = grunnlagRepo,
         )
     }
 }

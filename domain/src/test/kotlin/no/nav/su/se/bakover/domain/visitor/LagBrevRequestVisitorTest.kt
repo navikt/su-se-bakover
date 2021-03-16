@@ -583,6 +583,7 @@ internal class LagBrevRequestVisitorTest {
             tilRevurdering = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling),
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("15"),
+            grunnlagsdata = Grunnlagsdata.EMPTY,
             beregning = innvilgetBeregning,
             simulering = simulering,
             attestant = attestant,

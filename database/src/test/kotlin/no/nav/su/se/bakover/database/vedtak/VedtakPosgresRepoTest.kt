@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBre
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
+import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata.Grunnlagsdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import org.junit.jupiter.api.Test
 
@@ -82,6 +83,7 @@ internal class VedtakPosgresRepoTest {
                 beregning = søknadsbehandlingVedtak.beregning,
                 simulering = søknadsbehandlingVedtak.simulering,
                 oppgaveId = OppgaveId(""),
+                grunnlagsdata = Grunnlagsdata.EMPTY,
                 attestant = søknadsbehandlingVedtak.attestant,
                 utbetalingId = søknadsbehandlingVedtak.utbetalingId,
                 eksterneIverksettingsteg = søknadsbehandlingVedtak.journalføringOgBrevdistribusjon

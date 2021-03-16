@@ -65,6 +65,7 @@ import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
+import no.nav.su.se.bakover.service.søknadsbehandling.GrunnlagsdataService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -317,7 +318,8 @@ internal class RevurderingServiceImplTest {
             opprettet = Tidspunkt.EPOCH,
             tilRevurdering = søknadsbehandlingVedtak,
             saksbehandler = saksbehandler,
-            oppgaveId = OppgaveId("oppgaveid")
+            oppgaveId = OppgaveId("oppgaveid"),
+            grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -368,7 +370,8 @@ internal class RevurderingServiceImplTest {
             opprettet = Tidspunkt.EPOCH,
             tilRevurdering = søknadsbehandlingVedtak,
             saksbehandler = saksbehandler,
-            oppgaveId = OppgaveId("oppgaveid")
+            oppgaveId = OppgaveId("oppgaveid"),
+            grunnlagsdata = Grunnlagsdata.EMPTY,
         )
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn opprettetRevurdering
@@ -396,6 +399,7 @@ internal class RevurderingServiceImplTest {
             beregning = mock(),
             simulering = mock(),
             oppgaveId = mock(),
+            grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -425,6 +429,7 @@ internal class RevurderingServiceImplTest {
             tilRevurdering = søknadsbehandlingVedtak,
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("oppgaveid"),
+            grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -632,6 +637,7 @@ internal class RevurderingServiceImplTest {
             beregning = TestBeregning,
             simulering = testsimulering,
             oppgaveId = OppgaveId(value = "OppgaveId"),
+            grunnlagsdata = Grunnlagsdata.EMPTY,
             attestant = attestant,
             utbetalingId = utbetalingId,
             eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert
@@ -642,6 +648,7 @@ internal class RevurderingServiceImplTest {
             opprettet = Tidspunkt.EPOCH,
             tilRevurdering = søknadsbehandlingVedtak,
             oppgaveId = OppgaveId(value = "OppgaveId"),
+            grunnlagsdata = Grunnlagsdata.EMPTY,
             beregning = TestBeregning,
             simulering = testsimulering,
             saksbehandler = saksbehandler,
@@ -726,7 +733,8 @@ internal class RevurderingServiceImplTest {
                 nettoBeløp = 0,
                 periodeList = listOf()
             ),
-            oppgaveId = OppgaveId("oppgaveid")
+            oppgaveId = OppgaveId("oppgaveid"),
+            grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -794,6 +802,7 @@ internal class RevurderingServiceImplTest {
             saksbehandler = saksbehandler,
             beregning = TestBeregning,
             oppgaveId = OppgaveId("oppgaveid"),
+            grunnlagsdata = Grunnlagsdata.EMPTY,
             simulering = Simulering(
                 gjelderId = fnr,
                 gjelderNavn = "Mr Test",
@@ -842,6 +851,7 @@ internal class RevurderingServiceImplTest {
             saksbehandler = saksbehandler,
             beregning = TestBeregning,
             oppgaveId = OppgaveId("oppgaveid"),
+            grunnlagsdata = Grunnlagsdata.EMPTY,
             simulering = Simulering(
                 gjelderId = fnr,
                 gjelderNavn = "Mr Test",
@@ -898,6 +908,7 @@ internal class RevurderingServiceImplTest {
             saksbehandler = saksbehandler,
             beregning = TestBeregning,
             oppgaveId = OppgaveId("oppgaveid"),
+            grunnlagsdata = Grunnlagsdata.EMPTY,
             simulering = Simulering(
                 gjelderId = fnr,
                 gjelderNavn = "Mr Test",
@@ -957,7 +968,8 @@ internal class RevurderingServiceImplTest {
             opprettet = Tidspunkt.now(),
             tilRevurdering = søknadsbehandlingVedtak,
             saksbehandler = saksbehandler,
-            oppgaveId = OppgaveId("oppgaveid")
+            oppgaveId = OppgaveId("oppgaveid"),
+            grunnlagsdata = Grunnlagsdata.EMPTY,
         )
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn opprettetRevurdering
@@ -985,7 +997,8 @@ internal class RevurderingServiceImplTest {
             tilRevurdering = søknadsbehandlingVedtak,
             saksbehandler = saksbehandler,
             beregning = TestBeregning,
-            oppgaveId = OppgaveId("oppgaveid")
+            oppgaveId = OppgaveId("oppgaveid"),
+            grunnlagsdata = Grunnlagsdata.EMPTY,
         )
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn beregnetRevurdering
@@ -1013,7 +1026,8 @@ internal class RevurderingServiceImplTest {
         microsoftGraphApiClient: MicrosoftGraphApiClient = mock(),
         brevService: BrevService = mock(),
         clock: Clock = fixedClock,
-        vedtakRepo: VedtakRepo = mock()
+        vedtakRepo: VedtakRepo = mock(),
+        grunnlagsdataService: GrunnlagsdataService = mock()
     ) =
         RevurderingServiceImpl(
             sakService = sakService,
@@ -1025,5 +1039,6 @@ internal class RevurderingServiceImplTest {
             brevService = brevService,
             clock = clock,
             vedtakRepo = vedtakRepo,
+            grunnlagsdataService = grunnlagsdataService
         )
 }

@@ -64,6 +64,8 @@ object ServiceBuilder {
             søknadMetrics = søknadMetrics,
             clock = clock,
         )
+
+        val grunnlagService = GrunnlagsdataServiceImpl(databaseRepos.grunnlagRepo)
         val revurderingService = RevurderingServiceImpl(
             sakService = sakService,
             utbetalingService = utbetalingService,
@@ -73,7 +75,8 @@ object ServiceBuilder {
             microsoftGraphApiClient = clients.microsoftGraphApiClient,
             brevService = brevService,
             clock = clock,
-            vedtakRepo = databaseRepos.vedtakRepo
+            vedtakRepo = databaseRepos.vedtakRepo,
+            grunnlagsdataService = grunnlagService
         ).apply { addObserver(statistikkService) }
         val opprettVedtakssnapshotService = OpprettVedtakssnapshotService(databaseRepos.vedtakssnapshot)
 
@@ -133,7 +136,7 @@ object ServiceBuilder {
             },
             ferdigstillVedtak = ferdigstillVedtakService,
             revurdering = revurderingService,
-            grunnlagsdataService = GrunnlagsdataServiceImpl(databaseRepos.grunnlagRepo),
+            grunnlagsdataService = grunnlagService,
         )
     }
 }

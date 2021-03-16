@@ -18,4 +18,13 @@ data class Uføregrunnlag(
     init {
         if (forventetInntekt < 0) throw IllegalArgumentException("forventetInntekt kan ikke være mindre enn 0")
     }
+
+    // TODO avoid copying id
+    fun copy(
+        periode: Periode = this.periode,
+        uføregrad: Uføregrad = this.uføregrad,
+        forventetInntekt: Int = this.forventetInntekt
+    ) = Uføregrunnlag(
+        UUID.randomUUID(), Tidspunkt.now(), periode, uføregrad, forventetInntekt
+    )
 }

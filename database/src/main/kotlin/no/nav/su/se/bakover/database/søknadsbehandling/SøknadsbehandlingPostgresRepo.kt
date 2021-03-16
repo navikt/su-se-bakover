@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.beregning.toSnapshot
-import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.GrunnlagRepo
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.oppdatering
@@ -35,7 +35,7 @@ import javax.sql.DataSource
 
 internal class SøknadsbehandlingPostgresRepo(
     private val dataSource: DataSource,
-    private val uføregrunnlagPostgresRepo: UføregrunnlagPostgresRepo,
+    private val grunnlagRepo: GrunnlagRepo,
 ) : SøknadsbehandlingRepo {
     override fun lagre(søknadsbehandling: Søknadsbehandling) {
         when (søknadsbehandling) {
@@ -134,7 +134,7 @@ internal class SøknadsbehandlingPostgresRepo(
 
         val iverksattBrevbestillingId = stringOrNull("iverksattBrevbestillingId")?.let { BrevbestillingId(it) }
 
-        val grunnlagsdata = Grunnlagsdata(uføregrunnlagPostgresRepo.hent(behandlingId))
+        val grunnlagsdata = Grunnlagsdata(grunnlagRepo.hent(behandlingId))
 
         return when (status) {
             BehandlingsStatus.OPPRETTET -> Søknadsbehandling.Vilkårsvurdert.Uavklart(

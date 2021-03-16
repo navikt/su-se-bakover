@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBre
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
+import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata.Grunnlagsdata
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.util.UUID
@@ -38,7 +39,8 @@ internal class RevurderingStatistikkMapperTest {
                 on { id } doReturn UUID.randomUUID()
             },
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "7"),
-            oppgaveId = OppgaveId("oppgaveid")
+            oppgaveId = OppgaveId("oppgaveid"),
+            grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
         RevurderingStatistikkMapper(fixedClock).map(opprettetRevurdering) shouldBe Statistikk.Behandling(
@@ -101,10 +103,10 @@ internal class RevurderingStatistikkMapperTest {
             },
             simulering = mock(),
             oppgaveId = OppgaveId(value = "7"),
+            grunnlagsdata = Grunnlagsdata.EMPTY,
             attestant = NavIdentBruker.Attestant(navIdent = "2"),
             utbetalingId = UUID30.randomUUID(),
             eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert
-
         )
         RevurderingStatistikkMapper(fixedClock).map(iverksattRevurdering) shouldBe Statistikk.Behandling(
             funksjonellTid = iverksattRevurdering.opprettet,
