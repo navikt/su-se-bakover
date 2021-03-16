@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
+import no.nav.su.se.bakover.domain.revurdering.medFritekst
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.service.brev.BrevService
@@ -103,6 +104,7 @@ internal class RevurderingServiceImpl(
                 tilRevurdering = tilRevurdering,
                 saksbehandler = saksbehandler,
                 oppgaveId = oppgaveId,
+                fritekstTilBrev = ""
             ).also {
                 revurderingRepo.lagre(it)
                 observers.forEach { observer ->
@@ -192,7 +194,8 @@ internal class RevurderingServiceImpl(
 
     override fun sendTilAttestering(
         revurderingId: UUID,
-        saksbehandler: NavIdentBruker.Saksbehandler
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        fritekstTilBrev: String
     ): Either<KunneIkkeSendeRevurderingTilAttestering, Revurdering> {
         val revurdering = revurderingRepo.hent(revurderingId)
             ?: return KunneIkkeSendeRevurderingTilAttestering.FantIkkeRevurdering.left()
@@ -228,8 +231,8 @@ internal class RevurderingServiceImpl(
         }
 
         val tilAttestering = when (revurdering) {
-            is SimulertRevurdering -> revurdering.tilAttestering(oppgaveId, saksbehandler)
-            is UnderkjentRevurdering -> revurdering.tilAttestering(oppgaveId, saksbehandler)
+            is SimulertRevurdering -> revurdering.tilAttestering(oppgaveId, saksbehandler, fritekstTilBrev)
+            is UnderkjentRevurdering -> revurdering.tilAttestering(oppgaveId, saksbehandler, fritekstTilBrev)
             else -> return KunneIkkeSendeRevurderingTilAttestering.UgyldigTilstand(
                 revurdering::class,
                 RevurderingTilAttestering::class
@@ -249,7 +252,7 @@ internal class RevurderingServiceImpl(
 
     override fun lagBrevutkast(
         revurderingId: UUID,
-        fritekst: String?
+        fritekst: String
     ): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray> {
         val revurdering = revurderingRepo.hent(revurderingId)
             ?: return KunneIkkeLageBrevutkastForRevurdering.FantIkkeRevurdering.left()
@@ -265,7 +268,7 @@ internal class RevurderingServiceImpl(
             },
             clock = clock
         ).let {
-            revurdering.accept(it)
+            revurdering.medFritekst(fritekst).accept(it)
             it.brevRequest
         }.mapLeft {
             when (it) {

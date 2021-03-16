@@ -72,6 +72,7 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
             tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler(""),
             oppgaveId = OppgaveId("oppgaveId"),
+            fritekstTilBrev = ""
         )
         val revurderingServiceMock = mock<RevurderingService> {
             on { oppdaterRevurderingsperiode(any(), any(), any()) } doReturn opprettetRevurdering.right()

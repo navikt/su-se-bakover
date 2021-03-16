@@ -351,15 +351,16 @@ open class AccessCheckProxy(
 
                 override fun sendTilAttestering(
                     revurderingId: UUID,
-                    saksbehandler: NavIdentBruker.Saksbehandler
+                    saksbehandler: NavIdentBruker.Saksbehandler,
+                    fritekstTilBrev: String
                 ): Either<KunneIkkeSendeRevurderingTilAttestering, Revurdering> {
                     assertHarTilgangTilSak(revurderingId)
-                    return services.revurdering.sendTilAttestering(revurderingId, saksbehandler)
+                    return services.revurdering.sendTilAttestering(revurderingId, saksbehandler, fritekstTilBrev)
                 }
 
                 override fun lagBrevutkast(
                     revurderingId: UUID,
-                    fritekst: String?
+                    fritekst: String
                 ): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray> {
                     assertHarTilgangTilSak(revurderingId)
                     return services.revurdering.lagBrevutkast(revurderingId, fritekst)

@@ -405,7 +405,8 @@ internal class StatistikkServiceImplTest {
             },
             saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
             periode = beregning.getPeriode(),
-            oppgaveId = OppgaveId("oppgaveid")
+            oppgaveId = OppgaveId("oppgaveid"),
+            fritekstTilBrev = ""
         )
 
         val expected = Statistikk.Behandling(
@@ -464,7 +465,8 @@ internal class StatistikkServiceImplTest {
                 nettoBeløp = 100,
                 periodeList = listOf()
             ),
-            oppgaveId = OppgaveId("55")
+            oppgaveId = OppgaveId("55"),
+            fritekstTilBrev = ""
         )
 
         val expected = Statistikk.Behandling(
@@ -526,7 +528,8 @@ internal class StatistikkServiceImplTest {
             oppgaveId = OppgaveId("55"),
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
             utbetalingId = UUID30.randomUUID(),
-            eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert
+            eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
+            fritekstTilBrev = ""
         )
 
         val expected = Statistikk.Behandling(

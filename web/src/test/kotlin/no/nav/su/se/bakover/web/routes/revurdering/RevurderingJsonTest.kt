@@ -39,6 +39,7 @@ internal class RevurderingJsonTest {
             tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
             oppgaveId = OppgaveId("oppgaveid"),
+            fritekstTilBrev = ""
         )
 
         val revurderingJson = """
@@ -72,7 +73,8 @@ internal class RevurderingJsonTest {
             tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
             beregning = beregning,
-            oppgaveId = OppgaveId("oppgaveid")
+            oppgaveId = OppgaveId("oppgaveid"),
+            fritekstTilBrev = ""
         )
 
         val revurderingJson = """
@@ -111,7 +113,8 @@ internal class RevurderingJsonTest {
             tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
             beregning = beregning,
-            oppgaveId = OppgaveId("oppgaveid")
+            oppgaveId = OppgaveId("oppgaveid"),
+            fritekstTilBrev = ""
         )
 
         val revurderingJson = """
@@ -151,7 +154,8 @@ internal class RevurderingJsonTest {
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
             beregning = beregning,
             simulering = mock(),
-            oppgaveId = OppgaveId("oppgaveid")
+            oppgaveId = OppgaveId("oppgaveid"),
+            fritekstTilBrev = ""
         )
 
         val revurderingJson = """
@@ -191,7 +195,8 @@ internal class RevurderingJsonTest {
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
             beregning = beregning,
             simulering = mock(),
-            oppgaveId = OppgaveId("OppgaveId")
+            oppgaveId = OppgaveId("OppgaveId"),
+            fritekstTilBrev = ""
         )
 
         val revurderingJson = """
@@ -237,6 +242,7 @@ internal class RevurderingJsonTest {
                 grunn = Attestering.Underkjent.Grunn.DOKUMENTASJON_MANGLER,
                 kommentar = "Dokumentasjon mangler"
             ),
+            fritekstTilBrev = ""
         )
 
         val expected = """
@@ -287,6 +293,7 @@ internal class RevurderingJsonTest {
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
             eksterneIverksettingsteg = mock(),
             utbetalingId = UUID30.randomUUID(),
+            fritekstTilBrev = ""
         )
 
         val revurderingJson = """

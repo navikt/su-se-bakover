@@ -82,7 +82,8 @@ internal class IverksettRevurderingRouteKtTest {
             oppgaveId = OppgaveId("OppgaveId"),
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
             utbetalingId = UUID30.randomUUID(),
-            eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert
+            eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
+            fritekstTilBrev = ""
         )
 
         val revurderingServiceMock = mock<RevurderingService> {
