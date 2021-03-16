@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
+import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata.Grunnlagsdata
 import java.time.LocalDate
 import java.util.UUID
 import kotlin.reflect.KClass
@@ -44,6 +45,8 @@ interface RevurderingService {
     ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering>
 
     fun hentRevurderingForUtbetaling(utbetalingId: UUID30): IverksattRevurdering?
+    fun opprettGrunnlagsresultat(revurdering: Revurdering): Grunnlagsdata
+    fun opprettGrunnlagForRevurdering(sakId: UUID, periode: Periode): Grunnlagsdata
 }
 
 sealed class KunneIkkeOppretteRevurdering {

@@ -23,6 +23,8 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
+import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata.Grunnlagsdata
+import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata.UføregrunnlagTidslinje
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.service.brev.BrevService
@@ -57,6 +59,7 @@ internal class RevurderingServiceImpl(
     fun addObserver(observer: EventObserver) {
         observers.add(observer)
     }
+
     fun getObservers(): List<EventObserver> = observers.toList()
 
     override fun opprettRevurdering(
@@ -88,12 +91,7 @@ internal class RevurderingServiceImpl(
             return KunneIkkeOppretteRevurdering.FantIkkeAktørId.left()
         }
 
-        val grunnlag = OpprettGrunnlagForRevurdering(
-            sakId = sakId,
-            periode = periode,
-            vedtakRepo = vedtakRepo,
-            clock = clock
-        ).grunnlag
+        val grunnlag = opprettGrunnlagForRevurdering(sakId, periode)
 
         // TODO ai 25.02.2021 - Oppgaven skal egentligen ikke opprettes her. Den burde egentligen komma utifra melding av endring, som skal føres til revurdering.
         return oppgaveService.opprettOppgave(
@@ -125,17 +123,40 @@ internal class RevurderingServiceImpl(
         }
     }
 
+    override fun opprettGrunnlagForRevurdering(sakId: UUID, periode: Periode): Grunnlagsdata {
+        return OpprettGrunnlagForRevurdering(
+            sakId = sakId,
+            periode = periode,
+            vedtakRepo = vedtakRepo,
+            clock = clock
+        ).grunnlag
+    }
+
+    /* Projected outcome / forventet utfall */
+    override fun opprettGrunnlagsresultat(revurdering: Revurdering): Grunnlagsdata {
+        val original = opprettGrunnlagForRevurdering(revurdering.sakId, revurdering.periode)
+        return Grunnlagsdata(
+            UføregrunnlagTidslinje(
+                revurdering.periode,
+                original.uføregrunnlag + revurdering.grunnlagsdata.uføregrunnlag,
+                clock
+            ).tidslinje
+        )
+    }
+
     override fun oppdaterRevurderingsperiode(
         revurderingId: UUID,
         fraOgMed: LocalDate,
         saksbehandler: NavIdentBruker.Saksbehandler
     ): Either<KunneIkkeOppdatereRevurderingsperiode, OpprettetRevurdering> {
 
-        val revurdering = revurderingRepo.hent(revurderingId) ?: return KunneIkkeOppdatereRevurderingsperiode.FantIkkeRevurdering.left()
+        val revurdering = revurderingRepo.hent(revurderingId)
+            ?: return KunneIkkeOppdatereRevurderingsperiode.FantIkkeRevurdering.left()
 
         val stønadsperiode = revurdering.tilRevurdering.beregning.getPeriode()
         if (!fraOgMed.between(stønadsperiode)) {
-            return KunneIkkeOppdatereRevurderingsperiode.PeriodenMåVæreInnenforAlleredeValgtStønadsperiode(revurdering.periode).left()
+            return KunneIkkeOppdatereRevurderingsperiode.PeriodenMåVæreInnenforAlleredeValgtStønadsperiode(revurdering.periode)
+                .left()
         }
         val nyPeriode = Periode.tryCreate(fraOgMed, stønadsperiode.getTilOgMed()).getOrHandle {
             return KunneIkkeOppdatereRevurderingsperiode.UgyldigPeriode(it).left()
@@ -144,7 +165,10 @@ internal class RevurderingServiceImpl(
             is OpprettetRevurdering -> revurdering.oppdaterPeriode(nyPeriode).right()
             is BeregnetRevurdering -> revurdering.oppdaterPeriode(nyPeriode).right()
             is SimulertRevurdering -> revurdering.oppdaterPeriode(nyPeriode).right()
-            else -> KunneIkkeOppdatereRevurderingsperiode.UgyldigTilstand(revurdering::class, OpprettetRevurdering::class).left()
+            else -> KunneIkkeOppdatereRevurderingsperiode.UgyldigTilstand(
+                revurdering::class,
+                OpprettetRevurdering::class
+            ).left()
         }.map {
             revurderingRepo.lagre(it)
             it
@@ -187,7 +211,10 @@ internal class RevurderingServiceImpl(
                 }
             }
             null -> return KunneIkkeBeregneOgSimulereRevurdering.FantIkkeRevurdering.left()
-            else -> return KunneIkkeBeregneOgSimulereRevurdering.UgyldigTilstand(revurdering::class, SimulertRevurdering::class).left()
+            else -> return KunneIkkeBeregneOgSimulereRevurdering.UgyldigTilstand(
+                revurdering::class,
+                SimulertRevurdering::class
+            ).left()
         }
     }
 
@@ -195,7 +222,8 @@ internal class RevurderingServiceImpl(
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler
     ): Either<KunneIkkeSendeRevurderingTilAttestering, Revurdering> {
-        val revurdering = revurderingRepo.hent(revurderingId) ?: return KunneIkkeSendeRevurderingTilAttestering.FantIkkeRevurdering.left()
+        val revurdering = revurderingRepo.hent(revurderingId)
+            ?: return KunneIkkeSendeRevurderingTilAttestering.FantIkkeRevurdering.left()
 
         val tilAttestering = when (revurdering) {
             is SimulertRevurdering -> {
@@ -219,7 +247,10 @@ internal class RevurderingServiceImpl(
 
                 revurdering.tilAttestering(oppgaveId, saksbehandler)
             }
-            else -> return KunneIkkeSendeRevurderingTilAttestering.UgyldigTilstand(revurdering::class, RevurderingTilAttestering::class)
+            else -> return KunneIkkeSendeRevurderingTilAttestering.UgyldigTilstand(
+                revurdering::class,
+                RevurderingTilAttestering::class
+            )
                 .left()
         }
 

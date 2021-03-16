@@ -42,7 +42,7 @@ internal fun Route.oppdaterRevurderingsperiodeRoute(
                         ifLeft = { call.svar(it.tilResultat()) },
                         ifRight = {
                             call.audit("Oppdaterte perioden på revurdering med id: $revurderingId")
-                            call.svar(Resultat.json(HttpStatusCode.Created, serialize(it.toJson())))
+                            call.svar(Resultat.json(HttpStatusCode.Created, serialize(it.toJson(revurderingService))))
                         },
                     )
                 }

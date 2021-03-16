@@ -4,6 +4,7 @@ import arrow.core.Either
 import arrow.core.getOrHandle
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.person.PersonRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
@@ -32,6 +33,7 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata.Grunnlagsdata
 import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata.Uføregrunnlag
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.avstemming.AvstemmingFeilet
@@ -367,8 +369,16 @@ open class AccessCheckProxy(
                     assertHarTilgangTilSak(revurderingId)
                     return services.revurdering.iverksett(revurderingId, attestant)
                 }
-
                 override fun hentRevurderingForUtbetaling(utbetalingId: UUID30) = kastKanKunKallesFraAnnenService()
+
+                //TODO jah jm: fjern eller sikre
+                override fun opprettGrunnlagsresultat(revurdering: Revurdering): Grunnlagsdata {
+                    return services.revurdering.opprettGrunnlagsresultat(revurdering)
+                }
+                //TODO jah jm: fjern eller sikre
+                override fun opprettGrunnlagForRevurdering(sakId: UUID, periode: Periode): Grunnlagsdata {
+                    return services.revurdering.opprettGrunnlagForRevurdering(sakId,periode)
+                }
             },
             grunnlagsdataService = object : GrunnlagsdataService {
                 override fun leggTilUførerunnlag(sakId: UUID, behandlingId: UUID, uføregrunnlag: List<Uføregrunnlag>) {

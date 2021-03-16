@@ -11,6 +11,7 @@ import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeGjenopptaUtbetalinger
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.web.features.authorize
@@ -21,7 +22,8 @@ import no.nav.su.se.bakover.web.withSakId
 
 @KtorExperimentalAPI
 internal fun Route.gjenopptaUtbetalingRoutes(
-    service: UtbetalingService
+    service: UtbetalingService,
+    revurderingService: RevurderingService,
 ) {
     authorize(Brukerrolle.Saksbehandler) {
         post("$sakPath/{sakId}/utbetalinger/gjenoppta") {
@@ -49,7 +51,7 @@ internal fun Route.gjenopptaUtbetalingRoutes(
                                 )
                             }
                         },
-                        { call.respond(serialize(it.toJson())) }
+                        { call.respond(serialize(it.toJson(revurderingService))) }
                     )
             }
         }

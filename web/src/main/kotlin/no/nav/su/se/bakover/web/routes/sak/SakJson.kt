@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.routes.sak
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Companion.hentOversendteUtbetalingerUtenFeil
+import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingJson
 import no.nav.su.se.bakover.web.routes.behandling.UtbetalingslinjeJson
 import no.nav.su.se.bakover.web.routes.behandling.toJson
@@ -41,7 +42,7 @@ internal data class SakJson(
     }
 
     companion object {
-        internal fun Sak.toJson() = SakJson(
+        internal fun Sak.toJson(revurderingService:RevurderingService) = SakJson(
             id = id.toString(),
             saksnummer = saksnummer.nummer,
             fnr = fnr.toString(),
@@ -60,7 +61,7 @@ internal data class SakJson(
                     }
                 },
             utbetalingerKanStansesEllerGjenopptas = utbetalinger.kanStansesEllerGjenopptas(),
-            revurderinger = revurderinger.map { it.toJson() }
+            revurderinger = revurderinger.map { it.toJson(revurderingService) }
         )
     }
 }

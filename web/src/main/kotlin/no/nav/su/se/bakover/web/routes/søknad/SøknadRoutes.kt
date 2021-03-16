@@ -16,6 +16,7 @@ import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.søknad.KunneIkkeLageSøknadPdf
 import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteSøknad
 import no.nav.su.se.bakover.service.søknad.SøknadService
@@ -38,7 +39,8 @@ internal const val søknadPath = "/soknad"
 @KtorExperimentalAPI
 internal fun Route.søknadRoutes(
     søknadService: SøknadService,
-    lukkSøknadService: LukkSøknadService
+    lukkSøknadService: LukkSøknadService,
+    revurderingService: RevurderingService,
 ) {
     authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler) {
         post(søknadPath) {
@@ -111,7 +113,7 @@ internal fun Route.søknadRoutes(
                         { call.svar(LukkSøknadErrorHandler.kunneIkkeLukkeSøknadResponse(request, it)) },
                         {
                             call.audit("Lukket søknad for søknad: $søknadId")
-                            call.svar(LukkSøknadErrorHandler.lukketSøknadResponse(it))
+                            call.svar(LukkSøknadErrorHandler.lukketSøknadResponse(it,revurderingService))
                         }
                     )
                 }

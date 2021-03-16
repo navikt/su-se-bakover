@@ -66,7 +66,7 @@ internal fun Route.beregnOgSimulerRevurdering(
                                     call.audit("Opprettet en ny revurdering beregning og simulering på sak med id $sakId")
                                     Resultat.json(
                                         HttpStatusCode.Created,
-                                        serialize(revurdering.toJson())
+                                        serialize(revurdering.toJson(revurderingService))
                                     )
                                 }
                             }.getOrHandle { it }

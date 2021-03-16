@@ -8,6 +8,7 @@ import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
@@ -22,7 +23,8 @@ internal const val sakPath = "/saker"
 
 @KtorExperimentalAPI
 internal fun Route.sakRoutes(
-    sakService: SakService
+    sakService: SakService,
+    revurderingService: RevurderingService,
 ) {
     get(sakPath) {
         when {
@@ -31,7 +33,7 @@ internal fun Route.sakRoutes(
                     call.svar(
                         sakService.hentSak(saksnummer).fold(
                             { NotFound.message("Fant ikke sak med saksnummer: $saksnummer") },
-                            { Resultat.json(OK, serialize((it.toJson()))) }
+                            { Resultat.json(OK, serialize((it.toJson(revurderingService)))) }
                         )
                     )
                 }
@@ -44,7 +46,7 @@ internal fun Route.sakRoutes(
                             .mapLeft { call.svar(NotFound.message("Fant ikke noen sak for person: $fnr")) }
                             .map {
                                 call.audit("Hentet sak for fnr: $fnr")
-                                call.svar(Resultat.json(OK, serialize((it.toJson()))))
+                                call.svar(Resultat.json(OK, serialize((it.toJson(revurderingService)))))
                             }
                     }
                 )
@@ -58,7 +60,7 @@ internal fun Route.sakRoutes(
             call.svar(
                 sakService.hentSak(sakId).fold(
                     { NotFound.message("Fant ikke sak med id: $sakId") },
-                    { Resultat.json(OK, serialize((it.toJson()))) }
+                    { Resultat.json(OK, serialize((it.toJson(revurderingService)))) }
                 )
             )
         }

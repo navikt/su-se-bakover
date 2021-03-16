@@ -246,13 +246,20 @@ internal fun Application.susebakover(
                     accessCheckProxy
                 ) { accessProtectedServices ->
                     personRoutes(accessProtectedServices.person, clock)
-                    sakRoutes(accessProtectedServices.sak)
-                    søknadRoutes(accessProtectedServices.søknad, accessProtectedServices.lukkSøknad)
+                    sakRoutes(accessProtectedServices.sak, accessProtectedServices.revurdering)
+                    søknadRoutes(
+                        accessProtectedServices.søknad,
+                        accessProtectedServices.lukkSøknad,
+                        accessProtectedServices.revurdering
+                    )
                     behandlingRoutes(accessProtectedServices.søknadsbehandling)
-                    grunnlagsdataRoute(accessProtectedServices.grunnlagsdataService, accessProtectedServices.søknadsbehandling)
+                    grunnlagsdataRoute(
+                        accessProtectedServices.grunnlagsdataService,
+                        accessProtectedServices.søknadsbehandling
+                    )
                     avstemmingRoutes(accessProtectedServices.avstemming)
-                    stansutbetalingRoutes(accessProtectedServices.utbetaling)
-                    gjenopptaUtbetalingRoutes(accessProtectedServices.utbetaling)
+                    stansutbetalingRoutes(accessProtectedServices.utbetaling, accessProtectedServices.revurdering)
+                    gjenopptaUtbetalingRoutes(accessProtectedServices.utbetaling, accessProtectedServices.revurdering)
                     driftRoutes(accessProtectedServices.søknad, accessProtectedServices.ferdigstillVedtak)
                     revurderingRoutes(accessProtectedServices.revurdering)
                 }

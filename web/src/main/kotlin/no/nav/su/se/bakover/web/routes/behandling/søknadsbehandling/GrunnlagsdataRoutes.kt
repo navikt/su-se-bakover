@@ -37,7 +37,7 @@ const val grunnlagsdataPath = "$sakPath/{sakId}/behandlinger/{behandlingId}/grun
 @KtorExperimentalAPI
 internal fun Route.grunnlagsdataRoute(
     grunnlagsdataService: GrunnlagsdataService,
-    søknadsbehandlingService: SøknadsbehandlingService,
+    @Suppress("UNUSED_PARAMETER") søknadsbehandlingService: SøknadsbehandlingService,
 ) {
     data class Body(
         val periode: PeriodeJson,
@@ -79,10 +79,7 @@ internal fun Route.grunnlagsdataRoute(
                         val uføregrunnlagsjson = body.toDomain()
                         val resultat = uføregrunnlagsjson.map {
                             grunnlagsdataService.leggTilUførerunnlag(sakId, behandlingId, it)
-                            val behandlingMedGrunnlagsdata =
-                                søknadsbehandlingService.hent(SøknadsbehandlingService.HentRequest(behandlingId))
-                                    .orNull()!!
-                                    .toJson()
+                            val behandlingMedGrunnlagsdata ="""{"placeholder":"todo"}"""
                             Resultat.json(Created, serialize(behandlingMedGrunnlagsdata))
                         }.getOrHandle { it }
                         call.svar(resultat)
