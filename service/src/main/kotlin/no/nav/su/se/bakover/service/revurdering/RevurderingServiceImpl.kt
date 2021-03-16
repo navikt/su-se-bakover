@@ -254,6 +254,17 @@ internal class RevurderingServiceImpl(
         revurderingId: UUID,
         fritekst: String
     ): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray> {
+        return hentBrevutkast(revurderingId, fritekst)
+    }
+
+    override fun hentBrevutkast(revurderingId: UUID): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray> {
+        return hentBrevutkast(revurderingId, null)
+    }
+
+    private fun hentBrevutkast(
+        revurderingId: UUID,
+        fritekst: String?
+    ): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray> {
         val revurdering = revurderingRepo.hent(revurderingId)
             ?: return KunneIkkeLageBrevutkastForRevurdering.FantIkkeRevurdering.left()
 
@@ -268,7 +279,12 @@ internal class RevurderingServiceImpl(
             },
             clock = clock
         ).let {
-            revurdering.medFritekst(fritekst).accept(it)
+            val r = if (fritekst != null) {
+                revurdering.medFritekst(fritekst)
+            } else {
+                revurdering
+            }
+            r.accept(it)
             it.brevRequest
         }.mapLeft {
             when (it) {
