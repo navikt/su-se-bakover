@@ -22,9 +22,10 @@ data class Uføregrunnlag(
     // TODO avoid copying id
     fun copy(
         periode: Periode = this.periode,
+        opprettet: Tidspunkt = this.opprettet,
         uføregrad: Uføregrad = this.uføregrad,
         forventetInntekt: Int = this.forventetInntekt
     ) = Uføregrunnlag(
-        UUID.randomUUID(), Tidspunkt.now(), periode, uføregrad, forventetInntekt
+        UUID.randomUUID(), opprettet, periode, uføregrad, forventetInntekt
     )
 }
