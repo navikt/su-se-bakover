@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
+import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
@@ -318,6 +319,8 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
             },
             revurdering = object : RevurderingService {
+                override fun hentRevurdering(revurderingId: UUID) = kastKanKunKallesFraAnnenService()
+
                 override fun opprettRevurdering(
                     sakId: UUID,
                     fraOgMed: LocalDate,
@@ -365,25 +368,33 @@ open class AccessCheckProxy(
                     return services.revurdering.lagBrevutkast(revurderingId, fritekst)
                 }
 
-                override fun iverksett(revurderingId: UUID, attestant: NavIdentBruker.Attestant): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering> {
+                override fun iverksett(
+                    revurderingId: UUID,
+                    attestant: NavIdentBruker.Attestant
+                ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering> {
                     assertHarTilgangTilSak(revurderingId)
                     return services.revurdering.iverksett(revurderingId, attestant)
                 }
+
                 override fun hentRevurderingForUtbetaling(utbetalingId: UUID30) = kastKanKunKallesFraAnnenService()
 
-                //TODO jah jm: fjern eller sikre
+                // TODO jah jm: fjern eller sikre
                 override fun opprettGrunnlagsresultat(revurdering: Revurdering): Grunnlagsdata {
                     return services.revurdering.opprettGrunnlagsresultat(revurdering)
                 }
-                //TODO jah jm: fjern eller sikre
+
+                // TODO jah jm: fjern eller sikre
                 override fun opprettGrunnlagForRevurdering(sakId: UUID, periode: Periode): Grunnlagsdata {
-                    return services.revurdering.opprettGrunnlagForRevurdering(sakId,periode)
+                    return services.revurdering.opprettGrunnlagForRevurdering(sakId, periode)
                 }
             },
             grunnlagsdataService = object : GrunnlagsdataService {
-                override fun leggTilUførerunnlag(sakId: UUID, behandlingId: UUID, uføregrunnlag: List<Uføregrunnlag>) {
+                override fun leggTilUføregrunnlag(
+                    behandlingId: UUID,
+                    uføregrunnlag: List<Uføregrunnlag>
+                ): Either<GrunnlagsdataService.KunneIkkeLeggeTilGrunnlagsdata, Behandling> {
                     assertHarTilgangTilBehandling(behandlingId)
-                    return services.grunnlagsdataService.leggTilUførerunnlag(sakId, behandlingId, uføregrunnlag)
+                    return services.grunnlagsdataService.leggTilUføregrunnlag(behandlingId, uføregrunnlag)
                 }
             }
         )

@@ -15,6 +15,10 @@ import kotlin.reflect.KClass
 
 interface RevurderingService {
 
+    fun hentRevurdering(
+        revurderingId: UUID,
+    ): Either<FantIkkeRevurdering, Revurdering>
+
     fun opprettRevurdering(
         sakId: UUID,
         fraOgMed: LocalDate,
@@ -48,6 +52,8 @@ interface RevurderingService {
     fun opprettGrunnlagsresultat(revurdering: Revurdering): Grunnlagsdata
     fun opprettGrunnlagForRevurdering(sakId: UUID, periode: Periode): Grunnlagsdata
 }
+
+object FantIkkeRevurdering
 
 sealed class KunneIkkeOppretteRevurdering {
     object FantIkkeSak : KunneIkkeOppretteRevurdering()

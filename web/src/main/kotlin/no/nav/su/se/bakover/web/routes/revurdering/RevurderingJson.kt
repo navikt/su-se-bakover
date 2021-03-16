@@ -128,7 +128,7 @@ internal fun Revurdering.toJson(revurderingService: RevurderingService): Revurde
         tilRevurdering = tilRevurdering.toJson(),
         saksbehandler = saksbehandler.toString(),
         grunnlag = GrunnlagsdatasetJson(
-            førBehandling = revurderingService.opprettGrunnlagForRevurdering(sakId,periode).toJson(),
+            førBehandling = revurderingService.opprettGrunnlagForRevurdering(sakId, periode).toJson(),
             endring = grunnlagsdata.toJson(),
             resultat = revurderingService.opprettGrunnlagsresultat(this).toJson(),
         ),
@@ -144,7 +144,7 @@ internal fun Revurdering.toJson(revurderingService: RevurderingService): Revurde
         ),
         saksbehandler = saksbehandler.toString(),
         grunnlag = GrunnlagsdatasetJson(
-            førBehandling = revurderingService.opprettGrunnlagForRevurdering(sakId,periode).toJson(),
+            førBehandling = revurderingService.opprettGrunnlagForRevurdering(sakId, periode).toJson(),
             endring = grunnlagsdata.toJson(),
             resultat = revurderingService.opprettGrunnlagsresultat(this).toJson(),
         ),
@@ -160,7 +160,7 @@ internal fun Revurdering.toJson(revurderingService: RevurderingService): Revurde
         ),
         saksbehandler = saksbehandler.toString(),
         grunnlag = GrunnlagsdatasetJson(
-            førBehandling = revurderingService.opprettGrunnlagForRevurdering(sakId,periode).toJson(),
+            førBehandling = revurderingService.opprettGrunnlagForRevurdering(sakId, periode).toJson(),
             endring = grunnlagsdata.toJson(),
             resultat = revurderingService.opprettGrunnlagsresultat(this).toJson(),
         ),
@@ -177,7 +177,7 @@ internal fun Revurdering.toJson(revurderingService: RevurderingService): Revurde
         saksbehandler = saksbehandler.toString(),
         attestant = attestant.toString(),
         grunnlag = GrunnlagsdatasetJson(
-            førBehandling = revurderingService.opprettGrunnlagForRevurdering(sakId,periode).toJson(),
+            førBehandling = revurderingService.opprettGrunnlagForRevurdering(sakId, periode).toJson(),
             endring = grunnlagsdata.toJson(),
             resultat = revurderingService.opprettGrunnlagsresultat(this).toJson(),
         ),
@@ -193,7 +193,7 @@ internal fun Revurdering.toJson(revurderingService: RevurderingService): Revurde
         ),
         saksbehandler = saksbehandler.toString(),
         grunnlag = GrunnlagsdatasetJson(
-            førBehandling = revurderingService.opprettGrunnlagForRevurdering(sakId,periode).toJson(),
+            førBehandling = revurderingService.opprettGrunnlagForRevurdering(sakId, periode).toJson(),
             endring = grunnlagsdata.toJson(),
             resultat = revurderingService.opprettGrunnlagsresultat(this).toJson(),
         ),
@@ -209,7 +209,7 @@ internal fun Revurdering.toJson(revurderingService: RevurderingService): Revurde
         ),
         saksbehandler = saksbehandler.toString(),
         grunnlag = GrunnlagsdatasetJson(
-            førBehandling = revurderingService.opprettGrunnlagForRevurdering(sakId,periode).toJson(),
+            førBehandling = revurderingService.opprettGrunnlagForRevurdering(sakId, periode).toJson(),
             endring = grunnlagsdata.toJson(),
             resultat = revurderingService.opprettGrunnlagsresultat(this).toJson(),
         ),

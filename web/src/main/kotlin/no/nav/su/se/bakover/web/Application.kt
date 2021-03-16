@@ -255,7 +255,7 @@ internal fun Application.susebakover(
                     behandlingRoutes(accessProtectedServices.søknadsbehandling)
                     grunnlagsdataRoute(
                         accessProtectedServices.grunnlagsdataService,
-                        accessProtectedServices.søknadsbehandling
+                        accessProtectedServices.revurdering
                     )
                     avstemmingRoutes(accessProtectedServices.avstemming)
                     stansutbetalingRoutes(accessProtectedServices.utbetaling, accessProtectedServices.revurdering)

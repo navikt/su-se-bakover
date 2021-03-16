@@ -42,7 +42,7 @@ internal data class SakJson(
     }
 
     companion object {
-        internal fun Sak.toJson(revurderingService:RevurderingService) = SakJson(
+        internal fun Sak.toJson(revurderingService: RevurderingService) = SakJson(
             id = id.toString(),
             saksnummer = saksnummer.nummer,
             fnr = fnr.toString(),

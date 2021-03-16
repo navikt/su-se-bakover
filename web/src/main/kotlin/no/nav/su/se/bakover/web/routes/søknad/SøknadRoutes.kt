@@ -113,7 +113,7 @@ internal fun Route.søknadRoutes(
                         { call.svar(LukkSøknadErrorHandler.kunneIkkeLukkeSøknadResponse(request, it)) },
                         {
                             call.audit("Lukket søknad for søknad: $søknadId")
-                            call.svar(LukkSøknadErrorHandler.lukketSøknadResponse(it,revurderingService))
+                            call.svar(LukkSøknadErrorHandler.lukketSøknadResponse(it, revurderingService))
                         }
                     )
                 }

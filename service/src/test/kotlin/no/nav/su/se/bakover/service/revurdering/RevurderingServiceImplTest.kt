@@ -65,7 +65,6 @@ import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
-import no.nav.su.se.bakover.service.søknadsbehandling.GrunnlagsdataService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -1027,7 +1026,6 @@ internal class RevurderingServiceImplTest {
         brevService: BrevService = mock(),
         clock: Clock = fixedClock,
         vedtakRepo: VedtakRepo = mock(),
-        grunnlagsdataService: GrunnlagsdataService = mock()
     ) =
         RevurderingServiceImpl(
             sakService = sakService,
@@ -1039,6 +1037,5 @@ internal class RevurderingServiceImplTest {
             brevService = brevService,
             clock = clock,
             vedtakRepo = vedtakRepo,
-            grunnlagsdataService = grunnlagsdataService
         )
 }

@@ -33,7 +33,6 @@ import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
-import no.nav.su.se.bakover.service.søknadsbehandling.GrunnlagsdataService
 import no.nav.su.se.bakover.service.søknadsbehandling.OpprettGrunnlagForRevurdering
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
@@ -51,7 +50,6 @@ internal class RevurderingServiceImpl(
     private val brevService: BrevService,
     private val clock: Clock,
     private val vedtakRepo: VedtakRepo,
-    private val grunnlagsdataService: GrunnlagsdataService
 ) : RevurderingService {
 
     private val observers: MutableList<EventObserver> = mutableListOf()
@@ -61,6 +59,12 @@ internal class RevurderingServiceImpl(
     }
 
     fun getObservers(): List<EventObserver> = observers.toList()
+
+    override fun hentRevurdering(
+        revurderingId: UUID,
+    ): Either<FantIkkeRevurdering, Revurdering> {
+        return revurderingRepo.hent(revurderingId)?.right() ?: FantIkkeRevurdering.left()
+    }
 
     override fun opprettRevurdering(
         sakId: UUID,
@@ -110,7 +114,6 @@ internal class RevurderingServiceImpl(
                 oppgaveId = oppgaveId,
                 grunnlagsdata = grunnlag
             ).also {
-                grunnlagsdataService.leggTilUførerunnlag(it.sakId, it.id, it.grunnlagsdata.uføregrunnlag)
                 revurderingRepo.lagre(it)
                 observers.forEach { observer ->
                     observer.handle(

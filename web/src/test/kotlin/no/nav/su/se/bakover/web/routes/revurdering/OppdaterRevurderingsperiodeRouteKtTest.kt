@@ -77,6 +77,8 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
         )
         val revurderingServiceMock = mock<RevurderingService> {
             on { oppdaterRevurderingsperiode(any(), any(), any()) } doReturn opprettetRevurdering.right()
+            on { opprettGrunnlagsresultat(any()) } doReturn Grunnlagsdata.EMPTY
+            on { opprettGrunnlagForRevurdering(any(), any()) } doReturn Grunnlagsdata.EMPTY
         }
 
         withTestApplication({

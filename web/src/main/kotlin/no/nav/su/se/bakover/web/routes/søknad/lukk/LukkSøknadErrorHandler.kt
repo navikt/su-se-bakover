@@ -33,7 +33,7 @@ internal object LukkSøknadErrorHandler {
         }
     }
 
-    fun lukketSøknadResponse(error: LukketSøknad,revurderingService: RevurderingService) = when (error) {
+    fun lukketSøknadResponse(error: LukketSøknad, revurderingService: RevurderingService) = when (error) {
         is LukketSøknad.UtenMangler,
         is LukketSøknad.MedMangler.KunneIkkeDistribuereBrev,
         is LukketSøknad.MedMangler.KunneIkkeLukkeOppgave -> Resultat.json(

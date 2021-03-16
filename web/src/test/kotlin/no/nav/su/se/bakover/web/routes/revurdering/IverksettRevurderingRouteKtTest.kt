@@ -88,6 +88,8 @@ internal class IverksettRevurderingRouteKtTest {
 
         val revurderingServiceMock = mock<RevurderingService> {
             on { iverksett(any(), any()) } doReturn iverksattRevurdering.right()
+            on { opprettGrunnlagsresultat(any()) } doReturn Grunnlagsdata.EMPTY
+            on { opprettGrunnlagForRevurdering(any(), any()) } doReturn Grunnlagsdata.EMPTY
         }
 
         withTestApplication({

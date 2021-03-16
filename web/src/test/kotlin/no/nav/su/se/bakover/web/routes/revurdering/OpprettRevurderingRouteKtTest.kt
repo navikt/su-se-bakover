@@ -73,6 +73,8 @@ internal class OpprettRevurderingRouteKtTest {
         )
         val revurderingServiceMock = mock<RevurderingService> {
             on { opprettRevurdering(any(), any(), any()) } doReturn opprettetRevurdering.right()
+            on { opprettGrunnlagsresultat(any()) } doReturn Grunnlagsdata.EMPTY
+            on { opprettGrunnlagForRevurdering(any(), any()) } doReturn Grunnlagsdata.EMPTY
         }
 
         withTestApplication({

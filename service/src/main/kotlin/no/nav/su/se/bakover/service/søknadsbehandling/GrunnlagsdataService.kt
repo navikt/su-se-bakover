@@ -1,25 +1,60 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
+import arrow.core.Either
+import arrow.core.getOrHandle
+import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
+import no.nav.su.se.bakover.domain.behandling.Behandling
+import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
+import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata.Grunnlagsdata
 import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata.Uføregrunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata.UføregrunnlagTidslinje
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.service.behandling.BehandlingService
+import no.nav.su.se.bakover.service.søknadsbehandling.GrunnlagsdataService.KunneIkkeLeggeTilGrunnlagsdata
 import java.time.Clock
 import java.util.UUID
 
 interface GrunnlagsdataService {
-    fun leggTilUførerunnlag(sakId: UUID, behandlingId: UUID, uføregrunnlag: List<Uføregrunnlag>)
+    /** Denne brukes både fra Søknadsbehandling og Revurdering **/
+    fun leggTilUføregrunnlag(
+        behandlingId: UUID,
+        uføregrunnlag: List<Uføregrunnlag>
+    ): Either<KunneIkkeLeggeTilGrunnlagsdata, Behandling>
+
+    sealed class KunneIkkeLeggeTilGrunnlagsdata {
+        object FantIkkeBehandling : KunneIkkeLeggeTilGrunnlagsdata()
+        object UgyldigTilstand : KunneIkkeLeggeTilGrunnlagsdata()
+    }
 }
 
 internal class GrunnlagsdataServiceImpl(
-    private val grunnlagRepo: GrunnlagRepo
+    private val behandlingService: BehandlingService,
+    private val grunnlagRepo: GrunnlagRepo,
 ) : GrunnlagsdataService {
-    override fun leggTilUførerunnlag(sakId: UUID, behandlingId: UUID, uføregrunnlag: List<Uføregrunnlag>) {
-        // TODO: Accept a list. Return an Either. insert into table(s). Call søknadbehandlingsservice. Make frontend call this endpoint instead of the patch one.
+    override fun leggTilUføregrunnlag(
+        behandlingId: UUID,
+        uføregrunnlag: List<Uføregrunnlag>
+    ): Either<KunneIkkeLeggeTilGrunnlagsdata, Behandling> {
+        // TODO: Make frontend's main path call this endpoint instead of the patch one.
+        val behandling: Behandling = behandlingService.hentBehandling(behandlingId).getOrHandle {
+            return KunneIkkeLeggeTilGrunnlagsdata.FantIkkeBehandling.left()
+        }
+        when (behandling) {
+            is RevurderingTilAttestering,
+            is IverksattRevurdering,
+            is Søknadsbehandling.TilAttestering,
+            is Søknadsbehandling.Iverksatt -> return KunneIkkeLeggeTilGrunnlagsdata.UgyldigTilstand.left()
+            // TODO jah jm: Fullfør denne lista eller gjør det på en annen måte.
+        }
+
         grunnlagRepo.lagre(behandlingId, uføregrunnlag)
+        return behandlingService.hentBehandling(behandlingId).orNull()!!.right()
     }
 }
 
