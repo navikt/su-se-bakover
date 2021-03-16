@@ -51,9 +51,10 @@ internal class RevurderingStatistikkMapperTest {
             behandlingId = opprettetRevurdering.id,
             relatertBehandlingId = opprettetRevurdering.tilRevurdering.id,
             sakId = opprettetRevurdering.sakId,
+            søknadId = null,
             saksnummer = opprettetRevurdering.saksnummer.nummer,
-            behandlingType = Statistikk.BehandlingType.REVURDERING,
-            behandlingTypeBeskrivelse = Statistikk.BehandlingType.REVURDERING.beskrivelse,
+            behandlingType = Statistikk.Behandling.BehandlingType.REVURDERING,
+            behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.REVURDERING.beskrivelse,
             behandlingStatus = "OpprettetRevurdering",
             behandlingStatusBeskrivelse = "Ny revurdering opprettet",
             utenlandstilsnitt = "NASJONAL",
@@ -77,7 +78,8 @@ internal class RevurderingStatistikkMapperTest {
             behandlingOpprettetType = null,
             behandlingOpprettetTypeBeskrivelse = null,
             datoForUttak = null,
-            datoForUtbetaling = null
+            datoForUtbetaling = null,
+            avsluttet = false,
         )
     }
 
@@ -116,9 +118,10 @@ internal class RevurderingStatistikkMapperTest {
             behandlingId = iverksattRevurdering.id,
             relatertBehandlingId = iverksattRevurdering.tilRevurdering.id,
             sakId = iverksattRevurdering.sakId,
+            søknadId = null,
             saksnummer = iverksattRevurdering.saksnummer.nummer,
-            behandlingType = Statistikk.BehandlingType.REVURDERING,
-            behandlingTypeBeskrivelse = Statistikk.BehandlingType.REVURDERING.beskrivelse,
+            behandlingType = Statistikk.Behandling.BehandlingType.REVURDERING,
+            behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.REVURDERING.beskrivelse,
             behandlingStatus = "IverksattRevurdering",
             behandlingStatusBeskrivelse = "Revurdering iverksatt",
             utenlandstilsnitt = "NASJONAL",
@@ -142,7 +145,8 @@ internal class RevurderingStatistikkMapperTest {
             behandlingOpprettetType = null,
             behandlingOpprettetTypeBeskrivelse = null,
             datoForUttak = null,
-            datoForUtbetaling = null
+            datoForUtbetaling = null,
+            avsluttet = true
         )
     }
 }

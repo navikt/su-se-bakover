@@ -43,8 +43,9 @@ internal class SøknadsbehandlingStatistikkMapperTest {
             behandlingId = uavklartSøknadsbehandling.id,
             relatertBehandlingId = null,
             sakId = uavklartSøknadsbehandling.sakId,
+            søknadId = uavklartSøknadsbehandling.søknad.id,
             saksnummer = uavklartSøknadsbehandling.saksnummer.nummer,
-            behandlingType = Statistikk.BehandlingType.SOKNAD,
+            behandlingType = Statistikk.Behandling.BehandlingType.SOKNAD,
             behandlingTypeBeskrivelse = "Søknad for SU Uføre",
             behandlingStatus = BehandlingsStatus.OPPRETTET.toString(),
             behandlingStatusBeskrivelse = "Ny søknadsbehandling opprettet",
@@ -69,7 +70,8 @@ internal class SøknadsbehandlingStatistikkMapperTest {
             behandlingOpprettetType = null,
             behandlingOpprettetTypeBeskrivelse = null,
             datoForUttak = null,
-            datoForUtbetaling = null
+            datoForUtbetaling = null,
+            avsluttet = false
         )
     }
 
@@ -83,8 +85,9 @@ internal class SøknadsbehandlingStatistikkMapperTest {
             behandlingId = iverksattSøknadsbehandling.id,
             relatertBehandlingId = null,
             sakId = iverksattSøknadsbehandling.sakId,
+            søknadId = iverksattSøknadsbehandling.søknad.id,
             saksnummer = iverksattSøknadsbehandling.saksnummer.nummer,
-            behandlingType = Statistikk.BehandlingType.SOKNAD,
+            behandlingType = Statistikk.Behandling.BehandlingType.SOKNAD,
             behandlingTypeBeskrivelse = "Søknad for SU Uføre",
             behandlingStatus = BehandlingsStatus.IVERKSATT_INNVILGET.toString(),
             behandlingStatusBeskrivelse = "Innvilget søknadsbehandling iverksatt",
@@ -109,8 +112,8 @@ internal class SøknadsbehandlingStatistikkMapperTest {
             behandlingOpprettetType = null,
             behandlingOpprettetTypeBeskrivelse = null,
             datoForUttak = null,
-            datoForUtbetaling = null
-
+            datoForUtbetaling = null,
+            avsluttet = true
         )
     }
 

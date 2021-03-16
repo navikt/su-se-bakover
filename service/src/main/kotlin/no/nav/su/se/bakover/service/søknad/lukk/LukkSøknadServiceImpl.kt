@@ -23,6 +23,8 @@ import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
+import no.nav.su.se.bakover.service.statistikk.Event
+import no.nav.su.se.bakover.service.statistikk.EventObserver
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.UUID
@@ -37,6 +39,11 @@ internal class LukkSøknadServiceImpl(
     private val clock: Clock,
 ) : LukkSøknadService {
     private val log = LoggerFactory.getLogger(this::class.java)
+    private val observers = mutableListOf<EventObserver>()
+
+    fun addObserver(observer: EventObserver) {
+        observers.add(observer)
+    }
 
     override fun lukkSøknad(request: LukkSøknadRequest): Either<KunneIkkeLukkeSøknad, LukketSøknad> {
         val søknad = hentSøknad(request.søknadId).getOrHandle {
@@ -75,23 +82,33 @@ internal class LukkSøknadServiceImpl(
                                 log.warn("Kunne ikke lukke oppgave ${søknad.oppgaveId} for søknad ${søknad.id}")
                                 return (
                                     if (lukketSøknad is LukketSøknad.UtenMangler) {
-                                        LukketSøknad.MedMangler.KunneIkkeLukkeOppgave(lukketSøknad.sak)
+                                        LukketSøknad.MedMangler.KunneIkkeLukkeOppgave(lukketSøknad.sak, lukketSøknad.søknad)
                                     } else lukketSøknad
                                     ).right()
                             }.map {
-                                lukketSøknad
+                                lukketSøknad.also {
+                                    observers.forEach { observer ->
+                                        observer.handle(
+                                            Event.Statistikk.SøknadStatistikk.SøknadLukket(it.søknad, it.sak.saksnummer)
+                                        )
+                                    }
+                                }
                             }
                     }
             }
         }
     }
 
-    private fun lukkSøknad(person: Person, request: LukkSøknadRequest, søknad: Søknad): Either<KunneIkkeLukkeSøknad, LukketSøknad> {
+    private fun lukkSøknad(
+        person: Person,
+        request: LukkSøknadRequest,
+        søknad: Søknad
+    ): Either<KunneIkkeLukkeSøknad, LukketSøknad> {
         return when (request) {
             is LukkSøknadRequest.MedBrev -> lukkSøknadMedBrev(person, request, søknad)
             is LukkSøknadRequest.UtenBrev -> {
-                lukkSøknadUtenBrev(request, søknad)
-                LukketSøknad.UtenMangler(sak = hentSak(søknad.sakId)).right()
+                val lukketSøknad = lukkSøknadUtenBrev(request, søknad)
+                LukketSøknad.UtenMangler(sak = hentSak(søknad.sakId), lukketSøknad).right()
             }
         }
     }
@@ -121,8 +138,17 @@ internal class LukkSøknadServiceImpl(
 
     private fun lagBrevRequest(person: Person, søknad: Søknad, request: LukkSøknadRequest.MedBrev): LagBrevRequest {
         return when (request) {
-            is LukkSøknadRequest.MedBrev.TrekkSøknad -> TrukketSøknadBrevRequest(person, søknad, request.trukketDato, hentNavnForNavIdent(request.saksbehandler).getOrHandle { "" })
-            is LukkSøknadRequest.MedBrev.AvvistSøknad -> AvvistSøknadBrevRequest(person, request.brevConfig, hentNavnForNavIdent(request.saksbehandler).getOrHandle { "" })
+            is LukkSøknadRequest.MedBrev.TrekkSøknad -> TrukketSøknadBrevRequest(
+                person,
+                søknad,
+                request.trukketDato,
+                hentNavnForNavIdent(request.saksbehandler).getOrHandle { "" }
+            )
+            is LukkSøknadRequest.MedBrev.AvvistSøknad -> AvvistSøknadBrevRequest(
+                person,
+                request.brevConfig,
+                hentNavnForNavIdent(request.saksbehandler).getOrHandle { "" }
+            )
         }
     }
 
@@ -138,9 +164,11 @@ internal class LukkSøknadServiceImpl(
     private fun lukkSøknadUtenBrev(
         request: LukkSøknadRequest.UtenBrev,
         søknad: Søknad
-    ) {
+    ): Søknad.Lukket {
         val lukketSøknad = søknad.lukk(request, Tidspunkt.now(clock))
         søknadRepo.oppdaterSøknad(lukketSøknad)
+
+        return lukketSøknad
     }
 
     private fun lukkSøknadMedBrev(
@@ -163,13 +191,14 @@ internal class LukkSøknadServiceImpl(
                 .mapLeft {
                     søknadRepo.oppdaterSøknad(lukketSøknadMedJournalpostId)
                     log.error("Lukket søknad ${søknad.id} med journalpostId $journalpostId. Det skjedde en feil ved brevbestilling som må følges opp manuelt")
-                    return LukketSøknad.MedMangler.KunneIkkeDistribuereBrev(hentSak(søknad.sakId)).right()
+                    return LukketSøknad.MedMangler.KunneIkkeDistribuereBrev(hentSak(søknad.sakId), lukketSøknadMedJournalpostId).right()
                 }
                 .flatMap { brevbestillingId ->
-                    val lukketSøknadMedBrevbestillingId = lukketSøknadMedJournalpostId.medBrevbestillingId(brevbestillingId)
+                    val lukketSøknadMedBrevbestillingId =
+                        lukketSøknadMedJournalpostId.medBrevbestillingId(brevbestillingId)
                     søknadRepo.oppdaterSøknad(lukketSøknadMedBrevbestillingId)
                     log.info("Lukket søknad ${søknad.id} med journalpostId $journalpostId og bestilt brev $brevbestillingId")
-                    LukketSøknad.UtenMangler(hentSak(søknad.sakId)).right()
+                    LukketSøknad.UtenMangler(hentSak(søknad.sakId), lukketSøknadMedBrevbestillingId).right()
                 }
         }
     }

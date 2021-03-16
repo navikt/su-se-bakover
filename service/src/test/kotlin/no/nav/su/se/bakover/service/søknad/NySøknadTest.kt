@@ -8,6 +8,7 @@ import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
+import com.nhaarman.mockitokotlin2.verifyZeroInteractions
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -41,6 +42,8 @@ import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
+import no.nav.su.se.bakover.service.statistikk.Event
+import no.nav.su.se.bakover.service.statistikk.EventObserver
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -73,6 +76,8 @@ class NySøknadTest {
         val pdfGeneratorMock: PdfGenerator = mock()
         val dokArkivMock: DokArkiv = mock()
         val oppgaveServiceMock: OppgaveService = mock()
+        val observerMock: EventObserver = mock()
+
         val søknadService = SøknadServiceImpl(
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
@@ -83,7 +88,7 @@ class NySøknadTest {
             oppgaveService = oppgaveServiceMock,
             søknadMetrics = mock(),
             clock = fixedClock,
-        )
+        ).apply { addObserver(observerMock) }
 
         søknadService.nySøknad(søknadInnhold) shouldBe KunneIkkeOppretteSøknad.FantIkkePerson.left()
         verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
@@ -95,6 +100,7 @@ class NySøknadTest {
             dokArkivMock,
             oppgaveServiceMock
         )
+        verifyZeroInteractions(observerMock)
     }
 
     @Test
@@ -218,6 +224,9 @@ class NySøknadTest {
         val oppgaveServiceMock: OppgaveService = mock {
             on { opprettOppgave(any()) } doReturn oppgaveId.right()
         }
+        val observerMock = mock<EventObserver> {
+            on { handle(any()) }.doNothing()
+        }
 
         val søknadService = SøknadServiceImpl(
             søknadRepo = søknadRepoMock,
@@ -229,7 +238,7 @@ class NySøknadTest {
             oppgaveService = oppgaveServiceMock,
             søknadMetrics = mock(),
             clock = fixedClock,
-        )
+        ).apply { addObserver(observerMock) }
 
         val nySøknad = søknadService.nySøknad(søknadInnhold)
 
@@ -238,7 +247,8 @@ class NySøknadTest {
             sakServiceMock,
             søknadRepoMock,
             pdfGeneratorMock,
-            dokArkivMock
+            dokArkivMock,
+            observerMock
         ) {
             verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
             verify(sakServiceMock).hentSak(argThat<Fnr> { it shouldBe fnr })
@@ -275,6 +285,7 @@ class NySøknadTest {
                 }
             )
         }
+        verify(observerMock).handle(argThat { it shouldBe Event.Statistikk.SøknadStatistikk.SøknadMottatt(nySøknad.orNull()!!.second, sak.saksnummer) })
 
         nySøknad.map { (_, søknad) ->
             søknad.opprettet shouldNotBe sak.søknader.first().opprettet

@@ -13,8 +13,8 @@ internal class RevurderingStatistikkMapper(private val clock: Clock) {
     // Behandling er en avgjørelse i en Sak, knyttet til en konkret behandlingstype (eks. søknad, revurdering, endring, klage)."
     fun map(revurdering: Revurdering): Statistikk.Behandling {
         Statistikk.Behandling(
-            behandlingType = Statistikk.BehandlingType.REVURDERING,
-            behandlingTypeBeskrivelse = Statistikk.BehandlingType.REVURDERING.beskrivelse,
+            behandlingType = Statistikk.Behandling.BehandlingType.REVURDERING,
+            behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.REVURDERING.beskrivelse,
             funksjonellTid = Tidspunkt.now(clock),
             tekniskTid = Tidspunkt.now(clock),
             registrertDato = revurdering.opprettet.toLocalDate(zoneIdOslo),
@@ -26,7 +26,8 @@ internal class RevurderingStatistikkMapper(private val clock: Clock) {
             behandlingStatusBeskrivelse = BehandlingStatusBeskrivelseMapper.map(revurdering),
             versjon = clock.millis(),
             saksbehandler = revurdering.saksbehandler.navIdent,
-            relatertBehandlingId = revurdering.tilRevurdering.id
+            relatertBehandlingId = revurdering.tilRevurdering.id,
+            avsluttet = false
         ).apply {
             return when (revurdering) {
                 is OpprettetRevurdering -> this
@@ -35,7 +36,8 @@ internal class RevurderingStatistikkMapper(private val clock: Clock) {
                     copy(
                         resultat = "Innvilget",
                         resultatBegrunnelse = "Endring i søkers inntekt", // TODO ai: Må støtte flere grunner for revurdering senare
-                        beslutter = revurdering.attestering.attestant.navIdent
+                        beslutter = revurdering.attestering.attestant.navIdent,
+                        avsluttet = true
                     )
                 }
                 is UnderkjentRevurdering -> {

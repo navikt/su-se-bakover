@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.service.statistikk
 
 import no.nav.su.se.bakover.domain.Sak
+import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
@@ -18,6 +20,14 @@ interface EventObserver {
 sealed class Event {
     sealed class Statistikk : Event() {
         data class SakOpprettet(val sak: Sak) : Statistikk()
+
+        sealed class SøknadStatistikk : Statistikk() {
+            abstract val søknad: Søknad
+            abstract val saksnummer: Saksnummer
+
+            data class SøknadMottatt(override val søknad: Søknad, override val saksnummer: Saksnummer) : SøknadStatistikk()
+            data class SøknadLukket(override val søknad: Søknad.Lukket, override val saksnummer: Saksnummer) : SøknadStatistikk()
+        }
 
         sealed class SøknadsbehandlingStatistikk : Statistikk() {
             abstract val søknadsbehandling: Søknadsbehandling

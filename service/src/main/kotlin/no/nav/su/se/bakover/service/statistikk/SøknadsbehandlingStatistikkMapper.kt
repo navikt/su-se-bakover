@@ -13,18 +13,20 @@ internal class SøknadsbehandlingStatistikkMapper(
     private val clock: Clock
 ) {
     fun map(søknadsbehandling: Søknadsbehandling): Statistikk.Behandling = Statistikk.Behandling(
-        behandlingType = Statistikk.BehandlingType.SOKNAD,
-        behandlingTypeBeskrivelse = Statistikk.BehandlingType.SOKNAD.beskrivelse,
+        behandlingType = Statistikk.Behandling.BehandlingType.SOKNAD,
+        behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.SOKNAD.beskrivelse,
         funksjonellTid = FunksjonellTidMapper.map(søknadsbehandling),
         tekniskTid = Tidspunkt.now(clock),
         registrertDato = RegistrertDatoMapper.map(søknadsbehandling),
         mottattDato = søknadsbehandling.opprettet.toLocalDate(zoneIdOslo),
         behandlingId = søknadsbehandling.id,
         sakId = søknadsbehandling.sakId,
+        søknadId = søknadsbehandling.søknad.id,
         saksnummer = søknadsbehandling.saksnummer.nummer,
         behandlingStatus = BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(søknadsbehandling.status).status.toString(),
         behandlingStatusBeskrivelse = BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(søknadsbehandling.status).beskrivelse,
-        versjon = clock.millis()
+        versjon = clock.millis(),
+        avsluttet = false,
     ).apply {
         return when (søknadsbehandling) {
             is Søknadsbehandling.Vilkårsvurdert.Uavklart -> {
@@ -35,7 +37,8 @@ internal class SøknadsbehandlingStatistikkMapper(
                     saksbehandler = søknadsbehandling.saksbehandler.navIdent,
                     beslutter = søknadsbehandling.attestering.attestant.navIdent,
                     resultat = ResultatOgBegrunnelseMapper.map(søknadsbehandling).resultat,
-                    resultatBegrunnelse = ResultatOgBegrunnelseMapper.map(søknadsbehandling).begrunnelse
+                    resultatBegrunnelse = ResultatOgBegrunnelseMapper.map(søknadsbehandling).begrunnelse,
+                    avsluttet = true
                 )
             }
             is Søknadsbehandling.TilAttestering -> {
@@ -113,6 +116,7 @@ internal class SøknadsbehandlingStatistikkMapper(
         }
     }
 
+    // TODO ai 08.03.2021: Se over dette igen, misstänker att det har blivit misstolkat
     internal object FunksjonellTidMapper {
         fun map(søknadsbehandling: Søknadsbehandling) = when (søknadsbehandling) {
             is Søknadsbehandling.Vilkårsvurdert.Uavklart -> søknadsbehandling.opprettet

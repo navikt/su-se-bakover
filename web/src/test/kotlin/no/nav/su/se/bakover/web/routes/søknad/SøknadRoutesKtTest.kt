@@ -219,8 +219,9 @@ internal class SøknadRoutesKtTest {
 
     @Test
     fun `lager en søknad, så trekker søknaden`() {
+        val lukketSøknad: Søknad.Lukket = mock()
         val lukkSøknadServiceMock = mock<LukkSøknadService> {
-            on { lukkSøknad(any()) } doReturn LukketSøknad.UtenMangler(sak).right()
+            on { lukkSøknad(any()) } doReturn LukketSøknad.UtenMangler(sak, lukketSøknad).right()
         }
 
         withTestApplication({
