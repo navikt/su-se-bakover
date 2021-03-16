@@ -26,7 +26,14 @@ internal data class VedtakJson(
     val saksnummer: String,
     val fnr: String,
     val periode: PeriodeJson,
-)
+    val resultat: Resultat,
+) {
+    internal enum class Resultat {
+        INNVILGET,
+        AVSLÅTT,
+        OPPHØRT
+    }
+}
 
 internal fun Vedtak.InnvilgetStønad.toJson(): VedtakJson = VedtakJson(
     id = id.toString(),
@@ -42,4 +49,5 @@ internal fun Vedtak.InnvilgetStønad.toJson(): VedtakJson = VedtakJson(
     saksnummer = behandling.saksnummer.toString(),
     fnr = behandling.fnr.toString(),
     periode = periode.toJson(),
+    resultat = VedtakJson.Resultat.INNVILGET,
 )
