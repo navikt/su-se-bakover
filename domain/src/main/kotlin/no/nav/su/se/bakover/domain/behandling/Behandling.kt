@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.domain.behandling
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import java.util.UUID
 
 interface Behandling {

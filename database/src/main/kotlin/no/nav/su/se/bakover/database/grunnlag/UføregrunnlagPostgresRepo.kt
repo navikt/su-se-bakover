@@ -9,8 +9,8 @@ import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.database.withTransaction
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -18,7 +18,7 @@ internal class UføregrunnlagPostgresRepo(
     private val dataSource: DataSource
 ) : UføregrunnlagRepo {
 
-    override fun lagre(behandlingId: UUID, uføregrunnlag: List<Uføregrunnlag>) {
+    override fun lagre(behandlingId: UUID, uføregrunnlag: List<Grunnlag.Uføregrunnlag>) {
         dataSource.withTransaction { tx ->
             slettForBehandlingId(behandlingId)
             uføregrunnlag.forEach {
@@ -28,7 +28,7 @@ internal class UføregrunnlagPostgresRepo(
         }
     }
 
-    override fun hent(behandlingId: UUID): List<Uføregrunnlag> {
+    override fun hent(behandlingId: UUID): List<Grunnlag.Uføregrunnlag> {
         return dataSource.withSession { sesison ->
             """
                 select * from grunnlag_uføre gu
@@ -78,8 +78,8 @@ internal class UføregrunnlagPostgresRepo(
         }
     }
 
-    private fun Row.toUføregrunnlag(): Uføregrunnlag {
-        return Uføregrunnlag(
+    private fun Row.toUføregrunnlag(): Grunnlag.Uføregrunnlag {
+        return Grunnlag.Uføregrunnlag(
             id = uuid("id"),
             opprettet = tidspunkt("opprettet"),
             periode = Periode.create(localDate("fom"), localDate("tom")),
@@ -88,7 +88,7 @@ internal class UføregrunnlagPostgresRepo(
         )
     }
 
-    private fun lagre(uføregrunnlag: Uføregrunnlag, session: Session) {
+    private fun lagre(uføregrunnlag: Grunnlag.Uføregrunnlag, session: Session) {
         """
             insert into grunnlag_uføre
             (

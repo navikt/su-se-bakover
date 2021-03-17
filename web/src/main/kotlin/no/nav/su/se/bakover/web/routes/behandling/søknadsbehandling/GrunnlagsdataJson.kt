@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.routes.behandling.søknadsbehandling
 
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.web.routes.behandling.beregning.PeriodeJson
 import no.nav.su.se.bakover.web.routes.behandling.beregning.PeriodeJson.Companion.toJson
 

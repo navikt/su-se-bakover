@@ -15,29 +15,29 @@ data class Grunnlagsdatasett(
 )
 
 data class Grunnlagsdata(
-    val uføregrunnlag: List<Uføregrunnlag> = emptyList()
+    val uføregrunnlag: List<Grunnlag.Uføregrunnlag> = emptyList()
 ) {
     companion object {
         val EMPTY = Grunnlagsdata()
     }
 }
 
-private val stigendeFraOgMed = Comparator<Uføregrunnlag> { o1, o2 ->
+private val stigendeFraOgMed = Comparator<Grunnlag.Uføregrunnlag> { o1, o2 ->
     o1.periode.getFraOgMed().compareTo(o2.periode.getFraOgMed())
 }
 
-private val nyesteFørst = Comparator<Uføregrunnlag> { o1, o2 ->
+private val nyesteFørst = Comparator<Grunnlag.Uføregrunnlag> { o1, o2 ->
     o2.opprettet.instant.compareTo(o1.opprettet.instant)
 }
 // TODO generalize algorithm for reuse on multiple objects implementing periodisert informasjon/oppettet tidspunkt.
 data class UføregrunnlagTidslinje(
     private val periode: Periode,
-    private val objekter: List<Uføregrunnlag>,
+    private val objekter: List<Grunnlag.Uføregrunnlag>,
     private val clock: Clock
 ) {
     val tidslinje = lagTidslinje()
 
-    private fun lagTidslinje(): List<Uføregrunnlag> {
+    private fun lagTidslinje(): List<Grunnlag.Uføregrunnlag> {
         if (objekter.isEmpty()) return emptyList()
 
         val delvisOverlappende = objekter.fjernAlleSomOverskivesFullstendigAvNyere()
@@ -46,9 +46,9 @@ data class UføregrunnlagTidslinje(
         return periodiser(delvisOverlappende)
     }
 
-    private fun periodiser(tempResult: List<Uføregrunnlag>): List<Uføregrunnlag> {
+    private fun periodiser(tempResult: List<Grunnlag.Uføregrunnlag>): List<Grunnlag.Uføregrunnlag> {
         val queue = LinkedList(tempResult)
-        val result = mutableListOf<Uføregrunnlag>()
+        val result = mutableListOf<Grunnlag.Uføregrunnlag>()
 
         while (queue.isNotEmpty()) {
             val first = queue.poll()
@@ -194,13 +194,13 @@ data class UføregrunnlagTidslinje(
         }
     }
 
-    private fun List<Uføregrunnlag>.overlappMedAndreEksisterer(): Boolean {
+    private fun List<Grunnlag.Uføregrunnlag>.overlappMedAndreEksisterer(): Boolean {
         return filter { t1 ->
             exists { t2 -> t1 != t2 && t1.periode overlapper t2.periode }
         }.count() > 0
     }
 
-    private fun List<Uføregrunnlag>.fjernAlleSomOverskivesFullstendigAvNyere(): List<Uføregrunnlag> {
+    private fun List<Grunnlag.Uføregrunnlag>.fjernAlleSomOverskivesFullstendigAvNyere(): List<Grunnlag.Uføregrunnlag> {
         return filterNot { t1 ->
             exists { t2 -> t1.opprettet.instant < t2.opprettet.instant && t2.periode.inneholder(t1.periode) }
         }

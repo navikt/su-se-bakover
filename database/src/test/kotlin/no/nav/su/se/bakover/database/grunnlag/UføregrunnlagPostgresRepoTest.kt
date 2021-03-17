@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.database.antall
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Uføregrunnlag
 import org.junit.jupiter.api.Test
 
 internal class UføregrunnlagPostgresRepoTest {
