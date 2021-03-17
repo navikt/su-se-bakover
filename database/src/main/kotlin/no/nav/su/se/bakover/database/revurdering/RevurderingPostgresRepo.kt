@@ -387,6 +387,7 @@ internal class RevurderingPostgresRepo(
                         saksbehandler = :saksbehandler,
                         beregning = to_json(:beregning::json),
                         simulering = to_json(:simulering::json),
+                        revurderingsType = :revurderingsType
                     where
                         id = :id
                 """.trimIndent()
@@ -416,7 +417,8 @@ internal class RevurderingPostgresRepo(
                         beregning = to_json(:beregning::json),
                         simulering = to_json(:simulering::json),
                         oppgaveId = :oppgaveId,
-                        fritekstTilBrev = :fritekstTilBrev
+                        fritekstTilBrev = :fritekstTilBrev,
+                        revurderingsType = :revurderingsType
                     where
                         id = :id
                 """.trimIndent()
@@ -429,8 +431,8 @@ internal class RevurderingPostgresRepo(
                     "oppgaveId" to revurdering.oppgaveId.toString(),
                     "fritekstTilBrev" to revurdering.fritekstTilBrev,
                     "revurderingsType" to when (revurdering) {
-                        is RevurderingTilAttestering.Innvilget -> RevurderingsType.SIMULERT_INNVILGET.toString()
-                        is RevurderingTilAttestering.Opphørt -> RevurderingsType.SIMULERT_OPPHØRT.toString()
+                        is RevurderingTilAttestering.Innvilget -> RevurderingsType.TIL_ATTESTERING_INNVILGET.toString()
+                        is RevurderingTilAttestering.Opphørt -> RevurderingsType.TIL_ATTESTERING_OPPHØRT.toString()
                     }
                 ),
                 session
@@ -451,7 +453,8 @@ internal class RevurderingPostgresRepo(
                         attestering = to_json(:attestering::json),
                         utbetalingId = :utbetalingId,
                         iverksattjournalpostid = :iverksattjournalpostid,
-                        iverksattbrevbestillingid = :iverksattbrevbestillingid
+                        iverksattbrevbestillingid = :iverksattbrevbestillingid,
+                        revurderingsType = :revurderingsType
                     where
                         id = :id
                 """.trimIndent()
@@ -487,7 +490,8 @@ internal class RevurderingPostgresRepo(
                         revurdering
                     set
                         oppgaveId = :oppgaveId,
-                        attestering = to_json(:attestering::json)
+                        attestering = to_json(:attestering::json),
+                        revurderingsType = :revurderingsType
                     where
                         id = :id
                 """.trimIndent()

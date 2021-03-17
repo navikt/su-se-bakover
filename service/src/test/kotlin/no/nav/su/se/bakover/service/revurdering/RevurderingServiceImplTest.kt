@@ -370,7 +370,7 @@ internal class RevurderingServiceImplTest {
             fradrag = listOf()
         )
         result shouldBe KunneIkkeBeregneOgSimulereRevurdering.UgyldigTilstand(
-            RevurderingTilAttestering::class,
+            RevurderingTilAttestering.Innvilget::class,
             SimulertRevurdering::class
         )
             .left()

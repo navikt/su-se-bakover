@@ -178,7 +178,7 @@ internal class RevurderingJsonTest {
         """.trimIndent()
 
         JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson()), true)
-        deserialize<SimulertRevurderingJson>(revurderingJson) shouldBe revurdering.toJson()
+        deserialize<SimulertRevurderingJson.Innvilget>(revurderingJson) shouldBe revurdering.toJson()
     }
 
     @Test
@@ -219,7 +219,7 @@ internal class RevurderingJsonTest {
         """.trimIndent()
 
         JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson()), true)
-        deserialize<TilAttesteringJson>(revurderingJson) shouldBe revurdering.toJson()
+        deserialize<TilAttesteringJson.Innvilget>(revurderingJson) shouldBe revurdering.toJson()
     }
 
     @Test
@@ -272,7 +272,7 @@ internal class RevurderingJsonTest {
         """.trimIndent()
 
         JSONAssert.assertEquals(expected, serialize(revurdering.toJson()), true)
-        deserialize<UnderkjentRevurderingJson>(expected) shouldBe revurdering.toJson()
+        deserialize<UnderkjentRevurderingJson.Innvilget>(expected) shouldBe revurdering.toJson()
     }
 
     @Test
@@ -317,6 +317,6 @@ internal class RevurderingJsonTest {
         """.trimIndent()
 
         JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson()), true)
-        deserialize<IverksattRevurderingJson>(revurderingJson) shouldBe revurdering.toJson()
+        deserialize<IverksattRevurderingJson.Innvilget>(revurderingJson) shouldBe revurdering.toJson()
     }
 }
