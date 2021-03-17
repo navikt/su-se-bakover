@@ -218,5 +218,5 @@ internal class FinnAttestantVisitorTest {
     }
     private val simulertRevurdering = beregnetRevurdering.toSimulert(mock())
     private val tilAttesteringRevurdering = simulertRevurdering.tilAttestering(mock(), saksbehandler, "fritekst til brevet")
-    private val iverksattRevurdering = tilAttesteringRevurdering.iverksett(attestant) { UUID30.randomUUID().right() }
+    private val iverksattRevurdering = tilAttesteringRevurdering.tilIverksatt(attestant) { UUID30.randomUUID().right() }
 }

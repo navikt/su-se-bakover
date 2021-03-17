@@ -169,7 +169,7 @@ internal class RevurderingServiceImpl(
                         revurderingRepo.lagre(beregnetRevurdering)
                         beregnetRevurdering.right()
                     }
-                    is BeregnetRevurdering.Innvilget -> {
+                    is BeregnetRevurdering.Innvilget, is BeregnetRevurdering.Opphørt -> {
                         utbetalingService.simulerUtbetaling(
                             sakId = beregnetRevurdering.sakId,
                             saksbehandler = saksbehandler,
@@ -302,7 +302,7 @@ internal class RevurderingServiceImpl(
     ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering> {
         return when (val revurdering = revurderingRepo.hent(revurderingId)) {
             is RevurderingTilAttestering -> {
-                val iverksattRevurdering = revurdering.iverksett(attestant) {
+                val iverksattRevurdering = revurdering.tilIverksatt(attestant) {
                     utbetalingService.utbetal(
                         sakId = revurdering.sakId,
                         beregning = revurdering.beregning,

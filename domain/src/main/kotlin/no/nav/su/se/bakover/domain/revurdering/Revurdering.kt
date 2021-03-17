@@ -130,6 +130,9 @@ sealed class BeregnetRevurdering : Revurdering() {
     abstract override val oppgaveId: OppgaveId
     abstract val beregning: Beregning
 
+    abstract fun toSimulert(simulering: Simulering): SimulertRevurdering
+
+    // TODO: skal de inn på subtyper?
     override fun accept(visitor: RevurderingVisitor) {
         visitor.visit(this)
     }
@@ -154,7 +157,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val oppgaveId: OppgaveId,
         override val fritekstTilBrev: String,
     ) : BeregnetRevurdering() {
-        fun toSimulert(simulering: Simulering) = SimulertRevurdering(
+        override fun toSimulert(simulering: Simulering) = SimulertRevurdering.Innvilget(
             id = id,
             periode = periode,
             opprettet = opprettet,
@@ -176,35 +179,118 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val beregning: Beregning,
         override val oppgaveId: OppgaveId,
         override val fritekstTilBrev: String,
-    ) : BeregnetRevurdering()
-}
-
-data class SimulertRevurdering(
-    override val id: UUID,
-    override val periode: Periode,
-    override val opprettet: Tidspunkt,
-    override val tilRevurdering: Vedtak.InnvilgetStønad,
-    override val saksbehandler: Saksbehandler,
-    override val oppgaveId: OppgaveId,
-    val beregning: Beregning,
-    val simulering: Simulering,
-    override val fritekstTilBrev: String,
-) : Revurdering() {
-    override fun accept(visitor: RevurderingVisitor) {
-        visitor.visit(this)
+    ) : BeregnetRevurdering() {
+        override fun toSimulert(simulering: Simulering): SimulertRevurdering {
+            throw RuntimeException("Skal ikke kunne simulere en beregning som er til avslag")
+        }
     }
 
-    fun tilAttestering(attesteringsoppgaveId: OppgaveId, saksbehandler: Saksbehandler, fritekstTilBrev: String) = RevurderingTilAttestering(
-        id = id,
-        periode = periode,
-        opprettet = opprettet,
-        tilRevurdering = tilRevurdering,
-        saksbehandler = saksbehandler,
-        beregning = beregning,
-        simulering = simulering,
-        oppgaveId = attesteringsoppgaveId,
-        fritekstTilBrev = fritekstTilBrev
-    )
+    data class Opphørt(
+        override val id: UUID,
+        override val periode: Periode,
+        override val opprettet: Tidspunkt,
+        override val tilRevurdering: Vedtak.InnvilgetStønad,
+        override val saksbehandler: Saksbehandler,
+        override val beregning: Beregning,
+        override val oppgaveId: OppgaveId,
+        override val fritekstTilBrev: String,
+    ) : BeregnetRevurdering() {
+        override fun toSimulert(simulering: Simulering) = SimulertRevurdering.Opphørt(
+            id = id,
+            periode = periode,
+            opprettet = opprettet,
+            tilRevurdering = tilRevurdering,
+            beregning = beregning,
+            simulering = simulering,
+            saksbehandler = saksbehandler,
+            oppgaveId = oppgaveId,
+            fritekstTilBrev = fritekstTilBrev
+        )
+    }
+}
+
+sealed class SimulertRevurdering : Revurdering() {
+    abstract override val id: UUID
+    abstract override val periode: Periode
+    abstract override val opprettet: Tidspunkt
+    abstract override val tilRevurdering: Vedtak.InnvilgetStønad
+    abstract override val saksbehandler: Saksbehandler
+    abstract override val oppgaveId: OppgaveId
+    abstract val beregning: Beregning
+    abstract val simulering: Simulering
+    abstract override val fritekstTilBrev: String
+
+    abstract override fun accept(visitor: RevurderingVisitor)
+
+    abstract fun tilAttestering(
+        attesteringsoppgaveId: OppgaveId,
+        saksbehandler: Saksbehandler,
+        fritekstTilBrev: String
+    ): RevurderingTilAttestering
+
+    data class Innvilget(
+        override val id: UUID,
+        override val periode: Periode,
+        override val opprettet: Tidspunkt,
+        override val tilRevurdering: Vedtak.InnvilgetStønad,
+        override val saksbehandler: Saksbehandler,
+        override val oppgaveId: OppgaveId,
+        override val beregning: Beregning,
+        override val simulering: Simulering,
+        override val fritekstTilBrev: String,
+    ) : SimulertRevurdering() {
+        override fun accept(visitor: RevurderingVisitor) {
+            visitor.visit(this)
+        }
+
+        override fun tilAttestering(
+            attesteringsoppgaveId: OppgaveId,
+            saksbehandler: Saksbehandler,
+            fritekstTilBrev: String
+        ) = RevurderingTilAttestering.Innvilget(
+            id = id,
+            periode = periode,
+            opprettet = opprettet,
+            tilRevurdering = tilRevurdering,
+            saksbehandler = saksbehandler,
+            beregning = beregning,
+            simulering = simulering,
+            oppgaveId = attesteringsoppgaveId,
+            fritekstTilBrev = fritekstTilBrev
+        )
+    }
+
+    data class Opphørt(
+        override val id: UUID,
+        override val periode: Periode,
+        override val opprettet: Tidspunkt,
+        override val tilRevurdering: Vedtak.InnvilgetStønad,
+        override val saksbehandler: Saksbehandler,
+        override val oppgaveId: OppgaveId,
+        override val beregning: Beregning,
+        override val simulering: Simulering,
+        override val fritekstTilBrev: String,
+    ) : SimulertRevurdering() {
+        override fun accept(visitor: RevurderingVisitor) {
+            visitor.visit(this)
+        }
+
+        override fun tilAttestering(
+            attesteringsoppgaveId: OppgaveId,
+            saksbehandler: Saksbehandler,
+            fritekstTilBrev: String
+        ) = RevurderingTilAttestering.Opphørt(
+            id = id,
+            periode = periode,
+            opprettet = opprettet,
+            tilRevurdering = tilRevurdering,
+            saksbehandler = saksbehandler,
+            beregning = beregning,
+            simulering = simulering,
+            oppgaveId = attesteringsoppgaveId,
+            fritekstTilBrev = fritekstTilBrev
+        )
+    }
 
     fun oppdaterPeriode(periode: Periode) = OpprettetRevurdering(
         id = id,
@@ -217,20 +303,106 @@ data class SimulertRevurdering(
     )
 }
 
-data class RevurderingTilAttestering(
-    override val id: UUID,
-    override val periode: Periode,
-    override val opprettet: Tidspunkt,
-    override val tilRevurdering: Vedtak.InnvilgetStønad,
-    override val saksbehandler: Saksbehandler,
-    val beregning: Beregning,
-    val simulering: Simulering,
-    override val oppgaveId: OppgaveId,
-    override val fritekstTilBrev: String,
-) : Revurdering() {
+sealed class RevurderingTilAttestering : Revurdering() {
+    abstract override val id: UUID
+    abstract override val periode: Periode
+    abstract override val opprettet: Tidspunkt
+    abstract override val tilRevurdering: Vedtak.InnvilgetStønad
+    abstract override val saksbehandler: Saksbehandler
+    abstract val beregning: Beregning
+    abstract val simulering: Simulering
+    abstract override val oppgaveId: OppgaveId
+    abstract override val fritekstTilBrev: String
 
-    override fun accept(visitor: RevurderingVisitor) {
-        visitor.visit(this)
+    abstract override fun accept(visitor: RevurderingVisitor)
+    abstract fun tilIverksatt(
+        attestant: NavIdentBruker.Attestant,
+        utbetal: () -> Either<KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale, UUID30>
+    ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering>
+
+    data class Innvilget(
+        override val id: UUID,
+        override val periode: Periode,
+        override val opprettet: Tidspunkt,
+        override val tilRevurdering: Vedtak.InnvilgetStønad,
+        override val saksbehandler: Saksbehandler,
+        override val beregning: Beregning,
+        override val simulering: Simulering,
+        override val oppgaveId: OppgaveId,
+        override val fritekstTilBrev: String,
+    ) : RevurderingTilAttestering() {
+        override fun accept(visitor: RevurderingVisitor) {
+            visitor.visit(this)
+        }
+
+        override fun tilIverksatt(
+            attestant: NavIdentBruker.Attestant,
+            utbetal: () -> Either<KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale, UUID30>
+        ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering.Innvilget> {
+
+            if (saksbehandler.navIdent == attestant.navIdent) {
+                return KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+            }
+            return utbetal().map {
+                IverksattRevurdering.Innvilget(
+                    id = id,
+                    periode = periode,
+                    opprettet = opprettet,
+                    tilRevurdering = tilRevurdering,
+                    saksbehandler = saksbehandler,
+                    beregning = beregning,
+                    simulering = simulering,
+                    oppgaveId = oppgaveId,
+                    fritekstTilBrev = fritekstTilBrev,
+                    attestering = Attestering.Iverksatt(attestant),
+                    utbetalingId = it,
+                    eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
+                )
+            }
+        }
+    }
+
+    data class Opphørt(
+        override val id: UUID,
+        override val periode: Periode,
+        override val opprettet: Tidspunkt,
+        override val tilRevurdering: Vedtak.InnvilgetStønad,
+        override val saksbehandler: Saksbehandler,
+        override val beregning: Beregning,
+        override val simulering: Simulering,
+        override val oppgaveId: OppgaveId,
+        override val fritekstTilBrev: String,
+    ) : RevurderingTilAttestering() {
+        override fun accept(visitor: RevurderingVisitor) {
+            visitor.visit(this)
+        }
+
+        // TODO: sjekk om vi skal utbetale 0 utbetalinger, eller ny status
+        override fun tilIverksatt(
+            attestant: NavIdentBruker.Attestant,
+            utbetal: () -> Either<KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale, UUID30>
+        ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering.Opphørt> {
+
+            if (saksbehandler.navIdent == attestant.navIdent) {
+                return KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+            }
+            return utbetal().map {
+                IverksattRevurdering.Opphørt(
+                    id = id,
+                    periode = periode,
+                    opprettet = opprettet,
+                    tilRevurdering = tilRevurdering,
+                    saksbehandler = saksbehandler,
+                    beregning = beregning,
+                    simulering = simulering,
+                    oppgaveId = oppgaveId,
+                    fritekstTilBrev = fritekstTilBrev,
+                    attestering = Attestering.Iverksatt(attestant),
+                    utbetalingId = it,
+                    eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
+                )
+            }
+        }
     }
 
     override fun beregn(fradrag: List<Fradrag>): Either<KunneIkkeBeregneRevurdering, BeregnetRevurdering> {
@@ -246,15 +418,12 @@ data class RevurderingTilAttestering(
         }
     }
 
-    fun iverksett(
-        attestant: NavIdentBruker.Attestant,
-        utbetal: () -> Either<KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale, UUID30>
-    ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering> {
-        if (saksbehandler.navIdent == attestant.navIdent) {
-            return KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
-        }
-        return utbetal().map {
-            IverksattRevurdering(
+    fun underkjenn(
+        attestering: Attestering,
+        oppgaveId: OppgaveId
+    ): UnderkjentRevurdering {
+        when (this) {
+            is Innvilget -> return UnderkjentRevurdering.Innvilget(
                 id = id,
                 periode = periode,
                 opprettet = opprettet,
@@ -263,19 +432,143 @@ data class RevurderingTilAttestering(
                 beregning = beregning,
                 simulering = simulering,
                 oppgaveId = oppgaveId,
-                attestering = Attestering.Iverksatt(attestant),
-                utbetalingId = it,
-                eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
+                attestering = attestering,
+                fritekstTilBrev = fritekstTilBrev
+            )
+            is Opphørt -> return UnderkjentRevurdering.Opphørt(
+                id = id,
+                periode = periode,
+                opprettet = opprettet,
+                tilRevurdering = tilRevurdering,
+                saksbehandler = saksbehandler,
+                beregning = beregning,
+                simulering = simulering,
+                oppgaveId = oppgaveId,
+                attestering = attestering,
                 fritekstTilBrev = fritekstTilBrev
             )
         }
     }
+}
 
-    fun underkjenn(
-        attestering: Attestering,
-        oppgaveId: OppgaveId
-    ): UnderkjentRevurdering {
-        return UnderkjentRevurdering(
+sealed class IverksattRevurdering : Revurdering() {
+    abstract override val id: UUID
+    abstract override val periode: Periode
+    abstract override val opprettet: Tidspunkt
+    abstract override val tilRevurdering: Vedtak.InnvilgetStønad
+    abstract override val saksbehandler: Saksbehandler
+    abstract override val oppgaveId: OppgaveId
+    abstract override val fritekstTilBrev: String
+    abstract val beregning: Beregning
+    abstract val simulering: Simulering
+    abstract val attestering: Attestering.Iverksatt
+    abstract val utbetalingId: UUID30
+    abstract val eksterneIverksettingsteg: JournalføringOgBrevdistribusjon
+
+    abstract override fun accept(visitor: RevurderingVisitor)
+    abstract fun oppdaterIverksettingsteg(oppdatertIverksettingsteg: JournalføringOgBrevdistribusjon): IverksattRevurdering
+
+    data class Innvilget(
+        override val id: UUID,
+        override val periode: Periode,
+        override val opprettet: Tidspunkt,
+        override val tilRevurdering: Vedtak.InnvilgetStønad,
+        override val saksbehandler: Saksbehandler,
+        override val oppgaveId: OppgaveId,
+        override val beregning: Beregning,
+        override val simulering: Simulering,
+        override val attestering: Attestering.Iverksatt,
+        override val utbetalingId: UUID30,
+        override val eksterneIverksettingsteg: JournalføringOgBrevdistribusjon,
+        override val fritekstTilBrev: String,
+    ) : IverksattRevurdering() {
+
+        override fun accept(visitor: RevurderingVisitor) {
+            visitor.visit(this)
+        }
+
+        override fun oppdaterIverksettingsteg(oppdatertIverksettingsteg: JournalføringOgBrevdistribusjon): Innvilget {
+            return copy(eksterneIverksettingsteg = oppdatertIverksettingsteg)
+        }
+    }
+
+    data class Opphørt(
+        override val id: UUID,
+        override val periode: Periode,
+        override val opprettet: Tidspunkt,
+        override val tilRevurdering: Vedtak.InnvilgetStønad,
+        override val saksbehandler: Saksbehandler,
+        override val oppgaveId: OppgaveId,
+        override val beregning: Beregning,
+        override val simulering: Simulering,
+        override val attestering: Attestering.Iverksatt,
+        override val utbetalingId: UUID30,
+        override val eksterneIverksettingsteg: JournalføringOgBrevdistribusjon,
+        override val fritekstTilBrev: String,
+    ) : IverksattRevurdering() {
+
+        override fun accept(visitor: RevurderingVisitor) {
+            visitor.visit(this)
+        }
+
+        override fun oppdaterIverksettingsteg(oppdatertIverksettingsteg: JournalføringOgBrevdistribusjon): Opphørt {
+            return copy(eksterneIverksettingsteg = oppdatertIverksettingsteg)
+        }
+    }
+
+    fun journalfør(journalfør: () -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre, IverksattRevurdering> {
+        return eksterneIverksettingsteg.journalfør(journalfør).map { oppdaterIverksettingsteg(it) }
+    }
+
+    fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev, IverksattRevurdering> {
+        return eksterneIverksettingsteg.distribuerBrev(distribuerBrev).map { oppdaterIverksettingsteg(it) }
+    }
+
+    override fun beregn(fradrag: List<Fradrag>): Either<KunneIkkeBeregneRevurdering, BeregnetRevurdering> {
+        throw RuntimeException("Skal ikke kunne beregne når revurderingen er iverksatt")
+    }
+}
+
+sealed class UnderkjentRevurdering : Revurdering() {
+    abstract override val id: UUID
+    abstract override val periode: Periode
+    abstract override val opprettet: Tidspunkt
+    abstract override val tilRevurdering: Vedtak.InnvilgetStønad
+    abstract override val saksbehandler: Saksbehandler
+    abstract val beregning: Beregning
+    abstract val simulering: Simulering
+    abstract override val oppgaveId: OppgaveId
+    abstract val attestering: Attestering
+    abstract override val fritekstTilBrev: String
+
+    abstract override fun accept(visitor: RevurderingVisitor)
+    abstract fun tilAttestering(
+        oppgaveId: OppgaveId,
+        saksbehandler: Saksbehandler,
+        fritekstTilBrev: String
+    ): RevurderingTilAttestering
+
+    data class Innvilget(
+        override val id: UUID,
+        override val periode: Periode,
+        override val opprettet: Tidspunkt,
+        override val tilRevurdering: Vedtak.InnvilgetStønad,
+        override val saksbehandler: Saksbehandler,
+        override val beregning: Beregning,
+        override val simulering: Simulering,
+        override val oppgaveId: OppgaveId,
+        override val attestering: Attestering,
+        override val fritekstTilBrev: String,
+    ) : UnderkjentRevurdering() {
+        override fun accept(visitor: RevurderingVisitor) {
+            visitor.visit(this)
+        }
+
+        override fun tilAttestering(
+            oppgaveId: OppgaveId,
+            saksbehandler: Saksbehandler,
+            fritekstTilBrev: String
+        ) = RevurderingTilAttestering.Innvilget(
             id = id,
             periode = periode,
             opprettet = opprettet,
@@ -284,74 +577,41 @@ data class RevurderingTilAttestering(
             beregning = beregning,
             simulering = simulering,
             oppgaveId = oppgaveId,
-            attestering = attestering,
             fritekstTilBrev = fritekstTilBrev
         )
     }
-}
 
-data class IverksattRevurdering(
-    override val id: UUID,
-    override val periode: Periode,
-    override val opprettet: Tidspunkt,
-    override val tilRevurdering: Vedtak.InnvilgetStønad,
-    override val saksbehandler: Saksbehandler,
-    override val oppgaveId: OppgaveId,
-    val beregning: Beregning,
-    val simulering: Simulering,
-    val attestering: Attestering.Iverksatt,
-    val utbetalingId: UUID30,
-    val eksterneIverksettingsteg: JournalføringOgBrevdistribusjon,
-    override val fritekstTilBrev: String,
-) : Revurdering() {
-    override fun accept(visitor: RevurderingVisitor) {
-        visitor.visit(this)
-    }
+    data class Opphørt(
+        override val id: UUID,
+        override val periode: Periode,
+        override val opprettet: Tidspunkt,
+        override val tilRevurdering: Vedtak.InnvilgetStønad,
+        override val saksbehandler: Saksbehandler,
+        override val beregning: Beregning,
+        override val simulering: Simulering,
+        override val oppgaveId: OppgaveId,
+        override val attestering: Attestering,
+        override val fritekstTilBrev: String,
+    ) : UnderkjentRevurdering() {
+        override fun accept(visitor: RevurderingVisitor) {
+            visitor.visit(this)
+        }
 
-    fun journalfør(journalfør: () -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre, IverksattRevurdering> {
-        return eksterneIverksettingsteg.journalfør(journalfør).map { copy(eksterneIverksettingsteg = it) }
-    }
-
-    fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev, IverksattRevurdering> {
-        return eksterneIverksettingsteg.distribuerBrev(distribuerBrev)
-            .map { copy(eksterneIverksettingsteg = it) }
-    }
-
-    override fun beregn(fradrag: List<Fradrag>): Either<KunneIkkeBeregneRevurdering, BeregnetRevurdering> {
-        throw RuntimeException("Skal ikke kunne beregne når revurderingen er til attestering")
-    }
-}
-
-data class UnderkjentRevurdering(
-    override val id: UUID,
-    override val periode: Periode,
-    override val opprettet: Tidspunkt,
-    override val tilRevurdering: Vedtak.InnvilgetStønad,
-    override val saksbehandler: Saksbehandler,
-    val beregning: Beregning,
-    val simulering: Simulering,
-    override val oppgaveId: OppgaveId,
-    val attestering: Attestering,
-    override val fritekstTilBrev: String
-) : Revurdering() {
-    override fun accept(visitor: RevurderingVisitor) {
-        visitor.visit(this)
-    }
-
-    fun tilAttestering(oppgaveId: OppgaveId, saksbehandler: Saksbehandler, fritekstTilBrev: String) = RevurderingTilAttestering(
-        id = id,
-        periode = periode,
-        opprettet = opprettet,
-        tilRevurdering = tilRevurdering,
-        saksbehandler = saksbehandler,
-        beregning = beregning,
-        simulering = simulering,
-        oppgaveId = oppgaveId,
-        fritekstTilBrev = fritekstTilBrev
-    )
-
-    fun nyOppgaveId(nyOppgaveId: OppgaveId): UnderkjentRevurdering {
-        return this.copy(oppgaveId = nyOppgaveId)
+        override fun tilAttestering(
+            oppgaveId: OppgaveId,
+            saksbehandler: Saksbehandler,
+            fritekstTilBrev: String
+        ) = RevurderingTilAttestering.Opphørt(
+            id = id,
+            periode = periode,
+            opprettet = opprettet,
+            tilRevurdering = tilRevurdering,
+            saksbehandler = saksbehandler,
+            beregning = beregning,
+            simulering = simulering,
+            oppgaveId = oppgaveId,
+            fritekstTilBrev = fritekstTilBrev
+        )
     }
 }
 
@@ -383,9 +643,14 @@ fun Revurdering.medFritekst(fritekstTilBrev: String) =
     when (this) {
         is BeregnetRevurdering.Avslag -> copy(fritekstTilBrev = fritekstTilBrev)
         is BeregnetRevurdering.Innvilget -> copy(fritekstTilBrev = fritekstTilBrev)
-        is IverksattRevurdering -> copy(fritekstTilBrev = fritekstTilBrev)
+        is IverksattRevurdering.Opphørt -> copy(fritekstTilBrev = fritekstTilBrev)
+        is IverksattRevurdering.Innvilget -> copy(fritekstTilBrev = fritekstTilBrev)
         is OpprettetRevurdering -> copy(fritekstTilBrev = fritekstTilBrev)
-        is RevurderingTilAttestering -> copy(fritekstTilBrev = fritekstTilBrev)
-        is SimulertRevurdering -> copy(fritekstTilBrev = fritekstTilBrev)
-        is UnderkjentRevurdering -> copy(fritekstTilBrev = fritekstTilBrev)
+        is RevurderingTilAttestering.Opphørt -> copy(fritekstTilBrev = fritekstTilBrev)
+        is RevurderingTilAttestering.Innvilget -> copy(fritekstTilBrev = fritekstTilBrev)
+        is SimulertRevurdering.Opphørt -> copy(fritekstTilBrev = fritekstTilBrev)
+        is SimulertRevurdering.Innvilget -> copy(fritekstTilBrev = fritekstTilBrev)
+        is UnderkjentRevurdering.Opphørt -> copy(fritekstTilBrev = fritekstTilBrev)
+        is UnderkjentRevurdering.Innvilget -> copy(fritekstTilBrev = fritekstTilBrev)
+        is BeregnetRevurdering.Opphørt -> copy(fritekstTilBrev = fritekstTilBrev)
     }

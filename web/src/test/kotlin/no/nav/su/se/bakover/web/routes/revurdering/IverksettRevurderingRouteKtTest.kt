@@ -65,7 +65,7 @@ internal class IverksettRevurderingRouteKtTest {
 
     @Test
     fun `iverksett revurdering`() {
-        val iverksattRevurdering = IverksattRevurdering(
+        val iverksattRevurdering = IverksattRevurdering.Innvilget(
             id = UUID.randomUUID(),
             periode = periode,
             opprettet = Tidspunkt.now(),
@@ -99,9 +99,9 @@ internal class IverksettRevurderingRouteKtTest {
                 listOf(Brukerrolle.Attestant)
             ).apply {
                 response.status() shouldBe HttpStatusCode.OK
-                val actualResponse = objectMapper.readValue<TilAttesteringJson>(response.content!!)
+                val actualResponse = objectMapper.readValue<TilAttesteringJson.Innvilget>(response.content!!)
                 actualResponse.id shouldBe iverksattRevurdering.id.toString()
-                actualResponse.status shouldBe RevurderingsStatus.TIL_ATTESTERING
+                actualResponse.status shouldBe RevurderingsStatus.TIL_ATTESTERING_INNVILGET
             }
         }
     }

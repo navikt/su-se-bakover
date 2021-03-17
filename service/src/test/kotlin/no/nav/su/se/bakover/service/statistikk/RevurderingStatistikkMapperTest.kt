@@ -91,7 +91,7 @@ internal class RevurderingStatistikkMapperTest {
             on { sakId } doReturn UUID.randomUUID()
             on { saksnummer } doReturn Saksnummer(49L)
         }
-        val iverksattRevurdering = IverksattRevurdering(
+        val iverksattRevurdering = IverksattRevurdering.Innvilget(
             id = UUID.randomUUID(),
             periode = periode,
             opprettet = Tidspunkt.now(fixedClock),

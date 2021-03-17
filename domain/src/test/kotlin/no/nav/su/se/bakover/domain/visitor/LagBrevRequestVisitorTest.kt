@@ -575,7 +575,7 @@ internal class LagBrevRequestVisitorTest {
             .tilAttestering(saksbehandler)
             .tilIverksatt(Attestering.Iverksatt(attestant), UUID30.randomUUID())
 
-        val revurdering = IverksattRevurdering(
+        val revurdering = IverksattRevurdering.Innvilget(
             id = UUID.randomUUID(),
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
             opprettet = Tidspunkt.now(clock),

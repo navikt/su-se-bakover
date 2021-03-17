@@ -78,7 +78,7 @@ internal class VedtakPosgresRepoTest {
             vedtakRepo.lagre(søknadsbehandlingVedtak)
 
             val nyRevurdering = testDataHelper.nyRevurdering(søknadsbehandlingVedtak)
-            val iverksattRevurdering = IverksattRevurdering(
+            val iverksattRevurdering = IverksattRevurdering.Innvilget(
                 id = nyRevurdering.id,
                 opprettet = nyRevurdering.opprettet,
                 periode = søknadsbehandlingVedtak.periode,

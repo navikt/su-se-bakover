@@ -346,7 +346,7 @@ internal class RevurderingServiceImplTest {
 
     @Test
     fun `kan ikke beregne og simulere en revurdering som er til attestering`() {
-        val revurderingTilAttestering = RevurderingTilAttestering(
+        val revurderingTilAttestering = RevurderingTilAttestering.Innvilget(
             id = revurderingId,
             periode = periode,
             opprettet = Tidspunkt.EPOCH,
@@ -595,7 +595,7 @@ internal class RevurderingServiceImplTest {
             periodeList = listOf()
         )
         val utbetalingId = UUID30.randomUUID()
-        val iverksattRevurdering = IverksattRevurdering(
+        val iverksattRevurdering = IverksattRevurdering.Innvilget(
             id = revurderingId,
             periode = periode,
             opprettet = Tidspunkt.EPOCH,
@@ -609,7 +609,7 @@ internal class RevurderingServiceImplTest {
             eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
             fritekstTilBrev = ""
         )
-        val revurderingTilAttestering = RevurderingTilAttestering(
+        val revurderingTilAttestering = RevurderingTilAttestering.Innvilget(
             id = revurderingId,
             periode = periode,
             opprettet = Tidspunkt.EPOCH,
@@ -669,7 +669,7 @@ internal class RevurderingServiceImplTest {
 
     @Test
     fun `underkjenner en revurdering`() {
-        val tilAttestering = RevurderingTilAttestering(
+        val tilAttestering = RevurderingTilAttestering.Innvilget(
             id = revurderingId,
             periode = periode,
             opprettet = Tidspunkt.EPOCH,
@@ -761,7 +761,7 @@ internal class RevurderingServiceImplTest {
             on { behandlingsinformasjon } doReturn behandlingsinformasjonMock
         }
 
-        val simulertRevurdering = SimulertRevurdering(
+        val simulertRevurdering = SimulertRevurdering.Innvilget(
             id = revurderingId,
             periode = periode,
             opprettet = Tidspunkt.now(),
@@ -836,7 +836,7 @@ internal class RevurderingServiceImplTest {
 
     @Test
     fun `får feil når vi ikke kan hente person`() {
-        val simulertRevurdering = SimulertRevurdering(
+        val simulertRevurdering = SimulertRevurdering.Innvilget(
             id = revurderingId,
             periode = periode,
             opprettet = Tidspunkt.now(),
@@ -885,7 +885,7 @@ internal class RevurderingServiceImplTest {
     fun `får feil når vi ikke kan hente saksbehandler navn`() {
         val person = mock<Person>()
 
-        val simulertRevurdering = SimulertRevurdering(
+        val simulertRevurdering = SimulertRevurdering.Innvilget(
             id = revurderingId,
             periode = periode,
             opprettet = Tidspunkt.now(),
@@ -942,7 +942,7 @@ internal class RevurderingServiceImplTest {
     fun `får feil når vi ikke kan lage brev`() {
         val person = mock<Person>()
 
-        val simulertRevurdering = SimulertRevurdering(
+        val simulertRevurdering = SimulertRevurdering.Innvilget(
             id = revurderingId,
             periode = periode,
             opprettet = Tidspunkt.now(),
