@@ -30,7 +30,6 @@ internal data class VedtakJson(
 ) {
     internal enum class Resultat {
         INNVILGET,
-        AVSLÅTT,
         OPPHØRT
     }
 }
