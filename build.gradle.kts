@@ -24,13 +24,7 @@ allprojects {
         jcenter()
         maven("https://dl.bintray.com/kotlin/ktor")
         maven("http://packages.confluent.io/maven/")
-        maven {
-            url = uri("https://maven.pkg.github.com/navikt/tjenestespesifikasjoner")
-            credentials {
-                username = githubUser
-                password = githubPassword
-            }
-        }
+        maven("https://jitpack.io")
     }
     val junitJupiterVersion = "5.7.1"
     val arrowVersion = "0.11.0"

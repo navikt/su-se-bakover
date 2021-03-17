@@ -1,8 +1,7 @@
 val fuelVersion = "2.3.1"
 val wireMockVersion = "2.27.2"
 val orgJsonVersion = "20201115"
-// Kan ikke oppdatere til 1.2021.01.21-11.34-02f5eb27bb76 uten endringer p.g.r de har endret mappestrukturen e.l.
-val tjenestespesifikasjonVersion = "1.2020.10.07-08.40-90b3ab7bad15"
+val tjenestespesifikasjonVersion = "2558.a410ffd"
 val cxfVersion = "3.4.2"
 val jettyVersion = "9.4.36.v20210114"
 
@@ -16,8 +15,8 @@ dependencies {
 
     implementation("org.json:json:$orgJsonVersion")
 
-    implementation("no.nav.tjenestespesifikasjoner:nav-virksomhet-oppdragsbehandling-v1-meldingsdefinisjon:$tjenestespesifikasjonVersion")
-    implementation("no.nav.tjenestespesifikasjoner:nav-system-os-simuler-fp-service-tjenestespesifikasjon:$tjenestespesifikasjonVersion")
+    implementation("com.github.navikt.tjenestespesifikasjoner:nav-virksomhet-oppdragsbehandling-v1-meldingsdefinisjon:$tjenestespesifikasjonVersion")
+    implementation("com.github.navikt.tjenestespesifikasjoner:nav-system-os-simuler-fp-service-tjenestespesifikasjon:$tjenestespesifikasjonVersion")
     implementation("org.apache.cxf:cxf-rt-features-logging:$cxfVersion")
     implementation("org.apache.cxf:cxf-rt-frontend-jaxws:$cxfVersion")
     implementation("org.apache.cxf:cxf-rt-transports-http:$cxfVersion")
