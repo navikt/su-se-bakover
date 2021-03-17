@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata
+package no.nav.su.se.bakover.domain.grunnlag
 
 import arrow.core.Either
 import arrow.core.getOrHandle

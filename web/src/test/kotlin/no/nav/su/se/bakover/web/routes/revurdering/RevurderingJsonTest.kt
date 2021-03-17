@@ -14,7 +14,7 @@
 // import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 // import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 // import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
-// import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata.Grunnlagsdata
+// import no.nav.su.se.bakover.domain.grunnlagsdata.Grunnlagsdata
 // import no.nav.su.se.bakover.web.routes.behandling.TestBeregning
 // import no.nav.su.se.bakover.web.routes.behandling.beregning.toJson
 // import no.nav.su.se.bakover.web.routes.behandling.toJson

@@ -1,4 +1,4 @@
-package no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata
+package no.nav.su.se.bakover.domain.grunnlag
 
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode

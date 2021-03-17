@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.database.grunnlag
 
-import no.nav.su.se.bakover.domain.søknadsbehandling.grunnlagsdata.Uføregrunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrunnlag
 import java.util.UUID
 
 interface UføregrunnlagRepo {
