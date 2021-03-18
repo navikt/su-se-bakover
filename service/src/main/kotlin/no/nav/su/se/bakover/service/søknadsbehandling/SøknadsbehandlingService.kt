@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import java.time.LocalDate
 import java.util.UUID
 
 interface SøknadsbehandlingService {
@@ -119,7 +120,18 @@ interface SøknadsbehandlingService {
         val behandlingId: UUID
     )
 
+    data class HentAktiveRequest(
+        val aktivDato: LocalDate
+    )
+
+    data class FrikortJson(
+        val fnr: String,
+        val fraOgMed: String,
+        val tilOgMed: String
+    )
+
     object FantIkkeBehandling
+    object KunneIkkeHenteAktiveBehandlinger
 
     data class LeggTilUføregrunnlagRequest(
         val behandlingId: UUID,

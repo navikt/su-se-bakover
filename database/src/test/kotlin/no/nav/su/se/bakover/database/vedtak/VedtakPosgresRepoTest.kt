@@ -1,12 +1,17 @@
 package no.nav.su.se.bakover.database.vedtak
 
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.februar
+import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.mars
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.journalførtIverksettingForAvslag
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -84,9 +89,10 @@ internal class VedtakPosgresRepoTest {
                 simulering = søknadsbehandlingVedtak.simulering,
                 oppgaveId = OppgaveId(""),
                 grunnlagsdata = Grunnlagsdata.EMPTY,
-                attestant = søknadsbehandlingVedtak.attestant,
+                attestering = Attestering.Iverksatt(søknadsbehandlingVedtak.attestant),
                 utbetalingId = søknadsbehandlingVedtak.utbetalingId,
-                eksterneIverksettingsteg = søknadsbehandlingVedtak.journalføringOgBrevdistribusjon
+                eksterneIverksettingsteg = søknadsbehandlingVedtak.journalføringOgBrevdistribusjon,
+                fritekstTilBrev = ""
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 
@@ -103,6 +109,20 @@ internal class VedtakPosgresRepoTest {
                         it.stringOrNull("revurderingId") shouldBe iverksattRevurdering.id.toString()
                     }
             }
+        }
+    }
+
+    @Test
+    fun `hent alle aktive vedtak`() {
+        withMigratedDb {
+            val (søknadsbehandling, _) = testDataHelper.nyIverksattInnvilget()
+            val vedtakSomErAktivt = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling).copy(periode = Periode.create(1.februar(2021), 31.mars(2021)))
+            val vedtakUtenforAktivPeriode = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling).copy(periode = Periode.create(1.januar(2021), 31.januar(2021)))
+            vedtakRepo.lagre(vedtakSomErAktivt)
+            vedtakRepo.lagre(vedtakUtenforAktivPeriode)
+
+            val actual = vedtakRepo.hentAktive(1.februar(2021))
+            actual.first() shouldBe vedtakSomErAktivt
         }
     }
 

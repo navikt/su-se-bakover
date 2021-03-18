@@ -4,11 +4,13 @@ import arrow.core.Either
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
+import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import java.time.LocalDate
 import java.util.UUID
@@ -40,14 +42,18 @@ interface RevurderingService {
 
     fun sendTilAttestering(
         revurderingId: UUID,
-        saksbehandler: NavIdentBruker.Saksbehandler
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        fritekstTilBrev: String
     ): Either<KunneIkkeSendeRevurderingTilAttestering, Revurdering>
 
-    fun lagBrevutkast(revurderingId: UUID, fritekst: String?): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray>
+    fun lagBrevutkast(revurderingId: UUID, fritekst: String): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray>
+    fun hentBrevutkast(revurderingId: UUID): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray>
     fun iverksett(
         revurderingId: UUID,
         attestant: NavIdentBruker.Attestant
     ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering>
+
+    fun underkjenn(revurderingId: UUID, attestering: Attestering): Either<KunneIkkeUnderkjenneRevurdering, UnderkjentRevurdering>
 
     fun hentRevurderingForUtbetaling(utbetalingId: UUID30): IverksattRevurdering?
 
@@ -109,6 +115,16 @@ sealed class KunneIkkeLageBrevutkastForRevurdering {
     object KunneIkkeLageBrevutkast : KunneIkkeLageBrevutkastForRevurdering()
     object FantIkkePerson : KunneIkkeLageBrevutkastForRevurdering()
     object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeLageBrevutkastForRevurdering()
+}
+
+sealed class KunneIkkeUnderkjenneRevurdering {
+    object FantIkkeRevurdering : KunneIkkeUnderkjenneRevurdering()
+    object FantIkkeAktørId : KunneIkkeUnderkjenneRevurdering()
+    data class UgyldigTilstand(
+        val fra: KClass<out Revurdering>,
+        val til: KClass<out Revurdering>
+    ) : KunneIkkeUnderkjenneRevurdering()
+    object KunneIkkeOppretteOppgave : KunneIkkeUnderkjenneRevurdering()
 }
 
 sealed class KunneIkkeLeggeTilGrunnlag {

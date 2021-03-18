@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.service.søknad.lukk
 
+import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
@@ -43,6 +44,8 @@ import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
+import no.nav.su.se.bakover.service.statistikk.Event
+import no.nav.su.se.bakover.service.statistikk.EventObserver
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.time.Instant
@@ -167,7 +170,6 @@ internal class LukkSøknadServiceImplTest {
 
     @Test
     fun `trekker en søknad uten mangler`() {
-
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknad(any()) } doReturn journalførtSøknadMedOppgave
             on { oppdaterSøknad(any()) }.doNothing()
@@ -188,7 +190,11 @@ internal class LukkSøknadServiceImplTest {
             on { hentPerson(any()) } doReturn person.right()
         }
 
-        LukkSøknadServiceImpl(
+        val observerMock: EventObserver = mock {
+            on { handle(any()) }.doNothing()
+        }
+
+        val actual = LukkSøknadServiceImpl(
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
             brevService = brevServiceMock,
@@ -196,10 +202,11 @@ internal class LukkSøknadServiceImplTest {
             personService = personServiceMock,
             microsoftGraphApiClient = MicrosoftGraphApiClientStub,
             clock = fixedEpochClock,
-        ).lukkSøknad(trekkSøknadRequest) shouldBe LukketSøknad.UtenMangler(sak).right()
+        ).apply { addObserver(observerMock) }.lukkSøknad(trekkSøknadRequest).getOrHandle { throw RuntimeException("Feil i test") }
+        actual shouldBe LukketSøknad.UtenMangler(sak, actual.søknad)
 
         inOrder(
-            søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock
+            søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock, observerMock
         ) {
             verify(søknadRepoMock).hentSøknad(argThat { it shouldBe journalførtSøknadMedOppgave.id })
             verify(søknadRepoMock).harSøknadPåbegyntBehandling(argThat { it shouldBe journalførtSøknadMedOppgave.id })
@@ -233,8 +240,9 @@ internal class LukkSøknadServiceImplTest {
             )
             verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe journalførtSøknadMedOppgave.sakId })
             verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe oppgaveId })
+            verify(observerMock).handle(argThat { it shouldBe Event.Statistikk.SøknadStatistikk.SøknadLukket(actual.søknad, sak.saksnummer) })
         }
-        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock)
+        verifyNoMoreInteractions(søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock, observerMock)
     }
 
     @Test
@@ -259,7 +267,7 @@ internal class LukkSøknadServiceImplTest {
             on { hentPerson(any()) } doReturn person.right()
         }
 
-        LukkSøknadServiceImpl(
+        val resultat = LukkSøknadServiceImpl(
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
             brevService = brevServiceMock,
@@ -272,7 +280,9 @@ internal class LukkSøknadServiceImplTest {
                 søknadId = journalførtSøknadMedOppgave.id,
                 saksbehandler = saksbehandler
             )
-        ) shouldBe LukketSøknad.UtenMangler(sak).right()
+        ).getOrHandle { throw RuntimeException("Feil i test") }
+
+        resultat shouldBe LukketSøknad.UtenMangler(sak, resultat.søknad)
 
         inOrder(
             søknadRepoMock, sakServiceMock, oppgaveServiceMock, personServiceMock
@@ -317,7 +327,8 @@ internal class LukkSøknadServiceImplTest {
         val personServiceMock = mock<PersonService> {
             on { hentPerson(any()) } doReturn person.right()
         }
-        LukkSøknadServiceImpl(
+
+        val actual = LukkSøknadServiceImpl(
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
             brevService = brevServiceMock,
@@ -331,7 +342,9 @@ internal class LukkSøknadServiceImplTest {
                 saksbehandler = saksbehandler,
                 brevConfig = BrevConfig.Fritekst("Fritekst")
             )
-        ) shouldBe LukketSøknad.UtenMangler(sak).right()
+        ).getOrHandle { throw RuntimeException("feil i test") }
+
+        actual shouldBe LukketSøknad.UtenMangler(sak, actual.søknad)
 
         inOrder(
             søknadRepoMock, sakServiceMock, oppgaveServiceMock, brevServiceMock, personServiceMock
@@ -701,7 +714,7 @@ internal class LukkSøknadServiceImplTest {
             on { hentPerson(any()) } doReturn person.right()
         }
 
-        LukkSøknadServiceImpl(
+        val actual = LukkSøknadServiceImpl(
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
             brevService = brevServiceMock,
@@ -709,7 +722,9 @@ internal class LukkSøknadServiceImplTest {
             personService = personServiceMock,
             microsoftGraphApiClient = MicrosoftGraphApiClientStub,
             clock = fixedEpochClock,
-        ).lukkSøknad(trekkSøknadRequest) shouldBe LukketSøknad.MedMangler.KunneIkkeDistribuereBrev(sak).right()
+        ).lukkSøknad(trekkSøknadRequest).getOrHandle { throw RuntimeException("Feil i test") }
+
+        actual shouldBe LukketSøknad.MedMangler.KunneIkkeDistribuereBrev(sak, actual.søknad)
 
         inOrder(
             søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock
@@ -869,7 +884,7 @@ internal class LukkSøknadServiceImplTest {
             on { hentPerson(any()) } doReturn person.right()
         }
 
-        LukkSøknadServiceImpl(
+        val actual = LukkSøknadServiceImpl(
             søknadRepo = søknadRepoMock,
             sakService = sakServiceMock,
             brevService = brevServiceMock,
@@ -877,7 +892,9 @@ internal class LukkSøknadServiceImplTest {
             personService = personServiceMock,
             microsoftGraphApiClient = MicrosoftGraphApiClientStub,
             clock = fixedEpochClock,
-        ).lukkSøknad(trekkSøknadRequest) shouldBe LukketSøknad.MedMangler.KunneIkkeLukkeOppgave(sak).right()
+        ).lukkSøknad(trekkSøknadRequest).getOrHandle { throw RuntimeException("Feil i test") }
+
+        actual shouldBe LukketSøknad.MedMangler.KunneIkkeLukkeOppgave(sak, actual.søknad)
 
         inOrder(
             søknadRepoMock, sakServiceMock, brevServiceMock, oppgaveServiceMock, personServiceMock

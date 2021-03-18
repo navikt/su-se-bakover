@@ -69,6 +69,7 @@ internal class OpprettRevurderingRouteKtTest {
             tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler(""),
             oppgaveId = OppgaveId("oppgaveid"),
+            fritekstTilBrev = "",
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
         val revurderingServiceMock = mock<RevurderingService> {

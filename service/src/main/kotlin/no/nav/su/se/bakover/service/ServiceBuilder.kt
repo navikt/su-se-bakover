@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.toggles.ToggleServiceImpl
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingServiceImpl
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakServiceImpl
+import no.nav.su.se.bakover.service.vedtak.VedtakServiceImpl
 import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
 import java.time.Clock
 
@@ -63,7 +64,9 @@ object ServiceBuilder {
             oppgaveService = oppgaveService,
             søknadMetrics = søknadMetrics,
             clock = clock,
-        )
+        ).apply {
+            addObserver(statistikkService)
+        }
 
         val grunnlagService = GrunnlagServiceImpl(
             grunnlagRepo = databaseRepos.grunnlagRepo,
@@ -117,6 +120,10 @@ object ServiceBuilder {
         }
         val toggleService = ToggleServiceImpl(unleash)
 
+        val vedtakService = VedtakServiceImpl(
+            vedtakRepo = databaseRepos.vedtakRepo
+        )
+
         return Services(
             avstemming = AvstemmingServiceImpl(
                 repo = databaseRepos.avstemming,
@@ -135,7 +142,9 @@ object ServiceBuilder {
                 personService = personService,
                 microsoftGraphApiClient = clients.microsoftGraphApiClient,
                 clock = clock,
-            ),
+            ).apply {
+                addObserver(statistikkService)
+            },
             oppgave = oppgaveService,
             person = personService,
             statistikk = statistikkService,
@@ -143,6 +152,7 @@ object ServiceBuilder {
             søknadsbehandling = søknadsbehandlingService,
             ferdigstillVedtak = ferdigstillVedtakService,
             revurdering = revurderingService,
+            vedtakService = vedtakService,
             grunnlagService = grunnlagService,
         )
     }

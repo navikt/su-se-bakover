@@ -50,6 +50,31 @@ Merk: `AZURE_APP_CLIENT_SECRET` roteres automatisk.
 
 For å da bruke gruppe-claimet som kommer fra Azure må man også endre implementasjonen av `getGroupsFromJWT` i [./web/src/main/kotlin/no/nav/su/se/bakover/web/Extensions.kt]().
 
+##### For testing mot Sts lokalt
+Bytt dette i AuthenticationConfig.kt
+```diff
+- verifier(jwkStsProvider, stsJwkConfig.getString("issuer"))
++ verifier(jwkStsProvider, "https://security-token-service.nais.preprod.local"))
+```
+
+Bytt dette i StsClient.kt
+```diff
+override fun jwkConfig(): JSONObject {
+    val (_, _, result) = wellKnownUrl.httpGet().responseString()
+    return result.fold(
+-        { JSONObject(it) },
++        { JSONObject(it.replace("nais.preprod.local", "dev.adeo.no")) },
+        { throw RuntimeException("Could not get JWK config from url $wellKnownUrl, error:$it") }
+    )
+}
+```
+
+Legg disse i .env
+```shell
+USE_STUB_FOR_STS=false
+STS_URL=https://security-token-service.dev.adeo.no
+```
+
 #### Uten innlogging i Azure (default)
 Applikasjonen vil selv generere gyldige jwt-tokens for inkommende kall. Ved behov kan innholdet i disse konfigureres i `JwtStub.kt`.
 

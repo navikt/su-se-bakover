@@ -1,22 +1,21 @@
 package no.nav.su.se.bakover.service.statistikk
 
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.common.zoneIdOslo
-import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
+import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import java.time.Clock
 
 internal class RevurderingStatistikkMapper(private val clock: Clock) {
     // Behandling er en avgjørelse i en Sak, knyttet til en konkret behandlingstype (eks. søknad, revurdering, endring, klage)."
     fun map(revurdering: Revurdering): Statistikk.Behandling {
         Statistikk.Behandling(
-            behandlingType = Statistikk.BehandlingType.REVURDERING,
-            behandlingTypeBeskrivelse = Statistikk.BehandlingType.REVURDERING.beskrivelse,
-            funksjonellTid = FunksjonellTidMapper.map(revurdering),
+            behandlingType = Statistikk.Behandling.BehandlingType.REVURDERING,
+            behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.REVURDERING.beskrivelse,
+            funksjonellTid = Tidspunkt.now(clock),
             tekniskTid = Tidspunkt.now(clock),
             registrertDato = revurdering.opprettet.toLocalDate(zoneIdOslo),
             mottattDato = revurdering.opprettet.toLocalDate(zoneIdOslo),
@@ -27,7 +26,8 @@ internal class RevurderingStatistikkMapper(private val clock: Clock) {
             behandlingStatusBeskrivelse = BehandlingStatusBeskrivelseMapper.map(revurdering),
             versjon = clock.millis(),
             saksbehandler = revurdering.saksbehandler.navIdent,
-            relatertBehandlingId = revurdering.tilRevurdering.id
+            relatertBehandlingId = revurdering.tilRevurdering.id,
+            avsluttet = false
         ).apply {
             return when (revurdering) {
                 is OpprettetRevurdering -> this
@@ -36,23 +36,18 @@ internal class RevurderingStatistikkMapper(private val clock: Clock) {
                     copy(
                         resultat = "Innvilget",
                         resultatBegrunnelse = "Endring i søkers inntekt", // TODO ai: Må støtte flere grunner for revurdering senare
-                        beslutter = revurdering.attestant.navIdent
+                        beslutter = revurdering.attestering.attestant.navIdent,
+                        avsluttet = true
+                    )
+                }
+                is UnderkjentRevurdering -> {
+                    copy(
+                        beslutter = revurdering.attestering.attestant.navIdent
                     )
                 }
                 else -> throw ManglendeStatistikkMappingException(this, revurdering::class.java)
             }
         }
-    }
-
-    internal object FunksjonellTidMapper {
-        fun map(revurdering: Revurdering) = when (revurdering) {
-            is OpprettetRevurdering -> revurdering.opprettet
-            is RevurderingTilAttestering -> revurdering.beregning.startOfFirstDay()
-            is IverksattRevurdering -> revurdering.beregning.startOfFirstDay()
-            else -> throw ManglendeStatistikkMappingException(this, revurdering::class.java)
-        }
-
-        private fun Beregning.startOfFirstDay() = getPeriode().getFraOgMed().startOfDay(zoneIdOslo)
     }
 
     internal object BehandlingStatusBeskrivelseMapper {
@@ -61,6 +56,7 @@ internal class RevurderingStatistikkMapper(private val clock: Clock) {
                 is OpprettetRevurdering -> "Ny revurdering opprettet"
                 is RevurderingTilAttestering -> "Revurdering sendt til attestering"
                 is IverksattRevurdering -> "Revurdering iverksatt"
+                is UnderkjentRevurdering -> "Revurdering underkjent"
                 else -> throw ManglendeStatistikkMappingException(this, revurdering::class.java)
             }
     }

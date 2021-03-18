@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.client.kodeverk.KodeverkHttpClient
 import no.nav.su.se.bakover.client.pdf.PdfClient
 import no.nav.su.se.bakover.client.pdf.PdfGenerator
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
+import no.nav.su.se.bakover.client.sts.StsClient
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.client.stubs.dkif.DkifClientStub
 import no.nav.su.se.bakover.client.stubs.dokarkiv.DokArkivStub
@@ -40,7 +41,11 @@ object StubClientsBuilder : ClientsBuilder {
         return Clients(
             oauth = AzureClient(applicationConfig.azure.clientId, applicationConfig.azure.clientSecret, applicationConfig.azure.wellKnownUrl),
             personOppslag = PersonOppslagStub.also { log.warn("********** Using stub for ${PersonOppslag::class.java} **********") },
-            tokenOppslag = TokenOppslagStub.also { log.warn("********** Using stub for ${TokenOppslag::class.java} **********") },
+            tokenOppslag = if (applicationConfig.frikort.useStubForSts) {
+                TokenOppslagStub.also { log.warn("********** Using stub for ${TokenOppslag::class.java} **********") }
+            } else {
+                StsClient(applicationConfig.clientsConfig.stsUrl, applicationConfig.serviceUser.username, applicationConfig.serviceUser.password)
+            },
             pdfGenerator = if (applicationConfig.pdfgenLocal) {
                 PdfClient("http://localhost:8081")
             } else {

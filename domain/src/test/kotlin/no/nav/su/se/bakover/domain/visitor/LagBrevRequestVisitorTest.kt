@@ -586,9 +586,10 @@ internal class LagBrevRequestVisitorTest {
             grunnlagsdata = Grunnlagsdata.EMPTY,
             beregning = innvilgetBeregning,
             simulering = simulering,
-            attestant = attestant,
+            attestering = Attestering.Iverksatt(attestant),
             utbetalingId = UUID30.randomUUID(),
-            eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert
+            eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
+            fritekstTilBrev = ""
         )
 
         val avslåttVedtak = Vedtak.InnvilgetStønad.fromRevurdering(revurdering)
@@ -611,7 +612,7 @@ internal class LagBrevRequestVisitorTest {
             person = person,
             saksbehandlerNavn = saksbehandlerNavn,
             revurdertBeregning = revurdering.beregning,
-            fritekst = null,
+            fritekst = "",
             harEktefelle = false
         ).right()
     }

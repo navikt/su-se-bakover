@@ -8,4 +8,5 @@ interface RevurderingVisitor : Visitor {
     fun visit(revurdering: SimulertRevurdering)
     fun visit(revurdering: RevurderingTilAttestering)
     fun visit(revurdering: IverksattRevurdering)
+    fun visit(revurdering: UnderkjentRevurdering)
 }

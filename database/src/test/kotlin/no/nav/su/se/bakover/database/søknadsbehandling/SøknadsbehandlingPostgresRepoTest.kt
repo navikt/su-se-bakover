@@ -6,6 +6,7 @@ import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeTypeOf
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.avslåttBeregning
@@ -32,6 +33,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 
 internal class SøknadsbehandlingPostgresRepoTest {
 
@@ -105,6 +107,8 @@ internal class SøknadsbehandlingPostgresRepoTest {
             )
         }
     }
+
+    private fun iverksattInnvilget(fom: LocalDate, tom: LocalDate) = testDataHelper.nyIverksattInnvilget(periode = Periode.create(fom, tom))
 
     @Test
     fun `hent iverksatte behandlinger uten brevbestillinger`() {
@@ -199,7 +203,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 }
             }
             val beregnet = uavklartVilkårsvurdering.tilBeregnet(
-                beregning = beregning
+                beregning = beregning()
             ).also {
                 repo.lagre(it)
                 repo.hent(it.id) shouldBe it
@@ -257,7 +261,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             oppgaveId = nyOppgaveId,
                             behandlingsinformasjon = tilAttestering.behandlingsinformasjon,
                             fnr = tilAttestering.fnr,
-                            beregning = beregning,
+                            beregning = beregning(),
                             simulering = simulering(tilAttestering.fnr),
                             saksbehandler = saksbehandler,
                             grunnlagsdata = Grunnlagsdata.EMPTY,
@@ -338,7 +342,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             oppgaveId = nyOppgaveId,
                             behandlingsinformasjon = tilAttestering.behandlingsinformasjon,
                             fnr = tilAttestering.fnr,
-                            beregning = beregning,
+                            beregning = beregning(),
                             simulering = simulering(tilAttestering.fnr),
                             saksbehandler = saksbehandler,
                             attestering = underkjentAttestering,

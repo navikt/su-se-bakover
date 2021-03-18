@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingVisitor
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
+import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.FinnSaksbehandlerVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingVisitor
@@ -52,7 +53,8 @@ class LagBrevRequestVisitor(
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Avslag) {
-        brevRequest = avslåttSøknadsbehandling(søknadsbehandling, søknadsbehandling.avslagsgrunner, søknadsbehandling.beregning)
+        brevRequest =
+            avslåttSøknadsbehandling(søknadsbehandling, søknadsbehandling.avslagsgrunner, søknadsbehandling.beregning)
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Simulert) {
@@ -64,7 +66,8 @@ class LagBrevRequestVisitor(
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.MedBeregning) {
-        brevRequest = avslåttSøknadsbehandling(søknadsbehandling, søknadsbehandling.avslagsgrunner, søknadsbehandling.beregning)
+        brevRequest =
+            avslåttSøknadsbehandling(søknadsbehandling, søknadsbehandling.avslagsgrunner, søknadsbehandling.beregning)
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.UtenBeregning) {
@@ -76,7 +79,8 @@ class LagBrevRequestVisitor(
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Avslag.MedBeregning) {
-        brevRequest = avslåttSøknadsbehandling(søknadsbehandling, søknadsbehandling.avslagsgrunner, søknadsbehandling.beregning)
+        brevRequest =
+            avslåttSøknadsbehandling(søknadsbehandling, søknadsbehandling.avslagsgrunner, søknadsbehandling.beregning)
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Innvilget) {
@@ -88,7 +92,8 @@ class LagBrevRequestVisitor(
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Iverksatt.Avslag.MedBeregning) {
-        brevRequest = avslåttSøknadsbehandling(søknadsbehandling, søknadsbehandling.avslagsgrunner, søknadsbehandling.beregning)
+        brevRequest =
+            avslåttSøknadsbehandling(søknadsbehandling, søknadsbehandling.avslagsgrunner, søknadsbehandling.beregning)
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget) {
@@ -112,6 +117,10 @@ class LagBrevRequestVisitor(
     }
 
     override fun visit(revurdering: IverksattRevurdering) {
+        brevRequest = innvilgetRevurdering(revurdering, revurdering.beregning)
+    }
+
+    override fun visit(revurdering: UnderkjentRevurdering) {
         brevRequest = innvilgetRevurdering(revurdering, revurdering.beregning)
     }
 
@@ -224,7 +233,7 @@ class LagBrevRequestVisitor(
                 person = it.person,
                 saksbehandlerNavn = it.saksbehandlerNavn,
                 revurdertBeregning = beregning,
-                fritekst = null, // TODO: finn ut hvordan vi vill hantere fritekst
+                fritekst = revurdering.fritekstTilBrev,
                 harEktefelle = revurdering.tilRevurdering.behandlingsinformasjon.harEktefelle()
             )
         }
@@ -297,7 +306,10 @@ class LagBrevRequestVisitor(
                 person = it.person,
                 saksbehandlerNavn = it.saksbehandlerNavn,
                 revurdertBeregning = vedtak.beregning,
-                fritekst = null, // TODO: finn ut hvordan vi vill hantere fritekst
+                fritekst = when (val b = vedtak.behandling) {
+                    is Revurdering -> b.fritekstTilBrev
+                    else -> ""
+                },
                 harEktefelle = vedtak.behandlingsinformasjon.harEktefelle()
             )
         }

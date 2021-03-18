@@ -5,6 +5,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.response.respondBytes
 import io.ktor.routing.Route
+import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.domain.Brukerrolle
@@ -22,11 +23,24 @@ import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withRevurderingId
 
 @KtorExperimentalAPI
-internal fun Route.brutkastForRevurdering(
+internal fun Route.brevutkastForRevurdering(
     revurderingService: RevurderingService
 ) {
     authorize(Brukerrolle.Saksbehandler) {
-        data class Body(val fritekst: String?)
+
+        data class Body(val fritekst: String)
+
+        get("$revurderingPath/{revurderingId}/brevutkast") {
+            call.withRevurderingId { revurderingId ->
+                revurderingService.hentBrevutkast(revurderingId).fold(
+                    ifLeft = { call.svar(it.tilResultat()) },
+                    ifRight = {
+                        call.audit("Hentet brevutkast for revurdering med id $revurderingId")
+                        call.respondBytes(it, ContentType.Application.Pdf)
+                    },
+                )
+            }
+        }
         post("$revurderingPath/{revurderingId}/brevutkast") {
             call.withRevurderingId { revurderingId ->
                 call.withBody<Body> { body ->

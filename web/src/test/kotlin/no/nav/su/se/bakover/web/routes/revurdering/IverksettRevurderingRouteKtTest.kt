@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -80,10 +81,11 @@ internal class IverksettRevurderingRouteKtTest {
                 periodeList = listOf()
             ),
             oppgaveId = OppgaveId("OppgaveId"),
-            grunnlagsdata = Grunnlagsdata.EMPTY,
-            attestant = NavIdentBruker.Attestant("attestant"),
+            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
             utbetalingId = UUID30.randomUUID(),
-            eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert
+            eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
+            fritekstTilBrev = "",
+            grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
         val revurderingServiceMock = mock<RevurderingService> {
@@ -131,7 +133,7 @@ internal class IverksettRevurderingRouteKtTest {
             expectedJsonResponse = """
                 {
                     "message":"Kan ikke gå fra tilstanden IverksattRevurdering til tilstanden OpprettetRevurdering",
-                    "code":"ugyldig_periode"
+                    "code":"ugyldig_tilstand"
                 }
             """.trimIndent()
         )

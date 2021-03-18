@@ -9,6 +9,7 @@ import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
@@ -80,11 +81,12 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
                 periodeList = listOf()
             ),
             oppgaveId = OppgaveId("OppgaveId"),
+            fritekstTilBrev = "",
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
         val revurderingServiceMock = mock<RevurderingService> {
-            on { sendTilAttestering(any(), any()) } doReturn revurderingTilAttestering.right()
+            on { sendTilAttestering(any(), any(), any()) } doReturn revurderingTilAttestering.right()
         }
 
         withTestApplication({
@@ -94,7 +96,9 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
                 HttpMethod.Post,
                 "$requestPath/${revurderingTilAttestering.id}/tilAttestering",
                 listOf(Brukerrolle.Saksbehandler)
-            ).apply {
+            ) {
+                setBody("""{ "fritekstTilBrev": "Friteksten" }""")
+            }.apply {
                 response.status() shouldBe HttpStatusCode.OK
                 val actualResponse = objectMapper.readValue<TilAttesteringJson>(response.content!!)
                 actualResponse.id shouldBe revurderingTilAttestering.id.toString()
@@ -144,7 +148,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             expectedJsonResponse = """
                 {
                     "message":"Kan ikke gå fra tilstanden IverksattRevurdering til tilstanden OpprettetRevurdering",
-                    "code":"ugyldig_periode"
+                    "code":"ugyldig_tilstand"
                 }
             """.trimIndent()
         )
@@ -184,7 +188,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
         expectedJsonResponse: String
     ) {
         val revurderingServiceMock = mock<RevurderingService> {
-            on { sendTilAttestering(any(), any()) } doReturn error.left()
+            on { sendTilAttestering(any(), any(), any()) } doReturn error.left()
         }
 
         withTestApplication({
@@ -193,8 +197,10 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             defaultRequest(
                 HttpMethod.Post,
                 "$requestPath/$revurderingId/tilAttestering",
-                listOf(Brukerrolle.Saksbehandler)
-            ).apply {
+                listOf(Brukerrolle.Saksbehandler),
+            ) {
+                setBody("""{ "fritekstTilBrev": "Dette er friteksten" }""")
+            }.apply {
                 response.status() shouldBe expectedStatusCode
                 JSONAssert.assertEquals(
                     expectedJsonResponse,

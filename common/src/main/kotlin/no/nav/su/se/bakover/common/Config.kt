@@ -42,6 +42,7 @@ data class ApplicationConfig(
     val pdfgenLocal: Boolean,
     val serviceUser: ServiceUserConfig,
     val azure: AzureConfig,
+    val frikort: FrikortConfig,
     val oppdrag: OppdragConfig,
     val database: DatabaseConfig,
     val clientsConfig: ClientsConfig,
@@ -76,6 +77,23 @@ data class ApplicationConfig(
             fun createLocalConfig() = ServiceUserConfig(
                 username = "unused",
                 password = "unused",
+            )
+        }
+    }
+
+    data class FrikortConfig(
+        val serviceUsername: String,
+        val useStubForSts: Boolean,
+    ) {
+        companion object {
+            fun createFromEnvironmentVariables() = FrikortConfig(
+                serviceUsername = getEnvironmentVariableOrThrow("FRIKORT_SERVICE_USERNAME"),
+                useStubForSts = false
+            )
+
+            fun createLocalConfig() = FrikortConfig(
+                serviceUsername = getEnvironmentVariableOrDefault("FRIKORT_SERVICE_USERNAME", "frikort"),
+                useStubForSts = getEnvironmentVariableOrDefault("USE_STUB_FOR_STS", "true") == "true"
             )
         }
     }
@@ -290,7 +308,10 @@ data class ApplicationConfig(
                 pdfgenUrl = "mocked",
                 dokarkivUrl = "mocked",
                 kodeverkUrl = "mocked",
-                stsUrl = "mocked",
+                stsUrl = getEnvironmentVariableOrDefault(
+                    "STS_URL",
+                    "mocked"
+                ),
                 skjermingUrl = "mocked",
                 dkifUrl = "mocked",
             )
@@ -385,6 +406,7 @@ data class ApplicationConfig(
             pdfgenLocal = false,
             serviceUser = ServiceUserConfig.createFromEnvironmentVariables(),
             azure = AzureConfig.createFromEnvironmentVariables(),
+            frikort = FrikortConfig.createFromEnvironmentVariables(),
             oppdrag = OppdragConfig.createFromEnvironmentVariables(),
             database = DatabaseConfig.createFromEnvironmentVariables(),
             clientsConfig = ClientsConfig.createFromEnvironmentVariables(),
@@ -399,6 +421,7 @@ data class ApplicationConfig(
             pdfgenLocal = getEnvironmentVariableOrDefault("PDFGEN_LOCAL", "false").toBoolean(),
             serviceUser = ServiceUserConfig.createLocalConfig(),
             azure = AzureConfig.createLocalConfig(),
+            frikort = FrikortConfig.createLocalConfig(),
             oppdrag = OppdragConfig.createLocalConfig(),
             database = DatabaseConfig.createLocalConfig(),
             clientsConfig = ClientsConfig.createLocalConfig(),

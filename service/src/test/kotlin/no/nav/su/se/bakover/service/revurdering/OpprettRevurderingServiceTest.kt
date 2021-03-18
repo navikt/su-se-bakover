@@ -190,6 +190,7 @@ internal class OpprettRevurderingServiceTest {
             tilRevurdering = sak.vedtakListe.first() as Vedtak.InnvilgetStønad,
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("oppgaveId"),
+            fritekstTilBrev = "",
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
         inOrder(
@@ -397,7 +398,7 @@ internal class OpprettRevurderingServiceTest {
                 opprettet = Tidspunkt.EPOCH,
                 tilRevurdering = opprinneligVedtak,
                 saksbehandler = saksbehandler,
-                attestant = opprinneligVedtak.attestant,
+                attestering = Attestering.Iverksatt(opprinneligVedtak.attestant),
                 beregning = opprinneligVedtak.beregning,
                 simulering = opprinneligVedtak.simulering,
                 oppgaveId = OppgaveId("null"),
@@ -406,7 +407,8 @@ internal class OpprettRevurderingServiceTest {
                     JournalpostId("ajour"),
                     BrevbestillingId("abrev")
                 ),
-                utbetalingId = opprinneligVedtak.utbetalingId
+                utbetalingId = opprinneligVedtak.utbetalingId,
+                fritekstTilBrev = ""
             )
             it.copy(
                 revurderinger = listOf(

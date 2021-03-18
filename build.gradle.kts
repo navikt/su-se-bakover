@@ -5,7 +5,7 @@ buildscript {
 }
 
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "1.4.30"
+    id("org.jetbrains.kotlin.jvm") version "1.4.31"
     id("org.jlleitschuh.gradle.ktlint") version "9.4.1"
     id("com.github.ben-manes.versions") version "0.36.0" // Finds latest versions
     id("se.patrikerdes.use-latest-versions") version "0.2.15"
@@ -24,24 +24,18 @@ allprojects {
         jcenter()
         maven("https://dl.bintray.com/kotlin/ktor")
         maven("http://packages.confluent.io/maven/")
-        maven {
-            url = uri("https://maven.pkg.github.com/navikt/tjenestespesifikasjoner")
-            credentials {
-                username = githubUser
-                password = githubPassword
-            }
-        }
+        maven("https://jitpack.io")
     }
     val junitJupiterVersion = "5.7.1"
     val arrowVersion = "0.11.0"
     val kotestVersion = "4.4.1"
     val jacksonVersion = "2.12.1"
-    val ktlintVersion = "0.40.0"
+    val ktlintVersion = "0.41.0"
     val bouncycastleVersion = "1.68"
     dependencies {
         api(kotlin("stdlib-jdk8"))
 
-        implementation("org.jetbrains.kotlin:kotlin-reflect:1.4.30")
+        implementation("org.jetbrains.kotlin:kotlin-reflect:1.4.31")
         implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
         implementation("io.arrow-kt:arrow-core:$arrowVersion")
         implementation("io.arrow-kt:arrow-syntax:$arrowVersion")

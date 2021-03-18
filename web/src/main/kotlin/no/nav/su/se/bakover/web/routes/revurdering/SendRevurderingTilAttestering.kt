@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresp
 import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresponser.ugyldigPeriode
 import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.svar
+import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withRevurderingId
 
 @KtorExperimentalAPI
@@ -27,18 +28,24 @@ internal fun Route.sendRevurderingTilAttestering(
     revurderingService: RevurderingService
 ) {
     authorize(Brukerrolle.Saksbehandler) {
+
+        data class Body(val fritekstTilBrev: String)
+
         post("$revurderingPath/{revurderingId}/tilAttestering") {
             call.withRevurderingId { revurderingId ->
-                revurderingService.sendTilAttestering(
-                    revurderingId = revurderingId,
-                    saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent)
-                ).fold(
-                    ifLeft = { call.svar(it.tilResultat()) },
-                    ifRight = {
-                        call.audit("Sendt revurdering til attestering med id $revurderingId")
-                        call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson())))
-                    },
-                )
+                call.withBody<Body> { body ->
+                    revurderingService.sendTilAttestering(
+                        revurderingId = revurderingId,
+                        saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
+                        fritekstTilBrev = body.fritekstTilBrev
+                    ).fold(
+                        ifLeft = { call.svar(it.tilResultat()) },
+                        ifRight = {
+                            call.audit("Sendt revurdering til attestering med id $revurderingId")
+                            call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson())))
+                        },
+                    )
+                }
             }
         }
     }

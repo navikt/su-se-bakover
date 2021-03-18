@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -40,6 +41,7 @@ internal class RevurderingStatistikkMapperTest {
             },
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "7"),
             oppgaveId = OppgaveId("oppgaveid"),
+            fritekstTilBrev = "",
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
@@ -51,9 +53,10 @@ internal class RevurderingStatistikkMapperTest {
             behandlingId = opprettetRevurdering.id,
             relatertBehandlingId = opprettetRevurdering.tilRevurdering.id,
             sakId = opprettetRevurdering.sakId,
+            søknadId = null,
             saksnummer = opprettetRevurdering.saksnummer.nummer,
-            behandlingType = Statistikk.BehandlingType.REVURDERING,
-            behandlingTypeBeskrivelse = Statistikk.BehandlingType.REVURDERING.beskrivelse,
+            behandlingType = Statistikk.Behandling.BehandlingType.REVURDERING,
+            behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.REVURDERING.beskrivelse,
             behandlingStatus = "OpprettetRevurdering",
             behandlingStatusBeskrivelse = "Ny revurdering opprettet",
             utenlandstilsnitt = "NASJONAL",
@@ -77,7 +80,8 @@ internal class RevurderingStatistikkMapperTest {
             behandlingOpprettetType = null,
             behandlingOpprettetTypeBeskrivelse = null,
             datoForUttak = null,
-            datoForUtbetaling = null
+            datoForUtbetaling = null,
+            avsluttet = false,
         )
     }
 
@@ -104,9 +108,10 @@ internal class RevurderingStatistikkMapperTest {
             simulering = mock(),
             oppgaveId = OppgaveId(value = "7"),
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            attestant = NavIdentBruker.Attestant(navIdent = "2"),
+            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant(navIdent = "2")),
             utbetalingId = UUID30.randomUUID(),
-            eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert
+            eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
+            fritekstTilBrev = ""
         )
         RevurderingStatistikkMapper(fixedClock).map(iverksattRevurdering) shouldBe Statistikk.Behandling(
             funksjonellTid = iverksattRevurdering.opprettet,
@@ -116,9 +121,10 @@ internal class RevurderingStatistikkMapperTest {
             behandlingId = iverksattRevurdering.id,
             relatertBehandlingId = iverksattRevurdering.tilRevurdering.id,
             sakId = iverksattRevurdering.sakId,
+            søknadId = null,
             saksnummer = iverksattRevurdering.saksnummer.nummer,
-            behandlingType = Statistikk.BehandlingType.REVURDERING,
-            behandlingTypeBeskrivelse = Statistikk.BehandlingType.REVURDERING.beskrivelse,
+            behandlingType = Statistikk.Behandling.BehandlingType.REVURDERING,
+            behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.REVURDERING.beskrivelse,
             behandlingStatus = "IverksattRevurdering",
             behandlingStatusBeskrivelse = "Revurdering iverksatt",
             utenlandstilsnitt = "NASJONAL",
@@ -142,7 +148,8 @@ internal class RevurderingStatistikkMapperTest {
             behandlingOpprettetType = null,
             behandlingOpprettetTypeBeskrivelse = null,
             datoForUttak = null,
-            datoForUtbetaling = null
+            datoForUtbetaling = null,
+            avsluttet = true
         )
     }
 }

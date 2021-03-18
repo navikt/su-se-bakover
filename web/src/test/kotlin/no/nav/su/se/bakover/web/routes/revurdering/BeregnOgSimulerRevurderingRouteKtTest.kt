@@ -7,6 +7,7 @@ import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
+import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.shouldBe
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -48,7 +49,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
         {
             "periode": { "fraOgMed": "${periode.getFraOgMed()}", "tilOgMed": "${periode.getTilOgMed()}"},
             "fradrag": []
-        } 
+        }
     """.trimIndent()
 
     private val revurderingId = UUID.randomUUID()
@@ -108,6 +109,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
             tilRevurdering = vedtak.copy(beregning = beregning),
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = ""),
             oppgaveId = OppgaveId("oppgaveid"),
+            fritekstTilBrev = "",
             grunnlagsdata = Grunnlagsdata.EMPTY,
         ).beregn(
             listOf(
@@ -157,7 +159,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                     argThat { it shouldBe NavIdentBruker.Saksbehandler("Z990Lokal") },
                     argThat { it shouldBe emptyList() },
                 )
-                // TODO jah: fix this test: verifyNoMoreInteractions(revurderingServiceMock)
+                verifyNoMoreInteractions(revurderingServiceMock)
                 actualResponse.id shouldBe simulertRevurdering.id.toString()
                 actualResponse.status shouldBe RevurderingsStatus.SIMULERT
             }
@@ -205,7 +207,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
             expectedJsonResponse = """
                 {
                     "message":"Kan ikke gå fra tilstanden IverksattRevurdering til tilstanden OpprettetRevurdering",
-                    "code":"ugyldig_periode"
+                    "code":"ugyldig_tilstand"
                 }
             """.trimIndent()
 

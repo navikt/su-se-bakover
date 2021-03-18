@@ -69,7 +69,7 @@ abstract class BrevInnhold {
         val personalia: Personalia,
         val saksbehandlerNavn: String,
         val beregningsperioder: List<Beregningsperiode>,
-        val fritekst: String?,
+        val fritekst: String,
         val sats: Sats,
         val harEktefelle: Boolean,
     ) : BrevInnhold() {
