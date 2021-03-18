@@ -19,8 +19,8 @@ import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Uføregrunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -61,7 +61,7 @@ import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukketSøknad
-import no.nav.su.se.bakover.service.søknadsbehandling.GrunnlagsdataService
+import no.nav.su.se.bakover.service.søknadsbehandling.GrunnlagService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeGjenopptaUtbetalinger
@@ -388,13 +388,13 @@ open class AccessCheckProxy(
                     return services.revurdering.opprettGrunnlagForRevurdering(sakId, periode)
                 }
             },
-            grunnlagsdataService = object : GrunnlagsdataService {
+            grunnlagService = object : GrunnlagService {
                 override fun leggTilUføregrunnlag(
                     behandlingId: UUID,
                     uføregrunnlag: List<Uføregrunnlag>
-                ): Either<GrunnlagsdataService.KunneIkkeLeggeTilGrunnlagsdata, Behandling> {
+                ): Either<GrunnlagService.KunneIkkeLeggeTilGrunnlagsdata, Behandling> {
                     assertHarTilgangTilBehandling(behandlingId)
-                    return services.grunnlagsdataService.leggTilUføregrunnlag(behandlingId, uføregrunnlag)
+                    return services.grunnlagService.leggTilUføregrunnlag(behandlingId, uføregrunnlag)
                 }
             }
         )

@@ -18,12 +18,12 @@ import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Uføregrunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
-import no.nav.su.se.bakover.service.søknadsbehandling.GrunnlagsdataService
+import no.nav.su.se.bakover.service.søknadsbehandling.GrunnlagService
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
@@ -39,7 +39,7 @@ const val grunnlagsdataPath = "$sakPath/{sakId}/behandlinger/{behandlingId}/grun
 
 @KtorExperimentalAPI
 internal fun Route.grunnlagsdataRoute(
-    grunnlagsdataService: GrunnlagsdataService,
+    grunnlagService: GrunnlagService,
     revurderingService: RevurderingService,
 ) {
     data class Body(
@@ -80,13 +80,13 @@ internal fun Route.grunnlagsdataRoute(
                 call.withBody<List<Body>> { body ->
                     val uføregrunnlagsjson = body.toDomain()
                     val resultat: Resultat = uføregrunnlagsjson.flatMap {
-                        grunnlagsdataService.leggTilUføregrunnlag(behandlingId, it).mapLeft {
+                        grunnlagService.leggTilUføregrunnlag(behandlingId, it).mapLeft {
                             when (it) {
-                                GrunnlagsdataService.KunneIkkeLeggeTilGrunnlagsdata.FantIkkeBehandling -> HttpStatusCode.NotFound.errorJson(
+                                GrunnlagService.KunneIkkeLeggeTilGrunnlagsdata.FantIkkeBehandling -> HttpStatusCode.NotFound.errorJson(
                                     "Fant ikke behandling",
                                     "fant_ikke_behandling"
                                 )
-                                GrunnlagsdataService.KunneIkkeLeggeTilGrunnlagsdata.UgyldigTilstand -> HttpStatusCode.BadRequest.errorJson(
+                                GrunnlagService.KunneIkkeLeggeTilGrunnlagsdata.UgyldigTilstand -> HttpStatusCode.BadRequest.errorJson(
                                     "Ugyldig tilstand",
                                     "ugyldig_tilstand"
                                 )

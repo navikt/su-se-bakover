@@ -17,7 +17,7 @@ import no.nav.su.se.bakover.service.sak.SakServiceImpl
 import no.nav.su.se.bakover.service.statistikk.StatistikkServiceImpl
 import no.nav.su.se.bakover.service.søknad.SøknadServiceImpl
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadServiceImpl
-import no.nav.su.se.bakover.service.søknadsbehandling.GrunnlagsdataServiceImpl
+import no.nav.su.se.bakover.service.søknadsbehandling.GrunnlagServiceImpl
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServiceImpl
 import no.nav.su.se.bakover.service.toggles.ToggleServiceImpl
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingServiceImpl
@@ -112,7 +112,7 @@ object ServiceBuilder {
             søknadsbehandlingService = søknadsbehandlingService,
             revurderingService = revurderingService,
         )
-        val grunnlagService = GrunnlagsdataServiceImpl(behandlingService, databaseRepos.grunnlagRepo)
+        val grunnlagService = GrunnlagServiceImpl(behandlingService, databaseRepos.grunnlagRepo)
         val toggleService = ToggleServiceImpl(unleash)
 
         return Services(
@@ -141,7 +141,7 @@ object ServiceBuilder {
             søknadsbehandling = søknadsbehandlingService,
             ferdigstillVedtak = ferdigstillVedtakService,
             revurdering = revurderingService,
-            grunnlagsdataService = grunnlagService,
+            grunnlagService = grunnlagService,
         )
     }
 }
