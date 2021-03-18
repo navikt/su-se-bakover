@@ -80,6 +80,7 @@ data class UtbetalingRequest(
 
     data class Oppdragslinje(
         val kodeEndringLinje: KodeEndringLinje,
+        val kodeStatusLinje: KodeStatusLinje? = null,
         /** Makslengde 30 */
         val delytelseId: String,
         /** [1,50] tegn */
@@ -110,6 +111,15 @@ data class UtbetalingRequest(
         enum class KodeEndringLinje(@JsonValue val value: String) {
             NY("NY"),
             ENDRING("ENDR");
+
+            override fun toString() = value
+        }
+
+        enum class KodeStatusLinje(@JsonValue val value: String) {
+            OPPHØR("OPPH"),
+            HVILENDE("HVIL"),
+            SPERRET("SPER"),
+            REAKTIVERT("REAK");
 
             override fun toString() = value
         }

@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.client.oppdrag.OppdragDefaults
 import no.nav.su.se.bakover.client.oppdrag.OppdragslinjeDefaults
 import no.nav.su.se.bakover.client.oppdrag.toOppdragDate
 import no.nav.su.se.bakover.client.oppdrag.toOppdragTimestamp
+import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.Oppdragslinje.KodeStatusLinje.OPPHØR
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 
 internal fun toUtbetalingRequest(
@@ -40,7 +41,8 @@ internal fun toUtbetalingRequest(
                     utbetalesTilId = utbetaling.fnr.toString(),
                     refDelytelseId = it.forrigeUtbetalingslinjeId?.toString(),
                     refFagsystemId = it.forrigeUtbetalingslinjeId?.let { utbetaling.saksnummer.toString() },
-                    attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant(utbetaling.behandler.navIdent))
+                    attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant(utbetaling.behandler.navIdent)),
+                    kodeStatusLinje = if (!utbetaling.erFørstegangsUtbetaling() && it.beløp == 0) OPPHØR else null,
                 )
             }
         )
