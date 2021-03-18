@@ -16,8 +16,8 @@ import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.grunnlag.UføregrunnlagTidslinje
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
+import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.service.brev.BrevService
@@ -139,7 +140,7 @@ internal class RevurderingServiceImpl(
     override fun opprettGrunnlagsresultat(revurdering: Revurdering): Grunnlagsdata {
         val original = opprettGrunnlagForRevurdering(revurdering.sakId, revurdering.periode)
         return Grunnlagsdata(
-            UføregrunnlagTidslinje(
+            Tidslinje<Grunnlag.Uføregrunnlag>(
                 revurdering.periode,
                 original.uføregrunnlag + revurdering.grunnlagsdata.uføregrunnlag,
                 clock

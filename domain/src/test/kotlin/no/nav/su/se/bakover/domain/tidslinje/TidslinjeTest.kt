@@ -1,6 +1,8 @@
-package no.nav.su.se.bakover.domain
+package no.nav.su.se.bakover.domain.tidslinje
 
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.august
@@ -16,12 +18,26 @@ import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.common.startOfDay
+import no.nav.su.se.bakover.domain.CopyArgs
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit.DAYS
 
-internal class TidslinjeobjektTest {
+data class Tidslinjeobjekt(
+    override val opprettet: Tidspunkt,
+    private val periode: Periode
+) : KanPlasseresPåTidslinje<Tidslinjeobjekt> {
+    override fun getPeriode(): Periode = periode
+    override fun copy(args: CopyArgs.Tidslinje): Tidslinjeobjekt = when (args) {
+        CopyArgs.Tidslinje.Full -> this.copy()
+        is CopyArgs.Tidslinje.NyPeriode -> this.copy(periode = args.periode)
+    }
+}
+
+internal class TidslinjeTest {
     private val fixedClock: Clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC)
 
     /**
@@ -893,8 +909,52 @@ internal class TidslinjeobjektTest {
     }
 
     @Test
+    fun `kan lage tidslinje for forskjellige typer objekter`() {
+        val a = Grunnlag.Uføregrunnlag(
+            opprettet = Tidspunkt.now(fixedClock),
+            periode = Periode.create(
+                fraOgMed = 1.januar(2021),
+                tilOgMed = 31.desember(2021)
+            ),
+            uføregrad = Uføregrad.parse(50),
+            forventetInntekt = 15000
+        )
+
+        val b = Grunnlag.Uføregrunnlag(
+            opprettet = Tidspunkt.now(fixedClock).plus(1, DAYS),
+            periode = Periode.create(
+                fraOgMed = 1.januar(2021),
+                tilOgMed = 31.desember(2021)
+            ),
+            uføregrad = Uføregrad.parse(100),
+            forventetInntekt = 0
+        )
+
+        Tidslinje<Grunnlag.Uføregrunnlag>(
+            periode = Periode.create(
+                fraOgMed = 1.januar(2021),
+                tilOgMed = 31.desember(2021)
+            ),
+            objekter = listOf(a, b),
+            clock = fixedClock
+        ).tidslinje.let {
+            it shouldHaveSize 1
+            it[0].let { resultat ->
+                resultat.id shouldNotBe a.id
+                resultat.id shouldNotBe b.id
+                resultat.getPeriode() shouldBe Periode.create(
+                    fraOgMed = 1.januar(2021),
+                    tilOgMed = 31.desember(2021)
+                )
+                resultat.uføregrad shouldBe Uføregrad.parse(100)
+                resultat.forventetInntekt shouldBe 0
+            }
+        }
+    }
+
+    @Test
     fun `returnerer tom liste hvis ingen elementer sendes inn`() {
-        Tidslinje(
+        Tidslinje<Tidslinjeobjekt>(
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 31.desember(2021)

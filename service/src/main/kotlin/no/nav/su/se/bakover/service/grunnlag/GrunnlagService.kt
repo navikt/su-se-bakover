@@ -10,10 +10,10 @@ import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.grunnlag.UføregrunnlagTidslinje
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.GrunnlagService.KunneIkkeLeggeTilGrunnlagsdata
@@ -74,7 +74,7 @@ internal class OpprettGrunnlagForRevurdering(
         val uføregrunnlagIPeriode = vedtakIPeriode
             .map { it.behandling.grunnlagsdata.copy() }
             .let { grunnlag ->
-                UføregrunnlagTidslinje(
+                Tidslinje<Uføregrunnlag>(
                     periode = periode,
                     objekter = grunnlag.flatMap { it.uføregrunnlag },
                     clock = clock

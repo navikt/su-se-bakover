@@ -28,7 +28,7 @@ internal data class GrunnlagsdataJson(
 private fun Uføregrunnlag.toJson() = GrunnlagsdataJson.UføregrunnlagJson(
     id = this.id.toString(),
     opprettet = this.opprettet.toString(),
-    periode = this.periode.toJson(),
+    periode = this.getPeriode().toJson(),
     uføregrad = this.uføregrad.value,
     forventetInntekt = this.forventetInntekt,
 )
