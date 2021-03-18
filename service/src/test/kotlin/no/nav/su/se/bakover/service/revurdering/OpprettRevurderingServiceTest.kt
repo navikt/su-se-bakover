@@ -53,6 +53,7 @@ import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.fixedClock
+import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
@@ -166,11 +167,16 @@ internal class OpprettRevurderingServiceTest {
             on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
         }
 
+        val grunnlagServiceMock = mock<GrunnlagService> {
+            on { opprettGrunnlag(any(), any()) } doReturn Grunnlagsdata.EMPTY
+        }
+
         val actual = createRevurderingService(
             sakService = sakServiceMock,
             revurderingRepo = revurderingRepoMock,
             oppgaveService = oppgaveServiceMock,
-            personService = personServiceMock
+            personService = personServiceMock,
+            grunnlagService = grunnlagServiceMock
         ).opprettRevurdering(
             sakId = sakId,
             fraOgMed = periode.getFraOgMed(),
@@ -186,9 +192,16 @@ internal class OpprettRevurderingServiceTest {
             oppgaveId = OppgaveId("oppgaveId"),
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
-        inOrder(sakServiceMock, personServiceMock, oppgaveServiceMock, revurderingRepoMock) {
+        inOrder(
+            sakServiceMock,
+            personServiceMock,
+            oppgaveServiceMock,
+            revurderingRepoMock,
+            grunnlagServiceMock,
+        ) {
             verify(sakServiceMock).hentSak(sakId)
             verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
+            verify(grunnlagServiceMock).opprettGrunnlag(sakId, periode)
             verify(oppgaveServiceMock).opprettOppgave(
                 argThat {
                     it shouldBe OppgaveConfig.Revurderingsbehandling(
@@ -328,6 +341,10 @@ internal class OpprettRevurderingServiceTest {
             on { hentSak(sakId) } doReturn sak.right()
         }
 
+        val grunnlagServiceMock = mock<GrunnlagService> {
+            on { opprettGrunnlag(any(), any()) } doReturn Grunnlagsdata.EMPTY
+        }
+
         val revurderingForFebruar = createRevurderingService(
             sakService = sakServiceMock,
             clock = Clock.fixed(1.januar(2020).startOfDay(zoneIdOslo).instant, zoneIdOslo),
@@ -337,6 +354,8 @@ internal class OpprettRevurderingServiceTest {
             personService = mock {
                 on { hentAktørId(any()) } doReturn AktørId("aktør1").right()
             },
+            grunnlagService = grunnlagServiceMock,
+
         ).opprettRevurdering(
             sakId = sakId,
             fraOgMed = 1.februar(2020),
@@ -356,6 +375,7 @@ internal class OpprettRevurderingServiceTest {
             personService = mock {
                 on { hentAktørId(any()) } doReturn AktørId("aktør1").right()
             },
+            grunnlagService = grunnlagServiceMock,
         ).opprettRevurdering(
             sakId = sakId,
             fraOgMed = 1.april(2020),
@@ -410,6 +430,9 @@ internal class OpprettRevurderingServiceTest {
             },
             oppgaveService = mock {
                 on { opprettOppgave(any()) } doReturn OppgaveId("oppgav1").right()
+            },
+            grunnlagService = mock {
+                on { opprettGrunnlag(any(), any()) } doReturn Grunnlagsdata.EMPTY
             }
         ).opprettRevurdering(
             sakId = sakId,
@@ -529,6 +552,7 @@ internal class OpprettRevurderingServiceTest {
         brevService: BrevService = mock(),
         vedtakRepo: VedtakRepo = mock(),
         clock: Clock = fixedClock,
+        grunnlagService: GrunnlagService = mock()
     ) =
         RevurderingServiceImpl(
             sakService = sakService,
@@ -540,5 +564,6 @@ internal class OpprettRevurderingServiceTest {
             brevService = brevService,
             vedtakRepo = vedtakRepo,
             clock = clock,
+            grunnlagService = grunnlagService
         )
 }

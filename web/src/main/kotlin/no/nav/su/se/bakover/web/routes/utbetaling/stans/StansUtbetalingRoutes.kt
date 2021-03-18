@@ -10,7 +10,6 @@ import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
-import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeStanseUtbetalinger
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.web.features.authorize
@@ -22,8 +21,7 @@ import no.nav.su.se.bakover.web.withSakId
 
 @KtorExperimentalAPI
 internal fun Route.stansutbetalingRoutes(
-    utbetalingService: UtbetalingService,
-    revurderingService: RevurderingService
+    utbetalingService: UtbetalingService
 ) {
     authorize(Brukerrolle.Saksbehandler) {
         post("$sakPath/{sakId}/utbetalinger/stans") {
@@ -49,7 +47,7 @@ internal fun Route.stansutbetalingRoutes(
                         InternalServerError.message("Kunne ikke stanse utbetalinger for sak med id $sakId")
                     },
                     {
-                        call.respond(serialize(it.toJson(revurderingService)))
+                        call.respond(serialize(it.toJson()))
                     }
                 )
             }

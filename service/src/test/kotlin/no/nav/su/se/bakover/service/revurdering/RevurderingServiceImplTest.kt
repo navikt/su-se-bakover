@@ -60,6 +60,7 @@ import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.fixedClock
+import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
@@ -171,20 +172,32 @@ internal class RevurderingServiceImplTest {
             on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
         }
 
+        val grunnlagServiceMock = mock<GrunnlagService> {
+            on { opprettGrunnlag(any(), any()) } doReturn Grunnlagsdata.EMPTY
+        }
+
         val actual = createRevurderingService(
             sakService = sakServiceMock,
             revurderingRepo = revurderingRepoMock,
             oppgaveService = oppgaveServiceMock,
-            personService = personServiceMock
+            personService = personServiceMock,
+            grunnlagService = grunnlagServiceMock
         ).opprettRevurdering(
             sakId = sakId,
             fraOgMed = periode.getFraOgMed(),
             saksbehandler = saksbehandler
         ).getOrHandle { throw RuntimeException("Skal ikke kunne skje") }
 
-        inOrder(sakServiceMock, personServiceMock, oppgaveServiceMock, revurderingRepoMock) {
+        inOrder(
+            sakServiceMock,
+            personServiceMock,
+            oppgaveServiceMock,
+            revurderingRepoMock,
+            grunnlagServiceMock
+        ) {
             verify(sakServiceMock).hentSak(sakId)
             verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
+            verify(grunnlagServiceMock).opprettGrunnlag(sakId, periode)
             verify(oppgaveServiceMock).opprettOppgave(
                 argThat {
                     it shouldBe OppgaveConfig.Revurderingsbehandling(
@@ -1026,6 +1039,7 @@ internal class RevurderingServiceImplTest {
         brevService: BrevService = mock(),
         clock: Clock = fixedClock,
         vedtakRepo: VedtakRepo = mock(),
+        grunnlagService: GrunnlagService = mock()
     ) =
         RevurderingServiceImpl(
             sakService = sakService,
@@ -1037,5 +1051,6 @@ internal class RevurderingServiceImplTest {
             brevService = brevService,
             clock = clock,
             vedtakRepo = vedtakRepo,
+            grunnlagService = grunnlagService,
         )
 }

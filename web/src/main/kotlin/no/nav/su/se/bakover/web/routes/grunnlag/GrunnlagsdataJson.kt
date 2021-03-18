@@ -1,11 +1,12 @@
-package no.nav.su.se.bakover.web.routes.behandling.søknadsbehandling
+package no.nav.su.se.bakover.web.routes.grunnlag
 
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.web.routes.behandling.beregning.PeriodeJson
 import no.nav.su.se.bakover.web.routes.behandling.beregning.PeriodeJson.Companion.toJson
 
-internal data class GrunnlagsdatasetJson(
+internal data class SimulertEndringGrunnlagJson(
     /** Sammensmelting av vedtakene før revurderingen.*/
     val førBehandling: GrunnlagsdataJson,
     /** De endringene som er lagt til i revurderingen */
@@ -13,6 +14,13 @@ internal data class GrunnlagsdatasetJson(
     /** Sammensmeltinga av førBehandling og endring  */
     val resultat: GrunnlagsdataJson,
 )
+
+internal fun GrunnlagService.SimulertEndringGrunnlag.toJson() = SimulertEndringGrunnlagJson(
+    førBehandling = førBehandling.toJson(),
+    endring = endring.toJson(),
+    resultat = resultat.toJson(),
+)
+
 internal data class GrunnlagsdataJson(
     val uføre: List<UføregrunnlagJson> = emptyList(),
 ) {

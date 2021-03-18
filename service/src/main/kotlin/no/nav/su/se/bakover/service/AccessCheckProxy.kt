@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnhold
-import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
@@ -40,14 +39,17 @@ import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.avstemming.AvstemmingFeilet
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.brev.BrevService
+import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLageBrevutkastForRevurdering
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilGrunnlag
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppdatereRevurderingsperiode
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeSendeRevurderingTilAttestering
+import no.nav.su.se.bakover.service.revurdering.LeggTilUføregrunnlagResponse
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
@@ -61,7 +63,6 @@ import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukketSøknad
-import no.nav.su.se.bakover.service.søknadsbehandling.GrunnlagService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeGjenopptaUtbetalinger
@@ -299,6 +300,11 @@ open class AccessCheckProxy(
                     assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.hent(request)
                 }
+
+                override fun leggTilUføregrunnlag(request: SøknadsbehandlingService.LeggTilUføregrunnlagRequest): Either<SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag, Søknadsbehandling> {
+                    assertHarTilgangTilBehandling(request.behandlingId)
+                    return services.søknadsbehandling.leggTilUføregrunnlag(request)
+                }
             },
             ferdigstillVedtak = object : FerdigstillVedtakService {
                 override fun ferdigstillVedtakEtterUtbetaling(utbetalingId: UUID30): Unit =
@@ -378,24 +384,20 @@ open class AccessCheckProxy(
 
                 override fun hentRevurderingForUtbetaling(utbetalingId: UUID30) = kastKanKunKallesFraAnnenService()
 
-                // TODO jah jm: fjern eller sikre
-                override fun opprettGrunnlagsresultat(revurdering: Revurdering): Grunnlagsdata {
-                    return services.revurdering.opprettGrunnlagsresultat(revurdering)
-                }
-
-                // TODO jah jm: fjern eller sikre
-                override fun opprettGrunnlagForRevurdering(sakId: UUID, periode: Periode): Grunnlagsdata {
-                    return services.revurdering.opprettGrunnlagForRevurdering(sakId, periode)
+                override fun leggTilUføregrunnlag(revurderingId: UUID, uføregrunnlag: List<Uføregrunnlag>): Either<KunneIkkeLeggeTilGrunnlag, LeggTilUføregrunnlagResponse> {
+                    assertHarTilgangTilSak(revurderingId)
+                    return services.revurdering.leggTilUføregrunnlag(revurderingId, uføregrunnlag)
                 }
             },
             grunnlagService = object : GrunnlagService {
-                override fun leggTilUføregrunnlag(
-                    behandlingId: UUID,
-                    uføregrunnlag: List<Uføregrunnlag>
-                ): Either<GrunnlagService.KunneIkkeLeggeTilGrunnlagsdata, Behandling> {
-                    assertHarTilgangTilBehandling(behandlingId)
-                    return services.grunnlagService.leggTilUføregrunnlag(behandlingId, uføregrunnlag)
-                }
+                override fun leggTilUføregrunnlag(behandlingId: UUID, uføregrunnlag: List<Uføregrunnlag>) =
+                    kastKanKunKallesFraAnnenService()
+
+                override fun opprettGrunnlag(sakId: UUID, periode: Periode): Grunnlagsdata =
+                    kastKanKunKallesFraAnnenService()
+
+                override fun simulerEndretGrunnlag(sakId: UUID, periode: Periode, endring: Grunnlagsdata) =
+                    kastKanKunKallesFraAnnenService()
             }
         )
     }

@@ -36,7 +36,7 @@ internal fun Route.sendRevurderingTilAttestering(
                     ifLeft = { call.svar(it.tilResultat()) },
                     ifRight = {
                         call.audit("Sendt revurdering til attestering med id $revurderingId")
-                        call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(revurderingService))))
+                        call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson())))
                     },
                 )
             }

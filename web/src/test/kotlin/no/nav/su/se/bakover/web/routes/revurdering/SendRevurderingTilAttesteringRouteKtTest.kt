@@ -85,8 +85,6 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
 
         val revurderingServiceMock = mock<RevurderingService> {
             on { sendTilAttestering(any(), any()) } doReturn revurderingTilAttestering.right()
-            on { opprettGrunnlagsresultat(any()) } doReturn Grunnlagsdata.EMPTY
-            on { opprettGrunnlagForRevurdering(any(), any()) } doReturn Grunnlagsdata.EMPTY
         }
 
         withTestApplication({

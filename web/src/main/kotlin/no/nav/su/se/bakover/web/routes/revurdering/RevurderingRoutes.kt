@@ -22,4 +22,6 @@ internal fun Route.revurderingRoutes(
     iverksettRevurderingRoute(revurderingService)
 
     brutkastForRevurdering(revurderingService)
+
+    leggTilGrunnlagRevurderingRoutes(revurderingService)
 }

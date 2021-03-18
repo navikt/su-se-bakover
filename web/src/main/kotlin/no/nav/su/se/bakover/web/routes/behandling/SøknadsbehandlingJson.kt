@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingsinformasjonJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.behandling.SimuleringJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.behandling.beregning.toJson
-import no.nav.su.se.bakover.web.routes.behandling.søknadsbehandling.toJson
+import no.nav.su.se.bakover.web.routes.grunnlag.toJson
 import no.nav.su.se.bakover.web.routes.søknad.toJson
 import java.time.format.DateTimeFormatter
 

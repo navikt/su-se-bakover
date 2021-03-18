@@ -6,7 +6,6 @@ import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
-import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad.FantIkkePerson
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad.FantIkkeSøknad
@@ -33,12 +32,12 @@ internal object LukkSøknadErrorHandler {
         }
     }
 
-    fun lukketSøknadResponse(error: LukketSøknad, revurderingService: RevurderingService) = when (error) {
+    fun lukketSøknadResponse(error: LukketSøknad) = when (error) {
         is LukketSøknad.UtenMangler,
         is LukketSøknad.MedMangler.KunneIkkeDistribuereBrev,
         is LukketSøknad.MedMangler.KunneIkkeLukkeOppgave -> Resultat.json(
             HttpStatusCode.OK,
-            serialize((error.sak.toJson(revurderingService)))
+            serialize((error.sak.toJson()))
         )
     }
 }

@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
@@ -25,16 +24,15 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
-import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.service.brev.BrevService
+import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
-import no.nav.su.se.bakover.service.søknadsbehandling.OpprettGrunnlagForRevurdering
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import java.time.Clock
@@ -51,6 +49,7 @@ internal class RevurderingServiceImpl(
     private val brevService: BrevService,
     private val clock: Clock,
     private val vedtakRepo: VedtakRepo,
+    private val grunnlagService: GrunnlagService,
 ) : RevurderingService {
 
     private val observers: MutableList<EventObserver> = mutableListOf()
@@ -96,7 +95,7 @@ internal class RevurderingServiceImpl(
             return KunneIkkeOppretteRevurdering.FantIkkeAktørId.left()
         }
 
-        val grunnlag = opprettGrunnlagForRevurdering(sakId, periode)
+        val grunnlag = grunnlagService.opprettGrunnlag(sakId, periode)
 
         // TODO ai 25.02.2021 - Oppgaven skal egentligen ikke opprettes her. Den burde egentligen komma utifra melding av endring, som skal føres til revurdering.
         return oppgaveService.opprettOppgave(
@@ -127,25 +126,26 @@ internal class RevurderingServiceImpl(
         }
     }
 
-    override fun opprettGrunnlagForRevurdering(sakId: UUID, periode: Periode): Grunnlagsdata {
-        return OpprettGrunnlagForRevurdering(
-            sakId = sakId,
-            periode = periode,
-            vedtakRepo = vedtakRepo,
-            clock = clock
-        ).grunnlag
-    }
+    override fun leggTilUføregrunnlag(revurderingId: UUID, uføregrunnlag: List<Grunnlag.Uføregrunnlag>): Either<KunneIkkeLeggeTilGrunnlag, LeggTilUføregrunnlagResponse> {
+        val revurdering = revurderingRepo.hent(revurderingId)
+            ?: return KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling.left()
 
-    /* Projected outcome / forventet utfall */
-    override fun opprettGrunnlagsresultat(revurdering: Revurdering): Grunnlagsdata {
-        val original = opprettGrunnlagForRevurdering(revurdering.sakId, revurdering.periode)
-        return Grunnlagsdata(
-            Tidslinje<Grunnlag.Uføregrunnlag>(
-                revurdering.periode,
-                original.uføregrunnlag + revurdering.grunnlagsdata.uføregrunnlag,
-                clock
-            ).tidslinje
+        if (revurdering is RevurderingTilAttestering || revurdering is IverksattRevurdering)
+            return KunneIkkeLeggeTilGrunnlag.UgyldigStatus.left()
+
+        grunnlagService.leggTilUføregrunnlag(revurdering.id, uføregrunnlag)
+        val updated = revurderingRepo.hent(revurdering.id)!!
+
+        val simulertEndringGrunnlag = grunnlagService.simulerEndretGrunnlag(
+            sakId = revurdering.sakId,
+            periode = revurdering.periode,
+            endring = updated.grunnlagsdata
         )
+
+        return LeggTilUføregrunnlagResponse(
+            revurdering = updated,
+            simulertEndringGrunnlag = simulertEndringGrunnlag
+        ).right()
     }
 
     override fun oppdaterRevurderingsperiode(

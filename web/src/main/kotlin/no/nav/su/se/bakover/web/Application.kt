@@ -60,7 +60,6 @@ import no.nav.su.se.bakover.web.metrics.SøknadMicrometerMetrics
 import no.nav.su.se.bakover.web.routes.IsNotProdStrategy
 import no.nav.su.se.bakover.web.routes.avstemming.avstemmingRoutes
 import no.nav.su.se.bakover.web.routes.behandling.behandlingRoutes
-import no.nav.su.se.bakover.web.routes.behandling.søknadsbehandling.grunnlagsdataRoute
 import no.nav.su.se.bakover.web.routes.drift.driftRoutes
 import no.nav.su.se.bakover.web.routes.installMetrics
 import no.nav.su.se.bakover.web.routes.me.meRoutes
@@ -246,20 +245,15 @@ internal fun Application.susebakover(
                     accessCheckProxy
                 ) { accessProtectedServices ->
                     personRoutes(accessProtectedServices.person, clock)
-                    sakRoutes(accessProtectedServices.sak, accessProtectedServices.revurdering)
+                    sakRoutes(accessProtectedServices.sak)
                     søknadRoutes(
                         accessProtectedServices.søknad,
-                        accessProtectedServices.lukkSøknad,
-                        accessProtectedServices.revurdering
+                        accessProtectedServices.lukkSøknad
                     )
                     behandlingRoutes(accessProtectedServices.søknadsbehandling)
-                    grunnlagsdataRoute(
-                        accessProtectedServices.grunnlagService,
-                        accessProtectedServices.revurdering
-                    )
                     avstemmingRoutes(accessProtectedServices.avstemming)
-                    stansutbetalingRoutes(accessProtectedServices.utbetaling, accessProtectedServices.revurdering)
-                    gjenopptaUtbetalingRoutes(accessProtectedServices.utbetaling, accessProtectedServices.revurdering)
+                    stansutbetalingRoutes(accessProtectedServices.utbetaling)
+                    gjenopptaUtbetalingRoutes(accessProtectedServices.utbetaling)
                     driftRoutes(accessProtectedServices.søknad, accessProtectedServices.ferdigstillVedtak)
                     revurderingRoutes(accessProtectedServices.revurdering)
                 }

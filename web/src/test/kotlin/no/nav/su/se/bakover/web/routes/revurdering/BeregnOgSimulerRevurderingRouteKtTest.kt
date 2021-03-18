@@ -138,8 +138,6 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
 
         val revurderingServiceMock = mock<RevurderingService> {
             on { beregnOgSimuler(any(), any(), any()) } doReturn simulertRevurdering.right()
-            on { opprettGrunnlagsresultat(any()) } doReturn Grunnlagsdata.EMPTY
-            on { opprettGrunnlagForRevurdering(any(), any()) } doReturn Grunnlagsdata.EMPTY
         }
 
         withTestApplication({

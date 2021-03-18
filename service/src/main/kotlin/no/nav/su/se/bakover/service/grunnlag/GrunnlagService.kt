@@ -1,60 +1,68 @@
-package no.nav.su.se.bakover.service.søknadsbehandling
+package no.nav.su.se.bakover.service.grunnlag
 
-import arrow.core.Either
-import arrow.core.getOrHandle
-import arrow.core.left
-import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
-import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
-import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
-import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
-import no.nav.su.se.bakover.service.behandling.BehandlingService
-import no.nav.su.se.bakover.service.søknadsbehandling.GrunnlagService.KunneIkkeLeggeTilGrunnlagsdata
 import java.time.Clock
 import java.util.UUID
 
 interface GrunnlagService {
     /** Denne brukes både fra Søknadsbehandling og Revurdering **/
-    fun leggTilUføregrunnlag(
-        behandlingId: UUID,
-        uføregrunnlag: List<Uføregrunnlag>
-    ): Either<KunneIkkeLeggeTilGrunnlagsdata, Behandling>
+    fun leggTilUføregrunnlag(behandlingId: UUID, uføregrunnlag: List<Uføregrunnlag>)
+    fun opprettGrunnlag(sakId: UUID, periode: Periode): Grunnlagsdata
+    fun simulerEndretGrunnlag(sakId: UUID, periode: Periode, endring: Grunnlagsdata): SimulertEndringGrunnlag
 
     sealed class KunneIkkeLeggeTilGrunnlagsdata {
         object FantIkkeBehandling : KunneIkkeLeggeTilGrunnlagsdata()
         object UgyldigTilstand : KunneIkkeLeggeTilGrunnlagsdata()
     }
+
+    data class SimulertEndringGrunnlag(
+        /** Sammensmelting av vedtakene før revurderingen. Det som lå til grunn for revurderingen */
+        val førBehandling: Grunnlagsdata,
+        /** De endringene som er lagt til i revurderingen (denne oppdateres ved lagring) */
+        val endring: Grunnlagsdata,
+        /** Sammensmeltinga av førBehandling og endring - denne er ikke persistert  */
+        val resultat: Grunnlagsdata,
+    )
 }
 
 internal class GrunnlagServiceImpl(
-    private val behandlingService: BehandlingService,
     private val grunnlagRepo: GrunnlagRepo,
+    private val vedtakRepo: VedtakRepo,
+    private val clock: Clock,
 ) : GrunnlagService {
-    override fun leggTilUføregrunnlag(
-        behandlingId: UUID,
-        uføregrunnlag: List<Uføregrunnlag>
-    ): Either<KunneIkkeLeggeTilGrunnlagsdata, Behandling> {
-        // TODO: Make frontend's main path call this endpoint instead of the patch one.
-        val behandling: Behandling = behandlingService.hentBehandling(behandlingId).getOrHandle {
-            return KunneIkkeLeggeTilGrunnlagsdata.FantIkkeBehandling.left()
-        }
-        when (behandling) {
-            is RevurderingTilAttestering,
-            is IverksattRevurdering,
-            is Søknadsbehandling.TilAttestering,
-            is Søknadsbehandling.Iverksatt -> return KunneIkkeLeggeTilGrunnlagsdata.UgyldigTilstand.left()
-            // TODO jah jm: Fullfør denne lista eller gjør det på en annen måte.
-        }
+    override fun leggTilUføregrunnlag(behandlingId: UUID, uføregrunnlag: List<Uføregrunnlag>) = grunnlagRepo.lagre(behandlingId, uføregrunnlag)
 
-        grunnlagRepo.lagre(behandlingId, uføregrunnlag)
-        return behandlingService.hentBehandling(behandlingId).orNull()!!.right()
+    override fun simulerEndretGrunnlag(sakId: UUID, periode: Periode, endring: Grunnlagsdata): GrunnlagService.SimulertEndringGrunnlag {
+        val originaltGrunnlag = opprettGrunnlag(sakId, periode)
+
+        val simulertEndringUføregrunnlag = Grunnlagsdata(
+            uføregrunnlag = Tidslinje<Uføregrunnlag>(
+                periode,
+                originaltGrunnlag.uføregrunnlag + endring.uføregrunnlag,
+                clock
+            ).tidslinje
+        )
+
+        return GrunnlagService.SimulertEndringGrunnlag(
+            førBehandling = originaltGrunnlag,
+            endring = endring,
+            resultat = simulertEndringUføregrunnlag
+        )
+    }
+
+    override fun opprettGrunnlag(sakId: UUID, periode: Periode): Grunnlagsdata {
+        return OpprettGrunnlagForRevurdering(
+            sakId = sakId,
+            periode = periode,
+            vedtakRepo = vedtakRepo,
+            clock = clock
+        ).grunnlag
     }
 }
 

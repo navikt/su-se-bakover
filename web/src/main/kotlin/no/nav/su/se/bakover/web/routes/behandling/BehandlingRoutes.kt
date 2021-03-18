@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.web.routes.behandling
 
 import arrow.core.Either
+import arrow.core.flatMap
+import arrow.core.getOrHandle
 import io.ktor.application.call
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
@@ -40,10 +42,13 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
+import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.routes.behandling.beregning.NyBeregningForSøknadsbehandlingJson
+import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagBody
+import no.nav.su.se.bakover.web.routes.grunnlag.toDomain
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.toUUID
@@ -108,6 +113,35 @@ internal fun Route.behandlingRoutes(
                 }.map {
                     call.audit("Hentet behandling med id $behandlingId")
                     call.svar(Resultat.json(OK, serialize(it.toJson())))
+                }
+            }
+        }
+    }
+
+    authorize(Brukerrolle.Saksbehandler) {
+        post("$behandlingPath/{behandlingId}/uføregrunnlag") {
+            call.withBehandlingId { behandlingId ->
+                call.withBody<List<UføregrunnlagBody>> { body ->
+                    call.svar(
+                        body.toDomain()
+                            .flatMap { uføregrunnlag ->
+                                søknadsbehandlingService.leggTilUføregrunnlag(
+                                    SøknadsbehandlingService.LeggTilUføregrunnlagRequest(
+                                        behandlingId,
+                                        uføregrunnlag
+                                    )
+                                ).mapLeft {
+                                    when (it) {
+                                        SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling -> NotFound.errorJson("fant ikke behandling", "fant_ikke_behandling")
+                                        SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.UgyldigStatus -> InternalServerError.errorJson("ugyldig status for å legge til", "ugyldig_status_for_å_legge_til")
+                                    }
+                                }.map {
+                                    Resultat.json(Created, serialize(it.toJson()))
+                                }
+                            }.getOrHandle {
+                                it
+                            }
+                    )
                 }
             }
         }

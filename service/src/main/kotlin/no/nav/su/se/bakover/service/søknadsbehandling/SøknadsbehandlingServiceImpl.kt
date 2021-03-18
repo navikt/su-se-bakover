@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.service.beregning.BeregningService
 import no.nav.su.se.bakover.service.brev.BrevService
+import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.Event
@@ -57,7 +58,8 @@ internal class SøknadsbehandlingServiceImpl(
     private val opprettVedtakssnapshotService: OpprettVedtakssnapshotService,
     private val clock: Clock,
     private val vedtakRepo: VedtakRepo,
-    private val ferdigstillVedtakService: FerdigstillVedtakService
+    private val ferdigstillVedtakService: FerdigstillVedtakService,
+    private val grunnlagService: GrunnlagService
 ) : SøknadsbehandlingService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -419,5 +421,17 @@ internal class SøknadsbehandlingServiceImpl(
     override fun hent(request: SøknadsbehandlingService.HentRequest): Either<SøknadsbehandlingService.FantIkkeBehandling, Søknadsbehandling> {
         return søknadsbehandlingRepo.hent(request.behandlingId)?.right()
             ?: SøknadsbehandlingService.FantIkkeBehandling.left()
+    }
+
+    override fun leggTilUføregrunnlag(request: SøknadsbehandlingService.LeggTilUføregrunnlagRequest): Either<SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag, Søknadsbehandling> {
+        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
+            ?: return SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling.left()
+
+        if (søknadsbehandling is Søknadsbehandling.Iverksatt || søknadsbehandling is Søknadsbehandling.TilAttestering)
+            return SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.UgyldigStatus.left()
+
+        grunnlagService.leggTilUføregrunnlag(søknadsbehandling.id, request.uføregrunnlag)
+
+        return søknadsbehandlingRepo.hent(søknadsbehandling.id)!!.right()
     }
 }

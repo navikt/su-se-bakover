@@ -45,7 +45,7 @@ internal fun Route.iverksettRevurderingRoute(
                     },
                     ifRight = {
                         call.audit("Iverksatt revurdering med id $revurderingId")
-                        call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson(revurderingService))))
+                        call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson())))
                     },
                 )
             }

@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.routes.behandling
 
 import no.nav.su.se.bakover.web.routes.behandling.beregning.BeregningJson
-import no.nav.su.se.bakover.web.routes.behandling.søknadsbehandling.GrunnlagsdataJson
+import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataJson
 import no.nav.su.se.bakover.web.routes.hendelse.HendelseJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadJson
 import java.util.UUID

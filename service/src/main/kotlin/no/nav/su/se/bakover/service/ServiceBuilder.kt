@@ -7,9 +7,9 @@ import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
-import no.nav.su.se.bakover.service.behandling.BehandlingService
 import no.nav.su.se.bakover.service.beregning.BeregningService
 import no.nav.su.se.bakover.service.brev.BrevServiceImpl
+import no.nav.su.se.bakover.service.grunnlag.GrunnlagServiceImpl
 import no.nav.su.se.bakover.service.oppgave.OppgaveServiceImpl
 import no.nav.su.se.bakover.service.person.PersonServiceImpl
 import no.nav.su.se.bakover.service.revurdering.RevurderingServiceImpl
@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.service.sak.SakServiceImpl
 import no.nav.su.se.bakover.service.statistikk.StatistikkServiceImpl
 import no.nav.su.se.bakover.service.søknad.SøknadServiceImpl
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadServiceImpl
-import no.nav.su.se.bakover.service.søknadsbehandling.GrunnlagServiceImpl
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingServiceImpl
 import no.nav.su.se.bakover.service.toggles.ToggleServiceImpl
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingServiceImpl
@@ -66,6 +65,12 @@ object ServiceBuilder {
             clock = clock,
         )
 
+        val grunnlagService = GrunnlagServiceImpl(
+            grunnlagRepo = databaseRepos.grunnlagRepo,
+            vedtakRepo = databaseRepos.vedtakRepo,
+            clock = clock,
+        )
+
         val revurderingService = RevurderingServiceImpl(
             sakService = sakService,
             utbetalingService = utbetalingService,
@@ -76,6 +81,7 @@ object ServiceBuilder {
             brevService = brevService,
             clock = clock,
             vedtakRepo = databaseRepos.vedtakRepo,
+            grunnlagService = grunnlagService,
         ).apply { addObserver(statistikkService) }
 
         val opprettVedtakssnapshotService = OpprettVedtakssnapshotService(databaseRepos.vedtakssnapshot)
@@ -104,15 +110,11 @@ object ServiceBuilder {
             opprettVedtakssnapshotService = opprettVedtakssnapshotService,
             clock = clock,
             vedtakRepo = databaseRepos.vedtakRepo,
-            ferdigstillVedtakService = ferdigstillVedtakService
+            ferdigstillVedtakService = ferdigstillVedtakService,
+            grunnlagService = grunnlagService,
         ).apply {
             addObserver(statistikkService)
         }
-        val behandlingService = BehandlingService(
-            søknadsbehandlingService = søknadsbehandlingService,
-            revurderingService = revurderingService,
-        )
-        val grunnlagService = GrunnlagServiceImpl(behandlingService, databaseRepos.grunnlagRepo)
         val toggleService = ToggleServiceImpl(unleash)
 
         return Services(

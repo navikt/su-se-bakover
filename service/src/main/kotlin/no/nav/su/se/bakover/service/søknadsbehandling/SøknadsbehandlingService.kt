@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import java.util.UUID
@@ -20,6 +21,7 @@ interface SøknadsbehandlingService {
     fun iverksett(request: IverksettRequest): Either<KunneIkkeIverksette, Søknadsbehandling.Iverksatt>
     fun brev(request: BrevRequest): Either<KunneIkkeLageBrev, ByteArray>
     fun hent(request: HentRequest): Either<FantIkkeBehandling, Søknadsbehandling>
+    fun leggTilUføregrunnlag(request: LeggTilUføregrunnlagRequest): Either<KunneIkkeLeggeTilGrunnlag, Søknadsbehandling>
 
     data class OpprettRequest(
         val søknadId: UUID
@@ -118,4 +120,14 @@ interface SøknadsbehandlingService {
     )
 
     object FantIkkeBehandling
+
+    data class LeggTilUføregrunnlagRequest(
+        val behandlingId: UUID,
+        val uføregrunnlag: List<Grunnlag.Uføregrunnlag>
+    )
+
+    sealed class KunneIkkeLeggeTilGrunnlag {
+        object FantIkkeBehandling : KunneIkkeLeggeTilGrunnlag()
+        object UgyldigStatus : KunneIkkeLeggeTilGrunnlag()
+    }
 }

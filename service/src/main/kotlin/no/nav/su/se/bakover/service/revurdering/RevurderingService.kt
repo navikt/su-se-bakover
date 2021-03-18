@@ -5,10 +5,11 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
+import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import java.time.LocalDate
 import java.util.UUID
 import kotlin.reflect.KClass
@@ -49,8 +50,8 @@ interface RevurderingService {
     ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering>
 
     fun hentRevurderingForUtbetaling(utbetalingId: UUID30): IverksattRevurdering?
-    fun opprettGrunnlagsresultat(revurdering: Revurdering): Grunnlagsdata
-    fun opprettGrunnlagForRevurdering(sakId: UUID, periode: Periode): Grunnlagsdata
+
+    fun leggTilUføregrunnlag(revurderingId: UUID, uføregrunnlag: List<Grunnlag.Uføregrunnlag>): Either<KunneIkkeLeggeTilGrunnlag, LeggTilUføregrunnlagResponse>
 }
 
 object FantIkkeRevurdering
@@ -109,3 +110,13 @@ sealed class KunneIkkeLageBrevutkastForRevurdering {
     object FantIkkePerson : KunneIkkeLageBrevutkastForRevurdering()
     object KunneIkkeHenteNavnForSaksbehandlerEllerAttestant : KunneIkkeLageBrevutkastForRevurdering()
 }
+
+sealed class KunneIkkeLeggeTilGrunnlag {
+    object FantIkkeBehandling : KunneIkkeLeggeTilGrunnlag()
+    object UgyldigStatus : KunneIkkeLeggeTilGrunnlag()
+}
+
+data class LeggTilUføregrunnlagResponse(
+    val revurdering: Revurdering,
+    val simulertEndringGrunnlag: GrunnlagService.SimulertEndringGrunnlag
+)
