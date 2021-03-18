@@ -58,6 +58,7 @@ interface RevurderingService {
     fun hentRevurderingForUtbetaling(utbetalingId: UUID30): IverksattRevurdering?
 
     fun leggTilUføregrunnlag(revurderingId: UUID, uføregrunnlag: List<Grunnlag.Uføregrunnlag>): Either<KunneIkkeLeggeTilGrunnlag, LeggTilUføregrunnlagResponse>
+    fun hentUføregrunnlag(revurderingId: UUID): Either<KunneIkkeHenteGrunnlag, GrunnlagService.SimulertEndringGrunnlag>
 }
 
 object FantIkkeRevurdering
@@ -130,6 +131,10 @@ sealed class KunneIkkeUnderkjenneRevurdering {
 sealed class KunneIkkeLeggeTilGrunnlag {
     object FantIkkeBehandling : KunneIkkeLeggeTilGrunnlag()
     object UgyldigStatus : KunneIkkeLeggeTilGrunnlag()
+}
+
+sealed class KunneIkkeHenteGrunnlag {
+    object FantIkkeBehandling : KunneIkkeHenteGrunnlag()
 }
 
 data class LeggTilUføregrunnlagResponse(

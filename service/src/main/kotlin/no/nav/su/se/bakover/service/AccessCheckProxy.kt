@@ -46,6 +46,7 @@ import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeHenteGrunnlag
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLageBrevutkastForRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilGrunnlag
@@ -403,6 +404,11 @@ open class AccessCheckProxy(
                 override fun leggTilUføregrunnlag(revurderingId: UUID, uføregrunnlag: List<Grunnlag.Uføregrunnlag>): Either<KunneIkkeLeggeTilGrunnlag, LeggTilUføregrunnlagResponse> {
                     assertHarTilgangTilSak(revurderingId)
                     return services.revurdering.leggTilUføregrunnlag(revurderingId, uføregrunnlag)
+                }
+
+                override fun hentUføregrunnlag(revurderingId: UUID): Either<KunneIkkeHenteGrunnlag, GrunnlagService.SimulertEndringGrunnlag> {
+                    assertHarTilgangTilSak(revurderingId)
+                    return services.revurdering.hentUføregrunnlag(revurderingId)
                 }
             },
             vedtakService = object : VedtakService {
