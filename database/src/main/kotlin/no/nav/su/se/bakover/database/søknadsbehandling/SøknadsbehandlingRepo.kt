@@ -12,7 +12,5 @@ interface SøknadsbehandlingRepo {
     fun hent(id: UUID, session: Session): Søknadsbehandling?
     fun hentForSak(sakId: UUID, session: Session): List<Søknadsbehandling>
     fun hentEventuellTidligereAttestering(id: UUID): Attestering?
-    fun hentIverksatteBehandlingerUtenJournalposteringer(): List<Søknadsbehandling.Iverksatt.Innvilget>
-    fun hentIverksatteBehandlingerUtenBrevbestillinger(): List<Søknadsbehandling.Iverksatt>
     fun hentBehandlingForUtbetaling(utbetalingId: UUID30): Søknadsbehandling.Iverksatt.Innvilget?
 }

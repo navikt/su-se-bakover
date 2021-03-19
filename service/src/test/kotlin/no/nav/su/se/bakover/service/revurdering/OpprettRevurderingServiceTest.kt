@@ -35,9 +35,6 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.MånedsberegningFactory
 import no.nav.su.se.bakover.domain.beregning.Sats
-import no.nav.su.se.bakover.domain.brev.BrevbestillingId
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
-import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -108,7 +105,10 @@ internal class OpprettRevurderingServiceTest {
     private fun createInnvilgetBehandling() = Søknadsbehandling.Iverksatt.Innvilget(
         id = mock(),
         opprettet = mock(),
+        sakId = sakId,
+        saksnummer = saksnummer,
         søknad = mock(),
+        oppgaveId = mock(),
         behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().copy(
             bosituasjon = Behandlingsinformasjon.Bosituasjon(
                 ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
@@ -117,14 +117,11 @@ internal class OpprettRevurderingServiceTest {
                 begrunnelse = null
             )
         ),
-        saksbehandler = saksbehandler,
-        attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("Attes T. Ant")),
-        sakId = sakId,
-        saksnummer = saksnummer,
         fnr = fnr,
-        oppgaveId = mock(),
         beregning = createBeregningMock(),
         simulering = mock(),
+        saksbehandler = saksbehandler,
+        attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("Attes T. Ant")),
         utbetalingId = mock(),
     )
 
@@ -375,14 +372,10 @@ internal class OpprettRevurderingServiceTest {
                 opprettet = Tidspunkt.EPOCH,
                 tilRevurdering = opprinneligVedtak,
                 saksbehandler = saksbehandler,
-                attestering = Attestering.Iverksatt(opprinneligVedtak.attestant),
+                oppgaveId = OppgaveId("null"),
                 beregning = opprinneligVedtak.beregning,
                 simulering = opprinneligVedtak.simulering,
-                oppgaveId = OppgaveId("null"),
-                eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
-                    JournalpostId("ajour"),
-                    BrevbestillingId("abrev")
-                ),
+                attestering = Attestering.Iverksatt(opprinneligVedtak.attestant),
                 utbetalingId = opprinneligVedtak.utbetalingId,
                 fritekstTilBrev = ""
             )

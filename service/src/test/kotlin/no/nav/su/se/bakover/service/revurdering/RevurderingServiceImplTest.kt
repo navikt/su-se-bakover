@@ -36,7 +36,6 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -116,7 +115,10 @@ internal class RevurderingServiceImplTest {
         Søknadsbehandling.Iverksatt.Innvilget(
             id = mock(),
             opprettet = mock(),
+            sakId = sakId,
+            saksnummer = saksnummer,
             søknad = mock(),
+            oppgaveId = mock(),
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().copy(
                 bosituasjon = Behandlingsinformasjon.Bosituasjon(
                     ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
@@ -126,14 +128,11 @@ internal class RevurderingServiceImplTest {
                 ),
                 ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle
             ),
-            saksbehandler = saksbehandler,
-            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("Attes T. Ant")),
-            sakId = sakId,
-            saksnummer = saksnummer,
             fnr = fnr,
-            oppgaveId = mock(),
             beregning = beregningMock,
             simulering = mock(),
+            saksbehandler = saksbehandler,
+            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("Attes T. Ant")),
             utbetalingId = mock(),
         )
     )
@@ -601,12 +600,11 @@ internal class RevurderingServiceImplTest {
             opprettet = Tidspunkt.EPOCH,
             tilRevurdering = søknadsbehandlingVedtak,
             saksbehandler = saksbehandler,
+            oppgaveId = OppgaveId(value = "OppgaveId"),
             beregning = TestBeregning,
             simulering = testsimulering,
-            oppgaveId = OppgaveId(value = "OppgaveId"),
             attestering = Attestering.Iverksatt(attestant),
             utbetalingId = utbetalingId,
-            eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
             fritekstTilBrev = ""
         )
         val revurderingTilAttestering = RevurderingTilAttestering(

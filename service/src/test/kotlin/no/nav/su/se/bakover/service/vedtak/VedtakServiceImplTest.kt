@@ -105,6 +105,8 @@ internal class VedtakServiceImplTest {
             Søknadsbehandling.Iverksatt.Innvilget(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(),
+                sakId = UUID.randomUUID(),
+                saksnummer = Saksnummer(1),
                 søknad = Søknad.Journalført.MedOppgave(
                     id = BehandlingTestUtils.søknadId,
                     opprettet = Tidspunkt.EPOCH,
@@ -113,15 +115,13 @@ internal class VedtakServiceImplTest {
                     oppgaveId = BehandlingTestUtils.søknadOppgaveId,
                     journalpostId = BehandlingTestUtils.søknadJournalpostId
                 ),
-                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-                sakId = UUID.randomUUID(),
-                saksnummer = Saksnummer(1),
-                fnr = fnr,
-                saksbehandler = saksbehandler,
                 oppgaveId = oppgaveId,
+                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
+                fnr = fnr,
                 beregning = TestBeregning,
-                attestering = Attestering.Iverksatt(attestant),
                 simulering = mock(),
+                saksbehandler = saksbehandler,
+                attestering = Attestering.Iverksatt(attestant),
                 utbetalingId = UUID30.randomUUID()
             )
         )

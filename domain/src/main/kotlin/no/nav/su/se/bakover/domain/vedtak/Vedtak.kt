@@ -55,7 +55,7 @@ sealed class Vedtak : Visitable<VedtakVisitor> {
                 saksbehandler = søknadsbehandling.saksbehandler,
                 attestant = søknadsbehandling.attestering.attestant,
                 utbetalingId = søknadsbehandling.utbetalingId,
-                journalføringOgBrevdistribusjon = søknadsbehandling.eksterneIverksettingsteg,
+                journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
             )
 
             fun fromRevurdering(revurdering: IverksattRevurdering) = InnvilgetStønad(
@@ -67,7 +67,7 @@ sealed class Vedtak : Visitable<VedtakVisitor> {
                 saksbehandler = revurdering.saksbehandler,
                 attestant = revurdering.attestering.attestant,
                 utbetalingId = revurdering.utbetalingId,
-                journalføringOgBrevdistribusjon = revurdering.eksterneIverksettingsteg
+                journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
             )
         }
 
@@ -97,7 +97,7 @@ sealed class Vedtak : Visitable<VedtakVisitor> {
                     beregning = avslag.beregning,
                     saksbehandler = avslag.saksbehandler,
                     attestant = avslag.attestering.attestant,
-                    journalføringOgBrevdistribusjon = avslag.eksterneIverksettingsteg,
+                    journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
                 )
 
             fun fromSøknadsbehandlingUtenBeregning(avslag: Søknadsbehandling.Iverksatt.Avslag.UtenBeregning) =
@@ -106,7 +106,7 @@ sealed class Vedtak : Visitable<VedtakVisitor> {
                     behandlingsinformasjon = avslag.behandlingsinformasjon,
                     saksbehandler = avslag.saksbehandler,
                     attestant = avslag.attestering.attestant,
-                    journalføringOgBrevdistribusjon = avslag.eksterneIverksettingsteg,
+                    journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
                 )
         }
 

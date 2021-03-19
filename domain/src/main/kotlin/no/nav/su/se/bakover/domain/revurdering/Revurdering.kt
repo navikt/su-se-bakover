@@ -20,10 +20,6 @@ import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.RevurdertBeregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
-import no.nav.su.se.bakover.domain.brev.BrevbestillingId
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.KunneIkkeJournalføreOgDistribuereBrev
-import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
@@ -260,12 +256,11 @@ data class RevurderingTilAttestering(
                 opprettet = opprettet,
                 tilRevurdering = tilRevurdering,
                 saksbehandler = saksbehandler,
+                oppgaveId = oppgaveId,
                 beregning = beregning,
                 simulering = simulering,
-                oppgaveId = oppgaveId,
                 attestering = Attestering.Iverksatt(attestant),
                 utbetalingId = it,
-                eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
                 fritekstTilBrev = fritekstTilBrev
             )
         }
@@ -301,20 +296,10 @@ data class IverksattRevurdering(
     val simulering: Simulering,
     val attestering: Attestering.Iverksatt,
     val utbetalingId: UUID30,
-    val eksterneIverksettingsteg: JournalføringOgBrevdistribusjon,
     override val fritekstTilBrev: String,
 ) : Revurdering() {
     override fun accept(visitor: RevurderingVisitor) {
         visitor.visit(this)
-    }
-
-    fun journalfør(journalfør: () -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre, IverksattRevurdering> {
-        return eksterneIverksettingsteg.journalfør(journalfør).map { copy(eksterneIverksettingsteg = it) }
-    }
-
-    fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev, IverksattRevurdering> {
-        return eksterneIverksettingsteg.distribuerBrev(distribuerBrev)
-            .map { copy(eksterneIverksettingsteg = it) }
     }
 
     override fun beregn(fradrag: List<Fradrag>): Either<KunneIkkeBeregneRevurdering, BeregnetRevurdering> {

@@ -8,6 +8,8 @@ import no.nav.su.se.bakover.database.beregning.PersistertFradrag
 import no.nav.su.se.bakover.database.beregning.PersistertMånedsberegning
 import no.nav.su.se.bakover.database.fixedLocalDate
 import no.nav.su.se.bakover.database.fixedTidspunkt
+import no.nav.su.se.bakover.database.iverksattBrevbestillingId
+import no.nav.su.se.bakover.database.iverksattJournalpostId
 import no.nav.su.se.bakover.database.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.database.vedtak.snapshot.VedtakssnapshotJson.Companion.toJson
 import no.nav.su.se.bakover.domain.Fnr
@@ -25,7 +27,6 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategyName.Enslig
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører.BRUKER
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype.Arbeidsinntekt
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
-import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType.YTEL
@@ -58,10 +59,7 @@ internal class VedtakssnapshotJsonTest {
             id = UUID.fromString(behandlingId),
             opprettet = fixedTidspunkt,
             sakId = UUID.fromString(sakId),
-            behandlingsinformasjon = Behandlingsinformasjon
-                .lagTomBehandlingsinformasjon()
-                .withAlleVilkårOppfylt()
-                .withVilkårAvslått(),
+            saksnummer = Saksnummer(1234),
             søknad = Søknad.Journalført.MedOppgave(
                 id = UUID.fromString(søknadId),
                 opprettet = fixedTidspunkt,
@@ -70,23 +68,22 @@ internal class VedtakssnapshotJsonTest {
                 journalpostId = JournalpostId("journalpostId"),
                 oppgaveId = OppgaveId("oppgaveId")
             ),
+            oppgaveId = OppgaveId("oppgaveId"),
+            behandlingsinformasjon = Behandlingsinformasjon
+                .lagTomBehandlingsinformasjon()
+                .withAlleVilkårOppfylt()
+                .withVilkårAvslått(),
+            fnr = fnr,
             saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
-            saksnummer = Saksnummer(1234),
-            fnr = fnr,
-            oppgaveId = OppgaveId("oppgaveId"),
-            eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
-                journalpostId = JournalpostId("iverksattJournalpostId"),
-                brevbestillingId = BrevbestillingId("iverksattBrevbestillingId"),
-
-            ),
         )
 
         val avslag = Vedtakssnapshot.Avslag(
             id = UUID.fromString(vedtakssnapshotId),
             opprettet = fixedTidspunkt,
             søknadsbehandling = avslagUtenBeregning,
-            avslagsgrunner = listOf(Avslagsgrunn.PERSONLIG_OPPMØTE)
+            avslagsgrunner = listOf(Avslagsgrunn.PERSONLIG_OPPMØTE),
+            journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.fromId(iverksattJournalpostId, iverksattBrevbestillingId)
         )
 
         //language=JSON
@@ -353,10 +350,7 @@ internal class VedtakssnapshotJsonTest {
             id = UUID.fromString(behandlingId),
             opprettet = fixedTidspunkt,
             sakId = UUID.fromString(sakId),
-            behandlingsinformasjon = Behandlingsinformasjon
-                .lagTomBehandlingsinformasjon()
-                .withAlleVilkårOppfylt()
-                .withVilkårAvslått(),
+            saksnummer = Saksnummer(1234),
             søknad = Søknad.Journalført.MedOppgave(
                 id = UUID.fromString(søknadId),
                 opprettet = fixedTidspunkt,
@@ -365,11 +359,12 @@ internal class VedtakssnapshotJsonTest {
                 journalpostId = JournalpostId("journalpostId"),
                 oppgaveId = OppgaveId("oppgaveId")
             ),
-            saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
-            saksnummer = Saksnummer(1234),
-            fnr = fnr,
             oppgaveId = OppgaveId("oppgaveId"),
+            behandlingsinformasjon = Behandlingsinformasjon
+                .lagTomBehandlingsinformasjon()
+                .withAlleVilkårOppfylt()
+                .withVilkårAvslått(),
+            fnr = fnr,
             beregning = PersistertBeregning(
                 id = UUID.fromString(beregningId),
                 opprettet = fixedTidspunkt,
@@ -428,10 +423,8 @@ internal class VedtakssnapshotJsonTest {
                     )
                 )
             ),
-            eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
-                journalpostId = JournalpostId("iverksattJournalpostId"),
-                brevbestillingId = BrevbestillingId("iverksattBrevbestillingId"),
-            ),
+            saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
+            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
             utbetalingId = UUID30.randomUUID(),
         )
         val utbetaling = oversendtUtbetalingUtenKvittering(innvilget)
@@ -439,7 +432,8 @@ internal class VedtakssnapshotJsonTest {
             id = UUID.fromString(vedtakssnapshotId),
             opprettet = fixedTidspunkt,
             søknadsbehandling = innvilget,
-            utbetaling = utbetaling
+            utbetaling = utbetaling,
+            journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.fromId(iverksattJournalpostId, iverksattBrevbestillingId)
         )
 
         //language=JSON

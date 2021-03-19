@@ -18,9 +18,6 @@ import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.brev.BrevbestillingId
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
-import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -131,9 +128,6 @@ internal class RevurderingPostgresRepo(
         val utbetalingId = stringOrNull("utbetalingid")
         val fritekstTilBrev = stringOrNull("fritekstTilBrev")
 
-        val iverksattJournalpostId = stringOrNull("iverksattJournalpostId")?.let { JournalpostId(it) }
-        val iverksattBrevbestillingId = stringOrNull("iverksattBrevbestillingId")?.let { BrevbestillingId(it) }
-
         return when (RevurderingsType.valueOf(string("revurderingsType"))) {
             RevurderingsType.UNDERKJENT -> UnderkjentRevurdering(
                 id = id,
@@ -153,15 +147,11 @@ internal class RevurderingPostgresRepo(
                 opprettet = opprettet,
                 tilRevurdering = tilRevurdering,
                 saksbehandler = Saksbehandler(saksbehandler),
+                oppgaveId = OppgaveId(oppgaveId!!),
                 beregning = beregning!!,
                 simulering = simulering!!,
-                oppgaveId = OppgaveId(oppgaveId!!),
                 attestering = attestering!! as Attestering.Iverksatt,
                 utbetalingId = UUID30.fromString(utbetalingId!!),
-                eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.fromId(
-                    iverksattJournalpostId,
-                    iverksattBrevbestillingId
-                ),
                 fritekstTilBrev = fritekstTilBrev ?: ""
             )
             RevurderingsType.TIL_ATTESTERING -> RevurderingTilAttestering(
@@ -233,8 +223,6 @@ internal class RevurderingPostgresRepo(
                         revurderingsType,
                         attestering,
                         utbetalingId,
-                        iverksattjournalpostid,
-                        iverksattbrevbestillingid,
                         vedtakSomRevurderesId,
                         fritekstTilBrev
                     ) values (
@@ -246,8 +234,6 @@ internal class RevurderingPostgresRepo(
                         :saksbehandler,
                         :oppgaveId,
                         '${RevurderingsType.OPPRETTET}',
-                        null,
-                        null,
                         null,
                         null,
                         :vedtakSomRevurderesId,
@@ -263,8 +249,6 @@ internal class RevurderingPostgresRepo(
                         oppgaveId=:oppgaveId,
                         revurderingsType='${RevurderingsType.OPPRETTET}',
                         attestering=null, utbetalingId=null,
-                        iverksattjournalpostid=null,
-                        iverksattbrevbestillingid=null,
                         vedtakSomRevurderesId=:vedtakSomRevurderesId,
                         fritekstTilBrev=:fritekstTilBrev
                 """.trimIndent()
@@ -377,9 +361,7 @@ internal class RevurderingPostgresRepo(
                         revurderingsType = '${RevurderingsType.IVERKSATT}',
                         oppgaveId = :oppgaveId,
                         attestering = to_json(:attestering::json),
-                        utbetalingId = :utbetalingId,
-                        iverksattjournalpostid = :iverksattjournalpostid,
-                        iverksattbrevbestillingid = :iverksattbrevbestillingid
+                        utbetalingId = :utbetalingId
                     where
                         id = :id
                 """.trimIndent()
@@ -392,12 +374,6 @@ internal class RevurderingPostgresRepo(
                     "oppgaveId" to revurdering.oppgaveId.toString(),
                     "attestering" to objectMapper.writeValueAsString(revurdering.attestering),
                     "utbetalingId" to revurdering.utbetalingId,
-                    "iverksattjournalpostid" to JournalføringOgBrevdistribusjon.iverksattJournalpostId(
-                        revurdering.eksterneIverksettingsteg
-                    )?.toString(),
-                    "iverksattbrevbestillingid" to JournalføringOgBrevdistribusjon.iverksattBrevbestillingId(
-                        revurdering.eksterneIverksettingsteg
-                    )?.toString(),
                 ),
                 session
             )

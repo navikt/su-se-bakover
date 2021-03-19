@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.hent
-import no.nav.su.se.bakover.database.journalførtIverksettingForAvslag
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -40,7 +39,7 @@ internal class VedtakPosgresRepoTest {
     @Test
     fun `setter inn og henter vedtak for avslått stønad`() {
         withMigratedDb {
-            val søknadsbehandling = testDataHelper.nyIverksattAvslagMedBeregning(journalførtIverksettingForAvslag)
+            val søknadsbehandling = testDataHelper.nyIverksattAvslagMedBeregning()
             val vedtak = Vedtak.AvslåttStønad.fromSøknadsbehandlingMedBeregning(søknadsbehandling)
 
             vedtakRepo.lagre(vedtak)
@@ -80,16 +79,15 @@ internal class VedtakPosgresRepoTest {
             val nyRevurdering = testDataHelper.nyRevurdering(søknadsbehandlingVedtak)
             val iverksattRevurdering = IverksattRevurdering(
                 id = nyRevurdering.id,
-                opprettet = nyRevurdering.opprettet,
                 periode = søknadsbehandlingVedtak.periode,
+                opprettet = nyRevurdering.opprettet,
                 tilRevurdering = søknadsbehandlingVedtak,
                 saksbehandler = søknadsbehandlingVedtak.saksbehandler,
+                oppgaveId = OppgaveId(""),
                 beregning = søknadsbehandlingVedtak.beregning,
                 simulering = søknadsbehandlingVedtak.simulering,
-                oppgaveId = OppgaveId(""),
                 attestering = Attestering.Iverksatt(søknadsbehandlingVedtak.attestant),
                 utbetalingId = søknadsbehandlingVedtak.utbetalingId,
-                eksterneIverksettingsteg = søknadsbehandlingVedtak.journalføringOgBrevdistribusjon,
                 fritekstTilBrev = ""
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
@@ -127,7 +125,7 @@ internal class VedtakPosgresRepoTest {
     @Test
     fun `oppdaterer koblingstabell mellom søknadsbehandling og vedtak ved lagring av vedtak for avslått søknadsbehandling`() {
         withMigratedDb {
-            val søknadsbehandling = testDataHelper.nyIverksattAvslagMedBeregning(journalførtIverksettingForAvslag)
+            val søknadsbehandling = testDataHelper.nyIverksattAvslagMedBeregning()
             val vedtak = Vedtak.AvslåttStønad.fromSøknadsbehandlingMedBeregning(søknadsbehandling)
 
             vedtakRepo.lagre(vedtak)
@@ -147,7 +145,7 @@ internal class VedtakPosgresRepoTest {
     @Test
     fun `oppdaterer vedtak med journalpost og brevbestilling`() {
         withMigratedDb {
-            val søknadsbehandling = testDataHelper.nyIverksattAvslagMedBeregning(JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert)
+            val søknadsbehandling = testDataHelper.nyIverksattAvslagMedBeregning()
             val vedtak = Vedtak.AvslåttStønad.fromSøknadsbehandlingMedBeregning(søknadsbehandling)
 
             vedtakRepo.lagre(vedtak)

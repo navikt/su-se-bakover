@@ -961,6 +961,8 @@ internal class FerdigstillVedtakServiceImplTest {
             Søknadsbehandling.Iverksatt.Avslag.MedBeregning(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(),
+                sakId = UUID.randomUUID(),
+                saksnummer = Saksnummer(1),
                 søknad = Søknad.Journalført.MedOppgave(
                     id = BehandlingTestUtils.søknadId,
                     opprettet = Tidspunkt.EPOCH,
@@ -969,13 +971,11 @@ internal class FerdigstillVedtakServiceImplTest {
                     oppgaveId = BehandlingTestUtils.søknadOppgaveId,
                     journalpostId = BehandlingTestUtils.søknadJournalpostId
                 ),
-                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-                sakId = UUID.randomUUID(),
-                saksnummer = Saksnummer(1),
-                fnr = FnrGenerator.random(),
-                saksbehandler = saksbehandler,
                 oppgaveId = oppgaveId,
+                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
+                fnr = FnrGenerator.random(),
                 beregning = TestBeregning,
+                saksbehandler = saksbehandler,
                 attestering = Attestering.Iverksatt(attestant)
             )
         )
@@ -988,6 +988,8 @@ internal class FerdigstillVedtakServiceImplTest {
             Søknadsbehandling.Iverksatt.Innvilget(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(),
+                sakId = UUID.randomUUID(),
+                saksnummer = Saksnummer(1),
                 søknad = Søknad.Journalført.MedOppgave(
                     id = BehandlingTestUtils.søknadId,
                     opprettet = Tidspunkt.EPOCH,
@@ -996,15 +998,13 @@ internal class FerdigstillVedtakServiceImplTest {
                     oppgaveId = BehandlingTestUtils.søknadOppgaveId,
                     journalpostId = BehandlingTestUtils.søknadJournalpostId
                 ),
-                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-                sakId = UUID.randomUUID(),
-                saksnummer = Saksnummer(1),
-                fnr = FnrGenerator.random(),
-                saksbehandler = saksbehandler,
                 oppgaveId = oppgaveId,
+                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
+                fnr = FnrGenerator.random(),
                 beregning = TestBeregning,
-                attestering = Attestering.Iverksatt(attestant),
                 simulering = mock(),
+                saksbehandler = saksbehandler,
+                attestering = Attestering.Iverksatt(attestant),
                 utbetalingId = UUID30.randomUUID()
             )
         )
