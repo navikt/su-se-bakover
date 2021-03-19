@@ -26,7 +26,7 @@ import java.time.Clock
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit.DAYS
 
-data class Tidslinjeobjekt(
+private data class Tidslinjeobjekt(
     override val opprettet: Tidspunkt,
     private val periode: Periode
 ) : KanPlasseresPåTidslinje<Tidslinjeobjekt> {
@@ -960,6 +960,116 @@ internal class TidslinjeTest {
                 tilOgMed = 31.desember(2021)
             ),
             objekter = emptyList(),
+            clock = fixedClock
+        ).tidslinje shouldBe emptyList()
+    }
+
+    /**
+     *  |-----| a
+     *    |-|   b
+     *  |-|-|-| resultat
+     */
+    @Test
+    fun `justerer tidslinjen i forhold til perioden som etterspørres`() {
+        val a = Tidslinjeobjekt(
+            opprettet = Tidspunkt.now(fixedClock),
+            periode = Periode.create(
+                fraOgMed = 1.januar(2021),
+                tilOgMed = 31.desember(2021)
+            )
+        )
+
+        val b = Tidslinjeobjekt(
+            opprettet = Tidspunkt.now(fixedClock).plus(1, DAYS),
+            periode = Periode.create(
+                fraOgMed = 1.april(2021),
+                tilOgMed = 31.mai(2021)
+            )
+        )
+
+        /** |-|     periode
+         *  |-----| a
+         *    |-|   b
+         *  |-|     resultat
+         */
+        Tidslinje(
+            periode = Periode.create(
+                fraOgMed = 1.januar(2021),
+                tilOgMed = 31.mars(2021)
+            ),
+            objekter = listOf(a, b),
+            clock = fixedClock
+        ).tidslinje shouldBe listOf(
+            Tidslinjeobjekt(
+                opprettet = a.opprettet,
+                periode = Periode.create(
+                    fraOgMed = 1.januar(2021),
+                    tilOgMed = 31.mars(2021)
+                )
+            )
+        )
+
+        /**   |-|   periode
+         *  |-----| a
+         *    |-|   b
+         *    |-|   resultat
+         */
+        Tidslinje(
+            periode = Periode.create(
+                fraOgMed = 1.april(2021),
+                tilOgMed = 31.mai(2021)
+            ),
+            objekter = listOf(a, b),
+            clock = fixedClock
+        ).tidslinje shouldBe listOf(
+            Tidslinjeobjekt(
+                opprettet = b.opprettet,
+                periode = Periode.create(
+                    fraOgMed = 1.april(2021),
+                    tilOgMed = 31.mai(2021)
+                )
+            )
+        )
+
+        /**   |---| periode
+         *  |-----| a
+         *    |-|   b
+         *    |-|-| resultat
+         */
+        Tidslinje(
+            periode = Periode.create(
+                fraOgMed = 1.april(2021),
+                tilOgMed = 31.desember(2021)
+            ),
+            objekter = listOf(a, b),
+            clock = fixedClock
+        ).tidslinje shouldBe listOf(
+            Tidslinjeobjekt(
+                opprettet = b.opprettet,
+                periode = Periode.create(
+                    fraOgMed = 1.april(2021),
+                    tilOgMed = 31.mai(2021)
+                )
+            ),
+            Tidslinjeobjekt(
+                opprettet = a.opprettet,
+                periode = Periode.create(
+                    fraOgMed = 1.juni(2021),
+                    tilOgMed = 31.desember(2021)
+                )
+            )
+        )
+
+        /**        |-| periode
+         *  |-----| a
+         *    |-|   b
+         */
+        Tidslinje(
+            periode = Periode.create(
+                fraOgMed = 1.januar(2022),
+                tilOgMed = 31.desember(2022)
+            ),
+            objekter = listOf(a, b),
             clock = fixedClock
         ).tidslinje shouldBe emptyList()
     }

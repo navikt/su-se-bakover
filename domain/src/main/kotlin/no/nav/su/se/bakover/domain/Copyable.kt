@@ -7,7 +7,7 @@ interface Copyable<Args, Type> {
 }
 
 sealed class CopyArgs {
-    sealed class Tidslinje {
+    sealed class Tidslinje : CopyArgs() {
         data class NyPeriode(val periode: Periode) : Tidslinje()
         object Full : Tidslinje()
     }

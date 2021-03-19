@@ -27,7 +27,7 @@ sealed class Grunnlag : KanPlasseresPåTidslinje<Grunnlag> {
 
         override fun getPeriode(): Periode = periode
 
-        override fun copy(args: CopyArgs.Tidslinje): Grunnlag = when (args) {
+        override fun copy(args: CopyArgs.Tidslinje): Uføregrunnlag = when (args) {
             CopyArgs.Tidslinje.Full -> {
                 this.copy(id = UUID.randomUUID())
             }
@@ -44,7 +44,7 @@ sealed class Grunnlag : KanPlasseresPåTidslinje<Grunnlag> {
     ) : Grunnlag() {
         override fun getPeriode(): Periode = periode
 
-        override fun copy(args: CopyArgs.Tidslinje): Grunnlag = when (args) {
+        override fun copy(args: CopyArgs.Tidslinje): Flyktninggrunnlag = when (args) {
             CopyArgs.Tidslinje.Full -> {
                 this.copy(id = UUID.randomUUID())
             }

@@ -25,10 +25,20 @@ data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
     private fun lagTidslinje(): List<T> {
         if (objekter.isEmpty()) return emptyList()
 
-        val delvisOverlappende = objekter.fjernAlleSomOverskivesFullstendigAvNyere()
+        val overlappMedPeriode = objekter
+            .filter { it.getPeriode() overlapper periode }
+
+        val innenforPeriode = overlappMedPeriode
+            .justerFraOgMedForElementerDelvisUtenforPeriode()
+            .justerTilOgMedForElementerDelvisUtenforPeriode()
+
+        val delvisOverlappende = innenforPeriode
+            .filtrerVekkAlleSomOverskivesFullstendigAvNyere()
+
+        val sortert = delvisOverlappende
             .sortedWith(stigendeFraOgMed.then(nyesteFørst))
 
-        return periodiser(delvisOverlappende)
+        return periodiser(sortert)
     }
 
     private fun periodiser(tempResult: List<T>): List<T> {
@@ -190,8 +200,42 @@ data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
         }
 
         return when (result.overlappMedAndreEksisterer()) {
-            true -> periodiser(result.fjernAlleSomOverskivesFullstendigAvNyere())
+            true -> periodiser(result.filtrerVekkAlleSomOverskivesFullstendigAvNyere())
             else -> result
+        }
+    }
+
+    private fun List<T>.justerFraOgMedForElementerDelvisUtenforPeriode(): List<T> {
+        return map {
+            if (it.getPeriode() starterTidligere periode) {
+                it.copy(
+                    CopyArgs.Tidslinje.NyPeriode(
+                        periode = Periode.create(
+                            fraOgMed = periode.getFraOgMed(),
+                            tilOgMed = it.getPeriode().getTilOgMed()
+                        )
+                    )
+                )
+            } else {
+                it.copy(CopyArgs.Tidslinje.Full)
+            }
+        }
+    }
+
+    private fun List<T>.justerTilOgMedForElementerDelvisUtenforPeriode(): List<T> {
+        return map {
+            if (it.getPeriode() slutterEtter periode) {
+                it.copy(
+                    CopyArgs.Tidslinje.NyPeriode(
+                        periode = Periode.create(
+                            fraOgMed = it.getPeriode().getFraOgMed(),
+                            tilOgMed = periode.getTilOgMed()
+                        )
+                    )
+                )
+            } else {
+                it.copy(CopyArgs.Tidslinje.Full)
+            }
         }
     }
 
@@ -201,7 +245,7 @@ data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
         }.count() > 0
     }
 
-    private fun List<T>.fjernAlleSomOverskivesFullstendigAvNyere(): List<T> {
+    private fun List<T>.filtrerVekkAlleSomOverskivesFullstendigAvNyere(): List<T> {
         return filterNot { t1 ->
             exists { t2 -> t1.opprettet.instant < t2.opprettet.instant && t2.getPeriode().inneholder(t1.getPeriode()) }
         }
