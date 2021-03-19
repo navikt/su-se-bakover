@@ -443,6 +443,7 @@ internal class FerdigstillVedtakServiceImplTest {
                         behandlingsinformasjon = vedtak.behandlingsinformasjon,
                         saksbehandlerNavn = vedtak.saksbehandler.navIdent,
                         attestantNavn = vedtak.saksbehandler.navIdent,
+                        fritekst = "",
                     )
                 },
                 argThat { vedtak.behandling.saksnummer }
@@ -503,7 +504,8 @@ internal class FerdigstillVedtakServiceImplTest {
                         person = person,
                         avslag = Avslag(Tidspunkt.now(fixedClock), avslagsgrunner = vedtak.avslagsgrunner, harEktefelle = false, beregning = vedtak.beregning),
                         saksbehandlerNavn = vedtak.saksbehandler.navIdent,
-                        attestantNavn = vedtak.attestant.navIdent
+                        attestantNavn = vedtak.attestant.navIdent,
+                        fritekst = "",
                     )
                 },
                 argThat { it shouldBe vedtak.behandling.saksnummer }
@@ -714,7 +716,8 @@ internal class FerdigstillVedtakServiceImplTest {
                         person = person,
                         avslag = Avslag(Tidspunkt.now(fixedClock), avslagsgrunner = vedtak.avslagsgrunner, harEktefelle = false, beregning = vedtak.beregning),
                         saksbehandlerNavn = "saksa",
-                        attestantNavn = "atta"
+                        attestantNavn = "atta",
+                        fritekst = "",
                     )
                 },
                 argThat { it shouldBe vedtak.behandling.saksnummer }
@@ -975,8 +978,9 @@ internal class FerdigstillVedtakServiceImplTest {
                 behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
                 fnr = FnrGenerator.random(),
                 beregning = TestBeregning,
+                attestering = Attestering.Iverksatt(attestant),
                 saksbehandler = saksbehandler,
-                attestering = Attestering.Iverksatt(attestant)
+                fritekstTilBrev = "",
             )
         )
 
@@ -1005,7 +1009,8 @@ internal class FerdigstillVedtakServiceImplTest {
                 simulering = mock(),
                 saksbehandler = saksbehandler,
                 attestering = Attestering.Iverksatt(attestant),
-                utbetalingId = UUID30.randomUUID()
+                utbetalingId = UUID30.randomUUID(),
+                fritekstTilBrev = "",
             )
         )
 

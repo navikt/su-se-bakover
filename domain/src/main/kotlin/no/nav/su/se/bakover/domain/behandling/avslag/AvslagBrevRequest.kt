@@ -10,7 +10,8 @@ data class AvslagBrevRequest(
     private val person: Person,
     private val avslag: Avslag,
     private val saksbehandlerNavn: String,
-    private val attestantNavn: String
+    private val attestantNavn: String,
+    private val fritekst: String
 ) : LagBrevRequest {
     override fun getPerson(): Person = person
     override fun lagBrevInnhold(personalia: Personalia): AvslagsBrevInnhold {
@@ -22,7 +23,8 @@ data class AvslagBrevRequest(
             beregningsperioder = avslag.beregning?.let { LagBrevinnholdForBeregning(it).brevInnhold } ?: emptyList(),
             saksbehandlerNavn = saksbehandlerNavn,
             attestantNavn = attestantNavn,
-            sats = avslag.beregning?.getSats()?.name?.toLowerCase()
+            sats = avslag.beregning?.getSats()?.name?.toLowerCase(),
+            fritekst = fritekst
         )
     }
 }

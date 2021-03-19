@@ -34,6 +34,7 @@ object VedtakInnholdTestdataBuilder {
             )
         ),
         saksbehandlerNavn = "Nei Josbø",
-        attestantNavn = "Morge R. R. Gartin"
+        attestantNavn = "Morge R. R. Gartin",
+        fritekst = "Dette er fritekst"
     )
 }

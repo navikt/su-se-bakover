@@ -23,7 +23,8 @@ class AvslagsBrevInnholdTest {
         beregningsperioder = emptyList(),
         saksbehandlerNavn = "Sak Sakesen",
         attestantNavn = "Att Attestantsen",
-        sats = "lav"
+        sats = "lav",
+        fritekst = "Fritekst til brevet"
     )
 
     @Test
@@ -47,7 +48,8 @@ class AvslagsBrevInnholdTest {
               "saksbehandlerNavn": "Sak Sakesen",
               "attestantNavn": "Att Attestantsen",
               "sats": "lav",
-              "satsBeløp": null
+              "satsBeløp": null,
+              "fritekst": "Fritekst til brevet"
             }
         """.trimIndent()
         JSONAssert.assertEquals(expectedJson, actualJson, true)

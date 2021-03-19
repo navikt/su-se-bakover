@@ -282,7 +282,8 @@ internal class SøknadsbehandlingStatistikkMapperTest {
         søknad = søknad,
         oppgaveId = OppgaveId(""),
         behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
-        fnr = FnrGenerator.random()
+        fnr = FnrGenerator.random(),
+        fritekstTilBrev = "",
     )
 
     private val beregning = TestBeregning
@@ -293,11 +294,11 @@ internal class SøknadsbehandlingStatistikkMapperTest {
         )
             .tilBeregnet(avslagBeregning) as Søknadsbehandling.Beregnet.Avslag
         )
-        .tilAttestering(NavIdentBruker.Saksbehandler("jonny"))
+        .tilAttestering(NavIdentBruker.Saksbehandler("jonny"), "")
     private val beregnetSøknadsbehandling = uavklartSøknadsbehandling.tilBeregnet(beregning)
     private val simulertSøknadsbehandling = beregnetSøknadsbehandling.tilSimulert(mock())
     private val tilAttesteringSøknadsbehandling =
-        simulertSøknadsbehandling.tilAttestering(NavIdentBruker.Saksbehandler("saks"))
+        simulertSøknadsbehandling.tilAttestering(NavIdentBruker.Saksbehandler("saks"), "")
     private val iverksattSøknadsbehandling = tilAttesteringSøknadsbehandling.tilIverksatt(
         Attestering.Iverksatt(
             NavIdentBruker.Attestant("att")

@@ -123,6 +123,7 @@ internal class OpprettRevurderingServiceTest {
         saksbehandler = saksbehandler,
         attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("Attes T. Ant")),
         utbetalingId = mock(),
+        fritekstTilBrev = ""
     )
 
     private fun createSak() = Sak(

@@ -359,7 +359,8 @@ internal class StatistikkServiceImplTest {
                 NavIdentBruker.Attestant("attestant"),
                 Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
                 ""
-            )
+            ),
+            fritekstTilBrev = "",
         )
 
         val expected = Statistikk.Behandling(

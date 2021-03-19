@@ -134,6 +134,7 @@ internal class RevurderingServiceImplTest {
             saksbehandler = saksbehandler,
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("Attes T. Ant")),
             utbetalingId = mock(),
+            fritekstTilBrev = "",
         )
     )
     val sak = Sak(

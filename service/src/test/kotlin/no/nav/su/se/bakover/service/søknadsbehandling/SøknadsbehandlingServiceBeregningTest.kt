@@ -49,6 +49,7 @@ class SøknadsbehandlingServiceBeregningTest {
         saksnummer = Saksnummer(0),
         fnr = FnrGenerator.random(),
         oppgaveId = OppgaveId("o"),
+        fritekstTilBrev = "",
     )
 
     @Test
@@ -82,7 +83,8 @@ class SøknadsbehandlingServiceBeregningTest {
             saksnummer = vilkårsvurdertBehandling.saksnummer,
             fnr = vilkårsvurdertBehandling.fnr,
             oppgaveId = vilkårsvurdertBehandling.oppgaveId,
-            beregning = TestBeregning
+            beregning = TestBeregning,
+            fritekstTilBrev = "",
         )
 
         response shouldBe expected.right()

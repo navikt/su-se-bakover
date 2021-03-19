@@ -171,6 +171,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             beregning = beregning(),
                             simulering = simulering(tilAttestering.fnr),
                             saksbehandler = saksbehandler,
+                            fritekstTilBrev = ""
                         )
                     }
                 }
@@ -195,6 +196,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             behandlingsinformasjon = tilAttestering.behandlingsinformasjon,
                             fnr = tilAttestering.fnr,
                             saksbehandler = saksbehandler,
+                            fritekstTilBrev = ""
                         )
                     }
                 }
@@ -220,6 +222,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             fnr = tilAttestering.fnr,
                             beregning = avslåttBeregning,
                             saksbehandler = saksbehandler,
+                            fritekstTilBrev = ""
                         )
                     }
                 }
@@ -250,6 +253,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             simulering = simulering(tilAttestering.fnr),
                             saksbehandler = saksbehandler,
                             attestering = underkjentAttestering,
+                            fritekstTilBrev = "",
                         )
                     }
                 }
@@ -275,6 +279,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             fnr = tilAttestering.fnr,
                             saksbehandler = saksbehandler,
                             attestering = underkjentAttestering,
+                            fritekstTilBrev = "",
                         )
                     }
                 }
@@ -301,6 +306,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             beregning = avslåttBeregning,
                             saksbehandler = saksbehandler,
                             attestering = underkjentAttestering,
+                            fritekstTilBrev = "",
                         )
                     }
                 }
@@ -326,7 +332,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
     fun `iverksatt avslag uten beregning`() {
 
         withMigratedDb {
-            val iverksatt = testDataHelper.nyIverksattAvslagUtenBeregning()
+            val iverksatt = testDataHelper.nyIverksattAvslagUtenBeregning(fritekstTilBrev = "Dette er fritekst")
             val expected = Søknadsbehandling.Iverksatt.Avslag.UtenBeregning(
                 id = iverksatt.id,
                 opprettet = iverksatt.opprettet,
@@ -338,6 +344,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 fnr = iverksatt.fnr,
                 saksbehandler = saksbehandler,
                 attestering = iverksattAttestering,
+                fritekstTilBrev = "Dette er fritekst",
             )
             repo.hent(iverksatt.id).also {
                 it shouldBe expected
@@ -361,7 +368,8 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     fnr = iverksatt.fnr,
                     beregning = avslåttBeregning,
                     saksbehandler = saksbehandler,
-                    attestering = iverksattAttestering
+                    attestering = iverksattAttestering,
+                    fritekstTilBrev = "",
                 )
             }
         }
