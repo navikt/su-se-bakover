@@ -113,7 +113,7 @@ allprojects {
     }
 
     tasks.withType<Wrapper> {
-        gradleVersion = "6.8"
+        gradleVersion = "6.8.3"
     }
 
     tasks.named("dependencyUpdates", com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask::class.java)
