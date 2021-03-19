@@ -39,6 +39,8 @@ internal class GrunnlagServiceImpl(
     override fun leggTilUføregrunnlag(behandlingId: UUID, uføregrunnlag: List<Uføregrunnlag>) = grunnlagRepo.lagre(behandlingId, uføregrunnlag)
 
     override fun simulerEndretGrunnlag(sakId: UUID, periode: Periode, endring: Grunnlagsdata): GrunnlagService.SimulertEndringGrunnlag {
+        // TODO jah: Vil ikke dette grunnlaget endre seg over tid for en revurdering, dersom andre revurderinger gjøres i mellomtiden?
+        // Vil da ordet nåværendeGrunnlag være mer dekkende?
         val originaltGrunnlag = opprettGrunnlag(sakId, periode)
 
         val simulertEndringUføregrunnlag = Grunnlagsdata(
