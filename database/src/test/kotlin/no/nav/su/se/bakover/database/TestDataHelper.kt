@@ -246,8 +246,8 @@ internal class TestDataHelper(
 
     fun oppdaterHendelseslogg(hendelseslogg: Hendelseslogg) = hendelsesloggRepo.oppdaterHendelseslogg(hendelseslogg)
 
-    fun vedtakForSøknadsbehandling(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget) =
-        Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling).also {
+    fun vedtakForSøknadsbehandling(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget, utbetalingId: UUID30) =
+        Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling, utbetalingId).also {
             vedtakRepo.lagre(it)
         }
 
@@ -398,7 +398,7 @@ internal class TestDataHelper(
     ): Pair<Søknadsbehandling.Iverksatt.Innvilget, Utbetaling.OversendtUtbetaling.UtenKvittering> {
         val utbetalingId = UUID30.randomUUID()
         val innvilget = nyTilInnvilgetAttestering(behandlingsinformasjon, periode).tilIverksatt(
-            iverksattAttestering, utbetalingId
+            iverksattAttestering
         )
         val utbetaling = oversendtUtbetalingUtenKvittering(
             søknadsbehandling = innvilget,

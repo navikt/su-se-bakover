@@ -8,6 +8,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
@@ -308,7 +309,7 @@ internal class SøknadsbehandlingServiceImpl(
             when (iverksattBehandling) {
                 is Søknadsbehandling.Iverksatt.Innvilget -> {
                     søknadsbehandlingRepo.lagre(iverksattBehandling)
-                    val vedtak = opprettVedtak(iverksattBehandling)
+                    val vedtak = opprettVedtak(iverksattBehandling, utbetaling!!.id) // TODO kan denne være null?
                     vedtakRepo.lagre(vedtak)
 
                     log.info("Iverksatt innvilgelse for behandling ${iverksattBehandling.id}")
@@ -328,7 +329,7 @@ internal class SøknadsbehandlingServiceImpl(
                     }
                 }
                 is Søknadsbehandling.Iverksatt.Avslag -> {
-                    val vedtak = opprettVedtak(iverksattBehandling)
+                    val vedtak = opprettVedtak(iverksattBehandling) // TODO kan denne være null?
                     return ferdigstillVedtakService.journalførOgLagre(vedtak)
                         .mapLeft {
                             log.error("Journalføring av vedtak for behandling: ${vedtak.behandling.id} feilet.")
@@ -366,9 +367,9 @@ internal class SøknadsbehandlingServiceImpl(
         }
     }
 
-    private fun opprettVedtak(iverksattBehandling: Søknadsbehandling.Iverksatt): Vedtak = when (iverksattBehandling) {
+    private fun opprettVedtak(iverksattBehandling: Søknadsbehandling.Iverksatt, utbetalingId: UUID30? = null): Vedtak = when (iverksattBehandling) {
         is Søknadsbehandling.Iverksatt.Innvilget -> {
-            Vedtak.InnvilgetStønad.fromSøknadsbehandling(iverksattBehandling)
+            Vedtak.InnvilgetStønad.fromSøknadsbehandling(iverksattBehandling, utbetalingId!!)
         }
         is Søknadsbehandling.Iverksatt.Avslag.MedBeregning -> {
             Vedtak.AvslåttStønad.fromSøknadsbehandlingMedBeregning(iverksattBehandling)

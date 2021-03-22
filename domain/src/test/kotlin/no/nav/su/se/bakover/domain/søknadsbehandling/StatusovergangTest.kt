@@ -139,7 +139,7 @@ internal class StatusovergangTest {
         tilAttesteringAvslagVilkår.tilUnderkjent(underkjentAttestering)
     private val underkjentAvslagBeregning: Søknadsbehandling.Underkjent.Avslag.MedBeregning =
         tilAttesteringAvslagBeregning.tilUnderkjent(underkjentAttestering)
-    private val iverksattInnvilget = tilAttesteringInnvilget.tilIverksatt(attestering, utbetalingId)
+    private val iverksattInnvilget = tilAttesteringInnvilget.tilIverksatt(attestering)
     private val iverksattAvslagVilkår =
         tilAttesteringAvslagVilkår.tilIverksatt(attestering)
     private val iverksattAvslagBeregning =

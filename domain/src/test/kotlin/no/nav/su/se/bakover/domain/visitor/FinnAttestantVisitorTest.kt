@@ -178,7 +178,7 @@ internal class FinnAttestantVisitorTest {
         )
     )
     private val iverksattInnvilgetSøknadsbehandling =
-        tilAttesteringInnvilgetSøknadsbehandlng.tilIverksatt(Attestering.Iverksatt(attestant), UUID30.randomUUID())
+        tilAttesteringInnvilgetSøknadsbehandlng.tilIverksatt(Attestering.Iverksatt(attestant))
     private val iverksattAvslagSøknadsbehandling =
         tilAttesteringAvslagSøknadsbehandlng.tilIverksatt(Attestering.Iverksatt(attestant))
 

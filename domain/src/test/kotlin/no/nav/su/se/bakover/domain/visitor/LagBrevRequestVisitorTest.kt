@@ -64,7 +64,7 @@ internal class LagBrevRequestVisitorTest {
             .tilBeregnet(innvilgetBeregning)
             .tilSimulert(simulering)
             .tilAttestering(saksbehandler, "Fritekst!")
-            .tilIverksatt(Attestering.Iverksatt(attestant), UUID30.randomUUID())
+            .tilIverksatt(Attestering.Iverksatt(attestant))
             .let { søknadsbehandling ->
                 LagBrevRequestVisitor(
                     hentPerson = { person.right() },
@@ -454,7 +454,7 @@ internal class LagBrevRequestVisitorTest {
             .tilBeregnet(innvilgetBeregning)
             .tilSimulert(simulering)
             .tilAttestering(saksbehandler, "Fritekst!")
-            .tilIverksatt(Attestering.Iverksatt(attestant), UUID30.randomUUID())
+            .tilIverksatt(Attestering.Iverksatt(attestant))
             .let { søknadsbehandling ->
                 LagBrevRequestVisitor(
                     hentPerson = { person.right() },
@@ -475,13 +475,14 @@ internal class LagBrevRequestVisitorTest {
 
     @Test
     fun `lager request for vedtak om innvilget stønad`() {
+        val utbetalingId = UUID30.randomUUID()
         val søknadsbehandling = uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt())
             .tilBeregnet(innvilgetBeregning)
             .tilSimulert(simulering)
             .tilAttestering(saksbehandler, "Fritekst!")
-            .tilIverksatt(Attestering.Iverksatt(attestant), UUID30.randomUUID())
+            .tilIverksatt(Attestering.Iverksatt(attestant))
 
-        val innvilgetVedtak = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling)
+        val innvilgetVedtak = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling, utbetalingId)
 
         val brevSøknadsbehandling = LagBrevRequestVisitor(
             hentPerson = { person.right() },
@@ -584,17 +585,18 @@ internal class LagBrevRequestVisitorTest {
 
     @Test
     fun `lager request for vedtak om revurdering av inntekt`() {
+        val utbetalingId = UUID30.randomUUID()
         val søknadsbehandling = uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt())
             .tilBeregnet(innvilgetBeregning)
             .tilSimulert(simulering)
             .tilAttestering(saksbehandler, "Fritekst!")
-            .tilIverksatt(Attestering.Iverksatt(attestant), UUID30.randomUUID())
+            .tilIverksatt(Attestering.Iverksatt(attestant))
 
         val revurdering = IverksattRevurdering(
             id = UUID.randomUUID(),
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
             opprettet = Tidspunkt.now(clock),
-            tilRevurdering = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling),
+            tilRevurdering = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling, utbetalingId),
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("15"),
             beregning = innvilgetBeregning,

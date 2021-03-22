@@ -211,7 +211,7 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
             result = if (saksbehandlerOgAttestantErForskjellig(søknadsbehandling, attestering)) {
                 innvilget(søknadsbehandling)
                     .mapLeft { it }
-                    .map { søknadsbehandling.tilIverksatt(attestering, it) }
+                    .map { søknadsbehandling.tilIverksatt(attestering) }
             } else {
                 KunneIkkeIverksetteSøknadsbehandling.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
             }

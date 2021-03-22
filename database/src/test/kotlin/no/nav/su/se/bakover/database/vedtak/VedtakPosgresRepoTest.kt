@@ -27,8 +27,8 @@ internal class VedtakPosgresRepoTest {
     @Test
     fun `setter inn og henter vedtak for innvilget stønad`() {
         withMigratedDb {
-            val (søknadsbehandling, _) = testDataHelper.nyIverksattInnvilget()
-            val vedtak = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling)
+            val (søknadsbehandling, utbetaling) = testDataHelper.nyIverksattInnvilget()
+            val vedtak = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling, utbetaling.id)
 
             vedtakRepo.lagre(vedtak)
 
@@ -51,8 +51,8 @@ internal class VedtakPosgresRepoTest {
     @Test
     fun `oppdaterer koblingstabell mellom søknadsbehandling og vedtak ved lagring av vedtak for søknadsbehandling`() {
         withMigratedDb {
-            val (søknadsbehandling, _) = testDataHelper.nyIverksattInnvilget()
-            val vedtak = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling)
+            val (søknadsbehandling, utbetaling) = testDataHelper.nyIverksattInnvilget()
+            val vedtak = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling, utbetaling.id)
 
             vedtakRepo.lagre(vedtak)
 
@@ -71,8 +71,8 @@ internal class VedtakPosgresRepoTest {
     @Test
     fun `oppdaterer koblingstabell mellom revurdering og vedtak ved lagring av vedtak for revurdering`() {
         withMigratedDb {
-            val (søknadsbehandling, _) = testDataHelper.nyIverksattInnvilget()
-            val søknadsbehandlingVedtak = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling)
+            val (søknadsbehandling, utbetaling) = testDataHelper.nyIverksattInnvilget()
+            val søknadsbehandlingVedtak = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling, utbetaling.id)
 
             vedtakRepo.lagre(søknadsbehandlingVedtak)
 
@@ -111,9 +111,9 @@ internal class VedtakPosgresRepoTest {
     @Test
     fun `hent alle aktive vedtak`() {
         withMigratedDb {
-            val (søknadsbehandling, _) = testDataHelper.nyIverksattInnvilget()
-            val vedtakSomErAktivt = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling).copy(periode = Periode.create(1.februar(2021), 31.mars(2021)))
-            val vedtakUtenforAktivPeriode = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling).copy(periode = Periode.create(1.januar(2021), 31.januar(2021)))
+            val (søknadsbehandling, utbetaling) = testDataHelper.nyIverksattInnvilget()
+            val vedtakSomErAktivt = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling, utbetaling.id).copy(periode = Periode.create(1.februar(2021), 31.mars(2021)))
+            val vedtakUtenforAktivPeriode = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling, utbetaling.id).copy(periode = Periode.create(1.januar(2021), 31.januar(2021)))
             vedtakRepo.lagre(vedtakSomErAktivt)
             vedtakRepo.lagre(vedtakUtenforAktivPeriode)
 
@@ -166,8 +166,8 @@ internal class VedtakPosgresRepoTest {
         }
 
         withMigratedDb {
-            val (søknadsbehandling, _) = testDataHelper.nyIverksattInnvilget()
-            val vedtak = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling)
+            val (søknadsbehandling, utbetaling) = testDataHelper.nyIverksattInnvilget()
+            val vedtak = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling, utbetaling.id)
 
             vedtakRepo.lagre(vedtak)
             vedtakRepo.lagre(
@@ -190,8 +190,8 @@ internal class VedtakPosgresRepoTest {
     @Test
     fun `kobler ikke den samme behandlingen og vedtaket flere ganger ved oppdatering av vedtak`() {
         withMigratedDb {
-            val (søknadsbehandling, _) = testDataHelper.nyIverksattInnvilget()
-            val vedtak = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling)
+            val (søknadsbehandling, utbetaling) = testDataHelper.nyIverksattInnvilget()
+            val vedtak = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling, utbetaling.id)
 
             vedtakRepo.lagre(vedtak)
             vedtakRepo.lagre(

@@ -12,6 +12,7 @@ import io.kotest.assertions.arrow.either.shouldBeRight
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
@@ -122,7 +123,6 @@ internal class OpprettRevurderingServiceTest {
         simulering = mock(),
         saksbehandler = saksbehandler,
         attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("Attes T. Ant")),
-        utbetalingId = mock(),
         fritekstTilBrev = ""
     )
 
@@ -134,7 +134,7 @@ internal class OpprettRevurderingServiceTest {
         søknader = listOf(),
         behandlinger = listOf(createInnvilgetBehandling()),
         utbetalinger = createUtbetalinger(),
-        vedtakListe = listOf(Vedtak.InnvilgetStønad.fromSøknadsbehandling(createInnvilgetBehandling()))
+        vedtakListe = listOf(Vedtak.InnvilgetStønad.fromSøknadsbehandling(createInnvilgetBehandling(), UUID30.randomUUID()))
     )
 
     private fun createUtbetalinger(): List<Utbetaling> = listOf(

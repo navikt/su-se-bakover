@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.database.søknadsbehandling
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
@@ -13,7 +12,6 @@ import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid
-import no.nav.su.se.bakover.database.uuid30
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -76,15 +74,6 @@ internal class SøknadsbehandlingPostgresRepo(
             .hentListe(mapOf("sakId" to sakId), session) {
                 it.toSaksbehandling(session)
             }
-    }
-
-    override fun hentBehandlingForUtbetaling(utbetalingId: UUID30): Søknadsbehandling.Iverksatt.Innvilget? {
-        return dataSource.withSession { session ->
-            "select b.*, s.fnr, s.saksnummer from utbetaling u inner join behandling b on b.utbetalingid = u.id inner join sak s on s.id = b.sakid where u.id = :id"
-                .hent(mapOf("id" to utbetalingId), session) { row ->
-                    row.toSaksbehandling(session) as Søknadsbehandling.Iverksatt.Innvilget
-                }
-        }
     }
 
     private fun Row.toSaksbehandling(session: Session): Søknadsbehandling {
@@ -277,7 +266,6 @@ internal class SøknadsbehandlingPostgresRepo(
                     simulering = simulering!!,
                     saksbehandler = saksbehandler!!,
                     attestering = attestering!!,
-                    utbetalingId = uuid30("utbetalingId"),
                     fritekstTilBrev = fritekstTilBrev
                 )
             }
@@ -432,13 +420,12 @@ internal class SøknadsbehandlingPostgresRepo(
                 dataSource.withSession { session ->
                     (
                         """
-                       update behandling set status = :status, attestering = to_json(:attestering::json), utbetalingId = :utbetalingId  where id = :id
+                       update behandling set status = :status, attestering = to_json(:attestering::json)  where id = :id
                         """.trimIndent()
                         ).oppdatering(
                         params = defaultParams(søknadsbehandling).plus(
                             listOf(
-                                "attestering" to objectMapper.writeValueAsString(søknadsbehandling.attestering),
-                                "utbetalingId" to søknadsbehandling.utbetalingId,
+                                "attestering" to objectMapper.writeValueAsString(søknadsbehandling.attestering)
                             )
                         ),
                         session = session

@@ -46,7 +46,7 @@ sealed class Vedtak : Visitable<VedtakVisitor> {
         override val journalføringOgBrevdistribusjon: JournalføringOgBrevdistribusjon,
     ) : Vedtak() {
         companion object {
-            fun fromSøknadsbehandling(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget) = InnvilgetStønad(
+            fun fromSøknadsbehandling(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget, utbetalingId: UUID30) = InnvilgetStønad(
                 periode = søknadsbehandling.beregning.getPeriode(),
                 behandling = søknadsbehandling,
                 behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
@@ -54,7 +54,7 @@ sealed class Vedtak : Visitable<VedtakVisitor> {
                 simulering = søknadsbehandling.simulering,
                 saksbehandler = søknadsbehandling.saksbehandler,
                 attestant = søknadsbehandling.attestering.attestant,
-                utbetalingId = søknadsbehandling.utbetalingId,
+                utbetalingId = utbetalingId,
                 journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
             )
 
