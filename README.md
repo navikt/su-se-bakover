@@ -106,6 +106,10 @@ Hvordan kjøre Ktlint:
 Endre IntelliJ autoformateringskonfigurasjon for dette prosjektet:
 * `./gradlew ktlintApplyToIdea`
 
+Legg til pre-commit check/format hooks:
+* `./gradlew addKtlintCheckGitPreCommitHook`
+* `./gradlew addKtlintFormatGitPreCommitHook`
+
 ## Metrics
 Vi bruker Prometheus for å samle inn metrikker.
 Se https://doc.nais.io/observability/metrics.
