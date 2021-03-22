@@ -122,7 +122,8 @@ internal class VedtakServiceImplTest {
                 simulering = mock(),
                 saksbehandler = saksbehandler,
                 attestering = Attestering.Iverksatt(attestant),
-                utbetalingId = UUID30.randomUUID()
+                utbetalingId = UUID30.randomUUID(),
+                fritekstTilBrev = "",
             )
         )
 

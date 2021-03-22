@@ -125,6 +125,7 @@ object BehandlingTestUtils {
         ),
         saksbehandler = NavIdentBruker.Saksbehandler("pro-saksbehandler"),
         attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("kjella")),
-        utbetalingId = UUID30.randomUUID()
+        utbetalingId = UUID30.randomUUID(),
+        fritekstTilBrev = "",
     )
 }

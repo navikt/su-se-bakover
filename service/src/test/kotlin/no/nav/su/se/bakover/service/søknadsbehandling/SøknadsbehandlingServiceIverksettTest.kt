@@ -264,7 +264,8 @@ internal class SøknadsbehandlingServiceIverksettTest {
             simulering = behandling.simulering,
             saksbehandler = behandling.saksbehandler,
             attestering = Attestering.Iverksatt(attestant),
-            utbetalingId = utbetalingId
+            utbetalingId = utbetalingId,
+            fritekstTilBrev = "",
         )
 
         response shouldBe expected.right()
@@ -333,7 +334,8 @@ internal class SøknadsbehandlingServiceIverksettTest {
             fnr = behandling.fnr,
             beregning = behandling.beregning,
             saksbehandler = behandling.saksbehandler,
-            attestering = Attestering.Iverksatt(attestant)
+            attestering = Attestering.Iverksatt(attestant),
+            fritekstTilBrev = "",
         )
 
         val behandlingMetricsMock = mock<BehandlingMetrics>()
@@ -414,7 +416,8 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 sakId = it.sakId,
                 saksnummer = it.saksnummer,
                 fnr = it.fnr,
-                oppgaveId = søknadOppgaveId
+                oppgaveId = søknadOppgaveId,
+                fritekstTilBrev = "",
             )
         }
 
@@ -459,6 +462,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             oppgaveId = søknadOppgaveId,
             beregning = beregning,
             simulering = simulering,
+            fritekstTilBrev = "",
         )
 
     private fun avslagTilAttestering() =
@@ -480,6 +484,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             saksbehandler = saksbehandler,
             oppgaveId = søknadOppgaveId,
             beregning = beregning,
+            fritekstTilBrev = "",
         )
 
     private val beregning = TestBeregning

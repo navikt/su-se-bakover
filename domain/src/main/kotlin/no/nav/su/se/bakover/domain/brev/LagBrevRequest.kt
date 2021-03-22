@@ -17,7 +17,8 @@ interface LagBrevRequest {
         private val beregning: Beregning,
         private val behandlingsinformasjon: Behandlingsinformasjon,
         private val saksbehandlerNavn: String,
-        private val attestantNavn: String
+        private val attestantNavn: String,
+        private val fritekst: String
     ) : LagBrevRequest {
         override fun getPerson(): Person = person
         override fun lagBrevInnhold(personalia: BrevInnhold.Personalia): BrevInnhold.InnvilgetVedtak {
@@ -32,7 +33,8 @@ interface LagBrevRequest {
                 harEktefelle = behandlingsinformasjon.harEktefelle(),
                 beregningsperioder = LagBrevinnholdForBeregning(beregning).brevInnhold,
                 saksbehandlerNavn = saksbehandlerNavn,
-                attestantNavn = attestantNavn
+                attestantNavn = attestantNavn,
+                fritekst = fritekst
             )
         }
     }

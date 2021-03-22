@@ -131,7 +131,8 @@ internal class FinnAttestantVisitorTest {
         søknad = mock(),
         oppgaveId = OppgaveId(""),
         behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
-        fnr = FnrGenerator.random()
+        fnr = FnrGenerator.random(),
+        fritekstTilBrev = "",
     )
 
     private val vilkårsvurdertInnvilgetSøknadsbehandling = søknadsbehandling.tilVilkårsvurdert(
@@ -158,10 +159,10 @@ internal class FinnAttestantVisitorTest {
     private val beregnetInnvilgetøknadbehandling =
         vilkårsvurdertInnvilgetSøknadsbehandling.tilBeregnet(innvilgetBeregningMock)
     private val simulertSøknadsbehandling = beregnetInnvilgetøknadbehandling.tilSimulert(mock())
-    private val tilAttesteringInnvilgetSøknadsbehandlng = simulertSøknadsbehandling.tilAttestering(saksbehandler)
+    private val tilAttesteringInnvilgetSøknadsbehandlng = simulertSøknadsbehandling.tilAttestering(saksbehandler, "")
     private val tilAttesteringAvslagSøknadsbehandlng =
         (beregnetAvslagSøknadbehandling as Søknadsbehandling.Beregnet.Avslag)
-            .tilAttestering(saksbehandler)
+            .tilAttestering(saksbehandler, "")
     private val underkjentInnvilgetSøknadsbehandling = tilAttesteringInnvilgetSøknadsbehandlng.tilUnderkjent(
         Attestering.Underkjent(
             attestant,

@@ -86,7 +86,8 @@ class SøknadsbehandlingServiceUnderkjennTest {
         sakId = sakId,
         saksnummer = saksnummer,
         fnr = fnr,
-        oppgaveId = oppgaveId
+        oppgaveId = oppgaveId,
+        fritekstTilBrev = "",
     )
 
     private val oppgaveConfig = OppgaveConfig.Saksbehandling(
@@ -349,7 +350,8 @@ class SøknadsbehandlingServiceUnderkjennTest {
             beregning = innvilgetBehandlingTilAttestering.beregning,
             simulering = innvilgetBehandlingTilAttestering.simulering,
             saksbehandler = innvilgetBehandlingTilAttestering.saksbehandler,
-            attestering = underkjentAttestering
+            attestering = underkjentAttestering,
+            fritekstTilBrev = "",
         )
 
         actual shouldBe underkjentMedNyOppgaveIdOgAttestering.right()
@@ -430,7 +432,8 @@ class SøknadsbehandlingServiceUnderkjennTest {
             beregning = innvilgetBehandlingTilAttestering.beregning,
             simulering = innvilgetBehandlingTilAttestering.simulering,
             saksbehandler = innvilgetBehandlingTilAttestering.saksbehandler,
-            attestering = underkjentAttestering
+            attestering = underkjentAttestering,
+            fritekstTilBrev = "",
         )
 
         actual shouldBe underkjentMedNyOppgaveIdOgAttestering.right()

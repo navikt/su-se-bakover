@@ -76,6 +76,7 @@ internal class VedtakssnapshotJsonTest {
             fnr = fnr,
             saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
+            fritekstTilBrev = "",
         )
 
         val avslag = Vedtakssnapshot.Avslag(
@@ -301,7 +302,7 @@ internal class VedtakssnapshotJsonTest {
                               "verdiPåEiendom":0,
                               "eiendomBrukesTil":"",
                               "kjøretøy":[
-                                 
+
                               ],
                               "innskuddsBeløp":0,
                               "verdipapirBeløp":0,
@@ -426,6 +427,7 @@ internal class VedtakssnapshotJsonTest {
             saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
             utbetalingId = UUID30.randomUUID(),
+            fritekstTilBrev = "",
         )
         val utbetaling = oversendtUtbetalingUtenKvittering(innvilget)
         val innvilgelse = Vedtakssnapshot.Innvilgelse(
@@ -504,7 +506,7 @@ internal class VedtakssnapshotJsonTest {
                             "tilOgMed":"2021-01-31"
                         },
                         "tilhører":"BRUKER"
-                      }                        
+                      }
                     ],
                     "sumYtelse":3,
                     "sumFradrag":2.1,
@@ -706,7 +708,7 @@ internal class VedtakssnapshotJsonTest {
                               "verdiPåEiendom":0,
                               "eiendomBrukesTil":"",
                               "kjøretøy":[
-                                 
+
                               ],
                               "innskuddsBeløp":0,
                               "verdipapirBeløp":0,

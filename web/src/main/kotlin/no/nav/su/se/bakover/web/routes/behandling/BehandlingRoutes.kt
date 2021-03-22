@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.routes.behandling
 
 import arrow.core.Either
+import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
@@ -60,6 +61,7 @@ internal fun Route.behandlingRoutes(
     val log = LoggerFactory.getLogger(this::class.java)
 
     data class OpprettBehandlingBody(val soknadId: String)
+    data class WithFritekstBody(val fritekst: String)
 
     authorize(Brukerrolle.Saksbehandler) {
         post("$sakPath/{sakId}/behandlinger") {
@@ -171,9 +173,9 @@ internal fun Route.behandlingRoutes(
     }
 
     authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
-        get("$behandlingPath/{behandlingId}/vedtaksutkast") {
-            call.withBehandlingId { behandlingId ->
-                søknadsbehandlingService.brev(BrevRequest(behandlingId)).fold(
+        suspend fun handleBrevRequest(call: ApplicationCall, req: BrevRequest) =
+            søknadsbehandlingService.brev(req)
+                .fold(
                     {
                         val resultat = when (it) {
                             is KunneIkkeLageBrev.FantIkkeBehandling -> {
@@ -197,10 +199,21 @@ internal fun Route.behandlingRoutes(
                         call.svar(resultat)
                     },
                     {
-                        call.audit("Hentet behandling med id $behandlingId")
+                        call.audit("Hentet behandling med id ${req.behandlingId}")
                         call.respondBytes(it, ContentType.Application.Pdf)
                     }
                 )
+
+        post("$behandlingPath/{behandlingId}/vedtaksutkast") {
+            call.withBehandlingId { behandlingId ->
+                call.withBody<WithFritekstBody> { body ->
+                    handleBrevRequest(call, BrevRequest.MedFritekst(behandlingId, body.fritekst))
+                }
+            }
+        }
+        get("$behandlingPath/{behandlingId}/vedtaksutkast") {
+            call.withBehandlingId { behandlingId ->
+                handleBrevRequest(call, BrevRequest.UtenFritekst(behandlingId))
             }
         }
     }
@@ -238,32 +251,35 @@ internal fun Route.behandlingRoutes(
         post("$behandlingPath/{behandlingId}/tilAttestering") {
             call.withBehandlingId { behandlingId ->
                 call.withSakId {
-                    val saksBehandler = Saksbehandler(call.suUserContext.navIdent)
-                    søknadsbehandlingService.sendTilAttestering(
-                        SendTilAttesteringRequest(
-                            behandlingId = behandlingId,
-                            saksbehandler = saksBehandler
-                        )
-                    ).fold(
-                        {
-                            val resultat = when (it) {
-                                KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave -> {
-                                    InternalServerError.message("Kunne ikke opprette oppgave for attestering")
+                    call.withBody<WithFritekstBody> { body ->
+                        val saksBehandler = Saksbehandler(call.suUserContext.navIdent)
+                        søknadsbehandlingService.sendTilAttestering(
+                            SendTilAttesteringRequest(
+                                behandlingId = behandlingId,
+                                saksbehandler = saksBehandler,
+                                fritekstTilBrev = body.fritekst
+                            )
+                        ).fold(
+                            {
+                                val resultat = when (it) {
+                                    KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave -> {
+                                        InternalServerError.message("Kunne ikke opprette oppgave for attestering")
+                                    }
+                                    KunneIkkeSendeTilAttestering.KunneIkkeFinneAktørId -> {
+                                        InternalServerError.message("Kunne ikke finne person")
+                                    }
+                                    KunneIkkeSendeTilAttestering.FantIkkeBehandling -> {
+                                        NotFound.message("Kunne ikke finne behandling")
+                                    }
                                 }
-                                KunneIkkeSendeTilAttestering.KunneIkkeFinneAktørId -> {
-                                    InternalServerError.message("Kunne ikke finne person")
-                                }
-                                KunneIkkeSendeTilAttestering.FantIkkeBehandling -> {
-                                    NotFound.message("Kunne ikke finne behandling")
-                                }
+                                call.svar(resultat)
+                            },
+                            {
+                                call.audit("Sendte behandling med id $behandlingId til attestering")
+                                call.svar(OK.jsonBody(it))
                             }
-                            call.svar(resultat)
-                        },
-                        {
-                            call.audit("Sendte behandling med id $behandlingId til attestering")
-                            call.svar(OK.jsonBody(it))
-                        }
-                    )
+                        )
+                    }
                 }
             }
         }

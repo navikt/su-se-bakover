@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Statusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.forsøkStatusovergang
+import no.nav.su.se.bakover.domain.søknadsbehandling.medFritekstTilBrev
 import no.nav.su.se.bakover.domain.søknadsbehandling.statusovergang
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
@@ -94,7 +95,8 @@ internal class SøknadsbehandlingServiceImpl(
             søknad = søknad,
             oppgaveId = søknad.oppgaveId,
             fnr = søknad.søknadInnhold.personopplysninger.fnr,
-            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon()
+            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
+            fritekstTilBrev = "",
         )
 
         søknadsbehandlingRepo.lagre(opprettet)
@@ -164,7 +166,7 @@ internal class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)?.let {
             statusovergang(
                 søknadsbehandling = it,
-                statusovergang = Statusovergang.TilAttestering(request.saksbehandler)
+                statusovergang = Statusovergang.TilAttestering(request.saksbehandler, request.fritekstTilBrev)
             )
         } ?: return SøknadsbehandlingService.KunneIkkeSendeTilAttestering.FantIkkeBehandling.left()
 
@@ -189,9 +191,11 @@ internal class SøknadsbehandlingServiceImpl(
             return SøknadsbehandlingService.KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave.left()
         }
 
-        val søknadsbehandlingMedNyOppgaveId = søknadsbehandling.nyOppgaveId(nyOppgaveId)
+        val søknadsbehandlingMedNyOppgaveIdOgFritekstTilBrev = søknadsbehandling
+            .nyOppgaveId(nyOppgaveId)
+            .medFritekstTilBrev(request.fritekstTilBrev)
 
-        søknadsbehandlingRepo.lagre(søknadsbehandlingMedNyOppgaveId)
+        søknadsbehandlingRepo.lagre(søknadsbehandlingMedNyOppgaveIdOgFritekstTilBrev)
 
         oppgaveService.lukkOppgave(eksisterendeOppgaveId).map {
             behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.LUKKET_OPPGAVE)
@@ -200,7 +204,7 @@ internal class SøknadsbehandlingServiceImpl(
         }
         behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.PERSISTERT)
         behandlingMetrics.incrementTilAttesteringCounter(BehandlingMetrics.TilAttesteringHandlinger.OPPRETTET_OPPGAVE)
-        return søknadsbehandlingMedNyOppgaveId.let {
+        return søknadsbehandlingMedNyOppgaveIdOgFritekstTilBrev.let {
             observers.forEach { observer ->
                 observer.handle(
                     Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingTilAttestering(
@@ -315,7 +319,11 @@ internal class SøknadsbehandlingServiceImpl(
 
                     iverksattBehandling.also {
                         observers.forEach { observer ->
-                            observer.handle(Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(iverksattBehandling))
+                            observer.handle(
+                                Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(
+                                    iverksattBehandling
+                                )
+                            )
                         }
                     }
                 }
@@ -346,7 +354,9 @@ internal class SøknadsbehandlingServiceImpl(
                             iverksattBehandling.also {
                                 observers.forEach { observer ->
                                     observer.handle(
-                                        Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(iverksattBehandling)
+                                        Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(
+                                            iverksattBehandling
+                                        )
                                     )
                                 }
                             }
@@ -393,7 +403,16 @@ internal class SøknadsbehandlingServiceImpl(
                     .mapLeft { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant }
             },
             clock = clock,
-        ).apply { søknadsbehandling.accept(this) }
+        ).apply {
+            val behandling = when (request) {
+                is SøknadsbehandlingService.BrevRequest.MedFritekst ->
+                    søknadsbehandling.medFritekstTilBrev(request.fritekst)
+                is SøknadsbehandlingService.BrevRequest.UtenFritekst ->
+                    søknadsbehandling
+            }
+
+            behandling.accept(this)
+        }
 
         val brevRequest = visitor.brevRequest.getOrHandle {
             return when (it) {

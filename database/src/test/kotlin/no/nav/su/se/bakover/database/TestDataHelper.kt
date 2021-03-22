@@ -61,7 +61,9 @@ internal val behandlingsinformasjonMedAvslag =
 
 internal val oppgaveId = OppgaveId("oppgaveId")
 internal val journalpostId = JournalpostId("journalpostId")
-internal fun beregning(periode: Periode = TestBeregning.getPeriode()) = TestBeregning.toSnapshot().copy(periode = periode)
+internal fun beregning(periode: Periode = TestBeregning.getPeriode()) =
+    TestBeregning.toSnapshot().copy(periode = periode)
+
 internal val avslåttBeregning = beregning().copy(
     månedsberegninger = listOf(
         PersistertMånedsberegning(
@@ -276,7 +278,8 @@ internal class TestDataHelper(
             søknad = søknad,
             oppgaveId = søknad.oppgaveId,
             behandlingsinformasjon = behandlingsinformasjon,
-            fnr = sak.fnr
+            fnr = sak.fnr,
+            fritekstTilBrev = ""
         ).also {
             søknadsbehandlingRepo.lagre(it)
         }
@@ -333,25 +336,31 @@ internal class TestDataHelper(
     internal fun nyTilInnvilgetAttestering(
         behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt,
         periode: Periode = TestBeregning.getPeriode(),
+        fritekstTilBrev: String = ""
     ): Søknadsbehandling.TilAttestering.Innvilget {
         return nySimulering(behandlingsinformasjon, periode).tilAttestering(
-            saksbehandler
+            saksbehandler,
+            fritekstTilBrev
         ).also {
             søknadsbehandlingRepo.lagre(it)
         }
     }
 
-    internal fun tilAvslåttAttesteringMedBeregning(): Søknadsbehandling.TilAttestering.Avslag.MedBeregning {
+    internal fun tilAvslåttAttesteringMedBeregning(fritekstTilBrev: String = ""): Søknadsbehandling.TilAttestering.Avslag.MedBeregning {
         return nyAvslåttBeregning().tilAttestering(
-            saksbehandler
+            saksbehandler,
+            fritekstTilBrev
         ).also {
             søknadsbehandlingRepo.lagre(it)
         }
     }
 
-    internal fun nyTilAvslåttAttesteringUtenBeregning(): Søknadsbehandling.TilAttestering.Avslag.UtenBeregning {
+    internal fun nyTilAvslåttAttesteringUtenBeregning(
+        fritekstTilBrev: String = ""
+    ): Søknadsbehandling.TilAttestering.Avslag.UtenBeregning {
         return nyAvslåttVilkårsvurdering().tilAttestering(
-            saksbehandler
+            saksbehandler,
+            fritekstTilBrev = fritekstTilBrev
         ).also {
             søknadsbehandlingRepo.lagre(it)
         }
@@ -414,8 +423,12 @@ internal class TestDataHelper(
         return utbetaling
     }
 
-    internal fun nyIverksattAvslagUtenBeregning(): Søknadsbehandling.Iverksatt.Avslag.UtenBeregning {
-        return nyTilAvslåttAttesteringUtenBeregning().tilIverksatt(
+    internal fun nyIverksattAvslagUtenBeregning(
+        fritekstTilBrev: String = ""
+    ): Søknadsbehandling.Iverksatt.Avslag.UtenBeregning {
+        return nyTilAvslåttAttesteringUtenBeregning(
+            fritekstTilBrev = fritekstTilBrev
+        ).tilIverksatt(
             iverksattAttestering
         ).also {
             søknadsbehandlingRepo.lagre(it)

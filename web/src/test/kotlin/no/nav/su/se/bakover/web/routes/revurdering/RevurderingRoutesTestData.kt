@@ -59,7 +59,8 @@ object RevurderingRoutesTestData {
             simulering = mock(),
             saksbehandler = NavIdentBruker.Saksbehandler("saks"),
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
-            utbetalingId = UUID30.randomUUID()
+            utbetalingId = UUID30.randomUUID(),
+            fritekstTilBrev = "",
         )
     )
 }
