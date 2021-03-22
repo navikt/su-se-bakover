@@ -414,18 +414,18 @@ internal class TestDataHelper(
         return utbetaling
     }
 
-    internal fun nyIverksattAvslagUtenBeregning(eksterneIverksettingsteg: JournalføringOgBrevdistribusjon = journalførtIverksettingForAvslag): Søknadsbehandling.Iverksatt.Avslag.UtenBeregning {
+    internal fun nyIverksattAvslagUtenBeregning(): Søknadsbehandling.Iverksatt.Avslag.UtenBeregning {
         return nyTilAvslåttAttesteringUtenBeregning().tilIverksatt(
             iverksattAttestering
-        ).copy(eksterneIverksettingsteg = eksterneIverksettingsteg).also {
+        ).also {
             søknadsbehandlingRepo.lagre(it)
         }
     }
 
-    internal fun nyIverksattAvslagMedBeregning(eksterneIverksettingsteg: JournalføringOgBrevdistribusjon): Søknadsbehandling.Iverksatt.Avslag.MedBeregning {
+    internal fun nyIverksattAvslagMedBeregning(): Søknadsbehandling.Iverksatt.Avslag.MedBeregning {
         return tilAvslåttAttesteringMedBeregning().tilIverksatt(
             iverksattAttestering
-        ).copy(eksterneIverksettingsteg = eksterneIverksettingsteg).also {
+        ).also {
             søknadsbehandlingRepo.lagre(it)
         }
     }

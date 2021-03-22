@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
@@ -71,6 +70,7 @@ internal class IverksettRevurderingRouteKtTest {
             opprettet = Tidspunkt.now(),
             tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = ""),
+            oppgaveId = OppgaveId("OppgaveId"),
             beregning = TestBeregning,
             simulering = Simulering(
                 gjelderId = vedtak.behandling.fnr,
@@ -79,10 +79,8 @@ internal class IverksettRevurderingRouteKtTest {
                 nettoBeløp = 0,
                 periodeList = listOf()
             ),
-            oppgaveId = OppgaveId("OppgaveId"),
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
             utbetalingId = UUID30.randomUUID(),
-            eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
             fritekstTilBrev = ""
         )
 

@@ -254,15 +254,15 @@ internal class SøknadsbehandlingServiceIverksettTest {
         val expected = Søknadsbehandling.Iverksatt.Innvilget(
             id = behandling.id,
             opprettet = behandling.opprettet,
-            søknad = behandling.søknad,
-            behandlingsinformasjon = behandling.behandlingsinformasjon,
             sakId = behandling.sakId,
             saksnummer = behandling.saksnummer,
-            fnr = behandling.fnr,
-            saksbehandler = behandling.saksbehandler,
+            søknad = behandling.søknad,
             oppgaveId = behandling.oppgaveId,
+            behandlingsinformasjon = behandling.behandlingsinformasjon,
+            fnr = behandling.fnr,
             beregning = behandling.beregning,
             simulering = behandling.simulering,
+            saksbehandler = behandling.saksbehandler,
             attestering = Attestering.Iverksatt(attestant),
             utbetalingId = utbetalingId
         )
@@ -325,16 +325,15 @@ internal class SøknadsbehandlingServiceIverksettTest {
         val expectedAvslag = Søknadsbehandling.Iverksatt.Avslag.MedBeregning(
             id = behandling.id,
             opprettet = behandling.opprettet,
-            søknad = behandling.søknad,
-            behandlingsinformasjon = behandling.behandlingsinformasjon,
             sakId = behandling.sakId,
             saksnummer = behandling.saksnummer,
-            fnr = behandling.fnr,
-            saksbehandler = behandling.saksbehandler,
+            søknad = behandling.søknad,
             oppgaveId = behandling.oppgaveId,
+            behandlingsinformasjon = behandling.behandlingsinformasjon,
+            fnr = behandling.fnr,
             beregning = behandling.beregning,
-            attestering = Attestering.Iverksatt(attestant),
-            eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert
+            saksbehandler = behandling.saksbehandler,
+            attestering = Attestering.Iverksatt(attestant)
         )
 
         val behandlingMetricsMock = mock<BehandlingMetrics>()

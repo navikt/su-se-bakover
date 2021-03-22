@@ -287,11 +287,10 @@ internal class RevurderingJsonTest {
             opprettet = opprettet,
             tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
+            oppgaveId = OppgaveId("OppgaveId"),
             beregning = beregning,
             simulering = mock(),
-            oppgaveId = OppgaveId("OppgaveId"),
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
-            eksterneIverksettingsteg = mock(),
             utbetalingId = UUID30.randomUUID(),
             fritekstTilBrev = ""
         )

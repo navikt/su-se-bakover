@@ -29,7 +29,6 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -519,13 +518,14 @@ internal class StatistikkServiceImplTest {
         }
         val iverksattRevurdering = IverksattRevurdering(
             id = UUID.randomUUID(),
+            periode = beregning.getPeriode(),
             opprettet = LocalDate.now(clock).atStartOfDay().toTidspunkt(zoneIdOslo),
             tilRevurdering = mock {
                 on { id } doReturn UUID.randomUUID()
                 on { behandling } doReturn behandlingMock
             },
             saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-            periode = beregning.getPeriode(),
+            oppgaveId = OppgaveId("55"),
             beregning = beregning,
             simulering = Simulering(
                 gjelderId = FnrGenerator.random(),
@@ -534,10 +534,8 @@ internal class StatistikkServiceImplTest {
                 nettoBeløp = 100,
                 periodeList = listOf()
             ),
-            oppgaveId = OppgaveId("55"),
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
             utbetalingId = UUID30.randomUUID(),
-            eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
             fritekstTilBrev = ""
         )
 
