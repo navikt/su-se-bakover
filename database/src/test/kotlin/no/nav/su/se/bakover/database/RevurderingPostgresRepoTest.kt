@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import org.junit.jupiter.api.Test
@@ -36,13 +37,18 @@ internal class RevurderingPostgresRepoTest {
     private val saksbehandler = Saksbehandler("Sak S. Behandler")
     private val periode = Periode.create(
         fraOgMed = 1.januar(2020),
-        tilOgMed = 31.desember(2020)
+        tilOgMed = 31.desember(2020),
+    )
+    private val revurderingsårsak = Revurderingsårsak(
+        Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
+        Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
     )
 
     @Test
     fun `kan lagre og hente en revurdering`() {
         withMigratedDb {
-            val vedtak = testDataHelper.vedtakForSøknadsbehandling(testDataHelper.nyOversendtUtbetalingMedKvittering().first)
+            val vedtak =
+                testDataHelper.vedtakForSøknadsbehandling(testDataHelper.nyOversendtUtbetalingMedKvittering().first)
 
             val opprettet = OpprettetRevurdering(
                 id = UUID.randomUUID(),
@@ -51,7 +57,8 @@ internal class RevurderingPostgresRepoTest {
                 tilRevurdering = vedtak,
                 saksbehandler = saksbehandler,
                 oppgaveId = OppgaveId("oppgaveid"),
-                fritekstTilBrev = ""
+                fritekstTilBrev = "",
+                revurderingsårsak = revurderingsårsak,
             )
             repo.lagre(opprettet)
             repo.hent(opprettet.id) shouldBe opprettet
@@ -61,7 +68,8 @@ internal class RevurderingPostgresRepoTest {
     @Test
     fun `kan oppdatere revurderingsperiode`() {
         withMigratedDb {
-            val vedtak = testDataHelper.vedtakForSøknadsbehandling(testDataHelper.nyOversendtUtbetalingMedKvittering().first)
+            val vedtak =
+                testDataHelper.vedtakForSøknadsbehandling(testDataHelper.nyOversendtUtbetalingMedKvittering().first)
 
             val opprettetRevurdering = OpprettetRevurdering(
                 id = UUID.randomUUID(),
@@ -70,7 +78,8 @@ internal class RevurderingPostgresRepoTest {
                 tilRevurdering = vedtak,
                 saksbehandler = saksbehandler,
                 oppgaveId = OppgaveId("oppgaveid"),
-                fritekstTilBrev = ""
+                fritekstTilBrev = "",
+                revurderingsårsak = revurderingsårsak,
             )
             repo.lagre(opprettetRevurdering)
             val beregnetRevurdering = BeregnetRevurdering.Innvilget(
@@ -81,7 +90,8 @@ internal class RevurderingPostgresRepoTest {
                 saksbehandler = saksbehandler,
                 beregning = TestBeregning.toSnapshot(),
                 oppgaveId = OppgaveId("oppgaveid"),
-                fritekstTilBrev = ""
+                fritekstTilBrev = "",
+                revurderingsårsak = revurderingsårsak,
             )
 
             repo.lagre(beregnetRevurdering)
@@ -94,7 +104,8 @@ internal class RevurderingPostgresRepoTest {
                 tilRevurdering = beregnetRevurdering.tilRevurdering,
                 saksbehandler = saksbehandler,
                 oppgaveId = OppgaveId("oppgaveid"),
-                fritekstTilBrev = ""
+                fritekstTilBrev = "",
+                revurderingsårsak = revurderingsårsak,
             )
 
             repo.lagre(revurderingMedNyPeriode)
@@ -107,7 +118,8 @@ internal class RevurderingPostgresRepoTest {
     @Test
     fun `kan kan overskrive en opprettet med beregnet`() {
         withMigratedDb {
-            val vedtak = testDataHelper.vedtakForSøknadsbehandling(testDataHelper.nyOversendtUtbetalingMedKvittering().first)
+            val vedtak =
+                testDataHelper.vedtakForSøknadsbehandling(testDataHelper.nyOversendtUtbetalingMedKvittering().first)
 
             val opprettet = OpprettetRevurdering(
                 id = UUID.randomUUID(),
@@ -116,7 +128,8 @@ internal class RevurderingPostgresRepoTest {
                 tilRevurdering = vedtak,
                 saksbehandler = saksbehandler,
                 oppgaveId = OppgaveId("oppgaveid"),
-                fritekstTilBrev = ""
+                fritekstTilBrev = "",
+                revurderingsårsak = revurderingsårsak,
             )
 
             repo.lagre(opprettet)
@@ -129,7 +142,8 @@ internal class RevurderingPostgresRepoTest {
                 saksbehandler = saksbehandler,
                 beregning = TestBeregning,
                 oppgaveId = OppgaveId("oppgaveid"),
-                fritekstTilBrev = ""
+                fritekstTilBrev = "",
+                revurderingsårsak = revurderingsårsak,
             )
 
             repo.lagre(beregnetRevurdering)
@@ -139,8 +153,10 @@ internal class RevurderingPostgresRepoTest {
 
     @Test
     fun `beregnet kan overskrives med ny beregnet`() {
+
         withMigratedDb {
-            val vedtak = testDataHelper.vedtakForSøknadsbehandling(testDataHelper.nyOversendtUtbetalingMedKvittering().first)
+            val vedtak =
+                testDataHelper.vedtakForSøknadsbehandling(testDataHelper.nyOversendtUtbetalingMedKvittering().first)
             val opprettet = OpprettetRevurdering(
                 id = UUID.randomUUID(),
                 periode = periode,
@@ -148,7 +164,8 @@ internal class RevurderingPostgresRepoTest {
                 tilRevurdering = vedtak,
                 saksbehandler = saksbehandler,
                 oppgaveId = OppgaveId("oppgaveid"),
-                fritekstTilBrev = ""
+                fritekstTilBrev = "",
+                revurderingsårsak = revurderingsårsak,
             )
 
             repo.lagre(opprettet)
@@ -161,7 +178,8 @@ internal class RevurderingPostgresRepoTest {
                 saksbehandler = opprettet.saksbehandler,
                 beregning = TestBeregning,
                 oppgaveId = OppgaveId("oppgaveid"),
-                fritekstTilBrev = ""
+                fritekstTilBrev = "",
+                revurderingsårsak = revurderingsårsak,
             )
 
             repo.lagre(beregnet)
@@ -174,7 +192,8 @@ internal class RevurderingPostgresRepoTest {
                 saksbehandler = Saksbehandler("ny saksbehandler"),
                 beregning = beregnet.beregning,
                 oppgaveId = OppgaveId("oppgaveid"),
-                fritekstTilBrev = ""
+                fritekstTilBrev = "",
+                revurderingsårsak = revurderingsårsak,
             )
 
             repo.lagre(nyBeregnet)
@@ -190,7 +209,8 @@ internal class RevurderingPostgresRepoTest {
     @Test
     fun `kan overskrive en beregnet med simulert`() {
         withMigratedDb {
-            val vedtak = testDataHelper.vedtakForSøknadsbehandling(testDataHelper.nyOversendtUtbetalingMedKvittering().first)
+            val vedtak =
+                testDataHelper.vedtakForSøknadsbehandling(testDataHelper.nyOversendtUtbetalingMedKvittering().first)
             val opprettet = OpprettetRevurdering(
                 id = UUID.randomUUID(),
                 periode = periode,
@@ -198,7 +218,8 @@ internal class RevurderingPostgresRepoTest {
                 tilRevurdering = vedtak,
                 saksbehandler = saksbehandler,
                 oppgaveId = OppgaveId("oppgaveid"),
-                fritekstTilBrev = ""
+                fritekstTilBrev = "",
+                revurderingsårsak = revurderingsårsak,
             )
 
             repo.lagre(opprettet)
@@ -211,7 +232,8 @@ internal class RevurderingPostgresRepoTest {
                 saksbehandler = opprettet.saksbehandler,
                 beregning = TestBeregning,
                 oppgaveId = OppgaveId("oppgaveid"),
-                fritekstTilBrev = ""
+                fritekstTilBrev = "",
+                revurderingsårsak = revurderingsårsak,
             )
 
             repo.lagre(beregnet)
@@ -229,9 +251,10 @@ internal class RevurderingPostgresRepoTest {
                     gjelderNavn = "et navn for simulering",
                     datoBeregnet = 1.januar(2021),
                     nettoBeløp = 200,
-                    periodeList = listOf()
+                    periodeList = listOf(),
                 ),
-                fritekstTilBrev = ""
+                fritekstTilBrev = "",
+                revurderingsårsak = revurderingsårsak,
             )
 
             repo.lagre(simulert)
@@ -245,7 +268,8 @@ internal class RevurderingPostgresRepoTest {
     @Test
     fun `kan overskrive en simulert med en beregnet`() {
         withMigratedDb {
-            val vedtak = testDataHelper.vedtakForSøknadsbehandling(testDataHelper.nyOversendtUtbetalingMedKvittering().first)
+            val vedtak =
+                testDataHelper.vedtakForSøknadsbehandling(testDataHelper.nyOversendtUtbetalingMedKvittering().first)
             val opprettet = OpprettetRevurdering(
                 id = UUID.randomUUID(),
                 periode = periode,
@@ -253,7 +277,8 @@ internal class RevurderingPostgresRepoTest {
                 tilRevurdering = vedtak,
                 saksbehandler = saksbehandler,
                 oppgaveId = OppgaveId("oppgaveid"),
-                fritekstTilBrev = ""
+                fritekstTilBrev = "",
+                revurderingsårsak = revurderingsårsak,
             )
 
             repo.lagre(opprettet)
@@ -266,7 +291,8 @@ internal class RevurderingPostgresRepoTest {
                 saksbehandler = opprettet.saksbehandler,
                 beregning = TestBeregning,
                 oppgaveId = OppgaveId("oppgaveid"),
-                fritekstTilBrev = ""
+                fritekstTilBrev = "",
+                revurderingsårsak = revurderingsårsak,
             )
 
             repo.lagre(beregnet)
@@ -284,9 +310,10 @@ internal class RevurderingPostgresRepoTest {
                     gjelderNavn = "et navn for simulering",
                     datoBeregnet = 1.januar(2021),
                     nettoBeløp = 200,
-                    periodeList = listOf()
+                    periodeList = listOf(),
                 ),
-                fritekstTilBrev = ""
+                fritekstTilBrev = "",
+                revurderingsårsak = revurderingsårsak,
             )
 
             repo.lagre(simulert)
@@ -300,7 +327,8 @@ internal class RevurderingPostgresRepoTest {
     @Test
     fun `kan overskrive en simulert med en til attestering`() {
         withMigratedDb {
-            val vedtak = testDataHelper.vedtakForSøknadsbehandling(testDataHelper.nyOversendtUtbetalingMedKvittering().first)
+            val vedtak =
+                testDataHelper.vedtakForSøknadsbehandling(testDataHelper.nyOversendtUtbetalingMedKvittering().first)
             val opprettet = OpprettetRevurdering(
                 id = UUID.randomUUID(),
                 periode = periode,
@@ -308,7 +336,8 @@ internal class RevurderingPostgresRepoTest {
                 tilRevurdering = vedtak,
                 saksbehandler = saksbehandler,
                 oppgaveId = OppgaveId("oppgaveid"),
-                fritekstTilBrev = ""
+                fritekstTilBrev = "",
+                revurderingsårsak = revurderingsårsak,
             )
 
             repo.lagre(opprettet)
@@ -321,7 +350,8 @@ internal class RevurderingPostgresRepoTest {
                 saksbehandler = opprettet.saksbehandler,
                 beregning = TestBeregning,
                 oppgaveId = OppgaveId("oppgaveid"),
-                fritekstTilBrev = ""
+                fritekstTilBrev = "",
+                revurderingsårsak = revurderingsårsak,
             )
 
             repo.lagre(beregnet)
@@ -339,15 +369,20 @@ internal class RevurderingPostgresRepoTest {
                     gjelderNavn = "et navn for simulering",
                     datoBeregnet = 1.januar(2021),
                     nettoBeløp = 200,
-                    periodeList = listOf()
+                    periodeList = listOf(),
                 ),
-                fritekstTilBrev = ""
+                fritekstTilBrev = "",
+                revurderingsårsak = revurderingsårsak,
             )
 
             repo.lagre(simulert)
 
             val tilAttestering =
-                simulert.tilAttestering(attesteringsoppgaveId = OppgaveId("attesteringsoppgaveId"), saksbehandler = saksbehandler, fritekstTilBrev = "fritekst")
+                simulert.tilAttestering(
+                    attesteringsoppgaveId = OppgaveId("attesteringsoppgaveId"),
+                    saksbehandler = saksbehandler,
+                    fritekstTilBrev = "fritekst",
+                )
 
             repo.lagre(tilAttestering)
 
@@ -360,7 +395,8 @@ internal class RevurderingPostgresRepoTest {
     @Test
     fun `saksbehandler som sender til attestering overskriver saksbehandlere som var før`() {
         withMigratedDb {
-            val vedtak = testDataHelper.vedtakForSøknadsbehandling(testDataHelper.nyOversendtUtbetalingMedKvittering().first)
+            val vedtak =
+                testDataHelper.vedtakForSøknadsbehandling(testDataHelper.nyOversendtUtbetalingMedKvittering().first)
             val opprettet = OpprettetRevurdering(
                 id = UUID.randomUUID(),
                 periode = periode,
@@ -368,7 +404,8 @@ internal class RevurderingPostgresRepoTest {
                 tilRevurdering = vedtak,
                 saksbehandler = saksbehandler,
                 oppgaveId = OppgaveId("oppgaveid"),
-                fritekstTilBrev = ""
+                fritekstTilBrev = "",
+                revurderingsårsak = revurderingsårsak,
             )
 
             repo.lagre(opprettet)
@@ -381,7 +418,8 @@ internal class RevurderingPostgresRepoTest {
                 saksbehandler = opprettet.saksbehandler,
                 beregning = TestBeregning,
                 oppgaveId = OppgaveId("oppgaveid"),
-                fritekstTilBrev = ""
+                fritekstTilBrev = "",
+                revurderingsårsak = revurderingsårsak,
             )
 
             repo.lagre(beregnet)
@@ -399,9 +437,10 @@ internal class RevurderingPostgresRepoTest {
                     gjelderNavn = "et navn for simulering",
                     datoBeregnet = 1.januar(2021),
                     nettoBeløp = 200,
-                    periodeList = listOf()
+                    periodeList = listOf(),
                 ),
-                fritekstTilBrev = ""
+                fritekstTilBrev = "",
+                revurderingsårsak = revurderingsårsak,
             )
 
             repo.lagre(simulert)
@@ -409,7 +448,7 @@ internal class RevurderingPostgresRepoTest {
             val tilAttestering = simulert.tilAttestering(
                 attesteringsoppgaveId = OppgaveId("attesteringsoppgaveId"),
                 saksbehandler = Saksbehandler("Ny saksbehandler"),
-                fritekstTilBrev = "fritekst"
+                fritekstTilBrev = "fritekst",
             )
 
             repo.lagre(tilAttestering)
@@ -424,7 +463,8 @@ internal class RevurderingPostgresRepoTest {
     @Test
     fun `kan lagre og hente en iverksatt revurdering`() {
         withMigratedDb {
-            val vedtak = testDataHelper.vedtakForSøknadsbehandling(testDataHelper.nyOversendtUtbetalingMedKvittering().first)
+            val vedtak =
+                testDataHelper.vedtakForSøknadsbehandling(testDataHelper.nyOversendtUtbetalingMedKvittering().first)
             val attestant = NavIdentBruker.Attestant("Attestansson")
 
             val opprettet = OpprettetRevurdering(
@@ -434,7 +474,8 @@ internal class RevurderingPostgresRepoTest {
                 tilRevurdering = vedtak,
                 saksbehandler = saksbehandler,
                 oppgaveId = OppgaveId("oppgaveid"),
-                fritekstTilBrev = ""
+                fritekstTilBrev = "",
+                revurderingsårsak = revurderingsårsak,
             )
             repo.lagre(opprettet)
 
@@ -450,10 +491,11 @@ internal class RevurderingPostgresRepoTest {
                     gjelderNavn = "Navn Navnesson",
                     datoBeregnet = LocalDate.now(),
                     nettoBeløp = 5,
-                    periodeList = listOf()
+                    periodeList = listOf(),
                 ),
                 oppgaveId = OppgaveId(value = ""),
-                fritekstTilBrev = ""
+                fritekstTilBrev = "",
+                revurderingsårsak = revurderingsårsak,
             )
             val utbetaling = testDataHelper.nyUtbetalingUtenKvittering(
                 revurderingTilAttestering = tilAttestering,
@@ -485,7 +527,8 @@ internal class RevurderingPostgresRepoTest {
                 tilRevurdering = vedtak,
                 saksbehandler = saksbehandler,
                 oppgaveId = OppgaveId("oppgaveid"),
-                fritekstTilBrev = ""
+                fritekstTilBrev = "",
+                revurderingsårsak = revurderingsårsak,
             )
 
             repo.lagre(opprettet)
@@ -498,7 +541,8 @@ internal class RevurderingPostgresRepoTest {
                 saksbehandler = opprettet.saksbehandler,
                 beregning = TestBeregning,
                 oppgaveId = OppgaveId("oppgaveid"),
-                fritekstTilBrev = ""
+                fritekstTilBrev = "",
+                revurderingsårsak = revurderingsårsak,
             )
 
             repo.lagre(beregnet)
@@ -516,9 +560,10 @@ internal class RevurderingPostgresRepoTest {
                     gjelderNavn = "et navn for simulering",
                     datoBeregnet = 1.januar(2021),
                     nettoBeløp = 200,
-                    periodeList = listOf()
+                    periodeList = listOf(),
                 ),
-                fritekstTilBrev = ""
+                fritekstTilBrev = "",
+                revurderingsårsak = revurderingsårsak,
             )
 
             repo.lagre(simulert)
@@ -527,13 +572,13 @@ internal class RevurderingPostgresRepoTest {
                 simulert.tilAttestering(
                     attesteringsoppgaveId = OppgaveId("attesteringsoppgaveId"),
                     saksbehandler = saksbehandler,
-                    fritekstTilBrev = ""
+                    fritekstTilBrev = "",
                 )
 
             val attestering = Attestering.Underkjent(
                 attestant = NavIdentBruker.Attestant(navIdent = "123"),
                 grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
-                kommentar = "feil"
+                kommentar = "feil",
             )
 
             repo.lagre(tilAttestering.underkjenn(attestering, OppgaveId("nyOppgaveId")))

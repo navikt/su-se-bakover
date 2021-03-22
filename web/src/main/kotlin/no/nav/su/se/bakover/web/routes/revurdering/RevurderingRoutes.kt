@@ -13,7 +13,7 @@ internal fun Route.revurderingRoutes(
 ) {
     opprettRevurderingRoute(revurderingService)
 
-    oppdaterRevurderingsperiodeRoute(revurderingService)
+    oppdaterRevurderingRoute(revurderingService)
 
     beregnOgSimulerRevurdering(revurderingService)
 

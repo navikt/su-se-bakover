@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.web.routes.behandling.TestBeregning
@@ -26,6 +27,10 @@ import org.skyscreamer.jsonassert.JSONAssert
 import java.util.UUID
 
 internal class RevurderingJsonTest {
+    private val revurderingsårsak = Revurderingsårsak(
+        Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
+        Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
+    )
 
     @Test
     fun `should serialize and deserialize OpprettetRevurdering`() {
@@ -39,7 +44,8 @@ internal class RevurderingJsonTest {
             tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
             oppgaveId = OppgaveId("oppgaveid"),
-            fritekstTilBrev = ""
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
         )
 
         val revurderingJson = """
@@ -74,7 +80,8 @@ internal class RevurderingJsonTest {
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
             beregning = beregning,
             oppgaveId = OppgaveId("oppgaveid"),
-            fritekstTilBrev = ""
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
         )
 
         val revurderingJson = """
@@ -114,7 +121,8 @@ internal class RevurderingJsonTest {
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
             beregning = beregning,
             oppgaveId = OppgaveId("oppgaveid"),
-            fritekstTilBrev = ""
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
         )
 
         val revurderingJson = """
@@ -155,7 +163,8 @@ internal class RevurderingJsonTest {
             beregning = beregning,
             simulering = mock(),
             oppgaveId = OppgaveId("oppgaveid"),
-            fritekstTilBrev = ""
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
         )
 
         val revurderingJson = """
@@ -196,7 +205,8 @@ internal class RevurderingJsonTest {
             beregning = beregning,
             simulering = mock(),
             oppgaveId = OppgaveId("OppgaveId"),
-            fritekstTilBrev = ""
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
         )
 
         val revurderingJson = """
@@ -240,9 +250,10 @@ internal class RevurderingJsonTest {
             attestering = Attestering.Underkjent(
                 attestant = NavIdentBruker.Attestant("attestant"),
                 grunn = Attestering.Underkjent.Grunn.DOKUMENTASJON_MANGLER,
-                kommentar = "Dokumentasjon mangler"
+                kommentar = "Dokumentasjon mangler",
             ),
-            fritekstTilBrev = ""
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
         )
 
         val expected = """
@@ -292,7 +303,8 @@ internal class RevurderingJsonTest {
             simulering = mock(),
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
             utbetalingId = UUID30.randomUUID(),
-            fritekstTilBrev = ""
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
         )
 
         val revurderingJson = """
