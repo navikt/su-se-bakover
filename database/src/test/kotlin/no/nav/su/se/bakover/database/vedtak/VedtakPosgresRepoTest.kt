@@ -28,10 +28,7 @@ internal class VedtakPosgresRepoTest {
     @Test
     fun `setter inn og henter vedtak for innvilget stønad`() {
         withMigratedDb {
-            val (søknadsbehandling, _) = testDataHelper.nyIverksattInnvilget()
-            val vedtak = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling)
-
-            vedtakRepo.lagre(vedtak)
+            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
 
             vedtakRepo.hent(vedtak.id) shouldBe vedtak
         }
@@ -52,17 +49,14 @@ internal class VedtakPosgresRepoTest {
     @Test
     fun `oppdaterer koblingstabell mellom søknadsbehandling og vedtak ved lagring av vedtak for søknadsbehandling`() {
         withMigratedDb {
-            val (søknadsbehandling, _) = testDataHelper.nyIverksattInnvilget()
-            val vedtak = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling)
-
-            vedtakRepo.lagre(vedtak)
+            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
 
             datasource.withSession { session ->
                 """
                     SELECT søknadsbehandlingId, revurderingId from behandling_vedtak where vedtakId = :vedtakId
                 """.trimIndent()
                     .hent(mapOf("vedtakId" to vedtak.id), session) {
-                        it.stringOrNull("søknadsbehandlingId") shouldBe søknadsbehandling.id.toString()
+                        it.stringOrNull("søknadsbehandlingId") shouldBe vedtak.behandling.id.toString()
                         it.stringOrNull("revurderingId") shouldBe null
                     }
             }
@@ -72,10 +66,7 @@ internal class VedtakPosgresRepoTest {
     @Test
     fun `oppdaterer koblingstabell mellom revurdering og vedtak ved lagring av vedtak for revurdering`() {
         withMigratedDb {
-            val (søknadsbehandling, _) = testDataHelper.nyIverksattInnvilget()
-            val søknadsbehandlingVedtak = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling)
-
-            vedtakRepo.lagre(søknadsbehandlingVedtak)
+            val søknadsbehandlingVedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
 
             val nyRevurdering = testDataHelper.nyRevurdering(søknadsbehandlingVedtak)
             val iverksattRevurdering = IverksattRevurdering(
@@ -116,10 +107,10 @@ internal class VedtakPosgresRepoTest {
     @Test
     fun `hent alle aktive vedtak`() {
         withMigratedDb {
-            val (søknadsbehandling, _) = testDataHelper.nyIverksattInnvilget()
-            val vedtakSomErAktivt = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling)
+            val (søknadsbehandling, utbetaling) = testDataHelper.nyIverksattInnvilget()
+            val vedtakSomErAktivt = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling, utbetaling.id)
                 .copy(periode = Periode.create(1.februar(2021), 31.mars(2021)))
-            val vedtakUtenforAktivPeriode = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling)
+            val vedtakUtenforAktivPeriode = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling, utbetaling.id)
                 .copy(periode = Periode.create(1.januar(2021), 31.januar(2021)))
             vedtakRepo.lagre(vedtakSomErAktivt)
             vedtakRepo.lagre(vedtakUtenforAktivPeriode)
@@ -173,10 +164,8 @@ internal class VedtakPosgresRepoTest {
         }
 
         withMigratedDb {
-            val (søknadsbehandling, _) = testDataHelper.nyIverksattInnvilget()
-            val vedtak = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling)
+            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
 
-            vedtakRepo.lagre(vedtak)
             vedtakRepo.lagre(
                 vedtak.copy(
                     journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
@@ -197,10 +186,8 @@ internal class VedtakPosgresRepoTest {
     @Test
     fun `kobler ikke den samme behandlingen og vedtaket flere ganger ved oppdatering av vedtak`() {
         withMigratedDb {
-            val (søknadsbehandling, _) = testDataHelper.nyIverksattInnvilget()
-            val vedtak = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling)
+            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
 
-            vedtakRepo.lagre(vedtak)
             vedtakRepo.lagre(
                 vedtak.copy(
                     journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(

@@ -139,9 +139,9 @@ internal class RevurderingServiceImplTest {
             simulering = mock(),
             saksbehandler = saksbehandler,
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("Attes T. Ant")),
-            utbetalingId = mock(),
             fritekstTilBrev = "",
         ),
+        UUID30.randomUUID()
     )
     val sak = Sak(
         id = sakId,

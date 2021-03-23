@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.service.revurdering
 
 import arrow.core.Either
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -46,8 +45,6 @@ interface RevurderingService {
         revurderingId: UUID,
         attestering: Attestering,
     ): Either<KunneIkkeUnderkjenneRevurdering, UnderkjentRevurdering>
-
-    fun hentRevurderingForUtbetaling(utbetalingId: UUID30): IverksattRevurdering?
 }
 
 sealed class KunneIkkeOppretteRevurdering {

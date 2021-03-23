@@ -264,7 +264,6 @@ internal class SøknadsbehandlingServiceIverksettTest {
             simulering = behandling.simulering,
             saksbehandler = behandling.saksbehandler,
             attestering = Attestering.Iverksatt(attestant),
-            utbetalingId = utbetalingId,
             fritekstTilBrev = "",
         )
 

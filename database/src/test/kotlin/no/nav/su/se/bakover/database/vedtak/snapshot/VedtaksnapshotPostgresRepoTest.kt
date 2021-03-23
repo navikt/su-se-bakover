@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-internal class VedtakPostgresRepoTest {
+internal class VedtaksnapshotPostgresRepoTest {
 
     private val repo = VedtakssnapshotPostgresRepo(EmbeddedDatabase.instance())
     private val testDataHelper = TestDataHelper()

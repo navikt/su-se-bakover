@@ -308,7 +308,7 @@ internal class SøknadsbehandlingServiceImpl(
             when (iverksattBehandling) {
                 is Søknadsbehandling.Iverksatt.Innvilget -> {
                     søknadsbehandlingRepo.lagre(iverksattBehandling)
-                    val vedtak = opprettVedtak(iverksattBehandling)
+                    val vedtak = Vedtak.InnvilgetStønad.fromSøknadsbehandling(iverksattBehandling, utbetaling!!.id)
                     vedtakRepo.lagre(vedtak)
 
                     log.info("Iverksatt innvilgelse for behandling ${iverksattBehandling.id}")
@@ -328,7 +328,7 @@ internal class SøknadsbehandlingServiceImpl(
                     }
                 }
                 is Søknadsbehandling.Iverksatt.Avslag -> {
-                    val vedtak = opprettVedtak(iverksattBehandling)
+                    val vedtak = opprettAvslagsvedtak(iverksattBehandling)
                     return ferdigstillVedtakService.journalførOgLagre(vedtak)
                         .mapLeft {
                             log.error("Journalføring av vedtak for behandling: ${vedtak.behandling.id} feilet.")
@@ -366,10 +366,7 @@ internal class SøknadsbehandlingServiceImpl(
         }
     }
 
-    private fun opprettVedtak(iverksattBehandling: Søknadsbehandling.Iverksatt): Vedtak = when (iverksattBehandling) {
-        is Søknadsbehandling.Iverksatt.Innvilget -> {
-            Vedtak.InnvilgetStønad.fromSøknadsbehandling(iverksattBehandling)
-        }
+    private fun opprettAvslagsvedtak(iverksattBehandling: Søknadsbehandling.Iverksatt.Avslag): Vedtak = when (iverksattBehandling) {
         is Søknadsbehandling.Iverksatt.Avslag.MedBeregning -> {
             Vedtak.AvslåttStønad.fromSøknadsbehandlingMedBeregning(iverksattBehandling)
         }

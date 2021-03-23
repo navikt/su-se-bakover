@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -466,7 +465,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 )
             }
 
-            fun tilIverksatt(attestering: Attestering, utbetalingId: UUID30): Iverksatt.Innvilget {
+            fun tilIverksatt(attestering: Attestering): Iverksatt.Innvilget {
                 return Iverksatt.Innvilget(
                     id,
                     opprettet,
@@ -480,7 +479,6 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                     simulering,
                     saksbehandler,
                     attestering,
-                    utbetalingId,
                     fritekstTilBrev,
                 )
             }
@@ -851,7 +849,6 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
             val simulering: Simulering,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val attestering: Attestering,
-            val utbetalingId: UUID30,
             override val fritekstTilBrev: String,
         ) : Iverksatt() {
             override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_INNVILGET

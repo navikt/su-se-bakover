@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.service.statistikk
 import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.startOfDay
@@ -302,7 +301,6 @@ internal class SøknadsbehandlingStatistikkMapperTest {
     private val iverksattSøknadsbehandling = tilAttesteringSøknadsbehandling.tilIverksatt(
         Attestering.Iverksatt(
             NavIdentBruker.Attestant("att")
-        ),
-        UUID30.randomUUID()
+        )
     )
 }

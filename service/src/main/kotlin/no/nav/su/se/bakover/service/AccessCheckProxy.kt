@@ -384,8 +384,6 @@ open class AccessCheckProxy(
                     assertHarTilgangTilSak(revurderingId)
                     return services.revurdering.underkjenn(revurderingId, attestering)
                 }
-
-                override fun hentRevurderingForUtbetaling(utbetalingId: UUID30) = kastKanKunKallesFraAnnenService()
             },
             vedtakService = object : VedtakService {
                 override fun hentAktiveFnr(fomDato: LocalDate): List<Fnr> {

@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.database.vedtak.snapshot
 
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
@@ -426,7 +425,6 @@ internal class VedtakssnapshotJsonTest {
             ),
             saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
-            utbetalingId = UUID30.randomUUID(),
             fritekstTilBrev = "",
         )
         val utbetaling = oversendtUtbetalingUtenKvittering(innvilget)

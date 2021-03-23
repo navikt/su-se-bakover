@@ -35,7 +35,6 @@ import javax.sql.DataSource
 interface RevurderingRepo {
     fun hent(id: UUID): Revurdering?
     fun hent(id: UUID, session: Session): Revurdering?
-    fun hentRevurderingForUtbetaling(utbetalingId: UUID30): IverksattRevurdering?
     fun hentEventuellTidligereAttestering(id: UUID): Attestering?
     fun lagre(revurdering: Revurdering)
 }
@@ -70,14 +69,6 @@ internal class RevurderingPostgresRepo(
             """.trimIndent()
                 .hent(mapOf("id" to id), s) { row ->
                     row.toRevurdering(s)
-                }
-        }
-
-    override fun hentRevurderingForUtbetaling(utbetalingId: UUID30): IverksattRevurdering? =
-        dataSource.withSession { session ->
-            "select * from revurdering where utbetalingId = :utbetalingId"
-                .hent(mapOf("utbetalingId" to utbetalingId), session) {
-                    it.toRevurdering(session) as? IverksattRevurdering
                 }
         }
 

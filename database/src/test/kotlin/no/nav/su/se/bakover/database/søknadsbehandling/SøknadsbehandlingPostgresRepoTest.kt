@@ -54,15 +54,6 @@ internal class SøknadsbehandlingPostgresRepoTest {
         testDataHelper.nyIverksattInnvilget(periode = Periode.create(fom, tom))
 
     @Test
-    fun `opprett og hent behandling for utbetaling`() {
-        withMigratedDb {
-            val nySøknadsbehandling = testDataHelper.nyIverksattInnvilget()
-            val hentet = repo.hentBehandlingForUtbetaling(nySøknadsbehandling.second.id)!!
-            hentet shouldBe nySøknadsbehandling.first
-        }
-    }
-
-    @Test
     fun `kan sette inn tom saksbehandling`() {
         withMigratedDb {
             val vilkårsvurdert = testDataHelper.nyUavklartVilkårsvurdering()

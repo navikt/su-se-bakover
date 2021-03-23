@@ -1009,9 +1009,9 @@ internal class FerdigstillVedtakServiceImplTest {
                 simulering = mock(),
                 saksbehandler = saksbehandler,
                 attestering = Attestering.Iverksatt(attestant),
-                utbetalingId = UUID30.randomUUID(),
                 fritekstTilBrev = "",
-            )
+            ),
+            UUID30.randomUUID()
         )
 
     private fun journalførtInnvilgetVedtak() = innvilgetVedtak().copy(journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(iverksattJournalpostId))
