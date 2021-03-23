@@ -4,7 +4,7 @@ import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.routing.Route
-import io.ktor.routing.post
+import io.ktor.routing.put
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
@@ -52,7 +52,7 @@ internal fun Route.oppdaterRevurderingRoute(
                     ifLeft = { call.svar(it.tilResultat()) },
                     ifRight = {
                         call.audit("Oppdaterte perioden på revurdering med id: $revurderingId")
-                        call.svar(Resultat.json(HttpStatusCode.Created, serialize(it.toJson())))
+                        call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson())))
                     },
                 )
             }
@@ -61,10 +61,7 @@ internal fun Route.oppdaterRevurderingRoute(
 
     authorize(Brukerrolle.Saksbehandler) {
         // TODO jah: Slett denne når su-se-framover har byttet til ny path og er i prod.
-        post("$revurderingPath/{revurderingId}/oppdaterPeriode") {
-            oppdater(call)
-        }
-        post("$revurderingPath/{revurderingId}/oppdater") {
+        put("$revurderingPath/{revurderingId}") {
             oppdater(call)
         }
     }

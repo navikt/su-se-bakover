@@ -50,7 +50,7 @@ internal class OpprettRevurderingRouteKtTest {
         ) {
             defaultRequest(
                 HttpMethod.Post,
-                "$requestPath/opprett",
+                requestPath,
                 listOf(Brukerrolle.Veileder),
             ) {
                 setBody(validBody)
@@ -95,12 +95,12 @@ internal class OpprettRevurderingRouteKtTest {
         ) {
             defaultRequest(
                 HttpMethod.Post,
-                "$requestPath/opprett",
+                requestPath,
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
                     """
-                    { 
+                    {
                         "fraOgMed": "${periode.getFraOgMed()}",
                         "årsak":"DØDSFALL",
                         "begrunnelse":"begrunnelse"
@@ -250,7 +250,7 @@ internal class OpprettRevurderingRouteKtTest {
         ) {
             defaultRequest(
                 HttpMethod.Post,
-                "$requestPath/opprett",
+                requestPath,
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(validBody)

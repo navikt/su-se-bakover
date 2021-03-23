@@ -52,8 +52,8 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
             },
         ) {
             defaultRequest(
-                HttpMethod.Post,
-                "$requestPath/$revurderingId/oppdaterPeriode",
+                HttpMethod.Put,
+                "$requestPath/$revurderingId",
                 listOf(Brukerrolle.Veileder),
             ) {
                 setBody(validBody)
@@ -97,22 +97,22 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
             },
         ) {
             defaultRequest(
-                HttpMethod.Post,
-                "$requestPath/$revurderingId/oppdaterPeriode",
+                HttpMethod.Put,
+                "$requestPath/$revurderingId",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
                     """
-                    { 
+                    {
                         "fraOgMed": "${periode.getFraOgMed()}",
                         "årsak":"DØDSFALL",
                         "begrunnelse":"begrunnelse"
                     }
-                    
+
                 """.trimMargin(),
                 )
             }.apply {
-                response.status() shouldBe HttpStatusCode.Created
+                response.status() shouldBe HttpStatusCode.OK
                 val actualResponse = objectMapper.readValue<OpprettetRevurderingJson>(response.content!!)
                 actualResponse.id shouldBe opprettetRevurdering.id.toString()
                 actualResponse.status shouldBe RevurderingsStatus.OPPRETTET
@@ -205,8 +205,8 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
             },
         ) {
             defaultRequest(
-                HttpMethod.Post,
-                "$requestPath/$revurderingId/oppdaterPeriode",
+                HttpMethod.Put,
+                "$requestPath/$revurderingId",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(validBody)
