@@ -121,7 +121,7 @@ internal class PersonPostgresRepoTest {
                     ektefelle = eps ?: Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle
                 )
             )
-            val vedtak = testDataHelper.vedtakForSøknadsbehandling(innvilget, utbetaling.id)
+            val vedtak = testDataHelper.vedtakForSøknadsbehandlingOgUtbetalingId(innvilget, utbetaling.id)
             val revurdering = testDataHelper.nyRevurdering(vedtak)
 
             Ctx(innvilget, utbetaling, revurdering).test()

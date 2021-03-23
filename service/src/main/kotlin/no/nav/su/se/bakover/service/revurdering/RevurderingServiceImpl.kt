@@ -7,7 +7,6 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.log
@@ -392,9 +391,5 @@ internal class RevurderingServiceImpl(
         }
 
         return underkjent.right()
-    }
-
-    override fun hentRevurderingForUtbetaling(utbetalingId: UUID30): IverksattRevurdering? {
-        return revurderingRepo.hentRevurderingForUtbetaling(utbetalingId)
     }
 }

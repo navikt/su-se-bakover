@@ -246,10 +246,20 @@ internal class TestDataHelper(
 
     fun oppdaterHendelseslogg(hendelseslogg: Hendelseslogg) = hendelsesloggRepo.oppdaterHendelseslogg(hendelseslogg)
 
-    fun vedtakForSøknadsbehandling(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget, utbetalingId: UUID30) =
+    fun vedtakForSøknadsbehandlingOgUtbetalingId(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget, utbetalingId: UUID30) =
         Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling, utbetalingId).also {
             vedtakRepo.lagre(it)
         }
+
+    fun vedtakMedSøknadsbehandling(): Pair<Vedtak.InnvilgetStønad, Utbetaling> {
+        val (søknadsbehandling, utbetaling) = nyOversendtUtbetalingMedKvittering()
+        return Pair(
+            Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling, utbetaling.id).also {
+                vedtakRepo.lagre(it)
+            },
+            utbetaling
+        )
+    }
 
     fun nyRevurdering(innvilget: Vedtak.InnvilgetStønad) =
         OpprettetRevurdering(
