@@ -1,5 +1,9 @@
 package no.nav.su.se.bakover.service.revurdering
 
+import arrow.core.Either
+import arrow.core.flatMap
+import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import java.time.LocalDate
@@ -12,8 +16,15 @@ data class OpprettRevurderingRequest(
     val begrunnelse: String,
     val saksbehandler: NavIdentBruker.Saksbehandler,
 ) {
-    val revurderingsårsak = Revurderingsårsak.tryCreate(
-        årsak = årsak,
-        begrunnelse = begrunnelse,
-    )
+    val revurderingsårsak: Either<Revurderingsårsak.UgyldigRevurderingsårsak, Revurderingsårsak> =
+        Revurderingsårsak.tryCreate(
+            årsak = årsak,
+            begrunnelse = begrunnelse,
+        ).flatMap {
+            if (it.årsak == Revurderingsårsak.Årsak.MIGRERT) {
+                Revurderingsårsak.UgyldigRevurderingsårsak.UgyldigÅrsak.left()
+            } else {
+                it.right()
+            }
+        }
 }
