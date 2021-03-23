@@ -61,6 +61,7 @@ internal class RevurderingJsonTest {
                     "tilOgMed": "2020-12-31"
                 },
                 "saksbehandler": "Petter",
+                "fritekstTilBrev": "",
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon"
             }
@@ -106,6 +107,7 @@ internal class RevurderingJsonTest {
                     "fraOgMed": "2020-01-01",
                     "tilOgMed": "2020-12-31"
                 },
+                "fritekstTilBrev": "",
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon"
             }
@@ -151,6 +153,7 @@ internal class RevurderingJsonTest {
                     "fraOgMed": "2020-01-01",
                     "tilOgMed": "2020-12-31"
                 },
+                "fritekstTilBrev": "",
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon"
             }
@@ -197,6 +200,7 @@ internal class RevurderingJsonTest {
                     "fraOgMed": "2020-01-01",
                     "tilOgMed": "2020-12-31"
                 },
+                "fritekstTilBrev": "",
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon"
             }
@@ -243,6 +247,7 @@ internal class RevurderingJsonTest {
                     "fraOgMed": "2020-01-01",
                     "tilOgMed": "2020-12-31"
                 },
+                "fritekstTilBrev": "",
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon"
             }
@@ -301,6 +306,7 @@ internal class RevurderingJsonTest {
                         "kommentar": "Dokumentasjon mangler"
                     }
                 },
+                "fritekstTilBrev": "",
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon"
             }
@@ -350,6 +356,7 @@ internal class RevurderingJsonTest {
                     "tilOgMed": "2020-12-31"
                 },
                 "attestant": "attestant",
+                "fritekstTilBrev": "",
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon"
             }

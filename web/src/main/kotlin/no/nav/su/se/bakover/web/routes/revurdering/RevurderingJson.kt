@@ -40,6 +40,7 @@ internal data class OpprettetRevurderingJson(
     val periode: PeriodeJson,
     val tilRevurdering: VedtakJson,
     val saksbehandler: String,
+    val fritekstTilBrev: String,
     val årsak: String,
     val begrunnelse: String,
 ) : RevurderingJson() {
@@ -54,6 +55,7 @@ internal sealed class BeregnetRevurderingJson : RevurderingJson() {
     abstract val tilRevurdering: VedtakJson
     abstract val beregninger: RevurdertBeregningJson
     abstract val saksbehandler: String
+    abstract val fritekstTilBrev: String
     abstract val årsak: String
     abstract val begrunnelse: String
 
@@ -64,6 +66,7 @@ internal sealed class BeregnetRevurderingJson : RevurderingJson() {
         override val tilRevurdering: VedtakJson,
         override val beregninger: RevurdertBeregningJson,
         override val saksbehandler: String,
+        override val fritekstTilBrev: String,
         override val årsak: String,
         override val begrunnelse: String,
     ) : BeregnetRevurderingJson() {
@@ -78,6 +81,7 @@ internal sealed class BeregnetRevurderingJson : RevurderingJson() {
         override val tilRevurdering: VedtakJson,
         override val beregninger: RevurdertBeregningJson,
         override val saksbehandler: String,
+        override val fritekstTilBrev: String,
         override val årsak: String,
         override val begrunnelse: String,
     ) : BeregnetRevurderingJson() {
@@ -93,6 +97,7 @@ internal data class SimulertRevurderingJson(
     val tilRevurdering: VedtakJson,
     val beregninger: RevurdertBeregningJson,
     val saksbehandler: String,
+    val fritekstTilBrev: String,
     val årsak: String,
     val begrunnelse: String,
 ) : RevurderingJson() {
@@ -107,7 +112,9 @@ internal data class TilAttesteringJson(
     val tilRevurdering: VedtakJson,
     val beregninger: RevurdertBeregningJson,
     val saksbehandler: String,
+    val fritekstTilBrev: String,
     val årsak: String,
+
     val begrunnelse: String,
 ) : RevurderingJson() {
     @JsonInclude
@@ -122,6 +129,7 @@ internal data class IverksattRevurderingJson(
     val beregninger: RevurdertBeregningJson,
     val saksbehandler: String,
     val attestant: String,
+    val fritekstTilBrev: String,
     val årsak: String,
     val begrunnelse: String,
 ) : RevurderingJson() {
@@ -137,6 +145,7 @@ internal data class UnderkjentRevurderingJson(
     val beregninger: RevurdertBeregningJson,
     val saksbehandler: String,
     val attestering: AttesteringJson,
+    val fritekstTilBrev: String,
     val årsak: String,
     val begrunnelse: String,
 ) : RevurderingJson() {
@@ -151,6 +160,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         periode = periode.toJson(),
         tilRevurdering = tilRevurdering.toJson(),
         saksbehandler = saksbehandler.toString(),
+        fritekstTilBrev = fritekstTilBrev,
         årsak = revurderingsårsak.årsak.toString(),
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
     )
@@ -164,6 +174,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
             revurdert = beregning.toJson(),
         ),
         saksbehandler = saksbehandler.toString(),
+        fritekstTilBrev = fritekstTilBrev,
         årsak = revurderingsårsak.årsak.toString(),
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
     )
@@ -177,6 +188,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
             revurdert = beregning.toJson(),
         ),
         saksbehandler = saksbehandler.toString(),
+        fritekstTilBrev = fritekstTilBrev,
         årsak = revurderingsårsak.årsak.toString(),
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
     )
@@ -191,6 +203,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         ),
         saksbehandler = saksbehandler.toString(),
         attestant = attestering.attestant.toString(),
+        fritekstTilBrev = fritekstTilBrev,
         årsak = revurderingsårsak.årsak.toString(),
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
     )
@@ -204,6 +217,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
             revurdert = beregning.toJson(),
         ),
         saksbehandler = saksbehandler.toString(),
+        fritekstTilBrev = fritekstTilBrev,
         årsak = revurderingsårsak.årsak.toString(),
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
     )
@@ -217,6 +231,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
             revurdert = beregning.toJson(),
         ),
         saksbehandler = saksbehandler.toString(),
+        fritekstTilBrev = fritekstTilBrev,
         årsak = revurderingsårsak.årsak.toString(),
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
     )
@@ -243,6 +258,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
                 ),
             )
         },
+        fritekstTilBrev = fritekstTilBrev,
         årsak = revurderingsårsak.årsak.toString(),
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
     )
