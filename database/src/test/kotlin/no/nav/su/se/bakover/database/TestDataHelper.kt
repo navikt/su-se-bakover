@@ -251,7 +251,7 @@ internal class TestDataHelper(
             vedtakRepo.lagre(it)
         }
 
-    fun vedtakMedSøknadsbehandling(): Pair<Vedtak.InnvilgetStønad, Utbetaling> {
+    fun vedtakMedInnvilgetSøknadsbehandling(): Pair<Vedtak.InnvilgetStønad, Utbetaling> {
         val (søknadsbehandling, utbetaling) = nyOversendtUtbetalingMedKvittering()
         return Pair(
             Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling, utbetaling.id).also {

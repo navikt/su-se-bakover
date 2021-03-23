@@ -27,10 +27,7 @@ internal class VedtakPosgresRepoTest {
     @Test
     fun `setter inn og henter vedtak for innvilget stønad`() {
         withMigratedDb {
-            val (søknadsbehandling, utbetaling) = testDataHelper.nyIverksattInnvilget()
-            val vedtak = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling, utbetaling.id)
-
-            vedtakRepo.lagre(vedtak)
+            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
 
             vedtakRepo.hent(vedtak.id) shouldBe vedtak
         }
@@ -51,17 +48,14 @@ internal class VedtakPosgresRepoTest {
     @Test
     fun `oppdaterer koblingstabell mellom søknadsbehandling og vedtak ved lagring av vedtak for søknadsbehandling`() {
         withMigratedDb {
-            val (søknadsbehandling, utbetaling) = testDataHelper.nyIverksattInnvilget()
-            val vedtak = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling, utbetaling.id)
-
-            vedtakRepo.lagre(vedtak)
+            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
 
             datasource.withSession { session ->
                 """
                     SELECT søknadsbehandlingId, revurderingId from behandling_vedtak where vedtakId = :vedtakId
                 """.trimIndent()
                     .hent(mapOf("vedtakId" to vedtak.id), session) {
-                        it.stringOrNull("søknadsbehandlingId") shouldBe søknadsbehandling.id.toString()
+                        it.stringOrNull("søknadsbehandlingId") shouldBe vedtak.behandling.id.toString()
                         it.stringOrNull("revurderingId") shouldBe null
                     }
             }
@@ -71,10 +65,7 @@ internal class VedtakPosgresRepoTest {
     @Test
     fun `oppdaterer koblingstabell mellom revurdering og vedtak ved lagring av vedtak for revurdering`() {
         withMigratedDb {
-            val (søknadsbehandling, utbetaling) = testDataHelper.nyIverksattInnvilget()
-            val søknadsbehandlingVedtak = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling, utbetaling.id)
-
-            vedtakRepo.lagre(søknadsbehandlingVedtak)
+            val søknadsbehandlingVedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
 
             val nyRevurdering = testDataHelper.nyRevurdering(søknadsbehandlingVedtak)
             val iverksattRevurdering = IverksattRevurdering(
@@ -166,10 +157,8 @@ internal class VedtakPosgresRepoTest {
         }
 
         withMigratedDb {
-            val (søknadsbehandling, utbetaling) = testDataHelper.nyIverksattInnvilget()
-            val vedtak = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling, utbetaling.id)
+            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
 
-            vedtakRepo.lagre(vedtak)
             vedtakRepo.lagre(
                 vedtak.copy(
                     journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
@@ -190,10 +179,8 @@ internal class VedtakPosgresRepoTest {
     @Test
     fun `kobler ikke den samme behandlingen og vedtaket flere ganger ved oppdatering av vedtak`() {
         withMigratedDb {
-            val (søknadsbehandling, utbetaling) = testDataHelper.nyIverksattInnvilget()
-            val vedtak = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling, utbetaling.id)
+            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
 
-            vedtakRepo.lagre(vedtak)
             vedtakRepo.lagre(
                 vedtak.copy(
                     journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(

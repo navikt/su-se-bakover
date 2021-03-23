@@ -42,7 +42,7 @@ internal class RevurderingPostgresRepoTest {
     @Test
     fun `kan lagre og hente en revurdering`() {
         withMigratedDb {
-            val vedtak = testDataHelper.vedtakMedSøknadsbehandling().first
+            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
 
             val opprettet = OpprettetRevurdering(
                 id = UUID.randomUUID(),
@@ -61,7 +61,7 @@ internal class RevurderingPostgresRepoTest {
     @Test
     fun `kan oppdatere revurderingsperiode`() {
         withMigratedDb {
-            val vedtak = testDataHelper.vedtakMedSøknadsbehandling().first
+            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
 
             val opprettetRevurdering = OpprettetRevurdering(
                 id = UUID.randomUUID(),
@@ -107,7 +107,7 @@ internal class RevurderingPostgresRepoTest {
     @Test
     fun `kan kan overskrive en opprettet med beregnet`() {
         withMigratedDb {
-            val vedtak = testDataHelper.vedtakMedSøknadsbehandling().first
+            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
 
             val opprettet = OpprettetRevurdering(
                 id = UUID.randomUUID(),
@@ -140,7 +140,7 @@ internal class RevurderingPostgresRepoTest {
     @Test
     fun `beregnet kan overskrives med ny beregnet`() {
         withMigratedDb {
-            val vedtak = testDataHelper.vedtakMedSøknadsbehandling().first
+            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
             val opprettet = OpprettetRevurdering(
                 id = UUID.randomUUID(),
                 periode = periode,
@@ -190,7 +190,7 @@ internal class RevurderingPostgresRepoTest {
     @Test
     fun `kan overskrive en beregnet med simulert`() {
         withMigratedDb {
-            val vedtak = testDataHelper.vedtakMedSøknadsbehandling().first
+            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
             val opprettet = OpprettetRevurdering(
                 id = UUID.randomUUID(),
                 periode = periode,
@@ -245,7 +245,7 @@ internal class RevurderingPostgresRepoTest {
     @Test
     fun `kan overskrive en simulert med en beregnet`() {
         withMigratedDb {
-            val vedtak = testDataHelper.vedtakMedSøknadsbehandling().first
+            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
             val opprettet = OpprettetRevurdering(
                 id = UUID.randomUUID(),
                 periode = periode,
@@ -300,7 +300,7 @@ internal class RevurderingPostgresRepoTest {
     @Test
     fun `kan overskrive en simulert med en til attestering`() {
         withMigratedDb {
-            val vedtak = testDataHelper.vedtakMedSøknadsbehandling().first
+            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
             val opprettet = OpprettetRevurdering(
                 id = UUID.randomUUID(),
                 periode = periode,
@@ -360,7 +360,7 @@ internal class RevurderingPostgresRepoTest {
     @Test
     fun `saksbehandler som sender til attestering overskriver saksbehandlere som var før`() {
         withMigratedDb {
-            val vedtak = testDataHelper.vedtakMedSøknadsbehandling().first
+            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
             val opprettet = OpprettetRevurdering(
                 id = UUID.randomUUID(),
                 periode = periode,
@@ -424,7 +424,7 @@ internal class RevurderingPostgresRepoTest {
     @Test
     fun `kan lagre og hente en iverksatt revurdering`() {
         withMigratedDb {
-            val vedtak = testDataHelper.vedtakMedSøknadsbehandling().first
+            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
             val attestant = NavIdentBruker.Attestant("Attestansson")
 
             val opprettet = OpprettetRevurdering(
@@ -475,7 +475,7 @@ internal class RevurderingPostgresRepoTest {
     @Test
     fun `kan lagre og hente en underkjent revurdering`() {
         withMigratedDb {
-            val vedtak = testDataHelper.vedtakMedSøknadsbehandling().first
+            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
             val opprettet = OpprettetRevurdering(
                 id = UUID.randomUUID(),
                 periode = periode,
