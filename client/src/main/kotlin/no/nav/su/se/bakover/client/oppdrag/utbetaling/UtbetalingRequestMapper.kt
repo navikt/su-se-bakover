@@ -4,6 +4,7 @@ import no.nav.su.se.bakover.client.oppdrag.OppdragDefaults
 import no.nav.su.se.bakover.client.oppdrag.OppdragslinjeDefaults
 import no.nav.su.se.bakover.client.oppdrag.toOppdragDate
 import no.nav.su.se.bakover.client.oppdrag.toOppdragTimestamp
+import no.nav.su.se.bakover.domain.oppdrag.Opphør
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 
 internal fun toUtbetalingRequest(
@@ -42,7 +43,33 @@ internal fun toUtbetalingRequest(
                     refFagsystemId = it.forrigeUtbetalingslinjeId?.let { utbetaling.saksnummer.toString() },
                     attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant(utbetaling.behandler.navIdent))
                 )
-            }
+            },
+        )
+    )
+}
+
+internal fun opphørsRequest(
+    opphør: Opphør
+): UtbetalingRequest {
+    return UtbetalingRequest(
+        oppdragRequest = UtbetalingRequest.OppdragRequest(
+            kodeStatus = UtbetalingRequest.KodeStatus.OPPHØR,
+            datoStatusFom = opphør.fraOgMed.toOppdragDate(),
+            kodeAksjon = UtbetalingRequest.KodeAksjon.UTBETALING, // Kodeaksjon brukes ikke av simulering
+            kodeEndring = UtbetalingRequest.KodeEndring.ENDRING,
+            kodeFagomraade = OppdragDefaults.KODE_FAGOMRÅDE,
+            fagsystemId = opphør.saksnummer.toString(),
+            utbetFrekvens = OppdragDefaults.utbetalingsfrekvens,
+            oppdragGjelderId = opphør.fnr.toString(),
+            saksbehId = OppdragDefaults.SAKSBEHANDLER_ID,
+            datoOppdragGjelderFom = OppdragDefaults.datoOppdragGjelderFom,
+            oppdragsEnheter = OppdragDefaults.oppdragsenheter,
+            avstemming = UtbetalingRequest.Avstemming( // Avstemming brukes ikke av simulering
+                nokkelAvstemming = opphør.avstemmingsnøkkel.toString(),
+                tidspktMelding = opphør.avstemmingsnøkkel.opprettet.toOppdragTimestamp(),
+                kodeKomponent = OppdragDefaults.KODE_KOMPONENT
+            ),
+            oppdragslinjer = emptyList(),
         )
     )
 }

@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.oppdrag.OppdragMetadata
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -33,8 +34,14 @@ internal class SimuleringRequestBuilderValidationTest {
         val eksisterendeOppdragslinjeid = UUID30.randomUUID()
         val simuleringRequest = SimuleringRequestBuilder(
             utbetaling = Utbetaling.UtbetalingForSimulering(
-                saksnummer = saksnummer,
-                sakId = sakId,
+                metadata = OppdragMetadata(
+                    saksnummer = saksnummer,
+                    sakId = sakId,
+                    fnr = Fnr("12345678910"),
+                    type = Utbetaling.UtbetalingsType.NY,
+                    behandler = NavIdentBruker.Saksbehandler("Z123"),
+                    avstemmingsnøkkel = Avstemmingsnøkkel()
+                ),
                 utbetalingslinjer = listOf(
                     Utbetalingslinje(
                         fraOgMed = 1.januar(2020),
@@ -43,11 +50,6 @@ internal class SimuleringRequestBuilderValidationTest {
                         forrigeUtbetalingslinjeId = eksisterendeOppdragslinjeid
                     )
                 ),
-                fnr = Fnr("12345678910"),
-                type = Utbetaling.UtbetalingsType.NY,
-
-                behandler = NavIdentBruker.Saksbehandler("Z123"),
-                avstemmingsnøkkel = Avstemmingsnøkkel()
             )
         ).build().request
 

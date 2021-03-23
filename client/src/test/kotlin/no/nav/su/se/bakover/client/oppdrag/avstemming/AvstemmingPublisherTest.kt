@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
+import no.nav.su.se.bakover.domain.oppdrag.OppdragMetadata
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
@@ -46,10 +47,14 @@ class AvstemmingPublisherTest {
         tilOgMed = 2.januar(2020).startOfDay(),
         utbetalinger = listOf(
             Utbetaling.OversendtUtbetaling.MedKvittering(
-                saksnummer = saksnummer,
-                sakId = sakId,
+                metadata = OppdragMetadata(
+                    saksnummer = saksnummer,
+                    sakId = sakId,
+                    fnr = Fnr("12345678910"),
+                    type = Utbetaling.UtbetalingsType.NY,
+                    behandler = NavIdentBruker.Saksbehandler("Z123")
+                ),
                 utbetalingslinjer = listOf(),
-                fnr = Fnr("12345678910"),
                 simulering = Simulering(
                     gjelderId = Fnr("12345678910"),
                     gjelderNavn = "",
@@ -65,8 +70,6 @@ class AvstemmingPublisherTest {
                     originalKvittering = "hallo",
                     mottattTidspunkt = Tidspunkt.now()
                 ),
-                type = Utbetaling.UtbetalingsType.NY,
-                behandler = NavIdentBruker.Saksbehandler("Z123")
             )
         )
     )

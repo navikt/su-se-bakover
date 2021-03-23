@@ -2,9 +2,12 @@ package no.nav.su.se.bakover.client.stubs.oppdrag
 
 import arrow.core.Either
 import arrow.core.right
+import no.nav.su.se.bakover.client.oppdrag.simulering.SimuleringsPeriode
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.oppdrag.Opphør
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -20,9 +23,13 @@ object SimuleringStub : SimuleringClient {
     override fun simulerUtbetaling(utbetaling: Utbetaling): Either<SimuleringFeilet, Simulering> =
         when (utbetaling.type) {
             Utbetaling.UtbetalingsType.NY -> simulerNyUtbetaling(utbetaling, utbetaling.saksnummer).right()
-            Utbetaling.UtbetalingsType.STANS -> simulerStans(utbetaling).right()
+            Utbetaling.UtbetalingsType.STANS -> simulerIngenUtbetalinger(utbetaling.fnr, utbetaling.tidligsteDato(), utbetaling.senesteDato()).right()
             Utbetaling.UtbetalingsType.GJENOPPTA -> simulerNyUtbetaling(utbetaling, utbetaling.saksnummer).right()
+            Utbetaling.UtbetalingsType.OPPHØR -> throw IllegalStateException("${utbetaling.type} skal kun brukes sammen med instanser av ${Opphør::class}")
         }
+
+    override fun simulerOpphør(opphør: Opphør): Either<SimuleringFeilet, Simulering> =
+        simulerIngenUtbetalinger(opphør.fnr, opphør.fraOgMed, SimuleringsPeriode.farInTheFuture).right()
 
     private fun simulerNyUtbetaling(utbetaling: Utbetaling, saksnummer: Saksnummer): Simulering {
         val perioder = utbetaling.utbetalingslinjer.flatMap { utbetalingslinje ->
@@ -68,16 +75,16 @@ object SimuleringStub : SimuleringClient {
                 .sumBy { it.belop }
         }
 
-    private fun simulerStans(utbetaling: Utbetaling): Simulering {
+    private fun simulerIngenUtbetalinger(fnr: Fnr, fraOgMed: LocalDate, tilOgMed: LocalDate): Simulering {
         return Simulering(
-            gjelderId = utbetaling.fnr,
+            gjelderId = fnr,
             gjelderNavn = "MYGG LUR",
             datoBeregnet = idag(),
             nettoBeløp = 0,
             periodeList = listOf(
                 SimulertPeriode(
-                    fraOgMed = utbetaling.tidligsteDato(),
-                    tilOgMed = utbetaling.senesteDato(),
+                    fraOgMed = fraOgMed,
+                    tilOgMed = tilOgMed,
                     utbetaling = emptyList()
                 )
             )

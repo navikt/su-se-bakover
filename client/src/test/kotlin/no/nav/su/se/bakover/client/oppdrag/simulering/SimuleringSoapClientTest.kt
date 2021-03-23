@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.oppdrag.OppdragMetadata
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -176,9 +177,14 @@ internal class SimuleringSoapClientTest {
         )
 
         val utenBeløp = Utbetaling.UtbetalingForSimulering(
-            saksnummer = saksnummer,
-            sakId = sakId,
-            fnr = FNR,
+            metadata = OppdragMetadata(
+                saksnummer = saksnummer,
+                sakId = sakId,
+                fnr = FNR,
+                type = Utbetaling.UtbetalingsType.NY,
+                behandler = NavIdentBruker.Saksbehandler("Z123"),
+                avstemmingsnøkkel = Avstemmingsnøkkel()
+            ),
             utbetalingslinjer = listOf(
                 Utbetalingslinje(
                     fraOgMed = 1.oktober(2020),
@@ -187,9 +193,6 @@ internal class SimuleringSoapClientTest {
                     beløp = 0
                 )
             ),
-            type = Utbetaling.UtbetalingsType.NY,
-            behandler = NavIdentBruker.Saksbehandler("Z123"),
-            avstemmingsnøkkel = Avstemmingsnøkkel()
         )
 
         simuleringService.simulerUtbetaling(utenBeløp) shouldBe Simulering(
@@ -226,8 +229,14 @@ internal class SimuleringSoapClientTest {
     }
 
     private fun createUtbetaling() = Utbetaling.UtbetalingForSimulering(
-        sakId = sakId,
-        saksnummer = saksnummer,
+        metadata = OppdragMetadata(
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = Fnr("12345678910"),
+            type = Utbetaling.UtbetalingsType.NY,
+            behandler = NavIdentBruker.Saksbehandler("Z123"),
+            avstemmingsnøkkel = Avstemmingsnøkkel()
+        ),
         utbetalingslinjer = listOf(
             Utbetalingslinje(
                 id = UUID30.randomUUID(),
@@ -237,10 +246,6 @@ internal class SimuleringSoapClientTest {
                 forrigeUtbetalingslinjeId = null
             )
         ),
-        fnr = Fnr("12345678910"),
-        type = Utbetaling.UtbetalingsType.NY,
-        behandler = NavIdentBruker.Saksbehandler("Z123"),
-        avstemmingsnøkkel = Avstemmingsnøkkel()
     )
 
     private fun okSimuleringResponse() = SimulerBeregningResponse().apply {

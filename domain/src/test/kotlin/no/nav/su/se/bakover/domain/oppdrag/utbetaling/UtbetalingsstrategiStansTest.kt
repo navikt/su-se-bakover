@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
+import no.nav.su.se.bakover.domain.oppdrag.OppdragMetadata
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
@@ -121,8 +122,13 @@ internal class OppdragStansTest {
 
     private fun createUtbetaling(utbetalingslinjer: List<Utbetalingslinje>, type: Utbetaling.UtbetalingsType) =
         Utbetaling.OversendtUtbetaling.MedKvittering(
-            sakId = sakId,
-            saksnummer = saksnummer,
+            metadata = OppdragMetadata(
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                type = type,
+                behandler = NavIdentBruker.Saksbehandler("Z123")
+            ),
             simulering = Simulering(
                 gjelderId = fnr,
                 gjelderNavn = "navn",
@@ -135,9 +141,6 @@ internal class OppdragStansTest {
             ),
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK_MED_VARSEL, ""),
             utbetalingslinjer = utbetalingslinjer,
-            fnr = fnr,
-            type = type,
-            behandler = NavIdentBruker.Saksbehandler("Z123")
         )
 }
 

@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
+import no.nav.su.se.bakover.domain.oppdrag.OppdragMetadata
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -38,15 +39,17 @@ internal class LokalKvitteringJobTest {
     val fnr = FnrGenerator.random()
 
     private val utbetaling = Utbetaling.OversendtUtbetaling.UtenKvittering(
-        id = UUID30.randomUUID(),
-        opprettet = tidspunkt,
-        sakId = UUID.randomUUID(),
-        saksnummer = Saksnummer(1234),
-        fnr = fnr,
+        metadata = OppdragMetadata(
+            id = UUID30.randomUUID(),
+            opprettet = tidspunkt,
+            sakId = UUID.randomUUID(),
+            saksnummer = Saksnummer(1234),
+            fnr = fnr,
+            type = Utbetaling.UtbetalingsType.NY,
+            behandler = NavIdentBruker.Attestant("attestant"),
+            avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.EPOCH),
+        ),
         utbetalingslinjer = listOf(),
-        type = Utbetaling.UtbetalingsType.NY,
-        behandler = NavIdentBruker.Attestant("attestant"),
-        avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.EPOCH),
         simulering = Simulering(
             gjelderId = fnr,
             gjelderNavn = "ubrukt",

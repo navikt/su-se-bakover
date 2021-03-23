@@ -19,7 +19,7 @@ sealed class Utbetalingsstrategi {
     abstract val sakId: UUID
     abstract val saksnummer: Saksnummer
     abstract val fnr: Fnr
-    abstract val utbetalinger: List<Utbetaling>
+    abstract val utbetalinger: List<Melding>
     abstract val behandler: NavIdentBruker
     abstract fun generate(): Utbetaling.UtbetalingForSimulering
 
@@ -27,7 +27,7 @@ sealed class Utbetalingsstrategi {
         override val sakId: UUID,
         override val saksnummer: Saksnummer,
         override val fnr: Fnr,
-        override val utbetalinger: List<Utbetaling>,
+        override val utbetalinger: List<Melding>,
         override val behandler: NavIdentBruker,
         val clock: Clock,
     ) : Utbetalingsstrategi() {
@@ -43,9 +43,14 @@ sealed class Utbetalingsstrategi {
             val stansesTilOgMed = sisteOversendteUtbetalingslinje.tilOgMed
 
             return Utbetaling.UtbetalingForSimulering(
-                sakId = sakId,
-                saksnummer = saksnummer,
-                fnr = fnr,
+                metadata = OppdragMetadata(
+                    sakId = sakId,
+                    saksnummer = saksnummer,
+                    fnr = fnr,
+                    type = Utbetaling.UtbetalingsType.STANS,
+                    behandler = behandler,
+                    avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(clock))
+                ),
                 utbetalingslinjer = listOf(
                     Utbetalingslinje(
                         fraOgMed = stansesFraOgMed,
@@ -54,9 +59,6 @@ sealed class Utbetalingsstrategi {
                         beløp = 0
                     )
                 ),
-                type = Utbetaling.UtbetalingsType.STANS,
-                behandler = behandler,
-                avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(clock))
             )
         }
     }
@@ -65,15 +67,21 @@ sealed class Utbetalingsstrategi {
         override val sakId: UUID,
         override val saksnummer: Saksnummer,
         override val fnr: Fnr,
-        override val utbetalinger: List<Utbetaling>,
+        override val utbetalinger: List<Melding>,
         override val behandler: NavIdentBruker,
         val beregning: Beregning,
         val clock: Clock,
     ) : Utbetalingsstrategi() {
         override fun generate(): Utbetaling.UtbetalingForSimulering {
             return Utbetaling.UtbetalingForSimulering(
-                sakId = sakId,
-                saksnummer = saksnummer,
+                metadata = OppdragMetadata(
+                    sakId = sakId,
+                    saksnummer = saksnummer,
+                    fnr = fnr,
+                    type = Utbetaling.UtbetalingsType.NY,
+                    behandler = behandler,
+                    avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(clock))
+                ),
                 utbetalingslinjer = createUtbetalingsperioder(beregning).map {
                     Utbetalingslinje(
                         fraOgMed = it.fraOgMed,
@@ -84,10 +92,6 @@ sealed class Utbetalingsstrategi {
                 }.also {
                     it.zipWithNext { a, b -> b.link(a) }
                 },
-                fnr = fnr,
-                type = Utbetaling.UtbetalingsType.NY,
-                behandler = behandler,
-                avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(clock))
             )
         }
 
@@ -106,7 +110,7 @@ sealed class Utbetalingsstrategi {
         override val sakId: UUID,
         override val saksnummer: Saksnummer,
         override val fnr: Fnr,
-        override val utbetalinger: List<Utbetaling>,
+        override val utbetalinger: List<Melding>,
         override val behandler: NavIdentBruker,
         val clock: Clock,
     ) : Utbetalingsstrategi() {
@@ -123,6 +127,7 @@ sealed class Utbetalingsstrategi {
             }.let { if (it < 0) 0 else it + 1 } // Ekskluderer den eventuelle stopp-utbetalingen
 
             val stansetEllerDelvisStansetUtbetalingslinjer = utbetalinger.hentOversendteUtbetalingerUtenFeil()
+                .filterIsInstance<Utbetaling>()
                 .subList(
                     startIndeks,
                     utbetalinger.hentOversendteUtbetalingerUtenFeil().size - 1
@@ -146,8 +151,14 @@ sealed class Utbetalingsstrategi {
             }
 
             return Utbetaling.UtbetalingForSimulering(
-                sakId = sakId,
-                saksnummer = saksnummer,
+                metadata = OppdragMetadata(
+                    sakId = sakId,
+                    saksnummer = saksnummer,
+                    fnr = fnr,
+                    type = Utbetaling.UtbetalingsType.GJENOPPTA,
+                    behandler = behandler,
+                    avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(clock))
+                ),
                 utbetalingslinjer = stansetEllerDelvisStansetUtbetalingslinjer.fold(listOf()) { acc, utbetalingslinje ->
                     (
                         acc + Utbetalingslinje(
@@ -158,10 +169,6 @@ sealed class Utbetalingsstrategi {
                         )
                         )
                 },
-                fnr = fnr,
-                type = Utbetaling.UtbetalingsType.GJENOPPTA,
-                behandler = behandler,
-                avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(clock))
             )
         }
     }
@@ -173,14 +180,21 @@ sealed class Utbetalingsstrategi {
         }
     }
 
-    protected fun sisteOversendteUtbetaling(): Utbetaling? =
-        utbetalinger.hentOversendteUtbetalingerUtenFeil().lastOrNull()
+    protected fun sisteOversendteUtbetaling(): Utbetaling? = utbetalinger.hentOversendteUtbetalingerUtenFeil()
+        .filterIsInstance<Utbetaling>()
+        .lastOrNull()
 
-    protected fun harOversendteUtbetalingerEtter(value: LocalDate) = utbetalinger.hentOversendteUtbetalingerUtenFeil()
-        .flatMap { it.utbetalingslinjer }
-        .any {
-            it.tilOgMed.isEqual(value) || it.tilOgMed.isAfter(value)
-        }
+    protected fun harOversendteUtbetalingerEtter(value: LocalDate): Boolean {
+        val oversendtUtenFeil = utbetalinger.hentOversendteUtbetalingerUtenFeil()
+        val utbetalinger = oversendtUtenFeil
+            .filterIsInstance<Utbetaling>()
+            .flatMap { it.utbetalingslinjer }
+            .any { it.tilOgMed.isEqual(value) || it.tilOgMed.isAfter(value) }
+        val opphør = this.utbetalinger.hentOversendteUtbetalingerUtenFeil()
+            .filterIsInstance<Opphør>()
+            .any { it.fraOgMed.isEqual(value) || it.fraOgMed.isAfter(value) }
+        return utbetalinger || opphør
+    }
 
     class UtbetalingStrategyException(msg: String) : RuntimeException(msg)
 }

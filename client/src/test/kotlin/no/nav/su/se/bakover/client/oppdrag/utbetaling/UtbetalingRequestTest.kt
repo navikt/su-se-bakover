@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.oppdrag.OppdragMetadata
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -29,8 +30,14 @@ internal class UtbetalingRequestTest {
         private val nyOppdragslinjeId1 = UUID30.randomUUID()
         private val nyOppdragslinjeId2 = UUID30.randomUUID()
         val nyUtbetaling = Utbetaling.UtbetalingForSimulering(
-            sakId = sakId,
-            saksnummer = saksnummer,
+            metadata = OppdragMetadata(
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = FNR,
+                type = Utbetaling.UtbetalingsType.NY,
+                behandler = NavIdentBruker.Attestant("A123456"),
+                avstemmingsnøkkel = Avstemmingsnøkkel()
+            ),
             utbetalingslinjer = listOf(
                 Utbetalingslinje(
                     id = nyOppdragslinjeId1,
@@ -46,11 +53,7 @@ internal class UtbetalingRequestTest {
                     beløp = BELØP,
                     forrigeUtbetalingslinjeId = nyOppdragslinjeId1,
                 )
-            ),
-            fnr = FNR,
-            type = Utbetaling.UtbetalingsType.NY,
-            behandler = NavIdentBruker.Attestant("A123456"),
-            avstemmingsnøkkel = Avstemmingsnøkkel()
+            )
         )
 
         val utbetalingRequestFørstegangsbehandling = UtbetalingRequest(
@@ -116,7 +119,9 @@ internal class UtbetalingRequestTest {
     @Test
     fun `bygger utbetaling request til bruker uten eksisterende oppdragslinjer`() {
         val utbetalingRequest = toUtbetalingRequest(
-            utbetaling = nyUtbetaling.copy(avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay()))
+            utbetaling = nyUtbetaling.let {
+                it.copy(metadata = it.metadata.copy(avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay())))
+            }
         )
         utbetalingRequest shouldBe utbetalingRequestFørstegangsbehandling
     }
@@ -128,8 +133,14 @@ internal class UtbetalingRequestTest {
         val nyOppdragslinjeid2 = UUID30.randomUUID()
 
         val nyUtbetaling = Utbetaling.UtbetalingForSimulering(
-            sakId = sakId,
-            saksnummer = saksnummer,
+            metadata = OppdragMetadata(
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = FNR,
+                type = Utbetaling.UtbetalingsType.NY,
+                behandler = NavIdentBruker.Attestant("A123456"),
+                avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay())
+            ),
             utbetalingslinjer = listOf(
                 Utbetalingslinje(
                     id = nyOppdragslinjeid1,
@@ -146,10 +157,6 @@ internal class UtbetalingRequestTest {
                     forrigeUtbetalingslinjeId = nyOppdragslinjeid1,
                 )
             ),
-            fnr = FNR,
-            type = Utbetaling.UtbetalingsType.NY,
-            behandler = NavIdentBruker.Attestant("A123456"),
-            avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay())
         )
         val utbetalingRequest = toUtbetalingRequest(utbetaling = nyUtbetaling)
 

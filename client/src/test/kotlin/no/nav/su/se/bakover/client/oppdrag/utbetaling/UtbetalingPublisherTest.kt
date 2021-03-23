@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.client.oppdrag.avstemming.saksnummer
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.oppdrag.OppdragMetadata
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import org.junit.jupiter.api.Test
@@ -53,17 +54,19 @@ internal class UtbetalingPublisherTest {
     }
 
     private val simulertUtbetaling = Utbetaling.SimulertUtbetaling(
-        sakId = sakId,
-        saksnummer = saksnummer,
-        fnr = Fnr("12345678910"),
+        metadata = OppdragMetadata(
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = Fnr("12345678910"),
+            type = Utbetaling.UtbetalingsType.NY,
+            behandler = NavIdentBruker.Saksbehandler("Z123")
+        ),
         utbetalingslinjer = listOf(),
-        type = Utbetaling.UtbetalingsType.NY,
         simulering = Simulering(
             gjelderId = Fnr(
                 fnr = "12345678910"
             ),
             gjelderNavn = "navn", datoBeregnet = idag(), nettoBeløp = 0, periodeList = listOf()
         ),
-        behandler = NavIdentBruker.Saksbehandler("Z123")
     )
 }

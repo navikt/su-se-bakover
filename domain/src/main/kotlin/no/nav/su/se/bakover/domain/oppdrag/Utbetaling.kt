@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.oppdrag
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.Fnr
@@ -7,18 +8,97 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import java.time.LocalDate
 import java.util.UUID
 
-sealed class Utbetaling {
-    abstract val id: UUID30
-    abstract val opprettet: Tidspunkt
-    abstract val sakId: UUID
-    abstract val saksnummer: Saksnummer
-    abstract val fnr: Fnr
+interface IOppdragMetadata {
+    val id: UUID30
+    val opprettet: Tidspunkt
+    val sakId: UUID
+    val saksnummer: Saksnummer
+    val fnr: Fnr
+    val type: Utbetaling.UtbetalingsType
+    val behandler: NavIdentBruker
+    val avstemmingsnøkkel: Avstemmingsnøkkel
+}
+
+data class OppdragMetadata(
+    override val id: UUID30 = UUID30.randomUUID(),
+    override val opprettet: Tidspunkt = Tidspunkt.now(),
+    override val sakId: UUID,
+    override val saksnummer: Saksnummer,
+    override val fnr: Fnr,
+    override val type: Utbetaling.UtbetalingsType,
+    override val behandler: NavIdentBruker,
+    override val avstemmingsnøkkel: Avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
+) : IOppdragMetadata
+
+@JsonIgnoreProperties("metadata")
+interface Oppdragsmelding {
+    val metadata: OppdragMetadata
+}
+
+@JsonIgnoreProperties("metadata")
+interface SimulertOppdragsmelding : Oppdragsmelding {
+    val simulering: Simulering
+}
+
+@JsonIgnoreProperties("metadata")
+interface OversendtOppdragsmelding : SimulertOppdragsmelding {
+    val utbetalingsrequest: Utbetalingsrequest
+}
+
+@JsonIgnoreProperties("metadata")
+interface KvittertOppdragsmelding : OversendtOppdragsmelding {
+    val kvittering: Kvittering
+}
+
+sealed class Melding(
+    override val metadata: OppdragMetadata
+) : Oppdragsmelding, IOppdragMetadata by metadata
+
+sealed class Opphør(
+    metadata: OppdragMetadata
+) : Melding(metadata) {
+    abstract val fraOgMed: LocalDate
+
+    data class ForSimulering(
+        override val metadata: OppdragMetadata,
+        override val fraOgMed: LocalDate,
+    ) : Opphør(metadata) {
+        fun toSimulertOpphør(simulering: Simulering) = Simulert(
+            metadata = metadata,
+            fraOgMed = fraOgMed,
+            simulering = simulering
+        )
+    }
+
+    data class Simulert(
+        override val metadata: OppdragMetadata,
+        override val fraOgMed: LocalDate,
+        override val simulering: Simulering,
+    ) : Opphør(metadata), SimulertOppdragsmelding
+
+    data class Oversendt(
+        override val metadata: OppdragMetadata,
+        override val fraOgMed: LocalDate,
+        override val simulering: Simulering,
+        override val utbetalingsrequest: Utbetalingsrequest,
+    ) : Opphør(metadata), OversendtOppdragsmelding
+
+    data class Kvittert(
+        override val metadata: OppdragMetadata,
+        override val fraOgMed: LocalDate,
+        override val simulering: Simulering,
+        override val utbetalingsrequest: Utbetalingsrequest,
+        override val kvittering: Kvittering,
+    ) : Opphør(metadata), KvittertOppdragsmelding
+}
+
+sealed class Utbetaling(
+    metadata: OppdragMetadata
+) : Melding(metadata) {
     abstract val utbetalingslinjer: List<Utbetalingslinje>
-    abstract val type: UtbetalingsType
-    abstract val behandler: NavIdentBruker
-    abstract val avstemmingsnøkkel: Avstemmingsnøkkel
 
     fun sisteUtbetalingslinje() = utbetalingslinjer.lastOrNull()
     fun erFørstegangsUtbetaling() = utbetalingslinjer.any { it.forrigeUtbetalingslinjeId == null }
@@ -28,87 +108,44 @@ sealed class Utbetaling {
     fun bruttoBeløp() = utbetalingslinjer.sumBy { it.beløp }
 
     data class UtbetalingForSimulering(
-        override val id: UUID30 = UUID30.randomUUID(),
-        override val opprettet: Tidspunkt = Tidspunkt.now(),
-        override val sakId: UUID,
-        override val saksnummer: Saksnummer,
-        override val fnr: Fnr,
+        override val metadata: OppdragMetadata,
         override val utbetalingslinjer: List<Utbetalingslinje>,
-        override val type: UtbetalingsType,
-        override val behandler: NavIdentBruker,
-        override val avstemmingsnøkkel: Avstemmingsnøkkel
-    ) : Utbetaling() {
+    ) : Utbetaling(metadata) {
         fun toSimulertUtbetaling(simulering: Simulering) =
             SimulertUtbetaling(
-                id = id,
-                opprettet = opprettet,
-                sakId = sakId,
-                saksnummer = saksnummer,
-                fnr = fnr,
+                metadata = metadata,
                 utbetalingslinjer = utbetalingslinjer,
-                type = type,
-                behandler = behandler,
-                avstemmingsnøkkel = avstemmingsnøkkel,
                 simulering = simulering
             )
     }
 
     data class SimulertUtbetaling(
-        override val id: UUID30 = UUID30.randomUUID(),
-        override val opprettet: Tidspunkt = Tidspunkt.now(),
-        override val sakId: UUID,
-        override val saksnummer: Saksnummer,
-        override val fnr: Fnr,
+        override val metadata: OppdragMetadata,
         override val utbetalingslinjer: List<Utbetalingslinje>,
-        override val type: UtbetalingsType,
-        override val behandler: NavIdentBruker,
-        override val avstemmingsnøkkel: Avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
-        val simulering: Simulering,
-    ) : Utbetaling() {
+        override val simulering: Simulering,
+    ) : Utbetaling(metadata), SimulertOppdragsmelding {
         fun toOversendtUtbetaling(oppdragsmelding: Utbetalingsrequest) =
             OversendtUtbetaling.UtenKvittering(
-                id = id,
-                opprettet = opprettet,
-                sakId = sakId,
-                saksnummer = saksnummer,
-                fnr = fnr,
+                metadata = metadata,
                 utbetalingslinjer = utbetalingslinjer,
-                type = type,
-                behandler = behandler,
-                avstemmingsnøkkel = avstemmingsnøkkel,
                 simulering = simulering,
                 utbetalingsrequest = oppdragsmelding
             )
     }
 
-    sealed class OversendtUtbetaling : Utbetaling() {
-        abstract val simulering: Simulering
-        abstract val utbetalingsrequest: Utbetalingsrequest
-
+    sealed class OversendtUtbetaling(
+        metadata: OppdragMetadata
+    ) : Utbetaling(metadata) {
         data class UtenKvittering(
-            override val id: UUID30 = UUID30.randomUUID(),
-            override val opprettet: Tidspunkt = Tidspunkt.now(),
-            override val sakId: UUID,
-            override val saksnummer: Saksnummer,
-            override val fnr: Fnr,
+            override val metadata: OppdragMetadata,
             override val utbetalingslinjer: List<Utbetalingslinje>,
-            override val type: UtbetalingsType,
-            override val behandler: NavIdentBruker,
-            override val avstemmingsnøkkel: Avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
             override val simulering: Simulering,
             override val utbetalingsrequest: Utbetalingsrequest
-        ) : OversendtUtbetaling() {
+        ) : OversendtUtbetaling(metadata), OversendtOppdragsmelding {
             fun toKvittertUtbetaling(kvittering: Kvittering) =
                 MedKvittering(
-                    id = id,
-                    opprettet = opprettet,
-                    sakId = sakId,
-                    saksnummer = saksnummer,
-                    fnr = fnr,
+                    metadata = metadata,
                     utbetalingslinjer = utbetalingslinjer,
-                    type = type,
-                    behandler = behandler,
-                    avstemmingsnøkkel = avstemmingsnøkkel,
                     simulering = simulering,
                     utbetalingsrequest = utbetalingsrequest,
                     kvittering = kvittering
@@ -116,19 +153,12 @@ sealed class Utbetaling {
         }
 
         data class MedKvittering(
-            override val id: UUID30 = UUID30.randomUUID(),
-            override val opprettet: Tidspunkt = Tidspunkt.now(),
-            override val sakId: UUID,
-            override val saksnummer: Saksnummer,
-            override val fnr: Fnr,
+            override val metadata: OppdragMetadata,
             override val utbetalingslinjer: List<Utbetalingslinje>,
-            override val type: UtbetalingsType,
-            override val behandler: NavIdentBruker,
-            override val avstemmingsnøkkel: Avstemmingsnøkkel = Avstemmingsnøkkel(opprettet),
             override val simulering: Simulering,
             override val utbetalingsrequest: Utbetalingsrequest,
-            val kvittering: Kvittering
-        ) : OversendtUtbetaling() {
+            override val kvittering: Kvittering
+        ) : OversendtUtbetaling(metadata), KvittertOppdragsmelding {
             fun kvittertMedFeilEllerVarsel() =
                 listOf(
                     Kvittering.Utbetalingsstatus.OK_MED_VARSEL,
@@ -140,7 +170,8 @@ sealed class Utbetaling {
     enum class UtbetalingsType {
         NY,
         STANS,
-        GJENOPPTA
+        GJENOPPTA,
+        OPPHØR
     }
 
     companion object {
@@ -148,8 +179,8 @@ sealed class Utbetaling {
          * Returnerer utbetalingene sortert økende etter tidspunktet de er sendt til oppdrag. Filtrer bort de som er kvittert feil.
          * TODO jah: Ved initialisering e.l. gjør en faktisk verifikasjon på at ref-verdier på utbetalingslinjene har riktig rekkefølge
          */
-        fun List<Utbetaling>.hentOversendteUtbetalingerUtenFeil(): List<Utbetaling> =
-            this.filter { it is Utbetaling.OversendtUtbetaling.UtenKvittering || it is OversendtUtbetaling.MedKvittering && it.kvittering.erKvittertOk() }
+        fun List<Melding>.hentOversendteUtbetalingerUtenFeil(): List<Melding> =
+            this.filter { it is OversendtOppdragsmelding || it is KvittertOppdragsmelding && it.kvittering.erKvittertOk() }
                 .sortedBy { it.opprettet.instant } // TODO potentially fix sorting
     }
 }

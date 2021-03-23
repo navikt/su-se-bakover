@@ -60,14 +60,16 @@ internal class UtbetalingTest {
         opprettet: Tidspunkt = Tidspunkt.now(),
         utbetalingsLinjer: List<Utbetalingslinje> = createUtbetalingslinjer()
     ) = Utbetaling.UtbetalingForSimulering(
-        sakId = UUID.randomUUID(),
-        saksnummer = Saksnummer(1234),
+        metadata = OppdragMetadata(
+            sakId = UUID.randomUUID(),
+            saksnummer = Saksnummer(1234),
+            fnr = fnr,
+            opprettet = opprettet,
+            type = Utbetaling.UtbetalingsType.NY,
+            behandler = NavIdentBruker.Saksbehandler("Z123"),
+            avstemmingsnøkkel = Avstemmingsnøkkel()
+        ),
         utbetalingslinjer = utbetalingsLinjer,
-        fnr = fnr,
-        opprettet = opprettet,
-        type = Utbetaling.UtbetalingsType.NY,
-        behandler = NavIdentBruker.Saksbehandler("Z123"),
-        avstemmingsnøkkel = Avstemmingsnøkkel()
     )
 
     private fun createUtbetalingslinje(

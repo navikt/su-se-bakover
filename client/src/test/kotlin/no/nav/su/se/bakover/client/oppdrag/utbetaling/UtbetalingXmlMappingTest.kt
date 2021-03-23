@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.oppdrag.OppdragMetadata
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -44,16 +45,18 @@ class UtbetalingXmlMappingTest {
 
     private val fnr = Fnr("12345678910")
     private val utbetaling = Utbetaling.UtbetalingForSimulering(
-        sakId = sakId,
-        saksnummer = saksnummer,
+        metadata = OppdragMetadata(
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            type = Utbetaling.UtbetalingsType.NY,
+            behandler = NavIdentBruker.Attestant("A123456"),
+            avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay())
+        ),
         utbetalingslinjer = listOf(
             førsteUtbetalingsLinje,
             andreUtbetalingslinje
         ),
-        fnr = fnr,
-        type = Utbetaling.UtbetalingsType.NY,
-        behandler = NavIdentBruker.Attestant("A123456"),
-        avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay())
     )
 
     //language=xml

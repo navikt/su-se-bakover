@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.oppdrag.OppdragMetadata
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -65,15 +66,17 @@ internal class SøknadsbehandlingServiceIverksettTest {
     private val utbetalingId = UUID30.randomUUID()
     val opprettet = Tidspunkt.now(fixedClock)
     private val utbetaling = Utbetaling.OversendtUtbetaling.UtenKvittering(
-        id = utbetalingId,
-        opprettet = opprettet,
-        sakId = sakId,
-        saksnummer = saksnummer,
-        fnr = fnr,
+        metadata = OppdragMetadata(
+            id = utbetalingId,
+            opprettet = opprettet,
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            type = Utbetaling.UtbetalingsType.NY,
+            behandler = attestant,
+            avstemmingsnøkkel = Avstemmingsnøkkel(),
+        ),
         utbetalingslinjer = emptyList(),
-        type = Utbetaling.UtbetalingsType.NY,
-        behandler = attestant,
-        avstemmingsnøkkel = Avstemmingsnøkkel(),
         simulering = Simulering(
             gjelderId = FnrGenerator.random(),
             gjelderNavn = "gjelderNavn",

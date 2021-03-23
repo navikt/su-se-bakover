@@ -30,8 +30,10 @@ object OppdragslinjeDefaults {
     val typeSats = UtbetalingRequest.Oppdragslinje.TypeSats.MND
 }
 
-fun LocalDate.toOppdragDate(): String = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-    .withZone(zoneIdOslo).format(this)
+val oppdragDatePattern = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+
+fun LocalDate.toOppdragDate(): String = oppdragDatePattern.withZone(zoneIdOslo).format(this)
+fun String.fromOppdragDate(): LocalDate = LocalDate.parse(this, oppdragDatePattern)
 
 fun Tidspunkt.toOppdragTimestamp(): String = DateTimeFormatter.ofPattern("yyyy-MM-dd-HH.mm.ss.SSSSSS")
     .withZone(zoneIdOslo).format(this)

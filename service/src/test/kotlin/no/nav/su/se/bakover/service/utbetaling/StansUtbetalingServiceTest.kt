@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.oppdrag.OppdragMetadata
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
@@ -46,15 +47,17 @@ internal class StansUtbetalingServiceTest {
     private val avstemmingsnøkkel = Avstemmingsnøkkel()
 
     private val utbetalingForSimulering = Utbetaling.UtbetalingForSimulering(
-        id = UUID30.randomUUID(),
-        opprettet = Tidspunkt.now(),
-        sakId = sakId,
-        saksnummer = saksnummer,
-        fnr = fnr,
+        metadata = OppdragMetadata(
+            id = UUID30.randomUUID(),
+            opprettet = Tidspunkt.now(),
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            type = Utbetaling.UtbetalingsType.STANS,
+            behandler = NavIdentBruker.Saksbehandler("Z123"),
+            avstemmingsnøkkel = avstemmingsnøkkel
+        ),
         utbetalingslinjer = emptyList(),
-        type = Utbetaling.UtbetalingsType.STANS,
-        behandler = NavIdentBruker.Saksbehandler("Z123"),
-        avstemmingsnøkkel = avstemmingsnøkkel
     )
 
     private val simulering = Simulering(
@@ -87,7 +90,9 @@ internal class StansUtbetalingServiceTest {
         fnr = fnr,
         utbetalinger = listOf(
             oversendtUtbetaling.copy(
-                type = Utbetaling.UtbetalingsType.NY,
+                metadata = oversendtUtbetaling.metadata.copy(
+                    type = Utbetaling.UtbetalingsType.NY,
+                ),
                 utbetalingslinjer = listOf(
                     førsteUtbetalingslinje
                 )
@@ -140,9 +145,11 @@ internal class StansUtbetalingServiceTest {
             verify(simuleringClientMock).simulerUtbetaling(
                 argThat {
                     it shouldBe utbetalingForSimulering.copy(
-                        id = it.id,
-                        opprettet = it.opprettet,
-                        avstemmingsnøkkel = it.avstemmingsnøkkel,
+                        metadata = utbetalingForSimulering.metadata.copy(
+                            id = it.id,
+                            opprettet = it.opprettet,
+                            avstemmingsnøkkel = it.avstemmingsnøkkel,
+                        ),
                         utbetalingslinjer = listOf(
                             Utbetalingslinje(
                                 id = it.utbetalingslinjer[0].id,
@@ -159,9 +166,11 @@ internal class StansUtbetalingServiceTest {
             verify(utbetalingPublisherMock).publish(
                 argThat {
                     it shouldBe utbetalingForSimulering.copy(
-                        id = it.id,
-                        opprettet = it.opprettet,
-                        avstemmingsnøkkel = it.avstemmingsnøkkel,
+                        metadata = utbetalingForSimulering.metadata.copy(
+                            id = it.id,
+                            opprettet = it.opprettet,
+                            avstemmingsnøkkel = it.avstemmingsnøkkel,
+                        ),
                         utbetalingslinjer = listOf(
                             Utbetalingslinje(
                                 id = it.utbetalingslinjer[0].id,
@@ -179,9 +188,11 @@ internal class StansUtbetalingServiceTest {
             verify(utbetalingRepoMock).opprettUtbetaling(
                 argThat {
                     it shouldBe utbetalingForSimulering.copy(
-                        id = it.id,
-                        opprettet = it.opprettet,
-                        avstemmingsnøkkel = it.avstemmingsnøkkel,
+                        metadata = utbetalingForSimulering.metadata.copy(
+                            id = it.id,
+                            opprettet = it.opprettet,
+                            avstemmingsnøkkel = it.avstemmingsnøkkel,
+                        ),
                         utbetalingslinjer = listOf(
                             Utbetalingslinje(
                                 id = it.utbetalingslinjer[0].id,
@@ -237,9 +248,11 @@ internal class StansUtbetalingServiceTest {
             verify(simuleringClientMock).simulerUtbetaling(
                 argThat {
                     it shouldBe utbetalingForSimulering.copy(
-                        id = it.id,
-                        opprettet = it.opprettet,
-                        avstemmingsnøkkel = it.avstemmingsnøkkel,
+                        metadata = utbetalingForSimulering.metadata.copy(
+                            id = it.id,
+                            opprettet = it.opprettet,
+                            avstemmingsnøkkel = it.avstemmingsnøkkel,
+                        ),
                         utbetalingslinjer = listOf(
                             Utbetalingslinje(
                                 id = it.utbetalingslinjer[0].id,
@@ -323,9 +336,11 @@ internal class StansUtbetalingServiceTest {
             verify(simuleringClientMock).simulerUtbetaling(
                 argThat {
                     it shouldBe utbetalingForSimulering.copy(
-                        id = it.id,
-                        opprettet = it.opprettet,
-                        avstemmingsnøkkel = it.avstemmingsnøkkel,
+                        metadata = utbetalingForSimulering.metadata.copy(
+                            id = it.id,
+                            opprettet = it.opprettet,
+                            avstemmingsnøkkel = it.avstemmingsnøkkel,
+                        ),
                         utbetalingslinjer = listOf(
                             Utbetalingslinje(
                                 id = it.utbetalingslinjer[0].id,
@@ -392,9 +407,11 @@ internal class StansUtbetalingServiceTest {
             verify(simuleringClientMock).simulerUtbetaling(
                 argThat {
                     it shouldBe utbetalingForSimulering.copy(
-                        id = it.id,
-                        opprettet = it.opprettet,
-                        avstemmingsnøkkel = it.avstemmingsnøkkel,
+                        metadata = utbetalingForSimulering.metadata.copy(
+                            id = it.id,
+                            opprettet = it.opprettet,
+                            avstemmingsnøkkel = it.avstemmingsnøkkel,
+                        ),
                         utbetalingslinjer = listOf(
                             Utbetalingslinje(
                                 id = it.utbetalingslinjer[0].id,
@@ -411,9 +428,11 @@ internal class StansUtbetalingServiceTest {
             verify(utbetalingPublisherMock).publish(
                 argThat {
                     it shouldBe utbetalingForSimulering.copy(
-                        id = it.id,
-                        opprettet = it.opprettet,
-                        avstemmingsnøkkel = it.avstemmingsnøkkel,
+                        metadata = utbetalingForSimulering.metadata.copy(
+                            id = it.id,
+                            opprettet = it.opprettet,
+                            avstemmingsnøkkel = it.avstemmingsnøkkel,
+                        ),
                         utbetalingslinjer = listOf(
                             Utbetalingslinje(
                                 id = it.utbetalingslinjer[0].id,

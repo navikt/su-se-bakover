@@ -1,11 +1,16 @@
 package no.nav.su.se.bakover.client.oppdrag.simulering
 
+import no.nav.su.se.bakover.client.oppdrag.toOppdragDate
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest
+import no.nav.su.se.bakover.client.oppdrag.utbetaling.opphørsRequest
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.toUtbetalingRequest
+import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.domain.oppdrag.Opphør
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.system.os.entiteter.oppdragskjema.Attestant
 import no.nav.system.os.entiteter.oppdragskjema.Enhet
 import no.nav.system.os.entiteter.typer.simpletypes.FradragTillegg
+import no.nav.system.os.entiteter.typer.simpletypes.KodeStatus
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.Oppdrag
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.Oppdragslinje
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.SimulerBeregningRequest
@@ -13,15 +18,32 @@ import java.time.LocalDate
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningRequest as SimulerBeregningGrensesnittRequest
 
 internal class SimuleringRequestBuilder(
-    private val mappedRequest: UtbetalingRequest.OppdragRequest
+    private val mappedRequest: UtbetalingRequest.OppdragRequest,
+    private val simuleringsPeriode: SimuleringsPeriode
 ) {
     constructor(
         utbetaling: Utbetaling
     ) : this(
-        toUtbetalingRequest(utbetaling).oppdragRequest
+        toUtbetalingRequest(utbetaling).oppdragRequest,
+        SimuleringsPeriode(
+            fraOgMed = utbetaling.tidligsteDato().toOppdragDate(),
+            tilOgMed = utbetaling.senesteDato().toOppdragDate()
+        )
+    )
+
+    constructor(
+        opphør: Opphør
+    ) : this(
+        opphørsRequest(opphør).oppdragRequest,
+        SimuleringsPeriode(
+            fraOgMed = opphør.fraOgMed.toOppdragDate(),
+            tilOgMed = SimuleringsPeriode.farInTheFuture.toOppdragDate()
+        )
     )
 
     private val oppdragRequest = Oppdrag().apply {
+        kodeStatus = mappedRequest.kodeStatus?.let { KodeStatus.fromValue(it.value) }
+        datoStatusFom = mappedRequest.datoStatusFom
         kodeFagomraade = mappedRequest.kodeFagomraade
         kodeEndring = mappedRequest.kodeEndring.value
         utbetFrekvens = mappedRequest.utbetFrekvens.value
@@ -46,12 +68,8 @@ internal class SimuleringRequestBuilder(
             request = SimulerBeregningRequest().apply {
                 oppdrag = this@SimuleringRequestBuilder.oppdragRequest
                 simuleringsPeriode = SimulerBeregningRequest.SimuleringsPeriode().apply {
-                    datoSimulerFom =
-                        mappedRequest.oppdragslinjer.map { LocalDate.parse(it.datoVedtakFom) }.minByOrNull { it }!!
-                            .toString()
-                    datoSimulerTom =
-                        mappedRequest.oppdragslinjer.map { LocalDate.parse(it.datoVedtakTom) }.maxByOrNull { it }!!
-                            .toString()
+                    datoSimulerFom = this@SimuleringRequestBuilder.simuleringsPeriode.fraOgMed
+                    datoSimulerTom = this@SimuleringRequestBuilder.simuleringsPeriode.tilOgMed
                 }
             }
         }
@@ -78,5 +96,17 @@ internal class SimuleringRequestBuilder(
                 attestantId = oppdragslinje.saksbehId
             }
         )
+    }
+}
+
+data class SimuleringsPeriode(
+    val fraOgMed: String,
+    val tilOgMed: String
+) {
+    companion object {
+        /**
+         * Used to include simulering for all probable future periods.
+         */
+        val farInTheFuture: LocalDate = 31.desember(2999)
     }
 }

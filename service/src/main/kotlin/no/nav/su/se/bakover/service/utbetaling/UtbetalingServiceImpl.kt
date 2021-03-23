@@ -13,6 +13,8 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
+import no.nav.su.se.bakover.domain.oppdrag.OppdragMetadata
+import no.nav.su.se.bakover.domain.oppdrag.Opphør
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsstrategi
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -23,6 +25,7 @@ import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.service.sak.SakService
 import org.slf4j.LoggerFactory
 import java.time.Clock
+import java.time.LocalDate
 import java.util.UUID
 
 internal class UtbetalingServiceImpl(
@@ -98,6 +101,26 @@ internal class UtbetalingServiceImpl(
         } else false
     }
 
+    fun simulerOpphør(
+        sakId: UUID,
+        fraOgMed: LocalDate,
+        behandler: NavIdentBruker
+    ): Either<SimuleringFeilet, Opphør.Simulert> {
+        val sak: Sak = sakService.hentSak(sakId).orNull()!!
+        return simulerOpphør(
+            Opphør.ForSimulering(
+                metadata = OppdragMetadata(
+                    sakId = sak.id,
+                    saksnummer = sak.saksnummer,
+                    fnr = sak.fnr,
+                    behandler = behandler,
+                    type = Utbetaling.UtbetalingsType.OPPHØR,
+                ),
+                fraOgMed = fraOgMed
+            )
+        )
+    }
+
     override fun simulerUtbetaling(
         sakId: UUID,
         saksbehandler: NavIdentBruker,
@@ -120,6 +143,11 @@ internal class UtbetalingServiceImpl(
     private fun simulerUtbetaling(utbetaling: Utbetaling.UtbetalingForSimulering): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
         return simuleringClient.simulerUtbetaling(utbetaling = utbetaling)
             .map { utbetaling.toSimulertUtbetaling(it) }
+    }
+
+    private fun simulerOpphør(utbetaling: Opphør.ForSimulering): Either<SimuleringFeilet, Opphør.Simulert> {
+        return simuleringClient.simulerOpphør(opphør = utbetaling)
+            .map { utbetaling.toSimulertOpphør(it) }
     }
 
     private fun utbetal(utbetaling: Utbetaling.SimulertUtbetaling): Either<KunneIkkeUtbetale.Protokollfeil, Utbetaling.OversendtUtbetaling.UtenKvittering> {

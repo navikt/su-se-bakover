@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.oppdrag.OppdragMetadata
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -156,13 +157,15 @@ internal class SøknadsbehandlingServiceSimuleringTest {
     )
 
     private val utbetalingForSimulering = Utbetaling.UtbetalingForSimulering(
-        sakId = sakId,
-        saksnummer = saksnummer,
+        metadata = OppdragMetadata(
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            type = Utbetaling.UtbetalingsType.NY,
+            behandler = Attestant("SU"),
+            avstemmingsnøkkel = Avstemmingsnøkkel()
+        ),
         utbetalingslinjer = listOf(),
-        fnr = fnr,
-        type = Utbetaling.UtbetalingsType.NY,
-        behandler = Attestant("SU"),
-        avstemmingsnøkkel = Avstemmingsnøkkel()
     )
 
     private val simulertUtbetaling = utbetalingForSimulering.toSimulertUtbetaling(simulering)

@@ -11,7 +11,15 @@ internal class SimuleringRequestBuilderTest {
     @Test
     fun `bygger simulering request til bruker uten eksisterende oppdragslinjer`() {
         val utbetalingsRequest = UtbetalingRequestTest.utbetalingRequestFørstegangsbehandling.oppdragRequest
-        SimuleringRequestBuilder(utbetalingsRequest).build().request.oppdrag.also {
+        SimuleringRequestBuilder(
+            utbetalingsRequest,
+            SimuleringsPeriode(
+                fraOgMed = "2020-01-01",
+                tilOgMed = "2020-12-31"
+            )
+        ).build().request.oppdrag.also {
+            it.kodeStatus shouldBe null
+            it.datoStatusFom shouldBe null
             it.oppdragGjelderId shouldBe utbetalingsRequest.oppdragGjelderId
             it.saksbehId shouldBe utbetalingsRequest.saksbehId
             it.fagsystemId shouldBe utbetalingsRequest.fagsystemId

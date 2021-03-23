@@ -9,7 +9,6 @@ internal class UtbetalingKvitteringResponseTest {
 
     @Test
     fun `deserialiserer KvitteringRespons`() {
-
         kvitteringXml().toKvitteringResponse(UtbetalingKvitteringConsumer.xmlMapper) shouldBe UtbetalingKvitteringResponse(
             mmel = UtbetalingKvitteringResponse.Mmel(
                 systemId = "231-OPPD",

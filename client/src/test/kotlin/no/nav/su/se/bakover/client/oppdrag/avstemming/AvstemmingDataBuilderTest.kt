@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
+import no.nav.su.se.bakover.domain.oppdrag.OppdragMetadata
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
@@ -121,22 +122,29 @@ internal fun lagUtbetaling(
     )
 ): Utbetaling.OversendtUtbetaling = when (status) {
     null -> Utbetaling.OversendtUtbetaling.UtenKvittering(
-        id = id,
-        opprettet = opprettet.atStartOfDay(zoneIdOslo).toTidspunkt(),
-        sakId = sakId,
-        saksnummer = saksnummer,
+        metadata = OppdragMetadata(
+            id = id,
+            opprettet = opprettet.atStartOfDay(zoneIdOslo).toTidspunkt(),
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            type = Utbetaling.UtbetalingsType.NY,
+            behandler = NavIdentBruker.Saksbehandler("Z123")
+        ),
         simulering = simulering,
         utbetalingsrequest = oppdragsmelding,
         utbetalingslinjer = linjer,
-        fnr = fnr,
-        type = Utbetaling.UtbetalingsType.NY,
-        behandler = NavIdentBruker.Saksbehandler("Z123")
     )
     else -> Utbetaling.OversendtUtbetaling.MedKvittering(
-        id = id,
-        opprettet = opprettet.atStartOfDay(zoneIdOslo).toTidspunkt(),
-        saksnummer = saksnummer,
-        sakId = sakId,
+        metadata = OppdragMetadata(
+            id = id,
+            opprettet = opprettet.atStartOfDay(zoneIdOslo).toTidspunkt(),
+            saksnummer = saksnummer,
+            sakId = sakId,
+            fnr = fnr,
+            type = Utbetaling.UtbetalingsType.NY,
+            behandler = NavIdentBruker.Saksbehandler("Z123")
+        ),
         simulering = simulering,
         kvittering = Kvittering(
             utbetalingsstatus = status,
@@ -145,9 +153,6 @@ internal fun lagUtbetaling(
         ),
         utbetalingsrequest = oppdragsmelding,
         utbetalingslinjer = linjer,
-        fnr = fnr,
-        type = Utbetaling.UtbetalingsType.NY,
-        behandler = NavIdentBruker.Saksbehandler("Z123")
     )
 }
 

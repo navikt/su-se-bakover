@@ -770,7 +770,15 @@ internal class VedtakssnapshotJsonTest {
                "utbetaling": {
                       "id":"${utbetaling.id}",
                       "opprettet":"${utbetaling.opprettet}",
+                      "sakId": "$sakId",
+                      "saksnummer": $saksnummer,
                       "fnr":"12345678910",
+                      "type": "NY",
+                      "behandler": "${utbetaling.behandler}",
+                      "avstemmingsnøkkel": {
+                        "nøkkel": "${utbetaling.avstemmingsnøkkel}",
+                        "opprettet": "${utbetaling.avstemmingsnøkkel.opprettet}"
+                      },
                       "utbetalingslinjer":[
                          {
                             "id" : "${utbetaling.utbetalingslinjer[0].id}",
@@ -781,14 +789,6 @@ internal class VedtakssnapshotJsonTest {
                             "beløp" : 25000
                          }
                       ],
-                      "type":"NY",
-                      "sakId":"$sakId",
-                      "saksnummer":$saksnummer,
-                      "behandler":"attestant",
-                      "avstemmingsnøkkel":{
-                         "opprettet":"${utbetaling.avstemmingsnøkkel.opprettet}",
-                         "nøkkel":"${utbetaling.avstemmingsnøkkel}"
-                      },
                       "simulering":{
                          "gjelderId":"12345678910",
                          "gjelderNavn":"gjelderNavn",

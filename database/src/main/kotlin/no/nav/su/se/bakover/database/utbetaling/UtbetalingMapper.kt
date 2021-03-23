@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
+import no.nav.su.se.bakover.domain.oppdrag.OppdragMetadata
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
@@ -31,30 +32,34 @@ data class UtbetalingMapper(
     fun map(): Utbetaling.OversendtUtbetaling = when (kvittering) {
         null -> {
             Utbetaling.OversendtUtbetaling.UtenKvittering(
-                id = id,
-                opprettet = opprettet,
-                sakId = sakId,
-                saksnummer = saksnummer,
-                fnr = fnr,
+                metadata = OppdragMetadata(
+                    id = id,
+                    opprettet = opprettet,
+                    sakId = sakId,
+                    saksnummer = saksnummer,
+                    fnr = fnr,
+                    type = type,
+                    behandler = behandler,
+                    avstemmingsnøkkel = avstemmingsnøkkel,
+                ),
                 utbetalingslinjer = utbetalingslinjer,
-                type = type,
-                behandler = behandler,
-                avstemmingsnøkkel = avstemmingsnøkkel,
                 simulering = simulering,
                 utbetalingsrequest = utbetalingsrequest
             )
         }
         else -> {
             Utbetaling.OversendtUtbetaling.MedKvittering(
-                id = id,
-                opprettet = opprettet,
-                sakId = sakId,
-                saksnummer = saksnummer,
-                fnr = fnr,
+                metadata = OppdragMetadata(
+                    id = id,
+                    opprettet = opprettet,
+                    sakId = sakId,
+                    saksnummer = saksnummer,
+                    fnr = fnr,
+                    type = type,
+                    behandler = behandler,
+                    avstemmingsnøkkel = avstemmingsnøkkel,
+                ),
                 utbetalingslinjer = utbetalingslinjer,
-                type = type,
-                behandler = behandler,
-                avstemmingsnøkkel = avstemmingsnøkkel,
                 simulering = simulering,
                 utbetalingsrequest = utbetalingsrequest,
                 kvittering = kvittering

@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
+import no.nav.su.se.bakover.domain.oppdrag.OppdragMetadata
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
@@ -65,15 +66,17 @@ internal class UtbetalingServiceImplTest {
     )
 
     private val utbetalingForSimulering = Utbetaling.UtbetalingForSimulering(
-        id = UUID30.randomUUID(),
-        opprettet = Tidspunkt.now(),
-        sakId = sakId,
-        saksnummer = saksnummer,
-        fnr = fnr,
+        metadata = OppdragMetadata(
+            id = UUID30.randomUUID(),
+            opprettet = Tidspunkt.now(),
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            type = Utbetaling.UtbetalingsType.NY,
+            behandler = attestant,
+            avstemmingsnøkkel = avstemmingsnøkkel
+        ),
         utbetalingslinjer = listOf(),
-        type = Utbetaling.UtbetalingsType.NY,
-        behandler = attestant,
-        avstemmingsnøkkel = avstemmingsnøkkel
     )
 
     val kvitteringOK = Kvittering(
@@ -107,13 +110,15 @@ internal class UtbetalingServiceImplTest {
     @Test
     fun `hent utbetaling - funnet`() {
         val utbetalingMedKvittering = Utbetaling.OversendtUtbetaling.MedKvittering(
-            sakId = sakId,
-            saksnummer = saksnummer,
+            metadata = OppdragMetadata(
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = Fnr("12345678910"),
+                type = Utbetaling.UtbetalingsType.NY,
+                behandler = NavIdentBruker.Saksbehandler("Z123"),
+                avstemmingsnøkkel = Avstemmingsnøkkel(),
+            ),
             utbetalingslinjer = listOf(),
-            fnr = Fnr("12345678910"),
-            type = Utbetaling.UtbetalingsType.NY,
-            behandler = NavIdentBruker.Saksbehandler("Z123"),
-            avstemmingsnøkkel = Avstemmingsnøkkel(),
             simulering = simulering,
             utbetalingsrequest = Utbetalingsrequest(""),
             kvittering = kvitteringOK,
@@ -174,10 +179,14 @@ internal class UtbetalingServiceImplTest {
     @Test
     fun `oppdater med kvittering - kvittering eksisterer ikke fra før`() {
         val utbetalingUtenKvittering = Utbetaling.OversendtUtbetaling.UtenKvittering(
-            sakId = sakId,
-            saksnummer = saksnummer,
+            metadata = OppdragMetadata(
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = Fnr("12345678910"),
+                type = Utbetaling.UtbetalingsType.NY,
+                behandler = NavIdentBruker.Saksbehandler("Z123")
+            ),
             utbetalingslinjer = listOf(),
-            fnr = Fnr("12345678910"),
             utbetalingsrequest = Utbetalingsrequest(""),
             simulering = Simulering(
                 gjelderId = Fnr("12345678910"),
@@ -186,8 +195,6 @@ internal class UtbetalingServiceImplTest {
                 nettoBeløp = 0,
                 periodeList = listOf()
             ),
-            type = Utbetaling.UtbetalingsType.NY,
-            behandler = NavIdentBruker.Saksbehandler("Z123")
         )
         val kvittering = Kvittering(
             Kvittering.Utbetalingsstatus.OK,
@@ -232,10 +239,14 @@ internal class UtbetalingServiceImplTest {
     fun `oppdater med kvittering - kvittering eksisterer fra før`() {
         val avstemmingsnøkkel = Avstemmingsnøkkel()
         val utbetaling = Utbetaling.OversendtUtbetaling.MedKvittering(
-            sakId = sakId,
-            saksnummer = saksnummer,
+            metadata = OppdragMetadata(
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = Fnr("12345678910"),
+                type = Utbetaling.UtbetalingsType.NY,
+                behandler = NavIdentBruker.Saksbehandler("Z123")
+            ),
             utbetalingslinjer = listOf(),
-            fnr = Fnr("12345678910"),
             utbetalingsrequest = Utbetalingsrequest(""),
             simulering = Simulering(
                 gjelderId = Fnr("12345678910"),
@@ -244,12 +255,10 @@ internal class UtbetalingServiceImplTest {
                 nettoBeløp = 0,
                 periodeList = listOf()
             ),
-            type = Utbetaling.UtbetalingsType.NY,
             kvittering = Kvittering(
                 utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
                 originalKvittering = ""
             ),
-            behandler = NavIdentBruker.Saksbehandler("Z123")
         )
 
         val utbetalingRepoMock = mock<UtbetalingRepo> {
@@ -319,9 +328,11 @@ internal class UtbetalingServiceImplTest {
         ).orNull()!!
 
         actual shouldBe utbetalingForSimulering.copy(
-            id = actual.id,
-            opprettet = actual.opprettet,
-            avstemmingsnøkkel = actual.avstemmingsnøkkel,
+            metadata = utbetalingForSimulering.metadata.copy(
+                id = actual.id,
+                opprettet = actual.opprettet,
+                avstemmingsnøkkel = actual.avstemmingsnøkkel,
+            ),
             utbetalingslinjer = listOf(
                 Utbetalingslinje(
                     id = actual.utbetalingslinjer[0].id,
@@ -345,9 +356,11 @@ internal class UtbetalingServiceImplTest {
             verify(simuleringClientMock).simulerUtbetaling(
                 argThat {
                     it shouldBe utbetalingForSimulering.copy(
-                        id = it.id,
-                        opprettet = it.opprettet,
-                        avstemmingsnøkkel = it.avstemmingsnøkkel,
+                        metadata = utbetalingForSimulering.metadata.copy(
+                            id = it.id,
+                            opprettet = it.opprettet,
+                            avstemmingsnøkkel = it.avstemmingsnøkkel,
+                        ),
                         utbetalingslinjer = listOf(
                             Utbetalingslinje(
                                 id = it.utbetalingslinjer[0].id,
@@ -364,9 +377,11 @@ internal class UtbetalingServiceImplTest {
             verify(utbetalingPublisherMock).publish(
                 argThat {
                     it shouldBe utbetalingForSimulering.copy(
-                        id = it.id,
-                        opprettet = it.opprettet,
-                        avstemmingsnøkkel = it.avstemmingsnøkkel,
+                        metadata = utbetalingForSimulering.metadata.copy(
+                            id = it.id,
+                            opprettet = it.opprettet,
+                            avstemmingsnøkkel = it.avstemmingsnøkkel,
+                        ),
                         utbetalingslinjer = listOf(
                             Utbetalingslinje(
                                 id = it.utbetalingslinjer[0].id,
@@ -383,9 +398,11 @@ internal class UtbetalingServiceImplTest {
             verify(utbetalingRepoMock).opprettUtbetaling(
                 argThat {
                     it shouldBe utbetalingForSimulering.copy(
-                        id = it.id,
-                        opprettet = it.opprettet,
-                        avstemmingsnøkkel = it.avstemmingsnøkkel,
+                        metadata = utbetalingForSimulering.metadata.copy(
+                            id = it.id,
+                            opprettet = it.opprettet,
+                            avstemmingsnøkkel = it.avstemmingsnøkkel,
+                        ),
                         utbetalingslinjer = listOf(
                             Utbetalingslinje(
                                 id = it.utbetalingslinjer[0].id,
@@ -444,9 +461,11 @@ internal class UtbetalingServiceImplTest {
             verify(simuleringClientMock).simulerUtbetaling(
                 argThat {
                     it shouldBe utbetalingForSimulering.copy(
-                        id = it.id,
-                        opprettet = it.opprettet,
-                        avstemmingsnøkkel = it.avstemmingsnøkkel,
+                        metadata = utbetalingForSimulering.metadata.copy(
+                            id = it.id,
+                            opprettet = it.opprettet,
+                            avstemmingsnøkkel = it.avstemmingsnøkkel,
+                        ),
                         utbetalingslinjer = listOf(
                             Utbetalingslinje(
                                 id = it.utbetalingslinjer[0].id,
@@ -463,9 +482,11 @@ internal class UtbetalingServiceImplTest {
             verify(utbetalingPublisherMock).publish(
                 argThat {
                     it shouldBe utbetalingForSimulering.copy(
-                        id = it.id,
-                        opprettet = it.opprettet,
-                        avstemmingsnøkkel = it.avstemmingsnøkkel,
+                        metadata = utbetalingForSimulering.metadata.copy(
+                            id = it.id,
+                            opprettet = it.opprettet,
+                            avstemmingsnøkkel = it.avstemmingsnøkkel,
+                        ),
                         utbetalingslinjer = listOf(
                             Utbetalingslinje(
                                 id = it.utbetalingslinjer[0].id,
@@ -526,9 +547,11 @@ internal class UtbetalingServiceImplTest {
             verify(simuleringClientMock).simulerUtbetaling(
                 argThat {
                     it shouldBe utbetalingForSimulering.copy(
-                        id = it.id,
-                        opprettet = it.opprettet,
-                        avstemmingsnøkkel = it.avstemmingsnøkkel,
+                        metadata = utbetalingForSimulering.metadata.copy(
+                            id = it.id,
+                            opprettet = it.opprettet,
+                            avstemmingsnøkkel = it.avstemmingsnøkkel,
+                        ),
                         utbetalingslinjer = listOf(
                             Utbetalingslinje(
                                 id = it.utbetalingslinjer[0].id,

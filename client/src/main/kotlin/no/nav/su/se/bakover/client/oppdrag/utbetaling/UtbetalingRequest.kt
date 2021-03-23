@@ -15,6 +15,9 @@ data class UtbetalingRequest(
     data class OppdragRequest(
         val kodeAksjon: KodeAksjon,
         val kodeEndring: KodeEndring,
+
+        val kodeStatus: KodeStatus? = null,
+        val datoStatusFom: String? = null,
         /**  [1-8] tegn */
         val kodeFagomraade: String,
         /**  Maks 30 tegn */
@@ -29,12 +32,20 @@ data class UtbetalingRequest(
         /** minOccurs="0" i XSDen, men påkrevd her. */
         @field:JacksonXmlProperty(localName = "avstemming-115")
         val avstemming: Avstemming,
+
         @field:JacksonXmlProperty(localName = "oppdrags-enhet-120")
         @JacksonXmlElementWrapper(useWrapping = false)
         val oppdragsEnheter: List<OppdragsEnhet>,
+
         @field:JacksonXmlProperty(localName = "oppdrags-linje-150")
-        val oppdragslinjer: List<Oppdragslinje>
-    )
+        val oppdragslinjer: List<Oppdragslinje>,
+    ) {
+        init {
+            require((kodeStatus == null && datoStatusFom == null) || (kodeStatus != null && datoStatusFom != null)) {
+                "Både KodeStatus og DatoStatusFom må enten være null eller utfyllt."
+            }
+        }
+    }
 
     enum class KodeAksjon(@JsonValue val value: Int) {
         UTBETALING(1),
@@ -47,6 +58,12 @@ data class UtbetalingRequest(
         NY("NY"),
         ENDRING("ENDR"),
         UENDRET("UEND");
+
+        override fun toString() = value
+    }
+
+    enum class KodeStatus(@JsonValue val value: String) {
+        OPPHØR("OPPH");
 
         override fun toString() = value
     }

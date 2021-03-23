@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
+import no.nav.su.se.bakover.domain.oppdrag.OppdragMetadata
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -41,10 +42,14 @@ internal class UtbetalingKvitteringConsumerTest {
     private val avstemmingsnøkkel = Avstemmingsnøkkel.fromString(avstemmingsnøkkelIXml)
     private val clock = Clock.fixed(Tidspunkt.EPOCH.instant, ZoneOffset.UTC)
     private val utbetalingUtenKvittering = Utbetaling.OversendtUtbetaling.UtenKvittering(
-        sakId = sakId,
-        saksnummer = saksnummer,
+        metadata = OppdragMetadata(
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = FnrGenerator.random(),
+            type = Utbetaling.UtbetalingsType.NY,
+            behandler = NavIdentBruker.Attestant("Z123")
+        ),
         utbetalingslinjer = emptyList(),
-        fnr = FnrGenerator.random(),
         utbetalingsrequest = Utbetalingsrequest(""),
         simulering = Simulering(
             gjelderId = Fnr("12345678910"),
@@ -53,8 +58,6 @@ internal class UtbetalingKvitteringConsumerTest {
             nettoBeløp = 0,
             periodeList = listOf()
         ),
-        type = Utbetaling.UtbetalingsType.NY,
-        behandler = NavIdentBruker.Attestant("Z123")
     )
 
     @Test
@@ -77,7 +80,9 @@ internal class UtbetalingKvitteringConsumerTest {
         val xmlMessage = kvitteringXml(UtbetalingKvitteringResponse.Alvorlighetsgrad.OK)
         listOf(Utbetaling.UtbetalingsType.GJENOPPTA, Utbetaling.UtbetalingsType.STANS)
             .forEach { utbetalingstype ->
-                val utbetaling = utbetalingUtenKvittering.copy(type = utbetalingstype)
+                val utbetaling = utbetalingUtenKvittering.let {
+                    it.copy(metadata = it.metadata.copy(type = utbetalingstype))
+                }
 
                 val kvittering = Kvittering(
                     utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
@@ -107,7 +112,9 @@ internal class UtbetalingKvitteringConsumerTest {
     @Test
     fun `prøver ikke ferdigstille dersom kvittering er feil`() {
         val xmlMessage = kvitteringXml(UtbetalingKvitteringResponse.Alvorlighetsgrad.ALVORLIG_FEIL)
-        val utbetaling = utbetalingUtenKvittering.copy(type = Utbetaling.UtbetalingsType.NY)
+        val utbetaling = utbetalingUtenKvittering.let {
+            it.copy(metadata = it.metadata.copy(type = Utbetaling.UtbetalingsType.NY))
+        }
 
         val kvittering = Kvittering(
             utbetalingsstatus = Kvittering.Utbetalingsstatus.FEIL,
@@ -136,7 +143,9 @@ internal class UtbetalingKvitteringConsumerTest {
     @Test
     fun `kaller tjeneste for å ferdigstille hvis utbetaling er kvittert ok `() {
         val xmlMessage = kvitteringXml(UtbetalingKvitteringResponse.Alvorlighetsgrad.OK)
-        val utbetaling = utbetalingUtenKvittering.copy(type = Utbetaling.UtbetalingsType.NY)
+        val utbetaling = utbetalingUtenKvittering.let {
+            it.copy(metadata = it.metadata.copy(type = Utbetaling.UtbetalingsType.NY))
+        }
 
         val kvittering = Kvittering(
             utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
@@ -168,7 +177,9 @@ internal class UtbetalingKvitteringConsumerTest {
     @Test
     fun `kaster videre eventuelle exceptions fra kall til ferdigstill`() {
         val xmlMessage = kvitteringXml(UtbetalingKvitteringResponse.Alvorlighetsgrad.OK)
-        val utbetaling = utbetalingUtenKvittering.copy(type = Utbetaling.UtbetalingsType.NY)
+        val utbetaling = utbetalingUtenKvittering.let {
+            it.copy(metadata = it.metadata.copy(type = Utbetaling.UtbetalingsType.NY))
+        }
 
         val kvittering = Kvittering(
             utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,

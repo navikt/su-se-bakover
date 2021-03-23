@@ -52,6 +52,8 @@ internal data class SakJson(
             søknader = søknader.map { it.toJson() },
             behandlinger = behandlinger.map { it.toJson() },
             utbetalinger = utbetalinger.hentOversendteUtbetalingerUtenFeil()
+                // TODO HOW TO REPRESENT OTHER TYPES?
+                .filterIsInstance<Utbetaling>()
                 .flatMap { utbetaling ->
                     utbetaling.utbetalingslinjer.map { utbetalingslinje ->
                         UtbetalingslinjeJson(

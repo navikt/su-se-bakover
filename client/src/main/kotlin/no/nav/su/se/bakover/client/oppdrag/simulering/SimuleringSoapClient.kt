@@ -4,9 +4,12 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import com.ctc.wstx.exc.WstxEOFException
+import no.nav.su.se.bakover.client.oppdrag.fromOppdragDate
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.oppdrag.Melding
+import no.nav.su.se.bakover.domain.oppdrag.Opphør
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -38,11 +41,18 @@ internal class SimuleringSoapClient(
     override fun simulerUtbetaling(
         utbetaling: Utbetaling
     ): Either<SimuleringFeilet, Simulering> {
-        val simulerRequest = SimuleringRequestBuilder(utbetaling).build()
+        return simuler(utbetaling, SimuleringRequestBuilder(utbetaling).build())
+    }
+
+    override fun simulerOpphør(opphør: Opphør): Either<SimuleringFeilet, Simulering> {
+        return simuler(opphør, SimuleringRequestBuilder(opphør).build())
+    }
+
+    private fun simuler(melding: Melding, simulerRequest: SimulerBeregningRequest): Either<SimuleringFeilet, Simulering> {
         return try {
             simulerFpService.simulerBeregning(simulerRequest)?.response?.let {
                 mapResponseToResultat(it)
-            } ?: mapEmptyResponseToResultat(utbetaling)
+            } ?: mapEmptyResponseToResultat(melding, simulerRequest)
         } catch (e: SimulerBeregningFeilUnderBehandling) {
             log.error("Funksjonell feil ved simulering, se sikkerlogg for detaljer", e)
             sikkerLogg.error(
@@ -85,24 +95,43 @@ internal class SimuleringSoapClient(
      * Return something with meaning for our domain for cases where simulering returns an empty response.
      * In functional terms, an empty response means that OS/UR won't perform any payments for the period in question.
      */
-    private fun mapEmptyResponseToResultat(utbetaling: Utbetaling): Either<SimuleringFeilet, Simulering> {
-        if (utbetaling.bruttoBeløp() != 0) {
-            log.error("Utbetaling inneholder beløp ulikt 0, men simulering inneholder tom respons")
-            return SimuleringFeilet.FUNKSJONELL_FEIL.left()
+    private fun mapEmptyResponseToResultat(melding: Melding, request: SimulerBeregningRequest): Either<SimuleringFeilet, Simulering> {
+        when (melding) {
+            is Opphør -> {
+                return simuleringUtenUtbetalinger(
+                    fnr = melding.fnr,
+                    fraOgMed = request.request.simuleringsPeriode.datoSimulerFom.fromOppdragDate(),
+                    tilOgMed = request.request.simuleringsPeriode.datoSimulerTom.fromOppdragDate(),
+                ).right()
+            }
+            is Utbetaling -> {
+                if (melding.bruttoBeløp() != 0) {
+                    log.error("Utbetaling inneholder beløp ulikt 0, men simulering inneholder tom respons")
+                    return SimuleringFeilet.FUNKSJONELL_FEIL.left()
+                }
+                return simuleringUtenUtbetalinger(
+                    fnr = melding.fnr,
+                    fraOgMed = request.request.simuleringsPeriode.datoSimulerFom.fromOppdragDate(),
+                    tilOgMed = request.request.simuleringsPeriode.datoSimulerTom.fromOppdragDate(),
+                ).right()
+            }
         }
+    }
+
+    private fun simuleringUtenUtbetalinger(fnr: Fnr, fraOgMed: LocalDate, tilOgMed: LocalDate): Simulering {
         return Simulering(
-            gjelderId = utbetaling.fnr,
-            gjelderNavn = utbetaling.fnr.toString(), // Usually returned by response, which in this case is empty.
+            gjelderId = fnr,
+            gjelderNavn = fnr.toString(), // Usually returned by response, which in this case is empty.
             datoBeregnet = LocalDate.now(),
             nettoBeløp = 0,
             periodeList = listOf(
                 SimulertPeriode(
-                    fraOgMed = utbetaling.tidligsteDato(),
-                    tilOgMed = utbetaling.senesteDato(),
+                    fraOgMed = fraOgMed,
+                    tilOgMed = tilOgMed,
                     utbetaling = emptyList()
                 )
             )
-        ).right()
+        )
     }
 
     private fun mapResponseToResultat(response: SimulerBeregningResponse) =

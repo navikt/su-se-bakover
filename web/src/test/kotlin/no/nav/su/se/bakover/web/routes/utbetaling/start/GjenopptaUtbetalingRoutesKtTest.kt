@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.oppdrag.OppdragMetadata
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
@@ -191,15 +192,17 @@ internal class GjenopptaUtbetalingRoutesKtTest {
     fun `Starter utbetalinger OK`() {
         val sakId = UUID.randomUUID()
         val utbetaling = Utbetaling.OversendtUtbetaling.UtenKvittering(
-            id = UUID30.fromString("423fed12-1324-4be6-a8c7-1ee7e4"),
-            opprettet = Tidspunkt.EPOCH,
-            sakId = sakId,
-            saksnummer = saksnummer,
+            metadata = OppdragMetadata(
+                id = UUID30.fromString("423fed12-1324-4be6-a8c7-1ee7e4"),
+                opprettet = Tidspunkt.EPOCH,
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = Fnr("12345678911"),
+                type = Utbetaling.UtbetalingsType.GJENOPPTA,
+                behandler = NavIdentBruker.Attestant("Z123"),
+                avstemmingsnøkkel = Avstemmingsnøkkel(),
+            ),
             utbetalingslinjer = listOf(),
-            fnr = Fnr("12345678911"),
-            type = Utbetaling.UtbetalingsType.GJENOPPTA,
-            behandler = NavIdentBruker.Attestant("Z123"),
-            avstemmingsnøkkel = Avstemmingsnøkkel(),
             simulering = Simulering(
                 gjelderId = FnrGenerator.random(),
                 gjelderNavn = "",

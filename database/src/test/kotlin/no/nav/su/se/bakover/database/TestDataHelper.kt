@@ -33,6 +33,7 @@ import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBre
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
+import no.nav.su.se.bakover.domain.oppdrag.OppdragMetadata
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
@@ -107,15 +108,17 @@ internal fun oversendtUtbetalingUtenKvittering(
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.database.avstemmingsnøkkel,
     utbetalingslinjer: List<Utbetalingslinje> = listOf(utbetalingslinje()),
 ) = Utbetaling.OversendtUtbetaling.UtenKvittering(
-    id = UUID30.randomUUID(),
-    opprettet = fixedTidspunkt,
-    sakId = søknadsbehandling.sakId,
-    saksnummer = søknadsbehandling.saksnummer,
-    fnr = søknadsbehandling.fnr,
+    metadata = OppdragMetadata(
+        id = UUID30.randomUUID(),
+        opprettet = fixedTidspunkt,
+        sakId = søknadsbehandling.sakId,
+        saksnummer = søknadsbehandling.saksnummer,
+        fnr = søknadsbehandling.fnr,
+        type = Utbetaling.UtbetalingsType.NY,
+        behandler = attestant,
+        avstemmingsnøkkel = avstemmingsnøkkel,
+    ),
     utbetalingslinjer = utbetalingslinjer,
-    type = Utbetaling.UtbetalingsType.NY,
-    behandler = attestant,
-    avstemmingsnøkkel = avstemmingsnøkkel,
     simulering = simulering(søknadsbehandling.fnr),
     utbetalingsrequest = Utbetalingsrequest("<xml></xml>"),
 )
@@ -125,15 +128,17 @@ internal fun oversendtUtbetalingUtenKvittering(
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.database.avstemmingsnøkkel,
     utbetalingslinjer: List<Utbetalingslinje> = listOf(utbetalingslinje()),
 ) = Utbetaling.OversendtUtbetaling.UtenKvittering(
-    id = UUID30.randomUUID(),
-    opprettet = fixedTidspunkt,
-    sakId = revurdering.sakId,
-    saksnummer = revurdering.saksnummer,
-    fnr = revurdering.fnr,
+    metadata = OppdragMetadata(
+        id = UUID30.randomUUID(),
+        opprettet = fixedTidspunkt,
+        sakId = revurdering.sakId,
+        saksnummer = revurdering.saksnummer,
+        fnr = revurdering.fnr,
+        type = Utbetaling.UtbetalingsType.NY,
+        behandler = attestant,
+        avstemmingsnøkkel = avstemmingsnøkkel,
+    ),
     utbetalingslinjer = utbetalingslinjer,
-    type = Utbetaling.UtbetalingsType.NY,
-    behandler = attestant,
-    avstemmingsnøkkel = avstemmingsnøkkel,
     simulering = simulering(revurdering.fnr),
     utbetalingsrequest = Utbetalingsrequest("<xml></xml>"),
 )
@@ -409,7 +414,9 @@ internal class TestDataHelper(
             søknadsbehandling = innvilget,
             avstemmingsnøkkel = avstemmingsnøkkel,
             utbetalingslinjer = utbetalingslinjer,
-        ).copy(id = utbetalingId)
+        ).let {
+            it.copy(metadata = it.metadata.copy(id = utbetalingId))
+        }
         utbetalingRepo.opprettUtbetaling(utbetaling)
         søknadsbehandlingRepo.lagre(innvilget)
         return innvilget to utbetaling
@@ -422,7 +429,9 @@ internal class TestDataHelper(
             revurdering = revurderingTilAttestering,
             avstemmingsnøkkel = avstemmingsnøkkel,
             utbetalingslinjer = listOf(utbetalingslinje()),
-        ).copy(id = UUID30.randomUUID())
+        ).let {
+            it.copy(metadata = it.metadata.copy(id = UUID30.randomUUID()))
+        }
 
         utbetalingRepo.opprettUtbetaling(utbetaling)
         return utbetaling

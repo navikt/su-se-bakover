@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.oppdrag.OppdragMetadata
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
@@ -72,11 +73,16 @@ internal class UtbetalingsstrategiGjenopptaTest {
 
         actual shouldBe
             Utbetaling.UtbetalingForSimulering(
-                id = actual.id,
-                opprettet = actual.opprettet,
-                sakId = sakId,
-                saksnummer = saksnummer,
-                fnr = fnr,
+                metadata = OppdragMetadata(
+                    id = actual.id,
+                    opprettet = actual.opprettet,
+                    sakId = sakId,
+                    saksnummer = saksnummer,
+                    fnr = fnr,
+                    type = Utbetaling.UtbetalingsType.GJENOPPTA,
+                    behandler = attestant,
+                    avstemmingsnøkkel = actual.avstemmingsnøkkel
+                ),
                 utbetalingslinjer = listOf(
                     Utbetalingslinje(
                         id = actual.utbetalingslinjer[0].id,
@@ -87,9 +93,6 @@ internal class UtbetalingsstrategiGjenopptaTest {
                         beløp = opprinnelig.utbetalingslinjer[0].beløp
                     )
                 ),
-                type = Utbetaling.UtbetalingsType.GJENOPPTA,
-                behandler = attestant,
-                avstemmingsnøkkel = actual.avstemmingsnøkkel
             )
     }
 
@@ -322,12 +325,15 @@ internal class UtbetalingsstrategiGjenopptaTest {
 
     private fun createOversendtUtbetaling(utbetalingslinjer: List<Utbetalingslinje>, type: Utbetaling.UtbetalingsType) =
         Utbetaling.OversendtUtbetaling.UtenKvittering(
-            sakId = sakId,
-            saksnummer = saksnummer,
+            metadata = OppdragMetadata(
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                type = type,
+                behandler = NavIdentBruker.Saksbehandler("Z123")
+            ),
             utbetalingsrequest = Utbetalingsrequest(""),
             utbetalingslinjer = utbetalingslinjer,
-            fnr = fnr,
-            type = type,
             simulering = Simulering(
                 gjelderId = Fnr(fnr = fnr.toString()),
                 gjelderNavn = "navn",
@@ -335,6 +341,5 @@ internal class UtbetalingsstrategiGjenopptaTest {
                 nettoBeløp = 0,
                 periodeList = listOf()
             ),
-            behandler = NavIdentBruker.Saksbehandler("Z123")
         )
 }
