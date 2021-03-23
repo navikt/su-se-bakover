@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.web.routes.behandling.TestBeregning
@@ -26,6 +27,10 @@ import org.skyscreamer.jsonassert.JSONAssert
 import java.util.UUID
 
 internal class RevurderingJsonTest {
+    private val revurderingsårsak = Revurderingsårsak(
+        Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
+        Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
+    )
 
     @Test
     fun `should serialize and deserialize OpprettetRevurdering`() {
@@ -39,22 +44,27 @@ internal class RevurderingJsonTest {
             tilRevurdering = vedtak,
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
             oppgaveId = OppgaveId("oppgaveid"),
-            fritekstTilBrev = ""
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
         )
 
-        val revurderingJson = """
+        val revurderingJson =
+            //language=JSON
+            """
             {
-            "id": "$id",
-            "opprettet": "$opprettet",
-            "tilRevurdering": ${serialize(vedtak.toJson())},
-            "status": "${RevurderingsStatus.OPPRETTET}",
-            "periode": {
-                "fraOgMed": "2020-01-01",
-                "tilOgMed": "2020-12-31"
-            },
-            "saksbehandler": "Petter"
+                "id": "$id",
+                "opprettet": "$opprettet",
+                "tilRevurdering": ${serialize(vedtak.toJson())},
+                "status": "${RevurderingsStatus.OPPRETTET}",
+                "periode": {
+                    "fraOgMed": "2020-01-01",
+                    "tilOgMed": "2020-12-31"
+                },
+                "saksbehandler": "Petter",
+                "årsak": "MELDING_FRA_BRUKER",
+                "begrunnelse": "Ny informasjon"
             }
-        """.trimIndent()
+            """.trimIndent()
 
         JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson()), true)
         deserialize<OpprettetRevurderingJson>(revurderingJson) shouldBe revurdering.toJson()
@@ -74,27 +84,32 @@ internal class RevurderingJsonTest {
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
             beregning = beregning,
             oppgaveId = OppgaveId("oppgaveid"),
-            fritekstTilBrev = ""
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
         )
 
-        val revurderingJson = """
+        val revurderingJson =
+            //language=JSON
+            """
             {
-            "id": "$id",
-            "opprettet": "$opprettet",
-            "tilRevurdering": ${serialize(vedtak.toJson())},
-            "beregninger":
-              {
-                "beregning": ${serialize(vedtak.beregning.toJson())},
-                "revurdert": ${serialize(beregning.toJson())}
-              },
-            "status": "${RevurderingsStatus.BEREGNET_INNVILGET}",
-            "saksbehandler": "Petter",
-            "periode": {
-                "fraOgMed": "2020-01-01",
-                "tilOgMed": "2020-12-31"
+                "id": "$id",
+                "opprettet": "$opprettet",
+                "tilRevurdering": ${serialize(vedtak.toJson())},
+                "beregninger":
+                  {
+                    "beregning": ${serialize(vedtak.beregning.toJson())},
+                    "revurdert": ${serialize(beregning.toJson())}
+                  },
+                "status": "${RevurderingsStatus.BEREGNET_INNVILGET}",
+                "saksbehandler": "Petter",
+                "periode": {
+                    "fraOgMed": "2020-01-01",
+                    "tilOgMed": "2020-12-31"
+                },
+                "årsak": "MELDING_FRA_BRUKER",
+                "begrunnelse": "Ny informasjon"
             }
-            }
-        """.trimIndent()
+            """.trimIndent()
 
         JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson()), true)
         deserialize<BeregnetRevurderingJson.Innvilget>(revurderingJson) shouldBe revurdering.toJson()
@@ -114,27 +129,32 @@ internal class RevurderingJsonTest {
             saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
             beregning = beregning,
             oppgaveId = OppgaveId("oppgaveid"),
-            fritekstTilBrev = ""
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
         )
 
-        val revurderingJson = """
+        val revurderingJson =
+            //language=JSON
+            """
             {
-            "id": "$id",
-            "opprettet": "$opprettet",
-            "tilRevurdering": ${serialize(vedtak.toJson())},
-            "beregninger":
-              {
-                "beregning": ${serialize(vedtak.beregning.toJson())},
-                "revurdert": ${serialize(beregning.toJson())}
-              },
-            "status": "${RevurderingsStatus.BEREGNET_AVSLAG}",
-            "saksbehandler": "Petter",
-            "periode": {
-                "fraOgMed": "2020-01-01",
-                "tilOgMed": "2020-12-31"
+                "id": "$id",
+                "opprettet": "$opprettet",
+                "tilRevurdering": ${serialize(vedtak.toJson())},
+                "beregninger":
+                  {
+                    "beregning": ${serialize(vedtak.beregning.toJson())},
+                    "revurdert": ${serialize(beregning.toJson())}
+                  },
+                "status": "${RevurderingsStatus.BEREGNET_AVSLAG}",
+                "saksbehandler": "Petter",
+                "periode": {
+                    "fraOgMed": "2020-01-01",
+                    "tilOgMed": "2020-12-31"
+                },
+                "årsak": "MELDING_FRA_BRUKER",
+                "begrunnelse": "Ny informasjon"
             }
-            }
-        """.trimIndent()
+            """.trimIndent()
 
         JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson()), true)
         deserialize<BeregnetRevurderingJson.Avslag>(revurderingJson) shouldBe revurdering.toJson()
@@ -155,27 +175,32 @@ internal class RevurderingJsonTest {
             beregning = beregning,
             simulering = mock(),
             oppgaveId = OppgaveId("oppgaveid"),
-            fritekstTilBrev = ""
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
         )
 
-        val revurderingJson = """
+        val revurderingJson =
+            //language=JSON
+            """
             {
-            "id": "$id",
-            "opprettet": "$opprettet",
-            "tilRevurdering": ${serialize(vedtak.toJson())},
-            "beregninger":
-              {
-                "beregning": ${serialize(vedtak.beregning.toJson())},
-                "revurdert": ${serialize(beregning.toJson())}
-              },
-            "status": "${RevurderingsStatus.SIMULERT}",
-            "saksbehandler": "Petter",
-            "periode": {
-                "fraOgMed": "2020-01-01",
-                "tilOgMed": "2020-12-31"
+                "id": "$id",
+                "opprettet": "$opprettet",
+                "tilRevurdering": ${serialize(vedtak.toJson())},
+                "beregninger":
+                {
+                  "beregning": ${serialize(vedtak.beregning.toJson())},
+                  "revurdert": ${serialize(beregning.toJson())}
+                },
+                "status": "${RevurderingsStatus.SIMULERT}",
+                "saksbehandler": "Petter",
+                "periode": {
+                    "fraOgMed": "2020-01-01",
+                    "tilOgMed": "2020-12-31"
+                },
+                "årsak": "MELDING_FRA_BRUKER",
+                "begrunnelse": "Ny informasjon"
             }
-            }
-        """.trimIndent()
+            """.trimIndent()
 
         JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson()), true)
         deserialize<SimulertRevurderingJson>(revurderingJson) shouldBe revurdering.toJson()
@@ -196,27 +221,32 @@ internal class RevurderingJsonTest {
             beregning = beregning,
             simulering = mock(),
             oppgaveId = OppgaveId("OppgaveId"),
-            fritekstTilBrev = ""
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
         )
 
-        val revurderingJson = """
+        val revurderingJson =
+            //language=JSON
+            """
             {
-            "id": "$id",
-            "opprettet": "$opprettet",
-            "tilRevurdering": ${serialize(vedtak.toJson())},
-            "beregninger":
-              {
-                "beregning": ${serialize(vedtak.beregning.toJson())},
-                "revurdert": ${serialize(beregning.toJson())}
-              },
-            "status": "${RevurderingsStatus.TIL_ATTESTERING}",
-            "saksbehandler": "Petter",
-            "periode": {
-                "fraOgMed": "2020-01-01",
-                "tilOgMed": "2020-12-31"
+                "id": "$id",
+                "opprettet": "$opprettet",
+                "tilRevurdering": ${serialize(vedtak.toJson())},
+                "beregninger":
+                  {
+                    "beregning": ${serialize(vedtak.beregning.toJson())},
+                    "revurdert": ${serialize(beregning.toJson())}
+                  },
+                "status": "${RevurderingsStatus.TIL_ATTESTERING}",
+                "saksbehandler": "Petter",
+                "periode": {
+                    "fraOgMed": "2020-01-01",
+                    "tilOgMed": "2020-12-31"
+                },
+                "årsak": "MELDING_FRA_BRUKER",
+                "begrunnelse": "Ny informasjon"
             }
-            }
-        """.trimIndent()
+            """.trimIndent()
 
         JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson()), true)
         deserialize<TilAttesteringJson>(revurderingJson) shouldBe revurdering.toJson()
@@ -240,36 +270,41 @@ internal class RevurderingJsonTest {
             attestering = Attestering.Underkjent(
                 attestant = NavIdentBruker.Attestant("attestant"),
                 grunn = Attestering.Underkjent.Grunn.DOKUMENTASJON_MANGLER,
-                kommentar = "Dokumentasjon mangler"
+                kommentar = "Dokumentasjon mangler",
             ),
-            fritekstTilBrev = ""
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
         )
 
-        val expected = """
+        val expected =
+            //language=JSON
+            """
             {
-            "id": "$id",
-            "opprettet": "$opprettet",
-            "tilRevurdering": ${serialize(vedtak.toJson())},
-            "beregninger":
-              {
-                "beregning": ${serialize(vedtak.beregning.toJson())},
-                "revurdert": ${serialize(beregning.toJson())}
-              },
-            "status": "${RevurderingsStatus.UNDERKJENT}",
-            "saksbehandler": "Petter",
-            "periode": {
-                "fraOgMed": "2020-01-01",
-                "tilOgMed": "2020-12-31"
-            },
-            "attestering": {
-                "attestant": "attestant",
-                "underkjennelse": {
-                    "grunn": "DOKUMENTASJON_MANGLER",
-                    "kommentar": "Dokumentasjon mangler"
-                }
+                "id": "$id",
+                "opprettet": "$opprettet",
+                "tilRevurdering": ${serialize(vedtak.toJson())},
+                "beregninger":
+                  {
+                    "beregning": ${serialize(vedtak.beregning.toJson())},
+                    "revurdert": ${serialize(beregning.toJson())}
+                  },
+                "status": "${RevurderingsStatus.UNDERKJENT}",
+                "saksbehandler": "Petter",
+                "periode": {
+                    "fraOgMed": "2020-01-01",
+                    "tilOgMed": "2020-12-31"
+                },
+                "attestering": {
+                    "attestant": "attestant",
+                    "underkjennelse": {
+                        "grunn": "DOKUMENTASJON_MANGLER",
+                        "kommentar": "Dokumentasjon mangler"
+                    }
+                },
+                "årsak": "MELDING_FRA_BRUKER",
+                "begrunnelse": "Ny informasjon"
             }
-            }
-        """.trimIndent()
+            """.trimIndent()
 
         JSONAssert.assertEquals(expected, serialize(revurdering.toJson()), true)
         deserialize<UnderkjentRevurderingJson>(expected) shouldBe revurdering.toJson()
@@ -292,28 +327,33 @@ internal class RevurderingJsonTest {
             simulering = mock(),
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
             utbetalingId = UUID30.randomUUID(),
-            fritekstTilBrev = ""
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
         )
 
-        val revurderingJson = """
+        val revurderingJson =
+            //language=JSON
+            """
             {
-            "id": "$id",
-            "opprettet": "$opprettet",
-            "tilRevurdering": ${serialize(vedtak.toJson())},
-            "beregninger":
-              {
-                "beregning": ${serialize(vedtak.beregning.toJson())},
-                "revurdert": ${serialize(beregning.toJson())}
-              },
-            "status": "${RevurderingsStatus.IVERKSATT}",
-            "saksbehandler": "Petter",
-            "periode": {
-                "fraOgMed": "2020-01-01",
-                "tilOgMed": "2020-12-31"
-            },
-            "attestant": "attestant"
+                "id": "$id",
+                "opprettet": "$opprettet",
+                "tilRevurdering": ${serialize(vedtak.toJson())},
+                "beregninger":
+                  {
+                    "beregning": ${serialize(vedtak.beregning.toJson())},
+                    "revurdert": ${serialize(beregning.toJson())}
+                  },
+                "status": "${RevurderingsStatus.IVERKSATT}",
+                "saksbehandler": "Petter",
+                "periode": {
+                    "fraOgMed": "2020-01-01",
+                    "tilOgMed": "2020-12-31"
+                },
+                "attestant": "attestant",
+                "årsak": "MELDING_FRA_BRUKER",
+                "begrunnelse": "Ny informasjon"
             }
-        """.trimIndent()
+            """.trimIndent()
 
         JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson()), true)
         deserialize<IverksattRevurderingJson>(revurderingJson) shouldBe revurdering.toJson()

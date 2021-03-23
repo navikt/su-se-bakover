@@ -40,13 +40,14 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
 
     // TODO ia: fritekst bør flyttes ut av denne klassen og til et eget konsept (som også omfatter fritekst på søknadsbehandlinger)
     abstract val fritekstTilBrev: String
+    abstract val revurderingsårsak: Revurderingsårsak
 
     open fun beregn(fradrag: List<Fradrag>): Either<KunneIkkeBeregneRevurdering, BeregnetRevurdering> {
         val beregningsgrunnlag = Beregningsgrunnlag.create(
             beregningsperiode = periode,
             forventetInntektPerÅr = tilRevurdering.behandlingsinformasjon.uførhet?.forventetInntekt?.toDouble()
                 ?: 0.0,
-            fradragFraSaksbehandler = fradrag
+            fradragFraSaksbehandler = fradrag,
         )
         // TODO jah: Også mulig å ta inn beregningsstrategi slik at man kan validere dette på service-nivå
         val beregningStrategy = tilRevurdering.behandlingsinformasjon.getBeregningStrategy().getOrHandle {
@@ -69,7 +70,8 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
                 beregning = revurdertBeregning,
                 saksbehandler = saksbehandler,
                 oppgaveId = oppgaveId,
-                fritekstTilBrev = fritekstTilBrev
+                fritekstTilBrev = fritekstTilBrev,
+                revurderingsårsak = revurderingsårsak,
             )
         } else {
             BeregnetRevurdering.Avslag(
@@ -80,7 +82,8 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
                 beregning = revurdertBeregning,
                 saksbehandler = saksbehandler,
                 oppgaveId = oppgaveId,
-                fritekstTilBrev = fritekstTilBrev
+                fritekstTilBrev = fritekstTilBrev,
+                revurderingsårsak = revurderingsårsak,
             )
         }.right()
     }
@@ -88,7 +91,7 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
     sealed class KunneIkkeBeregneRevurdering {
         object KanIkkeVelgeSisteMånedVedNedgangIStønaden : KunneIkkeBeregneRevurdering()
         data class UfullstendigBehandlingsinformasjon(
-            val bakenforliggendeGrunn: Behandlingsinformasjon.UfullstendigBehandlingsinformasjon
+            val bakenforliggendeGrunn: Behandlingsinformasjon.UfullstendigBehandlingsinformasjon,
         ) : KunneIkkeBeregneRevurdering()
     }
 }
@@ -101,43 +104,40 @@ data class OpprettetRevurdering(
     override val saksbehandler: Saksbehandler,
     override val oppgaveId: OppgaveId,
     override val fritekstTilBrev: String,
+    override val revurderingsårsak: Revurderingsårsak,
 ) : Revurdering() {
     override fun accept(visitor: RevurderingVisitor) {
         visitor.visit(this)
     }
 
-    fun oppdaterPeriode(periode: Periode) = OpprettetRevurdering(
-        id = id,
+    fun oppdater(
+        periode: Periode,
+        revurderingsårsak: Revurderingsårsak,
+    ) = this.copy(
         periode = periode,
-        opprettet = opprettet,
-        tilRevurdering = tilRevurdering,
-        saksbehandler = saksbehandler,
-        oppgaveId = oppgaveId,
-        fritekstTilBrev = fritekstTilBrev
+        revurderingsårsak = revurderingsårsak,
     )
 }
 
 sealed class BeregnetRevurdering : Revurdering() {
-    abstract override val id: UUID
-    abstract override val periode: Periode
-    abstract override val opprettet: Tidspunkt
-    abstract override val tilRevurdering: Vedtak.InnvilgetStønad
-    abstract override val saksbehandler: Saksbehandler
-    abstract override val oppgaveId: OppgaveId
     abstract val beregning: Beregning
 
     override fun accept(visitor: RevurderingVisitor) {
         visitor.visit(this)
     }
 
-    fun oppdaterPeriode(periode: Periode) = OpprettetRevurdering(
+    fun oppdater(
+        periode: Periode,
+        revurderingsårsak: Revurderingsårsak,
+    ) = OpprettetRevurdering(
         id = id,
         periode = periode,
         opprettet = opprettet,
         tilRevurdering = tilRevurdering,
         saksbehandler = saksbehandler,
         oppgaveId = oppgaveId,
-        fritekstTilBrev = fritekstTilBrev
+        fritekstTilBrev = fritekstTilBrev,
+        revurderingsårsak = revurderingsårsak,
     )
 
     data class Innvilget(
@@ -149,6 +149,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val beregning: Beregning,
         override val oppgaveId: OppgaveId,
         override val fritekstTilBrev: String,
+        override val revurderingsårsak: Revurderingsårsak,
     ) : BeregnetRevurdering() {
         fun toSimulert(simulering: Simulering) = SimulertRevurdering(
             id = id,
@@ -159,7 +160,8 @@ sealed class BeregnetRevurdering : Revurdering() {
             simulering = simulering,
             saksbehandler = saksbehandler,
             oppgaveId = oppgaveId,
-            fritekstTilBrev = fritekstTilBrev
+            fritekstTilBrev = fritekstTilBrev,
+            revurderingsårsak = revurderingsårsak,
         )
     }
 
@@ -172,6 +174,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val beregning: Beregning,
         override val oppgaveId: OppgaveId,
         override val fritekstTilBrev: String,
+        override val revurderingsårsak: Revurderingsårsak,
     ) : BeregnetRevurdering()
 }
 
@@ -182,34 +185,41 @@ data class SimulertRevurdering(
     override val tilRevurdering: Vedtak.InnvilgetStønad,
     override val saksbehandler: Saksbehandler,
     override val oppgaveId: OppgaveId,
+    override val revurderingsårsak: Revurderingsårsak,
+    override val fritekstTilBrev: String,
     val beregning: Beregning,
     val simulering: Simulering,
-    override val fritekstTilBrev: String,
 ) : Revurdering() {
     override fun accept(visitor: RevurderingVisitor) {
         visitor.visit(this)
     }
 
-    fun tilAttestering(attesteringsoppgaveId: OppgaveId, saksbehandler: Saksbehandler, fritekstTilBrev: String) = RevurderingTilAttestering(
-        id = id,
-        periode = periode,
-        opprettet = opprettet,
-        tilRevurdering = tilRevurdering,
-        saksbehandler = saksbehandler,
-        beregning = beregning,
-        simulering = simulering,
-        oppgaveId = attesteringsoppgaveId,
-        fritekstTilBrev = fritekstTilBrev
-    )
+    fun tilAttestering(attesteringsoppgaveId: OppgaveId, saksbehandler: Saksbehandler, fritekstTilBrev: String) =
+        RevurderingTilAttestering(
+            id = id,
+            periode = periode,
+            opprettet = opprettet,
+            tilRevurdering = tilRevurdering,
+            saksbehandler = saksbehandler,
+            beregning = beregning,
+            simulering = simulering,
+            oppgaveId = attesteringsoppgaveId,
+            fritekstTilBrev = fritekstTilBrev,
+            revurderingsårsak = revurderingsårsak,
+        )
 
-    fun oppdaterPeriode(periode: Periode) = OpprettetRevurdering(
+    fun oppdater(
+        periode: Periode,
+        revurderingsårsak: Revurderingsårsak,
+    ) = OpprettetRevurdering(
         id = id,
         periode = periode,
         opprettet = opprettet,
         tilRevurdering = tilRevurdering,
         saksbehandler = saksbehandler,
         oppgaveId = oppgaveId,
-        fritekstTilBrev = fritekstTilBrev
+        fritekstTilBrev = fritekstTilBrev,
+        revurderingsårsak = revurderingsårsak,
     )
 }
 
@@ -219,10 +229,11 @@ data class RevurderingTilAttestering(
     override val opprettet: Tidspunkt,
     override val tilRevurdering: Vedtak.InnvilgetStønad,
     override val saksbehandler: Saksbehandler,
-    val beregning: Beregning,
-    val simulering: Simulering,
     override val oppgaveId: OppgaveId,
     override val fritekstTilBrev: String,
+    override val revurderingsårsak: Revurderingsårsak,
+    val beregning: Beregning,
+    val simulering: Simulering,
 ) : Revurdering() {
 
     override fun accept(visitor: RevurderingVisitor) {
@@ -244,7 +255,7 @@ data class RevurderingTilAttestering(
 
     fun iverksett(
         attestant: NavIdentBruker.Attestant,
-        utbetal: () -> Either<KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale, UUID30>
+        utbetal: () -> Either<KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale, UUID30>,
     ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering> {
         if (saksbehandler.navIdent == attestant.navIdent) {
             return KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
@@ -261,14 +272,15 @@ data class RevurderingTilAttestering(
                 simulering = simulering,
                 attestering = Attestering.Iverksatt(attestant),
                 utbetalingId = it,
-                fritekstTilBrev = fritekstTilBrev
+                fritekstTilBrev = fritekstTilBrev,
+                revurderingsårsak = revurderingsårsak,
             )
         }
     }
 
     fun underkjenn(
         attestering: Attestering,
-        oppgaveId: OppgaveId
+        oppgaveId: OppgaveId,
     ): UnderkjentRevurdering {
         return UnderkjentRevurdering(
             id = id,
@@ -280,7 +292,8 @@ data class RevurderingTilAttestering(
             simulering = simulering,
             oppgaveId = oppgaveId,
             attestering = attestering,
-            fritekstTilBrev = fritekstTilBrev
+            fritekstTilBrev = fritekstTilBrev,
+            revurderingsårsak = revurderingsårsak,
         )
     }
 }
@@ -292,11 +305,12 @@ data class IverksattRevurdering(
     override val tilRevurdering: Vedtak.InnvilgetStønad,
     override val saksbehandler: Saksbehandler,
     override val oppgaveId: OppgaveId,
+    override val fritekstTilBrev: String,
+    override val revurderingsårsak: Revurderingsårsak,
     val beregning: Beregning,
     val simulering: Simulering,
     val attestering: Attestering.Iverksatt,
     val utbetalingId: UUID30,
-    override val fritekstTilBrev: String,
 ) : Revurdering() {
     override fun accept(visitor: RevurderingVisitor) {
         visitor.visit(this)
@@ -313,27 +327,30 @@ data class UnderkjentRevurdering(
     override val opprettet: Tidspunkt,
     override val tilRevurdering: Vedtak.InnvilgetStønad,
     override val saksbehandler: Saksbehandler,
+    override val oppgaveId: OppgaveId,
+    override val fritekstTilBrev: String,
+    override val revurderingsårsak: Revurderingsårsak,
     val beregning: Beregning,
     val simulering: Simulering,
-    override val oppgaveId: OppgaveId,
     val attestering: Attestering,
-    override val fritekstTilBrev: String
 ) : Revurdering() {
     override fun accept(visitor: RevurderingVisitor) {
         visitor.visit(this)
     }
 
-    fun tilAttestering(oppgaveId: OppgaveId, saksbehandler: Saksbehandler, fritekstTilBrev: String) = RevurderingTilAttestering(
-        id = id,
-        periode = periode,
-        opprettet = opprettet,
-        tilRevurdering = tilRevurdering,
-        saksbehandler = saksbehandler,
-        beregning = beregning,
-        simulering = simulering,
-        oppgaveId = oppgaveId,
-        fritekstTilBrev = fritekstTilBrev
-    )
+    fun tilAttestering(oppgaveId: OppgaveId, saksbehandler: Saksbehandler, fritekstTilBrev: String) =
+        RevurderingTilAttestering(
+            id = id,
+            periode = periode,
+            opprettet = opprettet,
+            tilRevurdering = tilRevurdering,
+            saksbehandler = saksbehandler,
+            beregning = beregning,
+            simulering = simulering,
+            oppgaveId = oppgaveId,
+            fritekstTilBrev = fritekstTilBrev,
+            revurderingsårsak = revurderingsårsak,
+        )
 
     fun nyOppgaveId(nyOppgaveId: OppgaveId): UnderkjentRevurdering {
         return this.copy(oppgaveId = nyOppgaveId)
@@ -349,14 +366,14 @@ data class UnderkjentRevurdering(
  */
 private fun endringerAvUtbetalingerErStørreEllerLik10Prosent(
     vedtattBeregning: Beregning,
-    revurdertBeregning: Beregning
+    revurdertBeregning: Beregning,
 ): Boolean {
     val vedtattBeregningsperioder = vedtattBeregning.getMånedsberegninger().map { it.getPeriode() to it }.toMap()
 
     return revurdertBeregning.getMånedsberegninger().let {
         val førsteUtbetaling = it.first()
         førsteUtbetaling.differanseErStørreEllerLik10Prosent(
-            vedtattBeregningsperioder[førsteUtbetaling.getPeriode()]!!
+            vedtattBeregningsperioder[førsteUtbetaling.getPeriode()]!!,
         )
     }
 }

@@ -10,6 +10,7 @@ import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering.FantIkkeAktørId
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering.FantIkkeSak
@@ -18,7 +19,10 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering.Kan
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering.KanIkkeRevurdereInneværendeMånedEllerTidligere
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering.KanIkkeRevurderePerioderMedFlereAktiveStønadsperioder
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering.UgyldigBegrunnelse
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering.UgyldigPeriode
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering.UgyldigÅrsak
+import no.nav.su.se.bakover.service.revurdering.OpprettRevurderingRequest
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
@@ -36,20 +40,27 @@ import java.time.LocalDate
 
 @KtorExperimentalAPI
 internal fun Route.opprettRevurderingRoute(
-    revurderingService: RevurderingService
+    revurderingService: RevurderingService,
 ) {
-    data class Body(val fraOgMed: LocalDate)
-
+    data class Body(
+        val fraOgMed: LocalDate,
+        val årsak: String,
+        val begrunnelse: String,
+    )
     authorize(Brukerrolle.Saksbehandler) {
-        post("$revurderingPath/opprett") {
+        post(revurderingPath) {
             call.withSakId { sakId ->
                 call.withBody<Body> { body ->
                     val navIdent = call.suUserContext.navIdent
 
                     revurderingService.opprettRevurdering(
-                        sakId = sakId,
-                        fraOgMed = body.fraOgMed,
-                        saksbehandler = NavIdentBruker.Saksbehandler(navIdent)
+                        OpprettRevurderingRequest(
+                            sakId = sakId,
+                            fraOgMed = body.fraOgMed,
+                            årsak = body.årsak,
+                            begrunnelse = body.begrunnelse,
+                            saksbehandler = NavIdentBruker.Saksbehandler(navIdent),
+                        ),
                     ).fold(
                         ifLeft = { call.svar(it.tilResultat()) },
                         ifRight = {
@@ -87,6 +98,14 @@ private fun KunneIkkeOppretteRevurdering.tilResultat(): Resultat {
             // TODO AI: Midlertidig løsning. På sikt vil vi støtte å revurdere en revurdering.
             "Kan ikke revurdere en behandling som allerede har en eksisterende revurdering",
             "finnes_en_eksisterende_revurdering",
+        )
+        is UgyldigBegrunnelse -> BadRequest.errorJson(
+            "Begrunnelse kan ikke være tom",
+            "begrunnelse_kan_ikke_være_tom",
+        )
+        is UgyldigÅrsak -> BadRequest.errorJson(
+            "Ugyldig årsak, må være en av: ${Revurderingsårsak.Årsak.values()}",
+            "ugyldig_årsak",
         )
     }
 }
