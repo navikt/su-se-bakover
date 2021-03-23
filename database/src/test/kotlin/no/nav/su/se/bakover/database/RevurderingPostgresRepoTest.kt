@@ -4,7 +4,7 @@ import arrow.core.getOrHandle
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import no.nav.su.se.bakover.common.Tidspunkt
+import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juni
@@ -66,7 +66,7 @@ internal class RevurderingPostgresRepoTest {
     }
 
     @Test
-    fun `kan oppdatere revurderingsperiode`() {
+    fun `kan oppdatere revurdering`() {
         withMigratedDb {
             val vedtak =
                 testDataHelper.vedtakForSøknadsbehandling(testDataHelper.nyOversendtUtbetalingMedKvittering().first)
@@ -97,26 +97,23 @@ internal class RevurderingPostgresRepoTest {
             repo.lagre(beregnetRevurdering)
             repo.hent(beregnetRevurdering.id) shouldBe beregnetRevurdering
 
-            val revurderingMedNyPeriode = OpprettetRevurdering(
-                id = beregnetRevurdering.id,
-                periode = Periode.create(1.juni(2020), 30.juni(2020)),
-                opprettet = Tidspunkt.now(),
-                tilRevurdering = beregnetRevurdering.tilRevurdering,
-                saksbehandler = saksbehandler,
-                oppgaveId = OppgaveId("oppgaveid"),
-                fritekstTilBrev = "",
-                revurderingsårsak = revurderingsårsak,
+            val oppdatertRevurdering = beregnetRevurdering.oppdater(
+                Periode.create(1.juni(2020), 30.juni(2020)),
+                Revurderingsårsak(
+                    årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
+                    begrunnelse = Revurderingsårsak.Begrunnelse.create("begrunnelse"),
+                ),
             )
 
-            repo.lagre(revurderingMedNyPeriode)
-            val oppdatertRevurdering = repo.hent(beregnetRevurdering.id)
-            assert(oppdatertRevurdering is OpprettetRevurdering)
-            oppdatertRevurdering!!.periode shouldBe revurderingMedNyPeriode.periode
+            repo.lagre(oppdatertRevurdering)
+            val actual = repo.hent(beregnetRevurdering.id)
+            actual.shouldBeInstanceOf<OpprettetRevurdering>()
+            oppdatertRevurdering.periode shouldBe oppdatertRevurdering.periode
         }
     }
 
     @Test
-    fun `kan kan overskrive en opprettet med beregnet`() {
+    fun `kan kan overskrive en opprettet med innvilget beregning`() {
         withMigratedDb {
             val vedtak =
                 testDataHelper.vedtakForSøknadsbehandling(testDataHelper.nyOversendtUtbetalingMedKvittering().first)
@@ -152,7 +149,7 @@ internal class RevurderingPostgresRepoTest {
     }
 
     @Test
-    fun `beregnet kan overskrives med ny beregnet`() {
+    fun `beregnet kan overskrives med ny avslått beregnet`() {
 
         withMigratedDb {
             val vedtak =
@@ -170,7 +167,7 @@ internal class RevurderingPostgresRepoTest {
 
             repo.lagre(opprettet)
 
-            val beregnet = BeregnetRevurdering.Innvilget(
+            val beregnet = BeregnetRevurdering.Avslag(
                 id = opprettet.id,
                 periode = opprettet.periode,
                 opprettet = opprettet.opprettet,
@@ -184,7 +181,7 @@ internal class RevurderingPostgresRepoTest {
 
             repo.lagre(beregnet)
 
-            val nyBeregnet = BeregnetRevurdering.Innvilget(
+            val nyBeregnet = BeregnetRevurdering.Avslag(
                 id = beregnet.id,
                 periode = beregnet.periode,
                 opprettet = beregnet.opprettet,
