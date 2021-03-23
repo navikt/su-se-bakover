@@ -275,9 +275,10 @@ class LagBrevRequestVisitor(
             LagBrevRequest.Revurdering.Inntekt(
                 person = it.person,
                 saksbehandlerNavn = it.saksbehandlerNavn,
+                attestantNavn = it.attestantNavn,
                 revurdertBeregning = beregning,
                 fritekst = revurdering.fritekstTilBrev,
-                harEktefelle = revurdering.tilRevurdering.behandlingsinformasjon.harEktefelle()
+                harEktefelle = revurdering.tilRevurdering.behandlingsinformasjon.harEktefelle(),
             )
         }
 
@@ -359,6 +360,7 @@ class LagBrevRequestVisitor(
             LagBrevRequest.Revurdering.Inntekt(
                 person = it.person,
                 saksbehandlerNavn = it.saksbehandlerNavn,
+                attestantNavn = it.attestantNavn,
                 revurdertBeregning = vedtak.beregning,
                 fritekst = when (val b = vedtak.behandling) {
                     is Revurdering -> b.fritekstTilBrev

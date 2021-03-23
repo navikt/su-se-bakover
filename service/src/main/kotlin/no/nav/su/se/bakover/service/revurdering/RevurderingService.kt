@@ -9,44 +9,42 @@ import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
-import java.time.LocalDate
 import java.util.UUID
 import kotlin.reflect.KClass
 
 interface RevurderingService {
 
     fun opprettRevurdering(
-        sakId: UUID,
-        fraOgMed: LocalDate,
-        saksbehandler: NavIdentBruker.Saksbehandler
+        opprettRevurderingRequest: OpprettRevurderingRequest,
     ): Either<KunneIkkeOppretteRevurdering, Revurdering>
 
     fun oppdaterRevurderingsperiode(
-        revurderingId: UUID,
-        fraOgMed: LocalDate,
-        saksbehandler: NavIdentBruker.Saksbehandler
+        oppdaterRevurderingRequest: OppdaterRevurderingRequest,
     ): Either<KunneIkkeOppdatereRevurderingsperiode, OpprettetRevurdering>
 
     fun beregnOgSimuler(
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
-        fradrag: List<Fradrag>
+        fradrag: List<Fradrag>,
     ): Either<KunneIkkeBeregneOgSimulereRevurdering, Revurdering>
 
     fun sendTilAttestering(
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
-        fritekstTilBrev: String
+        fritekstTilBrev: String,
     ): Either<KunneIkkeSendeRevurderingTilAttestering, Revurdering>
 
     fun lagBrevutkast(revurderingId: UUID, fritekst: String): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray>
     fun hentBrevutkast(revurderingId: UUID): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray>
     fun iverksett(
         revurderingId: UUID,
-        attestant: NavIdentBruker.Attestant
+        attestant: NavIdentBruker.Attestant,
     ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering>
 
-    fun underkjenn(revurderingId: UUID, attestering: Attestering): Either<KunneIkkeUnderkjenneRevurdering, UnderkjentRevurdering>
+    fun underkjenn(
+        revurderingId: UUID,
+        attestering: Attestering,
+    ): Either<KunneIkkeUnderkjenneRevurdering, UnderkjentRevurdering>
 }
 
 sealed class KunneIkkeOppretteRevurdering {
@@ -58,13 +56,20 @@ sealed class KunneIkkeOppretteRevurdering {
     object KanIkkeRevurderePerioderMedFlereAktiveStønadsperioder : KunneIkkeOppretteRevurdering()
     object KanIkkeRevurdereEnPeriodeMedEksisterendeRevurdering : KunneIkkeOppretteRevurdering()
     data class UgyldigPeriode(val subError: Periode.UgyldigPeriode) : KunneIkkeOppretteRevurdering()
+    object UgyldigÅrsak : KunneIkkeOppretteRevurdering()
+    object UgyldigBegrunnelse : KunneIkkeOppretteRevurdering()
 }
 
 sealed class KunneIkkeOppdatereRevurderingsperiode {
     object FantIkkeRevurdering : KunneIkkeOppdatereRevurderingsperiode()
-    data class PeriodenMåVæreInnenforAlleredeValgtStønadsperiode(val periode: Periode) : KunneIkkeOppdatereRevurderingsperiode()
+    data class PeriodenMåVæreInnenforAlleredeValgtStønadsperiode(val periode: Periode) :
+        KunneIkkeOppdatereRevurderingsperiode()
+
     data class UgyldigPeriode(val subError: Periode.UgyldigPeriode) : KunneIkkeOppdatereRevurderingsperiode()
-    data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) : KunneIkkeOppdatereRevurderingsperiode()
+    object UgyldigÅrsak : KunneIkkeOppdatereRevurderingsperiode()
+    object UgyldigBegrunnelse : KunneIkkeOppdatereRevurderingsperiode()
+    data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
+        KunneIkkeOppdatereRevurderingsperiode()
 }
 
 sealed class KunneIkkeBeregneOgSimulereRevurdering {
@@ -72,7 +77,9 @@ sealed class KunneIkkeBeregneOgSimulereRevurdering {
     object SimuleringFeilet : KunneIkkeBeregneOgSimulereRevurdering()
     object KanIkkeVelgeSisteMånedVedNedgangIStønaden : KunneIkkeBeregneOgSimulereRevurdering()
     data class UgyldigPeriode(val subError: Periode.UgyldigPeriode) : KunneIkkeBeregneOgSimulereRevurdering()
-    data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) : KunneIkkeBeregneOgSimulereRevurdering()
+    data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
+        KunneIkkeBeregneOgSimulereRevurdering()
+
     object UfullstendigBehandlingsinformasjon : KunneIkkeBeregneOgSimulereRevurdering()
 }
 
@@ -81,7 +88,8 @@ sealed class KunneIkkeSendeRevurderingTilAttestering {
     object FantIkkeAktørId : KunneIkkeSendeRevurderingTilAttestering()
     object KunneIkkeOppretteOppgave : KunneIkkeSendeRevurderingTilAttestering()
     data class UgyldigPeriode(val subError: Periode.UgyldigPeriode) : KunneIkkeSendeRevurderingTilAttestering()
-    data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) : KunneIkkeSendeRevurderingTilAttestering()
+    data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
+        KunneIkkeSendeRevurderingTilAttestering()
 }
 
 sealed class KunneIkkeIverksetteRevurdering {
@@ -93,7 +101,7 @@ sealed class KunneIkkeIverksetteRevurdering {
     object FantIkkeRevurdering : KunneIkkeIverksetteRevurdering()
     data class UgyldigTilstand(
         val fra: KClass<out Revurdering>,
-        val til: KClass<out Revurdering>
+        val til: KClass<out Revurdering>,
     ) : KunneIkkeIverksetteRevurdering()
 }
 
@@ -109,7 +117,8 @@ sealed class KunneIkkeUnderkjenneRevurdering {
     object FantIkkeAktørId : KunneIkkeUnderkjenneRevurdering()
     data class UgyldigTilstand(
         val fra: KClass<out Revurdering>,
-        val til: KClass<out Revurdering>
+        val til: KClass<out Revurdering>,
     ) : KunneIkkeUnderkjenneRevurdering()
+
     object KunneIkkeOppretteOppgave : KunneIkkeUnderkjenneRevurdering()
 }

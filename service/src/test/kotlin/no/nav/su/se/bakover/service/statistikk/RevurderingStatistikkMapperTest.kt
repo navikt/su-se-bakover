@@ -16,12 +16,17 @@ import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.util.UUID
 
 internal class RevurderingStatistikkMapperTest {
     private val fixedClock: Clock = Clock.fixed(1.januar(2021).startOfDay().instant, zoneIdOslo)
+    private val revurderingsårsak = Revurderingsårsak(
+        Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
+        Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
+    )
 
     @Test
     fun `mapper opprettet revurdering`() {
@@ -39,7 +44,8 @@ internal class RevurderingStatistikkMapperTest {
             },
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "7"),
             oppgaveId = OppgaveId("oppgaveid"),
-            fritekstTilBrev = ""
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
         )
 
         RevurderingStatistikkMapper(fixedClock).map(opprettetRevurdering) shouldBe Statistikk.Behandling(
@@ -106,7 +112,8 @@ internal class RevurderingStatistikkMapperTest {
             simulering = mock(),
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant(navIdent = "2")),
             utbetalingId = UUID30.randomUUID(),
-            fritekstTilBrev = ""
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
         )
         RevurderingStatistikkMapper(fixedClock).map(iverksattRevurdering) shouldBe Statistikk.Behandling(
             funksjonellTid = iverksattRevurdering.opprettet,
@@ -144,7 +151,7 @@ internal class RevurderingStatistikkMapperTest {
             behandlingOpprettetTypeBeskrivelse = null,
             datoForUttak = null,
             datoForUtbetaling = null,
-            avsluttet = true
+            avsluttet = true,
         )
     }
 }

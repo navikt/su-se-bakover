@@ -70,6 +70,7 @@ abstract class BrevInnhold {
     data class RevurderingAvInntekt(
         val personalia: Personalia,
         val saksbehandlerNavn: String,
+        val attestantNavn: String,
         val beregningsperioder: List<Beregningsperiode>,
         val fritekst: String,
         val sats: Sats,

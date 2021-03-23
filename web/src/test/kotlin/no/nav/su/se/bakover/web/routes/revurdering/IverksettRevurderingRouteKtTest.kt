@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.defaultRequest
@@ -40,13 +41,15 @@ internal class IverksettRevurderingRouteKtTest {
 
     @Test
     fun `uautoriserte kan ikke iverksette revurdering`() {
-        withTestApplication({
-            testSusebakover()
-        }) {
+        withTestApplication(
+            {
+                testSusebakover()
+            },
+        ) {
             defaultRequest(
                 HttpMethod.Post,
                 "$requestPath/$revurderingId/iverksett",
-                listOf(Brukerrolle.Veileder)
+                listOf(Brukerrolle.Veileder),
             ).apply {
                 response.status() shouldBe HttpStatusCode.Forbidden
                 JSONAssert.assertEquals(
@@ -56,7 +59,7 @@ internal class IverksettRevurderingRouteKtTest {
                     }
                     """.trimIndent(),
                     response.content,
-                    true
+                    true,
                 )
             }
         }
@@ -77,24 +80,30 @@ internal class IverksettRevurderingRouteKtTest {
                 gjelderNavn = "Test",
                 datoBeregnet = LocalDate.now(),
                 nettoBeløp = 0,
-                periodeList = listOf()
+                periodeList = listOf(),
             ),
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
             utbetalingId = UUID30.randomUUID(),
-            fritekstTilBrev = ""
+            fritekstTilBrev = "",
+            revurderingsårsak = Revurderingsårsak(
+                Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
+                Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
+            ),
         )
 
         val revurderingServiceMock = mock<RevurderingService> {
             on { iverksett(any(), any()) } doReturn iverksattRevurdering.right()
         }
 
-        withTestApplication({
-            testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
-        }) {
+        withTestApplication(
+            {
+                testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
+            },
+        ) {
             defaultRequest(
                 HttpMethod.Post,
                 "$requestPath/${iverksattRevurdering.id}/iverksett",
-                listOf(Brukerrolle.Attestant)
+                listOf(Brukerrolle.Attestant),
             ).apply {
                 response.status() shouldBe HttpStatusCode.OK
                 val actualResponse = objectMapper.readValue<TilAttesteringJson>(response.content!!)
@@ -114,7 +123,7 @@ internal class IverksettRevurderingRouteKtTest {
                     "message":"Fant ikke revurdering",
                     "code":"fant_ikke_revurdering"
                 }
-            """.trimIndent()
+            """.trimIndent(),
         )
     }
 
@@ -131,7 +140,7 @@ internal class IverksettRevurderingRouteKtTest {
                     "message":"Kan ikke gå fra tilstanden IverksattRevurdering til tilstanden OpprettetRevurdering",
                     "code":"ugyldig_tilstand"
                 }
-            """.trimIndent()
+            """.trimIndent(),
         )
     }
 
@@ -145,7 +154,7 @@ internal class IverksettRevurderingRouteKtTest {
                     "message":"Attestant og saksbehandler kan ikke være samme person",
                     "code":"attestant_og_saksbehandler_kan_ikke_være_samme_person"
                 }
-            """.trimIndent()
+            """.trimIndent(),
         )
     }
 
@@ -159,7 +168,7 @@ internal class IverksettRevurderingRouteKtTest {
                     "message":"Feil ved journalføring av vedtaksbrev",
                     "code":"kunne_ikke_journalføre_brev"
                 }
-            """.trimIndent()
+            """.trimIndent(),
         )
     }
 
@@ -173,7 +182,7 @@ internal class IverksettRevurderingRouteKtTest {
                     "message":"Kunne ikke utføre kontrollsimulering",
                     "code":"kunne_ikke_kontrollsimulere"
                 }
-            """.trimIndent()
+            """.trimIndent(),
         )
     }
 
@@ -187,7 +196,7 @@ internal class IverksettRevurderingRouteKtTest {
                     "message":"Kunne ikke utføre utbetaling",
                     "code":"kunne_ikke_utbetale"
                 }
-            """.trimIndent()
+            """.trimIndent(),
         )
     }
 
@@ -201,32 +210,34 @@ internal class IverksettRevurderingRouteKtTest {
                     "message":"Oppdaget inkonsistens mellom tidligere utført simulering og kontrollsimulering. Ny simulering må utføres og kontrolleres før iverksetting kan gjennomføres",
                     "code":"simulering_har_blitt_endret_siden_saksbehandler_simulerte"
                 }
-            """.trimIndent()
+            """.trimIndent(),
         )
     }
 
     private fun shouldMapErrorCorrectly(
         error: KunneIkkeIverksetteRevurdering,
         expectedStatusCode: HttpStatusCode,
-        expectedJsonResponse: String
+        expectedJsonResponse: String,
     ) {
         val revurderingServiceMock = mock<RevurderingService> {
             on { iverksett(any(), any()) } doReturn error.left()
         }
 
-        withTestApplication({
-            testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
-        }) {
+        withTestApplication(
+            {
+                testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
+            },
+        ) {
             defaultRequest(
                 HttpMethod.Post,
                 "$requestPath/$revurderingId/iverksett",
-                listOf(Brukerrolle.Attestant)
+                listOf(Brukerrolle.Attestant),
             ).apply {
                 response.status() shouldBe expectedStatusCode
                 JSONAssert.assertEquals(
                     expectedJsonResponse,
                     response.content,
-                    true
+                    true,
                 )
             }
         }

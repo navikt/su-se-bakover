@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBre
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import org.junit.jupiter.api.Test
 
@@ -79,7 +80,11 @@ internal class VedtakPosgresRepoTest {
                 simulering = søknadsbehandlingVedtak.simulering,
                 attestering = Attestering.Iverksatt(søknadsbehandlingVedtak.attestant),
                 utbetalingId = søknadsbehandlingVedtak.utbetalingId,
-                fritekstTilBrev = ""
+                fritekstTilBrev = "",
+                revurderingsårsak = Revurderingsårsak(
+                    Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
+                    Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
+                ),
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 
@@ -103,8 +108,10 @@ internal class VedtakPosgresRepoTest {
     fun `hent alle aktive vedtak`() {
         withMigratedDb {
             val (søknadsbehandling, utbetaling) = testDataHelper.nyIverksattInnvilget()
-            val vedtakSomErAktivt = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling, utbetaling.id).copy(periode = Periode.create(1.februar(2021), 31.mars(2021)))
-            val vedtakUtenforAktivPeriode = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling, utbetaling.id).copy(periode = Periode.create(1.januar(2021), 31.januar(2021)))
+            val vedtakSomErAktivt = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling, utbetaling.id)
+                .copy(periode = Periode.create(1.februar(2021), 31.mars(2021)))
+            val vedtakUtenforAktivPeriode = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling, utbetaling.id)
+                .copy(periode = Periode.create(1.januar(2021), 31.januar(2021)))
             vedtakRepo.lagre(vedtakSomErAktivt)
             vedtakRepo.lagre(vedtakUtenforAktivPeriode)
 
@@ -144,15 +151,15 @@ internal class VedtakPosgresRepoTest {
                 vedtak.copy(
                     journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
                         journalpostId = JournalpostId("jp"),
-                        brevbestillingId = BrevbestillingId(("bi"))
-                    )
-                )
+                        brevbestillingId = BrevbestillingId(("bi")),
+                    ),
+                ),
             )
             vedtakRepo.hent(vedtak.id)!! shouldBe vedtak.copy(
                 journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
                     journalpostId = JournalpostId("jp"),
-                    brevbestillingId = BrevbestillingId(("bi"))
-                )
+                    brevbestillingId = BrevbestillingId(("bi")),
+                ),
             )
         }
 
@@ -163,15 +170,15 @@ internal class VedtakPosgresRepoTest {
                 vedtak.copy(
                     journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
                         journalpostId = JournalpostId("jp"),
-                        brevbestillingId = BrevbestillingId(("bi"))
-                    )
-                )
+                        brevbestillingId = BrevbestillingId(("bi")),
+                    ),
+                ),
             )
             vedtakRepo.hent(vedtak.id)!! shouldBe vedtak.copy(
                 journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
                     journalpostId = JournalpostId("jp"),
-                    brevbestillingId = BrevbestillingId(("bi"))
-                )
+                    brevbestillingId = BrevbestillingId(("bi")),
+                ),
             )
         }
     }
@@ -185,9 +192,9 @@ internal class VedtakPosgresRepoTest {
                 vedtak.copy(
                     journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
                         journalpostId = JournalpostId("jp"),
-                        brevbestillingId = BrevbestillingId(("bi"))
-                    )
-                )
+                        brevbestillingId = BrevbestillingId(("bi")),
+                    ),
+                ),
             )
 
             datasource.withSession { session ->
