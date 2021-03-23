@@ -635,6 +635,7 @@ internal class LagBrevRequestVisitorTest {
         LagBrevRequest.Revurdering.Inntekt(
             person = person,
             saksbehandlerNavn = saksbehandlerNavn,
+            attestantNavn = attestantNavn,
             revurdertBeregning = revurdering.beregning,
             fritekst = "Fritekst!",
             harEktefelle = false,

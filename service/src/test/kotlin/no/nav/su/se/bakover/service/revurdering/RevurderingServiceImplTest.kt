@@ -117,7 +117,7 @@ internal class RevurderingServiceImplTest {
         Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
     )
 
-    val søknadsbehandlingVedtak = Vedtak.InnvilgetStønad.fromSøknadsbehandling(
+    private val søknadsbehandlingVedtak = Vedtak.InnvilgetStønad.fromSøknadsbehandling(
         Søknadsbehandling.Iverksatt.Innvilget(
             id = mock(),
             opprettet = mock(),
@@ -846,6 +846,7 @@ internal class RevurderingServiceImplTest {
                         LagBrevRequest.Revurdering.Inntekt(
                             person = person,
                             saksbehandlerNavn = saksbehandler.navIdent,
+                            attestantNavn = "-",
                             revurdertBeregning = simulertRevurdering.beregning,
                             fritekst = "",
                             harEktefelle = false,
