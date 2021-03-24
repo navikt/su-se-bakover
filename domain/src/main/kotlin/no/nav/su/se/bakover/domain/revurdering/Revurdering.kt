@@ -355,6 +355,20 @@ data class UnderkjentRevurdering(
     fun nyOppgaveId(nyOppgaveId: OppgaveId): UnderkjentRevurdering {
         return this.copy(oppgaveId = nyOppgaveId)
     }
+
+    fun oppdater(
+        periode: Periode,
+        revurderingsårsak: Revurderingsårsak,
+    ) = OpprettetRevurdering(
+        id = id,
+        periode = periode,
+        opprettet = opprettet,
+        tilRevurdering = tilRevurdering,
+        saksbehandler = saksbehandler,
+        oppgaveId = oppgaveId,
+        fritekstTilBrev = fritekstTilBrev,
+        revurderingsårsak = revurderingsårsak,
+    )
 }
 
 /**

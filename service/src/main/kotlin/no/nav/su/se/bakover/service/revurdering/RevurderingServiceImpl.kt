@@ -63,6 +63,7 @@ internal class RevurderingServiceImpl(
     override fun opprettRevurdering(
         opprettRevurderingRequest: OpprettRevurderingRequest,
     ): Either<KunneIkkeOppretteRevurdering, Revurdering> {
+        Thread.sleep(2000)
         val revurderingsårsak = opprettRevurderingRequest.revurderingsårsak.getOrHandle {
             return when (it) {
                 Revurderingsårsak.UgyldigRevurderingsårsak.UgyldigBegrunnelse -> KunneIkkeOppretteRevurdering.UgyldigBegrunnelse
@@ -127,7 +128,7 @@ internal class RevurderingServiceImpl(
     override fun oppdaterRevurderingsperiode(
         oppdaterRevurderingRequest: OppdaterRevurderingRequest,
     ): Either<KunneIkkeOppdatereRevurderingsperiode, OpprettetRevurdering> {
-
+        Thread.sleep(2000)
         val revurderingsårsak = oppdaterRevurderingRequest.revurderingsårsak.getOrHandle {
             return when (it) {
                 Revurderingsårsak.UgyldigRevurderingsårsak.UgyldigBegrunnelse -> KunneIkkeOppdatereRevurderingsperiode.UgyldigBegrunnelse
@@ -151,6 +152,7 @@ internal class RevurderingServiceImpl(
             is OpprettetRevurdering -> revurdering.oppdater(nyPeriode, revurderingsårsak).right()
             is BeregnetRevurdering -> revurdering.oppdater(nyPeriode, revurderingsårsak).right()
             is SimulertRevurdering -> revurdering.oppdater(nyPeriode, revurderingsårsak).right()
+            is UnderkjentRevurdering -> revurdering.oppdater(nyPeriode, revurderingsårsak).right()
             else -> KunneIkkeOppdatereRevurderingsperiode.UgyldigTilstand(
                 revurdering::class,
                 OpprettetRevurdering::class,
@@ -209,6 +211,7 @@ internal class RevurderingServiceImpl(
         saksbehandler: NavIdentBruker.Saksbehandler,
         fritekstTilBrev: String,
     ): Either<KunneIkkeSendeRevurderingTilAttestering, Revurdering> {
+        Thread.sleep(2000)
         val revurdering = revurderingRepo.hent(revurderingId)
             ?: return KunneIkkeSendeRevurderingTilAttestering.FantIkkeRevurdering.left()
 
