@@ -347,7 +347,7 @@ internal class SøknadsbehandlingServiceImpl(
                                 .mapLeft {
                                     log.error("Distribusjon av brev for vedtakId: ${journalførtVedtak.id} feilet. Må ryddes opp manuelt.")
                                 }
-                            ferdigstillVedtakService.lukkOppgave(journalførtVedtak)
+                            ferdigstillVedtakService.lukkOppgaveMedBruker(journalførtVedtak)
                                 .mapLeft {
                                     log.error("Lukking av oppgave for behandlingId: ${journalførtVedtak.behandling.oppgaveId} feilet. Må ryddes opp manuelt.")
                                 }

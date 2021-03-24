@@ -316,7 +316,7 @@ open class AccessCheckProxy(
                 override fun distribuerOgLagre(vedtak: Vedtak): Either<FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeDistribuereBrev, Vedtak> =
                     kastKanKunKallesFraAnnenService()
 
-                override fun lukkOppgave(vedtak: Vedtak): Either<FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Vedtak> =
+                override fun lukkOppgaveMedBruker(vedtak: Vedtak): Either<FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Vedtak> =
                     kastKanKunKallesFraAnnenService()
             },
             revurdering = object : RevurderingService {

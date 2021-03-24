@@ -316,7 +316,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             }.whenever(mock).distribuerOgLagre(any())
             doAnswer {
                 (it.arguments[0] as Vedtak.AvslåttStønad.MedBeregning).right()
-            }.whenever(mock).lukkOppgave(any())
+            }.whenever(mock).lukkOppgaveMedBruker(any())
         }
 
         val vedtakRepoMock = mock<VedtakRepo>()
@@ -365,7 +365,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             verify(opprettVedtakssnapshotService).opprettVedtak(any())
             verify(behandlingMetricsMock).incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
             verify(ferdigstillVedtakService).distribuerOgLagre(any())
-            verify(ferdigstillVedtakService).lukkOppgave(any())
+            verify(ferdigstillVedtakService).lukkOppgaveMedBruker(any())
             verify(statistikkObserver).handle(
                 argThat {
                     it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(expectedAvslag)

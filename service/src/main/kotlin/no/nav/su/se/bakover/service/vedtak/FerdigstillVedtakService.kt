@@ -16,6 +16,8 @@ import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBre
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.KunneIkkeJournalføreOgDistribuereBrev
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppgave.KunneIkkeLukkeOppgave
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.domain.visitor.Visitable
@@ -32,7 +34,9 @@ interface FerdigstillVedtakService {
     fun opprettManglendeJournalposterOgBrevbestillinger(): OpprettManglendeJournalpostOgBrevdistribusjonResultat
     fun journalførOgLagre(vedtak: Vedtak): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeJournalføreBrev, Vedtak>
     fun distribuerOgLagre(vedtak: Vedtak): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeDistribuereBrev, Vedtak>
-    fun lukkOppgave(vedtak: Vedtak): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Vedtak>
+    fun lukkOppgaveMedBruker(
+        vedtak: Vedtak,
+    ): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Vedtak>
 
     sealed class KunneIkkeFerdigstilleVedtak {
 
@@ -204,7 +208,7 @@ internal class FerdigstillVedtakServiceImpl(
             }
         }
 
-        lukkOppgave(distribuertVedtak)
+        lukkOppgaveMedSystembruker(distribuertVedtak)
 
         return distribuertVedtak.right()
     }
@@ -290,8 +294,23 @@ internal class FerdigstillVedtakServiceImpl(
             .map { it.displayName }
     }
 
-    override fun lukkOppgave(vedtak: Vedtak): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Vedtak> {
-        return oppgaveService.lukkOppgave(vedtak.behandling.oppgaveId)
+    private fun lukkOppgaveMedSystembruker(vedtak: Vedtak): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Vedtak> {
+        return lukkOppgaveMedBruker(vedtak) {
+            oppgaveService.lukkOppgaveMedSystembruker(it)
+        }
+    }
+
+    override fun lukkOppgaveMedBruker(vedtak: Vedtak): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Vedtak> {
+        return lukkOppgaveMedBruker(vedtak) {
+            oppgaveService.lukkOppgave(it)
+        }
+    }
+
+    private fun lukkOppgaveMedBruker(
+        vedtak: Vedtak,
+        lukkOppgave: (oppgaveId: OppgaveId) -> Either<KunneIkkeLukkeOppgave, Unit>,
+    ): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Vedtak> {
+        return lukkOppgave(vedtak.behandling.oppgaveId)
             .mapLeft {
                 log.error("Kunne ikke lukke oppgave: ${vedtak.behandling.oppgaveId} for behandling: ${vedtak.behandling.id}")
                 KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave

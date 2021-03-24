@@ -299,7 +299,7 @@ internal class FerdigstillVedtakServiceImplTest {
         }
 
         val oppgaveServiceMock = mock<OppgaveService>() {
-            on { lukkOppgave(any()) } doReturn Unit.right()
+            on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
         }
 
         val behandlingMetricsMock = mock<BehandlingMetrics>()
@@ -327,7 +327,7 @@ internal class FerdigstillVedtakServiceImplTest {
             verify(brevServiceMock, never()).journalførBrev(any(), any())
             verify(brevServiceMock).distribuerBrev(iverksattJournalpostId)
             verify(behandlingMetricsMock).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.DISTRIBUERT_BREV)
-            verify(oppgaveServiceMock).lukkOppgave(vedtak.behandling.oppgaveId)
+            verify(oppgaveServiceMock).lukkOppgaveMedSystembruker(vedtak.behandling.oppgaveId)
             verify(behandlingMetricsMock).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.LUKKET_OPPGAVE)
         }
     }
@@ -351,7 +351,7 @@ internal class FerdigstillVedtakServiceImplTest {
         }
 
         val oppgaveServiceMock = mock<OppgaveService>() {
-            on { lukkOppgave(any()) } doReturn Unit.right()
+            on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
         }
 
         val behandlingMetricsMock = mock<BehandlingMetrics>()
@@ -378,7 +378,7 @@ internal class FerdigstillVedtakServiceImplTest {
             verify(microsoftGraphApiOppslagMock, times(2)).hentBrukerinformasjonForNavIdent(any())
             verify(brevServiceMock, never()).journalførBrev(any(), any())
             verify(brevServiceMock, never()).distribuerBrev(any())
-            verify(oppgaveServiceMock).lukkOppgave(vedtak.behandling.oppgaveId)
+            verify(oppgaveServiceMock).lukkOppgaveMedSystembruker(vedtak.behandling.oppgaveId)
             verify(vedtakRepoMock, never()).lagre(any())
             verify(behandlingMetricsMock).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.LUKKET_OPPGAVE)
             verifyNoMoreInteractions(behandlingMetricsMock)
@@ -410,7 +410,7 @@ internal class FerdigstillVedtakServiceImplTest {
         }
 
         val oppgaveServiceMock = mock<OppgaveService>() {
-            on { lukkOppgave(any()) } doReturn Unit.right()
+            on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
         }
 
         val behandlingMetricsMock = mock<BehandlingMetrics>()
@@ -451,7 +451,7 @@ internal class FerdigstillVedtakServiceImplTest {
             verify(behandlingMetricsMock).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.JOURNALFØRT)
             verify(brevServiceMock).distribuerBrev(iverksattJournalpostId)
             verify(behandlingMetricsMock).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.DISTRIBUERT_BREV)
-            verify(oppgaveServiceMock).lukkOppgave(vedtak.behandling.oppgaveId)
+            verify(oppgaveServiceMock).lukkOppgaveMedSystembruker(vedtak.behandling.oppgaveId)
             verify(behandlingMetricsMock).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.LUKKET_OPPGAVE)
         }
     }
@@ -622,7 +622,7 @@ internal class FerdigstillVedtakServiceImplTest {
         val response = createService(
             oppgaveService = oppgaveServiceMock,
             behandlingMetrics = behandlingMetricsMock
-        ).lukkOppgave(vedtak)
+        ).lukkOppgaveMedBruker(vedtak)
 
         response shouldBe FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave.left()
 
