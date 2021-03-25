@@ -7,6 +7,7 @@ import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
+import com.nhaarman.mockitokotlin2.times
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.shouldBe
@@ -631,7 +632,6 @@ internal class RevurderingServiceImplTest {
             beregning = TestBeregning,
             simulering = testsimulering,
             attestering = Attestering.Iverksatt(attestant),
-            utbetalingId = utbetalingId,
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
         )
@@ -677,7 +677,7 @@ internal class RevurderingServiceImplTest {
                 beregning = argThat { it shouldBe revurderingTilAttestering.beregning },
                 simulering = argThat { it shouldBe revurderingTilAttestering.simulering },
             )
-            verify(utbetalingMock).id
+            verify(utbetalingMock, times(2)).id
             verify(revurderingRepoMock).lagre(argThat { it shouldBe iverksattRevurdering })
             verify(eventObserver).handle(
                 argThat {

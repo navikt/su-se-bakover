@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.web.routes.revurdering
 import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.januar
@@ -332,7 +331,6 @@ internal class RevurderingJsonTest {
             beregning = beregning,
             simulering = mock(),
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
-            utbetalingId = UUID30.randomUUID(),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
         )

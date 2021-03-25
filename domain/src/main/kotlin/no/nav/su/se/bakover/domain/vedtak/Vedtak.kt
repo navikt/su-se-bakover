@@ -58,7 +58,7 @@ sealed class Vedtak : Visitable<VedtakVisitor> {
                 journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
             )
 
-            fun fromRevurdering(revurdering: IverksattRevurdering) = InnvilgetStønad(
+            fun fromRevurdering(revurdering: IverksattRevurdering, utbetalingId: UUID30) = InnvilgetStønad(
                 behandling = revurdering,
                 behandlingsinformasjon = revurdering.tilRevurdering.behandlingsinformasjon,
                 periode = revurdering.beregning.getPeriode(),
@@ -66,7 +66,7 @@ sealed class Vedtak : Visitable<VedtakVisitor> {
                 simulering = revurdering.simulering,
                 saksbehandler = revurdering.saksbehandler,
                 attestant = revurdering.attestering.attestant,
-                utbetalingId = revurdering.utbetalingId,
+                utbetalingId = utbetalingId,
                 journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
             )
         }

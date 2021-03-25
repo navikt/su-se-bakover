@@ -610,7 +610,6 @@ internal class LagBrevRequestVisitorTest {
             beregning = innvilgetBeregning,
             simulering = simulering,
             attestering = Attestering.Iverksatt(attestant),
-            utbetalingId = UUID30.randomUUID(),
             fritekstTilBrev = "",
             revurderingsårsak = Revurderingsårsak(
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
@@ -618,7 +617,7 @@ internal class LagBrevRequestVisitorTest {
             ),
         )
 
-        val avslåttVedtak = Vedtak.InnvilgetStønad.fromRevurdering(revurdering)
+        val avslåttVedtak = Vedtak.InnvilgetStønad.fromRevurdering(revurdering, utbetalingId)
 
         val brevRevurdering = LagBrevRequestVisitor(
             hentPerson = { person.right() },

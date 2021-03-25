@@ -79,7 +79,6 @@ internal class VedtakPosgresRepoTest {
                 beregning = søknadsbehandlingVedtak.beregning,
                 simulering = søknadsbehandlingVedtak.simulering,
                 attestering = Attestering.Iverksatt(søknadsbehandlingVedtak.attestant),
-                utbetalingId = søknadsbehandlingVedtak.utbetalingId,
                 fritekstTilBrev = "",
                 revurderingsårsak = Revurderingsårsak(
                     Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
@@ -88,7 +87,7 @@ internal class VedtakPosgresRepoTest {
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 
-            val revurderingVedtak = Vedtak.InnvilgetStønad.fromRevurdering(iverksattRevurdering)
+            val revurderingVedtak = Vedtak.InnvilgetStønad.fromRevurdering(iverksattRevurdering, søknadsbehandlingVedtak.utbetalingId)
 
             vedtakRepo.lagre(revurderingVedtak)
 

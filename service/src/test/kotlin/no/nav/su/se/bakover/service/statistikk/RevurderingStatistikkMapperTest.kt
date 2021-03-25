@@ -4,7 +4,6 @@ import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfDay
@@ -111,7 +110,6 @@ internal class RevurderingStatistikkMapperTest {
             },
             simulering = mock(),
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant(navIdent = "2")),
-            utbetalingId = UUID30.randomUUID(),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
         )

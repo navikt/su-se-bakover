@@ -416,7 +416,6 @@ internal class OpprettRevurderingServiceTest {
                 beregning = opprinneligVedtak.beregning,
                 simulering = opprinneligVedtak.simulering,
                 attestering = Attestering.Iverksatt(opprinneligVedtak.attestant),
-                utbetalingId = opprinneligVedtak.utbetalingId,
                 fritekstTilBrev = "",
                 revurderingsårsak = revurderingsårsak,
             )
@@ -425,7 +424,7 @@ internal class OpprettRevurderingServiceTest {
                     revurdering,
                 ),
                 vedtakListe = it.vedtakListe.plus(
-                    Vedtak.InnvilgetStønad.fromRevurdering(revurdering),
+                    Vedtak.InnvilgetStønad.fromRevurdering(revurdering, opprinneligVedtak.utbetalingId),
                 ),
             )
         }
