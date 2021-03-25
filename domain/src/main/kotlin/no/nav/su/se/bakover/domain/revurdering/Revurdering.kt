@@ -271,7 +271,6 @@ data class RevurderingTilAttestering(
                 beregning = beregning,
                 simulering = simulering,
                 attestering = Attestering.Iverksatt(attestant),
-                utbetalingId = it,
                 fritekstTilBrev = fritekstTilBrev,
                 revurderingsårsak = revurderingsårsak,
             )
@@ -310,7 +309,6 @@ data class IverksattRevurdering(
     val beregning: Beregning,
     val simulering: Simulering,
     val attestering: Attestering.Iverksatt,
-    val utbetalingId: UUID30,
 ) : Revurdering() {
     override fun accept(visitor: RevurderingVisitor) {
         visitor.visit(this)

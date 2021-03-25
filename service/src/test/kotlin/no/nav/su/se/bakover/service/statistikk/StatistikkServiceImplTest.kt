@@ -8,7 +8,6 @@ import com.nhaarman.mockitokotlin2.verify
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.endOfDay
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
@@ -543,7 +542,6 @@ internal class StatistikkServiceImplTest {
                 periodeList = listOf(),
             ),
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
-            utbetalingId = UUID30.randomUUID(),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
         )
