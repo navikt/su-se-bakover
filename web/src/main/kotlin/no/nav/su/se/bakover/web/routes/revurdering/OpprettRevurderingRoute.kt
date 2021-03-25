@@ -15,9 +15,7 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering.FantIkkeAktørId
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering.FantIkkeSak
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering.FantIngentingSomKanRevurderes
-import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering.KanIkkeRevurdereEnPeriodeMedEksisterendeRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering.KanIkkeRevurdereInneværendeMånedEllerTidligere
-import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering.KanIkkeRevurderePerioderMedFlereAktiveStønadsperioder
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering.UgyldigBegrunnelse
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering.UgyldigPeriode
@@ -88,16 +86,6 @@ private fun KunneIkkeOppretteRevurdering.tilResultat(): Resultat {
             // TODO jah: På sikt vil vi kunne revurdere tilbake i tid også.
             "Revurdering kan kun gjøres fra og med neste kalendermåned",
             "tidligest_neste_måned",
-        )
-        is KanIkkeRevurderePerioderMedFlereAktiveStønadsperioder -> BadRequest.errorJson(
-            // TODO AI 03-02-2020: Midlertidig løsning. På sikt vil vi støtte flere aktive stønadsperioder og denne feilmeldingen forsvinner.
-            "Revurderingsperioden kan ikke overlappe flere aktive stønadsperioder",
-            "flere_aktive_stønadsperioder",
-        )
-        is KanIkkeRevurdereEnPeriodeMedEksisterendeRevurdering -> BadRequest.errorJson(
-            // TODO AI: Midlertidig løsning. På sikt vil vi støtte å revurdere en revurdering.
-            "Kan ikke revurdere en behandling som allerede har en eksisterende revurdering",
-            "finnes_en_eksisterende_revurdering",
         )
         is UgyldigBegrunnelse -> BadRequest.errorJson(
             "Begrunnelse kan ikke være tom",

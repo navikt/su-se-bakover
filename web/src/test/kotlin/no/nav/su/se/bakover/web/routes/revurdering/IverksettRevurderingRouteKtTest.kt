@@ -157,20 +157,6 @@ internal class IverksettRevurderingRouteKtTest {
     }
 
     @Test
-    fun `kunne ikke journalføre brev`() {
-        shouldMapErrorCorrectly(
-            error = KunneIkkeIverksetteRevurdering.KunneIkkeJournalføreBrev,
-            expectedStatusCode = HttpStatusCode.InternalServerError,
-            expectedJsonResponse = """
-                {
-                    "message":"Feil ved journalføring av vedtaksbrev",
-                    "code":"kunne_ikke_journalføre_brev"
-                }
-            """.trimIndent(),
-        )
-    }
-
-    @Test
     fun `kunne ikke kontrollsimulere`() {
         shouldMapErrorCorrectly(
             error = KunneIkkeIverksetteRevurdering.KunneIkkeKontrollsimulere,
@@ -193,20 +179,6 @@ internal class IverksettRevurderingRouteKtTest {
                 {
                     "message":"Kunne ikke utføre utbetaling",
                     "code":"kunne_ikke_utbetale"
-                }
-            """.trimIndent(),
-        )
-    }
-
-    @Test
-    fun `simulering har blitt endret siden saksbehandler simulerte`() {
-        shouldMapErrorCorrectly(
-            error = KunneIkkeIverksetteRevurdering.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte,
-            expectedStatusCode = HttpStatusCode.InternalServerError,
-            expectedJsonResponse = """
-                {
-                    "message":"Oppdaget inkonsistens mellom tidligere utført simulering og kontrollsimulering. Ny simulering må utføres og kontrolleres før iverksetting kan gjennomføres",
-                    "code":"simulering_har_blitt_endret_siden_saksbehandler_simulerte"
                 }
             """.trimIndent(),
         )

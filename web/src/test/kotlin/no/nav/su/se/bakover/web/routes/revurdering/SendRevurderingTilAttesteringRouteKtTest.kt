@@ -13,7 +13,6 @@ import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -112,22 +111,6 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
                 actualResponse.status shouldBe RevurderingsStatus.TIL_ATTESTERING
             }
         }
-    }
-
-    @Test
-    fun `ugyldig fraOgMed dato`() {
-        shouldMapErrorCorrectly(
-            error = KunneIkkeSendeRevurderingTilAttestering.UgyldigPeriode(
-                Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden,
-            ),
-            expectedStatusCode = HttpStatusCode.BadRequest,
-            expectedJsonResponse = """
-                {
-                    "message":"FraOgMedDatoMåVæreFørsteDagIMåneden",
-                    "code":"ugyldig_periode"
-                }
-            """.trimIndent(),
-        )
     }
 
     @Test

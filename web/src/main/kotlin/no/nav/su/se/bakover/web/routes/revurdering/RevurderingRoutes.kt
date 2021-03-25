@@ -19,9 +19,9 @@ internal fun Route.revurderingRoutes(
 
     sendRevurderingTilAttestering(revurderingService)
 
+    underkjennRevurdering(revurderingService)
+
     iverksettRevurderingRoute(revurderingService)
 
     brevutkastForRevurdering(revurderingService)
-
-    underkjennRevurdering(revurderingService)
 }

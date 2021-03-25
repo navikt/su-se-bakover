@@ -17,12 +17,13 @@ import java.time.LocalDate
 import kotlin.math.roundToInt
 
 object SimuleringStub : SimuleringClient {
-    override fun simulerUtbetaling(utbetaling: Utbetaling): Either<SimuleringFeilet, Simulering> =
-        when (utbetaling.type) {
+    override fun simulerUtbetaling(utbetaling: Utbetaling): Either<SimuleringFeilet, Simulering> {
+        return when (utbetaling.type) {
             Utbetaling.UtbetalingsType.NY -> simulerNyUtbetaling(utbetaling, utbetaling.saksnummer).right()
             Utbetaling.UtbetalingsType.STANS -> simulerStans(utbetaling).right()
             Utbetaling.UtbetalingsType.GJENOPPTA -> simulerNyUtbetaling(utbetaling, utbetaling.saksnummer).right()
         }
+    }
 
     private fun simulerNyUtbetaling(utbetaling: Utbetaling, saksnummer: Saksnummer): Simulering {
         val perioder = utbetaling.utbetalingslinjer.flatMap { utbetalingslinje ->
