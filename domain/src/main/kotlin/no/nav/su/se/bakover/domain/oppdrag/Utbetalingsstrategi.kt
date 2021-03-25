@@ -47,16 +47,16 @@ sealed class Utbetalingsstrategi {
                 saksnummer = saksnummer,
                 fnr = fnr,
                 utbetalingslinjer = listOf(
-                    Utbetalingslinje(
+                    Utbetalingslinje.Ny(
                         fraOgMed = stansesFraOgMed,
                         tilOgMed = stansesTilOgMed,
                         forrigeUtbetalingslinjeId = sisteOversendteUtbetalingslinje.id,
-                        beløp = 0
-                    )
+                        beløp = 0,
+                    ),
                 ),
                 type = Utbetaling.UtbetalingsType.STANS,
                 behandler = behandler,
-                avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(clock))
+                avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(clock)),
             )
         }
     }
@@ -75,11 +75,11 @@ sealed class Utbetalingsstrategi {
                 sakId = sakId,
                 saksnummer = saksnummer,
                 utbetalingslinjer = createUtbetalingsperioder(beregning).map {
-                    Utbetalingslinje(
+                    Utbetalingslinje.Ny(
                         fraOgMed = it.fraOgMed,
                         tilOgMed = it.tilOgMed,
                         forrigeUtbetalingslinjeId = sisteOversendteUtbetaling()?.sisteUtbetalingslinje()?.id,
-                        beløp = it.beløp
+                        beløp = it.beløp,
                     )
                 }.also {
                     it.zipWithNext { a, b -> b.link(a) }
@@ -97,9 +97,48 @@ sealed class Utbetalingsstrategi {
                     Utbetalingsperiode(
                         fraOgMed = it.getPeriode().getFraOgMed(),
                         tilOgMed = it.getPeriode().getTilOgMed(),
-                        beløp = it.getSumYtelse()
+                        beløp = it.getSumYtelse(),
                     )
                 }
+    }
+
+    data class Opphør(
+        override val sakId: UUID,
+        override val saksnummer: Saksnummer,
+        override val fnr: Fnr,
+        override val utbetalinger: List<Utbetaling>,
+        override val behandler: NavIdentBruker,
+        val opphørsDato: LocalDate,
+        val clock: Clock,
+    ) : Utbetalingsstrategi() {
+        override fun generate(): Utbetaling.UtbetalingForSimulering {
+            val sisteUtbetalingslinje = sisteOversendteUtbetaling()?.sisteUtbetalingslinje().let {
+                validate(it is Utbetalingslinje) { "Sak: $sakId har ingen utbetalinger som kan opphøres" }
+                it!!.let { sisteUtbetalingslinje ->
+                    validate(opphørsDato.isAfter(LocalDate.now(clock))) { "Støtter kun opphør framover i tid" }
+                    validate(opphørsDato.isBefore(sisteUtbetalingslinje.tilOgMed)) { "Dato for opphør må være tidligere enn tilOgMed for siste utbetalingslinje" }
+                }
+                it
+            }
+
+            return Utbetaling.UtbetalingForSimulering(
+                sakId = sakId,
+                saksnummer = saksnummer,
+                utbetalingslinjer = listOf(
+                    Utbetalingslinje.Endring(
+                        utbetalingslinje = sisteUtbetalingslinje,
+                        statusendring = Utbetalingslinje.Statusendring(
+                            status = Utbetalingslinje.LinjeStatus.OPPHØRT,
+                            fraOgMed = opphørsDato,
+                        ),
+                    ),
+                ),
+                fnr = fnr,
+                type = Utbetaling.UtbetalingsType.OPPHØR,
+                behandler = behandler,
+                avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(clock)),
+            )
+        }
     }
 
     data class Gjenoppta(
@@ -125,7 +164,7 @@ sealed class Utbetalingsstrategi {
             val stansetEllerDelvisStansetUtbetalingslinjer = utbetalinger.hentOversendteUtbetalingerUtenFeil()
                 .subList(
                     startIndeks,
-                    utbetalinger.hentOversendteUtbetalingerUtenFeil().size - 1
+                    utbetalinger.hentOversendteUtbetalingerUtenFeil().size - 1,
                 ) // Ekskluderer den siste stopp-utbetalingen
                 .flatMap {
                     it.utbetalingslinjer
@@ -133,10 +172,10 @@ sealed class Utbetalingsstrategi {
                     // Merk: En utbetalingslinje kan være delvis stanset.
                     it.fraOgMed.between(
                         stansetFraOgMed,
-                        stansetTilOgMed
+                        stansetTilOgMed,
                     ) || it.tilOgMed.between(
                         stansetFraOgMed,
-                        stansetTilOgMed
+                        stansetTilOgMed,
                     )
                 }
 
@@ -150,18 +189,18 @@ sealed class Utbetalingsstrategi {
                 saksnummer = saksnummer,
                 utbetalingslinjer = stansetEllerDelvisStansetUtbetalingslinjer.fold(listOf()) { acc, utbetalingslinje ->
                     (
-                        acc + Utbetalingslinje(
+                        acc + Utbetalingslinje.Ny(
                             fraOgMed = maxOf(stansetFraOgMed, utbetalingslinje.fraOgMed),
                             tilOgMed = utbetalingslinje.tilOgMed,
                             forrigeUtbetalingslinjeId = acc.lastOrNull()?.id ?: sisteOversendteUtbetalingslinje.id,
-                            beløp = utbetalingslinje.beløp
+                            beløp = utbetalingslinje.beløp,
                         )
                         )
                 },
                 fnr = fnr,
                 type = Utbetaling.UtbetalingsType.GJENOPPTA,
                 behandler = behandler,
-                avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(clock))
+                avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(clock)),
             )
         }
     }

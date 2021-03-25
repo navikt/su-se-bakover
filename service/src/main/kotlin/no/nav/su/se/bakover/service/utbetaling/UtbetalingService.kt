@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
+import java.time.LocalDate
 import java.util.UUID
 
 interface UtbetalingService {
@@ -23,6 +24,12 @@ interface UtbetalingService {
         sakId: UUID,
         saksbehandler: NavIdentBruker,
         beregning: Beregning
+    ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>
+
+    fun simulerOpphør(
+        sakId: UUID,
+        saksbehandler: NavIdentBruker,
+        opphørsdato: LocalDate
     ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling>
 
     fun utbetal(

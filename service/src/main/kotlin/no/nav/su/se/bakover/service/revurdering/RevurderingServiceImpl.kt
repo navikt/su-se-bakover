@@ -182,11 +182,25 @@ internal class RevurderingServiceImpl(
                         revurderingRepo.lagre(beregnetRevurdering)
                         beregnetRevurdering.right()
                     }
-                    is BeregnetRevurdering.Innvilget, is BeregnetRevurdering.Opphørt -> {
+                    is BeregnetRevurdering.Innvilget -> {
                         utbetalingService.simulerUtbetaling(
                             sakId = beregnetRevurdering.sakId,
                             saksbehandler = saksbehandler,
                             beregning = beregnetRevurdering.beregning
+                        ).mapLeft {
+                            KunneIkkeBeregneOgSimulereRevurdering.SimuleringFeilet
+                        }.map {
+                            val simulert = beregnetRevurdering.toSimulert(it.simulering)
+                            revurderingRepo.lagre(simulert)
+                            simulert
+                        }
+                    }
+                    // TODO ARYAN OG RAMZI
+                    is BeregnetRevurdering.Opphørt -> {
+                        utbetalingService.simulerOpphør(
+                            sakId = beregnetRevurdering.sakId,
+                            saksbehandler = saksbehandler,
+                            opphørsdato = beregnetRevurdering.beregning.getPeriode().getFraOgMed()
                         ).mapLeft {
                             KunneIkkeBeregneOgSimulereRevurdering.SimuleringFeilet
                         }.map {

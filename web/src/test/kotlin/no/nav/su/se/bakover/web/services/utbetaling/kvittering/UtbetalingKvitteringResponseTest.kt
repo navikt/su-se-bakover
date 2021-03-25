@@ -60,7 +60,9 @@ internal class UtbetalingKvitteringResponseTest {
                         utbetalesTilId = "18127621833",
                         refDelytelseId = null,
                         refFagsystemId = null,
-                        attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant("A123456"))
+                        attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant("A123456")),
+                        datoStatusFom = null,
+                        kodeStatusLinje = null
                     )
                 )
             )

@@ -141,6 +141,7 @@ sealed class Utbetaling {
         NY,
         STANS,
         GJENOPPTA,
+        OPPHØR,
     }
 
     companion object {

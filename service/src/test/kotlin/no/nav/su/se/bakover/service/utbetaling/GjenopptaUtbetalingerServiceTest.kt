@@ -73,7 +73,7 @@ internal class GjenopptaUtbetalingerServiceTest {
 
     private val førsteUtbetalingslinjeId = UUID30.randomUUID()
 
-    private val førsteUtbetalingslinje = Utbetalingslinje(
+    private val førsteUtbetalingslinje = Utbetalingslinje.Ny(
         id = førsteUtbetalingslinjeId,
         opprettet = Tidspunkt.EPOCH,
         fraOgMed = 1.januar(2020),
@@ -97,7 +97,7 @@ internal class GjenopptaUtbetalingerServiceTest {
             oversendtUtbetaling.copy(
                 type = Utbetaling.UtbetalingsType.STANS,
                 utbetalingslinjer = listOf(
-                    Utbetalingslinje(
+                    Utbetalingslinje.Ny(
                         id = andreUtbetalingslinjeId,
                         opprettet = Tidspunkt.EPOCH,
                         fraOgMed = 1.januar(2020),

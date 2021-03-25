@@ -75,7 +75,7 @@ internal class UtbetalingTest {
         tilOgMed: LocalDate = 31.desember(2020),
         beløp: Int = 500,
         forrigeUtbetalingslinjeId: UUID30? = null
-    ) = Utbetalingslinje(
+    ) = Utbetalingslinje.Ny(
         fraOgMed = fraOgMed,
         tilOgMed = tilOgMed,
         beløp = beløp,

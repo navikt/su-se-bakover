@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
 import no.nav.su.se.bakover.service.sak.SakService
 import org.slf4j.LoggerFactory
 import java.time.Clock
+import java.time.LocalDate
 import java.util.UUID
 
 internal class UtbetalingServiceImpl(
@@ -75,6 +76,21 @@ internal class UtbetalingServiceImpl(
             ) return KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
             utbetal(simulertUtbetaling)
         }
+    }
+
+    override fun simulerOpphør(sakId: UUID, saksbehandler: NavIdentBruker, opphørsdato: LocalDate): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
+        val sak: Sak = sakService.hentSak(sakId).orNull()!!
+        return simulerUtbetaling(
+            Utbetalingsstrategi.Opphør(
+                sakId = sak.id,
+                saksnummer = sak.saksnummer,
+                fnr = sak.fnr,
+                utbetalinger = sak.utbetalinger,
+                behandler = saksbehandler,
+                opphørsDato = opphørsdato,
+                clock = clock,
+            ).generate()
+        )
     }
 
     /**

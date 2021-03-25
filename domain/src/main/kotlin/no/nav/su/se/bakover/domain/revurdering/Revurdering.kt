@@ -13,8 +13,10 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.behandling.AvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
@@ -61,30 +63,50 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
             return KunneIkkeBeregneRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden.left()
         }
 
-        return if (endringerAvUtbetalingerErStørreEllerLik10Prosent(tilRevurdering.beregning, revurdertBeregning)) {
-            BeregnetRevurdering.Innvilget(
-                tilRevurdering = tilRevurdering,
-                id = id,
-                periode = periode,
-                opprettet = Tidspunkt.now(),
-                beregning = revurdertBeregning,
-                saksbehandler = saksbehandler,
-                oppgaveId = oppgaveId,
-                fritekstTilBrev = fritekstTilBrev,
-                revurderingsårsak = revurderingsårsak,
-            )
-        } else {
-            BeregnetRevurdering.Avslag(
-                tilRevurdering = tilRevurdering,
-                id = id,
-                periode = periode,
-                opprettet = Tidspunkt.now(),
-                beregning = revurdertBeregning,
-                saksbehandler = saksbehandler,
-                oppgaveId = oppgaveId,
-                fritekstTilBrev = fritekstTilBrev,
-                revurderingsårsak = revurderingsårsak,
-            )
+        return when (endringerAvUtbetalingerErStørreEllerLik10Prosent(tilRevurdering.beregning, revurdertBeregning)) {
+            true -> {
+                when (VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(revurdertBeregning)) {
+                    is AvslagGrunnetBeregning.Ja -> {
+                        BeregnetRevurdering.Opphørt(
+                            tilRevurdering = tilRevurdering,
+                            id = id,
+                            periode = periode,
+                            opprettet = Tidspunkt.now(),
+                            beregning = revurdertBeregning,
+                            saksbehandler = saksbehandler,
+                            oppgaveId = oppgaveId,
+                            fritekstTilBrev = fritekstTilBrev,
+                            revurderingsårsak = revurderingsårsak,
+                        )
+                    }
+                    AvslagGrunnetBeregning.Nei -> {
+                        BeregnetRevurdering.Innvilget(
+                            tilRevurdering = tilRevurdering,
+                            id = id,
+                            periode = periode,
+                            opprettet = Tidspunkt.now(),
+                            beregning = revurdertBeregning,
+                            saksbehandler = saksbehandler,
+                            oppgaveId = oppgaveId,
+                            fritekstTilBrev = fritekstTilBrev,
+                            revurderingsårsak = revurderingsårsak,
+                        )
+                    }
+                }
+            }
+            false -> {
+                BeregnetRevurdering.Avslag(
+                    tilRevurdering = tilRevurdering,
+                    id = id,
+                    periode = periode,
+                    opprettet = Tidspunkt.now(),
+                    beregning = revurdertBeregning,
+                    saksbehandler = saksbehandler,
+                    oppgaveId = oppgaveId,
+                    fritekstTilBrev = fritekstTilBrev,
+                    revurderingsårsak = revurderingsårsak,
+                )
+            }
         }.right()
     }
 
@@ -227,7 +249,7 @@ sealed class SimulertRevurdering : Revurdering() {
     abstract fun tilAttestering(
         attesteringsoppgaveId: OppgaveId,
         saksbehandler: Saksbehandler,
-        fritekstTilBrev: String
+        fritekstTilBrev: String,
     ): RevurderingTilAttestering
 
     data class Innvilget(
@@ -249,7 +271,7 @@ sealed class SimulertRevurdering : Revurdering() {
         override fun tilAttestering(
             attesteringsoppgaveId: OppgaveId,
             saksbehandler: Saksbehandler,
-            fritekstTilBrev: String
+            fritekstTilBrev: String,
         ) = RevurderingTilAttestering.Innvilget(
             id = id,
             periode = periode,
@@ -283,7 +305,7 @@ sealed class SimulertRevurdering : Revurdering() {
         override fun tilAttestering(
             attesteringsoppgaveId: OppgaveId,
             saksbehandler: Saksbehandler,
-            fritekstTilBrev: String
+            fritekstTilBrev: String,
         ) = RevurderingTilAttestering.Opphørt(
             id = id,
             periode = periode,
@@ -328,7 +350,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
     abstract override fun accept(visitor: RevurderingVisitor)
     abstract fun tilIverksatt(
         attestant: NavIdentBruker.Attestant,
-        utbetal: () -> Either<KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale, UUID30>
+        utbetal: () -> Either<KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale, UUID30>,
     ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering>
 
     data class Innvilget(
@@ -349,7 +371,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
 
         override fun tilIverksatt(
             attestant: NavIdentBruker.Attestant,
-            utbetal: () -> Either<KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale, UUID30>
+            utbetal: () -> Either<KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale, UUID30>,
         ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering.Innvilget> {
 
             if (saksbehandler.navIdent == attestant.navIdent) {
@@ -392,7 +414,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         // TODO: sjekk om vi skal utbetale 0 utbetalinger, eller ny status
         override fun tilIverksatt(
             attestant: NavIdentBruker.Attestant,
-            utbetal: () -> Either<KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale, UUID30>
+            utbetal: () -> Either<KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale, UUID30>,
         ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering.Opphørt> {
 
             if (saksbehandler.navIdent == attestant.navIdent) {
@@ -431,7 +453,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
 
     fun underkjenn(
         attestering: Attestering,
-        oppgaveId: OppgaveId
+        oppgaveId: OppgaveId,
     ): UnderkjentRevurdering {
         when (this) {
             is Innvilget -> return UnderkjentRevurdering.Innvilget(
@@ -521,6 +543,7 @@ sealed class IverksattRevurdering : Revurdering() {
         throw RuntimeException("Skal ikke kunne beregne når revurderingen er iverksatt")
     }
 }
+
 sealed class UnderkjentRevurdering : Revurdering() {
     abstract override val id: UUID
     abstract override val periode: Periode
@@ -537,7 +560,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
     abstract fun tilAttestering(
         oppgaveId: OppgaveId,
         saksbehandler: Saksbehandler,
-        fritekstTilBrev: String
+        fritekstTilBrev: String,
     ): RevurderingTilAttestering
 
     data class Innvilget(
@@ -560,7 +583,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override fun tilAttestering(
             oppgaveId: OppgaveId,
             saksbehandler: Saksbehandler,
-            fritekstTilBrev: String
+            fritekstTilBrev: String,
         ) = RevurderingTilAttestering.Innvilget(
             id = id,
             periode = periode,
@@ -595,7 +618,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override fun tilAttestering(
             oppgaveId: OppgaveId,
             saksbehandler: Saksbehandler,
-            fritekstTilBrev: String
+            fritekstTilBrev: String,
         ) = RevurderingTilAttestering.Opphørt(
             id = id,
             periode = periode,

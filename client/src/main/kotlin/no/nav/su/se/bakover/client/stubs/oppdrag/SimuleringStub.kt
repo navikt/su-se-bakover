@@ -20,8 +20,9 @@ object SimuleringStub : SimuleringClient {
     override fun simulerUtbetaling(utbetaling: Utbetaling): Either<SimuleringFeilet, Simulering> {
         return when (utbetaling.type) {
             Utbetaling.UtbetalingsType.NY -> simulerNyUtbetaling(utbetaling, utbetaling.saksnummer).right()
-            Utbetaling.UtbetalingsType.STANS -> simulerStans(utbetaling).right()
+            Utbetaling.UtbetalingsType.STANS -> simulerIngenUtbetaling(utbetaling).right()
             Utbetaling.UtbetalingsType.GJENOPPTA -> simulerNyUtbetaling(utbetaling, utbetaling.saksnummer).right()
+            Utbetaling.UtbetalingsType.OPPHØR -> simulerIngenUtbetaling(utbetaling).right()
         }
     }
 
@@ -69,7 +70,7 @@ object SimuleringStub : SimuleringClient {
                 .sumBy { it.belop }
         }
 
-    private fun simulerStans(utbetaling: Utbetaling): Simulering {
+    private fun simulerIngenUtbetaling(utbetaling: Utbetaling): Simulering {
         return Simulering(
             gjelderId = utbetaling.fnr,
             gjelderNavn = "MYGG LUR",
