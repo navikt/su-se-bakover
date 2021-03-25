@@ -663,6 +663,7 @@ internal class BeregnRoutesKtTest {
             saksnummer = sak.saksnummer,
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             fnr = sak.fnr,
+            fritekstTilBrev = "",
         )
         repos.søknadsbehandling.lagre(
             nySøknadsbehandling

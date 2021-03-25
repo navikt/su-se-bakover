@@ -14,23 +14,14 @@ plugins {
 version = "0.0.1"
 
 allprojects {
-    val githubUser: String by project
-    val githubPassword: String by project
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "org.jlleitschuh.gradle.ktlint")
     apply(plugin = "com.github.ben-manes.versions")
     apply(plugin = "se.patrikerdes.use-latest-versions")
     repositories {
-        jcenter()
-        maven("https://dl.bintray.com/kotlin/ktor")
+        mavenCentral()
         maven("http://packages.confluent.io/maven/")
-        maven {
-            url = uri("https://maven.pkg.github.com/navikt/tjenestespesifikasjoner")
-            credentials {
-                username = githubUser
-                password = githubPassword
-            }
-        }
+        maven("https://jitpack.io")
     }
     val junitJupiterVersion = "5.7.1"
     val arrowVersion = "0.11.0"
@@ -122,7 +113,7 @@ allprojects {
     }
 
     tasks.withType<Wrapper> {
-        gradleVersion = "6.8"
+        gradleVersion = "6.8.3"
     }
 
     tasks.named("dependencyUpdates", com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask::class.java)

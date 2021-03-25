@@ -12,7 +12,6 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
@@ -86,7 +85,8 @@ class SøknadsbehandlingServiceUnderkjennTest {
         sakId = sakId,
         saksnummer = saksnummer,
         fnr = fnr,
-        oppgaveId = oppgaveId
+        oppgaveId = oppgaveId,
+        fritekstTilBrev = "",
     )
 
     private val oppgaveConfig = OppgaveConfig.Saksbehandling(
@@ -139,8 +139,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
         val behandling: Søknadsbehandling.Iverksatt.Innvilget = innvilgetBehandlingTilAttestering.tilIverksatt(
             Attestering.Iverksatt(
                 NavIdentBruker.Attestant("attestant")
-            ),
-            UUID30.randomUUID()
+            )
         )
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
@@ -349,7 +348,8 @@ class SøknadsbehandlingServiceUnderkjennTest {
             beregning = innvilgetBehandlingTilAttestering.beregning,
             simulering = innvilgetBehandlingTilAttestering.simulering,
             saksbehandler = innvilgetBehandlingTilAttestering.saksbehandler,
-            attestering = underkjentAttestering
+            attestering = underkjentAttestering,
+            fritekstTilBrev = "",
         )
 
         actual shouldBe underkjentMedNyOppgaveIdOgAttestering.right()
@@ -430,7 +430,8 @@ class SøknadsbehandlingServiceUnderkjennTest {
             beregning = innvilgetBehandlingTilAttestering.beregning,
             simulering = innvilgetBehandlingTilAttestering.simulering,
             saksbehandler = innvilgetBehandlingTilAttestering.saksbehandler,
-            attestering = underkjentAttestering
+            attestering = underkjentAttestering,
+            fritekstTilBrev = "",
         )
 
         actual shouldBe underkjentMedNyOppgaveIdOgAttestering.right()

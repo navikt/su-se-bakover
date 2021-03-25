@@ -45,7 +45,12 @@ class LagBrevRequestVisitor(
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Avslag) {
-        brevRequest = avslåttSøknadsbehandling(søknadsbehandling, søknadsbehandling.avslagsgrunner, null)
+        brevRequest = avslåttSøknadsbehandling(
+            søknadsbehandling,
+            søknadsbehandling.avslagsgrunner,
+            null,
+            søknadsbehandling.fritekstTilBrev
+        )
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Innvilget) {
@@ -54,7 +59,12 @@ class LagBrevRequestVisitor(
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Avslag) {
         brevRequest =
-            avslåttSøknadsbehandling(søknadsbehandling, søknadsbehandling.avslagsgrunner, søknadsbehandling.beregning)
+            avslåttSøknadsbehandling(
+                søknadsbehandling,
+                søknadsbehandling.avslagsgrunner,
+                søknadsbehandling.beregning,
+                søknadsbehandling.fritekstTilBrev
+            )
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Simulert) {
@@ -67,20 +77,40 @@ class LagBrevRequestVisitor(
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.MedBeregning) {
         brevRequest =
-            avslåttSøknadsbehandling(søknadsbehandling, søknadsbehandling.avslagsgrunner, søknadsbehandling.beregning)
+            avslåttSøknadsbehandling(
+                søknadsbehandling,
+                søknadsbehandling.avslagsgrunner,
+                søknadsbehandling.beregning,
+                søknadsbehandling.fritekstTilBrev
+            )
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.UtenBeregning) {
-        brevRequest = avslåttSøknadsbehandling(søknadsbehandling, søknadsbehandling.avslagsgrunner, null)
+        brevRequest = avslåttSøknadsbehandling(
+            søknadsbehandling,
+            søknadsbehandling.avslagsgrunner,
+            null,
+            søknadsbehandling.fritekstTilBrev
+        )
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Avslag.UtenBeregning) {
-        brevRequest = avslåttSøknadsbehandling(søknadsbehandling, søknadsbehandling.avslagsgrunner, null)
+        brevRequest = avslåttSøknadsbehandling(
+            søknadsbehandling,
+            søknadsbehandling.avslagsgrunner,
+            null,
+            søknadsbehandling.fritekstTilBrev
+        )
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Avslag.MedBeregning) {
         brevRequest =
-            avslåttSøknadsbehandling(søknadsbehandling, søknadsbehandling.avslagsgrunner, søknadsbehandling.beregning)
+            avslåttSøknadsbehandling(
+                søknadsbehandling,
+                søknadsbehandling.avslagsgrunner,
+                søknadsbehandling.beregning,
+                søknadsbehandling.fritekstTilBrev
+            )
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Innvilget) {
@@ -88,12 +118,22 @@ class LagBrevRequestVisitor(
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Iverksatt.Avslag.UtenBeregning) {
-        brevRequest = avslåttSøknadsbehandling(søknadsbehandling, søknadsbehandling.avslagsgrunner, null)
+        brevRequest = avslåttSøknadsbehandling(
+            søknadsbehandling,
+            søknadsbehandling.avslagsgrunner,
+            null,
+            søknadsbehandling.fritekstTilBrev
+        )
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Iverksatt.Avslag.MedBeregning) {
         brevRequest =
-            avslåttSøknadsbehandling(søknadsbehandling, søknadsbehandling.avslagsgrunner, søknadsbehandling.beregning)
+            avslåttSøknadsbehandling(
+                søknadsbehandling,
+                søknadsbehandling.avslagsgrunner,
+                søknadsbehandling.beregning,
+                søknadsbehandling.fritekstTilBrev
+            )
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget) {
@@ -180,7 +220,8 @@ class LagBrevRequestVisitor(
     private fun avslåttSøknadsbehandling(
         søknadsbehandling: Søknadsbehandling,
         avslagsgrunner: List<Avslagsgrunn>,
-        beregning: Beregning?
+        beregning: Beregning?,
+        fritekst: String
     ) =
         hentPersonOgNavn(
             fnr = søknadsbehandling.fnr,
@@ -198,6 +239,7 @@ class LagBrevRequestVisitor(
                 avslagsgrunner = avslagsgrunner,
                 behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
                 beregning = beregning,
+                fritekst = fritekst
             )
         }
 
@@ -216,7 +258,8 @@ class LagBrevRequestVisitor(
             requestForInnvilgelse(
                 personOgNavn = it,
                 behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
-                beregning = beregning
+                beregning = beregning,
+                fritekst = søknadsbehandling.fritekstTilBrev
             )
         }
 
@@ -232,9 +275,10 @@ class LagBrevRequestVisitor(
             LagBrevRequest.Revurdering.Inntekt(
                 person = it.person,
                 saksbehandlerNavn = it.saksbehandlerNavn,
+                attestantNavn = it.attestantNavn,
                 revurdertBeregning = beregning,
                 fritekst = revurdering.fritekstTilBrev,
-                harEktefelle = revurdering.tilRevurdering.behandlingsinformasjon.harEktefelle()
+                harEktefelle = revurdering.tilRevurdering.behandlingsinformasjon.harEktefelle(),
             )
         }
 
@@ -242,7 +286,8 @@ class LagBrevRequestVisitor(
         personOgNavn: PersonOgNavn,
         avslagsgrunner: List<Avslagsgrunn>,
         behandlingsinformasjon: Behandlingsinformasjon,
-        beregning: Beregning?
+        beregning: Beregning?,
+        fritekst: String
     ): AvslagBrevRequest = AvslagBrevRequest(
         person = personOgNavn.person,
         avslag = Avslag(
@@ -252,19 +297,22 @@ class LagBrevRequestVisitor(
             beregning = beregning
         ),
         saksbehandlerNavn = personOgNavn.saksbehandlerNavn,
-        attestantNavn = personOgNavn.attestantNavn
+        attestantNavn = personOgNavn.attestantNavn,
+        fritekst = fritekst
     )
 
     private fun requestForInnvilgelse(
         personOgNavn: PersonOgNavn,
         behandlingsinformasjon: Behandlingsinformasjon,
-        beregning: Beregning
+        beregning: Beregning,
+        fritekst: String
     ): LagBrevRequest.InnvilgetVedtak = LagBrevRequest.InnvilgetVedtak(
         person = personOgNavn.person,
         beregning = beregning,
         behandlingsinformasjon = behandlingsinformasjon,
         saksbehandlerNavn = personOgNavn.saksbehandlerNavn,
         attestantNavn = personOgNavn.attestantNavn,
+        fritekst = fritekst
     )
 
     private data class PersonOgNavn(
@@ -292,7 +340,14 @@ class LagBrevRequestVisitor(
             requestForInnvilgelse(
                 personOgNavn = it,
                 behandlingsinformasjon = vedtak.behandlingsinformasjon,
-                beregning = vedtak.beregning
+                beregning = vedtak.beregning,
+                fritekst =
+                // TODO ia: kommer vi oss unna denne? Hadde kanskje gått dersom vi lagret de genererte brevene.
+                // Gjelder også de andre metodene her inne som går på vedtak
+                when (val b = vedtak.behandling) {
+                    is Søknadsbehandling -> b.fritekstTilBrev
+                    else -> ""
+                },
             )
         }
 
@@ -305,6 +360,7 @@ class LagBrevRequestVisitor(
             LagBrevRequest.Revurdering.Inntekt(
                 person = it.person,
                 saksbehandlerNavn = it.saksbehandlerNavn,
+                attestantNavn = it.attestantNavn,
                 revurdertBeregning = vedtak.beregning,
                 fritekst = when (val b = vedtak.behandling) {
                     is Revurdering -> b.fritekstTilBrev
@@ -329,6 +385,10 @@ class LagBrevRequestVisitor(
                 beregning = when (vedtak) {
                     is Vedtak.AvslåttStønad.MedBeregning -> vedtak.beregning
                     is Vedtak.AvslåttStønad.UtenBeregning -> null
+                },
+                fritekst = when (val b = vedtak.behandling) {
+                    is Søknadsbehandling -> b.fritekstTilBrev // TODO ia: kommer vi oss unna denne?
+                    else -> ""
                 },
             )
         }

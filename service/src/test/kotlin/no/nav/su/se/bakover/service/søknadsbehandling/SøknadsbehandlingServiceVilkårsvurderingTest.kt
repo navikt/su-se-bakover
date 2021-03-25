@@ -49,6 +49,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
         saksnummer = Saksnummer(0),
         fnr = FnrGenerator.random(),
         oppgaveId = oppgaveId,
+        fritekstTilBrev = "",
     )
 
     @Test
@@ -99,6 +100,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
             saksnummer = opprettetBehandling.saksnummer,
             fnr = opprettetBehandling.fnr,
             oppgaveId = opprettetBehandling.oppgaveId,
+            fritekstTilBrev = "",
         )
 
         response shouldBe expected.right()
@@ -136,6 +138,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
             saksnummer = opprettetBehandling.saksnummer,
             fnr = opprettetBehandling.fnr,
             oppgaveId = opprettetBehandling.oppgaveId,
+            fritekstTilBrev = "",
         )
 
         response shouldBe expected.right()

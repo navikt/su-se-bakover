@@ -5,11 +5,12 @@ import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.fixedTidspunkt
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
+import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-internal class VedtakPostgresRepoTest {
+internal class VedtaksnapshotPostgresRepoTest {
 
     private val repo = VedtakssnapshotPostgresRepo(EmbeddedDatabase.instance())
     private val testDataHelper = TestDataHelper()
@@ -25,6 +26,7 @@ internal class VedtakPostgresRepoTest {
                     opprettet = fixedTidspunkt,
                     søknadsbehandling = avslagUtenBeregning,
                     avslagsgrunner = listOf(Avslagsgrunn.PERSONLIG_OPPMØTE),
+                    journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert
                 )
             )
         }
@@ -40,6 +42,7 @@ internal class VedtakPostgresRepoTest {
                     opprettet = fixedTidspunkt,
                     søknadsbehandling = innvilget,
                     utbetaling = utenKvittering,
+                    journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert
                 )
             )
         }

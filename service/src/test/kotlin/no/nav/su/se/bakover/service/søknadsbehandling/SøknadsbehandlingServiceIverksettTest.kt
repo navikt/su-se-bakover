@@ -254,17 +254,17 @@ internal class SøknadsbehandlingServiceIverksettTest {
         val expected = Søknadsbehandling.Iverksatt.Innvilget(
             id = behandling.id,
             opprettet = behandling.opprettet,
-            søknad = behandling.søknad,
-            behandlingsinformasjon = behandling.behandlingsinformasjon,
             sakId = behandling.sakId,
             saksnummer = behandling.saksnummer,
-            fnr = behandling.fnr,
-            saksbehandler = behandling.saksbehandler,
+            søknad = behandling.søknad,
             oppgaveId = behandling.oppgaveId,
+            behandlingsinformasjon = behandling.behandlingsinformasjon,
+            fnr = behandling.fnr,
             beregning = behandling.beregning,
             simulering = behandling.simulering,
+            saksbehandler = behandling.saksbehandler,
             attestering = Attestering.Iverksatt(attestant),
-            utbetalingId = utbetalingId
+            fritekstTilBrev = "",
         )
 
         response shouldBe expected.right()
@@ -316,7 +316,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             }.whenever(mock).distribuerOgLagre(any())
             doAnswer {
                 (it.arguments[0] as Vedtak.AvslåttStønad.MedBeregning).right()
-            }.whenever(mock).lukkOppgave(any())
+            }.whenever(mock).lukkOppgaveMedBruker(any())
         }
 
         val vedtakRepoMock = mock<VedtakRepo>()
@@ -325,16 +325,16 @@ internal class SøknadsbehandlingServiceIverksettTest {
         val expectedAvslag = Søknadsbehandling.Iverksatt.Avslag.MedBeregning(
             id = behandling.id,
             opprettet = behandling.opprettet,
-            søknad = behandling.søknad,
-            behandlingsinformasjon = behandling.behandlingsinformasjon,
             sakId = behandling.sakId,
             saksnummer = behandling.saksnummer,
-            fnr = behandling.fnr,
-            saksbehandler = behandling.saksbehandler,
+            søknad = behandling.søknad,
             oppgaveId = behandling.oppgaveId,
+            behandlingsinformasjon = behandling.behandlingsinformasjon,
+            fnr = behandling.fnr,
             beregning = behandling.beregning,
+            saksbehandler = behandling.saksbehandler,
             attestering = Attestering.Iverksatt(attestant),
-            eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert
+            fritekstTilBrev = "",
         )
 
         val behandlingMetricsMock = mock<BehandlingMetrics>()
@@ -365,7 +365,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             verify(opprettVedtakssnapshotService).opprettVedtak(any())
             verify(behandlingMetricsMock).incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
             verify(ferdigstillVedtakService).distribuerOgLagre(any())
-            verify(ferdigstillVedtakService).lukkOppgave(any())
+            verify(ferdigstillVedtakService).lukkOppgaveMedBruker(any())
             verify(statistikkObserver).handle(
                 argThat {
                     it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(expectedAvslag)
@@ -415,7 +415,8 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 sakId = it.sakId,
                 saksnummer = it.saksnummer,
                 fnr = it.fnr,
-                oppgaveId = søknadOppgaveId
+                oppgaveId = søknadOppgaveId,
+                fritekstTilBrev = "",
             )
         }
 
@@ -460,6 +461,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             oppgaveId = søknadOppgaveId,
             beregning = beregning,
             simulering = simulering,
+            fritekstTilBrev = "",
         )
 
     private fun avslagTilAttestering() =
@@ -481,6 +483,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             saksbehandler = saksbehandler,
             oppgaveId = søknadOppgaveId,
             beregning = beregning,
+            fritekstTilBrev = "",
         )
 
     private val beregning = TestBeregning

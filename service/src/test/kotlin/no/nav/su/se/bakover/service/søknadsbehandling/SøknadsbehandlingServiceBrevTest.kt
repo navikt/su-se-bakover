@@ -19,7 +19,6 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
-import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.service.FnrGenerator
@@ -45,7 +44,20 @@ internal class SøknadsbehandlingServiceBrevTest {
         oppgaveId = OppgaveId("0"),
         beregning = TestBeregning,
         simulering = mock(),
-        saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler")
+        saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
+        fritekstTilBrev = "",
+    )
+
+    private val opprettetSøknadbehandling = Søknadsbehandling.Vilkårsvurdert.Uavklart(
+        id = UUID.randomUUID(),
+        opprettet = Tidspunkt.now(),
+        behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
+        søknad = mock(),
+        sakId = UUID.randomUUID(),
+        saksnummer = Saksnummer(0),
+        fnr = FnrGenerator.random(),
+        oppgaveId = OppgaveId("0"),
+        fritekstTilBrev = "",
     )
 
     private val person = Person(
@@ -63,7 +75,7 @@ internal class SøknadsbehandlingServiceBrevTest {
         }
         createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-        ).brev(SøknadsbehandlingService.BrevRequest(beregnetAvslag.id)).let {
+        ).brev(SøknadsbehandlingService.BrevRequest.UtenFritekst(beregnetAvslag.id)).let {
             it shouldBe SøknadsbehandlingService.KunneIkkeLageBrev.FantIkkeBehandling.left()
         }
     }
@@ -81,7 +93,7 @@ internal class SøknadsbehandlingServiceBrevTest {
         createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             personService = personServiceMock
-        ).brev(SøknadsbehandlingService.BrevRequest(beregnetAvslag.id)).let {
+        ).brev(SøknadsbehandlingService.BrevRequest.UtenFritekst(beregnetAvslag.id)).let {
             it shouldBe SøknadsbehandlingService.KunneIkkeLageBrev.FantIkkePerson.left()
         }
     }
@@ -104,7 +116,7 @@ internal class SøknadsbehandlingServiceBrevTest {
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             personService = personServiceMock,
             microsoftGraphApiOppslag = microsoftGraphApiOppslagMock
-        ).brev(SøknadsbehandlingService.BrevRequest(beregnetAvslag.id)).let {
+        ).brev(SøknadsbehandlingService.BrevRequest.UtenFritekst(beregnetAvslag.id)).let {
             it shouldBe SøknadsbehandlingService.KunneIkkeLageBrev.FikkIkkeHentetSaksbehandlerEllerAttestant.left()
         }
     }
@@ -132,7 +144,7 @@ internal class SøknadsbehandlingServiceBrevTest {
             personService = personServiceMock,
             microsoftGraphApiOppslag = microsoftGraphApiOppslagMock,
             brevService = brevServiceMock
-        ).brev(SøknadsbehandlingService.BrevRequest(beregnetAvslag.id)).let {
+        ).brev(SøknadsbehandlingService.BrevRequest.UtenFritekst(beregnetAvslag.id)).let {
             it shouldBe SøknadsbehandlingService.KunneIkkeLageBrev.KunneIkkeLagePDF.left()
         }
     }
@@ -161,26 +173,21 @@ internal class SøknadsbehandlingServiceBrevTest {
             personService = personServiceMock,
             microsoftGraphApiOppslag = microsoftGraphApiOppslagMock,
             brevService = brevServiceMock
-        ).brev(SøknadsbehandlingService.BrevRequest(beregnetAvslag.id)).let {
+        ).brev(SøknadsbehandlingService.BrevRequest.UtenFritekst(beregnetAvslag.id)).let {
             it shouldBe pdf.right()
         }
     }
 
     @Test
     fun `kaster exception hvis det ikke er mulig å opprette brev for aktuell behandling`() {
-        val behandlingMock = mock<Søknadsbehandling.Vilkårsvurdert.Uavklart> {
-            on { accept(any()) }.thenCallRealMethod()
-            on { status } doReturn BehandlingsStatus.OPPRETTET
-        }
-
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
-            on { hent(any()) } doReturn behandlingMock
+            on { hent(any()) } doReturn opprettetSøknadbehandling
         }
 
         assertThrows<LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans> {
             createSøknadsbehandlingService(
                 søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            ).brev(SøknadsbehandlingService.BrevRequest(beregnetAvslag.id))
+            ).brev(SøknadsbehandlingService.BrevRequest.UtenFritekst(beregnetAvslag.id))
         }
     }
 }

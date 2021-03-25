@@ -24,6 +24,7 @@ abstract class BrevInnhold {
         val saksbehandlerNavn: String,
         val attestantNavn: String,
         val sats: String?,
+        val fritekst: String
     ) : BrevInnhold() {
         @Suppress("unused")
         @JsonInclude
@@ -50,6 +51,7 @@ abstract class BrevInnhold {
         val beregningsperioder: List<Beregningsperiode>,
         val saksbehandlerNavn: String,
         val attestantNavn: String,
+        val fritekst: String
     ) : BrevInnhold() {
         override val brevTemplate: BrevTemplate = BrevTemplate.InnvilgetVedtak
 
@@ -68,6 +70,7 @@ abstract class BrevInnhold {
     data class RevurderingAvInntekt(
         val personalia: Personalia,
         val saksbehandlerNavn: String,
+        val attestantNavn: String,
         val beregningsperioder: List<Beregningsperiode>,
         val fritekst: String,
         val sats: Sats,

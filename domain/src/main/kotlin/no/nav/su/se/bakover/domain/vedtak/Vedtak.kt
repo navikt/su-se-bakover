@@ -46,7 +46,7 @@ sealed class Vedtak : Visitable<VedtakVisitor> {
         override val journalføringOgBrevdistribusjon: JournalføringOgBrevdistribusjon,
     ) : Vedtak() {
         companion object {
-            fun fromSøknadsbehandling(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget) = InnvilgetStønad(
+            fun fromSøknadsbehandling(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget, utbetalingId: UUID30) = InnvilgetStønad(
                 periode = søknadsbehandling.beregning.getPeriode(),
                 behandling = søknadsbehandling,
                 behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
@@ -54,11 +54,11 @@ sealed class Vedtak : Visitable<VedtakVisitor> {
                 simulering = søknadsbehandling.simulering,
                 saksbehandler = søknadsbehandling.saksbehandler,
                 attestant = søknadsbehandling.attestering.attestant,
-                utbetalingId = søknadsbehandling.utbetalingId,
-                journalføringOgBrevdistribusjon = søknadsbehandling.eksterneIverksettingsteg,
+                utbetalingId = utbetalingId,
+                journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
             )
 
-            fun fromRevurdering(revurdering: IverksattRevurdering) = InnvilgetStønad(
+            fun fromRevurdering(revurdering: IverksattRevurdering, utbetalingId: UUID30) = InnvilgetStønad(
                 behandling = revurdering,
                 behandlingsinformasjon = revurdering.tilRevurdering.behandlingsinformasjon,
                 periode = revurdering.beregning.getPeriode(),
@@ -66,8 +66,8 @@ sealed class Vedtak : Visitable<VedtakVisitor> {
                 simulering = revurdering.simulering,
                 saksbehandler = revurdering.saksbehandler,
                 attestant = revurdering.attestering.attestant,
-                utbetalingId = revurdering.utbetalingId,
-                journalføringOgBrevdistribusjon = revurdering.eksterneIverksettingsteg
+                utbetalingId = utbetalingId,
+                journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
             )
         }
 
@@ -97,7 +97,7 @@ sealed class Vedtak : Visitable<VedtakVisitor> {
                     beregning = avslag.beregning,
                     saksbehandler = avslag.saksbehandler,
                     attestant = avslag.attestering.attestant,
-                    journalføringOgBrevdistribusjon = avslag.eksterneIverksettingsteg,
+                    journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
                 )
 
             fun fromSøknadsbehandlingUtenBeregning(avslag: Søknadsbehandling.Iverksatt.Avslag.UtenBeregning) =
@@ -106,7 +106,7 @@ sealed class Vedtak : Visitable<VedtakVisitor> {
                     behandlingsinformasjon = avslag.behandlingsinformasjon,
                     saksbehandler = avslag.saksbehandler,
                     attestant = avslag.attestering.attestant,
-                    journalføringOgBrevdistribusjon = avslag.eksterneIverksettingsteg,
+                    journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
                 )
         }
 

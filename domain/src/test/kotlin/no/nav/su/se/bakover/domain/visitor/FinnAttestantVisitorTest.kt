@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -131,15 +132,16 @@ internal class FinnAttestantVisitorTest {
         søknad = mock(),
         oppgaveId = OppgaveId(""),
         behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
-        fnr = FnrGenerator.random()
+        fnr = FnrGenerator.random(),
+        fritekstTilBrev = "",
     )
 
     private val vilkårsvurdertInnvilgetSøknadsbehandling = søknadsbehandling.tilVilkårsvurdert(
-        Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
+        Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
     )
 
     private val vilkårsvurdertAvslagSøknadsbehandling = søknadsbehandling.tilVilkårsvurdert(
-        Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
+        Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
     )
 
     private val månedsberegningAvslagMock = mock<Månedsberegning> { on { getSumYtelse() } doReturn 0 }
@@ -158,26 +160,26 @@ internal class FinnAttestantVisitorTest {
     private val beregnetInnvilgetøknadbehandling =
         vilkårsvurdertInnvilgetSøknadsbehandling.tilBeregnet(innvilgetBeregningMock)
     private val simulertSøknadsbehandling = beregnetInnvilgetøknadbehandling.tilSimulert(mock())
-    private val tilAttesteringInnvilgetSøknadsbehandlng = simulertSøknadsbehandling.tilAttestering(saksbehandler)
+    private val tilAttesteringInnvilgetSøknadsbehandlng = simulertSøknadsbehandling.tilAttestering(saksbehandler, "")
     private val tilAttesteringAvslagSøknadsbehandlng =
         (beregnetAvslagSøknadbehandling as Søknadsbehandling.Beregnet.Avslag)
-            .tilAttestering(saksbehandler)
+            .tilAttestering(saksbehandler, "")
     private val underkjentInnvilgetSøknadsbehandling = tilAttesteringInnvilgetSøknadsbehandlng.tilUnderkjent(
         Attestering.Underkjent(
             attestant,
             Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
-            ""
-        )
+            "",
+        ),
     )
     private val underkjentAvslagSøknadsbehandling = tilAttesteringAvslagSøknadsbehandlng.tilUnderkjent(
         Attestering.Underkjent(
             attestant,
             Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
-            ""
-        )
+            "",
+        ),
     )
     private val iverksattInnvilgetSøknadsbehandling =
-        tilAttesteringInnvilgetSøknadsbehandlng.tilIverksatt(Attestering.Iverksatt(attestant), UUID30.randomUUID())
+        tilAttesteringInnvilgetSøknadsbehandlng.tilIverksatt(Attestering.Iverksatt(attestant))
     private val iverksattAvslagSøknadsbehandling =
         tilAttesteringAvslagSøknadsbehandlng.tilIverksatt(Attestering.Iverksatt(attestant))
 
@@ -192,10 +194,10 @@ internal class FinnAttestantVisitorTest {
                         månedsbeløp = 5000.0,
                         periode = Periode.create(1.januar(2021), 31.januar(2021)),
                         utenlandskInntekt = null,
-                        tilhører = FradragTilhører.BRUKER
-                    )
-                )
-            )
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                ),
+            ),
         )
     }
     private val revurdering = OpprettetRevurdering(
@@ -209,14 +211,21 @@ internal class FinnAttestantVisitorTest {
         },
         saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
         oppgaveId = OppgaveId("oppgaveid"),
-        fritekstTilBrev = ""
+        fritekstTilBrev = "",
+        revurderingsårsak = Revurderingsårsak(
+            Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
+            Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
+        ),
     )
 
     private val beregnetRevurdering = when (val a = revurdering.beregn(emptyList()).orNull()!!) {
-        is BeregnetRevurdering.Innvilget -> { a }
+        is BeregnetRevurdering.Innvilget -> {
+            a
+        }
         else -> throw RuntimeException("Skal ikke skje")
     }
     private val simulertRevurdering = beregnetRevurdering.toSimulert(mock())
-    private val tilAttesteringRevurdering = simulertRevurdering.tilAttestering(mock(), saksbehandler, "fritekst til brevet")
+    private val tilAttesteringRevurdering =
+        simulertRevurdering.tilAttestering(mock(), saksbehandler, "fritekst til brevet")
     private val iverksattRevurdering = tilAttesteringRevurdering.tilIverksatt(attestant) { UUID30.randomUUID().right() }
 }

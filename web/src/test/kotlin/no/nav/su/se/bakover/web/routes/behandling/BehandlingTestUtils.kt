@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.web.routes.behandling
 
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
@@ -125,6 +124,6 @@ object BehandlingTestUtils {
         ),
         saksbehandler = NavIdentBruker.Saksbehandler("pro-saksbehandler"),
         attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("kjella")),
-        utbetalingId = UUID30.randomUUID()
+        fritekstTilBrev = "",
     )
 }

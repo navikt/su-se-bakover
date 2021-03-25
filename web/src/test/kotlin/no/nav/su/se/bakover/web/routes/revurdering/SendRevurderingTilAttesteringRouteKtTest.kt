@@ -13,7 +13,6 @@ import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -21,6 +20,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeSendeRevurderingTilAttestering
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.defaultRequest
@@ -41,13 +41,15 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
 
     @Test
     fun `uautoriserte kan ikke sende revurdering til attestering`() {
-        withTestApplication({
-            testSusebakover()
-        }) {
+        withTestApplication(
+            {
+                testSusebakover()
+            },
+        ) {
             defaultRequest(
                 HttpMethod.Post,
                 "$requestPath/$revurderingId/tilAttestering",
-                listOf(Brukerrolle.Veileder)
+                listOf(Brukerrolle.Veileder),
             ).apply {
                 response.status() shouldBe HttpStatusCode.Forbidden
                 JSONAssert.assertEquals(
@@ -57,7 +59,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
                     }
                     """.trimIndent(),
                     response.content,
-                    true
+                    true,
                 )
             }
         }
@@ -77,23 +79,29 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
                 gjelderNavn = "Test",
                 datoBeregnet = LocalDate.now(),
                 nettoBeløp = 0,
-                periodeList = listOf()
+                periodeList = listOf(),
             ),
             oppgaveId = OppgaveId("OppgaveId"),
-            fritekstTilBrev = ""
+            fritekstTilBrev = "",
+            revurderingsårsak = Revurderingsårsak(
+                Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
+                Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
+            ),
         )
 
         val revurderingServiceMock = mock<RevurderingService> {
             on { sendTilAttestering(any(), any(), any()) } doReturn revurderingTilAttestering.right()
         }
 
-        withTestApplication({
-            testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
-        }) {
+        withTestApplication(
+            {
+                testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
+            },
+        ) {
             defaultRequest(
                 HttpMethod.Post,
                 "$requestPath/${revurderingTilAttestering.id}/tilAttestering",
-                listOf(Brukerrolle.Saksbehandler)
+                listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody("""{ "fritekstTilBrev": "Friteksten" }""")
             }.apply {
@@ -106,22 +114,6 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
     }
 
     @Test
-    fun `ugyldig fraOgMed dato`() {
-        shouldMapErrorCorrectly(
-            error = KunneIkkeSendeRevurderingTilAttestering.UgyldigPeriode(
-                Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden
-            ),
-            expectedStatusCode = HttpStatusCode.BadRequest,
-            expectedJsonResponse = """
-                {
-                    "message":"FraOgMedDatoMåVæreFørsteDagIMåneden",
-                    "code":"ugyldig_periode"
-                }
-            """.trimIndent()
-        )
-    }
-
-    @Test
     fun `fant ikke revurdering`() {
         shouldMapErrorCorrectly(
             error = KunneIkkeSendeRevurderingTilAttestering.FantIkkeRevurdering,
@@ -131,7 +123,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
                     "message":"Fant ikke revurdering",
                     "code":"fant_ikke_revurdering"
                 }
-            """.trimIndent()
+            """.trimIndent(),
         )
     }
 
@@ -148,7 +140,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
                     "message":"Kan ikke gå fra tilstanden IverksattRevurdering til tilstanden OpprettetRevurdering",
                     "code":"ugyldig_tilstand"
                 }
-            """.trimIndent()
+            """.trimIndent(),
         )
     }
 
@@ -162,7 +154,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
                     "message":"Fant ikke aktør id",
                     "code":"fant_ikke_aktør_id"
                 }
-            """.trimIndent()
+            """.trimIndent(),
         )
     }
 
@@ -176,22 +168,24 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
                     "message":"Kunne ikke opprette oppgave",
                     "code":"kunne_ikke_opprette_oppgave"
                 }
-            """.trimIndent()
+            """.trimIndent(),
         )
     }
 
     private fun shouldMapErrorCorrectly(
         error: KunneIkkeSendeRevurderingTilAttestering,
         expectedStatusCode: HttpStatusCode,
-        expectedJsonResponse: String
+        expectedJsonResponse: String,
     ) {
         val revurderingServiceMock = mock<RevurderingService> {
             on { sendTilAttestering(any(), any(), any()) } doReturn error.left()
         }
 
-        withTestApplication({
-            testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
-        }) {
+        withTestApplication(
+            {
+                testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
+            },
+        ) {
             defaultRequest(
                 HttpMethod.Post,
                 "$requestPath/$revurderingId/tilAttestering",
@@ -203,7 +197,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
                 JSONAssert.assertEquals(
                     expectedJsonResponse,
                     response.content,
-                    true
+                    true,
                 )
             }
         }

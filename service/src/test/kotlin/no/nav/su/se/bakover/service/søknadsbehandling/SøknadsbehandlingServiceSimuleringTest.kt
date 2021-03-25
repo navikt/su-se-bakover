@@ -59,7 +59,8 @@ internal class SøknadsbehandlingServiceSimuleringTest {
             saksnummer = beregnetBehandling.saksnummer,
             fnr = beregnetBehandling.fnr,
             oppgaveId = beregnetBehandling.oppgaveId,
-            simulering = simulering
+            simulering = simulering,
+            fritekstTilBrev = "",
         )
 
         response shouldBe expected.right()
@@ -142,7 +143,8 @@ internal class SøknadsbehandlingServiceSimuleringTest {
         sakId = sakId,
         saksnummer = saksnummer,
         fnr = fnr,
-        oppgaveId = oppgaveId
+        oppgaveId = oppgaveId,
+        fritekstTilBrev = "",
     )
 
     private val simulering = Simulering(

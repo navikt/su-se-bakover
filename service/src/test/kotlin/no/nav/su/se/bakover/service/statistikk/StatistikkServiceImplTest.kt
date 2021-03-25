@@ -8,7 +8,6 @@ import com.nhaarman.mockitokotlin2.verify
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.endOfDay
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
@@ -29,13 +28,13 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.FnrGenerator
@@ -53,6 +52,10 @@ import java.util.UUID
 internal class StatistikkServiceImplTest {
     private val sakTopicName = "supstonad.aapen-su-sak-statistikk-v1"
     private val behandlingTopicName = "supstonad.aapen-su-behandling-statistikk-v1"
+    private val revurderingsårsak = Revurderingsårsak(
+        Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
+        Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
+    )
 
     @Test
     fun `Gyldig sak publiserer till kafka`() {
@@ -63,7 +66,7 @@ internal class StatistikkServiceImplTest {
         StatistikkServiceImpl(kafkaPublisherMock, mock(), fixedClock).publiser(StatistikkSchemaValidatorTest.gyldigSak)
         verify(kafkaPublisherMock).publiser(
             argThat { it shouldBe sakTopicName },
-            argThat { it shouldBe objectMapper.writeValueAsString(StatistikkSchemaValidatorTest.gyldigSak) }
+            argThat { it shouldBe objectMapper.writeValueAsString(StatistikkSchemaValidatorTest.gyldigSak) },
         )
     }
 
@@ -76,11 +79,11 @@ internal class StatistikkServiceImplTest {
         StatistikkServiceImpl(
             kafkaPublisherMock,
             mock(),
-            fixedClock
+            fixedClock,
         ).publiser(StatistikkSchemaValidatorTest.gyldigBehandling)
         verify(kafkaPublisherMock).publiser(
             argThat { it shouldBe behandlingTopicName },
-            argThat { it shouldBe objectMapper.writeValueAsString(StatistikkSchemaValidatorTest.gyldigBehandling) }
+            argThat { it shouldBe objectMapper.writeValueAsString(StatistikkSchemaValidatorTest.gyldigBehandling) },
         )
     }
 
@@ -100,7 +103,7 @@ internal class StatistikkServiceImplTest {
             fnr = FnrGenerator.random(),
             søknader = listOf(),
             behandlinger = listOf(),
-            utbetalinger = listOf()
+            utbetalinger = listOf(),
         )
         val clock = Clock.fixed(1.januar(2020).endOfDay(ZoneOffset.UTC).instant, ZoneOffset.UTC)
         val expected = Statistikk.Sak(
@@ -112,19 +115,19 @@ internal class StatistikkServiceImplTest {
             saksnummer = sak.saksnummer.nummer,
             sakStatus = "OPPRETTET",
             sakStatusBeskrivelse = "Sak er opprettet men ingen vedtak er fattet.",
-            versjon = clock.millis()
+            versjon = clock.millis(),
         )
 
         StatistikkServiceImpl(kafkaPublisherMock, personServiceMock, clock).handle(
-            Event.Statistikk.SakOpprettet(sak)
+            Event.Statistikk.SakOpprettet(sak),
         )
 
         verify(kafkaPublisherMock).publiser(
             argThat { it shouldBe sakTopicName },
-            argThat { it shouldBe objectMapper.writeValueAsString(expected) }
+            argThat { it shouldBe objectMapper.writeValueAsString(expected) },
         )
         verify(personServiceMock).hentAktørId(
-            argThat { it shouldBe sak.fnr }
+            argThat { it shouldBe sak.fnr },
         )
     }
 
@@ -170,12 +173,12 @@ internal class StatistikkServiceImplTest {
         )
 
         StatistikkServiceImpl(kafkaPublisherMock, mock(), clock).handle(
-            Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingOpprettet(søknadsbehandling)
+            Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingOpprettet(søknadsbehandling),
         )
 
         verify(kafkaPublisherMock).publiser(
             argThat { it shouldBe behandlingTopicName },
-            argThat { it shouldBe objectMapper.writeValueAsString(expected) }
+            argThat { it shouldBe objectMapper.writeValueAsString(expected) },
         )
     }
 
@@ -218,12 +221,12 @@ internal class StatistikkServiceImplTest {
         )
 
         StatistikkServiceImpl(kafkaPublisherMock, mock(), clock).handle(
-            Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingTilAttestering(behandling)
+            Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingTilAttestering(behandling),
         )
 
         verify(kafkaPublisherMock).publiser(
             argThat { it shouldBe behandlingTopicName },
-            argThat { it shouldBe objectMapper.writeValueAsString(expected) }
+            argThat { it shouldBe objectMapper.writeValueAsString(expected) },
         )
     }
 
@@ -268,16 +271,16 @@ internal class StatistikkServiceImplTest {
             beslutter = "56",
             behandlingType = Statistikk.Behandling.BehandlingType.SOKNAD,
             behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.SOKNAD.beskrivelse,
-            avsluttet = true
+            avsluttet = true,
         )
 
         StatistikkServiceImpl(kafkaPublisherMock, mock(), clock).handle(
-            Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(behandling)
+            Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(behandling),
         )
 
         verify(kafkaPublisherMock).publiser(
             argThat { it shouldBe behandlingTopicName },
-            argThat { it shouldBe objectMapper.writeValueAsString(expected) }
+            argThat { it shouldBe objectMapper.writeValueAsString(expected) },
         )
     }
 
@@ -320,16 +323,16 @@ internal class StatistikkServiceImplTest {
             resultatBegrunnelse = "UFØRHET,UTENLANDSOPPHOLD_OVER_90_DAGER",
             behandlingType = Statistikk.Behandling.BehandlingType.SOKNAD,
             behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.SOKNAD.beskrivelse,
-            avsluttet = true
+            avsluttet = true,
         )
 
         StatistikkServiceImpl(kafkaPublisherMock, mock(), clock).handle(
-            Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(behandling)
+            Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(behandling),
         )
 
         verify(kafkaPublisherMock).publiser(
             argThat { it shouldBe behandlingTopicName },
-            argThat { it shouldBe objectMapper.writeValueAsString(expected) }
+            argThat { it shouldBe objectMapper.writeValueAsString(expected) },
         )
     }
 
@@ -359,8 +362,9 @@ internal class StatistikkServiceImplTest {
             attestering = Attestering.Underkjent(
                 NavIdentBruker.Attestant("attestant"),
                 Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
-                ""
-            )
+                "",
+            ),
+            fritekstTilBrev = "",
         )
 
         val expected = Statistikk.Behandling(
@@ -378,16 +382,16 @@ internal class StatistikkServiceImplTest {
             beslutter = "attestant",
             behandlingType = Statistikk.Behandling.BehandlingType.SOKNAD,
             behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.SOKNAD.beskrivelse,
-            avsluttet = false
+            avsluttet = false,
         )
 
         StatistikkServiceImpl(kafkaPublisherMock, mock(), clock).handle(
-            Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingUnderkjent(underkjent)
+            Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingUnderkjent(underkjent),
         )
 
         verify(kafkaPublisherMock).publiser(
             argThat { it shouldBe behandlingTopicName },
-            argThat { it shouldBe objectMapper.writeValueAsString(expected) }
+            argThat { it shouldBe objectMapper.writeValueAsString(expected) },
         )
     }
 
@@ -413,7 +417,8 @@ internal class StatistikkServiceImplTest {
             saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
             periode = beregning.getPeriode(),
             oppgaveId = OppgaveId("oppgaveid"),
-            fritekstTilBrev = ""
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
         )
 
         val expected = Statistikk.Behandling(
@@ -435,12 +440,12 @@ internal class StatistikkServiceImplTest {
         )
 
         StatistikkServiceImpl(kafkaPublisherMock, mock(), clock).handle(
-            Event.Statistikk.RevurderingStatistikk.RevurderingOpprettet(opprettetRevurdering)
+            Event.Statistikk.RevurderingStatistikk.RevurderingOpprettet(opprettetRevurdering),
         )
 
         verify(kafkaPublisherMock).publiser(
             argThat { it shouldBe behandlingTopicName },
-            argThat { it shouldBe objectMapper.writeValueAsString(expected) }
+            argThat { it shouldBe objectMapper.writeValueAsString(expected) },
         )
     }
 
@@ -471,10 +476,11 @@ internal class StatistikkServiceImplTest {
                 gjelderNavn = "Mr. Asd",
                 datoBeregnet = LocalDate.now(clock),
                 nettoBeløp = 100,
-                periodeList = listOf()
+                periodeList = listOf(),
             ),
             oppgaveId = OppgaveId("55"),
-            fritekstTilBrev = ""
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
         )
 
         val expected = Statistikk.Behandling(
@@ -492,16 +498,16 @@ internal class StatistikkServiceImplTest {
             behandlingType = Statistikk.Behandling.BehandlingType.REVURDERING,
             behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.REVURDERING.beskrivelse,
             relatertBehandlingId = revurderingTilAttestering.tilRevurdering.id,
-            avsluttet = false
+            avsluttet = false,
         )
 
         StatistikkServiceImpl(kafkaPublisherMock, mock(), clock).handle(
-            Event.Statistikk.RevurderingStatistikk.RevurderingTilAttestering(revurderingTilAttestering)
+            Event.Statistikk.RevurderingStatistikk.RevurderingTilAttestering(revurderingTilAttestering),
         )
 
         verify(kafkaPublisherMock).publiser(
             argThat { it shouldBe behandlingTopicName },
-            argThat { it shouldBe objectMapper.writeValueAsString(expected) }
+            argThat { it shouldBe objectMapper.writeValueAsString(expected) },
         )
     }
 
@@ -519,26 +525,25 @@ internal class StatistikkServiceImplTest {
         }
         val iverksattRevurdering = IverksattRevurdering.Innvilget(
             id = UUID.randomUUID(),
+            periode = beregning.getPeriode(),
             opprettet = LocalDate.now(clock).atStartOfDay().toTidspunkt(zoneIdOslo),
             tilRevurdering = mock {
                 on { id } doReturn UUID.randomUUID()
                 on { behandling } doReturn behandlingMock
             },
             saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-            periode = beregning.getPeriode(),
+            oppgaveId = OppgaveId("55"),
             beregning = beregning,
             simulering = Simulering(
                 gjelderId = FnrGenerator.random(),
                 gjelderNavn = "Mr. Asd",
                 datoBeregnet = LocalDate.now(clock),
                 nettoBeløp = 100,
-                periodeList = listOf()
+                periodeList = listOf(),
             ),
-            oppgaveId = OppgaveId("55"),
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
-            utbetalingId = UUID30.randomUUID(),
-            eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
-            fritekstTilBrev = ""
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
         )
 
         val expected = Statistikk.Behandling(
@@ -563,12 +568,12 @@ internal class StatistikkServiceImplTest {
         )
 
         StatistikkServiceImpl(kafkaPublisherMock, mock(), clock).handle(
-            Event.Statistikk.RevurderingStatistikk.RevurderingIverksatt(iverksattRevurdering)
+            Event.Statistikk.RevurderingStatistikk.RevurderingIverksatt(iverksattRevurdering),
         )
 
         verify(kafkaPublisherMock).publiser(
             argThat { it shouldBe behandlingTopicName },
-            argThat { it shouldBe objectMapper.writeValueAsString(expected) }
+            argThat { it shouldBe objectMapper.writeValueAsString(expected) },
         )
     }
 
@@ -605,14 +610,15 @@ internal class StatistikkServiceImplTest {
         )
 
         StatistikkServiceImpl(kafkaPublisherMock, mock(), clock).handle(
-            Event.Statistikk.SøknadStatistikk.SøknadMottatt(søknad, saksnummer)
+            Event.Statistikk.SøknadStatistikk.SøknadMottatt(søknad, saksnummer),
         )
 
         verify(kafkaPublisherMock).publiser(
             argThat { it shouldBe behandlingTopicName },
-            argThat { it shouldBe objectMapper.writeValueAsString(expected) }
+            argThat { it shouldBe objectMapper.writeValueAsString(expected) },
         )
     }
+
     @Test
     fun `publiserer statistikk for lukket søknad på kafka`() {
         val kafkaPublisherMock: KafkaPublisher = mock {
@@ -651,16 +657,16 @@ internal class StatistikkServiceImplTest {
             totrinnsbehandling = false,
             avsluttet = true,
             resultat = "AVVIST",
-            saksbehandler = søknad.lukketAv.toString()
+            saksbehandler = søknad.lukketAv.toString(),
         )
 
         StatistikkServiceImpl(kafkaPublisherMock, mock(), clock).handle(
-            Event.Statistikk.SøknadStatistikk.SøknadLukket(søknad, saksnummer)
+            Event.Statistikk.SøknadStatistikk.SøknadLukket(søknad, saksnummer),
         )
 
         verify(kafkaPublisherMock).publiser(
             argThat { it shouldBe behandlingTopicName },
-            argThat { it shouldBe objectMapper.writeValueAsString(expected) }
+            argThat { it shouldBe objectMapper.writeValueAsString(expected) },
         )
     }
 }

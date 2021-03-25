@@ -1,8 +1,5 @@
 package no.nav.su.se.bakover.database.søknadsbehandling
 
-import arrow.core.right
-import io.kotest.assertions.throwables.shouldThrow
-import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeTypeOf
@@ -14,18 +11,11 @@ import no.nav.su.se.bakover.database.behandlingsinformasjonMedAlleVilkårOppfylt
 import no.nav.su.se.bakover.database.beregning
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.iverksattAttestering
-import no.nav.su.se.bakover.database.iverksattBrevbestillingId
-import no.nav.su.se.bakover.database.iverksattJournalpostId
-import no.nav.su.se.bakover.database.journalførtIverksettingForAvslag
-import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.saksbehandler
 import no.nav.su.se.bakover.database.simulering
 import no.nav.su.se.bakover.database.underkjentAttestering
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
-import no.nav.su.se.bakover.domain.brev.BrevbestillingId
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
-import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import org.junit.jupiter.api.Nested
@@ -37,25 +27,6 @@ internal class SøknadsbehandlingPostgresRepoTest {
     private val dataSource = EmbeddedDatabase.instance()
     private val testDataHelper = TestDataHelper(dataSource)
     private val repo = SøknadsbehandlingPostgresRepo(dataSource)
-
-    @Test
-    fun `kaster exception hvis brev finnes uten journalpost`() {
-        withMigratedDb {
-            val innvilget = testDataHelper.nyIverksattInnvilget().first
-                .journalfør { JournalpostId("fjernerDenneMedEnUpdate").right() }.orNull()!!
-                .distribuerBrev { BrevbestillingId("b").right() }
-                .orNull()!!
-                .also {
-                    repo.lagre(it)
-                }
-            dataSource.withSession { session ->
-                ("update behandling set iverksattJournalpostId = null where id = '${innvilget.id}'").oppdatering(emptyMap(), session)
-                shouldThrow<IllegalStateException> {
-                    repo.hent(innvilget.id)
-                }.message shouldBe "Kunne ikke bestemme eksterne iverksettingssteg for innvilgelse, iverksattJournalpostId:null, iverksattBrevbestillingId:b"
-            }
-        }
-    }
 
     @Test
     fun `hent tidligere attestering ved underkjenning`() {
@@ -79,71 +50,8 @@ internal class SøknadsbehandlingPostgresRepoTest {
         }
     }
 
-    @Test
-    fun `hent iverksatte behandlinger uten journalposteringer`() {
-        withMigratedDb {
-
-            val innvilgetUtenJournalpost = testDataHelper.nyIverksattInnvilget().first
-
-            testDataHelper.nyIverksattInnvilget().first.journalfør { JournalpostId("1").right() }.orNull()!!.also {
-                repo.lagre(it)
-            }
-            testDataHelper.nyIverksattAvslagUtenBeregning()
-            testDataHelper.nyUavklartVilkårsvurdering()
-
-            val actual = repo.hentIverksatteBehandlingerUtenJournalposteringer()
-            actual shouldBe listOf(
-                repo.hent(innvilgetUtenJournalpost.id)
-            )
-        }
-    }
-
-    private fun iverksattInnvilget(fom: LocalDate, tom: LocalDate) = testDataHelper.nyIverksattInnvilget(periode = Periode.create(fom, tom))
-
-    @Test
-    fun `hent iverksatte behandlinger uten brevbestillinger`() {
-        withMigratedDb {
-            // innvilget uten IverksattJournalpostId
-            testDataHelper.nyIverksattInnvilget().first
-
-            // innvilget med iverksattJournalpostId
-            val innvilgetMedJournalpost =
-                testDataHelper.nyIverksattInnvilget().first.journalfør { JournalpostId("1").right() }.orNull()!!.also {
-                    repo.lagre(it)
-                }
-            // innvilget med iverksattJournalpostId og iverksattBrevbestillingId
-            testDataHelper.nyIverksattInnvilget().first
-                .journalfør { JournalpostId("1").right() }.orNull()!!
-                .distribuerBrev { BrevbestillingId("2").right() }.orNull()!!.also {
-                repo.lagre(it)
-            }
-            // avslag med journalpost (avslag kan ikke opprettes uten journalpost)
-            val avslagUtenBeregningMedJournalpost = testDataHelper.nyIverksattAvslagUtenBeregning()
-            val avslagMedBeregningMedJournalpost =
-                testDataHelper.nyIverksattAvslagMedBeregning(journalførtIverksettingForAvslag)
-
-            // avslag med beregning med iverksattJournalpostId og iverksattBrevbestillingId
-            testDataHelper.nyIverksattAvslagMedBeregning(journalførtIverksettingForAvslag)
-                .distribuerBrev { BrevbestillingId("2").right() }.orNull()!!.also {
-                repo.lagre(it)
-            }
-
-            val actual = repo.hentIverksatteBehandlingerUtenBrevbestillinger()
-            actual.size shouldBe 3
-            actual shouldContain repo.hent(innvilgetMedJournalpost.id)
-            actual shouldContain repo.hent(avslagUtenBeregningMedJournalpost.id)
-            actual shouldContain repo.hent(avslagMedBeregningMedJournalpost.id)
-        }
-    }
-
-    @Test
-    fun `opprett og hent behandling for utbetaling`() {
-        withMigratedDb {
-            val nySøknadsbehandling = testDataHelper.nyIverksattInnvilget()
-            val hentet = repo.hentBehandlingForUtbetaling(nySøknadsbehandling.second.id)!!
-            hentet shouldBe nySøknadsbehandling.first
-        }
-    }
+    private fun iverksattInnvilget(fom: LocalDate, tom: LocalDate) =
+        testDataHelper.nyIverksattInnvilget(periode = Periode.create(fom, tom))
 
     @Test
     fun `kan sette inn tom saksbehandling`() {
@@ -254,6 +162,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             beregning = beregning(),
                             simulering = simulering(tilAttestering.fnr),
                             saksbehandler = saksbehandler,
+                            fritekstTilBrev = ""
                         )
                     }
                 }
@@ -278,6 +187,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             behandlingsinformasjon = tilAttestering.behandlingsinformasjon,
                             fnr = tilAttestering.fnr,
                             saksbehandler = saksbehandler,
+                            fritekstTilBrev = ""
                         )
                     }
                 }
@@ -303,6 +213,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             fnr = tilAttestering.fnr,
                             beregning = avslåttBeregning,
                             saksbehandler = saksbehandler,
+                            fritekstTilBrev = ""
                         )
                     }
                 }
@@ -333,6 +244,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             simulering = simulering(tilAttestering.fnr),
                             saksbehandler = saksbehandler,
                             attestering = underkjentAttestering,
+                            fritekstTilBrev = "",
                         )
                     }
                 }
@@ -358,6 +270,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             fnr = tilAttestering.fnr,
                             saksbehandler = saksbehandler,
                             attestering = underkjentAttestering,
+                            fritekstTilBrev = "",
                         )
                     }
                 }
@@ -384,6 +297,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             beregning = avslåttBeregning,
                             saksbehandler = saksbehandler,
                             attestering = underkjentAttestering,
+                            fritekstTilBrev = "",
                         )
                     }
                 }
@@ -401,35 +315,6 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 repo.hent(iverksatt.id).also {
                     it shouldBe iverksatt
                 }
-
-                val journalført =
-                    JournalføringOgBrevdistribusjon.Journalført(
-                        journalpostId = iverksattJournalpostId
-                    )
-                repo.lagre(
-                    iverksatt.copy(
-                        eksterneIverksettingsteg = journalført
-                    )
-                ).also {
-                    repo.hent(iverksatt.id) shouldBe iverksatt.copy(
-                        eksterneIverksettingsteg = journalført
-                    )
-                }
-
-                val journalførtOgDistribuertBrev =
-                    JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
-                        journalpostId = iverksattJournalpostId,
-                        brevbestillingId = iverksattBrevbestillingId,
-                    )
-                repo.lagre(
-                    iverksatt.copy(
-                        eksterneIverksettingsteg = journalførtOgDistribuertBrev
-                    )
-                ).also {
-                    repo.hent(iverksatt.id) shouldBe iverksatt.copy(
-                        eksterneIverksettingsteg = journalførtOgDistribuertBrev
-                    )
-                }
             }
         }
     }
@@ -438,7 +323,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
     fun `iverksatt avslag uten beregning`() {
 
         withMigratedDb {
-            val iverksatt = testDataHelper.nyIverksattAvslagUtenBeregning()
+            val iverksatt = testDataHelper.nyIverksattAvslagUtenBeregning(fritekstTilBrev = "Dette er fritekst")
             val expected = Søknadsbehandling.Iverksatt.Avslag.UtenBeregning(
                 id = iverksatt.id,
                 opprettet = iverksatt.opprettet,
@@ -450,25 +335,10 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 fnr = iverksatt.fnr,
                 saksbehandler = saksbehandler,
                 attestering = iverksattAttestering,
-                eksterneIverksettingsteg = journalførtIverksettingForAvslag,
+                fritekstTilBrev = "Dette er fritekst",
             )
             repo.hent(iverksatt.id).also {
                 it shouldBe expected
-            }
-
-            val journalførtOgDistribuertBrev =
-                JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
-                    journalpostId = iverksattJournalpostId,
-                    brevbestillingId = iverksattBrevbestillingId,
-                )
-            repo.lagre(
-                iverksatt.copy(
-                    eksterneIverksettingsteg = journalførtOgDistribuertBrev
-                )
-            ).also {
-                repo.hent(iverksatt.id) shouldBe expected.copy(
-                    eksterneIverksettingsteg = journalførtOgDistribuertBrev
-                )
             }
         }
     }
@@ -476,12 +346,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
     @Test
     fun `iverksatt avslag med beregning`() {
         withMigratedDb {
-            val eksterneIverksettingsteg =
-                JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
-                    journalpostId = iverksattJournalpostId,
-                    brevbestillingId = iverksattBrevbestillingId,
-                )
-            val iverksatt = testDataHelper.nyIverksattAvslagMedBeregning(eksterneIverksettingsteg)
+            val iverksatt = testDataHelper.nyIverksattAvslagMedBeregning()
             repo.hent(iverksatt.id).also {
                 it shouldBe Søknadsbehandling.Iverksatt.Avslag.MedBeregning(
                     id = iverksatt.id,
@@ -495,7 +360,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     beregning = avslåttBeregning,
                     saksbehandler = saksbehandler,
                     attestering = iverksattAttestering,
-                    eksterneIverksettingsteg = eksterneIverksettingsteg
+                    fritekstTilBrev = "",
                 )
             }
         }

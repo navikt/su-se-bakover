@@ -299,7 +299,7 @@ internal class FerdigstillVedtakServiceImplTest {
         }
 
         val oppgaveServiceMock = mock<OppgaveService>() {
-            on { lukkOppgave(any()) } doReturn Unit.right()
+            on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
         }
 
         val behandlingMetricsMock = mock<BehandlingMetrics>()
@@ -327,7 +327,7 @@ internal class FerdigstillVedtakServiceImplTest {
             verify(brevServiceMock, never()).journalførBrev(any(), any())
             verify(brevServiceMock).distribuerBrev(iverksattJournalpostId)
             verify(behandlingMetricsMock).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.DISTRIBUERT_BREV)
-            verify(oppgaveServiceMock).lukkOppgave(vedtak.behandling.oppgaveId)
+            verify(oppgaveServiceMock).lukkOppgaveMedSystembruker(vedtak.behandling.oppgaveId)
             verify(behandlingMetricsMock).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.LUKKET_OPPGAVE)
         }
     }
@@ -351,7 +351,7 @@ internal class FerdigstillVedtakServiceImplTest {
         }
 
         val oppgaveServiceMock = mock<OppgaveService>() {
-            on { lukkOppgave(any()) } doReturn Unit.right()
+            on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
         }
 
         val behandlingMetricsMock = mock<BehandlingMetrics>()
@@ -378,7 +378,7 @@ internal class FerdigstillVedtakServiceImplTest {
             verify(microsoftGraphApiOppslagMock, times(2)).hentBrukerinformasjonForNavIdent(any())
             verify(brevServiceMock, never()).journalførBrev(any(), any())
             verify(brevServiceMock, never()).distribuerBrev(any())
-            verify(oppgaveServiceMock).lukkOppgave(vedtak.behandling.oppgaveId)
+            verify(oppgaveServiceMock).lukkOppgaveMedSystembruker(vedtak.behandling.oppgaveId)
             verify(vedtakRepoMock, never()).lagre(any())
             verify(behandlingMetricsMock).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.LUKKET_OPPGAVE)
             verifyNoMoreInteractions(behandlingMetricsMock)
@@ -410,7 +410,7 @@ internal class FerdigstillVedtakServiceImplTest {
         }
 
         val oppgaveServiceMock = mock<OppgaveService>() {
-            on { lukkOppgave(any()) } doReturn Unit.right()
+            on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
         }
 
         val behandlingMetricsMock = mock<BehandlingMetrics>()
@@ -443,6 +443,7 @@ internal class FerdigstillVedtakServiceImplTest {
                         behandlingsinformasjon = vedtak.behandlingsinformasjon,
                         saksbehandlerNavn = vedtak.saksbehandler.navIdent,
                         attestantNavn = vedtak.saksbehandler.navIdent,
+                        fritekst = "",
                     )
                 },
                 argThat { vedtak.behandling.saksnummer }
@@ -450,7 +451,7 @@ internal class FerdigstillVedtakServiceImplTest {
             verify(behandlingMetricsMock).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.JOURNALFØRT)
             verify(brevServiceMock).distribuerBrev(iverksattJournalpostId)
             verify(behandlingMetricsMock).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.DISTRIBUERT_BREV)
-            verify(oppgaveServiceMock).lukkOppgave(vedtak.behandling.oppgaveId)
+            verify(oppgaveServiceMock).lukkOppgaveMedSystembruker(vedtak.behandling.oppgaveId)
             verify(behandlingMetricsMock).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.LUKKET_OPPGAVE)
         }
     }
@@ -503,7 +504,8 @@ internal class FerdigstillVedtakServiceImplTest {
                         person = person,
                         avslag = Avslag(Tidspunkt.now(fixedClock), avslagsgrunner = vedtak.avslagsgrunner, harEktefelle = false, beregning = vedtak.beregning),
                         saksbehandlerNavn = vedtak.saksbehandler.navIdent,
-                        attestantNavn = vedtak.attestant.navIdent
+                        attestantNavn = vedtak.attestant.navIdent,
+                        fritekst = "",
                     )
                 },
                 argThat { it shouldBe vedtak.behandling.saksnummer }
@@ -620,7 +622,7 @@ internal class FerdigstillVedtakServiceImplTest {
         val response = createService(
             oppgaveService = oppgaveServiceMock,
             behandlingMetrics = behandlingMetricsMock
-        ).lukkOppgave(vedtak)
+        ).lukkOppgaveMedBruker(vedtak)
 
         response shouldBe FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave.left()
 
@@ -714,7 +716,8 @@ internal class FerdigstillVedtakServiceImplTest {
                         person = person,
                         avslag = Avslag(Tidspunkt.now(fixedClock), avslagsgrunner = vedtak.avslagsgrunner, harEktefelle = false, beregning = vedtak.beregning),
                         saksbehandlerNavn = "saksa",
-                        attestantNavn = "atta"
+                        attestantNavn = "atta",
+                        fritekst = "",
                     )
                 },
                 argThat { it shouldBe vedtak.behandling.saksnummer }
@@ -961,6 +964,8 @@ internal class FerdigstillVedtakServiceImplTest {
             Søknadsbehandling.Iverksatt.Avslag.MedBeregning(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(),
+                sakId = UUID.randomUUID(),
+                saksnummer = Saksnummer(1),
                 søknad = Søknad.Journalført.MedOppgave(
                     id = BehandlingTestUtils.søknadId,
                     opprettet = Tidspunkt.EPOCH,
@@ -969,14 +974,13 @@ internal class FerdigstillVedtakServiceImplTest {
                     oppgaveId = BehandlingTestUtils.søknadOppgaveId,
                     journalpostId = BehandlingTestUtils.søknadJournalpostId
                 ),
-                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-                sakId = UUID.randomUUID(),
-                saksnummer = Saksnummer(1),
-                fnr = FnrGenerator.random(),
-                saksbehandler = saksbehandler,
                 oppgaveId = oppgaveId,
+                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
+                fnr = FnrGenerator.random(),
                 beregning = TestBeregning,
-                attestering = Attestering.Iverksatt(attestant)
+                attestering = Attestering.Iverksatt(attestant),
+                saksbehandler = saksbehandler,
+                fritekstTilBrev = "",
             )
         )
 
@@ -988,6 +992,8 @@ internal class FerdigstillVedtakServiceImplTest {
             Søknadsbehandling.Iverksatt.Innvilget(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(),
+                sakId = UUID.randomUUID(),
+                saksnummer = Saksnummer(1),
                 søknad = Søknad.Journalført.MedOppgave(
                     id = BehandlingTestUtils.søknadId,
                     opprettet = Tidspunkt.EPOCH,
@@ -996,17 +1002,16 @@ internal class FerdigstillVedtakServiceImplTest {
                     oppgaveId = BehandlingTestUtils.søknadOppgaveId,
                     journalpostId = BehandlingTestUtils.søknadJournalpostId
                 ),
-                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-                sakId = UUID.randomUUID(),
-                saksnummer = Saksnummer(1),
-                fnr = FnrGenerator.random(),
-                saksbehandler = saksbehandler,
                 oppgaveId = oppgaveId,
+                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
+                fnr = FnrGenerator.random(),
                 beregning = TestBeregning,
-                attestering = Attestering.Iverksatt(attestant),
                 simulering = mock(),
-                utbetalingId = UUID30.randomUUID()
-            )
+                saksbehandler = saksbehandler,
+                attestering = Attestering.Iverksatt(attestant),
+                fritekstTilBrev = "",
+            ),
+            UUID30.randomUUID()
         )
 
     private fun journalførtInnvilgetVedtak() = innvilgetVedtak().copy(journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(iverksattJournalpostId))

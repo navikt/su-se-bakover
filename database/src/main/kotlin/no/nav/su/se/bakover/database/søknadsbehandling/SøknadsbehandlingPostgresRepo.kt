@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.database.søknadsbehandling
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
@@ -13,7 +12,6 @@ import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid
-import no.nav.su.se.bakover.database.uuid30
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -21,9 +19,6 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.brev.BrevbestillingId
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
-import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
@@ -81,33 +76,6 @@ internal class SøknadsbehandlingPostgresRepo(
             }
     }
 
-    override fun hentIverksatteBehandlingerUtenJournalposteringer(): List<Søknadsbehandling.Iverksatt.Innvilget> {
-        return dataSource.withSession { session ->
-            "select b.*, s.fnr, s.saksnummer from behandling b inner join sak s on s.id = b.sakId where iverksattJournalpostId is null and status = 'IVERKSATT_INNVILGET'"
-                .hentListe(emptyMap(), session) { row ->
-                    row.toSaksbehandling(session)
-                }.filterIsInstance<Søknadsbehandling.Iverksatt.Innvilget>()
-        }
-    }
-
-    override fun hentIverksatteBehandlingerUtenBrevbestillinger(): List<Søknadsbehandling.Iverksatt> {
-        return dataSource.withSession { session ->
-            "select b.*, s.fnr, s.saksnummer from behandling b inner join sak s on s.id = b.sakId where iverksattJournalpostId is not null and iverksattBrevbestillingId is null and status like 'IVERKSATT_%'"
-                .hentListe(emptyMap(), session) { row ->
-                    row.toSaksbehandling(session)
-                }.filterIsInstance<Søknadsbehandling.Iverksatt>()
-        }
-    }
-
-    override fun hentBehandlingForUtbetaling(utbetalingId: UUID30): Søknadsbehandling.Iverksatt.Innvilget? {
-        return dataSource.withSession { session ->
-            "select b.*, s.fnr, s.saksnummer from utbetaling u inner join behandling b on b.utbetalingid = u.id inner join sak s on s.id = b.sakid where u.id = :id"
-                .hent(mapOf("id" to utbetalingId), session) { row ->
-                    row.toSaksbehandling(session) as Søknadsbehandling.Iverksatt.Innvilget
-                }
-        }
-    }
-
     private fun Row.toSaksbehandling(session: Session): Søknadsbehandling {
         val behandlingId = uuid("id")
         val søknad = SøknadRepoInternal.hentSøknadInternal(uuid("søknadId"), session)!!
@@ -124,12 +92,9 @@ internal class SøknadsbehandlingPostgresRepo(
         val attestering = stringOrNull("attestering")?.let { objectMapper.readValue<Attestering>(it) }
         val saksbehandler = stringOrNull("saksbehandler")?.let { NavIdentBruker.Saksbehandler(it) }
         val saksnummer = Saksnummer(long("saksnummer"))
+        val fritekstTilBrev = stringOrNull("fritekstTilBrev") ?: ""
 
         val fnr = Fnr(string("fnr"))
-
-        val iverksattJournalpostId = stringOrNull("iverksattJournalpostId")?.let { JournalpostId(it) }
-
-        val iverksattBrevbestillingId = stringOrNull("iverksattBrevbestillingId")?.let { BrevbestillingId(it) }
 
         return when (status) {
             BehandlingsStatus.OPPRETTET -> Søknadsbehandling.Vilkårsvurdert.Uavklart(
@@ -140,7 +105,8 @@ internal class SøknadsbehandlingPostgresRepo(
                 søknad = søknad,
                 oppgaveId = oppgaveId,
                 behandlingsinformasjon = behandlingsinformasjon,
-                fnr = fnr
+                fnr = fnr,
+                fritekstTilBrev = fritekstTilBrev
             )
             BehandlingsStatus.VILKÅRSVURDERT_INNVILGET -> Søknadsbehandling.Vilkårsvurdert.Innvilget(
                 id = behandlingId,
@@ -150,7 +116,8 @@ internal class SøknadsbehandlingPostgresRepo(
                 søknad = søknad,
                 oppgaveId = oppgaveId,
                 behandlingsinformasjon = behandlingsinformasjon,
-                fnr = fnr
+                fnr = fnr,
+                fritekstTilBrev = fritekstTilBrev
             )
             BehandlingsStatus.VILKÅRSVURDERT_AVSLAG -> Søknadsbehandling.Vilkårsvurdert.Avslag(
                 id = behandlingId,
@@ -160,7 +127,8 @@ internal class SøknadsbehandlingPostgresRepo(
                 søknad = søknad,
                 oppgaveId = oppgaveId,
                 behandlingsinformasjon = behandlingsinformasjon,
-                fnr = fnr
+                fnr = fnr,
+                fritekstTilBrev = fritekstTilBrev
             )
             BehandlingsStatus.BEREGNET_INNVILGET -> Søknadsbehandling.Beregnet.Innvilget(
                 id = behandlingId,
@@ -171,7 +139,8 @@ internal class SøknadsbehandlingPostgresRepo(
                 oppgaveId = oppgaveId,
                 behandlingsinformasjon = behandlingsinformasjon,
                 fnr = fnr,
-                beregning = beregning!!
+                beregning = beregning!!,
+                fritekstTilBrev = fritekstTilBrev
             )
             BehandlingsStatus.BEREGNET_AVSLAG -> Søknadsbehandling.Beregnet.Avslag(
                 id = behandlingId,
@@ -182,7 +151,8 @@ internal class SøknadsbehandlingPostgresRepo(
                 oppgaveId = oppgaveId,
                 behandlingsinformasjon = behandlingsinformasjon,
                 fnr = fnr,
-                beregning = beregning!!
+                beregning = beregning!!,
+                fritekstTilBrev = fritekstTilBrev
             )
             BehandlingsStatus.SIMULERT -> Søknadsbehandling.Simulert(
                 id = behandlingId,
@@ -194,7 +164,8 @@ internal class SøknadsbehandlingPostgresRepo(
                 behandlingsinformasjon = behandlingsinformasjon,
                 fnr = fnr,
                 beregning = beregning!!,
-                simulering = simulering!!
+                simulering = simulering!!,
+                fritekstTilBrev = fritekstTilBrev
             )
             BehandlingsStatus.TIL_ATTESTERING_INNVILGET -> Søknadsbehandling.TilAttestering.Innvilget(
                 id = behandlingId,
@@ -207,7 +178,8 @@ internal class SøknadsbehandlingPostgresRepo(
                 fnr = fnr,
                 beregning = beregning!!,
                 simulering = simulering!!,
-                saksbehandler = saksbehandler!!
+                saksbehandler = saksbehandler!!,
+                fritekstTilBrev = fritekstTilBrev
             )
             BehandlingsStatus.TIL_ATTESTERING_AVSLAG -> when (beregning) {
                 null -> Søknadsbehandling.TilAttestering.Avslag.UtenBeregning(
@@ -219,7 +191,8 @@ internal class SøknadsbehandlingPostgresRepo(
                     oppgaveId = oppgaveId,
                     behandlingsinformasjon = behandlingsinformasjon,
                     fnr = fnr,
-                    saksbehandler = saksbehandler!!
+                    saksbehandler = saksbehandler!!,
+                    fritekstTilBrev = fritekstTilBrev
                 )
                 else -> Søknadsbehandling.TilAttestering.Avslag.MedBeregning(
                     id = behandlingId,
@@ -231,7 +204,8 @@ internal class SøknadsbehandlingPostgresRepo(
                     behandlingsinformasjon = behandlingsinformasjon,
                     fnr = fnr,
                     beregning = beregning,
-                    saksbehandler = saksbehandler!!
+                    saksbehandler = saksbehandler!!,
+                    fritekstTilBrev = fritekstTilBrev
                 )
             }
             BehandlingsStatus.UNDERKJENT_INNVILGET -> Søknadsbehandling.Underkjent.Innvilget(
@@ -246,7 +220,8 @@ internal class SøknadsbehandlingPostgresRepo(
                 beregning = beregning!!,
                 simulering = simulering!!,
                 saksbehandler = saksbehandler!!,
-                attestering = attestering!!
+                attestering = attestering!!,
+                fritekstTilBrev = fritekstTilBrev
             )
             BehandlingsStatus.UNDERKJENT_AVSLAG -> when (beregning) {
                 null -> Søknadsbehandling.Underkjent.Avslag.UtenBeregning(
@@ -259,7 +234,8 @@ internal class SøknadsbehandlingPostgresRepo(
                     behandlingsinformasjon = behandlingsinformasjon,
                     fnr = fnr,
                     saksbehandler = saksbehandler!!,
-                    attestering = attestering!!
+                    attestering = attestering!!,
+                    fritekstTilBrev = fritekstTilBrev
                 )
                 else -> Søknadsbehandling.Underkjent.Avslag.MedBeregning(
                     id = behandlingId,
@@ -272,14 +248,11 @@ internal class SøknadsbehandlingPostgresRepo(
                     fnr = fnr,
                     beregning = beregning,
                     saksbehandler = saksbehandler!!,
-                    attestering = attestering!!
+                    attestering = attestering!!,
+                    fritekstTilBrev = fritekstTilBrev
                 )
             }
             BehandlingsStatus.IVERKSATT_INNVILGET -> {
-                val eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.fromId(
-                    iverksattJournalpostId,
-                    iverksattBrevbestillingId
-                )
                 Søknadsbehandling.Iverksatt.Innvilget(
                     id = behandlingId,
                     opprettet = opprettet,
@@ -293,15 +266,10 @@ internal class SøknadsbehandlingPostgresRepo(
                     simulering = simulering!!,
                     saksbehandler = saksbehandler!!,
                     attestering = attestering!!,
-                    utbetalingId = uuid30("utbetalingId"),
-                    eksterneIverksettingsteg = eksterneIverksettingsteg,
+                    fritekstTilBrev = fritekstTilBrev
                 )
             }
             BehandlingsStatus.IVERKSATT_AVSLAG -> {
-                val eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.fromId(
-                    iverksattJournalpostId,
-                    iverksattBrevbestillingId
-                )
                 when (beregning) {
                     null -> Søknadsbehandling.Iverksatt.Avslag.UtenBeregning(
                         id = behandlingId,
@@ -314,7 +282,7 @@ internal class SøknadsbehandlingPostgresRepo(
                         fnr = fnr,
                         saksbehandler = saksbehandler!!,
                         attestering = attestering!!,
-                        eksterneIverksettingsteg = eksterneIverksettingsteg
+                        fritekstTilBrev = fritekstTilBrev
                     )
                     else -> Søknadsbehandling.Iverksatt.Avslag.MedBeregning(
                         id = behandlingId,
@@ -328,7 +296,7 @@ internal class SøknadsbehandlingPostgresRepo(
                         beregning = beregning,
                         saksbehandler = saksbehandler!!,
                         attestering = attestering!!,
-                        eksterneIverksettingsteg = eksterneIverksettingsteg
+                        fritekstTilBrev = fritekstTilBrev
                     )
                 }
             }
@@ -339,12 +307,39 @@ internal class SøknadsbehandlingPostgresRepo(
         dataSource.withSession { session ->
             (
                 """
-                    insert into behandling (id, sakId, søknadId, opprettet, status, behandlingsinformasjon, oppgaveId, beregning, simulering, saksbehandler, attestering)
-                    values (:id, :sakId, :soknadId, :opprettet, :status, to_json(:behandlingsinformasjon::json), :oppgaveId, null, null, null, null)
-                    on conflict (id) do
-                    update set status = :status, behandlingsinformasjon = to_json(:behandlingsinformasjon::json), beregning = null, simulering = null
+                    insert into behandling (
+                        id,
+                        sakId,
+                        søknadId,
+                        opprettet,
+                        status,
+                        behandlingsinformasjon,
+                        oppgaveId,
+                        beregning,
+                        simulering,
+                        saksbehandler,
+                        attestering
+                    ) values (
+                        :id,
+                        :sakId,
+                        :soknadId,
+                        :opprettet,
+                        :status,
+                        to_json(:behandlingsinformasjon::json),
+                        :oppgaveId,
+                        null,
+                        null,
+                        null,
+                        null
+                    ) on conflict (id) do update set
+                        status = :status,
+                        behandlingsinformasjon = to_json(:behandlingsinformasjon::json),
+                        beregning = null,
+                        simulering = null
                 """.trimIndent()
-                ).oppdatering(defaultParams(søknadsbehandling), session)
+                ).oppdatering(
+                defaultParams(søknadsbehandling), session
+            )
         }
     }
 
@@ -385,11 +380,19 @@ internal class SøknadsbehandlingPostgresRepo(
         dataSource.withSession { session ->
             (
                 """
-                   update behandling set status = :status, saksbehandler = :saksbehandler, oppgaveId = :oppgaveId  where id = :id
+                    update behandling set
+                        status = :status,
+                        saksbehandler = :saksbehandler,
+                        oppgaveId = :oppgaveId,
+                        fritekstTilBrev = :fritekstTilBrev
+                    where id = :id
                 """.trimIndent()
                 ).oppdatering(
                 defaultParams(søknadsbehandling).plus(
-                    "saksbehandler" to søknadsbehandling.saksbehandler.navIdent,
+                    listOf(
+                        "saksbehandler" to søknadsbehandling.saksbehandler.navIdent,
+                        "fritekstTilBrev" to søknadsbehandling.fritekstTilBrev
+                    )
                 ),
                 session
             )
@@ -417,15 +420,12 @@ internal class SøknadsbehandlingPostgresRepo(
                 dataSource.withSession { session ->
                     (
                         """
-                       update behandling set status = :status, attestering = to_json(:attestering::json), utbetalingId = :utbetalingId, iverksattJournalpostId = :iverksattJournalpostId, iverksattBrevbestillingId = :iverksattBrevbestillingId  where id = :id
+                       update behandling set status = :status, attestering = to_json(:attestering::json)  where id = :id
                         """.trimIndent()
                         ).oppdatering(
                         params = defaultParams(søknadsbehandling).plus(
                             listOf(
-                                "attestering" to objectMapper.writeValueAsString(søknadsbehandling.attestering),
-                                "utbetalingId" to søknadsbehandling.utbetalingId,
-                                "iverksattBrevbestillingId" to JournalføringOgBrevdistribusjon.iverksattBrevbestillingId(søknadsbehandling.eksterneIverksettingsteg)?.toString(),
-                                "iverksattJournalpostId" to JournalføringOgBrevdistribusjon.iverksattJournalpostId(søknadsbehandling.eksterneIverksettingsteg)?.toString(),
+                                "attestering" to objectMapper.writeValueAsString(søknadsbehandling.attestering)
                             )
                         ),
                         session = session
@@ -436,14 +436,12 @@ internal class SøknadsbehandlingPostgresRepo(
                 dataSource.withSession { session ->
                     (
                         """
-                       update behandling set status = :status, attestering = to_json(:attestering::json), iverksattJournalpostId = :iverksattJournalpostId, iverksattBrevbestillingId = :iverksattBrevbestillingId  where id = :id
+                       update behandling set status = :status, attestering = to_json(:attestering::json) where id = :id
                         """.trimIndent()
                         ).oppdatering(
                         params = defaultParams(søknadsbehandling).plus(
                             listOf(
                                 "attestering" to objectMapper.writeValueAsString(søknadsbehandling.attestering),
-                                "iverksattBrevbestillingId" to JournalføringOgBrevdistribusjon.iverksattBrevbestillingId(søknadsbehandling.eksterneIverksettingsteg)?.toString(),
-                                "iverksattJournalpostId" to JournalføringOgBrevdistribusjon.iverksattJournalpostId(søknadsbehandling.eksterneIverksettingsteg)?.toString(),
                             )
                         ),
                         session = session

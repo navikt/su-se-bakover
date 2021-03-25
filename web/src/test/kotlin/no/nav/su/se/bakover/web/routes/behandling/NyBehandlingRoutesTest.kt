@@ -48,6 +48,7 @@ class NyBehandlingRoutesTest {
             oppgaveId = OppgaveId("oppgaveId"),
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             fnr = FnrGenerator.random(),
+            fritekstTilBrev = "",
         )
         val saksbehandlingServiceMock = mock<SøknadsbehandlingService> {
             on { opprett(any()) } doReturn søknadsbehandling.right()
