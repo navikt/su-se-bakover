@@ -180,7 +180,7 @@ internal class SimuleringSoapClientTest {
             sakId = sakId,
             fnr = FNR,
             utbetalingslinjer = listOf(
-                Utbetalingslinje(
+                Utbetalingslinje.Ny(
                     fraOgMed = 1.oktober(2020),
                     tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = null,
@@ -229,7 +229,7 @@ internal class SimuleringSoapClientTest {
         sakId = sakId,
         saksnummer = saksnummer,
         utbetalingslinjer = listOf(
-            Utbetalingslinje(
+            Utbetalingslinje.Ny(
                 id = UUID30.randomUUID(),
                 fraOgMed = 1.januar(2020),
                 tilOgMed = 31.desember(2020),

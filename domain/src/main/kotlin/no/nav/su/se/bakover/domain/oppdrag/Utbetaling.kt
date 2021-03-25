@@ -140,7 +140,8 @@ sealed class Utbetaling {
     enum class UtbetalingsType {
         NY,
         STANS,
-        GJENOPPTA
+        GJENOPPTA,
+        OPPHØR
     }
 
     companion object {

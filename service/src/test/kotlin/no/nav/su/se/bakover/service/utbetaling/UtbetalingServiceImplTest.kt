@@ -323,7 +323,7 @@ internal class UtbetalingServiceImplTest {
             opprettet = actual.opprettet,
             avstemmingsnøkkel = actual.avstemmingsnøkkel,
             utbetalingslinjer = listOf(
-                Utbetalingslinje(
+                Utbetalingslinje.Ny(
                     id = actual.utbetalingslinjer[0].id,
                     opprettet = actual.utbetalingslinjer[0].opprettet,
                     fraOgMed = 1.januar(2020),
@@ -349,7 +349,7 @@ internal class UtbetalingServiceImplTest {
                         opprettet = it.opprettet,
                         avstemmingsnøkkel = it.avstemmingsnøkkel,
                         utbetalingslinjer = listOf(
-                            Utbetalingslinje(
+                            Utbetalingslinje.Ny(
                                 id = it.utbetalingslinjer[0].id,
                                 opprettet = it.utbetalingslinjer[0].opprettet,
                                 fraOgMed = 1.januar(2020),
@@ -368,7 +368,7 @@ internal class UtbetalingServiceImplTest {
                         opprettet = it.opprettet,
                         avstemmingsnøkkel = it.avstemmingsnøkkel,
                         utbetalingslinjer = listOf(
-                            Utbetalingslinje(
+                            Utbetalingslinje.Ny(
                                 id = it.utbetalingslinjer[0].id,
                                 opprettet = it.utbetalingslinjer[0].opprettet,
                                 fraOgMed = 1.januar(2020),
@@ -387,7 +387,7 @@ internal class UtbetalingServiceImplTest {
                         opprettet = it.opprettet,
                         avstemmingsnøkkel = it.avstemmingsnøkkel,
                         utbetalingslinjer = listOf(
-                            Utbetalingslinje(
+                            Utbetalingslinje.Ny(
                                 id = it.utbetalingslinjer[0].id,
                                 opprettet = it.utbetalingslinjer[0].opprettet,
                                 fraOgMed = 1.januar(2020),
@@ -448,7 +448,7 @@ internal class UtbetalingServiceImplTest {
                         opprettet = it.opprettet,
                         avstemmingsnøkkel = it.avstemmingsnøkkel,
                         utbetalingslinjer = listOf(
-                            Utbetalingslinje(
+                            Utbetalingslinje.Ny(
                                 id = it.utbetalingslinjer[0].id,
                                 opprettet = it.utbetalingslinjer[0].opprettet,
                                 fraOgMed = 1.januar(2020),
@@ -467,7 +467,7 @@ internal class UtbetalingServiceImplTest {
                         opprettet = it.opprettet,
                         avstemmingsnøkkel = it.avstemmingsnøkkel,
                         utbetalingslinjer = listOf(
-                            Utbetalingslinje(
+                            Utbetalingslinje.Ny(
                                 id = it.utbetalingslinjer[0].id,
                                 opprettet = it.utbetalingslinjer[0].opprettet,
                                 fraOgMed = 1.januar(2020),
@@ -530,7 +530,7 @@ internal class UtbetalingServiceImplTest {
                         opprettet = it.opprettet,
                         avstemmingsnøkkel = it.avstemmingsnøkkel,
                         utbetalingslinjer = listOf(
-                            Utbetalingslinje(
+                            Utbetalingslinje.Ny(
                                 id = it.utbetalingslinjer[0].id,
                                 opprettet = it.utbetalingslinjer[0].opprettet,
                                 fraOgMed = 1.januar(2020),

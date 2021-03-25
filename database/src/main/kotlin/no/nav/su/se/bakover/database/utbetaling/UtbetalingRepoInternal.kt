@@ -25,23 +25,23 @@ internal object UtbetalingInternalRepo {
     fun hentUtbetalingInternal(utbetalingId: UUID30, session: Session): Utbetaling.OversendtUtbetaling? =
         "select u.*, s.saksnummer from utbetaling u inner join sak s on s.id = u.sakId where u.id = :id".hent(
             mapOf(
-                "id" to utbetalingId
+                "id" to utbetalingId,
             ),
-            session
+            session,
         ) { it.toUtbetaling(session) }
 
     fun hentUtbetalinger(sakId: UUID, session: Session): List<Utbetaling.OversendtUtbetaling> =
         "select u.*, s.saksnummer from utbetaling u inner join sak s on s.id = u.sakId where s.id = :id".hentListe(
             mapOf(
-                "id" to sakId
+                "id" to sakId,
             ),
-            session
+            session,
         ) { it.toUtbetaling(session) }
 
     fun hentUtbetalingslinjer(utbetalingId: UUID30, session: Session): List<Utbetalingslinje> =
         "select * from utbetalingslinje where utbetalingId=:utbetalingId".hentListe(
             mapOf("utbetalingId" to utbetalingId.toString()),
-            session
+            session,
         ) {
             it.toUtbetalingslinje()
         }
@@ -50,8 +50,8 @@ internal object UtbetalingInternalRepo {
 internal fun Row.toUtbetaling(session: Session): Utbetaling.OversendtUtbetaling {
     val utbetalingId = uuid30("id")
     val opprettet = tidspunkt("opprettet")
-    val simulering = string("simulering").let { objectMapper.readValue(it, Simulering::class.java) }
-    val kvittering = stringOrNull("kvittering")?.let { objectMapper.readValue(it, Kvittering::class.java) }
+    val simulering = string("simulering").let { objectMapper.readValue<Simulering>(it) }
+    val kvittering = stringOrNull("kvittering")?.let { objectMapper.readValue<Kvittering>(it) }
     val utbetalingsrequest = string("utbetalingsrequest").let {
         objectMapper.readValue<Utbetalingsrequest>(it)
     }
@@ -62,8 +62,7 @@ internal fun Row.toUtbetaling(session: Session): Utbetaling.OversendtUtbetaling 
     val fnr = Fnr(string("fnr"))
     val type = Utbetaling.UtbetalingsType.valueOf(string("type"))
     val behandler = NavIdentBruker.Attestant(string("behandler"))
-    val avstemmingsnøkkel =
-        string("avstemmingsnøkkel").let { objectMapper.readValue(it, Avstemmingsnøkkel::class.java) }
+    val avstemmingsnøkkel = string("avstemmingsnøkkel").let { objectMapper.readValue<Avstemmingsnøkkel>(it) }
 
     return UtbetalingMapper(
         id = utbetalingId,
@@ -78,17 +77,37 @@ internal fun Row.toUtbetaling(session: Session): Utbetaling.OversendtUtbetaling 
         utbetalingsrequest = utbetalingsrequest,
         kvittering = kvittering,
         avstemmingId = avstemmingId,
-        behandler = behandler
+        behandler = behandler,
     ).map()
 }
 
 internal fun Row.toUtbetalingslinje(): Utbetalingslinje {
-    return Utbetalingslinje(
+    val status = stringOrNull("status")
+    val statusFraOgMed = localDateOrNull("statusFraOgMed")
+
+    val linje = Utbetalingslinje.Ny(
         id = uuid30("id"),
         fraOgMed = localDate("fom"),
         tilOgMed = localDate("tom"),
         opprettet = tidspunkt("opprettet"),
         forrigeUtbetalingslinjeId = stringOrNull("forrigeUtbetalingslinjeId")?.let { uuid30("forrigeUtbetalingslinjeId") },
-        beløp = int("beløp")
+        beløp = int("beløp"),
     )
+
+    return if (status != null && statusFraOgMed != null) {
+        Utbetalingslinje.Endring(
+            id = linje.id,
+            opprettet = linje.opprettet,
+            fraOgMed = linje.fraOgMed,
+            tilOgMed = linje.tilOgMed,
+            forrigeUtbetalingslinjeId = linje.forrigeUtbetalingslinjeId,
+            beløp = linje.beløp,
+            statusendring = Utbetalingslinje.Statusendring(
+                status = Utbetalingslinje.LinjeStatus.valueOf(status),
+                fraOgMed = statusFraOgMed,
+            ),
+        )
+    } else {
+        linje
+    }
 }
