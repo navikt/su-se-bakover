@@ -42,7 +42,7 @@ internal class UtbetalingServiceImpl(
 
     override fun oppdaterMedKvittering(
         avstemmingsnøkkel: Avstemmingsnøkkel,
-        kvittering: Kvittering
+        kvittering: Kvittering,
     ): Either<FantIkkeUtbetaling, Utbetaling.OversendtUtbetaling.MedKvittering> {
         return utbetalingRepo.hentUtbetaling(avstemmingsnøkkel)
             ?.let {
@@ -64,21 +64,47 @@ internal class UtbetalingServiceImpl(
         sakId: UUID,
         attestant: NavIdentBruker,
         beregning: Beregning,
-        simulering: Simulering
+        simulering: Simulering,
     ): Either<KunneIkkeUtbetale, Utbetaling.OversendtUtbetaling.UtenKvittering> {
         return simulerUtbetaling(sakId, attestant, beregning).mapLeft {
             KunneIkkeUtbetale.KunneIkkeSimulere
         }.flatMap { simulertUtbetaling ->
             if (harEndringerIUtbetalingSidenSaksbehandlersSimulering(
                     simulering,
-                    simulertUtbetaling
+                    simulertUtbetaling,
                 )
             ) return KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
             utbetal(simulertUtbetaling)
         }
     }
 
-    override fun simulerOpphør(sakId: UUID, saksbehandler: NavIdentBruker, opphørsdato: LocalDate): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
+    override fun opphør(
+        sakId: UUID,
+        attestant: NavIdentBruker,
+        simulering: Simulering,
+        opphørsdato: LocalDate,
+    ): Either<KunneIkkeUtbetale, Utbetaling.OversendtUtbetaling.UtenKvittering> {
+        return simulerOpphør(
+            sakId = sakId,
+            saksbehandler = attestant,
+            opphørsdato = opphørsdato,
+        ).mapLeft {
+            KunneIkkeUtbetale.KunneIkkeSimulere
+        }.flatMap { simulertOpphør ->
+            if (harEndringerIUtbetalingSidenSaksbehandlersSimulering(
+                    simulering,
+                    simulertOpphør,
+                )
+            ) return KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte.left()
+            utbetal(simulertOpphør)
+        }
+    }
+
+    override fun simulerOpphør(
+        sakId: UUID,
+        saksbehandler: NavIdentBruker,
+        opphørsdato: LocalDate,
+    ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
         val sak: Sak = sakService.hentSak(sakId).orNull()!!
         return simulerUtbetaling(
             Utbetalingsstrategi.Opphør(
@@ -89,7 +115,7 @@ internal class UtbetalingServiceImpl(
                 behandler = saksbehandler,
                 opphørsDato = opphørsdato,
                 clock = clock,
-            ).generate()
+            ).generate(),
         )
     }
 
@@ -101,14 +127,14 @@ internal class UtbetalingServiceImpl(
      */
     private fun harEndringerIUtbetalingSidenSaksbehandlersSimulering(
         saksbehandlersSimulering: Simulering,
-        attestantsSimulering: Utbetaling.SimulertUtbetaling
+        attestantsSimulering: Utbetaling.SimulertUtbetaling,
     ): Boolean {
         return if (saksbehandlersSimulering != attestantsSimulering.simulering) {
             log.error("Utbetaling kunne ikke gjennomføres, kontrollsimulering er ulik saksbehandlers simulering. Se sikkerlogg for detaljer.")
             sikkerLogg.error(
                 "Utbetaling kunne ikke gjennomføres, kontrollsimulering: {}, er ulik saksbehandlers simulering: {}",
                 objectMapper.writeValueAsString(attestantsSimulering.simulering),
-                objectMapper.writeValueAsString(saksbehandlersSimulering)
+                objectMapper.writeValueAsString(saksbehandlersSimulering),
             )
             true
         } else false
@@ -117,7 +143,7 @@ internal class UtbetalingServiceImpl(
     override fun simulerUtbetaling(
         sakId: UUID,
         saksbehandler: NavIdentBruker,
-        beregning: Beregning
+        beregning: Beregning,
     ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
         val sak: Sak = sakService.hentSak(sakId).orNull()!!
         return simulerUtbetaling(
@@ -129,7 +155,7 @@ internal class UtbetalingServiceImpl(
                 behandler = saksbehandler,
                 beregning = beregning,
                 clock = clock,
-            ).generate()
+            ).generate(),
         )
     }
 
@@ -151,7 +177,7 @@ internal class UtbetalingServiceImpl(
 
     override fun stansUtbetalinger(
         sakId: UUID,
-        saksbehandler: NavIdentBruker
+        saksbehandler: NavIdentBruker,
     ): Either<KunneIkkeStanseUtbetalinger, Sak> {
         val sak = sakService.hentSak(sakId).getOrElse {
             return KunneIkkeStanseUtbetalinger.FantIkkeSak.left()
@@ -186,7 +212,7 @@ internal class UtbetalingServiceImpl(
 
     override fun gjenopptaUtbetalinger(
         sakId: UUID,
-        saksbehandler: NavIdentBruker
+        saksbehandler: NavIdentBruker,
     ): Either<KunneIkkeGjenopptaUtbetalinger, Sak> {
 
         val sak = sakService.hentSak(sakId).getOrElse {

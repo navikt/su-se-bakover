@@ -48,6 +48,13 @@ interface UtbetalingService {
         sakId: UUID,
         saksbehandler: NavIdentBruker
     ): Either<KunneIkkeGjenopptaUtbetalinger, Sak>
+
+    fun opphør(
+        sakId: UUID,
+        attestant: NavIdentBruker,
+        simulering: Simulering,
+        opphørsdato: LocalDate
+    ): Either<KunneIkkeUtbetale, Utbetaling.OversendtUtbetaling.UtenKvittering>
 }
 
 object FantIkkeUtbetaling
