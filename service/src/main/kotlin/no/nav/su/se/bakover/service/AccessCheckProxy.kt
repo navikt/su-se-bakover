@@ -114,6 +114,16 @@ open class AccessCheckProxy(
                     return services.utbetaling.simulerUtbetaling(sakId, saksbehandler, beregning)
                 }
 
+                override fun simulerOpphør(
+                    sakId: UUID,
+                    saksbehandler: NavIdentBruker,
+                    opphørsdato: LocalDate,
+                ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
+                    assertHarTilgangTilSak(sakId)
+
+                    return services.utbetaling.simulerOpphør(sakId, saksbehandler, opphørsdato)
+                }
+
                 override fun utbetal(
                     sakId: UUID,
                     attestant: NavIdentBruker,
