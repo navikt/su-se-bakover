@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.system.os.entiteter.oppdragskjema.Attestant
 import no.nav.system.os.entiteter.oppdragskjema.Enhet
 import no.nav.system.os.entiteter.typer.simpletypes.FradragTillegg
+import no.nav.system.os.entiteter.typer.simpletypes.KodeStatusLinje
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.Oppdrag
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.Oppdragslinje
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.SimulerBeregningRequest
@@ -13,12 +14,12 @@ import java.time.LocalDate
 import no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningRequest as SimulerBeregningGrensesnittRequest
 
 internal class SimuleringRequestBuilder(
-    private val mappedRequest: UtbetalingRequest.OppdragRequest
+    private val mappedRequest: UtbetalingRequest.OppdragRequest,
 ) {
     constructor(
-        utbetaling: Utbetaling
+        utbetaling: Utbetaling,
     ) : this(
-        toUtbetalingRequest(utbetaling).oppdragRequest
+        toUtbetalingRequest(utbetaling).oppdragRequest,
     )
 
     private val oppdragRequest = Oppdrag().apply {
@@ -35,7 +36,7 @@ internal class SimuleringRequestBuilder(
                     enhet = it.enhet
                     typeEnhet = it.typeEnhet
                     datoEnhetFom = it.datoEnhetFom
-                }
+                },
             )
         }
     }
@@ -58,8 +59,10 @@ internal class SimuleringRequestBuilder(
     }
 
     private fun nyLinje(
-        oppdragslinje: UtbetalingRequest.Oppdragslinje
+        oppdragslinje: UtbetalingRequest.Oppdragslinje,
     ) = Oppdragslinje().apply {
+        kodeStatusLinje = oppdragslinje.kodeStatusLinje?.let { KodeStatusLinje.fromValue(it.value) }
+        datoStatusFom = oppdragslinje.datoStatusFom
         utbetalesTilId = oppdragslinje.utbetalesTilId
         delytelseId = oppdragslinje.delytelseId
         refDelytelseId = oppdragslinje.refDelytelseId
@@ -76,7 +79,7 @@ internal class SimuleringRequestBuilder(
         attestant.add(
             Attestant().apply {
                 attestantId = oppdragslinje.saksbehId
-            }
+            },
         )
     }
 }

@@ -25,21 +25,29 @@ class UtbetalingXmlMappingTest {
     fun `mapper utbetaling til xml request`() {
         assertThat(
             XmlMapper.writeValueAsString(toUtbetalingRequest(utbetaling = utbetaling)),
-            isSimilarTo(expected).withNodeMatcher(nodeMatcher)
+            isSimilarTo(expected).withNodeMatcher(nodeMatcher),
         )
     }
 
-    private val førsteUtbetalingsLinje = Utbetalingslinje(
+    private val førsteUtbetalingsLinje = Utbetalingslinje.Ny(
         fraOgMed = 1.januar(2020),
         tilOgMed = 31.januar(2020),
         beløp = 10,
-        forrigeUtbetalingslinjeId = null
+        forrigeUtbetalingslinjeId = null,
     )
-    private val andreUtbetalingslinje = Utbetalingslinje(
+    private val andreUtbetalingslinje = Utbetalingslinje.Ny(
         fraOgMed = 1.februar(2020),
         tilOgMed = 29.februar(2020),
         beløp = 20,
-        forrigeUtbetalingslinjeId = førsteUtbetalingsLinje.id
+        forrigeUtbetalingslinjeId = førsteUtbetalingsLinje.id,
+    )
+
+    private val tredjeUtbetalingslinje = Utbetalingslinje.Endring(
+        andreUtbetalingslinje,
+        statusendring = Utbetalingslinje.Statusendring(
+            status = Utbetalingslinje.LinjeStatus.OPPHØR,
+            fraOgMed = 1.februar(2020),
+        ),
     )
 
     private val fnr = Fnr("12345678910")
@@ -48,12 +56,13 @@ class UtbetalingXmlMappingTest {
         saksnummer = saksnummer,
         utbetalingslinjer = listOf(
             førsteUtbetalingsLinje,
-            andreUtbetalingslinje
+            andreUtbetalingslinje,
+            tredjeUtbetalingslinje,
         ),
         fnr = fnr,
         type = Utbetaling.UtbetalingsType.NY,
         behandler = NavIdentBruker.Attestant("A123456"),
-        avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay())
+        avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay()),
     )
 
     //language=xml
@@ -110,6 +119,24 @@ class UtbetalingXmlMappingTest {
                   <utbetalesTilId>$fnr</utbetalesTilId>
                   <refDelytelseId>${førsteUtbetalingsLinje.id}</refDelytelseId>
                   <refFagsystemId>$saksnummer</refFagsystemId>
+                  <attestant-180>
+                    <attestantId>A123456</attestantId>
+                  </attestant-180>
+                </oppdrags-linje-150>
+                <oppdrags-linje-150>
+                  <kodeEndringLinje>ENDR</kodeEndringLinje>
+                  <kodeStatusLinje>OPPH</kodeStatusLinje>
+                  <datoStatusFom>2020-02-01</datoStatusFom>
+                  <delytelseId>${tredjeUtbetalingslinje.id}</delytelseId>
+                  <kodeKlassifik>SUUFORE</kodeKlassifik>
+                  <datoVedtakFom>2020-02-01</datoVedtakFom>
+                  <datoVedtakTom>2020-02-29</datoVedtakTom>
+                  <sats>20</sats>
+                  <fradragTillegg>T</fradragTillegg>
+                  <typeSats>MND</typeSats>
+                  <brukKjoreplan>N</brukKjoreplan>
+                  <saksbehId>SU</saksbehId>
+                  <utbetalesTilId>$fnr</utbetalesTilId>
                   <attestant-180>
                     <attestantId>A123456</attestantId>
                   </attestant-180>

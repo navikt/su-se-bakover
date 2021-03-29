@@ -40,6 +40,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.vedtak.VedtakType
 import org.slf4j.LoggerFactory
@@ -125,6 +126,7 @@ open class Session(
                 is BrevbestillingId -> this.setString(idx, v.toString())
                 is JournalpostId -> this.setString(idx, v.toString())
                 is VedtakType -> this.setString(idx, v.toString())
+                is Utbetalingslinje.LinjeStatus -> this.setString(idx, v.toString())
                 else -> this.setObject(idx, v)
             }
         }

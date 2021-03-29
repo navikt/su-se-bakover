@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -95,7 +96,7 @@ internal val iverksattAttestering = Attestering.Iverksatt(attestant)
 internal val iverksattJournalpostId = JournalpostId("iverksattJournalpostId")
 internal val iverksattBrevbestillingId = BrevbestillingId("iverksattBrevbestillingId")
 internal val avstemmingsnøkkel = Avstemmingsnøkkel()
-internal fun utbetalingslinje() = Utbetalingslinje(
+internal fun utbetalingslinje() = Utbetalingslinje.Ny(
     fraOgMed = 1.januar(2020),
     tilOgMed = 31.desember(2020),
     forrigeUtbetalingslinjeId = null,
@@ -106,35 +107,43 @@ internal fun oversendtUtbetalingUtenKvittering(
     søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget,
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.database.avstemmingsnøkkel,
     utbetalingslinjer: List<Utbetalingslinje> = listOf(utbetalingslinje()),
-) = Utbetaling.OversendtUtbetaling.UtenKvittering(
-    id = UUID30.randomUUID(),
-    opprettet = fixedTidspunkt,
-    sakId = søknadsbehandling.sakId,
-    saksnummer = søknadsbehandling.saksnummer,
-    fnr = søknadsbehandling.fnr,
-    utbetalingslinjer = utbetalingslinjer,
-    type = Utbetaling.UtbetalingsType.NY,
-    behandler = attestant,
-    avstemmingsnøkkel = avstemmingsnøkkel,
-    simulering = simulering(søknadsbehandling.fnr),
-    utbetalingsrequest = Utbetalingsrequest("<xml></xml>"),
+) = oversendtUtbetalingUtenKvittering(
+    søknadsbehandling.fnr,
+    søknadsbehandling.sakId,
+    søknadsbehandling.saksnummer,
+    utbetalingslinjer,
+    avstemmingsnøkkel,
 )
 
 internal fun oversendtUtbetalingUtenKvittering(
     revurdering: RevurderingTilAttestering,
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.database.avstemmingsnøkkel,
     utbetalingslinjer: List<Utbetalingslinje> = listOf(utbetalingslinje()),
+) = oversendtUtbetalingUtenKvittering(
+    revurdering.fnr,
+    revurdering.sakId,
+    revurdering.saksnummer,
+    utbetalingslinjer,
+    avstemmingsnøkkel,
+)
+
+internal fun oversendtUtbetalingUtenKvittering(
+    fnr: Fnr,
+    sakId: UUID,
+    saksnummer: Saksnummer,
+    utbetalingslinjer: List<Utbetalingslinje> = listOf(utbetalingslinje()),
+    avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.database.avstemmingsnøkkel,
 ) = Utbetaling.OversendtUtbetaling.UtenKvittering(
     id = UUID30.randomUUID(),
     opprettet = fixedTidspunkt,
-    sakId = revurdering.sakId,
-    saksnummer = revurdering.saksnummer,
-    fnr = revurdering.fnr,
+    sakId = sakId,
+    saksnummer = saksnummer,
+    fnr = fnr,
     utbetalingslinjer = utbetalingslinjer,
     type = Utbetaling.UtbetalingsType.NY,
     behandler = attestant,
     avstemmingsnøkkel = avstemmingsnøkkel,
-    simulering = simulering(revurdering.fnr),
+    simulering = simulering(fnr),
     utbetalingsrequest = Utbetalingsrequest("<xml></xml>"),
 )
 
@@ -258,7 +267,7 @@ internal class TestDataHelper(
             Vedtak.EndringIYtelse.fromSøknadsbehandling(søknadsbehandling, utbetaling.id).also {
                 vedtakRepo.lagre(it)
             },
-            utbetaling
+            utbetaling,
         )
     }
 
@@ -413,7 +422,7 @@ internal class TestDataHelper(
     ): Pair<Søknadsbehandling.Iverksatt.Innvilget, Utbetaling.OversendtUtbetaling.UtenKvittering> {
         val utbetalingId = UUID30.randomUUID()
         val innvilget = nyTilInnvilgetAttestering(behandlingsinformasjon, periode).tilIverksatt(
-            iverksattAttestering
+            iverksattAttestering,
         )
         val utbetaling = oversendtUtbetalingUtenKvittering(
             søknadsbehandling = innvilget,

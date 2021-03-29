@@ -2,17 +2,19 @@ package no.nav.su.se.bakover.database.utbetaling
 
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.withSession
+import no.nav.su.se.bakover.database.withTransaction
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import javax.sql.DataSource
 
 internal class UtbetalingPostgresRepo(
-    private val dataSource: DataSource
+    private val dataSource: DataSource,
 ) : UtbetalingRepo {
     override fun hentUtbetaling(utbetalingId: UUID30): Utbetaling.OversendtUtbetaling? =
         dataSource.withSession { session -> UtbetalingInternalRepo.hentUtbetalingInternal(utbetalingId, session) }
@@ -21,9 +23,9 @@ internal class UtbetalingPostgresRepo(
         return dataSource.withSession { session ->
             "select u.*, s.saksnummer from utbetaling u left join sak s on s.id = u.sakId where u.avstemmingsnøkkel ->> 'nøkkel' = :nokkel".hent(
                 mapOf(
-                    "nokkel" to avstemmingsnøkkel.toString()
+                    "nokkel" to avstemmingsnøkkel.toString(),
                 ),
-                session
+                session,
             ) { it.toUtbetaling(session) }
         }
     }
@@ -31,7 +33,7 @@ internal class UtbetalingPostgresRepo(
     override fun hentUkvitterteUtbetalinger(): List<Utbetaling.OversendtUtbetaling.UtenKvittering> {
         return dataSource.withSession { session ->
             "select u.*, s.saksnummer from utbetaling u left join sak s on s.id = u.sakId where u.kvittering is null".hentListe(
-                session = session
+                session = session,
             ) { it.toUtbetaling(session) as Utbetaling.OversendtUtbetaling.UtenKvittering }
         }
     }
@@ -41,15 +43,15 @@ internal class UtbetalingPostgresRepo(
             "update utbetaling set kvittering = to_json(:kvittering::json) where id = :id".oppdatering(
                 mapOf(
                     "id" to utbetaling.id,
-                    "kvittering" to objectMapper.writeValueAsString(utbetaling.kvittering)
+                    "kvittering" to objectMapper.writeValueAsString(utbetaling.kvittering),
                 ),
-                session
+                session,
             )
         }
     }
 
     override fun opprettUtbetaling(utbetaling: Utbetaling.OversendtUtbetaling.UtenKvittering) {
-        dataSource.withSession { session ->
+        dataSource.withTransaction { session ->
             """
             insert into utbetaling (id, opprettet, sakId, fnr, type, avstemmingsnøkkel, simulering, utbetalingsrequest, behandler)
             values (:id, :opprettet, :sakId, :fnr, :type, to_json(:avstemmingsnokkel::json), to_json(:simulering::json), to_json(:utbetalingsrequest::json), :behandler)
@@ -63,32 +65,41 @@ internal class UtbetalingPostgresRepo(
                     "avstemmingsnokkel" to objectMapper.writeValueAsString(utbetaling.avstemmingsnøkkel),
                     "simulering" to objectMapper.writeValueAsString(utbetaling.simulering),
                     "utbetalingsrequest" to objectMapper.writeValueAsString(utbetaling.utbetalingsrequest),
-                    "behandler" to utbetaling.behandler.navIdent
+                    "behandler" to utbetaling.behandler.navIdent,
                 ),
-                session
+                session,
             )
+            utbetaling.utbetalingslinjer.forEach { opprettUtbetalingslinje(utbetaling.id, it, session) }
         }
-        utbetaling.utbetalingslinjer.forEach { opprettUtbetalingslinje(utbetaling.id, it) }
     }
 
-    internal fun opprettUtbetalingslinje(utbetalingId: UUID30, utbetalingslinje: Utbetalingslinje): Utbetalingslinje {
-        dataSource.withSession { session ->
-            """
-            insert into utbetalingslinje (id, opprettet, fom, tom, utbetalingId, forrigeUtbetalingslinjeId, beløp)
-            values (:id, :opprettet, :fom, :tom, :utbetalingId, :forrigeUtbetalingslinjeId, :belop)
-        """.oppdatering(
-                mapOf(
-                    "id" to utbetalingslinje.id,
-                    "opprettet" to utbetalingslinje.opprettet,
-                    "fom" to utbetalingslinje.fraOgMed,
-                    "tom" to utbetalingslinje.tilOgMed,
-                    "utbetalingId" to utbetalingId,
-                    "forrigeUtbetalingslinjeId" to utbetalingslinje.forrigeUtbetalingslinjeId,
-                    "belop" to utbetalingslinje.beløp,
-                ),
-                session
-            )
+    private fun opprettUtbetalingslinje(utbetalingId: UUID30, utbetalingslinje: Utbetalingslinje, session: Session): Utbetalingslinje {
+        val baseParams = mapOf(
+            "id" to utbetalingslinje.id,
+            "opprettet" to utbetalingslinje.opprettet,
+            "fom" to utbetalingslinje.fraOgMed,
+            "tom" to utbetalingslinje.tilOgMed,
+            "utbetalingId" to utbetalingId,
+            "forrigeUtbetalingslinjeId" to utbetalingslinje.forrigeUtbetalingslinjeId,
+            "belop" to utbetalingslinje.beløp,
+        )
+
+        val params = when (utbetalingslinje) {
+            is Utbetalingslinje.Endring -> {
+                baseParams.plus(
+                    mapOf(
+                        "status" to utbetalingslinje.statusendring.status,
+                        "statusFraOgMed" to utbetalingslinje.statusendring.fraOgMed,
+                    ),
+                )
+            }
+            is Utbetalingslinje.Ny -> baseParams
         }
+        """
+            insert into utbetalingslinje (id, opprettet, fom, tom, utbetalingId, forrigeUtbetalingslinjeId, beløp, status, statusFraOgMed)
+            values (:id, :opprettet, :fom, :tom, :utbetalingId, :forrigeUtbetalingslinjeId, :belop, :status, :statusFraOgMed)
+        """.oppdatering(params, session)
+
         return utbetalingslinje
     }
 }
