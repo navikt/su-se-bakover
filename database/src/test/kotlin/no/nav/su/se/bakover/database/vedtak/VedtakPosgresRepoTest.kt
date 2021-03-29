@@ -38,7 +38,7 @@ internal class VedtakPosgresRepoTest {
     fun `setter inn og henter vedtak for avslått stønad`() {
         withMigratedDb {
             val søknadsbehandling = testDataHelper.nyIverksattAvslagMedBeregning()
-            val vedtak = Vedtak.AvslåttStønad.fromSøknadsbehandlingMedBeregning(søknadsbehandling)
+            val vedtak = Vedtak.Avslag.fromSøknadsbehandlingMedBeregning(søknadsbehandling)
 
             vedtakRepo.lagre(vedtak)
 
@@ -87,7 +87,7 @@ internal class VedtakPosgresRepoTest {
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 
-            val revurderingVedtak = Vedtak.InnvilgetStønad.fromRevurdering(iverksattRevurdering, søknadsbehandlingVedtak.utbetalingId)
+            val revurderingVedtak = Vedtak.EndringIYtelse.fromRevurdering(iverksattRevurdering, søknadsbehandlingVedtak.utbetalingId)
 
             vedtakRepo.lagre(revurderingVedtak)
 
@@ -107,9 +107,9 @@ internal class VedtakPosgresRepoTest {
     fun `hent alle aktive vedtak`() {
         withMigratedDb {
             val (søknadsbehandling, utbetaling) = testDataHelper.nyIverksattInnvilget()
-            val vedtakSomErAktivt = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling, utbetaling.id)
+            val vedtakSomErAktivt = Vedtak.EndringIYtelse.fromSøknadsbehandling(søknadsbehandling, utbetaling.id)
                 .copy(periode = Periode.create(1.februar(2021), 31.mars(2021)))
-            val vedtakUtenforAktivPeriode = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling, utbetaling.id)
+            val vedtakUtenforAktivPeriode = Vedtak.EndringIYtelse.fromSøknadsbehandling(søknadsbehandling, utbetaling.id)
                 .copy(periode = Periode.create(1.januar(2021), 31.januar(2021)))
             vedtakRepo.lagre(vedtakSomErAktivt)
             vedtakRepo.lagre(vedtakUtenforAktivPeriode)
@@ -123,7 +123,7 @@ internal class VedtakPosgresRepoTest {
     fun `oppdaterer koblingstabell mellom søknadsbehandling og vedtak ved lagring av vedtak for avslått søknadsbehandling`() {
         withMigratedDb {
             val søknadsbehandling = testDataHelper.nyIverksattAvslagMedBeregning()
-            val vedtak = Vedtak.AvslåttStønad.fromSøknadsbehandlingMedBeregning(søknadsbehandling)
+            val vedtak = Vedtak.Avslag.fromSøknadsbehandlingMedBeregning(søknadsbehandling)
 
             vedtakRepo.lagre(vedtak)
 
@@ -143,7 +143,7 @@ internal class VedtakPosgresRepoTest {
     fun `oppdaterer vedtak med journalpost og brevbestilling`() {
         withMigratedDb {
             val søknadsbehandling = testDataHelper.nyIverksattAvslagMedBeregning()
-            val vedtak = Vedtak.AvslåttStønad.fromSøknadsbehandlingMedBeregning(søknadsbehandling)
+            val vedtak = Vedtak.Avslag.fromSøknadsbehandlingMedBeregning(søknadsbehandling)
 
             vedtakRepo.lagre(vedtak)
             vedtakRepo.lagre(

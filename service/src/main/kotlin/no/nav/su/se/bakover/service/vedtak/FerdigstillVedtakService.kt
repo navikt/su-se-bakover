@@ -118,7 +118,7 @@ internal class FerdigstillVedtakServiceImpl(
      */
     override fun opprettManglendeJournalposterOgBrevbestillinger(): FerdigstillVedtakService.OpprettManglendeJournalpostOgBrevdistribusjonResultat {
         val alleUtenJournalpost = vedtakRepo.hentUtenJournalpost()
-        val innvilgetUtenJournalpost = alleUtenJournalpost.filterIsInstance<Vedtak.InnvilgetStønad>()
+        val innvilgetUtenJournalpost = alleUtenJournalpost.filterIsInstance<Vedtak.EndringIYtelse>()
             /**
              * Unngår å journalføre og distribuere brev for innvilgelser hvor vi ikke har mottatt kvittering,
              * eller mottatt kvittering ikke er ok.
@@ -128,7 +128,7 @@ internal class FerdigstillVedtakServiceImpl(
                     it is Utbetaling.OversendtUtbetaling.MedKvittering && it.kvittering.erKvittertOk()
                 }
             }
-        val avslagUtenJournalpost = alleUtenJournalpost.filterIsInstance<Vedtak.AvslåttStønad>()
+        val avslagUtenJournalpost = alleUtenJournalpost.filterIsInstance<Vedtak.Avslag>()
         val journalpostResultat = innvilgetUtenJournalpost.plus(avslagUtenJournalpost).map { vedtak ->
             journalførOgLagre(vedtak)
                 .mapLeft { feilVedJournalføring ->
@@ -159,7 +159,7 @@ internal class FerdigstillVedtakServiceImpl(
 
         val alleUtenBrevbestilling = vedtakRepo.hentUtenBrevbestilling()
 
-        val innvilgetUtenBrevbestilling = alleUtenBrevbestilling.filterIsInstance<Vedtak.InnvilgetStønad>()
+        val innvilgetUtenBrevbestilling = alleUtenBrevbestilling.filterIsInstance<Vedtak.EndringIYtelse>()
             /**
              * Unngår å journalføre og distribuere brev for innvilgelser hvor vi ikke har mottatt kvittering,
              * eller mottatt kvittering ikke er ok.
@@ -170,7 +170,7 @@ internal class FerdigstillVedtakServiceImpl(
                 }
             }
 
-        val avslagUtenBrevbestilling = alleUtenBrevbestilling.filterIsInstance<Vedtak.AvslåttStønad>()
+        val avslagUtenBrevbestilling = alleUtenBrevbestilling.filterIsInstance<Vedtak.Avslag>()
         val brevbestillingResultat = innvilgetUtenBrevbestilling.plus(avslagUtenBrevbestilling).map { vedtak ->
             distribuerOgLagre(vedtak)
                 .mapLeft {
@@ -333,10 +333,10 @@ internal class FerdigstillVedtakServiceImpl(
 
     private fun incrementJournalført(vedtak: Vedtak) {
         when (vedtak) {
-            is Vedtak.AvslåttStønad -> {
+            is Vedtak.Avslag -> {
                 behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.JOURNALFØRT)
             }
-            is Vedtak.InnvilgetStønad -> {
+            is Vedtak.EndringIYtelse -> {
                 behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.JOURNALFØRT)
             }
         }
@@ -344,10 +344,10 @@ internal class FerdigstillVedtakServiceImpl(
 
     private fun incrementDistribuert(vedtak: Vedtak) {
         when (vedtak) {
-            is Vedtak.AvslåttStønad -> {
+            is Vedtak.Avslag -> {
                 behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.DISTRIBUERT_BREV)
             }
-            is Vedtak.InnvilgetStønad -> {
+            is Vedtak.EndringIYtelse -> {
                 behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.DISTRIBUERT_BREV)
             }
         }
@@ -355,10 +355,10 @@ internal class FerdigstillVedtakServiceImpl(
 
     private fun incrementLukketOppgave(vedtak: Vedtak) {
         when (vedtak) {
-            is Vedtak.AvslåttStønad -> {
+            is Vedtak.Avslag -> {
                 behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.LUKKET_OPPGAVE)
             }
-            is Vedtak.InnvilgetStønad -> {
+            is Vedtak.EndringIYtelse -> {
                 behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.LUKKET_OPPGAVE)
             }
         }

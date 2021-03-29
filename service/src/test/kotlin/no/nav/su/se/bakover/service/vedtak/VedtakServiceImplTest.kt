@@ -101,7 +101,7 @@ internal class VedtakServiceImplTest {
     )
 
     private fun innvilgetVedtak(fnr: Fnr) =
-        Vedtak.InnvilgetStønad.fromSøknadsbehandling(
+        Vedtak.EndringIYtelse.fromSøknadsbehandling(
             Søknadsbehandling.Iverksatt.Innvilget(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(),
