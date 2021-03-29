@@ -28,7 +28,7 @@ import java.util.UUID
 import kotlin.math.abs
 
 sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
-    abstract val tilRevurdering: Vedtak.InnvilgetStønad
+    abstract val tilRevurdering: Vedtak.EndringIYtelse
     abstract val periode: Periode
     abstract val saksbehandler: Saksbehandler
     override val sakId: UUID
@@ -100,7 +100,7 @@ data class OpprettetRevurdering(
     override val id: UUID = UUID.randomUUID(),
     override val periode: Periode,
     override val opprettet: Tidspunkt = Tidspunkt.now(),
-    override val tilRevurdering: Vedtak.InnvilgetStønad,
+    override val tilRevurdering: Vedtak.EndringIYtelse,
     override val saksbehandler: Saksbehandler,
     override val oppgaveId: OppgaveId,
     override val fritekstTilBrev: String,
@@ -144,7 +144,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val id: UUID,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
-        override val tilRevurdering: Vedtak.InnvilgetStønad,
+        override val tilRevurdering: Vedtak.EndringIYtelse,
         override val saksbehandler: Saksbehandler,
         override val beregning: Beregning,
         override val oppgaveId: OppgaveId,
@@ -169,7 +169,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val id: UUID,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
-        override val tilRevurdering: Vedtak.InnvilgetStønad,
+        override val tilRevurdering: Vedtak.EndringIYtelse,
         override val saksbehandler: Saksbehandler,
         override val beregning: Beregning,
         override val oppgaveId: OppgaveId,
@@ -182,7 +182,7 @@ data class SimulertRevurdering(
     override val id: UUID,
     override val periode: Periode,
     override val opprettet: Tidspunkt,
-    override val tilRevurdering: Vedtak.InnvilgetStønad,
+    override val tilRevurdering: Vedtak.EndringIYtelse,
     override val saksbehandler: Saksbehandler,
     override val oppgaveId: OppgaveId,
     override val revurderingsårsak: Revurderingsårsak,
@@ -227,7 +227,7 @@ data class RevurderingTilAttestering(
     override val id: UUID,
     override val periode: Periode,
     override val opprettet: Tidspunkt,
-    override val tilRevurdering: Vedtak.InnvilgetStønad,
+    override val tilRevurdering: Vedtak.EndringIYtelse,
     override val saksbehandler: Saksbehandler,
     override val oppgaveId: OppgaveId,
     override val fritekstTilBrev: String,
@@ -271,7 +271,6 @@ data class RevurderingTilAttestering(
                 beregning = beregning,
                 simulering = simulering,
                 attestering = Attestering.Iverksatt(attestant),
-                utbetalingId = it,
                 fritekstTilBrev = fritekstTilBrev,
                 revurderingsårsak = revurderingsårsak,
             )
@@ -302,7 +301,7 @@ data class IverksattRevurdering(
     override val id: UUID,
     override val periode: Periode,
     override val opprettet: Tidspunkt,
-    override val tilRevurdering: Vedtak.InnvilgetStønad,
+    override val tilRevurdering: Vedtak.EndringIYtelse,
     override val saksbehandler: Saksbehandler,
     override val oppgaveId: OppgaveId,
     override val fritekstTilBrev: String,
@@ -310,7 +309,6 @@ data class IverksattRevurdering(
     val beregning: Beregning,
     val simulering: Simulering,
     val attestering: Attestering.Iverksatt,
-    val utbetalingId: UUID30,
 ) : Revurdering() {
     override fun accept(visitor: RevurderingVisitor) {
         visitor.visit(this)
@@ -325,7 +323,7 @@ data class UnderkjentRevurdering(
     override val id: UUID,
     override val periode: Periode,
     override val opprettet: Tidspunkt,
-    override val tilRevurdering: Vedtak.InnvilgetStønad,
+    override val tilRevurdering: Vedtak.EndringIYtelse,
     override val saksbehandler: Saksbehandler,
     override val oppgaveId: OppgaveId,
     override val fritekstTilBrev: String,
@@ -355,6 +353,20 @@ data class UnderkjentRevurdering(
     fun nyOppgaveId(nyOppgaveId: OppgaveId): UnderkjentRevurdering {
         return this.copy(oppgaveId = nyOppgaveId)
     }
+
+    fun oppdater(
+        periode: Periode,
+        revurderingsårsak: Revurderingsårsak,
+    ) = OpprettetRevurdering(
+        id = id,
+        periode = periode,
+        opprettet = opprettet,
+        tilRevurdering = tilRevurdering,
+        saksbehandler = saksbehandler,
+        oppgaveId = oppgaveId,
+        fritekstTilBrev = fritekstTilBrev,
+        revurderingsårsak = revurderingsårsak,
+    )
 }
 
 /**

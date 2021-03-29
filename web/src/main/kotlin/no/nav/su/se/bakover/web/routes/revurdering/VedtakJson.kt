@@ -34,7 +34,7 @@ internal data class VedtakJson(
     }
 }
 
-internal fun Vedtak.InnvilgetStønad.toJson(): VedtakJson = VedtakJson(
+internal fun Vedtak.EndringIYtelse.toJson(): VedtakJson = VedtakJson(
     id = id.toString(),
     opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
     behandlingsinformasjon = behandlingsinformasjon.toJson(),

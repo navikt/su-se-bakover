@@ -22,31 +22,46 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.util.UUID
 
-sealed class Vedtak : Visitable<VedtakVisitor> {
-    abstract val id: UUID
-    abstract val opprettet: Tidspunkt
-    abstract val behandling: Behandling
-    abstract val behandlingsinformasjon: Behandlingsinformasjon
-    abstract val journalføringOgBrevdistribusjon: JournalføringOgBrevdistribusjon
+enum class VedtakType {
+    SØKNAD,
+    AVSLAG,
+    ENDRING,
+}
+
+interface VedtakFelles {
+    val id: UUID
+    val opprettet: Tidspunkt
+    val behandling: Behandling
+    val behandlingsinformasjon: Behandlingsinformasjon
+    val saksbehandler: NavIdentBruker.Saksbehandler
+    val attestant: NavIdentBruker.Attestant
+    val journalføringOgBrevdistribusjon: JournalføringOgBrevdistribusjon
+    val vedtakType: VedtakType
+}
+
+sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
 
     abstract fun journalfør(journalfør: () -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre, Vedtak>
     abstract fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev, Vedtak>
 
-    data class InnvilgetStønad(
-        override val id: UUID = UUID.randomUUID(),
-        override val opprettet: Tidspunkt = Tidspunkt.now(),
-        val periode: Periode,
+    data class EndringIYtelse(
+        override val id: UUID,
+        override val opprettet: Tidspunkt,
         override val behandling: Behandling,
         override val behandlingsinformasjon: Behandlingsinformasjon,
+        override val saksbehandler: NavIdentBruker.Saksbehandler,
+        override val attestant: NavIdentBruker.Attestant,
+        override val journalføringOgBrevdistribusjon: JournalføringOgBrevdistribusjon,
+        val periode: Periode,
         val beregning: Beregning,
         val simulering: Simulering,
-        val saksbehandler: NavIdentBruker.Saksbehandler,
-        val attestant: NavIdentBruker.Attestant,
         val utbetalingId: UUID30,
-        override val journalføringOgBrevdistribusjon: JournalføringOgBrevdistribusjon,
+        override val vedtakType: VedtakType,
     ) : Vedtak() {
         companion object {
-            fun fromSøknadsbehandling(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget, utbetalingId: UUID30) = InnvilgetStønad(
+            fun fromSøknadsbehandling(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget, utbetalingId: UUID30) = EndringIYtelse(
+                id = UUID.randomUUID(),
+                opprettet = Tidspunkt.now(),
                 periode = søknadsbehandling.beregning.getPeriode(),
                 behandling = søknadsbehandling,
                 behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
@@ -56,9 +71,12 @@ sealed class Vedtak : Visitable<VedtakVisitor> {
                 attestant = søknadsbehandling.attestering.attestant,
                 utbetalingId = utbetalingId,
                 journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
+                vedtakType = VedtakType.SØKNAD,
             )
 
-            fun fromRevurdering(revurdering: IverksattRevurdering) = InnvilgetStønad(
+            fun fromRevurdering(revurdering: IverksattRevurdering, utbetalingId: UUID30) = EndringIYtelse(
+                id = UUID.randomUUID(),
+                opprettet = Tidspunkt.now(),
                 behandling = revurdering,
                 behandlingsinformasjon = revurdering.tilRevurdering.behandlingsinformasjon,
                 periode = revurdering.beregning.getPeriode(),
@@ -66,32 +84,34 @@ sealed class Vedtak : Visitable<VedtakVisitor> {
                 simulering = revurdering.simulering,
                 saksbehandler = revurdering.saksbehandler,
                 attestant = revurdering.attestering.attestant,
-                utbetalingId = revurdering.utbetalingId,
+                utbetalingId = utbetalingId,
                 journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
+                vedtakType = VedtakType.ENDRING,
             )
+        }
+
+        override fun journalfør(journalfør: () -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre, EndringIYtelse> {
+            return journalføringOgBrevdistribusjon.journalfør(journalfør).map { copy(journalføringOgBrevdistribusjon = it) }
+        }
+
+        override fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev, EndringIYtelse> {
+            return journalføringOgBrevdistribusjon.distribuerBrev(distribuerBrev)
+                .map { copy(journalføringOgBrevdistribusjon = it) }
         }
 
         override fun accept(visitor: VedtakVisitor) {
             visitor.visit(this)
         }
-
-        override fun journalfør(journalfør: () -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre, InnvilgetStønad> {
-            return journalføringOgBrevdistribusjon.journalfør(journalfør).map { copy(journalføringOgBrevdistribusjon = it) }
-        }
-
-        override fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev, InnvilgetStønad> {
-            return journalføringOgBrevdistribusjon.distribuerBrev(distribuerBrev)
-                .map { copy(journalføringOgBrevdistribusjon = it) }
-        }
     }
 
-    sealed class AvslåttStønad : Vedtak(), ErAvslag {
-        abstract val saksbehandler: NavIdentBruker.Saksbehandler
-        abstract val attestant: NavIdentBruker.Attestant
+    sealed class Avslag : Vedtak(), ErAvslag {
+        override val vedtakType = VedtakType.AVSLAG
 
         companion object {
             fun fromSøknadsbehandlingMedBeregning(avslag: Søknadsbehandling.Iverksatt.Avslag.MedBeregning) =
-                MedBeregning(
+                AvslagBeregning(
+                    id = UUID.randomUUID(),
+                    opprettet = Tidspunkt.now(),
                     behandling = avslag,
                     behandlingsinformasjon = avslag.behandlingsinformasjon,
                     beregning = avslag.beregning,
@@ -101,7 +121,9 @@ sealed class Vedtak : Visitable<VedtakVisitor> {
                 )
 
             fun fromSøknadsbehandlingUtenBeregning(avslag: Søknadsbehandling.Iverksatt.Avslag.UtenBeregning) =
-                UtenBeregning(
+                AvslagVilkår(
+                    id = UUID.randomUUID(),
+                    opprettet = Tidspunkt.now(),
                     behandling = avslag,
                     behandlingsinformasjon = avslag.behandlingsinformasjon,
                     saksbehandler = avslag.saksbehandler,
@@ -110,62 +132,61 @@ sealed class Vedtak : Visitable<VedtakVisitor> {
                 )
         }
 
-        data class UtenBeregning(
-            override val id: UUID = UUID.randomUUID(),
-            override val opprettet: Tidspunkt = Tidspunkt.now(),
+        data class AvslagVilkår(
+            override val id: UUID,
+            override val opprettet: Tidspunkt,
             override val behandling: Behandling,
             override val behandlingsinformasjon: Behandlingsinformasjon,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val attestant: NavIdentBruker.Attestant,
             override val journalføringOgBrevdistribusjon: JournalføringOgBrevdistribusjon,
-        ) : AvslåttStønad() {
-            override fun accept(visitor: VedtakVisitor) {
-                visitor.visit(this)
-            }
-
-            // TODO jm: disse bør sannsynligvis peristeres.
+        ) : Avslag() {
             override val avslagsgrunner: List<Avslagsgrunn> = behandlingsinformasjon.utledAvslagsgrunner()
 
-            override fun journalfør(journalfør: () -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre, UtenBeregning> {
+            override fun journalfør(journalfør: () -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre, Avslag> {
                 return journalføringOgBrevdistribusjon.journalfør(journalfør).map { copy(journalføringOgBrevdistribusjon = it) }
             }
 
-            override fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev, UtenBeregning> {
+            override fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev, Avslag> {
                 return journalføringOgBrevdistribusjon.distribuerBrev(distribuerBrev)
                     .map { copy(journalføringOgBrevdistribusjon = it) }
             }
+
+            override fun accept(visitor: VedtakVisitor) {
+                visitor.visit(this)
+            }
         }
 
-        data class MedBeregning(
-            override val id: UUID = UUID.randomUUID(),
-            override val opprettet: Tidspunkt = Tidspunkt.now(),
+        data class AvslagBeregning(
+            override val id: UUID,
+            override val opprettet: Tidspunkt,
             override val behandling: Behandling,
             override val behandlingsinformasjon: Behandlingsinformasjon,
-            val beregning: Beregning,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val attestant: NavIdentBruker.Attestant,
             override val journalføringOgBrevdistribusjon: JournalføringOgBrevdistribusjon,
-        ) : AvslåttStønad() {
+            val beregning: Beregning,
+        ) : Avslag() {
             private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
                 when (val vurdering = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
                     is AvslagGrunnetBeregning.Ja -> listOf(vurdering.avslagsgrunn)
                     is AvslagGrunnetBeregning.Nei -> emptyList()
                 }
 
-            override fun accept(visitor: VedtakVisitor) {
-                visitor.visit(this)
-            }
-
             // TODO jm: disse bør sannsynligvis peristeres.
             override val avslagsgrunner: List<Avslagsgrunn> = behandlingsinformasjon.utledAvslagsgrunner() + avslagsgrunnForBeregning
 
-            override fun journalfør(journalfør: () -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre, MedBeregning> {
+            override fun journalfør(journalfør: () -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre, Avslag> {
                 return journalføringOgBrevdistribusjon.journalfør(journalfør).map { copy(journalføringOgBrevdistribusjon = it) }
             }
 
-            override fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev, MedBeregning> {
+            override fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev, Avslag> {
                 return journalføringOgBrevdistribusjon.distribuerBrev(distribuerBrev)
                     .map { copy(journalføringOgBrevdistribusjon = it) }
+            }
+
+            override fun accept(visitor: VedtakVisitor) {
+                visitor.visit(this)
             }
         }
     }

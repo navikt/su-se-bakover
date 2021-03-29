@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.web.routes.behandling.toJson
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingJson
 import no.nav.su.se.bakover.web.routes.revurdering.VedtakJson
 import no.nav.su.se.bakover.web.routes.revurdering.toJson
-import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.sak.SakJson.KanStansesEllerGjenopptas.Companion.kanStansesEllerGjenopptas
 import no.nav.su.se.bakover.web.routes.søknad.SøknadJson
 import no.nav.su.se.bakover.web.routes.søknad.toJson
@@ -65,7 +64,7 @@ internal data class SakJson(
                 },
             utbetalingerKanStansesEllerGjenopptas = utbetalinger.kanStansesEllerGjenopptas(),
             revurderinger = revurderinger.map { it.toJson() },
-            vedtak = vedtakListe.filterIsInstance(Vedtak.InnvilgetStønad::class.java).map { it.toJson() },
+            vedtak = vedtakListe.filterIsInstance(Vedtak.EndringIYtelse::class.java).map { it.toJson() },
         )
     }
 }

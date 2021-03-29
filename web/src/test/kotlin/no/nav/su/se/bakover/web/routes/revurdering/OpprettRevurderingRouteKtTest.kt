@@ -188,36 +188,6 @@ internal class OpprettRevurderingRouteKtTest {
     }
 
     @Test
-    fun `kan ikke revurdere perioder med flere aktive stønadsperioder`() {
-        shouldMapErrorCorrectly(
-            error = KunneIkkeOppretteRevurdering.KanIkkeRevurderePerioderMedFlereAktiveStønadsperioder,
-            expectedStatusCode = HttpStatusCode.BadRequest,
-            expectedJsonResponse = """
-                {
-                    "message":"Revurderingsperioden kan ikke overlappe flere aktive stønadsperioder",
-                    "code":"flere_aktive_stønadsperioder"
-                }
-            """.trimIndent(),
-
-        )
-    }
-
-    @Test
-    fun `kan ikke revurdere en periode med eksisterende revurdering`() {
-        shouldMapErrorCorrectly(
-            error = KunneIkkeOppretteRevurdering.KanIkkeRevurdereEnPeriodeMedEksisterendeRevurdering,
-            expectedStatusCode = HttpStatusCode.BadRequest,
-            expectedJsonResponse = """
-                {
-                    "message":"Kan ikke revurdere en behandling som allerede har en eksisterende revurdering",
-                    "code":"finnes_en_eksisterende_revurdering"
-                }
-            """.trimIndent(),
-
-        )
-    }
-
-    @Test
     fun `ugyldig fraOgMed dato`() {
         shouldMapErrorCorrectly(
             error = KunneIkkeOppretteRevurdering.UgyldigPeriode(

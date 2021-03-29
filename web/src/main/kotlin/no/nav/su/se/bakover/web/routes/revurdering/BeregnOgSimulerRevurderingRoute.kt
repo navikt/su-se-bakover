@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurd
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering.FantIkkeRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering.SimuleringFeilet
-import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering.UgyldigPeriode
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering.UgyldigTilstand
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.Resultat
@@ -30,7 +29,6 @@ import no.nav.su.se.bakover.web.routes.behandling.beregning.FradragJson
 import no.nav.su.se.bakover.web.routes.behandling.beregning.FradragJson.Companion.toFradrag
 import no.nav.su.se.bakover.web.routes.behandling.beregning.PeriodeJson
 import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresponser.fantIkkeRevurdering
-import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresponser.ugyldigPeriode
 import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
@@ -80,7 +78,6 @@ internal fun Route.beregnOgSimulerRevurdering(
 
 private fun KunneIkkeBeregneOgSimulereRevurdering.tilResultat(): Resultat {
     return when (this) {
-        is UgyldigPeriode -> ugyldigPeriode(this.subError)
         is FantIkkeRevurdering -> fantIkkeRevurdering
         is UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)
         is KanIkkeVelgeSisteMånedVedNedgangIStønaden -> BadRequest.errorJson(

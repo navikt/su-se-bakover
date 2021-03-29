@@ -53,8 +53,6 @@ sealed class KunneIkkeOppretteRevurdering {
     object FantIkkeAktørId : KunneIkkeOppretteRevurdering()
     object KunneIkkeOppretteOppgave : KunneIkkeOppretteRevurdering()
     object KanIkkeRevurdereInneværendeMånedEllerTidligere : KunneIkkeOppretteRevurdering()
-    object KanIkkeRevurderePerioderMedFlereAktiveStønadsperioder : KunneIkkeOppretteRevurdering()
-    object KanIkkeRevurdereEnPeriodeMedEksisterendeRevurdering : KunneIkkeOppretteRevurdering()
     data class UgyldigPeriode(val subError: Periode.UgyldigPeriode) : KunneIkkeOppretteRevurdering()
     object UgyldigÅrsak : KunneIkkeOppretteRevurdering()
     object UgyldigBegrunnelse : KunneIkkeOppretteRevurdering()
@@ -76,7 +74,6 @@ sealed class KunneIkkeBeregneOgSimulereRevurdering {
     object FantIkkeRevurdering : KunneIkkeBeregneOgSimulereRevurdering()
     object SimuleringFeilet : KunneIkkeBeregneOgSimulereRevurdering()
     object KanIkkeVelgeSisteMånedVedNedgangIStønaden : KunneIkkeBeregneOgSimulereRevurdering()
-    data class UgyldigPeriode(val subError: Periode.UgyldigPeriode) : KunneIkkeBeregneOgSimulereRevurdering()
     data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
         KunneIkkeBeregneOgSimulereRevurdering()
 
@@ -87,7 +84,6 @@ sealed class KunneIkkeSendeRevurderingTilAttestering {
     object FantIkkeRevurdering : KunneIkkeSendeRevurderingTilAttestering()
     object FantIkkeAktørId : KunneIkkeSendeRevurderingTilAttestering()
     object KunneIkkeOppretteOppgave : KunneIkkeSendeRevurderingTilAttestering()
-    data class UgyldigPeriode(val subError: Periode.UgyldigPeriode) : KunneIkkeSendeRevurderingTilAttestering()
     data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
         KunneIkkeSendeRevurderingTilAttestering()
 }
@@ -96,8 +92,6 @@ sealed class KunneIkkeIverksetteRevurdering {
     object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteRevurdering()
     object KunneIkkeUtbetale : KunneIkkeIverksetteRevurdering()
     object KunneIkkeKontrollsimulere : KunneIkkeIverksetteRevurdering()
-    object SimuleringHarBlittEndretSidenSaksbehandlerSimulerte : KunneIkkeIverksetteRevurdering()
-    object KunneIkkeJournalføreBrev : KunneIkkeIverksetteRevurdering()
     object FantIkkeRevurdering : KunneIkkeIverksetteRevurdering()
     data class UgyldigTilstand(
         val fra: KClass<out Revurdering>,

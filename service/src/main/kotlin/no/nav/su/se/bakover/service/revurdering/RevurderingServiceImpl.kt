@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
@@ -79,7 +80,7 @@ internal class RevurderingServiceImpl(
         }
 
         val tilRevurdering = sak.vedtakListe
-            .filterIsInstance<Vedtak.InnvilgetStønad>()
+            .filterIsInstance<Vedtak.EndringIYtelse>()
             .filter { opprettRevurderingRequest.fraOgMed.between(it.periode) }
             .maxByOrNull { it.opprettet.instant }
             ?: return KunneIkkeOppretteRevurdering.FantIngentingSomKanRevurderes.left()
@@ -127,7 +128,6 @@ internal class RevurderingServiceImpl(
     override fun oppdaterRevurderingsperiode(
         oppdaterRevurderingRequest: OppdaterRevurderingRequest,
     ): Either<KunneIkkeOppdatereRevurderingsperiode, OpprettetRevurdering> {
-
         val revurderingsårsak = oppdaterRevurderingRequest.revurderingsårsak.getOrHandle {
             return when (it) {
                 Revurderingsårsak.UgyldigRevurderingsårsak.UgyldigBegrunnelse -> KunneIkkeOppdatereRevurderingsperiode.UgyldigBegrunnelse
@@ -151,6 +151,7 @@ internal class RevurderingServiceImpl(
             is OpprettetRevurdering -> revurdering.oppdater(nyPeriode, revurderingsårsak).right()
             is BeregnetRevurdering -> revurdering.oppdater(nyPeriode, revurderingsårsak).right()
             is SimulertRevurdering -> revurdering.oppdater(nyPeriode, revurderingsårsak).right()
+            is UnderkjentRevurdering -> revurdering.oppdater(nyPeriode, revurderingsårsak).right()
             else -> KunneIkkeOppdatereRevurderingsperiode.UgyldigTilstand(
                 revurdering::class,
                 OpprettetRevurdering::class,
@@ -312,6 +313,8 @@ internal class RevurderingServiceImpl(
         revurderingId: UUID,
         attestant: NavIdentBruker.Attestant,
     ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering> {
+        var utbetaling: Utbetaling.OversendtUtbetaling.UtenKvittering? = null
+
         return when (val revurdering = revurderingRepo.hent(revurderingId)) {
             is RevurderingTilAttestering -> {
                 val iverksattRevurdering = revurdering.iverksett(attestant) {
@@ -327,6 +330,8 @@ internal class RevurderingServiceImpl(
                             KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
                         }
                     }.map {
+                        // Dersom vi skal unngå denne hacken må Iverksatt.Innvilget innholde denne istedenfor kun IDen
+                        utbetaling = it
                         it.id
                     }
                 }.getOrHandle {
@@ -338,7 +343,7 @@ internal class RevurderingServiceImpl(
                     }.left()
                 }
 
-                vedtakRepo.lagre(Vedtak.InnvilgetStønad.fromRevurdering(iverksattRevurdering))
+                vedtakRepo.lagre(Vedtak.EndringIYtelse.fromRevurdering(iverksattRevurdering, utbetaling!!.id))
 
                 revurderingRepo.lagre(iverksattRevurdering)
                 observers.forEach { observer ->

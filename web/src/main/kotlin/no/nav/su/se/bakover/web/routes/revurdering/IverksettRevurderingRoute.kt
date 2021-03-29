@@ -13,10 +13,8 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering.FantIkkeRevurdering
-import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering.KunneIkkeJournalføreBrev
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering.KunneIkkeKontrollsimulere
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale
-import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering.UgyldigTilstand
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.Resultat
@@ -60,10 +58,6 @@ private fun KunneIkkeIverksetteRevurdering.tilResultat() = when (this) {
         "Attestant og saksbehandler kan ikke være samme person",
         "attestant_og_saksbehandler_kan_ikke_være_samme_person",
     )
-    is KunneIkkeJournalføreBrev -> InternalServerError.errorJson(
-        "Feil ved journalføring av vedtaksbrev",
-        "kunne_ikke_journalføre_brev",
-    )
     is KunneIkkeKontrollsimulere -> InternalServerError.errorJson(
         "Kunne ikke utføre kontrollsimulering",
         "kunne_ikke_kontrollsimulere",
@@ -71,9 +65,5 @@ private fun KunneIkkeIverksetteRevurdering.tilResultat() = when (this) {
     is KunneIkkeUtbetale -> InternalServerError.errorJson(
         "Kunne ikke utføre utbetaling",
         "kunne_ikke_utbetale",
-    )
-    is SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> InternalServerError.errorJson(
-        "Oppdaget inkonsistens mellom tidligere utført simulering og kontrollsimulering. Ny simulering må utføres og kontrolleres før iverksetting kan gjennomføres",
-        "simulering_har_blitt_endret_siden_saksbehandler_simulerte",
     )
 }

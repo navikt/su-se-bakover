@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakType
 import java.time.LocalDate
 import java.util.UUID
 import javax.sql.DataSource
@@ -34,9 +35,9 @@ import javax.sql.DataSource
 interface VedtakRepo {
     fun hentForSakId(sakId: UUID, session: Session? = null): List<Vedtak>
     fun hent(id: UUID, session: Session? = null): Vedtak?
-    fun hentAktive(dato: LocalDate, session: Session? = null): List<Vedtak.InnvilgetStønad>
+    fun hentAktive(dato: LocalDate, session: Session? = null): List<Vedtak.EndringIYtelse>
     fun lagre(vedtak: Vedtak)
-    fun hentForUtbetaling(utbetalingId: UUID30): Vedtak.InnvilgetStønad
+    fun hentForUtbetaling(utbetalingId: UUID30): Vedtak.EndringIYtelse
     fun hentUtenJournalpost(): List<Vedtak>
     fun hentUtenBrevbestilling(): List<Vedtak>
 }
@@ -44,7 +45,7 @@ interface VedtakRepo {
 internal class VedtakPosgresRepo(
     private val dataSource: DataSource,
     private val søknadsbehandlingRepo: SøknadsbehandlingRepo,
-    private val revurderingRepo: RevurderingRepo
+    private val revurderingRepo: RevurderingRepo,
 ) : VedtakRepo {
     override fun hentForSakId(sakId: UUID, session: Session?): List<Vedtak> =
         dataSource.withSession(session) { s ->
@@ -61,12 +62,12 @@ internal class VedtakPosgresRepo(
 
     override fun lagre(vedtak: Vedtak) {
         when (vedtak) {
-            is Vedtak.InnvilgetStønad -> lagre(vedtak)
-            is Vedtak.AvslåttStønad -> lagre(vedtak)
+            is Vedtak.EndringIYtelse -> lagre(vedtak)
+            is Vedtak.Avslag -> lagre(vedtak)
         }
     }
 
-    override fun hentForUtbetaling(utbetalingId: UUID30): Vedtak.InnvilgetStønad {
+    override fun hentForUtbetaling(utbetalingId: UUID30): Vedtak.EndringIYtelse {
         return dataSource.withSession { session ->
             """
                 SELECT *
@@ -75,7 +76,7 @@ internal class VedtakPosgresRepo(
             """.trimIndent()
                 .hent(mapOf("utbetalingId" to utbetalingId), session) {
                     it.toVedtak(session)
-                } as Vedtak.InnvilgetStønad
+                } as Vedtak.EndringIYtelse
         }
     }
 
@@ -115,7 +116,7 @@ internal class VedtakPosgresRepo(
                 }
         }
 
-    override fun hentAktive(dato: LocalDate, session: Session?): List<Vedtak.InnvilgetStønad> =
+    override fun hentAktive(dato: LocalDate, session: Session?): List<Vedtak.EndringIYtelse> =
         dataSource.withSession(session) { s ->
             """
             select * from vedtak 
@@ -126,7 +127,7 @@ internal class VedtakPosgresRepo(
             """.trimIndent()
                 .hentListe(mapOf("dato" to dato), s) {
                     it.toVedtak(s)
-                }.filterIsInstance<Vedtak.InnvilgetStønad>()
+                }.filterIsInstance<Vedtak.EndringIYtelse>()
         }
 
     private fun Row.toVedtak(session: Session): Vedtak {
@@ -152,55 +153,65 @@ internal class VedtakPosgresRepo(
         val simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) }
         val iverksattJournalpostId = stringOrNull("iverksattJournalpostId")?.let { JournalpostId(it) }
         val iverksattBrevbestillingId = stringOrNull("iverksattBrevbestillingId")?.let { BrevbestillingId(it) }
+        val vedtakType = VedtakType.valueOf(string("vedtaktype"))
 
-        // TODO fix this hacky mapping
-        return when {
-            utbetalingId != null && beregning != null && simulering != null -> Vedtak.InnvilgetStønad(
-                id = id,
-                opprettet = opprettet,
-                periode = Periode.create(fraOgMed!!, tilOgMed!!),
-                behandling = behandling,
-                behandlingsinformasjon = behandlingsinformasjon,
-                beregning = beregning,
-                simulering = simulering,
-                saksbehandler = saksbehandler,
-                attestant = attestant,
-                utbetalingId = utbetalingId,
-                journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.fromId(
-                    iverksattJournalpostId,
-                    iverksattBrevbestillingId
+        return when (vedtakType) {
+            VedtakType.SØKNAD,
+            VedtakType.ENDRING,
+            -> {
+                Vedtak.EndringIYtelse(
+                    id = id,
+                    opprettet = opprettet,
+                    periode = Periode.create(fraOgMed!!, tilOgMed!!),
+                    behandling = behandling,
+                    behandlingsinformasjon = behandlingsinformasjon,
+                    beregning = beregning!!,
+                    simulering = simulering!!,
+                    saksbehandler = saksbehandler,
+                    attestant = attestant,
+                    utbetalingId = utbetalingId!!,
+                    journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.fromId(
+                        iverksattJournalpostId,
+                        iverksattBrevbestillingId,
+                    ),
+                    vedtakType = vedtakType,
                 )
-            )
-            utbetalingId == null && beregning != null -> Vedtak.AvslåttStønad.MedBeregning(
-                id = id,
-                opprettet = opprettet,
-                behandling = behandling,
-                behandlingsinformasjon = behandlingsinformasjon,
-                beregning = beregning,
-                saksbehandler = saksbehandler,
-                attestant = attestant,
-                journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.fromId(
-                    iverksattJournalpostId,
-                    iverksattBrevbestillingId
-                )
-            )
-            utbetalingId == null && beregning == null -> Vedtak.AvslåttStønad.UtenBeregning(
-                id = id,
-                opprettet = opprettet,
-                behandling = behandling,
-                behandlingsinformasjon = behandlingsinformasjon,
-                saksbehandler = saksbehandler,
-                attestant = attestant,
-                journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.fromId(
-                    iverksattJournalpostId,
-                    iverksattBrevbestillingId
-                )
-            )
-            else -> throw IllegalStateException("Alvorlig feil i mapping")
+            }
+            VedtakType.AVSLAG,
+            -> {
+                if (beregning != null) {
+                    Vedtak.Avslag.AvslagBeregning(
+                        id = id,
+                        opprettet = opprettet,
+                        behandling = behandling,
+                        behandlingsinformasjon = behandlingsinformasjon,
+                        beregning = beregning,
+                        saksbehandler = saksbehandler,
+                        attestant = attestant,
+                        journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.fromId(
+                            iverksattJournalpostId,
+                            iverksattBrevbestillingId,
+                        ),
+                    )
+                } else {
+                    Vedtak.Avslag.AvslagVilkår(
+                        id = id,
+                        opprettet = opprettet,
+                        behandling = behandling,
+                        behandlingsinformasjon = behandlingsinformasjon,
+                        saksbehandler = saksbehandler,
+                        attestant = attestant,
+                        journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.fromId(
+                            iverksattJournalpostId,
+                            iverksattBrevbestillingId,
+                        ),
+                    )
+                }
+            }
         }
     }
 
-    private fun lagre(vedtak: Vedtak.InnvilgetStønad) {
+    private fun lagre(vedtak: Vedtak.EndringIYtelse) {
         dataSource.withTransaction { tx ->
             """
                 INSERT INTO vedtak(
@@ -215,7 +226,8 @@ internal class VedtakPosgresRepo(
                     simulering,
                     beregning,
                     iverksattjournalpostid,
-                    iverksattbrevbestillingid
+                    iverksattbrevbestillingid,
+                    vedtaktype
                 ) VALUES (
                     :id,
                     :opprettet,
@@ -228,7 +240,8 @@ internal class VedtakPosgresRepo(
                     to_json(:simulering::json),
                     to_json(:beregning::json),
                     :iverksattjournalpostId,
-                    :iverksattbrevbestillingId
+                    :iverksattbrevbestillingId,
+                    :vedtaktype
                 ) ON CONFLICT(id) DO UPDATE SET
                     iverksattjournalpostid = :iverksattjournalpostId,
                     iverksattbrevbestillingid = :iverksattbrevbestillingId
@@ -246,13 +259,14 @@ internal class VedtakPosgresRepo(
                         "beregning" to objectMapper.writeValueAsString(vedtak.beregning.toSnapshot()),
                         "behandlingsinformasjon" to objectMapper.writeValueAsString(vedtak.behandlingsinformasjon),
                         "iverksattjournalpostId" to JournalføringOgBrevdistribusjon.iverksattJournalpostId(
-                            vedtak.journalføringOgBrevdistribusjon
+                            vedtak.journalføringOgBrevdistribusjon,
                         )?.toString(),
                         "iverksattbrevbestillingId" to JournalføringOgBrevdistribusjon.iverksattBrevbestillingId(
-                            vedtak.journalføringOgBrevdistribusjon
+                            vedtak.journalføringOgBrevdistribusjon,
                         )?.toString(),
+                        "vedtaktype" to vedtak.vedtakType,
                     ),
-                    tx
+                    tx,
                 )
 
             lagreBehandlingVedtakKnytning(
@@ -261,26 +275,26 @@ internal class VedtakPosgresRepo(
                         BehandlingVedtakKnytning.ForRevurdering(
                             vedtakId = vedtak.id,
                             sakId = vedtak.behandling.sakId,
-                            revurderingId = vedtak.behandling.id
+                            revurderingId = vedtak.behandling.id,
                         )
                     is Søknadsbehandling ->
                         BehandlingVedtakKnytning.ForSøknadsbehandling(
                             vedtakId = vedtak.id,
                             sakId = vedtak.behandling.sakId,
-                            søknadsbehandlingId = vedtak.behandling.id
+                            søknadsbehandlingId = vedtak.behandling.id,
                         )
                     else ->
                         throw IllegalArgumentException("vedtak.behandling er av ukjent type. Den må være en revurdering eller en søknadsbehandling.")
                 },
-                tx
+                tx,
             )
         }
     }
 
-    private fun lagre(vedtak: Vedtak.AvslåttStønad) {
+    private fun lagre(vedtak: Vedtak.Avslag) {
         val beregning = when (vedtak) {
-            is Vedtak.AvslåttStønad.MedBeregning -> vedtak.beregning
-            is Vedtak.AvslåttStønad.UtenBeregning -> null
+            is Vedtak.Avslag.AvslagBeregning -> vedtak.beregning
+            is Vedtak.Avslag.AvslagVilkår -> null
         }
         dataSource.withTransaction { tx ->
             """
@@ -296,7 +310,8 @@ internal class VedtakPosgresRepo(
                     simulering,
                     beregning,
                     iverksattjournalpostid,
-                    iverksattbrevbestillingid
+                    iverksattbrevbestillingid,
+                    vedtaktype
                 ) values (
                     :id,
                     :opprettet,
@@ -309,7 +324,8 @@ internal class VedtakPosgresRepo(
                     to_json(:simulering::json),
                     to_json(:beregning::json),
                     :iverksattjournalpostId,
-                    :iverksattbrevbestillingId
+                    :iverksattbrevbestillingId,
+                    :vedtaktype
                 )  ON CONFLICT(id) DO UPDATE SET
                     iverksattjournalpostid = :iverksattjournalpostId,
                     iverksattbrevbestillingid = :iverksattbrevbestillingId
@@ -325,13 +341,14 @@ internal class VedtakPosgresRepo(
                         "beregning" to beregning?.let { objectMapper.writeValueAsString(it.toSnapshot()) },
                         "behandlingsinformasjon" to objectMapper.writeValueAsString(vedtak.behandlingsinformasjon),
                         "iverksattjournalpostId" to JournalføringOgBrevdistribusjon.iverksattJournalpostId(
-                            vedtak.journalføringOgBrevdistribusjon
+                            vedtak.journalføringOgBrevdistribusjon,
                         )?.toString(),
                         "iverksattbrevbestillingId" to JournalføringOgBrevdistribusjon.iverksattBrevbestillingId(
-                            vedtak.journalføringOgBrevdistribusjon
+                            vedtak.journalføringOgBrevdistribusjon,
                         )?.toString(),
+                        "vedtaktype" to vedtak.vedtakType,
                     ),
-                    tx
+                    tx,
                 )
 
             lagreBehandlingVedtakKnytning(
@@ -340,11 +357,11 @@ internal class VedtakPosgresRepo(
                         BehandlingVedtakKnytning.ForSøknadsbehandling(
                             vedtakId = vedtak.id,
                             sakId = vedtak.behandling.sakId,
-                            søknadsbehandlingId = vedtak.behandling.id
+                            søknadsbehandlingId = vedtak.behandling.id,
                         )
                     else -> throw IllegalArgumentException("Vedtak.behandling er av ukjent type. Støtter bare søknadsbehandling inntil videre")
                 },
-                tx
+                tx,
             )
         }
     }
@@ -359,14 +376,14 @@ internal class VedtakPosgresRepo(
                 is BehandlingVedtakKnytning.ForSøknadsbehandling ->
                     mapOf(
                         "soknadsbehandlingId" to knytning.søknadsbehandlingId,
-                        "revurderingId" to null
+                        "revurderingId" to null,
                     )
                 is BehandlingVedtakKnytning.ForRevurdering ->
                     mapOf(
                         "soknadsbehandlingId" to null,
-                        "revurderingId" to knytning.revurderingId
+                        "revurderingId" to knytning.revurderingId,
                     )
-            }
+            },
         )
         """
                 INSERT INTO behandling_vedtak
@@ -386,7 +403,7 @@ internal class VedtakPosgresRepo(
         """.trimIndent()
             .oppdatering(
                 map,
-                session
+                session,
             )
     }
 
@@ -398,7 +415,7 @@ internal class VedtakPosgresRepo(
         """.trimIndent()
             .hent(
                 mapOf("vedtakId" to vedtakId),
-                session
+                session,
             ) {
                 val id = it.uuid("id")
                 val vedtakId2 = it.uuid("vedtakId")
@@ -412,7 +429,7 @@ internal class VedtakPosgresRepo(
                             id = id,
                             vedtakId = vedtakId2,
                             sakId = sakId,
-                            søknadsbehandlingId = UUID.fromString(søknadsbehandlingId)
+                            søknadsbehandlingId = UUID.fromString(søknadsbehandlingId),
                         )
                     }
                     revurderingId != null && søknadsbehandlingId == null -> {
@@ -420,12 +437,12 @@ internal class VedtakPosgresRepo(
                             id = id,
                             vedtakId = vedtakId2,
                             sakId = sakId,
-                            revurderingId = UUID.fromString(revurderingId)
+                            revurderingId = UUID.fromString(revurderingId),
                         )
                     }
                     else -> {
                         throw IllegalStateException(
-                            "Fant ugyldig behandling-vedtak-knytning. søknadsbehandlingId=$søknadsbehandlingId, revurderingId=$revurderingId. Èn og nøyaktig èn av dem må være satt."
+                            "Fant ugyldig behandling-vedtak-knytning. søknadsbehandlingId=$søknadsbehandlingId, revurderingId=$revurderingId. Èn og nøyaktig èn av dem må være satt.",
                         )
                     }
                 }
@@ -440,14 +457,14 @@ internal class VedtakPosgresRepo(
             override val id: UUID = UUID.randomUUID(),
             override val vedtakId: UUID,
             override val sakId: UUID,
-            val søknadsbehandlingId: UUID
+            val søknadsbehandlingId: UUID,
         ) : BehandlingVedtakKnytning()
 
         data class ForRevurdering(
             override val id: UUID = UUID.randomUUID(),
             override val vedtakId: UUID,
             override val sakId: UUID,
-            val revurderingId: UUID
+            val revurderingId: UUID,
         ) : BehandlingVedtakKnytning()
     }
 }
