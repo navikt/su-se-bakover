@@ -59,6 +59,6 @@ sealed class Utbetalingslinje {
     )
 
     enum class LinjeStatus {
-        OPPHØRT;
+        OPPHØR;
     }
 }

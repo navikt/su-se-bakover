@@ -117,8 +117,7 @@ data class UtbetalingRequest(
 
         enum class KodeStatusLinje(@JsonValue val value: String) {
             NY("NY"),
-            OPPHØR("OPPH"),
-            REAKKTIVER("REAK");
+            OPPHØR("OPPH");
 
             override fun toString() = value
         }
