@@ -152,6 +152,11 @@ open class AccessCheckProxy(
 
                     return services.utbetaling.gjenopptaUtbetalinger(sakId, saksbehandler)
                 }
+
+                override fun opphør(sakId: UUID, attestant: NavIdentBruker, simulering: Simulering, opphørsdato: LocalDate): Either<KunneIkkeUtbetale, Utbetaling.OversendtUtbetaling.UtenKvittering> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.utbetaling.opphør(sakId, attestant, simulering, opphørsdato)
+                }
             },
             sak = object : SakService {
                 override fun hentSak(sakId: UUID): Either<FantIkkeSak, Sak> {
