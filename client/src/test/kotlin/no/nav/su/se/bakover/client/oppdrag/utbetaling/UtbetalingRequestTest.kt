@@ -231,7 +231,7 @@ internal class UtbetalingRequestTest {
                     utbetalingslinje = it,
                     statusendring = Utbetalingslinje.Statusendring(
                         fraOgMed = 1.januar(2020),
-                        status = Utbetalingslinje.LinjeStatus.OPPHØRT,
+                        status = Utbetalingslinje.LinjeStatus.OPPHØR,
                     ),
                 )
             },

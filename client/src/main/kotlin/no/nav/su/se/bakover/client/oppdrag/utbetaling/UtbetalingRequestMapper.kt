@@ -39,7 +39,7 @@ internal fun toUtbetalingRequest(
                     is Utbetalingslinje.Endring -> {
                         UtbetalingRequest.Oppdragslinje(
                             kodeStatusLinje = when (it.statusendring.status) {
-                                Utbetalingslinje.LinjeStatus.OPPHØRT -> UtbetalingRequest.Oppdragslinje.KodeStatusLinje.OPPHØR
+                                Utbetalingslinje.LinjeStatus.OPPHØR -> UtbetalingRequest.Oppdragslinje.KodeStatusLinje.OPPHØR
                             },
                             datoStatusFom = it.statusendring.fraOgMed.toOppdragDate(),
                             kodeEndringLinje = UtbetalingRequest.Oppdragslinje.KodeEndringLinje.ENDRING,

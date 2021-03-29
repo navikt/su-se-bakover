@@ -2,6 +2,8 @@ package no.nav.su.se.bakover.domain.oppdrag
 
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.between
+import no.nav.su.se.bakover.common.erFørsteDagIMåned
+import no.nav.su.se.bakover.common.erSisteDagIMåned
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -87,7 +89,7 @@ sealed class Utbetalingsstrategi {
                 fnr = fnr,
                 type = Utbetaling.UtbetalingsType.NY,
                 behandler = behandler,
-                avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(clock))
+                avstemmingsnøkkel = Avstemmingsnøkkel(Tidspunkt.now(clock)),
             )
         }
 
@@ -117,6 +119,7 @@ sealed class Utbetalingsstrategi {
                 it!!.let { sisteUtbetalingslinje ->
                     validate(opphørsDato.isAfter(LocalDate.now(clock))) { "Støtter kun opphør framover i tid" }
                     validate(opphørsDato.isBefore(sisteUtbetalingslinje.tilOgMed)) { "Dato for opphør må være tidligere enn tilOgMed for siste utbetalingslinje" }
+                    validate(opphørsDato.erFørsteDagIMåned() || opphørsDato.erSisteDagIMåned()) { "Ytelse kan kun opphøres fra første eller siste dag i en måned." }
                 }
                 it
             }
@@ -128,7 +131,7 @@ sealed class Utbetalingsstrategi {
                     Utbetalingslinje.Endring(
                         utbetalingslinje = sisteUtbetalingslinje,
                         statusendring = Utbetalingslinje.Statusendring(
-                            status = Utbetalingslinje.LinjeStatus.OPPHØRT,
+                            status = Utbetalingslinje.LinjeStatus.OPPHØR,
                             fraOgMed = opphørsDato,
                         ),
                     ),

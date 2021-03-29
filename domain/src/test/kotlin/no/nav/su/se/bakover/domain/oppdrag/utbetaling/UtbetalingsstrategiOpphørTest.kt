@@ -70,6 +70,8 @@ internal class UtbetalingsstrategiOpphørTest {
                 clock = fixedClock,
                 opphørsDato = 1.januar(2021),
             ).generate()
+        }.also {
+            it.message shouldBe "Sak: $sakId har ingen utbetalinger som kan opphøres"
         }
     }
 
@@ -85,6 +87,8 @@ internal class UtbetalingsstrategiOpphørTest {
                 clock = fixedClock,
                 opphørsDato = 1.januar(2020),
             ).generate()
+        }.also {
+            it.message shouldBe "Støtter kun opphør framover i tid"
         }
     }
 
@@ -100,6 +104,25 @@ internal class UtbetalingsstrategiOpphørTest {
                 clock = fixedClock,
                 opphørsDato = 1.januar(2022),
             ).generate()
+        }.also {
+            it.message shouldBe "Dato for opphør må være tidligere enn tilOgMed for siste utbetalingslinje"
+        }
+    }
+
+    @Test
+    fun `kaster exception dersom man forsøker å opphøre fra en ugyldig dato`() {
+        assertThrows<Utbetalingsstrategi.UtbetalingStrategyException> {
+            Utbetalingsstrategi.Opphør(
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                utbetalinger = listOf(enUtbetaling),
+                behandler = NavIdentBruker.Saksbehandler("Z123"),
+                clock = fixedClock,
+                opphørsDato = 19.januar(2021),
+            ).generate()
+        }.also {
+            it.message shouldBe "Ytelse kan kun opphøres fra første eller siste dag i en måned."
         }
     }
 
@@ -127,7 +150,7 @@ internal class UtbetalingsstrategiOpphørTest {
                     endretUtbetalingslinje.beløp shouldBe enUtbetalingslinje.beløp
                     endretUtbetalingslinje.forrigeUtbetalingslinjeId shouldBe enUtbetalingslinje.forrigeUtbetalingslinjeId
                     endretUtbetalingslinje.statusendring shouldBe Utbetalingslinje.Statusendring(
-                        status = Utbetalingslinje.LinjeStatus.OPPHØRT,
+                        status = Utbetalingslinje.LinjeStatus.OPPHØR,
                         fraOgMed = 1.januar(2021),
                     )
                 }

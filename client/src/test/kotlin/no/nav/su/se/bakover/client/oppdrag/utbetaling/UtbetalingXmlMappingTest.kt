@@ -45,7 +45,7 @@ class UtbetalingXmlMappingTest {
     private val tredjeUtbetalingslinje = Utbetalingslinje.Endring(
         andreUtbetalingslinje,
         statusendring = Utbetalingslinje.Statusendring(
-            status = Utbetalingslinje.LinjeStatus.OPPHØRT,
+            status = Utbetalingslinje.LinjeStatus.OPPHØR,
             fraOgMed = 1.februar(2020),
         ),
     )

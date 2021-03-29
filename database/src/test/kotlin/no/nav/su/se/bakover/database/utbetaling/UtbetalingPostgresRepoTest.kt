@@ -95,7 +95,7 @@ internal class UtbetalingPostgresRepoTest {
                 Utbetalingslinje.Endring(
                     utbetalingslinje = it,
                     statusendring = Utbetalingslinje.Statusendring(
-                        status = Utbetalingslinje.LinjeStatus.OPPHØRT,
+                        status = Utbetalingslinje.LinjeStatus.OPPHØR,
                         fraOgMed = 1.januar(2021),
                     ),
                 )
@@ -120,7 +120,7 @@ internal class UtbetalingPostgresRepoTest {
                         forrigeUtbetalingslinjeId = originalUtbetalingslinje.forrigeUtbetalingslinjeId,
                         beløp = originalUtbetalingslinje.beløp,
                         statusendring = Utbetalingslinje.Statusendring(
-                            status = Utbetalingslinje.LinjeStatus.OPPHØRT,
+                            status = Utbetalingslinje.LinjeStatus.OPPHØR,
                             fraOgMed = 1.januar(2021),
                         ),
                     )
