@@ -118,7 +118,7 @@ internal class RevurderingServiceImplTest {
         Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
     )
 
-    private val søknadsbehandlingVedtak = Vedtak.InnvilgetStønad.fromSøknadsbehandling(
+    private val søknadsbehandlingVedtak = Vedtak.EndringIYtelse.fromSøknadsbehandling(
         Søknadsbehandling.Iverksatt.Innvilget(
             id = mock(),
             opprettet = mock(),
@@ -783,7 +783,7 @@ internal class RevurderingServiceImplTest {
             on { fnr } doReturn fnr
         }
 
-        val vedtakMock = mock<Vedtak.InnvilgetStønad> {
+        val vedtakMock = mock<Vedtak.EndringIYtelse> {
             on { behandling } doReturn behandlingMock
             on { beregning } doReturn mock()
             on { behandlingsinformasjon } doReturn behandlingsinformasjonMock

@@ -484,7 +484,7 @@ internal class LagBrevRequestVisitorTest {
                 .tilAttestering(saksbehandler, "Fritekst!")
                 .tilIverksatt(Attestering.Iverksatt(attestant))
 
-        val innvilgetVedtak = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling, utbetalingId)
+        val innvilgetVedtak = Vedtak.EndringIYtelse.fromSøknadsbehandling(søknadsbehandling, utbetalingId)
 
         val brevSøknadsbehandling = LagBrevRequestVisitor(
             hentPerson = { person.right() },
@@ -519,7 +519,7 @@ internal class LagBrevRequestVisitorTest {
             .tilAttestering(saksbehandler, "Fritekst!")
             .tilIverksatt(Attestering.Iverksatt(attestant))
 
-        val avslåttVedtak = Vedtak.AvslåttStønad.fromSøknadsbehandlingMedBeregning(søknadsbehandling)
+        val avslåttVedtak = Vedtak.Avslag.fromSøknadsbehandlingMedBeregning(søknadsbehandling)
 
         val brevSøknadsbehandling = LagBrevRequestVisitor(
             hentPerson = { person.right() },
@@ -560,7 +560,7 @@ internal class LagBrevRequestVisitorTest {
             .tilAttestering(saksbehandler, "Fritekst!")
             .tilIverksatt(Attestering.Iverksatt(attestant))
 
-        val avslåttVedtak = Vedtak.AvslåttStønad.fromSøknadsbehandlingUtenBeregning(søknadsbehandling)
+        val avslåttVedtak = Vedtak.Avslag.fromSøknadsbehandlingUtenBeregning(søknadsbehandling)
 
         val brevSøknadsbehandling = LagBrevRequestVisitor(
             hentPerson = { person.right() },
@@ -604,7 +604,7 @@ internal class LagBrevRequestVisitorTest {
             id = UUID.randomUUID(),
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
             opprettet = Tidspunkt.now(clock),
-            tilRevurdering = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling, utbetalingId),
+            tilRevurdering = Vedtak.EndringIYtelse.fromSøknadsbehandling(søknadsbehandling, utbetalingId),
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("15"),
             beregning = innvilgetBeregning,
@@ -617,7 +617,7 @@ internal class LagBrevRequestVisitorTest {
             ),
         )
 
-        val avslåttVedtak = Vedtak.InnvilgetStønad.fromRevurdering(revurdering, utbetalingId)
+        val avslåttVedtak = Vedtak.EndringIYtelse.fromRevurdering(revurdering, utbetalingId)
 
         val brevRevurdering = LagBrevRequestVisitor(
             hentPerson = { person.right() },

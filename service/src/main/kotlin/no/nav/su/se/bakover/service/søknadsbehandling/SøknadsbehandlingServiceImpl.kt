@@ -308,7 +308,7 @@ internal class SøknadsbehandlingServiceImpl(
             when (iverksattBehandling) {
                 is Søknadsbehandling.Iverksatt.Innvilget -> {
                     søknadsbehandlingRepo.lagre(iverksattBehandling)
-                    val vedtak = Vedtak.InnvilgetStønad.fromSøknadsbehandling(iverksattBehandling, utbetaling!!.id)
+                    val vedtak = Vedtak.EndringIYtelse.fromSøknadsbehandling(iverksattBehandling, utbetaling!!.id)
                     vedtakRepo.lagre(vedtak)
 
                     log.info("Iverksatt innvilgelse for behandling ${iverksattBehandling.id}")
@@ -368,10 +368,10 @@ internal class SøknadsbehandlingServiceImpl(
 
     private fun opprettAvslagsvedtak(iverksattBehandling: Søknadsbehandling.Iverksatt.Avslag): Vedtak = when (iverksattBehandling) {
         is Søknadsbehandling.Iverksatt.Avslag.MedBeregning -> {
-            Vedtak.AvslåttStønad.fromSøknadsbehandlingMedBeregning(iverksattBehandling)
+            Vedtak.Avslag.fromSøknadsbehandlingMedBeregning(iverksattBehandling)
         }
         is Søknadsbehandling.Iverksatt.Avslag.UtenBeregning -> {
-            Vedtak.AvslåttStønad.fromSøknadsbehandlingUtenBeregning(iverksattBehandling)
+            Vedtak.Avslag.fromSøknadsbehandlingUtenBeregning(iverksattBehandling)
         }
     }
 

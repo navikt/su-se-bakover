@@ -41,6 +41,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.vedtak.VedtakType
 import org.slf4j.LoggerFactory
 import java.io.InputStream
 import java.math.BigDecimal
@@ -123,6 +124,7 @@ open class Session(
                 is OppgaveId -> this.setString(idx, v.toString())
                 is BrevbestillingId -> this.setString(idx, v.toString())
                 is JournalpostId -> this.setString(idx, v.toString())
+                is VedtakType -> this.setString(idx, v.toString())
                 else -> this.setObject(idx, v)
             }
         }

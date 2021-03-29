@@ -140,7 +140,7 @@ internal class OpprettRevurderingServiceTest {
         søknader = listOf(),
         behandlinger = listOf(createInnvilgetBehandling()),
         utbetalinger = createUtbetalinger(),
-        vedtakListe = listOf(Vedtak.InnvilgetStønad.fromSøknadsbehandling(createInnvilgetBehandling(), UUID30.randomUUID())),
+        vedtakListe = listOf(Vedtak.EndringIYtelse.fromSøknadsbehandling(createInnvilgetBehandling(), UUID30.randomUUID())),
     )
 
     private fun createUtbetalinger(): List<Utbetaling> = listOf(
@@ -187,7 +187,7 @@ internal class OpprettRevurderingServiceTest {
             id = actual.id,
             periode = periode,
             opprettet = actual.opprettet,
-            tilRevurdering = sak.vedtakListe.first() as Vedtak.InnvilgetStønad,
+            tilRevurdering = sak.vedtakListe.first() as Vedtak.EndringIYtelse,
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("oppgaveId"),
             fritekstTilBrev = "",
@@ -320,17 +320,17 @@ internal class OpprettRevurderingServiceTest {
             on { fnr } doReturn FnrGenerator.random()
             on { saksnummer } doReturn Saksnummer(1337)
         }
-        val vedtakForFørsteJanuarLagetNå = mock<Vedtak.InnvilgetStønad> {
+        val vedtakForFørsteJanuarLagetNå = mock<Vedtak.EndringIYtelse> {
             on { opprettet } doReturn Tidspunkt.now()
             on { periode } doReturn Periode.create(1.januar(2020), 31.desember(2020))
             on { behandling } doReturn behandlingMock
         }
-        val vedtakForFørsteMarsLagetNå = mock<Vedtak.InnvilgetStønad> {
+        val vedtakForFørsteMarsLagetNå = mock<Vedtak.EndringIYtelse> {
             on { opprettet } doReturn Tidspunkt.now()
             on { periode } doReturn Periode.create(1.mars(2020), 31.desember(2020))
             on { behandling } doReturn behandlingMock
         }
-        val vedtakForFørsteJanuarLagetForLengeSiden = mock<Vedtak.InnvilgetStønad> {
+        val vedtakForFørsteJanuarLagetForLengeSiden = mock<Vedtak.EndringIYtelse> {
             on { opprettet } doReturn Tidspunkt.now().instant.minus(2, ChronoUnit.HALF_DAYS).toTidspunkt()
             on { periode } doReturn Periode.create(1.januar(2020), 31.desember(2020))
             on { behandling } doReturn behandlingMock
@@ -405,7 +405,7 @@ internal class OpprettRevurderingServiceTest {
     @Test
     fun `kan revurdere en periode med eksisterende revurdering`() {
         val sak = createSak().let {
-            val opprinneligVedtak = it.vedtakListe.first() as Vedtak.InnvilgetStønad
+            val opprinneligVedtak = it.vedtakListe.first() as Vedtak.EndringIYtelse
             val revurdering = IverksattRevurdering(
                 id = UUID.randomUUID(),
                 periode = periode,
@@ -424,7 +424,7 @@ internal class OpprettRevurderingServiceTest {
                     revurdering,
                 ),
                 vedtakListe = it.vedtakListe.plus(
-                    Vedtak.InnvilgetStønad.fromRevurdering(revurdering, opprinneligVedtak.utbetalingId),
+                    Vedtak.EndringIYtelse.fromRevurdering(revurdering, opprinneligVedtak.utbetalingId),
                 ),
             )
         }

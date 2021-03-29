@@ -80,7 +80,7 @@ internal class RevurderingServiceImpl(
         }
 
         val tilRevurdering = sak.vedtakListe
-            .filterIsInstance<Vedtak.InnvilgetStønad>()
+            .filterIsInstance<Vedtak.EndringIYtelse>()
             .filter { opprettRevurderingRequest.fraOgMed.between(it.periode) }
             .maxByOrNull { it.opprettet.instant }
             ?: return KunneIkkeOppretteRevurdering.FantIngentingSomKanRevurderes.left()
@@ -343,7 +343,7 @@ internal class RevurderingServiceImpl(
                     }.left()
                 }
 
-                vedtakRepo.lagre(Vedtak.InnvilgetStønad.fromRevurdering(iverksattRevurdering, utbetaling!!.id))
+                vedtakRepo.lagre(Vedtak.EndringIYtelse.fromRevurdering(iverksattRevurdering, utbetaling!!.id))
 
                 revurderingRepo.lagre(iverksattRevurdering)
                 observers.forEach { observer ->

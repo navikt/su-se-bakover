@@ -248,21 +248,21 @@ internal class TestDataHelper(
     fun oppdaterHendelseslogg(hendelseslogg: Hendelseslogg) = hendelsesloggRepo.oppdaterHendelseslogg(hendelseslogg)
 
     fun vedtakForSøknadsbehandlingOgUtbetalingId(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget, utbetalingId: UUID30) =
-        Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling, utbetalingId).also {
+        Vedtak.EndringIYtelse.fromSøknadsbehandling(søknadsbehandling, utbetalingId).also {
             vedtakRepo.lagre(it)
         }
 
-    fun vedtakMedInnvilgetSøknadsbehandling(): Pair<Vedtak.InnvilgetStønad, Utbetaling> {
+    fun vedtakMedInnvilgetSøknadsbehandling(): Pair<Vedtak.EndringIYtelse, Utbetaling> {
         val (søknadsbehandling, utbetaling) = nyOversendtUtbetalingMedKvittering()
         return Pair(
-            Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling, utbetaling.id).also {
+            Vedtak.EndringIYtelse.fromSøknadsbehandling(søknadsbehandling, utbetaling.id).also {
                 vedtakRepo.lagre(it)
             },
             utbetaling
         )
     }
 
-    fun nyRevurdering(innvilget: Vedtak.InnvilgetStønad) =
+    fun nyRevurdering(innvilget: Vedtak.EndringIYtelse) =
         OpprettetRevurdering(
             id = UUID.randomUUID(),
             periode = mock(),
