@@ -406,7 +406,7 @@ internal class OpprettRevurderingServiceTest {
     fun `kan revurdere en periode med eksisterende revurdering`() {
         val sak = createSak().let {
             val opprinneligVedtak = it.vedtakListe.first() as Vedtak.EndringIYtelse
-            val revurdering = IverksattRevurdering(
+            val revurdering = IverksattRevurdering.Innvilget(
                 id = UUID.randomUUID(),
                 periode = periode,
                 opprettet = Tidspunkt.EPOCH,

@@ -195,6 +195,20 @@ internal class RevurderingServiceImpl(
                             simulert
                         }
                     }
+
+                    is BeregnetRevurdering.Opphørt -> {
+                        utbetalingService.simulerOpphør(
+                            sakId = beregnetRevurdering.sakId,
+                            saksbehandler = saksbehandler,
+                            opphørsdato = beregnetRevurdering.beregning.getPeriode().getFraOgMed()
+                        ).mapLeft {
+                            KunneIkkeBeregneOgSimulereRevurdering.SimuleringFeilet
+                        }.map {
+                            val simulert = beregnetRevurdering.toSimulert(it.simulering)
+                            revurderingRepo.lagre(simulert)
+                            simulert
+                        }
+                    }
                 }
             }
             null -> return KunneIkkeBeregneOgSimulereRevurdering.FantIkkeRevurdering.left()
@@ -317,13 +331,21 @@ internal class RevurderingServiceImpl(
 
         return when (val revurdering = revurderingRepo.hent(revurderingId)) {
             is RevurderingTilAttestering -> {
-                val iverksattRevurdering = revurdering.iverksett(attestant) {
-                    utbetalingService.utbetal(
-                        sakId = revurdering.sakId,
-                        beregning = revurdering.beregning,
-                        simulering = revurdering.simulering,
-                        attestant = attestant,
-                    ).mapLeft {
+                val iverksattRevurdering = revurdering.tilIverksatt(attestant) {
+                    when (revurdering) {
+                        is RevurderingTilAttestering.Innvilget -> utbetalingService.utbetal(
+                            sakId = revurdering.sakId,
+                            beregning = revurdering.beregning,
+                            simulering = revurdering.simulering,
+                            attestant = attestant
+                        )
+                        is RevurderingTilAttestering.Opphørt -> utbetalingService.opphør(
+                            sakId = revurdering.sakId,
+                            attestant = attestant,
+                            opphørsdato = revurdering.beregning.getPeriode().getFraOgMed(),
+                            simulering = revurdering.simulering,
+                        )
+                    }.mapLeft {
                         when (it) {
                             KunneIkkeUtbetale.KunneIkkeSimulere -> RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale.KunneIkkeSimulere
                             KunneIkkeUtbetale.Protokollfeil -> RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale.Protokollfeil

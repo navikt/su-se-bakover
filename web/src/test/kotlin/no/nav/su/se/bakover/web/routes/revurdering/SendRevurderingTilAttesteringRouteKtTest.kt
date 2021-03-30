@@ -67,7 +67,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
 
     @Test
     fun `send til attestering`() {
-        val revurderingTilAttestering = RevurderingTilAttestering(
+        val revurderingTilAttestering = RevurderingTilAttestering.Innvilget(
             id = UUID.randomUUID(),
             periode = periode,
             opprettet = Tidspunkt.now(),
@@ -106,9 +106,9 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
                 setBody("""{ "fritekstTilBrev": "Friteksten" }""")
             }.apply {
                 response.status() shouldBe HttpStatusCode.OK
-                val actualResponse = objectMapper.readValue<TilAttesteringJson>(response.content!!)
+                val actualResponse = objectMapper.readValue<TilAttesteringJson.Innvilget>(response.content!!)
                 actualResponse.id shouldBe revurderingTilAttestering.id.toString()
-                actualResponse.status shouldBe RevurderingsStatus.TIL_ATTESTERING
+                actualResponse.status shouldBe RevurderingsStatus.TIL_ATTESTERING_INNVILGET
             }
         }
     }

@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.behandling.Satsgrunn
+import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.brev.beregning.BrevPeriode
@@ -22,7 +23,7 @@ internal class BrevInnholdTest {
     )
 
     private val trukketSøknad = TrukketSøknadBrevInnhold(
-        personalia, 1.januar(2020), 1.februar(2020), "saksbehandler"
+        personalia, 1.januar(2020), 1.februar(2020), "saksbehandler",
     )
 
     @Test
@@ -56,8 +57,8 @@ internal class BrevInnholdTest {
                     ytelsePerMåned = 100,
                     satsbeløpPerMåned = 100,
                     epsFribeløp = 100.0,
-                    fradrag = Fradrag(emptyList(), Fradrag.Eps(emptyList(), false))
-                )
+                    fradrag = Fradrag(emptyList(), Fradrag.Eps(emptyList(), false)),
+                ),
             ),
             saksbehandlerNavn = "Hei",
             attestantNavn = "Hopp",
@@ -124,5 +125,68 @@ internal class BrevInnholdTest {
             }
         """.trimIndent()
         JSONAssert.assertEquals(expectedJson, actualJson, true)
+    }
+
+    @Test
+    fun `jsonformat for opphørsvedtak stemmer overens med det som forventes av pdfgenerator`() {
+        val opphørsvedtak = BrevInnhold.Opphørsvedtak(
+            personalia = personalia,
+            sats = Sats.HØY.toString(),
+            satsBeløp = 100.0,
+            harEktefelle = true,
+            beregningsperioder = listOf(
+                Beregningsperiode(
+                    periode = BrevPeriode("januar 2021", "desember 2021"),
+                    ytelsePerMåned = 100,
+                    satsbeløpPerMåned = 100,
+                    epsFribeløp = 100.0,
+                    fradrag = Fradrag(emptyList(), Fradrag.Eps(emptyList(), false)),
+                ),
+            ),
+            saksbehandlerNavn = "Hei",
+            attestantNavn = "Hopp",
+            fritekst = "",
+            avslagsgrunner = listOf(Avslagsgrunn.FOR_HØY_INNTEKT),
+            avslagsparagrafer = listOf(1),
+        )
+
+        //language=JSON
+        val expectedJson = """
+            {
+                "personalia": {
+                    "dato": "01.01.2020",
+                    "fødselsnummer": "12345678901",
+                    "fornavn": "Tore",
+                    "etternavn": "Strømøy"
+                },
+                "sats": "HØY",
+                "satsBeløp": 100,
+                "harEktefelle": true,
+                "harFradrag": false,
+                "beregningsperioder": [{
+                    "periode": {
+                      "fraOgMed": "januar 2021",
+                      "tilOgMed": "desember 2021"
+                    },
+                    "ytelsePerMåned": 100,
+                    "satsbeløpPerMåned": 100,
+                    "epsFribeløp": 100.0,
+                    "fradrag": {
+                      "bruker" : [],
+                      "eps": {
+                      "fradrag": [],
+                      "harFradragMedSumSomErLavereEnnFribeløp": false
+                      }
+                    }
+                }],
+                "saksbehandlerNavn": "Hei",
+                "attestantNavn": "Hopp",
+                "fritekst": "",
+                "avslagsgrunner" : ["FOR_HØY_INNTEKT"],
+                "avslagsparagrafer" : [1]
+            }
+        """.trimIndent()
+
+        JSONAssert.assertEquals(expectedJson, objectMapper.writeValueAsString(opphørsvedtak), true)
     }
 }

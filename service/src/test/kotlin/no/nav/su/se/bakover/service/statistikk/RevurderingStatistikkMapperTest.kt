@@ -59,7 +59,7 @@ internal class RevurderingStatistikkMapperTest {
             saksnummer = opprettetRevurdering.saksnummer.nummer,
             behandlingType = Statistikk.Behandling.BehandlingType.REVURDERING,
             behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.REVURDERING.beskrivelse,
-            behandlingStatus = "OpprettetRevurdering",
+            behandlingStatus = "OPPRETTET",
             behandlingStatusBeskrivelse = "Ny revurdering opprettet",
             utenlandstilsnitt = "NASJONAL",
             utenlandstilsnittBeskrivelse = null,
@@ -95,7 +95,7 @@ internal class RevurderingStatistikkMapperTest {
             on { sakId } doReturn UUID.randomUUID()
             on { saksnummer } doReturn Saksnummer(49L)
         }
-        val iverksattRevurdering = IverksattRevurdering(
+        val iverksattRevurdering = IverksattRevurdering.Innvilget(
             id = UUID.randomUUID(),
             periode = periode,
             opprettet = Tidspunkt.now(fixedClock),
@@ -125,8 +125,8 @@ internal class RevurderingStatistikkMapperTest {
             saksnummer = iverksattRevurdering.saksnummer.nummer,
             behandlingType = Statistikk.Behandling.BehandlingType.REVURDERING,
             behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.REVURDERING.beskrivelse,
-            behandlingStatus = "IverksattRevurdering",
-            behandlingStatusBeskrivelse = "Revurdering iverksatt",
+            behandlingStatus = "IVERKSATT_INNVILGET",
+            behandlingStatusBeskrivelse = "Innvilget revurdering iverksatt",
             utenlandstilsnitt = "NASJONAL",
             utenlandstilsnittBeskrivelse = null,
             ansvarligEnhetKode = "4815",

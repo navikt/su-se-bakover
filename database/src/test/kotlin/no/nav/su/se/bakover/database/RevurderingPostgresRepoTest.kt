@@ -235,7 +235,7 @@ internal class RevurderingPostgresRepoTest {
 
             repo.lagre(beregnet)
 
-            val simulert = SimulertRevurdering(
+            val simulert = SimulertRevurdering.Innvilget(
                 id = beregnet.id,
                 periode = beregnet.periode,
                 opprettet = beregnet.opprettet,
@@ -258,7 +258,7 @@ internal class RevurderingPostgresRepoTest {
 
             val hentet = repo.hent(opprettet.id)
 
-            assert(hentet is SimulertRevurdering)
+            assert(hentet is SimulertRevurdering.Innvilget)
         }
     }
 
@@ -294,7 +294,7 @@ internal class RevurderingPostgresRepoTest {
 
             repo.lagre(beregnet)
 
-            val simulert = SimulertRevurdering(
+            val simulert = SimulertRevurdering.Innvilget(
                 id = beregnet.id,
                 periode = beregnet.periode,
                 opprettet = beregnet.opprettet,
@@ -353,7 +353,7 @@ internal class RevurderingPostgresRepoTest {
 
             repo.lagre(beregnet)
 
-            val simulert = SimulertRevurdering(
+            val simulert = SimulertRevurdering.Innvilget(
                 id = beregnet.id,
                 periode = beregnet.periode,
                 opprettet = beregnet.opprettet,
@@ -385,7 +385,7 @@ internal class RevurderingPostgresRepoTest {
 
             val hentet = repo.hent(opprettet.id)
 
-            assert(hentet is RevurderingTilAttestering)
+            assert(hentet is RevurderingTilAttestering.Innvilget)
         }
     }
 
@@ -421,7 +421,7 @@ internal class RevurderingPostgresRepoTest {
 
             repo.lagre(beregnet)
 
-            val simulert = SimulertRevurdering(
+            val simulert = SimulertRevurdering.Innvilget(
                 id = beregnet.id,
                 periode = beregnet.periode,
                 opprettet = beregnet.opprettet,
@@ -452,7 +452,7 @@ internal class RevurderingPostgresRepoTest {
 
             val hentet = repo.hent(opprettet.id)
 
-            assert(hentet is RevurderingTilAttestering)
+            assert(hentet is RevurderingTilAttestering.Innvilget)
             hentet!!.saksbehandler shouldNotBe opprettet.saksbehandler
         }
     }
@@ -476,7 +476,7 @@ internal class RevurderingPostgresRepoTest {
             )
             repo.lagre(opprettet)
 
-            val tilAttestering = RevurderingTilAttestering(
+            val tilAttestering = RevurderingTilAttestering.Innvilget(
                 id = opprettet.id,
                 periode = periode,
                 opprettet = fixedTidspunkt,
@@ -498,7 +498,7 @@ internal class RevurderingPostgresRepoTest {
                 revurderingTilAttestering = tilAttestering,
             )
 
-            val iverksatt = tilAttestering.iverksett(
+            val iverksatt = tilAttestering.tilIverksatt(
                 attestant = attestant,
                 utbetal = { utbetaling.id.right() },
             ).getOrHandle { throw RuntimeException("Skal ikke kunne skje") }
@@ -542,7 +542,7 @@ internal class RevurderingPostgresRepoTest {
 
             repo.lagre(beregnet)
 
-            val simulert = SimulertRevurdering(
+            val simulert = SimulertRevurdering.Innvilget(
                 id = beregnet.id,
                 periode = beregnet.periode,
                 opprettet = beregnet.opprettet,
@@ -578,7 +578,7 @@ internal class RevurderingPostgresRepoTest {
 
             repo.lagre(tilAttestering.underkjenn(attestering, OppgaveId("nyOppgaveId")))
 
-            assert(repo.hent(opprettet.id) is UnderkjentRevurdering)
+            assert(repo.hent(opprettet.id) is UnderkjentRevurdering.Innvilget)
             repo.hentEventuellTidligereAttestering(opprettet.id) shouldBe attestering
         }
     }

@@ -85,6 +85,32 @@ internal class JournalpostFactoryTest {
         }
     }
 
+    @Test
+    fun `lager vedtakspost for revurdering av inntekt`() {
+        val brevdata = mock<BrevInnhold>() {
+            on { brevTemplate } doReturn BrevTemplate.Revurdering.Inntekt
+            on { toJson() } doReturn ""
+        }
+
+        JournalpostFactory.lagJournalpost(personMock, saksnummer, brevdata, pdf).let {
+            it.shouldBeTypeOf<Journalpost.Vedtakspost>()
+            assertVedtakspost(it, brevdata)
+        }
+    }
+
+    @Test
+    fun `lager vedtakspost for opphørsvedtak`() {
+        val brevdata = mock<BrevInnhold>() {
+            on { brevTemplate } doReturn BrevTemplate.Opphørsvedtak
+            on { toJson() } doReturn ""
+        }
+
+        JournalpostFactory.lagJournalpost(personMock, saksnummer, brevdata, pdf).let {
+            it.shouldBeTypeOf<Journalpost.Vedtakspost>()
+            assertVedtakspost(it, brevdata)
+        }
+    }
+
     private fun assertVedtakspost(journalpost: Journalpost, brevInnhold: BrevInnhold) =
         assertJournalpost(journalpost, brevInnhold, DokumentKategori.VB)
 

@@ -10,7 +10,9 @@ import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.times
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.beOfType
 import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
@@ -52,10 +54,12 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakType
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.beregning.TestBeregning
+import no.nav.su.se.bakover.service.beregning.TestBeregningSomGirAvslag
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.service.doNothing
@@ -142,7 +146,7 @@ internal class RevurderingServiceImplTest {
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("Attes T. Ant")),
             fritekstTilBrev = "",
         ),
-        UUID30.randomUUID()
+        UUID30.randomUUID(),
     )
     val sak = Sak(
         id = sakId,
@@ -371,7 +375,7 @@ internal class RevurderingServiceImplTest {
 
     @Test
     fun `kan ikke beregne og simulere en revurdering som er til attestering`() {
-        val revurderingTilAttestering = RevurderingTilAttestering(
+        val revurderingTilAttestering = RevurderingTilAttestering.Innvilget(
             id = revurderingId,
             periode = periode,
             opprettet = Tidspunkt.EPOCH,
@@ -396,7 +400,7 @@ internal class RevurderingServiceImplTest {
             fradrag = listOf(),
         )
         result shouldBe KunneIkkeBeregneOgSimulereRevurdering.UgyldigTilstand(
-            RevurderingTilAttestering::class,
+            RevurderingTilAttestering.Innvilget::class,
             SimulertRevurdering::class,
         )
             .left()
@@ -611,7 +615,7 @@ internal class RevurderingServiceImplTest {
     }
 
     @Test
-    fun `iverksetter en revurdering`() {
+    fun `iverksetter endring av ytelse`() {
         val attestant = NavIdentBruker.Attestant("attestant")
 
         val testsimulering = Simulering(
@@ -622,7 +626,7 @@ internal class RevurderingServiceImplTest {
             periodeList = listOf(),
         )
         val utbetalingId = UUID30.randomUUID()
-        val iverksattRevurdering = IverksattRevurdering(
+        val iverksattRevurdering = IverksattRevurdering.Innvilget(
             id = revurderingId,
             periode = periode,
             opprettet = Tidspunkt.EPOCH,
@@ -635,7 +639,7 @@ internal class RevurderingServiceImplTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
         )
-        val revurderingTilAttestering = RevurderingTilAttestering(
+        val revurderingTilAttestering = RevurderingTilAttestering.Innvilget(
             id = revurderingId,
             periode = periode,
             opprettet = Tidspunkt.EPOCH,
@@ -658,18 +662,24 @@ internal class RevurderingServiceImplTest {
         val utbetalingServiceMock = mock<UtbetalingService> {
             on { utbetal(any(), any(), any(), any()) } doReturn utbetalingMock.right()
         }
+        val vedtakRepoMock = mock<VedtakRepo>()
         val eventObserver: EventObserver = mock()
 
         createRevurderingService(
             revurderingRepo = revurderingRepoMock,
             utbetalingService = utbetalingServiceMock,
-        )
-            .apply { addObserver(eventObserver) }
-            .iverksett(
-                revurderingId = revurderingTilAttestering.id,
-                attestant = attestant,
-            ) shouldBe iverksattRevurdering.right()
-        inOrder(revurderingRepoMock, utbetalingMock, utbetalingServiceMock, eventObserver) {
+            vedtakRepo = vedtakRepoMock,
+        ).apply { addObserver(eventObserver) }.iverksett(
+            revurderingId = revurderingTilAttestering.id,
+            attestant = attestant,
+        ) shouldBe iverksattRevurdering.right()
+        inOrder(
+            revurderingRepoMock,
+            utbetalingMock,
+            utbetalingServiceMock,
+            vedtakRepoMock,
+            eventObserver,
+        ) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
             verify(utbetalingServiceMock).utbetal(
                 sakId = argThat { it shouldBe revurderingTilAttestering.sakId },
@@ -678,12 +688,16 @@ internal class RevurderingServiceImplTest {
                 simulering = argThat { it shouldBe revurderingTilAttestering.simulering },
             )
             verify(utbetalingMock, times(2)).id
+            verify(vedtakRepoMock).lagre(
+                argThat {
+                    it should beOfType<Vedtak.EndringIYtelse>()
+                    it.vedtakType shouldBe VedtakType.ENDRING
+                },
+            )
             verify(revurderingRepoMock).lagre(argThat { it shouldBe iverksattRevurdering })
             verify(eventObserver).handle(
                 argThat {
-                    it shouldBe Event.Statistikk.RevurderingStatistikk.RevurderingIverksatt(
-                        iverksattRevurdering,
-                    )
+                    it shouldBe Event.Statistikk.RevurderingStatistikk.RevurderingIverksatt(iverksattRevurdering)
                 },
             )
         }
@@ -695,8 +709,71 @@ internal class RevurderingServiceImplTest {
     }
 
     @Test
+    fun `iverksetter opphør av ytelse`() {
+        val revurderingTilAttestering = RevurderingTilAttestering.Opphørt(
+            id = revurderingId,
+            periode = periode,
+            opprettet = Tidspunkt.EPOCH,
+            tilRevurdering = søknadsbehandlingVedtak,
+            oppgaveId = OppgaveId(value = "OppgaveId"),
+            beregning = TestBeregningSomGirAvslag,
+            simulering = mock(),
+            saksbehandler = saksbehandler,
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
+        )
+        val attestant = NavIdentBruker.Attestant("ATTT")
+
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn revurderingTilAttestering
+        }
+        val utbetalingMock = mock<Utbetaling.OversendtUtbetaling.UtenKvittering>() {
+            on { id } doReturn UUID30.randomUUID()
+        }
+        val utbetalingServiceMock = mock<UtbetalingService>() {
+            on { opphør(any(), any(), any(), any()) } doReturn utbetalingMock.right()
+        }
+        val vedtakRepoMock = mock<VedtakRepo>()
+
+        createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+            utbetalingService = utbetalingServiceMock,
+            vedtakRepo = vedtakRepoMock,
+        ).iverksett(
+            revurderingId,
+            attestant,
+        )
+
+        inOrder(
+            revurderingRepoMock,
+            utbetalingServiceMock,
+            vedtakRepoMock,
+        ) {
+            verify(revurderingRepoMock).hent(revurderingId)
+            verify(utbetalingServiceMock).opphør(
+                sakId = argThat { it shouldBe sakId },
+                attestant = argThat { it shouldBe attestant },
+                simulering = argThat { it shouldBe revurderingTilAttestering.simulering },
+                opphørsdato = argThat { it shouldBe revurderingTilAttestering.beregning.getPeriode().getFraOgMed() },
+            )
+            verify(vedtakRepoMock).lagre(
+                argThat {
+                    it should beOfType<Vedtak.EndringIYtelse>()
+                    it.vedtakType shouldBe VedtakType.OPPHØR
+                },
+            )
+            verify(revurderingRepoMock).lagre(any())
+        }
+        verifyNoMoreInteractions(
+            revurderingRepoMock,
+            utbetalingServiceMock,
+            vedtakRepoMock,
+        )
+    }
+
+    @Test
     fun `underkjenner en revurdering`() {
-        val tilAttestering = RevurderingTilAttestering(
+        val tilAttestering = RevurderingTilAttestering.Innvilget(
             id = revurderingId,
             periode = periode,
             opprettet = Tidspunkt.EPOCH,
@@ -789,7 +866,7 @@ internal class RevurderingServiceImplTest {
             on { behandlingsinformasjon } doReturn behandlingsinformasjonMock
         }
 
-        val simulertRevurdering = SimulertRevurdering(
+        val simulertRevurdering = SimulertRevurdering.Innvilget(
             id = revurderingId,
             periode = periode,
             opprettet = Tidspunkt.now(),
@@ -866,7 +943,7 @@ internal class RevurderingServiceImplTest {
 
     @Test
     fun `får feil når vi ikke kan hente person`() {
-        val simulertRevurdering = SimulertRevurdering(
+        val simulertRevurdering = SimulertRevurdering.Innvilget(
             id = revurderingId,
             periode = periode,
             opprettet = Tidspunkt.now(),
@@ -916,7 +993,7 @@ internal class RevurderingServiceImplTest {
     fun `får feil når vi ikke kan hente saksbehandler navn`() {
         val person = mock<Person>()
 
-        val simulertRevurdering = SimulertRevurdering(
+        val simulertRevurdering = SimulertRevurdering.Innvilget(
             id = revurderingId,
             periode = periode,
             opprettet = Tidspunkt.now(),
@@ -974,7 +1051,7 @@ internal class RevurderingServiceImplTest {
     fun `får feil når vi ikke kan lage brev`() {
         val person = mock<Person>()
 
-        val simulertRevurdering = SimulertRevurdering(
+        val simulertRevurdering = SimulertRevurdering.Innvilget(
             id = revurderingId,
             periode = periode,
             opprettet = Tidspunkt.now(),

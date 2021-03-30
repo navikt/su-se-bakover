@@ -158,6 +158,7 @@ internal class VedtakPosgresRepo(
         return when (vedtakType) {
             VedtakType.SØKNAD,
             VedtakType.ENDRING,
+            VedtakType.OPPHØR,
             -> {
                 Vedtak.EndringIYtelse(
                     id = id,

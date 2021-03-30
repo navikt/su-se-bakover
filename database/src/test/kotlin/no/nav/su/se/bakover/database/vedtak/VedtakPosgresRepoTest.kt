@@ -69,7 +69,7 @@ internal class VedtakPosgresRepoTest {
             val søknadsbehandlingVedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
 
             val nyRevurdering = testDataHelper.nyRevurdering(søknadsbehandlingVedtak)
-            val iverksattRevurdering = IverksattRevurdering(
+            val iverksattRevurdering = IverksattRevurdering.Innvilget(
                 id = nyRevurdering.id,
                 periode = søknadsbehandlingVedtak.periode,
                 opprettet = nyRevurdering.opprettet,
