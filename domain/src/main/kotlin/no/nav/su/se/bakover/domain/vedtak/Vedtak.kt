@@ -26,6 +26,7 @@ enum class VedtakType {
     SØKNAD,
     AVSLAG,
     ENDRING,
+    OPPHØR,
 }
 
 interface VedtakFelles {
@@ -59,20 +60,21 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
         override val vedtakType: VedtakType,
     ) : Vedtak() {
         companion object {
-            fun fromSøknadsbehandling(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget, utbetalingId: UUID30) = EndringIYtelse(
-                id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(),
-                periode = søknadsbehandling.beregning.getPeriode(),
-                behandling = søknadsbehandling,
-                behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
-                beregning = søknadsbehandling.beregning,
-                simulering = søknadsbehandling.simulering,
-                saksbehandler = søknadsbehandling.saksbehandler,
-                attestant = søknadsbehandling.attestering.attestant,
-                utbetalingId = utbetalingId,
-                journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
-                vedtakType = VedtakType.SØKNAD,
-            )
+            fun fromSøknadsbehandling(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget, utbetalingId: UUID30) =
+                EndringIYtelse(
+                    id = UUID.randomUUID(),
+                    opprettet = Tidspunkt.now(),
+                    periode = søknadsbehandling.beregning.getPeriode(),
+                    behandling = søknadsbehandling,
+                    behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
+                    beregning = søknadsbehandling.beregning,
+                    simulering = søknadsbehandling.simulering,
+                    saksbehandler = søknadsbehandling.saksbehandler,
+                    attestant = søknadsbehandling.attestering.attestant,
+                    utbetalingId = utbetalingId,
+                    journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
+                    vedtakType = VedtakType.SØKNAD,
+                )
 
             fun fromRevurdering(revurdering: IverksattRevurdering, utbetalingId: UUID30) = EndringIYtelse(
                 id = UUID.randomUUID(),
@@ -86,12 +88,16 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                 attestant = revurdering.attestering.attestant,
                 utbetalingId = utbetalingId,
                 journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
-                vedtakType = VedtakType.ENDRING,
+                vedtakType = when (revurdering) {
+                    is IverksattRevurdering.Innvilget -> VedtakType.ENDRING
+                    is IverksattRevurdering.Opphørt -> VedtakType.OPPHØR
+                },
             )
         }
 
         override fun journalfør(journalfør: () -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre, EndringIYtelse> {
-            return journalføringOgBrevdistribusjon.journalfør(journalfør).map { copy(journalføringOgBrevdistribusjon = it) }
+            return journalføringOgBrevdistribusjon.journalfør(journalfør)
+                .map { copy(journalføringOgBrevdistribusjon = it) }
         }
 
         override fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev, EndringIYtelse> {
@@ -144,7 +150,8 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
             override val avslagsgrunner: List<Avslagsgrunn> = behandlingsinformasjon.utledAvslagsgrunner()
 
             override fun journalfør(journalfør: () -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre, Avslag> {
-                return journalføringOgBrevdistribusjon.journalfør(journalfør).map { copy(journalføringOgBrevdistribusjon = it) }
+                return journalføringOgBrevdistribusjon.journalfør(journalfør)
+                    .map { copy(journalføringOgBrevdistribusjon = it) }
             }
 
             override fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev, Avslag> {
@@ -174,10 +181,12 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                 }
 
             // TODO jm: disse bør sannsynligvis peristeres.
-            override val avslagsgrunner: List<Avslagsgrunn> = behandlingsinformasjon.utledAvslagsgrunner() + avslagsgrunnForBeregning
+            override val avslagsgrunner: List<Avslagsgrunn> =
+                behandlingsinformasjon.utledAvslagsgrunner() + avslagsgrunnForBeregning
 
             override fun journalfør(journalfør: () -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre, Avslag> {
-                return journalføringOgBrevdistribusjon.journalfør(journalfør).map { copy(journalføringOgBrevdistribusjon = it) }
+                return journalføringOgBrevdistribusjon.journalfør(journalfør)
+                    .map { copy(journalføringOgBrevdistribusjon = it) }
             }
 
             override fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev, Avslag> {

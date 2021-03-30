@@ -147,9 +147,7 @@ sealed class BeregnetRevurdering : Revurdering() {
     abstract fun toSimulert(simulering: Simulering): SimulertRevurdering
 
     // TODO: skal de inn på subtyper?
-    override fun accept(visitor: RevurderingVisitor) {
-        visitor.visit(this)
-    }
+    abstract override fun accept(visitor: RevurderingVisitor)
 
     fun oppdater(
         periode: Periode,
@@ -176,6 +174,10 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val fritekstTilBrev: String,
         override val revurderingsårsak: Revurderingsårsak,
     ) : BeregnetRevurdering() {
+        override fun accept(visitor: RevurderingVisitor) {
+            visitor.visit(this)
+        }
+
         override fun toSimulert(simulering: Simulering) = SimulertRevurdering.Innvilget(
             id = id,
             periode = periode,
@@ -204,6 +206,10 @@ sealed class BeregnetRevurdering : Revurdering() {
         override fun toSimulert(simulering: Simulering): SimulertRevurdering {
             throw RuntimeException("Skal ikke kunne simulere en beregning som er til avslag")
         }
+
+        override fun accept(visitor: RevurderingVisitor) {
+            throw NotImplementedError("Har ikke støtte for denne typen")
+        }
     }
 
     data class Opphørt(
@@ -229,6 +235,10 @@ sealed class BeregnetRevurdering : Revurdering() {
             fritekstTilBrev = fritekstTilBrev,
             revurderingsårsak = revurderingsårsak,
         )
+
+        override fun accept(visitor: RevurderingVisitor) {
+            visitor.visit(this)
+        }
     }
 }
 

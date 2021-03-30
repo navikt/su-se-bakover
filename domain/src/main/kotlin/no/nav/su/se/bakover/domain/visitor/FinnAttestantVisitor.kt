@@ -49,13 +49,23 @@ class FinnAttestantVisitor : SøknadsbehandlingVisitor, RevurderingVisitor {
     }
 
     override fun visit(revurdering: OpprettetRevurdering) {}
-    override fun visit(revurdering: BeregnetRevurdering) {}
-    override fun visit(revurdering: SimulertRevurdering) {}
-    override fun visit(revurdering: RevurderingTilAttestering) {}
-    override fun visit(revurdering: IverksattRevurdering) {
+    override fun visit(revurdering: BeregnetRevurdering.Opphørt) {}
+    override fun visit(revurdering: BeregnetRevurdering.Innvilget) {}
+    override fun visit(revurdering: BeregnetRevurdering.Avslag) {}
+    override fun visit(revurdering: SimulertRevurdering.Opphørt) {}
+    override fun visit(revurdering: SimulertRevurdering.Innvilget) {}
+    override fun visit(revurdering: RevurderingTilAttestering.Opphørt) {}
+    override fun visit(revurdering: RevurderingTilAttestering.Innvilget) {}
+    override fun visit(revurdering: IverksattRevurdering.Innvilget) {
         attestant = revurdering.attestering.attestant
     }
-    override fun visit(revurdering: UnderkjentRevurdering) {
+    override fun visit(revurdering: IverksattRevurdering.Opphørt) {
+        attestant = revurdering.attestering.attestant
+    }
+    override fun visit(revurdering: UnderkjentRevurdering.Innvilget) {
+        attestant = revurdering.attestering.attestant
+    }
+    override fun visit(revurdering: UnderkjentRevurdering.Opphørt) {
         attestant = revurdering.attestering.attestant
     }
 }

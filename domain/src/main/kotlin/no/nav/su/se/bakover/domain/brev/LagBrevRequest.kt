@@ -1,7 +1,9 @@
 package no.nav.su.se.bakover.domain.brev
 
 import no.nav.su.se.bakover.domain.Person
+import no.nav.su.se.bakover.domain.behandling.AvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.beregning.LagBrevinnholdForBeregning
 import java.time.LocalDate
@@ -18,7 +20,7 @@ interface LagBrevRequest {
         private val behandlingsinformasjon: Behandlingsinformasjon,
         private val saksbehandlerNavn: String,
         private val attestantNavn: String,
-        private val fritekst: String
+        private val fritekst: String,
     ) : LagBrevRequest {
         override fun getPerson(): Person = person
         override fun lagBrevInnhold(personalia: BrevInnhold.Personalia): BrevInnhold.InnvilgetVedtak {
@@ -34,7 +36,39 @@ interface LagBrevRequest {
                 beregningsperioder = LagBrevinnholdForBeregning(beregning).brevInnhold,
                 saksbehandlerNavn = saksbehandlerNavn,
                 attestantNavn = attestantNavn,
-                fritekst = fritekst
+                fritekst = fritekst,
+            )
+        }
+    }
+
+    data class Opphørsvedtak(
+        private val person: Person,
+        private val beregning: Beregning,
+        private val behandlingsinformasjon: Behandlingsinformasjon,
+        private val saksbehandlerNavn: String,
+        private val attestantNavn: String,
+        private val fritekst: String,
+    ) : LagBrevRequest {
+        override fun getPerson(): Person = person
+        override fun lagBrevInnhold(personalia: BrevInnhold.Personalia): BrevInnhold.Opphørsvedtak {
+            val avslagsgrunn = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning).let {
+                when (it) {
+                    is AvslagGrunnetBeregning.Ja -> listOf(it.avslagsgrunn)
+                    is AvslagGrunnetBeregning.Nei -> throw IllegalStateException("Skal aldri havne på nei her")
+                }
+            }
+
+            return BrevInnhold.Opphørsvedtak(
+                personalia = personalia,
+                sats = beregning.getSats().toString().toLowerCase(),
+                satsBeløp = beregning.getSats().månedsbeløp(beregning.getPeriode().getTilOgMed()),
+                harEktefelle = behandlingsinformasjon.harEktefelle(),
+                beregningsperioder = LagBrevinnholdForBeregning(beregning).brevInnhold,
+                saksbehandlerNavn = saksbehandlerNavn,
+                attestantNavn = attestantNavn,
+                fritekst = fritekst,
+                avslagsgrunner = avslagsgrunn,
+                avslagsparagrafer = avslagsgrunn.getDistinkteParagrafer(),
             )
         }
     }
@@ -58,7 +92,7 @@ interface LagBrevRequest {
                     beregningsperioder = LagBrevinnholdForBeregning(revurdertBeregning).brevInnhold,
                     fritekst = fritekst,
                     sats = revurdertBeregning.getSats(),
-                    harEktefelle = harEktefelle
+                    harEktefelle = harEktefelle,
                 )
             }
         }

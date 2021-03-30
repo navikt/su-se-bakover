@@ -145,24 +145,46 @@ class LagBrevRequestVisitor(
         throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(revurdering::class)
     }
 
-    override fun visit(revurdering: BeregnetRevurdering) {
+    override fun visit(revurdering: BeregnetRevurdering.Innvilget) {
+        throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(revurdering::class)
+    }
+    override fun visit(revurdering: BeregnetRevurdering.Opphørt) {
+        throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(revurdering::class)
+    }
+    override fun visit(revurdering: BeregnetRevurdering.Avslag) {
         throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(revurdering::class)
     }
 
-    override fun visit(revurdering: SimulertRevurdering) {
+    override fun visit(revurdering: SimulertRevurdering.Innvilget) {
         brevRequest = innvilgetRevurdering(revurdering, revurdering.beregning)
     }
 
-    override fun visit(revurdering: RevurderingTilAttestering) {
+    override fun visit(revurdering: SimulertRevurdering.Opphørt) {
+        brevRequest = opphørtRevurdering(revurdering, revurdering.beregning)
+    }
+
+    override fun visit(revurdering: RevurderingTilAttestering.Innvilget) {
         brevRequest = innvilgetRevurdering(revurdering, revurdering.beregning)
     }
 
-    override fun visit(revurdering: IverksattRevurdering) {
+    override fun visit(revurdering: RevurderingTilAttestering.Opphørt) {
+        brevRequest = opphørtRevurdering(revurdering, revurdering.beregning)
+    }
+
+    override fun visit(revurdering: IverksattRevurdering.Innvilget) {
         brevRequest = innvilgetRevurdering(revurdering, revurdering.beregning)
     }
 
-    override fun visit(revurdering: UnderkjentRevurdering) {
+    override fun visit(revurdering: IverksattRevurdering.Opphørt) {
+        brevRequest = opphørtRevurdering(revurdering, revurdering.beregning)
+    }
+
+    override fun visit(revurdering: UnderkjentRevurdering.Innvilget) {
         brevRequest = innvilgetRevurdering(revurdering, revurdering.beregning)
+    }
+
+    override fun visit(revurdering: UnderkjentRevurdering.Opphørt) {
+        brevRequest = opphørtRevurdering(revurdering, revurdering.beregning)
     }
 
     override fun visit(vedtak: Vedtak.EndringIYtelse) {
@@ -172,6 +194,9 @@ class LagBrevRequestVisitor(
             }
             VedtakType.ENDRING -> {
                 innvilgetVedtakRevurdering(vedtak)
+            }
+            VedtakType.OPPHØR -> {
+                opphørsvedtak(vedtak)
             }
             VedtakType.AVSLAG -> {
                 throw KunneIkkeLageBrevRequest.UgyldigKombinasjonAvVedtakOgTypeException(vedtak::class, vedtak.vedtakType)
@@ -184,7 +209,7 @@ class LagBrevRequestVisitor(
             VedtakType.AVSLAG -> {
                 avslåttVedtakSøknadsbehandling(vedtak)
             }
-            VedtakType.SØKNAD, VedtakType.ENDRING -> {
+            VedtakType.SØKNAD, VedtakType.ENDRING, VedtakType.OPPHØR -> {
                 throw KunneIkkeLageBrevRequest.UgyldigKombinasjonAvVedtakOgTypeException(vedtak::class, vedtak.vedtakType)
             }
         }
@@ -195,7 +220,7 @@ class LagBrevRequestVisitor(
             VedtakType.AVSLAG -> {
                 avslåttVedtakSøknadsbehandling(vedtak)
             }
-            VedtakType.SØKNAD, VedtakType.ENDRING -> {
+            VedtakType.SØKNAD, VedtakType.ENDRING, VedtakType.OPPHØR -> {
                 throw KunneIkkeLageBrevRequest.UgyldigKombinasjonAvVedtakOgTypeException(vedtak::class, vedtak.vedtakType)
             }
         }
@@ -286,6 +311,25 @@ class LagBrevRequestVisitor(
                 revurdertBeregning = beregning,
                 fritekst = revurdering.fritekstTilBrev,
                 harEktefelle = revurdering.tilRevurdering.behandlingsinformasjon.harEktefelle(),
+            )
+        }
+
+    private fun opphørtRevurdering(revurdering: Revurdering, beregning: Beregning) =
+        hentPersonOgNavn(
+            fnr = revurdering.fnr,
+            saksbehandler = revurdering.saksbehandler,
+            attestant = FinnAttestantVisitor().let {
+                revurdering.accept(it)
+                it.attestant
+            },
+        ).map {
+            LagBrevRequest.Opphørsvedtak(
+                person = it.person,
+                behandlingsinformasjon = revurdering.tilRevurdering.behandlingsinformasjon,
+                beregning = beregning,
+                fritekst = revurdering.fritekstTilBrev,
+                saksbehandlerNavn = revurdering.saksbehandler.navIdent,
+                attestantNavn = it.attestantNavn
             )
         }
 
@@ -380,6 +424,25 @@ class LagBrevRequestVisitor(
                     else -> ""
                 },
                 harEktefelle = vedtak.behandlingsinformasjon.harEktefelle(),
+            )
+        }
+
+    private fun opphørsvedtak(vedtak: Vedtak.EndringIYtelse) =
+        hentPersonOgNavn(
+            fnr = vedtak.behandling.fnr,
+            saksbehandler = vedtak.saksbehandler,
+            attestant = vedtak.attestant,
+        ).map {
+            LagBrevRequest.Opphørsvedtak(
+                person = it.person,
+                saksbehandlerNavn = it.saksbehandlerNavn,
+                attestantNavn = it.attestantNavn,
+                beregning = vedtak.beregning,
+                fritekst = when (val b = vedtak.behandling) {
+                    is Revurdering -> b.fritekstTilBrev
+                    else -> ""
+                },
+                behandlingsinformasjon = vedtak.behandlingsinformasjon,
             )
         }
 

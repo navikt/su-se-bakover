@@ -60,6 +60,25 @@ abstract class BrevInnhold {
         val harFradrag: Boolean = beregningsperioder.harFradrag()
     }
 
+    data class Opphørsvedtak(
+        val personalia: Personalia,
+        val avslagsgrunner: List<Avslagsgrunn>,
+        val avslagsparagrafer: List<Int>,
+        val sats: String,
+        val satsBeløp: Double,
+        val harEktefelle: Boolean,
+        val beregningsperioder: List<Beregningsperiode>,
+        val saksbehandlerNavn: String,
+        val attestantNavn: String,
+        val fritekst: String
+    ) : BrevInnhold() {
+        override val brevTemplate: BrevTemplate = BrevTemplate.Opphørsvedtak
+
+        @Suppress("unused")
+        @JsonInclude
+        val harFradrag: Boolean = beregningsperioder.harFradrag()
+    }
+
     data class Personalia(
         val dato: String,
         val fødselsnummer: Fnr,
