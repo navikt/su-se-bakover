@@ -116,7 +116,7 @@ internal class FinnAttestantVisitorTest {
         }
 
         FinnAttestantVisitor().let { visitor ->
-            iverksattRevurdering.map { it.accept(visitor) }
+            iverksattRevurdering.accept(visitor)
             visitor.attestant shouldBe attestant
         }
     }
@@ -228,4 +228,5 @@ internal class FinnAttestantVisitorTest {
     private val tilAttesteringRevurdering =
         simulertRevurdering.tilAttestering(mock(), saksbehandler, "fritekst til brevet")
     private val iverksattRevurdering = tilAttesteringRevurdering.tilIverksatt(attestant) { UUID30.randomUUID().right() }
+        .orNull()!!
 }

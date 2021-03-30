@@ -643,6 +643,59 @@ internal class LagBrevRequestVisitorTest {
         ).right()
     }
 
+    @Test
+    fun `lager request for opphørsvedtak`() {
+        val utbetalingId = UUID30.randomUUID()
+        val søknadsbehandling =
+            uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt())
+                .tilBeregnet(innvilgetBeregning)
+                .tilSimulert(simulering)
+                .tilAttestering(saksbehandler, "Fritekst!")
+                .tilIverksatt(Attestering.Iverksatt(attestant))
+
+        val revurdering = IverksattRevurdering.Opphørt(
+            id = UUID.randomUUID(),
+            periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+            opprettet = Tidspunkt.now(clock),
+            tilRevurdering = Vedtak.EndringIYtelse.fromSøknadsbehandling(søknadsbehandling, utbetalingId),
+            saksbehandler = saksbehandler,
+            oppgaveId = OppgaveId("15"),
+            beregning = innvilgetBeregning,
+            simulering = simulering,
+            attestering = Attestering.Iverksatt(attestant),
+            fritekstTilBrev = "",
+            revurderingsårsak = Revurderingsårsak(
+                Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
+                Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
+            ),
+        )
+
+        val opphørsvedtak = Vedtak.EndringIYtelse.fromRevurdering(revurdering, utbetalingId)
+
+        val brevRevurdering = LagBrevRequestVisitor(
+            hentPerson = { person.right() },
+            hentNavn = { hentNavn(it) },
+            clock = clock,
+        ).apply { revurdering.accept(this) }
+
+        val brevVedtak = LagBrevRequestVisitor(
+            hentPerson = { person.right() },
+            hentNavn = { hentNavn(it) },
+            clock = clock,
+        ).apply { opphørsvedtak.accept(this) }
+
+        brevRevurdering.brevRequest shouldBe brevVedtak.brevRequest
+
+        LagBrevRequest.Opphørsvedtak(
+            person = person,
+            beregning = revurdering.beregning,
+            behandlingsinformasjon = revurdering.tilRevurdering.behandlingsinformasjon,
+            saksbehandlerNavn = saksbehandlerNavn,
+            attestantNavn = attestantNavn,
+            fritekst = "Fritekst!",
+        ).right()
+    }
+
     private val clock = Clock.fixed(1.januar(2021).startOfDay(zoneIdOslo).instant, ZoneOffset.UTC)
     private val person = Person(
         ident = Ident(
