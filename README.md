@@ -106,6 +106,10 @@ Hvordan kjøre Ktlint:
 Endre IntelliJ autoformateringskonfigurasjon for dette prosjektet:
 * `./gradlew ktlintApplyToIdea`
 
+Legg til pre-commit check/format hooks:
+* `./gradlew addKtlintCheckGitPreCommitHook`
+* `./gradlew addKtlintFormatGitPreCommitHook`
+
 ## Metrics
 Vi bruker Prometheus for å samle inn metrikker.
 Se https://doc.nais.io/observability/metrics.
@@ -127,6 +131,15 @@ prod: https://alertmanager.prod-fss.nais.io
 * Describe alert: `kubectl --namespace=supstonad describe alert su-se-bakover`
 * Delete alert: `kubectl --namespace=supstonad delete alert su-se-bakover`
 * Deploy new alert: Just run the `alerts-deploy.yml` github actions workflow
-## Upgrade versions
+
+## Upgrade dependency versions
 * Check for newest versions: `./gradlew dependencyUpdates --refresh-dependencies`
 * Automatically use the newest versions: `./gradlew useLatestVersions --refresh-dependencies`
+
+## Upgrade gradlew
+1. Find the lastest version of gradle, e.g. by checking here: https://gradle.org/releases/
+1. Then run `./gradlew wrapper --gradle-version <version>`
+1. In `build.gradle.kts` you also have to change the gradle version. E.g. search for `gradleVersion =`
+
+## Upgrade java version
+1. In `build.gradle.kts` and search for `jvmTarget = `

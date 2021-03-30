@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.database.revurdering
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.Session
@@ -19,10 +18,7 @@ import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.brev.BrevbestillingId
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -30,6 +26,7 @@ import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
@@ -39,7 +36,6 @@ import javax.sql.DataSource
 interface RevurderingRepo {
     fun hent(id: UUID): Revurdering?
     fun hent(id: UUID, session: Session): Revurdering?
-    fun hentRevurderingForUtbetaling(utbetalingId: UUID30): IverksattRevurdering?
     fun hentEventuellTidligereAttestering(id: UUID): Attestering?
     fun lagre(revurdering: Revurdering)
 }
@@ -75,14 +71,6 @@ internal class RevurderingPostgresRepo(
             """.trimIndent()
                 .hent(mapOf("id" to id), s) { row ->
                     row.toRevurdering(s)
-                }
-        }
-
-    override fun hentRevurderingForUtbetaling(utbetalingId: UUID30): IverksattRevurdering? =
-        dataSource.withSession { session ->
-            "select * from revurdering where utbetalingId = :utbetalingId"
-                .hent(mapOf("utbetalingId" to utbetalingId), session) {
-                    it.toRevurdering(session) as? IverksattRevurdering
                 }
         }
 
@@ -125,17 +113,19 @@ internal class RevurderingPostgresRepo(
         val id = uuid("id")
         val periode = string("periode").let { objectMapper.readValue<Periode>(it) }
         val opprettet = tidspunkt("opprettet")
-        val tilRevurdering = vedtakRepo.hent(uuid("vedtakSomRevurderesId"), session)!! as Vedtak.InnvilgetStønad
+        val tilRevurdering = vedtakRepo.hent(uuid("vedtakSomRevurderesId"), session)!! as Vedtak.EndringIYtelse
         val beregning = stringOrNull("beregning")?.let { objectMapper.readValue<PersistertBeregning>(it) }
         val simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) }
         val saksbehandler = string("saksbehandler")
         val oppgaveId = stringOrNull("oppgaveid")
         val attestering = stringOrNull("attestering")?.let { objectMapper.readValue<Attestering>(it) }
-        val utbetalingId = stringOrNull("utbetalingid")
         val fritekstTilBrev = stringOrNull("fritekstTilBrev")
-
-        val iverksattJournalpostId = stringOrNull("iverksattJournalpostId")?.let { JournalpostId(it) }
-        val iverksattBrevbestillingId = stringOrNull("iverksattBrevbestillingId")?.let { BrevbestillingId(it) }
+        val årsak = string("årsak")
+        val begrunnelse = string("begrunnelse")
+        val revurderingsårsak = Revurderingsårsak.create(
+            årsak = årsak,
+            begrunnelse = begrunnelse,
+        )
 
         val uføregrunnlag = grunnlagRepo.hent(id)
         val grunnlagsdata = Grunnlagsdata(uføregrunnlag)
@@ -152,6 +142,7 @@ internal class RevurderingPostgresRepo(
                 oppgaveId = OppgaveId(oppgaveId!!),
                 attestering = attestering!!,
                 fritekstTilBrev = fritekstTilBrev ?: "",
+                revurderingsårsak = revurderingsårsak,
                 grunnlagsdata = grunnlagsdata,
             )
             RevurderingsType.IVERKSATT -> IverksattRevurdering(
@@ -160,17 +151,13 @@ internal class RevurderingPostgresRepo(
                 opprettet = opprettet,
                 tilRevurdering = tilRevurdering,
                 saksbehandler = Saksbehandler(saksbehandler),
+                oppgaveId = OppgaveId(oppgaveId!!),
                 beregning = beregning!!,
                 simulering = simulering!!,
-                oppgaveId = OppgaveId(oppgaveId!!),
-                grunnlagsdata = grunnlagsdata,
                 attestering = attestering!! as Attestering.Iverksatt,
-                utbetalingId = UUID30.fromString(utbetalingId!!),
-                eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.fromId(
-                    iverksattJournalpostId,
-                    iverksattBrevbestillingId
-                ),
-                fritekstTilBrev = fritekstTilBrev ?: ""
+                grunnlagsdata = grunnlagsdata,
+                fritekstTilBrev = fritekstTilBrev ?: "",
+                revurderingsårsak = revurderingsårsak,
             )
             RevurderingsType.TIL_ATTESTERING -> RevurderingTilAttestering(
                 id = id,
@@ -182,7 +169,8 @@ internal class RevurderingPostgresRepo(
                 saksbehandler = Saksbehandler(saksbehandler),
                 oppgaveId = OppgaveId(oppgaveId!!),
                 grunnlagsdata = grunnlagsdata,
-                fritekstTilBrev = fritekstTilBrev ?: ""
+                fritekstTilBrev = fritekstTilBrev ?: "",
+                revurderingsårsak = revurderingsårsak,
             )
             RevurderingsType.SIMULERT -> SimulertRevurdering(
                 id = id,
@@ -194,7 +182,8 @@ internal class RevurderingPostgresRepo(
                 saksbehandler = Saksbehandler(saksbehandler),
                 oppgaveId = OppgaveId(oppgaveId!!),
                 grunnlagsdata = grunnlagsdata,
-                fritekstTilBrev = fritekstTilBrev ?: ""
+                fritekstTilBrev = fritekstTilBrev ?: "",
+                revurderingsårsak = revurderingsårsak,
             )
             RevurderingsType.BEREGNET_INNVILGET -> BeregnetRevurdering.Innvilget(
                 id = id,
@@ -205,7 +194,8 @@ internal class RevurderingPostgresRepo(
                 saksbehandler = Saksbehandler(saksbehandler),
                 oppgaveId = OppgaveId(oppgaveId!!),
                 grunnlagsdata = grunnlagsdata,
-                fritekstTilBrev = fritekstTilBrev ?: ""
+                fritekstTilBrev = fritekstTilBrev ?: "",
+                revurderingsårsak = revurderingsårsak,
             )
             RevurderingsType.BEREGNET_AVSLAG -> BeregnetRevurdering.Avslag(
                 id = id,
@@ -216,7 +206,8 @@ internal class RevurderingPostgresRepo(
                 saksbehandler = Saksbehandler(saksbehandler),
                 oppgaveId = OppgaveId(oppgaveId!!),
                 grunnlagsdata = grunnlagsdata,
-                fritekstTilBrev = fritekstTilBrev ?: ""
+                fritekstTilBrev = fritekstTilBrev ?: "",
+                revurderingsårsak = revurderingsårsak,
             )
             RevurderingsType.OPPRETTET -> OpprettetRevurdering(
                 id = id,
@@ -226,7 +217,8 @@ internal class RevurderingPostgresRepo(
                 saksbehandler = Saksbehandler(saksbehandler),
                 oppgaveId = OppgaveId(oppgaveId!!),
                 grunnlagsdata = grunnlagsdata,
-                fritekstTilBrev = fritekstTilBrev ?: ""
+                fritekstTilBrev = fritekstTilBrev ?: "",
+                revurderingsårsak = revurderingsårsak,
             )
         }
     }
@@ -245,11 +237,10 @@ internal class RevurderingPostgresRepo(
                         oppgaveId,
                         revurderingsType,
                         attestering,
-                        utbetalingId,
-                        iverksattjournalpostid,
-                        iverksattbrevbestillingid,
                         vedtakSomRevurderesId,
-                        fritekstTilBrev
+                        fritekstTilBrev,
+                        årsak,
+                        begrunnelse
                     ) values (
                         :id,
                         :opprettet,
@@ -260,11 +251,10 @@ internal class RevurderingPostgresRepo(
                         :oppgaveId,
                         '${RevurderingsType.OPPRETTET}',
                         null,
-                        null,
-                        null,
-                        null,
                         :vedtakSomRevurderesId,
-                        :fritekstTilBrev
+                        :fritekstTilBrev,
+                        :arsak,
+                        :begrunnelse
                     )
                         ON CONFLICT(id) do update set
                         id=:id,
@@ -275,11 +265,11 @@ internal class RevurderingPostgresRepo(
                         saksbehandler=:saksbehandler,
                         oppgaveId=:oppgaveId,
                         revurderingsType='${RevurderingsType.OPPRETTET}',
-                        attestering=null, utbetalingId=null,
-                        iverksattjournalpostid=null,
-                        iverksattbrevbestillingid=null,
+                        attestering=null,
                         vedtakSomRevurderesId=:vedtakSomRevurderesId,
-                        fritekstTilBrev=:fritekstTilBrev
+                        fritekstTilBrev=:fritekstTilBrev,
+                        årsak=:arsak,
+                        begrunnelse=:begrunnelse
                 """.trimIndent()
                 ).oppdatering(
                 mapOf(
@@ -289,9 +279,11 @@ internal class RevurderingPostgresRepo(
                     "saksbehandler" to revurdering.saksbehandler.navIdent,
                     "oppgaveId" to revurdering.oppgaveId.toString(),
                     "vedtakSomRevurderesId" to revurdering.tilRevurdering.id,
-                    "fritekstTilBrev" to revurdering.fritekstTilBrev
+                    "fritekstTilBrev" to revurdering.fritekstTilBrev,
+                    "arsak" to revurdering.revurderingsårsak.årsak.toString(),
+                    "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
                 ),
-                session
+                session,
             )
         }
 
@@ -305,7 +297,9 @@ internal class RevurderingPostgresRepo(
                         beregning = to_json(:beregning::json),
                         simulering = null,
                         revurderingsType = :revurderingsType,
-                        saksbehandler = :saksbehandler
+                        saksbehandler = :saksbehandler,
+                        årsak = :arsak,
+                        begrunnelse =:begrunnelse
                     where
                         id = :id
                 """.trimIndent()
@@ -317,9 +311,11 @@ internal class RevurderingPostgresRepo(
                     "revurderingsType" to when (revurdering) {
                         is BeregnetRevurdering.Innvilget -> RevurderingsType.BEREGNET_INNVILGET.toString()
                         is BeregnetRevurdering.Avslag -> RevurderingsType.BEREGNET_AVSLAG.toString()
-                    }
+                    },
+                    "arsak" to revurdering.revurderingsårsak.årsak.toString(),
+                    "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
                 ),
-                session
+                session,
             )
         }
 
@@ -333,7 +329,9 @@ internal class RevurderingPostgresRepo(
                         saksbehandler = :saksbehandler,
                         beregning = to_json(:beregning::json),
                         simulering = to_json(:simulering::json),
-                        revurderingsType = '${RevurderingsType.SIMULERT}'
+                        revurderingsType = '${RevurderingsType.SIMULERT}',
+                        årsak = :arsak,
+                        begrunnelse =:begrunnelse
                     where
                         id = :id
                 """.trimIndent()
@@ -343,8 +341,10 @@ internal class RevurderingPostgresRepo(
                     "saksbehandler" to revurdering.saksbehandler.navIdent,
                     "beregning" to objectMapper.writeValueAsString(revurdering.beregning),
                     "simulering" to objectMapper.writeValueAsString(revurdering.simulering),
+                    "arsak" to revurdering.revurderingsårsak.årsak.toString(),
+                    "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
                 ),
-                session
+                session,
             )
         }
 
@@ -360,7 +360,9 @@ internal class RevurderingPostgresRepo(
                         simulering = to_json(:simulering::json),
                         revurderingsType = '${RevurderingsType.TIL_ATTESTERING}',
                         oppgaveId = :oppgaveId,
-                        fritekstTilBrev = :fritekstTilBrev
+                        fritekstTilBrev = :fritekstTilBrev,
+                        årsak = :arsak,
+                        begrunnelse =:begrunnelse
                     where
                         id = :id
                 """.trimIndent()
@@ -371,9 +373,11 @@ internal class RevurderingPostgresRepo(
                     "beregning" to objectMapper.writeValueAsString(revurdering.beregning),
                     "simulering" to objectMapper.writeValueAsString(revurdering.simulering),
                     "oppgaveId" to revurdering.oppgaveId.toString(),
-                    "fritekstTilBrev" to revurdering.fritekstTilBrev
+                    "fritekstTilBrev" to revurdering.fritekstTilBrev,
+                    "arsak" to revurdering.revurderingsårsak.årsak.toString(),
+                    "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
                 ),
-                session
+                session,
             )
         }
 
@@ -390,9 +394,8 @@ internal class RevurderingPostgresRepo(
                         revurderingsType = '${RevurderingsType.IVERKSATT}',
                         oppgaveId = :oppgaveId,
                         attestering = to_json(:attestering::json),
-                        utbetalingId = :utbetalingId,
-                        iverksattjournalpostid = :iverksattjournalpostid,
-                        iverksattbrevbestillingid = :iverksattbrevbestillingid
+                        årsak = :arsak,
+                        begrunnelse =:begrunnelse
                     where
                         id = :id
                 """.trimIndent()
@@ -404,15 +407,10 @@ internal class RevurderingPostgresRepo(
                     "simulering" to objectMapper.writeValueAsString(revurdering.simulering),
                     "oppgaveId" to revurdering.oppgaveId.toString(),
                     "attestering" to objectMapper.writeValueAsString(revurdering.attestering),
-                    "utbetalingId" to revurdering.utbetalingId,
-                    "iverksattjournalpostid" to JournalføringOgBrevdistribusjon.iverksattJournalpostId(
-                        revurdering.eksterneIverksettingsteg
-                    )?.toString(),
-                    "iverksattbrevbestillingid" to JournalføringOgBrevdistribusjon.iverksattBrevbestillingId(
-                        revurdering.eksterneIverksettingsteg
-                    )?.toString(),
+                    "arsak" to revurdering.revurderingsårsak.årsak.toString(),
+                    "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
                 ),
-                session
+                session,
             )
         }
 
@@ -425,7 +423,9 @@ internal class RevurderingPostgresRepo(
                     set
                         revurderingsType = '${RevurderingsType.UNDERKJENT}',
                         oppgaveId = :oppgaveId,
-                        attestering = to_json(:attestering::json)
+                        attestering = to_json(:attestering::json),
+                        årsak = :arsak,
+                        begrunnelse =:begrunnelse
                     where
                         id = :id
                 """.trimIndent()
@@ -434,8 +434,10 @@ internal class RevurderingPostgresRepo(
                     "id" to revurdering.id,
                     "oppgaveId" to revurdering.oppgaveId.toString(),
                     "attestering" to objectMapper.writeValueAsString(revurdering.attestering),
+                    "arsak" to revurdering.revurderingsårsak.årsak.toString(),
+                    "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
                 ),
-                session
+                session,
             )
         }
 }

@@ -12,7 +12,6 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
@@ -88,6 +87,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
         saksnummer = saksnummer,
         fnr = fnr,
         oppgaveId = oppgaveId,
+        fritekstTilBrev = "",
         grunnlagsdata = Grunnlagsdata.EMPTY,
     )
 
@@ -141,8 +141,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
         val behandling: Søknadsbehandling.Iverksatt.Innvilget = innvilgetBehandlingTilAttestering.tilIverksatt(
             Attestering.Iverksatt(
                 NavIdentBruker.Attestant("attestant")
-            ),
-            UUID30.randomUUID()
+            )
         )
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
@@ -352,6 +351,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             simulering = innvilgetBehandlingTilAttestering.simulering,
             saksbehandler = innvilgetBehandlingTilAttestering.saksbehandler,
             attestering = underkjentAttestering,
+            fritekstTilBrev = "",
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
@@ -434,6 +434,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             simulering = innvilgetBehandlingTilAttestering.simulering,
             saksbehandler = innvilgetBehandlingTilAttestering.saksbehandler,
             attestering = underkjentAttestering,
+            fritekstTilBrev = "",
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 

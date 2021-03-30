@@ -72,6 +72,7 @@ class SøknadsbehandlingServiceAttesteringTest {
         saksnummer = saksnummer,
         fnr = fnr,
         oppgaveId = oppgaveId,
+        fritekstTilBrev = "",
         grunnlagsdata = Grunnlagsdata.EMPTY,
     )
 
@@ -102,7 +103,7 @@ class SøknadsbehandlingServiceAttesteringTest {
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
             observer = eventObserver
-        ).sendTilAttestering(SøknadsbehandlingService.SendTilAttesteringRequest(simulertBehandling.id, saksbehandler))
+        ).sendTilAttestering(SøknadsbehandlingService.SendTilAttesteringRequest(simulertBehandling.id, saksbehandler, ""))
 
         val expected = Søknadsbehandling.TilAttestering.Innvilget(
             id = simulertBehandling.id,
@@ -116,6 +117,7 @@ class SøknadsbehandlingServiceAttesteringTest {
             fnr = simulertBehandling.fnr,
             oppgaveId = nyOppgaveId,
             saksbehandler = saksbehandler,
+            fritekstTilBrev = "",
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
@@ -154,7 +156,7 @@ class SøknadsbehandlingServiceAttesteringTest {
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
             observer = eventObserver
-        ).sendTilAttestering(SøknadsbehandlingService.SendTilAttesteringRequest(simulertBehandling.id, saksbehandler))
+        ).sendTilAttestering(SøknadsbehandlingService.SendTilAttesteringRequest(simulertBehandling.id, saksbehandler, ""))
 
         actual shouldBe SøknadsbehandlingService.KunneIkkeSendeTilAttestering.FantIkkeBehandling.left()
 
@@ -182,7 +184,7 @@ class SøknadsbehandlingServiceAttesteringTest {
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
             observer = eventObserver
-        ).sendTilAttestering(SøknadsbehandlingService.SendTilAttesteringRequest(simulertBehandling.id, saksbehandler))
+        ).sendTilAttestering(SøknadsbehandlingService.SendTilAttesteringRequest(simulertBehandling.id, saksbehandler, ""))
 
         actual shouldBe SøknadsbehandlingService.KunneIkkeSendeTilAttestering.KunneIkkeFinneAktørId.left()
 
@@ -212,7 +214,7 @@ class SøknadsbehandlingServiceAttesteringTest {
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
             observer = eventObserver
-        ).sendTilAttestering(SøknadsbehandlingService.SendTilAttesteringRequest(simulertBehandling.id, saksbehandler))
+        ).sendTilAttestering(SøknadsbehandlingService.SendTilAttesteringRequest(simulertBehandling.id, saksbehandler, ""))
 
         actual shouldBe SøknadsbehandlingService.KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave.left()
 
@@ -255,7 +257,9 @@ class SøknadsbehandlingServiceAttesteringTest {
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
             observer = eventObserver
-        ).sendTilAttestering(SøknadsbehandlingService.SendTilAttesteringRequest(simulertBehandling.id, saksbehandler))
+        ).sendTilAttestering(
+            SøknadsbehandlingService.SendTilAttesteringRequest(simulertBehandling.id, saksbehandler, "")
+        )
 
         val expected = Søknadsbehandling.TilAttestering.Innvilget(
             id = simulertBehandling.id,
@@ -269,6 +273,7 @@ class SøknadsbehandlingServiceAttesteringTest {
             fnr = simulertBehandling.fnr,
             oppgaveId = nyOppgaveId,
             saksbehandler = saksbehandler,
+            fritekstTilBrev = "",
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 

@@ -32,25 +32,25 @@ internal class UtbetalingRequestTest {
             sakId = sakId,
             saksnummer = saksnummer,
             utbetalingslinjer = listOf(
-                Utbetalingslinje(
+                Utbetalingslinje.Ny(
                     id = nyOppdragslinjeId1,
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 30.april(2020),
                     beløp = BELØP,
                     forrigeUtbetalingslinjeId = null,
                 ),
-                Utbetalingslinje(
+                Utbetalingslinje.Ny(
                     id = nyOppdragslinjeId2,
                     fraOgMed = 1.mai(2020),
                     tilOgMed = 31.desember(2020),
                     beløp = BELØP,
                     forrigeUtbetalingslinjeId = nyOppdragslinjeId1,
-                )
+                ),
             ),
             fnr = FNR,
             type = Utbetaling.UtbetalingsType.NY,
             behandler = NavIdentBruker.Attestant("A123456"),
-            avstemmingsnøkkel = Avstemmingsnøkkel()
+            avstemmingsnøkkel = Avstemmingsnøkkel(),
         )
 
         val utbetalingRequestFørstegangsbehandling = UtbetalingRequest(
@@ -66,17 +66,19 @@ internal class UtbetalingRequestTest {
                     UtbetalingRequest.OppdragsEnhet(
                         datoEnhetFom = LocalDate.EPOCH.format(yyyyMMdd),
                         enhet = "8020",
-                        typeEnhet = "BOS"
-                    )
+                        typeEnhet = "BOS",
+                    ),
                 ),
                 avstemming = UtbetalingRequest.Avstemming(
                     kodeKomponent = "SU",
                     nokkelAvstemming = "1577833200000000000",
-                    tidspktMelding = "2020-01-01-00.00.00.000000"
+                    tidspktMelding = "2020-01-01-00.00.00.000000",
                 ),
                 kodeAksjon = UtbetalingRequest.KodeAksjon.UTBETALING,
                 oppdragslinjer = listOf(
                     UtbetalingRequest.Oppdragslinje(
+                        kodeStatusLinje = null,
+                        datoStatusFom = null,
                         kodeEndringLinje = UtbetalingRequest.Oppdragslinje.KodeEndringLinje.NY,
                         delytelseId = nyUtbetaling.utbetalingslinjer[0].id.toString(),
                         kodeKlassifik = "SUUFORE",
@@ -90,7 +92,7 @@ internal class UtbetalingRequestTest {
                         utbetalesTilId = FNR.toString(),
                         refDelytelseId = null,
                         refFagsystemId = null,
-                        attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant("A123456"))
+                        attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant("A123456")),
                     ),
                     UtbetalingRequest.Oppdragslinje(
                         kodeEndringLinje = UtbetalingRequest.Oppdragslinje.KodeEndringLinje.NY,
@@ -106,17 +108,19 @@ internal class UtbetalingRequestTest {
                         utbetalesTilId = FNR.toString(),
                         refDelytelseId = nyUtbetaling.utbetalingslinjer[0].id.toString(),
                         refFagsystemId = saksnummer.toString(),
-                        attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant("A123456"))
-                    )
-                )
-            )
+                        attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant("A123456")),
+                        kodeStatusLinje = null,
+                        datoStatusFom = null,
+                    ),
+                ),
+            ),
         )
     }
 
     @Test
     fun `bygger utbetaling request til bruker uten eksisterende oppdragslinjer`() {
         val utbetalingRequest = toUtbetalingRequest(
-            utbetaling = nyUtbetaling.copy(avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay()))
+            utbetaling = nyUtbetaling.copy(avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay())),
         )
         utbetalingRequest shouldBe utbetalingRequestFørstegangsbehandling
     }
@@ -131,25 +135,25 @@ internal class UtbetalingRequestTest {
             sakId = sakId,
             saksnummer = saksnummer,
             utbetalingslinjer = listOf(
-                Utbetalingslinje(
+                Utbetalingslinje.Ny(
                     id = nyOppdragslinjeid1,
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 30.april(2020),
                     beløp = BELØP,
                     forrigeUtbetalingslinjeId = eksisterendeOppdragslinjeId,
                 ),
-                Utbetalingslinje(
+                Utbetalingslinje.Ny(
                     id = nyOppdragslinjeid2,
                     fraOgMed = 1.mai(2020),
                     tilOgMed = 31.desember(2020),
                     beløp = BELØP,
                     forrigeUtbetalingslinjeId = nyOppdragslinjeid1,
-                )
+                ),
             ),
             fnr = FNR,
             type = Utbetaling.UtbetalingsType.NY,
             behandler = NavIdentBruker.Attestant("A123456"),
-            avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay())
+            avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay()),
         )
         val utbetalingRequest = toUtbetalingRequest(utbetaling = nyUtbetaling)
 
@@ -166,13 +170,13 @@ internal class UtbetalingRequestTest {
                     UtbetalingRequest.OppdragsEnhet(
                         datoEnhetFom = LocalDate.EPOCH.format(yyyyMMdd),
                         enhet = "8020",
-                        typeEnhet = "BOS"
-                    )
+                        typeEnhet = "BOS",
+                    ),
                 ),
                 avstemming = UtbetalingRequest.Avstemming(
                     kodeKomponent = "SU",
                     nokkelAvstemming = "1577833200000000000",
-                    tidspktMelding = "2020-01-01-00.00.00.000000"
+                    tidspktMelding = "2020-01-01-00.00.00.000000",
                 ),
                 kodeAksjon = UtbetalingRequest.KodeAksjon.UTBETALING,
                 oppdragslinjer = listOf(
@@ -190,9 +194,13 @@ internal class UtbetalingRequestTest {
                         utbetalesTilId = FNR.toString(),
                         refDelytelseId = eksisterendeOppdragslinjeId.toString(),
                         refFagsystemId = saksnummer.toString(),
-                        attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant("A123456"))
+                        attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant("A123456")),
+                        kodeStatusLinje = null,
+                        datoStatusFom = null,
                     ),
                     UtbetalingRequest.Oppdragslinje(
+                        kodeStatusLinje = null,
+                        datoStatusFom = null,
                         kodeEndringLinje = UtbetalingRequest.Oppdragslinje.KodeEndringLinje.NY,
                         delytelseId = nyUtbetaling.utbetalingslinjer[1].id.toString(),
                         kodeKlassifik = "SUUFORE",
@@ -206,10 +214,93 @@ internal class UtbetalingRequestTest {
                         utbetalesTilId = FNR.toString(),
                         refDelytelseId = nyOppdragslinjeid1.toString(),
                         refFagsystemId = saksnummer.toString(),
-                        attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant("A123456"))
-                    )
+                        attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant("A123456")),
+                    ),
+                ),
+            ),
+        )
+    }
+
+    @Test
+    fun `bygger en request for endring av eksisterende linjer`() {
+        val endring = nyUtbetaling.copy(
+            type = Utbetaling.UtbetalingsType.OPPHØR,
+            avstemmingsnøkkel = Avstemmingsnøkkel(1.januar(2020).startOfDay()),
+            utbetalingslinjer = nyUtbetaling.utbetalingslinjer.map {
+                Utbetalingslinje.Endring(
+                    utbetalingslinje = it,
+                    statusendring = Utbetalingslinje.Statusendring(
+                        fraOgMed = 1.januar(2020),
+                        status = Utbetalingslinje.LinjeStatus.OPPHØR,
+                    ),
                 )
-            )
+            },
+        )
+
+        val utbetalingRequest = toUtbetalingRequest(endring)
+
+        utbetalingRequest shouldBe UtbetalingRequest(
+            oppdragRequest = UtbetalingRequest.OppdragRequest(
+
+                oppdragGjelderId = FNR.toString(),
+                saksbehId = SAKSBEHANDLER,
+                fagsystemId = saksnummer.toString(),
+                kodeEndring = UtbetalingRequest.KodeEndring.ENDRING,
+                kodeFagomraade = FAGOMRÅDE,
+                utbetFrekvens = UtbetalingRequest.Utbetalingsfrekvens.MND,
+                datoOppdragGjelderFom = LocalDate.EPOCH.format(yyyyMMdd),
+                oppdragsEnheter = listOf(
+                    UtbetalingRequest.OppdragsEnhet(
+                        datoEnhetFom = LocalDate.EPOCH.format(yyyyMMdd),
+                        enhet = "8020",
+                        typeEnhet = "BOS",
+                    ),
+                ),
+                avstemming = UtbetalingRequest.Avstemming(
+                    kodeKomponent = "SU",
+                    nokkelAvstemming = "1577833200000000000",
+                    tidspktMelding = "2020-01-01-00.00.00.000000",
+                ),
+                kodeAksjon = UtbetalingRequest.KodeAksjon.UTBETALING,
+                oppdragslinjer = listOf(
+                    UtbetalingRequest.Oppdragslinje(
+                        kodeEndringLinje = UtbetalingRequest.Oppdragslinje.KodeEndringLinje.ENDRING,
+                        delytelseId = nyUtbetaling.utbetalingslinjer[0].id.toString(),
+                        kodeKlassifik = "SUUFORE",
+                        datoVedtakFom = "2020-01-01",
+                        datoVedtakTom = "2020-04-30",
+                        sats = BELØP.toString(),
+                        fradragTillegg = UtbetalingRequest.Oppdragslinje.FradragTillegg.TILLEGG,
+                        typeSats = UtbetalingRequest.Oppdragslinje.TypeSats.MND,
+                        brukKjoreplan = "N",
+                        saksbehId = "SU",
+                        utbetalesTilId = FNR.toString(),
+                        refDelytelseId = null,
+                        refFagsystemId = null,
+                        attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant("A123456")),
+                        kodeStatusLinje = UtbetalingRequest.Oppdragslinje.KodeStatusLinje.OPPHØR,
+                        datoStatusFom = "2020-01-01",
+                    ),
+                    UtbetalingRequest.Oppdragslinje(
+                        kodeEndringLinje = UtbetalingRequest.Oppdragslinje.KodeEndringLinje.ENDRING,
+                        delytelseId = nyUtbetaling.utbetalingslinjer[1].id.toString(),
+                        kodeKlassifik = "SUUFORE",
+                        datoVedtakFom = "2020-05-01",
+                        datoVedtakTom = "2020-12-31",
+                        sats = BELØP.toString(),
+                        fradragTillegg = UtbetalingRequest.Oppdragslinje.FradragTillegg.TILLEGG,
+                        typeSats = UtbetalingRequest.Oppdragslinje.TypeSats.MND,
+                        brukKjoreplan = "N",
+                        saksbehId = "SU",
+                        utbetalesTilId = FNR.toString(),
+                        refDelytelseId = null,
+                        refFagsystemId = null,
+                        attestant = listOf(UtbetalingRequest.Oppdragslinje.Attestant("A123456")),
+                        kodeStatusLinje = UtbetalingRequest.Oppdragslinje.KodeStatusLinje.OPPHØR,
+                        datoStatusFom = "2020-01-01",
+                    ),
+                ),
+            ),
         )
     }
 }

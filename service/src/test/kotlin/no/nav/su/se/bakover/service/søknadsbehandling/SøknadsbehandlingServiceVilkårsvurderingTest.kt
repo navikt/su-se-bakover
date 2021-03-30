@@ -50,6 +50,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
         saksnummer = Saksnummer(0),
         fnr = FnrGenerator.random(),
         oppgaveId = oppgaveId,
+        fritekstTilBrev = "",
         grunnlagsdata = Grunnlagsdata.EMPTY,
     )
 
@@ -95,12 +96,13 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
         val expected = Søknadsbehandling.Vilkårsvurdert.Innvilget(
             id = opprettetBehandling.id,
             opprettet = opprettetBehandling.opprettet,
+            behandlingsinformasjon = behandlingsinformasjon,
+            søknad = opprettetBehandling.søknad,
             sakId = opprettetBehandling.sakId,
             saksnummer = opprettetBehandling.saksnummer,
-            søknad = opprettetBehandling.søknad,
-            oppgaveId = opprettetBehandling.oppgaveId,
-            behandlingsinformasjon = behandlingsinformasjon,
             fnr = opprettetBehandling.fnr,
+            oppgaveId = opprettetBehandling.oppgaveId,
+            fritekstTilBrev = "",
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
@@ -139,6 +141,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
             saksnummer = opprettetBehandling.saksnummer,
             fnr = opprettetBehandling.fnr,
             oppgaveId = opprettetBehandling.oppgaveId,
+            fritekstTilBrev = "",
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 

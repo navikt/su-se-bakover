@@ -32,11 +32,11 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import org.junit.jupiter.api.Test
@@ -65,8 +65,8 @@ internal class LagBrevRequestVisitorTest {
         uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt())
             .tilBeregnet(innvilgetBeregning)
             .tilSimulert(simulering)
-            .tilAttestering(saksbehandler)
-            .tilIverksatt(Attestering.Iverksatt(attestant), UUID30.randomUUID())
+            .tilAttestering(saksbehandler, "Fritekst!")
+            .tilIverksatt(Attestering.Iverksatt(attestant))
             .let { søknadsbehandling ->
                 LagBrevRequestVisitor(
                     hentPerson = { person.right() },
@@ -117,10 +117,11 @@ internal class LagBrevRequestVisitorTest {
                             opprettet = Tidspunkt.now(clock),
                             avslagsgrunner = listOf(Avslagsgrunn.UFØRHET),
                             harEktefelle = false,
-                            beregning = null
+                            beregning = null,
                         ),
                         saksbehandlerNavn = "-",
-                        attestantNavn = "-"
+                        attestantNavn = "-",
+                        fritekst = "",
                     ).right()
                 }
             }
@@ -142,6 +143,7 @@ internal class LagBrevRequestVisitorTest {
                         behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
                         saksbehandlerNavn = "-",
                         attestantNavn = "-",
+                        fritekst = "",
                     ).right()
                 }
             }
@@ -163,10 +165,11 @@ internal class LagBrevRequestVisitorTest {
                             opprettet = Tidspunkt.now(clock),
                             avslagsgrunner = listOf(Avslagsgrunn.UFØRHET, Avslagsgrunn.FOR_HØY_INNTEKT),
                             harEktefelle = false,
-                            beregning = avslagBeregning
+                            beregning = avslagBeregning,
                         ),
                         saksbehandlerNavn = "-",
-                        attestantNavn = "-"
+                        attestantNavn = "-",
+                        fritekst = "",
                     ).right()
                 }
             }
@@ -189,6 +192,7 @@ internal class LagBrevRequestVisitorTest {
                         behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
                         saksbehandlerNavn = "-",
                         attestantNavn = "-",
+                        fritekst = "",
                     ).right()
                 }
             }
@@ -198,10 +202,10 @@ internal class LagBrevRequestVisitorTest {
     fun `lager request for avslag til attestering uten beregning`() {
         (
             uavklart.tilVilkårsvurdert(
-                Behandlingsinformasjon.lagTomBehandlingsinformasjon().withVilkårAvslått()
+                Behandlingsinformasjon.lagTomBehandlingsinformasjon().withVilkårAvslått(),
             ) as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
-            .tilAttestering(saksbehandler)
+            .tilAttestering(saksbehandler, "Fritekst!")
             .let { søknadsbehandling ->
                 LagBrevRequestVisitor(
                     hentPerson = { person.right() },
@@ -214,10 +218,11 @@ internal class LagBrevRequestVisitorTest {
                             opprettet = Tidspunkt.now(clock),
                             avslagsgrunner = listOf(Avslagsgrunn.UFØRHET),
                             harEktefelle = false,
-                            beregning = null
+                            beregning = null,
                         ),
                         saksbehandlerNavn = saksbehandlerNavn,
-                        attestantNavn = "-"
+                        attestantNavn = "-",
+                        fritekst = "Fritekst!",
                     ).right()
                 }
             }
@@ -229,7 +234,7 @@ internal class LagBrevRequestVisitorTest {
             uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt())
                 .tilBeregnet(avslagBeregning) as Søknadsbehandling.Beregnet.Avslag
             )
-            .tilAttestering(saksbehandler)
+            .tilAttestering(saksbehandler, "Fritekst!")
             .let { søknadsbehandling ->
                 LagBrevRequestVisitor(
                     hentPerson = { person.right() },
@@ -242,10 +247,11 @@ internal class LagBrevRequestVisitorTest {
                             opprettet = Tidspunkt.now(clock),
                             avslagsgrunner = listOf(Avslagsgrunn.FOR_HØY_INNTEKT),
                             harEktefelle = false,
-                            beregning = avslagBeregning
+                            beregning = avslagBeregning,
                         ),
                         saksbehandlerNavn = saksbehandlerNavn,
-                        attestantNavn = "-"
+                        attestantNavn = "-",
+                        fritekst = "Fritekst!",
                     ).right()
                 }
             }
@@ -256,7 +262,7 @@ internal class LagBrevRequestVisitorTest {
         uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt())
             .tilBeregnet(innvilgetBeregning)
             .tilSimulert(simulering)
-            .tilAttestering(saksbehandler)
+            .tilAttestering(saksbehandler, "Fritekst!")
             .let { søknadsbehandling ->
                 LagBrevRequestVisitor(
                     hentPerson = { person.right() },
@@ -269,6 +275,7 @@ internal class LagBrevRequestVisitorTest {
                         behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
                         saksbehandlerNavn = saksbehandlerNavn,
                         attestantNavn = "-",
+                        fritekst = "Fritekst!",
                     ).right()
                 }
             }
@@ -278,16 +285,16 @@ internal class LagBrevRequestVisitorTest {
     fun `lager request for underkjent avslag uten beregning`() {
         (
             uavklart.tilVilkårsvurdert(
-                Behandlingsinformasjon.lagTomBehandlingsinformasjon().withVilkårAvslått()
+                Behandlingsinformasjon.lagTomBehandlingsinformasjon().withVilkårAvslått(),
             ) as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
-            .tilAttestering(saksbehandler)
+            .tilAttestering(saksbehandler, "Fritekst!")
             .tilUnderkjent(
                 Attestering.Underkjent(
                     attestant,
                     Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
-                    "kommentar"
-                )
+                    "kommentar",
+                ),
             )
             .let { søknadsbehandling ->
                 LagBrevRequestVisitor(
@@ -301,10 +308,11 @@ internal class LagBrevRequestVisitorTest {
                             opprettet = Tidspunkt.now(clock),
                             avslagsgrunner = listOf(Avslagsgrunn.UFØRHET),
                             harEktefelle = false,
-                            beregning = null
+                            beregning = null,
                         ),
                         saksbehandlerNavn = saksbehandlerNavn,
-                        attestantNavn = attestantNavn
+                        attestantNavn = attestantNavn,
+                        fritekst = "Fritekst!",
                     ).right()
                 }
             }
@@ -316,13 +324,13 @@ internal class LagBrevRequestVisitorTest {
             uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt())
                 .tilBeregnet(avslagBeregning) as Søknadsbehandling.Beregnet.Avslag
             )
-            .tilAttestering(saksbehandler)
+            .tilAttestering(saksbehandler, "Fritekst!")
             .tilUnderkjent(
                 Attestering.Underkjent(
                     attestant,
                     Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
-                    "kommentar"
-                )
+                    "kommentar",
+                ),
             )
             .let { søknadsbehandling ->
                 LagBrevRequestVisitor(
@@ -336,10 +344,11 @@ internal class LagBrevRequestVisitorTest {
                             opprettet = Tidspunkt.now(clock),
                             avslagsgrunner = listOf(Avslagsgrunn.FOR_HØY_INNTEKT),
                             harEktefelle = false,
-                            beregning = avslagBeregning
+                            beregning = avslagBeregning,
                         ),
                         saksbehandlerNavn = saksbehandlerNavn,
-                        attestantNavn = attestantNavn
+                        attestantNavn = attestantNavn,
+                        fritekst = "Fritekst!",
                     ).right()
                 }
             }
@@ -350,13 +359,13 @@ internal class LagBrevRequestVisitorTest {
         uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt())
             .tilBeregnet(innvilgetBeregning)
             .tilSimulert(simulering)
-            .tilAttestering(saksbehandler)
+            .tilAttestering(saksbehandler, "Fritekst!")
             .tilUnderkjent(
                 Attestering.Underkjent(
                     attestant,
                     Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
-                    "kommentar"
-                )
+                    "kommentar",
+                ),
             )
             .let { søknadsbehandling ->
                 LagBrevRequestVisitor(
@@ -370,6 +379,7 @@ internal class LagBrevRequestVisitorTest {
                         behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
                         saksbehandlerNavn = saksbehandlerNavn,
                         attestantNavn = attestantNavn,
+                        fritekst = "Fritekst!",
                     ).right()
                 }
             }
@@ -379,12 +389,12 @@ internal class LagBrevRequestVisitorTest {
     fun `lager request for iverksatt avslag uten beregning`() {
         (
             uavklart.tilVilkårsvurdert(
-                Behandlingsinformasjon.lagTomBehandlingsinformasjon().withVilkårAvslått()
+                Behandlingsinformasjon.lagTomBehandlingsinformasjon().withVilkårAvslått(),
             ) as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
-            .tilAttestering(saksbehandler)
+            .tilAttestering(saksbehandler, "Fritekst!")
             .tilIverksatt(
-                Attestering.Iverksatt(attestant)
+                Attestering.Iverksatt(attestant),
             )
             .let { søknadsbehandling ->
                 LagBrevRequestVisitor(
@@ -398,10 +408,11 @@ internal class LagBrevRequestVisitorTest {
                             opprettet = Tidspunkt.now(clock),
                             avslagsgrunner = listOf(Avslagsgrunn.UFØRHET),
                             harEktefelle = false,
-                            beregning = null
+                            beregning = null,
                         ),
                         saksbehandlerNavn = saksbehandlerNavn,
-                        attestantNavn = attestantNavn
+                        attestantNavn = attestantNavn,
+                        fritekst = "Fritekst!",
                     ).right()
                 }
             }
@@ -413,9 +424,9 @@ internal class LagBrevRequestVisitorTest {
             uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withVilkårAvslått())
                 .tilBeregnet(avslagBeregning) as Søknadsbehandling.Beregnet.Avslag
             )
-            .tilAttestering(saksbehandler)
+            .tilAttestering(saksbehandler, "Fritekst!")
             .tilIverksatt(
-                Attestering.Iverksatt(attestant)
+                Attestering.Iverksatt(attestant),
             )
             .let { søknadsbehandling ->
                 LagBrevRequestVisitor(
@@ -429,10 +440,11 @@ internal class LagBrevRequestVisitorTest {
                             opprettet = Tidspunkt.now(clock),
                             avslagsgrunner = listOf(Avslagsgrunn.UFØRHET, Avslagsgrunn.FOR_HØY_INNTEKT),
                             harEktefelle = false,
-                            beregning = avslagBeregning
+                            beregning = avslagBeregning,
                         ),
                         saksbehandlerNavn = saksbehandlerNavn,
-                        attestantNavn = attestantNavn
+                        attestantNavn = attestantNavn,
+                        fritekst = "Fritekst!",
                     ).right()
                 }
             }
@@ -443,8 +455,8 @@ internal class LagBrevRequestVisitorTest {
         uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt())
             .tilBeregnet(innvilgetBeregning)
             .tilSimulert(simulering)
-            .tilAttestering(saksbehandler)
-            .tilIverksatt(Attestering.Iverksatt(attestant), UUID30.randomUUID())
+            .tilAttestering(saksbehandler, "Fritekst!")
+            .tilIverksatt(Attestering.Iverksatt(attestant))
             .let { søknadsbehandling ->
                 LagBrevRequestVisitor(
                     hentPerson = { person.right() },
@@ -457,6 +469,7 @@ internal class LagBrevRequestVisitorTest {
                         behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
                         saksbehandlerNavn = saksbehandlerNavn,
                         attestantNavn = attestantNavn,
+                        fritekst = "Fritekst!",
                     ).right()
                 }
             }
@@ -464,13 +477,15 @@ internal class LagBrevRequestVisitorTest {
 
     @Test
     fun `lager request for vedtak om innvilget stønad`() {
-        val søknadsbehandling = uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt())
-            .tilBeregnet(innvilgetBeregning)
-            .tilSimulert(simulering)
-            .tilAttestering(saksbehandler)
-            .tilIverksatt(Attestering.Iverksatt(attestant), UUID30.randomUUID())
+        val utbetalingId = UUID30.randomUUID()
+        val søknadsbehandling =
+            uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt())
+                .tilBeregnet(innvilgetBeregning)
+                .tilSimulert(simulering)
+                .tilAttestering(saksbehandler, "Fritekst!")
+                .tilIverksatt(Attestering.Iverksatt(attestant))
 
-        val innvilgetVedtak = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling)
+        val innvilgetVedtak = Vedtak.EndringIYtelse.fromSøknadsbehandling(søknadsbehandling, utbetalingId)
 
         val brevSøknadsbehandling = LagBrevRequestVisitor(
             hentPerson = { person.right() },
@@ -492,6 +507,7 @@ internal class LagBrevRequestVisitorTest {
             behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
             saksbehandlerNavn = saksbehandlerNavn,
             attestantNavn = attestantNavn,
+            fritekst = "Fritekst!",
         ).right()
     }
 
@@ -501,10 +517,10 @@ internal class LagBrevRequestVisitorTest {
             uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt())
                 .tilBeregnet(avslagBeregning) as Søknadsbehandling.Beregnet.Avslag
             )
-            .tilAttestering(saksbehandler)
+            .tilAttestering(saksbehandler, "Fritekst!")
             .tilIverksatt(Attestering.Iverksatt(attestant))
 
-        val avslåttVedtak = Vedtak.AvslåttStønad.fromSøknadsbehandlingMedBeregning(søknadsbehandling)
+        val avslåttVedtak = Vedtak.Avslag.fromSøknadsbehandlingMedBeregning(søknadsbehandling)
 
         val brevSøknadsbehandling = LagBrevRequestVisitor(
             hentPerson = { person.right() },
@@ -526,20 +542,26 @@ internal class LagBrevRequestVisitorTest {
                 opprettet = Tidspunkt.now(clock),
                 avslagsgrunner = listOf(Avslagsgrunn.UFØRHET, Avslagsgrunn.FOR_HØY_INNTEKT),
                 harEktefelle = false,
-                beregning = avslagBeregning
+                beregning = avslagBeregning,
             ),
             saksbehandlerNavn = saksbehandlerNavn,
-            attestantNavn = attestantNavn
+            attestantNavn = attestantNavn,
+            fritekst = "Fritekst!",
         ).right()
     }
 
     @Test
     fun `lager request for vedtak om avslått stønad uten beregning`() {
-        val søknadsbehandling = (uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withVilkårAvslått()) as Søknadsbehandling.Vilkårsvurdert.Avslag)
-            .tilAttestering(saksbehandler)
+        val søknadsbehandling = (
+            uavklart.tilVilkårsvurdert(
+                Behandlingsinformasjon.lagTomBehandlingsinformasjon()
+                    .withVilkårAvslått(),
+            ) as Søknadsbehandling.Vilkårsvurdert.Avslag
+            )
+            .tilAttestering(saksbehandler, "Fritekst!")
             .tilIverksatt(Attestering.Iverksatt(attestant))
 
-        val avslåttVedtak = Vedtak.AvslåttStønad.fromSøknadsbehandlingUtenBeregning(søknadsbehandling)
+        val avslåttVedtak = Vedtak.Avslag.fromSøknadsbehandlingUtenBeregning(søknadsbehandling)
 
         val brevSøknadsbehandling = LagBrevRequestVisitor(
             hentPerson = { person.right() },
@@ -561,38 +583,43 @@ internal class LagBrevRequestVisitorTest {
                 opprettet = Tidspunkt.now(clock),
                 avslagsgrunner = listOf(Avslagsgrunn.UFØRHET, Avslagsgrunn.FOR_HØY_INNTEKT),
                 harEktefelle = false,
-                beregning = null
+                beregning = null,
             ),
             saksbehandlerNavn = saksbehandlerNavn,
-            attestantNavn = attestantNavn
+            attestantNavn = attestantNavn,
+            fritekst = "Fritekst!",
         ).right()
     }
 
     @Test
     fun `lager request for vedtak om revurdering av inntekt`() {
-        val søknadsbehandling = uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt())
-            .tilBeregnet(innvilgetBeregning)
-            .tilSimulert(simulering)
-            .tilAttestering(saksbehandler)
-            .tilIverksatt(Attestering.Iverksatt(attestant), UUID30.randomUUID())
+        val utbetalingId = UUID30.randomUUID()
+        val søknadsbehandling =
+            uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt())
+                .tilBeregnet(innvilgetBeregning)
+                .tilSimulert(simulering)
+                .tilAttestering(saksbehandler, "Fritekst!")
+                .tilIverksatt(Attestering.Iverksatt(attestant))
 
         val revurdering = IverksattRevurdering(
             id = UUID.randomUUID(),
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
             opprettet = Tidspunkt.now(clock),
-            tilRevurdering = Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling),
+            tilRevurdering = Vedtak.EndringIYtelse.fromSøknadsbehandling(søknadsbehandling, utbetalingId),
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("15"),
             grunnlagsdata = Grunnlagsdata.EMPTY,
             beregning = innvilgetBeregning,
             simulering = simulering,
             attestering = Attestering.Iverksatt(attestant),
-            utbetalingId = UUID30.randomUUID(),
-            eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
-            fritekstTilBrev = ""
+            fritekstTilBrev = "",
+            revurderingsårsak = Revurderingsårsak(
+                Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
+                Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
+            ),
         )
 
-        val avslåttVedtak = Vedtak.InnvilgetStønad.fromRevurdering(revurdering)
+        val avslåttVedtak = Vedtak.EndringIYtelse.fromRevurdering(revurdering, utbetalingId)
 
         val brevRevurdering = LagBrevRequestVisitor(
             hentPerson = { person.right() },
@@ -611,9 +638,10 @@ internal class LagBrevRequestVisitorTest {
         LagBrevRequest.Revurdering.Inntekt(
             person = person,
             saksbehandlerNavn = saksbehandlerNavn,
+            attestantNavn = attestantNavn,
             revurdertBeregning = revurdering.beregning,
-            fritekst = "",
-            harEktefelle = false
+            fritekst = "Fritekst!",
+            harEktefelle = false,
         ).right()
     }
 
@@ -621,9 +649,9 @@ internal class LagBrevRequestVisitorTest {
     private val person = Person(
         ident = Ident(
             fnr = FnrGenerator.random(),
-            aktørId = AktørId(aktørId = "123")
+            aktørId = AktørId(aktørId = "123"),
         ),
-        navn = Person.Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy")
+        navn = Person.Navn(fornavn = "Tore", mellomnavn = "Johnas", etternavn = "Strømøy"),
     )
 
     private val saksbehandler = NavIdentBruker.Saksbehandler("Z123")
@@ -648,10 +676,10 @@ internal class LagBrevRequestVisitorTest {
                 månedsbeløp = 5000.0,
                 periode = Periode.create(1.januar(2021), 31.desember(2021)),
                 utenlandskInntekt = null,
-                tilhører = FradragTilhører.BRUKER
-            )
+                tilhører = FradragTilhører.BRUKER,
+            ),
         ),
-        fradragStrategy = FradragStrategy.Enslig
+        fradragStrategy = FradragStrategy.Enslig,
     )
 
     private val avslagBeregning = BeregningFactory.ny(
@@ -665,10 +693,10 @@ internal class LagBrevRequestVisitorTest {
                 månedsbeløp = 50000.0,
                 periode = Periode.create(1.januar(2021), 31.desember(2021)),
                 utenlandskInntekt = null,
-                tilhører = FradragTilhører.BRUKER
-            )
+                tilhører = FradragTilhører.BRUKER,
+            ),
         ),
-        fradragStrategy = FradragStrategy.Enslig
+        fradragStrategy = FradragStrategy.Enslig,
     )
 
     private val simulering = Simulering(
@@ -676,7 +704,7 @@ internal class LagBrevRequestVisitorTest {
         gjelderNavn = "",
         datoBeregnet = 1.januar(2021),
         nettoBeløp = 0,
-        periodeList = listOf()
+        periodeList = listOf(),
     )
 
     private val uavklart = Søknadsbehandling.Vilkårsvurdert.Uavklart(
@@ -688,6 +716,7 @@ internal class LagBrevRequestVisitorTest {
         oppgaveId = OppgaveId(""),
         behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
         fnr = FnrGenerator.random(),
+        fritekstTilBrev = "",
         grunnlagsdata = Grunnlagsdata.EMPTY,
     )
 }

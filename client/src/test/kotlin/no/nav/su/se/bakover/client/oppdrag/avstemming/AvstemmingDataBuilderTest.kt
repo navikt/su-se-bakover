@@ -102,7 +102,7 @@ internal class AvstemmingDataBuilderTest {
 internal val saksnummer = Saksnummer(1234)
 internal val sakId = UUID.randomUUID()
 
-internal fun lagUtbetalingLinje(fraOgMed: LocalDate, tilOgMed: LocalDate, beløp: Int) = Utbetalingslinje(
+internal fun lagUtbetalingLinje(fraOgMed: LocalDate, tilOgMed: LocalDate, beløp: Int) = Utbetalingslinje.Ny(
     id = UUID30.randomUUID(),
     opprettet = fraOgMed.atStartOfDay(zoneIdOslo).toTidspunkt(),
     fraOgMed = fraOgMed,

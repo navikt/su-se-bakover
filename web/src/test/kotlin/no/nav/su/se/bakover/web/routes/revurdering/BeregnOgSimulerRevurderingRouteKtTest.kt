@@ -15,7 +15,6 @@ import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -29,6 +28,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.argThat
@@ -56,13 +56,15 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
 
     @Test
     fun `uautoriserte kan ikke beregne og simulere revurdering`() {
-        withTestApplication({
-            testSusebakover()
-        }) {
+        withTestApplication(
+            {
+                testSusebakover()
+            },
+        ) {
             defaultRequest(
                 HttpMethod.Post,
                 "$requestPath/$revurderingId/beregnOgSimuler",
-                listOf(Brukerrolle.Veileder)
+                listOf(Brukerrolle.Veileder),
             ) {
                 setBody(validBody)
             }.apply {
@@ -74,7 +76,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                     }
                     """.trimIndent(),
                     response.content,
-                    true
+                    true,
                 )
             }
         }
@@ -87,7 +89,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                 on { getSumYtelse() } doReturn 1
                 on { getPeriode() } doReturn TestBeregning.getPeriode()
                 on { getSats() } doReturn TestBeregning.getSats()
-            }
+            },
         )
 
         val beregning = mock<Beregning> {
@@ -110,6 +112,10 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = ""),
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
+            revurderingsårsak = Revurderingsårsak(
+                Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
+                Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
+            ),
             grunnlagsdata = Grunnlagsdata.EMPTY,
         ).beregn(
             listOf(
@@ -119,8 +125,8 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                     periode = TestBeregning.getMånedsberegninger()[0].getPeriode(),
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
-                )
-            )
+                ),
+            ),
         ).orNull()!!
 
         val simulertRevurdering = when (beregnetRevurdering) {
@@ -131,8 +137,8 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                         gjelderNavn = "Test",
                         datoBeregnet = LocalDate.now(),
                         nettoBeløp = 0,
-                        periodeList = listOf()
-                    )
+                        periodeList = listOf(),
+                    ),
                 )
             }
             is BeregnetRevurdering.Avslag -> throw RuntimeException("Revurderingen må ha en endring på minst 10 prosent")
@@ -142,13 +148,15 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
             on { beregnOgSimuler(any(), any(), any()) } doReturn simulertRevurdering.right()
         }
 
-        withTestApplication({
-            testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
-        }) {
+        withTestApplication(
+            {
+                testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
+            },
+        ) {
             defaultRequest(
                 HttpMethod.Post,
                 "$requestPath/${simulertRevurdering.id}/beregnOgSimuler",
-                listOf(Brukerrolle.Saksbehandler)
+                listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(validBody)
             }.apply {
@@ -167,22 +175,6 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
     }
 
     @Test
-    fun `ugyldig fraOgMed dato`() {
-        shouldMapErrorCorrectly(
-            error = KunneIkkeBeregneOgSimulereRevurdering.UgyldigPeriode(
-                Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden
-            ),
-            expectedStatusCode = HttpStatusCode.BadRequest,
-            expectedJsonResponse = """
-                {
-                    "message":"FraOgMedDatoMåVæreFørsteDagIMåneden",
-                    "code":"ugyldig_periode"
-                }
-            """.trimIndent()
-        )
-    }
-
-    @Test
     fun `fant ikke revurdering`() {
         shouldMapErrorCorrectly(
             error = KunneIkkeBeregneOgSimulereRevurdering.FantIkkeRevurdering,
@@ -192,7 +184,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                     "message":"Fant ikke revurdering",
                     "code":"fant_ikke_revurdering"
                 }
-            """.trimIndent()
+            """.trimIndent(),
         )
     }
 
@@ -209,7 +201,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                     "message":"Kan ikke gå fra tilstanden IverksattRevurdering til tilstanden OpprettetRevurdering",
                     "code":"ugyldig_tilstand"
                 }
-            """.trimIndent()
+            """.trimIndent(),
 
         )
     }
@@ -224,7 +216,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                     "message":"Kan ikke velge siste måned av stønadsperioden ved nedgang i stønaden",
                     "code":"siste_måned_ved_nedgang_i_stønaden"
                 }
-            """.trimIndent()
+            """.trimIndent(),
 
         )
     }
@@ -239,7 +231,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                     "message":"Simulering feilet",
                     "code":"simulering_feilet"
                 }
-            """.trimIndent()
+            """.trimIndent(),
 
         )
     }
@@ -247,19 +239,21 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
     private fun shouldMapErrorCorrectly(
         error: KunneIkkeBeregneOgSimulereRevurdering,
         expectedStatusCode: HttpStatusCode,
-        expectedJsonResponse: String
+        expectedJsonResponse: String,
     ) {
         val revurderingServiceMock = mock<RevurderingService> {
             on { beregnOgSimuler(any(), any(), any()) } doReturn error.left()
         }
 
-        withTestApplication({
-            testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
-        }) {
+        withTestApplication(
+            {
+                testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
+            },
+        ) {
             defaultRequest(
                 HttpMethod.Post,
                 "$requestPath/$revurderingId/beregnOgSimuler",
-                listOf(Brukerrolle.Saksbehandler)
+                listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(validBody)
             }.apply {
@@ -267,7 +261,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                 JSONAssert.assertEquals(
                     expectedJsonResponse,
                     response.content,
-                    true
+                    true,
                 )
             }
         }

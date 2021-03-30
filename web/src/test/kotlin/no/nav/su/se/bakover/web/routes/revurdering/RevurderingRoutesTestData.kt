@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -31,7 +30,7 @@ object RevurderingRoutesTestData {
     internal val testServices = TestServicesBuilder.services()
     internal val periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020))
 
-    internal val vedtak = Vedtak.InnvilgetStønad.fromSøknadsbehandling(
+    internal val vedtak = Vedtak.EndringIYtelse.fromSøknadsbehandling(
         Søknadsbehandling.Iverksatt.Innvilget(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(),
@@ -61,9 +60,9 @@ object RevurderingRoutesTestData {
             simulering = mock(),
             saksbehandler = NavIdentBruker.Saksbehandler("saks"),
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
-            utbetalingId = UUID30.randomUUID(),
+            fritekstTilBrev = "",
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
-        )
+        ),
+        UUID30.randomUUID()
     )
 }

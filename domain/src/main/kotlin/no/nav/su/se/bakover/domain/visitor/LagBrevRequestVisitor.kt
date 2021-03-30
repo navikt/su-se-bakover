@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.FinnSaksbehandlerVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingVisitor
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakType
 import no.nav.su.se.bakover.domain.vedtak.VedtakVisitor
 import java.time.Clock
 import kotlin.reflect.KClass
@@ -32,7 +33,7 @@ import kotlin.reflect.KClass
 class LagBrevRequestVisitor(
     private val hentPerson: (fnr: Fnr) -> Either<KunneIkkeLageBrevRequest.KunneIkkeHentePerson, Person>,
     private val hentNavn: (navIdentBruker: NavIdentBruker) -> Either<KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant, String>,
-    private val clock: Clock
+    private val clock: Clock,
 ) : SøknadsbehandlingVisitor, RevurderingVisitor, VedtakVisitor {
     lateinit var brevRequest: Either<KunneIkkeLageBrevRequest, LagBrevRequest>
 
@@ -45,7 +46,12 @@ class LagBrevRequestVisitor(
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Avslag) {
-        brevRequest = avslåttSøknadsbehandling(søknadsbehandling, søknadsbehandling.avslagsgrunner, null)
+        brevRequest = avslåttSøknadsbehandling(
+            søknadsbehandling,
+            søknadsbehandling.avslagsgrunner,
+            null,
+            søknadsbehandling.fritekstTilBrev,
+        )
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Innvilget) {
@@ -54,7 +60,12 @@ class LagBrevRequestVisitor(
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Avslag) {
         brevRequest =
-            avslåttSøknadsbehandling(søknadsbehandling, søknadsbehandling.avslagsgrunner, søknadsbehandling.beregning)
+            avslåttSøknadsbehandling(
+                søknadsbehandling,
+                søknadsbehandling.avslagsgrunner,
+                søknadsbehandling.beregning,
+                søknadsbehandling.fritekstTilBrev,
+            )
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Simulert) {
@@ -67,20 +78,40 @@ class LagBrevRequestVisitor(
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.MedBeregning) {
         brevRequest =
-            avslåttSøknadsbehandling(søknadsbehandling, søknadsbehandling.avslagsgrunner, søknadsbehandling.beregning)
+            avslåttSøknadsbehandling(
+                søknadsbehandling,
+                søknadsbehandling.avslagsgrunner,
+                søknadsbehandling.beregning,
+                søknadsbehandling.fritekstTilBrev,
+            )
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.UtenBeregning) {
-        brevRequest = avslåttSøknadsbehandling(søknadsbehandling, søknadsbehandling.avslagsgrunner, null)
+        brevRequest = avslåttSøknadsbehandling(
+            søknadsbehandling,
+            søknadsbehandling.avslagsgrunner,
+            null,
+            søknadsbehandling.fritekstTilBrev,
+        )
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Avslag.UtenBeregning) {
-        brevRequest = avslåttSøknadsbehandling(søknadsbehandling, søknadsbehandling.avslagsgrunner, null)
+        brevRequest = avslåttSøknadsbehandling(
+            søknadsbehandling,
+            søknadsbehandling.avslagsgrunner,
+            null,
+            søknadsbehandling.fritekstTilBrev,
+        )
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Avslag.MedBeregning) {
         brevRequest =
-            avslåttSøknadsbehandling(søknadsbehandling, søknadsbehandling.avslagsgrunner, søknadsbehandling.beregning)
+            avslåttSøknadsbehandling(
+                søknadsbehandling,
+                søknadsbehandling.avslagsgrunner,
+                søknadsbehandling.beregning,
+                søknadsbehandling.fritekstTilBrev,
+            )
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.TilAttestering.Innvilget) {
@@ -88,12 +119,22 @@ class LagBrevRequestVisitor(
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Iverksatt.Avslag.UtenBeregning) {
-        brevRequest = avslåttSøknadsbehandling(søknadsbehandling, søknadsbehandling.avslagsgrunner, null)
+        brevRequest = avslåttSøknadsbehandling(
+            søknadsbehandling,
+            søknadsbehandling.avslagsgrunner,
+            null,
+            søknadsbehandling.fritekstTilBrev,
+        )
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Iverksatt.Avslag.MedBeregning) {
         brevRequest =
-            avslåttSøknadsbehandling(søknadsbehandling, søknadsbehandling.avslagsgrunner, søknadsbehandling.beregning)
+            avslåttSøknadsbehandling(
+                søknadsbehandling,
+                søknadsbehandling.avslagsgrunner,
+                søknadsbehandling.beregning,
+                søknadsbehandling.fritekstTilBrev,
+            )
     }
 
     override fun visit(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget) {
@@ -124,40 +165,46 @@ class LagBrevRequestVisitor(
         brevRequest = innvilgetRevurdering(revurdering, revurdering.beregning)
     }
 
-    override fun visit(vedtak: Vedtak.InnvilgetStønad) {
-        brevRequest = when (vedtak.behandling) {
-            is Søknadsbehandling -> {
+    override fun visit(vedtak: Vedtak.EndringIYtelse) {
+        brevRequest = when (vedtak.vedtakType) {
+            VedtakType.SØKNAD -> {
                 innvilgetVedtakSøknadsbehandling(vedtak)
             }
-            is Revurdering -> {
+            VedtakType.ENDRING -> {
                 innvilgetVedtakRevurdering(vedtak)
             }
-            else -> throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(vedtak::class)
+            VedtakType.AVSLAG -> {
+                throw KunneIkkeLageBrevRequest.UgyldigKombinasjonAvVedtakOgTypeException(vedtak::class, vedtak.vedtakType)
+            }
         }
     }
 
-    override fun visit(vedtak: Vedtak.AvslåttStønad.MedBeregning) {
-        brevRequest = when (vedtak.behandling) {
-            is Søknadsbehandling -> {
+    override fun visit(vedtak: Vedtak.Avslag.AvslagVilkår) {
+        brevRequest = when (vedtak.vedtakType) {
+            VedtakType.AVSLAG -> {
                 avslåttVedtakSøknadsbehandling(vedtak)
             }
-            else -> throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(vedtak::class)
+            VedtakType.SØKNAD, VedtakType.ENDRING -> {
+                throw KunneIkkeLageBrevRequest.UgyldigKombinasjonAvVedtakOgTypeException(vedtak::class, vedtak.vedtakType)
+            }
         }
     }
 
-    override fun visit(vedtak: Vedtak.AvslåttStønad.UtenBeregning) {
-        brevRequest = when (vedtak.behandling) {
-            is Søknadsbehandling -> {
+    override fun visit(vedtak: Vedtak.Avslag.AvslagBeregning) {
+        brevRequest = when (vedtak.vedtakType) {
+            VedtakType.AVSLAG -> {
                 avslåttVedtakSøknadsbehandling(vedtak)
             }
-            else -> throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(vedtak::class)
+            VedtakType.SØKNAD, VedtakType.ENDRING -> {
+                throw KunneIkkeLageBrevRequest.UgyldigKombinasjonAvVedtakOgTypeException(vedtak::class, vedtak.vedtakType)
+            }
         }
     }
 
     private fun hentPersonOgNavn(
         fnr: Fnr,
         saksbehandler: NavIdentBruker.Saksbehandler?,
-        attestant: NavIdentBruker.Attestant?
+        attestant: NavIdentBruker.Attestant?,
     ): Either<KunneIkkeLageBrevRequest, PersonOgNavn> {
         return hentPerson(fnr)
             .map { person ->
@@ -172,7 +219,7 @@ class LagBrevRequestVisitor(
                         hentNavn(attestant).getOrElse {
                             return KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
                         }
-                    } ?: "-"
+                    } ?: "-",
                 )
             }
     }
@@ -180,7 +227,8 @@ class LagBrevRequestVisitor(
     private fun avslåttSøknadsbehandling(
         søknadsbehandling: Søknadsbehandling,
         avslagsgrunner: List<Avslagsgrunn>,
-        beregning: Beregning?
+        beregning: Beregning?,
+        fritekst: String,
     ) =
         hentPersonOgNavn(
             fnr = søknadsbehandling.fnr,
@@ -191,13 +239,14 @@ class LagBrevRequestVisitor(
             attestant = FinnAttestantVisitor().let {
                 søknadsbehandling.accept(it)
                 it.attestant
-            }
+            },
         ).map {
             requestForAvslag(
                 personOgNavn = it,
                 avslagsgrunner = avslagsgrunner,
                 behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
                 beregning = beregning,
+                fritekst = fritekst,
             )
         }
 
@@ -211,12 +260,13 @@ class LagBrevRequestVisitor(
             attestant = FinnAttestantVisitor().let {
                 søknadsbehandling.accept(it)
                 it.attestant
-            }
+            },
         ).map {
             requestForInnvilgelse(
                 personOgNavn = it,
                 behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
-                beregning = beregning
+                beregning = beregning,
+                fritekst = søknadsbehandling.fritekstTilBrev,
             )
         }
 
@@ -227,14 +277,15 @@ class LagBrevRequestVisitor(
             attestant = FinnAttestantVisitor().let {
                 revurdering.accept(it)
                 it.attestant
-            }
+            },
         ).map {
             LagBrevRequest.Revurdering.Inntekt(
                 person = it.person,
                 saksbehandlerNavn = it.saksbehandlerNavn,
+                attestantNavn = it.attestantNavn,
                 revurdertBeregning = beregning,
                 fritekst = revurdering.fritekstTilBrev,
-                harEktefelle = revurdering.tilRevurdering.behandlingsinformasjon.harEktefelle()
+                harEktefelle = revurdering.tilRevurdering.behandlingsinformasjon.harEktefelle(),
             )
         }
 
@@ -242,35 +293,39 @@ class LagBrevRequestVisitor(
         personOgNavn: PersonOgNavn,
         avslagsgrunner: List<Avslagsgrunn>,
         behandlingsinformasjon: Behandlingsinformasjon,
-        beregning: Beregning?
+        beregning: Beregning?,
+        fritekst: String,
     ): AvslagBrevRequest = AvslagBrevRequest(
         person = personOgNavn.person,
         avslag = Avslag(
             opprettet = Tidspunkt.now(clock),
             avslagsgrunner = avslagsgrunner,
             harEktefelle = behandlingsinformasjon.harEktefelle(),
-            beregning = beregning
+            beregning = beregning,
         ),
         saksbehandlerNavn = personOgNavn.saksbehandlerNavn,
-        attestantNavn = personOgNavn.attestantNavn
+        attestantNavn = personOgNavn.attestantNavn,
+        fritekst = fritekst,
     )
 
     private fun requestForInnvilgelse(
         personOgNavn: PersonOgNavn,
         behandlingsinformasjon: Behandlingsinformasjon,
-        beregning: Beregning
+        beregning: Beregning,
+        fritekst: String,
     ): LagBrevRequest.InnvilgetVedtak = LagBrevRequest.InnvilgetVedtak(
         person = personOgNavn.person,
         beregning = beregning,
         behandlingsinformasjon = behandlingsinformasjon,
         saksbehandlerNavn = personOgNavn.saksbehandlerNavn,
         attestantNavn = personOgNavn.attestantNavn,
+        fritekst = fritekst,
     )
 
     private data class PersonOgNavn(
         val person: Person,
         val saksbehandlerNavn: String,
-        val attestantNavn: String
+        val attestantNavn: String,
     )
 
     sealed class KunneIkkeLageBrevRequest {
@@ -279,24 +334,37 @@ class LagBrevRequestVisitor(
 
         data class KanIkkeLageBrevrequestForInstans(
             val instans: KClass<*>,
-            val msg: String = "Kan ikke lage brevrequest for instans av typen: ${instans.qualifiedName}"
+            val msg: String = "Kan ikke lage brevrequest for instans av typen: ${instans.qualifiedName}",
+        ) : RuntimeException(msg)
+
+        data class UgyldigKombinasjonAvVedtakOgTypeException(
+            val instans: KClass<*>,
+            val vedtakType: VedtakType,
+            val msg: String = "Kombinasjon av ${instans.qualifiedName} og vedtakType: $vedtakType er ugyldig!",
         ) : RuntimeException(msg)
     }
 
-    private fun innvilgetVedtakSøknadsbehandling(vedtak: Vedtak.InnvilgetStønad) =
+    private fun innvilgetVedtakSøknadsbehandling(vedtak: Vedtak.EndringIYtelse) =
         hentPersonOgNavn(
             fnr = vedtak.behandling.fnr,
             saksbehandler = vedtak.saksbehandler,
-            attestant = vedtak.attestant
+            attestant = vedtak.attestant,
         ).map {
             requestForInnvilgelse(
                 personOgNavn = it,
                 behandlingsinformasjon = vedtak.behandlingsinformasjon,
-                beregning = vedtak.beregning
+                beregning = vedtak.beregning,
+                fritekst =
+                // TODO ia: kommer vi oss unna denne? Hadde kanskje gått dersom vi lagret de genererte brevene.
+                // Gjelder også de andre metodene her inne som går på vedtak
+                when (val b = vedtak.behandling) {
+                    is Søknadsbehandling -> b.fritekstTilBrev
+                    else -> ""
+                },
             )
         }
 
-    private fun innvilgetVedtakRevurdering(vedtak: Vedtak.InnvilgetStønad) =
+    private fun innvilgetVedtakRevurdering(vedtak: Vedtak.EndringIYtelse) =
         hentPersonOgNavn(
             fnr = vedtak.behandling.fnr,
             saksbehandler = vedtak.saksbehandler,
@@ -305,30 +373,35 @@ class LagBrevRequestVisitor(
             LagBrevRequest.Revurdering.Inntekt(
                 person = it.person,
                 saksbehandlerNavn = it.saksbehandlerNavn,
+                attestantNavn = it.attestantNavn,
                 revurdertBeregning = vedtak.beregning,
                 fritekst = when (val b = vedtak.behandling) {
                     is Revurdering -> b.fritekstTilBrev
                     else -> ""
                 },
-                harEktefelle = vedtak.behandlingsinformasjon.harEktefelle()
+                harEktefelle = vedtak.behandlingsinformasjon.harEktefelle(),
             )
         }
 
     private fun avslåttVedtakSøknadsbehandling(
-        vedtak: Vedtak.AvslåttStønad
+        vedtak: Vedtak.Avslag,
     ) =
         hentPersonOgNavn(
             fnr = vedtak.behandling.fnr,
             saksbehandler = vedtak.saksbehandler,
-            attestant = vedtak.attestant
+            attestant = vedtak.attestant,
         ).map {
             requestForAvslag(
                 personOgNavn = it,
                 avslagsgrunner = vedtak.avslagsgrunner,
                 behandlingsinformasjon = vedtak.behandlingsinformasjon,
                 beregning = when (vedtak) {
-                    is Vedtak.AvslåttStønad.MedBeregning -> vedtak.beregning
-                    is Vedtak.AvslåttStønad.UtenBeregning -> null
+                    is Vedtak.Avslag.AvslagBeregning -> vedtak.beregning
+                    is Vedtak.Avslag.AvslagVilkår -> null
+                },
+                fritekst = when (val b = vedtak.behandling) {
+                    is Søknadsbehandling -> b.fritekstTilBrev // TODO ia: kommer vi oss unna denne?
+                    else -> ""
                 },
             )
         }

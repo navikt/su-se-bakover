@@ -78,7 +78,7 @@ internal class OpprettGrunnlagForRevurdering(
 
     private fun opprettGrunnlag(): Grunnlagsdata {
         val vedtakIPeriode = vedtakRepo.hentForSakId(sakId)
-            .filterIsInstance<Vedtak.InnvilgetStønad>() // TODO this must surely change at some point, needed to perserve information added by i.e revurdering below 10% or avslag.
+            .filterIsInstance<Vedtak.EndringIYtelse>() // TODO this must surely change at some point, needed to perserve information added by i.e revurdering below 10% or avslag.
             .filter { it.periode overlapper periode }
 
         val uføregrunnlagIPeriode = vedtakIPeriode

@@ -93,7 +93,7 @@ internal class UtbetalingsstrategiNyTest {
                     value = ""
                 ),
                 utbetalingslinjer = listOf(
-                    Utbetalingslinje(
+                    Utbetalingslinje.Ny(
                         id = forrigeUtbetalingslinjeId,
                         opprettet = Tidspunkt.MIN,
                         fraOgMed = 1.januar(2018),
@@ -252,7 +252,7 @@ internal class UtbetalingsstrategiNyTest {
             sakId = sakId,
             saksnummer = saksnummer,
             utbetalingslinjer = listOf(
-                Utbetalingslinje(
+                Utbetalingslinje.Ny(
                     id = actualUtbetaling.utbetalingslinjer[0].id,
                     opprettet = actualUtbetaling.utbetalingslinjer[0].opprettet,
                     fraOgMed = 1.januar(2020),
@@ -260,7 +260,7 @@ internal class UtbetalingsstrategiNyTest {
                     forrigeUtbetalingslinjeId = null,
                     beløp = 20637
                 ),
-                Utbetalingslinje(
+                Utbetalingslinje.Ny(
                     id = actualUtbetaling.utbetalingslinjer[1].id,
                     opprettet = actualUtbetaling.utbetalingslinjer[1].opprettet,
                     fraOgMed = 1.mai(2020),
@@ -313,7 +313,7 @@ internal class UtbetalingsstrategiNyTest {
             sakId = sakId,
             saksnummer = saksnummer,
             utbetalingslinjer = listOf(
-                Utbetalingslinje(
+                Utbetalingslinje.Ny(
                     id = actualUtbetaling.utbetalingslinjer[0].id,
                     opprettet = actualUtbetaling.utbetalingslinjer[0].opprettet,
                     fraOgMed = 1.januar(2020),
@@ -321,7 +321,7 @@ internal class UtbetalingsstrategiNyTest {
                     forrigeUtbetalingslinjeId = null,
                     beløp = 19637
                 ),
-                Utbetalingslinje(
+                Utbetalingslinje.Ny(
                     id = actualUtbetaling.utbetalingslinjer[1].id,
                     opprettet = actualUtbetaling.utbetalingslinjer[1].opprettet,
                     fraOgMed = 1.februar(2020),
@@ -329,7 +329,7 @@ internal class UtbetalingsstrategiNyTest {
                     forrigeUtbetalingslinjeId = actualUtbetaling.utbetalingslinjer[0].id,
                     beløp = 16637
                 ),
-                Utbetalingslinje(
+                Utbetalingslinje.Ny(
                     id = actualUtbetaling.utbetalingslinjer[2].id,
                     opprettet = actualUtbetaling.utbetalingslinjer[2].opprettet,
                     fraOgMed = 1.mars(2020),
@@ -370,7 +370,7 @@ internal class UtbetalingsstrategiNyTest {
         beløp: Int,
         forrigeUtbetalingslinjeId: UUID30?
     ): Utbetalingslinje {
-        return Utbetalingslinje(
+        return Utbetalingslinje.Ny(
             id = utbetalingslinjeId,
             opprettet = opprettet,
             fraOgMed = fraOgMed,

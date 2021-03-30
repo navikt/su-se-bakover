@@ -166,6 +166,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             oppgaveId = søknad.oppgaveId,
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             fnr = fnr,
+            fritekstTilBrev = "",
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
         val søknadService: SøknadService = mock {

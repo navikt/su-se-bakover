@@ -49,6 +49,7 @@ class NyBehandlingRoutesTest {
             oppgaveId = OppgaveId("oppgaveId"),
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             fnr = FnrGenerator.random(),
+            fritekstTilBrev = "",
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
         val saksbehandlingServiceMock = mock<SøknadsbehandlingService> {

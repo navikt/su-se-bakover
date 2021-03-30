@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
+import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -44,6 +45,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import java.time.Clock
@@ -64,7 +66,9 @@ internal val behandlingsinformasjonMedAvslag =
 
 internal val oppgaveId = OppgaveId("oppgaveId")
 internal val journalpostId = JournalpostId("journalpostId")
-internal fun beregning(periode: Periode = TestBeregning.getPeriode()) = TestBeregning.toSnapshot().copy(periode = periode)
+internal fun beregning(periode: Periode = TestBeregning.getPeriode()) =
+    TestBeregning.toSnapshot().copy(periode = periode)
+
 internal val avslåttBeregning = beregning().copy(
     månedsberegninger = listOf(
         PersistertMånedsberegning(
@@ -74,9 +78,9 @@ internal val avslåttBeregning = beregning().copy(
             sats = Sats.ORDINÆR,
             satsbeløp = 0.0,
             fradrag = listOf(),
-            periode = Periode.create(1.januar(2020), 31.desember(2020))
-        )
-    )
+            periode = Periode.create(1.januar(2020), 31.desember(2020)),
+        ),
+    ),
 )
 
 internal fun simulering(fnr: Fnr) = Simulering(
@@ -84,7 +88,7 @@ internal fun simulering(fnr: Fnr) = Simulering(
     gjelderNavn = "gjelderNavn",
     datoBeregnet = fixedLocalDate,
     nettoBeløp = 100,
-    periodeList = emptyList()
+    periodeList = emptyList(),
 )
 
 internal val saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler")
@@ -95,53 +99,61 @@ internal val iverksattAttestering = Attestering.Iverksatt(attestant)
 internal val iverksattJournalpostId = JournalpostId("iverksattJournalpostId")
 internal val iverksattBrevbestillingId = BrevbestillingId("iverksattBrevbestillingId")
 internal val avstemmingsnøkkel = Avstemmingsnøkkel()
-internal fun utbetalingslinje() = Utbetalingslinje(
+internal fun utbetalingslinje() = Utbetalingslinje.Ny(
     fraOgMed = 1.januar(2020),
     tilOgMed = 31.desember(2020),
     forrigeUtbetalingslinjeId = null,
-    beløp = 25000
+    beløp = 25000,
 )
 
 internal fun oversendtUtbetalingUtenKvittering(
     søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget,
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.database.avstemmingsnøkkel,
-    utbetalingslinjer: List<Utbetalingslinje> = listOf(utbetalingslinje())
-) = Utbetaling.OversendtUtbetaling.UtenKvittering(
-    id = UUID30.randomUUID(),
-    opprettet = fixedTidspunkt,
-    sakId = søknadsbehandling.sakId,
-    saksnummer = søknadsbehandling.saksnummer,
-    fnr = søknadsbehandling.fnr,
-    utbetalingslinjer = utbetalingslinjer,
-    type = Utbetaling.UtbetalingsType.NY,
-    behandler = attestant,
-    avstemmingsnøkkel = avstemmingsnøkkel,
-    simulering = simulering(søknadsbehandling.fnr),
-    utbetalingsrequest = Utbetalingsrequest("<xml></xml>"),
+    utbetalingslinjer: List<Utbetalingslinje> = listOf(utbetalingslinje()),
+) = oversendtUtbetalingUtenKvittering(
+    søknadsbehandling.fnr,
+    søknadsbehandling.sakId,
+    søknadsbehandling.saksnummer,
+    utbetalingslinjer,
+    avstemmingsnøkkel,
 )
 
 internal fun oversendtUtbetalingUtenKvittering(
     revurdering: RevurderingTilAttestering,
     avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.database.avstemmingsnøkkel,
-    utbetalingslinjer: List<Utbetalingslinje> = listOf(utbetalingslinje())
+    utbetalingslinjer: List<Utbetalingslinje> = listOf(utbetalingslinje()),
+) = oversendtUtbetalingUtenKvittering(
+    revurdering.fnr,
+    revurdering.sakId,
+    revurdering.saksnummer,
+    utbetalingslinjer,
+    avstemmingsnøkkel,
+)
+
+internal fun oversendtUtbetalingUtenKvittering(
+    fnr: Fnr,
+    sakId: UUID,
+    saksnummer: Saksnummer,
+    utbetalingslinjer: List<Utbetalingslinje> = listOf(utbetalingslinje()),
+    avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.database.avstemmingsnøkkel,
 ) = Utbetaling.OversendtUtbetaling.UtenKvittering(
     id = UUID30.randomUUID(),
     opprettet = fixedTidspunkt,
-    sakId = revurdering.sakId,
-    saksnummer = revurdering.saksnummer,
-    fnr = revurdering.fnr,
+    sakId = sakId,
+    saksnummer = saksnummer,
+    fnr = fnr,
     utbetalingslinjer = utbetalingslinjer,
     type = Utbetaling.UtbetalingsType.NY,
     behandler = attestant,
     avstemmingsnøkkel = avstemmingsnøkkel,
-    simulering = simulering(revurdering.fnr),
+    simulering = simulering(fnr),
     utbetalingsrequest = Utbetalingsrequest("<xml></xml>"),
 )
 
 internal val kvitteringOk = Kvittering(
     utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
     originalKvittering = "hallo",
-    mottattTidspunkt = fixedTidspunkt
+    mottattTidspunkt = fixedTidspunkt,
 )
 internal val journalførtIverksettingForAvslag = JournalføringOgBrevdistribusjon.Journalført(
     journalpostId = iverksattJournalpostId,
@@ -189,7 +201,7 @@ internal class TestDataHelper(
             nySøknad.lukk(
                 lukketAv = NavIdentBruker.Saksbehandler("saksbehandler"),
                 type = Søknad.Lukket.LukketType.TRUKKET,
-                lukketTidspunkt = fixedTidspunkt
+                lukketTidspunkt = fixedTidspunkt,
             ).also { lukketSøknad ->
                 søknadRepo.oppdaterSøknad(lukketSøknad)
             }
@@ -198,7 +210,7 @@ internal class TestDataHelper(
 
     fun nySakMedJournalførtSøknad(
         fnr: Fnr = FnrGenerator.random(),
-        journalpostId: JournalpostId = no.nav.su.se.bakover.database.journalpostId
+        journalpostId: JournalpostId = no.nav.su.se.bakover.database.journalpostId,
     ): Sak {
         val nySak: NySak = nySakMedNySøknad(fnr)
         nySak.søknad.journalfør(journalpostId).also { journalførtSøknad ->
@@ -241,7 +253,7 @@ internal class TestDataHelper(
     }
 
     fun nyOversendtUtbetalingMedKvittering(
-        avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.database.avstemmingsnøkkel
+        avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.database.avstemmingsnøkkel,
     ): Pair<Søknadsbehandling.Iverksatt.Innvilget, Utbetaling.OversendtUtbetaling.MedKvittering> {
         val utenKvittering = nyIverksattInnvilget(avstemmingsnøkkel = avstemmingsnøkkel)
         return utenKvittering.first to utenKvittering.second.toKvittertUtbetaling(kvitteringOk).also {
@@ -251,12 +263,22 @@ internal class TestDataHelper(
 
     fun oppdaterHendelseslogg(hendelseslogg: Hendelseslogg) = hendelsesloggRepo.oppdaterHendelseslogg(hendelseslogg)
 
-    fun vedtakForSøknadsbehandling(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget) =
-        Vedtak.InnvilgetStønad.fromSøknadsbehandling(søknadsbehandling).also {
+    fun vedtakForSøknadsbehandlingOgUtbetalingId(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget, utbetalingId: UUID30) =
+        Vedtak.EndringIYtelse.fromSøknadsbehandling(søknadsbehandling, utbetalingId).also {
             vedtakRepo.lagre(it)
         }
 
-    fun nyRevurdering(innvilget: Vedtak.InnvilgetStønad) =
+    fun vedtakMedInnvilgetSøknadsbehandling(): Pair<Vedtak.EndringIYtelse, Utbetaling> {
+        val (søknadsbehandling, utbetaling) = nyOversendtUtbetalingMedKvittering()
+        return Pair(
+            Vedtak.EndringIYtelse.fromSøknadsbehandling(søknadsbehandling, utbetaling.id).also {
+                vedtakRepo.lagre(it)
+            },
+            utbetaling,
+        )
+    }
+
+    fun nyRevurdering(innvilget: Vedtak.EndringIYtelse) =
         OpprettetRevurdering(
             id = UUID.randomUUID(),
             periode = mock(),
@@ -265,6 +287,10 @@ internal class TestDataHelper(
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
+            revurderingsårsak = Revurderingsårsak(
+                Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
+                Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
+            ),
             grunnlagsdata = Grunnlagsdata.EMPTY,
         ).also {
             revurderingRepo.lagre(it)
@@ -273,7 +299,7 @@ internal class TestDataHelper(
     fun nyUavklartVilkårsvurdering(
         sak: Sak = nySakMedJournalførtSøknadOgOppgave(),
         søknad: Søknad.Journalført.MedOppgave = sak.journalførtSøknadMedOppgave(),
-        behandlingsinformasjon: Behandlingsinformasjon = tomBehandlingsinformasjon
+        behandlingsinformasjon: Behandlingsinformasjon = tomBehandlingsinformasjon,
     ): Søknadsbehandling.Vilkårsvurdert.Uavklart {
 
         return Søknadsbehandling.Vilkårsvurdert.Uavklart(
@@ -285,6 +311,7 @@ internal class TestDataHelper(
             oppgaveId = søknad.oppgaveId,
             behandlingsinformasjon = behandlingsinformasjon,
             fnr = sak.fnr,
+            fritekstTilBrev = "",
             grunnlagsdata = Grunnlagsdata.EMPTY,
         ).also {
             søknadsbehandlingRepo.lagre(it)
@@ -292,10 +319,10 @@ internal class TestDataHelper(
     }
 
     internal fun nyInnvilgetVilkårsvurdering(
-        behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt
+        behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt,
     ): Søknadsbehandling.Vilkårsvurdert.Innvilget {
         return nyUavklartVilkårsvurdering(behandlingsinformasjon = behandlingsinformasjon).tilVilkårsvurdert(
-            behandlingsinformasjon
+            behandlingsinformasjon,
         ).also {
             søknadsbehandlingRepo.lagre(it)
         } as Søknadsbehandling.Vilkårsvurdert.Innvilget
@@ -303,7 +330,7 @@ internal class TestDataHelper(
 
     internal fun nyAvslåttVilkårsvurdering(): Søknadsbehandling.Vilkårsvurdert.Avslag {
         return nyUavklartVilkårsvurdering().tilVilkårsvurdert(
-            behandlingsinformasjonMedAvslag
+            behandlingsinformasjonMedAvslag,
         ).also {
             søknadsbehandlingRepo.lagre(it)
         } as Søknadsbehandling.Vilkårsvurdert.Avslag
@@ -314,7 +341,7 @@ internal class TestDataHelper(
         periode: Periode = TestBeregning.getPeriode(),
     ): Søknadsbehandling.Beregnet.Innvilget {
         return nyInnvilgetVilkårsvurdering(behandlingsinformasjon).tilBeregnet(
-            beregning(periode)
+            beregning(periode),
         ).also {
             søknadsbehandlingRepo.lagre(it)
         } as Søknadsbehandling.Beregnet.Innvilget
@@ -322,7 +349,7 @@ internal class TestDataHelper(
 
     internal fun nyAvslåttBeregning(): Søknadsbehandling.Beregnet.Avslag {
         return nyInnvilgetVilkårsvurdering().tilBeregnet(
-            avslåttBeregning
+            avslåttBeregning,
         ).also {
             søknadsbehandlingRepo.lagre(it)
         } as Søknadsbehandling.Beregnet.Avslag
@@ -342,25 +369,31 @@ internal class TestDataHelper(
     internal fun nyTilInnvilgetAttestering(
         behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt,
         periode: Periode = TestBeregning.getPeriode(),
+        fritekstTilBrev: String = "",
     ): Søknadsbehandling.TilAttestering.Innvilget {
         return nySimulering(behandlingsinformasjon, periode).tilAttestering(
-            saksbehandler
+            saksbehandler,
+            fritekstTilBrev,
         ).also {
             søknadsbehandlingRepo.lagre(it)
         }
     }
 
-    internal fun tilAvslåttAttesteringMedBeregning(): Søknadsbehandling.TilAttestering.Avslag.MedBeregning {
+    internal fun tilAvslåttAttesteringMedBeregning(fritekstTilBrev: String = ""): Søknadsbehandling.TilAttestering.Avslag.MedBeregning {
         return nyAvslåttBeregning().tilAttestering(
-            saksbehandler
+            saksbehandler,
+            fritekstTilBrev,
         ).also {
             søknadsbehandlingRepo.lagre(it)
         }
     }
 
-    internal fun nyTilAvslåttAttesteringUtenBeregning(): Søknadsbehandling.TilAttestering.Avslag.UtenBeregning {
+    internal fun nyTilAvslåttAttesteringUtenBeregning(
+        fritekstTilBrev: String = "",
+    ): Søknadsbehandling.TilAttestering.Avslag.UtenBeregning {
         return nyAvslåttVilkårsvurdering().tilAttestering(
-            saksbehandler
+            saksbehandler,
+            fritekstTilBrev = fritekstTilBrev,
         ).also {
             søknadsbehandlingRepo.lagre(it)
         }
@@ -368,7 +401,7 @@ internal class TestDataHelper(
 
     internal fun nyInnvilgetUnderkjenning(): Søknadsbehandling.Underkjent.Innvilget {
         return nyTilInnvilgetAttestering().tilUnderkjent(
-            underkjentAttestering
+            underkjentAttestering,
         ).also {
             søknadsbehandlingRepo.lagre(it)
         }
@@ -376,7 +409,7 @@ internal class TestDataHelper(
 
     internal fun nyUnderkjenningUtenBeregning(): Søknadsbehandling.Underkjent.Avslag.UtenBeregning {
         return nyTilAvslåttAttesteringUtenBeregning().tilUnderkjent(
-            underkjentAttestering
+            underkjentAttestering,
         ).also {
             søknadsbehandlingRepo.lagre(it)
         }
@@ -384,7 +417,7 @@ internal class TestDataHelper(
 
     internal fun nyUnderkjenningMedBeregning(): Søknadsbehandling.Underkjent.Avslag.MedBeregning {
         return tilAvslåttAttesteringMedBeregning().tilUnderkjent(
-            underkjentAttestering
+            underkjentAttestering,
         ).also {
             søknadsbehandlingRepo.lagre(it)
         }
@@ -394,11 +427,11 @@ internal class TestDataHelper(
         behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt,
         avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.database.avstemmingsnøkkel,
         utbetalingslinjer: List<Utbetalingslinje> = listOf(utbetalingslinje()),
-        periode: Periode = TestBeregning.getPeriode()
+        periode: Periode = TestBeregning.getPeriode(),
     ): Pair<Søknadsbehandling.Iverksatt.Innvilget, Utbetaling.OversendtUtbetaling.UtenKvittering> {
         val utbetalingId = UUID30.randomUUID()
         val innvilget = nyTilInnvilgetAttestering(behandlingsinformasjon, periode).tilIverksatt(
-            iverksattAttestering, utbetalingId
+            iverksattAttestering,
         )
         val utbetaling = oversendtUtbetalingUtenKvittering(
             søknadsbehandling = innvilget,
@@ -423,18 +456,22 @@ internal class TestDataHelper(
         return utbetaling
     }
 
-    internal fun nyIverksattAvslagUtenBeregning(eksterneIverksettingsteg: JournalføringOgBrevdistribusjon = journalførtIverksettingForAvslag): Søknadsbehandling.Iverksatt.Avslag.UtenBeregning {
-        return nyTilAvslåttAttesteringUtenBeregning().tilIverksatt(
-            iverksattAttestering
-        ).copy(eksterneIverksettingsteg = eksterneIverksettingsteg).also {
+    internal fun nyIverksattAvslagUtenBeregning(
+        fritekstTilBrev: String = "",
+    ): Søknadsbehandling.Iverksatt.Avslag.UtenBeregning {
+        return nyTilAvslåttAttesteringUtenBeregning(
+            fritekstTilBrev = fritekstTilBrev,
+        ).tilIverksatt(
+            iverksattAttestering,
+        ).also {
             søknadsbehandlingRepo.lagre(it)
         }
     }
 
-    internal fun nyIverksattAvslagMedBeregning(eksterneIverksettingsteg: JournalføringOgBrevdistribusjon): Søknadsbehandling.Iverksatt.Avslag.MedBeregning {
+    internal fun nyIverksattAvslagMedBeregning(): Søknadsbehandling.Iverksatt.Avslag.MedBeregning {
         return tilAvslåttAttesteringMedBeregning().tilIverksatt(
-            iverksattAttestering
-        ).copy(eksterneIverksettingsteg = eksterneIverksettingsteg).also {
+            iverksattAttestering,
+        ).also {
             søknadsbehandlingRepo.lagre(it)
         }
     }

@@ -25,7 +25,6 @@ object OppdragslinjeDefaults {
     const val KODE_KLASSIFIK = "SUUFORE"
     const val SAKSBEHANDLER_ID = "SU"
     const val BRUK_KJOREPLAN = "N"
-    val kodeEndring = UtbetalingRequest.Oppdragslinje.KodeEndringLinje.NY
     val fradragEllerTillegg = UtbetalingRequest.Oppdragslinje.FradragTillegg.TILLEGG
     val typeSats = UtbetalingRequest.Oppdragslinje.TypeSats.MND
 }

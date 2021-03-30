@@ -111,19 +111,20 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
     }
 
     class TilAttestering(
-        private val saksbehandler: NavIdentBruker.Saksbehandler
+        private val saksbehandler: NavIdentBruker.Saksbehandler,
+        private val fritekstTilBrev: String
     ) : Statusovergang<Nothing, Søknadsbehandling.TilAttestering>() {
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Avslag) {
-            result = søknadsbehandling.tilAttestering(saksbehandler).right()
+            result = søknadsbehandling.tilAttestering(saksbehandler, fritekstTilBrev).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Avslag) {
-            result = søknadsbehandling.tilAttestering(saksbehandler).right()
+            result = søknadsbehandling.tilAttestering(saksbehandler, fritekstTilBrev).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Simulert) {
-            result = søknadsbehandling.tilAttestering(saksbehandler).right()
+            result = søknadsbehandling.tilAttestering(saksbehandler, fritekstTilBrev).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.UtenBeregning) {
@@ -210,7 +211,7 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
             result = if (saksbehandlerOgAttestantErForskjellig(søknadsbehandling, attestering)) {
                 innvilget(søknadsbehandling)
                     .mapLeft { it }
-                    .map { søknadsbehandling.tilIverksatt(attestering, it) }
+                    .map { søknadsbehandling.tilIverksatt(attestering) }
             } else {
                 KunneIkkeIverksetteSøknadsbehandling.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
             }

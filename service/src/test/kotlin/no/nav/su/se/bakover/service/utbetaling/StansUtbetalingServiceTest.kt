@@ -72,7 +72,7 @@ internal class StansUtbetalingServiceTest {
     private val oversendtUtbetaling = simulertUtbetaling.toOversendtUtbetaling(oppdragsmelding)
 
     private val førsteUtbetalingslinjeId = UUID30.randomUUID()
-    private val førsteUtbetalingslinje = Utbetalingslinje(
+    private val førsteUtbetalingslinje = Utbetalingslinje.Ny(
         id = førsteUtbetalingslinjeId,
         opprettet = Tidspunkt.EPOCH,
         fraOgMed = 1.januar(2020),
@@ -144,7 +144,7 @@ internal class StansUtbetalingServiceTest {
                         opprettet = it.opprettet,
                         avstemmingsnøkkel = it.avstemmingsnøkkel,
                         utbetalingslinjer = listOf(
-                            Utbetalingslinje(
+                            Utbetalingslinje.Ny(
                                 id = it.utbetalingslinjer[0].id,
                                 opprettet = it.utbetalingslinjer[0].opprettet,
                                 fraOgMed = 1.januar(2020),
@@ -163,7 +163,7 @@ internal class StansUtbetalingServiceTest {
                         opprettet = it.opprettet,
                         avstemmingsnøkkel = it.avstemmingsnøkkel,
                         utbetalingslinjer = listOf(
-                            Utbetalingslinje(
+                            Utbetalingslinje.Ny(
                                 id = it.utbetalingslinjer[0].id,
                                 opprettet = it.utbetalingslinjer[0].opprettet,
                                 fraOgMed = 1.januar(2020),
@@ -183,7 +183,7 @@ internal class StansUtbetalingServiceTest {
                         opprettet = it.opprettet,
                         avstemmingsnøkkel = it.avstemmingsnøkkel,
                         utbetalingslinjer = listOf(
-                            Utbetalingslinje(
+                            Utbetalingslinje.Ny(
                                 id = it.utbetalingslinjer[0].id,
                                 opprettet = it.utbetalingslinjer[0].opprettet,
                                 fraOgMed = 1.januar(2020),
@@ -241,7 +241,7 @@ internal class StansUtbetalingServiceTest {
                         opprettet = it.opprettet,
                         avstemmingsnøkkel = it.avstemmingsnøkkel,
                         utbetalingslinjer = listOf(
-                            Utbetalingslinje(
+                            Utbetalingslinje.Ny(
                                 id = it.utbetalingslinjer[0].id,
                                 opprettet = it.utbetalingslinjer[0].opprettet,
                                 fraOgMed = 1.januar(2020),
@@ -327,7 +327,7 @@ internal class StansUtbetalingServiceTest {
                         opprettet = it.opprettet,
                         avstemmingsnøkkel = it.avstemmingsnøkkel,
                         utbetalingslinjer = listOf(
-                            Utbetalingslinje(
+                            Utbetalingslinje.Ny(
                                 id = it.utbetalingslinjer[0].id,
                                 opprettet = it.utbetalingslinjer[0].opprettet,
                                 fraOgMed = 1.januar(2020),
@@ -396,7 +396,7 @@ internal class StansUtbetalingServiceTest {
                         opprettet = it.opprettet,
                         avstemmingsnøkkel = it.avstemmingsnøkkel,
                         utbetalingslinjer = listOf(
-                            Utbetalingslinje(
+                            Utbetalingslinje.Ny(
                                 id = it.utbetalingslinjer[0].id,
                                 opprettet = it.utbetalingslinjer[0].opprettet,
                                 fraOgMed = 1.januar(2020),
@@ -415,7 +415,7 @@ internal class StansUtbetalingServiceTest {
                         opprettet = it.opprettet,
                         avstemmingsnøkkel = it.avstemmingsnøkkel,
                         utbetalingslinjer = listOf(
-                            Utbetalingslinje(
+                            Utbetalingslinje.Ny(
                                 id = it.utbetalingslinjer[0].id,
                                 opprettet = it.utbetalingslinjer[0].opprettet,
                                 fraOgMed = 1.januar(2020),

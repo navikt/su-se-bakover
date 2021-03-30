@@ -160,7 +160,9 @@ internal class BehandlingRoutesKtTest {
                 HttpMethod.Post,
                 "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/tilAttestering",
                 listOf(Brukerrolle.Saksbehandler)
-            ).apply {
+            ) {
+                setBody("""{ "fritekst": "Fritekst!" }""")
+            }.apply {
                 response.status() shouldBe HttpStatusCode.OK
                 val behandlingJson = deserialize<BehandlingJson>(response.content!!)
                 behandlingJson.status shouldBe "TIL_ATTESTERING_INNVILGET"
@@ -211,8 +213,10 @@ internal class BehandlingRoutesKtTest {
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/tilAttestering",
-                listOf(Brukerrolle.Saksbehandler)
-            ).apply {
+                listOf(Brukerrolle.Saksbehandler),
+            ) {
+                setBody("""{ "fritekst": "Fritekst!" }""")
+            }.apply {
                 response.status() shouldBe HttpStatusCode.InternalServerError
                 response.content shouldContain "Kunne ikke opprette oppgave for attestering"
             }
@@ -304,7 +308,8 @@ internal class BehandlingRoutesKtTest {
                             services.søknadsbehandling.sendTilAttestering(
                                 SendTilAttesteringRequest(
                                     søknadsbehandling.id,
-                                    NavIdentBruker.Saksbehandler(navIdentSaksbehandler)
+                                    NavIdentBruker.Saksbehandler(navIdentSaksbehandler),
+                                    "",
                                 )
                             )
                         }
@@ -445,7 +450,8 @@ internal class BehandlingRoutesKtTest {
                             services.søknadsbehandling.sendTilAttestering(
                                 SendTilAttesteringRequest(
                                     søknadsbehandling.id,
-                                    NavIdentBruker.Saksbehandler(navIdentSaksbehandler)
+                                    NavIdentBruker.Saksbehandler(navIdentSaksbehandler),
+                                    "",
                                 )
                             )
                         }
@@ -629,7 +635,8 @@ internal class BehandlingRoutesKtTest {
                         services.søknadsbehandling.sendTilAttestering(
                             SendTilAttesteringRequest(
                                 objects.søknadsbehandling.id,
-                                saksbehandler
+                                saksbehandler,
+                                ""
                             )
                         )
                     }
@@ -673,6 +680,7 @@ internal class BehandlingRoutesKtTest {
             saksnummer = sak.saksnummer,
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             fnr = sak.fnr,
+            fritekstTilBrev = "",
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
         repos.søknadsbehandling.lagre(

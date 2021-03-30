@@ -61,6 +61,7 @@ internal class SøknadsbehandlingServiceSimuleringTest {
             fnr = beregnetBehandling.fnr,
             oppgaveId = beregnetBehandling.oppgaveId,
             simulering = simulering,
+            fritekstTilBrev = "",
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
@@ -145,6 +146,7 @@ internal class SøknadsbehandlingServiceSimuleringTest {
         saksnummer = saksnummer,
         fnr = fnr,
         oppgaveId = oppgaveId,
+        fritekstTilBrev = "",
         grunnlagsdata = Grunnlagsdata.EMPTY,
     )
 

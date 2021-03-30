@@ -36,7 +36,7 @@ internal class OppdragStansTest {
     fun `stans av utbetaling`() {
         val utbetaling = createUtbetaling(
             listOf(
-                Utbetalingslinje(
+                Utbetalingslinje.Ny(
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = null,
@@ -67,7 +67,7 @@ internal class OppdragStansTest {
     fun `ingen løpende utbetalinger å stanse etter første dato i neste måned`() {
         val utbetaling = createUtbetaling(
             listOf(
-                Utbetalingslinje(
+                Utbetalingslinje.Ny(
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.mai(2020),
                     forrigeUtbetalingslinjeId = null,
@@ -95,7 +95,7 @@ internal class OppdragStansTest {
     fun `siste utbetaling er en 'stans utbetaling'`() {
         val utbetaling = createUtbetaling(
             listOf(
-                Utbetalingslinje(
+                Utbetalingslinje.Ny(
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = null,

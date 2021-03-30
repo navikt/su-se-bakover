@@ -5,6 +5,8 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.annotation.JsonIgnore
+import no.nav.su.se.bakover.common.erFørsteDagIMåned
+import no.nav.su.se.bakover.common.erSisteDagIMåned
 import java.time.LocalDate
 import java.time.Period
 
@@ -66,10 +68,10 @@ data class Periode private constructor(
         }
 
         fun tryCreate(fraOgMed: LocalDate, tilOgMed: LocalDate): Either<UgyldigPeriode, Periode> {
-            if (fraOgMed.dayOfMonth != 1) {
+            if (!fraOgMed.erFørsteDagIMåned()) {
                 return UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden.left()
             }
-            if (tilOgMed.dayOfMonth != tilOgMed.lengthOfMonth()) {
+            if (!tilOgMed.erSisteDagIMåned()) {
                 return UgyldigPeriode.TilOgMedDatoMåVæreSisteDagIMåneden.left()
             }
             if (!fraOgMed.isBefore(tilOgMed)) {

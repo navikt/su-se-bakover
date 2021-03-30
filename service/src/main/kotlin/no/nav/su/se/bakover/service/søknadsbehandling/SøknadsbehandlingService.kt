@@ -67,7 +67,8 @@ interface SøknadsbehandlingService {
 
     data class SendTilAttesteringRequest(
         val behandlingId: UUID,
-        val saksbehandler: NavIdentBruker.Saksbehandler
+        val saksbehandler: NavIdentBruker.Saksbehandler,
+        val fritekstTilBrev: String
     )
 
     sealed class KunneIkkeSendeTilAttestering {
@@ -104,9 +105,18 @@ interface SøknadsbehandlingService {
         object FikkIkkeHentetSaksbehandlerEllerAttestant : KunneIkkeIverksette()
     }
 
-    data class BrevRequest(
-        val behandlingId: UUID
-    )
+    sealed class BrevRequest {
+        abstract val behandlingId: UUID
+
+        data class MedFritekst(
+            override val behandlingId: UUID,
+            val fritekst: String,
+        ) : BrevRequest()
+
+        data class UtenFritekst(
+            override val behandlingId: UUID
+        ) : BrevRequest()
+    }
 
     sealed class KunneIkkeLageBrev {
         data class KanIkkeLageBrevutkastForStatus(val status: BehandlingsStatus) : KunneIkkeLageBrev()

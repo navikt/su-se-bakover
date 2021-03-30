@@ -30,6 +30,8 @@ fun LocalDate.endOfMonth(): LocalDate = this.withDayOfMonth(this.lengthOfMonth()
 fun LocalDate.between(periode: Periode) = this.between(periode.getFraOgMed(), periode.getTilOgMed())
 fun LocalDate.between(fraOgMed: LocalDate, tilOgMed: LocalDate) =
     (this == fraOgMed || this == tilOgMed) || this.isAfter(fraOgMed) && this.isBefore(tilOgMed)
+fun LocalDate.erFørsteDagIMåned() = dayOfMonth == 1
+fun LocalDate.erSisteDagIMåned() = dayOfMonth == lengthOfMonth()
 
 fun Tidspunkt.between(fraOgMed: Tidspunkt, tilOgMed: Tidspunkt) =
     (this == fraOgMed || this == tilOgMed) || this.instant.isAfter(fraOgMed.instant) && this.instant.isBefore(tilOgMed.instant)

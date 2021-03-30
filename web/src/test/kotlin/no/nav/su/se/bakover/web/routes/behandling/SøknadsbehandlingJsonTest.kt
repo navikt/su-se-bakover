@@ -147,6 +147,7 @@ internal class SøknadsbehandlingJsonTest {
             fnr = FnrGenerator.random(),
             oppgaveId = oppgaveId,
             opprettet = Tidspunkt.EPOCH,
+            fritekstTilBrev = "",
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
         val opprettetTidspunkt = DateTimeFormatter.ISO_INSTANT.format(behandlingWithNulls.opprettet)

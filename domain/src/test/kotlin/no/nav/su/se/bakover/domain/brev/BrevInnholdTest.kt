@@ -60,7 +60,8 @@ internal class BrevInnholdTest {
                 )
             ),
             saksbehandlerNavn = "Hei",
-            attestantNavn = "Hopp"
+            attestantNavn = "Hopp",
+            fritekst = "",
         )
 
         val actualJson = objectMapper.writeValueAsString(innvilgetVedtak)
@@ -98,7 +99,8 @@ internal class BrevInnholdTest {
                     }
                 }],
                 "saksbehandlerNavn": "Hei",
-                "attestantNavn": "Hopp"
+                "attestantNavn": "Hopp",
+                "fritekst": ""
             }
             """.trimIndent()
         JSONAssert.assertEquals(expectedJson, actualJson, true)

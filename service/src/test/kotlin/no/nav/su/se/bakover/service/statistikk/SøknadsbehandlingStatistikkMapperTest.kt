@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.service.statistikk
 import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.startOfDay
@@ -284,6 +283,7 @@ internal class SøknadsbehandlingStatistikkMapperTest {
         oppgaveId = OppgaveId(""),
         behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
         fnr = FnrGenerator.random(),
+        fritekstTilBrev = "",
         grunnlagsdata = Grunnlagsdata.EMPTY,
     )
 
@@ -295,15 +295,14 @@ internal class SøknadsbehandlingStatistikkMapperTest {
         )
             .tilBeregnet(avslagBeregning) as Søknadsbehandling.Beregnet.Avslag
         )
-        .tilAttestering(NavIdentBruker.Saksbehandler("jonny"))
+        .tilAttestering(NavIdentBruker.Saksbehandler("jonny"), "")
     private val beregnetSøknadsbehandling = uavklartSøknadsbehandling.tilBeregnet(beregning)
     private val simulertSøknadsbehandling = beregnetSøknadsbehandling.tilSimulert(mock())
     private val tilAttesteringSøknadsbehandling =
-        simulertSøknadsbehandling.tilAttestering(NavIdentBruker.Saksbehandler("saks"))
+        simulertSøknadsbehandling.tilAttestering(NavIdentBruker.Saksbehandler("saks"), "")
     private val iverksattSøknadsbehandling = tilAttesteringSøknadsbehandling.tilIverksatt(
         Attestering.Iverksatt(
             NavIdentBruker.Attestant("att")
-        ),
-        UUID30.randomUUID()
+        )
     )
 }

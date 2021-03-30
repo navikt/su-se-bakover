@@ -39,7 +39,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
     fun `gjenopptar enkel utbetaling`() {
         val opprinnelig: Utbetaling.OversendtUtbetaling.UtenKvittering = createOversendtUtbetaling(
             listOf(
-                Utbetalingslinje(
+                Utbetalingslinje.Ny(
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = null,
@@ -51,7 +51,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
 
         val stans: Utbetaling.OversendtUtbetaling.UtenKvittering = createOversendtUtbetaling(
             listOf(
-                Utbetalingslinje(
+                Utbetalingslinje.Ny(
                     fraOgMed = 1.oktober(2020),
                     tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = opprinnelig.utbetalingslinjer[0].id,
@@ -78,7 +78,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
                 saksnummer = saksnummer,
                 fnr = fnr,
                 utbetalingslinjer = listOf(
-                    Utbetalingslinje(
+                    Utbetalingslinje.Ny(
                         id = actual.utbetalingslinjer[0].id,
                         opprettet = actual.utbetalingslinjer[0].opprettet,
                         fraOgMed = 1.oktober(2020),
@@ -111,7 +111,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
     fun `gjenopptar mer 'avansert' utbetaling`() {
         val første = createOversendtUtbetaling(
             listOf(
-                Utbetalingslinje(
+                Utbetalingslinje.Ny(
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = null,
@@ -124,7 +124,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
 
         val førsteStans = createOversendtUtbetaling(
             listOf(
-                element = Utbetalingslinje(
+                element = Utbetalingslinje.Ny(
                     fraOgMed = 1.oktober(2020),
                     tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = første.utbetalingslinjer[0].id,
@@ -136,7 +136,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
 
         val førsteGjenopptak = createOversendtUtbetaling(
             listOf(
-                element = Utbetalingslinje(
+                element = Utbetalingslinje.Ny(
                     fraOgMed = 1.oktober(2020),
                     tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = førsteStans.utbetalingslinjer[0].id,
@@ -148,7 +148,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
 
         val andre = createOversendtUtbetaling(
             utbetalingslinjer = listOf(
-                Utbetalingslinje(
+                Utbetalingslinje.Ny(
                     fraOgMed = 1.november(2020),
                     tilOgMed = 31.oktober(2021),
                     forrigeUtbetalingslinjeId = førsteGjenopptak.utbetalingslinjer[0].id,
@@ -160,7 +160,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
 
         val andreStans = createOversendtUtbetaling(
             utbetalingslinjer = listOf(
-                Utbetalingslinje(
+                Utbetalingslinje.Ny(
                     fraOgMed = 1.mai(2021),
                     tilOgMed = 31.oktober(2021),
                     forrigeUtbetalingslinjeId = andre.utbetalingslinjer[0].id,
@@ -191,7 +191,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
     fun `kan ikke gjenoppta utbetalinger hvis ingen er stanset`() {
         val første = createOversendtUtbetaling(
             listOf(
-                Utbetalingslinje(
+                Utbetalingslinje.Ny(
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = null,
@@ -219,7 +219,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
     fun `kan ikke gjenoppta utbetalinger hvis siste ikke er stanset`() {
         val første = createOversendtUtbetaling(
             listOf(
-                Utbetalingslinje(
+                Utbetalingslinje.Ny(
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.juli(2020),
                     forrigeUtbetalingslinjeId = null,
@@ -231,7 +231,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
 
         val andre = createOversendtUtbetaling(
             listOf(
-                Utbetalingslinje(
+                Utbetalingslinje.Ny(
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.juli(2020),
                     forrigeUtbetalingslinjeId = første.utbetalingslinjer[0].id,
@@ -243,7 +243,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
 
         val tredje = createOversendtUtbetaling(
             listOf(
-                Utbetalingslinje(
+                Utbetalingslinje.Ny(
                     fraOgMed = 1.august(2020),
                     tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = andre.utbetalingslinjer[0].id,
@@ -269,13 +269,13 @@ internal class UtbetalingsstrategiGjenopptaTest {
 
     @Test
     fun `gjenopptar utbetalinger med flere utbetalingslinjer`() {
-        val l1 = Utbetalingslinje(
+        val l1 = Utbetalingslinje.Ny(
             fraOgMed = 1.januar(2020),
             tilOgMed = 30.april(2020),
             forrigeUtbetalingslinjeId = null,
             beløp = 1500
         )
-        val l2 = Utbetalingslinje(
+        val l2 = Utbetalingslinje.Ny(
             fraOgMed = 1.mai(2020),
             tilOgMed = 31.desember(2020),
             forrigeUtbetalingslinjeId = l1.id,
@@ -287,7 +287,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
 
         val stans = createOversendtUtbetaling(
             utbetalingslinjer = listOf(
-                Utbetalingslinje(
+                Utbetalingslinje.Ny(
                     fraOgMed = 1.april(2020),
                     tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = første.utbetalingslinjer[1].id,

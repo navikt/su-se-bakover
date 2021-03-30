@@ -102,10 +102,12 @@ internal class VedtakServiceImplTest {
     )
 
     private fun innvilgetVedtak(fnr: Fnr) =
-        Vedtak.InnvilgetStønad.fromSøknadsbehandling(
+        Vedtak.EndringIYtelse.fromSøknadsbehandling(
             Søknadsbehandling.Iverksatt.Innvilget(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(),
+                sakId = UUID.randomUUID(),
+                saksnummer = Saksnummer(1),
                 søknad = Søknad.Journalført.MedOppgave(
                     id = BehandlingTestUtils.søknadId,
                     opprettet = Tidspunkt.EPOCH,
@@ -114,18 +116,17 @@ internal class VedtakServiceImplTest {
                     oppgaveId = BehandlingTestUtils.søknadOppgaveId,
                     journalpostId = BehandlingTestUtils.søknadJournalpostId
                 ),
-                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-                sakId = UUID.randomUUID(),
-                saksnummer = Saksnummer(1),
-                fnr = fnr,
-                saksbehandler = saksbehandler,
                 oppgaveId = oppgaveId,
+                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
+                fnr = fnr,
                 beregning = TestBeregning,
-                attestering = Attestering.Iverksatt(attestant),
                 simulering = mock(),
-                utbetalingId = UUID30.randomUUID(),
+                saksbehandler = saksbehandler,
+                attestering = Attestering.Iverksatt(attestant),
+                fritekstTilBrev = "",
                 grunnlagsdata = Grunnlagsdata.EMPTY,
-            )
+            ),
+            UUID30.randomUUID()
         )
 
     private val oppgaveId = OppgaveId("2")

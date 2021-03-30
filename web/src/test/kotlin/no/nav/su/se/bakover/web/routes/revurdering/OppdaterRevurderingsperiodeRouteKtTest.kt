@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppdatereRevurderingsperiode
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.defaultRequest
@@ -34,19 +35,27 @@ import org.skyscreamer.jsonassert.JSONAssert
 import java.util.UUID
 
 internal class OppdaterRevurderingsperiodeRouteKtTest {
-    private val validBody = """{ "fraOgMed": "${periode.getFraOgMed()}"}"""
+    private val validBody = """
+        {
+         "fraOgMed": "${periode.getFraOgMed()}",
+         "årsak":"INFORMASJON_FRA_KONTROLLSAMTALE",
+         "begrunnelse":"begrunnelse"
+        }
+    """.trimMargin()
 
     private val revurderingId = UUID.randomUUID()
 
     @Test
     fun `uautoriserte kan ikke oppdatere revurderingsperioden`() {
-        withTestApplication({
-            testSusebakover()
-        }) {
+        withTestApplication(
+            {
+                testSusebakover()
+            },
+        ) {
             defaultRequest(
-                HttpMethod.Post,
-                "$requestPath/$revurderingId/oppdaterPeriode",
-                listOf(Brukerrolle.Veileder)
+                HttpMethod.Put,
+                "$requestPath/$revurderingId",
+                listOf(Brukerrolle.Veileder),
             ) {
                 setBody(validBody)
             }.apply {
@@ -58,7 +67,7 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
                     }
                     """.trimIndent(),
                     response.content,
-                    true
+                    true,
                 )
             }
         }
@@ -74,23 +83,38 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
             saksbehandler = NavIdentBruker.Saksbehandler(""),
             oppgaveId = OppgaveId("oppgaveId"),
             fritekstTilBrev = "",
+            revurderingsårsak = Revurderingsårsak(
+                Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
+                Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
+            ),
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
         val revurderingServiceMock = mock<RevurderingService> {
-            on { oppdaterRevurderingsperiode(any(), any(), any()) } doReturn opprettetRevurdering.right()
+            on { oppdaterRevurderingsperiode(any()) } doReturn opprettetRevurdering.right()
         }
 
-        withTestApplication({
-            testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
-        }) {
+        withTestApplication(
+            {
+                testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
+            },
+        ) {
             defaultRequest(
-                HttpMethod.Post,
-                "$requestPath/$revurderingId/oppdaterPeriode",
-                listOf(Brukerrolle.Saksbehandler)
+                HttpMethod.Put,
+                "$requestPath/$revurderingId",
+                listOf(Brukerrolle.Saksbehandler),
             ) {
-                setBody("""{ "fraOgMed": "${periode.getFraOgMed()}"}""")
+                setBody(
+                    """
+                    {
+                        "fraOgMed": "${periode.getFraOgMed()}",
+                        "årsak":"DØDSFALL",
+                        "begrunnelse":"begrunnelse"
+                    }
+
+                """.trimMargin(),
+                )
             }.apply {
-                response.status() shouldBe HttpStatusCode.Created
+                response.status() shouldBe HttpStatusCode.OK
                 val actualResponse = objectMapper.readValue<OpprettetRevurderingJson>(response.content!!)
                 actualResponse.id shouldBe opprettetRevurdering.id.toString()
                 actualResponse.status shouldBe RevurderingsStatus.OPPRETTET
@@ -102,7 +126,7 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
     fun `ugyldig fraOgMed dato`() {
         shouldMapErrorCorrectly(
             error = KunneIkkeOppdatereRevurderingsperiode.UgyldigPeriode(
-                Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden
+                Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden,
             ),
             expectedStatusCode = HttpStatusCode.BadRequest,
             expectedJsonResponse = """
@@ -110,7 +134,7 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
                     "message":"FraOgMedDatoMåVæreFørsteDagIMåneden",
                     "code":"ugyldig_periode"
                 }
-            """.trimIndent()
+            """.trimIndent(),
 
         )
     }
@@ -125,7 +149,7 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
                     "message":"Fant ikke revurdering",
                     "code":"fant_ikke_revurdering"
                 }
-            """.trimIndent()
+            """.trimIndent(),
 
         )
     }
@@ -137,7 +161,7 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
                 Periode.create(
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.januar(2020),
-                )
+                ),
             ),
             expectedStatusCode = HttpStatusCode.BadRequest,
             expectedJsonResponse = """
@@ -145,7 +169,7 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
                     "message":"Perioden må være innenfor allerede valgt stønadsperiode",
                     "code":"perioden_må_være_innenfor_stønadsperioden"
                 }
-            """.trimIndent()
+            """.trimIndent(),
 
         )
     }
@@ -163,7 +187,7 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
                     "message":"Kan ikke gå fra tilstanden IverksattRevurdering til tilstanden OpprettetRevurdering",
                     "code":"ugyldig_tilstand"
                 }
-            """.trimIndent()
+            """.trimIndent(),
 
         )
     }
@@ -171,19 +195,21 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
     private fun shouldMapErrorCorrectly(
         error: KunneIkkeOppdatereRevurderingsperiode,
         expectedStatusCode: HttpStatusCode,
-        expectedJsonResponse: String
+        expectedJsonResponse: String,
     ) {
         val revurderingServiceMock = mock<RevurderingService> {
-            on { oppdaterRevurderingsperiode(any(), any(), any()) } doReturn error.left()
+            on { oppdaterRevurderingsperiode(any()) } doReturn error.left()
         }
 
-        withTestApplication({
-            testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
-        }) {
+        withTestApplication(
+            {
+                testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
+            },
+        ) {
             defaultRequest(
-                HttpMethod.Post,
-                "$requestPath/$revurderingId/oppdaterPeriode",
-                listOf(Brukerrolle.Saksbehandler)
+                HttpMethod.Put,
+                "$requestPath/$revurderingId",
+                listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(validBody)
             }.apply {
@@ -191,7 +217,7 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
                 JSONAssert.assertEquals(
                     expectedJsonResponse,
                     response.content,
-                    true
+                    true,
                 )
             }
         }

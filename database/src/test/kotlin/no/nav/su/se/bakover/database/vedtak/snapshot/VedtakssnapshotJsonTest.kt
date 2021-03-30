@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.database.vedtak.snapshot
 
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
@@ -8,6 +7,8 @@ import no.nav.su.se.bakover.database.beregning.PersistertFradrag
 import no.nav.su.se.bakover.database.beregning.PersistertMånedsberegning
 import no.nav.su.se.bakover.database.fixedLocalDate
 import no.nav.su.se.bakover.database.fixedTidspunkt
+import no.nav.su.se.bakover.database.iverksattBrevbestillingId
+import no.nav.su.se.bakover.database.iverksattJournalpostId
 import no.nav.su.se.bakover.database.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.database.vedtak.snapshot.VedtakssnapshotJson.Companion.toJson
 import no.nav.su.se.bakover.domain.Fnr
@@ -25,7 +26,6 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategyName.Enslig
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører.BRUKER
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype.Arbeidsinntekt
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
-import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -59,10 +59,7 @@ internal class VedtakssnapshotJsonTest {
             id = UUID.fromString(behandlingId),
             opprettet = fixedTidspunkt,
             sakId = UUID.fromString(sakId),
-            behandlingsinformasjon = Behandlingsinformasjon
-                .lagTomBehandlingsinformasjon()
-                .withAlleVilkårOppfylt()
-                .withVilkårAvslått(),
+            saksnummer = Saksnummer(1234),
             søknad = Søknad.Journalført.MedOppgave(
                 id = UUID.fromString(søknadId),
                 opprettet = fixedTidspunkt,
@@ -71,24 +68,24 @@ internal class VedtakssnapshotJsonTest {
                 journalpostId = JournalpostId("journalpostId"),
                 oppgaveId = OppgaveId("oppgaveId")
             ),
+            oppgaveId = OppgaveId("oppgaveId"),
+            behandlingsinformasjon = Behandlingsinformasjon
+                .lagTomBehandlingsinformasjon()
+                .withAlleVilkårOppfylt()
+                .withVilkårAvslått(),
+            fnr = fnr,
             saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
-            saksnummer = Saksnummer(1234),
-            fnr = fnr,
-            oppgaveId = OppgaveId("oppgaveId"),
+            fritekstTilBrev = "",
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
-                journalpostId = JournalpostId("iverksattJournalpostId"),
-                brevbestillingId = BrevbestillingId("iverksattBrevbestillingId"),
-
-            ),
         )
 
         val avslag = Vedtakssnapshot.Avslag(
             id = UUID.fromString(vedtakssnapshotId),
             opprettet = fixedTidspunkt,
             søknadsbehandling = avslagUtenBeregning,
-            avslagsgrunner = listOf(Avslagsgrunn.PERSONLIG_OPPMØTE)
+            avslagsgrunner = listOf(Avslagsgrunn.PERSONLIG_OPPMØTE),
+            journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.fromId(iverksattJournalpostId, iverksattBrevbestillingId)
         )
 
         //language=JSON
@@ -306,7 +303,7 @@ internal class VedtakssnapshotJsonTest {
                               "verdiPåEiendom":0,
                               "eiendomBrukesTil":"",
                               "kjøretøy":[
-                                 
+
                               ],
                               "innskuddsBeløp":0,
                               "verdipapirBeløp":0,
@@ -355,10 +352,7 @@ internal class VedtakssnapshotJsonTest {
             id = UUID.fromString(behandlingId),
             opprettet = fixedTidspunkt,
             sakId = UUID.fromString(sakId),
-            behandlingsinformasjon = Behandlingsinformasjon
-                .lagTomBehandlingsinformasjon()
-                .withAlleVilkårOppfylt()
-                .withVilkårAvslått(),
+            saksnummer = Saksnummer(1234),
             søknad = Søknad.Journalført.MedOppgave(
                 id = UUID.fromString(søknadId),
                 opprettet = fixedTidspunkt,
@@ -367,11 +361,12 @@ internal class VedtakssnapshotJsonTest {
                 journalpostId = JournalpostId("journalpostId"),
                 oppgaveId = OppgaveId("oppgaveId")
             ),
-            saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
-            saksnummer = Saksnummer(1234),
-            fnr = fnr,
             oppgaveId = OppgaveId("oppgaveId"),
+            behandlingsinformasjon = Behandlingsinformasjon
+                .lagTomBehandlingsinformasjon()
+                .withAlleVilkårOppfylt()
+                .withVilkårAvslått(),
+            fnr = fnr,
             beregning = PersistertBeregning(
                 id = UUID.fromString(beregningId),
                 opprettet = fixedTidspunkt,
@@ -430,19 +425,18 @@ internal class VedtakssnapshotJsonTest {
                     )
                 )
             ),
-            utbetalingId = UUID30.randomUUID(),
+            saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
+            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
+            fritekstTilBrev = "",
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            eksterneIverksettingsteg = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
-                journalpostId = JournalpostId("iverksattJournalpostId"),
-                brevbestillingId = BrevbestillingId("iverksattBrevbestillingId"),
-            ),
         )
         val utbetaling = oversendtUtbetalingUtenKvittering(innvilget)
         val innvilgelse = Vedtakssnapshot.Innvilgelse(
             id = UUID.fromString(vedtakssnapshotId),
             opprettet = fixedTidspunkt,
             søknadsbehandling = innvilget,
-            utbetaling = utbetaling
+            utbetaling = utbetaling,
+            journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.fromId(iverksattJournalpostId, iverksattBrevbestillingId)
         )
 
         //language=JSON
@@ -513,7 +507,7 @@ internal class VedtakssnapshotJsonTest {
                             "tilOgMed":"2021-01-31"
                         },
                         "tilhører":"BRUKER"
-                      }                        
+                      }
                     ],
                     "sumYtelse":3,
                     "sumFradrag":2.1,
@@ -715,7 +709,7 @@ internal class VedtakssnapshotJsonTest {
                               "verdiPåEiendom":0,
                               "eiendomBrukesTil":"",
                               "kjøretøy":[
-                                 
+
                               ],
                               "innskuddsBeløp":0,
                               "verdipapirBeløp":0,
