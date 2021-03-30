@@ -328,7 +328,7 @@ class LagBrevRequestVisitor(
                 behandlingsinformasjon = revurdering.tilRevurdering.behandlingsinformasjon,
                 beregning = beregning,
                 fritekst = revurdering.fritekstTilBrev,
-                saksbehandlerNavn = revurdering.saksbehandler.navIdent,
+                saksbehandlerNavn = it.saksbehandlerNavn,
                 attestantNavn = it.attestantNavn
             )
         }
