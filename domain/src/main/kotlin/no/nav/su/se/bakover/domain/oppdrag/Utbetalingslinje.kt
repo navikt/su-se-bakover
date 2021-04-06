@@ -2,15 +2,20 @@ package no.nav.su.se.bakover.domain.oppdrag
 
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.CopyArgs
+import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import java.time.LocalDate
 
-sealed class Utbetalingslinje {
+sealed class Utbetalingslinje : KanPlasseresPåTidslinje<Utbetalingslinje> {
     abstract val id: UUID30 // delytelseId
-    abstract val opprettet: Tidspunkt
+    abstract override val opprettet: Tidspunkt
     abstract val fraOgMed: LocalDate
     abstract val tilOgMed: LocalDate
     abstract var forrigeUtbetalingslinjeId: UUID30?
     abstract val beløp: Int
+
+    override fun getPeriode() = Periode.create(fraOgMed, tilOgMed)
 
     data class Ny(
         override val id: UUID30 = UUID30.randomUUID(),
@@ -26,6 +31,14 @@ sealed class Utbetalingslinje {
 
         fun link(other: Utbetalingslinje) {
             forrigeUtbetalingslinjeId = other.id
+        }
+
+        override fun copy(args: CopyArgs.Tidslinje) = when (args) {
+            is CopyArgs.Tidslinje.Full -> this.copy()
+            is CopyArgs.Tidslinje.NyPeriode -> this.copy(
+                fraOgMed = args.periode.getFraOgMed(),
+                tilOgMed = args.periode.getTilOgMed(),
+            )
         }
     }
 
@@ -51,6 +64,14 @@ sealed class Utbetalingslinje {
             beløp = utbetalingslinje.beløp,
             statusendring = statusendring,
         )
+
+        override fun copy(args: CopyArgs.Tidslinje) = when (args) {
+            is CopyArgs.Tidslinje.Full -> this.copy()
+            is CopyArgs.Tidslinje.NyPeriode -> this.copy(
+                fraOgMed = args.periode.getFraOgMed(),
+                tilOgMed = args.periode.getTilOgMed(),
+            )
+        }
     }
 
     data class Statusendring(
