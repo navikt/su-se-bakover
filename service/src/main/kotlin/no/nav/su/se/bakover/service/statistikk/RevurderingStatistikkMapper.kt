@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.service.statistikk
 
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.zoneIdOslo
+import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
@@ -57,9 +58,10 @@ internal class RevurderingStatistikkMapper(private val clock: Clock) {
     internal object BehandlingStatusMapper {
         fun map(revurdering: Revurdering): String =
             when (revurdering) {
+                is OpprettetRevurdering -> "OPPRETTET"
+                is BeregnetRevurdering.IngenEndring -> "BEREGNET_INGEN_ENDRING"
                 is IverksattRevurdering.Innvilget -> "IVERKSATT_INNVILGET"
                 is IverksattRevurdering.Opphørt -> "IVERKSATT_OPPHØRT"
-                is OpprettetRevurdering -> "OPPRETTET"
                 is RevurderingTilAttestering.Innvilget -> "TIL_ATTESTERING_INNVILGET"
                 is RevurderingTilAttestering.Opphørt -> "TIL_ATTESTERING_OPPHØRT"
                 is UnderkjentRevurdering.Innvilget -> "UNDERKJENT_INNVILGET"

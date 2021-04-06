@@ -227,7 +227,7 @@ internal class RevurderingServiceImpl(
         val revurdering = revurderingRepo.hent(revurderingId)
             ?: return KunneIkkeSendeRevurderingTilAttestering.FantIkkeRevurdering.left()
 
-        if (!(revurdering is SimulertRevurdering || revurdering is UnderkjentRevurdering)) {
+        if (!(revurdering is SimulertRevurdering || revurdering is UnderkjentRevurdering || revurdering is BeregnetRevurdering.IngenEndring)) {
             return KunneIkkeSendeRevurderingTilAttestering.UgyldigTilstand(
                 revurdering::class,
                 RevurderingTilAttestering::class,
