@@ -10,7 +10,7 @@ data class Simulering(
     val gjelderNavn: String,
     val datoBeregnet: LocalDate,
     val nettoBeløp: Int,
-    val periodeList: List<SimulertPeriode>
+    val periodeList: List<SimulertPeriode>,
 ) {
     init {
         listOf(
@@ -34,7 +34,7 @@ data class SimulertPeriode(
     val fraOgMed: LocalDate,
     @JsonAlias("tilOgMed", "tom")
     val tilOgMed: LocalDate,
-    val utbetaling: List<SimulertUtbetaling>
+    val utbetaling: List<SimulertUtbetaling>,
 ) {
 
     fun bruttoYtelse() = utbetaling
@@ -47,7 +47,7 @@ data class SimulertUtbetaling(
     val utbetalesTilNavn: String,
     val forfall: LocalDate,
     val feilkonto: Boolean,
-    val detaljer: List<SimulertDetaljer>
+    val detaljer: List<SimulertDetaljer>,
 ) {
     fun bruttoYtelse() = detaljer
         .filter { it.isYtelse() }
@@ -73,9 +73,9 @@ data class SimulertDetaljer(
     val typeSats: String,
     val antallSats: Int,
     val uforegrad: Int,
-    val klassekode: String,
+    val klassekode: KlasseKode,
     val klassekodeBeskrivelse: String,
-    val klasseType: KlasseType
+    val klasseType: KlasseType,
 ) {
     @JsonIgnore
     fun isYtelse() = KlasseType.YTEL == klasseType
@@ -92,15 +92,24 @@ enum class KlasseType {
     SKAT
 }
 
+enum class KlasseKode {
+    SUUFORE,
+    @Deprecated("Filtreres ut av klient, bakoverkompatabilitet")
+    FSKTSKAT,
+    @Deprecated("Filtreres ut av klient, bakoverkompatabilitet")
+    UFOREUT
+}
+
 internal abstract class SimuleringValidering {
     abstract val simulering: Simulering
     abstract val message: String
+
     @JsonIgnore
     abstract fun isValid(): Boolean
 
     class SimulerteUtbetalingerHarKunEnDetaljAvTypenYtelse(
         override val simulering: Simulering,
-        override val message: String = "Simulerte utbetalinger med flere detaljer av typen ${KlasseType.YTEL} indikerer endring av utbetalinger tilbake i tid. Systemet mangler støtte for håndtering av slike tilfeller."
+        override val message: String = "Simulerte utbetalinger med flere detaljer av typen ${KlasseType.YTEL} indikerer endring av utbetalinger tilbake i tid. Systemet mangler støtte for håndtering av slike tilfeller.",
     ) : SimuleringValidering() {
         @JsonIgnore
         override fun isValid() = simulering.periodeList

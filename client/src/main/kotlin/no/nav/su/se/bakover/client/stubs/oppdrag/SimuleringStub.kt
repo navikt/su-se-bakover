@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
@@ -14,7 +15,6 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
 import java.time.LocalDate
-import kotlin.math.roundToInt
 
 object SimuleringStub : SimuleringClient {
     override fun simulerUtbetaling(utbetaling: Utbetaling): Either<SimuleringFeilet, Simulering> {
@@ -42,10 +42,9 @@ object SimuleringStub : SimuleringClient {
                                 utbetalesTilNavn = "MYGG LUR",
                                 detaljer = listOf(
                                     createYtelse(it.getFraOgMed(), it.getTilOgMed(), utbetalingslinje.beløp),
-                                    createForskuddsskatt(it.getFraOgMed(), it.getTilOgMed(), utbetalingslinje.beløp)
-                                )
-                            )
-                        )
+                                ),
+                            ),
+                        ),
                     )
                 } else {
                     null
@@ -58,7 +57,7 @@ object SimuleringStub : SimuleringClient {
             gjelderNavn = "MYGG LUR",
             datoBeregnet = idag(),
             nettoBeløp = perioder.calculateNetto(),
-            periodeList = perioder
+            periodeList = perioder,
         )
     }
 
@@ -80,9 +79,9 @@ object SimuleringStub : SimuleringClient {
                 SimulertPeriode(
                     fraOgMed = utbetaling.tidligsteDato(),
                     tilOgMed = utbetaling.senesteDato(),
-                    utbetaling = emptyList()
-                )
-            )
+                    utbetaling = emptyList(),
+                ),
+            ),
         )
     }
 
@@ -96,23 +95,8 @@ object SimuleringStub : SimuleringClient {
         typeSats = "MND",
         antallSats = 1,
         uforegrad = 0,
-        klassekode = "SUUFORE",
+        klassekode = KlasseKode.SUUFORE,
         klassekodeBeskrivelse = "Supplerende stønad Uføre",
-        klasseType = KlasseType.YTEL
-    )
-
-    private fun createForskuddsskatt(fraOgMed: LocalDate, tilOgMed: LocalDate, beløp: Int) = SimulertDetaljer(
-        faktiskFraOgMed = fraOgMed,
-        faktiskTilOgMed = tilOgMed,
-        konto = "0510000",
-        belop = -(beløp * 0.25).roundToInt(),
-        tilbakeforing = false,
-        sats = 1,
-        typeSats = "MND",
-        antallSats = 31,
-        uforegrad = 0,
-        klassekode = "FSKTSKAT",
-        klassekodeBeskrivelse = "Forskuddskatt",
-        klasseType = KlasseType.SKAT
+        klasseType = KlasseType.YTEL,
     )
 }

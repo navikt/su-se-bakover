@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Fnr
+import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
@@ -77,7 +78,7 @@ internal class SimuleringJsonTest {
                                 typeSats = "MND",
                                 antallSats = 1,
                                 uforegrad = 0,
-                                klassekode = "SUUFORE",
+                                klassekode = KlasseKode.SUUFORE,
                                 klassekodeBeskrivelse = "Supplerende stønad Uføre",
                                 klasseType = KlasseType.YTEL
                             )
@@ -106,7 +107,7 @@ internal class SimuleringJsonTest {
                                 typeSats = "MND",
                                 antallSats = 1,
                                 uforegrad = 0,
-                                klassekode = "SUUFORE",
+                                klassekode = KlasseKode.SUUFORE,
                                 klassekodeBeskrivelse = "Supplerende stønad Uføre",
                                 klasseType = KlasseType.YTEL
                             )

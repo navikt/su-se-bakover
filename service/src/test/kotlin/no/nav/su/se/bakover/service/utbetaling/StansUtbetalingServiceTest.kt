@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringClient
@@ -293,7 +294,7 @@ internal class StansUtbetalingServiceTest {
                                         typeSats = "",
                                         antallSats = 1,
                                         uforegrad = 0,
-                                        klassekode = "",
+                                        klassekode = KlasseKode.SUUFORE,
                                         klassekodeBeskrivelse = "",
                                         klasseType = KlasseType.YTEL
                                     )
