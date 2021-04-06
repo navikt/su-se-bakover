@@ -54,11 +54,20 @@ internal class SimuleringSoapClient(
         }
     }
 
-    private fun mapEmptyResponse(utbetaling: Utbetaling): Either<SimuleringFeilet, Simulering> {
-        return if (utbetaling.bruttoBeløp() != 0) {
-            log.error("Utbetaling inneholder beløp ulikt 0, men simulering inneholder tom respons")
-            SimuleringFeilet.FUNKSJONELL_FEIL.left()
-        } else {
+    private fun mapEmptyResponse(utbetaling: Utbetaling): Either<SimuleringFeilet, Simulering> = when (utbetaling.type) {
+        Utbetaling.UtbetalingsType.NY,
+        Utbetaling.UtbetalingsType.STANS,
+        Utbetaling.UtbetalingsType.GJENOPPTA,
+        -> {
+            if (utbetaling.bruttoBeløp() != 0) {
+                log.error("Utbetaling inneholder beløp ulikt 0, men simulering inneholder tom respons")
+                SimuleringFeilet.FUNKSJONELL_FEIL.left()
+            } else {
+                SimuleringResponseMapper(utbetaling).simulering.right()
+            }
+        }
+        Utbetaling.UtbetalingsType.OPPHØR,
+        -> {
             SimuleringResponseMapper(utbetaling).simulering.right()
         }
     }
