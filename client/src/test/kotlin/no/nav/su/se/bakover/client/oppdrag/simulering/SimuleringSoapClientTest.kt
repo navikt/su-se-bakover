@@ -57,8 +57,7 @@ internal class SimuleringSoapClientTest {
             }
         )
 
-        val actual = simuleringService.simulerUtbetaling(nyUtbetaling)
-        actual.isRight() shouldBe true
+        simuleringService.simulerUtbetaling(nyUtbetaling) shouldBe SimuleringResponseMapper(okSimuleringResponse()).simulering.right()
     }
 
     @Test
@@ -75,8 +74,7 @@ internal class SimuleringSoapClientTest {
             }
         )
 
-        val response = simuleringService.simulerUtbetaling(nyUtbetaling)
-        response shouldBe SimuleringFeilet.FUNKSJONELL_FEIL.left()
+        simuleringService.simulerUtbetaling(nyUtbetaling) shouldBe SimuleringFeilet.FUNKSJONELL_FEIL.left()
     }
 
     @Test
@@ -98,9 +96,7 @@ internal class SimuleringSoapClientTest {
             }
         )
 
-        val response = simuleringService.simulerUtbetaling(nyUtbetaling)
-
-        response shouldBe SimuleringFeilet.FUNKSJONELL_FEIL.left()
+        simuleringService.simulerUtbetaling(nyUtbetaling) shouldBe SimuleringFeilet.FUNKSJONELL_FEIL.left()
     }
 
     @Test
@@ -117,9 +113,7 @@ internal class SimuleringSoapClientTest {
             }
         )
 
-        val response = simuleringService.simulerUtbetaling(nyUtbetaling)
-
-        response shouldBe SimuleringFeilet.OPPDRAG_UR_ER_STENGT.left()
+        simuleringService.simulerUtbetaling(nyUtbetaling) shouldBe SimuleringFeilet.OPPDRAG_UR_ER_STENGT.left()
     }
 
     @Test
@@ -155,9 +149,7 @@ internal class SimuleringSoapClientTest {
             }
         )
 
-        val response = simuleringService.simulerUtbetaling(nyUtbetaling)
-
-        response shouldBe SimuleringFeilet.TEKNISK_FEIL.left()
+        simuleringService.simulerUtbetaling(nyUtbetaling) shouldBe SimuleringFeilet.TEKNISK_FEIL.left()
     }
 
     @Test
@@ -271,7 +263,7 @@ internal class SimuleringSoapClientTest {
                                     belop = BigDecimal(15000)
                                     kontoStreng = "1234.12.12345"
                                     isTilbakeforing = false
-                                    klassekode = "klasseKode"
+                                    klassekode = "SUUFORE"
                                     klasseKodeBeskrivelse = "klasseKodeBeskrivelse"
                                     typeKlasse = "YTEL"
                                 }

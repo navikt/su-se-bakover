@@ -185,7 +185,7 @@ internal class SimuleringTest {
         typeSats = "MND",
         antallSats = 31,
         uforegrad = 0,
-        klassekode = if (klasseType == KlasseType.YTEL) "SUUFORE" else "FSKTSKAT",
+        klassekode = if (klasseType == KlasseType.YTEL) KlasseKode.valueOf("SUUFORE") else KlasseKode.valueOf("FSKTSKAT"),
         klassekodeBeskrivelse = if (klasseType == KlasseType.YTEL) "Supplerende stønad Uføre" else "Forskuddskatt",
         klasseType = klasseType
     )
