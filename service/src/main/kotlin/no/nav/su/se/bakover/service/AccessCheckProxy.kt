@@ -394,7 +394,7 @@ open class AccessCheckProxy(
 
                 override fun underkjenn(
                     revurderingId: UUID,
-                    attestering: Attestering,
+                    attestering: Attestering.Underkjent,
                 ): Either<KunneIkkeUnderkjenneRevurdering, UnderkjentRevurdering> {
                     assertHarTilgangTilSak(revurderingId)
                     return services.revurdering.underkjenn(revurderingId, attestering)

@@ -178,8 +178,7 @@ internal class VedtakPosgresRepo(
                     vedtakType = vedtakType,
                 )
             }
-            VedtakType.AVSLAG,
-            -> {
+            VedtakType.AVSLAG -> {
                 if (beregning != null) {
                     Vedtak.Avslag.AvslagBeregning(
                         id = id,
@@ -209,6 +208,20 @@ internal class VedtakPosgresRepo(
                     )
                 }
             }
+            VedtakType.INGEN_ENDRING -> Vedtak.IngenEndringIYtelse(
+                id = id,
+                opprettet = opprettet,
+                periode = Periode.create(fraOgMed!!, tilOgMed!!),
+                behandling = behandling,
+                behandlingsinformasjon = behandlingsinformasjon,
+                beregning = beregning!!,
+                saksbehandler = saksbehandler,
+                attestant = attestant,
+                journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.fromId(
+                    iverksattJournalpostId,
+                    iverksattBrevbestillingId,
+                ),
+            )
         }
     }
 

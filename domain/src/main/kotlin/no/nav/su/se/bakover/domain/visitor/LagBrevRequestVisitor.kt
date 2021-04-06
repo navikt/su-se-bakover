@@ -148,11 +148,13 @@ class LagBrevRequestVisitor(
     override fun visit(revurdering: BeregnetRevurdering.Innvilget) {
         throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(revurdering::class)
     }
+
     override fun visit(revurdering: BeregnetRevurdering.Opphørt) {
         throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(revurdering::class)
     }
+
     override fun visit(revurdering: BeregnetRevurdering.IngenEndring) {
-        throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(revurdering::class)
+        TODO("Not yet implemented")
     }
 
     override fun visit(revurdering: SimulertRevurdering.Innvilget) {
@@ -171,6 +173,10 @@ class LagBrevRequestVisitor(
         brevRequest = opphørtRevurdering(revurdering, revurdering.beregning)
     }
 
+    override fun visit(revurdering: RevurderingTilAttestering.IngenEndring) {
+        TODO("Not yet implemented")
+    }
+
     override fun visit(revurdering: IverksattRevurdering.Innvilget) {
         brevRequest = innvilgetRevurdering(revurdering, revurdering.beregning)
     }
@@ -179,12 +185,20 @@ class LagBrevRequestVisitor(
         brevRequest = opphørtRevurdering(revurdering, revurdering.beregning)
     }
 
+    override fun visit(revurdering: IverksattRevurdering.IngenEndring) {
+        TODO("Not yet implemented")
+    }
+
     override fun visit(revurdering: UnderkjentRevurdering.Innvilget) {
         brevRequest = innvilgetRevurdering(revurdering, revurdering.beregning)
     }
 
     override fun visit(revurdering: UnderkjentRevurdering.Opphørt) {
         brevRequest = opphørtRevurdering(revurdering, revurdering.beregning)
+    }
+
+    override fun visit(revurdering: UnderkjentRevurdering.IngenEndring) {
+        TODO("Not yet implemented")
     }
 
     override fun visit(vedtak: Vedtak.EndringIYtelse) {
@@ -198,32 +212,24 @@ class LagBrevRequestVisitor(
             VedtakType.OPPHØR -> {
                 opphørsvedtak(vedtak)
             }
-            VedtakType.AVSLAG -> {
+            VedtakType.AVSLAG,
+            VedtakType.INGEN_ENDRING,
+            -> {
                 throw KunneIkkeLageBrevRequest.UgyldigKombinasjonAvVedtakOgTypeException(vedtak::class, vedtak.vedtakType)
             }
         }
     }
 
     override fun visit(vedtak: Vedtak.Avslag.AvslagVilkår) {
-        brevRequest = when (vedtak.vedtakType) {
-            VedtakType.AVSLAG -> {
-                avslåttVedtakSøknadsbehandling(vedtak)
-            }
-            VedtakType.SØKNAD, VedtakType.ENDRING, VedtakType.OPPHØR -> {
-                throw KunneIkkeLageBrevRequest.UgyldigKombinasjonAvVedtakOgTypeException(vedtak::class, vedtak.vedtakType)
-            }
-        }
+        brevRequest = avslåttVedtakSøknadsbehandling(vedtak)
     }
 
     override fun visit(vedtak: Vedtak.Avslag.AvslagBeregning) {
-        brevRequest = when (vedtak.vedtakType) {
-            VedtakType.AVSLAG -> {
-                avslåttVedtakSøknadsbehandling(vedtak)
-            }
-            VedtakType.SØKNAD, VedtakType.ENDRING, VedtakType.OPPHØR -> {
-                throw KunneIkkeLageBrevRequest.UgyldigKombinasjonAvVedtakOgTypeException(vedtak::class, vedtak.vedtakType)
-            }
-        }
+        brevRequest = avslåttVedtakSøknadsbehandling(vedtak)
+    }
+
+    override fun visit(vedtak: Vedtak.IngenEndringIYtelse) {
+        brevRequest = vedtakIngenEndringIYtelse(vedtak)
     }
 
     private fun hentPersonOgNavn(
@@ -329,7 +335,7 @@ class LagBrevRequestVisitor(
                 beregning = beregning,
                 fritekst = revurdering.fritekstTilBrev,
                 saksbehandlerNavn = it.saksbehandlerNavn,
-                attestantNavn = it.attestantNavn
+                attestantNavn = it.attestantNavn,
             )
         }
 
@@ -468,4 +474,12 @@ class LagBrevRequestVisitor(
                 },
             )
         }
+
+    private fun vedtakIngenEndringIYtelse(vedtak: Vedtak.IngenEndringIYtelse): Either<KunneIkkeLageBrevRequest, LagBrevRequest> = hentPersonOgNavn(
+        fnr = vedtak.behandling.fnr,
+        saksbehandler = vedtak.saksbehandler,
+        attestant = vedtak.attestant,
+    ).map {
+        TODO("Not yet implemented")
+    }
 }

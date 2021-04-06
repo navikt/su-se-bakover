@@ -62,6 +62,21 @@ internal class RevurderingPostgresRepoTest {
             )
             repo.lagre(opprettet)
             repo.hent(opprettet.id) shouldBe opprettet
+
+            val beregnetIngenEndring = BeregnetRevurdering.IngenEndring(
+                id = opprettet.id,
+                periode = periode,
+                opprettet = fixedTidspunkt,
+                tilRevurdering = vedtak,
+                saksbehandler = saksbehandler,
+                oppgaveId = OppgaveId("oppgaveid"),
+                fritekstTilBrev = "",
+                revurderingsårsak = revurderingsårsak,
+                beregning = vedtak.beregning,
+            )
+
+            repo.lagre(beregnetIngenEndring)
+            repo.hent(opprettet.id) shouldBe beregnetIngenEndring
         }
     }
 

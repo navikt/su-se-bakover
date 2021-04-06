@@ -87,7 +87,7 @@ internal class VedtakPosgresRepoTest {
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 
-            val revurderingVedtak = Vedtak.EndringIYtelse.fromRevurdering(iverksattRevurdering, søknadsbehandlingVedtak.utbetalingId)
+            val revurderingVedtak = Vedtak.from(iverksattRevurdering, søknadsbehandlingVedtak.utbetalingId)
 
             vedtakRepo.lagre(revurderingVedtak)
 
@@ -107,9 +107,9 @@ internal class VedtakPosgresRepoTest {
     fun `hent alle aktive vedtak`() {
         withMigratedDb {
             val (søknadsbehandling, utbetaling) = testDataHelper.nyIverksattInnvilget()
-            val vedtakSomErAktivt = Vedtak.EndringIYtelse.fromSøknadsbehandling(søknadsbehandling, utbetaling.id)
+            val vedtakSomErAktivt = Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetaling.id)
                 .copy(periode = Periode.create(1.februar(2021), 31.mars(2021)))
-            val vedtakUtenforAktivPeriode = Vedtak.EndringIYtelse.fromSøknadsbehandling(søknadsbehandling, utbetaling.id)
+            val vedtakUtenforAktivPeriode = Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetaling.id)
                 .copy(periode = Periode.create(1.januar(2021), 31.januar(2021)))
             vedtakRepo.lagre(vedtakSomErAktivt)
             vedtakRepo.lagre(vedtakUtenforAktivPeriode)

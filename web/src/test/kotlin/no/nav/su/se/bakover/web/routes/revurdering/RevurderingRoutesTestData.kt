@@ -29,7 +29,7 @@ object RevurderingRoutesTestData {
     internal val testServices = TestServicesBuilder.services()
     internal val periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020))
 
-    internal val vedtak = Vedtak.EndringIYtelse.fromSøknadsbehandling(
+    internal val vedtak = Vedtak.fromSøknadsbehandling(
         Søknadsbehandling.Iverksatt.Innvilget(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(),

@@ -37,6 +37,7 @@ internal class RevurderingStatistikkMapper(private val clock: Clock) {
                         resultat = when (revurdering) {
                             is IverksattRevurdering.Innvilget -> "Innvilget"
                             is IverksattRevurdering.Opphørt -> "Opphørt"
+                            is IverksattRevurdering.IngenEndring -> TODO()
                         },
                         resultatBegrunnelse = "Endring i søkers inntekt", // TODO ai: Må støtte flere grunner for revurdering senare
                         beslutter = revurdering.attestering.attestant.navIdent,

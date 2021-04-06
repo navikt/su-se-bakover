@@ -484,7 +484,7 @@ internal class LagBrevRequestVisitorTest {
                 .tilAttestering(saksbehandler, "Fritekst!")
                 .tilIverksatt(Attestering.Iverksatt(attestant))
 
-        val innvilgetVedtak = Vedtak.EndringIYtelse.fromSøknadsbehandling(søknadsbehandling, utbetalingId)
+        val innvilgetVedtak = Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetalingId)
 
         val brevSøknadsbehandling = LagBrevRequestVisitor(
             hentPerson = { person.right() },
@@ -604,7 +604,7 @@ internal class LagBrevRequestVisitorTest {
             id = UUID.randomUUID(),
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
             opprettet = Tidspunkt.now(clock),
-            tilRevurdering = Vedtak.EndringIYtelse.fromSøknadsbehandling(søknadsbehandling, utbetalingId),
+            tilRevurdering = Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetalingId),
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("15"),
             beregning = innvilgetBeregning,
@@ -617,7 +617,7 @@ internal class LagBrevRequestVisitorTest {
             ),
         )
 
-        val avslåttVedtak = Vedtak.EndringIYtelse.fromRevurdering(revurdering, utbetalingId)
+        val avslåttVedtak = Vedtak.from(revurdering, utbetalingId)
 
         val brevRevurdering = LagBrevRequestVisitor(
             hentPerson = { person.right() },
@@ -657,7 +657,7 @@ internal class LagBrevRequestVisitorTest {
             id = UUID.randomUUID(),
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
             opprettet = Tidspunkt.now(clock),
-            tilRevurdering = Vedtak.EndringIYtelse.fromSøknadsbehandling(søknadsbehandling, utbetalingId),
+            tilRevurdering = Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetalingId),
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("15"),
             beregning = innvilgetBeregning,
@@ -670,7 +670,7 @@ internal class LagBrevRequestVisitorTest {
             ),
         )
 
-        val opphørsvedtak = Vedtak.EndringIYtelse.fromRevurdering(revurdering, utbetalingId)
+        val opphørsvedtak = Vedtak.from(revurdering, utbetalingId)
 
         val brevRevurdering = LagBrevRequestVisitor(
             hentPerson = { person.right() },

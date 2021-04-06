@@ -146,9 +146,6 @@ sealed class BeregnetRevurdering : Revurdering() {
 
     abstract fun toSimulert(simulering: Simulering): SimulertRevurdering
 
-    // TODO: skal de inn på subtyper?
-    abstract override fun accept(visitor: RevurderingVisitor)
-
     fun oppdater(
         periode: Periode,
         revurderingsårsak: Revurderingsårsak,
@@ -203,12 +200,29 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val fritekstTilBrev: String,
         override val revurderingsårsak: Revurderingsårsak,
     ) : BeregnetRevurdering() {
+
+        fun tilAttestering(
+            attesteringsoppgaveId: OppgaveId,
+            saksbehandler: Saksbehandler,
+            fritekstTilBrev: String,
+        ) = RevurderingTilAttestering.IngenEndring(
+            id = id,
+            periode = periode,
+            opprettet = opprettet,
+            tilRevurdering = tilRevurdering,
+            saksbehandler = saksbehandler,
+            beregning = beregning,
+            oppgaveId = attesteringsoppgaveId,
+            fritekstTilBrev = fritekstTilBrev,
+            revurderingsårsak = revurderingsårsak,
+        )
+
         override fun toSimulert(simulering: Simulering): SimulertRevurdering {
             throw RuntimeException("Skal ikke kunne simulere en beregning som ikke har en endring")
         }
 
         override fun accept(visitor: RevurderingVisitor) {
-            throw NotImplementedError("Har ikke støtte for denne typen")
+            visitor.visit(this)
         }
     }
 
@@ -357,10 +371,6 @@ sealed class RevurderingTilAttestering : Revurdering() {
     abstract val beregning: Beregning
 
     abstract override fun accept(visitor: RevurderingVisitor)
-    // abstract fun tilIverksatt(
-    //     attestant: NavIdentBruker.Attestant,
-    //     utbetal: () -> Either<KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale, UUID30>,
-    // ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering>
 
     data class Innvilget(
         override val id: UUID,
@@ -504,7 +514,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         oppgaveId: OppgaveId,
     ): UnderkjentRevurdering {
         return when (this) {
-            is Innvilget -> return UnderkjentRevurdering.Innvilget(
+            is Innvilget -> UnderkjentRevurdering.Innvilget(
                 id = id,
                 periode = periode,
                 opprettet = opprettet,
@@ -517,7 +527,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 fritekstTilBrev = fritekstTilBrev,
                 revurderingsårsak = revurderingsårsak,
             )
-            is Opphørt -> return UnderkjentRevurdering.Opphørt(
+            is Opphørt -> UnderkjentRevurdering.Opphørt(
                 id = id,
                 periode = periode,
                 opprettet = opprettet,
@@ -530,7 +540,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 fritekstTilBrev = fritekstTilBrev,
                 revurderingsårsak = revurderingsårsak,
             )
-            is IngenEndring -> return UnderkjentRevurdering.IngenEndring(
+            is IngenEndring -> UnderkjentRevurdering.IngenEndring(
                 id = id,
                 periode = periode,
                 opprettet = opprettet,

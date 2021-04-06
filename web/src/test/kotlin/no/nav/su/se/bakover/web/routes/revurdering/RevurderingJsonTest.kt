@@ -146,7 +146,7 @@ internal class RevurderingJsonTest {
                     "beregning": ${serialize(vedtak.beregning.toJson())},
                     "revurdert": ${serialize(beregning.toJson())}
                   },
-                "status": "${RevurderingsStatus.BEREGNET_AVSLAG}",
+                "status": "${RevurderingsStatus.BEREGNET_INGEN_ENDRING}",
                 "saksbehandler": "Petter",
                 "periode": {
                     "fraOgMed": "2020-01-01",
@@ -159,7 +159,7 @@ internal class RevurderingJsonTest {
             """.trimIndent()
 
         JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson()), true)
-        deserialize<BeregnetRevurderingJson.Avslag>(revurderingJson) shouldBe revurdering.toJson()
+        deserialize<BeregnetRevurderingJson.IngenEndring>(revurderingJson) shouldBe revurdering.toJson()
     }
 
     @Test

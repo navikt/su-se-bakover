@@ -49,6 +49,7 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
@@ -122,7 +123,7 @@ internal class RevurderingServiceImplTest {
         Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
     )
 
-    private val søknadsbehandlingVedtak = Vedtak.EndringIYtelse.fromSøknadsbehandling(
+    private val søknadsbehandlingVedtak = Vedtak.fromSøknadsbehandling(
         Søknadsbehandling.Iverksatt.Innvilget(
             id = mock(),
             opprettet = mock(),
@@ -760,6 +761,57 @@ internal class RevurderingServiceImplTest {
                 argThat {
                     it should beOfType<Vedtak.EndringIYtelse>()
                     it.vedtakType shouldBe VedtakType.OPPHØR
+                },
+            )
+            verify(revurderingRepoMock).lagre(any())
+        }
+        verifyNoMoreInteractions(
+            revurderingRepoMock,
+            utbetalingServiceMock,
+            vedtakRepoMock,
+        )
+    }
+
+    @Test
+    fun `iverksetter revurdering som ikke fører til endring i ytelse`() {
+        val revurderingTilAttestering = RevurderingTilAttestering.IngenEndring(
+            id = revurderingId,
+            periode = periode,
+            opprettet = Tidspunkt.EPOCH,
+            tilRevurdering = søknadsbehandlingVedtak,
+            oppgaveId = OppgaveId(value = "OppgaveId"),
+            beregning = TestBeregningSomGirAvslag,
+            saksbehandler = saksbehandler,
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
+        )
+        val attestant = NavIdentBruker.Attestant("ATTT")
+
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn revurderingTilAttestering
+        }
+        val utbetalingServiceMock = mock<UtbetalingService>()
+        val vedtakRepoMock = mock<VedtakRepo>()
+
+        createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+            utbetalingService = utbetalingServiceMock,
+            vedtakRepo = vedtakRepoMock,
+        ).iverksett(
+            revurderingId,
+            attestant,
+        )
+
+        inOrder(
+            revurderingRepoMock,
+            utbetalingServiceMock,
+            vedtakRepoMock,
+        ) {
+            verify(revurderingRepoMock).hent(revurderingId)
+            verify(vedtakRepoMock).lagre(
+                argThat {
+                    it should beOfType<Vedtak.IngenEndringIYtelse>()
+                    it.vedtakType shouldBe VedtakType.INGEN_ENDRING
                 },
             )
             verify(revurderingRepoMock).lagre(any())
