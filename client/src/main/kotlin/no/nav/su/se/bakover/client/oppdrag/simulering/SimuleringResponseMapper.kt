@@ -60,9 +60,9 @@ private fun BeregningStoppnivaaDetaljer.toSimulertDetalj() =
         typeSats = typeSats.trim(),
         antallSats = antallSats.intValueExact(),
         uforegrad = uforeGrad.intValueExact(),
-        klassekode = KlasseKode.valueOf(klassekode),
+        klassekode = KlasseKode.valueOf(klassekode.trim()),
         klassekodeBeskrivelse = klasseKodeBeskrivelse.trim(),
-        klasseType = KlasseType.valueOf(typeKlasse),
+        klasseType = KlasseType.valueOf(typeKlasse.trim()),
     )
 
 /**
