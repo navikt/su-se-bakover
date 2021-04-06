@@ -441,6 +441,54 @@ internal class TidslinjeTest {
     }
 
     /**
+     *  |-----| a
+     *    |---| b
+     *  |-|---| resultat
+     */
+    @Test
+    fun `ny erstatter siste del av gammel`() {
+        val a = Tidslinjeobjekt(
+            opprettet = Tidspunkt.now(fixedClock),
+            periode = Periode.create(
+                fraOgMed = 1.januar(2021),
+                tilOgMed = 31.desember(2021)
+            )
+        )
+
+        val b = Tidslinjeobjekt(
+            opprettet = Tidspunkt.now(fixedClock).plus(1, DAYS),
+            periode = Periode.create(
+                fraOgMed = 1.april(2021),
+                tilOgMed = 31.desember(2021)
+            )
+        )
+
+        Tidslinje(
+            periode = Periode.create(
+                fraOgMed = 1.januar(2021),
+                tilOgMed = 31.desember(2021)
+            ),
+            objekter = listOf(a, b),
+            clock = fixedClock
+        ).tidslinje shouldBe listOf(
+            Tidslinjeobjekt(
+                opprettet = a.opprettet,
+                periode = Periode.create(
+                    fraOgMed = 1.januar(2021),
+                    tilOgMed = 31.mars(2021)
+                )
+            ),
+            Tidslinjeobjekt(
+                opprettet = b.opprettet,
+                periode = Periode.create(
+                    fraOgMed = 1.april(2021),
+                    tilOgMed = 31.desember(2021)
+                )
+            )
+        )
+    }
+
+    /**
      *  |--------| a
      *      |-|    b
      *        |--| c
