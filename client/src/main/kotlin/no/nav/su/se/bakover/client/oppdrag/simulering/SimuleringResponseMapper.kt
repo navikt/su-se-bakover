@@ -17,39 +17,39 @@ import java.time.LocalDate
 internal class SimuleringResponseMapper private constructor(
     val simulering: Simulering,
 ) {
-    constructor(oppdragResponse: SimulerBeregningResponse) : this(oppdragResponse.map())
+    constructor(oppdragResponse: SimulerBeregningResponse) : this(oppdragResponse.toSimulering())
     constructor(utbetaling: Utbetaling) : this(utbetaling.mapTomResponsFraOppdrag())
 }
 
-private fun SimulerBeregningResponse.map() =
+private fun SimulerBeregningResponse.toSimulering() =
     Simulering(
         gjelderId = Fnr(simulering.gjelderId),
         gjelderNavn = simulering.gjelderNavn.trim(),
         datoBeregnet = LocalDate.parse(simulering.datoBeregnet),
         nettoBeløp = simulering.belop.toInt(),
-        periodeList = simulering.beregningsPeriode.map { it.map() },
+        periodeList = simulering.beregningsPeriode.map { it.toSimulertPeriode() },
     )
 
-private fun BeregningsPeriode.map() =
+private fun BeregningsPeriode.toSimulertPeriode() =
     SimulertPeriode(
         fraOgMed = LocalDate.parse(periodeFom),
         tilOgMed = LocalDate.parse(periodeTom),
-        utbetaling = beregningStoppnivaa.map { it.map() }
+        utbetaling = beregningStoppnivaa.map { it.toSimulertUtbetaling() }
             .filter { utbetaling -> utbetaling.detaljer.any { it.klassekode == KlasseKode.SUUFORE } },
     )
 
-private fun BeregningStoppnivaa.map() =
+private fun BeregningStoppnivaa.toSimulertUtbetaling() =
     SimulertUtbetaling(
         fagSystemId = fagsystemId.trim(),
         utbetalesTilNavn = utbetalesTilNavn.trim(),
         utbetalesTilId = Fnr(utbetalesTilId),
         forfall = LocalDate.parse(forfall),
         feilkonto = isFeilkonto,
-        detaljer = beregningStoppnivaaDetaljer.map { it.map() }
+        detaljer = beregningStoppnivaaDetaljer.map { it.toSimulertDetalj() }
             .filter { detalj -> detalj.klasseType == KlasseType.YTEL },
     )
 
-private fun BeregningStoppnivaaDetaljer.map() =
+private fun BeregningStoppnivaaDetaljer.toSimulertDetalj() =
     SimulertDetaljer(
         faktiskFraOgMed = LocalDate.parse(faktiskFom),
         faktiskTilOgMed = LocalDate.parse(faktiskTom),
