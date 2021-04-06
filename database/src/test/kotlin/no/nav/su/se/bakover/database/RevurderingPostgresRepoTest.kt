@@ -167,7 +167,7 @@ internal class RevurderingPostgresRepoTest {
 
             repo.lagre(opprettet)
 
-            val beregnet = BeregnetRevurdering.Avslag(
+            val beregnet = BeregnetRevurdering.IngenEndring(
                 id = opprettet.id,
                 periode = opprettet.periode,
                 opprettet = opprettet.opprettet,
@@ -181,7 +181,7 @@ internal class RevurderingPostgresRepoTest {
 
             repo.lagre(beregnet)
 
-            val nyBeregnet = BeregnetRevurdering.Avslag(
+            val nyBeregnet = BeregnetRevurdering.IngenEndring(
                 id = beregnet.id,
                 periode = beregnet.periode,
                 opprettet = beregnet.opprettet,

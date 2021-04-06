@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import org.junit.jupiter.api.Test
 
-internal class VurderAvslagGrunnetBeregningKtTest {
+internal class VurderIngenEndringGrunnetBeregningKtTest {
 
     @Test
     fun `beregning som ikke eksisterer kan ikke gi avslag`() {

@@ -178,7 +178,7 @@ internal class RevurderingServiceImpl(
                             }.left()
                         }
                 ) {
-                    is BeregnetRevurdering.Avslag -> {
+                    is BeregnetRevurdering.IngenEndring -> {
                         revurderingRepo.lagre(beregnetRevurdering)
                         beregnetRevurdering.right()
                     }

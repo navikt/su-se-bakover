@@ -122,7 +122,7 @@ internal class RevurderingJsonTest {
         val opprettet = Tidspunkt.now()
         val beregning = TestBeregning
 
-        val revurdering = BeregnetRevurdering.Avslag(
+        val revurdering = BeregnetRevurdering.IngenEndring(
             id = id,
             periode = Periode.create(1.januar(2020), 31.desember(2020)),
             opprettet = opprettet,

@@ -241,7 +241,7 @@ internal class RevurderingPostgresRepo(
                 fritekstTilBrev = fritekstTilBrev ?: "",
                 revurderingsårsak = revurderingsårsak,
             )
-            RevurderingsType.BEREGNET_AVSLAG -> BeregnetRevurdering.Avslag(
+            RevurderingsType.BEREGNET_AVSLAG -> BeregnetRevurdering.IngenEndring(
                 id = id,
                 periode = periode,
                 opprettet = opprettet,
@@ -363,7 +363,7 @@ internal class RevurderingPostgresRepo(
                     "beregning" to objectMapper.writeValueAsString(revurdering.beregning),
                     "revurderingsType" to when (revurdering) {
                         is BeregnetRevurdering.Innvilget -> RevurderingsType.BEREGNET_INNVILGET.toString()
-                        is BeregnetRevurdering.Avslag -> RevurderingsType.BEREGNET_AVSLAG.toString()
+                        is BeregnetRevurdering.IngenEndring -> RevurderingsType.BEREGNET_AVSLAG.toString()
                         is BeregnetRevurdering.Opphørt -> RevurderingsType.BEREGNET_OPPHØRT.toString()
                     },
                     "arsak" to revurdering.revurderingsårsak.årsak.toString(),

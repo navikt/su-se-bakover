@@ -151,7 +151,7 @@ class LagBrevRequestVisitor(
     override fun visit(revurdering: BeregnetRevurdering.Opphørt) {
         throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(revurdering::class)
     }
-    override fun visit(revurdering: BeregnetRevurdering.Avslag) {
+    override fun visit(revurdering: BeregnetRevurdering.IngenEndring) {
         throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(revurdering::class)
     }
 

@@ -6,7 +6,7 @@ interface RevurderingVisitor : Visitor {
     fun visit(revurdering: OpprettetRevurdering)
     fun visit(revurdering: BeregnetRevurdering.Innvilget)
     fun visit(revurdering: BeregnetRevurdering.Opphørt)
-    fun visit(revurdering: BeregnetRevurdering.Avslag)
+    fun visit(revurdering: BeregnetRevurdering.IngenEndring)
     fun visit(revurdering: SimulertRevurdering.Innvilget)
     fun visit(revurdering: SimulertRevurdering.Opphørt)
     fun visit(revurdering: RevurderingTilAttestering.Innvilget)
@@ -15,4 +15,7 @@ interface RevurderingVisitor : Visitor {
     fun visit(revurdering: IverksattRevurdering.Opphørt)
     fun visit(revurdering: UnderkjentRevurdering.Innvilget)
     fun visit(revurdering: UnderkjentRevurdering.Opphørt)
+    fun visit(ingenEndring: IverksattRevurdering.IngenEndring)
+    fun visit(ingenEndring: RevurderingTilAttestering.IngenEndring)
+    fun visit(ingenEndring: UnderkjentRevurdering.IngenEndring)
 }

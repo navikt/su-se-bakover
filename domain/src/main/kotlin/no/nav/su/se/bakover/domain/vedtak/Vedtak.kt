@@ -26,6 +26,7 @@ enum class VedtakType {
     SØKNAD,
     AVSLAG,
     ENDRING,
+    INGEN_ENDRING,
     OPPHØR,
 }
 
@@ -83,7 +84,11 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                 behandlingsinformasjon = revurdering.tilRevurdering.behandlingsinformasjon,
                 periode = revurdering.beregning.getPeriode(),
                 beregning = revurdering.beregning,
-                simulering = revurdering.simulering,
+                simulering = when (revurdering) {
+                    is IverksattRevurdering.Innvilget -> revurdering.simulering
+                    is IverksattRevurdering.Opphørt -> revurdering.simulering
+                    is IverksattRevurdering.IngenEndring -> revurdering.simulering
+                },
                 saksbehandler = revurdering.saksbehandler,
                 attestant = revurdering.attestering.attestant,
                 utbetalingId = utbetalingId,
@@ -91,6 +96,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                 vedtakType = when (revurdering) {
                     is IverksattRevurdering.Innvilget -> VedtakType.ENDRING
                     is IverksattRevurdering.Opphørt -> VedtakType.OPPHØR
+                    is IverksattRevurdering.IngenEndring -> VedtakType.INGEN_ENDRING
                 },
             )
         }

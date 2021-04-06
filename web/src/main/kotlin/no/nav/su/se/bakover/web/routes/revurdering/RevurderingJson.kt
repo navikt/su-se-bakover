@@ -396,7 +396,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         årsak = revurderingsårsak.årsak.toString(),
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
     )
-    is BeregnetRevurdering.Avslag -> BeregnetRevurderingJson.Avslag(
+    is BeregnetRevurdering.IngenEndring -> BeregnetRevurderingJson.Avslag(
         id = id.toString(),
         opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
         periode = periode.toJson(),

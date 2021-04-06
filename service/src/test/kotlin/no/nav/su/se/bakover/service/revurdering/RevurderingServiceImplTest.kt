@@ -370,7 +370,7 @@ internal class RevurderingServiceImplTest {
             fradrag = listOf(),
         ).getOrHandle { throw RuntimeException("Skal gå å revurdere") }
 
-        actual.shouldBeInstanceOf<BeregnetRevurdering.Avslag>()
+        actual.shouldBeInstanceOf<BeregnetRevurdering.IngenEndring>()
     }
 
     @Test

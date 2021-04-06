@@ -51,7 +51,7 @@ class FinnAttestantVisitor : SøknadsbehandlingVisitor, RevurderingVisitor {
     override fun visit(revurdering: OpprettetRevurdering) {}
     override fun visit(revurdering: BeregnetRevurdering.Opphørt) {}
     override fun visit(revurdering: BeregnetRevurdering.Innvilget) {}
-    override fun visit(revurdering: BeregnetRevurdering.Avslag) {}
+    override fun visit(revurdering: BeregnetRevurdering.IngenEndring) {}
     override fun visit(revurdering: SimulertRevurdering.Opphørt) {}
     override fun visit(revurdering: SimulertRevurdering.Innvilget) {}
     override fun visit(revurdering: RevurderingTilAttestering.Opphørt) {}
