@@ -208,7 +208,7 @@ internal class VedtakPosgresRepoTest {
     }
 
     @Test
-    fun `kan lagre et vedtak som ikke fører til endring i utbetaling`(){
+    fun `kan lagre et vedtak som ikke fører til endring i utbetaling`() {
         withMigratedDb {
             val søknadsbehandlingVedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
 
@@ -246,5 +246,4 @@ internal class VedtakPosgresRepoTest {
             }
         }
     }
-
 }

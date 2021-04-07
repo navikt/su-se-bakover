@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.service.statistikk
 
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.zoneIdOslo
-import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
@@ -38,7 +37,7 @@ internal class RevurderingStatistikkMapper(private val clock: Clock) {
                         resultat = when (revurdering) {
                             is IverksattRevurdering.Innvilget -> "Innvilget"
                             is IverksattRevurdering.Opphørt -> "Opphørt"
-                            is IverksattRevurdering.IngenEndring -> TODO()
+                            is IverksattRevurdering.IngenEndring -> "Uendret"
                         },
                         resultatBegrunnelse = "Endring i søkers inntekt", // TODO ai: Må støtte flere grunner for revurdering senare
                         beslutter = revurdering.attestering.attestant.navIdent,
@@ -59,13 +58,15 @@ internal class RevurderingStatistikkMapper(private val clock: Clock) {
         fun map(revurdering: Revurdering): String =
             when (revurdering) {
                 is OpprettetRevurdering -> "OPPRETTET"
-                is BeregnetRevurdering.IngenEndring -> "BEREGNET_INGEN_ENDRING"
                 is IverksattRevurdering.Innvilget -> "IVERKSATT_INNVILGET"
                 is IverksattRevurdering.Opphørt -> "IVERKSATT_OPPHØRT"
+                is IverksattRevurdering.IngenEndring -> "IVERKSATT_INGEN_ENDRING"
                 is RevurderingTilAttestering.Innvilget -> "TIL_ATTESTERING_INNVILGET"
                 is RevurderingTilAttestering.Opphørt -> "TIL_ATTESTERING_OPPHØRT"
+                is RevurderingTilAttestering.IngenEndring -> "TIL_ATTESTERING_INGEN_ENDRING"
                 is UnderkjentRevurdering.Innvilget -> "UNDERKJENT_INNVILGET"
                 is UnderkjentRevurdering.Opphørt -> "UNDERKJENT_OPPHØRT"
+                is UnderkjentRevurdering.IngenEndring -> "UNDERKJENT_INGEN_ENDRING"
                 else -> throw ManglendeStatistikkMappingException(this, revurdering::class.java)
             }
     }
@@ -76,10 +77,13 @@ internal class RevurderingStatistikkMapper(private val clock: Clock) {
                 is OpprettetRevurdering -> "Ny revurdering opprettet"
                 is RevurderingTilAttestering.Innvilget -> "Innvilget revurdering sendt til attestering"
                 is RevurderingTilAttestering.Opphørt -> "Opphørt revurdering sendt til attestering"
+                is RevurderingTilAttestering.IngenEndring -> "Revurdering uten endring i ytelse sendt til attestering"
                 is IverksattRevurdering.Innvilget -> "Innvilget revurdering iverksatt"
                 is IverksattRevurdering.Opphørt -> "Opphørt revurdering iverksatt"
+                is IverksattRevurdering.IngenEndring -> "Revurdering uten endring i ytelse iverksatt"
                 is UnderkjentRevurdering.Innvilget -> "Innvilget revurdering underkjent"
                 is UnderkjentRevurdering.Opphørt -> "Opphørt revurdering underkjent"
+                is UnderkjentRevurdering.IngenEndring -> "Revurdering uten endring i ytelse underkjent"
                 else -> throw ManglendeStatistikkMappingException(this, revurdering::class.java)
             }
     }
