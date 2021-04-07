@@ -954,8 +954,13 @@ internal class TidslinjeTest {
         )
     }
 
+    /**
+     *  |------| a
+     *     |---| b
+     *  |------| resultat
+     */
     @Test
-    fun `kan lage tidslinje for forskjellige typer objekter`() {
+    fun `kan lage tidslinje for utbetalingslinjer`() {
         val id = UUID30.randomUUID()
 
         val a = Utbetalingslinje.Ny(

@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.web.routes.behandling.toJson
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingJson
 import no.nav.su.se.bakover.web.routes.revurdering.VedtakJson
 import no.nav.su.se.bakover.web.routes.revurdering.toJson
+import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.medUtbetalingstype
 import no.nav.su.se.bakover.web.routes.sak.SakJson.KanStansesEllerGjenopptas.Companion.kanStansesEllerGjenopptas
 import no.nav.su.se.bakover.web.routes.søknad.SøknadJson
 import no.nav.su.se.bakover.web.routes.søknad.toJson
@@ -74,13 +75,11 @@ internal data class SakJson(
                     utbetaling.utbetalingslinjer.map {
                         it.medUtbetalingstype(utbetaling.type)
                     }
-                }
-                .let { utbetalingslinjer ->
-                    if (utbetalingslinjer.isEmpty()) {
-                        return@let emptyList<UtbetalingJson>()
-                    }
-
-                    tidslinjeMedUtbetalinger(utbetalingslinjer)
+                }.let { utbetalingslinjer ->
+                    if (utbetalingslinjer.isEmpty())
+                        emptyList()
+                    else
+                        tidslinjeMedUtbetalinger(utbetalingslinjer)
                 },
             utbetalingerKanStansesEllerGjenopptas = utbetalinger.kanStansesEllerGjenopptas(),
             revurderinger = revurderinger.map { it.toJson() },
@@ -91,12 +90,15 @@ internal data class SakJson(
             UtbetalingslinjeMedUtbetalingstype(
                 utbetalingslinje = when (this) {
                     is Utbetalingslinje.Ny -> this
-                    is Utbetalingslinje.Endring -> this.copy(
-                        fraOgMed = this.statusendring.fraOgMed,
-                        beløp = if (this.statusendring.status == Utbetalingslinje.LinjeStatus.OPPHØR) 0 else this.beløp,
-                    )
+                    is Utbetalingslinje.Endring -> håndterOpphørteUtbetalingslinjer(this)
                 },
                 type,
+            )
+
+        private fun håndterOpphørteUtbetalingslinjer(utbetalingslinje: Utbetalingslinje.Endring) =
+            utbetalingslinje.copy(
+                fraOgMed = utbetalingslinje.statusendring.fraOgMed,
+                beløp = if (utbetalingslinje.statusendring.status == Utbetalingslinje.LinjeStatus.OPPHØR) 0 else utbetalingslinje.beløp,
             )
 
         private fun tidslinjeMedUtbetalinger(utbetalingslinjer: List<UtbetalingslinjeMedUtbetalingstype>): List<UtbetalingJson> =
