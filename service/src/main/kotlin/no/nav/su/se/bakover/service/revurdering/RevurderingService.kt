@@ -97,6 +97,8 @@ sealed class KunneIkkeIverksetteRevurdering {
     object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteRevurdering()
     object KunneIkkeUtbetale : KunneIkkeIverksetteRevurdering()
     object KunneIkkeKontrollsimulere : KunneIkkeIverksetteRevurdering()
+    object KunneIkkeJournaleføreBrev : KunneIkkeIverksetteRevurdering()
+    object KunneIkkeDistribuereBrev : KunneIkkeIverksetteRevurdering()
     object FantIkkeRevurdering : KunneIkkeIverksetteRevurdering()
     data class UgyldigTilstand(
         val fra: KClass<out Revurdering>,

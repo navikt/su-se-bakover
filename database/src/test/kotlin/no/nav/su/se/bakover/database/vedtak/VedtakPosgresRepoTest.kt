@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.TestDataHelper
+import no.nav.su.se.bakover.database.fixedClock
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
@@ -248,7 +249,7 @@ internal class VedtakPosgresRepoTest {
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 
-            val revurderingVedtak = Vedtak.from(iverksattRevurdering)
+            val revurderingVedtak = Vedtak.from(iverksattRevurdering, fixedClock)
 
             vedtakRepo.lagre(revurderingVedtak)
             vedtakRepo.hent(revurderingVedtak.id) shouldBe revurderingVedtak

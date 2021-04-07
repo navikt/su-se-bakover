@@ -66,7 +66,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
     }
 
     @Test
-    fun `send til attestering`() {
+    fun `innvilget`() {
         val revurderingTilAttestering = RevurderingTilAttestering.Innvilget(
             id = UUID.randomUUID(),
             periode = periode,
@@ -109,6 +109,94 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
                 val actualResponse = objectMapper.readValue<TilAttesteringJson>(response.content!!)
                 actualResponse.id shouldBe revurderingTilAttestering.id.toString()
                 actualResponse.status shouldBe RevurderingsStatus.TIL_ATTESTERING_INNVILGET
+            }
+        }
+    }
+
+    @Test
+    fun `ingen endring uten brev`() {
+        val revurderingTilAttestering = RevurderingTilAttestering.IngenEndring(
+            id = UUID.randomUUID(),
+            periode = periode,
+            opprettet = Tidspunkt.now(),
+            tilRevurdering = vedtak,
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = ""),
+            beregning = TestBeregning,
+            oppgaveId = OppgaveId("OppgaveId"),
+            fritekstTilBrev = "",
+            revurderingsårsak = Revurderingsårsak(
+                Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
+                Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
+            ),
+            sendBrev = false
+        )
+
+        val revurderingServiceMock = mock<RevurderingService> {
+            on { sendTilAttestering(any()) } doReturn revurderingTilAttestering.right()
+        }
+
+        withTestApplication(
+            {
+                testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
+            },
+        ) {
+            defaultRequest(
+                HttpMethod.Post,
+                "$requestPath/${revurderingTilAttestering.id}/tilAttestering",
+                listOf(Brukerrolle.Saksbehandler),
+            ) {
+                setBody("""{ "fritekstTilBrev": "", "sendBrev": "false" }""")
+            }.apply {
+                response.status() shouldBe HttpStatusCode.OK
+                val actualResponse = objectMapper.readValue<TilAttesteringJson>(response.content!!)
+                actualResponse.id shouldBe revurderingTilAttestering.id.toString()
+                actualResponse.status shouldBe RevurderingsStatus.TIL_ATTESTERING_INGEN_ENDRING
+                actualResponse.fritekstTilBrev shouldBe ""
+                actualResponse.sendBrev shouldBe false
+            }
+        }
+    }
+
+    @Test
+    fun `ingen endring med brev`() {
+        val revurderingTilAttestering = RevurderingTilAttestering.IngenEndring(
+            id = UUID.randomUUID(),
+            periode = periode,
+            opprettet = Tidspunkt.now(),
+            tilRevurdering = vedtak,
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = ""),
+            beregning = TestBeregning,
+            oppgaveId = OppgaveId("OppgaveId"),
+            fritekstTilBrev = "Friteksten",
+            revurderingsårsak = Revurderingsårsak(
+                Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
+                Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
+            ),
+            sendBrev = true
+        )
+
+        val revurderingServiceMock = mock<RevurderingService> {
+            on { sendTilAttestering(any()) } doReturn revurderingTilAttestering.right()
+        }
+
+        withTestApplication(
+            {
+                testSusebakover(services = testServices.copy(revurdering = revurderingServiceMock))
+            },
+        ) {
+            defaultRequest(
+                HttpMethod.Post,
+                "$requestPath/${revurderingTilAttestering.id}/tilAttestering",
+                listOf(Brukerrolle.Saksbehandler),
+            ) {
+                setBody("""{ "fritekstTilBrev": "Friteksten", "sendBrev": "true" }""")
+            }.apply {
+                response.status() shouldBe HttpStatusCode.OK
+                val actualResponse = objectMapper.readValue<TilAttesteringJson>(response.content!!)
+                actualResponse.id shouldBe revurderingTilAttestering.id.toString()
+                actualResponse.status shouldBe RevurderingsStatus.TIL_ATTESTERING_INGEN_ENDRING
+                actualResponse.fritekstTilBrev shouldBe "Friteksten"
+                actualResponse.sendBrev shouldBe true
             }
         }
     }

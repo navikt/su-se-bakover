@@ -340,6 +340,7 @@ internal class RevurderingJsonTest {
                     "tilOgMed": "2020-12-31"
                 },
                 "fritekstTilBrev": "",
+                "sendBrev": true,
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon"
             }
@@ -387,6 +388,7 @@ internal class RevurderingJsonTest {
                     "tilOgMed": "2020-12-31"
                 },
                 "fritekstTilBrev": "",
+                "sendBrev": true,
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon"
             }
@@ -434,6 +436,7 @@ internal class RevurderingJsonTest {
                     "tilOgMed": "2020-12-31"
                 },
                 "fritekstTilBrev": "",
+                "sendBrev": true,
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon"
             }
@@ -493,6 +496,7 @@ internal class RevurderingJsonTest {
                     }
                 },
                 "fritekstTilBrev": "",
+                "sendBrev": true,
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon"
             }
@@ -552,6 +556,7 @@ internal class RevurderingJsonTest {
                     }
                 },
                 "fritekstTilBrev": "",
+                "sendBrev": true,
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon"
             }
@@ -611,6 +616,7 @@ internal class RevurderingJsonTest {
                     }
                 },
                 "fritekstTilBrev": "",
+                "sendBrev": true,
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon"
             }
@@ -660,6 +666,7 @@ internal class RevurderingJsonTest {
                 },
                 "attestant": "attestant",
                 "fritekstTilBrev": "",
+                "sendBrev": true,
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon"
             }
@@ -709,6 +716,7 @@ internal class RevurderingJsonTest {
                 },
                 "attestant": "attestant",
                 "fritekstTilBrev": "",
+                "sendBrev": true,
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon"
             }
@@ -758,6 +766,7 @@ internal class RevurderingJsonTest {
                 },
                 "attestant": "attestant",
                 "fritekstTilBrev": "",
+                "sendBrev": true,
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon"
             }

@@ -362,14 +362,6 @@ sealed class SimulertRevurdering : Revurdering() {
 }
 
 sealed class RevurderingTilAttestering : Revurdering() {
-    abstract override val id: UUID
-    abstract override val periode: Periode
-    abstract override val opprettet: Tidspunkt
-    abstract override val tilRevurdering: Vedtak.EndringIYtelse
-    abstract override val saksbehandler: Saksbehandler
-    abstract override val oppgaveId: OppgaveId
-    abstract override val fritekstTilBrev: String
-    abstract override val revurderingsårsak: Revurderingsårsak
     abstract val beregning: Beregning
 
     abstract override fun accept(visitor: RevurderingVisitor)

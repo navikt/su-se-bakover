@@ -38,6 +38,7 @@ import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -52,6 +53,7 @@ internal class RevurderingServiceImpl(
     private val brevService: BrevService,
     private val clock: Clock,
     internal val vedtakRepo: VedtakRepo,
+    internal val ferdigstillVedtakService: FerdigstillVedtakService,
 ) : RevurderingService {
 
     private val observers: MutableList<EventObserver> = mutableListOf()
@@ -258,11 +260,33 @@ internal class RevurderingServiceImpl(
         }
 
         val tilAttestering = when (revurdering) {
-            is BeregnetRevurdering.IngenEndring -> revurdering.tilAttestering(oppgaveId, request.saksbehandler, request.fritekstTilBrev, request.sendBrev)
-            is UnderkjentRevurdering.IngenEndring -> revurdering.tilAttestering(oppgaveId, request.saksbehandler, request.fritekstTilBrev, request.sendBrev)
-            is SimulertRevurdering -> revurdering.tilAttestering(oppgaveId, request.saksbehandler, request.fritekstTilBrev)
-            is UnderkjentRevurdering.Opphørt -> revurdering.tilAttestering(oppgaveId, request.saksbehandler, request.fritekstTilBrev)
-            is UnderkjentRevurdering.Innvilget -> revurdering.tilAttestering(oppgaveId, request.saksbehandler, request.fritekstTilBrev)
+            is BeregnetRevurdering.IngenEndring -> revurdering.tilAttestering(
+                oppgaveId,
+                request.saksbehandler,
+                request.fritekstTilBrev,
+                request.sendBrev,
+            )
+            is SimulertRevurdering -> revurdering.tilAttestering(
+                oppgaveId,
+                request.saksbehandler,
+                request.fritekstTilBrev,
+            )
+            is UnderkjentRevurdering.IngenEndring -> revurdering.tilAttestering(
+                oppgaveId,
+                request.saksbehandler,
+                request.fritekstTilBrev,
+                request.sendBrev,
+            )
+            is UnderkjentRevurdering.Opphørt -> revurdering.tilAttestering(
+                oppgaveId,
+                request.saksbehandler,
+                request.fritekstTilBrev,
+            )
+            is UnderkjentRevurdering.Innvilget -> revurdering.tilAttestering(
+                oppgaveId,
+                request.saksbehandler,
+                request.fritekstTilBrev,
+            )
             else -> return KunneIkkeSendeRevurderingTilAttestering.UgyldigTilstand(
                 revurdering::class,
                 RevurderingTilAttestering::class,
@@ -336,10 +360,20 @@ internal class RevurderingServiceImpl(
             is RevurderingTilAttestering -> {
                 val iverksattRevurdering = when (revurdering) {
                     is RevurderingTilAttestering.IngenEndring -> {
+
                         revurdering.tilIverksatt(attestant)
-                            .map {
-                                vedtakRepo.lagre(Vedtak.from(it))
-                                it
+                            .map { iverksattRevurdering ->
+                                if (revurdering.sendBrev) {
+                                    ferdigstillVedtakService.journalførOgLagre(Vedtak.from(iverksattRevurdering, clock))
+                                        .map { journalførtVedtak ->
+                                            ferdigstillVedtakService.distribuerOgLagre(journalførtVedtak).mapLeft {
+                                                KunneIkkeIverksetteRevurdering.KunneIkkeDistribuereBrev
+                                            }
+                                        }.mapLeft {
+                                            KunneIkkeIverksetteRevurdering.KunneIkkeJournaleføreBrev
+                                        }
+                                }
+                                iverksattRevurdering
                             }
                     }
                     is RevurderingTilAttestering.Innvilget -> {

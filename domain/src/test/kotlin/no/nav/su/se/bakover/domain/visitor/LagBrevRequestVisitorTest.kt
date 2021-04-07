@@ -721,7 +721,7 @@ internal class LagBrevRequestVisitorTest {
             sendBrev = false,
         )
 
-        val vedtakIngenEndring = Vedtak.from(revurdering)
+        val vedtakIngenEndring = Vedtak.from(revurdering, clock)
 
         val brevRevurdering = LagBrevRequestVisitor(
             hentPerson = { person.right() },
