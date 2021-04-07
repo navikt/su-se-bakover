@@ -104,9 +104,9 @@ internal class IverksettRevurderingRouteKtTest {
                 listOf(Brukerrolle.Attestant),
             ).apply {
                 response.status() shouldBe HttpStatusCode.OK
-                val actualResponse = objectMapper.readValue<TilAttesteringJson.Innvilget>(response.content!!)
+                val actualResponse = objectMapper.readValue<IverksattRevurderingJson>(response.content!!)
                 actualResponse.id shouldBe iverksattRevurdering.id.toString()
-                actualResponse.status shouldBe RevurderingsStatus.TIL_ATTESTERING_INNVILGET
+                actualResponse.status shouldBe RevurderingsStatus.IVERKSATT_INNVILGET
             }
         }
     }

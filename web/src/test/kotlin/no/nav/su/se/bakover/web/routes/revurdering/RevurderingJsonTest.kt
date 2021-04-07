@@ -113,7 +113,7 @@ internal class RevurderingJsonTest {
             """.trimIndent()
 
         JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson()), true)
-        deserialize<BeregnetRevurderingJson.Innvilget>(revurderingJson) shouldBe revurdering.toJson()
+        deserialize<BeregnetRevurderingJson>(revurderingJson) shouldBe revurdering.toJson()
     }
 
     @Test
@@ -159,7 +159,7 @@ internal class RevurderingJsonTest {
             """.trimIndent()
 
         JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson()), true)
-        deserialize<BeregnetRevurderingJson.Opphørt>(revurderingJson) shouldBe revurdering.toJson()
+        deserialize<BeregnetRevurderingJson>(revurderingJson) shouldBe revurdering.toJson()
     }
 
     @Test
@@ -205,7 +205,7 @@ internal class RevurderingJsonTest {
             """.trimIndent()
 
         JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson()), true)
-        deserialize<BeregnetRevurderingJson.IngenEndring>(revurderingJson) shouldBe revurdering.toJson()
+        deserialize<BeregnetRevurderingJson>(revurderingJson) shouldBe revurdering.toJson()
     }
 
     @Test
@@ -252,7 +252,7 @@ internal class RevurderingJsonTest {
             """.trimIndent()
 
         JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson()), true)
-        deserialize<SimulertRevurderingJson.Innvilget>(revurderingJson) shouldBe revurdering.toJson()
+        deserialize<SimulertRevurderingJson>(revurderingJson) shouldBe revurdering.toJson()
     }
 
     @Test
@@ -299,7 +299,7 @@ internal class RevurderingJsonTest {
             """.trimIndent()
 
         JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson()), true)
-        deserialize<SimulertRevurderingJson.Opphørt>(revurderingJson) shouldBe revurdering.toJson()
+        deserialize<SimulertRevurderingJson>(revurderingJson) shouldBe revurdering.toJson()
     }
 
     @Test
@@ -346,7 +346,7 @@ internal class RevurderingJsonTest {
             """.trimIndent()
 
         JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson()), true)
-        deserialize<TilAttesteringJson.Innvilget>(revurderingJson) shouldBe revurdering.toJson()
+        deserialize<TilAttesteringJson>(revurderingJson) shouldBe revurdering.toJson()
     }
 
     @Test
@@ -393,7 +393,7 @@ internal class RevurderingJsonTest {
             """.trimIndent()
 
         JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson()), true)
-        deserialize<TilAttesteringJson.Opphørt>(revurderingJson) shouldBe revurdering.toJson()
+        deserialize<TilAttesteringJson>(revurderingJson) shouldBe revurdering.toJson()
     }
 
     @Test
@@ -439,7 +439,7 @@ internal class RevurderingJsonTest {
             """.trimIndent()
 
         JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson()), true)
-        deserialize<TilAttesteringJson.IngenEndring>(revurderingJson) shouldBe revurdering.toJson()
+        deserialize<TilAttesteringJson>(revurderingJson) shouldBe revurdering.toJson()
     }
 
     @Test
@@ -498,7 +498,7 @@ internal class RevurderingJsonTest {
             """.trimIndent()
 
         JSONAssert.assertEquals(expected, serialize(revurdering.toJson()), true)
-        deserialize<UnderkjentRevurderingJson.Innvilget>(expected) shouldBe revurdering.toJson()
+        deserialize<UnderkjentRevurderingJson>(expected) shouldBe revurdering.toJson()
     }
 
     @Test
@@ -557,7 +557,7 @@ internal class RevurderingJsonTest {
             """.trimIndent()
 
         JSONAssert.assertEquals(expected, serialize(revurdering.toJson()), true)
-        deserialize<UnderkjentRevurderingJson.Opphørt>(expected) shouldBe revurdering.toJson()
+        deserialize<UnderkjentRevurderingJson>(expected) shouldBe revurdering.toJson()
     }
 
     @Test
@@ -615,7 +615,7 @@ internal class RevurderingJsonTest {
             """.trimIndent()
 
         JSONAssert.assertEquals(expected, serialize(revurdering.toJson()), true)
-        deserialize<UnderkjentRevurderingJson.IngenEndring>(expected) shouldBe revurdering.toJson()
+        deserialize<UnderkjentRevurderingJson>(expected) shouldBe revurdering.toJson()
     }
 
     @Test
@@ -664,7 +664,7 @@ internal class RevurderingJsonTest {
             """.trimIndent()
 
         JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson()), true)
-        deserialize<IverksattRevurderingJson.Innvilget>(revurderingJson) shouldBe revurdering.toJson()
+        deserialize<IverksattRevurderingJson>(revurderingJson) shouldBe revurdering.toJson()
     }
 
     @Test
@@ -713,7 +713,7 @@ internal class RevurderingJsonTest {
             """.trimIndent()
 
         JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson()), true)
-        deserialize<IverksattRevurderingJson.Opphørt>(revurderingJson) shouldBe revurdering.toJson()
+        deserialize<IverksattRevurderingJson>(revurderingJson) shouldBe revurdering.toJson()
     }
 
     @Test
@@ -761,6 +761,25 @@ internal class RevurderingJsonTest {
             """.trimIndent()
 
         JSONAssert.assertEquals(revurderingJson, serialize(revurdering.toJson()), true)
-        deserialize<IverksattRevurderingJson.IngenEndring>(revurderingJson) shouldBe revurdering.toJson()
+        deserialize<IverksattRevurderingJson>(revurderingJson) shouldBe revurdering.toJson()
+    }
+
+    @Test
+    fun `mapping av instans til status`() {
+        InstansTilStatusMapper(mock<OpprettetRevurdering>()).status shouldBe RevurderingsStatus.OPPRETTET
+        InstansTilStatusMapper(mock<BeregnetRevurdering.IngenEndring>()).status shouldBe RevurderingsStatus.BEREGNET_INGEN_ENDRING
+        InstansTilStatusMapper(mock<BeregnetRevurdering.Innvilget>()).status shouldBe RevurderingsStatus.BEREGNET_INNVILGET
+        InstansTilStatusMapper(mock<BeregnetRevurdering.Opphørt>()).status shouldBe RevurderingsStatus.BEREGNET_OPPHØRT
+        InstansTilStatusMapper(mock<SimulertRevurdering.Innvilget>()).status shouldBe RevurderingsStatus.SIMULERT_INNVILGET
+        InstansTilStatusMapper(mock<SimulertRevurdering.Opphørt>()).status shouldBe RevurderingsStatus.SIMULERT_OPPHØRT
+        InstansTilStatusMapper(mock<RevurderingTilAttestering.IngenEndring>()).status shouldBe RevurderingsStatus.TIL_ATTESTERING_INGEN_ENDRING
+        InstansTilStatusMapper(mock<RevurderingTilAttestering.Innvilget>()).status shouldBe RevurderingsStatus.TIL_ATTESTERING_INNVILGET
+        InstansTilStatusMapper(mock<RevurderingTilAttestering.Opphørt>()).status shouldBe RevurderingsStatus.TIL_ATTESTERING_OPPHØRT
+        InstansTilStatusMapper(mock<IverksattRevurdering.IngenEndring>()).status shouldBe RevurderingsStatus.IVERKSATT_INGEN_ENDRING
+        InstansTilStatusMapper(mock<IverksattRevurdering.Innvilget>()).status shouldBe RevurderingsStatus.IVERKSATT_INNVILGET
+        InstansTilStatusMapper(mock<IverksattRevurdering.Opphørt>()).status shouldBe RevurderingsStatus.IVERKSATT_OPPHØRT
+        InstansTilStatusMapper(mock<UnderkjentRevurdering.IngenEndring>()).status shouldBe RevurderingsStatus.UNDERKJENT_INGEN_ENDRING
+        InstansTilStatusMapper(mock<UnderkjentRevurdering.Innvilget>()).status shouldBe RevurderingsStatus.UNDERKJENT_INNVILGET
+        InstansTilStatusMapper(mock<UnderkjentRevurdering.Opphørt>()).status shouldBe RevurderingsStatus.UNDERKJENT_OPPHØRT
     }
 }
