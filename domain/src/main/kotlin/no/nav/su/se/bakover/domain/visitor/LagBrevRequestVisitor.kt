@@ -154,7 +154,7 @@ class LagBrevRequestVisitor(
     }
 
     override fun visit(revurdering: BeregnetRevurdering.IngenEndring) {
-        TODO("Not yet implemented")
+        brevRequest = revurderingIngenEndring(revurdering, revurdering.beregning)
     }
 
     override fun visit(revurdering: SimulertRevurdering.Innvilget) {
@@ -174,7 +174,7 @@ class LagBrevRequestVisitor(
     }
 
     override fun visit(revurdering: RevurderingTilAttestering.IngenEndring) {
-        TODO("Not yet implemented")
+        brevRequest = revurderingIngenEndring(revurdering, revurdering.beregning)
     }
 
     override fun visit(revurdering: IverksattRevurdering.Innvilget) {
@@ -186,7 +186,7 @@ class LagBrevRequestVisitor(
     }
 
     override fun visit(revurdering: IverksattRevurdering.IngenEndring) {
-        TODO("Not yet implemented")
+        brevRequest = revurderingIngenEndring(revurdering, revurdering.beregning)
     }
 
     override fun visit(revurdering: UnderkjentRevurdering.Innvilget) {
@@ -198,7 +198,7 @@ class LagBrevRequestVisitor(
     }
 
     override fun visit(revurdering: UnderkjentRevurdering.IngenEndring) {
-        TODO("Not yet implemented")
+        brevRequest = revurderingIngenEndring(revurdering, revurdering.beregning)
     }
 
     override fun visit(vedtak: Vedtak.EndringIYtelse) {
@@ -300,6 +300,37 @@ class LagBrevRequestVisitor(
                 fritekst = søknadsbehandling.fritekstTilBrev,
             )
         }
+
+    private fun revurderingIngenEndring(revurdering: Revurdering, beregning: Beregning) =
+        hentPersonOgNavn(
+            fnr = revurdering.fnr,
+            saksbehandler = revurdering.saksbehandler,
+            attestant = FinnAttestantVisitor().let {
+                revurdering.accept(it)
+                it.attestant
+            },
+        ).map {
+            requestIngenEndring(
+                personOgNavn = it,
+                beregning = beregning,
+                fritekst = revurdering.fritekstTilBrev,
+                harEktefelle = revurdering.tilRevurdering.behandlingsinformasjon.harEktefelle(),
+            )
+        }
+
+    private fun requestIngenEndring(
+        personOgNavn: PersonOgNavn,
+        beregning: Beregning,
+        fritekst: String,
+        harEktefelle: Boolean,
+    ) = LagBrevRequest.VedtakIngenEndring(
+        person = personOgNavn.person,
+        saksbehandlerNavn = personOgNavn.saksbehandlerNavn,
+        attestantNavn = personOgNavn.attestantNavn,
+        beregning = beregning,
+        fritekst = fritekst,
+        harEktefelle = harEktefelle,
+    )
 
     private fun innvilgetRevurdering(revurdering: Revurdering, beregning: Beregning) =
         hentPersonOgNavn(
@@ -480,6 +511,14 @@ class LagBrevRequestVisitor(
         saksbehandler = vedtak.saksbehandler,
         attestant = vedtak.attestant,
     ).map {
-        TODO("Not yet implemented")
+        requestIngenEndring(
+            personOgNavn = it,
+            beregning = vedtak.beregning,
+            fritekst = when (val b = vedtak.behandling) {
+                is Revurdering -> b.fritekstTilBrev
+                else -> ""
+            },
+            harEktefelle = vedtak.behandlingsinformasjon.harEktefelle(),
+        )
     }
 }

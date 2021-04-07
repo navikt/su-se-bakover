@@ -11,18 +11,16 @@ object JournalpostFactory {
         saksnummer: Saksnummer,
         brevInnhold: BrevInnhold,
         pdf: ByteArray,
-    ): Journalpost {
-        return when (brevInnhold.brevTemplate) {
-            BrevTemplate.InnvilgetVedtak,
-            BrevTemplate.AvslagsVedtak,
-            BrevTemplate.AvvistSøknadVedtak,
-            BrevTemplate.Opphørsvedtak,
-            BrevTemplate.Revurdering.Inntekt,
-            -> Journalpost.Vedtakspost(person, saksnummer, brevInnhold, pdf)
-
-            BrevTemplate.TrukketSøknad,
-            BrevTemplate.AvvistSøknadFritekst,
-            -> Journalpost.Info(person, saksnummer, brevInnhold, pdf)
-        }
+    ): Journalpost = when (brevInnhold.brevTemplate) {
+        BrevTemplate.InnvilgetVedtak,
+        BrevTemplate.AvslagsVedtak,
+        BrevTemplate.AvvistSøknadVedtak,
+        BrevTemplate.Opphørsvedtak,
+        BrevTemplate.Revurdering.Inntekt,
+        BrevTemplate.VedtakIngenEndring,
+        -> Journalpost.Vedtakspost(person, saksnummer, brevInnhold, pdf)
+        BrevTemplate.TrukketSøknad,
+        BrevTemplate.AvvistSøknadFritekst,
+        -> Journalpost.Info(person, saksnummer, brevInnhold, pdf)
     }
 }
