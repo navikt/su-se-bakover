@@ -4,7 +4,9 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.mock
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
@@ -13,6 +15,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.AktørId
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.FnrGenerator
 import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -31,6 +34,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -730,15 +734,26 @@ internal class LagBrevRequestVisitorTest {
             clock = clock,
         ).apply { vedtakIngenEndring.accept(this) }
 
-        brevRevurdering.brevRequest shouldBe brevVedtak.brevRequest
-        brevRevurdering.brevRequest shouldBe LagBrevRequest.VedtakIngenEndring(
-            person = person,
-            beregning = revurdering.beregning,
-            saksbehandlerNavn = saksbehandlerNavn,
-            attestantNavn = attestantNavn,
-            fritekst = "EN FIN FRITEKST",
-            harEktefelle = revurdering.tilRevurdering.behandlingsinformasjon.harEktefelle(),
-        ).right()
+        val personalia = BrevInnhold.Personalia(
+            dato = "01.01.2021",
+            fødselsnummer = Fnr(fnr = "12345678901"),
+            fornavn = "Tore",
+            etternavn = "Strømøy",
+        )
+
+        brevRevurdering.brevRequest.map {
+            it.right() shouldBe brevVedtak.brevRequest
+            it shouldBe LagBrevRequest.VedtakIngenEndring(
+                person = person,
+                beregning = revurdering.beregning,
+                saksbehandlerNavn = saksbehandlerNavn,
+                attestantNavn = attestantNavn,
+                fritekst = "EN FIN FRITEKST",
+                harEktefelle = revurdering.tilRevurdering.behandlingsinformasjon.harEktefelle(),
+            )
+
+            it.lagBrevInnhold(personalia) should beOfType<BrevInnhold.VedtakIngenEndring>()
+        }
     }
 
     private val clock = Clock.fixed(1.januar(2021).startOfDay(zoneIdOslo).instant, ZoneOffset.UTC)

@@ -84,7 +84,7 @@ interface LagBrevRequest {
         override fun getPerson(): Person = person
 
         override fun lagBrevInnhold(personalia: BrevInnhold.Personalia): BrevInnhold {
-            return BrevInnhold.RevurderingAvInntekt(
+            return BrevInnhold.VedtakIngenEndring(
                 personalia = personalia,
                 saksbehandlerNavn = saksbehandlerNavn,
                 attestantNavn = attestantNavn,
