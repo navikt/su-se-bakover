@@ -122,7 +122,7 @@ internal class PersonPostgresRepoTest {
                 )
             )
             val vedtak = testDataHelper.vedtakForSøknadsbehandlingOgUtbetalingId(innvilget, utbetaling.id)
-            val revurdering = testDataHelper.nyRevurdering(vedtak)
+            val revurdering = testDataHelper.nyRevurdering(vedtak, vedtak.periode)
 
             Ctx(innvilget, utbetaling, revurdering).test()
         }

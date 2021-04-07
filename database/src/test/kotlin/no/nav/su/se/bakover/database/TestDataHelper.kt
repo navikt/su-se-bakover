@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.database
 
-import com.nhaarman.mockitokotlin2.mock
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
@@ -271,10 +270,10 @@ internal class TestDataHelper(
         )
     }
 
-    fun nyRevurdering(innvilget: Vedtak.EndringIYtelse) =
+    fun nyRevurdering(innvilget: Vedtak.EndringIYtelse, periode: Periode) =
         OpprettetRevurdering(
             id = UUID.randomUUID(),
-            periode = mock(),
+            periode = periode,
             tilRevurdering = innvilget,
             opprettet = fixedTidspunkt,
             saksbehandler = saksbehandler,

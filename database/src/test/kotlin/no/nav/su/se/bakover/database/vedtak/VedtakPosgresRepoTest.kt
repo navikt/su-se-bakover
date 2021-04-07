@@ -68,7 +68,7 @@ internal class VedtakPosgresRepoTest {
         withMigratedDb {
             val søknadsbehandlingVedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
 
-            val nyRevurdering = testDataHelper.nyRevurdering(søknadsbehandlingVedtak)
+            val nyRevurdering = testDataHelper.nyRevurdering(søknadsbehandlingVedtak, søknadsbehandlingVedtak.periode)
             val iverksattRevurdering = IverksattRevurdering.Innvilget(
                 id = nyRevurdering.id,
                 periode = søknadsbehandlingVedtak.periode,
@@ -206,4 +206,45 @@ internal class VedtakPosgresRepoTest {
             }
         }
     }
+
+    @Test
+    fun `kan lagre et vedtak som ikke fører til endring i utbetaling`(){
+        withMigratedDb {
+            val søknadsbehandlingVedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+
+            val nyRevurdering = testDataHelper.nyRevurdering(søknadsbehandlingVedtak, søknadsbehandlingVedtak.periode)
+            val iverksattRevurdering = IverksattRevurdering.IngenEndring(
+                id = nyRevurdering.id,
+                periode = søknadsbehandlingVedtak.periode,
+                opprettet = nyRevurdering.opprettet,
+                tilRevurdering = søknadsbehandlingVedtak,
+                saksbehandler = søknadsbehandlingVedtak.saksbehandler,
+                oppgaveId = OppgaveId(""),
+                beregning = søknadsbehandlingVedtak.beregning,
+                attestering = Attestering.Iverksatt(søknadsbehandlingVedtak.attestant),
+                fritekstTilBrev = "",
+                revurderingsårsak = Revurderingsårsak(
+                    Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
+                    Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
+                ),
+            )
+            testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
+
+            val revurderingVedtak = Vedtak.from(iverksattRevurdering)
+
+            vedtakRepo.lagre(revurderingVedtak)
+            vedtakRepo.hent(revurderingVedtak.id) shouldBe revurderingVedtak
+
+            datasource.withSession { session ->
+                """
+                    SELECT søknadsbehandlingId, revurderingId from behandling_vedtak where vedtakId = :vedtakId
+                """.trimIndent()
+                    .hent(mapOf("vedtakId" to revurderingVedtak.id), session) {
+                        it.stringOrNull("søknadsbehandlingId") shouldBe null
+                        it.stringOrNull("revurderingId") shouldBe iverksattRevurdering.id.toString()
+                    }
+            }
+        }
+    }
+
 }
