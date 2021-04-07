@@ -114,6 +114,189 @@ internal class PeriodeTest {
     }
 
     @Test
+    fun `overlappende perioder`() {
+        Periode.create(1.januar(2021), 31.desember(2021)) overlapper
+            Periode.create(1.januar(2021), 31.desember(2021)) shouldBe true
+
+        Periode.create(1.januar(2021), 31.desember(2021)) overlapper
+            Periode.create(1.juli(2021), 31.desember(2021)) shouldBe true
+
+        Periode.create(1.juli(2021), 31.desember(2021)) overlapper
+            Periode.create(1.januar(2021), 31.desember(2021)) shouldBe true
+
+        Periode.create(1.januar(2021), 31.desember(2021)) overlapper
+            Periode.create(1.juli(2021), 30.november(2021)) shouldBe true
+
+        Periode.create(1.juli(2021), 30.november(2021)) overlapper
+            Periode.create(1.januar(2021), 31.desember(2021)) shouldBe true
+
+        Periode.create(1.januar(2021), 31.desember(2021)) overlapper
+            Periode.create(1.desember(2020), 31.januar(2021)) shouldBe true
+
+        Periode.create(1.desember(2020), 31.januar(2021)) overlapper
+            Periode.create(1.januar(2021), 31.desember(2021)) shouldBe true
+
+        Periode.create(1.januar(2021), 31.desember(2021)) overlapper
+            Periode.create(1.desember(2021), 31.januar(2022)) shouldBe true
+
+        Periode.create(1.desember(2021), 31.januar(2022)) overlapper
+            Periode.create(1.januar(2021), 31.desember(2021)) shouldBe true
+
+        Periode.create(1.januar(2021), 31.desember(2021)) overlapper
+            Periode.create(1.januar(2020), 31.desember(2022)) shouldBe true
+
+        Periode.create(1.januar(2021), 31.desember(2021)) overlapper
+            Periode.create(1.januar(2020), 31.desember(2022)) shouldBe true
+
+        Periode.create(1.januar(2021), 31.desember(2021)) overlapper
+            Periode.create(1.januar(2020), 31.desember(2020)) shouldBe false
+
+        Periode.create(1.januar(2020), 31.desember(2020)) overlapper
+            Periode.create(1.januar(2021), 31.desember(2021)) shouldBe false
+    }
+
+    @Test
+    fun `starter samtidig`() {
+        Periode.create(1.januar(2021), 31.desember(2021)) starterSamtidig
+            Periode.create(1.januar(2021), 31.desember(2021)) shouldBe true
+
+        Periode.create(1.januar(2021), 31.desember(2021)) starterSamtidig
+            Periode.create(1.februar(2021), 31.desember(2021)) shouldBe false
+    }
+
+    @Test
+    fun `starter tidligere`() {
+        Periode.create(1.januar(2021), 31.desember(2021)) starterTidligere
+            Periode.create(1.januar(2021), 31.desember(2021)) shouldBe false
+
+        Periode.create(1.januar(2021), 31.desember(2021)) starterTidligere
+            Periode.create(1.februar(2021), 31.desember(2021)) shouldBe true
+
+        Periode.create(1.februar(2021), 31.desember(2021)) starterTidligere
+            Periode.create(1.januar(2021), 31.desember(2021)) shouldBe false
+    }
+
+    @Test
+    fun `starter etter`() {
+        Periode.create(1.januar(2021), 31.desember(2021)) starterEtter
+            Periode.create(1.januar(2021), 31.desember(2021)) shouldBe false
+
+        Periode.create(1.januar(2021), 31.desember(2021)) starterEtter
+            Periode.create(1.februar(2021), 31.desember(2021)) shouldBe false
+
+        Periode.create(1.februar(2021), 31.desember(2021)) starterEtter
+            Periode.create(1.januar(2021), 31.desember(2021)) shouldBe true
+    }
+
+    @Test
+    fun `slutter samtidig`() {
+        Periode.create(1.januar(2021), 31.desember(2021)) slutterSamtidig
+            Periode.create(1.januar(2021), 31.desember(2021)) shouldBe true
+
+        Periode.create(1.januar(2021), 30.november(2021)) slutterSamtidig
+            Periode.create(1.januar(2021), 31.desember(2021)) shouldBe false
+    }
+
+    @Test
+    fun `slutter tidligere`() {
+        Periode.create(1.januar(2021), 31.desember(2021)) slutterTidligere
+            Periode.create(1.januar(2021), 31.desember(2021)) shouldBe false
+
+        Periode.create(1.januar(2021), 30.november(2021)) slutterTidligere
+            Periode.create(1.februar(2021), 31.desember(2021)) shouldBe true
+
+        Periode.create(1.februar(2021), 31.desember(2021)) slutterTidligere
+            Periode.create(1.januar(2021), 30.november(2021)) shouldBe false
+    }
+
+    @Test
+    fun `før`() {
+        Periode.create(1.januar(2021), 31.juli(2021)) før
+            Periode.create(1.desember(2021), 31.desember(2021)) shouldBe true
+
+        Periode.create(1.januar(2021), 30.november(2021)) før
+            Periode.create(1.januar(2021), 31.desember(2021)) shouldBe false
+
+        Periode.create(1.desember(2021), 31.desember(2021)) før
+            Periode.create(1.november(2021), 30.november(2021)) shouldBe false
+    }
+
+    @Test
+    fun `etter`() {
+        Periode.create(1.januar(2021), 31.juli(2021)) etter
+            Periode.create(1.desember(2021), 31.desember(2021)) shouldBe false
+
+        Periode.create(1.januar(2021), 30.november(2021)) etter
+            Periode.create(1.januar(2021), 31.desember(2021)) shouldBe false
+
+        Periode.create(1.desember(2021), 31.desember(2021)) etter
+            Periode.create(1.november(2021), 30.november(2021)) shouldBe true
+    }
+
+    @Test
+    fun `starter samtidig eller senere`() {
+        Periode.create(1.januar(2021), 31.desember(2021)) starterSamtidigEllerSenere
+            Periode.create(1.januar(2021), 31.desember(2021)) shouldBe true
+
+        Periode.create(1.februar(2021), 31.desember(2021)) starterSamtidigEllerSenere
+            Periode.create(1.januar(2021), 31.desember(2021)) shouldBe true
+
+        Periode.create(1.januar(2021), 31.desember(2021)) starterSamtidigEllerSenere
+            Periode.create(1.desember(2021), 31.desember(2021)) shouldBe false
+    }
+
+    @Test
+    fun `starter samtidig eller tidligere`() {
+        Periode.create(1.januar(2021), 31.desember(2021)) starterSamtidigEllerTidligere
+            Periode.create(1.januar(2021), 31.desember(2021)) shouldBe true
+
+        Periode.create(1.februar(2021), 31.desember(2021)) starterSamtidigEllerTidligere
+            Periode.create(1.januar(2021), 31.desember(2021)) shouldBe false
+
+        Periode.create(1.januar(2021), 31.desember(2021)) starterSamtidigEllerTidligere
+            Periode.create(1.desember(2021), 31.desember(2021)) shouldBe true
+    }
+
+    @Test
+    fun `slutter samtidig eller tidligere`() {
+        Periode.create(1.januar(2021), 31.desember(2021)) slutterSamtidigEllerTidligere
+            Periode.create(1.januar(2021), 31.desember(2021)) shouldBe true
+
+        Periode.create(1.februar(2021), 30.november(2021)) slutterSamtidigEllerTidligere
+            Periode.create(1.januar(2021), 31.desember(2021)) shouldBe true
+
+        Periode.create(1.januar(2021), 31.desember(2021)) slutterSamtidigEllerTidligere
+            Periode.create(1.november(2021), 30.november(2021)) shouldBe false
+    }
+
+    @Test
+    fun `slutter samtidig eller senere`() {
+        Periode.create(1.januar(2021), 31.desember(2021)) slutterSamtidigEllerSenere
+            Periode.create(1.januar(2021), 31.desember(2021)) shouldBe true
+
+        Periode.create(1.februar(2021), 30.november(2021)) slutterSamtidigEllerSenere
+            Periode.create(1.januar(2021), 31.desember(2021)) shouldBe false
+
+        Periode.create(1.januar(2021), 31.desember(2021)) slutterSamtidigEllerSenere
+            Periode.create(1.november(2021), 30.november(2021)) shouldBe true
+    }
+
+    @Test
+    fun `slutter inni`() {
+        Periode.create(1.januar(2021), 31.desember(2021)) slutterInni
+            Periode.create(1.januar(2021), 31.desember(2021)) shouldBe true
+
+        Periode.create(1.januar(2021), 30.november(2021)) slutterInni
+            Periode.create(1.januar(2021), 31.desember(2021)) shouldBe true
+
+        Periode.create(1.januar(2021), 31.desember(2021)) slutterInni
+            Periode.create(1.januar(2021), 30.november(2021)) shouldBe false
+
+        Periode.create(1.januar(2021), 31.mai(2021)) slutterInni
+            Periode.create(1.juli(2021), 30.november(2021)) shouldBe false
+    }
+
+    @Test
     fun `serialisering av periode`() {
         val expectedJson = """
             {

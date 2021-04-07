@@ -33,7 +33,7 @@ data class SimuleringJson(
     }
 }
 
-data class UtbetalingslinjeJson(
+data class UtbetalingJson(
     val id: String,
     val fraOgMed: LocalDate,
     val tilOgMed: LocalDate,
