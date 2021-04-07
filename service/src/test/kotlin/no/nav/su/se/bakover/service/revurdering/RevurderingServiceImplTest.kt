@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.service.revurdering
 
+import arrow.core.getOrElse
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
@@ -52,6 +53,7 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
+import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakType
@@ -845,6 +847,71 @@ internal class RevurderingServiceImplTest {
         }
 
         verifyNoMoreInteractions(revurderingRepoMock, personServiceMock, oppgaveServiceMock)
+    }
+
+    @Test
+    fun `kan beregne og simuler underkjent revurdering på nytt`() {
+        val attestering = Attestering.Underkjent(
+            attestant = NavIdentBruker.Attestant(navIdent = "123"),
+            grunn = Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
+            kommentar = "pls math",
+        )
+        val underkjentRevurdering = UnderkjentRevurdering.Innvilget(
+            id = revurderingId,
+            periode = periode,
+            opprettet = Tidspunkt.EPOCH,
+            tilRevurdering = søknadsbehandlingVedtak,
+            saksbehandler = saksbehandler,
+            beregning = beregningMock,
+            simulering = mock(),
+            oppgaveId = OppgaveId("oppgaveId"),
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
+            attestering = attestering,
+        )
+
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(revurderingId) } doReturn underkjentRevurdering
+        }
+
+        val simulertUtbetaling = mock<Utbetaling.SimulertUtbetaling> {
+            on { simulering } doReturn mock()
+        }
+        val utbetalingServiceMock = mock<UtbetalingService> {
+            on { simulerUtbetaling(any(), any(), any()) } doReturn simulertUtbetaling.right()
+        }
+
+        val revurderingService = createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+            utbetalingService = utbetalingServiceMock,
+        )
+
+        val actual = revurderingService.beregnOgSimuler(
+            underkjentRevurdering.id,
+            saksbehandler,
+            listOf(
+                FradragFactory.ny(
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 4000.0,
+                    periode = periode,
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
+        ).getOrElse { throw RuntimeException("Noe gikk galt") }
+        if (actual !is SimulertRevurdering.Innvilget) throw RuntimeException("Skal returnere en simulert revurdering")
+
+        inOrder(revurderingRepoMock, utbetalingServiceMock) {
+            verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
+            verify(utbetalingServiceMock).simulerUtbetaling(
+                sakId = argThat { it shouldBe sakId },
+                saksbehandler = argThat { it shouldBe saksbehandler },
+                beregning = argThat { it shouldBe actual.beregning },
+            )
+            verify(revurderingRepoMock).lagre(argThat { it shouldBe actual })
+        }
+
+        verifyNoMoreInteractions(revurderingRepoMock, utbetalingServiceMock)
     }
 
     @Test
