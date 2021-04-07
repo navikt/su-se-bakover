@@ -90,7 +90,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
         )
 
         val revurderingServiceMock = mock<RevurderingService> {
-            on { sendTilAttestering(any(), any(), any()) } doReturn revurderingTilAttestering.right()
+            on { sendTilAttestering(any()) } doReturn revurderingTilAttestering.right()
         }
 
         withTestApplication(
@@ -178,7 +178,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
         expectedJsonResponse: String,
     ) {
         val revurderingServiceMock = mock<RevurderingService> {
-            on { sendTilAttestering(any(), any(), any()) } doReturn error.left()
+            on { sendTilAttestering(any()) } doReturn error.left()
         }
 
         withTestApplication(

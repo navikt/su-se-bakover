@@ -50,6 +50,7 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeUnderkjenneRevurdering
 import no.nav.su.se.bakover.service.revurdering.OppdaterRevurderingRequest
 import no.nav.su.se.bakover.service.revurdering.OpprettRevurderingRequest
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
+import no.nav.su.se.bakover.service.revurdering.SendTilAttesteringRequest
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.Statistikk
@@ -363,12 +364,10 @@ open class AccessCheckProxy(
                 }
 
                 override fun sendTilAttestering(
-                    revurderingId: UUID,
-                    saksbehandler: NavIdentBruker.Saksbehandler,
-                    fritekstTilBrev: String,
+                    request: SendTilAttesteringRequest,
                 ): Either<KunneIkkeSendeRevurderingTilAttestering, Revurdering> {
-                    assertHarTilgangTilSak(revurderingId)
-                    return services.revurdering.sendTilAttestering(revurderingId, saksbehandler, fritekstTilBrev)
+                    assertHarTilgangTilSak(request.revurderingId)
+                    return services.revurdering.sendTilAttestering(request)
                 }
 
                 override fun lagBrevutkast(

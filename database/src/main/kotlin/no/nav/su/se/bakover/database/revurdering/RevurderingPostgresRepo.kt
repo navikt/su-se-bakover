@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
+import no.nav.su.se.bakover.database.booleanOrNull
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.oppdatering
@@ -131,6 +132,7 @@ internal class RevurderingPostgresRepo(
             årsak = årsak,
             begrunnelse = begrunnelse,
         )
+        val sendBrev = booleanOrNull("sendBrev")
 
         return when (RevurderingsType.valueOf(string("revurderingsType"))) {
             RevurderingsType.UNDERKJENT_INNVILGET -> UnderkjentRevurdering.Innvilget(
@@ -286,6 +288,7 @@ internal class RevurderingPostgresRepo(
                 oppgaveId = OppgaveId(oppgaveId!!),
                 fritekstTilBrev = fritekstTilBrev ?: "",
                 revurderingsårsak = revurderingsårsak,
+                sendBrev = sendBrev!!,
             )
             RevurderingsType.IVERKSATT_INGEN_ENDRING -> IverksattRevurdering.IngenEndring(
                 id = id,
@@ -298,6 +301,7 @@ internal class RevurderingPostgresRepo(
                 fritekstTilBrev = fritekstTilBrev ?: "",
                 revurderingsårsak = revurderingsårsak,
                 attestering = attestering!! as Attestering.Iverksatt,
+                sendBrev = sendBrev!!,
             )
             RevurderingsType.UNDERKJENT_INGEN_ENDRING -> UnderkjentRevurdering.IngenEndring(
                 id = id,
@@ -310,6 +314,7 @@ internal class RevurderingPostgresRepo(
                 fritekstTilBrev = fritekstTilBrev ?: "",
                 revurderingsårsak = revurderingsårsak,
                 attestering = attestering!! as Attestering.Underkjent,
+                sendBrev = sendBrev!!,
             )
         }
     }
@@ -458,7 +463,8 @@ internal class RevurderingPostgresRepo(
                         fritekstTilBrev = :fritekstTilBrev,
                         årsak = :arsak,
                         begrunnelse =:begrunnelse,
-                        revurderingsType = :revurderingsType
+                        revurderingsType = :revurderingsType,
+                        sendBrev = :sendBrev
                     where
                         id = :id
                 """.trimIndent()
@@ -481,6 +487,7 @@ internal class RevurderingPostgresRepo(
                         is RevurderingTilAttestering.Innvilget -> RevurderingsType.TIL_ATTESTERING_INNVILGET
                         is RevurderingTilAttestering.Opphørt -> RevurderingsType.TIL_ATTESTERING_OPPHØRT
                     },
+                    "sendBrev" to if (revurdering is RevurderingTilAttestering.IngenEndring) revurdering.sendBrev else null
                 ),
                 session,
             )

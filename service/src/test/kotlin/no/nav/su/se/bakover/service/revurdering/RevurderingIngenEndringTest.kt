@@ -117,6 +117,7 @@ class RevurderingIngenEndringTest {
             saksbehandler = endretSaksbehandler,
             fritekstTilBrev = "endret fritekst",
             revurderingsårsak = revurderingsårsak,
+            sendBrev = true
         )
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn beregnetRevurdering
@@ -140,9 +141,12 @@ class RevurderingIngenEndringTest {
             personService = personServiceMock,
             oppgaveService = oppgaveServiceMock
         ).sendTilAttestering(
-            revurderingId,
-            endretSaksbehandler,
-            "endret fritekst"
+            SendTilAttesteringRequest(
+                revurderingId,
+                endretSaksbehandler,
+                "endret fritekst",
+                true
+            )
         ).orNull()!! as RevurderingTilAttestering.IngenEndring
 
         actual shouldBe revurderingTilAttestering
@@ -189,6 +193,7 @@ class RevurderingIngenEndringTest {
             saksbehandler = saksbehandler,
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            sendBrev = false
         )
         val underkjentRevurdering = UnderkjentRevurdering.IngenEndring(
             id = revurderingId,
@@ -200,7 +205,8 @@ class RevurderingIngenEndringTest {
             saksbehandler = saksbehandler,
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            attestering = attesteringUnderkjent
+            attestering = attesteringUnderkjent,
+            sendBrev = false
         )
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn revurderingTilAttestering
@@ -271,6 +277,7 @@ class RevurderingIngenEndringTest {
             saksbehandler = RevurderingTestUtils.saksbehandler,
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            sendBrev = true
         )
         val attestant = NavIdentBruker.Attestant("ATTT")
 

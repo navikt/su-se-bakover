@@ -412,6 +412,7 @@ internal class RevurderingJsonTest {
             oppgaveId = OppgaveId("OppgaveId"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            sendBrev = true
         )
 
         val revurderingJson =
@@ -581,6 +582,7 @@ internal class RevurderingJsonTest {
             ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            sendBrev = true,
         )
 
         val expected =
@@ -733,6 +735,7 @@ internal class RevurderingJsonTest {
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            sendBrev = true,
         )
 
         val revurderingJson =

@@ -487,6 +487,19 @@ internal class RevurderingPostgresRepoTest {
             val beregnet = beregnetIngenEndring(opprettet, vedtak)
             repo.lagre(beregnet)
             repo.hent(opprettet.id) shouldBe beregnet
+            val underkjentTilAttestering = RevurderingTilAttestering.IngenEndring(
+                id = opprettet.id,
+                periode = opprettet.periode,
+                opprettet = opprettet.opprettet,
+                tilRevurdering = vedtak,
+                saksbehandler = opprettet.saksbehandler,
+                oppgaveId = opprettet.oppgaveId,
+                fritekstTilBrev = opprettet.fritekstTilBrev,
+                revurderingsårsak = opprettet.revurderingsårsak,
+                beregning = vedtak.beregning,
+                sendBrev = false
+            )
+            repo.lagre(underkjentTilAttestering)
             val underkjent = UnderkjentRevurdering.IngenEndring(
                 id = opprettet.id,
                 periode = opprettet.periode,
@@ -502,6 +515,7 @@ internal class RevurderingPostgresRepoTest {
                     Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
                     "kommentar",
                 ),
+                sendBrev = false
             )
 
             repo.lagre(underkjent)
@@ -528,6 +542,7 @@ internal class RevurderingPostgresRepoTest {
                 fritekstTilBrev = opprettet.fritekstTilBrev,
                 revurderingsårsak = opprettet.revurderingsårsak,
                 beregning = vedtak.beregning,
+                sendBrev = true
             )
 
             repo.lagre(underkjent)
@@ -544,6 +559,19 @@ internal class RevurderingPostgresRepoTest {
             repo.lagre(opprettet)
             val beregnet = beregnetIngenEndring(opprettet, vedtak)
             repo.lagre(beregnet)
+            val revurderingTilAttestering = RevurderingTilAttestering.IngenEndring(
+                id = opprettet.id,
+                periode = opprettet.periode,
+                opprettet = opprettet.opprettet,
+                tilRevurdering = vedtak,
+                saksbehandler = opprettet.saksbehandler,
+                oppgaveId = opprettet.oppgaveId,
+                fritekstTilBrev = opprettet.fritekstTilBrev,
+                revurderingsårsak = opprettet.revurderingsårsak,
+                beregning = vedtak.beregning,
+                sendBrev = false
+            )
+            repo.lagre(revurderingTilAttestering)
             val underkjent = IverksattRevurdering.IngenEndring(
                 id = opprettet.id,
                 periode = opprettet.periode,
@@ -557,6 +585,7 @@ internal class RevurderingPostgresRepoTest {
                 attestering = Attestering.Iverksatt(
                     attestant,
                 ),
+                sendBrev = false
             )
 
             repo.lagre(underkjent)

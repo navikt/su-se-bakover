@@ -1,0 +1,1 @@
+alter table revurdering add column if not exists sendbrev boolean;

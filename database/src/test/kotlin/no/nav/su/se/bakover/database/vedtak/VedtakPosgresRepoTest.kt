@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBre
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
+import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import org.junit.jupiter.api.Test
@@ -213,6 +214,22 @@ internal class VedtakPosgresRepoTest {
             val søknadsbehandlingVedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
 
             val nyRevurdering = testDataHelper.nyRevurdering(søknadsbehandlingVedtak, søknadsbehandlingVedtak.periode)
+            val atteststertRevurdering = RevurderingTilAttestering.IngenEndring(
+                id = nyRevurdering.id,
+                periode = søknadsbehandlingVedtak.periode,
+                opprettet = nyRevurdering.opprettet,
+                tilRevurdering = søknadsbehandlingVedtak,
+                saksbehandler = søknadsbehandlingVedtak.saksbehandler,
+                oppgaveId = OppgaveId(""),
+                beregning = søknadsbehandlingVedtak.beregning,
+                fritekstTilBrev = "",
+                revurderingsårsak = Revurderingsårsak(
+                    Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
+                    Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
+                ),
+                sendBrev = true
+            )
+            testDataHelper.revurderingRepo.lagre(atteststertRevurdering)
             val iverksattRevurdering = IverksattRevurdering.IngenEndring(
                 id = nyRevurdering.id,
                 periode = søknadsbehandlingVedtak.periode,
@@ -227,6 +244,7 @@ internal class VedtakPosgresRepoTest {
                     Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                     Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
                 ),
+                sendBrev = true
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 
