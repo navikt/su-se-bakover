@@ -7,6 +7,7 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.log
@@ -100,8 +101,8 @@ internal class RevurderingServiceImpl(
             OppgaveConfig.Revurderingsbehandling(
                 saksnummer = tilRevurdering.behandling.saksnummer,
                 aktørId = aktørId,
-                tilordnetRessurs = null
-            )
+                tilordnetRessurs = null,
+            ),
         ).mapLeft {
             KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave
         }.map { oppgaveId ->
@@ -112,13 +113,14 @@ internal class RevurderingServiceImpl(
                 oppgaveId = oppgaveId,
                 fritekstTilBrev = "",
                 revurderingsårsak = revurderingsårsak,
+                opprettet = Tidspunkt.now(clock)
             ).also {
                 revurderingRepo.lagre(it)
                 observers.forEach { observer ->
                     observer.handle(
                         Event.Statistikk.RevurderingStatistikk.RevurderingOpprettet(
-                            it
-                        )
+                            it,
+                        ),
                     )
                 }
             }
@@ -178,7 +180,7 @@ internal class RevurderingServiceImpl(
                             }.left()
                         }
                 ) {
-                    is BeregnetRevurdering.Avslag -> {
+                    is BeregnetRevurdering.IngenEndring -> {
                         revurderingRepo.lagre(beregnetRevurdering)
                         beregnetRevurdering.right()
                     }
@@ -186,7 +188,7 @@ internal class RevurderingServiceImpl(
                         utbetalingService.simulerUtbetaling(
                             sakId = beregnetRevurdering.sakId,
                             saksbehandler = saksbehandler,
-                            beregning = beregnetRevurdering.beregning
+                            beregning = beregnetRevurdering.beregning,
                         ).mapLeft {
                             KunneIkkeBeregneOgSimulereRevurdering.SimuleringFeilet
                         }.map {
@@ -200,7 +202,7 @@ internal class RevurderingServiceImpl(
                         utbetalingService.simulerOpphør(
                             sakId = beregnetRevurdering.sakId,
                             saksbehandler = saksbehandler,
-                            opphørsdato = beregnetRevurdering.beregning.getPeriode().getFraOgMed()
+                            opphørsdato = beregnetRevurdering.beregning.getPeriode().getFraOgMed(),
                         ).mapLeft {
                             KunneIkkeBeregneOgSimulereRevurdering.SimuleringFeilet
                         }.map {
@@ -214,7 +216,7 @@ internal class RevurderingServiceImpl(
             null -> return KunneIkkeBeregneOgSimulereRevurdering.FantIkkeRevurdering.left()
             else -> return KunneIkkeBeregneOgSimulereRevurdering.UgyldigTilstand(
                 revurdering::class,
-                SimulertRevurdering::class
+                SimulertRevurdering::class,
             ).left()
         }
     }
@@ -227,10 +229,10 @@ internal class RevurderingServiceImpl(
         val revurdering = revurderingRepo.hent(revurderingId)
             ?: return KunneIkkeSendeRevurderingTilAttestering.FantIkkeRevurdering.left()
 
-        if (!(revurdering is SimulertRevurdering || revurdering is UnderkjentRevurdering)) {
+        if (!(revurdering is SimulertRevurdering || revurdering is UnderkjentRevurdering || revurdering is BeregnetRevurdering.IngenEndring)) {
             return KunneIkkeSendeRevurderingTilAttestering.UgyldigTilstand(
                 revurdering::class,
-                RevurderingTilAttestering::class
+                RevurderingTilAttestering::class,
             ).left()
         }
 
@@ -246,8 +248,8 @@ internal class RevurderingServiceImpl(
                 saksnummer = revurdering.saksnummer,
                 aktørId = aktørId,
                 // Første gang den sendes til attestering er attestant null, de påfølgende gangene vil den være attestanten som har underkjent.
-                tilordnetRessurs = tilordnetRessurs
-            )
+                tilordnetRessurs = tilordnetRessurs,
+            ),
         ).getOrElse {
             log.error("Kunne ikke opprette Attesteringsoppgave. Avbryter handlingen.")
             return KunneIkkeSendeRevurderingTilAttestering.KunneIkkeOppretteOppgave.left()
@@ -258,11 +260,12 @@ internal class RevurderingServiceImpl(
         }
 
         val tilAttestering = when (revurdering) {
+            is BeregnetRevurdering.IngenEndring -> revurdering.tilAttestering(oppgaveId, saksbehandler, fritekstTilBrev)
             is SimulertRevurdering -> revurdering.tilAttestering(oppgaveId, saksbehandler, fritekstTilBrev)
             is UnderkjentRevurdering -> revurdering.tilAttestering(oppgaveId, saksbehandler, fritekstTilBrev)
             else -> return KunneIkkeSendeRevurderingTilAttestering.UgyldigTilstand(
                 revurdering::class,
-                RevurderingTilAttestering::class
+                RevurderingTilAttestering::class,
             ).left()
         }
 
@@ -270,8 +273,8 @@ internal class RevurderingServiceImpl(
         observers.forEach { observer ->
             observer.handle(
                 Event.Statistikk.RevurderingStatistikk.RevurderingTilAttestering(
-                    tilAttestering
-                )
+                    tilAttestering,
+                ),
             )
         }
         return tilAttestering.right()
@@ -304,7 +307,7 @@ internal class RevurderingServiceImpl(
                 microsoftGraphApiClient.hentNavnForNavIdent(ident)
                     .mapLeft { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant }
             },
-            clock = clock
+            clock = clock,
         ).let {
             val r = if (fritekst != null) {
                 revurdering.medFritekst(fritekst)
@@ -331,30 +334,59 @@ internal class RevurderingServiceImpl(
 
         return when (val revurdering = revurderingRepo.hent(revurderingId)) {
             is RevurderingTilAttestering -> {
-                val iverksattRevurdering = revurdering.tilIverksatt(attestant) {
-                    when (revurdering) {
-                        is RevurderingTilAttestering.Innvilget -> utbetalingService.utbetal(
-                            sakId = revurdering.sakId,
-                            beregning = revurdering.beregning,
-                            simulering = revurdering.simulering,
-                            attestant = attestant
-                        )
-                        is RevurderingTilAttestering.Opphørt -> utbetalingService.opphør(
-                            sakId = revurdering.sakId,
-                            attestant = attestant,
-                            opphørsdato = revurdering.beregning.getPeriode().getFraOgMed(),
-                            simulering = revurdering.simulering,
-                        )
-                    }.mapLeft {
-                        when (it) {
-                            KunneIkkeUtbetale.KunneIkkeSimulere -> RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale.KunneIkkeSimulere
-                            KunneIkkeUtbetale.Protokollfeil -> RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale.Protokollfeil
-                            KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
+                val iverksattRevurdering = when (revurdering) {
+                    is RevurderingTilAttestering.IngenEndring -> {
+                        revurdering.tilIverksatt(attestant)
+                            .map {
+                                vedtakRepo.lagre(Vedtak.from(it))
+                                it
+                            }
+                    }
+                    is RevurderingTilAttestering.Innvilget -> {
+                        revurdering.tilIverksatt(attestant) {
+                            utbetalingService.utbetal(
+                                sakId = revurdering.sakId,
+                                beregning = revurdering.beregning,
+                                simulering = revurdering.simulering,
+                                attestant = attestant,
+                            ).mapLeft {
+                                when (it) {
+                                    KunneIkkeUtbetale.KunneIkkeSimulere -> RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale.KunneIkkeSimulere
+                                    KunneIkkeUtbetale.Protokollfeil -> RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale.Protokollfeil
+                                    KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
+                                }
+                            }.map {
+                                // Dersom vi skal unngå denne hacken må Iverksatt.Innvilget innholde denne istedenfor kun IDen
+                                utbetaling = it
+                                it.id
+                            }
+                        }.map {
+                            vedtakRepo.lagre(Vedtak.from(it, utbetaling!!.id))
+                            it
                         }
-                    }.map {
-                        // Dersom vi skal unngå denne hacken må Iverksatt.Innvilget innholde denne istedenfor kun IDen
-                        utbetaling = it
-                        it.id
+                    }
+                    is RevurderingTilAttestering.Opphørt -> {
+                        revurdering.tilIverksatt(attestant) {
+                            utbetalingService.opphør(
+                                sakId = revurdering.sakId,
+                                attestant = attestant,
+                                opphørsdato = revurdering.beregning.getPeriode().getFraOgMed(),
+                                simulering = revurdering.simulering,
+                            ).mapLeft {
+                                when (it) {
+                                    KunneIkkeUtbetale.KunneIkkeSimulere -> RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale.KunneIkkeSimulere
+                                    KunneIkkeUtbetale.Protokollfeil -> RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale.Protokollfeil
+                                    KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> RevurderingTilAttestering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
+                                }
+                            }.map {
+                                // Dersom vi skal unngå denne hacken må Iverksatt.Innvilget innholde denne istedenfor kun IDen
+                                utbetaling = it
+                                it.id
+                            }
+                        }.map {
+                            vedtakRepo.lagre(Vedtak.from(it, utbetaling!!.id))
+                            it
+                        }
                     }
                 }.getOrHandle {
                     return when (it) {
@@ -365,25 +397,22 @@ internal class RevurderingServiceImpl(
                     }.left()
                 }
 
-                vedtakRepo.lagre(Vedtak.EndringIYtelse.fromRevurdering(iverksattRevurdering, utbetaling!!.id))
-
                 revurderingRepo.lagre(iverksattRevurdering)
                 observers.forEach { observer ->
                     observer.handle(
-                        Event.Statistikk.RevurderingStatistikk.RevurderingIverksatt(iverksattRevurdering)
+                        Event.Statistikk.RevurderingStatistikk.RevurderingIverksatt(iverksattRevurdering),
                     )
                 }
                 return iverksattRevurdering.right()
             }
             null -> KunneIkkeIverksetteRevurdering.FantIkkeRevurdering.left()
-            else -> KunneIkkeIverksetteRevurdering.UgyldigTilstand(revurdering::class, IverksattRevurdering::class)
-                .left()
+            else -> KunneIkkeIverksetteRevurdering.UgyldigTilstand(revurdering::class, IverksattRevurdering::class).left()
         }
     }
 
     override fun underkjenn(
         revurderingId: UUID,
-        attestering: Attestering,
+        attestering: Attestering.Underkjent,
     ): Either<KunneIkkeUnderkjenneRevurdering, UnderkjentRevurdering> {
         val revurdering = revurderingRepo.hent(revurderingId)
             ?: return KunneIkkeUnderkjenneRevurdering.FantIkkeRevurdering.left()
@@ -391,7 +420,7 @@ internal class RevurderingServiceImpl(
         if (revurdering !is RevurderingTilAttestering) {
             return KunneIkkeUnderkjenneRevurdering.UgyldigTilstand(
                 revurdering::class,
-                RevurderingTilAttestering::class
+                RevurderingTilAttestering::class,
             ).left()
         }
 
@@ -404,8 +433,8 @@ internal class RevurderingServiceImpl(
             OppgaveConfig.Revurderingsbehandling(
                 saksnummer = revurdering.saksnummer,
                 aktørId = aktørId,
-                tilordnetRessurs = revurdering.saksbehandler
-            )
+                tilordnetRessurs = revurdering.saksbehandler,
+            ),
         ).getOrElse {
             log.error("revurdering ${revurdering.id} ble ikke underkjent. Klarte ikke opprette behandlingsoppgave")
             return@underkjenn KunneIkkeUnderkjenneRevurdering.KunneIkkeOppretteOppgave.left()
@@ -426,7 +455,7 @@ internal class RevurderingServiceImpl(
 
         observers.forEach { observer ->
             observer.handle(
-                Event.Statistikk.RevurderingStatistikk.RevurderingUnderkjent(underkjent)
+                Event.Statistikk.RevurderingStatistikk.RevurderingUnderkjent(underkjent),
             )
         }
 

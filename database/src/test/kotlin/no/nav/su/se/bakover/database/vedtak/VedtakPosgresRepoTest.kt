@@ -68,7 +68,7 @@ internal class VedtakPosgresRepoTest {
         withMigratedDb {
             val søknadsbehandlingVedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
 
-            val nyRevurdering = testDataHelper.nyRevurdering(søknadsbehandlingVedtak)
+            val nyRevurdering = testDataHelper.nyRevurdering(søknadsbehandlingVedtak, søknadsbehandlingVedtak.periode)
             val iverksattRevurdering = IverksattRevurdering.Innvilget(
                 id = nyRevurdering.id,
                 periode = søknadsbehandlingVedtak.periode,
@@ -87,7 +87,7 @@ internal class VedtakPosgresRepoTest {
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 
-            val revurderingVedtak = Vedtak.EndringIYtelse.fromRevurdering(iverksattRevurdering, søknadsbehandlingVedtak.utbetalingId)
+            val revurderingVedtak = Vedtak.from(iverksattRevurdering, søknadsbehandlingVedtak.utbetalingId)
 
             vedtakRepo.lagre(revurderingVedtak)
 
@@ -107,9 +107,9 @@ internal class VedtakPosgresRepoTest {
     fun `hent alle aktive vedtak`() {
         withMigratedDb {
             val (søknadsbehandling, utbetaling) = testDataHelper.nyIverksattInnvilget()
-            val vedtakSomErAktivt = Vedtak.EndringIYtelse.fromSøknadsbehandling(søknadsbehandling, utbetaling.id)
+            val vedtakSomErAktivt = Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetaling.id)
                 .copy(periode = Periode.create(1.februar(2021), 31.mars(2021)))
-            val vedtakUtenforAktivPeriode = Vedtak.EndringIYtelse.fromSøknadsbehandling(søknadsbehandling, utbetaling.id)
+            val vedtakUtenforAktivPeriode = Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetaling.id)
                 .copy(periode = Periode.create(1.januar(2021), 31.januar(2021)))
             vedtakRepo.lagre(vedtakSomErAktivt)
             vedtakRepo.lagre(vedtakUtenforAktivPeriode)
@@ -202,6 +202,46 @@ internal class VedtakPosgresRepoTest {
                 """.trimIndent()
                     .hent(mapOf("vedtakId" to vedtak.id), session) {
                         it.int("count") shouldBe 1
+                    }
+            }
+        }
+    }
+
+    @Test
+    fun `kan lagre et vedtak som ikke fører til endring i utbetaling`() {
+        withMigratedDb {
+            val søknadsbehandlingVedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+
+            val nyRevurdering = testDataHelper.nyRevurdering(søknadsbehandlingVedtak, søknadsbehandlingVedtak.periode)
+            val iverksattRevurdering = IverksattRevurdering.IngenEndring(
+                id = nyRevurdering.id,
+                periode = søknadsbehandlingVedtak.periode,
+                opprettet = nyRevurdering.opprettet,
+                tilRevurdering = søknadsbehandlingVedtak,
+                saksbehandler = søknadsbehandlingVedtak.saksbehandler,
+                oppgaveId = OppgaveId(""),
+                beregning = søknadsbehandlingVedtak.beregning,
+                attestering = Attestering.Iverksatt(søknadsbehandlingVedtak.attestant),
+                fritekstTilBrev = "",
+                revurderingsårsak = Revurderingsårsak(
+                    Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
+                    Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
+                ),
+            )
+            testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
+
+            val revurderingVedtak = Vedtak.from(iverksattRevurdering)
+
+            vedtakRepo.lagre(revurderingVedtak)
+            vedtakRepo.hent(revurderingVedtak.id) shouldBe revurderingVedtak
+
+            datasource.withSession { session ->
+                """
+                    SELECT søknadsbehandlingId, revurderingId from behandling_vedtak where vedtakId = :vedtakId
+                """.trimIndent()
+                    .hent(mapOf("vedtakId" to revurderingVedtak.id), session) {
+                        it.stringOrNull("søknadsbehandlingId") shouldBe null
+                        it.stringOrNull("revurderingId") shouldBe iverksattRevurdering.id.toString()
                     }
             }
         }

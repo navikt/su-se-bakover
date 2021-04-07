@@ -73,6 +73,29 @@ interface LagBrevRequest {
         }
     }
 
+    data class VedtakIngenEndring(
+        private val person: Person,
+        private val saksbehandlerNavn: String,
+        private val attestantNavn: String,
+        private val beregning: Beregning,
+        private val fritekst: String,
+        private val harEktefelle: Boolean,
+    ) : LagBrevRequest {
+        override fun getPerson(): Person = person
+
+        override fun lagBrevInnhold(personalia: BrevInnhold.Personalia): BrevInnhold {
+            return BrevInnhold.VedtakIngenEndring(
+                personalia = personalia,
+                saksbehandlerNavn = saksbehandlerNavn,
+                attestantNavn = attestantNavn,
+                beregningsperioder = LagBrevinnholdForBeregning(beregning).brevInnhold,
+                fritekst = fritekst,
+                sats = beregning.getSats(),
+                harEktefelle = harEktefelle,
+            )
+        }
+    }
+
     sealed class Revurdering : LagBrevRequest {
         data class Inntekt(
             private val person: Person,

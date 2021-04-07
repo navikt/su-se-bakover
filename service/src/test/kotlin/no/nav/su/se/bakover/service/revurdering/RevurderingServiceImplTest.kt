@@ -13,7 +13,6 @@ import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
-import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -24,17 +23,13 @@ import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
-import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.beregning.MånedsberegningFactory
-import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -50,119 +45,41 @@ import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakType
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
-import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.beregning.TestBeregning
-import no.nav.su.se.bakover.service.beregning.TestBeregningSomGirAvslag
+import no.nav.su.se.bakover.service.beregning.TestBeregningSomGirOpphør
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.service.doNothing
-import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.aktørId
+import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.beregningMock
+import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.createRevurderingService
+import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.fnr
+import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.periode
+import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.revurderingId
+import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.revurderingsårsak
+import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.sak
+import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.sakId
+import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.saksbehandler
+import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.saksnummer
+import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.søknadsbehandlingVedtak
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
 internal class RevurderingServiceImplTest {
-    private val sakId: UUID = UUID.randomUUID()
-    private val dagensDato = LocalDate.now().let {
-        LocalDate.of(
-            it.year,
-            it.month,
-            1,
-        )
-    }
-    private val nesteMåned =
-        LocalDate.of(
-            dagensDato.year,
-            dagensDato.month.plus(1),
-            1,
-        )
-    private val periode = Periode.create(
-        fraOgMed = nesteMåned,
-        tilOgMed = nesteMåned.let {
-            val treMånederFramITid = it.plusMonths(3)
-            LocalDate.of(
-                treMånederFramITid.year,
-                treMånederFramITid.month,
-                treMånederFramITid.lengthOfMonth(),
-            )
-        },
-    )
-    private val saksbehandler = NavIdentBruker.Saksbehandler("Sak S. behandler")
-    private val saksnummer = Saksnummer(nummer = 12345676)
-    private val fnr = FnrGenerator.random()
-    private val revurderingId = UUID.randomUUID()
-    private val aktørId = AktørId("aktørId")
-
-    private val beregningMock = mock<Beregning> {
-        on { getPeriode() } doReturn periode
-        on { getMånedsberegninger() } doReturn periode.tilMånedsperioder()
-            .map { MånedsberegningFactory.ny(it, Sats.HØY, listOf()) }
-        on { getFradrag() } doReturn listOf()
-        on { getSumYtelse() } doReturn periode.tilMånedsperioder()
-            .sumBy { MånedsberegningFactory.ny(it, Sats.HØY, listOf()).getSumYtelse() }
-    }
-
-    private val revurderingsårsak = Revurderingsårsak(
-        Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
-        Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
-    )
-
-    private val søknadsbehandlingVedtak = Vedtak.EndringIYtelse.fromSøknadsbehandling(
-        Søknadsbehandling.Iverksatt.Innvilget(
-            id = mock(),
-            opprettet = mock(),
-            sakId = sakId,
-            saksnummer = saksnummer,
-            søknad = mock(),
-            oppgaveId = mock(),
-            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().copy(
-                bosituasjon = Behandlingsinformasjon.Bosituasjon(
-                    ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
-                    delerBolig = false,
-                    ektemakeEllerSamboerUførFlyktning = null,
-                    begrunnelse = null,
-                ),
-                ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
-            ),
-            fnr = fnr,
-            beregning = beregningMock,
-            simulering = mock(),
-            saksbehandler = saksbehandler,
-            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("Attes T. Ant")),
-            fritekstTilBrev = "",
-        ),
-        UUID30.randomUUID(),
-    )
-    val sak = Sak(
-        id = sakId,
-        saksnummer = saksnummer,
-        opprettet = Tidspunkt.now(),
-        fnr = fnr,
-        søknader = listOf(),
-        utbetalinger = listOf(
-            mock {
-                on { senesteDato() } doReturn periode.getTilOgMed()
-                on { tidligsteDato() } doReturn periode.getFraOgMed()
-            },
-        ),
-        vedtakListe = listOf(søknadsbehandlingVedtak),
-    )
-
     @Test
     fun `oppretter en revurdering`() {
         val sakServiceMock = mock<SakService> {
@@ -344,33 +261,6 @@ internal class RevurderingServiceImplTest {
             verify(revurderingRepoMock).lagre(argThat { it shouldBe actual })
         }
         verifyNoMoreInteractions(revurderingRepoMock, utbetalingServiceMock)
-    }
-
-    @Test
-    fun `Revurderingen går ikke gjennom hvis endring av utbetaling er under ti prosent`() {
-        val opprettetRevurdering = OpprettetRevurdering(
-            id = revurderingId,
-            periode = periode,
-            opprettet = Tidspunkt.EPOCH,
-            tilRevurdering = søknadsbehandlingVedtak,
-            saksbehandler = saksbehandler,
-            oppgaveId = OppgaveId("oppgaveid"),
-            fritekstTilBrev = "",
-            revurderingsårsak = revurderingsårsak,
-        )
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(revurderingId) } doReturn opprettetRevurdering
-        }
-
-        val actual = createRevurderingService(
-            revurderingRepo = revurderingRepoMock,
-        ).beregnOgSimuler(
-            revurderingId = revurderingId,
-            saksbehandler = saksbehandler,
-            fradrag = listOf(),
-        ).getOrHandle { throw RuntimeException("Skal gå å revurdere") }
-
-        actual.shouldBeInstanceOf<BeregnetRevurdering.Avslag>()
     }
 
     @Test
@@ -716,7 +606,7 @@ internal class RevurderingServiceImplTest {
             opprettet = Tidspunkt.EPOCH,
             tilRevurdering = søknadsbehandlingVedtak,
             oppgaveId = OppgaveId(value = "OppgaveId"),
-            beregning = TestBeregningSomGirAvslag,
+            beregning = TestBeregningSomGirOpphør,
             simulering = mock(),
             saksbehandler = saksbehandler,
             fritekstTilBrev = "",
@@ -1170,27 +1060,4 @@ internal class RevurderingServiceImplTest {
         verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
         verifyNoMoreInteractions(revurderingRepoMock)
     }
-
-    private fun createRevurderingService(
-        sakService: SakService = mock(),
-        utbetalingService: UtbetalingService = mock(),
-        revurderingRepo: RevurderingRepo = mock(),
-        oppgaveService: OppgaveService = mock(),
-        personService: PersonService = mock(),
-        microsoftGraphApiClient: MicrosoftGraphApiClient = mock(),
-        brevService: BrevService = mock(),
-        clock: Clock = fixedClock,
-        vedtakRepo: VedtakRepo = mock(),
-    ) =
-        RevurderingServiceImpl(
-            sakService = sakService,
-            utbetalingService = utbetalingService,
-            revurderingRepo = revurderingRepo,
-            oppgaveService = oppgaveService,
-            personService = personService,
-            microsoftGraphApiClient = microsoftGraphApiClient,
-            brevService = brevService,
-            clock = clock,
-            vedtakRepo = vedtakRepo,
-        )
 }

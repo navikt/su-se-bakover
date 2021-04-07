@@ -60,12 +60,12 @@ internal class VedtakPosgresRepo(
                 }
         }
 
-    override fun lagre(vedtak: Vedtak) {
+    override fun lagre(vedtak: Vedtak) =
         when (vedtak) {
             is Vedtak.EndringIYtelse -> lagre(vedtak)
             is Vedtak.Avslag -> lagre(vedtak)
+            is Vedtak.IngenEndringIYtelse -> lagre(vedtak)
         }
-    }
 
     override fun hentForUtbetaling(utbetalingId: UUID30): Vedtak.EndringIYtelse {
         return dataSource.withSession { session ->
@@ -178,8 +178,7 @@ internal class VedtakPosgresRepo(
                     vedtakType = vedtakType,
                 )
             }
-            VedtakType.AVSLAG,
-            -> {
+            VedtakType.AVSLAG -> {
                 if (beregning != null) {
                     Vedtak.Avslag.AvslagBeregning(
                         id = id,
@@ -209,6 +208,20 @@ internal class VedtakPosgresRepo(
                     )
                 }
             }
+            VedtakType.INGEN_ENDRING -> Vedtak.IngenEndringIYtelse(
+                id = id,
+                opprettet = opprettet,
+                periode = Periode.create(fraOgMed!!, tilOgMed!!),
+                behandling = behandling,
+                behandlingsinformasjon = behandlingsinformasjon,
+                beregning = beregning!!,
+                saksbehandler = saksbehandler,
+                attestant = attestant,
+                journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.fromId(
+                    iverksattJournalpostId,
+                    iverksattBrevbestillingId,
+                ),
+            )
         }
     }
 
@@ -269,26 +282,7 @@ internal class VedtakPosgresRepo(
                     ),
                     tx,
                 )
-
-            lagreBehandlingVedtakKnytning(
-                when (vedtak.behandling) {
-                    is Revurdering ->
-                        BehandlingVedtakKnytning.ForRevurdering(
-                            vedtakId = vedtak.id,
-                            sakId = vedtak.behandling.sakId,
-                            revurderingId = vedtak.behandling.id,
-                        )
-                    is Søknadsbehandling ->
-                        BehandlingVedtakKnytning.ForSøknadsbehandling(
-                            vedtakId = vedtak.id,
-                            sakId = vedtak.behandling.sakId,
-                            søknadsbehandlingId = vedtak.behandling.id,
-                        )
-                    else ->
-                        throw IllegalArgumentException("vedtak.behandling er av ukjent type. Den må være en revurdering eller en søknadsbehandling.")
-                },
-                tx,
-            )
+            lagreBehandlingVedtakKnytning(vedtak, tx)
         }
     }
 
@@ -351,23 +345,89 @@ internal class VedtakPosgresRepo(
                     ),
                     tx,
                 )
-
-            lagreBehandlingVedtakKnytning(
-                when (vedtak.behandling) {
-                    is Søknadsbehandling ->
-                        BehandlingVedtakKnytning.ForSøknadsbehandling(
-                            vedtakId = vedtak.id,
-                            sakId = vedtak.behandling.sakId,
-                            søknadsbehandlingId = vedtak.behandling.id,
-                        )
-                    else -> throw IllegalArgumentException("Vedtak.behandling er av ukjent type. Støtter bare søknadsbehandling inntil videre")
-                },
-                tx,
-            )
+            lagreBehandlingVedtakKnytning(vedtak, tx)
         }
     }
 
-    private fun lagreBehandlingVedtakKnytning(knytning: BehandlingVedtakKnytning, session: Session) {
+    private fun lagre(vedtak: Vedtak.IngenEndringIYtelse) {
+        dataSource.withTransaction { tx ->
+            """
+                INSERT INTO vedtak(
+                    id,
+                    opprettet,
+                    fraOgMed,
+                    tilOgMed,
+                    saksbehandler,
+                    attestant,
+                    behandlingsinformasjon,
+                    utbetalingid,
+                    simulering,
+                    beregning,
+                    iverksattjournalpostid,
+                    iverksattbrevbestillingid,
+                    vedtaktype
+                ) VALUES (
+                    :id,
+                    :opprettet,
+                    :fraOgMed,
+                    :tilOgMed,
+                    :saksbehandler,
+                    :attestant,
+                    to_json(:behandlingsinformasjon::json),
+                    :utbetalingid,
+                    to_json(:simulering::json),
+                    to_json(:beregning::json),
+                    :iverksattjournalpostId,
+                    :iverksattbrevbestillingId,
+                    :vedtaktype
+                ) ON CONFLICT(id) DO UPDATE SET
+                    iverksattjournalpostid = :iverksattjournalpostId,
+                    iverksattbrevbestillingid = :iverksattbrevbestillingId
+            """.trimIndent()
+                .oppdatering(
+                    mapOf(
+                        "id" to vedtak.id,
+                        "opprettet" to vedtak.opprettet,
+                        "fraOgMed" to vedtak.periode.getFraOgMed(),
+                        "tilOgMed" to vedtak.periode.getTilOgMed(),
+                        "saksbehandler" to vedtak.saksbehandler,
+                        "attestant" to vedtak.attestant,
+                        "utbetalingid" to null,
+                        "simulering" to null,
+                        "beregning" to objectMapper.writeValueAsString(vedtak.beregning.toSnapshot()),
+                        "behandlingsinformasjon" to objectMapper.writeValueAsString(vedtak.behandlingsinformasjon),
+                        "iverksattjournalpostId" to JournalføringOgBrevdistribusjon.iverksattJournalpostId(
+                            vedtak.journalføringOgBrevdistribusjon,
+                        )?.toString(),
+                        "iverksattbrevbestillingId" to JournalføringOgBrevdistribusjon.iverksattBrevbestillingId(
+                            vedtak.journalføringOgBrevdistribusjon,
+                        )?.toString(),
+                        "vedtaktype" to vedtak.vedtakType,
+                    ),
+                    tx,
+                )
+            lagreBehandlingVedtakKnytning(vedtak, tx)
+        }
+    }
+
+    private fun lagreBehandlingVedtakKnytning(vedtak: Vedtak, session: Session) {
+        val knytning = when (vedtak.behandling) {
+            is Revurdering ->
+                BehandlingVedtakKnytning.ForRevurdering(
+                    vedtakId = vedtak.id,
+                    sakId = vedtak.behandling.sakId,
+                    revurderingId = vedtak.behandling.id,
+                )
+            is Søknadsbehandling ->
+                BehandlingVedtakKnytning.ForSøknadsbehandling(
+                    vedtakId = vedtak.id,
+                    sakId = vedtak.behandling.sakId,
+                    søknadsbehandlingId = vedtak.behandling.id,
+                )
+            else ->
+                throw IllegalArgumentException("vedtak.behandling er av ukjent type. Den må være en revurdering eller en søknadsbehandling.")
+        }
+
         val map = mapOf(
             "id" to knytning.id,
             "vedtakId" to knytning.vedtakId,

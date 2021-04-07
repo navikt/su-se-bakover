@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
-import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.routing.Route
@@ -35,34 +34,29 @@ internal fun Route.oppdaterRevurderingRoute(
         val begrunnelse: String,
     )
 
-    suspend fun oppdater(call: ApplicationCall) {
-        call.withRevurderingId { revurderingId ->
-            call.withBody<Body> { body ->
-                val navIdent = call.suUserContext.navIdent
-
-                revurderingService.oppdaterRevurderingsperiode(
-                    OppdaterRevurderingRequest(
-                        revurderingId = revurderingId,
-                        fraOgMed = body.fraOgMed,
-                        årsak = body.årsak,
-                        begrunnelse = body.begrunnelse,
-                        saksbehandler = NavIdentBruker.Saksbehandler(navIdent),
-                    ),
-                ).fold(
-                    ifLeft = { call.svar(it.tilResultat()) },
-                    ifRight = {
-                        call.audit("Oppdaterte perioden på revurdering med id: $revurderingId")
-                        call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson())))
-                    },
-                )
-            }
-        }
-    }
-
     authorize(Brukerrolle.Saksbehandler) {
-        // TODO jah: Slett denne når su-se-framover har byttet til ny path og er i prod.
         put("$revurderingPath/{revurderingId}") {
-            oppdater(call)
+            call.withRevurderingId { revurderingId ->
+                call.withBody<Body> { body ->
+                    val navIdent = call.suUserContext.navIdent
+
+                    revurderingService.oppdaterRevurderingsperiode(
+                        OppdaterRevurderingRequest(
+                            revurderingId = revurderingId,
+                            fraOgMed = body.fraOgMed,
+                            årsak = body.årsak,
+                            begrunnelse = body.begrunnelse,
+                            saksbehandler = NavIdentBruker.Saksbehandler(navIdent),
+                        ),
+                    ).fold(
+                        ifLeft = { call.svar(it.tilResultat()) },
+                        ifRight = {
+                            call.audit("Oppdaterte perioden på revurdering med id: $revurderingId")
+                            call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson())))
+                        },
+                    )
+                }
+            }
         }
     }
 }

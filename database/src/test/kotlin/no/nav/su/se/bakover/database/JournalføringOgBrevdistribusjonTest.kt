@@ -59,7 +59,7 @@ internal class JournalføringOgBrevdistribusjonTest {
     }
 
     @Nested
-    inner class Avslag {
+    inner class IngenEndring {
         @Test
         fun `kun journalpostid ger status journalført`() {
             JournalføringOgBrevdistribusjon.fromId(

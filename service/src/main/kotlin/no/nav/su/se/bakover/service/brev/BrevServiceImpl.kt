@@ -29,7 +29,6 @@ internal class BrevServiceImpl(
     }
 
     override fun journalførBrev(request: LagBrevRequest, saksnummer: Saksnummer): Either<KunneIkkeJournalføreBrev, JournalpostId> {
-
         val brevInnhold = lagBrevInnhold(request)
         val brevPdf = lagPdf(brevInnhold).fold(
             { return KunneIkkeJournalføreBrev.KunneIkkeGenereBrev.left() },

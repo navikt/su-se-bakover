@@ -4,13 +4,10 @@ import arrow.core.getOrHandle
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.kotest.matchers.types.shouldBeInstanceOf
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.database.beregning.TestBeregning
-import no.nav.su.se.bakover.database.beregning.toSnapshot
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
@@ -20,11 +17,13 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
+import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.util.UUID
@@ -43,61 +42,127 @@ internal class RevurderingPostgresRepoTest {
         Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
         Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
     )
+    private val oppgaveId = OppgaveId("oppgaveid")
+    private val attestant = NavIdentBruker.Attestant("attestant")
+    private val simulering = Simulering(
+        gjelderId = FnrGenerator.random(),
+        gjelderNavn = "et navn for simulering",
+        datoBeregnet = 1.januar(2021),
+        nettoBeløp = 200,
+        periodeList = listOf(),
+    )
+
+    private fun opprettet(vedtak: Vedtak.EndringIYtelse) = OpprettetRevurdering(
+        id = UUID.randomUUID(),
+        periode = periode,
+        opprettet = fixedTidspunkt,
+        tilRevurdering = vedtak,
+        saksbehandler = saksbehandler,
+        oppgaveId = oppgaveId,
+        fritekstTilBrev = "",
+        revurderingsårsak = revurderingsårsak,
+    )
+
+    private fun beregnetIngenEndring(
+        opprettet: OpprettetRevurdering,
+        vedtak: Vedtak.EndringIYtelse,
+    ) = BeregnetRevurdering.IngenEndring(
+        id = opprettet.id,
+        periode = opprettet.periode,
+        opprettet = opprettet.opprettet,
+        tilRevurdering = vedtak,
+        saksbehandler = opprettet.saksbehandler,
+        oppgaveId = opprettet.oppgaveId,
+        fritekstTilBrev = opprettet.fritekstTilBrev,
+        revurderingsårsak = opprettet.revurderingsårsak,
+        beregning = vedtak.beregning,
+    )
+
+    private fun beregnetInnvilget(
+        opprettet: OpprettetRevurdering,
+        vedtak: Vedtak.EndringIYtelse,
+    ) = BeregnetRevurdering.Innvilget(
+        id = opprettet.id,
+        periode = opprettet.periode,
+        opprettet = opprettet.opprettet,
+        tilRevurdering = vedtak,
+        saksbehandler = opprettet.saksbehandler,
+        beregning = vedtak.beregning,
+        oppgaveId = opprettet.oppgaveId,
+        fritekstTilBrev = opprettet.fritekstTilBrev,
+        revurderingsårsak = opprettet.revurderingsårsak,
+    )
+
+    private fun beregnetOpphørt(
+        opprettet: OpprettetRevurdering,
+        vedtak: Vedtak.EndringIYtelse,
+    ) = BeregnetRevurdering.Opphørt(
+        id = opprettet.id,
+        periode = opprettet.periode,
+        opprettet = opprettet.opprettet,
+        tilRevurdering = vedtak,
+        saksbehandler = opprettet.saksbehandler,
+        beregning = vedtak.beregning,
+        oppgaveId = opprettet.oppgaveId,
+        fritekstTilBrev = opprettet.fritekstTilBrev,
+        revurderingsårsak = opprettet.revurderingsårsak,
+    )
+
+    private fun simulertInnvilget(beregnet: BeregnetRevurdering.Innvilget) = SimulertRevurdering.Innvilget(
+        id = beregnet.id,
+        periode = beregnet.periode,
+        opprettet = beregnet.opprettet,
+        tilRevurdering = beregnet.tilRevurdering,
+        saksbehandler = beregnet.saksbehandler,
+        beregning = beregnet.beregning,
+        oppgaveId = beregnet.oppgaveId,
+        simulering = simulering,
+        fritekstTilBrev = beregnet.fritekstTilBrev,
+        revurderingsårsak = beregnet.revurderingsårsak,
+    )
+
+    private fun simulertOpphørt(beregnet: BeregnetRevurdering.Opphørt) = SimulertRevurdering.Opphørt(
+        id = beregnet.id,
+        periode = beregnet.periode,
+        opprettet = beregnet.opprettet,
+        tilRevurdering = beregnet.tilRevurdering,
+        saksbehandler = beregnet.saksbehandler,
+        beregning = beregnet.beregning,
+        oppgaveId = beregnet.oppgaveId,
+        simulering = simulering,
+        fritekstTilBrev = beregnet.fritekstTilBrev,
+        revurderingsårsak = beregnet.revurderingsårsak,
+    )
 
     @Test
-    fun `kan lagre og hente en revurdering`() {
+    fun `kan opprette og beregner med ingen endring`() {
         withMigratedDb {
-            val vedtak =
-                testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
 
-            val opprettet = OpprettetRevurdering(
-                id = UUID.randomUUID(),
-                periode = periode,
-                opprettet = fixedTidspunkt,
-                tilRevurdering = vedtak,
-                saksbehandler = saksbehandler,
-                oppgaveId = OppgaveId("oppgaveid"),
-                fritekstTilBrev = "",
-                revurderingsårsak = revurderingsårsak,
-            )
+            val opprettet = opprettet(vedtak)
             repo.lagre(opprettet)
             repo.hent(opprettet.id) shouldBe opprettet
+
+            val beregnetIngenEndring = beregnetIngenEndring(opprettet, vedtak)
+
+            repo.lagre(beregnetIngenEndring)
+            repo.hent(opprettet.id) shouldBe beregnetIngenEndring
         }
     }
 
     @Test
-    fun `kan oppdatere revurdering`() {
+    fun `kan beregne (innvilget) og oppdatere periode og årsak`() {
         withMigratedDb {
-            val vedtak =
-                testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
 
-            val opprettetRevurdering = OpprettetRevurdering(
-                id = UUID.randomUUID(),
-                periode = periode,
-                opprettet = fixedTidspunkt,
-                tilRevurdering = vedtak,
-                saksbehandler = saksbehandler,
-                oppgaveId = OppgaveId("oppgaveid"),
-                fritekstTilBrev = "",
-                revurderingsårsak = revurderingsårsak,
-            )
+            val opprettetRevurdering = opprettet(vedtak)
             repo.lagre(opprettetRevurdering)
-            val beregnetRevurdering = BeregnetRevurdering.Innvilget(
-                id = opprettetRevurdering.id,
-                periode = periode,
-                opprettet = fixedTidspunkt,
-                tilRevurdering = vedtak,
-                saksbehandler = saksbehandler,
-                beregning = TestBeregning.toSnapshot(),
-                oppgaveId = OppgaveId("oppgaveid"),
-                fritekstTilBrev = "",
-                revurderingsårsak = revurderingsårsak,
-            )
+            val innvilgetBeregning = beregnetInnvilget(opprettetRevurdering, vedtak)
 
-            repo.lagre(beregnetRevurdering)
-            repo.hent(beregnetRevurdering.id) shouldBe beregnetRevurdering
+            repo.lagre(innvilgetBeregning)
+            repo.hent(innvilgetBeregning.id) shouldBe innvilgetBeregning
 
-            val oppdatertRevurdering = beregnetRevurdering.oppdater(
+            val oppdatertRevurdering = innvilgetBeregning.oppdater(
                 Periode.create(1.juni(2020), 30.juni(2020)),
                 Revurderingsårsak(
                     årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
@@ -106,271 +171,90 @@ internal class RevurderingPostgresRepoTest {
             )
 
             repo.lagre(oppdatertRevurdering)
-            val actual = repo.hent(beregnetRevurdering.id)
-            actual.shouldBeInstanceOf<OpprettetRevurdering>()
-            oppdatertRevurdering.periode shouldBe oppdatertRevurdering.periode
+            repo.hent(innvilgetBeregning.id) shouldBe oppdatertRevurdering
         }
     }
 
     @Test
-    fun `kan kan overskrive en opprettet med innvilget beregning`() {
-        withMigratedDb {
-            val vedtak =
-                testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+    fun `beregnet ingen endring kan overskrives med ny saksbehandler`() {
 
-            val opprettet = OpprettetRevurdering(
-                id = UUID.randomUUID(),
-                periode = periode,
-                opprettet = fixedTidspunkt,
-                tilRevurdering = vedtak,
-                saksbehandler = saksbehandler,
-                oppgaveId = OppgaveId("oppgaveid"),
-                fritekstTilBrev = "",
-                revurderingsårsak = revurderingsårsak,
-            )
+        withMigratedDb {
+            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+            val opprettet = opprettet(vedtak)
 
             repo.lagre(opprettet)
 
-            val beregnetRevurdering = BeregnetRevurdering.Innvilget(
-                id = opprettet.id,
-                periode = opprettet.periode,
-                opprettet = opprettet.opprettet,
-                tilRevurdering = vedtak,
-                saksbehandler = saksbehandler,
-                beregning = TestBeregning,
-                oppgaveId = OppgaveId("oppgaveid"),
-                fritekstTilBrev = "",
-                revurderingsårsak = revurderingsårsak,
-            )
-
-            repo.lagre(beregnetRevurdering)
-            assert(repo.hent(opprettet.id) is BeregnetRevurdering.Innvilget)
-        }
-    }
-
-    @Test
-    fun `beregnet kan overskrives med ny avslått beregnet`() {
-
-        withMigratedDb {
-            val vedtak =
-                testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
-            val opprettet = OpprettetRevurdering(
-                id = UUID.randomUUID(),
-                periode = periode,
-                opprettet = fixedTidspunkt,
-                tilRevurdering = vedtak,
-                saksbehandler = saksbehandler,
-                oppgaveId = OppgaveId("oppgaveid"),
-                fritekstTilBrev = "",
-                revurderingsårsak = revurderingsårsak,
-            )
-
-            repo.lagre(opprettet)
-
-            val beregnet = BeregnetRevurdering.Avslag(
-                id = opprettet.id,
-                periode = opprettet.periode,
-                opprettet = opprettet.opprettet,
-                tilRevurdering = vedtak,
-                saksbehandler = opprettet.saksbehandler,
-                beregning = TestBeregning,
-                oppgaveId = OppgaveId("oppgaveid"),
-                fritekstTilBrev = "",
-                revurderingsårsak = revurderingsårsak,
-            )
+            val beregnet = beregnetIngenEndring(opprettet, vedtak)
 
             repo.lagre(beregnet)
 
-            val nyBeregnet = BeregnetRevurdering.Avslag(
-                id = beregnet.id,
-                periode = beregnet.periode,
-                opprettet = beregnet.opprettet,
-                tilRevurdering = beregnet.tilRevurdering,
+            val nyBeregnet = beregnet.copy(
                 saksbehandler = Saksbehandler("ny saksbehandler"),
-                beregning = beregnet.beregning,
-                oppgaveId = OppgaveId("oppgaveid"),
-                fritekstTilBrev = "",
-                revurderingsårsak = revurderingsårsak,
             )
 
             repo.lagre(nyBeregnet)
 
-            val hentet = repo.hent(opprettet.id)
+            val actual = repo.hent(opprettet.id)!!
 
-            hentet shouldNotBe opprettet
-            hentet shouldNotBe beregnet
-            hentet!!.saksbehandler shouldBe nyBeregnet.saksbehandler
+            actual shouldNotBe opprettet
+            actual shouldNotBe beregnet
+            actual shouldBe nyBeregnet
         }
     }
 
     @Test
     fun `kan overskrive en beregnet med simulert`() {
         withMigratedDb {
-            val vedtak =
-                testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
-            val opprettet = OpprettetRevurdering(
-                id = UUID.randomUUID(),
-                periode = periode,
-                opprettet = fixedTidspunkt,
-                tilRevurdering = vedtak,
-                saksbehandler = saksbehandler,
-                oppgaveId = OppgaveId("oppgaveid"),
-                fritekstTilBrev = "",
-                revurderingsårsak = revurderingsårsak,
-            )
+            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+            val opprettet = opprettet(vedtak)
 
             repo.lagre(opprettet)
 
-            val beregnet = BeregnetRevurdering.Innvilget(
-                id = opprettet.id,
-                periode = opprettet.periode,
-                opprettet = opprettet.opprettet,
-                tilRevurdering = vedtak,
-                saksbehandler = opprettet.saksbehandler,
-                beregning = TestBeregning,
-                oppgaveId = OppgaveId("oppgaveid"),
-                fritekstTilBrev = "",
-                revurderingsårsak = revurderingsårsak,
-            )
+            val beregnet = beregnetInnvilget(opprettet, vedtak)
 
             repo.lagre(beregnet)
 
-            val simulert = SimulertRevurdering.Innvilget(
-                id = beregnet.id,
-                periode = beregnet.periode,
-                opprettet = beregnet.opprettet,
-                tilRevurdering = beregnet.tilRevurdering,
-                saksbehandler = beregnet.saksbehandler,
-                beregning = beregnet.beregning,
-                oppgaveId = OppgaveId("oppgaveid"),
-                simulering = Simulering(
-                    gjelderId = FnrGenerator.random(),
-                    gjelderNavn = "et navn for simulering",
-                    datoBeregnet = 1.januar(2021),
-                    nettoBeløp = 200,
-                    periodeList = listOf(),
-                ),
-                fritekstTilBrev = "",
-                revurderingsårsak = revurderingsårsak,
-            )
+            val simulert = simulertInnvilget(beregnet)
 
             repo.lagre(simulert)
 
-            val hentet = repo.hent(opprettet.id)
-
-            assert(hentet is SimulertRevurdering.Innvilget)
+            repo.hent(opprettet.id) shouldBe simulert
         }
     }
 
     @Test
     fun `kan overskrive en simulert med en beregnet`() {
         withMigratedDb {
-            val vedtak =
-                testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
-            val opprettet = OpprettetRevurdering(
-                id = UUID.randomUUID(),
-                periode = periode,
-                opprettet = fixedTidspunkt,
-                tilRevurdering = vedtak,
-                saksbehandler = saksbehandler,
-                oppgaveId = OppgaveId("oppgaveid"),
-                fritekstTilBrev = "",
-                revurderingsårsak = revurderingsårsak,
-            )
+            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+            val opprettet = opprettet(vedtak)
 
             repo.lagre(opprettet)
 
-            val beregnet = BeregnetRevurdering.Innvilget(
-                id = opprettet.id,
-                periode = opprettet.periode,
-                opprettet = opprettet.opprettet,
-                tilRevurdering = vedtak,
-                saksbehandler = opprettet.saksbehandler,
-                beregning = TestBeregning,
-                oppgaveId = OppgaveId("oppgaveid"),
-                fritekstTilBrev = "",
-                revurderingsårsak = revurderingsårsak,
-            )
+            val beregnet = beregnetInnvilget(opprettet, vedtak)
 
             repo.lagre(beregnet)
 
-            val simulert = SimulertRevurdering.Innvilget(
-                id = beregnet.id,
-                periode = beregnet.periode,
-                opprettet = beregnet.opprettet,
-                tilRevurdering = beregnet.tilRevurdering,
-                saksbehandler = beregnet.saksbehandler,
-                beregning = beregnet.beregning,
-                oppgaveId = OppgaveId("oppgaveid"),
-                simulering = Simulering(
-                    gjelderId = FnrGenerator.random(),
-                    gjelderNavn = "et navn for simulering",
-                    datoBeregnet = 1.januar(2021),
-                    nettoBeløp = 200,
-                    periodeList = listOf(),
-                ),
-                fritekstTilBrev = "",
-                revurderingsårsak = revurderingsårsak,
-            )
+            val simulert = simulertInnvilget(beregnet)
 
             repo.lagre(simulert)
             repo.lagre(beregnet)
-            val hentet = repo.hent(opprettet.id)
-
-            assert(hentet is BeregnetRevurdering.Innvilget)
+            repo.hent(opprettet.id) shouldBe beregnet
         }
     }
 
     @Test
     fun `kan overskrive en simulert med en til attestering`() {
         withMigratedDb {
-            val vedtak =
-                testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
-            val opprettet = OpprettetRevurdering(
-                id = UUID.randomUUID(),
-                periode = periode,
-                opprettet = fixedTidspunkt,
-                tilRevurdering = vedtak,
-                saksbehandler = saksbehandler,
-                oppgaveId = OppgaveId("oppgaveid"),
-                fritekstTilBrev = "",
-                revurderingsårsak = revurderingsårsak,
-            )
+            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+            val opprettet = opprettet(vedtak)
 
             repo.lagre(opprettet)
 
-            val beregnet = BeregnetRevurdering.Innvilget(
-                id = opprettet.id,
-                periode = opprettet.periode,
-                opprettet = opprettet.opprettet,
-                tilRevurdering = vedtak,
-                saksbehandler = opprettet.saksbehandler,
-                beregning = TestBeregning,
-                oppgaveId = OppgaveId("oppgaveid"),
-                fritekstTilBrev = "",
-                revurderingsårsak = revurderingsårsak,
-            )
+            val beregnet = beregnetInnvilget(opprettet, vedtak)
 
             repo.lagre(beregnet)
 
-            val simulert = SimulertRevurdering.Innvilget(
-                id = beregnet.id,
-                periode = beregnet.periode,
-                opprettet = beregnet.opprettet,
-                tilRevurdering = beregnet.tilRevurdering,
-                saksbehandler = beregnet.saksbehandler,
-                beregning = beregnet.beregning,
-                oppgaveId = OppgaveId("oppgaveid"),
-                simulering = Simulering(
-                    gjelderId = FnrGenerator.random(),
-                    gjelderNavn = "et navn for simulering",
-                    datoBeregnet = 1.januar(2021),
-                    nettoBeløp = 200,
-                    periodeList = listOf(),
-                ),
-                fritekstTilBrev = "",
-                revurderingsårsak = revurderingsårsak,
-            )
+            val simulert = simulertInnvilget(beregnet)
 
             repo.lagre(simulert)
 
@@ -383,62 +267,23 @@ internal class RevurderingPostgresRepoTest {
 
             repo.lagre(tilAttestering)
 
-            val hentet = repo.hent(opprettet.id)
-
-            assert(hentet is RevurderingTilAttestering.Innvilget)
+            repo.hent(opprettet.id) shouldBe tilAttestering
         }
     }
 
     @Test
     fun `saksbehandler som sender til attestering overskriver saksbehandlere som var før`() {
         withMigratedDb {
-            val vedtak =
-                testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
-            val opprettet = OpprettetRevurdering(
-                id = UUID.randomUUID(),
-                periode = periode,
-                opprettet = fixedTidspunkt,
-                tilRevurdering = vedtak,
-                saksbehandler = saksbehandler,
-                oppgaveId = OppgaveId("oppgaveid"),
-                fritekstTilBrev = "",
-                revurderingsårsak = revurderingsårsak,
-            )
+            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+            val opprettet = opprettet(vedtak)
 
             repo.lagre(opprettet)
 
-            val beregnet = BeregnetRevurdering.Innvilget(
-                id = opprettet.id,
-                periode = opprettet.periode,
-                opprettet = opprettet.opprettet,
-                tilRevurdering = vedtak,
-                saksbehandler = opprettet.saksbehandler,
-                beregning = TestBeregning,
-                oppgaveId = OppgaveId("oppgaveid"),
-                fritekstTilBrev = "",
-                revurderingsårsak = revurderingsårsak,
-            )
+            val beregnet = beregnetInnvilget(opprettet, vedtak)
 
             repo.lagre(beregnet)
 
-            val simulert = SimulertRevurdering.Innvilget(
-                id = beregnet.id,
-                periode = beregnet.periode,
-                opprettet = beregnet.opprettet,
-                tilRevurdering = beregnet.tilRevurdering,
-                saksbehandler = beregnet.saksbehandler,
-                beregning = beregnet.beregning,
-                oppgaveId = OppgaveId("oppgaveid"),
-                simulering = Simulering(
-                    gjelderId = FnrGenerator.random(),
-                    gjelderNavn = "et navn for simulering",
-                    datoBeregnet = 1.januar(2021),
-                    nettoBeløp = 200,
-                    periodeList = listOf(),
-                ),
-                fritekstTilBrev = "",
-                revurderingsårsak = revurderingsårsak,
-            )
+            val simulert = simulertInnvilget(beregnet)
 
             repo.lagre(simulert)
 
@@ -450,10 +295,9 @@ internal class RevurderingPostgresRepoTest {
 
             repo.lagre(tilAttestering)
 
-            val hentet = repo.hent(opprettet.id)
+            repo.hent(opprettet.id) shouldBe tilAttestering
 
-            assert(hentet is RevurderingTilAttestering.Innvilget)
-            hentet!!.saksbehandler shouldNotBe opprettet.saksbehandler
+            tilAttestering.saksbehandler shouldNotBe opprettet.saksbehandler
         }
     }
 
@@ -462,18 +306,8 @@ internal class RevurderingPostgresRepoTest {
         withMigratedDb {
             val vedtak =
                 testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
-            val attestant = NavIdentBruker.Attestant("Attestansson")
 
-            val opprettet = OpprettetRevurdering(
-                id = UUID.randomUUID(),
-                periode = periode,
-                opprettet = fixedTidspunkt,
-                tilRevurdering = vedtak,
-                saksbehandler = saksbehandler,
-                oppgaveId = OppgaveId("oppgaveid"),
-                fritekstTilBrev = "",
-                revurderingsårsak = revurderingsårsak,
-            )
+            val opprettet = opprettet(vedtak)
             repo.lagre(opprettet)
 
             val tilAttestering = RevurderingTilAttestering.Innvilget(
@@ -482,7 +316,7 @@ internal class RevurderingPostgresRepoTest {
                 opprettet = fixedTidspunkt,
                 tilRevurdering = vedtak,
                 saksbehandler = saksbehandler,
-                beregning = TestBeregning.toSnapshot(),
+                beregning = vedtak.beregning,
                 simulering = Simulering(
                     gjelderId = FnrGenerator.random(),
                     gjelderNavn = "Navn Navnesson",
@@ -490,7 +324,7 @@ internal class RevurderingPostgresRepoTest {
                     nettoBeløp = 5,
                     periodeList = listOf(),
                 ),
-                oppgaveId = OppgaveId(value = ""),
+                oppgaveId = oppgaveId,
                 fritekstTilBrev = "",
                 revurderingsårsak = revurderingsårsak,
             )
@@ -515,51 +349,15 @@ internal class RevurderingPostgresRepoTest {
     fun `kan lagre og hente en underkjent revurdering`() {
         withMigratedDb {
             val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
-            val opprettet = OpprettetRevurdering(
-                id = UUID.randomUUID(),
-                periode = periode,
-                opprettet = fixedTidspunkt,
-                tilRevurdering = vedtak,
-                saksbehandler = saksbehandler,
-                oppgaveId = OppgaveId("oppgaveid"),
-                fritekstTilBrev = "",
-                revurderingsårsak = revurderingsårsak,
-            )
+            val opprettet = opprettet(vedtak)
 
             repo.lagre(opprettet)
 
-            val beregnet = BeregnetRevurdering.Innvilget(
-                id = opprettet.id,
-                periode = opprettet.periode,
-                opprettet = opprettet.opprettet,
-                tilRevurdering = vedtak,
-                saksbehandler = opprettet.saksbehandler,
-                beregning = TestBeregning,
-                oppgaveId = OppgaveId("oppgaveid"),
-                fritekstTilBrev = "",
-                revurderingsårsak = revurderingsårsak,
-            )
+            val beregnet = beregnetInnvilget(opprettet, vedtak)
 
             repo.lagre(beregnet)
 
-            val simulert = SimulertRevurdering.Innvilget(
-                id = beregnet.id,
-                periode = beregnet.periode,
-                opprettet = beregnet.opprettet,
-                tilRevurdering = beregnet.tilRevurdering,
-                saksbehandler = beregnet.saksbehandler,
-                beregning = beregnet.beregning,
-                oppgaveId = OppgaveId("oppgaveid"),
-                simulering = Simulering(
-                    gjelderId = FnrGenerator.random(),
-                    gjelderNavn = "et navn for simulering",
-                    datoBeregnet = 1.januar(2021),
-                    nettoBeløp = 200,
-                    periodeList = listOf(),
-                ),
-                fritekstTilBrev = "",
-                revurderingsårsak = revurderingsårsak,
-            )
+            val simulert = simulertInnvilget(beregnet)
 
             repo.lagre(simulert)
 
@@ -571,15 +369,198 @@ internal class RevurderingPostgresRepoTest {
                 )
 
             val attestering = Attestering.Underkjent(
-                attestant = NavIdentBruker.Attestant(navIdent = "123"),
+                attestant = attestant,
                 grunn = Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
                 kommentar = "feil",
             )
 
-            repo.lagre(tilAttestering.underkjenn(attestering, OppgaveId("nyOppgaveId")))
+            val underkjent = tilAttestering.underkjenn(attestering, OppgaveId("nyOppgaveId"))
+            repo.lagre(underkjent)
 
-            assert(repo.hent(opprettet.id) is UnderkjentRevurdering.Innvilget)
+            repo.hent(opprettet.id) shouldBe underkjent
             repo.hentEventuellTidligereAttestering(opprettet.id) shouldBe attestering
+        }
+    }
+
+    @Test
+    fun `beregnet, simulert og underkjent opphørt`() {
+        withMigratedDb {
+            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+
+            val opprettet = opprettet(vedtak)
+            repo.lagre(opprettet)
+            val beregnet = beregnetOpphørt(opprettet, vedtak)
+            repo.lagre(beregnet)
+            repo.hent(opprettet.id) shouldBe beregnet
+            val simulert = simulertOpphørt(beregnet)
+            repo.lagre(simulert)
+            repo.hent(opprettet.id) shouldBe simulert
+            val underkjent = UnderkjentRevurdering.Opphørt(
+                id = opprettet.id,
+                periode = opprettet.periode,
+                opprettet = opprettet.opprettet,
+                tilRevurdering = vedtak,
+                saksbehandler = opprettet.saksbehandler,
+                oppgaveId = opprettet.oppgaveId,
+                fritekstTilBrev = opprettet.fritekstTilBrev,
+                revurderingsårsak = opprettet.revurderingsårsak,
+                beregning = vedtak.beregning,
+                simulering = simulering,
+                attestering = Attestering.Underkjent(
+                    attestant,
+                    Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+                    "kommentar",
+                ),
+            )
+
+            repo.lagre(underkjent)
+            repo.hent(underkjent.id)!! shouldBe underkjent
+        }
+    }
+
+    @Test
+    fun `til attestering opphørt`() {
+        withMigratedDb {
+            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+
+            val opprettet = opprettet(vedtak)
+            repo.lagre(opprettet)
+            val beregnet = beregnetOpphørt(opprettet, vedtak)
+            repo.lagre(beregnet)
+            repo.lagre(simulertOpphørt(beregnet))
+            val underkjent = RevurderingTilAttestering.Opphørt(
+                id = opprettet.id,
+                periode = opprettet.periode,
+                opprettet = opprettet.opprettet,
+                tilRevurdering = vedtak,
+                saksbehandler = opprettet.saksbehandler,
+                oppgaveId = opprettet.oppgaveId,
+                fritekstTilBrev = opprettet.fritekstTilBrev,
+                revurderingsårsak = opprettet.revurderingsårsak,
+                beregning = vedtak.beregning,
+                simulering = simulering,
+            )
+
+            repo.lagre(underkjent)
+            repo.hent(underkjent.id)!! shouldBe underkjent
+        }
+    }
+
+    @Test
+    fun `iverksatt opphørt`() {
+        withMigratedDb {
+            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+
+            val opprettet = opprettet(vedtak)
+            repo.lagre(opprettet)
+            val beregnet = beregnetOpphørt(opprettet, vedtak)
+            repo.lagre(beregnet)
+            repo.lagre(simulertOpphørt(beregnet))
+            val underkjent = IverksattRevurdering.Opphørt(
+                id = opprettet.id,
+                periode = opprettet.periode,
+                opprettet = opprettet.opprettet,
+                tilRevurdering = vedtak,
+                saksbehandler = opprettet.saksbehandler,
+                oppgaveId = opprettet.oppgaveId,
+                fritekstTilBrev = opprettet.fritekstTilBrev,
+                revurderingsårsak = opprettet.revurderingsårsak,
+                beregning = vedtak.beregning,
+                simulering = simulering,
+                attestering = Attestering.Iverksatt(
+                    attestant,
+                ),
+            )
+
+            repo.lagre(underkjent)
+            repo.hent(underkjent.id)!! shouldBe underkjent
+        }
+    }
+
+    @Test
+    fun `beregnet, simulert og underkjent ingen endring`() {
+        withMigratedDb {
+            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+
+            val opprettet = opprettet(vedtak)
+            repo.lagre(opprettet)
+            val beregnet = beregnetIngenEndring(opprettet, vedtak)
+            repo.lagre(beregnet)
+            repo.hent(opprettet.id) shouldBe beregnet
+            val underkjent = UnderkjentRevurdering.IngenEndring(
+                id = opprettet.id,
+                periode = opprettet.periode,
+                opprettet = opprettet.opprettet,
+                tilRevurdering = vedtak,
+                saksbehandler = opprettet.saksbehandler,
+                oppgaveId = opprettet.oppgaveId,
+                fritekstTilBrev = opprettet.fritekstTilBrev,
+                revurderingsårsak = opprettet.revurderingsårsak,
+                beregning = vedtak.beregning,
+                attestering = Attestering.Underkjent(
+                    attestant,
+                    Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
+                    "kommentar",
+                ),
+            )
+
+            repo.lagre(underkjent)
+            repo.hent(underkjent.id)!! shouldBe underkjent
+        }
+    }
+
+    @Test
+    fun `til attestering ingen endring`() {
+        withMigratedDb {
+            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+
+            val opprettet = opprettet(vedtak)
+            repo.lagre(opprettet)
+            val beregnet = beregnetIngenEndring(opprettet, vedtak)
+            repo.lagre(beregnet)
+            val underkjent = RevurderingTilAttestering.IngenEndring(
+                id = opprettet.id,
+                periode = opprettet.periode,
+                opprettet = opprettet.opprettet,
+                tilRevurdering = vedtak,
+                saksbehandler = opprettet.saksbehandler,
+                oppgaveId = opprettet.oppgaveId,
+                fritekstTilBrev = opprettet.fritekstTilBrev,
+                revurderingsårsak = opprettet.revurderingsårsak,
+                beregning = vedtak.beregning,
+            )
+
+            repo.lagre(underkjent)
+            repo.hent(underkjent.id)!! shouldBe underkjent
+        }
+    }
+
+    @Test
+    fun `iverksatt ingen endring`() {
+        withMigratedDb {
+            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+
+            val opprettet = opprettet(vedtak)
+            repo.lagre(opprettet)
+            val beregnet = beregnetIngenEndring(opprettet, vedtak)
+            repo.lagre(beregnet)
+            val underkjent = IverksattRevurdering.IngenEndring(
+                id = opprettet.id,
+                periode = opprettet.periode,
+                opprettet = opprettet.opprettet,
+                tilRevurdering = vedtak,
+                saksbehandler = opprettet.saksbehandler,
+                oppgaveId = opprettet.oppgaveId,
+                fritekstTilBrev = opprettet.fritekstTilBrev,
+                revurderingsårsak = opprettet.revurderingsårsak,
+                beregning = vedtak.beregning,
+                attestering = Attestering.Iverksatt(
+                    attestant,
+                ),
+            )
+
+            repo.lagre(underkjent)
+            repo.hent(underkjent.id)!! shouldBe underkjent
         }
     }
 }

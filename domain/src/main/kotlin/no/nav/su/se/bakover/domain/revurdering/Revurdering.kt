@@ -71,7 +71,7 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
                             tilRevurdering = tilRevurdering,
                             id = id,
                             periode = periode,
-                            opprettet = Tidspunkt.now(),
+                            opprettet = opprettet,
                             beregning = revurdertBeregning,
                             saksbehandler = saksbehandler,
                             oppgaveId = oppgaveId,
@@ -84,7 +84,7 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
                             tilRevurdering = tilRevurdering,
                             id = id,
                             periode = periode,
-                            opprettet = Tidspunkt.now(),
+                            opprettet = opprettet,
                             beregning = revurdertBeregning,
                             saksbehandler = saksbehandler,
                             oppgaveId = oppgaveId,
@@ -95,11 +95,11 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
                 }
             }
             false -> {
-                BeregnetRevurdering.Avslag(
+                BeregnetRevurdering.IngenEndring(
                     tilRevurdering = tilRevurdering,
                     id = id,
                     periode = periode,
-                    opprettet = Tidspunkt.now(),
+                    opprettet = opprettet,
                     beregning = revurdertBeregning,
                     saksbehandler = saksbehandler,
                     oppgaveId = oppgaveId,
@@ -121,7 +121,7 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
 data class OpprettetRevurdering(
     override val id: UUID = UUID.randomUUID(),
     override val periode: Periode,
-    override val opprettet: Tidspunkt = Tidspunkt.now(),
+    override val opprettet: Tidspunkt,
     override val tilRevurdering: Vedtak.EndringIYtelse,
     override val saksbehandler: Saksbehandler,
     override val oppgaveId: OppgaveId,
@@ -145,9 +145,6 @@ sealed class BeregnetRevurdering : Revurdering() {
     abstract val beregning: Beregning
 
     abstract fun toSimulert(simulering: Simulering): SimulertRevurdering
-
-    // TODO: skal de inn på subtyper?
-    abstract override fun accept(visitor: RevurderingVisitor)
 
     fun oppdater(
         periode: Periode,
@@ -192,7 +189,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         )
     }
 
-    data class Avslag(
+    data class IngenEndring(
         override val id: UUID,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
@@ -203,12 +200,29 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val fritekstTilBrev: String,
         override val revurderingsårsak: Revurderingsårsak,
     ) : BeregnetRevurdering() {
+
+        fun tilAttestering(
+            attesteringsoppgaveId: OppgaveId,
+            saksbehandler: Saksbehandler,
+            fritekstTilBrev: String,
+        ) = RevurderingTilAttestering.IngenEndring(
+            id = id,
+            periode = periode,
+            opprettet = opprettet,
+            tilRevurdering = tilRevurdering,
+            saksbehandler = saksbehandler,
+            beregning = beregning,
+            oppgaveId = attesteringsoppgaveId,
+            fritekstTilBrev = fritekstTilBrev,
+            revurderingsårsak = revurderingsårsak,
+        )
+
         override fun toSimulert(simulering: Simulering): SimulertRevurdering {
-            throw RuntimeException("Skal ikke kunne simulere en beregning som er til avslag")
+            throw RuntimeException("Skal ikke kunne simulere en beregning som ikke har en endring")
         }
 
         override fun accept(visitor: RevurderingVisitor) {
-            throw NotImplementedError("Har ikke støtte for denne typen")
+            visitor.visit(this)
         }
     }
 
@@ -355,13 +369,8 @@ sealed class RevurderingTilAttestering : Revurdering() {
     abstract override val fritekstTilBrev: String
     abstract override val revurderingsårsak: Revurderingsårsak
     abstract val beregning: Beregning
-    abstract val simulering: Simulering
 
     abstract override fun accept(visitor: RevurderingVisitor)
-    abstract fun tilIverksatt(
-        attestant: NavIdentBruker.Attestant,
-        utbetal: () -> Either<KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale, UUID30>,
-    ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering>
 
     data class Innvilget(
         override val id: UUID,
@@ -373,13 +382,14 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val fritekstTilBrev: String,
         override val revurderingsårsak: Revurderingsårsak,
         override val beregning: Beregning,
-        override val simulering: Simulering,
+        val simulering: Simulering,
     ) : RevurderingTilAttestering() {
+
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
         }
 
-        override fun tilIverksatt(
+        fun tilIverksatt(
             attestant: NavIdentBruker.Attestant,
             utbetal: () -> Either<KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale, UUID30>,
         ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering.Innvilget> {
@@ -415,14 +425,14 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val fritekstTilBrev: String,
         override val revurderingsårsak: Revurderingsårsak,
         override val beregning: Beregning,
-        override val simulering: Simulering,
+        val simulering: Simulering,
     ) : RevurderingTilAttestering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
         }
 
         // TODO: sjekk om vi skal utbetale 0 utbetalinger, eller ny status
-        override fun tilIverksatt(
+        fun tilIverksatt(
             attestant: NavIdentBruker.Attestant,
             utbetal: () -> Either<KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale, UUID30>,
         ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering.Opphørt> {
@@ -448,6 +458,44 @@ sealed class RevurderingTilAttestering : Revurdering() {
         }
     }
 
+    data class IngenEndring(
+        override val id: UUID,
+        override val periode: Periode,
+        override val opprettet: Tidspunkt,
+        override val tilRevurdering: Vedtak.EndringIYtelse,
+        override val saksbehandler: Saksbehandler,
+        override val beregning: Beregning,
+        override val oppgaveId: OppgaveId,
+        override val fritekstTilBrev: String,
+        override val revurderingsårsak: Revurderingsårsak,
+    ) : RevurderingTilAttestering() {
+
+        override fun accept(visitor: RevurderingVisitor) {
+            visitor.visit(this)
+        }
+
+        fun tilIverksatt(
+            attestant: NavIdentBruker.Attestant,
+        ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering.IngenEndring> {
+
+            if (saksbehandler.navIdent == attestant.navIdent) {
+                return KunneIkkeIverksetteRevurdering.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
+            }
+            return IverksattRevurdering.IngenEndring(
+                id = id,
+                periode = periode,
+                opprettet = opprettet,
+                tilRevurdering = tilRevurdering,
+                saksbehandler = saksbehandler,
+                beregning = beregning,
+                oppgaveId = oppgaveId,
+                fritekstTilBrev = fritekstTilBrev,
+                revurderingsårsak = revurderingsårsak,
+                attestering = Attestering.Iverksatt(attestant),
+            ).right()
+        }
+    }
+
     override fun beregn(fradrag: List<Fradrag>): Either<KunneIkkeBeregneRevurdering, BeregnetRevurdering> {
         throw RuntimeException("Skal ikke kunne beregne når revurderingen er til attestering")
     }
@@ -462,11 +510,11 @@ sealed class RevurderingTilAttestering : Revurdering() {
     }
 
     fun underkjenn(
-        attestering: Attestering,
+        attestering: Attestering.Underkjent,
         oppgaveId: OppgaveId,
     ): UnderkjentRevurdering {
-        when (this) {
-            is Innvilget -> return UnderkjentRevurdering.Innvilget(
+        return when (this) {
+            is Innvilget -> UnderkjentRevurdering.Innvilget(
                 id = id,
                 periode = periode,
                 opprettet = opprettet,
@@ -479,7 +527,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 fritekstTilBrev = fritekstTilBrev,
                 revurderingsårsak = revurderingsårsak,
             )
-            is Opphørt -> return UnderkjentRevurdering.Opphørt(
+            is Opphørt -> UnderkjentRevurdering.Opphørt(
                 id = id,
                 periode = periode,
                 opprettet = opprettet,
@@ -487,6 +535,18 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 saksbehandler = saksbehandler,
                 beregning = beregning,
                 simulering = simulering,
+                oppgaveId = oppgaveId,
+                attestering = attestering,
+                fritekstTilBrev = fritekstTilBrev,
+                revurderingsårsak = revurderingsårsak,
+            )
+            is IngenEndring -> UnderkjentRevurdering.IngenEndring(
+                id = id,
+                periode = periode,
+                opprettet = opprettet,
+                tilRevurdering = tilRevurdering,
+                saksbehandler = saksbehandler,
+                beregning = beregning,
                 oppgaveId = oppgaveId,
                 attestering = attestering,
                 fritekstTilBrev = fritekstTilBrev,
@@ -506,7 +566,6 @@ sealed class IverksattRevurdering : Revurdering() {
     abstract override val fritekstTilBrev: String
     abstract override val revurderingsårsak: Revurderingsårsak
     abstract val beregning: Beregning
-    abstract val simulering: Simulering
     abstract val attestering: Attestering.Iverksatt
 
     abstract override fun accept(visitor: RevurderingVisitor)
@@ -521,7 +580,7 @@ sealed class IverksattRevurdering : Revurdering() {
         override val fritekstTilBrev: String,
         override val revurderingsårsak: Revurderingsårsak,
         override val beregning: Beregning,
-        override val simulering: Simulering,
+        val simulering: Simulering,
         override val attestering: Attestering.Iverksatt,
     ) : IverksattRevurdering() {
 
@@ -540,10 +599,27 @@ sealed class IverksattRevurdering : Revurdering() {
         override val fritekstTilBrev: String,
         override val revurderingsårsak: Revurderingsårsak,
         override val beregning: Beregning,
-        override val simulering: Simulering,
+        val simulering: Simulering,
         override val attestering: Attestering.Iverksatt,
     ) : IverksattRevurdering() {
 
+        override fun accept(visitor: RevurderingVisitor) {
+            visitor.visit(this)
+        }
+    }
+
+    data class IngenEndring(
+        override val id: UUID,
+        override val periode: Periode,
+        override val opprettet: Tidspunkt,
+        override val tilRevurdering: Vedtak.EndringIYtelse,
+        override val saksbehandler: Saksbehandler,
+        override val beregning: Beregning,
+        override val oppgaveId: OppgaveId,
+        override val fritekstTilBrev: String,
+        override val revurderingsårsak: Revurderingsårsak,
+        override val attestering: Attestering.Iverksatt,
+    ) : IverksattRevurdering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
         }
@@ -563,8 +639,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
     abstract override val oppgaveId: OppgaveId
     abstract override val fritekstTilBrev: String
     abstract val beregning: Beregning
-    abstract val simulering: Simulering
-    abstract val attestering: Attestering
+    abstract val attestering: Attestering.Underkjent
 
     abstract override fun accept(visitor: RevurderingVisitor)
     abstract fun tilAttestering(
@@ -583,8 +658,8 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val fritekstTilBrev: String,
         override val revurderingsårsak: Revurderingsårsak,
         override val beregning: Beregning,
-        override val simulering: Simulering,
-        override val attestering: Attestering,
+        val simulering: Simulering,
+        override val attestering: Attestering.Underkjent,
     ) : UnderkjentRevurdering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -618,8 +693,8 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val fritekstTilBrev: String,
         override val revurderingsårsak: Revurderingsårsak,
         override val beregning: Beregning,
-        override val simulering: Simulering,
-        override val attestering: Attestering,
+        val simulering: Simulering,
+        override val attestering: Attestering.Underkjent,
     ) : UnderkjentRevurdering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -637,6 +712,40 @@ sealed class UnderkjentRevurdering : Revurdering() {
             saksbehandler = saksbehandler,
             beregning = beregning,
             simulering = simulering,
+            oppgaveId = oppgaveId,
+            fritekstTilBrev = fritekstTilBrev,
+            revurderingsårsak = revurderingsårsak,
+        )
+    }
+
+    data class IngenEndring(
+        override val id: UUID,
+        override val periode: Periode,
+        override val opprettet: Tidspunkt,
+        override val tilRevurdering: Vedtak.EndringIYtelse,
+        override val saksbehandler: Saksbehandler,
+        override val beregning: Beregning,
+        override val oppgaveId: OppgaveId,
+        override val fritekstTilBrev: String,
+        override val revurderingsårsak: Revurderingsårsak,
+        override val attestering: Attestering.Underkjent,
+    ) : UnderkjentRevurdering() {
+
+        override fun accept(visitor: RevurderingVisitor) {
+            visitor.visit(this)
+        }
+
+        override fun tilAttestering(
+            oppgaveId: OppgaveId,
+            saksbehandler: Saksbehandler,
+            fritekstTilBrev: String,
+        ) = RevurderingTilAttestering.IngenEndring(
+            id = id,
+            periode = periode,
+            opprettet = opprettet,
+            tilRevurdering = tilRevurdering,
+            saksbehandler = saksbehandler,
+            beregning = beregning,
             oppgaveId = oppgaveId,
             fritekstTilBrev = fritekstTilBrev,
             revurderingsårsak = revurderingsårsak,
@@ -684,7 +793,7 @@ private fun Månedsberegning.differanseErStørreEllerLik10Prosent(otherMånedsbe
 
 fun Revurdering.medFritekst(fritekstTilBrev: String) =
     when (this) {
-        is BeregnetRevurdering.Avslag -> copy(fritekstTilBrev = fritekstTilBrev)
+        is BeregnetRevurdering.IngenEndring -> copy(fritekstTilBrev = fritekstTilBrev)
         is BeregnetRevurdering.Innvilget -> copy(fritekstTilBrev = fritekstTilBrev)
         is IverksattRevurdering.Opphørt -> copy(fritekstTilBrev = fritekstTilBrev)
         is IverksattRevurdering.Innvilget -> copy(fritekstTilBrev = fritekstTilBrev)
@@ -696,4 +805,7 @@ fun Revurdering.medFritekst(fritekstTilBrev: String) =
         is UnderkjentRevurdering.Opphørt -> copy(fritekstTilBrev = fritekstTilBrev)
         is UnderkjentRevurdering.Innvilget -> copy(fritekstTilBrev = fritekstTilBrev)
         is BeregnetRevurdering.Opphørt -> copy(fritekstTilBrev = fritekstTilBrev)
+        is IverksattRevurdering.IngenEndring -> copy(fritekstTilBrev = fritekstTilBrev)
+        is RevurderingTilAttestering.IngenEndring -> copy(fritekstTilBrev = fritekstTilBrev)
+        is UnderkjentRevurdering.IngenEndring -> copy(fritekstTilBrev = fritekstTilBrev)
     }

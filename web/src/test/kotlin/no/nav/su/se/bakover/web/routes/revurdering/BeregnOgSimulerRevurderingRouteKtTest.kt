@@ -139,7 +139,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                     ),
                 )
             }
-            is BeregnetRevurdering.Avslag -> throw RuntimeException("Revurderingen må ha en endring på minst 10 prosent")
+            is BeregnetRevurdering.IngenEndring -> throw RuntimeException("Revurderingen må ha en endring på minst 10 prosent")
             is BeregnetRevurdering.Opphørt -> throw RuntimeException("Beregningen har 0 kroners utbetalinger")
         }
 
@@ -160,7 +160,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                 setBody(validBody)
             }.apply {
                 response.status() shouldBe HttpStatusCode.Created
-                val actualResponse = objectMapper.readValue<SimulertRevurderingJson.Innvilget>(response.content!!)
+                val actualResponse = objectMapper.readValue<SimulertRevurderingJson>(response.content!!)
                 verify(revurderingServiceMock).beregnOgSimuler(
                     argThat { it shouldBe simulertRevurdering.id },
                     argThat { it shouldBe NavIdentBruker.Saksbehandler("Z990Lokal") },

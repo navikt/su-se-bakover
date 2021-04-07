@@ -148,11 +148,13 @@ class LagBrevRequestVisitor(
     override fun visit(revurdering: BeregnetRevurdering.Innvilget) {
         throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(revurdering::class)
     }
+
     override fun visit(revurdering: BeregnetRevurdering.Opphørt) {
         throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(revurdering::class)
     }
-    override fun visit(revurdering: BeregnetRevurdering.Avslag) {
-        throw KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans(revurdering::class)
+
+    override fun visit(revurdering: BeregnetRevurdering.IngenEndring) {
+        brevRequest = revurderingIngenEndring(revurdering, revurdering.beregning)
     }
 
     override fun visit(revurdering: SimulertRevurdering.Innvilget) {
@@ -171,6 +173,10 @@ class LagBrevRequestVisitor(
         brevRequest = opphørtRevurdering(revurdering, revurdering.beregning)
     }
 
+    override fun visit(revurdering: RevurderingTilAttestering.IngenEndring) {
+        brevRequest = revurderingIngenEndring(revurdering, revurdering.beregning)
+    }
+
     override fun visit(revurdering: IverksattRevurdering.Innvilget) {
         brevRequest = innvilgetRevurdering(revurdering, revurdering.beregning)
     }
@@ -179,12 +185,20 @@ class LagBrevRequestVisitor(
         brevRequest = opphørtRevurdering(revurdering, revurdering.beregning)
     }
 
+    override fun visit(revurdering: IverksattRevurdering.IngenEndring) {
+        brevRequest = revurderingIngenEndring(revurdering, revurdering.beregning)
+    }
+
     override fun visit(revurdering: UnderkjentRevurdering.Innvilget) {
         brevRequest = innvilgetRevurdering(revurdering, revurdering.beregning)
     }
 
     override fun visit(revurdering: UnderkjentRevurdering.Opphørt) {
         brevRequest = opphørtRevurdering(revurdering, revurdering.beregning)
+    }
+
+    override fun visit(revurdering: UnderkjentRevurdering.IngenEndring) {
+        brevRequest = revurderingIngenEndring(revurdering, revurdering.beregning)
     }
 
     override fun visit(vedtak: Vedtak.EndringIYtelse) {
@@ -198,32 +212,24 @@ class LagBrevRequestVisitor(
             VedtakType.OPPHØR -> {
                 opphørsvedtak(vedtak)
             }
-            VedtakType.AVSLAG -> {
+            VedtakType.AVSLAG,
+            VedtakType.INGEN_ENDRING,
+            -> {
                 throw KunneIkkeLageBrevRequest.UgyldigKombinasjonAvVedtakOgTypeException(vedtak::class, vedtak.vedtakType)
             }
         }
     }
 
     override fun visit(vedtak: Vedtak.Avslag.AvslagVilkår) {
-        brevRequest = when (vedtak.vedtakType) {
-            VedtakType.AVSLAG -> {
-                avslåttVedtakSøknadsbehandling(vedtak)
-            }
-            VedtakType.SØKNAD, VedtakType.ENDRING, VedtakType.OPPHØR -> {
-                throw KunneIkkeLageBrevRequest.UgyldigKombinasjonAvVedtakOgTypeException(vedtak::class, vedtak.vedtakType)
-            }
-        }
+        brevRequest = avslåttVedtakSøknadsbehandling(vedtak)
     }
 
     override fun visit(vedtak: Vedtak.Avslag.AvslagBeregning) {
-        brevRequest = when (vedtak.vedtakType) {
-            VedtakType.AVSLAG -> {
-                avslåttVedtakSøknadsbehandling(vedtak)
-            }
-            VedtakType.SØKNAD, VedtakType.ENDRING, VedtakType.OPPHØR -> {
-                throw KunneIkkeLageBrevRequest.UgyldigKombinasjonAvVedtakOgTypeException(vedtak::class, vedtak.vedtakType)
-            }
-        }
+        brevRequest = avslåttVedtakSøknadsbehandling(vedtak)
+    }
+
+    override fun visit(vedtak: Vedtak.IngenEndringIYtelse) {
+        brevRequest = vedtakIngenEndringIYtelse(vedtak)
     }
 
     private fun hentPersonOgNavn(
@@ -295,6 +301,37 @@ class LagBrevRequestVisitor(
             )
         }
 
+    private fun revurderingIngenEndring(revurdering: Revurdering, beregning: Beregning) =
+        hentPersonOgNavn(
+            fnr = revurdering.fnr,
+            saksbehandler = revurdering.saksbehandler,
+            attestant = FinnAttestantVisitor().let {
+                revurdering.accept(it)
+                it.attestant
+            },
+        ).map {
+            requestIngenEndring(
+                personOgNavn = it,
+                beregning = beregning,
+                fritekst = revurdering.fritekstTilBrev,
+                harEktefelle = revurdering.tilRevurdering.behandlingsinformasjon.harEktefelle(),
+            )
+        }
+
+    private fun requestIngenEndring(
+        personOgNavn: PersonOgNavn,
+        beregning: Beregning,
+        fritekst: String,
+        harEktefelle: Boolean,
+    ) = LagBrevRequest.VedtakIngenEndring(
+        person = personOgNavn.person,
+        saksbehandlerNavn = personOgNavn.saksbehandlerNavn,
+        attestantNavn = personOgNavn.attestantNavn,
+        beregning = beregning,
+        fritekst = fritekst,
+        harEktefelle = harEktefelle,
+    )
+
     private fun innvilgetRevurdering(revurdering: Revurdering, beregning: Beregning) =
         hentPersonOgNavn(
             fnr = revurdering.fnr,
@@ -329,7 +366,7 @@ class LagBrevRequestVisitor(
                 beregning = beregning,
                 fritekst = revurdering.fritekstTilBrev,
                 saksbehandlerNavn = it.saksbehandlerNavn,
-                attestantNavn = it.attestantNavn
+                attestantNavn = it.attestantNavn,
             )
         }
 
@@ -468,4 +505,20 @@ class LagBrevRequestVisitor(
                 },
             )
         }
+
+    private fun vedtakIngenEndringIYtelse(vedtak: Vedtak.IngenEndringIYtelse): Either<KunneIkkeLageBrevRequest, LagBrevRequest> = hentPersonOgNavn(
+        fnr = vedtak.behandling.fnr,
+        saksbehandler = vedtak.saksbehandler,
+        attestant = vedtak.attestant,
+    ).map {
+        requestIngenEndring(
+            personOgNavn = it,
+            beregning = vedtak.beregning,
+            fritekst = when (val b = vedtak.behandling) {
+                is Revurdering -> b.fritekstTilBrev
+                else -> ""
+            },
+            harEktefelle = vedtak.behandlingsinformasjon.harEktefelle(),
+        )
+    }
 }

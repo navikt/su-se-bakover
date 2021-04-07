@@ -111,6 +111,19 @@ internal class JournalpostFactoryTest {
         }
     }
 
+    @Test
+    fun `lager vedtakspost for vedtak ingen endring`() {
+        val brevdata = mock<BrevInnhold>() {
+            on { brevTemplate } doReturn BrevTemplate.VedtakIngenEndring
+            on { toJson() } doReturn ""
+        }
+
+        JournalpostFactory.lagJournalpost(personMock, saksnummer, brevdata, pdf).let {
+            it.shouldBeTypeOf<Journalpost.Vedtakspost>()
+            assertVedtakspost(it, brevdata)
+        }
+    }
+
     private fun assertVedtakspost(journalpost: Journalpost, brevInnhold: BrevInnhold) =
         assertJournalpost(journalpost, brevInnhold, DokumentKategori.VB)
 

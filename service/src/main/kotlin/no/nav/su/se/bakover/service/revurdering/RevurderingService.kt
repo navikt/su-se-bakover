@@ -43,7 +43,7 @@ interface RevurderingService {
 
     fun underkjenn(
         revurderingId: UUID,
-        attestering: Attestering,
+        attestering: Attestering.Underkjent,
     ): Either<KunneIkkeUnderkjenneRevurdering, UnderkjentRevurdering>
 }
 
