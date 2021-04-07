@@ -7,6 +7,7 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.log
@@ -112,6 +113,7 @@ internal class RevurderingServiceImpl(
                 oppgaveId = oppgaveId,
                 fritekstTilBrev = "",
                 revurderingsårsak = revurderingsårsak,
+                opprettet = Tidspunkt.now(clock)
             ).also {
                 revurderingRepo.lagre(it)
                 observers.forEach { observer ->
