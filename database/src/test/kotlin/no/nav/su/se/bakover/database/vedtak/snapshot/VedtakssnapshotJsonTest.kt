@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType.YTEL
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
@@ -415,7 +416,7 @@ internal class VedtakssnapshotJsonTest {
                                         typeSats = "typeSats",
                                         antallSats = 3,
                                         uforegrad = 4,
-                                        klassekode = "klassekode",
+                                        klassekode = KlasseKode.SUUFORE,
                                         klassekodeBeskrivelse = "klassekodeBeskrivelse",
                                         klasseType = YTEL
                                     )
@@ -757,7 +758,7 @@ internal class VedtakssnapshotJsonTest {
                                               "typeSats":"typeSats",
                                               "antallSats":3,
                                               "uforegrad":4,
-                                              "klassekode":"klassekode",
+                                              "klassekode":"SUUFORE",
                                               "klassekodeBeskrivelse":"klassekodeBeskrivelse",
                                               "klasseType":"YTEL"
                                           }

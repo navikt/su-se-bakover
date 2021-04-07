@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
 import com.fasterxml.jackson.annotation.JsonInclude
-import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
@@ -24,16 +23,24 @@ sealed class RevurderingJson
 internal enum class RevurderingsStatus {
     OPPRETTET,
     BEREGNET_INNVILGET,
-    BEREGNET_AVSLAG,
-    SIMULERT,
-    TIL_ATTESTERING,
-    IVERKSATT,
-    UNDERKJENT
+    BEREGNET_OPPHØRT,
+    BEREGNET_INGEN_ENDRING,
+    SIMULERT_INNVILGET,
+    SIMULERT_OPPHØRT,
+    TIL_ATTESTERING_INNVILGET,
+    TIL_ATTESTERING_OPPHØRT,
+    TIL_ATTESTERING_INGEN_ENDRING,
+    IVERKSATT_INNVILGET,
+    IVERKSATT_OPPHØRT,
+    IVERKSATT_INGEN_ENDRING,
+    UNDERKJENT_INNVILGET,
+    UNDERKJENT_OPPHØRT,
+    UNDERKJENT_INGEN_ENDRING
 }
 
 internal data class RevurdertBeregningJson(
     val beregning: BeregningJson,
-    val revurdert: BeregningJson
+    val revurdert: BeregningJson,
 )
 
 internal data class OpprettetRevurderingJson(
@@ -51,50 +58,19 @@ internal data class OpprettetRevurderingJson(
     val status = RevurderingsStatus.OPPRETTET
 }
 
-internal sealed class BeregnetRevurderingJson : RevurderingJson() {
-    abstract val id: String
-    abstract val opprettet: String
-    abstract val periode: PeriodeJson
-    abstract val tilRevurdering: VedtakJson
-    abstract val beregninger: RevurdertBeregningJson
-    abstract val saksbehandler: String
-    abstract val fritekstTilBrev: String
-    abstract val årsak: String
-    abstract val begrunnelse: String
-    abstract val grunnlag: GrunnlagsdataJson
-
-    data class Innvilget(
-        override val id: String,
-        override val opprettet: String,
-        override val periode: PeriodeJson,
-        override val tilRevurdering: VedtakJson,
-        override val beregninger: RevurdertBeregningJson,
-        override val saksbehandler: String,
-        override val fritekstTilBrev: String,
-        override val årsak: String,
-        override val begrunnelse: String,
-        override val grunnlag: GrunnlagsdataJson,
-    ) : BeregnetRevurderingJson() {
-        @JsonInclude
-        val status = RevurderingsStatus.BEREGNET_INNVILGET
-    }
-
-    data class Avslag(
-        override val id: String,
-        override val opprettet: String,
-        override val periode: PeriodeJson,
-        override val tilRevurdering: VedtakJson,
-        override val beregninger: RevurdertBeregningJson,
-        override val saksbehandler: String,
-        override val fritekstTilBrev: String,
-        override val årsak: String,
-        override val begrunnelse: String,
-        override val grunnlag: GrunnlagsdataJson
-    ) : BeregnetRevurderingJson() {
-        @JsonInclude
-        val status = RevurderingsStatus.BEREGNET_AVSLAG
-    }
-}
+internal data class BeregnetRevurderingJson(
+    val id: String,
+    val opprettet: String,
+    val periode: PeriodeJson,
+    val tilRevurdering: VedtakJson,
+    val beregninger: RevurdertBeregningJson,
+    val saksbehandler: String,
+    val fritekstTilBrev: String,
+    val årsak: String,
+    val begrunnelse: String,
+    val status: RevurderingsStatus,
+    val grunnlag: GrunnlagsdataJson,
+) : RevurderingJson()
 
 internal data class SimulertRevurderingJson(
     val id: String,
@@ -106,11 +82,9 @@ internal data class SimulertRevurderingJson(
     val fritekstTilBrev: String,
     val årsak: String,
     val begrunnelse: String,
-    val grunnlag: GrunnlagsdataJson
-) : RevurderingJson() {
-    @JsonInclude
-    val status = RevurderingsStatus.SIMULERT
-}
+    val status: RevurderingsStatus,
+    val grunnlag: GrunnlagsdataJson,
+) : RevurderingJson()
 
 internal data class TilAttesteringJson(
     val id: String,
@@ -121,13 +95,10 @@ internal data class TilAttesteringJson(
     val saksbehandler: String,
     val fritekstTilBrev: String,
     val årsak: String,
-
     val begrunnelse: String,
-    val grunnlag: GrunnlagsdataJson
-) : RevurderingJson() {
-    @JsonInclude
-    val status = RevurderingsStatus.TIL_ATTESTERING
-}
+    val status: RevurderingsStatus,
+    val grunnlag: GrunnlagsdataJson,
+) : RevurderingJson()
 
 internal data class IverksattRevurderingJson(
     val id: String,
@@ -136,15 +107,13 @@ internal data class IverksattRevurderingJson(
     val tilRevurdering: VedtakJson,
     val beregninger: RevurdertBeregningJson,
     val saksbehandler: String,
-    val attestant: String,
     val fritekstTilBrev: String,
     val årsak: String,
     val begrunnelse: String,
-    val grunnlag: GrunnlagsdataJson
-) : RevurderingJson() {
-    @JsonInclude
-    val status = RevurderingsStatus.IVERKSATT
-}
+    val attestant: String,
+    val status: RevurderingsStatus,
+    val grunnlag: GrunnlagsdataJson,
+) : RevurderingJson()
 
 internal data class UnderkjentRevurderingJson(
     val id: String,
@@ -153,15 +122,13 @@ internal data class UnderkjentRevurderingJson(
     val tilRevurdering: VedtakJson,
     val beregninger: RevurdertBeregningJson,
     val saksbehandler: String,
-    val attestering: AttesteringJson,
     val fritekstTilBrev: String,
     val årsak: String,
     val begrunnelse: String,
+    val attestering: AttesteringJson,
+    val status: RevurderingsStatus,
     val grunnlag: GrunnlagsdataJson,
-) : RevurderingJson() {
-    @JsonInclude
-    val status = RevurderingsStatus.UNDERKJENT
-}
+) : RevurderingJson()
 
 internal fun Revurdering.toJson(): RevurderingJson = when (this) {
     is OpprettetRevurdering -> OpprettetRevurderingJson(
@@ -188,6 +155,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         fritekstTilBrev = fritekstTilBrev,
         årsak = revurderingsårsak.årsak.toString(),
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
+        status = InstansTilStatusMapper(this).status,
         grunnlag = grunnlagsdata.toJson(),
     )
     is RevurderingTilAttestering -> TilAttesteringJson(
@@ -203,6 +171,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         fritekstTilBrev = fritekstTilBrev,
         årsak = revurderingsårsak.årsak.toString(),
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
+        status = InstansTilStatusMapper(this).status,
         grunnlag = grunnlagsdata.toJson(),
     )
     is IverksattRevurdering -> IverksattRevurderingJson(
@@ -215,40 +184,11 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
             revurdert = beregning.toJson(),
         ),
         saksbehandler = saksbehandler.toString(),
+        fritekstTilBrev = fritekstTilBrev,
+        årsak = revurderingsårsak.årsak.toString(),
+        begrunnelse = revurderingsårsak.begrunnelse.toString(),
         attestant = attestering.attestant.toString(),
-        fritekstTilBrev = fritekstTilBrev,
-        årsak = revurderingsårsak.årsak.toString(),
-        begrunnelse = revurderingsårsak.begrunnelse.toString(),
-        grunnlag = grunnlagsdata.toJson(),
-    )
-    is BeregnetRevurdering.Innvilget -> BeregnetRevurderingJson.Innvilget(
-        id = id.toString(),
-        opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
-        periode = periode.toJson(),
-        tilRevurdering = tilRevurdering.toJson(),
-        beregninger = RevurdertBeregningJson(
-            beregning = tilRevurdering.beregning.toJson(),
-            revurdert = beregning.toJson(),
-        ),
-        saksbehandler = saksbehandler.toString(),
-        fritekstTilBrev = fritekstTilBrev,
-        årsak = revurderingsårsak.årsak.toString(),
-        begrunnelse = revurderingsårsak.begrunnelse.toString(),
-        grunnlag = grunnlagsdata.toJson(),
-    )
-    is BeregnetRevurdering.Avslag -> BeregnetRevurderingJson.Avslag(
-        id = id.toString(),
-        opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
-        periode = periode.toJson(),
-        tilRevurdering = tilRevurdering.toJson(),
-        beregninger = RevurdertBeregningJson(
-            beregning = tilRevurdering.beregning.toJson(),
-            revurdert = beregning.toJson(),
-        ),
-        saksbehandler = saksbehandler.toString(),
-        fritekstTilBrev = fritekstTilBrev,
-        årsak = revurderingsårsak.årsak.toString(),
-        begrunnelse = revurderingsårsak.begrunnelse.toString(),
+        status = InstansTilStatusMapper(this).status,
         grunnlag = grunnlagsdata.toJson(),
     )
     is UnderkjentRevurdering -> UnderkjentRevurderingJson(
@@ -258,25 +198,56 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         tilRevurdering = tilRevurdering.toJson(),
         beregninger = RevurdertBeregningJson(
             beregning = tilRevurdering.beregning.toJson(),
-            revurdert = beregning.toJson()
+            revurdert = beregning.toJson(),
         ),
         saksbehandler = saksbehandler.toString(),
-        grunnlag = grunnlagsdata.toJson(),
-        attestering = when (val attestering = attestering) {
-            is Attestering.Iverksatt -> AttesteringJson(
-                attestant = attestering.attestant.navIdent,
-                underkjennelse = null,
-            )
-            is Attestering.Underkjent -> AttesteringJson(
-                attestant = attestering.attestant.navIdent,
-                underkjennelse = UnderkjennelseJson(
-                    grunn = attestering.grunn.toString(),
-                    kommentar = attestering.kommentar,
-                ),
-            )
-        },
+        attestering = AttesteringJson(
+            attestant = attestering.attestant.navIdent,
+            underkjennelse = UnderkjennelseJson(
+                grunn = attestering.grunn.toString(),
+                kommentar = attestering.kommentar,
+            ),
+        ),
         fritekstTilBrev = fritekstTilBrev,
         årsak = revurderingsårsak.årsak.toString(),
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
+        status = InstansTilStatusMapper(this).status,
+        grunnlag = grunnlagsdata.toJson(),
     )
+    is BeregnetRevurdering -> BeregnetRevurderingJson(
+        id = id.toString(),
+        opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
+        periode = periode.toJson(),
+        tilRevurdering = tilRevurdering.toJson(),
+        beregninger = RevurdertBeregningJson(
+            beregning = tilRevurdering.beregning.toJson(),
+            revurdert = beregning.toJson(),
+        ),
+        saksbehandler = saksbehandler.toString(),
+        fritekstTilBrev = fritekstTilBrev,
+        årsak = revurderingsårsak.årsak.toString(),
+        begrunnelse = revurderingsårsak.begrunnelse.toString(),
+        status = InstansTilStatusMapper(this).status,
+        grunnlag = grunnlagsdata.toJson(),
+    )
+}
+
+internal class InstansTilStatusMapper(revurdering: Revurdering) {
+    val status = when (revurdering) {
+        is BeregnetRevurdering.IngenEndring -> RevurderingsStatus.BEREGNET_INGEN_ENDRING
+        is BeregnetRevurdering.Innvilget -> RevurderingsStatus.BEREGNET_INNVILGET
+        is BeregnetRevurdering.Opphørt -> RevurderingsStatus.BEREGNET_OPPHØRT
+        is IverksattRevurdering.IngenEndring -> RevurderingsStatus.IVERKSATT_INGEN_ENDRING
+        is IverksattRevurdering.Innvilget -> RevurderingsStatus.IVERKSATT_INNVILGET
+        is IverksattRevurdering.Opphørt -> RevurderingsStatus.IVERKSATT_OPPHØRT
+        is OpprettetRevurdering -> RevurderingsStatus.OPPRETTET
+        is RevurderingTilAttestering.IngenEndring -> RevurderingsStatus.TIL_ATTESTERING_INGEN_ENDRING
+        is RevurderingTilAttestering.Innvilget -> RevurderingsStatus.TIL_ATTESTERING_INNVILGET
+        is RevurderingTilAttestering.Opphørt -> RevurderingsStatus.TIL_ATTESTERING_OPPHØRT
+        is SimulertRevurdering.Innvilget -> RevurderingsStatus.SIMULERT_INNVILGET
+        is SimulertRevurdering.Opphørt -> RevurderingsStatus.SIMULERT_OPPHØRT
+        is UnderkjentRevurdering.IngenEndring -> RevurderingsStatus.UNDERKJENT_INGEN_ENDRING
+        is UnderkjentRevurdering.Innvilget -> RevurderingsStatus.UNDERKJENT_INNVILGET
+        is UnderkjentRevurdering.Opphørt -> RevurderingsStatus.UNDERKJENT_OPPHØRT
+    }
 }

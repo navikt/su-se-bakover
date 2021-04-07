@@ -312,7 +312,7 @@ internal class SøknadsbehandlingServiceImpl(
             when (iverksattBehandling) {
                 is Søknadsbehandling.Iverksatt.Innvilget -> {
                     søknadsbehandlingRepo.lagre(iverksattBehandling)
-                    val vedtak = Vedtak.EndringIYtelse.fromSøknadsbehandling(iverksattBehandling, utbetaling!!.id)
+                    val vedtak = Vedtak.fromSøknadsbehandling(iverksattBehandling, utbetaling!!.id)
                     vedtakRepo.lagre(vedtak)
 
                     log.info("Iverksatt innvilgelse for behandling ${iverksattBehandling.id}")

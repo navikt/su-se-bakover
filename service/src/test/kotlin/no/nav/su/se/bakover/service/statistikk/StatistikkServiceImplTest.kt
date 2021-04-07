@@ -432,7 +432,7 @@ internal class StatistikkServiceImplTest {
             behandlingId = opprettetRevurdering.id,
             sakId = opprettetRevurdering.sakId,
             saksnummer = opprettetRevurdering.saksnummer.nummer,
-            behandlingStatus = "OpprettetRevurdering",
+            behandlingStatus = "OPPRETTET",
             behandlingStatusBeskrivelse = "Ny revurdering opprettet",
             versjon = clock.millis(),
             saksbehandler = "saksbehandler",
@@ -464,7 +464,7 @@ internal class StatistikkServiceImplTest {
             on { sakId } doReturn UUID.randomUUID()
             on { saksnummer } doReturn Saksnummer(49L)
         }
-        val revurderingTilAttestering = RevurderingTilAttestering(
+        val revurderingTilAttestering = RevurderingTilAttestering.Innvilget(
             id = UUID.randomUUID(),
             opprettet = LocalDate.now(clock).atStartOfDay().toTidspunkt(zoneIdOslo),
             tilRevurdering = mock {
@@ -495,8 +495,8 @@ internal class StatistikkServiceImplTest {
             behandlingId = revurderingTilAttestering.id,
             sakId = revurderingTilAttestering.sakId,
             saksnummer = revurderingTilAttestering.saksnummer.nummer,
-            behandlingStatus = "RevurderingTilAttestering",
-            behandlingStatusBeskrivelse = "Revurdering sendt til attestering",
+            behandlingStatus = "TIL_ATTESTERING_INNVILGET",
+            behandlingStatusBeskrivelse = "Innvilget revurdering sendt til attestering",
             versjon = clock.millis(),
             saksbehandler = "saksbehandler",
             behandlingType = Statistikk.Behandling.BehandlingType.REVURDERING,
@@ -527,7 +527,7 @@ internal class StatistikkServiceImplTest {
             on { sakId } doReturn UUID.randomUUID()
             on { saksnummer } doReturn Saksnummer(49L)
         }
-        val iverksattRevurdering = IverksattRevurdering(
+        val iverksattRevurdering = IverksattRevurdering.Innvilget(
             id = UUID.randomUUID(),
             periode = beregning.getPeriode(),
             opprettet = LocalDate.now(clock).atStartOfDay().toTidspunkt(zoneIdOslo),
@@ -559,8 +559,8 @@ internal class StatistikkServiceImplTest {
             behandlingId = iverksattRevurdering.id,
             sakId = iverksattRevurdering.sakId,
             saksnummer = iverksattRevurdering.saksnummer.nummer,
-            behandlingStatus = "IverksattRevurdering",
-            behandlingStatusBeskrivelse = "Revurdering iverksatt",
+            behandlingStatus = "IVERKSATT_INNVILGET",
+            behandlingStatusBeskrivelse = "Innvilget revurdering iverksatt",
             versjon = clock.millis(),
             saksbehandler = "saksbehandler",
             behandlingType = Statistikk.Behandling.BehandlingType.REVURDERING,

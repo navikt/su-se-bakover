@@ -24,7 +24,7 @@ abstract class BrevInnhold {
         val saksbehandlerNavn: String,
         val attestantNavn: String,
         val sats: String?,
-        val fritekst: String
+        val fritekst: String,
     ) : BrevInnhold() {
         @Suppress("unused")
         @JsonInclude
@@ -51,9 +51,28 @@ abstract class BrevInnhold {
         val beregningsperioder: List<Beregningsperiode>,
         val saksbehandlerNavn: String,
         val attestantNavn: String,
-        val fritekst: String
+        val fritekst: String,
     ) : BrevInnhold() {
         override val brevTemplate: BrevTemplate = BrevTemplate.InnvilgetVedtak
+
+        @Suppress("unused")
+        @JsonInclude
+        val harFradrag: Boolean = beregningsperioder.harFradrag()
+    }
+
+    data class Opphørsvedtak(
+        val personalia: Personalia,
+        val avslagsgrunner: List<Avslagsgrunn>,
+        val avslagsparagrafer: List<Int>,
+        val sats: String,
+        val satsBeløp: Double,
+        val harEktefelle: Boolean,
+        val beregningsperioder: List<Beregningsperiode>,
+        val saksbehandlerNavn: String,
+        val attestantNavn: String,
+        val fritekst: String,
+    ) : BrevInnhold() {
+        override val brevTemplate: BrevTemplate = BrevTemplate.Opphørsvedtak
 
         @Suppress("unused")
         @JsonInclude
@@ -77,6 +96,26 @@ abstract class BrevInnhold {
         val harEktefelle: Boolean,
     ) : BrevInnhold() {
         override val brevTemplate = BrevTemplate.Revurdering.Inntekt
+
+        @Suppress("unused")
+        @JsonInclude
+        val satsBeløp = beregningsperioder.firstOrNull()?.satsbeløpPerMåned
+
+        @Suppress("unused")
+        @JsonInclude
+        val harFradrag: Boolean = beregningsperioder.harFradrag()
+    }
+
+    data class VedtakIngenEndring(
+        val personalia: Personalia,
+        val saksbehandlerNavn: String,
+        val attestantNavn: String,
+        val beregningsperioder: List<Beregningsperiode>,
+        val fritekst: String,
+        val sats: Sats,
+        val harEktefelle: Boolean,
+    ) : BrevInnhold() {
+        override val brevTemplate = BrevTemplate.VedtakIngenEndring
 
         @Suppress("unused")
         @JsonInclude

@@ -54,11 +54,10 @@ internal class SimuleringSoapClientTest {
                     return no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse()
                         .apply { response = okSimuleringResponse() }
                 }
-            }
+            },
         )
 
-        val actual = simuleringService.simulerUtbetaling(nyUtbetaling)
-        actual.isRight() shouldBe true
+        simuleringService.simulerUtbetaling(nyUtbetaling) shouldBe SimuleringResponseMapper(okSimuleringResponse()).simulering.right()
     }
 
     @Test
@@ -72,11 +71,10 @@ internal class SimuleringSoapClientTest {
                 override fun simulerBeregning(parameters: SimulerBeregningRequest?): no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse {
                     return no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse()
                 }
-            }
+            },
         )
 
-        val response = simuleringService.simulerUtbetaling(nyUtbetaling)
-        response shouldBe SimuleringFeilet.FUNKSJONELL_FEIL.left()
+        simuleringService.simulerUtbetaling(nyUtbetaling) shouldBe SimuleringFeilet.FUNKSJONELL_FEIL.left()
     }
 
     @Test
@@ -92,15 +90,13 @@ internal class SimuleringSoapClientTest {
                         "Simulering feilet",
                         FeilUnderBehandling().apply {
                             errorMessage = "Detaljert feilmelding"
-                        }
+                        },
                     )
                 }
-            }
+            },
         )
 
-        val response = simuleringService.simulerUtbetaling(nyUtbetaling)
-
-        response shouldBe SimuleringFeilet.FUNKSJONELL_FEIL.left()
+        simuleringService.simulerUtbetaling(nyUtbetaling) shouldBe SimuleringFeilet.FUNKSJONELL_FEIL.left()
     }
 
     @Test
@@ -114,12 +110,10 @@ internal class SimuleringSoapClientTest {
                 override fun simulerBeregning(parameters: SimulerBeregningRequest?): no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse {
                     throw WebServiceException(SSLException(""))
                 }
-            }
+            },
         )
 
-        val response = simuleringService.simulerUtbetaling(nyUtbetaling)
-
-        response shouldBe SimuleringFeilet.OPPDRAG_UR_ER_STENGT.left()
+        simuleringService.simulerUtbetaling(nyUtbetaling) shouldBe SimuleringFeilet.OPPDRAG_UR_ER_STENGT.left()
     }
 
     @Test
@@ -133,7 +127,7 @@ internal class SimuleringSoapClientTest {
                 override fun simulerBeregning(parameters: SimulerBeregningRequest?): no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse {
                     throw WebServiceException(SocketException(""))
                 }
-            }
+            },
         )
 
         val response = simuleringService.simulerUtbetaling(nyUtbetaling)
@@ -152,12 +146,10 @@ internal class SimuleringSoapClientTest {
                 override fun simulerBeregning(parameters: SimulerBeregningRequest?): no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse {
                     throw WebServiceException(IllegalArgumentException())
                 }
-            }
+            },
         )
 
-        val response = simuleringService.simulerUtbetaling(nyUtbetaling)
-
-        response shouldBe SimuleringFeilet.TEKNISK_FEIL.left()
+        simuleringService.simulerUtbetaling(nyUtbetaling) shouldBe SimuleringFeilet.TEKNISK_FEIL.left()
     }
 
     @Test
@@ -172,7 +164,7 @@ internal class SimuleringSoapClientTest {
                     return no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse()
                         .apply { response = null }
                 }
-            }
+            },
         )
 
         val utenBeløp = Utbetaling.UtbetalingForSimulering(
@@ -184,12 +176,12 @@ internal class SimuleringSoapClientTest {
                     fraOgMed = 1.oktober(2020),
                     tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = null,
-                    beløp = 0
-                )
+                    beløp = 0,
+                ),
             ),
             type = Utbetaling.UtbetalingsType.NY,
             behandler = NavIdentBruker.Saksbehandler("Z123"),
-            avstemmingsnøkkel = Avstemmingsnøkkel()
+            avstemmingsnøkkel = Avstemmingsnøkkel(),
         )
 
         simuleringService.simulerUtbetaling(utenBeløp) shouldBe Simulering(
@@ -201,9 +193,9 @@ internal class SimuleringSoapClientTest {
                 SimulertPeriode(
                     fraOgMed = 1.oktober(2020),
                     tilOgMed = 31.desember(2020),
-                    utbetaling = emptyList()
-                )
-            )
+                    utbetaling = emptyList(),
+                ),
+            ),
         ).right()
     }
 
@@ -219,10 +211,28 @@ internal class SimuleringSoapClientTest {
                     return no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse()
                         .apply { response = null }
                 }
-            }
+            },
         )
 
         simuleringService.simulerUtbetaling(nyUtbetaling) shouldBe SimuleringFeilet.FUNKSJONELL_FEIL.left()
+    }
+
+    @Test
+    fun `returnerer ikke funksjonell feil hvis man forsøker å opphøre og responsen er tom`() {
+        val simuleringService = SimuleringSoapClient(
+            object : SimulerFpService {
+                override fun sendInnOppdrag(parameters: SendInnOppdragRequest?): SendInnOppdragResponse {
+                    throw IllegalStateException()
+                }
+
+                override fun simulerBeregning(parameters: SimulerBeregningRequest?): no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse {
+                    return no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse()
+                        .apply { response = null }
+                }
+            },
+        )
+        val opphør = nyUtbetaling.copy(type = Utbetaling.UtbetalingsType.OPPHØR)
+        simuleringService.simulerUtbetaling(opphør) shouldBe SimuleringResponseMapper(opphør).simulering.right()
     }
 
     private fun createUtbetaling() = Utbetaling.UtbetalingForSimulering(
@@ -234,13 +244,13 @@ internal class SimuleringSoapClientTest {
                 fraOgMed = 1.januar(2020),
                 tilOgMed = 31.desember(2020),
                 beløp = 405,
-                forrigeUtbetalingslinjeId = null
-            )
+                forrigeUtbetalingslinjeId = null,
+            ),
         ),
         fnr = Fnr("12345678910"),
         type = Utbetaling.UtbetalingsType.NY,
         behandler = NavIdentBruker.Saksbehandler("Z123"),
-        avstemmingsnøkkel = Avstemmingsnøkkel()
+        avstemmingsnøkkel = Avstemmingsnøkkel(),
     )
 
     private fun okSimuleringResponse() = SimulerBeregningResponse().apply {
@@ -271,14 +281,14 @@ internal class SimuleringSoapClientTest {
                                     belop = BigDecimal(15000)
                                     kontoStreng = "1234.12.12345"
                                     isTilbakeforing = false
-                                    klassekode = "klasseKode"
+                                    klassekode = "SUUFORE"
                                     klasseKodeBeskrivelse = "klasseKodeBeskrivelse"
                                     typeKlasse = "YTEL"
-                                }
+                                },
                             )
-                        }
+                        },
                     )
-                }
+                },
             )
         }
     }

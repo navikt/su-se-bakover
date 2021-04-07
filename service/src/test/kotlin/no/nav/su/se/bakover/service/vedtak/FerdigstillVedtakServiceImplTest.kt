@@ -990,7 +990,7 @@ internal class FerdigstillVedtakServiceImplTest {
     private fun journalførtOgDistribuertAvslagsVedtak() = avslagsVedtak().copy(journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(iverksattJournalpostId, iverksattBrevbestillingId))
 
     private fun innvilgetVedtak() =
-        Vedtak.EndringIYtelse.fromSøknadsbehandling(
+        Vedtak.fromSøknadsbehandling(
             Søknadsbehandling.Iverksatt.Innvilget(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(),

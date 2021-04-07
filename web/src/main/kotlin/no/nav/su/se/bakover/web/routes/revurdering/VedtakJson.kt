@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakType
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingsinformasjonJson
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingsinformasjonJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.behandling.SimuleringJson
@@ -26,13 +27,8 @@ internal data class VedtakJson(
     val saksnummer: String,
     val fnr: String,
     val periode: PeriodeJson,
-    val resultat: Resultat,
-) {
-    internal enum class Resultat {
-        INNVILGET,
-        OPPHØRT
-    }
-}
+    val type: VedtakType
+)
 
 internal fun Vedtak.EndringIYtelse.toJson(): VedtakJson = VedtakJson(
     id = id.toString(),
@@ -48,5 +44,5 @@ internal fun Vedtak.EndringIYtelse.toJson(): VedtakJson = VedtakJson(
     saksnummer = behandling.saksnummer.toString(),
     fnr = behandling.fnr.toString(),
     periode = periode.toJson(),
-    resultat = VedtakJson.Resultat.INNVILGET,
+    type = vedtakType
 )

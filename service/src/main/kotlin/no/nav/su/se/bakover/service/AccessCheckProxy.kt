@@ -122,6 +122,16 @@ open class AccessCheckProxy(
                     return services.utbetaling.simulerUtbetaling(sakId, saksbehandler, beregning)
                 }
 
+                override fun simulerOpphør(
+                    sakId: UUID,
+                    saksbehandler: NavIdentBruker,
+                    opphørsdato: LocalDate,
+                ): Either<SimuleringFeilet, Utbetaling.SimulertUtbetaling> {
+                    assertHarTilgangTilSak(sakId)
+
+                    return services.utbetaling.simulerOpphør(sakId, saksbehandler, opphørsdato)
+                }
+
                 override fun utbetal(
                     sakId: UUID,
                     attestant: NavIdentBruker,
@@ -149,6 +159,11 @@ open class AccessCheckProxy(
                     assertHarTilgangTilSak(sakId)
 
                     return services.utbetaling.gjenopptaUtbetalinger(sakId, saksbehandler)
+                }
+
+                override fun opphør(sakId: UUID, attestant: NavIdentBruker, simulering: Simulering, opphørsdato: LocalDate): Either<KunneIkkeUtbetale, Utbetaling.OversendtUtbetaling.UtenKvittering> {
+                    assertHarTilgangTilSak(sakId)
+                    return services.utbetaling.opphør(sakId, attestant, simulering, opphørsdato)
                 }
             },
             sak = object : SakService {
@@ -394,7 +409,7 @@ open class AccessCheckProxy(
 
                 override fun underkjenn(
                     revurderingId: UUID,
-                    attestering: Attestering,
+                    attestering: Attestering.Underkjent,
                 ): Either<KunneIkkeUnderkjenneRevurdering, UnderkjentRevurdering> {
                     assertHarTilgangTilSak(revurderingId)
                     return services.revurdering.underkjenn(revurderingId, attestering)

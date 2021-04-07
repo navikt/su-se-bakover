@@ -22,7 +22,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.beregning.TestBeregning
-import no.nav.su.se.bakover.service.beregning.TestBeregningSomGirAvslag
+import no.nav.su.se.bakover.service.beregning.TestBeregningSomGirOpphør
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -288,7 +288,7 @@ internal class SøknadsbehandlingStatistikkMapperTest {
     )
 
     private val beregning = TestBeregning
-    private val avslagBeregning = TestBeregningSomGirAvslag
+    private val avslagBeregning = TestBeregningSomGirOpphør
     private val avslåttBeregnetSøknadsbehandling = (
         uavklartSøknadsbehandling.tilVilkårsvurdert(
             Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()

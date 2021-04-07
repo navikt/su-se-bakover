@@ -4,7 +4,9 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.mock
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
@@ -13,6 +15,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.AktørId
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.FnrGenerator
 import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -31,6 +34,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -485,7 +489,7 @@ internal class LagBrevRequestVisitorTest {
                 .tilAttestering(saksbehandler, "Fritekst!")
                 .tilIverksatt(Attestering.Iverksatt(attestant))
 
-        val innvilgetVedtak = Vedtak.EndringIYtelse.fromSøknadsbehandling(søknadsbehandling, utbetalingId)
+        val innvilgetVedtak = Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetalingId)
 
         val brevSøknadsbehandling = LagBrevRequestVisitor(
             hentPerson = { person.right() },
@@ -500,8 +504,7 @@ internal class LagBrevRequestVisitorTest {
         ).apply { innvilgetVedtak.accept(this) }
 
         brevSøknadsbehandling.brevRequest shouldBe brevVedtak.brevRequest
-
-        LagBrevRequest.InnvilgetVedtak(
+        brevSøknadsbehandling.brevRequest shouldBe LagBrevRequest.InnvilgetVedtak(
             person = person,
             beregning = innvilgetBeregning,
             behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
@@ -535,12 +538,11 @@ internal class LagBrevRequestVisitorTest {
         ).apply { avslåttVedtak.accept(this) }
 
         brevSøknadsbehandling.brevRequest shouldBe brevVedtak.brevRequest
-
-        AvslagBrevRequest(
+        brevSøknadsbehandling.brevRequest shouldBe AvslagBrevRequest(
             person = person,
             avslag = Avslag(
                 opprettet = Tidspunkt.now(clock),
-                avslagsgrunner = listOf(Avslagsgrunn.UFØRHET, Avslagsgrunn.FOR_HØY_INNTEKT),
+                avslagsgrunner = listOf(Avslagsgrunn.FOR_HØY_INNTEKT),
                 harEktefelle = false,
                 beregning = avslagBeregning,
             ),
@@ -554,8 +556,7 @@ internal class LagBrevRequestVisitorTest {
     fun `lager request for vedtak om avslått stønad uten beregning`() {
         val søknadsbehandling = (
             uavklart.tilVilkårsvurdert(
-                Behandlingsinformasjon.lagTomBehandlingsinformasjon()
-                    .withVilkårAvslått(),
+                Behandlingsinformasjon.lagTomBehandlingsinformasjon().withVilkårAvslått(),
             ) as Søknadsbehandling.Vilkårsvurdert.Avslag
             )
             .tilAttestering(saksbehandler, "Fritekst!")
@@ -576,12 +577,11 @@ internal class LagBrevRequestVisitorTest {
         ).apply { avslåttVedtak.accept(this) }
 
         brevSøknadsbehandling.brevRequest shouldBe brevVedtak.brevRequest
-
-        AvslagBrevRequest(
+        brevSøknadsbehandling.brevRequest shouldBe AvslagBrevRequest(
             person = person,
             avslag = Avslag(
                 opprettet = Tidspunkt.now(clock),
-                avslagsgrunner = listOf(Avslagsgrunn.UFØRHET, Avslagsgrunn.FOR_HØY_INNTEKT),
+                avslagsgrunner = listOf(Avslagsgrunn.UFØRHET),
                 harEktefelle = false,
                 beregning = null,
             ),
@@ -601,25 +601,25 @@ internal class LagBrevRequestVisitorTest {
                 .tilAttestering(saksbehandler, "Fritekst!")
                 .tilIverksatt(Attestering.Iverksatt(attestant))
 
-        val revurdering = IverksattRevurdering(
+        val revurdering = IverksattRevurdering.Innvilget(
             id = UUID.randomUUID(),
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
             opprettet = Tidspunkt.now(clock),
-            tilRevurdering = Vedtak.EndringIYtelse.fromSøknadsbehandling(søknadsbehandling, utbetalingId),
+            tilRevurdering = Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetalingId),
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("15"),
             grunnlagsdata = Grunnlagsdata.EMPTY,
             beregning = innvilgetBeregning,
             simulering = simulering,
             attestering = Attestering.Iverksatt(attestant),
-            fritekstTilBrev = "",
+            fritekstTilBrev = "JEPP",
             revurderingsårsak = Revurderingsårsak(
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
         )
 
-        val avslåttVedtak = Vedtak.EndringIYtelse.fromRevurdering(revurdering, utbetalingId)
+        val avslåttVedtak = Vedtak.from(revurdering, utbetalingId)
 
         val brevRevurdering = LagBrevRequestVisitor(
             hentPerson = { person.right() },
@@ -634,15 +634,130 @@ internal class LagBrevRequestVisitorTest {
         ).apply { avslåttVedtak.accept(this) }
 
         brevRevurdering.brevRequest shouldBe brevVedtak.brevRequest
-
-        LagBrevRequest.Revurdering.Inntekt(
+        brevRevurdering.brevRequest shouldBe LagBrevRequest.Revurdering.Inntekt(
             person = person,
             saksbehandlerNavn = saksbehandlerNavn,
             attestantNavn = attestantNavn,
             revurdertBeregning = revurdering.beregning,
-            fritekst = "Fritekst!",
+            fritekst = "JEPP",
             harEktefelle = false,
         ).right()
+    }
+
+    @Test
+    fun `lager request for opphørsvedtak`() {
+        val utbetalingId = UUID30.randomUUID()
+        val søknadsbehandling =
+            uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt())
+                .tilBeregnet(innvilgetBeregning)
+                .tilSimulert(simulering)
+                .tilAttestering(saksbehandler, "Fritekst!")
+                .tilIverksatt(Attestering.Iverksatt(attestant))
+
+        val revurdering = IverksattRevurdering.Opphørt(
+            id = UUID.randomUUID(),
+            periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+            opprettet = Tidspunkt.now(clock),
+            tilRevurdering = Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetalingId),
+            saksbehandler = saksbehandler,
+            oppgaveId = OppgaveId("15"),
+            beregning = innvilgetBeregning,
+            simulering = simulering,
+            attestering = Attestering.Iverksatt(attestant),
+            fritekstTilBrev = "FRITEKST REVURDERING",
+            revurderingsårsak = Revurderingsårsak(
+                Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
+                Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
+            ),
+            grunnlagsdata = Grunnlagsdata.EMPTY,
+        )
+
+        val opphørsvedtak = Vedtak.from(revurdering, utbetalingId)
+
+        val brevRevurdering = LagBrevRequestVisitor(
+            hentPerson = { person.right() },
+            hentNavn = { hentNavn(it) },
+            clock = clock,
+        ).apply { revurdering.accept(this) }
+
+        val brevVedtak = LagBrevRequestVisitor(
+            hentPerson = { person.right() },
+            hentNavn = { hentNavn(it) },
+            clock = clock,
+        ).apply { opphørsvedtak.accept(this) }
+
+        brevRevurdering.brevRequest shouldBe brevVedtak.brevRequest
+        brevRevurdering.brevRequest shouldBe LagBrevRequest.Opphørsvedtak(
+            person = person,
+            beregning = revurdering.beregning,
+            behandlingsinformasjon = revurdering.tilRevurdering.behandlingsinformasjon,
+            saksbehandlerNavn = saksbehandlerNavn,
+            attestantNavn = attestantNavn,
+            fritekst = "FRITEKST REVURDERING",
+        ).right()
+    }
+
+    @Test
+    fun `lager request for vedtak som ikke fører til endring`() {
+        val utbetalingId = UUID30.randomUUID()
+        val søknadsbehandling =
+            uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt())
+                .tilBeregnet(innvilgetBeregning)
+                .tilSimulert(simulering)
+                .tilAttestering(saksbehandler, "Fritekst!")
+                .tilIverksatt(Attestering.Iverksatt(attestant))
+
+        val revurdering = IverksattRevurdering.IngenEndring(
+            id = UUID.randomUUID(),
+            periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+            opprettet = Tidspunkt.now(clock),
+            tilRevurdering = Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetalingId),
+            saksbehandler = saksbehandler,
+            oppgaveId = OppgaveId("15"),
+            beregning = innvilgetBeregning,
+            attestering = Attestering.Iverksatt(attestant),
+            fritekstTilBrev = "EN FIN FRITEKST",
+            revurderingsårsak = Revurderingsårsak(
+                Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
+                Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
+            ),
+            grunnlagsdata = Grunnlagsdata.EMPTY,
+        )
+
+        val vedtakIngenEndring = Vedtak.from(revurdering)
+
+        val brevRevurdering = LagBrevRequestVisitor(
+            hentPerson = { person.right() },
+            hentNavn = { hentNavn(it) },
+            clock = clock,
+        ).apply { revurdering.accept(this) }
+
+        val brevVedtak = LagBrevRequestVisitor(
+            hentPerson = { person.right() },
+            hentNavn = { hentNavn(it) },
+            clock = clock,
+        ).apply { vedtakIngenEndring.accept(this) }
+
+        val personalia = BrevInnhold.Personalia(
+            dato = "01.01.2021",
+            fødselsnummer = Fnr(fnr = "12345678901"),
+            fornavn = "Tore",
+            etternavn = "Strømøy",
+        )
+
+        brevRevurdering.brevRequest.map {
+            it.right() shouldBe brevVedtak.brevRequest
+            it shouldBe LagBrevRequest.VedtakIngenEndring(
+                person = person,
+                beregning = revurdering.beregning,
+                saksbehandlerNavn = saksbehandlerNavn,
+                attestantNavn = attestantNavn,
+                fritekst = "EN FIN FRITEKST",
+                harEktefelle = revurdering.tilRevurdering.behandlingsinformasjon.harEktefelle(),
+            )
+
+            it.lagBrevInnhold(personalia) should beOfType<BrevInnhold.VedtakIngenEndring>()
+        }
     }
 
     private val clock = Clock.fixed(1.januar(2021).startOfDay(zoneIdOslo).instant, ZoneOffset.UTC)

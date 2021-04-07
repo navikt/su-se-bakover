@@ -143,7 +143,7 @@ internal class OpprettRevurderingServiceTest {
         søknader = listOf(),
         behandlinger = listOf(createInnvilgetBehandling()),
         utbetalinger = createUtbetalinger(),
-        vedtakListe = listOf(Vedtak.EndringIYtelse.fromSøknadsbehandling(createInnvilgetBehandling(), UUID30.randomUUID())),
+        vedtakListe = listOf(Vedtak.fromSøknadsbehandling(createInnvilgetBehandling(), UUID30.randomUUID())),
     )
 
     private fun createUtbetalinger(): List<Utbetaling> = listOf(
@@ -429,7 +429,7 @@ internal class OpprettRevurderingServiceTest {
     fun `kan revurdere en periode med eksisterende revurdering`() {
         val sak = createSak().let {
             val opprinneligVedtak = it.vedtakListe.first() as Vedtak.EndringIYtelse
-            val revurdering = IverksattRevurdering(
+            val revurdering = IverksattRevurdering.Innvilget(
                 id = UUID.randomUUID(),
                 periode = periode,
                 opprettet = Tidspunkt.EPOCH,
@@ -448,7 +448,7 @@ internal class OpprettRevurderingServiceTest {
                     revurdering,
                 ),
                 vedtakListe = it.vedtakListe.plus(
-                    Vedtak.EndringIYtelse.fromRevurdering(revurdering, opprinneligVedtak.utbetalingId),
+                    Vedtak.from(revurdering, opprinneligVedtak.utbetalingId),
                 ),
             )
         }

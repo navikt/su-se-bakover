@@ -61,7 +61,7 @@ internal class RevurderingStatistikkMapperTest {
             saksnummer = opprettetRevurdering.saksnummer.nummer,
             behandlingType = Statistikk.Behandling.BehandlingType.REVURDERING,
             behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.REVURDERING.beskrivelse,
-            behandlingStatus = "OpprettetRevurdering",
+            behandlingStatus = "OPPRETTET",
             behandlingStatusBeskrivelse = "Ny revurdering opprettet",
             utenlandstilsnitt = "NASJONAL",
             utenlandstilsnittBeskrivelse = null,
@@ -97,7 +97,7 @@ internal class RevurderingStatistikkMapperTest {
             on { sakId } doReturn UUID.randomUUID()
             on { saksnummer } doReturn Saksnummer(49L)
         }
-        val iverksattRevurdering = IverksattRevurdering(
+        val iverksattRevurdering = IverksattRevurdering.Innvilget(
             id = UUID.randomUUID(),
             periode = periode,
             opprettet = Tidspunkt.now(fixedClock),
@@ -128,8 +128,8 @@ internal class RevurderingStatistikkMapperTest {
             saksnummer = iverksattRevurdering.saksnummer.nummer,
             behandlingType = Statistikk.Behandling.BehandlingType.REVURDERING,
             behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.REVURDERING.beskrivelse,
-            behandlingStatus = "IverksattRevurdering",
-            behandlingStatusBeskrivelse = "Revurdering iverksatt",
+            behandlingStatus = "IVERKSATT_INNVILGET",
+            behandlingStatusBeskrivelse = "Innvilget revurdering iverksatt",
             utenlandstilsnitt = "NASJONAL",
             utenlandstilsnittBeskrivelse = null,
             ansvarligEnhetKode = "4815",
@@ -142,6 +142,72 @@ internal class RevurderingStatistikkMapperTest {
             vedtaksDato = null,
             vedtakId = null,
             resultat = "Innvilget",
+            resultatBegrunnelse = "Endring i søkers inntekt",
+            resultatBegrunnelseBeskrivelse = null,
+            resultatBeskrivelse = null,
+            beslutter = "2",
+            saksbehandler = "99",
+            behandlingOpprettetAv = null,
+            behandlingOpprettetType = null,
+            behandlingOpprettetTypeBeskrivelse = null,
+            datoForUttak = null,
+            datoForUtbetaling = null,
+            avsluttet = true,
+        )
+    }
+
+    @Test
+    fun `mapper uendret iverksettinger`() {
+        val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021))
+
+        val behandlingMock = mock<Behandling> {
+            on { sakId } doReturn UUID.randomUUID()
+            on { saksnummer } doReturn Saksnummer(49L)
+        }
+        val iverksattRevurdering = IverksattRevurdering.IngenEndring(
+            id = UUID.randomUUID(),
+            periode = periode,
+            opprettet = Tidspunkt.now(fixedClock),
+            tilRevurdering = mock {
+                on { behandling } doReturn behandlingMock
+                on { id } doReturn UUID.randomUUID()
+            },
+            saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "99"),
+            oppgaveId = OppgaveId(value = "7"),
+            beregning = mock {
+                on { getPeriode() } doReturn periode
+            },
+            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant(navIdent = "2")),
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
+        )
+        RevurderingStatistikkMapper(fixedClock).map(iverksattRevurdering) shouldBe Statistikk.Behandling(
+            funksjonellTid = iverksattRevurdering.opprettet,
+            tekniskTid = Tidspunkt.now(fixedClock),
+            mottattDato = iverksattRevurdering.opprettet.toLocalDate(zoneIdOslo),
+            registrertDato = iverksattRevurdering.opprettet.toLocalDate(zoneIdOslo),
+            behandlingId = iverksattRevurdering.id,
+            relatertBehandlingId = iverksattRevurdering.tilRevurdering.id,
+            sakId = iverksattRevurdering.sakId,
+            søknadId = null,
+            saksnummer = iverksattRevurdering.saksnummer.nummer,
+            behandlingType = Statistikk.Behandling.BehandlingType.REVURDERING,
+            behandlingTypeBeskrivelse = Statistikk.Behandling.BehandlingType.REVURDERING.beskrivelse,
+            behandlingStatus = "IVERKSATT_INGEN_ENDRING",
+            behandlingStatusBeskrivelse = "Revurdering uten endring i ytelse iverksatt",
+            utenlandstilsnitt = "NASJONAL",
+            utenlandstilsnittBeskrivelse = null,
+            ansvarligEnhetKode = "4815",
+            ansvarligEnhetType = "NORG",
+            behandlendeEnhetKode = "4815",
+            behandlendeEnhetType = "NORG",
+            totrinnsbehandling = true,
+            avsender = "su-se-bakover",
+            versjon = fixedClock.millis(),
+            vedtaksDato = null,
+            vedtakId = null,
+            resultat = "Uendret",
             resultatBegrunnelse = "Endring i søkers inntekt",
             resultatBegrunnelseBeskrivelse = null,
             resultatBeskrivelse = null,

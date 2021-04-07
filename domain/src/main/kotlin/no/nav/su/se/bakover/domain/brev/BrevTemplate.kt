@@ -32,6 +32,16 @@ sealed class BrevTemplate(
         brevTittel = "Søknaden din om supplerende stønad er avvist"
     )
 
+    object Opphørsvedtak : BrevTemplate(
+        pdfTemplate = PdfTemplate.Opphørsvedtak,
+        brevTittel = "Vedtak om opphør av supplerende stønad"
+    )
+
+    object VedtakIngenEndring : BrevTemplate(
+        pdfTemplate = PdfTemplate.VedtakIngenEndring,
+        brevTittel = "Vi har vurdert den supplerende stønaden din på nytt, men vurderinger førte ikke til endring i utbetaling"
+    )
+
     sealed class Revurdering(pdfTemplate: PdfTemplate, brevTittel: String) : BrevTemplate(pdfTemplate, brevTittel) {
         object Inntekt : Revurdering(
             pdfTemplate = PdfTemplate.Revurdering.Inntekt,

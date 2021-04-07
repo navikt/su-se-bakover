@@ -9,7 +9,9 @@ import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import com.nhaarman.mockitokotlin2.whenever
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
@@ -36,6 +38,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Statusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakType
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
@@ -80,7 +83,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             gjelderNavn = "gjelderNavn",
             datoBeregnet = opprettet.toLocalDate(ZoneOffset.UTC),
             nettoBeløp = 0,
-            periodeList = listOf()
+            periodeList = listOf(),
         ),
         utbetalingsrequest = Utbetalingsrequest(value = ""),
     )
@@ -96,7 +99,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         val ferdigstillVedtakServiceMock = mock<FerdigstillVedtakService>()
 
         val response = createSøknadsbehandlingService(
-            søknadsbehandlingRepo = søknadsbehandlingRepoMock
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
         ).iverksett(SøknadsbehandlingService.IverksettRequest(behandling.id, Attestering.Iverksatt(attestant)))
 
         response shouldBe SøknadsbehandlingService.KunneIkkeIverksette.FantIkkeBehandling.left()
@@ -106,7 +109,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         }
         verifyNoMoreInteractions(
             søknadsbehandlingRepoMock,
-            ferdigstillVedtakServiceMock
+            ferdigstillVedtakServiceMock,
         )
     }
 
@@ -143,7 +146,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         verifyNoMoreInteractions(
             utbetalingServiceMock,
             søknadsbehandlingRepoMock,
-            ferdigstillVedtakServiceMock
+            ferdigstillVedtakServiceMock,
         )
     }
 
@@ -187,7 +190,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         verifyNoMoreInteractions(
             utbetalingServiceMock,
             søknadsbehandlingRepoMock,
-            ferdigstillVedtakServiceMock
+            ferdigstillVedtakServiceMock,
         )
     }
 
@@ -224,7 +227,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         verifyNoMoreInteractions(
             utbetalingServiceMock,
             søknadsbehandlingRepoMock,
-            ferdigstillVedtakServiceMock
+            ferdigstillVedtakServiceMock,
         )
     }
 
@@ -276,7 +279,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             behandlingMetricsMock,
             utbetalingServiceMock,
             vedtakRepoMock,
-            statistikkObserver
+            statistikkObserver,
         ) {
             verify(søknadsbehandlingRepoMock).hent(behandling.id)
             verify(utbetalingServiceMock).utbetal(
@@ -286,18 +289,24 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 simulering = argThat { it shouldBe simulering },
             )
             verify(søknadsbehandlingRepoMock).lagre(expected)
-            verify(vedtakRepoMock).lagre(argThat { it.behandling shouldBe expected })
+            verify(vedtakRepoMock).lagre(
+                argThat {
+                    it.behandling shouldBe expected
+                    it should beOfType<Vedtak.EndringIYtelse>()
+                    it.vedtakType shouldBe VedtakType.SØKNAD
+                },
+            )
             verify(behandlingMetricsMock).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
             verify(statistikkObserver).handle(
                 argThat {
                     it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(expected)
-                }
+                },
             )
         }
         verifyNoMoreInteractions(
             søknadsbehandlingRepoMock,
             ferdigstillVedtakServiceMock,
-            utbetalingServiceMock
+            utbetalingServiceMock,
         )
     }
 
@@ -349,7 +358,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             observer = statistikkObserver,
             vedtakRepo = vedtakRepoMock,
             ferdigstillVedtakService = ferdigstillVedtakService,
-            opprettVedtakssnapshotService = opprettVedtakssnapshotService
+            opprettVedtakssnapshotService = opprettVedtakssnapshotService,
         ).iverksett(SøknadsbehandlingService.IverksettRequest(behandling.id, Attestering.Iverksatt(attestant)))
 
         response shouldBe expectedAvslag.right()
@@ -360,10 +369,15 @@ internal class SøknadsbehandlingServiceIverksettTest {
             statistikkObserver,
             vedtakRepoMock,
             ferdigstillVedtakService,
-            opprettVedtakssnapshotService
+            opprettVedtakssnapshotService,
         ) {
             verify(søknadsbehandlingRepoMock).hent(behandling.id)
-            verify(ferdigstillVedtakService).journalførOgLagre(any())
+            verify(ferdigstillVedtakService).journalførOgLagre(
+                argThat {
+                    it should beOfType<Vedtak.Avslag.AvslagBeregning>()
+                    it.vedtakType shouldBe VedtakType.AVSLAG
+                },
+            )
             verify(søknadsbehandlingRepoMock).lagre(expectedAvslag)
             verify(opprettVedtakssnapshotService).opprettVedtak(any())
             verify(behandlingMetricsMock).incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
@@ -372,7 +386,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             verify(statistikkObserver).handle(
                 argThat {
                     it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(expectedAvslag)
-                }
+                },
             )
         }
         verifyNoMoreInteractions(
@@ -383,7 +397,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
     @Test
     fun `iverksett behandling attesterer og saksbehandler kan ikke være samme person`() {
         val behandling = avslagTilAttestering().copy(
-            saksbehandler = NavIdentBruker.Saksbehandler(attestant.navIdent)
+            saksbehandler = NavIdentBruker.Saksbehandler(attestant.navIdent),
         )
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
@@ -393,7 +407,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         val ferdigstillVedtakServiceMock = mock<FerdigstillVedtakService>()
 
         val response = createSøknadsbehandlingService(
-            søknadsbehandlingRepo = søknadsbehandlingRepoMock
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
         ).iverksett(SøknadsbehandlingService.IverksettRequest(behandling.id, Attestering.Iverksatt(attestant)))
 
         response shouldBe SøknadsbehandlingService.KunneIkkeIverksette.AttestantOgSaksbehandlerKanIkkeVæreSammePerson.left()
@@ -432,7 +446,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
 
         assertThrows<StatusovergangVisitor.UgyldigStatusovergangException> {
             createSøknadsbehandlingService(
-                søknadsbehandlingRepo = søknadsbehandlingRepoMock
+                søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             ).iverksett(SøknadsbehandlingService.IverksettRequest(behandling.id, Attestering.Iverksatt(attestant)))
 
             inOrder(søknadsbehandlingRepoMock, ferdigstillVedtakServiceMock) {
@@ -455,7 +469,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 sakId = sakId,
                 søknadInnhold = SøknadInnholdTestdataBuilder.build(),
                 oppgaveId = BehandlingTestUtils.søknadOppgaveId,
-                journalpostId = BehandlingTestUtils.søknadJournalpostId
+                journalpostId = BehandlingTestUtils.søknadJournalpostId,
             ),
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
             sakId = sakId,
@@ -479,7 +493,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 sakId = sakId,
                 søknadInnhold = SøknadInnholdTestdataBuilder.build(),
                 oppgaveId = BehandlingTestUtils.søknadOppgaveId,
-                journalpostId = BehandlingTestUtils.søknadJournalpostId
+                journalpostId = BehandlingTestUtils.søknadJournalpostId,
             ),
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
             sakId = sakId,
@@ -499,7 +513,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
         gjelderNavn = "NAVN",
         datoBeregnet = idag(fixedClock),
         nettoBeløp = 191500,
-        periodeList = listOf()
+        periodeList = listOf(),
     )
 
     @Nested

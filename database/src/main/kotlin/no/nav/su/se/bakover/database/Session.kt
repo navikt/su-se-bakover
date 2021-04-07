@@ -36,6 +36,7 @@ import kotliquery.sqlType
 import kotliquery.using
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.database.revurdering.RevurderingsType
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
@@ -127,6 +128,7 @@ open class Session(
                 is JournalpostId -> this.setString(idx, v.toString())
                 is VedtakType -> this.setString(idx, v.toString())
                 is Utbetalingslinje.LinjeStatus -> this.setString(idx, v.toString())
+                is RevurderingsType -> this.setString(idx, v.toString())
                 else -> this.setObject(idx, v)
             }
         }

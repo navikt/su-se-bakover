@@ -141,7 +141,8 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                     ),
                 )
             }
-            is BeregnetRevurdering.Avslag -> throw RuntimeException("Revurderingen må ha en endring på minst 10 prosent")
+            is BeregnetRevurdering.IngenEndring -> throw RuntimeException("Revurderingen må ha en endring på minst 10 prosent")
+            is BeregnetRevurdering.Opphørt -> throw RuntimeException("Beregningen har 0 kroners utbetalinger")
         }
 
         val revurderingServiceMock = mock<RevurderingService> {
@@ -169,7 +170,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                 )
                 verifyNoMoreInteractions(revurderingServiceMock)
                 actualResponse.id shouldBe simulertRevurdering.id.toString()
-                actualResponse.status shouldBe RevurderingsStatus.SIMULERT
+                actualResponse.status shouldBe RevurderingsStatus.SIMULERT_INNVILGET
             }
         }
     }

@@ -49,7 +49,7 @@ interface RevurderingService {
 
     fun underkjenn(
         revurderingId: UUID,
-        attestering: Attestering,
+        attestering: Attestering.Underkjent,
     ): Either<KunneIkkeUnderkjenneRevurdering, UnderkjentRevurdering>
 
     fun leggTilUføregrunnlag(revurderingId: UUID, uføregrunnlag: List<Grunnlag.Uføregrunnlag>): Either<KunneIkkeLeggeTilGrunnlag, LeggTilUføregrunnlagResponse>
