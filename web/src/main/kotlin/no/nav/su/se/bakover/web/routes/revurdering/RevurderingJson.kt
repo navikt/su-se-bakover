@@ -162,7 +162,11 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         ),
         saksbehandler = saksbehandler.toString(),
         fritekstTilBrev = fritekstTilBrev,
-        sendBrev = if (this is RevurderingTilAttestering.IngenEndring) sendBrev else true,
+        sendBrev = when (this) {
+            is RevurderingTilAttestering.IngenEndring -> sendBrev
+            is RevurderingTilAttestering.Innvilget -> true
+            is RevurderingTilAttestering.Opphørt -> true
+        },
         årsak = revurderingsårsak.årsak.toString(),
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
         status = InstansTilStatusMapper(this).status,
@@ -178,7 +182,11 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         ),
         saksbehandler = saksbehandler.toString(),
         fritekstTilBrev = fritekstTilBrev,
-        sendBrev = if (this is RevurderingTilAttestering.IngenEndring) sendBrev else true,
+        sendBrev = when (this) {
+            is IverksattRevurdering.IngenEndring -> sendBrev
+            is IverksattRevurdering.Innvilget -> true
+            is IverksattRevurdering.Opphørt -> true
+        },
         årsak = revurderingsårsak.årsak.toString(),
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
         attestant = attestering.attestant.toString(),
@@ -202,7 +210,11 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
             ),
         ),
         fritekstTilBrev = fritekstTilBrev,
-        sendBrev = if (this is RevurderingTilAttestering.IngenEndring) sendBrev else true,
+        sendBrev = when (this) {
+            is UnderkjentRevurdering.IngenEndring -> sendBrev
+            is UnderkjentRevurdering.Innvilget -> true
+            is UnderkjentRevurdering.Opphørt -> true
+        },
         årsak = revurderingsårsak.årsak.toString(),
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
         status = InstansTilStatusMapper(this).status,
