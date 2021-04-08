@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Companion.hentOversendteUt
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingJson
 import no.nav.su.se.bakover.web.routes.behandling.UtbetalingJson
 import no.nav.su.se.bakover.web.routes.behandling.toJson
@@ -83,7 +82,7 @@ internal data class SakJson(
                 },
             utbetalingerKanStansesEllerGjenopptas = utbetalinger.kanStansesEllerGjenopptas(),
             revurderinger = revurderinger.map { it.toJson() },
-            vedtak = vedtakListe.filterIsInstance(Vedtak.EndringIYtelse::class.java).map { it.toJson() },
+            vedtak = vedtakListe.map { it.toJson() },
         )
 
         private fun Utbetalingslinje.medUtbetalingstype(type: Utbetaling.UtbetalingsType) =
