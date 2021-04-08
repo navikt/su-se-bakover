@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.vedtak
 
 import arrow.core.Either
+import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
@@ -123,13 +124,21 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
     ) : Vedtak() {
 
         override fun journalfør(journalfør: () -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre, EndringIYtelse> {
-            return journalføringOgBrevdistribusjon.journalfør(journalfør)
-                .map { copy(journalføringOgBrevdistribusjon = it) }
+            return if (behandling is IverksattRevurdering.IngenEndring && !behandling.sendBrev) {
+                this.right()
+            } else {
+                journalføringOgBrevdistribusjon.journalfør(journalfør)
+                    .map { copy(journalføringOgBrevdistribusjon = it) }
+            }
         }
 
         override fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev, EndringIYtelse> {
-            return journalføringOgBrevdistribusjon.distribuerBrev(distribuerBrev)
-                .map { copy(journalføringOgBrevdistribusjon = it) }
+            return if (behandling is IverksattRevurdering.IngenEndring && !behandling.sendBrev) {
+                this.right()
+            } else {
+                journalføringOgBrevdistribusjon.distribuerBrev(distribuerBrev)
+                    .map { copy(journalføringOgBrevdistribusjon = it) }
+            }
         }
 
         override fun accept(visitor: VedtakVisitor) {
