@@ -18,6 +18,8 @@ import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.domain.visitor.Visitable
@@ -215,6 +217,9 @@ internal class FerdigstillVedtakServiceImpl(
 
     override fun journalførOgLagre(vedtak: Vedtak): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeJournalføreBrev, Vedtak> {
         val brevRequest = lagBrevRequest(vedtak).getOrHandle { return it.left() }
+        if (vedtak.behandling is IverksattRevurdering.IngenEndring && !(vedtak.behandling as IverksattRevurdering.IngenEndring).sendBrev) {
+            return vedtak.right()
+        }
         return vedtak.journalfør {
             brevService.journalførBrev(brevRequest, vedtak.behandling.saksnummer)
                 .mapLeft { KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring }
@@ -332,35 +337,41 @@ internal class FerdigstillVedtakServiceImpl(
     )
 
     private fun incrementJournalført(vedtak: Vedtak) {
-        when (vedtak) {
-            is Vedtak.Avslag -> {
+        return when (vedtak.behandling) {
+            is Søknadsbehandling.Iverksatt.Avslag -> {
                 behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.JOURNALFØRT)
             }
-            is Vedtak.EndringIYtelse -> {
+            is Søknadsbehandling.Iverksatt.Innvilget -> {
                 behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.JOURNALFØRT)
             }
+            // TODO jah: Nå som vi har vedtakstyper og revurdering må vi vurdere hva vi ønsker grafer på.
+            else -> Unit
         }
     }
 
     private fun incrementDistribuert(vedtak: Vedtak) {
-        when (vedtak) {
-            is Vedtak.Avslag -> {
+        return when (vedtak.behandling) {
+            is Søknadsbehandling.Iverksatt.Avslag -> {
                 behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.DISTRIBUERT_BREV)
             }
-            is Vedtak.EndringIYtelse -> {
+            is Søknadsbehandling.Iverksatt.Innvilget -> {
                 behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.DISTRIBUERT_BREV)
             }
+            // TODO jah: Nå som vi har vedtakstyper og revurdering må vi vurdere hva vi ønsker grafer på.
+            else -> Unit
         }
     }
 
     private fun incrementLukketOppgave(vedtak: Vedtak) {
-        when (vedtak) {
-            is Vedtak.Avslag -> {
+        return when (vedtak.behandling) {
+            is Søknadsbehandling.Iverksatt.Avslag -> {
                 behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.LUKKET_OPPGAVE)
             }
-            is Vedtak.EndringIYtelse -> {
+            is Søknadsbehandling.Iverksatt.Innvilget -> {
                 behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.LUKKET_OPPGAVE)
             }
+            // TODO jah: Nå som vi har vedtakstyper og revurdering må vi vurdere hva vi ønsker grafer på.
+            else -> Unit
         }
     }
 
