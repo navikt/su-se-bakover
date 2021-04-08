@@ -17,11 +17,12 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.web.features.suUserContext
 import java.util.UUID
 
+@Suppress("unused", "unused_parameter")
 internal fun ApplicationCall.audit(msg: String) {
-    sikkerLogg.info("${suUserContext.navIdent} $msg")
+    // sikkerLogg.info("${suUserContext.navIdent} $msg")
+    sikkerLogg.info("Audit-logg fjernet, her må vi få på plass audit-logging til riktig sted!")
 }
 
 internal fun getGroupsFromJWT(applicationConfig: ApplicationConfig, principal: Principal?): List<String> =

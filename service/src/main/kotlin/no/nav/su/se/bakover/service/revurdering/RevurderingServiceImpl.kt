@@ -172,7 +172,7 @@ internal class RevurderingServiceImpl(
         fradrag: List<Fradrag>,
     ): Either<KunneIkkeBeregneOgSimulereRevurdering, Revurdering> {
         return when (val revurdering = revurderingRepo.hent(revurderingId)) {
-            is BeregnetRevurdering, is OpprettetRevurdering, is SimulertRevurdering -> {
+            is BeregnetRevurdering, is OpprettetRevurdering, is SimulertRevurdering, is UnderkjentRevurdering -> {
                 when (
                     val beregnetRevurdering = revurdering.beregn(fradrag)
                         .getOrHandle {
