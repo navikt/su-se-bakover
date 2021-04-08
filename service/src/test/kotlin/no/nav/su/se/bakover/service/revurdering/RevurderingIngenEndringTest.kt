@@ -266,7 +266,7 @@ class RevurderingIngenEndringTest {
     }
 
     @Test
-    fun `iverksetter revurdering som ikke fører til endring i ytelse`() {
+    fun `iverksetter revurdering som ikke fører til endring i ytelse og sender brev`() {
         val revurderingTilAttestering = RevurderingTilAttestering.IngenEndring(
             id = revurderingId,
             periode = periode,
@@ -313,6 +313,57 @@ class RevurderingIngenEndringTest {
             verify(revurderingRepoMock).hent(revurderingId)
             verify(ferdigstillVedtakServiceMock).journalførOgLagre(argThat { it shouldBe vedtak.copy(id = it.id) })
             verify(ferdigstillVedtakServiceMock).distribuerOgLagre(argThat { it shouldBe journalførtVedtak.copy(id = it.id) })
+            verify(revurderingRepoMock).lagre(any())
+        }
+        verifyNoMoreInteractions(
+            revurderingRepoMock,
+            utbetalingServiceMock,
+            vedtakRepoMock,
+            ferdigstillVedtakServiceMock,
+        )
+    }
+
+    @Test
+    fun `iverksetter revurdering som ikke fører til endring i ytelse og sender ikke brev`() {
+        val revurderingTilAttestering = RevurderingTilAttestering.IngenEndring(
+            id = revurderingId,
+            periode = periode,
+            opprettet = fixedTidspunkt,
+            tilRevurdering = søknadsbehandlingVedtak,
+            oppgaveId = OppgaveId(value = "OppgaveId"),
+            beregning = TestBeregningSomGirOpphør,
+            saksbehandler = RevurderingTestUtils.saksbehandler,
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
+            sendBrev = false
+        )
+        val attestant = NavIdentBruker.Attestant("ATTT")
+        val iverksattRevurdering = revurderingTilAttestering.tilIverksatt(attestant).orNull()!!
+        val vedtak = Vedtak.from(iverksattRevurdering, fixedClock)
+
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn revurderingTilAttestering
+        }
+        val utbetalingServiceMock = mock<UtbetalingService>()
+        val vedtakRepoMock = mock<VedtakRepo>()
+        val ferdigstillVedtakServiceMock = mock<FerdigstillVedtakService>()
+
+        createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+            utbetalingService = utbetalingServiceMock,
+            vedtakRepo = vedtakRepoMock,
+            ferdigstillVedtakService = ferdigstillVedtakServiceMock,
+        ).iverksett(
+            revurderingId,
+            attestant,
+        ) shouldBe iverksattRevurdering.right()
+
+        inOrder(
+            revurderingRepoMock,
+            vedtakRepoMock,
+        ) {
+            verify(revurderingRepoMock).hent(revurderingId)
+            verify(vedtakRepoMock).lagre(argThat { it shouldBe vedtak.copy(id = it.id) })
             verify(revurderingRepoMock).lagre(any())
         }
         verifyNoMoreInteractions(

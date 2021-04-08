@@ -372,6 +372,8 @@ internal class RevurderingServiceImpl(
                                         }.mapLeft {
                                             KunneIkkeIverksetteRevurdering.KunneIkkeJournaleføreBrev
                                         }
+                                } else {
+                                    vedtakRepo.lagre(Vedtak.from(iverksattRevurdering, clock))
                                 }
                                 iverksattRevurdering
                             }
