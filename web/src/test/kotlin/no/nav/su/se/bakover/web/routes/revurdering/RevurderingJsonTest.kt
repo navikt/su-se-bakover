@@ -414,7 +414,7 @@ internal class RevurderingJsonTest {
             oppgaveId = OppgaveId("OppgaveId"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            sendBrev = true
+            sendBrev = false
         )
 
         val revurderingJson =
@@ -436,7 +436,7 @@ internal class RevurderingJsonTest {
                     "tilOgMed": "2020-12-31"
                 },
                 "fritekstTilBrev": "",
-                "sendBrev": true,
+                "sendBrev": false,
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon"
             }
@@ -468,6 +468,7 @@ internal class RevurderingJsonTest {
             ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            sendBrev = true
         )
 
         val expected =
@@ -528,6 +529,7 @@ internal class RevurderingJsonTest {
             ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            sendBrev = true
         )
 
         val expected =
@@ -587,7 +589,7 @@ internal class RevurderingJsonTest {
             ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            sendBrev = true,
+            sendBrev = false,
         )
 
         val expected =
@@ -616,7 +618,7 @@ internal class RevurderingJsonTest {
                     }
                 },
                 "fritekstTilBrev": "",
-                "sendBrev": true,
+                "sendBrev": false,
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon"
             }
@@ -644,6 +646,7 @@ internal class RevurderingJsonTest {
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            sendBrev = true,
         )
 
         val revurderingJson =
@@ -694,6 +697,7 @@ internal class RevurderingJsonTest {
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            sendBrev = true,
         )
 
         val revurderingJson =

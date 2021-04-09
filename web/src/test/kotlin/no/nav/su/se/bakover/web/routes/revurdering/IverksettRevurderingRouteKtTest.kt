@@ -87,6 +87,7 @@ internal class IverksettRevurderingRouteKtTest {
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
+            sendBrev = true
         )
 
         val revurderingServiceMock = mock<RevurderingService> {

@@ -112,6 +112,7 @@ internal class RevurderingStatistikkMapperTest {
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant(navIdent = "2")),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            sendBrev = true,
         )
         RevurderingStatistikkMapper(fixedClock).map(iverksattRevurdering) shouldBe Statistikk.Behandling(
             funksjonellTid = iverksattRevurdering.opprettet,

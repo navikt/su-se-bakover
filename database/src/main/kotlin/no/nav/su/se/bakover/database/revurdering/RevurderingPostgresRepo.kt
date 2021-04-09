@@ -147,6 +147,7 @@ internal class RevurderingPostgresRepo(
                 attestering = attestering!! as Attestering.Underkjent,
                 fritekstTilBrev = fritekstTilBrev ?: "",
                 revurderingsårsak = revurderingsårsak,
+                sendBrev = sendBrev!!,
             )
             RevurderingsType.UNDERKJENT_OPPHØRT -> UnderkjentRevurdering.Opphørt(
                 id = id,
@@ -160,6 +161,7 @@ internal class RevurderingPostgresRepo(
                 attestering = attestering!! as Attestering.Underkjent,
                 fritekstTilBrev = fritekstTilBrev ?: "",
                 revurderingsårsak = revurderingsårsak,
+                sendBrev = sendBrev!!,
             )
             RevurderingsType.IVERKSATT_INNVILGET -> IverksattRevurdering.Innvilget(
                 id = id,
@@ -173,6 +175,7 @@ internal class RevurderingPostgresRepo(
                 attestering = attestering!! as Attestering.Iverksatt,
                 fritekstTilBrev = fritekstTilBrev ?: "",
                 revurderingsårsak = revurderingsårsak,
+                sendBrev = sendBrev!!,
             )
             RevurderingsType.IVERKSATT_OPPHØRT -> IverksattRevurdering.Opphørt(
                 id = id,
@@ -186,6 +189,7 @@ internal class RevurderingPostgresRepo(
                 attestering = attestering!! as Attestering.Iverksatt,
                 fritekstTilBrev = fritekstTilBrev ?: "",
                 revurderingsårsak = revurderingsårsak,
+                sendBrev = sendBrev!!,
             )
             RevurderingsType.TIL_ATTESTERING_INNVILGET -> RevurderingTilAttestering.Innvilget(
                 id = id,
@@ -198,6 +202,7 @@ internal class RevurderingPostgresRepo(
                 oppgaveId = OppgaveId(oppgaveId!!),
                 fritekstTilBrev = fritekstTilBrev ?: "",
                 revurderingsårsak = revurderingsårsak,
+                sendBrev = sendBrev!!,
             )
             RevurderingsType.TIL_ATTESTERING_OPPHØRT -> RevurderingTilAttestering.Opphørt(
                 id = id,
@@ -210,6 +215,7 @@ internal class RevurderingPostgresRepo(
                 oppgaveId = OppgaveId(oppgaveId!!),
                 fritekstTilBrev = fritekstTilBrev ?: "",
                 revurderingsårsak = revurderingsårsak,
+                sendBrev = sendBrev!!,
             )
             RevurderingsType.SIMULERT_INNVILGET -> SimulertRevurdering.Innvilget(
                 id = id,
@@ -487,7 +493,7 @@ internal class RevurderingPostgresRepo(
                         is RevurderingTilAttestering.Innvilget -> RevurderingsType.TIL_ATTESTERING_INNVILGET
                         is RevurderingTilAttestering.Opphørt -> RevurderingsType.TIL_ATTESTERING_OPPHØRT
                     },
-                    "sendBrev" to if (revurdering is RevurderingTilAttestering.IngenEndring) revurdering.sendBrev else null
+                    "sendBrev" to revurdering.sendBrev,
                 ),
                 session,
             )

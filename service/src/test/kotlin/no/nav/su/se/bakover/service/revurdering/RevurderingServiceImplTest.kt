@@ -542,6 +542,7 @@ internal class RevurderingServiceImplTest {
             attestering = Attestering.Iverksatt(attestant),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            sendBrev = true,
         )
         val revurderingTilAttestering = RevurderingTilAttestering.Innvilget(
             id = revurderingId,
@@ -554,6 +555,7 @@ internal class RevurderingServiceImplTest {
             saksbehandler = saksbehandler,
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            sendBrev = true,
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -770,6 +772,7 @@ internal class RevurderingServiceImplTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             attestering = attestering,
+            sendBrev = true,
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {

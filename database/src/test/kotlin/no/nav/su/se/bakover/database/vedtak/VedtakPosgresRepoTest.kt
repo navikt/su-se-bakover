@@ -86,6 +86,7 @@ internal class VedtakPosgresRepoTest {
                     Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                     Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
                 ),
+                sendBrev = true,
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 
@@ -228,7 +229,7 @@ internal class VedtakPosgresRepoTest {
                     Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                     Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
                 ),
-                sendBrev = true
+                sendBrev = true,
             )
             testDataHelper.revurderingRepo.lagre(atteststertRevurdering)
             val iverksattRevurdering = IverksattRevurdering.IngenEndring(
@@ -245,7 +246,7 @@ internal class VedtakPosgresRepoTest {
                     Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                     Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
                 ),
-                sendBrev = true
+                sendBrev = true,
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 

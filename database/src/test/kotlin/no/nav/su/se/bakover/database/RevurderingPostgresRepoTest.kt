@@ -328,6 +328,9 @@ internal class RevurderingPostgresRepoTest {
                 fritekstTilBrev = "",
                 revurderingsårsak = revurderingsårsak,
             )
+
+            repo.lagre(tilAttestering)
+
             val utbetaling = testDataHelper.nyUtbetalingUtenKvittering(
                 revurderingTilAttestering = tilAttestering,
             )
@@ -367,6 +370,7 @@ internal class RevurderingPostgresRepoTest {
                     saksbehandler = saksbehandler,
                     fritekstTilBrev = "",
                 )
+            repo.lagre(tilAttestering)
 
             val attestering = Attestering.Underkjent(
                 attestant = attestant,
@@ -395,6 +399,9 @@ internal class RevurderingPostgresRepoTest {
             val simulert = simulertOpphørt(beregnet)
             repo.lagre(simulert)
             repo.hent(opprettet.id) shouldBe simulert
+            val tilAttestering = simulert.tilAttestering(opprettet.oppgaveId, opprettet.saksbehandler, opprettet.fritekstTilBrev)
+            repo.lagre(tilAttestering)
+
             val underkjent = UnderkjentRevurdering.Opphørt(
                 id = opprettet.id,
                 periode = opprettet.periode,
@@ -411,6 +418,7 @@ internal class RevurderingPostgresRepoTest {
                     Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
                     "kommentar",
                 ),
+                sendBrev = true
             )
 
             repo.lagre(underkjent)
@@ -455,7 +463,11 @@ internal class RevurderingPostgresRepoTest {
             repo.lagre(opprettet)
             val beregnet = beregnetOpphørt(opprettet, vedtak)
             repo.lagre(beregnet)
-            repo.lagre(simulertOpphørt(beregnet))
+            val simulert = simulertOpphørt(beregnet)
+            repo.lagre(simulert)
+            val tilAttestering = simulert.tilAttestering(opprettet.oppgaveId, opprettet.saksbehandler, opprettet.fritekstTilBrev)
+            repo.lagre(tilAttestering)
+
             val underkjent = IverksattRevurdering.Opphørt(
                 id = opprettet.id,
                 periode = opprettet.periode,
@@ -470,6 +482,7 @@ internal class RevurderingPostgresRepoTest {
                 attestering = Attestering.Iverksatt(
                     attestant,
                 ),
+                sendBrev = true
             )
 
             repo.lagre(underkjent)
