@@ -135,6 +135,7 @@ internal class OppgaveHttpClient(
             KunneIkkeLukkeOppgave
         }.flatMap {
             if (it.erFerdigstilt()) {
+                log.info("Oppgave $oppgaveId er allerede lukket")
                 Unit.right()
             } else {
                 lukkOppgave(it, token).map { }
@@ -155,6 +156,7 @@ internal class OppgaveHttpClient(
                 oppgave.right()
             },
             {
+                log.error("Feil ved hent av oppgave $oppgaveId. status=${it.response.statusCode} body=${String(it.response.data)}", it)
                 KunneIkkeSøkeEtterOppgave.left()
             }
         )
