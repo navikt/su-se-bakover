@@ -9,8 +9,12 @@ import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.idag
+import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
+import no.nav.su.se.bakover.domain.Behandlingsperiode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
@@ -61,6 +65,7 @@ internal class SøknadsbehandlingServiceSimuleringTest {
             oppgaveId = beregnetBehandling.oppgaveId,
             simulering = simulering,
             fritekstTilBrev = "",
+            behandlingsperiode = beregnetBehandling.behandlingsperiode,
         )
 
         response shouldBe expected.right()
@@ -127,6 +132,7 @@ internal class SøknadsbehandlingServiceSimuleringTest {
     private val fnr = Fnr("12345678910")
     private val saksbehandler = Saksbehandler("AB12345")
     private val oppgaveId = OppgaveId("o")
+    private val behandlingsperiode = Behandlingsperiode(Periode.create(1.januar(2021), 31.desember(2021)))
     private val beregnetBehandling = Søknadsbehandling.Beregnet.Innvilget(
         id = UUID.randomUUID(),
         opprettet = Tidspunkt.now(),
@@ -145,6 +151,7 @@ internal class SøknadsbehandlingServiceSimuleringTest {
         fnr = fnr,
         oppgaveId = oppgaveId,
         fritekstTilBrev = "",
+        behandlingsperiode = behandlingsperiode,
     )
 
     private val simulering = Simulering(

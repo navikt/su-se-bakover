@@ -14,9 +14,13 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.idag
+import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
+import no.nav.su.se.bakover.domain.Behandlingsperiode
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
@@ -66,6 +70,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
     private val attestant = NavIdentBruker.Attestant("attestant")
     private val saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlinger")
     private val utbetalingId = UUID30.randomUUID()
+    private val behandlingsperiode = Behandlingsperiode(Periode.create(1.januar(2021), 31.desember(2021)))
     val opprettet = Tidspunkt.now(fixedClock)
     private val utbetaling = Utbetaling.OversendtUtbetaling.UtenKvittering(
         id = utbetalingId,
@@ -268,6 +273,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             saksbehandler = behandling.saksbehandler,
             attestering = Attestering.Iverksatt(attestant),
             fritekstTilBrev = "",
+            behandlingsperiode = behandling.behandlingsperiode,
         )
 
         response shouldBe expected.right()
@@ -344,6 +350,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             saksbehandler = behandling.saksbehandler,
             attestering = Attestering.Iverksatt(attestant),
             fritekstTilBrev = "",
+            behandlingsperiode = behandling.behandlingsperiode,
         )
 
         val behandlingMetricsMock = mock<BehandlingMetrics>()
@@ -431,6 +438,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 fnr = it.fnr,
                 oppgaveId = søknadOppgaveId,
                 fritekstTilBrev = "",
+                behandlingsperiode = it.behandlingsperiode,
             )
         }
 
@@ -476,6 +484,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             beregning = beregning,
             simulering = simulering,
             fritekstTilBrev = "",
+            behandlingsperiode = behandlingsperiode,
         )
 
     private fun avslagTilAttestering() =
@@ -498,6 +507,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             oppgaveId = søknadOppgaveId,
             beregning = beregning,
             fritekstTilBrev = "",
+            behandlingsperiode = behandlingsperiode,
         )
 
     private val beregning = TestBeregning

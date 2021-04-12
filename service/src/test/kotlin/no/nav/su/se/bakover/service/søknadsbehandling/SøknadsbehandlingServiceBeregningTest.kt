@@ -10,10 +10,14 @@ import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.mars
+import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.mai
+import no.nav.su.se.bakover.common.oktober
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
+import no.nav.su.se.bakover.domain.Behandlingsperiode
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
@@ -33,6 +37,7 @@ import java.util.UUID
 class SøknadsbehandlingServiceBeregningTest {
     private val sakId = UUID.randomUUID()
     private val behandlingId = UUID.randomUUID()
+    private val behandlingsperiode = Behandlingsperiode(Periode.create(1.januar(2021), 31.desember(2021)))
     private val vilkårsvurdertBehandling = Søknadsbehandling.Vilkårsvurdert.Innvilget(
         id = UUID.randomUUID(),
         opprettet = tidspunkt,
@@ -50,6 +55,7 @@ class SøknadsbehandlingServiceBeregningTest {
         fnr = FnrGenerator.random(),
         oppgaveId = OppgaveId("o"),
         fritekstTilBrev = "",
+        behandlingsperiode = behandlingsperiode,
     )
 
     @Test
@@ -58,20 +64,19 @@ class SøknadsbehandlingServiceBeregningTest {
             on { hent(any()) } doReturn vilkårsvurdertBehandling
         }
         val beregningServiceMock = mock<BeregningService> {
-            on { beregn(any(), any(), any()) } doReturn TestBeregning
+            on { beregn(any(), any()) } doReturn TestBeregning
         }
 
         val request = SøknadsbehandlingService.BeregnRequest(
             behandlingId = behandlingId,
-            periode = Periode.create(1.desember(2021), 31.mars(2022)),
-            fradrag = emptyList()
+            fradrag = emptyList(),
         )
 
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            beregningService = beregningServiceMock
+            beregningService = beregningServiceMock,
         ).beregn(
-            request
+            request,
         )
 
         val expected = Søknadsbehandling.Beregnet.Innvilget(
@@ -85,6 +90,7 @@ class SøknadsbehandlingServiceBeregningTest {
             oppgaveId = vilkårsvurdertBehandling.oppgaveId,
             beregning = TestBeregning,
             fritekstTilBrev = "",
+            behandlingsperiode = vilkårsvurdertBehandling.behandlingsperiode,
         )
 
         response shouldBe expected.right()
@@ -93,7 +99,6 @@ class SøknadsbehandlingServiceBeregningTest {
             verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandlingId })
             verify(beregningServiceMock).beregn(
                 søknadsbehandling = argThat { it shouldBe vilkårsvurdertBehandling },
-                periode = argThat { it shouldBe request.periode },
                 fradrag = argThat { it shouldBe request.fradrag },
             )
             verify(søknadsbehandlingRepoMock).lagre(expected)
@@ -110,14 +115,66 @@ class SøknadsbehandlingServiceBeregningTest {
         ).beregn(
             SøknadsbehandlingService.BeregnRequest(
                 behandlingId = behandlingId,
-                periode = Periode.create(1.desember(2021), 31.mars(2022)),
-                fradrag = emptyList()
-            )
+                fradrag = emptyList(),
+            ),
         )
 
         response shouldBe SøknadsbehandlingService.KunneIkkeBeregne.FantIkkeBehandling.left()
 
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandlingId })
         verifyNoMoreInteractions(søknadsbehandlingRepoMock)
+    }
+
+    @Test
+    fun `får ikke opprette fradrag som faller utenfor søknadsbehandlingens periode`() {
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
+            on { hent(any()) } doReturn vilkårsvurdertBehandling
+        }
+        val beregningServiceMock = mock<BeregningService> {
+            on { beregn(any(), any()) } doReturn TestBeregning
+        }
+
+        val service = createSøknadsbehandlingService(
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
+            beregningService = beregningServiceMock,
+        )
+        service.beregn(
+            request = SøknadsbehandlingService.BeregnRequest(
+                behandlingId = vilkårsvurdertBehandling.id,
+                fradrag = listOf(
+                    mock { on { getPeriode() } doReturn Periode.create(1.desember(2020), 30.april(2021)) },
+                ),
+            ),
+        ) shouldBe SøknadsbehandlingService.KunneIkkeBeregne.IkkeLovMedFradragUtenforPerioden.left()
+
+        service.beregn(
+            request = SøknadsbehandlingService.BeregnRequest(
+                behandlingId = vilkårsvurdertBehandling.id,
+                fradrag = listOf(
+                    mock { on { getPeriode() } doReturn Periode.create(1.desember(2021), 30.april(2022)) },
+                    mock { on { getPeriode() } doReturn behandlingsperiode.periode },
+                ),
+            ),
+        ) shouldBe SøknadsbehandlingService.KunneIkkeBeregne.IkkeLovMedFradragUtenforPerioden.left()
+
+        service.beregn(
+            request = SøknadsbehandlingService.BeregnRequest(
+                behandlingId = vilkårsvurdertBehandling.id,
+                fradrag = listOf(
+                    mock { on { getPeriode() } doReturn Periode.create(1.april(2021), 30.april(2021)) },
+                    mock { on { getPeriode() } doReturn Periode.create(1.mai(2021), 31.oktober(2021)) },
+                ),
+            ),
+        ).isRight() shouldBe true
+
+        service.beregn(
+            request = SøknadsbehandlingService.BeregnRequest(
+                behandlingId = vilkårsvurdertBehandling.id,
+                fradrag = listOf(
+                    mock { on { getPeriode() } doReturn Periode.create(1.januar(2021), 31.desember(2021)) },
+                    mock { on { getPeriode() } doReturn behandlingsperiode.periode },
+                ),
+            ),
+        ).isRight() shouldBe true
     }
 }

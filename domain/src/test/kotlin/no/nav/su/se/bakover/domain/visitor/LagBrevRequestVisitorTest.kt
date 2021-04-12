@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.AktørId
+import no.nav.su.se.bakover.domain.Behandlingsperiode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.FnrGenerator
 import no.nav.su.se.bakover.domain.Ident
@@ -828,5 +829,6 @@ internal class LagBrevRequestVisitorTest {
         behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
         fnr = FnrGenerator.random(),
         fritekstTilBrev = "",
+        behandlingsperiode = Behandlingsperiode(Periode.create(1.januar(2021), 31.desember(2021))),
     )
 }

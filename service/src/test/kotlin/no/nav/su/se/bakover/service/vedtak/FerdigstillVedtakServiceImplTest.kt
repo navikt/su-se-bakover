@@ -17,9 +17,13 @@ import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.client.person.MicrosoftGraphResponse
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.AktørId
+import no.nav.su.se.bakover.domain.Behandlingsperiode
 import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
@@ -981,6 +985,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 attestering = Attestering.Iverksatt(attestant),
                 saksbehandler = saksbehandler,
                 fritekstTilBrev = "",
+                behandlingsperiode = Behandlingsperiode(Periode.create(1.januar(2021), 31.desember(2021))),
             )
         )
 
@@ -1010,6 +1015,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 saksbehandler = saksbehandler,
                 attestering = Attestering.Iverksatt(attestant),
                 fritekstTilBrev = "",
+                behandlingsperiode = Behandlingsperiode(Periode.create(1.januar(2021), 31.desember(2021))),
             ),
             UUID30.randomUUID()
         )

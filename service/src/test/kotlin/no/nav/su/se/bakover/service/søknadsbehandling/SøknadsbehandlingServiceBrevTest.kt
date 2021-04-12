@@ -9,8 +9,12 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.AktørId
+import no.nav.su.se.bakover.domain.Behandlingsperiode
 import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
@@ -32,7 +36,7 @@ import org.junit.jupiter.api.assertThrows
 import java.util.UUID
 
 internal class SøknadsbehandlingServiceBrevTest {
-
+    private val behandlingsperiode = Behandlingsperiode(Periode.create(1.januar(2021), 31.desember(2021)))
     private val beregnetAvslag = Søknadsbehandling.TilAttestering.Innvilget(
         id = UUID.randomUUID(),
         opprettet = Tidspunkt.now(),
@@ -46,6 +50,7 @@ internal class SøknadsbehandlingServiceBrevTest {
         simulering = mock(),
         saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
         fritekstTilBrev = "",
+        behandlingsperiode = behandlingsperiode,
     )
 
     private val opprettetSøknadbehandling = Søknadsbehandling.Vilkårsvurdert.Uavklart(
@@ -58,6 +63,7 @@ internal class SøknadsbehandlingServiceBrevTest {
         fnr = FnrGenerator.random(),
         oppgaveId = OppgaveId("0"),
         fritekstTilBrev = "",
+        behandlingsperiode = behandlingsperiode,
     )
 
     private val person = Person(

@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.Behandlingsperiode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -21,6 +23,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
     abstract val søknad: Søknad.Journalført.MedOppgave
     abstract val behandlingsinformasjon: Behandlingsinformasjon
     abstract val status: BehandlingsStatus
+    abstract val behandlingsperiode: Behandlingsperiode?
 
     // TODO ia: fritekst bør flyttes ut av denne klassen og til et eget konsept (som også omfatter fritekst på revurderinger)
     abstract val fritekstTilBrev: String
@@ -36,7 +39,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 oppgaveId,
                 this.behandlingsinformasjon.patch(behandlingsinformasjon),
                 fnr,
-                fritekstTilBrev
+                fritekstTilBrev,
+                behandlingsperiode,
             )
 
         fun tilBeregnet(beregning: Beregning): Beregnet =
@@ -50,7 +54,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 behandlingsinformasjon,
                 fnr,
                 beregning,
-                fritekstTilBrev
+                fritekstTilBrev,
+                behandlingsperiode!!,
             )
 
         companion object {
@@ -63,7 +68,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 oppgaveId: OppgaveId,
                 behandlingsinformasjon: Behandlingsinformasjon,
                 fnr: Fnr,
-                fritekstTilBrev: String
+                fritekstTilBrev: String,
+                behandlingsperiode: Behandlingsperiode?,
             ): Vilkårsvurdert {
                 return when {
                     behandlingsinformasjon.erInnvilget() -> {
@@ -76,7 +82,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                             oppgaveId,
                             behandlingsinformasjon,
                             fnr,
-                            fritekstTilBrev
+                            fritekstTilBrev,
+                            behandlingsperiode!!,
                         )
                     }
                     behandlingsinformasjon.erAvslag() -> {
@@ -89,7 +96,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                             oppgaveId,
                             behandlingsinformasjon,
                             fnr,
-                            fritekstTilBrev
+                            fritekstTilBrev,
+                            behandlingsperiode!!,
                         )
                     }
                     else -> {
@@ -102,7 +110,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                             oppgaveId,
                             behandlingsinformasjon,
                             fnr,
-                            fritekstTilBrev
+                            fritekstTilBrev,
+                            behandlingsperiode,
                         )
                     }
                 }
@@ -118,10 +127,12 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
             override val oppgaveId: OppgaveId,
             override val behandlingsinformasjon: Behandlingsinformasjon,
             override val fnr: Fnr,
-            override val fritekstTilBrev: String
+            override val fritekstTilBrev: String,
+            override val behandlingsperiode: Behandlingsperiode,
         ) : Vilkårsvurdert() {
 
             override val status: BehandlingsStatus = BehandlingsStatus.VILKÅRSVURDERT_INNVILGET
+            override val periode: Periode = behandlingsperiode.periode
 
             override fun accept(visitor: SøknadsbehandlingVisitor) {
                 visitor.visit(this)
@@ -137,10 +148,12 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
             override val oppgaveId: OppgaveId,
             override val behandlingsinformasjon: Behandlingsinformasjon,
             override val fnr: Fnr,
-            override val fritekstTilBrev: String
+            override val fritekstTilBrev: String,
+            override val behandlingsperiode: Behandlingsperiode,
         ) : Vilkårsvurdert(), ErAvslag {
 
             override val status: BehandlingsStatus = BehandlingsStatus.VILKÅRSVURDERT_AVSLAG
+            override val periode: Periode = behandlingsperiode.periode
 
             override fun accept(visitor: SøknadsbehandlingVisitor) {
                 visitor.visit(this)
@@ -157,7 +170,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                     behandlingsinformasjon,
                     fnr,
                     saksbehandler,
-                    fritekstTilBrev
+                    fritekstTilBrev,
+                    behandlingsperiode,
                 )
 
             override val avslagsgrunner: List<Avslagsgrunn> = behandlingsinformasjon.utledAvslagsgrunner()
@@ -172,10 +186,13 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
             override val oppgaveId: OppgaveId,
             override val behandlingsinformasjon: Behandlingsinformasjon,
             override val fnr: Fnr,
-            override val fritekstTilBrev: String
+            override val fritekstTilBrev: String,
+            override val behandlingsperiode: Behandlingsperiode?,
         ) : Vilkårsvurdert() {
 
             override val status: BehandlingsStatus = BehandlingsStatus.OPPRETTET
+            override val periode: Periode
+                get() = behandlingsperiode?.periode ?: throw IllegalStateException("Periode er ikke satt")
 
             override fun accept(visitor: SøknadsbehandlingVisitor) {
                 visitor.visit(this)
@@ -192,6 +209,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
         abstract override val behandlingsinformasjon: Behandlingsinformasjon
         abstract override val fnr: Fnr
         abstract val beregning: Beregning
+        abstract override val behandlingsperiode: Behandlingsperiode
 
         fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon): Vilkårsvurdert =
             Vilkårsvurdert.opprett(
@@ -203,7 +221,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 oppgaveId,
                 this.behandlingsinformasjon.patch(behandlingsinformasjon),
                 fnr,
-                fritekstTilBrev
+                fritekstTilBrev,
+                behandlingsperiode,
             )
 
         fun tilBeregnet(beregning: Beregning): Beregnet =
@@ -217,7 +236,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 behandlingsinformasjon,
                 fnr,
                 beregning,
-                fritekstTilBrev
+                fritekstTilBrev,
+                behandlingsperiode,
             )
 
         fun tilSimulert(simulering: Simulering): Simulert =
@@ -232,7 +252,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 fnr,
                 beregning,
                 simulering,
-                fritekstTilBrev
+                fritekstTilBrev,
+                behandlingsperiode,
             )
 
         companion object {
@@ -246,7 +267,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 behandlingsinformasjon: Behandlingsinformasjon,
                 fnr: Fnr,
                 beregning: Beregning,
-                fritekstTilBrev: String
+                fritekstTilBrev: String,
+                behandlingsperiode: Behandlingsperiode,
             ): Beregnet =
                 when (VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
                     is AvslagGrunnetBeregning.Ja -> Avslag(
@@ -259,7 +281,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                         behandlingsinformasjon,
                         fnr,
                         beregning,
-                        fritekstTilBrev
+                        fritekstTilBrev,
+                        behandlingsperiode,
                     )
                     AvslagGrunnetBeregning.Nei -> Innvilget(
                         id,
@@ -271,7 +294,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                         behandlingsinformasjon,
                         fnr,
                         beregning,
-                        fritekstTilBrev
+                        fritekstTilBrev,
+                        behandlingsperiode,
                     )
                 }
         }
@@ -286,9 +310,11 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
             override val behandlingsinformasjon: Behandlingsinformasjon,
             override val fnr: Fnr,
             override val beregning: Beregning,
-            override val fritekstTilBrev: String
+            override val fritekstTilBrev: String,
+            override val behandlingsperiode: Behandlingsperiode,
         ) : Beregnet() {
             override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET_INNVILGET
+            override val periode: Periode = behandlingsperiode.periode
 
             override fun accept(visitor: SøknadsbehandlingVisitor) {
                 visitor.visit(this)
@@ -306,8 +332,10 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
             override val fnr: Fnr,
             override val beregning: Beregning,
             override val fritekstTilBrev: String,
+            override val behandlingsperiode: Behandlingsperiode,
         ) : Beregnet(), ErAvslag {
             override val status: BehandlingsStatus = BehandlingsStatus.BEREGNET_AVSLAG
+            override val periode: Periode = behandlingsperiode.periode
 
             private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
                 when (val vurdering = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
@@ -331,7 +359,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                     fnr,
                     beregning,
                     saksbehandler,
-                    fritekstTilBrev
+                    fritekstTilBrev,
+                    behandlingsperiode,
                 )
 
             override val avslagsgrunner: List<Avslagsgrunn> =
@@ -350,9 +379,11 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
         override val fnr: Fnr,
         val beregning: Beregning,
         val simulering: Simulering,
-        override val fritekstTilBrev: String
+        override val fritekstTilBrev: String,
+        override val behandlingsperiode: Behandlingsperiode,
     ) : Søknadsbehandling() {
         override val status: BehandlingsStatus = BehandlingsStatus.SIMULERT
+        override val periode: Periode = behandlingsperiode.periode
 
         override fun accept(visitor: SøknadsbehandlingVisitor) {
             visitor.visit(this)
@@ -368,7 +399,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 oppgaveId,
                 this.behandlingsinformasjon.patch(behandlingsinformasjon),
                 fnr,
-                fritekstTilBrev
+                fritekstTilBrev,
+                behandlingsperiode,
             )
 
         fun tilBeregnet(beregning: Beregning): Beregnet =
@@ -382,7 +414,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 behandlingsinformasjon,
                 fnr,
                 beregning,
-                fritekstTilBrev
+                fritekstTilBrev,
+                behandlingsperiode,
             )
 
         fun tilSimulert(simulering: Simulering): Simulert =
@@ -398,6 +431,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 beregning,
                 simulering,
                 fritekstTilBrev,
+                behandlingsperiode,
             )
 
         fun tilAttestering(saksbehandler: NavIdentBruker.Saksbehandler, fritekstTilBrev: String): TilAttestering.Innvilget =
@@ -414,6 +448,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 simulering,
                 saksbehandler,
                 fritekstTilBrev,
+                behandlingsperiode,
             )
     }
 
@@ -421,6 +456,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
         abstract val saksbehandler: NavIdentBruker
         abstract fun nyOppgaveId(nyOppgaveId: OppgaveId): TilAttestering
         abstract fun tilUnderkjent(attestering: Attestering): Underkjent
+        abstract override val behandlingsperiode: Behandlingsperiode
 
         data class Innvilget(
             override val id: UUID,
@@ -434,10 +470,11 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
             val beregning: Beregning,
             val simulering: Simulering,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
-            override val fritekstTilBrev: String
+            override val fritekstTilBrev: String,
+            override val behandlingsperiode: Behandlingsperiode,
         ) : TilAttestering() {
-            override val status: BehandlingsStatus =
-                BehandlingsStatus.TIL_ATTESTERING_INNVILGET
+            override val status: BehandlingsStatus = BehandlingsStatus.TIL_ATTESTERING_INNVILGET
+            override val periode: Periode = behandlingsperiode.periode
 
             override fun accept(visitor: SøknadsbehandlingVisitor) {
                 visitor.visit(this)
@@ -462,6 +499,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                     saksbehandler,
                     attestering,
                     fritekstTilBrev,
+                    behandlingsperiode,
                 )
             }
 
@@ -480,13 +518,14 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                     saksbehandler,
                     attestering,
                     fritekstTilBrev,
+                    behandlingsperiode,
                 )
             }
         }
 
         sealed class Avslag : TilAttestering(), ErAvslag {
-            final override val status: BehandlingsStatus =
-                BehandlingsStatus.TIL_ATTESTERING_AVSLAG
+            final override val status: BehandlingsStatus = BehandlingsStatus.TIL_ATTESTERING_AVSLAG
+            abstract override val behandlingsperiode: Behandlingsperiode
 
             data class UtenBeregning(
                 override val id: UUID,
@@ -498,10 +537,12 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 override val behandlingsinformasjon: Behandlingsinformasjon,
                 override val fnr: Fnr,
                 override val saksbehandler: NavIdentBruker.Saksbehandler,
-                override val fritekstTilBrev: String
+                override val fritekstTilBrev: String,
+                override val behandlingsperiode: Behandlingsperiode,
             ) : Avslag() {
 
                 override val avslagsgrunner = behandlingsinformasjon.utledAvslagsgrunner()
+                override val periode: Periode = behandlingsperiode.periode
 
                 override fun accept(visitor: SøknadsbehandlingVisitor) {
                     visitor.visit(this)
@@ -524,11 +565,12 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                         saksbehandler,
                         attestering,
                         fritekstTilBrev,
+                        behandlingsperiode,
                     )
                 }
 
                 fun tilIverksatt(
-                    attestering: Attestering
+                    attestering: Attestering,
                 ): Iverksatt.Avslag.UtenBeregning {
                     return Iverksatt.Avslag.UtenBeregning(
                         id,
@@ -542,6 +584,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                         saksbehandler,
                         attestering,
                         fritekstTilBrev,
+                        behandlingsperiode,
                     )
                 }
             }
@@ -557,7 +600,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 override val fnr: Fnr,
                 val beregning: Beregning,
                 override val saksbehandler: NavIdentBruker.Saksbehandler,
-                override val fritekstTilBrev: String
+                override val fritekstTilBrev: String,
+                override val behandlingsperiode: Behandlingsperiode,
             ) : Avslag() {
 
                 private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
@@ -566,8 +610,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                         is AvslagGrunnetBeregning.Nei -> emptyList()
                     }
 
-                override val avslagsgrunner =
-                    behandlingsinformasjon.utledAvslagsgrunner() + avslagsgrunnForBeregning
+                override val avslagsgrunner = behandlingsinformasjon.utledAvslagsgrunner() + avslagsgrunnForBeregning
+                override val periode: Periode = behandlingsperiode.periode
 
                 override fun accept(visitor: SøknadsbehandlingVisitor) {
                     visitor.visit(this)
@@ -591,11 +635,12 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                         saksbehandler,
                         attestering,
                         fritekstTilBrev,
+                        behandlingsperiode,
                     )
                 }
 
                 fun tilIverksatt(
-                    attestering: Attestering
+                    attestering: Attestering,
                 ): Iverksatt.Avslag.MedBeregning {
                     return Iverksatt.Avslag.MedBeregning(
                         id,
@@ -610,6 +655,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                         saksbehandler,
                         attestering,
                         fritekstTilBrev,
+                        behandlingsperiode,
                     )
                 }
             }
@@ -627,6 +673,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
         abstract override val fnr: Fnr
         abstract val saksbehandler: NavIdentBruker.Saksbehandler
         abstract val attestering: Attestering
+        abstract override val behandlingsperiode: Behandlingsperiode
 
         abstract fun nyOppgaveId(nyOppgaveId: OppgaveId): Underkjent
 
@@ -640,7 +687,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 oppgaveId,
                 this.behandlingsinformasjon.patch(behandlingsinformasjon),
                 fnr,
-                fritekstTilBrev
+                fritekstTilBrev,
+                behandlingsperiode,
             )
 
         data class Innvilget(
@@ -656,15 +704,16 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
             val simulering: Simulering,
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val attestering: Attestering,
-            override val fritekstTilBrev: String
+            override val fritekstTilBrev: String,
+            override val behandlingsperiode: Behandlingsperiode,
         ) : Underkjent() {
 
             override fun nyOppgaveId(nyOppgaveId: OppgaveId): Innvilget {
                 return this.copy(oppgaveId = nyOppgaveId)
             }
 
-            override val status: BehandlingsStatus =
-                BehandlingsStatus.UNDERKJENT_INNVILGET
+            override val status: BehandlingsStatus = BehandlingsStatus.UNDERKJENT_INNVILGET
+            override val periode: Periode = behandlingsperiode.periode
 
             override fun accept(visitor: SøknadsbehandlingVisitor) {
                 visitor.visit(this)
@@ -681,7 +730,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                     behandlingsinformasjon,
                     fnr,
                     beregning,
-                    fritekstTilBrev
+                    fritekstTilBrev,
+                    behandlingsperiode,
                 )
 
             fun tilSimulert(simulering: Simulering): Simulert =
@@ -696,7 +746,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                     fnr,
                     beregning,
                     simulering,
-                    fritekstTilBrev
+                    fritekstTilBrev,
+                    behandlingsperiode,
                 )
 
             fun tilAttestering(saksbehandler: NavIdentBruker.Saksbehandler): TilAttestering.Innvilget =
@@ -712,7 +763,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                     beregning,
                     simulering,
                     saksbehandler,
-                    fritekstTilBrev
+                    fritekstTilBrev,
+                    behandlingsperiode,
                 )
         }
 
@@ -729,10 +781,11 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 val beregning: Beregning,
                 override val saksbehandler: NavIdentBruker.Saksbehandler,
                 override val attestering: Attestering,
-                override val fritekstTilBrev: String
+                override val fritekstTilBrev: String,
+                override val behandlingsperiode: Behandlingsperiode,
             ) : Avslag() {
-                override val status: BehandlingsStatus =
-                    BehandlingsStatus.UNDERKJENT_AVSLAG
+                override val status: BehandlingsStatus = BehandlingsStatus.UNDERKJENT_AVSLAG
+                override val periode: Periode = behandlingsperiode.periode
 
                 private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
                     when (val vurdering = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
@@ -759,7 +812,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                         behandlingsinformasjon,
                         fnr,
                         beregning,
-                        fritekstTilBrev
+                        fritekstTilBrev,
+                        behandlingsperiode,
                     )
 
                 fun tilAttestering(saksbehandler: NavIdentBruker.Saksbehandler): TilAttestering.Avslag.MedBeregning =
@@ -774,7 +828,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                         fnr,
                         beregning,
                         saksbehandler,
-                        fritekstTilBrev
+                        fritekstTilBrev,
+                        behandlingsperiode,
                     )
 
                 override val avslagsgrunner: List<Avslagsgrunn> =
@@ -792,10 +847,11 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 override val fnr: Fnr,
                 override val saksbehandler: NavIdentBruker.Saksbehandler,
                 override val attestering: Attestering,
-                override val fritekstTilBrev: String
+                override val fritekstTilBrev: String,
+                override val behandlingsperiode: Behandlingsperiode,
             ) : Avslag() {
-                override val status: BehandlingsStatus =
-                    BehandlingsStatus.UNDERKJENT_AVSLAG
+                override val status: BehandlingsStatus = BehandlingsStatus.UNDERKJENT_AVSLAG
+                override val periode: Periode = behandlingsperiode.periode
 
                 override fun nyOppgaveId(nyOppgaveId: OppgaveId): UtenBeregning {
                     return this.copy(oppgaveId = nyOppgaveId)
@@ -816,7 +872,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                         behandlingsinformasjon,
                         fnr,
                         saksbehandler,
-                        fritekstTilBrev
+                        fritekstTilBrev,
+                        behandlingsperiode,
                     )
 
                 override val avslagsgrunner: List<Avslagsgrunn> = behandlingsinformasjon.utledAvslagsgrunner()
@@ -835,6 +892,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
         abstract override val fnr: Fnr
         abstract val saksbehandler: NavIdentBruker.Saksbehandler
         abstract val attestering: Attestering
+        abstract override val behandlingsperiode: Behandlingsperiode
 
         data class Innvilget(
             override val id: UUID,
@@ -850,8 +908,10 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val attestering: Attestering,
             override val fritekstTilBrev: String,
+            override val behandlingsperiode: Behandlingsperiode,
         ) : Iverksatt() {
             override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_INNVILGET
+            override val periode: Periode = behandlingsperiode.periode
 
             override fun accept(visitor: SøknadsbehandlingVisitor) {
                 visitor.visit(this)
@@ -872,8 +932,10 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 override val saksbehandler: NavIdentBruker.Saksbehandler,
                 override val attestering: Attestering,
                 override val fritekstTilBrev: String,
+                override val behandlingsperiode: Behandlingsperiode,
             ) : Avslag() {
                 override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_AVSLAG
+                override val periode: Periode = behandlingsperiode.periode
 
                 override fun accept(visitor: SøknadsbehandlingVisitor) {
                     visitor.visit(this)
@@ -901,8 +963,10 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 override val saksbehandler: NavIdentBruker.Saksbehandler,
                 override val attestering: Attestering,
                 override val fritekstTilBrev: String,
+                override val behandlingsperiode: Behandlingsperiode,
             ) : Avslag() {
                 override val status: BehandlingsStatus = BehandlingsStatus.IVERKSATT_AVSLAG
+                override val periode: Periode = behandlingsperiode.periode
 
                 override fun accept(visitor: SøknadsbehandlingVisitor) {
                     visitor.visit(this)

@@ -3,10 +3,13 @@ package no.nav.su.se.bakover.service.statistikk
 import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.common.zoneIdOslo
+import no.nav.su.se.bakover.domain.Behandlingsperiode
 import no.nav.su.se.bakover.domain.ForNav
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -77,7 +80,7 @@ internal class SøknadsbehandlingStatistikkMapperTest {
     @Test
     fun `mapper iverksatt behandling`() {
         SøknadsbehandlingStatistikkMapper(fixedClock).map(iverksattSøknadsbehandling) shouldBe Statistikk.Behandling(
-            funksjonellTid = beregning.getPeriode().getFraOgMed().startOfDay(zoneIdOslo),
+            funksjonellTid = iverksattSøknadsbehandling.periode.getFraOgMed().startOfDay(zoneIdOslo),
             tekniskTid = Tidspunkt.now(fixedClock),
             mottattDato = iverksattSøknadsbehandling.opprettet.toLocalDate(zoneIdOslo),
             registrertDato = iverksattSøknadsbehandling.opprettet.toLocalDate(zoneIdOslo),
@@ -133,9 +136,9 @@ internal class SøknadsbehandlingStatistikkMapperTest {
 
         @Test
         fun `funksjonell til settes til dato for beregning dersom tilgjengelig`() {
-            SøknadsbehandlingStatistikkMapper.FunksjonellTidMapper.map(tilAttesteringSøknadsbehandling) shouldBe beregning.getPeriode()
+            SøknadsbehandlingStatistikkMapper.FunksjonellTidMapper.map(tilAttesteringSøknadsbehandling) shouldBe tilAttesteringSøknadsbehandling.periode
                 .getFraOgMed().startOfDay(zoneIdOslo)
-            SøknadsbehandlingStatistikkMapper.FunksjonellTidMapper.map(iverksattSøknadsbehandling) shouldBe beregning.getPeriode()
+            SøknadsbehandlingStatistikkMapper.FunksjonellTidMapper.map(iverksattSøknadsbehandling) shouldBe tilAttesteringSøknadsbehandling.periode
                 .getFraOgMed().startOfDay(zoneIdOslo)
         }
     }
@@ -283,6 +286,7 @@ internal class SøknadsbehandlingStatistikkMapperTest {
         behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
         fnr = FnrGenerator.random(),
         fritekstTilBrev = "",
+        behandlingsperiode = Behandlingsperiode(Periode.create(1.januar(2021), 31.desember(2021)))
     )
 
     private val beregning = TestBeregning

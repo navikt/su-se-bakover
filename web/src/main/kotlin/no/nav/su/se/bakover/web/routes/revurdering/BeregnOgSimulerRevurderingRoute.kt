@@ -45,7 +45,7 @@ internal fun Route.beregnOgSimulerRevurdering(
     ) {
         fun toDomain(): Either<Resultat, List<Fradrag>> =
             periode.toPeriode()
-                .flatMap { fradrag.toFradrag(it) }
+                .flatMap { fradrag.toFradrag() }
     }
     authorize(Brukerrolle.Saksbehandler) {
         post("$revurderingPath/{revurderingId}/beregnOgSimuler") {

@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.behandlingId
+import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.behandlingsperiode
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.innvilgetSøknadsbehandling
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.journalførtSøknadMedOppgave
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.oppgaveId
@@ -117,7 +118,14 @@ internal class SøknadsbehandlingJsonTest {
           "attestering" : { "attestant" : "kjella", "underkjennelse":  null},
           "saksbehandler" : "pro-saksbehandler",
           "sakId": "$sakId",
-          "hendelser": []
+          "hendelser": [],
+          "behandlingsperiode": {
+            "periode": {
+              "fraOgMed": "2021-01-01",
+              "tilOgMed": "2021-12-31"
+            },
+            "begrunnelse": "begrunnelsen"
+          }
         }
             """.trimIndent()
     }
@@ -144,6 +152,7 @@ internal class SøknadsbehandlingJsonTest {
             oppgaveId = oppgaveId,
             opprettet = Tidspunkt.EPOCH,
             fritekstTilBrev = "",
+            behandlingsperiode = null,
         )
         val opprettetTidspunkt = DateTimeFormatter.ISO_INSTANT.format(behandlingWithNulls.opprettet)
 
@@ -173,7 +182,8 @@ internal class SøknadsbehandlingJsonTest {
           "attestering": null,
           "saksbehandler": null,
           "sakId": "$sakId",
-          "hendelser": []
+          "hendelser": [],
+          "behandlingsperiode": null
         }
         """
 

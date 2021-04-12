@@ -10,9 +10,13 @@ import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.idag
+import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.AktørId
+import no.nav.su.se.bakover.domain.Behandlingsperiode
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
@@ -47,6 +51,8 @@ class SøknadsbehandlingServiceAttesteringTest {
     private val fnr = FnrGenerator.random()
     private val nyOppgaveId = OppgaveId("999")
     private val aktørId = AktørId("12345")
+    private val periode = Periode.create(1.januar(2021), 31.desember(2021))
+    private val behandlingsperiode = Behandlingsperiode(periode, "")
     private val simulertBehandling = Søknadsbehandling.Simulert(
         id = UUID.randomUUID(),
         opprettet = Tidspunkt.now(),
@@ -72,6 +78,7 @@ class SøknadsbehandlingServiceAttesteringTest {
         fnr = fnr,
         oppgaveId = oppgaveId,
         fritekstTilBrev = "",
+        behandlingsperiode = behandlingsperiode,
     )
 
     private val saksbehandler = NavIdentBruker.Saksbehandler("Z12345")
@@ -116,6 +123,7 @@ class SøknadsbehandlingServiceAttesteringTest {
             oppgaveId = nyOppgaveId,
             saksbehandler = saksbehandler,
             fritekstTilBrev = "",
+            behandlingsperiode = simulertBehandling.behandlingsperiode,
         )
 
         actual shouldBe expected.right()
@@ -271,6 +279,7 @@ class SøknadsbehandlingServiceAttesteringTest {
             oppgaveId = nyOppgaveId,
             saksbehandler = saksbehandler,
             fritekstTilBrev = "",
+            behandlingsperiode = simulertBehandling.behandlingsperiode,
         )
 
         actual shouldBe expected.right()

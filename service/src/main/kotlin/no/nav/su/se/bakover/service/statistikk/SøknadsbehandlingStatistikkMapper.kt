@@ -4,13 +4,12 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.ForNav
-import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import java.time.Clock
 
 internal class SøknadsbehandlingStatistikkMapper(
-    private val clock: Clock
+    private val clock: Clock,
 ) {
     fun map(søknadsbehandling: Søknadsbehandling): Statistikk.Behandling = Statistikk.Behandling(
         behandlingType = Statistikk.Behandling.BehandlingType.SOKNAD,
@@ -38,7 +37,7 @@ internal class SøknadsbehandlingStatistikkMapper(
                     beslutter = søknadsbehandling.attestering.attestant.navIdent,
                     resultat = ResultatOgBegrunnelseMapper.map(søknadsbehandling).resultat,
                     resultatBegrunnelse = ResultatOgBegrunnelseMapper.map(søknadsbehandling).begrunnelse,
-                    avsluttet = true
+                    avsluttet = true,
                 )
             }
             is Søknadsbehandling.TilAttestering -> {
@@ -49,7 +48,7 @@ internal class SøknadsbehandlingStatistikkMapper(
             is Søknadsbehandling.Underkjent -> {
                 copy(
                     saksbehandler = søknadsbehandling.saksbehandler.navIdent,
-                    beslutter = søknadsbehandling.attestering.attestant.navIdent
+                    beslutter = søknadsbehandling.attestering.attestant.navIdent,
                 )
             }
             else -> throw ManglendeStatistikkMappingException(this, søknadsbehandling::class.java)
@@ -59,38 +58,38 @@ internal class SøknadsbehandlingStatistikkMapper(
     internal object BehandlingStatusOgBehandlingStatusBeskrivelseMapper {
         data class BehandlingStatusOgBehandlingStatusBeskrivelse(
             val status: BehandlingsStatus,
-            val beskrivelse: String
+            val beskrivelse: String,
         )
 
         fun map(status: BehandlingsStatus): BehandlingStatusOgBehandlingStatusBeskrivelse =
             when (status) {
                 BehandlingsStatus.OPPRETTET -> BehandlingStatusOgBehandlingStatusBeskrivelse(
                     status,
-                    "Ny søknadsbehandling opprettet"
+                    "Ny søknadsbehandling opprettet",
                 )
                 BehandlingsStatus.TIL_ATTESTERING_INNVILGET -> BehandlingStatusOgBehandlingStatusBeskrivelse(
                     status,
-                    "Innvilget søkndsbehandling sendt til attestering"
+                    "Innvilget søkndsbehandling sendt til attestering",
                 )
                 BehandlingsStatus.TIL_ATTESTERING_AVSLAG -> BehandlingStatusOgBehandlingStatusBeskrivelse(
                     status,
-                    "Avslått søknadsbehanding sendt til attestering"
+                    "Avslått søknadsbehanding sendt til attestering",
                 )
                 BehandlingsStatus.UNDERKJENT_INNVILGET -> BehandlingStatusOgBehandlingStatusBeskrivelse(
                     status,
-                    "Innvilget søknadsbehandling sendt tilbake fra attestant til saksbehandler"
+                    "Innvilget søknadsbehandling sendt tilbake fra attestant til saksbehandler",
                 )
                 BehandlingsStatus.UNDERKJENT_AVSLAG -> BehandlingStatusOgBehandlingStatusBeskrivelse(
                     status,
-                    "Avslått søknadsbehandling sendt tilbake fra attestant til saksbehandler"
+                    "Avslått søknadsbehandling sendt tilbake fra attestant til saksbehandler",
                 )
                 BehandlingsStatus.IVERKSATT_INNVILGET -> BehandlingStatusOgBehandlingStatusBeskrivelse(
                     status,
-                    "Innvilget søknadsbehandling iverksatt"
+                    "Innvilget søknadsbehandling iverksatt",
                 )
                 BehandlingsStatus.IVERKSATT_AVSLAG -> BehandlingStatusOgBehandlingStatusBeskrivelse(
                     status,
-                    "Avslått søknadsbehandling iverksatt"
+                    "Avslått søknadsbehandling iverksatt",
                 )
                 else -> throw ManglendeStatistikkMappingException(this, status::class.java)
             }
@@ -102,7 +101,7 @@ internal class SøknadsbehandlingStatistikkMapper(
 
         data class ResultatOgBegrunnelse(
             val resultat: String,
-            val begrunnelse: String?
+            val begrunnelse: String?,
         )
 
         fun map(søknadsbehandling: Søknadsbehandling): ResultatOgBegrunnelse = when (søknadsbehandling) {
@@ -119,17 +118,16 @@ internal class SøknadsbehandlingStatistikkMapper(
     // TODO ai 08.03.2021: Se over dette igen, misstänker att det har blivit misstolkat
     internal object FunksjonellTidMapper {
         fun map(søknadsbehandling: Søknadsbehandling) = when (søknadsbehandling) {
-            is Søknadsbehandling.Vilkårsvurdert.Uavklart -> søknadsbehandling.opprettet
-            is Søknadsbehandling.Iverksatt.Avslag -> søknadsbehandling.opprettet
-            is Søknadsbehandling.Iverksatt.Innvilget -> søknadsbehandling.beregning.startOfFirstDay()
-            is Søknadsbehandling.TilAttestering.Avslag -> søknadsbehandling.opprettet
-            is Søknadsbehandling.TilAttestering.Innvilget -> søknadsbehandling.beregning.startOfFirstDay()
-            is Søknadsbehandling.Underkjent.Avslag -> søknadsbehandling.opprettet
-            is Søknadsbehandling.Underkjent.Innvilget -> søknadsbehandling.beregning.startOfFirstDay()
+            is Søknadsbehandling.Vilkårsvurdert.Uavklart,
+            is Søknadsbehandling.Iverksatt.Avslag,
+            is Søknadsbehandling.Iverksatt.Innvilget,
+            is Søknadsbehandling.TilAttestering.Avslag,
+            is Søknadsbehandling.TilAttestering.Innvilget,
+            is Søknadsbehandling.Underkjent.Avslag,
+            is Søknadsbehandling.Underkjent.Innvilget,
+            -> søknadsbehandling.periode.getFraOgMed().startOfDay(zoneIdOslo)
             else -> throw ManglendeStatistikkMappingException(this, søknadsbehandling::class.java)
         }
-
-        private fun Beregning.startOfFirstDay() = getPeriode().getFraOgMed().startOfDay(zoneIdOslo)
     }
 
     internal object RegistrertDatoMapper {
@@ -144,5 +142,5 @@ internal class SøknadsbehandlingStatistikkMapper(
 data class ManglendeStatistikkMappingException(
     private val mapper: Any,
     private val clazz: Class<*>,
-    val msg: String = "${mapper::class.qualifiedName} støtter ikke mapping for klasse ${clazz.name}"
+    val msg: String = "${mapper::class.qualifiedName} støtter ikke mapping for klasse ${clazz.name}",
 ) : RuntimeException(msg)

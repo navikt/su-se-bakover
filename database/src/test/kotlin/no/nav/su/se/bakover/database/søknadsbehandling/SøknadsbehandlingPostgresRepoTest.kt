@@ -3,11 +3,11 @@ package no.nav.su.se.bakover.database.søknadsbehandling
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeTypeOf
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.avslåttBeregning
 import no.nav.su.se.bakover.database.behandlingsinformasjonMedAlleVilkårOppfylt
+import no.nav.su.se.bakover.database.behandlingsperiode
 import no.nav.su.se.bakover.database.beregning
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.iverksattAttestering
@@ -20,7 +20,6 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
-import java.time.LocalDate
 
 internal class SøknadsbehandlingPostgresRepoTest {
 
@@ -49,9 +48,6 @@ internal class SøknadsbehandlingPostgresRepoTest {
             }
         }
     }
-
-    private fun iverksattInnvilget(fom: LocalDate, tom: LocalDate) =
-        testDataHelper.nyIverksattInnvilget(periode = Periode.create(fom, tom))
 
     @Test
     fun `kan sette inn tom saksbehandling`() {
@@ -101,7 +97,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 }
             }
             val beregnet = uavklartVilkårsvurdering.tilBeregnet(
-                beregning = beregning()
+                beregning = beregning(),
             ).also {
                 repo.lagre(it)
                 repo.hent(it.id) shouldBe it
@@ -113,7 +109,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 }
             }
             val simulert = beregnet.tilSimulert(
-                simulering(beregnet.fnr)
+                simulering(beregnet.fnr),
             ).also {
                 repo.lagre(it)
                 repo.hent(it.id) shouldBe it
@@ -126,7 +122,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
             }
             // Tilbake til vilkårsvurdert
             simulert.tilVilkårsvurdert(
-                behandlingsinformasjonMedAlleVilkårOppfylt
+                behandlingsinformasjonMedAlleVilkårOppfylt,
             ).also {
                 repo.lagre(it)
                 repo.hent(it.id) shouldBe it
@@ -162,7 +158,8 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             beregning = beregning(),
                             simulering = simulering(tilAttestering.fnr),
                             saksbehandler = saksbehandler,
-                            fritekstTilBrev = ""
+                            fritekstTilBrev = "",
+                            behandlingsperiode = behandlingsperiode,
                         )
                     }
                 }
@@ -187,7 +184,8 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             behandlingsinformasjon = tilAttestering.behandlingsinformasjon,
                             fnr = tilAttestering.fnr,
                             saksbehandler = saksbehandler,
-                            fritekstTilBrev = ""
+                            fritekstTilBrev = "",
+                            behandlingsperiode = behandlingsperiode,
                         )
                     }
                 }
@@ -213,7 +211,8 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             fnr = tilAttestering.fnr,
                             beregning = avslåttBeregning,
                             saksbehandler = saksbehandler,
-                            fritekstTilBrev = ""
+                            fritekstTilBrev = "",
+                            behandlingsperiode = behandlingsperiode,
                         )
                     }
                 }
@@ -245,6 +244,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             saksbehandler = saksbehandler,
                             attestering = underkjentAttestering,
                             fritekstTilBrev = "",
+                            behandlingsperiode = behandlingsperiode,
                         )
                     }
                 }
@@ -271,6 +271,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             saksbehandler = saksbehandler,
                             attestering = underkjentAttestering,
                             fritekstTilBrev = "",
+                            behandlingsperiode = behandlingsperiode,
                         )
                     }
                 }
@@ -298,6 +299,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             saksbehandler = saksbehandler,
                             attestering = underkjentAttestering,
                             fritekstTilBrev = "",
+                            behandlingsperiode = behandlingsperiode,
                         )
                     }
                 }
@@ -336,6 +338,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 saksbehandler = saksbehandler,
                 attestering = iverksattAttestering,
                 fritekstTilBrev = "Dette er fritekst",
+                behandlingsperiode = behandlingsperiode,
             )
             repo.hent(iverksatt.id).also {
                 it shouldBe expected
@@ -361,6 +364,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     saksbehandler = saksbehandler,
                     attestering = iverksattAttestering,
                     fritekstTilBrev = "",
+                    behandlingsperiode = behandlingsperiode,
                 )
             }
         }

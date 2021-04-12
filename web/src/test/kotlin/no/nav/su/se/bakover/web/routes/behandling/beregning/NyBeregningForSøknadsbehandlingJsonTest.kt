@@ -7,7 +7,6 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.beregning.NyBeregningForSøknadsbehandling
-import no.nav.su.se.bakover.domain.beregning.Stønadsperiode
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -24,11 +23,9 @@ internal class NyBeregningForSøknadsbehandlingJsonTest {
     private val tilOgMed = "2021-12-31"
     private val tilOgMedDato: LocalDate = LocalDate.of(2021, 12, 31)
 
-    private val periode = Periode.create(fraOgMedDato, tilOgMedDato)
-    private val nyBeregningForSøknadsbehandling = NyBeregningForSøknadsbehandling.create(
+    private val nyBeregningForSøknadsbehandling = NyBeregningForSøknadsbehandling(
         behandlingId = UUID.randomUUID(),
         saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-        stønadsperiode = Stønadsperiode.create(periode = periode),
         fradrag = listOf(
             FradragFactory.ny(
                 periode = Periode.create(
@@ -40,15 +37,15 @@ internal class NyBeregningForSøknadsbehandlingJsonTest {
                 utenlandskInntekt = UtenlandskInntekt.create(
                     beløpIUtenlandskValuta = 88,
                     valuta = "SEK",
-                    kurs = 8.8
+                    kurs = 8.8,
                 ),
-                tilhører = FradragTilhører.BRUKER
-            )
-        )
+                tilhører = FradragTilhører.BRUKER,
+            ),
+        ),
     )
 
     @Test
-    fun `En stønadsperiode kan ikke starte før 2021`() {
+    fun `kan deserialisere ny beregning for søknadsbehandling json`() {
         val nyBeregningForSøknadsbehandlingJson = deserialize<NyBeregningForSøknadsbehandlingJson>(
             //language=JSON
             """
@@ -74,16 +71,10 @@ internal class NyBeregningForSøknadsbehandlingJsonTest {
                          "tilhører": "BRUKER"
                      }]
                 }
-            """.trimIndent()
+            """.trimIndent(),
         )
         assertSoftly {
             nyBeregningForSøknadsbehandlingJson shouldBe NyBeregningForSøknadsbehandlingJson(
-                stønadsperiode = StønadsperiodeJson(
-                    periode = PeriodeJson(
-                        fraOgMed = fraOgMed,
-                        tilOgMed = tilOgMed,
-                    )
-                ),
                 fradrag = listOf(
                     FradragJson(
                         periode = PeriodeJson(
@@ -95,15 +86,15 @@ internal class NyBeregningForSøknadsbehandlingJsonTest {
                         utenlandskInntekt = UtenlandskInntektJson(
                             beløpIUtenlandskValuta = 88,
                             valuta = "SEK",
-                            kurs = 8.8
+                            kurs = 8.8,
                         ),
-                        tilhører = "BRUKER"
-                    )
-                )
+                        tilhører = "BRUKER",
+                    ),
+                ),
             )
             nyBeregningForSøknadsbehandlingJson.toDomain(
                 nyBeregningForSøknadsbehandling.behandlingId,
-                nyBeregningForSøknadsbehandling.saksbehandler
+                nyBeregningForSøknadsbehandling.saksbehandler,
             ) shouldBe nyBeregningForSøknadsbehandling.right()
         }
     }

@@ -245,7 +245,7 @@ internal class RevurderingServiceImplTest {
                 FradragFactory.ny(
                     type = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = 10000.0,
-                    periode = søknadsbehandlingVedtak.beregning.getPeriode(),
+                    periode = søknadsbehandlingVedtak.periode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
@@ -332,7 +332,7 @@ internal class RevurderingServiceImplTest {
                 FradragFactory.ny(
                     type = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = 10000.0,
-                    periode = søknadsbehandlingVedtak.beregning.getPeriode(),
+                    periode = søknadsbehandlingVedtak.periode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
@@ -646,7 +646,7 @@ internal class RevurderingServiceImplTest {
                 sakId = argThat { it shouldBe sakId },
                 attestant = argThat { it shouldBe attestant },
                 simulering = argThat { it shouldBe revurderingTilAttestering.simulering },
-                opphørsdato = argThat { it shouldBe revurderingTilAttestering.beregning.getPeriode().getFraOgMed() },
+                opphørsdato = argThat { it shouldBe revurderingTilAttestering.periode.getFraOgMed() },
             )
             verify(vedtakRepoMock).lagre(
                 argThat {
