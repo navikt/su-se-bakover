@@ -117,7 +117,7 @@ class RevurderingIngenEndringTest {
             saksbehandler = endretSaksbehandler,
             fritekstTilBrev = "endret fritekst",
             revurderingsårsak = revurderingsårsak,
-            sendBrev = true
+            skalFøreTilBrevutsending = true
         )
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn beregnetRevurdering
@@ -193,7 +193,7 @@ class RevurderingIngenEndringTest {
             saksbehandler = saksbehandler,
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            sendBrev = false
+            skalFøreTilBrevutsending = false
         )
         val underkjentRevurdering = UnderkjentRevurdering.IngenEndring(
             id = revurderingId,
@@ -206,7 +206,7 @@ class RevurderingIngenEndringTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             attestering = attesteringUnderkjent,
-            sendBrev = false
+            skalFøreTilBrevutsending = false
         )
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn revurderingTilAttestering
@@ -277,7 +277,7 @@ class RevurderingIngenEndringTest {
             saksbehandler = RevurderingTestUtils.saksbehandler,
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            sendBrev = true
+            skalFøreTilBrevutsending = true
         )
         val attestant = NavIdentBruker.Attestant("ATTT")
         val iverksattRevurdering = revurderingTilAttestering.tilIverksatt(attestant).orNull()!!
@@ -335,7 +335,7 @@ class RevurderingIngenEndringTest {
             saksbehandler = RevurderingTestUtils.saksbehandler,
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            sendBrev = false
+            skalFøreTilBrevutsending = false
         )
         val attestant = NavIdentBruker.Attestant("ATTT")
         val iverksattRevurdering = revurderingTilAttestering.tilIverksatt(attestant).orNull()!!

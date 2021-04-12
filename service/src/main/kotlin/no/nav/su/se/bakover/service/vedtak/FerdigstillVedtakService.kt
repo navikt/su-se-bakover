@@ -217,7 +217,7 @@ internal class FerdigstillVedtakServiceImpl(
 
     override fun journalførOgLagre(vedtak: Vedtak): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeJournalføreBrev, Vedtak> {
         val brevRequest = lagBrevRequest(vedtak).getOrHandle { return it.left() }
-        if (vedtak.behandling is IverksattRevurdering.IngenEndring && !(vedtak.behandling as IverksattRevurdering.IngenEndring).sendBrev) {
+        if (vedtak.behandling is IverksattRevurdering.IngenEndring && !(vedtak.behandling as IverksattRevurdering.IngenEndring).skalFøreTilBrevutsending) {
             return vedtak.right()
         }
         return vedtak.journalfør {

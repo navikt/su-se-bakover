@@ -615,7 +615,6 @@ internal class LagBrevRequestVisitorTest {
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
-            sendBrev = true,
         )
 
         val avslåttVedtak = Vedtak.from(revurdering, utbetalingId)
@@ -668,7 +667,6 @@ internal class LagBrevRequestVisitorTest {
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
-            sendBrev = true,
         )
 
         val opphørsvedtak = Vedtak.from(revurdering, utbetalingId)
@@ -720,7 +718,7 @@ internal class LagBrevRequestVisitorTest {
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
-            sendBrev = false,
+            skalFøreTilBrevutsending = false,
         )
 
         val vedtakIngenEndring = Vedtak.from(revurdering, clock)

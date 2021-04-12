@@ -124,7 +124,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
     ) : Vedtak() {
 
         override fun journalfør(journalfør: () -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre, EndringIYtelse> {
-            return if (behandling is IverksattRevurdering.IngenEndring && !behandling.sendBrev) {
+            return if (behandling is IverksattRevurdering.IngenEndring && !behandling.skalFøreTilBrevutsending) {
                 this.right()
             } else {
                 journalføringOgBrevdistribusjon.journalfør(journalfør)
@@ -133,7 +133,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
         }
 
         override fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev, EndringIYtelse> {
-            return if (behandling is IverksattRevurdering.IngenEndring && !behandling.sendBrev) {
+            return if (behandling is IverksattRevurdering.IngenEndring && !behandling.skalFøreTilBrevutsending) {
                 this.right()
             } else {
                 journalføringOgBrevdistribusjon.distribuerBrev(distribuerBrev)

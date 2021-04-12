@@ -205,7 +205,7 @@ sealed class BeregnetRevurdering : Revurdering() {
             attesteringsoppgaveId: OppgaveId,
             saksbehandler: Saksbehandler,
             fritekstTilBrev: String,
-            sendBrev: Boolean
+            skalFøreTilBrevutsending: Boolean
         ) = RevurderingTilAttestering.IngenEndring(
             id = id,
             periode = periode,
@@ -216,7 +216,7 @@ sealed class BeregnetRevurdering : Revurdering() {
             oppgaveId = attesteringsoppgaveId,
             fritekstTilBrev = fritekstTilBrev,
             revurderingsårsak = revurderingsårsak,
-            sendBrev = sendBrev
+            skalFøreTilBrevutsending = skalFøreTilBrevutsending
         )
 
         override fun toSimulert(simulering: Simulering): SimulertRevurdering {
@@ -363,7 +363,6 @@ sealed class SimulertRevurdering : Revurdering() {
 
 sealed class RevurderingTilAttestering : Revurdering() {
     abstract val beregning: Beregning
-    abstract val sendBrev: Boolean
 
     abstract override fun accept(visitor: RevurderingVisitor)
 
@@ -377,7 +376,6 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val fritekstTilBrev: String,
         override val revurderingsårsak: Revurderingsårsak,
         override val beregning: Beregning,
-        override val sendBrev: Boolean = true,
         val simulering: Simulering,
     ) : RevurderingTilAttestering() {
 
@@ -406,7 +404,6 @@ sealed class RevurderingTilAttestering : Revurdering() {
                     fritekstTilBrev = fritekstTilBrev,
                     revurderingsårsak = revurderingsårsak,
                     attestering = Attestering.Iverksatt(attestant),
-                    sendBrev = sendBrev
                 )
             }
         }
@@ -422,7 +419,6 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val fritekstTilBrev: String,
         override val revurderingsårsak: Revurderingsårsak,
         override val beregning: Beregning,
-        override val sendBrev: Boolean = true,
         val simulering: Simulering,
     ) : RevurderingTilAttestering() {
         override fun accept(visitor: RevurderingVisitor) {
@@ -451,7 +447,6 @@ sealed class RevurderingTilAttestering : Revurdering() {
                     fritekstTilBrev = fritekstTilBrev,
                     revurderingsårsak = revurderingsårsak,
                     attestering = Attestering.Iverksatt(attestant),
-                    sendBrev = sendBrev
                 )
             }
         }
@@ -467,7 +462,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val oppgaveId: OppgaveId,
         override val fritekstTilBrev: String,
         override val revurderingsårsak: Revurderingsårsak,
-        override val sendBrev: Boolean,
+        val skalFøreTilBrevutsending: Boolean,
     ) : RevurderingTilAttestering() {
 
         override fun accept(visitor: RevurderingVisitor) {
@@ -492,7 +487,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 fritekstTilBrev = fritekstTilBrev,
                 revurderingsårsak = revurderingsårsak,
                 attestering = Attestering.Iverksatt(attestant),
-                sendBrev = sendBrev
+                skalFøreTilBrevutsending = skalFøreTilBrevutsending
             ).right()
         }
     }
@@ -527,7 +522,6 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 attestering = attestering,
                 fritekstTilBrev = fritekstTilBrev,
                 revurderingsårsak = revurderingsårsak,
-                sendBrev = sendBrev,
             )
             is Opphørt -> UnderkjentRevurdering.Opphørt(
                 id = id,
@@ -541,7 +535,6 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 attestering = attestering,
                 fritekstTilBrev = fritekstTilBrev,
                 revurderingsårsak = revurderingsårsak,
-                sendBrev = sendBrev,
             )
             is IngenEndring -> UnderkjentRevurdering.IngenEndring(
                 id = id,
@@ -554,7 +547,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 attestering = attestering,
                 fritekstTilBrev = fritekstTilBrev,
                 revurderingsårsak = revurderingsårsak,
-                sendBrev = sendBrev,
+                skalFøreTilBrevutsending = skalFøreTilBrevutsending,
             )
         }
     }
@@ -571,7 +564,6 @@ sealed class IverksattRevurdering : Revurdering() {
     abstract override val revurderingsårsak: Revurderingsårsak
     abstract val beregning: Beregning
     abstract val attestering: Attestering.Iverksatt
-    abstract val sendBrev: Boolean
 
     abstract override fun accept(visitor: RevurderingVisitor)
 
@@ -587,7 +579,6 @@ sealed class IverksattRevurdering : Revurdering() {
         override val beregning: Beregning,
         val simulering: Simulering,
         override val attestering: Attestering.Iverksatt,
-        override val sendBrev: Boolean,
     ) : IverksattRevurdering() {
 
         override fun accept(visitor: RevurderingVisitor) {
@@ -607,7 +598,6 @@ sealed class IverksattRevurdering : Revurdering() {
         override val beregning: Beregning,
         val simulering: Simulering,
         override val attestering: Attestering.Iverksatt,
-        override val sendBrev: Boolean,
     ) : IverksattRevurdering() {
 
         override fun accept(visitor: RevurderingVisitor) {
@@ -626,7 +616,7 @@ sealed class IverksattRevurdering : Revurdering() {
         override val fritekstTilBrev: String,
         override val revurderingsårsak: Revurderingsårsak,
         override val attestering: Attestering.Iverksatt,
-        override val sendBrev: Boolean,
+        val skalFøreTilBrevutsending: Boolean,
     ) : IverksattRevurdering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -648,7 +638,6 @@ sealed class UnderkjentRevurdering : Revurdering() {
     abstract override val fritekstTilBrev: String
     abstract val beregning: Beregning
     abstract val attestering: Attestering.Underkjent
-    abstract val sendBrev: Boolean
 
     abstract override fun accept(visitor: RevurderingVisitor)
 
@@ -664,7 +653,6 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val beregning: Beregning,
         val simulering: Simulering,
         override val attestering: Attestering.Underkjent,
-        override val sendBrev: Boolean
     ) : UnderkjentRevurdering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -700,7 +688,6 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val beregning: Beregning,
         val simulering: Simulering,
         override val attestering: Attestering.Underkjent,
-        override val sendBrev: Boolean
     ) : UnderkjentRevurdering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -735,7 +722,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val fritekstTilBrev: String,
         override val revurderingsårsak: Revurderingsårsak,
         override val attestering: Attestering.Underkjent,
-        override val sendBrev: Boolean,
+        val skalFøreTilBrevutsending: Boolean,
     ) : UnderkjentRevurdering() {
 
         override fun accept(visitor: RevurderingVisitor) {
@@ -746,7 +733,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
             oppgaveId: OppgaveId,
             saksbehandler: Saksbehandler,
             fritekstTilBrev: String,
-            sendBrev: Boolean,
+            skalFøreTilBrevutsending: Boolean,
         ) = RevurderingTilAttestering.IngenEndring(
             id = id,
             periode = periode,
@@ -757,7 +744,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
             oppgaveId = oppgaveId,
             fritekstTilBrev = fritekstTilBrev,
             revurderingsårsak = revurderingsårsak,
-            sendBrev = sendBrev
+            skalFøreTilBrevutsending = skalFøreTilBrevutsending
         )
     }
 

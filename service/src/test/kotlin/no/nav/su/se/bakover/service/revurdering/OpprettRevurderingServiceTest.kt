@@ -419,7 +419,6 @@ internal class OpprettRevurderingServiceTest {
                 attestering = Attestering.Iverksatt(opprinneligVedtak.attestant),
                 fritekstTilBrev = "",
                 revurderingsårsak = revurderingsårsak,
-                sendBrev = true,
             )
             it.copy(
                 revurderinger = listOf(

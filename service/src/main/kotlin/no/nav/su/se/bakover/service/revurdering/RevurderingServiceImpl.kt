@@ -264,7 +264,7 @@ internal class RevurderingServiceImpl(
                 oppgaveId,
                 request.saksbehandler,
                 request.fritekstTilBrev,
-                request.sendBrev,
+                request.skalFøreTilBrevutsending,
             )
             is SimulertRevurdering -> revurdering.tilAttestering(
                 oppgaveId,
@@ -275,7 +275,7 @@ internal class RevurderingServiceImpl(
                 oppgaveId,
                 request.saksbehandler,
                 request.fritekstTilBrev,
-                request.sendBrev,
+                request.skalFøreTilBrevutsending,
             )
             is UnderkjentRevurdering.Opphørt -> revurdering.tilAttestering(
                 oppgaveId,
@@ -363,7 +363,7 @@ internal class RevurderingServiceImpl(
 
                         revurdering.tilIverksatt(attestant)
                             .map { iverksattRevurdering ->
-                                if (revurdering.sendBrev) {
+                                if (revurdering.skalFøreTilBrevutsending) {
                                     ferdigstillVedtakService.journalførOgLagre(Vedtak.from(iverksattRevurdering, clock))
                                         .map { journalførtVedtak ->
                                             ferdigstillVedtakService.distribuerOgLagre(journalførtVedtak).mapLeft {

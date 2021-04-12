@@ -544,7 +544,6 @@ internal class StatistikkServiceImplTest {
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            sendBrev = true
         )
 
         val expected = Statistikk.Behandling(

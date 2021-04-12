@@ -418,7 +418,6 @@ internal class RevurderingPostgresRepoTest {
                     Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
                     "kommentar",
                 ),
-                sendBrev = true
             )
 
             repo.lagre(underkjent)
@@ -482,7 +481,6 @@ internal class RevurderingPostgresRepoTest {
                 attestering = Attestering.Iverksatt(
                     attestant,
                 ),
-                sendBrev = true
             )
 
             repo.lagre(underkjent)
@@ -510,7 +508,7 @@ internal class RevurderingPostgresRepoTest {
                 fritekstTilBrev = opprettet.fritekstTilBrev,
                 revurderingsårsak = opprettet.revurderingsårsak,
                 beregning = vedtak.beregning,
-                sendBrev = false
+                skalFøreTilBrevutsending = false
             )
             repo.lagre(underkjentTilAttestering)
             val underkjent = UnderkjentRevurdering.IngenEndring(
@@ -528,7 +526,7 @@ internal class RevurderingPostgresRepoTest {
                     Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
                     "kommentar",
                 ),
-                sendBrev = false
+                skalFøreTilBrevutsending = false
             )
 
             repo.lagre(underkjent)
@@ -555,7 +553,7 @@ internal class RevurderingPostgresRepoTest {
                 fritekstTilBrev = opprettet.fritekstTilBrev,
                 revurderingsårsak = opprettet.revurderingsårsak,
                 beregning = vedtak.beregning,
-                sendBrev = true
+                skalFøreTilBrevutsending = true
             )
 
             repo.lagre(underkjent)
@@ -582,7 +580,7 @@ internal class RevurderingPostgresRepoTest {
                 fritekstTilBrev = opprettet.fritekstTilBrev,
                 revurderingsårsak = opprettet.revurderingsårsak,
                 beregning = vedtak.beregning,
-                sendBrev = false
+                skalFøreTilBrevutsending = false
             )
             repo.lagre(revurderingTilAttestering)
             val underkjent = IverksattRevurdering.IngenEndring(
@@ -598,7 +596,7 @@ internal class RevurderingPostgresRepoTest {
                 attestering = Attestering.Iverksatt(
                     attestant,
                 ),
-                sendBrev = false
+                skalFøreTilBrevutsending = false
             )
 
             repo.lagre(underkjent)

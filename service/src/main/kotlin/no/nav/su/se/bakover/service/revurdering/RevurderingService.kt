@@ -49,7 +49,7 @@ data class SendTilAttesteringRequest(
     val revurderingId: UUID,
     val saksbehandler: NavIdentBruker.Saksbehandler,
     val fritekstTilBrev: String,
-    val sendBrev: Boolean
+    val skalFøreTilBrevutsending: Boolean
 )
 
 sealed class KunneIkkeOppretteRevurdering {

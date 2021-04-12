@@ -128,7 +128,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
-            sendBrev = false
+            skalFøreTilBrevutsending = false
         )
 
         val revurderingServiceMock = mock<RevurderingService> {
@@ -145,14 +145,14 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
                 "$requestPath/${revurderingTilAttestering.id}/tilAttestering",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
-                setBody("""{ "fritekstTilBrev": "", "sendBrev": "false" }""")
+                setBody("""{ "fritekstTilBrev": "", "skalFøreTilBrevutsending": "false" }""")
             }.apply {
                 response.status() shouldBe HttpStatusCode.OK
                 val actualResponse = objectMapper.readValue<TilAttesteringJson>(response.content!!)
                 actualResponse.id shouldBe revurderingTilAttestering.id.toString()
                 actualResponse.status shouldBe RevurderingsStatus.TIL_ATTESTERING_INGEN_ENDRING
                 actualResponse.fritekstTilBrev shouldBe ""
-                actualResponse.sendBrev shouldBe false
+                actualResponse.skalFøreTilBrevutsending shouldBe false
             }
         }
     }
@@ -172,7 +172,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
-            sendBrev = true
+            skalFøreTilBrevutsending = true
         )
 
         val revurderingServiceMock = mock<RevurderingService> {
@@ -189,14 +189,14 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
                 "$requestPath/${revurderingTilAttestering.id}/tilAttestering",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
-                setBody("""{ "fritekstTilBrev": "Friteksten", "sendBrev": "true" }""")
+                setBody("""{ "fritekstTilBrev": "Friteksten", "skalFøreTilBrevutsending": "true" }""")
             }.apply {
                 response.status() shouldBe HttpStatusCode.OK
                 val actualResponse = objectMapper.readValue<TilAttesteringJson>(response.content!!)
                 actualResponse.id shouldBe revurderingTilAttestering.id.toString()
                 actualResponse.status shouldBe RevurderingsStatus.TIL_ATTESTERING_INGEN_ENDRING
                 actualResponse.fritekstTilBrev shouldBe "Friteksten"
-                actualResponse.sendBrev shouldBe true
+                actualResponse.skalFøreTilBrevutsending shouldBe true
             }
         }
     }

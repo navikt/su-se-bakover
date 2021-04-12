@@ -386,7 +386,7 @@ internal class RevurderingServiceImplTest {
                 revurderingId = revurderingId,
                 saksbehandler = saksbehandler,
                 fritekstTilBrev = "Fritekst",
-                sendBrev = true,
+                skalFøreTilBrevutsending = true,
             ),
         ).getOrHandle { throw RuntimeException("Skal ikke kunne skje") }
 
@@ -432,7 +432,7 @@ internal class RevurderingServiceImplTest {
                 revurderingId = revurderingId,
                 saksbehandler = saksbehandler,
                 fritekstTilBrev = "Fritekst",
-                sendBrev = true,
+                skalFøreTilBrevutsending = true,
             ),
         )
 
@@ -465,7 +465,7 @@ internal class RevurderingServiceImplTest {
                 revurderingId = revurderingId,
                 saksbehandler = saksbehandler,
                 fritekstTilBrev = "Fritekst",
-                sendBrev = true,
+                skalFøreTilBrevutsending = true,
             ),
         )
 
@@ -503,7 +503,7 @@ internal class RevurderingServiceImplTest {
                 revurderingId = revurderingId,
                 saksbehandler = saksbehandler,
                 fritekstTilBrev = "Fritekst",
-                sendBrev = true,
+                skalFøreTilBrevutsending = true,
             ),
         )
 
@@ -542,7 +542,6 @@ internal class RevurderingServiceImplTest {
             attestering = Attestering.Iverksatt(attestant),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            sendBrev = true,
         )
         val revurderingTilAttestering = RevurderingTilAttestering.Innvilget(
             id = revurderingId,
@@ -555,7 +554,6 @@ internal class RevurderingServiceImplTest {
             saksbehandler = saksbehandler,
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            sendBrev = true,
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -772,7 +770,6 @@ internal class RevurderingServiceImplTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             attestering = attestering,
-            sendBrev = true,
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {

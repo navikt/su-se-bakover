@@ -31,7 +31,7 @@ internal fun Route.sendRevurderingTilAttestering(
 
         data class Body(
             val fritekstTilBrev: String,
-            val sendBrev: Boolean?,
+            val skalFøreTilBrevutsending: Boolean?,
         )
 
         post("$revurderingPath/{revurderingId}/tilAttestering") {
@@ -42,7 +42,7 @@ internal fun Route.sendRevurderingTilAttestering(
                             revurderingId = revurderingId,
                             saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                             fritekstTilBrev = body.fritekstTilBrev,
-                            sendBrev = body.sendBrev ?: true,
+                            skalFøreTilBrevutsending = body.skalFøreTilBrevutsending ?: true,
                         ),
                     ).fold(
                         ifLeft = { call.svar(it.tilResultat()) },
