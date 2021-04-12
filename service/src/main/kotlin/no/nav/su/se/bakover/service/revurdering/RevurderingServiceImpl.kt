@@ -38,6 +38,7 @@ import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -52,6 +53,7 @@ internal class RevurderingServiceImpl(
     private val brevService: BrevService,
     private val clock: Clock,
     internal val vedtakRepo: VedtakRepo,
+    internal val ferdigstillVedtakService: FerdigstillVedtakService,
 ) : RevurderingService {
 
     private val observers: MutableList<EventObserver> = mutableListOf()
@@ -222,11 +224,9 @@ internal class RevurderingServiceImpl(
     }
 
     override fun sendTilAttestering(
-        revurderingId: UUID,
-        saksbehandler: NavIdentBruker.Saksbehandler,
-        fritekstTilBrev: String,
+        request: SendTilAttesteringRequest,
     ): Either<KunneIkkeSendeRevurderingTilAttestering, Revurdering> {
-        val revurdering = revurderingRepo.hent(revurderingId)
+        val revurdering = revurderingRepo.hent(request.revurderingId)
             ?: return KunneIkkeSendeRevurderingTilAttestering.FantIkkeRevurdering.left()
 
         if (!(revurdering is SimulertRevurdering || revurdering is UnderkjentRevurdering || revurdering is BeregnetRevurdering.IngenEndring)) {
@@ -241,7 +241,7 @@ internal class RevurderingServiceImpl(
             return KunneIkkeSendeRevurderingTilAttestering.FantIkkeAktørId.left()
         }
 
-        val tilordnetRessurs = revurderingRepo.hentEventuellTidligereAttestering(revurderingId)?.attestant
+        val tilordnetRessurs = revurderingRepo.hentEventuellTidligereAttestering(request.revurderingId)?.attestant
 
         val oppgaveId = oppgaveService.opprettOppgave(
             OppgaveConfig.AttesterRevurdering(
@@ -260,9 +260,33 @@ internal class RevurderingServiceImpl(
         }
 
         val tilAttestering = when (revurdering) {
-            is BeregnetRevurdering.IngenEndring -> revurdering.tilAttestering(oppgaveId, saksbehandler, fritekstTilBrev)
-            is SimulertRevurdering -> revurdering.tilAttestering(oppgaveId, saksbehandler, fritekstTilBrev)
-            is UnderkjentRevurdering -> revurdering.tilAttestering(oppgaveId, saksbehandler, fritekstTilBrev)
+            is BeregnetRevurdering.IngenEndring -> revurdering.tilAttestering(
+                oppgaveId,
+                request.saksbehandler,
+                request.fritekstTilBrev,
+                request.skalFøreTilBrevutsending,
+            )
+            is SimulertRevurdering -> revurdering.tilAttestering(
+                oppgaveId,
+                request.saksbehandler,
+                request.fritekstTilBrev,
+            )
+            is UnderkjentRevurdering.IngenEndring -> revurdering.tilAttestering(
+                oppgaveId,
+                request.saksbehandler,
+                request.fritekstTilBrev,
+                request.skalFøreTilBrevutsending,
+            )
+            is UnderkjentRevurdering.Opphørt -> revurdering.tilAttestering(
+                oppgaveId,
+                request.saksbehandler,
+                request.fritekstTilBrev,
+            )
+            is UnderkjentRevurdering.Innvilget -> revurdering.tilAttestering(
+                oppgaveId,
+                request.saksbehandler,
+                request.fritekstTilBrev,
+            )
             else -> return KunneIkkeSendeRevurderingTilAttestering.UgyldigTilstand(
                 revurdering::class,
                 RevurderingTilAttestering::class,
@@ -336,10 +360,22 @@ internal class RevurderingServiceImpl(
             is RevurderingTilAttestering -> {
                 val iverksattRevurdering = when (revurdering) {
                     is RevurderingTilAttestering.IngenEndring -> {
+
                         revurdering.tilIverksatt(attestant)
-                            .map {
-                                vedtakRepo.lagre(Vedtak.from(it))
-                                it
+                            .map { iverksattRevurdering ->
+                                if (revurdering.skalFøreTilBrevutsending) {
+                                    ferdigstillVedtakService.journalførOgLagre(Vedtak.from(iverksattRevurdering, clock))
+                                        .map { journalførtVedtak ->
+                                            ferdigstillVedtakService.distribuerOgLagre(journalførtVedtak).mapLeft {
+                                                KunneIkkeIverksetteRevurdering.KunneIkkeDistribuereBrev
+                                            }
+                                        }.mapLeft {
+                                            KunneIkkeIverksetteRevurdering.KunneIkkeJournaleføreBrev
+                                        }
+                                } else {
+                                    vedtakRepo.lagre(Vedtak.from(iverksattRevurdering, clock))
+                                }
+                                iverksattRevurdering
                             }
                     }
                     is RevurderingTilAttestering.Innvilget -> {

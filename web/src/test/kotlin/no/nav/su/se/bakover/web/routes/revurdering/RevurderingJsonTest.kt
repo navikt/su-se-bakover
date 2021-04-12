@@ -340,6 +340,7 @@ internal class RevurderingJsonTest {
                     "tilOgMed": "2020-12-31"
                 },
                 "fritekstTilBrev": "",
+                "skalFøreTilBrevutsending": true,
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon"
             }
@@ -387,6 +388,7 @@ internal class RevurderingJsonTest {
                     "tilOgMed": "2020-12-31"
                 },
                 "fritekstTilBrev": "",
+                "skalFøreTilBrevutsending": true,
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon"
             }
@@ -412,6 +414,7 @@ internal class RevurderingJsonTest {
             oppgaveId = OppgaveId("OppgaveId"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            skalFøreTilBrevutsending = false
         )
 
         val revurderingJson =
@@ -433,6 +436,7 @@ internal class RevurderingJsonTest {
                     "tilOgMed": "2020-12-31"
                 },
                 "fritekstTilBrev": "",
+                "skalFøreTilBrevutsending": false,
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon"
             }
@@ -492,6 +496,7 @@ internal class RevurderingJsonTest {
                     }
                 },
                 "fritekstTilBrev": "",
+                "skalFøreTilBrevutsending": true,
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon"
             }
@@ -551,6 +556,7 @@ internal class RevurderingJsonTest {
                     }
                 },
                 "fritekstTilBrev": "",
+                "skalFøreTilBrevutsending": true,
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon"
             }
@@ -581,6 +587,7 @@ internal class RevurderingJsonTest {
             ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            skalFøreTilBrevutsending = false,
         )
 
         val expected =
@@ -609,6 +616,7 @@ internal class RevurderingJsonTest {
                     }
                 },
                 "fritekstTilBrev": "",
+                "skalFøreTilBrevutsending": false,
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon"
             }
@@ -658,6 +666,7 @@ internal class RevurderingJsonTest {
                 },
                 "attestant": "attestant",
                 "fritekstTilBrev": "",
+                "skalFøreTilBrevutsending": true,
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon"
             }
@@ -707,6 +716,7 @@ internal class RevurderingJsonTest {
                 },
                 "attestant": "attestant",
                 "fritekstTilBrev": "",
+                "skalFøreTilBrevutsending": true,
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon"
             }
@@ -733,6 +743,7 @@ internal class RevurderingJsonTest {
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            skalFøreTilBrevutsending = true,
         )
 
         val revurderingJson =
@@ -755,6 +766,7 @@ internal class RevurderingJsonTest {
                 },
                 "attestant": "attestant",
                 "fritekstTilBrev": "",
+                "skalFøreTilBrevutsending": true,
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon"
             }

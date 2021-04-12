@@ -205,6 +205,7 @@ sealed class BeregnetRevurdering : Revurdering() {
             attesteringsoppgaveId: OppgaveId,
             saksbehandler: Saksbehandler,
             fritekstTilBrev: String,
+            skalFøreTilBrevutsending: Boolean
         ) = RevurderingTilAttestering.IngenEndring(
             id = id,
             periode = periode,
@@ -215,6 +216,7 @@ sealed class BeregnetRevurdering : Revurdering() {
             oppgaveId = attesteringsoppgaveId,
             fritekstTilBrev = fritekstTilBrev,
             revurderingsårsak = revurderingsårsak,
+            skalFøreTilBrevutsending = skalFøreTilBrevutsending
         )
 
         override fun toSimulert(simulering: Simulering): SimulertRevurdering {
@@ -360,14 +362,6 @@ sealed class SimulertRevurdering : Revurdering() {
 }
 
 sealed class RevurderingTilAttestering : Revurdering() {
-    abstract override val id: UUID
-    abstract override val periode: Periode
-    abstract override val opprettet: Tidspunkt
-    abstract override val tilRevurdering: Vedtak.EndringIYtelse
-    abstract override val saksbehandler: Saksbehandler
-    abstract override val oppgaveId: OppgaveId
-    abstract override val fritekstTilBrev: String
-    abstract override val revurderingsårsak: Revurderingsårsak
     abstract val beregning: Beregning
 
     abstract override fun accept(visitor: RevurderingVisitor)
@@ -468,6 +462,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val oppgaveId: OppgaveId,
         override val fritekstTilBrev: String,
         override val revurderingsårsak: Revurderingsårsak,
+        val skalFøreTilBrevutsending: Boolean,
     ) : RevurderingTilAttestering() {
 
         override fun accept(visitor: RevurderingVisitor) {
@@ -492,6 +487,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 fritekstTilBrev = fritekstTilBrev,
                 revurderingsårsak = revurderingsårsak,
                 attestering = Attestering.Iverksatt(attestant),
+                skalFøreTilBrevutsending = skalFøreTilBrevutsending
             ).right()
         }
     }
@@ -551,6 +547,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 attestering = attestering,
                 fritekstTilBrev = fritekstTilBrev,
                 revurderingsårsak = revurderingsårsak,
+                skalFøreTilBrevutsending = skalFøreTilBrevutsending,
             )
         }
     }
@@ -619,6 +616,7 @@ sealed class IverksattRevurdering : Revurdering() {
         override val fritekstTilBrev: String,
         override val revurderingsårsak: Revurderingsårsak,
         override val attestering: Attestering.Iverksatt,
+        val skalFøreTilBrevutsending: Boolean,
     ) : IverksattRevurdering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -642,11 +640,6 @@ sealed class UnderkjentRevurdering : Revurdering() {
     abstract val attestering: Attestering.Underkjent
 
     abstract override fun accept(visitor: RevurderingVisitor)
-    abstract fun tilAttestering(
-        oppgaveId: OppgaveId,
-        saksbehandler: Saksbehandler,
-        fritekstTilBrev: String,
-    ): RevurderingTilAttestering
 
     data class Innvilget(
         override val id: UUID,
@@ -665,7 +658,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
             visitor.visit(this)
         }
 
-        override fun tilAttestering(
+        fun tilAttestering(
             oppgaveId: OppgaveId,
             saksbehandler: Saksbehandler,
             fritekstTilBrev: String,
@@ -700,7 +693,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
             visitor.visit(this)
         }
 
-        override fun tilAttestering(
+        fun tilAttestering(
             oppgaveId: OppgaveId,
             saksbehandler: Saksbehandler,
             fritekstTilBrev: String,
@@ -729,16 +722,18 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val fritekstTilBrev: String,
         override val revurderingsårsak: Revurderingsårsak,
         override val attestering: Attestering.Underkjent,
+        val skalFøreTilBrevutsending: Boolean,
     ) : UnderkjentRevurdering() {
 
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
         }
 
-        override fun tilAttestering(
+        fun tilAttestering(
             oppgaveId: OppgaveId,
             saksbehandler: Saksbehandler,
             fritekstTilBrev: String,
+            skalFøreTilBrevutsending: Boolean,
         ) = RevurderingTilAttestering.IngenEndring(
             id = id,
             periode = periode,
@@ -749,6 +744,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
             oppgaveId = oppgaveId,
             fritekstTilBrev = fritekstTilBrev,
             revurderingsårsak = revurderingsårsak,
+            skalFøreTilBrevutsending = skalFøreTilBrevutsending
         )
     }
 

@@ -66,4 +66,12 @@ private fun KunneIkkeIverksetteRevurdering.tilResultat() = when (this) {
         "Kunne ikke utføre utbetaling",
         "kunne_ikke_utbetale",
     )
+    is KunneIkkeIverksetteRevurdering.KunneIkkeDistribuereBrev -> InternalServerError.errorJson(
+        "Kunne ikke distribuere brev",
+        "kunne_ikke_distribuere_brev",
+    )
+    is KunneIkkeIverksetteRevurdering.KunneIkkeJournaleføreBrev -> InternalServerError.errorJson(
+        "Kunne ikke journalføre brev",
+        "kunne_ikke_journalføre_brev",
+    )
 }

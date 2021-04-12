@@ -29,9 +29,7 @@ interface RevurderingService {
     ): Either<KunneIkkeBeregneOgSimulereRevurdering, Revurdering>
 
     fun sendTilAttestering(
-        revurderingId: UUID,
-        saksbehandler: NavIdentBruker.Saksbehandler,
-        fritekstTilBrev: String,
+        request: SendTilAttesteringRequest,
     ): Either<KunneIkkeSendeRevurderingTilAttestering, Revurdering>
 
     fun lagBrevutkast(revurderingId: UUID, fritekst: String): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray>
@@ -46,6 +44,13 @@ interface RevurderingService {
         attestering: Attestering.Underkjent,
     ): Either<KunneIkkeUnderkjenneRevurdering, UnderkjentRevurdering>
 }
+
+data class SendTilAttesteringRequest(
+    val revurderingId: UUID,
+    val saksbehandler: NavIdentBruker.Saksbehandler,
+    val fritekstTilBrev: String,
+    val skalFøreTilBrevutsending: Boolean
+)
 
 sealed class KunneIkkeOppretteRevurdering {
     object FantIkkeSak : KunneIkkeOppretteRevurdering()
@@ -92,6 +97,8 @@ sealed class KunneIkkeIverksetteRevurdering {
     object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteRevurdering()
     object KunneIkkeUtbetale : KunneIkkeIverksetteRevurdering()
     object KunneIkkeKontrollsimulere : KunneIkkeIverksetteRevurdering()
+    object KunneIkkeJournaleføreBrev : KunneIkkeIverksetteRevurdering()
+    object KunneIkkeDistribuereBrev : KunneIkkeIverksetteRevurdering()
     object FantIkkeRevurdering : KunneIkkeIverksetteRevurdering()
     data class UgyldigTilstand(
         val fra: KClass<out Revurdering>,

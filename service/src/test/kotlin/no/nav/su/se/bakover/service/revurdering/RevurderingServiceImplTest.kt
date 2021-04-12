@@ -382,9 +382,12 @@ internal class RevurderingServiceImplTest {
         ).apply { addObserver(eventObserver) }
 
         val actual = revurderingService.sendTilAttestering(
-            revurderingId = revurderingId,
-            saksbehandler = saksbehandler,
-            fritekstTilBrev = "Fritekst",
+            SendTilAttesteringRequest(
+                revurderingId = revurderingId,
+                saksbehandler = saksbehandler,
+                fritekstTilBrev = "Fritekst",
+                skalFøreTilBrevutsending = true,
+            ),
         ).getOrHandle { throw RuntimeException("Skal ikke kunne skje") }
 
         inOrder(revurderingRepoMock, personServiceMock, oppgaveServiceMock, eventObserver) {
@@ -425,9 +428,12 @@ internal class RevurderingServiceImplTest {
         val result = createRevurderingService(
             revurderingRepo = revurderingRepoMock,
         ).sendTilAttestering(
-            revurderingId = revurderingId,
-            saksbehandler = saksbehandler,
-            fritekstTilBrev = "Fritekst",
+            SendTilAttesteringRequest(
+                revurderingId = revurderingId,
+                saksbehandler = saksbehandler,
+                fritekstTilBrev = "Fritekst",
+                skalFøreTilBrevutsending = true,
+            ),
         )
 
         result shouldBe KunneIkkeSendeRevurderingTilAttestering.UgyldigTilstand(
@@ -455,9 +461,12 @@ internal class RevurderingServiceImplTest {
             revurderingRepo = revurderingRepoMock,
             personService = personServiceMock,
         ).sendTilAttestering(
-            revurderingId = revurderingId,
-            saksbehandler = saksbehandler,
-            fritekstTilBrev = "Fritekst",
+            SendTilAttesteringRequest(
+                revurderingId = revurderingId,
+                saksbehandler = saksbehandler,
+                fritekstTilBrev = "Fritekst",
+                skalFøreTilBrevutsending = true,
+            ),
         )
 
         actual shouldBe KunneIkkeSendeRevurderingTilAttestering.FantIkkeAktørId.left()
@@ -490,9 +499,12 @@ internal class RevurderingServiceImplTest {
             personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
         ).sendTilAttestering(
-            revurderingId = revurderingId,
-            saksbehandler = saksbehandler,
-            fritekstTilBrev = "Fritekst",
+            SendTilAttesteringRequest(
+                revurderingId = revurderingId,
+                saksbehandler = saksbehandler,
+                fritekstTilBrev = "Fritekst",
+                skalFøreTilBrevutsending = true,
+            ),
         )
 
         actual shouldBe KunneIkkeSendeRevurderingTilAttestering.KunneIkkeOppretteOppgave.left()

@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.TestDataHelper
+import no.nav.su.se.bakover.database.fixedClock
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
@@ -16,6 +17,7 @@ import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBre
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
+import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import org.junit.jupiter.api.Test
@@ -213,6 +215,22 @@ internal class VedtakPosgresRepoTest {
             val søknadsbehandlingVedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
 
             val nyRevurdering = testDataHelper.nyRevurdering(søknadsbehandlingVedtak, søknadsbehandlingVedtak.periode)
+            val atteststertRevurdering = RevurderingTilAttestering.IngenEndring(
+                id = nyRevurdering.id,
+                periode = søknadsbehandlingVedtak.periode,
+                opprettet = nyRevurdering.opprettet,
+                tilRevurdering = søknadsbehandlingVedtak,
+                saksbehandler = søknadsbehandlingVedtak.saksbehandler,
+                oppgaveId = OppgaveId(""),
+                beregning = søknadsbehandlingVedtak.beregning,
+                fritekstTilBrev = "",
+                revurderingsårsak = Revurderingsårsak(
+                    Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
+                    Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
+                ),
+                skalFøreTilBrevutsending = true,
+            )
+            testDataHelper.revurderingRepo.lagre(atteststertRevurdering)
             val iverksattRevurdering = IverksattRevurdering.IngenEndring(
                 id = nyRevurdering.id,
                 periode = søknadsbehandlingVedtak.periode,
@@ -227,10 +245,11 @@ internal class VedtakPosgresRepoTest {
                     Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                     Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
                 ),
+                skalFøreTilBrevutsending = true,
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 
-            val revurderingVedtak = Vedtak.from(iverksattRevurdering)
+            val revurderingVedtak = Vedtak.from(iverksattRevurdering, fixedClock)
 
             vedtakRepo.lagre(revurderingVedtak)
             vedtakRepo.hent(revurderingVedtak.id) shouldBe revurderingVedtak
