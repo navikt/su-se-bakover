@@ -119,6 +119,13 @@ internal class SøknadsbehandlingStatistikkMapper(
     internal object FunksjonellTidMapper {
         fun map(søknadsbehandling: Søknadsbehandling) = when (søknadsbehandling) {
             is Søknadsbehandling.Vilkårsvurdert.Uavklart,
+            -> {
+                try {
+                    søknadsbehandling.periode.getFraOgMed().startOfDay(zoneIdOslo)
+                } catch (ex: Søknadsbehandling.Vilkårsvurdert.StønadsperiodeIkkeDefinertException) {
+                    søknadsbehandling.opprettet
+                }
+            }
             is Søknadsbehandling.Iverksatt.Avslag,
             is Søknadsbehandling.Iverksatt.Innvilget,
             is Søknadsbehandling.TilAttestering.Avslag,

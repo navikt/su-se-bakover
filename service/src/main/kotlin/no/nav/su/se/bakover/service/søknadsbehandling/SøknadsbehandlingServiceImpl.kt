@@ -452,7 +452,7 @@ internal class SøknadsbehandlingServiceImpl(
             søknadsbehandling = søknadsbehandling,
             statusovergang = Statusovergang.OppdaterBehandlingsperiode(request.behandlingsperiode),
         ).let {
-            søknadsbehandlingRepo.oppdaterBehandlingsperiode(søknadsbehandling.id, it.behandlingsperiode!!)
+            søknadsbehandlingRepo.lagre(it)
             it.right()
         }
     }

@@ -55,7 +55,7 @@ internal val fixedClock: Clock =
     Clock.fixed(1.januar(2021).atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
 internal val fixedTidspunkt: Tidspunkt = Tidspunkt.now(fixedClock)
 internal val fixedLocalDate: LocalDate = fixedTidspunkt.toLocalDate(ZoneOffset.UTC)
-internal val behandlingsperiode = Behandlingsperiode(Periode.create(1.januar(2021), 31.januar(2021)))
+internal val defaultBehandlingsperiode = Behandlingsperiode(Periode.create(1.januar(2021), 31.januar(2021)))
 internal val tomBehandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon()
 internal val behandlingsinformasjonMedAlleVilkårOppfylt =
     Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
@@ -64,7 +64,7 @@ internal val behandlingsinformasjonMedAvslag =
 
 internal val oppgaveId = OppgaveId("oppgaveId")
 internal val journalpostId = JournalpostId("journalpostId")
-internal fun beregning(periode: Periode = behandlingsperiode.periode) =
+internal fun beregning(periode: Periode = defaultBehandlingsperiode.periode) =
     TestBeregning.toSnapshot().copy(periode = periode)
 
 internal val avslåttBeregning = beregning().copy(
@@ -293,6 +293,7 @@ internal class TestDataHelper(
         sak: Sak = nySakMedJournalførtSøknadOgOppgave(),
         søknad: Søknad.Journalført.MedOppgave = sak.journalførtSøknadMedOppgave(),
         behandlingsinformasjon: Behandlingsinformasjon = tomBehandlingsinformasjon,
+        behandlingsperiode: Behandlingsperiode? = defaultBehandlingsperiode
     ): Søknadsbehandling.Vilkårsvurdert.Uavklart {
 
         return Søknadsbehandling.Vilkårsvurdert.Uavklart(

@@ -52,21 +52,6 @@ internal class SøknadsbehandlingPostgresRepo(
         }
     }
 
-    override fun oppdaterBehandlingsperiode(behandlingId: UUID, behandlingsperiode: Behandlingsperiode) {
-        dataSource.withSession { session ->
-            """
-                update behandling set behandlingsperiode = to_json(:behandlingsperiode::json) where behandlingId = :behandlingId
-            """.trimIndent()
-                .oppdatering(
-                    mapOf(
-                        "id" to behandlingId,
-                        "behandlingsperiode" to objectMapper.writeValueAsString(behandlingsperiode),
-                    ),
-                    session,
-                )
-        }
-    }
-
     override fun hent(id: UUID): Søknadsbehandling? {
         return dataSource.withSession { session ->
             "select b.*, s.fnr, s.saksnummer from behandling b inner join sak s on s.id = b.sakId where b.id=:id"

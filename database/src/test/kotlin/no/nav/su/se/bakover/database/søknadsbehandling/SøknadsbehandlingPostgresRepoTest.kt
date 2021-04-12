@@ -7,8 +7,8 @@ import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.avslåttBeregning
 import no.nav.su.se.bakover.database.behandlingsinformasjonMedAlleVilkårOppfylt
-import no.nav.su.se.bakover.database.behandlingsperiode
 import no.nav.su.se.bakover.database.beregning
+import no.nav.su.se.bakover.database.defaultBehandlingsperiode
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.iverksattAttestering
 import no.nav.su.se.bakover.database.saksbehandler
@@ -78,6 +78,24 @@ internal class SøknadsbehandlingPostgresRepoTest {
             repo.hent(vilkårsvurdert.id).also {
                 it shouldBe vilkårsvurdert
                 it.shouldBeTypeOf<Søknadsbehandling.Vilkårsvurdert.Avslag>()
+            }
+        }
+    }
+
+    @Test
+    fun `kan oppdatere behandlingsperiode`() {
+        withMigratedDb {
+            val vilkårsvurdert = testDataHelper.nyUavklartVilkårsvurdering(
+                behandlingsperiode = null
+            )
+            repo.hent(vilkårsvurdert.id).also {
+                it?.behandlingsperiode shouldBe null
+            }
+
+            repo.lagre(vilkårsvurdert.copy(behandlingsperiode = defaultBehandlingsperiode))
+
+            repo.hent(vilkårsvurdert.id).also {
+                it?.behandlingsperiode shouldBe defaultBehandlingsperiode
             }
         }
     }
@@ -159,7 +177,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             simulering = simulering(tilAttestering.fnr),
                             saksbehandler = saksbehandler,
                             fritekstTilBrev = "",
-                            behandlingsperiode = behandlingsperiode,
+                            behandlingsperiode = defaultBehandlingsperiode,
                         )
                     }
                 }
@@ -185,7 +203,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             fnr = tilAttestering.fnr,
                             saksbehandler = saksbehandler,
                             fritekstTilBrev = "",
-                            behandlingsperiode = behandlingsperiode,
+                            behandlingsperiode = defaultBehandlingsperiode,
                         )
                     }
                 }
@@ -212,7 +230,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             beregning = avslåttBeregning,
                             saksbehandler = saksbehandler,
                             fritekstTilBrev = "",
-                            behandlingsperiode = behandlingsperiode,
+                            behandlingsperiode = defaultBehandlingsperiode,
                         )
                     }
                 }
@@ -244,7 +262,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             saksbehandler = saksbehandler,
                             attestering = underkjentAttestering,
                             fritekstTilBrev = "",
-                            behandlingsperiode = behandlingsperiode,
+                            behandlingsperiode = defaultBehandlingsperiode,
                         )
                     }
                 }
@@ -271,7 +289,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             saksbehandler = saksbehandler,
                             attestering = underkjentAttestering,
                             fritekstTilBrev = "",
-                            behandlingsperiode = behandlingsperiode,
+                            behandlingsperiode = defaultBehandlingsperiode,
                         )
                     }
                 }
@@ -299,7 +317,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             saksbehandler = saksbehandler,
                             attestering = underkjentAttestering,
                             fritekstTilBrev = "",
-                            behandlingsperiode = behandlingsperiode,
+                            behandlingsperiode = defaultBehandlingsperiode,
                         )
                     }
                 }
@@ -338,7 +356,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 saksbehandler = saksbehandler,
                 attestering = iverksattAttestering,
                 fritekstTilBrev = "Dette er fritekst",
-                behandlingsperiode = behandlingsperiode,
+                behandlingsperiode = defaultBehandlingsperiode,
             )
             repo.hent(iverksatt.id).also {
                 it shouldBe expected
@@ -364,7 +382,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     saksbehandler = saksbehandler,
                     attestering = iverksattAttestering,
                     fritekstTilBrev = "",
-                    behandlingsperiode = behandlingsperiode,
+                    behandlingsperiode = defaultBehandlingsperiode,
                 )
             }
         }

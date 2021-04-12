@@ -192,12 +192,16 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
 
             override val status: BehandlingsStatus = BehandlingsStatus.OPPRETTET
             override val periode: Periode
-                get() = behandlingsperiode?.periode ?: throw IllegalStateException("Periode er ikke satt")
+                get() = behandlingsperiode?.periode ?: throw StønadsperiodeIkkeDefinertException("Periode er ikke satt")
 
             override fun accept(visitor: SøknadsbehandlingVisitor) {
                 visitor.visit(this)
             }
         }
+
+        data class StønadsperiodeIkkeDefinertException(
+            val msg: String = "Sønadsperiode er ikke definert",
+        ) : RuntimeException(msg)
     }
 
     sealed class Beregnet : Søknadsbehandling() {
