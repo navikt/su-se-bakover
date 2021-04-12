@@ -44,7 +44,8 @@ internal class NyBeregningForSøknadsbehandlingJsonTest {
                 ),
                 tilhører = FradragTilhører.BRUKER
             )
-        )
+        ),
+        begrunnelse = "begrunnelse"
     )
 
     @Test
@@ -72,7 +73,8 @@ internal class NyBeregningForSøknadsbehandlingJsonTest {
                             "tilOgMed":"$tilOgMed"
                          },
                          "tilhører": "BRUKER"
-                     }]
+                     }],
+                     "begrunnelse": "begrunnelse"
                 }
             """.trimIndent()
         )
@@ -99,7 +101,8 @@ internal class NyBeregningForSøknadsbehandlingJsonTest {
                         ),
                         tilhører = "BRUKER"
                     )
-                )
+                ),
+                begrunnelse = "begrunnelse"
             )
             nyBeregningForSøknadsbehandlingJson.toDomain(
                 nyBeregningForSøknadsbehandling.behandlingId,

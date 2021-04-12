@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 
 class BeregningService {
-    fun beregn(søknadsbehandling: Søknadsbehandling, periode: Periode, fradrag: List<Fradrag>): Beregning {
-        return BeregningStrategyFactory().beregn(søknadsbehandling, periode, fradrag)
+    fun beregn(søknadsbehandling: Søknadsbehandling, periode: Periode, fradrag: List<Fradrag>, begrunnelse: String?): Beregning {
+        return BeregningStrategyFactory().beregn(søknadsbehandling, periode, fradrag, begrunnelse)
     }
 }

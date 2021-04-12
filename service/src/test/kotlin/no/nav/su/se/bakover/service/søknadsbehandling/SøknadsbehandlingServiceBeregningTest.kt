@@ -58,13 +58,14 @@ class SøknadsbehandlingServiceBeregningTest {
             on { hent(any()) } doReturn vilkårsvurdertBehandling
         }
         val beregningServiceMock = mock<BeregningService> {
-            on { beregn(any(), any(), any()) } doReturn TestBeregning
+            on { beregn(any(), any(), any(), any()) } doReturn TestBeregning
         }
 
         val request = SøknadsbehandlingService.BeregnRequest(
             behandlingId = behandlingId,
             periode = Periode.create(1.desember(2021), 31.mars(2022)),
-            fradrag = emptyList()
+            fradrag = emptyList(),
+            begrunnelse = "her er en begrunnelse"
         )
 
         val response = createSøknadsbehandlingService(
@@ -95,6 +96,7 @@ class SøknadsbehandlingServiceBeregningTest {
                 søknadsbehandling = argThat { it shouldBe vilkårsvurdertBehandling },
                 periode = argThat { it shouldBe request.periode },
                 fradrag = argThat { it shouldBe request.fradrag },
+                begrunnelse = argThat { it shouldBe "her er en begrunnelse" }
             )
             verify(søknadsbehandlingRepoMock).lagre(expected)
         }
@@ -111,7 +113,8 @@ class SøknadsbehandlingServiceBeregningTest {
             SøknadsbehandlingService.BeregnRequest(
                 behandlingId = behandlingId,
                 periode = Periode.create(1.desember(2021), 31.mars(2022)),
-                fradrag = emptyList()
+                fradrag = emptyList(),
+                begrunnelse = null
             )
         )
 

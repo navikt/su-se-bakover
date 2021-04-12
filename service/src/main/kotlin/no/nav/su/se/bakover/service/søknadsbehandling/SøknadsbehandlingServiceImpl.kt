@@ -133,7 +133,7 @@ internal class SøknadsbehandlingServiceImpl(
         return statusovergang(
             søknadsbehandling = saksbehandling,
             statusovergang = Statusovergang.TilBeregnet {
-                beregningService.beregn(saksbehandling, request.periode, request.fradrag)
+                beregningService.beregn(saksbehandling, request.periode, request.fradrag, request.begrunnelse)
             }
         ).let {
             søknadsbehandlingRepo.lagre(it)

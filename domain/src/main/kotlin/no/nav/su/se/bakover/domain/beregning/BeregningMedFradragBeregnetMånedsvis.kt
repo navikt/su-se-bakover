@@ -16,7 +16,8 @@ internal data class BeregningMedFradragBeregnetMånedsvis(
     private val periode: Periode,
     private val sats: Sats,
     private val fradrag: List<Fradrag>,
-    private val fradragStrategy: FradragStrategy
+    private val fradragStrategy: FradragStrategy,
+    private val begrunnelse: String?
 ) : Beregning {
     private val beregning = beregn()
 
@@ -76,6 +77,7 @@ internal data class BeregningMedFradragBeregnetMånedsvis(
     override fun getSats(): Sats = sats
     override fun getMånedsberegninger(): List<Månedsberegning> = beregning.values.toList()
     override fun getFradrag(): List<Fradrag> = fradrag
+    override fun getBegrunnelse(): String? = begrunnelse
 
     override fun getPeriode(): Periode = periode
 }

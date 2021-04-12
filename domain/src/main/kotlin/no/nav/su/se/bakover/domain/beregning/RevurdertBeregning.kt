@@ -84,7 +84,8 @@ private fun beregnMedVirkningFraOgMedMånedenEtter(
                     tilhører = it.getTilhører(),
                 )
             },
-        fradragStrategy = FradragStrategy.fromName(revurdertBeregning.getFradragStrategyName())
+        fradragStrategy = FradragStrategy.fromName(revurdertBeregning.getFradragStrategyName()),
+        begrunnelse = revurdertBeregning.getBegrunnelse()
     ).right()
 }
 
