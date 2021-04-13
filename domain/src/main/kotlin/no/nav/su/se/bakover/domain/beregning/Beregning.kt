@@ -15,4 +15,5 @@ interface Beregning : PeriodisertInformasjon {
     fun getSumYtelse(): Int
     fun getSumFradrag(): Double
     fun getFradragStrategyName(): FradragStrategyName
+    fun getBegrunnelse(): String?
 }

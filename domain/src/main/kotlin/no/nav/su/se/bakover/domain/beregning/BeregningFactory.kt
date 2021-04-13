@@ -13,7 +13,8 @@ internal object BeregningFactory {
         periode: Periode,
         sats: Sats,
         fradrag: List<Fradrag>,
-        fradragStrategy: FradragStrategy
+        fradragStrategy: FradragStrategy,
+        begrunnelse: String? = null
     ): Beregning {
         return BeregningMedFradragBeregnetMånedsvis(
             id = id,
@@ -21,7 +22,8 @@ internal object BeregningFactory {
             periode = periode,
             sats = sats,
             fradrag = fradrag,
-            fradragStrategy = fradragStrategy
+            fradragStrategy = fradragStrategy,
+            begrunnelse = begrunnelse
         )
     }
 }

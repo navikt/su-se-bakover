@@ -151,7 +151,8 @@ internal class BehandlingRoutesKtTest {
                 BeregnRequest(
                     behandlingId = objects.søknadsbehandling.id,
                     periode = Periode.create(1.januar(2021), 31.desember(2021)),
-                    fradrag = emptyList()
+                    fradrag = emptyList(),
+                    begrunnelse = null
                 )
             )
             services.søknadsbehandling.simuler(SimulerRequest(objects.søknadsbehandling.id, saksbehandler))
@@ -202,6 +203,7 @@ internal class BehandlingRoutesKtTest {
                     behandlingId = objects.søknadsbehandling.id,
                     periode = Periode.create(1.januar(2021), 31.desember(2021)),
                     fradrag = emptyList(),
+                    begrunnelse = null,
                 )
             )
             services.søknadsbehandling.simuler(
@@ -262,6 +264,7 @@ internal class BehandlingRoutesKtTest {
                     behandlingId = objects.søknadsbehandling.id,
                     periode = Periode.create(1.januar(2021), 31.desember(2021)),
                     fradrag = emptyList(),
+                    begrunnelse = null,
                 )
             )
 
@@ -297,7 +300,8 @@ internal class BehandlingRoutesKtTest {
                                 1.januar(2021),
                                 31.desember(2021)
                             ),
-                            fradrag = emptyList()
+                            fradrag = emptyList(),
+                            begrunnelse = null,
                         )
                     )
                     services.søknadsbehandling.simuler(
@@ -437,6 +441,7 @@ internal class BehandlingRoutesKtTest {
                                 31.desember(2021)
                             ),
                             fradrag = emptyList(),
+                            begrunnelse = null,
                         )
                     )
                     services.søknadsbehandling.simuler(
@@ -623,6 +628,7 @@ internal class BehandlingRoutesKtTest {
                         behandlingId = objects.søknadsbehandling.id,
                         periode = Periode.create(1.januar(2021), 31.desember(2021)),
                         fradrag = emptyList(),
+                        begrunnelse = null,
                     )
                 )
                 services.søknadsbehandling.simuler(

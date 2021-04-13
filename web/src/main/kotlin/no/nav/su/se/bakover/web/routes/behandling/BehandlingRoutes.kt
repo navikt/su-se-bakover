@@ -152,7 +152,8 @@ internal fun Route.behandlingRoutes(
                                 SøknadsbehandlingService.BeregnRequest(
                                     behandlingId = it.behandlingId,
                                     periode = it.stønadsperiode.periode,
-                                    fradrag = it.fradrag
+                                    fradrag = it.fradrag,
+                                    begrunnelse = it.begrunnelse
                                 )
                             )
                                 .mapLeft { kunneIkkeBeregne ->

@@ -386,6 +386,7 @@ internal class VedtakssnapshotJsonTest {
                 sumFradrag = 2.1,
                 periode = beregningsPeriode,
                 fradragStrategyName = Enslig,
+                begrunnelse = "har en begrunnelse for beregning"
             ),
             simulering = Simulering(
                 gjelderId = fnr,
@@ -513,7 +514,8 @@ internal class VedtakssnapshotJsonTest {
                         "fraOgMed":"2021-01-01",
                         "tilOgMed":"2021-01-31"
                     },
-                    "fradragStrategyName":"Enslig"
+                    "fradragStrategyName":"Enslig",
+                    "begrunnelse": "har en begrunnelse for beregning"
                 },
                   "behandlingsinformasjon":{
                      "uførhet":{

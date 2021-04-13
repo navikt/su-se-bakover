@@ -61,6 +61,7 @@ internal class EnsligBeregningTest {
             it.getMånedsberegninger().forEach {
                 it.getSumYtelse() shouldBe 419
             }
+            it.getBegrunnelse() shouldBe null
         }
     }
 }

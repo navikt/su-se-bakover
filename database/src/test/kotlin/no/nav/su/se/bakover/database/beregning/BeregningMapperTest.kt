@@ -81,7 +81,8 @@ internal class BeregningMapperTest {
                 "fraOgMed": "2021-01-01",
                 "tilOgMed": "2021-01-31"
               },
-              "fradragStrategyName": "Enslig"
+              "fradragStrategyName": "Enslig",
+              "begrunnelse": null
             }
         """.trimIndent()
         JSONAssert.assertEquals(expectedJson, objectMapper.writeValueAsString(TestBeregning.toSnapshot()), true)
@@ -99,7 +100,8 @@ internal class BeregningMapperTest {
                     "fraOgMed": "2021-01-01",
                     "tilOgMed": "2021-01-31"
                   },
-                  "tilhører": "BRUKER"
+                  "tilhører": "BRUKER",
+                  "begrunnelse": null
                 }
         """.trimIndent()
 

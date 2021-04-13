@@ -73,12 +73,13 @@ internal class EnsligBorMedVoksneBeregningTest {
             )
         )
 
-        BeregningStrategy.BorMedVoksne.beregn(beregningsgrunnlag).let {
+        BeregningStrategy.BorMedVoksne.beregn(beregningsgrunnlag, "bor med voksen").let {
             it.getSumYtelse() shouldBe 155892
             it.getSumFradrag() shouldBe (arbeidsinntektPrÅr + folketrygdPrÅr + utenlandskInntektPrÅr).plusOrMinus(0.5)
             it.getMånedsberegninger().forEach {
                 it.getSumYtelse() shouldBe 12991
             }
+            it.getBegrunnelse() shouldBe "bor med voksen"
         }
     }
 }
