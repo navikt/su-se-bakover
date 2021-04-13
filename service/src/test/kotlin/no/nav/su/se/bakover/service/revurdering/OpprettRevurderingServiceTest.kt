@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.MånedsberegningFactory
 import no.nav.su.se.bakover.domain.beregning.Sats
@@ -190,15 +191,17 @@ internal class OpprettRevurderingServiceTest {
             ),
         ).orNull()!!
 
+        val tilRevurdering = sak.vedtakListe.first() as Vedtak.EndringIYtelse
         actual shouldBe OpprettetRevurdering(
             id = actual.id,
             periode = periode,
             opprettet = actual.opprettet,
-            tilRevurdering = sak.vedtakListe.first() as Vedtak.EndringIYtelse,
+            tilRevurdering = tilRevurdering,
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("oppgaveId"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
         )
         inOrder(sakServiceMock, personServiceMock, oppgaveServiceMock, revurderingRepoMock) {
             verify(sakServiceMock).hentSak(sakId)
@@ -331,16 +334,19 @@ internal class OpprettRevurderingServiceTest {
             on { opprettet } doReturn Tidspunkt.now()
             on { periode } doReturn Periode.create(1.januar(2020), 31.desember(2020))
             on { behandling } doReturn behandlingMock
+            on { behandlingsinformasjon } doReturn Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
         }
         val vedtakForFørsteMarsLagetNå = mock<Vedtak.EndringIYtelse> {
             on { opprettet } doReturn Tidspunkt.now()
             on { periode } doReturn Periode.create(1.mars(2020), 31.desember(2020))
             on { behandling } doReturn behandlingMock
+            on { behandlingsinformasjon } doReturn Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
         }
         val vedtakForFørsteJanuarLagetForLengeSiden = mock<Vedtak.EndringIYtelse> {
             on { opprettet } doReturn Tidspunkt.now().instant.minus(2, ChronoUnit.HALF_DAYS).toTidspunkt()
             on { periode } doReturn Periode.create(1.januar(2020), 31.desember(2020))
             on { behandling } doReturn behandlingMock
+            on { behandlingsinformasjon } doReturn Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
         }
 
         val sak = Sak(
@@ -425,6 +431,7 @@ internal class OpprettRevurderingServiceTest {
                 attestering = Attestering.Iverksatt(opprinneligVedtak.attestant),
                 fritekstTilBrev = "",
                 revurderingsårsak = revurderingsårsak,
+                behandlingsinformasjon = opprinneligVedtak.behandlingsinformasjon,
             )
             it.copy(
                 revurderinger = listOf(

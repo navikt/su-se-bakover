@@ -214,6 +214,7 @@ class LagBrevRequestVisitor(
             }
             VedtakType.AVSLAG,
             VedtakType.INGEN_ENDRING,
+            VedtakType.REGULER_GRUNNBELØP,
             -> {
                 throw KunneIkkeLageBrevRequest.UgyldigKombinasjonAvVedtakOgTypeException(vedtak::class, vedtak.vedtakType)
             }
@@ -314,7 +315,7 @@ class LagBrevRequestVisitor(
                 personOgNavn = it,
                 beregning = beregning,
                 fritekst = revurdering.fritekstTilBrev,
-                harEktefelle = revurdering.tilRevurdering.behandlingsinformasjon.harEktefelle(),
+                harEktefelle = revurdering.behandlingsinformasjon.harEktefelle(),
             )
         }
 
@@ -347,7 +348,7 @@ class LagBrevRequestVisitor(
                 attestantNavn = it.attestantNavn,
                 revurdertBeregning = beregning,
                 fritekst = revurdering.fritekstTilBrev,
-                harEktefelle = revurdering.tilRevurdering.behandlingsinformasjon.harEktefelle(),
+                harEktefelle = revurdering.behandlingsinformasjon.harEktefelle(),
             )
         }
 
@@ -362,7 +363,7 @@ class LagBrevRequestVisitor(
         ).map {
             LagBrevRequest.Opphørsvedtak(
                 person = it.person,
-                behandlingsinformasjon = revurdering.tilRevurdering.behandlingsinformasjon,
+                behandlingsinformasjon = revurdering.behandlingsinformasjon,
                 beregning = beregning,
                 fritekst = revurdering.fritekstTilBrev,
                 saksbehandlerNavn = it.saksbehandlerNavn,

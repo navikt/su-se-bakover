@@ -26,6 +26,7 @@ interface RevurderingService {
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
         fradrag: List<Fradrag>,
+        forventetInntekt: Int? = null,
     ): Either<KunneIkkeBeregneOgSimulereRevurdering, Revurdering>
 
     fun sendTilAttestering(
@@ -76,6 +77,7 @@ sealed class KunneIkkeOppdatereRevurderingsperiode {
 }
 
 sealed class KunneIkkeBeregneOgSimulereRevurdering {
+    object MåSendeGrunnbeløpReguleringSomÅrsakSammenMedForventetInntekt : KunneIkkeBeregneOgSimulereRevurdering()
     object FantIkkeRevurdering : KunneIkkeBeregneOgSimulereRevurdering()
     object SimuleringFeilet : KunneIkkeBeregneOgSimulereRevurdering()
     object KanIkkeVelgeSisteMånedVedNedgangIStønaden : KunneIkkeBeregneOgSimulereRevurdering()

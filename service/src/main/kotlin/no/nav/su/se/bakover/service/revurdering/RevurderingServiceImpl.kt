@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak.Årsak.REGULER_GRUNNBELØP
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.medFritekst
@@ -115,7 +116,8 @@ internal class RevurderingServiceImpl(
                 oppgaveId = oppgaveId,
                 fritekstTilBrev = "",
                 revurderingsårsak = revurderingsårsak,
-                opprettet = Tidspunkt.now(clock)
+                opprettet = Tidspunkt.now(clock),
+                behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
             ).also {
                 revurderingRepo.lagre(it)
                 observers.forEach { observer ->
@@ -138,6 +140,7 @@ internal class RevurderingServiceImpl(
                 Revurderingsårsak.UgyldigRevurderingsårsak.UgyldigÅrsak -> KunneIkkeOppdatereRevurderingsperiode.UgyldigÅrsak
             }.left()
         }
+
         val revurdering = revurderingRepo.hent(oppdaterRevurderingRequest.revurderingId)
             ?: return KunneIkkeOppdatereRevurderingsperiode.FantIkkeRevurdering.left()
 
@@ -170,9 +173,24 @@ internal class RevurderingServiceImpl(
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
         fradrag: List<Fradrag>,
+        forventetInntekt: Int?,
     ): Either<KunneIkkeBeregneOgSimulereRevurdering, Revurdering> {
-        return when (val revurdering = revurderingRepo.hent(revurderingId)) {
+        return when (val orginalRevurdering = revurderingRepo.hent(revurderingId)) {
             is BeregnetRevurdering, is OpprettetRevurdering, is SimulertRevurdering, is UnderkjentRevurdering -> {
+                val revurdering = if (forventetInntekt != null) {
+                    if (orginalRevurdering.revurderingsårsak.årsak != REGULER_GRUNNBELØP) {
+                        return KunneIkkeBeregneOgSimulereRevurdering.MåSendeGrunnbeløpReguleringSomÅrsakSammenMedForventetInntekt.left()
+                    }
+                    orginalRevurdering.oppdaterBehandlingsinformasjon(
+                        orginalRevurdering.behandlingsinformasjon.copy(
+                            uførhet = orginalRevurdering.behandlingsinformasjon.uførhet!!.copy(
+                                forventetInntekt = forventetInntekt,
+                            ),
+                        ),
+                    )
+                } else {
+                    orginalRevurdering
+                }
                 when (
                     val beregnetRevurdering = revurdering.beregn(fradrag)
                         .getOrHandle {
@@ -217,7 +235,7 @@ internal class RevurderingServiceImpl(
             }
             null -> return KunneIkkeBeregneOgSimulereRevurdering.FantIkkeRevurdering.left()
             else -> return KunneIkkeBeregneOgSimulereRevurdering.UgyldigTilstand(
-                revurdering::class,
+                orginalRevurdering::class,
                 SimulertRevurdering::class,
             ).left()
         }
@@ -356,7 +374,10 @@ internal class RevurderingServiceImpl(
     ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering> {
         var utbetaling: Utbetaling.OversendtUtbetaling.UtenKvittering? = null
 
-        return when (val revurdering = revurderingRepo.hent(revurderingId)) {
+        val revurdering = revurderingRepo.hent(revurderingId)
+            ?: return KunneIkkeIverksetteRevurdering.FantIkkeRevurdering.left()
+
+        return when (revurdering) {
             is RevurderingTilAttestering -> {
                 val iverksattRevurdering = when (revurdering) {
                     is RevurderingTilAttestering.IngenEndring -> {
@@ -441,8 +462,8 @@ internal class RevurderingServiceImpl(
                 }
                 return iverksattRevurdering.right()
             }
-            null -> KunneIkkeIverksetteRevurdering.FantIkkeRevurdering.left()
-            else -> KunneIkkeIverksetteRevurdering.UgyldigTilstand(revurdering::class, IverksattRevurdering::class).left()
+            else -> KunneIkkeIverksetteRevurdering.UgyldigTilstand(revurdering::class, IverksattRevurdering::class)
+                .left()
         }
     }
 

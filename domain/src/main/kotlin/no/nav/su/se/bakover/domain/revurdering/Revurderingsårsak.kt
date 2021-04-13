@@ -16,6 +16,7 @@ data class Revurderingsårsak(
         INFORMASJON_FRA_KONTROLLSAMTALE,
         DØDSFALL,
         ANDRE_KILDER,
+        REGULER_GRUNNBELØP,
 
         /* Reservert for migrering */
         MIGRERT;

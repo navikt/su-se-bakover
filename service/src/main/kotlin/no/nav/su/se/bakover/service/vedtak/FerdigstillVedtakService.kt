@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
@@ -110,8 +111,11 @@ internal class FerdigstillVedtakServiceImpl(
      */
     override fun ferdigstillVedtakEtterUtbetaling(utbetalingId: UUID30) {
         val vedtak = vedtakRepo.hentForUtbetaling(utbetalingId)
-        ferdigstillVedtak(vedtak).getOrHandle {
-            throw KunneIkkeFerdigstilleVedtakException(vedtak, it)
+        val skalFerdigstille = (vedtak.behandling as? IverksattRevurdering.Innvilget)?.revurderingsårsak?.årsak != Revurderingsårsak.Årsak.REGULER_GRUNNBELØP
+        if (skalFerdigstille) {
+            ferdigstillVedtak(vedtak).getOrHandle {
+                throw KunneIkkeFerdigstilleVedtakException(vedtak, it)
+            }
         }
     }
 

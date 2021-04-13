@@ -159,6 +159,7 @@ internal class VedtakPosgresRepo(
             VedtakType.SØKNAD,
             VedtakType.ENDRING,
             VedtakType.OPPHØR,
+            VedtakType.REGULER_GRUNNBELØP, // TODO blir dette riktig?
             -> {
                 Vedtak.EndringIYtelse(
                     id = id,

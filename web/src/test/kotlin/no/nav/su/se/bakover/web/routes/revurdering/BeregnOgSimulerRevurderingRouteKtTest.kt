@@ -4,6 +4,7 @@ import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.anyOrNull
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
@@ -115,6 +116,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
+            behandlingsinformasjon = vedtak.behandlingsinformasjon,
         ).beregn(
             listOf(
                 FradragFactory.ny(
@@ -144,7 +146,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
         }
 
         val revurderingServiceMock = mock<RevurderingService> {
-            on { beregnOgSimuler(any(), any(), any()) } doReturn simulertRevurdering.right()
+            on { beregnOgSimuler(any(), any(), any(), anyOrNull()) } doReturn simulertRevurdering.right()
         }
 
         withTestApplication(
@@ -165,6 +167,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                     argThat { it shouldBe simulertRevurdering.id },
                     argThat { it shouldBe NavIdentBruker.Saksbehandler("Z990Lokal") },
                     argThat { it shouldBe emptyList() },
+                    anyOrNull(),
                 )
                 verifyNoMoreInteractions(revurderingServiceMock)
                 actualResponse.id shouldBe simulertRevurdering.id.toString()
@@ -241,7 +244,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
         expectedJsonResponse: String,
     ) {
         val revurderingServiceMock = mock<RevurderingService> {
-            on { beregnOgSimuler(any(), any(), any()) } doReturn error.left()
+            on { beregnOgSimuler(any(), any(), any(), anyOrNull()) } doReturn error.left()
         }
 
         withTestApplication(

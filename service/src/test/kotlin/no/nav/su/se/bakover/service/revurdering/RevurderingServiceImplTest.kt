@@ -223,6 +223,7 @@ internal class RevurderingServiceImplTest {
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -278,6 +279,7 @@ internal class RevurderingServiceImplTest {
             oppgaveId = mock(),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -312,6 +314,7 @@ internal class RevurderingServiceImplTest {
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -542,6 +545,7 @@ internal class RevurderingServiceImplTest {
             attestering = Attestering.Iverksatt(attestant),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
         )
         val revurderingTilAttestering = RevurderingTilAttestering.Innvilget(
             id = revurderingId,
@@ -554,6 +558,7 @@ internal class RevurderingServiceImplTest {
             saksbehandler = saksbehandler,
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -625,16 +630,17 @@ internal class RevurderingServiceImplTest {
             saksbehandler = saksbehandler,
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
         )
         val attestant = NavIdentBruker.Attestant("ATTT")
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn revurderingTilAttestering
         }
-        val utbetalingMock = mock<Utbetaling.OversendtUtbetaling.UtenKvittering>() {
+        val utbetalingMock = mock<Utbetaling.OversendtUtbetaling.UtenKvittering> {
             on { id } doReturn UUID30.randomUUID()
         }
-        val utbetalingServiceMock = mock<UtbetalingService>() {
+        val utbetalingServiceMock = mock<UtbetalingService> {
             on { opphør(any(), any(), any(), any()) } doReturn utbetalingMock.right()
         }
         val vedtakRepoMock = mock<VedtakRepo>()
@@ -688,6 +694,7 @@ internal class RevurderingServiceImplTest {
             oppgaveId = OppgaveId("oppgaveId"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
         )
 
         val attestering = Attestering.Underkjent(
@@ -770,6 +777,7 @@ internal class RevurderingServiceImplTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             attestering = attestering,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -852,6 +860,7 @@ internal class RevurderingServiceImplTest {
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -929,6 +938,7 @@ internal class RevurderingServiceImplTest {
             ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -979,6 +989,7 @@ internal class RevurderingServiceImplTest {
             ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -1037,6 +1048,7 @@ internal class RevurderingServiceImplTest {
             ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -1092,6 +1104,7 @@ internal class RevurderingServiceImplTest {
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
         )
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn opprettetRevurdering
@@ -1122,6 +1135,7 @@ internal class RevurderingServiceImplTest {
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
         )
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn beregnetRevurdering

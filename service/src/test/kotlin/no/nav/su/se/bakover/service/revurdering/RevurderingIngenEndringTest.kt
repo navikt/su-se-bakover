@@ -55,6 +55,7 @@ class RevurderingIngenEndringTest {
             oppgaveId = søknadOppgaveId,
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
         )
         val beregnetRevurdering = BeregnetRevurdering.IngenEndring(
             id = revurderingId,
@@ -66,6 +67,7 @@ class RevurderingIngenEndringTest {
             saksbehandler = saksbehandler,
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
         )
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn opprettetRevurdering
@@ -105,6 +107,7 @@ class RevurderingIngenEndringTest {
             saksbehandler = RevurderingTestUtils.saksbehandler,
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
         )
         val endretSaksbehandler = NavIdentBruker.Saksbehandler("endretSaksbehandler")
         val revurderingTilAttestering = RevurderingTilAttestering.IngenEndring(
@@ -117,7 +120,8 @@ class RevurderingIngenEndringTest {
             saksbehandler = endretSaksbehandler,
             fritekstTilBrev = "endret fritekst",
             revurderingsårsak = revurderingsårsak,
-            skalFøreTilBrevutsending = true
+            skalFøreTilBrevutsending = true,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
         )
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn beregnetRevurdering
@@ -193,7 +197,8 @@ class RevurderingIngenEndringTest {
             saksbehandler = saksbehandler,
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            skalFøreTilBrevutsending = false
+            skalFøreTilBrevutsending = false,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
         )
         val underkjentRevurdering = UnderkjentRevurdering.IngenEndring(
             id = revurderingId,
@@ -206,7 +211,8 @@ class RevurderingIngenEndringTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             attestering = attesteringUnderkjent,
-            skalFøreTilBrevutsending = false
+            skalFøreTilBrevutsending = false,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
         )
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn revurderingTilAttestering
@@ -277,7 +283,8 @@ class RevurderingIngenEndringTest {
             saksbehandler = RevurderingTestUtils.saksbehandler,
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            skalFøreTilBrevutsending = true
+            skalFøreTilBrevutsending = true,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
         )
         val attestant = NavIdentBruker.Attestant("ATTT")
         val iverksattRevurdering = revurderingTilAttestering.tilIverksatt(attestant).orNull()!!
@@ -335,7 +342,8 @@ class RevurderingIngenEndringTest {
             saksbehandler = RevurderingTestUtils.saksbehandler,
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            skalFøreTilBrevutsending = false
+            skalFøreTilBrevutsending = false,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
         )
         val attestant = NavIdentBruker.Attestant("ATTT")
         val iverksattRevurdering = revurderingTilAttestering.tilIverksatt(attestant).orNull()!!

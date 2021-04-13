@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
+import no.nav.su.se.bakover.web.routes.behandling.BehandlingsinformasjonJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.behandling.TestBeregning
 import no.nav.su.se.bakover.web.routes.behandling.beregning.toJson
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.vedtak
@@ -45,6 +46,7 @@ internal class RevurderingJsonTest {
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = vedtak.behandlingsinformasjon,
         )
 
         val revurderingJson =
@@ -62,7 +64,8 @@ internal class RevurderingJsonTest {
                 "saksbehandler": "Petter",
                 "fritekstTilBrev": "",
                 "årsak": "MELDING_FRA_BRUKER",
-                "begrunnelse": "Ny informasjon"
+                "begrunnelse": "Ny informasjon",
+                "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())}
             }
             """.trimIndent()
 
@@ -86,6 +89,7 @@ internal class RevurderingJsonTest {
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = vedtak.behandlingsinformasjon,
         )
 
         val revurderingJson =
@@ -108,7 +112,8 @@ internal class RevurderingJsonTest {
                 },
                 "fritekstTilBrev": "",
                 "årsak": "MELDING_FRA_BRUKER",
-                "begrunnelse": "Ny informasjon"
+                "begrunnelse": "Ny informasjon",
+                "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())}
             }
             """.trimIndent()
 
@@ -132,6 +137,7 @@ internal class RevurderingJsonTest {
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = vedtak.behandlingsinformasjon,
         )
 
         val revurderingJson =
@@ -154,7 +160,8 @@ internal class RevurderingJsonTest {
                 },
                 "fritekstTilBrev": "",
                 "årsak": "MELDING_FRA_BRUKER",
-                "begrunnelse": "Ny informasjon"
+                "begrunnelse": "Ny informasjon",
+                "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())}
             }
             """.trimIndent()
 
@@ -178,6 +185,7 @@ internal class RevurderingJsonTest {
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = vedtak.behandlingsinformasjon,
         )
 
         val revurderingJson =
@@ -200,7 +208,8 @@ internal class RevurderingJsonTest {
                 },
                 "fritekstTilBrev": "",
                 "årsak": "MELDING_FRA_BRUKER",
-                "begrunnelse": "Ny informasjon"
+                "begrunnelse": "Ny informasjon",
+                "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())}
             }
             """.trimIndent()
 
@@ -225,6 +234,7 @@ internal class RevurderingJsonTest {
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = vedtak.behandlingsinformasjon,
         )
 
         val revurderingJson =
@@ -247,7 +257,8 @@ internal class RevurderingJsonTest {
                 },
                 "fritekstTilBrev": "",
                 "årsak": "MELDING_FRA_BRUKER",
-                "begrunnelse": "Ny informasjon"
+                "begrunnelse": "Ny informasjon",
+                "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())}
             }
             """.trimIndent()
 
@@ -272,6 +283,7 @@ internal class RevurderingJsonTest {
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = vedtak.behandlingsinformasjon,
         )
 
         val revurderingJson =
@@ -294,7 +306,8 @@ internal class RevurderingJsonTest {
                 },
                 "fritekstTilBrev": "",
                 "årsak": "MELDING_FRA_BRUKER",
-                "begrunnelse": "Ny informasjon"
+                "begrunnelse": "Ny informasjon",
+                "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())}
             }
             """.trimIndent()
 
@@ -319,6 +332,7 @@ internal class RevurderingJsonTest {
             oppgaveId = OppgaveId("OppgaveId"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = vedtak.behandlingsinformasjon,
         )
 
         val revurderingJson =
@@ -342,7 +356,8 @@ internal class RevurderingJsonTest {
                 "fritekstTilBrev": "",
                 "skalFøreTilBrevutsending": true,
                 "årsak": "MELDING_FRA_BRUKER",
-                "begrunnelse": "Ny informasjon"
+                "begrunnelse": "Ny informasjon",
+                "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())}
             }
             """.trimIndent()
 
@@ -367,6 +382,7 @@ internal class RevurderingJsonTest {
             oppgaveId = OppgaveId("OppgaveId"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = vedtak.behandlingsinformasjon,
         )
 
         val revurderingJson =
@@ -390,7 +406,8 @@ internal class RevurderingJsonTest {
                 "fritekstTilBrev": "",
                 "skalFøreTilBrevutsending": true,
                 "årsak": "MELDING_FRA_BRUKER",
-                "begrunnelse": "Ny informasjon"
+                "begrunnelse": "Ny informasjon",
+                "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())}
             }
             """.trimIndent()
 
@@ -414,7 +431,8 @@ internal class RevurderingJsonTest {
             oppgaveId = OppgaveId("OppgaveId"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            skalFøreTilBrevutsending = false
+            skalFøreTilBrevutsending = false,
+            behandlingsinformasjon = vedtak.behandlingsinformasjon,
         )
 
         val revurderingJson =
@@ -438,7 +456,8 @@ internal class RevurderingJsonTest {
                 "fritekstTilBrev": "",
                 "skalFøreTilBrevutsending": false,
                 "årsak": "MELDING_FRA_BRUKER",
-                "begrunnelse": "Ny informasjon"
+                "begrunnelse": "Ny informasjon",
+                "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())}
             }
             """.trimIndent()
 
@@ -468,6 +487,7 @@ internal class RevurderingJsonTest {
             ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = vedtak.behandlingsinformasjon,
         )
 
         val expected =
@@ -498,7 +518,8 @@ internal class RevurderingJsonTest {
                 "fritekstTilBrev": "",
                 "skalFøreTilBrevutsending": true,
                 "årsak": "MELDING_FRA_BRUKER",
-                "begrunnelse": "Ny informasjon"
+                "begrunnelse": "Ny informasjon",
+                "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())}
             }
             """.trimIndent()
 
@@ -528,6 +549,7 @@ internal class RevurderingJsonTest {
             ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = vedtak.behandlingsinformasjon,
         )
 
         val expected =
@@ -558,7 +580,8 @@ internal class RevurderingJsonTest {
                 "fritekstTilBrev": "",
                 "skalFøreTilBrevutsending": true,
                 "årsak": "MELDING_FRA_BRUKER",
-                "begrunnelse": "Ny informasjon"
+                "begrunnelse": "Ny informasjon",
+                "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())}
             }
             """.trimIndent()
 
@@ -588,6 +611,7 @@ internal class RevurderingJsonTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             skalFøreTilBrevutsending = false,
+            behandlingsinformasjon = vedtak.behandlingsinformasjon,
         )
 
         val expected =
@@ -618,7 +642,8 @@ internal class RevurderingJsonTest {
                 "fritekstTilBrev": "",
                 "skalFøreTilBrevutsending": false,
                 "årsak": "MELDING_FRA_BRUKER",
-                "begrunnelse": "Ny informasjon"
+                "begrunnelse": "Ny informasjon",
+                "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())}
             }
             """.trimIndent()
 
@@ -644,6 +669,7 @@ internal class RevurderingJsonTest {
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = vedtak.behandlingsinformasjon,
         )
 
         val revurderingJson =
@@ -668,7 +694,8 @@ internal class RevurderingJsonTest {
                 "fritekstTilBrev": "",
                 "skalFøreTilBrevutsending": true,
                 "årsak": "MELDING_FRA_BRUKER",
-                "begrunnelse": "Ny informasjon"
+                "begrunnelse": "Ny informasjon",
+                "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())}
             }
             """.trimIndent()
 
@@ -694,6 +721,7 @@ internal class RevurderingJsonTest {
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = vedtak.behandlingsinformasjon,
         )
 
         val revurderingJson =
@@ -718,7 +746,8 @@ internal class RevurderingJsonTest {
                 "fritekstTilBrev": "",
                 "skalFøreTilBrevutsending": true,
                 "årsak": "MELDING_FRA_BRUKER",
-                "begrunnelse": "Ny informasjon"
+                "begrunnelse": "Ny informasjon",
+                "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())}
             }
             """.trimIndent()
 
@@ -744,6 +773,7 @@ internal class RevurderingJsonTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             skalFøreTilBrevutsending = true,
+            behandlingsinformasjon = vedtak.behandlingsinformasjon,
         )
 
         val revurderingJson =
@@ -768,7 +798,8 @@ internal class RevurderingJsonTest {
                 "fritekstTilBrev": "",
                 "skalFøreTilBrevutsending": true,
                 "årsak": "MELDING_FRA_BRUKER",
-                "begrunnelse": "Ny informasjon"
+                "begrunnelse": "Ny informasjon",
+                "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())}
             }
             """.trimIndent()
 
