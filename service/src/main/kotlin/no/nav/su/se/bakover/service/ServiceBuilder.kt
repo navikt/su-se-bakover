@@ -66,19 +66,6 @@ object ServiceBuilder {
         ).apply {
             addObserver(statistikkService)
         }
-        val revurderingService = RevurderingServiceImpl(
-            sakService = sakService,
-            utbetalingService = utbetalingService,
-            revurderingRepo = databaseRepos.revurderingRepo,
-            oppgaveService = oppgaveService,
-            personService = personService,
-            microsoftGraphApiClient = clients.microsoftGraphApiClient,
-            brevService = brevService,
-            clock = clock,
-            vedtakRepo = databaseRepos.vedtakRepo
-        ).apply { addObserver(statistikkService) }
-        val opprettVedtakssnapshotService = OpprettVedtakssnapshotService(databaseRepos.vedtakssnapshot)
-
         val ferdigstillVedtakService = FerdigstillVedtakServiceImpl(
             brevService = brevService,
             oppgaveService = oppgaveService,
@@ -89,6 +76,19 @@ object ServiceBuilder {
             utbetalingRepo = databaseRepos.utbetaling,
             behandlingMetrics = behandlingMetrics
         )
+        val revurderingService = RevurderingServiceImpl(
+            sakService = sakService,
+            utbetalingService = utbetalingService,
+            revurderingRepo = databaseRepos.revurderingRepo,
+            oppgaveService = oppgaveService,
+            personService = personService,
+            microsoftGraphApiClient = clients.microsoftGraphApiClient,
+            brevService = brevService,
+            clock = clock,
+            vedtakRepo = databaseRepos.vedtakRepo,
+            ferdigstillVedtakService = ferdigstillVedtakService
+        ).apply { addObserver(statistikkService) }
+        val opprettVedtakssnapshotService = OpprettVedtakssnapshotService(databaseRepos.vedtakssnapshot)
 
         val toggleService = ToggleServiceImpl(unleash)
 

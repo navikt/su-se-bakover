@@ -39,7 +39,7 @@ sealed class BrevTemplate(
 
     object VedtakIngenEndring : BrevTemplate(
         pdfTemplate = PdfTemplate.VedtakIngenEndring,
-        brevTittel = "Vi har vurdert den supplerende stønaden din på nytt, men vurderinger førte ikke til endring i utbetaling"
+        brevTittel = "Ny behandling førte ikke til endring av stønaden"
     )
 
     sealed class Revurdering(pdfTemplate: PdfTemplate, brevTittel: String) : BrevTemplate(pdfTemplate, brevTittel) {

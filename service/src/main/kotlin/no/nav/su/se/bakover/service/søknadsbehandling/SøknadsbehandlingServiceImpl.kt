@@ -137,8 +137,9 @@ internal class SøknadsbehandlingServiceImpl(
                 beregningService.beregn(
                     søknadsbehandling = søknadsbehandling,
                     fradrag = request.fradrag,
+                    request.begrunnelse,
                 )
-            },
+            }
         ).let {
             søknadsbehandlingRepo.lagre(it)
             it.right()
@@ -370,7 +371,7 @@ internal class SøknadsbehandlingServiceImpl(
         }
     }
 
-    private fun opprettAvslagsvedtak(iverksattBehandling: Søknadsbehandling.Iverksatt.Avslag): Vedtak = when (iverksattBehandling) {
+    private fun opprettAvslagsvedtak(iverksattBehandling: Søknadsbehandling.Iverksatt.Avslag): Vedtak.Avslag = when (iverksattBehandling) {
         is Søknadsbehandling.Iverksatt.Avslag.MedBeregning -> {
             Vedtak.Avslag.fromSøknadsbehandlingMedBeregning(iverksattBehandling)
         }

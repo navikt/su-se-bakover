@@ -6,7 +6,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 
 class BeregningService {
-    fun beregn(søknadsbehandling: Søknadsbehandling, fradrag: List<Fradrag>): Beregning {
-        return BeregningStrategyFactory().beregn(søknadsbehandling, fradrag)
+    fun beregn(søknadsbehandling: Søknadsbehandling, fradrag: List<Fradrag>, begrunnelse: String?): Beregning {
+        return BeregningStrategyFactory().beregn(søknadsbehandling, fradrag, begrunnelse)
     }
 }

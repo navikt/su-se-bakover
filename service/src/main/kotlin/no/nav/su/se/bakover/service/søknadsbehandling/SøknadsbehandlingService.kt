@@ -47,6 +47,7 @@ interface SøknadsbehandlingService {
     data class BeregnRequest(
         val behandlingId: UUID,
         val fradrag: List<Fradrag>,
+        val begrunnelse: String?,
     )
 
     sealed class KunneIkkeBeregne {

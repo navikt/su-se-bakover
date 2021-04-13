@@ -89,6 +89,7 @@ internal data class TilAttesteringJson(
     val beregninger: RevurdertBeregningJson,
     val saksbehandler: String,
     val fritekstTilBrev: String,
+    val skalFøreTilBrevutsending: Boolean,
     val årsak: String,
     val begrunnelse: String,
     val status: RevurderingsStatus,
@@ -102,6 +103,7 @@ internal data class IverksattRevurderingJson(
     val beregninger: RevurdertBeregningJson,
     val saksbehandler: String,
     val fritekstTilBrev: String,
+    val skalFøreTilBrevutsending: Boolean,
     val årsak: String,
     val begrunnelse: String,
     val attestant: String,
@@ -116,6 +118,7 @@ internal data class UnderkjentRevurderingJson(
     val beregninger: RevurdertBeregningJson,
     val saksbehandler: String,
     val fritekstTilBrev: String,
+    val skalFøreTilBrevutsending: Boolean,
     val årsak: String,
     val begrunnelse: String,
     val attestering: AttesteringJson,
@@ -159,6 +162,11 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         ),
         saksbehandler = saksbehandler.toString(),
         fritekstTilBrev = fritekstTilBrev,
+        skalFøreTilBrevutsending = when (this) {
+            is RevurderingTilAttestering.IngenEndring -> skalFøreTilBrevutsending
+            is RevurderingTilAttestering.Innvilget -> true
+            is RevurderingTilAttestering.Opphørt -> true
+        },
         årsak = revurderingsårsak.årsak.toString(),
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
         status = InstansTilStatusMapper(this).status,
@@ -174,6 +182,11 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         ),
         saksbehandler = saksbehandler.toString(),
         fritekstTilBrev = fritekstTilBrev,
+        skalFøreTilBrevutsending = when (this) {
+            is IverksattRevurdering.IngenEndring -> skalFøreTilBrevutsending
+            is IverksattRevurdering.Innvilget -> true
+            is IverksattRevurdering.Opphørt -> true
+        },
         årsak = revurderingsårsak.årsak.toString(),
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
         attestant = attestering.attestant.toString(),
@@ -197,6 +210,11 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
             ),
         ),
         fritekstTilBrev = fritekstTilBrev,
+        skalFøreTilBrevutsending = when (this) {
+            is UnderkjentRevurdering.IngenEndring -> skalFøreTilBrevutsending
+            is UnderkjentRevurdering.Innvilget -> true
+            is UnderkjentRevurdering.Opphørt -> true
+        },
         årsak = revurderingsårsak.årsak.toString(),
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
         status = InstansTilStatusMapper(this).status,

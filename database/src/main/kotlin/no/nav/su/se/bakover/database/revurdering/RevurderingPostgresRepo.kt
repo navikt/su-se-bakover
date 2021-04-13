@@ -131,6 +131,7 @@ internal class RevurderingPostgresRepo(
             årsak = årsak,
             begrunnelse = begrunnelse,
         )
+        val skalFøreTilBrevutsending = boolean("skalFøreTilBrevutsending")
 
         return when (RevurderingsType.valueOf(string("revurderingsType"))) {
             RevurderingsType.UNDERKJENT_INNVILGET -> UnderkjentRevurdering.Innvilget(
@@ -286,6 +287,7 @@ internal class RevurderingPostgresRepo(
                 oppgaveId = OppgaveId(oppgaveId!!),
                 fritekstTilBrev = fritekstTilBrev ?: "",
                 revurderingsårsak = revurderingsårsak,
+                skalFøreTilBrevutsending = skalFøreTilBrevutsending,
             )
             RevurderingsType.IVERKSATT_INGEN_ENDRING -> IverksattRevurdering.IngenEndring(
                 id = id,
@@ -298,6 +300,7 @@ internal class RevurderingPostgresRepo(
                 fritekstTilBrev = fritekstTilBrev ?: "",
                 revurderingsårsak = revurderingsårsak,
                 attestering = attestering!! as Attestering.Iverksatt,
+                skalFøreTilBrevutsending = skalFøreTilBrevutsending,
             )
             RevurderingsType.UNDERKJENT_INGEN_ENDRING -> UnderkjentRevurdering.IngenEndring(
                 id = id,
@@ -310,6 +313,7 @@ internal class RevurderingPostgresRepo(
                 fritekstTilBrev = fritekstTilBrev ?: "",
                 revurderingsårsak = revurderingsårsak,
                 attestering = attestering!! as Attestering.Underkjent,
+                skalFøreTilBrevutsending = skalFøreTilBrevutsending,
             )
         }
     }
@@ -458,7 +462,8 @@ internal class RevurderingPostgresRepo(
                         fritekstTilBrev = :fritekstTilBrev,
                         årsak = :arsak,
                         begrunnelse =:begrunnelse,
-                        revurderingsType = :revurderingsType
+                        revurderingsType = :revurderingsType,
+                        skalFøreTilBrevutsending = :skalFoereTilBrevutsending
                     where
                         id = :id
                 """.trimIndent()
@@ -480,6 +485,11 @@ internal class RevurderingPostgresRepo(
                         is RevurderingTilAttestering.IngenEndring -> RevurderingsType.TIL_ATTESTERING_INGEN_ENDRING
                         is RevurderingTilAttestering.Innvilget -> RevurderingsType.TIL_ATTESTERING_INNVILGET
                         is RevurderingTilAttestering.Opphørt -> RevurderingsType.TIL_ATTESTERING_OPPHØRT
+                    },
+                    "skalFoereTilBrevutsending" to when (revurdering) {
+                        is RevurderingTilAttestering.IngenEndring -> revurdering.skalFøreTilBrevutsending
+                        is RevurderingTilAttestering.Innvilget -> true
+                        is RevurderingTilAttestering.Opphørt -> true
                     },
                 ),
                 session,

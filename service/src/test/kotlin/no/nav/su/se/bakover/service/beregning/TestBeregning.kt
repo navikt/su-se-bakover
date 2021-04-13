@@ -25,6 +25,7 @@ internal object TestBeregning : Beregning {
     override fun getSumFradrag(): Double = 12000.0
     override fun getPeriode(): Periode = Periode.create(1.januar(2020), 31.januar(2020))
     override fun getFradragStrategyName(): FradragStrategyName = FradragStrategyName.Enslig
+    override fun getBegrunnelse(): String? = null
 }
 
 internal object TestMånedsberegning : Månedsberegning {
@@ -49,6 +50,7 @@ internal object TestBeregningSomGirOpphør : Beregning {
     override fun getSumFradrag(): Double = 12000.0
     override fun getPeriode(): Periode = Periode.create(1.januar(2020), 31.januar(2020))
     override fun getFradragStrategyName(): FradragStrategyName = FradragStrategyName.Enslig
+    override fun getBegrunnelse(): String? = null
 }
 
 internal object TestMånedsberegningSomGirOpphør : Månedsberegning {

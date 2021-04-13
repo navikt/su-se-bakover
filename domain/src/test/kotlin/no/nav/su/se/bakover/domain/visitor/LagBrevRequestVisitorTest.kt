@@ -719,9 +719,10 @@ internal class LagBrevRequestVisitorTest {
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
+            skalFøreTilBrevutsending = false,
         )
 
-        val vedtakIngenEndring = Vedtak.from(revurdering)
+        val vedtakIngenEndring = Vedtak.from(revurdering, clock)
 
         val brevRevurdering = LagBrevRequestVisitor(
             hentPerson = { person.right() },

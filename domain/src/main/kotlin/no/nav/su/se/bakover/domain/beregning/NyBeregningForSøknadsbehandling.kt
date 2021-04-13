@@ -13,6 +13,7 @@ data class NyBeregningForSøknadsbehandling private constructor(
     val saksbehandler: Saksbehandler,
     val stønadsperiode: Stønadsperiode,
     val fradrag: List<Fradrag>,
+    val begrunnelse: String?,
 ) {
     companion object {
         fun create(
@@ -20,12 +21,14 @@ data class NyBeregningForSøknadsbehandling private constructor(
             saksbehandler: Saksbehandler,
             stønadsperiode: Stønadsperiode,
             fradrag: List<Fradrag> = emptyList(),
+            begrunnelse: String?
         ): NyBeregningForSøknadsbehandling {
             return tryCreate(
                 behandlingId,
                 saksbehandler,
                 stønadsperiode,
                 fradrag,
+                begrunnelse,
             ).getOrHandle { throw IllegalArgumentException(it.toString()) }
         }
 
@@ -34,12 +37,13 @@ data class NyBeregningForSøknadsbehandling private constructor(
             saksbehandler: Saksbehandler,
             stønadsperiode: Stønadsperiode,
             fradrag: List<Fradrag>,
+            begrunnelse: String?,
         ): Either<UgyldigBeregning, NyBeregningForSøknadsbehandling> {
             if (!fradrag.all { stønadsperiode.periode inneholder it.getPeriode() }) {
                 return UgyldigBeregning.IkkeLovMedFradragUtenforPerioden.left()
             }
 
-            return NyBeregningForSøknadsbehandling(behandlingId, saksbehandler, stønadsperiode, fradrag).right()
+            return NyBeregningForSøknadsbehandling(behandlingId, saksbehandler, stønadsperiode, fradrag, begrunnelse).right()
         }
     }
 

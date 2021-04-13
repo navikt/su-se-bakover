@@ -57,6 +57,7 @@ import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.time.LocalDate
@@ -581,6 +582,7 @@ internal class OpprettRevurderingServiceTest {
         brevService: BrevService = mock(),
         vedtakRepo: VedtakRepo = mock(),
         clock: Clock = fixedClock,
+        ferdigstillVedtakService: FerdigstillVedtakService = mock(),
     ) =
         RevurderingServiceImpl(
             sakService = sakService,
@@ -592,5 +594,6 @@ internal class OpprettRevurderingServiceTest {
             brevService = brevService,
             vedtakRepo = vedtakRepo,
             clock = clock,
+            ferdigstillVedtakService = ferdigstillVedtakService,
         )
 }

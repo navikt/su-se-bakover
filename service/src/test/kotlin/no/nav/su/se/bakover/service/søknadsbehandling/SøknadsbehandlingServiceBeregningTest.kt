@@ -61,12 +61,13 @@ class SøknadsbehandlingServiceBeregningTest {
             on { hent(any()) } doReturn vilkårsvurdertBehandling
         }
         val beregningServiceMock = mock<BeregningService> {
-            on { beregn(any(), any()) } doReturn TestBeregning
+            on { beregn(any(), any(), any()) } doReturn TestBeregning
         }
 
         val request = SøknadsbehandlingService.BeregnRequest(
             behandlingId = behandlingId,
             fradrag = emptyList(),
+            begrunnelse = "her er en begrunnelse"
         )
 
         val response = createSøknadsbehandlingService(
@@ -97,6 +98,7 @@ class SøknadsbehandlingServiceBeregningTest {
             verify(beregningServiceMock).beregn(
                 søknadsbehandling = argThat { it shouldBe vilkårsvurdertBehandling },
                 fradrag = argThat { it shouldBe request.fradrag },
+                begrunnelse = argThat { it shouldBe "her er en begrunnelse" }
             )
             verify(søknadsbehandlingRepoMock).lagre(expected)
         }
@@ -113,6 +115,7 @@ class SøknadsbehandlingServiceBeregningTest {
             SøknadsbehandlingService.BeregnRequest(
                 behandlingId = behandlingId,
                 fradrag = emptyList(),
+                begrunnelse = null
             ),
         )
 

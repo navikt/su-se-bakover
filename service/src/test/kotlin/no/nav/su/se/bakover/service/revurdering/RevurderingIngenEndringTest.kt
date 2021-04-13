@@ -7,13 +7,13 @@ import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
-import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.brev.BrevbestillingId
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -21,12 +21,12 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
-import no.nav.su.se.bakover.domain.vedtak.VedtakType
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.saksbehandler
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.søknadOppgaveId
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.beregning.TestBeregningSomGirOpphør
+import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.fixedTidspunkt
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -40,10 +40,10 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.revurdering
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.saksnummer
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.søknadsbehandlingVedtak
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import org.junit.jupiter.api.Test
 
 class RevurderingIngenEndringTest {
-
     @Test
     fun `Revurderingen går ikke gjennom hvis endring av utbetaling er under ti prosent`() {
         val opprettetRevurdering = OpprettetRevurdering(
@@ -117,6 +117,7 @@ class RevurderingIngenEndringTest {
             saksbehandler = endretSaksbehandler,
             fritekstTilBrev = "endret fritekst",
             revurderingsårsak = revurderingsårsak,
+            skalFøreTilBrevutsending = true
         )
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn beregnetRevurdering
@@ -140,9 +141,12 @@ class RevurderingIngenEndringTest {
             personService = personServiceMock,
             oppgaveService = oppgaveServiceMock
         ).sendTilAttestering(
-            revurderingId,
-            endretSaksbehandler,
-            "endret fritekst"
+            SendTilAttesteringRequest(
+                revurderingId,
+                endretSaksbehandler,
+                "endret fritekst",
+                true
+            )
         ).orNull()!! as RevurderingTilAttestering.IngenEndring
 
         actual shouldBe revurderingTilAttestering
@@ -189,6 +193,7 @@ class RevurderingIngenEndringTest {
             saksbehandler = saksbehandler,
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            skalFøreTilBrevutsending = false
         )
         val underkjentRevurdering = UnderkjentRevurdering.IngenEndring(
             id = revurderingId,
@@ -200,7 +205,8 @@ class RevurderingIngenEndringTest {
             saksbehandler = saksbehandler,
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            attestering = attesteringUnderkjent
+            attestering = attesteringUnderkjent,
+            skalFøreTilBrevutsending = false
         )
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn revurderingTilAttestering
@@ -260,53 +266,111 @@ class RevurderingIngenEndringTest {
     }
 
     @Test
-    fun `iverksetter revurdering som ikke fører til endring i ytelse`() {
+    fun `iverksetter revurdering som ikke fører til endring i ytelse og sender brev`() {
         val revurderingTilAttestering = RevurderingTilAttestering.IngenEndring(
             id = revurderingId,
             periode = periode,
-            opprettet = Tidspunkt.EPOCH,
+            opprettet = fixedTidspunkt,
             tilRevurdering = søknadsbehandlingVedtak,
             oppgaveId = OppgaveId(value = "OppgaveId"),
             beregning = TestBeregningSomGirOpphør,
             saksbehandler = RevurderingTestUtils.saksbehandler,
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            skalFøreTilBrevutsending = true
         )
         val attestant = NavIdentBruker.Attestant("ATTT")
+        val iverksattRevurdering = revurderingTilAttestering.tilIverksatt(attestant).orNull()!!
+        val vedtak = Vedtak.from(iverksattRevurdering, fixedClock)
+        val journalførtVedtak = vedtak.journalfør { JournalpostId("journalført").right() }.orNull()!!
+        val vedtakMedDistribuertBrev = journalførtVedtak.distribuerBrev { BrevbestillingId("bestiltBrev").right() }.orNull()!!
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn revurderingTilAttestering
         }
         val utbetalingServiceMock = mock<UtbetalingService>()
         val vedtakRepoMock = mock<VedtakRepo>()
+        val ferdigstillVedtakServiceMock = mock<FerdigstillVedtakService> {
+            on { journalførOgLagre(any()) } doReturn journalførtVedtak.right()
+            on { distribuerOgLagre(any()) } doReturn vedtakMedDistribuertBrev.right()
+        }
 
         createRevurderingService(
             revurderingRepo = revurderingRepoMock,
             utbetalingService = utbetalingServiceMock,
             vedtakRepo = vedtakRepoMock,
+            ferdigstillVedtakService = ferdigstillVedtakServiceMock,
         ).iverksett(
             revurderingId,
             attestant,
-        )
+        ) shouldBe iverksattRevurdering.right()
 
         inOrder(
             revurderingRepoMock,
             utbetalingServiceMock,
-            vedtakRepoMock,
+            ferdigstillVedtakServiceMock,
         ) {
             verify(revurderingRepoMock).hent(revurderingId)
-            verify(vedtakRepoMock).lagre(
-                argThat {
-                    it should beOfType<Vedtak.IngenEndringIYtelse>()
-                    it.vedtakType shouldBe VedtakType.INGEN_ENDRING
-                },
-            )
+            verify(ferdigstillVedtakServiceMock).journalførOgLagre(argThat { it shouldBe vedtak.copy(id = it.id) })
+            verify(ferdigstillVedtakServiceMock).distribuerOgLagre(argThat { it shouldBe journalførtVedtak.copy(id = it.id) })
             verify(revurderingRepoMock).lagre(any())
         }
         verifyNoMoreInteractions(
             revurderingRepoMock,
             utbetalingServiceMock,
             vedtakRepoMock,
+            ferdigstillVedtakServiceMock,
+        )
+    }
+
+    @Test
+    fun `iverksetter revurdering som ikke fører til endring i ytelse og sender ikke brev`() {
+        val revurderingTilAttestering = RevurderingTilAttestering.IngenEndring(
+            id = revurderingId,
+            periode = periode,
+            opprettet = fixedTidspunkt,
+            tilRevurdering = søknadsbehandlingVedtak,
+            oppgaveId = OppgaveId(value = "OppgaveId"),
+            beregning = TestBeregningSomGirOpphør,
+            saksbehandler = RevurderingTestUtils.saksbehandler,
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
+            skalFøreTilBrevutsending = false
+        )
+        val attestant = NavIdentBruker.Attestant("ATTT")
+        val iverksattRevurdering = revurderingTilAttestering.tilIverksatt(attestant).orNull()!!
+        val vedtak = Vedtak.from(iverksattRevurdering, fixedClock)
+
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn revurderingTilAttestering
+        }
+        val utbetalingServiceMock = mock<UtbetalingService>()
+        val vedtakRepoMock = mock<VedtakRepo>()
+        val ferdigstillVedtakServiceMock = mock<FerdigstillVedtakService>()
+
+        createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+            utbetalingService = utbetalingServiceMock,
+            vedtakRepo = vedtakRepoMock,
+            ferdigstillVedtakService = ferdigstillVedtakServiceMock,
+        ).iverksett(
+            revurderingId,
+            attestant,
+        ) shouldBe iverksattRevurdering.right()
+
+        inOrder(
+            revurderingRepoMock,
+            vedtakRepoMock,
+        ) {
+            verify(revurderingRepoMock).hent(revurderingId)
+            verify(vedtakRepoMock).lagre(argThat { it shouldBe vedtak.copy(id = it.id) })
+            verify(revurderingRepoMock).lagre(any())
+        }
+        verifyNoMoreInteractions(
+            revurderingRepoMock,
+            utbetalingServiceMock,
+            vedtakRepoMock,
+            ferdigstillVedtakServiceMock,
         )
     }
 }

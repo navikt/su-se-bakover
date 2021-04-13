@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -134,6 +135,7 @@ object RevurderingTestUtils {
         brevService: BrevService = mock(),
         clock: Clock = fixedClock,
         vedtakRepo: VedtakRepo = mock(),
+        ferdigstillVedtakService: FerdigstillVedtakService = mock(),
     ) =
         RevurderingServiceImpl(
             sakService = sakService,
@@ -145,5 +147,6 @@ object RevurderingTestUtils {
             brevService = brevService,
             clock = clock,
             vedtakRepo = vedtakRepo,
+            ferdigstillVedtakService = ferdigstillVedtakService
         )
 }

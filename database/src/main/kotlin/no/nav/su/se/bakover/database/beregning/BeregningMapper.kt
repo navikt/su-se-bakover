@@ -22,7 +22,8 @@ internal data class PersistertBeregning(
     private val sumYtelse: Int,
     private val sumFradrag: Double,
     private val periode: Periode,
-    private val fradragStrategyName: FradragStrategyName
+    private val fradragStrategyName: FradragStrategyName,
+    private val begrunnelse: String?
 ) : Beregning {
     override fun getId(): UUID = id
     override fun getOpprettet(): Tidspunkt = opprettet
@@ -32,6 +33,7 @@ internal data class PersistertBeregning(
     override fun getSumYtelse(): Int = sumYtelse
     override fun getSumFradrag(): Double = sumFradrag
     override fun getFradragStrategyName(): FradragStrategyName = fradragStrategyName
+    override fun getBegrunnelse(): String? = begrunnelse
 
     override fun getPeriode(): Periode = periode
 }
@@ -79,7 +81,8 @@ internal fun Beregning.toSnapshot() = PersistertBeregning(
     sumYtelse = getSumYtelse(),
     sumFradrag = getSumFradrag(),
     periode = getPeriode(),
-    fradragStrategyName = getFradragStrategyName()
+    fradragStrategyName = getFradragStrategyName(),
+    begrunnelse = getBegrunnelse()
 )
 
 internal fun Månedsberegning.toSnapshot() = PersistertMånedsberegning(

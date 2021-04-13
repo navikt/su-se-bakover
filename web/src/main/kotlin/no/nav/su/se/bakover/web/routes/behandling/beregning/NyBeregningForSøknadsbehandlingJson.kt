@@ -14,6 +14,7 @@ import java.util.UUID
 
 internal data class NyBeregningForSøknadsbehandlingJson(
     val fradrag: List<FradragJson>,
+    val begrunnelse: String?,
 ) {
     fun toDomain(behandlingId: UUID, saksbehandler: Saksbehandler, stønadsperiode: Stønadsperiode): Either<Resultat, NyBeregningForSøknadsbehandling> {
         val fradrag = fradrag.toFradrag(stønadsperiode.periode).getOrHandle {
@@ -24,6 +25,7 @@ internal data class NyBeregningForSøknadsbehandlingJson(
             saksbehandler = saksbehandler,
             stønadsperiode = stønadsperiode,
             fradrag = fradrag,
+            begrunnelse = begrunnelse
         ).mapLeft {
             when (it) {
                 NyBeregningForSøknadsbehandling.UgyldigBeregning.IkkeLovMedFradragUtenforPerioden -> HttpStatusCode.BadRequest.message(

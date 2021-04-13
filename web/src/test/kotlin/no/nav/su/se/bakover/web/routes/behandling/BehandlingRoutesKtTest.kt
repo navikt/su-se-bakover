@@ -148,7 +148,8 @@ internal class BehandlingRoutesKtTest {
             services.søknadsbehandling.beregn(
                 BeregnRequest(
                     behandlingId = objects.søknadsbehandling.id,
-                    fradrag = emptyList()
+                    fradrag = emptyList(),
+                    begrunnelse = null
                 )
             )
             services.søknadsbehandling.simuler(SimulerRequest(objects.søknadsbehandling.id, saksbehandler))
@@ -198,6 +199,7 @@ internal class BehandlingRoutesKtTest {
                 BeregnRequest(
                     behandlingId = objects.søknadsbehandling.id,
                     fradrag = emptyList(),
+                    begrunnelse = null,
                 )
             )
             services.søknadsbehandling.simuler(
@@ -257,6 +259,7 @@ internal class BehandlingRoutesKtTest {
                 BeregnRequest(
                     behandlingId = objects.søknadsbehandling.id,
                     fradrag = emptyList(),
+                    begrunnelse = null,
                 )
             )
 
@@ -287,7 +290,8 @@ internal class BehandlingRoutesKtTest {
                     services.søknadsbehandling.beregn(
                         BeregnRequest(
                             behandlingId = søknadsbehandling.id,
-                            fradrag = emptyList()
+                            fradrag = emptyList(),
+                            begrunnelse = null,
                         )
                     )
                     services.søknadsbehandling.simuler(
@@ -423,6 +427,7 @@ internal class BehandlingRoutesKtTest {
                         BeregnRequest(
                             behandlingId = søknadsbehandling.id,
                             fradrag = emptyList(),
+                            begrunnelse = null,
                         )
                     )
                     services.søknadsbehandling.simuler(
@@ -608,6 +613,7 @@ internal class BehandlingRoutesKtTest {
                     BeregnRequest(
                         behandlingId = objects.søknadsbehandling.id,
                         fradrag = emptyList(),
+                        begrunnelse = null,
                     )
                 )
                 services.søknadsbehandling.simuler(

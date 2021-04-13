@@ -192,6 +192,7 @@ internal fun Route.behandlingRoutes(
                                 SøknadsbehandlingService.BeregnRequest(
                                     behandlingId = it.behandlingId,
                                     fradrag = it.fradrag,
+                                    begrunnelse = it.begrunnelse,
                                 ),
                             ).mapLeft { kunneIkkeBeregne ->
                                 val resultat = when (kunneIkkeBeregne) {
