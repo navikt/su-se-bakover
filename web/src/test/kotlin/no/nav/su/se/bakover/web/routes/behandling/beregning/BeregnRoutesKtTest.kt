@@ -12,8 +12,10 @@ import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
+import no.nav.su.se.bakover.domain.Behandlingsperiode
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -36,7 +38,6 @@ import no.nav.su.se.bakover.web.applicationConfig
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.fixedClock
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingJson
-import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.behandlingsperiode
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
@@ -47,7 +48,10 @@ import java.util.UUID
 internal class BeregnRoutesKtTest {
 
     private val saksbehandler = NavIdentBruker.Saksbehandler("AB12345")
-
+    private val behandlingsperiode = Behandlingsperiode(
+        periode = Periode.create(1.januar(2021), 31.desember(2021)),
+        begrunnelse = "begrunnelse",
+    )
     private val repos = DatabaseBuilder.build(EmbeddedDatabase.instance())
     private val services = ServiceBuilder.build(
         databaseRepos = repos,
@@ -60,43 +64,39 @@ internal class BeregnRoutesKtTest {
 
     @Test
     fun `opprette beregning for behandling`() {
-        withTestApplication({
-            testSusebakover()
-        }) {
+        withTestApplication(
+            {
+                testSusebakover()
+            },
+        ) {
             val objects = setup()
-            val fraOgMed = LocalDate.of(2021, Month.JANUARY, 1)
-            val tilOgMed = LocalDate.of(2021, Month.DECEMBER, 31)
 
             services.søknadsbehandling.vilkårsvurder(
                 VilkårsvurderRequest(
                     objects.behandling.id,
                     saksbehandler,
-                    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
-                )
+                    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
+                ),
             )
 
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn",
-                listOf(Brukerrolle.Saksbehandler)
+                listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
                     //language=JSON
                     """
                     {
-                      "stønadsperiode": {
-                        "fraOgMed":"$fraOgMed",
-                        "tilOgMed":"$tilOgMed"
-                       },
                        "fradrag":[]
                     }
-                    """.trimIndent()
+                    """.trimIndent(),
                 )
             }.apply {
                 response.status() shouldBe HttpStatusCode.Created
                 val behandlingJson = deserialize<BehandlingJson>(response.content!!)
-                behandlingJson.beregning!!.fraOgMed shouldBe fraOgMed.toString()
-                behandlingJson.beregning.tilOgMed shouldBe tilOgMed.toString()
+                behandlingJson.beregning!!.fraOgMed shouldBe behandlingsperiode.periode.getFraOgMed().toString()
+                behandlingJson.beregning.tilOgMed shouldBe behandlingsperiode.periode.getTilOgMed().toString()
                 behandlingJson.beregning.sats shouldBe Sats.HØY.name
                 behandlingJson.beregning.månedsberegninger shouldHaveSize 12
             }
@@ -104,10 +104,62 @@ internal class BeregnRoutesKtTest {
     }
 
     @Test
+    fun `ikke lov å opprette fradrag utenfor perioden`() {
+        withTestApplication(
+            {
+                testSusebakover()
+            },
+        ) {
+            val objects = setup()
+            val fradragFraOgMed = LocalDate.of(2020, Month.JANUARY, 1)
+            val fradragTilOgMed = LocalDate.of(2021, Month.DECEMBER, 31)
+
+            services.søknadsbehandling.vilkårsvurder(
+                VilkårsvurderRequest(
+                    objects.behandling.id,
+                    saksbehandler,
+                    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
+                ),
+            )
+
+            defaultRequest(
+                HttpMethod.Post,
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn",
+                listOf(Brukerrolle.Saksbehandler),
+            ) {
+                setBody(
+                    //language=JSON
+                    """
+                    {
+                        "fradrag":[{
+                          "type":"Arbeidsinntekt",
+                            "beløp":200,
+                            "utenlandskInntekt":null,
+                            "periode" : {
+                              "fraOgMed":"$fradragFraOgMed",
+                              "tilOgMed":"$fradragTilOgMed"
+                            },
+                            "tilhører": "BRUKER"
+                         }]
+                    }
+                    """.trimIndent(),
+                )
+            }.apply {
+                assertSoftly {
+                    response.status() shouldBe HttpStatusCode.BadRequest
+                    response.content shouldContain "Fradragsperioden kan ikke være utenfor stønadsperioden"
+                }
+            }
+        }
+    }
+
+    @Test
     fun `Fradrag med utenlandskInntekt oppretter beregning`() {
-        withTestApplication({
-            testSusebakover()
-        }) {
+        withTestApplication(
+            {
+                testSusebakover()
+            },
+        ) {
             val objects = setup()
             val fraOgMed = LocalDate.of(2021, Month.JANUARY, 1)
             val tilOgMed = LocalDate.of(2021, Month.DECEMBER, 31)
@@ -116,23 +168,19 @@ internal class BeregnRoutesKtTest {
                 VilkårsvurderRequest(
                     objects.behandling.id,
                     saksbehandler,
-                    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
-                )
+                    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
+                ),
             )
 
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn",
-                listOf(Brukerrolle.Saksbehandler)
+                listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
                     //language=JSON
                     """
                     {
-                      "stønadsperiode": {
-                           "fraOgMed":"$fraOgMed",
-                           "tilOgMed":"$tilOgMed"
-                       },
                        "fradrag":[{
                          "type":"Arbeidsinntekt",
                          "beløp":200,
@@ -148,7 +196,7 @@ internal class BeregnRoutesKtTest {
                          "tilhører": "BRUKER"
                       }]
                     }
-                    """.trimIndent()
+                    """.trimIndent(),
                 )
             }.apply {
                 response.status() shouldBe HttpStatusCode.Created
@@ -162,7 +210,7 @@ internal class BeregnRoutesKtTest {
                     it.utenlandskInntekt == UtenlandskInntektJson(
                         beløpIUtenlandskValuta = 200,
                         valuta = "euro",
-                        kurs = 0.5
+                        kurs = 0.5,
                     )
                 }
             }
@@ -171,9 +219,11 @@ internal class BeregnRoutesKtTest {
 
     @Test
     fun `Fradrag med utenlandskInntekt er null oppretter beregning`() {
-        withTestApplication({
-            testSusebakover()
-        }) {
+        withTestApplication(
+            {
+                testSusebakover()
+            },
+        ) {
             val objects = setup()
             val fraOgMed = LocalDate.of(2021, Month.JANUARY, 1)
             val tilOgMed = LocalDate.of(2021, Month.DECEMBER, 31)
@@ -182,23 +232,19 @@ internal class BeregnRoutesKtTest {
                 VilkårsvurderRequest(
                     objects.behandling.id,
                     saksbehandler,
-                    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
-                )
+                    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
+                ),
             )
 
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn",
-                listOf(Brukerrolle.Saksbehandler)
+                listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
                     //language=JSON
                     """
                     {
-                        "stønadsperiode": {
-                            "fraOgMed":"$fraOgMed",
-                            "tilOgMed":"$tilOgMed"
-                        },
                         "fradrag": [{
                             "type": "Arbeidsinntekt",
                             "beløp": 200,
@@ -210,7 +256,7 @@ internal class BeregnRoutesKtTest {
                             "tilhører": "BRUKER"
                         }]
                     }
-                    """.trimIndent()
+                    """.trimIndent(),
                 )
             }.apply {
                 response.status() shouldBe HttpStatusCode.Created
@@ -227,14 +273,16 @@ internal class BeregnRoutesKtTest {
 
     @Test
     fun `beregn error handling`() {
-        withTestApplication({
-            testSusebakover()
-        }) {
+        withTestApplication(
+            {
+                testSusebakover()
+            },
+        ) {
             val objects = setup()
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/${objects.sak.id}/behandlinger/blabla/beregn",
-                listOf(Brukerrolle.Saksbehandler)
+                listOf(Brukerrolle.Saksbehandler),
             ) {}.apply {
                 assertSoftly {
                     response.status() shouldBe HttpStatusCode.BadRequest
@@ -244,46 +292,39 @@ internal class BeregnRoutesKtTest {
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/beregn",
-                listOf(Brukerrolle.Saksbehandler)
+                listOf(Brukerrolle.Saksbehandler),
             ).apply {
                 assertSoftly {
-                    response.status() shouldBe HttpStatusCode.BadRequest
-                    response.content shouldContain "Ugyldig body"
+                    response.status() shouldBe HttpStatusCode.NotFound
+                    response.content shouldContain "Fant ikke behandling"
                 }
             }
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn",
-                listOf(Brukerrolle.Saksbehandler)
+                listOf(Brukerrolle.Saksbehandler),
             ).apply {
                 assertSoftly {
                     response.status() shouldBe HttpStatusCode.BadRequest
                     response.content shouldContain "Ugyldig body"
                 }
             }
-            val fraOgMed = LocalDate.of(2021, Month.JANUARY, 1)
-            val tilOgMed = LocalDate.of(2021, Month.DECEMBER, 31)
-
             services.søknadsbehandling.vilkårsvurder(
                 VilkårsvurderRequest(
                     objects.behandling.id,
                     saksbehandler,
-                    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
-                )
+                    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
+                ),
             )
 
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn",
-                listOf(Brukerrolle.Saksbehandler)
+                listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
                     //language=JSON
                     """{
-                          "stønadsperiode": {
-                               "fraOgMed":"$fraOgMed",
-                               "tilOgMed":"$tilOgMed"
-                           },
                            "fradrag":[{
                              "type":"Arbeidsinntekt",
                              "beløp":200,
@@ -295,7 +336,7 @@ internal class BeregnRoutesKtTest {
                              "tilhører": "BRUKER"
                           }]
                         }
-                    """.trimIndent()
+                    """.trimIndent(),
                 )
             }.apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
@@ -305,16 +346,18 @@ internal class BeregnRoutesKtTest {
 
     @Test
     fun `client notified about illegal operations on current state of behandling`() {
-        withTestApplication({
-            testSusebakover()
-        }) {
+        withTestApplication(
+            {
+                testSusebakover()
+            },
+        ) {
             val objects = setup()
             objects.behandling.status shouldBe BehandlingsStatus.OPPRETTET
 
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn",
-                listOf(Brukerrolle.Saksbehandler)
+                listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
                     //language=JSON
@@ -326,7 +369,7 @@ internal class BeregnRoutesKtTest {
                         },
                         "fradrag":[]
                     }
-                    """.trimIndent()
+                    """.trimIndent(),
                 )
             }.apply {
                 response.status() shouldBe HttpStatusCode.BadRequest
@@ -369,7 +412,7 @@ internal class BeregnRoutesKtTest {
             behandlingsperiode = behandlingsperiode,
         )
         repos.søknadsbehandling.lagre(
-            nySøknadsbehandling
+            nySøknadsbehandling,
         )
         return Objects(
             repos.sak.hentSak(sak.id)!!,

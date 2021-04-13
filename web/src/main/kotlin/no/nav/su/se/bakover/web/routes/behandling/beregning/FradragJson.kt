@@ -19,32 +19,32 @@ import no.nav.su.se.bakover.web.routes.behandling.beregning.PeriodeJson.Companio
 import no.nav.su.se.bakover.web.routes.behandling.beregning.UtenlandskInntektJson.Companion.toJson
 
 internal data class FradragJson(
-    val periode: PeriodeJson,
+    val periode: PeriodeJson?,
     val type: String,
     val beløp: Double,
     val utenlandskInntekt: UtenlandskInntektJson?,
-    val tilhører: String,
+    val tilhører: String
 ) {
-    internal fun toFradrag(): Either<Resultat, Fradrag> {
+    internal fun toFradrag(beregningsperiode: Periode): Either<Resultat, Fradrag> {
         val utenlandskInntekt: UtenlandskInntekt? = this.utenlandskInntekt?.toUtlandskInntekt()?.getOrHandle {
             return it.left()
         }
-        val periode: Periode = this.periode.toPeriode().getOrHandle {
+        val periode: Periode = this.periode?.toPeriode()?.getOrHandle {
             return it.left()
-        }
+        } ?: beregningsperiode
         return FradragFactory.ny(
             type = Fradragstype.valueOf(type),
             månedsbeløp = beløp,
             periode = periode,
             utenlandskInntekt = utenlandskInntekt,
-            tilhører = FradragTilhører.valueOf(tilhører),
+            tilhører = FradragTilhører.valueOf(tilhører)
         ).right()
     }
 
     companion object {
-        fun List<FradragJson>.toFradrag(): Either<Resultat, List<Fradrag>> {
+        fun List<FradragJson>.toFradrag(beregningsperiode: Periode): Either<Resultat, List<Fradrag>> {
             return this.map {
-                it.toFradrag()
+                it.toFradrag(beregningsperiode)
             }.traverse(Either.applicative(), ::identity).fix().map {
                 it.fix()
             }
@@ -57,7 +57,7 @@ internal data class FradragJson(
                     beløp = it.getMånedsbeløp(),
                     utenlandskInntekt = it.getUtenlandskInntekt()?.toJson(),
                     periode = it.getPeriode().toJson(),
-                    tilhører = it.getTilhører().toString(),
+                    tilhører = it.getTilhører().toString()
                 )
             }
         }

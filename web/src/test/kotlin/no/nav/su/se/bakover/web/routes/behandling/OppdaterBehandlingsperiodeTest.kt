@@ -55,7 +55,7 @@ class OppdaterBehandlingsperiodeTest {
     }
 
     @Test
-    fun `svarer med 400 dersom perioden starter tidligere enn 2020`() {
+    fun `svarer med 400 dersom perioden starter tidligere enn 2021`() {
         withTestApplication(
             { testSusebakover(services = services) },
         ) {
@@ -91,7 +91,61 @@ class OppdaterBehandlingsperiodeTest {
     }
 
     @Test
-    fun `svarer med søknadsbehandling hvis alt er ok`() {
+    fun `svarer med 400 dersom fraOgMed ikke er første dag i måneden`() {
+        withTestApplication(
+            { testSusebakover(services = services) },
+        ) {
+            defaultRequest(
+                HttpMethod.Post,
+                url,
+                listOf(Brukerrolle.Saksbehandler),
+            ) {
+                setBody("""{"periode": {"fraOgMed": "2021-01-15", "tilOgMed": "2021-12-31"}, "begrunnelse": "begrunnelsen"}""")
+            }.apply {
+                response.status() shouldBe HttpStatusCode.BadRequest
+                response.content shouldContain "Perioder kan kun starte på første dag i måneden"
+            }
+        }
+    }
+
+    @Test
+    fun `svarer med 400 dersom tilOgMed ikke er siste dag i måneden`() {
+        withTestApplication(
+            { testSusebakover(services = services) },
+        ) {
+            defaultRequest(
+                HttpMethod.Post,
+                url,
+                listOf(Brukerrolle.Saksbehandler),
+            ) {
+                setBody("""{"periode": {"fraOgMed": "2021-01-01", "tilOgMed": "2021-12-15"}, "begrunnelse": "begrunnelsen"}""")
+            }.apply {
+                response.status() shouldBe HttpStatusCode.BadRequest
+                response.content shouldContain "Perioder kan kun avsluttes siste dag i måneden"
+            }
+        }
+    }
+
+    @Test
+    fun `svarer med 400 dersom tilOgMed er før fraOgMed`() {
+        withTestApplication(
+            { testSusebakover(services = services) },
+        ) {
+            defaultRequest(
+                HttpMethod.Post,
+                url,
+                listOf(Brukerrolle.Saksbehandler),
+            ) {
+                setBody("""{"periode": {"fraOgMed": "2021-12-01", "tilOgMed": "2021-01-31"}, "begrunnelse": "begrunnelsen"}""")
+            }.apply {
+                response.status() shouldBe HttpStatusCode.BadRequest
+                response.content shouldContain "Startmåned må være tidligere eller lik sluttmåned"
+            }
+        }
+    }
+
+    @Test
+    fun `svarer med 201 og søknadsbehandling hvis alt er ok`() {
         val søknadsbehandling = Søknadsbehandling.Vilkårsvurdert.Uavklart(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.EPOCH,
@@ -119,7 +173,7 @@ class OppdaterBehandlingsperiodeTest {
             ) {
                 setBody("""{"periode": {"fraOgMed": "2021-01-01", "tilOgMed": "2021-12-31"}, "begrunnelse": "begrunnelsen"}""")
             }.apply {
-                response.status() shouldBe HttpStatusCode.OK
+                response.status() shouldBe HttpStatusCode.Created
             }
         }
     }

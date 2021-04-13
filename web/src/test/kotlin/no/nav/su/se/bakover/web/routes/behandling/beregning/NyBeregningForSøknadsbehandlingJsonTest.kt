@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.beregning.NyBeregningForSøknadsbehandling
+import no.nav.su.se.bakover.domain.beregning.Stønadsperiode
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -23,9 +24,12 @@ internal class NyBeregningForSøknadsbehandlingJsonTest {
     private val tilOgMed = "2021-12-31"
     private val tilOgMedDato: LocalDate = LocalDate.of(2021, 12, 31)
 
-    private val nyBeregningForSøknadsbehandling = NyBeregningForSøknadsbehandling(
+    private val periode = Periode.create(fraOgMedDato, tilOgMedDato)
+    private val stønadsperiode = Stønadsperiode.create(periode = periode)
+    private val nyBeregningForSøknadsbehandling = NyBeregningForSøknadsbehandling.create(
         behandlingId = UUID.randomUUID(),
         saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
+        stønadsperiode = stønadsperiode,
         fradrag = listOf(
             FradragFactory.ny(
                 periode = Periode.create(
@@ -45,7 +49,7 @@ internal class NyBeregningForSøknadsbehandlingJsonTest {
     )
 
     @Test
-    fun `kan deserialisere ny beregning for søknadsbehandling json`() {
+    fun `En stønadsperiode kan ikke starte før 2021`() {
         val nyBeregningForSøknadsbehandlingJson = deserialize<NyBeregningForSøknadsbehandlingJson>(
             //language=JSON
             """
@@ -95,6 +99,7 @@ internal class NyBeregningForSøknadsbehandlingJsonTest {
             nyBeregningForSøknadsbehandlingJson.toDomain(
                 nyBeregningForSøknadsbehandling.behandlingId,
                 nyBeregningForSøknadsbehandling.saksbehandler,
+                nyBeregningForSøknadsbehandling.stønadsperiode,
             ) shouldBe nyBeregningForSøknadsbehandling.right()
         }
     }

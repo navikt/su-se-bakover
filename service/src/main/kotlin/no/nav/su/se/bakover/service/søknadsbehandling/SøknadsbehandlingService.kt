@@ -51,7 +51,6 @@ interface SøknadsbehandlingService {
 
     sealed class KunneIkkeBeregne {
         object FantIkkeBehandling : KunneIkkeBeregne()
-        object IkkeLovMedFradragUtenforPerioden : KunneIkkeBeregne()
     }
 
     data class SimulerRequest(

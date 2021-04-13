@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.routes.behandling
 
 import arrow.core.Either
 import arrow.core.flatMap
+import arrow.core.getOrHandle
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.http.ContentType
@@ -21,6 +22,7 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.beregning.Stønadsperiode
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.BrevRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.HentRequest
@@ -128,7 +130,7 @@ internal fun Route.behandlingRoutes(
                                     )
                                 }
                                 .map {
-                                    call.svar(OK.jsonBody(it))
+                                    call.svar(Created.jsonBody(it))
                                 }
                         }
                 }
@@ -179,8 +181,11 @@ internal fun Route.behandlingRoutes(
     authorize(Brukerrolle.Saksbehandler) {
         post("$behandlingPath/{behandlingId}/beregn") {
             call.withBehandlingId { behandlingId ->
+                val behandling = søknadsbehandlingService.hent(HentRequest(behandlingId)).getOrHandle {
+                    return@withBehandlingId call.svar(NotFound.message("Fant ikke behandling"))
+                }
                 call.withBody<NyBeregningForSøknadsbehandlingJson> { body ->
-                    body.toDomain(behandlingId, Saksbehandler(call.suUserContext.navIdent))
+                    body.toDomain(behandlingId, Saksbehandler(call.suUserContext.navIdent), Stønadsperiode.create(behandling.periode))
                         .mapLeft { call.svar(it) }
                         .map {
                             søknadsbehandlingService.beregn(
@@ -192,9 +197,6 @@ internal fun Route.behandlingRoutes(
                                 val resultat = when (kunneIkkeBeregne) {
                                     KunneIkkeBeregne.FantIkkeBehandling -> {
                                         NotFound.message("Fant ikke behandling")
-                                    }
-                                    KunneIkkeBeregne.IkkeLovMedFradragUtenforPerioden -> {
-                                        BadRequest.message("Fradragsperioden kan ikke være utenfor stønadsperioden")
                                     }
                                 }
                                 call.svar(resultat)
