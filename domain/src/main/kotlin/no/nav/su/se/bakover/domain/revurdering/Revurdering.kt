@@ -29,6 +29,8 @@ import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.util.UUID
 import kotlin.math.abs
 
+data class Forhåndsvarsel(val x, val a, val b)
+
 sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
     abstract val tilRevurdering: Vedtak.EndringIYtelse
     abstract val saksbehandler: Saksbehandler

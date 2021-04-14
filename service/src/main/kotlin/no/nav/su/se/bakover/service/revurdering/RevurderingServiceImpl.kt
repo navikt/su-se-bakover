@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -36,6 +37,8 @@ import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
+import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
+import no.nav.su.se.bakover.service.søknad.lukk.LukketSøknad
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
@@ -226,7 +229,7 @@ internal class RevurderingServiceImpl(
         }
     }
 
-    override fun forhåndsvarsle(revurderingId: UUID, saksbehandler: NavIdentBruker.Saksbehandler): Either<KunneIkkeForhåndsvarsle, Revurdering> {
+    override fun forhåndsvarsle(revurderingId: UUID, saksbehandler: NavIdentBruker.Saksbehandler, fritekst: String): Either<KunneIkkeForhåndsvarsle, Revurdering> {
         val revurdering = revurderingRepo.hent(revurderingId)
 
         return when (revurdering) {
@@ -236,6 +239,29 @@ internal class RevurderingServiceImpl(
                     return KunneIkkeForhåndsvarsle.FantIkkeAktørId.left()
                 }
 
+                brevService.journalførBrev(
+                    request = LagBrevRequest.Forhåndsvarsel(),
+                    saksnummer = revurdering.saksnummer
+                ).mapLeft {
+                    log.error("Kunne ikke forhåndsvarsle bruker ${revurdering.id} fordi journalføring feilet")
+                    return KunneIkkeForhåndsvarsle.KunneIkkeJournalføre.left()
+                }.flatMap { journalpostId ->
+                    val lukketSøknadMedJournalpostId = lukketSøknad.medJournalpostId(journalpostId)
+
+                    brevService.distribuerBrev(journalpostId)
+                        .mapLeft {
+                            søknadRepo.oppdaterSøknad(lukketSøknadMedJournalpostId)
+                            log.error("Revurdering ${revurdering.id} med journalpostId $journalpostId. Det skjedde en feil ved brevbestilling som må følges opp manuelt")
+                            return LukketSøknad.MedMangler.KunneIkkeDistribuereBrev(hentSak(søknad.sakId), lukketSøknadMedJournalpostId).right()
+                        }
+                        .flatMap { brevbestillingId ->
+                            val lukketSøknadMedBrevbestillingId =
+                                lukketSøknadMedJournalpostId.medBrevbestillingId(brevbestillingId)
+                            søknadRepo.oppdaterSøknad(lukketSøknadMedBrevbestillingId)
+                            log.info("Lukket søknad ${søknad.id} med journalpostId $journalpostId og bestilt brev $brevbestillingId")
+                            LukketSøknad.UtenMangler(hentSak(søknad.sakId), lukketSøknadMedBrevbestillingId).right()
+                        }
+                }
                 oppgaveService.opprettOppgave(
                     OppgaveConfig.Forhåndsvarsling(
                         saksnummer = revurdering.saksnummer,

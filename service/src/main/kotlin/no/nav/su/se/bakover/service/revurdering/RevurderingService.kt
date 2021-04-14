@@ -31,7 +31,8 @@ interface RevurderingService {
 
     fun forhåndsvarsle(
         revurderingId: UUID,
-        saksbehandler: NavIdentBruker.Saksbehandler
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        fritekst: String
     ): Either<KunneIkkeForhåndsvarsle, Revurdering>
 
     fun sendTilAttestering(
@@ -94,6 +95,8 @@ sealed class KunneIkkeBeregneOgSimulereRevurdering {
 sealed class KunneIkkeForhåndsvarsle {
     object UgyldigStatus : KunneIkkeForhåndsvarsle()
     object FantIkkeAktørId : KunneIkkeForhåndsvarsle()
+    object KunneIkkeJournalføre : KunneIkkeForhåndsvarsle()
+    object KunneIkkeDistribuere : KunneIkkeForhåndsvarsle()
 }
 
 sealed class KunneIkkeSendeRevurderingTilAttestering {
