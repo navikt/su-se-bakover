@@ -29,6 +29,11 @@ interface RevurderingService {
         fradrag: List<Fradrag>,
     ): Either<KunneIkkeBeregneOgSimulereRevurdering, Revurdering>
 
+    fun forhåndsvarsle(
+        revurderingId: UUID,
+        saksbehandler: NavIdentBruker.Saksbehandler
+    ): Either<KunneIkkeForhåndsvarsle, Revurdering>
+
     fun sendTilAttestering(
         request: SendTilAttesteringRequest,
     ): Either<KunneIkkeSendeRevurderingTilAttestering, Revurdering>
@@ -84,6 +89,11 @@ sealed class KunneIkkeBeregneOgSimulereRevurdering {
         KunneIkkeBeregneOgSimulereRevurdering()
 
     object UfullstendigBehandlingsinformasjon : KunneIkkeBeregneOgSimulereRevurdering()
+}
+
+sealed class KunneIkkeForhåndsvarsle {
+    object UgyldigStatus : KunneIkkeForhåndsvarsle()
+    object FantIkkeAktørId : KunneIkkeForhåndsvarsle()
 }
 
 sealed class KunneIkkeSendeRevurderingTilAttestering {

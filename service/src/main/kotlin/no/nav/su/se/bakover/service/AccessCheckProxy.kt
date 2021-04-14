@@ -41,6 +41,7 @@ import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeForhåndsvarsle
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLageBrevutkastForRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppdatereRevurderingsperiode
@@ -371,6 +372,14 @@ open class AccessCheckProxy(
                         saksbehandler = saksbehandler,
                         fradrag = fradrag,
                     )
+                }
+
+                override fun forhåndsvarsle(
+                    revurderingId: UUID,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
+                ): Either<KunneIkkeForhåndsvarsle, Revurdering> {
+                    assertHarTilgangTilRevurdering(revurderingId)
+                    return services.revurdering.forhåndsvarsle(revurderingId, saksbehandler)
                 }
 
                 override fun sendTilAttestering(

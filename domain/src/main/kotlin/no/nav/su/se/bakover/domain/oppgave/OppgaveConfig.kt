@@ -54,6 +54,18 @@ sealed class OppgaveConfig {
         override val oppgavetype = Oppgavetype.BEHANDLE_SAK
     }
 
+    data class Forhåndsvarsling(
+        val saksnummer: Saksnummer,
+        override val aktørId: AktørId,
+        override val tilordnetRessurs: NavIdentBruker? = null
+    ) : OppgaveConfig() {
+        override val saksreferanse = saksnummer.toString()
+        override val journalpostId: JournalpostId? = null
+        override val behandlingstema = Behandlingstema.SU_UFØRE_FLYKNING
+        override val behandlingstype = Behandlingstype.REVURDERING
+        override val oppgavetype = Oppgavetype.FREMLEGGING
+    }
+
     data class AttesterRevurdering(
         val saksnummer: Saksnummer,
         override val aktørId: AktørId,

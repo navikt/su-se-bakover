@@ -226,6 +226,31 @@ internal class RevurderingServiceImpl(
         }
     }
 
+    override fun forhåndsvarsle(revurderingId: UUID, saksbehandler: NavIdentBruker.Saksbehandler): Either<KunneIkkeForhåndsvarsle, Revurdering> {
+        val revurdering = revurderingRepo.hent(revurderingId)
+
+        return when (revurdering) {
+            is SimulertRevurdering -> {
+                val aktørId = personService.hentAktørId(revurdering.fnr).getOrElse {
+                    log.error("Fant ikke aktør-id for revurdering: ${revurdering.id}")
+                    return KunneIkkeForhåndsvarsle.FantIkkeAktørId.left()
+                }
+
+                oppgaveService.opprettOppgave(
+                    OppgaveConfig.Forhåndsvarsling(
+                        saksnummer = revurdering.saksnummer,
+                        aktørId = aktørId,
+                        tilordnetRessurs = null
+                    )
+                )
+                // TODO: Handle left() & handle forhåndsvarsling-status-overgång
+
+                return revurdering.right()
+            }
+            else -> KunneIkkeForhåndsvarsle.UgyldigStatus.left()
+        }
+    }
+
     override fun sendTilAttestering(
         request: SendTilAttesteringRequest,
     ): Either<KunneIkkeSendeRevurderingTilAttestering, Revurdering> {
