@@ -20,11 +20,11 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
-import no.nav.su.se.bakover.domain.Behandlingsperiode
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -70,7 +70,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
     private val attestant = NavIdentBruker.Attestant("attestant")
     private val saksbehandler = NavIdentBruker.Saksbehandler("saksbehandlinger")
     private val utbetalingId = UUID30.randomUUID()
-    private val behandlingsperiode = Behandlingsperiode(Periode.create(1.januar(2021), 31.desember(2021)))
+    private val stønadsperiode = ValgtStønadsperiode(Periode.create(1.januar(2021), 31.desember(2021)))
     val opprettet = Tidspunkt.now(fixedClock)
     private val utbetaling = Utbetaling.OversendtUtbetaling.UtenKvittering(
         id = utbetalingId,
@@ -273,7 +273,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             saksbehandler = behandling.saksbehandler,
             attestering = Attestering.Iverksatt(attestant),
             fritekstTilBrev = "",
-            behandlingsperiode = behandling.behandlingsperiode,
+            stønadsperiode = behandling.stønadsperiode,
         )
 
         response shouldBe expected.right()
@@ -350,7 +350,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             saksbehandler = behandling.saksbehandler,
             attestering = Attestering.Iverksatt(attestant),
             fritekstTilBrev = "",
-            behandlingsperiode = behandling.behandlingsperiode,
+            stønadsperiode = behandling.stønadsperiode,
         )
 
         val behandlingMetricsMock = mock<BehandlingMetrics>()
@@ -438,7 +438,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 fnr = it.fnr,
                 oppgaveId = søknadOppgaveId,
                 fritekstTilBrev = "",
-                behandlingsperiode = it.behandlingsperiode,
+                stønadsperiode = it.stønadsperiode,
             )
         }
 
@@ -484,7 +484,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             beregning = beregning,
             simulering = simulering,
             fritekstTilBrev = "",
-            behandlingsperiode = behandlingsperiode,
+            stønadsperiode = stønadsperiode,
         )
 
     private fun avslagTilAttestering() =
@@ -507,7 +507,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             oppgaveId = søknadOppgaveId,
             beregning = beregning,
             fritekstTilBrev = "",
-            behandlingsperiode = behandlingsperiode,
+            stønadsperiode = stønadsperiode,
         )
 
     private val beregning = TestBeregning

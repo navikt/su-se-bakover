@@ -13,11 +13,11 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
-import no.nav.su.se.bakover.domain.Behandlingsperiode
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -30,13 +30,13 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.util.UUID
 
-internal class SøknadsbehandlingServiceOppdaterBehandlingsperiodeTest {
+internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
 
     private val sakId = UUID.randomUUID()
     private val behandlingId = UUID.randomUUID()
     private val saksbehandler = Saksbehandler("AB12345")
     private val oppgaveId = OppgaveId("o")
-    private val behandlingsperiode = Behandlingsperiode(Periode.create(1.januar(2021), 31.desember(2021)))
+    private val stønadsperiode = ValgtStønadsperiode(Periode.create(1.januar(2021), 31.desember(2021)))
 
     @Test
     fun `svarer med feil hvis man ikke finner behandling`() {
@@ -46,18 +46,18 @@ internal class SøknadsbehandlingServiceOppdaterBehandlingsperiodeTest {
 
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-        ).oppdaterBehandlingsperiode(
-            SøknadsbehandlingService.OppdaterBehandlingsperiodeRequest(behandlingId, behandlingsperiode),
+        ).oppdaterStønadsperiode(
+            SøknadsbehandlingService.OppdaterStønadsperiodeRequest(behandlingId, stønadsperiode),
         )
 
-        response shouldBe SøknadsbehandlingService.KunneIkkeOppdatereBehandlingsperiode.FantIkkeBehandling.left()
+        response shouldBe SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling.left()
 
         verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandlingId })
         verifyNoMoreInteractions(søknadsbehandlingRepoMock)
     }
 
     @Test
-    fun `kaster exception ved hvs søknadsbehandling er i ugyldig tilstand for oppdatering av behandlingsperiode`() {
+    fun `kaster exception ved hvs søknadsbehandling er i ugyldig tilstand for oppdatering av stønadsperiode`() {
         val tilAttestering = Søknadsbehandling.Vilkårsvurdert.Avslag(
             id = behandlingId,
             opprettet = Tidspunkt.now(),
@@ -75,7 +75,7 @@ internal class SøknadsbehandlingServiceOppdaterBehandlingsperiodeTest {
             fnr = FnrGenerator.random(),
             oppgaveId = oppgaveId,
             fritekstTilBrev = "",
-            behandlingsperiode = behandlingsperiode,
+            stønadsperiode = stønadsperiode,
         ).tilAttestering(Saksbehandler("saksa"), "")
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
@@ -85,8 +85,8 @@ internal class SøknadsbehandlingServiceOppdaterBehandlingsperiodeTest {
         assertThrows<StatusovergangVisitor.UgyldigStatusovergangException> {
             createSøknadsbehandlingService(
                 søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            ).oppdaterBehandlingsperiode(
-                SøknadsbehandlingService.OppdaterBehandlingsperiodeRequest(behandlingId, behandlingsperiode),
+            ).oppdaterStønadsperiode(
+                SøknadsbehandlingService.OppdaterStønadsperiodeRequest(behandlingId, stønadsperiode),
             )
         }
     }
@@ -110,20 +110,20 @@ internal class SøknadsbehandlingServiceOppdaterBehandlingsperiodeTest {
             fnr = FnrGenerator.random(),
             oppgaveId = oppgaveId,
             fritekstTilBrev = "",
-            behandlingsperiode = null,
+            stønadsperiode = null,
         )
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn uavklart
         }
 
         val expected = uavklart.copy(
-            behandlingsperiode = behandlingsperiode,
+            stønadsperiode = stønadsperiode,
         )
 
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-        ).oppdaterBehandlingsperiode(
-            SøknadsbehandlingService.OppdaterBehandlingsperiodeRequest(behandlingId, behandlingsperiode),
+        ).oppdaterStønadsperiode(
+            SøknadsbehandlingService.OppdaterStønadsperiodeRequest(behandlingId, stønadsperiode),
         )
 
         response shouldBe expected.right()

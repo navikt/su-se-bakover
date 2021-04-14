@@ -4,13 +4,13 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.Behandlingsperiode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -29,7 +29,7 @@ object BehandlingTestUtils {
     internal val søknadInnhold = SøknadInnholdTestdataBuilder.build()
     internal val oppgaveId = OppgaveId("o")
     internal val journalpostId = JournalpostId("j")
-    internal val behandlingsperiode = Behandlingsperiode(Periode.create(1.januar(2021), 31.desember(2021)), "begrunnelsen")
+    internal val stønadsperiode = ValgtStønadsperiode(Periode.create(1.januar(2021), 31.desember(2021)), "begrunnelsen")
     internal val journalførtSøknadMedOppgave = Søknad.Journalført.MedOppgave(
         sakId = sakId,
         opprettet = Tidspunkt.EPOCH,
@@ -130,6 +130,6 @@ object BehandlingTestUtils {
         saksbehandler = NavIdentBruker.Saksbehandler("pro-saksbehandler"),
         attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("kjella")),
         fritekstTilBrev = "",
-        behandlingsperiode = behandlingsperiode,
+        stønadsperiode = stønadsperiode,
     )
 }

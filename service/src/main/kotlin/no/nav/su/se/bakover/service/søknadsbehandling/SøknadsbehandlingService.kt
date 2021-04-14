@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.Either
-import no.nav.su.se.bakover.domain.Behandlingsperiode
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
@@ -21,7 +21,7 @@ interface SøknadsbehandlingService {
     fun iverksett(request: IverksettRequest): Either<KunneIkkeIverksette, Søknadsbehandling.Iverksatt>
     fun brev(request: BrevRequest): Either<KunneIkkeLageBrev, ByteArray>
     fun hent(request: HentRequest): Either<FantIkkeBehandling, Søknadsbehandling>
-    fun oppdaterBehandlingsperiode(request: OppdaterBehandlingsperiodeRequest): Either<KunneIkkeOppdatereBehandlingsperiode, Søknadsbehandling>
+    fun oppdaterStønadsperiode(request: OppdaterStønadsperiodeRequest): Either<KunneIkkeOppdatereStønadsperiode, Søknadsbehandling>
 
     data class OpprettRequest(
         val søknadId: UUID,
@@ -142,14 +142,14 @@ interface SøknadsbehandlingService {
     object FantIkkeBehandling
     object KunneIkkeHenteAktiveBehandlinger
 
-    sealed class KunneIkkeOppdatereBehandlingsperiode {
-        object FantIkkeBehandling : SøknadsbehandlingService.KunneIkkeOppdatereBehandlingsperiode()
-        object FraOgMedDatoKanIkkeVæreFør2021 : SøknadsbehandlingService.KunneIkkeOppdatereBehandlingsperiode()
-        object PeriodeKanIkkeVæreLengreEnn12Måneder : SøknadsbehandlingService.KunneIkkeOppdatereBehandlingsperiode()
+    sealed class KunneIkkeOppdatereStønadsperiode {
+        object FantIkkeBehandling : SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode()
+        object FraOgMedDatoKanIkkeVæreFør2021 : SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode()
+        object PeriodeKanIkkeVæreLengreEnn12Måneder : SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode()
     }
 
-    data class OppdaterBehandlingsperiodeRequest(
+    data class OppdaterStønadsperiodeRequest(
         val behandlingId: UUID,
-        val behandlingsperiode: Behandlingsperiode,
+        val stønadsperiode: ValgtStønadsperiode,
     )
 }

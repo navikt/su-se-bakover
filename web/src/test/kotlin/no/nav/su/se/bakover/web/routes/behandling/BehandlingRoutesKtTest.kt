@@ -51,7 +51,7 @@ import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.fixedClock
 import no.nav.su.se.bakover.web.jwtStub
 import no.nav.su.se.bakover.web.requestSomAttestant
-import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.behandlingsperiode
+import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.stønadsperiode
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.stubs.asBearerToken
 import no.nav.su.se.bakover.web.testSusebakover
@@ -671,7 +671,7 @@ internal class BehandlingRoutesKtTest {
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             fnr = sak.fnr,
             fritekstTilBrev = "",
-            behandlingsperiode = behandlingsperiode,
+            stønadsperiode = stønadsperiode,
         )
         repos.søknadsbehandling.lagre(
             søknadsbehandling

@@ -8,12 +8,12 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.Behandlingsperiode
 import no.nav.su.se.bakover.domain.FnrGenerator
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
@@ -73,7 +73,7 @@ internal class StatusovergangTest {
         fradragStrategy = FradragStrategy.Enslig,
     )
 
-    private val behandlingsperiode = Behandlingsperiode(Periode.create(1.januar(2021), 31.desember(2021)), "begrunnelsen")
+    private val stønadsperiode = ValgtStønadsperiode(Periode.create(1.januar(2021), 31.desember(2021)), "begrunnelsen")
     private val opprettet = Søknadsbehandling.Vilkårsvurdert.Uavklart(
         id = UUID.randomUUID(),
         opprettet = Tidspunkt.now(),
@@ -91,7 +91,7 @@ internal class StatusovergangTest {
         behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
         fnr = FnrGenerator.random(),
         fritekstTilBrev = "",
-        behandlingsperiode = behandlingsperiode,
+        stønadsperiode = stønadsperiode,
     )
 
     private val simulering = Simulering(
@@ -799,7 +799,7 @@ internal class StatusovergangTest {
     }
 
     @Nested
-    inner class OppdaterBehandlingsperiode {
+    inner class OppdaterStønadsperiode {
 
         @Test
         fun `lovlige overganger`() {
@@ -817,7 +817,7 @@ internal class StatusovergangTest {
                 assertDoesNotThrow {
                     statusovergang(
                         søknadsbehandling = it,
-                        statusovergang = Statusovergang.OppdaterBehandlingsperiode(behandlingsperiode),
+                        statusovergang = Statusovergang.OppdaterStønadsperiode(stønadsperiode),
                     )
                 }
             }
@@ -836,7 +836,7 @@ internal class StatusovergangTest {
                 assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
                     statusovergang(
                         søknadsbehandling = it,
-                        statusovergang = Statusovergang.OppdaterBehandlingsperiode(behandlingsperiode),
+                        statusovergang = Statusovergang.OppdaterStønadsperiode(stønadsperiode),
                     )
                 }
             }

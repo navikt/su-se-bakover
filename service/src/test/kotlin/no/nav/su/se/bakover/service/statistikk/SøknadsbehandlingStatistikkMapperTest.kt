@@ -9,12 +9,12 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.common.zoneIdOslo
-import no.nav.su.se.bakover.domain.Behandlingsperiode
 import no.nav.su.se.bakover.domain.ForNav
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
@@ -135,8 +135,8 @@ internal class SøknadsbehandlingStatistikkMapperTest {
         }
 
         @Test
-        fun `håndterer spesialtilfelle for uavklart behandling uten behandlingsperiode`() {
-            SøknadsbehandlingStatistikkMapper.FunksjonellTidMapper.map(uavklartSøknadsbehandling.copy(behandlingsperiode = null)) shouldBe uavklartSøknadsbehandling.opprettet
+        fun `håndterer spesialtilfelle for uavklart behandling uten stønadsperiode`() {
+            SøknadsbehandlingStatistikkMapper.FunksjonellTidMapper.map(uavklartSøknadsbehandling.copy(stønadsperiode = null)) shouldBe uavklartSøknadsbehandling.opprettet
         }
 
         @Test
@@ -291,7 +291,7 @@ internal class SøknadsbehandlingStatistikkMapperTest {
         behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
         fnr = FnrGenerator.random(),
         fritekstTilBrev = "",
-        behandlingsperiode = Behandlingsperiode(Periode.create(1.januar(2021), 31.desember(2021))),
+        stønadsperiode = ValgtStønadsperiode(Periode.create(1.januar(2021), 31.desember(2021))),
     )
 
     private val beregning = TestBeregning

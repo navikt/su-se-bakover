@@ -14,10 +14,10 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
-import no.nav.su.se.bakover.domain.Behandlingsperiode
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -34,7 +34,7 @@ import java.util.UUID
 class SøknadsbehandlingServiceBeregningTest {
     private val sakId = UUID.randomUUID()
     private val behandlingId = UUID.randomUUID()
-    private val behandlingsperiode = Behandlingsperiode(Periode.create(1.januar(2021), 31.desember(2021)))
+    private val stønadsperiode = ValgtStønadsperiode(Periode.create(1.januar(2021), 31.desember(2021)))
     private val vilkårsvurdertBehandling = Søknadsbehandling.Vilkårsvurdert.Innvilget(
         id = UUID.randomUUID(),
         opprettet = tidspunkt,
@@ -52,7 +52,7 @@ class SøknadsbehandlingServiceBeregningTest {
         fnr = FnrGenerator.random(),
         oppgaveId = OppgaveId("o"),
         fritekstTilBrev = "",
-        behandlingsperiode = behandlingsperiode,
+        stønadsperiode = stønadsperiode,
     )
 
     @Test
@@ -88,7 +88,7 @@ class SøknadsbehandlingServiceBeregningTest {
             oppgaveId = vilkårsvurdertBehandling.oppgaveId,
             beregning = TestBeregning,
             fritekstTilBrev = "",
-            behandlingsperiode = vilkårsvurdertBehandling.behandlingsperiode,
+            stønadsperiode = vilkårsvurdertBehandling.stønadsperiode,
         )
 
         response shouldBe expected.right()

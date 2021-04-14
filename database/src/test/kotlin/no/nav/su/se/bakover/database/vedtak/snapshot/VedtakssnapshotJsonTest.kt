@@ -11,12 +11,12 @@ import no.nav.su.se.bakover.database.iverksattBrevbestillingId
 import no.nav.su.se.bakover.database.iverksattJournalpostId
 import no.nav.su.se.bakover.database.oversendtUtbetalingUtenKvittering
 import no.nav.su.se.bakover.database.vedtak.snapshot.VedtakssnapshotJson.Companion.toJson
-import no.nav.su.se.bakover.domain.Behandlingsperiode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
@@ -52,7 +52,7 @@ internal class VedtakssnapshotJsonTest {
     private val vedtakssnapshotId = "06015ac6-07ef-4017-bd04-1e7b87b160fa"
     private val beregningId = "4111d5ee-0215-4d0f-94fc-0959f900ef2e"
     private val periode = Periode.create(LocalDate.of(2021, 1, 1), LocalDate.of(2021, 1, 31))
-    private val behandlingsperiode = Behandlingsperiode(periode, "begrunnelsen")
+    private val stønadsperiode = ValgtStønadsperiode(periode, "begrunnelsen")
     private val fnr = Fnr("12345678910")
 
     @Test
@@ -79,7 +79,7 @@ internal class VedtakssnapshotJsonTest {
             saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
             fritekstTilBrev = "",
-            behandlingsperiode = behandlingsperiode,
+            stønadsperiode = stønadsperiode,
         )
 
         val avslag = Vedtakssnapshot.Avslag(
@@ -431,7 +431,7 @@ internal class VedtakssnapshotJsonTest {
             saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
             fritekstTilBrev = "",
-            behandlingsperiode = behandlingsperiode,
+            stønadsperiode = stønadsperiode,
         )
         val utbetaling = oversendtUtbetalingUtenKvittering(innvilget)
         val innvilgelse = Vedtakssnapshot.Innvilgelse(

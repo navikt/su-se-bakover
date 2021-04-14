@@ -8,11 +8,11 @@ import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.avslåttBeregning
 import no.nav.su.se.bakover.database.behandlingsinformasjonMedAlleVilkårOppfylt
 import no.nav.su.se.bakover.database.beregning
-import no.nav.su.se.bakover.database.defaultBehandlingsperiode
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.iverksattAttestering
 import no.nav.su.se.bakover.database.saksbehandler
 import no.nav.su.se.bakover.database.simulering
+import no.nav.su.se.bakover.database.stønadsperiode
 import no.nav.su.se.bakover.database.underkjentAttestering
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
@@ -83,19 +83,19 @@ internal class SøknadsbehandlingPostgresRepoTest {
     }
 
     @Test
-    fun `kan oppdatere behandlingsperiode`() {
+    fun `kan oppdatere stønadsperiode`() {
         withMigratedDb {
             val vilkårsvurdert = testDataHelper.nyUavklartVilkårsvurdering(
-                behandlingsperiode = null
+                stønadsperiode = null
             )
             repo.hent(vilkårsvurdert.id).also {
-                it?.behandlingsperiode shouldBe null
+                it?.stønadsperiode shouldBe null
             }
 
-            repo.lagre(vilkårsvurdert.copy(behandlingsperiode = defaultBehandlingsperiode))
+            repo.lagre(vilkårsvurdert.copy(stønadsperiode = stønadsperiode))
 
             repo.hent(vilkårsvurdert.id).also {
-                it?.behandlingsperiode shouldBe defaultBehandlingsperiode
+                it?.stønadsperiode shouldBe stønadsperiode
             }
         }
     }
@@ -177,7 +177,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             simulering = simulering(tilAttestering.fnr),
                             saksbehandler = saksbehandler,
                             fritekstTilBrev = "",
-                            behandlingsperiode = defaultBehandlingsperiode,
+                            stønadsperiode = stønadsperiode,
                         )
                     }
                 }
@@ -203,7 +203,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             fnr = tilAttestering.fnr,
                             saksbehandler = saksbehandler,
                             fritekstTilBrev = "",
-                            behandlingsperiode = defaultBehandlingsperiode,
+                            stønadsperiode = stønadsperiode,
                         )
                     }
                 }
@@ -230,7 +230,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             beregning = avslåttBeregning,
                             saksbehandler = saksbehandler,
                             fritekstTilBrev = "",
-                            behandlingsperiode = defaultBehandlingsperiode,
+                            stønadsperiode = stønadsperiode,
                         )
                     }
                 }
@@ -262,7 +262,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             saksbehandler = saksbehandler,
                             attestering = underkjentAttestering,
                             fritekstTilBrev = "",
-                            behandlingsperiode = defaultBehandlingsperiode,
+                            stønadsperiode = stønadsperiode,
                         )
                     }
                 }
@@ -289,7 +289,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             saksbehandler = saksbehandler,
                             attestering = underkjentAttestering,
                             fritekstTilBrev = "",
-                            behandlingsperiode = defaultBehandlingsperiode,
+                            stønadsperiode = stønadsperiode,
                         )
                     }
                 }
@@ -317,7 +317,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             saksbehandler = saksbehandler,
                             attestering = underkjentAttestering,
                             fritekstTilBrev = "",
-                            behandlingsperiode = defaultBehandlingsperiode,
+                            stønadsperiode = stønadsperiode,
                         )
                     }
                 }
@@ -356,7 +356,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 saksbehandler = saksbehandler,
                 attestering = iverksattAttestering,
                 fritekstTilBrev = "Dette er fritekst",
-                behandlingsperiode = defaultBehandlingsperiode,
+                stønadsperiode = stønadsperiode,
             )
             repo.hent(iverksatt.id).also {
                 it shouldBe expected
@@ -382,7 +382,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     saksbehandler = saksbehandler,
                     attestering = iverksattAttestering,
                     fritekstTilBrev = "",
-                    behandlingsperiode = defaultBehandlingsperiode,
+                    stønadsperiode = stønadsperiode,
                 )
             }
         }

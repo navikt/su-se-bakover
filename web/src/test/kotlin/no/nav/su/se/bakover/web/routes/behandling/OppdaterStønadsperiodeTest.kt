@@ -28,14 +28,14 @@ import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-class OppdaterBehandlingsperiodeTest {
-    private val url = "$sakPath/$sakId/behandlinger/$behandlingId/behandlingsperiode"
+class OppdaterStønadsperiodeTest {
+    private val url = "$sakPath/$sakId/behandlinger/$behandlingId/stønadsperiode"
     private val services = TestServicesBuilder.services()
 
     @Test
     fun `svarer med 404 dersom behandling ikke finnes`() {
         val serviceMock = mock<SøknadsbehandlingService> {
-            on { oppdaterBehandlingsperiode(any()) } doReturn SøknadsbehandlingService.KunneIkkeOppdatereBehandlingsperiode.FantIkkeBehandling.left()
+            on { oppdaterStønadsperiode(any()) } doReturn SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling.left()
         }
 
         withTestApplication(
@@ -156,11 +156,11 @@ class OppdaterBehandlingsperiodeTest {
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             fnr = FnrGenerator.random(),
             fritekstTilBrev = "",
-            behandlingsperiode = BehandlingTestUtils.behandlingsperiode,
+            stønadsperiode = BehandlingTestUtils.stønadsperiode,
         )
 
         val serviceMock = mock<SøknadsbehandlingService> {
-            on { oppdaterBehandlingsperiode(any()) } doReturn søknadsbehandling.right()
+            on { oppdaterStønadsperiode(any()) } doReturn søknadsbehandling.right()
         }
 
         withTestApplication(

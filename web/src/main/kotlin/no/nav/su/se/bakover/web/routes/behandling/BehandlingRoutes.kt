@@ -105,25 +105,25 @@ internal fun Route.behandlingRoutes(
     }
 
     authorize(Brukerrolle.Saksbehandler) {
-        post("$behandlingPath/{behandlingId}/behandlingsperiode") {
+        post("$behandlingPath/{behandlingId}/stønadsperiode") {
             call.withBehandlingId { behandlingId ->
-                call.withBody<BehandlingsperiodeJson> { body ->
+                call.withBody<ValgtStønadsperiodeJson> { body ->
                     body.toDomain()
                         .mapLeft {
                             call.svar(it)
                         }
-                        .flatMap { behandlingsperiode ->
-                            søknadsbehandlingService.oppdaterBehandlingsperiode(SøknadsbehandlingService.OppdaterBehandlingsperiodeRequest(behandlingId, behandlingsperiode))
+                        .flatMap { stønadsperiode ->
+                            søknadsbehandlingService.oppdaterStønadsperiode(SøknadsbehandlingService.OppdaterStønadsperiodeRequest(behandlingId, stønadsperiode))
                                 .mapLeft { error ->
                                     call.svar(
                                         when (error) {
-                                            SøknadsbehandlingService.KunneIkkeOppdatereBehandlingsperiode.FantIkkeBehandling -> {
+                                            SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling -> {
                                                 NotFound.message("Fant ikke behandling")
                                             }
-                                            SøknadsbehandlingService.KunneIkkeOppdatereBehandlingsperiode.FraOgMedDatoKanIkkeVæreFør2021 -> {
+                                            SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FraOgMedDatoKanIkkeVæreFør2021 -> {
                                                 BadRequest.message("En stønadsperiode kan ikke starte før 2021")
                                             }
-                                            SøknadsbehandlingService.KunneIkkeOppdatereBehandlingsperiode.PeriodeKanIkkeVæreLengreEnn12Måneder -> {
+                                            SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.PeriodeKanIkkeVæreLengreEnn12Måneder -> {
                                                 BadRequest.message("En stønadsperiode kan være maks 12 måneder")
                                             }
                                         },

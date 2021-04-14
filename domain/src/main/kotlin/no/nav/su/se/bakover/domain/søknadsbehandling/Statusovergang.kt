@@ -4,8 +4,8 @@ import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.UUID30
-import no.nav.su.se.bakover.domain.Behandlingsperiode
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -224,44 +224,44 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
         ): Boolean = søknadsbehandling.saksbehandler.navIdent != attestering.attestant.navIdent
     }
 
-    class OppdaterBehandlingsperiode(
-        private val behandlingsperiode: Behandlingsperiode
+    class OppdaterStønadsperiode(
+        private val stønadsperiode: ValgtStønadsperiode
     ) : Statusovergang<Nothing, Søknadsbehandling.Vilkårsvurdert>() {
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Uavklart) {
-            result = søknadsbehandling.copy(behandlingsperiode = behandlingsperiode).tilVilkårsvurdert(søknadsbehandling.behandlingsinformasjon).right()
+            result = søknadsbehandling.copy(stønadsperiode = stønadsperiode).tilVilkårsvurdert(søknadsbehandling.behandlingsinformasjon).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Innvilget) {
-            result = søknadsbehandling.copy(behandlingsperiode = behandlingsperiode).tilVilkårsvurdert(søknadsbehandling.behandlingsinformasjon).right()
+            result = søknadsbehandling.copy(stønadsperiode = stønadsperiode).tilVilkårsvurdert(søknadsbehandling.behandlingsinformasjon).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Avslag) {
-            result = søknadsbehandling.copy(behandlingsperiode = behandlingsperiode).tilVilkårsvurdert(søknadsbehandling.behandlingsinformasjon).right()
+            result = søknadsbehandling.copy(stønadsperiode = stønadsperiode).tilVilkårsvurdert(søknadsbehandling.behandlingsinformasjon).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Innvilget) {
-            result = søknadsbehandling.copy(behandlingsperiode = behandlingsperiode).tilVilkårsvurdert(søknadsbehandling.behandlingsinformasjon).right()
+            result = søknadsbehandling.copy(stønadsperiode = stønadsperiode).tilVilkårsvurdert(søknadsbehandling.behandlingsinformasjon).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Beregnet.Avslag) {
-            result = søknadsbehandling.copy(behandlingsperiode = behandlingsperiode).tilVilkårsvurdert(søknadsbehandling.behandlingsinformasjon).right()
+            result = søknadsbehandling.copy(stønadsperiode = stønadsperiode).tilVilkårsvurdert(søknadsbehandling.behandlingsinformasjon).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Simulert) {
-            result = søknadsbehandling.copy(behandlingsperiode = behandlingsperiode).tilVilkårsvurdert(søknadsbehandling.behandlingsinformasjon).right()
+            result = søknadsbehandling.copy(stønadsperiode = stønadsperiode).tilVilkårsvurdert(søknadsbehandling.behandlingsinformasjon).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Innvilget) {
-            result = søknadsbehandling.copy(behandlingsperiode = behandlingsperiode).tilVilkårsvurdert(søknadsbehandling.behandlingsinformasjon).right()
+            result = søknadsbehandling.copy(stønadsperiode = stønadsperiode).tilVilkårsvurdert(søknadsbehandling.behandlingsinformasjon).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.MedBeregning) {
-            result = søknadsbehandling.copy(behandlingsperiode = behandlingsperiode).tilVilkårsvurdert(søknadsbehandling.behandlingsinformasjon).right()
+            result = søknadsbehandling.copy(stønadsperiode = stønadsperiode).tilVilkårsvurdert(søknadsbehandling.behandlingsinformasjon).right()
         }
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Underkjent.Avslag.UtenBeregning) {
-            result = søknadsbehandling.copy(behandlingsperiode = behandlingsperiode).tilVilkårsvurdert(søknadsbehandling.behandlingsinformasjon).right()
+            result = søknadsbehandling.copy(stønadsperiode = stønadsperiode).tilVilkårsvurdert(søknadsbehandling.behandlingsinformasjon).right()
         }
     }
 }

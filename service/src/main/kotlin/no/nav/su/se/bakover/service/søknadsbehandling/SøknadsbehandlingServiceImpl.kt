@@ -97,7 +97,7 @@ internal class SøknadsbehandlingServiceImpl(
             fnr = søknad.søknadInnhold.personopplysninger.fnr,
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             fritekstTilBrev = "",
-            behandlingsperiode = null,
+            stønadsperiode = null,
         )
 
         søknadsbehandlingRepo.lagre(opprettet)
@@ -441,13 +441,13 @@ internal class SøknadsbehandlingServiceImpl(
             ?: SøknadsbehandlingService.FantIkkeBehandling.left()
     }
 
-    override fun oppdaterBehandlingsperiode(request: SøknadsbehandlingService.OppdaterBehandlingsperiodeRequest): Either<SøknadsbehandlingService.KunneIkkeOppdatereBehandlingsperiode, Søknadsbehandling> {
+    override fun oppdaterStønadsperiode(request: SøknadsbehandlingService.OppdaterStønadsperiodeRequest): Either<SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode, Søknadsbehandling> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
-            ?: return SøknadsbehandlingService.KunneIkkeOppdatereBehandlingsperiode.FantIkkeBehandling.left()
+            ?: return SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling.left()
 
         return statusovergang(
             søknadsbehandling = søknadsbehandling,
-            statusovergang = Statusovergang.OppdaterBehandlingsperiode(request.behandlingsperiode),
+            statusovergang = Statusovergang.OppdaterStønadsperiode(request.stønadsperiode),
         ).let {
             søknadsbehandlingRepo.lagre(it)
             it.right()

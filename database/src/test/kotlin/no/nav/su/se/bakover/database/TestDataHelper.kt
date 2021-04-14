@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.database.søknad.SøknadPostgresRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingPostgresRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakPosgresRepo
-import no.nav.su.se.bakover.domain.Behandlingsperiode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NySak
@@ -24,6 +23,7 @@ import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
@@ -55,7 +55,7 @@ internal val fixedClock: Clock =
     Clock.fixed(1.januar(2021).atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
 internal val fixedTidspunkt: Tidspunkt = Tidspunkt.now(fixedClock)
 internal val fixedLocalDate: LocalDate = fixedTidspunkt.toLocalDate(ZoneOffset.UTC)
-internal val defaultBehandlingsperiode = Behandlingsperiode(Periode.create(1.januar(2021), 31.januar(2021)))
+internal val stønadsperiode = ValgtStønadsperiode(Periode.create(1.januar(2021), 31.januar(2021)))
 internal val tomBehandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon()
 internal val behandlingsinformasjonMedAlleVilkårOppfylt =
     Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
@@ -64,7 +64,7 @@ internal val behandlingsinformasjonMedAvslag =
 
 internal val oppgaveId = OppgaveId("oppgaveId")
 internal val journalpostId = JournalpostId("journalpostId")
-internal fun beregning(periode: Periode = defaultBehandlingsperiode.periode) =
+internal fun beregning(periode: Periode = stønadsperiode.periode) =
     TestBeregning.toSnapshot().copy(periode = periode)
 
 internal val avslåttBeregning = beregning().copy(
@@ -293,7 +293,7 @@ internal class TestDataHelper(
         sak: Sak = nySakMedJournalførtSøknadOgOppgave(),
         søknad: Søknad.Journalført.MedOppgave = sak.journalførtSøknadMedOppgave(),
         behandlingsinformasjon: Behandlingsinformasjon = tomBehandlingsinformasjon,
-        behandlingsperiode: Behandlingsperiode? = defaultBehandlingsperiode
+        stønadsperiode: ValgtStønadsperiode? = no.nav.su.se.bakover.database.stønadsperiode
     ): Søknadsbehandling.Vilkårsvurdert.Uavklart {
 
         return Søknadsbehandling.Vilkårsvurdert.Uavklart(
@@ -306,7 +306,7 @@ internal class TestDataHelper(
             behandlingsinformasjon = behandlingsinformasjon,
             fnr = sak.fnr,
             fritekstTilBrev = "",
-            behandlingsperiode = behandlingsperiode,
+            stønadsperiode = stønadsperiode,
         ).also {
             søknadsbehandlingRepo.lagre(it)
         }

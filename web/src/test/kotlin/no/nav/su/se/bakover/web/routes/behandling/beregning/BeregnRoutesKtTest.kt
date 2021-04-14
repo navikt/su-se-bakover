@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
-import no.nav.su.se.bakover.domain.Behandlingsperiode
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -23,6 +22,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.beregning.Sats
@@ -48,7 +48,7 @@ import java.util.UUID
 internal class BeregnRoutesKtTest {
 
     private val saksbehandler = NavIdentBruker.Saksbehandler("AB12345")
-    private val behandlingsperiode = Behandlingsperiode(
+    private val stønadsperiode = ValgtStønadsperiode(
         periode = Periode.create(1.januar(2021), 31.desember(2021)),
         begrunnelse = "begrunnelse",
     )
@@ -95,8 +95,8 @@ internal class BeregnRoutesKtTest {
             }.apply {
                 response.status() shouldBe HttpStatusCode.Created
                 val behandlingJson = deserialize<BehandlingJson>(response.content!!)
-                behandlingJson.beregning!!.fraOgMed shouldBe behandlingsperiode.periode.getFraOgMed().toString()
-                behandlingJson.beregning.tilOgMed shouldBe behandlingsperiode.periode.getTilOgMed().toString()
+                behandlingJson.beregning!!.fraOgMed shouldBe stønadsperiode.periode.getFraOgMed().toString()
+                behandlingJson.beregning.tilOgMed shouldBe stønadsperiode.periode.getTilOgMed().toString()
                 behandlingJson.beregning.sats shouldBe Sats.HØY.name
                 behandlingJson.beregning.månedsberegninger shouldHaveSize 12
             }
@@ -409,7 +409,7 @@ internal class BeregnRoutesKtTest {
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             fnr = sak.fnr,
             fritekstTilBrev = "",
-            behandlingsperiode = behandlingsperiode,
+            stønadsperiode = stønadsperiode,
         )
         repos.søknadsbehandling.lagre(
             nySøknadsbehandling,

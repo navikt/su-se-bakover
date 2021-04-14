@@ -16,11 +16,11 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.AktørId
-import no.nav.su.se.bakover.domain.Behandlingsperiode
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -52,7 +52,7 @@ class SøknadsbehandlingServiceAttesteringTest {
     private val nyOppgaveId = OppgaveId("999")
     private val aktørId = AktørId("12345")
     private val periode = Periode.create(1.januar(2021), 31.desember(2021))
-    private val behandlingsperiode = Behandlingsperiode(periode, "")
+    private val stønadsperiode = ValgtStønadsperiode(periode, "")
     private val simulertBehandling = Søknadsbehandling.Simulert(
         id = UUID.randomUUID(),
         opprettet = Tidspunkt.now(),
@@ -78,7 +78,7 @@ class SøknadsbehandlingServiceAttesteringTest {
         fnr = fnr,
         oppgaveId = oppgaveId,
         fritekstTilBrev = "",
-        behandlingsperiode = behandlingsperiode,
+        stønadsperiode = stønadsperiode,
     )
 
     private val saksbehandler = NavIdentBruker.Saksbehandler("Z12345")
@@ -123,7 +123,7 @@ class SøknadsbehandlingServiceAttesteringTest {
             oppgaveId = nyOppgaveId,
             saksbehandler = saksbehandler,
             fritekstTilBrev = "",
-            behandlingsperiode = simulertBehandling.behandlingsperiode,
+            stønadsperiode = simulertBehandling.stønadsperiode,
         )
 
         actual shouldBe expected.right()
@@ -279,7 +279,7 @@ class SøknadsbehandlingServiceAttesteringTest {
             oppgaveId = nyOppgaveId,
             saksbehandler = saksbehandler,
             fritekstTilBrev = "",
-            behandlingsperiode = simulertBehandling.behandlingsperiode,
+            stønadsperiode = simulertBehandling.stønadsperiode,
         )
 
         actual shouldBe expected.right()

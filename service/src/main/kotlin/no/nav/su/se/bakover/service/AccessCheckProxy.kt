@@ -317,9 +317,9 @@ open class AccessCheckProxy(
                     return services.søknadsbehandling.hent(request)
                 }
 
-                override fun oppdaterBehandlingsperiode(request: SøknadsbehandlingService.OppdaterBehandlingsperiodeRequest): Either<SøknadsbehandlingService.KunneIkkeOppdatereBehandlingsperiode, Søknadsbehandling> {
+                override fun oppdaterStønadsperiode(request: SøknadsbehandlingService.OppdaterStønadsperiodeRequest): Either<SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode, Søknadsbehandling> {
                     assertHarTilgangTilBehandling(request.behandlingId)
-                    return services.søknadsbehandling.oppdaterBehandlingsperiode(request)
+                    return services.søknadsbehandling.oppdaterStønadsperiode(request)
                 }
             },
             ferdigstillVedtak = object : FerdigstillVedtakService {

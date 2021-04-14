@@ -27,10 +27,10 @@ import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.AktørId
-import no.nav.su.se.bakover.domain.Behandlingsperiode
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -92,7 +92,7 @@ internal class OpprettRevurderingServiceTest {
             )
         },
     )
-    private val behandlingsperiode = Behandlingsperiode(
+    private val stønadsperiode = ValgtStønadsperiode(
         periode = periode,
         begrunnelse = "begrunnelse",
     )
@@ -136,7 +136,7 @@ internal class OpprettRevurderingServiceTest {
         saksbehandler = saksbehandler,
         attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("Attes T. Ant")),
         fritekstTilBrev = "",
-        behandlingsperiode = behandlingsperiode,
+        stønadsperiode = stønadsperiode,
     )
 
     private fun createSak() = Sak(

@@ -24,7 +24,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
             saksbehandler = null,
             beregning = null,
             simulering = null,
-            behandlingsperiode = saksbehandling.behandlingsperiode?.toJson(),
+            stønadsperiode = saksbehandling.stønadsperiode?.toJson(),
         )
         is Søknadsbehandling.Beregnet -> {
             BehandlingJson(
@@ -38,7 +38,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 saksbehandler = null,
                 beregning = saksbehandling.beregning.toJson(),
                 simulering = null,
-                behandlingsperiode = saksbehandling.behandlingsperiode.toJson(),
+                stønadsperiode = saksbehandling.stønadsperiode.toJson(),
             )
         }
         is Søknadsbehandling.Simulert -> {
@@ -53,7 +53,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 saksbehandler = null,
                 beregning = saksbehandling.beregning.toJson(),
                 simulering = saksbehandling.simulering.toJson(),
-                behandlingsperiode = saksbehandling.behandlingsperiode.toJson(),
+                stønadsperiode = saksbehandling.stønadsperiode.toJson(),
             )
         }
         is Søknadsbehandling.TilAttestering.Innvilget -> {
@@ -68,7 +68,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 saksbehandler = saksbehandling.saksbehandler.toString(),
                 beregning = saksbehandling.beregning.toJson(),
                 simulering = saksbehandling.simulering.toJson(),
-                behandlingsperiode = saksbehandling.behandlingsperiode.toJson(),
+                stønadsperiode = saksbehandling.stønadsperiode.toJson(),
             )
         }
         is Søknadsbehandling.TilAttestering.Avslag.MedBeregning -> {
@@ -83,7 +83,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 saksbehandler = saksbehandling.saksbehandler.toString(),
                 beregning = saksbehandling.beregning.toJson(),
                 simulering = null,
-                behandlingsperiode = saksbehandling.behandlingsperiode.toJson(),
+                stønadsperiode = saksbehandling.stønadsperiode.toJson(),
             )
         }
         is Søknadsbehandling.TilAttestering.Avslag.UtenBeregning -> {
@@ -98,7 +98,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 saksbehandler = saksbehandling.saksbehandler.toString(),
                 beregning = null,
                 simulering = null,
-                behandlingsperiode = saksbehandling.behandlingsperiode.toJson(),
+                stønadsperiode = saksbehandling.stønadsperiode.toJson(),
             )
         }
         is Søknadsbehandling.Underkjent.Innvilget -> {
@@ -127,7 +127,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 saksbehandler = saksbehandling.saksbehandler.toString(),
                 beregning = saksbehandling.beregning.toJson(),
                 simulering = saksbehandling.simulering.toJson(),
-                behandlingsperiode = saksbehandling.behandlingsperiode.toJson(),
+                stønadsperiode = saksbehandling.stønadsperiode.toJson(),
             )
         }
         is Søknadsbehandling.Underkjent.Avslag.UtenBeregning -> {
@@ -156,7 +156,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 saksbehandler = saksbehandling.saksbehandler.toString(),
                 beregning = null,
                 simulering = null,
-                behandlingsperiode = saksbehandling.behandlingsperiode.toJson(),
+                stønadsperiode = saksbehandling.stønadsperiode.toJson(),
             )
         }
         is Søknadsbehandling.Underkjent.Avslag.MedBeregning -> {
@@ -185,7 +185,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 saksbehandler = saksbehandling.saksbehandler.toString(),
                 beregning = saksbehandling.beregning.toJson(),
                 simulering = null,
-                behandlingsperiode = saksbehandling.behandlingsperiode.toJson(),
+                stønadsperiode = saksbehandling.stønadsperiode.toJson(),
             )
         }
         is Søknadsbehandling.Iverksatt.Avslag.MedBeregning -> {
@@ -214,7 +214,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 saksbehandler = saksbehandling.saksbehandler.toString(),
                 beregning = saksbehandling.beregning.toJson(),
                 simulering = null,
-                behandlingsperiode = saksbehandling.behandlingsperiode.toJson(),
+                stønadsperiode = saksbehandling.stønadsperiode.toJson(),
             )
         }
         is Søknadsbehandling.Iverksatt.Avslag.UtenBeregning -> {
@@ -243,7 +243,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 saksbehandler = saksbehandling.saksbehandler.toString(),
                 beregning = null,
                 simulering = null,
-                behandlingsperiode = saksbehandling.behandlingsperiode.toJson(),
+                stønadsperiode = saksbehandling.stønadsperiode.toJson(),
             )
         }
         is Søknadsbehandling.Iverksatt.Innvilget -> {
@@ -272,7 +272,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 saksbehandler = saksbehandling.saksbehandler.toString(),
                 beregning = saksbehandling.beregning.toJson(),
                 simulering = saksbehandling.simulering.toJson(),
-                behandlingsperiode = saksbehandling.behandlingsperiode.toJson(),
+                stønadsperiode = saksbehandling.stønadsperiode.toJson(),
             )
         }
     }

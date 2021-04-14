@@ -16,11 +16,11 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
-import no.nav.su.se.bakover.domain.Behandlingsperiode
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -166,7 +166,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
     @Test
     fun `Oppretter behandling og publiserer event`() {
         val sakId = UUID.randomUUID()
-        val behandlingsperiode = Behandlingsperiode(Periode.create(1.januar(2021), 31.desember(2021)))
+        val stønadsperiode = ValgtStønadsperiode(Periode.create(1.januar(2021), 31.desember(2021)))
         val søknadInnhold = SøknadInnholdTestdataBuilder.build()
         val fnr = søknadInnhold.personopplysninger.fnr
         val søknad = Søknad.Journalført.MedOppgave(
@@ -187,7 +187,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             fnr = fnr,
             fritekstTilBrev = "",
-            behandlingsperiode = behandlingsperiode,
+            stønadsperiode = stønadsperiode,
         )
         val søknadService: SøknadService = mock {
             on { hentSøknad(any()) } doReturn søknad.right()
