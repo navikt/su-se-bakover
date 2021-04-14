@@ -11,12 +11,13 @@ import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
-import no.nav.su.se.bakover.common.mars
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -33,6 +34,7 @@ import java.util.UUID
 class SøknadsbehandlingServiceBeregningTest {
     private val sakId = UUID.randomUUID()
     private val behandlingId = UUID.randomUUID()
+    private val stønadsperiode = ValgtStønadsperiode(Periode.create(1.januar(2021), 31.desember(2021)))
     private val vilkårsvurdertBehandling = Søknadsbehandling.Vilkårsvurdert.Innvilget(
         id = UUID.randomUUID(),
         opprettet = tidspunkt,
@@ -50,6 +52,7 @@ class SøknadsbehandlingServiceBeregningTest {
         fnr = FnrGenerator.random(),
         oppgaveId = OppgaveId("o"),
         fritekstTilBrev = "",
+        stønadsperiode = stønadsperiode,
     )
 
     @Test
@@ -58,21 +61,20 @@ class SøknadsbehandlingServiceBeregningTest {
             on { hent(any()) } doReturn vilkårsvurdertBehandling
         }
         val beregningServiceMock = mock<BeregningService> {
-            on { beregn(any(), any(), any(), any()) } doReturn TestBeregning
+            on { beregn(any(), any(), any()) } doReturn TestBeregning
         }
 
         val request = SøknadsbehandlingService.BeregnRequest(
             behandlingId = behandlingId,
-            periode = Periode.create(1.desember(2021), 31.mars(2022)),
             fradrag = emptyList(),
             begrunnelse = "her er en begrunnelse"
         )
 
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            beregningService = beregningServiceMock
+            beregningService = beregningServiceMock,
         ).beregn(
-            request
+            request,
         )
 
         val expected = Søknadsbehandling.Beregnet.Innvilget(
@@ -86,6 +88,7 @@ class SøknadsbehandlingServiceBeregningTest {
             oppgaveId = vilkårsvurdertBehandling.oppgaveId,
             beregning = TestBeregning,
             fritekstTilBrev = "",
+            stønadsperiode = vilkårsvurdertBehandling.stønadsperiode,
         )
 
         response shouldBe expected.right()
@@ -94,7 +97,6 @@ class SøknadsbehandlingServiceBeregningTest {
             verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandlingId })
             verify(beregningServiceMock).beregn(
                 søknadsbehandling = argThat { it shouldBe vilkårsvurdertBehandling },
-                periode = argThat { it shouldBe request.periode },
                 fradrag = argThat { it shouldBe request.fradrag },
                 begrunnelse = argThat { it shouldBe "her er en begrunnelse" }
             )
@@ -112,10 +114,9 @@ class SøknadsbehandlingServiceBeregningTest {
         ).beregn(
             SøknadsbehandlingService.BeregnRequest(
                 behandlingId = behandlingId,
-                periode = Periode.create(1.desember(2021), 31.mars(2022)),
                 fradrag = emptyList(),
                 begrunnelse = null
-            )
+            ),
         )
 
         response shouldBe SøknadsbehandlingService.KunneIkkeBeregne.FantIkkeBehandling.left()

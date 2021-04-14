@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -91,6 +92,10 @@ internal class OpprettRevurderingServiceTest {
             )
         },
     )
+    private val stønadsperiode = ValgtStønadsperiode(
+        periode = periode,
+        begrunnelse = "begrunnelse",
+    )
     private val saksbehandler = NavIdentBruker.Saksbehandler("Sak S. behandler")
     private val saksnummer = Saksnummer(nummer = 12345676)
     private val fnr = FnrGenerator.random()
@@ -131,6 +136,7 @@ internal class OpprettRevurderingServiceTest {
         saksbehandler = saksbehandler,
         attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("Attes T. Ant")),
         fritekstTilBrev = "",
+        stønadsperiode = stønadsperiode,
     )
 
     private fun createSak() = Sak(

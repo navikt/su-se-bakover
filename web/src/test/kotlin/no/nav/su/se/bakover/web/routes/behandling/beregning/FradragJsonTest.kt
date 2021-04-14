@@ -34,7 +34,7 @@ internal class FradragJsonTest {
             type = Fradragstype.Arbeidsinntekt.toString(),
             beløp = 10.0,
             utenlandskInntekt = null,
-            tilhører = FradragTilhører.BRUKER.toString()
+            tilhører = FradragTilhører.BRUKER.toString(),
         )
     }
 
@@ -55,7 +55,7 @@ internal class FradragJsonTest {
             type = Fradragstype.Arbeidsinntekt.toString(),
             beløp = 10.0,
             utenlandskInntekt = null,
-            tilhører = FradragTilhører.BRUKER.toString()
+            tilhører = FradragTilhører.BRUKER.toString(),
         )
     }
 
@@ -66,7 +66,7 @@ internal class FradragJsonTest {
             type = Fradragstype.Arbeidsinntekt.toString(),
             beløp = 10.0,
             utenlandskInntekt = null,
-            tilhører = FradragTilhører.BRUKER.toString()
+            tilhører = FradragTilhører.BRUKER.toString(),
         )
 
         val expectedPeriode = Periode.create(1.januar(2020), 31.januar(2020))
@@ -75,7 +75,7 @@ internal class FradragJsonTest {
             månedsbeløp = 10.0,
             periode = expectedPeriode,
             utenlandskInntekt = null,
-            tilhører = FradragTilhører.BRUKER
+            tilhører = FradragTilhører.BRUKER,
         )
 
         jsonUtenPeriode.toFradrag(expectedPeriode) shouldBe expected.right()
@@ -88,7 +88,7 @@ internal class FradragJsonTest {
             type = Fradragstype.Arbeidsinntekt.toString(),
             beløp = 10.0,
             utenlandskInntekt = null,
-            tilhører = FradragTilhører.BRUKER.toString()
+            tilhører = FradragTilhører.BRUKER.toString(),
         )
 
         val expected = FradragFactory.ny(
@@ -96,7 +96,7 @@ internal class FradragJsonTest {
             månedsbeløp = 10.0,
             periode = Periode.create(1.januar(2021), 31.januar(2021)),
             utenlandskInntekt = null,
-            tilhører = FradragTilhører.BRUKER
+            tilhører = FradragTilhører.BRUKER,
         )
 
         jsonUtenPeriode.toFradrag(Periode.create(1.januar(2021), 31.desember(2021))) shouldBe expected.right()

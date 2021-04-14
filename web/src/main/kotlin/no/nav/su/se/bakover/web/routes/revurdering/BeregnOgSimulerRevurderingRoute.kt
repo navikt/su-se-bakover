@@ -37,7 +37,7 @@ import no.nav.su.se.bakover.web.withSakId
 
 @KtorExperimentalAPI
 internal fun Route.beregnOgSimulerRevurdering(
-    revurderingService: RevurderingService
+    revurderingService: RevurderingService,
 ) {
     data class BeregningForRevurderingBody(
         val periode: PeriodeJson,
@@ -57,14 +57,14 @@ internal fun Route.beregnOgSimulerRevurdering(
                                 revurderingService.beregnOgSimuler(
                                     revurderingId = revurderingId,
                                     saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
-                                    fradrag = fradrag
+                                    fradrag = fradrag,
                                 ).mapLeft {
                                     it.tilResultat()
                                 }.map { revurdering ->
                                     call.audit("Opprettet en ny revurdering beregning og simulering på sak med id $sakId")
                                     Resultat.json(
                                         HttpStatusCode.Created,
-                                        serialize(revurdering.toJson())
+                                        serialize(revurdering.toJson()),
                                     )
                                 }
                             }.getOrHandle { it }

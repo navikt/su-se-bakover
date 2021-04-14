@@ -316,6 +316,11 @@ open class AccessCheckProxy(
                     assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.hent(request)
                 }
+
+                override fun oppdaterStønadsperiode(request: SøknadsbehandlingService.OppdaterStønadsperiodeRequest): Either<SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode, Søknadsbehandling> {
+                    assertHarTilgangTilBehandling(request.behandlingId)
+                    return services.søknadsbehandling.oppdaterStønadsperiode(request)
+                }
             },
             ferdigstillVedtak = object : FerdigstillVedtakService {
                 override fun ferdigstillVedtakEtterUtbetaling(utbetalingId: UUID30): Unit =

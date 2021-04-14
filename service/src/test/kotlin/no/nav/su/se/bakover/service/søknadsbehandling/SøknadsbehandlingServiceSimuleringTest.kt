@@ -9,7 +9,10 @@ import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.idag
+import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
@@ -17,6 +20,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -61,6 +65,7 @@ internal class SøknadsbehandlingServiceSimuleringTest {
             oppgaveId = beregnetBehandling.oppgaveId,
             simulering = simulering,
             fritekstTilBrev = "",
+            stønadsperiode = beregnetBehandling.stønadsperiode,
         )
 
         response shouldBe expected.right()
@@ -127,6 +132,7 @@ internal class SøknadsbehandlingServiceSimuleringTest {
     private val fnr = Fnr("12345678910")
     private val saksbehandler = Saksbehandler("AB12345")
     private val oppgaveId = OppgaveId("o")
+    private val stønadsperiode = ValgtStønadsperiode(Periode.create(1.januar(2021), 31.desember(2021)))
     private val beregnetBehandling = Søknadsbehandling.Beregnet.Innvilget(
         id = UUID.randomUUID(),
         opprettet = Tidspunkt.now(),
@@ -145,6 +151,7 @@ internal class SøknadsbehandlingServiceSimuleringTest {
         fnr = fnr,
         oppgaveId = oppgaveId,
         fritekstTilBrev = "",
+        stønadsperiode = stønadsperiode,
     )
 
     private val simulering = Simulering(

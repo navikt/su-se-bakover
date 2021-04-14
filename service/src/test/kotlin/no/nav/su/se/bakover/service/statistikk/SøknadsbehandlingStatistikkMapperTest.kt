@@ -3,8 +3,10 @@ package no.nav.su.se.bakover.service.statistikk
 import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.ForNav
@@ -12,6 +14,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
@@ -70,14 +73,14 @@ internal class SøknadsbehandlingStatistikkMapperTest {
             behandlingOpprettetTypeBeskrivelse = null,
             datoForUttak = null,
             datoForUtbetaling = null,
-            avsluttet = false
+            avsluttet = false,
         )
     }
 
     @Test
     fun `mapper iverksatt behandling`() {
         SøknadsbehandlingStatistikkMapper(fixedClock).map(iverksattSøknadsbehandling) shouldBe Statistikk.Behandling(
-            funksjonellTid = beregning.getPeriode().getFraOgMed().startOfDay(zoneIdOslo),
+            funksjonellTid = iverksattSøknadsbehandling.periode.getFraOgMed().startOfDay(zoneIdOslo),
             tekniskTid = Tidspunkt.now(fixedClock),
             mottattDato = iverksattSøknadsbehandling.opprettet.toLocalDate(zoneIdOslo),
             registrertDato = iverksattSøknadsbehandling.opprettet.toLocalDate(zoneIdOslo),
@@ -112,7 +115,7 @@ internal class SøknadsbehandlingStatistikkMapperTest {
             behandlingOpprettetTypeBeskrivelse = null,
             datoForUttak = null,
             datoForUtbetaling = null,
-            avsluttet = true
+            avsluttet = true,
         )
     }
 
@@ -132,10 +135,15 @@ internal class SøknadsbehandlingStatistikkMapperTest {
         }
 
         @Test
+        fun `håndterer spesialtilfelle for uavklart behandling uten stønadsperiode`() {
+            SøknadsbehandlingStatistikkMapper.FunksjonellTidMapper.map(uavklartSøknadsbehandling.copy(stønadsperiode = null)) shouldBe uavklartSøknadsbehandling.opprettet
+        }
+
+        @Test
         fun `funksjonell til settes til dato for beregning dersom tilgjengelig`() {
-            SøknadsbehandlingStatistikkMapper.FunksjonellTidMapper.map(tilAttesteringSøknadsbehandling) shouldBe beregning.getPeriode()
+            SøknadsbehandlingStatistikkMapper.FunksjonellTidMapper.map(tilAttesteringSøknadsbehandling) shouldBe tilAttesteringSøknadsbehandling.periode
                 .getFraOgMed().startOfDay(zoneIdOslo)
-            SøknadsbehandlingStatistikkMapper.FunksjonellTidMapper.map(iverksattSøknadsbehandling) shouldBe beregning.getPeriode()
+            SøknadsbehandlingStatistikkMapper.FunksjonellTidMapper.map(iverksattSøknadsbehandling) shouldBe tilAttesteringSøknadsbehandling.periode
                 .getFraOgMed().startOfDay(zoneIdOslo)
         }
     }
@@ -146,7 +154,7 @@ internal class SøknadsbehandlingStatistikkMapperTest {
         fun `mapper resultat og begrunnelse`() {
             SøknadsbehandlingStatistikkMapper.ResultatOgBegrunnelseMapper.map(iverksattSøknadsbehandling) shouldBe SøknadsbehandlingStatistikkMapper.ResultatOgBegrunnelseMapper.ResultatOgBegrunnelse(
                 resultat = "Innvilget",
-                begrunnelse = null
+                begrunnelse = null,
             )
         }
 
@@ -168,9 +176,9 @@ internal class SøknadsbehandlingStatistikkMapperTest {
                     forNav = ForNav.Papirsøknad(
                         mottaksdatoForSøknad = expected,
                         grunnForPapirinnsending = ForNav.Papirsøknad.GrunnForPapirinnsending.MidlertidigUnntakFraOppmøteplikt,
-                        annenGrunn = ""
-                    )
-                )
+                        annenGrunn = "",
+                    ),
+                ),
             )
             SøknadsbehandlingStatistikkMapper.RegistrertDatoMapper.map(uavklartSøknadsbehandling.copy(søknad = papirsøknad)) shouldBe expected
         }
@@ -178,7 +186,7 @@ internal class SøknadsbehandlingStatistikkMapperTest {
         @Test
         fun `registrert dato settes til dato for opprettelse av behandling ved digital søknad`() {
             SøknadsbehandlingStatistikkMapper.RegistrertDatoMapper.map(uavklartSøknadsbehandling) shouldBe uavklartSøknadsbehandling.opprettet.toLocalDate(
-                zoneIdOslo
+                zoneIdOslo,
             )
         }
     }
@@ -188,77 +196,77 @@ internal class SøknadsbehandlingStatistikkMapperTest {
         @Test
         fun `mapper status og begrunnelse`() {
             SøknadsbehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(
-                BehandlingsStatus.OPPRETTET
+                BehandlingsStatus.OPPRETTET,
             ) shouldBe SøknadsbehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.BehandlingStatusOgBehandlingStatusBeskrivelse(
-                BehandlingsStatus.OPPRETTET, "Ny søknadsbehandling opprettet"
+                BehandlingsStatus.OPPRETTET, "Ny søknadsbehandling opprettet",
             )
 
             SøknadsbehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(
-                BehandlingsStatus.TIL_ATTESTERING_INNVILGET
+                BehandlingsStatus.TIL_ATTESTERING_INNVILGET,
             ) shouldBe SøknadsbehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.BehandlingStatusOgBehandlingStatusBeskrivelse(
-                BehandlingsStatus.TIL_ATTESTERING_INNVILGET, "Innvilget søkndsbehandling sendt til attestering"
+                BehandlingsStatus.TIL_ATTESTERING_INNVILGET, "Innvilget søkndsbehandling sendt til attestering",
             )
 
             SøknadsbehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(
-                BehandlingsStatus.TIL_ATTESTERING_AVSLAG
+                BehandlingsStatus.TIL_ATTESTERING_AVSLAG,
             ) shouldBe SøknadsbehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.BehandlingStatusOgBehandlingStatusBeskrivelse(
-                BehandlingsStatus.TIL_ATTESTERING_AVSLAG, "Avslått søknadsbehanding sendt til attestering"
+                BehandlingsStatus.TIL_ATTESTERING_AVSLAG, "Avslått søknadsbehanding sendt til attestering",
             )
 
             SøknadsbehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(
-                BehandlingsStatus.UNDERKJENT_INNVILGET
+                BehandlingsStatus.UNDERKJENT_INNVILGET,
             ) shouldBe SøknadsbehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.BehandlingStatusOgBehandlingStatusBeskrivelse(
                 BehandlingsStatus.UNDERKJENT_INNVILGET,
-                "Innvilget søknadsbehandling sendt tilbake fra attestant til saksbehandler"
+                "Innvilget søknadsbehandling sendt tilbake fra attestant til saksbehandler",
             )
 
             SøknadsbehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(
-                BehandlingsStatus.UNDERKJENT_AVSLAG
+                BehandlingsStatus.UNDERKJENT_AVSLAG,
             ) shouldBe SøknadsbehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.BehandlingStatusOgBehandlingStatusBeskrivelse(
                 BehandlingsStatus.UNDERKJENT_AVSLAG,
-                "Avslått søknadsbehandling sendt tilbake fra attestant til saksbehandler"
+                "Avslått søknadsbehandling sendt tilbake fra attestant til saksbehandler",
             )
 
             SøknadsbehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(
-                BehandlingsStatus.IVERKSATT_INNVILGET
+                BehandlingsStatus.IVERKSATT_INNVILGET,
             ) shouldBe SøknadsbehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.BehandlingStatusOgBehandlingStatusBeskrivelse(
-                BehandlingsStatus.IVERKSATT_INNVILGET, "Innvilget søknadsbehandling iverksatt"
+                BehandlingsStatus.IVERKSATT_INNVILGET, "Innvilget søknadsbehandling iverksatt",
             )
 
             SøknadsbehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(
-                BehandlingsStatus.IVERKSATT_AVSLAG
+                BehandlingsStatus.IVERKSATT_AVSLAG,
             ) shouldBe SøknadsbehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.BehandlingStatusOgBehandlingStatusBeskrivelse(
-                BehandlingsStatus.IVERKSATT_AVSLAG, "Avslått søknadsbehandling iverksatt"
+                BehandlingsStatus.IVERKSATT_AVSLAG, "Avslått søknadsbehandling iverksatt",
             )
 
             assertThrows<ManglendeStatistikkMappingException> {
                 SøknadsbehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(
-                    BehandlingsStatus.VILKÅRSVURDERT_AVSLAG
+                    BehandlingsStatus.VILKÅRSVURDERT_AVSLAG,
                 )
             }
             assertThrows<ManglendeStatistikkMappingException> {
                 SøknadsbehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(
-                    BehandlingsStatus.VILKÅRSVURDERT_INNVILGET
+                    BehandlingsStatus.VILKÅRSVURDERT_INNVILGET,
                 )
             }
             assertThrows<ManglendeStatistikkMappingException> {
                 SøknadsbehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(
-                    BehandlingsStatus.BEREGNET_AVSLAG
+                    BehandlingsStatus.BEREGNET_AVSLAG,
                 )
             }
             assertThrows<ManglendeStatistikkMappingException> {
                 SøknadsbehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(
-                    BehandlingsStatus.BEREGNET_INNVILGET
+                    BehandlingsStatus.BEREGNET_INNVILGET,
                 )
             }
             assertThrows<ManglendeStatistikkMappingException> {
                 SøknadsbehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(
-                    BehandlingsStatus.SIMULERT
+                    BehandlingsStatus.SIMULERT,
                 )
             }
             assertThrows<ManglendeStatistikkMappingException> {
                 SøknadsbehandlingStatistikkMapper.BehandlingStatusOgBehandlingStatusBeskrivelseMapper.map(
-                    BehandlingsStatus.VILKÅRSVURDERT_INNVILGET
+                    BehandlingsStatus.VILKÅRSVURDERT_INNVILGET,
                 )
             }
         }
@@ -270,7 +278,7 @@ internal class SøknadsbehandlingStatistikkMapperTest {
         sakId = UUID.randomUUID(),
         søknadInnhold = SøknadInnholdTestdataBuilder.build(),
         journalpostId = JournalpostId(""),
-        oppgaveId = OppgaveId("")
+        oppgaveId = OppgaveId(""),
     )
 
     private val uavklartSøknadsbehandling = Søknadsbehandling.Vilkårsvurdert.Uavklart(
@@ -283,13 +291,14 @@ internal class SøknadsbehandlingStatistikkMapperTest {
         behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
         fnr = FnrGenerator.random(),
         fritekstTilBrev = "",
+        stønadsperiode = ValgtStønadsperiode(Periode.create(1.januar(2021), 31.desember(2021))),
     )
 
     private val beregning = TestBeregning
     private val avslagBeregning = TestBeregningSomGirOpphør
     private val avslåttBeregnetSøknadsbehandling = (
         uavklartSøknadsbehandling.tilVilkårsvurdert(
-            Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
+            Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
         )
             .tilBeregnet(avslagBeregning) as Søknadsbehandling.Beregnet.Avslag
         )
@@ -300,7 +309,7 @@ internal class SøknadsbehandlingStatistikkMapperTest {
         simulertSøknadsbehandling.tilAttestering(NavIdentBruker.Saksbehandler("saks"), "")
     private val iverksattSøknadsbehandling = tilAttesteringSøknadsbehandling.tilIverksatt(
         Attestering.Iverksatt(
-            NavIdentBruker.Attestant("att")
-        )
+            NavIdentBruker.Attestant("att"),
+        ),
     )
 }

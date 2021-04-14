@@ -12,7 +12,10 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.idag
+import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.AktørId
@@ -20,6 +23,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -54,6 +58,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
     private val nyOppgaveId = OppgaveId("999")
     private val aktørId = AktørId("12345")
     private val saksbehandler = NavIdentBruker.Saksbehandler("s")
+    private val stønadsperiode = ValgtStønadsperiode(Periode.create(1.januar(2021), 31.desember(2021)))
 
     private val underkjentAttestering = Attestering.Underkjent(
         attestant = NavIdentBruker.Attestant("a"),
@@ -87,6 +92,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
         fnr = fnr,
         oppgaveId = oppgaveId,
         fritekstTilBrev = "",
+        stønadsperiode = stønadsperiode,
     )
 
     private val oppgaveConfig = OppgaveConfig.Saksbehandling(
@@ -350,6 +356,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             saksbehandler = innvilgetBehandlingTilAttestering.saksbehandler,
             attestering = underkjentAttestering,
             fritekstTilBrev = "",
+            stønadsperiode = innvilgetBehandlingTilAttestering.stønadsperiode,
         )
 
         actual shouldBe underkjentMedNyOppgaveIdOgAttestering.right()
@@ -432,6 +439,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             saksbehandler = innvilgetBehandlingTilAttestering.saksbehandler,
             attestering = underkjentAttestering,
             fritekstTilBrev = "",
+            stønadsperiode = innvilgetBehandlingTilAttestering.stønadsperiode,
         )
 
         actual shouldBe underkjentMedNyOppgaveIdOgAttestering.right()

@@ -141,7 +141,7 @@ internal class RevurderingServiceImpl(
         val revurdering = revurderingRepo.hent(oppdaterRevurderingRequest.revurderingId)
             ?: return KunneIkkeOppdatereRevurderingsperiode.FantIkkeRevurdering.left()
 
-        val stønadsperiode = revurdering.tilRevurdering.beregning.getPeriode()
+        val stønadsperiode = revurdering.tilRevurdering.periode
         if (!oppdaterRevurderingRequest.fraOgMed.between(stønadsperiode)) {
             return KunneIkkeOppdatereRevurderingsperiode.PeriodenMåVæreInnenforAlleredeValgtStønadsperiode(revurdering.periode)
                 .left()
@@ -204,7 +204,7 @@ internal class RevurderingServiceImpl(
                         utbetalingService.simulerOpphør(
                             sakId = beregnetRevurdering.sakId,
                             saksbehandler = saksbehandler,
-                            opphørsdato = beregnetRevurdering.beregning.getPeriode().getFraOgMed(),
+                            opphørsdato = beregnetRevurdering.periode.getFraOgMed(),
                         ).mapLeft {
                             KunneIkkeBeregneOgSimulereRevurdering.SimuleringFeilet
                         }.map {
@@ -406,7 +406,7 @@ internal class RevurderingServiceImpl(
                             utbetalingService.opphør(
                                 sakId = revurdering.sakId,
                                 attestant = attestant,
-                                opphørsdato = revurdering.beregning.getPeriode().getFraOgMed(),
+                                opphørsdato = revurdering.periode.getFraOgMed(),
                                 simulering = revurdering.simulering,
                             ).mapLeft {
                                 when (it) {

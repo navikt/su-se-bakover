@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
+import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -27,7 +28,7 @@ import java.util.UUID
 import javax.sql.DataSource
 
 internal class SøknadsbehandlingPostgresRepo(
-    private val dataSource: DataSource
+    private val dataSource: DataSource,
 ) : SøknadsbehandlingRepo {
     override fun lagre(søknadsbehandling: Søknadsbehandling) {
         when (søknadsbehandling) {
@@ -93,6 +94,7 @@ internal class SøknadsbehandlingPostgresRepo(
         val saksbehandler = stringOrNull("saksbehandler")?.let { NavIdentBruker.Saksbehandler(it) }
         val saksnummer = Saksnummer(long("saksnummer"))
         val fritekstTilBrev = stringOrNull("fritekstTilBrev") ?: ""
+        val stønadsperiode = stringOrNull("stønadsperiode")?.let { objectMapper.readValue<ValgtStønadsperiode>(it) }
 
         val fnr = Fnr(string("fnr"))
 
@@ -106,7 +108,8 @@ internal class SøknadsbehandlingPostgresRepo(
                 oppgaveId = oppgaveId,
                 behandlingsinformasjon = behandlingsinformasjon,
                 fnr = fnr,
-                fritekstTilBrev = fritekstTilBrev
+                fritekstTilBrev = fritekstTilBrev,
+                stønadsperiode = stønadsperiode,
             )
             BehandlingsStatus.VILKÅRSVURDERT_INNVILGET -> Søknadsbehandling.Vilkårsvurdert.Innvilget(
                 id = behandlingId,
@@ -117,7 +120,8 @@ internal class SøknadsbehandlingPostgresRepo(
                 oppgaveId = oppgaveId,
                 behandlingsinformasjon = behandlingsinformasjon,
                 fnr = fnr,
-                fritekstTilBrev = fritekstTilBrev
+                fritekstTilBrev = fritekstTilBrev,
+                stønadsperiode = stønadsperiode!!,
             )
             BehandlingsStatus.VILKÅRSVURDERT_AVSLAG -> Søknadsbehandling.Vilkårsvurdert.Avslag(
                 id = behandlingId,
@@ -128,7 +132,8 @@ internal class SøknadsbehandlingPostgresRepo(
                 oppgaveId = oppgaveId,
                 behandlingsinformasjon = behandlingsinformasjon,
                 fnr = fnr,
-                fritekstTilBrev = fritekstTilBrev
+                fritekstTilBrev = fritekstTilBrev,
+                stønadsperiode = stønadsperiode!!,
             )
             BehandlingsStatus.BEREGNET_INNVILGET -> Søknadsbehandling.Beregnet.Innvilget(
                 id = behandlingId,
@@ -140,7 +145,8 @@ internal class SøknadsbehandlingPostgresRepo(
                 behandlingsinformasjon = behandlingsinformasjon,
                 fnr = fnr,
                 beregning = beregning!!,
-                fritekstTilBrev = fritekstTilBrev
+                fritekstTilBrev = fritekstTilBrev,
+                stønadsperiode = stønadsperiode!!,
             )
             BehandlingsStatus.BEREGNET_AVSLAG -> Søknadsbehandling.Beregnet.Avslag(
                 id = behandlingId,
@@ -152,7 +158,8 @@ internal class SøknadsbehandlingPostgresRepo(
                 behandlingsinformasjon = behandlingsinformasjon,
                 fnr = fnr,
                 beregning = beregning!!,
-                fritekstTilBrev = fritekstTilBrev
+                fritekstTilBrev = fritekstTilBrev,
+                stønadsperiode = stønadsperiode!!,
             )
             BehandlingsStatus.SIMULERT -> Søknadsbehandling.Simulert(
                 id = behandlingId,
@@ -165,7 +172,8 @@ internal class SøknadsbehandlingPostgresRepo(
                 fnr = fnr,
                 beregning = beregning!!,
                 simulering = simulering!!,
-                fritekstTilBrev = fritekstTilBrev
+                fritekstTilBrev = fritekstTilBrev,
+                stønadsperiode = stønadsperiode!!,
             )
             BehandlingsStatus.TIL_ATTESTERING_INNVILGET -> Søknadsbehandling.TilAttestering.Innvilget(
                 id = behandlingId,
@@ -179,7 +187,8 @@ internal class SøknadsbehandlingPostgresRepo(
                 beregning = beregning!!,
                 simulering = simulering!!,
                 saksbehandler = saksbehandler!!,
-                fritekstTilBrev = fritekstTilBrev
+                fritekstTilBrev = fritekstTilBrev,
+                stønadsperiode = stønadsperiode!!,
             )
             BehandlingsStatus.TIL_ATTESTERING_AVSLAG -> when (beregning) {
                 null -> Søknadsbehandling.TilAttestering.Avslag.UtenBeregning(
@@ -192,7 +201,8 @@ internal class SøknadsbehandlingPostgresRepo(
                     behandlingsinformasjon = behandlingsinformasjon,
                     fnr = fnr,
                     saksbehandler = saksbehandler!!,
-                    fritekstTilBrev = fritekstTilBrev
+                    fritekstTilBrev = fritekstTilBrev,
+                    stønadsperiode = stønadsperiode!!,
                 )
                 else -> Søknadsbehandling.TilAttestering.Avslag.MedBeregning(
                     id = behandlingId,
@@ -205,7 +215,8 @@ internal class SøknadsbehandlingPostgresRepo(
                     fnr = fnr,
                     beregning = beregning,
                     saksbehandler = saksbehandler!!,
-                    fritekstTilBrev = fritekstTilBrev
+                    fritekstTilBrev = fritekstTilBrev,
+                    stønadsperiode = stønadsperiode!!,
                 )
             }
             BehandlingsStatus.UNDERKJENT_INNVILGET -> Søknadsbehandling.Underkjent.Innvilget(
@@ -221,7 +232,8 @@ internal class SøknadsbehandlingPostgresRepo(
                 simulering = simulering!!,
                 saksbehandler = saksbehandler!!,
                 attestering = attestering!!,
-                fritekstTilBrev = fritekstTilBrev
+                fritekstTilBrev = fritekstTilBrev,
+                stønadsperiode = stønadsperiode!!,
             )
             BehandlingsStatus.UNDERKJENT_AVSLAG -> when (beregning) {
                 null -> Søknadsbehandling.Underkjent.Avslag.UtenBeregning(
@@ -235,7 +247,8 @@ internal class SøknadsbehandlingPostgresRepo(
                     fnr = fnr,
                     saksbehandler = saksbehandler!!,
                     attestering = attestering!!,
-                    fritekstTilBrev = fritekstTilBrev
+                    fritekstTilBrev = fritekstTilBrev,
+                    stønadsperiode = stønadsperiode!!,
                 )
                 else -> Søknadsbehandling.Underkjent.Avslag.MedBeregning(
                     id = behandlingId,
@@ -249,7 +262,8 @@ internal class SøknadsbehandlingPostgresRepo(
                     beregning = beregning,
                     saksbehandler = saksbehandler!!,
                     attestering = attestering!!,
-                    fritekstTilBrev = fritekstTilBrev
+                    fritekstTilBrev = fritekstTilBrev,
+                    stønadsperiode = stønadsperiode!!,
                 )
             }
             BehandlingsStatus.IVERKSATT_INNVILGET -> {
@@ -266,7 +280,8 @@ internal class SøknadsbehandlingPostgresRepo(
                     simulering = simulering!!,
                     saksbehandler = saksbehandler!!,
                     attestering = attestering!!,
-                    fritekstTilBrev = fritekstTilBrev
+                    fritekstTilBrev = fritekstTilBrev,
+                    stønadsperiode = stønadsperiode!!,
                 )
             }
             BehandlingsStatus.IVERKSATT_AVSLAG -> {
@@ -282,7 +297,8 @@ internal class SøknadsbehandlingPostgresRepo(
                         fnr = fnr,
                         saksbehandler = saksbehandler!!,
                         attestering = attestering!!,
-                        fritekstTilBrev = fritekstTilBrev
+                        fritekstTilBrev = fritekstTilBrev,
+                        stønadsperiode = stønadsperiode!!,
                     )
                     else -> Søknadsbehandling.Iverksatt.Avslag.MedBeregning(
                         id = behandlingId,
@@ -296,7 +312,8 @@ internal class SøknadsbehandlingPostgresRepo(
                         beregning = beregning,
                         saksbehandler = saksbehandler!!,
                         attestering = attestering!!,
-                        fritekstTilBrev = fritekstTilBrev
+                        fritekstTilBrev = fritekstTilBrev,
+                        stønadsperiode = stønadsperiode!!,
                     )
                 }
             }
@@ -318,7 +335,8 @@ internal class SøknadsbehandlingPostgresRepo(
                         beregning,
                         simulering,
                         saksbehandler,
-                        attestering
+                        attestering,
+                        stønadsperiode
                     ) values (
                         :id,
                         :sakId,
@@ -330,15 +348,17 @@ internal class SøknadsbehandlingPostgresRepo(
                         null,
                         null,
                         null,
-                        null
+                        null,
+                        to_json(:stonadsperiode::json)
                     ) on conflict (id) do update set
                         status = :status,
                         behandlingsinformasjon = to_json(:behandlingsinformasjon::json),
                         beregning = null,
-                        simulering = null
+                        simulering = null,
+                        stønadsperiode = to_json(:stonadsperiode::json)
                 """.trimIndent()
                 ).oppdatering(
-                defaultParams(søknadsbehandling), session
+                defaultParams(søknadsbehandling), session,
             )
         }
     }
@@ -351,9 +371,9 @@ internal class SøknadsbehandlingPostgresRepo(
                 """.trimIndent()
                 ).oppdatering(
                 params = defaultParams(søknadsbehandling).plus(
-                    "beregning" to objectMapper.writeValueAsString(søknadsbehandling.beregning.toSnapshot())
+                    "beregning" to objectMapper.writeValueAsString(søknadsbehandling.beregning.toSnapshot()),
                 ),
-                session = session
+                session = session,
             )
         }
     }
@@ -368,10 +388,10 @@ internal class SøknadsbehandlingPostgresRepo(
                 defaultParams(søknadsbehandling).plus(
                     listOf(
                         "beregning" to objectMapper.writeValueAsString(søknadsbehandling.beregning.toSnapshot()),
-                        "simulering" to objectMapper.writeValueAsString(søknadsbehandling.simulering)
-                    )
+                        "simulering" to objectMapper.writeValueAsString(søknadsbehandling.simulering),
+                    ),
                 ),
-                session
+                session,
             )
         }
     }
@@ -391,10 +411,10 @@ internal class SøknadsbehandlingPostgresRepo(
                 defaultParams(søknadsbehandling).plus(
                     listOf(
                         "saksbehandler" to søknadsbehandling.saksbehandler.navIdent,
-                        "fritekstTilBrev" to søknadsbehandling.fritekstTilBrev
-                    )
+                        "fritekstTilBrev" to søknadsbehandling.fritekstTilBrev,
+                    ),
                 ),
-                session
+                session,
             )
         }
     }
@@ -407,9 +427,9 @@ internal class SøknadsbehandlingPostgresRepo(
                 """.trimIndent()
                 ).oppdatering(
                 params = defaultParams(søknadsbehandling).plus(
-                    "attestering" to objectMapper.writeValueAsString(søknadsbehandling.attestering)
+                    "attestering" to objectMapper.writeValueAsString(søknadsbehandling.attestering),
                 ),
-                session = session
+                session = session,
             )
         }
     }
@@ -425,10 +445,10 @@ internal class SøknadsbehandlingPostgresRepo(
                         ).oppdatering(
                         params = defaultParams(søknadsbehandling).plus(
                             listOf(
-                                "attestering" to objectMapper.writeValueAsString(søknadsbehandling.attestering)
-                            )
+                                "attestering" to objectMapper.writeValueAsString(søknadsbehandling.attestering),
+                            ),
                         ),
-                        session = session
+                        session = session,
                     )
                 }
             }
@@ -442,9 +462,9 @@ internal class SøknadsbehandlingPostgresRepo(
                         params = defaultParams(søknadsbehandling).plus(
                             listOf(
                                 "attestering" to objectMapper.writeValueAsString(søknadsbehandling.attestering),
-                            )
+                            ),
                         ),
-                        session = session
+                        session = session,
                     )
                 }
             }
@@ -460,6 +480,7 @@ internal class SøknadsbehandlingPostgresRepo(
             "status" to søknadsbehandling.status.name,
             "behandlingsinformasjon" to objectMapper.writeValueAsString(søknadsbehandling.behandlingsinformasjon),
             "oppgaveId" to søknadsbehandling.oppgaveId.toString(),
+            "stonadsperiode" to objectMapper.writeValueAsString(søknadsbehandling.stønadsperiode),
         )
     }
 }

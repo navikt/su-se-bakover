@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -58,6 +59,10 @@ object RevurderingTestUtils {
             )
         },
     )
+    internal val stønadsperiode = ValgtStønadsperiode(
+        periode = periode,
+        begrunnelse = "begrunnelsen for perioden"
+    )
     internal val attesteringUnderkjent = Attestering.Underkjent(NavIdentBruker.Attestant("Attes T. Ant"), Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL, "kommentar")
     internal val saksbehandler = NavIdentBruker.Saksbehandler("Sak S. behandler")
     internal val saksnummer = Saksnummer(nummer = 12345676)
@@ -102,6 +107,7 @@ object RevurderingTestUtils {
             saksbehandler = saksbehandler,
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("Attes T. Ant")),
             fritekstTilBrev = "",
+            stønadsperiode = stønadsperiode,
         ),
         UUID30.randomUUID(),
     )

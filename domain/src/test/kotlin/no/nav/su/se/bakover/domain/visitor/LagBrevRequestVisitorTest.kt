@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
@@ -829,5 +830,6 @@ internal class LagBrevRequestVisitorTest {
         behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
         fnr = FnrGenerator.random(),
         fritekstTilBrev = "",
+        stønadsperiode = ValgtStønadsperiode(Periode.create(1.januar(2021), 31.desember(2021))),
     )
 }

@@ -31,7 +31,6 @@ import kotlin.math.abs
 
 sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
     abstract val tilRevurdering: Vedtak.EndringIYtelse
-    abstract val periode: Periode
     abstract val saksbehandler: Saksbehandler
     override val sakId: UUID
         get() = tilRevurdering.behandling.sakId

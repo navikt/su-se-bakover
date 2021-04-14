@@ -16,11 +16,8 @@ import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
-import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.deserialize
-import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.Brukerrolle
@@ -54,6 +51,7 @@ import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.fixedClock
 import no.nav.su.se.bakover.web.jwtStub
 import no.nav.su.se.bakover.web.requestSomAttestant
+import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.stønadsperiode
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.stubs.asBearerToken
 import no.nav.su.se.bakover.web.testSusebakover
@@ -150,7 +148,6 @@ internal class BehandlingRoutesKtTest {
             services.søknadsbehandling.beregn(
                 BeregnRequest(
                     behandlingId = objects.søknadsbehandling.id,
-                    periode = Periode.create(1.januar(2021), 31.desember(2021)),
                     fradrag = emptyList(),
                     begrunnelse = null
                 )
@@ -201,7 +198,6 @@ internal class BehandlingRoutesKtTest {
             services.søknadsbehandling.beregn(
                 BeregnRequest(
                     behandlingId = objects.søknadsbehandling.id,
-                    periode = Periode.create(1.januar(2021), 31.desember(2021)),
                     fradrag = emptyList(),
                     begrunnelse = null,
                 )
@@ -262,7 +258,6 @@ internal class BehandlingRoutesKtTest {
             services.søknadsbehandling.beregn(
                 BeregnRequest(
                     behandlingId = objects.søknadsbehandling.id,
-                    periode = Periode.create(1.januar(2021), 31.desember(2021)),
                     fradrag = emptyList(),
                     begrunnelse = null,
                 )
@@ -295,11 +290,6 @@ internal class BehandlingRoutesKtTest {
                     services.søknadsbehandling.beregn(
                         BeregnRequest(
                             behandlingId = søknadsbehandling.id,
-                            periode =
-                            Periode.create(
-                                1.januar(2021),
-                                31.desember(2021)
-                            ),
                             fradrag = emptyList(),
                             begrunnelse = null,
                         )
@@ -436,10 +426,6 @@ internal class BehandlingRoutesKtTest {
                     services.søknadsbehandling.beregn(
                         BeregnRequest(
                             behandlingId = søknadsbehandling.id,
-                            periode = Periode.create(
-                                1.januar(2021),
-                                31.desember(2021)
-                            ),
                             fradrag = emptyList(),
                             begrunnelse = null,
                         )
@@ -626,7 +612,6 @@ internal class BehandlingRoutesKtTest {
                 services.søknadsbehandling.beregn(
                     BeregnRequest(
                         behandlingId = objects.søknadsbehandling.id,
-                        periode = Periode.create(1.januar(2021), 31.desember(2021)),
                         fradrag = emptyList(),
                         begrunnelse = null,
                     )
@@ -686,6 +671,7 @@ internal class BehandlingRoutesKtTest {
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             fnr = sak.fnr,
             fritekstTilBrev = "",
+            stønadsperiode = stønadsperiode,
         )
         repos.søknadsbehandling.lagre(
             søknadsbehandling

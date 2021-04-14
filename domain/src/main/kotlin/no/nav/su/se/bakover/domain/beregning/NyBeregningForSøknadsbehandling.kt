@@ -13,7 +13,7 @@ data class NyBeregningForSøknadsbehandling private constructor(
     val saksbehandler: Saksbehandler,
     val stønadsperiode: Stønadsperiode,
     val fradrag: List<Fradrag>,
-    val begrunnelse: String?
+    val begrunnelse: String?,
 ) {
     companion object {
         fun create(
@@ -28,7 +28,7 @@ data class NyBeregningForSøknadsbehandling private constructor(
                 saksbehandler,
                 stønadsperiode,
                 fradrag,
-                begrunnelse
+                begrunnelse,
             ).getOrHandle { throw IllegalArgumentException(it.toString()) }
         }
 
