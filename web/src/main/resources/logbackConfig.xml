@@ -6,6 +6,30 @@
         </encoder>
     </appender>
 
+  <appender name="auditLogger" class="com.papertrailapp.logback.Syslog4jAppender">
+    <layout class="ch.qos.logback.classic.PatternLayout">
+      <pattern>%m%n%xEx</pattern>
+    </layout>
+
+    <!-- FORMAT
+    syntax:
+    Jan 11 10:25:39 host CEF:Version|Device Vendor|Device Product|Device Version|Device Event Class ID|Name|Severity|[Extension]
+
+    example:
+    Oct 12 04:16:11 localhost CEF:0|nxlog.org|nxlog|2.7.1243|Executable Code was Detected|Advanced exploit detected|100|src=192.168.255.110 spt=46117 dst=172.25.212.204 dpt=80
+    -->
+    <syslogConfig class="org.productivity.java.syslog4j.impl.net.tcp.TCPNetSyslogConfig">
+      <!-- remote system to log to -->
+      <host>audit.nais</host>
+      <!-- remote port to log to -->
+      <port>6514</port>
+      <!-- IMPORTANT: Set to your application name. -->
+      <ident>su-se-bakover</ident>
+      <!-- max log message length in bytes -->
+      <maxMessageLength>128000</maxMessageLength>
+    </syslogConfig>
+  </appender>
+
     <appender name="secureAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>/secure-logs/secure.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
