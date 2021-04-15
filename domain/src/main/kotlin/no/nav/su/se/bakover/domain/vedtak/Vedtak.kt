@@ -26,12 +26,11 @@ import java.time.Clock
 import java.util.UUID
 
 enum class VedtakType {
-    SØKNAD,
-    AVSLAG,
-    ENDRING,
-    INGEN_ENDRING,
-    OPPHØR,
-    REGULER_GRUNNBELØP,
+    SØKNAD, // Innvilget Søknadsbehandling                  -> EndringIYtelse
+    AVSLAG, // Avslått Søknadsbehandling                    -> Avslag
+    ENDRING, // Revurdering innvilget                       -> EndringIYtelse
+    INGEN_ENDRING, // Revurdering mellom 2% og 10% endring  -> IngenEndringIYtelse
+    OPPHØR, // Revurdering ført til opphør                  -> EndringIYtelse
 }
 
 interface VedtakFelles {
@@ -49,6 +48,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
 
     abstract fun journalfør(journalfør: () -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre, Vedtak>
     abstract fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev, Vedtak>
+    fun skalFerdigstille() = (this.behandling as? IverksattRevurdering.Innvilget)?.revurderingsårsak?.årsak != Revurderingsårsak.Årsak.REGULER_GRUNNBELØP
 
     companion object {
         fun fromSøknadsbehandling(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget, utbetalingId: UUID30) =
@@ -91,7 +91,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
             attestant = revurdering.attestering.attestant,
             utbetalingId = utbetalingId,
             journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
-            vedtakType = if (revurdering.revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) VedtakType.REGULER_GRUNNBELØP else VedtakType.ENDRING,
+            vedtakType = VedtakType.ENDRING
         )
 
         fun from(revurdering: IverksattRevurdering.Opphørt, utbetalingId: UUID30) = EndringIYtelse(

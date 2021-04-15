@@ -214,7 +214,6 @@ class LagBrevRequestVisitor(
             }
             VedtakType.AVSLAG,
             VedtakType.INGEN_ENDRING,
-            VedtakType.REGULER_GRUNNBELØP,
             -> {
                 throw KunneIkkeLageBrevRequest.UgyldigKombinasjonAvVedtakOgTypeException(vedtak::class, vedtak.vedtakType)
             }

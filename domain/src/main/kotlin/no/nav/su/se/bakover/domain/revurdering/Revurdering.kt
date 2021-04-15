@@ -395,19 +395,22 @@ sealed class SimulertRevurdering : Revurdering() {
             attesteringsoppgaveId: OppgaveId,
             saksbehandler: Saksbehandler,
             fritekstTilBrev: String,
-        ) = RevurderingTilAttestering.Opphørt(
-            id = id,
-            periode = periode,
-            opprettet = opprettet,
-            tilRevurdering = tilRevurdering,
-            saksbehandler = saksbehandler,
-            beregning = beregning,
-            simulering = simulering,
-            oppgaveId = attesteringsoppgaveId,
-            fritekstTilBrev = fritekstTilBrev,
-            revurderingsårsak = revurderingsårsak,
-            behandlingsinformasjon = behandlingsinformasjon,
-        )
+        ): RevurderingTilAttestering.Opphørt {
+            if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) throw IllegalStateException("Kan ikke sende en opphørt g-regulering til attestering")
+            return RevurderingTilAttestering.Opphørt(
+                id = id,
+                periode = periode,
+                opprettet = opprettet,
+                tilRevurdering = tilRevurdering,
+                saksbehandler = saksbehandler,
+                beregning = beregning,
+                simulering = simulering,
+                oppgaveId = attesteringsoppgaveId,
+                fritekstTilBrev = fritekstTilBrev,
+                revurderingsårsak = revurderingsårsak,
+                behandlingsinformasjon = behandlingsinformasjon,
+            )
+        }
     }
 
     fun oppdater(
@@ -776,19 +779,22 @@ sealed class UnderkjentRevurdering : Revurdering() {
             oppgaveId: OppgaveId,
             saksbehandler: Saksbehandler,
             fritekstTilBrev: String,
-        ) = RevurderingTilAttestering.Opphørt(
-            id = id,
-            periode = periode,
-            opprettet = opprettet,
-            tilRevurdering = tilRevurdering,
-            saksbehandler = saksbehandler,
-            beregning = beregning,
-            simulering = simulering,
-            oppgaveId = oppgaveId,
-            fritekstTilBrev = fritekstTilBrev,
-            revurderingsårsak = revurderingsårsak,
-            behandlingsinformasjon = behandlingsinformasjon,
-        )
+        ): RevurderingTilAttestering.Opphørt {
+            if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) throw IllegalStateException("Kan ikke sende en opphørt g-regulering til attestering")
+            return RevurderingTilAttestering.Opphørt(
+                id = id,
+                periode = periode,
+                opprettet = opprettet,
+                tilRevurdering = tilRevurdering,
+                saksbehandler = saksbehandler,
+                beregning = beregning,
+                simulering = simulering,
+                oppgaveId = oppgaveId,
+                fritekstTilBrev = fritekstTilBrev,
+                revurderingsårsak = revurderingsårsak,
+                behandlingsinformasjon = behandlingsinformasjon,
+            )
+        }
     }
 
     data class IngenEndring(

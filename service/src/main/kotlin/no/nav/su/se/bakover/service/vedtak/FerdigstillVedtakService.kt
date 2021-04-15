@@ -19,7 +19,6 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
@@ -111,8 +110,7 @@ internal class FerdigstillVedtakServiceImpl(
      */
     override fun ferdigstillVedtakEtterUtbetaling(utbetalingId: UUID30) {
         val vedtak = vedtakRepo.hentForUtbetaling(utbetalingId)
-        val skalFerdigstille = (vedtak.behandling as? IverksattRevurdering.Innvilget)?.revurderingsårsak?.årsak != Revurderingsårsak.Årsak.REGULER_GRUNNBELØP
-        if (skalFerdigstille) {
+        if (vedtak.skalFerdigstille()) {
             ferdigstillVedtak(vedtak).getOrHandle {
                 throw KunneIkkeFerdigstilleVedtakException(vedtak, it)
             }
@@ -125,6 +123,7 @@ internal class FerdigstillVedtakServiceImpl(
     override fun opprettManglendeJournalposterOgBrevbestillinger(): FerdigstillVedtakService.OpprettManglendeJournalpostOgBrevdistribusjonResultat {
         val alleUtenJournalpost = vedtakRepo.hentUtenJournalpost()
         val innvilgetUtenJournalpost = alleUtenJournalpost.filterIsInstance<Vedtak.EndringIYtelse>()
+            .filter { it.skalFerdigstille() }
             /**
              * Unngår å journalføre og distribuere brev for innvilgelser hvor vi ikke har mottatt kvittering,
              * eller mottatt kvittering ikke er ok.
@@ -166,6 +165,9 @@ internal class FerdigstillVedtakServiceImpl(
         val alleUtenBrevbestilling = vedtakRepo.hentUtenBrevbestilling()
 
         val innvilgetUtenBrevbestilling = alleUtenBrevbestilling.filterIsInstance<Vedtak.EndringIYtelse>()
+            .filter {
+                it.skalFerdigstille()
+            }
             /**
              * Unngår å journalføre og distribuere brev for innvilgelser hvor vi ikke har mottatt kvittering,
              * eller mottatt kvittering ikke er ok.
