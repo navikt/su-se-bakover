@@ -128,7 +128,6 @@ abstract class BrevInnhold {
 
     data class Forhåndsvarsel(
         val personalia: Personalia,
-        val saksbehandlerNavn: String,
         val beregningsperioder: List<Beregningsperiode>,
         val fritekst: String,
         val sats: Sats,

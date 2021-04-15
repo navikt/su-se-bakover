@@ -377,9 +377,10 @@ open class AccessCheckProxy(
                 override fun forhåndsvarsle(
                     revurderingId: UUID,
                     saksbehandler: NavIdentBruker.Saksbehandler,
-                ): Either<KunneIkkeForhåndsvarsle, Revurdering> {
+                    fritekst: String,
+                    ): Either<KunneIkkeForhåndsvarsle, Revurdering> {
                     assertHarTilgangTilRevurdering(revurderingId)
-                    return services.revurdering.forhåndsvarsle(revurderingId, saksbehandler)
+                    return services.revurdering.forhåndsvarsle(revurderingId, saksbehandler, fritekst)
                 }
 
                 override fun sendTilAttestering(

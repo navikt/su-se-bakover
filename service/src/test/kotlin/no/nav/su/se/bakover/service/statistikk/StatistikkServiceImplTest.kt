@@ -425,6 +425,7 @@ internal class StatistikkServiceImplTest {
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = null,
         )
 
         val expected = Statistikk.Behandling(
@@ -488,6 +489,7 @@ internal class StatistikkServiceImplTest {
             oppgaveId = OppgaveId("55"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = null,
         )
 
         val expected = Statistikk.Behandling(
@@ -552,6 +554,7 @@ internal class StatistikkServiceImplTest {
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = null,
         )
 
         val expected = Statistikk.Behandling(

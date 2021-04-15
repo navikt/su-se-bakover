@@ -87,6 +87,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
+            forhåndsvarsel = null
         )
 
         val revurderingServiceMock = mock<RevurderingService> {
@@ -128,7 +129,8 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
-            skalFøreTilBrevutsending = false
+            skalFøreTilBrevutsending = false,
+            forhåndsvarsel = null
         )
 
         val revurderingServiceMock = mock<RevurderingService> {
@@ -172,7 +174,8 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
-            skalFøreTilBrevutsending = true
+            skalFøreTilBrevutsending = true,
+            forhåndsvarsel = null
         )
 
         val revurderingServiceMock = mock<RevurderingService> {

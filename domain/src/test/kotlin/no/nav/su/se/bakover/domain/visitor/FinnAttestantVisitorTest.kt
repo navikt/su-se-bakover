@@ -219,6 +219,7 @@ internal class FinnAttestantVisitorTest {
             Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
             Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
         ),
+        forhåndsvarsel = null
     )
 
     private val beregnetRevurdering = when (val a = revurdering.beregn(emptyList()).orNull()!!) {
@@ -229,7 +230,7 @@ internal class FinnAttestantVisitorTest {
     }
     private val simulertRevurdering = beregnetRevurdering.toSimulert(mock())
     private val tilAttesteringRevurdering =
-        simulertRevurdering.tilAttestering(mock(), saksbehandler, "fritekst til brevet")
+        simulertRevurdering.tilAttestering(mock(), saksbehandler, "fritekst til brevet", null)
     private val iverksattRevurdering = tilAttesteringRevurdering.tilIverksatt(attestant) { UUID30.randomUUID().right() }
         .orNull()!!
 }

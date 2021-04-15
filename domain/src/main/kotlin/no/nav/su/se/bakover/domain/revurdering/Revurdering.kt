@@ -22,6 +22,8 @@ import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.RevurdertBeregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.brev.BrevbestillingId
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
@@ -29,7 +31,7 @@ import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.util.UUID
 import kotlin.math.abs
 
-data class Forhåndsvarsel(val x, val a, val b)
+data class Forhåndsvarsel(val journalpostId: JournalpostId, val brevbestillingId: BrevbestillingId?)
 
 sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
     abstract val tilRevurdering: Vedtak.EndringIYtelse
@@ -44,6 +46,8 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
     // TODO ia: fritekst bør flyttes ut av denne klassen og til et eget konsept (som også omfatter fritekst på søknadsbehandlinger)
     abstract val fritekstTilBrev: String
     abstract val revurderingsårsak: Revurderingsårsak
+
+    abstract val forhåndsvarsel: Forhåndsvarsel?
 
     open fun beregn(fradrag: List<Fradrag>): Either<KunneIkkeBeregneRevurdering, BeregnetRevurdering> {
         val beregningsgrunnlag = Beregningsgrunnlag.create(
@@ -78,6 +82,7 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
                             oppgaveId = oppgaveId,
                             fritekstTilBrev = fritekstTilBrev,
                             revurderingsårsak = revurderingsårsak,
+                            forhåndsvarsel = forhåndsvarsel,
                         )
                     }
                     AvslagGrunnetBeregning.Nei -> {
@@ -91,6 +96,7 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
                             oppgaveId = oppgaveId,
                             fritekstTilBrev = fritekstTilBrev,
                             revurderingsårsak = revurderingsårsak,
+                            forhåndsvarsel = forhåndsvarsel,
                         )
                     }
                 }
@@ -106,6 +112,7 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
                     oppgaveId = oppgaveId,
                     fritekstTilBrev = fritekstTilBrev,
                     revurderingsårsak = revurderingsårsak,
+                    forhåndsvarsel = forhåndsvarsel,
                 )
             }
         }.right()
@@ -128,6 +135,7 @@ data class OpprettetRevurdering(
     override val oppgaveId: OppgaveId,
     override val fritekstTilBrev: String,
     override val revurderingsårsak: Revurderingsårsak,
+    override val forhåndsvarsel: Forhåndsvarsel?,
 ) : Revurdering() {
     override fun accept(visitor: RevurderingVisitor) {
         visitor.visit(this)
@@ -159,6 +167,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         oppgaveId = oppgaveId,
         fritekstTilBrev = fritekstTilBrev,
         revurderingsårsak = revurderingsårsak,
+        forhåndsvarsel = forhåndsvarsel,
     )
 
     data class Innvilget(
@@ -171,6 +180,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val oppgaveId: OppgaveId,
         override val fritekstTilBrev: String,
         override val revurderingsårsak: Revurderingsårsak,
+        override val forhåndsvarsel: Forhåndsvarsel?,
     ) : BeregnetRevurdering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -187,6 +197,7 @@ sealed class BeregnetRevurdering : Revurdering() {
             oppgaveId = oppgaveId,
             fritekstTilBrev = fritekstTilBrev,
             revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = forhåndsvarsel,
         )
     }
 
@@ -200,6 +211,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val oppgaveId: OppgaveId,
         override val fritekstTilBrev: String,
         override val revurderingsårsak: Revurderingsårsak,
+        override val forhåndsvarsel: Forhåndsvarsel?,
     ) : BeregnetRevurdering() {
 
         fun tilAttestering(
@@ -217,7 +229,8 @@ sealed class BeregnetRevurdering : Revurdering() {
             oppgaveId = attesteringsoppgaveId,
             fritekstTilBrev = fritekstTilBrev,
             revurderingsårsak = revurderingsårsak,
-            skalFøreTilBrevutsending = skalFøreTilBrevutsending
+            skalFøreTilBrevutsending = skalFøreTilBrevutsending,
+            forhåndsvarsel = forhåndsvarsel,
         )
 
         override fun toSimulert(simulering: Simulering): SimulertRevurdering {
@@ -239,6 +252,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val oppgaveId: OppgaveId,
         override val fritekstTilBrev: String,
         override val revurderingsårsak: Revurderingsårsak,
+        override val forhåndsvarsel: Forhåndsvarsel?,
     ) : BeregnetRevurdering() {
         override fun toSimulert(simulering: Simulering) = SimulertRevurdering.Opphørt(
             id = id,
@@ -251,6 +265,7 @@ sealed class BeregnetRevurdering : Revurdering() {
             oppgaveId = oppgaveId,
             fritekstTilBrev = fritekstTilBrev,
             revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = forhåndsvarsel,
         )
 
         override fun accept(visitor: RevurderingVisitor) {
@@ -270,13 +285,16 @@ sealed class SimulertRevurdering : Revurdering() {
     abstract override val revurderingsårsak: Revurderingsårsak
     abstract val beregning: Beregning
     abstract val simulering: Simulering
+    abstract override var forhåndsvarsel: Forhåndsvarsel?
 
     abstract override fun accept(visitor: RevurderingVisitor)
+
 
     abstract fun tilAttestering(
         attesteringsoppgaveId: OppgaveId,
         saksbehandler: Saksbehandler,
         fritekstTilBrev: String,
+        forhåndsvarsel: Forhåndsvarsel?,
     ): RevurderingTilAttestering
 
     data class Innvilget(
@@ -290,6 +308,7 @@ sealed class SimulertRevurdering : Revurdering() {
         override val fritekstTilBrev: String,
         override val beregning: Beregning,
         override val simulering: Simulering,
+        override var forhåndsvarsel: Forhåndsvarsel?,
     ) : SimulertRevurdering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -299,6 +318,7 @@ sealed class SimulertRevurdering : Revurdering() {
             attesteringsoppgaveId: OppgaveId,
             saksbehandler: Saksbehandler,
             fritekstTilBrev: String,
+            forhåndsvarsel: Forhåndsvarsel?,
         ) = RevurderingTilAttestering.Innvilget(
             id = id,
             periode = periode,
@@ -310,6 +330,7 @@ sealed class SimulertRevurdering : Revurdering() {
             oppgaveId = attesteringsoppgaveId,
             fritekstTilBrev = fritekstTilBrev,
             revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = forhåndsvarsel,
         )
     }
 
@@ -324,6 +345,7 @@ sealed class SimulertRevurdering : Revurdering() {
         override val fritekstTilBrev: String,
         override val beregning: Beregning,
         override val simulering: Simulering,
+        override var forhåndsvarsel: Forhåndsvarsel?,
     ) : SimulertRevurdering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -333,6 +355,7 @@ sealed class SimulertRevurdering : Revurdering() {
             attesteringsoppgaveId: OppgaveId,
             saksbehandler: Saksbehandler,
             fritekstTilBrev: String,
+            forhåndsvarsel: Forhåndsvarsel?,
         ) = RevurderingTilAttestering.Opphørt(
             id = id,
             periode = periode,
@@ -344,6 +367,7 @@ sealed class SimulertRevurdering : Revurdering() {
             oppgaveId = attesteringsoppgaveId,
             fritekstTilBrev = fritekstTilBrev,
             revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = forhåndsvarsel,
         )
     }
 
@@ -359,6 +383,7 @@ sealed class SimulertRevurdering : Revurdering() {
         oppgaveId = oppgaveId,
         fritekstTilBrev = fritekstTilBrev,
         revurderingsårsak = revurderingsårsak,
+        forhåndsvarsel = forhåndsvarsel,
     )
 }
 
@@ -378,6 +403,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val revurderingsårsak: Revurderingsårsak,
         override val beregning: Beregning,
         val simulering: Simulering,
+        override val forhåndsvarsel: Forhåndsvarsel?,
     ) : RevurderingTilAttestering() {
 
         override fun accept(visitor: RevurderingVisitor) {
@@ -405,6 +431,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                     fritekstTilBrev = fritekstTilBrev,
                     revurderingsårsak = revurderingsårsak,
                     attestering = Attestering.Iverksatt(attestant),
+                    forhåndsvarsel = forhåndsvarsel,
                 )
             }
         }
@@ -421,6 +448,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val revurderingsårsak: Revurderingsårsak,
         override val beregning: Beregning,
         val simulering: Simulering,
+        override val forhåndsvarsel: Forhåndsvarsel?,
     ) : RevurderingTilAttestering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -448,6 +476,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                     fritekstTilBrev = fritekstTilBrev,
                     revurderingsårsak = revurderingsårsak,
                     attestering = Attestering.Iverksatt(attestant),
+                    forhåndsvarsel = forhåndsvarsel,
                 )
             }
         }
@@ -464,6 +493,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val fritekstTilBrev: String,
         override val revurderingsårsak: Revurderingsårsak,
         val skalFøreTilBrevutsending: Boolean,
+        override val forhåndsvarsel: Forhåndsvarsel?,
     ) : RevurderingTilAttestering() {
 
         override fun accept(visitor: RevurderingVisitor) {
@@ -488,7 +518,8 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 fritekstTilBrev = fritekstTilBrev,
                 revurderingsårsak = revurderingsårsak,
                 attestering = Attestering.Iverksatt(attestant),
-                skalFøreTilBrevutsending = skalFøreTilBrevutsending
+                skalFøreTilBrevutsending = skalFøreTilBrevutsending,
+                forhåndsvarsel = forhåndsvarsel,
             ).right()
         }
     }
@@ -523,6 +554,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 attestering = attestering,
                 fritekstTilBrev = fritekstTilBrev,
                 revurderingsårsak = revurderingsårsak,
+                forhåndsvarsel = forhåndsvarsel,
             )
             is Opphørt -> UnderkjentRevurdering.Opphørt(
                 id = id,
@@ -536,6 +568,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 attestering = attestering,
                 fritekstTilBrev = fritekstTilBrev,
                 revurderingsårsak = revurderingsårsak,
+                forhåndsvarsel = forhåndsvarsel,
             )
             is IngenEndring -> UnderkjentRevurdering.IngenEndring(
                 id = id,
@@ -549,6 +582,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 fritekstTilBrev = fritekstTilBrev,
                 revurderingsårsak = revurderingsårsak,
                 skalFøreTilBrevutsending = skalFøreTilBrevutsending,
+                forhåndsvarsel = forhåndsvarsel,
             )
         }
     }
@@ -580,6 +614,7 @@ sealed class IverksattRevurdering : Revurdering() {
         override val beregning: Beregning,
         val simulering: Simulering,
         override val attestering: Attestering.Iverksatt,
+        override val forhåndsvarsel: Forhåndsvarsel?,
     ) : IverksattRevurdering() {
 
         override fun accept(visitor: RevurderingVisitor) {
@@ -599,6 +634,7 @@ sealed class IverksattRevurdering : Revurdering() {
         override val beregning: Beregning,
         val simulering: Simulering,
         override val attestering: Attestering.Iverksatt,
+        override val forhåndsvarsel: Forhåndsvarsel?,
     ) : IverksattRevurdering() {
 
         override fun accept(visitor: RevurderingVisitor) {
@@ -618,7 +654,9 @@ sealed class IverksattRevurdering : Revurdering() {
         override val revurderingsårsak: Revurderingsårsak,
         override val attestering: Attestering.Iverksatt,
         val skalFøreTilBrevutsending: Boolean,
+        override val forhåndsvarsel: Forhåndsvarsel?,
     ) : IverksattRevurdering() {
+
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
         }
@@ -654,6 +692,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val beregning: Beregning,
         val simulering: Simulering,
         override val attestering: Attestering.Underkjent,
+        override val forhåndsvarsel: Forhåndsvarsel?,
     ) : UnderkjentRevurdering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -674,6 +713,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
             oppgaveId = oppgaveId,
             fritekstTilBrev = fritekstTilBrev,
             revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = forhåndsvarsel,
         )
     }
 
@@ -689,6 +729,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val beregning: Beregning,
         val simulering: Simulering,
         override val attestering: Attestering.Underkjent,
+        override val forhåndsvarsel: Forhåndsvarsel?,
     ) : UnderkjentRevurdering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -709,6 +750,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
             oppgaveId = oppgaveId,
             fritekstTilBrev = fritekstTilBrev,
             revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = forhåndsvarsel,
         )
     }
 
@@ -724,6 +766,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val revurderingsårsak: Revurderingsårsak,
         override val attestering: Attestering.Underkjent,
         val skalFøreTilBrevutsending: Boolean,
+        override val forhåndsvarsel: Forhåndsvarsel?,
     ) : UnderkjentRevurdering() {
 
         override fun accept(visitor: RevurderingVisitor) {
@@ -745,7 +788,8 @@ sealed class UnderkjentRevurdering : Revurdering() {
             oppgaveId = oppgaveId,
             fritekstTilBrev = fritekstTilBrev,
             revurderingsårsak = revurderingsårsak,
-            skalFøreTilBrevutsending = skalFøreTilBrevutsending
+            skalFøreTilBrevutsending = skalFøreTilBrevutsending,
+            forhåndsvarsel = forhåndsvarsel,
         )
     }
 
@@ -761,6 +805,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         oppgaveId = oppgaveId,
         fritekstTilBrev = fritekstTilBrev,
         revurderingsårsak = revurderingsårsak,
+        forhåndsvarsel = forhåndsvarsel,
     )
 }
 

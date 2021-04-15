@@ -21,6 +21,7 @@ object JournalpostFactory {
         -> Journalpost.Vedtakspost(person, saksnummer, brevInnhold, pdf)
         BrevTemplate.TrukketSøknad,
         BrevTemplate.AvvistSøknadFritekst,
+        BrevTemplate.Forhåndsvarsel,
         -> Journalpost.Info(person, saksnummer, brevInnhold, pdf)
     }
 }
