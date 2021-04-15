@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.FantIkkePerson
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.IkkeTilgangTilPerson
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.Ukjent
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.lesFnr
@@ -47,7 +48,7 @@ internal fun Route.personRoutes(
                             }
                         },
                         {
-                            call.audit("Gjorde personoppslag på fødselsnummer $fnr")
+                            call.audit(fnr, AuditLogEvent.Action.ACCESS, null)
                             Resultat.json(HttpStatusCode.OK, objectMapper.writeValueAsString(it.toJson(clock)))
                         }
                     )

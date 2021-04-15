@@ -12,6 +12,8 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeStanseUtbetalinger
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.web.AuditLogEvent
+import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.message
@@ -47,6 +49,7 @@ internal fun Route.stansutbetalingRoutes(
                         InternalServerError.message("Kunne ikke stanse utbetalinger for sak med id $sakId")
                     },
                     {
+                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, null)
                         call.respond(serialize(it.toJson()))
                     }
                 )
