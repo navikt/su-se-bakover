@@ -14,9 +14,12 @@ import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.brev.BrevbestillingId
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
@@ -621,6 +624,39 @@ internal class RevurderingPostgresRepoTest {
 
             repo.lagre(underkjent)
             repo.hent(underkjent.id)!! shouldBe underkjent
+        }
+    }
+
+    @Test
+    fun `Lagrer revurdering med forhåndsvarsel`() {
+        withMigratedDb {
+            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+
+            val opprettet = opprettet(vedtak)
+            repo.lagre(opprettet)
+            val beregnet = beregnetIngenEndring(opprettet, vedtak)
+            repo.lagre(beregnet)
+            val forhåndsvarsletRevurdering = SimulertRevurdering.Innvilget(
+                id = opprettet.id,
+                periode = opprettet.periode,
+                opprettet = opprettet.opprettet,
+                tilRevurdering = vedtak,
+                saksbehandler = opprettet.saksbehandler,
+                oppgaveId = opprettet.oppgaveId,
+                fritekstTilBrev = opprettet.fritekstTilBrev,
+                revurderingsårsak = opprettet.revurderingsårsak,
+                beregning = vedtak.beregning,
+                forhåndsvarsel = Forhåndsvarsel(JournalpostId(UUID.randomUUID().toString()), BrevbestillingId(UUID.randomUUID().toString())),
+                simulering = Simulering(
+                    gjelderId = FnrGenerator.random(),
+                    gjelderNavn = "Mr Per",
+                    datoBeregnet = LocalDate.now(),
+                    nettoBeløp = 0,
+                    periodeList = listOf())
+            )
+            repo.lagre(forhåndsvarsletRevurdering)
+
+            repo.hent(forhåndsvarsletRevurdering.id)!! shouldBe forhåndsvarsletRevurdering
         }
     }
 }

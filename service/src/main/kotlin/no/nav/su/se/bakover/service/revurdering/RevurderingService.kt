@@ -93,6 +93,7 @@ sealed class KunneIkkeBeregneOgSimulereRevurdering {
 }
 
 sealed class KunneIkkeForhåndsvarsle {
+    object AlleredeForhåndsvarslet : KunneIkkeForhåndsvarsle()
     object UgyldigStatus : KunneIkkeForhåndsvarsle()
     object FantIkkeAktørId : KunneIkkeForhåndsvarsle()
     object FantIkkePerson : KunneIkkeForhåndsvarsle()

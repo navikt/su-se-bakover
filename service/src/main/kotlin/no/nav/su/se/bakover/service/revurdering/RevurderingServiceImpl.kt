@@ -233,6 +233,9 @@ internal class RevurderingServiceImpl(
 
     override fun forhåndsvarsle(revurderingId: UUID, saksbehandler: NavIdentBruker.Saksbehandler, fritekst: String): Either<KunneIkkeForhåndsvarsle, Revurdering> {
         val revurdering = revurderingRepo.hent(revurderingId)
+        if(revurdering?.forhåndsvarsel != null) {
+            return KunneIkkeForhåndsvarsle.AlleredeForhåndsvarslet.left()
+        }
 
         return when (revurdering) {
             is SimulertRevurdering -> {

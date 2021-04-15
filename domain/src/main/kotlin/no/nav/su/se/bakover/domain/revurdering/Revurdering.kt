@@ -31,7 +31,7 @@ import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.util.UUID
 import kotlin.math.abs
 
-data class Forhåndsvarsel(val journalpostId: JournalpostId, val brevbestillingId: BrevbestillingId?)
+data class Forhåndsvarsel constructor(val journalpostId: JournalpostId, val brevbestillingId: BrevbestillingId?)
 
 sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
     abstract val tilRevurdering: Vedtak.EndringIYtelse
