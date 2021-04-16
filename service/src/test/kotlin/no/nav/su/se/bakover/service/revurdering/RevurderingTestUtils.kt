@@ -84,6 +84,11 @@ object RevurderingTestUtils {
         Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
     )
 
+    internal val revurderingsårsakRegulerGrunnbeløp = Revurderingsårsak(
+        Revurderingsårsak.Årsak.REGULER_GRUNNBELØP,
+        Revurderingsårsak.Begrunnelse.create("Nytt Grunnbeløp"),
+    )
+
     internal val søknadsbehandlingVedtak = Vedtak.fromSøknadsbehandling(
         Søknadsbehandling.Iverksatt.Innvilget(
             id = mock(),

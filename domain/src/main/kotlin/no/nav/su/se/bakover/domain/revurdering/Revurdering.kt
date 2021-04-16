@@ -648,7 +648,7 @@ sealed class IverksattRevurdering : Revurdering() {
 
     abstract override fun accept(visitor: RevurderingVisitor)
 
-    override fun oppdaterBehandlingsinformasjon(behandlingsinformasjon: Behandlingsinformasjon) = throw IllegalStateException("Ikke lov å oppdatere behandlingsinformasjon i status Iversatt")
+    override fun oppdaterBehandlingsinformasjon(behandlingsinformasjon: Behandlingsinformasjon) = throw IllegalStateException("Ikke lov å oppdatere behandlingsinformasjon i status Iverksatt")
 
     data class Innvilget(
         override val id: UUID,
