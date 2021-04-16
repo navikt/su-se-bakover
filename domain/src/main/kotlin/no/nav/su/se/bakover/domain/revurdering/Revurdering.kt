@@ -31,7 +31,7 @@ import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.util.UUID
 import kotlin.math.abs
 
-data class Forhåndsvarsel constructor(val journalpostId: JournalpostId, val brevbestillingId: BrevbestillingId?)
+data class Forhåndsvarsel(val journalpostId: JournalpostId, val brevbestillingId: BrevbestillingId?)
 
 sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
     abstract val tilRevurdering: Vedtak.EndringIYtelse
@@ -289,12 +289,10 @@ sealed class SimulertRevurdering : Revurdering() {
 
     abstract override fun accept(visitor: RevurderingVisitor)
 
-
     abstract fun tilAttestering(
         attesteringsoppgaveId: OppgaveId,
         saksbehandler: Saksbehandler,
         fritekstTilBrev: String,
-        forhåndsvarsel: Forhåndsvarsel?,
     ): RevurderingTilAttestering
 
     data class Innvilget(
@@ -318,7 +316,6 @@ sealed class SimulertRevurdering : Revurdering() {
             attesteringsoppgaveId: OppgaveId,
             saksbehandler: Saksbehandler,
             fritekstTilBrev: String,
-            forhåndsvarsel: Forhåndsvarsel?,
         ) = RevurderingTilAttestering.Innvilget(
             id = id,
             periode = periode,
@@ -355,7 +352,6 @@ sealed class SimulertRevurdering : Revurdering() {
             attesteringsoppgaveId: OppgaveId,
             saksbehandler: Saksbehandler,
             fritekstTilBrev: String,
-            forhåndsvarsel: Forhåndsvarsel?,
         ) = RevurderingTilAttestering.Opphørt(
             id = id,
             periode = periode,

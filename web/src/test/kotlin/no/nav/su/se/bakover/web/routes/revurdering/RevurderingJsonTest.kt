@@ -63,7 +63,8 @@ internal class RevurderingJsonTest {
                 "saksbehandler": "Petter",
                 "fritekstTilBrev": "",
                 "årsak": "MELDING_FRA_BRUKER",
-                "begrunnelse": "Ny informasjon"
+                "begrunnelse": "Ny informasjon",
+                "harForhåndsvarslet": false
             }
             """.trimIndent()
 
@@ -110,7 +111,8 @@ internal class RevurderingJsonTest {
                 },
                 "fritekstTilBrev": "",
                 "årsak": "MELDING_FRA_BRUKER",
-                "begrunnelse": "Ny informasjon"
+                "begrunnelse": "Ny informasjon",
+                "harForhåndsvarslet": false
             }
             """.trimIndent()
 
@@ -157,7 +159,8 @@ internal class RevurderingJsonTest {
                 },
                 "fritekstTilBrev": "",
                 "årsak": "MELDING_FRA_BRUKER",
-                "begrunnelse": "Ny informasjon"
+                "begrunnelse": "Ny informasjon",
+                "harForhåndsvarslet": false
             }
             """.trimIndent()
 
@@ -204,7 +207,8 @@ internal class RevurderingJsonTest {
                 },
                 "fritekstTilBrev": "",
                 "årsak": "MELDING_FRA_BRUKER",
-                "begrunnelse": "Ny informasjon"
+                "begrunnelse": "Ny informasjon",
+                "harForhåndsvarslet": false
             }
             """.trimIndent()
 
@@ -252,7 +256,8 @@ internal class RevurderingJsonTest {
                 },
                 "fritekstTilBrev": "",
                 "årsak": "MELDING_FRA_BRUKER",
-                "begrunnelse": "Ny informasjon"
+                "begrunnelse": "Ny informasjon",
+                "harForhåndsvarslet": false
             }
             """.trimIndent()
 
@@ -300,7 +305,8 @@ internal class RevurderingJsonTest {
                 },
                 "fritekstTilBrev": "",
                 "årsak": "MELDING_FRA_BRUKER",
-                "begrunnelse": "Ny informasjon"
+                "begrunnelse": "Ny informasjon",
+                "harForhåndsvarslet": false
             }
             """.trimIndent()
 
@@ -349,7 +355,8 @@ internal class RevurderingJsonTest {
                 "fritekstTilBrev": "",
                 "skalFøreTilBrevutsending": true,
                 "årsak": "MELDING_FRA_BRUKER",
-                "begrunnelse": "Ny informasjon"
+                "begrunnelse": "Ny informasjon",
+                "harForhåndsvarslet": false
             }
             """.trimIndent()
 
@@ -398,7 +405,8 @@ internal class RevurderingJsonTest {
                 "fritekstTilBrev": "",
                 "skalFøreTilBrevutsending": true,
                 "årsak": "MELDING_FRA_BRUKER",
-                "begrunnelse": "Ny informasjon"
+                "begrunnelse": "Ny informasjon",
+                "harForhåndsvarslet": false
             }
             """.trimIndent()
 
@@ -447,7 +455,8 @@ internal class RevurderingJsonTest {
                 "fritekstTilBrev": "",
                 "skalFøreTilBrevutsending": false,
                 "årsak": "MELDING_FRA_BRUKER",
-                "begrunnelse": "Ny informasjon"
+                "begrunnelse": "Ny informasjon",
+                "harForhåndsvarslet": false
             }
             """.trimIndent()
 
@@ -508,7 +517,8 @@ internal class RevurderingJsonTest {
                 "fritekstTilBrev": "",
                 "skalFøreTilBrevutsending": true,
                 "årsak": "MELDING_FRA_BRUKER",
-                "begrunnelse": "Ny informasjon"
+                "begrunnelse": "Ny informasjon",
+                "harForhåndsvarslet": false
             }
             """.trimIndent()
 
@@ -569,7 +579,8 @@ internal class RevurderingJsonTest {
                 "fritekstTilBrev": "",
                 "skalFøreTilBrevutsending": true,
                 "årsak": "MELDING_FRA_BRUKER",
-                "begrunnelse": "Ny informasjon"
+                "begrunnelse": "Ny informasjon",
+                "harForhåndsvarslet": false
             }
             """.trimIndent()
 
@@ -630,7 +641,8 @@ internal class RevurderingJsonTest {
                 "fritekstTilBrev": "",
                 "skalFøreTilBrevutsending": false,
                 "årsak": "MELDING_FRA_BRUKER",
-                "begrunnelse": "Ny informasjon"
+                "begrunnelse": "Ny informasjon",
+                "harForhåndsvarslet": false
             }
             """.trimIndent()
 
@@ -681,7 +693,8 @@ internal class RevurderingJsonTest {
                 "fritekstTilBrev": "",
                 "skalFøreTilBrevutsending": true,
                 "årsak": "MELDING_FRA_BRUKER",
-                "begrunnelse": "Ny informasjon"
+                "begrunnelse": "Ny informasjon",
+                "harForhåndsvarslet": false
             }
             """.trimIndent()
 
@@ -732,7 +745,8 @@ internal class RevurderingJsonTest {
                 "fritekstTilBrev": "",
                 "skalFøreTilBrevutsending": true,
                 "årsak": "MELDING_FRA_BRUKER",
-                "begrunnelse": "Ny informasjon"
+                "begrunnelse": "Ny informasjon",
+                "harForhåndsvarslet": false
             }
             """.trimIndent()
 
@@ -783,7 +797,8 @@ internal class RevurderingJsonTest {
                 "fritekstTilBrev": "",
                 "skalFøreTilBrevutsending": true,
                 "årsak": "MELDING_FRA_BRUKER",
-                "begrunnelse": "Ny informasjon"
+                "begrunnelse": "Ny informasjon",
+                "harForhåndsvarslet": false
             }
             """.trimIndent()
 

@@ -378,7 +378,7 @@ open class AccessCheckProxy(
                     revurderingId: UUID,
                     saksbehandler: NavIdentBruker.Saksbehandler,
                     fritekst: String,
-                    ): Either<KunneIkkeForhåndsvarsle, Revurdering> {
+                ): Either<KunneIkkeForhåndsvarsle, Revurdering> {
                     assertHarTilgangTilRevurdering(revurderingId)
                     return services.revurdering.forhåndsvarsle(revurderingId, saksbehandler, fritekst)
                 }

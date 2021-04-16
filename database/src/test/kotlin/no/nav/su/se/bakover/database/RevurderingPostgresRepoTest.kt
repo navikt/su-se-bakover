@@ -272,7 +272,6 @@ internal class RevurderingPostgresRepoTest {
                     attesteringsoppgaveId = OppgaveId("attesteringsoppgaveId"),
                     saksbehandler = saksbehandler,
                     fritekstTilBrev = "fritekst",
-                    forhåndsvarsel = null,
                 )
 
             repo.lagre(tilAttestering)
@@ -301,7 +300,6 @@ internal class RevurderingPostgresRepoTest {
                 attesteringsoppgaveId = OppgaveId("attesteringsoppgaveId"),
                 saksbehandler = Saksbehandler("Ny saksbehandler"),
                 fritekstTilBrev = "fritekst",
-                forhåndsvarsel = null,
             )
 
             repo.lagre(tilAttestering)
@@ -381,7 +379,6 @@ internal class RevurderingPostgresRepoTest {
                     attesteringsoppgaveId = OppgaveId("attesteringsoppgaveId"),
                     saksbehandler = saksbehandler,
                     fritekstTilBrev = "",
-                    forhåndsvarsel = null,
                 )
             repo.lagre(tilAttestering)
 
@@ -413,7 +410,7 @@ internal class RevurderingPostgresRepoTest {
             repo.lagre(simulert)
             repo.hent(opprettet.id) shouldBe simulert
             val tilAttestering =
-                simulert.tilAttestering(opprettet.oppgaveId, opprettet.saksbehandler, opprettet.fritekstTilBrev, null)
+                simulert.tilAttestering(opprettet.oppgaveId, opprettet.saksbehandler, opprettet.fritekstTilBrev)
             repo.lagre(tilAttestering)
 
             val underkjent = UnderkjentRevurdering.Opphørt(
@@ -481,7 +478,7 @@ internal class RevurderingPostgresRepoTest {
             val simulert = simulertOpphørt(beregnet)
             repo.lagre(simulert)
             val tilAttestering =
-                simulert.tilAttestering(opprettet.oppgaveId, opprettet.saksbehandler, opprettet.fritekstTilBrev, null)
+                simulert.tilAttestering(opprettet.oppgaveId, opprettet.saksbehandler, opprettet.fritekstTilBrev)
             repo.lagre(tilAttestering)
 
             val underkjent = IverksattRevurdering.Opphørt(
@@ -652,7 +649,8 @@ internal class RevurderingPostgresRepoTest {
                     gjelderNavn = "Mr Per",
                     datoBeregnet = LocalDate.now(),
                     nettoBeløp = 0,
-                    periodeList = listOf())
+                    periodeList = listOf()
+                )
             )
             repo.lagre(forhåndsvarsletRevurdering)
 

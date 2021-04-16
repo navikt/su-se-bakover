@@ -384,19 +384,19 @@ internal class RevurderingPostgresRepo(
                         begrunnelse=:begrunnelse
                 """.trimIndent()
                 ).oppdatering(
-                    mapOf(
-                        "id" to revurdering.id,
-                        "periode" to objectMapper.writeValueAsString(revurdering.periode),
-                        "opprettet" to revurdering.opprettet,
-                        "saksbehandler" to revurdering.saksbehandler.navIdent,
-                        "oppgaveId" to revurdering.oppgaveId.toString(),
-                        "vedtakSomRevurderesId" to revurdering.tilRevurdering.id,
-                        "fritekstTilBrev" to revurdering.fritekstTilBrev,
-                        "arsak" to revurdering.revurderingsårsak.årsak.toString(),
-                        "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
-                    ),
-                    session,
-                )
+                mapOf(
+                    "id" to revurdering.id,
+                    "periode" to objectMapper.writeValueAsString(revurdering.periode),
+                    "opprettet" to revurdering.opprettet,
+                    "saksbehandler" to revurdering.saksbehandler.navIdent,
+                    "oppgaveId" to revurdering.oppgaveId.toString(),
+                    "vedtakSomRevurderesId" to revurdering.tilRevurdering.id,
+                    "fritekstTilBrev" to revurdering.fritekstTilBrev,
+                    "arsak" to revurdering.revurderingsårsak.årsak.toString(),
+                    "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
+                ),
+                session,
+            )
         }
 
     private fun lagre(revurdering: BeregnetRevurdering) =
@@ -416,20 +416,20 @@ internal class RevurderingPostgresRepo(
                         id = :id
                 """.trimIndent()
                 ).oppdatering(
-                    mapOf(
-                        "id" to revurdering.id,
-                        "saksbehandler" to revurdering.saksbehandler.navIdent,
-                        "beregning" to objectMapper.writeValueAsString(revurdering.beregning),
-                        "revurderingsType" to when (revurdering) {
-                            is BeregnetRevurdering.IngenEndring -> RevurderingsType.BEREGNET_INGEN_ENDRING
-                            is BeregnetRevurdering.Innvilget -> RevurderingsType.BEREGNET_INNVILGET
-                            is BeregnetRevurdering.Opphørt -> RevurderingsType.BEREGNET_OPPHØRT
-                        },
-                        "arsak" to revurdering.revurderingsårsak.årsak.toString(),
-                        "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
-                    ),
-                    session,
-                )
+                mapOf(
+                    "id" to revurdering.id,
+                    "saksbehandler" to revurdering.saksbehandler.navIdent,
+                    "beregning" to objectMapper.writeValueAsString(revurdering.beregning),
+                    "revurderingsType" to when (revurdering) {
+                        is BeregnetRevurdering.IngenEndring -> RevurderingsType.BEREGNET_INGEN_ENDRING
+                        is BeregnetRevurdering.Innvilget -> RevurderingsType.BEREGNET_INNVILGET
+                        is BeregnetRevurdering.Opphørt -> RevurderingsType.BEREGNET_OPPHØRT
+                    },
+                    "arsak" to revurdering.revurderingsårsak.årsak.toString(),
+                    "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
+                ),
+                session,
+            )
         }
 
     private fun lagre(revurdering: SimulertRevurdering) =
@@ -450,21 +450,21 @@ internal class RevurderingPostgresRepo(
                         id = :id
                 """.trimIndent()
                 ).oppdatering(
-                    mapOf(
-                        "id" to revurdering.id,
-                        "saksbehandler" to revurdering.saksbehandler.navIdent,
-                        "beregning" to objectMapper.writeValueAsString(revurdering.beregning),
-                        "simulering" to objectMapper.writeValueAsString(revurdering.simulering),
-                        "arsak" to revurdering.revurderingsårsak.årsak.toString(),
-                        "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
-                        "revurderingsType" to when (revurdering) {
-                            is SimulertRevurdering.Innvilget -> RevurderingsType.SIMULERT_INNVILGET
-                            is SimulertRevurdering.Opphørt -> RevurderingsType.SIMULERT_OPPHØRT
-                        },
-                        "forhandsvarsel" to objectMapper.writeValueAsString(revurdering.forhåndsvarsel)
-                    ),
-                    session,
-                )
+                mapOf(
+                    "id" to revurdering.id,
+                    "saksbehandler" to revurdering.saksbehandler.navIdent,
+                    "beregning" to objectMapper.writeValueAsString(revurdering.beregning),
+                    "simulering" to objectMapper.writeValueAsString(revurdering.simulering),
+                    "arsak" to revurdering.revurderingsårsak.årsak.toString(),
+                    "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
+                    "revurderingsType" to when (revurdering) {
+                        is SimulertRevurdering.Innvilget -> RevurderingsType.SIMULERT_INNVILGET
+                        is SimulertRevurdering.Opphørt -> RevurderingsType.SIMULERT_OPPHØRT
+                    },
+                    "forhandsvarsel" to objectMapper.writeValueAsString(revurdering.forhåndsvarsel)
+                ),
+                session,
+            )
         }
 
     private fun lagre(revurdering: RevurderingTilAttestering) =
@@ -487,32 +487,32 @@ internal class RevurderingPostgresRepo(
                         id = :id
                 """.trimIndent()
                 ).oppdatering(
-                    mapOf(
-                        "id" to revurdering.id,
-                        "saksbehandler" to revurdering.saksbehandler.navIdent,
-                        "beregning" to objectMapper.writeValueAsString(revurdering.beregning),
-                        "simulering" to when (revurdering) {
-                            is RevurderingTilAttestering.IngenEndring -> null
-                            is RevurderingTilAttestering.Innvilget -> objectMapper.writeValueAsString(revurdering.simulering)
-                            is RevurderingTilAttestering.Opphørt -> objectMapper.writeValueAsString(revurdering.simulering)
-                        },
-                        "oppgaveId" to revurdering.oppgaveId.toString(),
-                        "fritekstTilBrev" to revurdering.fritekstTilBrev,
-                        "arsak" to revurdering.revurderingsårsak.årsak.toString(),
-                        "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
-                        "revurderingsType" to when (revurdering) {
-                            is RevurderingTilAttestering.IngenEndring -> RevurderingsType.TIL_ATTESTERING_INGEN_ENDRING
-                            is RevurderingTilAttestering.Innvilget -> RevurderingsType.TIL_ATTESTERING_INNVILGET
-                            is RevurderingTilAttestering.Opphørt -> RevurderingsType.TIL_ATTESTERING_OPPHØRT
-                        },
-                        "skalFoereTilBrevutsending" to when (revurdering) {
-                            is RevurderingTilAttestering.IngenEndring -> revurdering.skalFøreTilBrevutsending
-                            is RevurderingTilAttestering.Innvilget -> true
-                            is RevurderingTilAttestering.Opphørt -> true
-                        },
-                    ),
-                    session,
-                )
+                mapOf(
+                    "id" to revurdering.id,
+                    "saksbehandler" to revurdering.saksbehandler.navIdent,
+                    "beregning" to objectMapper.writeValueAsString(revurdering.beregning),
+                    "simulering" to when (revurdering) {
+                        is RevurderingTilAttestering.IngenEndring -> null
+                        is RevurderingTilAttestering.Innvilget -> objectMapper.writeValueAsString(revurdering.simulering)
+                        is RevurderingTilAttestering.Opphørt -> objectMapper.writeValueAsString(revurdering.simulering)
+                    },
+                    "oppgaveId" to revurdering.oppgaveId.toString(),
+                    "fritekstTilBrev" to revurdering.fritekstTilBrev,
+                    "arsak" to revurdering.revurderingsårsak.årsak.toString(),
+                    "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
+                    "revurderingsType" to when (revurdering) {
+                        is RevurderingTilAttestering.IngenEndring -> RevurderingsType.TIL_ATTESTERING_INGEN_ENDRING
+                        is RevurderingTilAttestering.Innvilget -> RevurderingsType.TIL_ATTESTERING_INNVILGET
+                        is RevurderingTilAttestering.Opphørt -> RevurderingsType.TIL_ATTESTERING_OPPHØRT
+                    },
+                    "skalFoereTilBrevutsending" to when (revurdering) {
+                        is RevurderingTilAttestering.IngenEndring -> revurdering.skalFøreTilBrevutsending
+                        is RevurderingTilAttestering.Innvilget -> true
+                        is RevurderingTilAttestering.Opphørt -> true
+                    },
+                ),
+                session,
+            )
         }
 
     private fun lagre(revurdering: IverksattRevurdering) =
@@ -534,27 +534,27 @@ internal class RevurderingPostgresRepo(
                         id = :id
                 """.trimIndent()
                 ).oppdatering(
-                    mapOf(
-                        "id" to revurdering.id,
-                        "saksbehandler" to revurdering.saksbehandler.navIdent,
-                        "beregning" to objectMapper.writeValueAsString(revurdering.beregning),
-                        "simulering" to when (revurdering) {
-                            is IverksattRevurdering.IngenEndring -> null
-                            is IverksattRevurdering.Innvilget -> objectMapper.writeValueAsString(revurdering.simulering)
-                            is IverksattRevurdering.Opphørt -> objectMapper.writeValueAsString(revurdering.simulering)
-                        },
-                        "oppgaveId" to revurdering.oppgaveId.toString(),
-                        "attestering" to objectMapper.writeValueAsString(revurdering.attestering),
-                        "arsak" to revurdering.revurderingsårsak.årsak.toString(),
-                        "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
-                        "revurderingsType" to when (revurdering) {
-                            is IverksattRevurdering.IngenEndring -> RevurderingsType.IVERKSATT_INGEN_ENDRING
-                            is IverksattRevurdering.Innvilget -> RevurderingsType.IVERKSATT_INNVILGET
-                            is IverksattRevurdering.Opphørt -> RevurderingsType.IVERKSATT_OPPHØRT
-                        },
-                    ),
-                    session,
-                )
+                mapOf(
+                    "id" to revurdering.id,
+                    "saksbehandler" to revurdering.saksbehandler.navIdent,
+                    "beregning" to objectMapper.writeValueAsString(revurdering.beregning),
+                    "simulering" to when (revurdering) {
+                        is IverksattRevurdering.IngenEndring -> null
+                        is IverksattRevurdering.Innvilget -> objectMapper.writeValueAsString(revurdering.simulering)
+                        is IverksattRevurdering.Opphørt -> objectMapper.writeValueAsString(revurdering.simulering)
+                    },
+                    "oppgaveId" to revurdering.oppgaveId.toString(),
+                    "attestering" to objectMapper.writeValueAsString(revurdering.attestering),
+                    "arsak" to revurdering.revurderingsårsak.årsak.toString(),
+                    "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
+                    "revurderingsType" to when (revurdering) {
+                        is IverksattRevurdering.IngenEndring -> RevurderingsType.IVERKSATT_INGEN_ENDRING
+                        is IverksattRevurdering.Innvilget -> RevurderingsType.IVERKSATT_INNVILGET
+                        is IverksattRevurdering.Opphørt -> RevurderingsType.IVERKSATT_OPPHØRT
+                    },
+                ),
+                session,
+            )
         }
 
     private fun lagre(revurdering: UnderkjentRevurdering) =
@@ -573,19 +573,19 @@ internal class RevurderingPostgresRepo(
                         id = :id
                 """.trimIndent()
                 ).oppdatering(
-                    mapOf(
-                        "id" to revurdering.id,
-                        "oppgaveId" to revurdering.oppgaveId.toString(),
-                        "attestering" to objectMapper.writeValueAsString(revurdering.attestering),
-                        "arsak" to revurdering.revurderingsårsak.årsak.toString(),
-                        "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
-                        "revurderingsType" to when (revurdering) {
-                            is UnderkjentRevurdering.IngenEndring -> RevurderingsType.UNDERKJENT_INGEN_ENDRING
-                            is UnderkjentRevurdering.Innvilget -> RevurderingsType.UNDERKJENT_INNVILGET
-                            is UnderkjentRevurdering.Opphørt -> RevurderingsType.UNDERKJENT_OPPHØRT
-                        },
-                    ),
-                    session,
-                )
+                mapOf(
+                    "id" to revurdering.id,
+                    "oppgaveId" to revurdering.oppgaveId.toString(),
+                    "attestering" to objectMapper.writeValueAsString(revurdering.attestering),
+                    "arsak" to revurdering.revurderingsårsak.årsak.toString(),
+                    "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
+                    "revurderingsType" to when (revurdering) {
+                        is UnderkjentRevurdering.IngenEndring -> RevurderingsType.UNDERKJENT_INGEN_ENDRING
+                        is UnderkjentRevurdering.Innvilget -> RevurderingsType.UNDERKJENT_INNVILGET
+                        is UnderkjentRevurdering.Opphørt -> RevurderingsType.UNDERKJENT_OPPHØRT
+                    },
+                ),
+                session,
+            )
         }
 }

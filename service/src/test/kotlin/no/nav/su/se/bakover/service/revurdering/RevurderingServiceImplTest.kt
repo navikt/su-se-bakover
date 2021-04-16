@@ -361,7 +361,7 @@ internal class RevurderingServiceImplTest {
             on { opprettet } doReturn Tidspunkt.EPOCH
             on { beregning } doReturn mock()
             on { simulering } doReturn mock()
-            on { tilAttestering(any(), any(), any(), any()) } doReturn mock()
+            on { tilAttestering(any(), any(), any()) } doReturn mock()
             on { oppgaveId } doReturn OppgaveId("oppgaveid")
         }
 
