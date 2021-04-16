@@ -64,7 +64,7 @@ internal class SakRoutesKtTest {
 
             defaultRequest(
                 Get,
-                "$sakPath/?fnr=$sakFnr01",
+                "$sakPath?fnr=$sakFnr01",
                 listOf(Brukerrolle.Saksbehandler)
             ).apply {
                 assertEquals(OK, response.status())

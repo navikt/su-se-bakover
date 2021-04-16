@@ -229,7 +229,7 @@ internal class SøknadRoutesKtTest {
         }) {
             defaultRequest(
                 method = Post,
-                uri = "$søknadPath/$søknadId/lukk?type=Trukket",
+                uri = "$søknadPath/$søknadId/lukk",
                 roller = listOf(Brukerrolle.Saksbehandler)
             ) {
                 addHeader(ContentType, Json.toString())
@@ -359,7 +359,7 @@ internal class SøknadRoutesKtTest {
         }) {
             defaultRequest(
                 method = Post,
-                uri = "$søknadPath/$søknadId/lukk/brevutkast?type=Trukket",
+                uri = "$søknadPath/$søknadId/lukk/brevutkast",
                 roller = listOf(Brukerrolle.Saksbehandler)
             ) {
                 setBody(
