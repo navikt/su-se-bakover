@@ -134,8 +134,11 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
                         opphør(revurdertBeregning)
                     }
                     AvslagGrunnetBeregning.Nei -> {
-                        // todo her bør vi sjekke på ingen endring
-                        innvilget(revurdertBeregning)
+                        if (revurdertBeregning.equals(tilRevurdering.beregning)) {
+                            ingenEndring(revurdertBeregning)
+                        } else {
+                            innvilget(revurdertBeregning)
+                        }
                     }
                 }.right()
             }
@@ -863,7 +866,7 @@ private fun endringerAvUtbetalingerErStørreEllerLik10Prosent(
     vedtattBeregning: Beregning,
     revurdertBeregning: Beregning,
 ): Boolean {
-    val vedtattBeregningsperioder = vedtattBeregning.getMånedsberegninger().map { it.getPeriode() to it }.toMap()
+    val vedtattBeregningsperioder = vedtattBeregning.getMånedsberegninger().associateBy { it.getPeriode() }
 
     return revurdertBeregning.getMånedsberegninger().let {
         val førsteUtbetaling = it.first()

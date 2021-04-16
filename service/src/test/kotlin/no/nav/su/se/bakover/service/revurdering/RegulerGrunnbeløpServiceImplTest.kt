@@ -12,27 +12,38 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
+import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.beregning.Månedsberegning
+import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategyName
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakType
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
 import no.nav.su.se.bakover.service.beregning.TestBeregning
+import no.nav.su.se.bakover.service.fixedTidspunkt
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering.MåSendeGrunnbeløpReguleringSomÅrsakSammenMedForventetInntekt
@@ -47,6 +58,8 @@ import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.junit.jupiter.api.Test
+import java.time.temporal.ChronoUnit
+import java.util.UUID
 
 internal class RegulerGrunnbeløpServiceImplTest {
 
@@ -166,6 +179,106 @@ internal class RegulerGrunnbeløpServiceImplTest {
             verify(revurderingRepoMock).lagre(argThat { it shouldBe actual })
         }
         verifyNoMoreInteractions(revurderingRepoMock, utbetalingServiceMock)
+    }
+
+    @Test
+    fun `G-regulering med uendret fradrag og forventetInntekt fører til IngenEndring`() {
+        val periode = Periode.create(1.januar(2020), 31.januar(2020))
+        val behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt().copy(
+            uførhet = Behandlingsinformasjon.Uførhet(
+                status = Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
+                uføregrad = 20,
+                forventetInntekt = 12000,
+                begrunnelse = "forrigeBegrunnelse",
+            ),
+        )
+        val fradrag = object : Fradrag {
+            override fun getFradragstype() = Fradragstype.ForventetInntekt
+            override fun getMånedsbeløp() = 1000.0
+            override fun getUtenlandskInntekt(): UtenlandskInntekt? = null
+            override fun getTilhører() = FradragTilhører.BRUKER
+            override fun getPeriode() = Periode.create(1.januar(2020), 31.januar(2020))
+            override fun equals(other: Any?) =
+                throw IllegalStateException("Skal ikke kalles fra testen")
+        }
+        val opprettetRevurdering = OpprettetRevurdering(
+            id = revurderingId,
+            periode = periode,
+            opprettet = fixedTidspunkt,
+            tilRevurdering = søknadsbehandlingVedtak.copy(
+                beregning = object : Beregning {
+                    private val id = UUID.randomUUID()
+                    private val tidspunkt = fixedTidspunkt.minus(1, ChronoUnit.DAYS)
+                    override fun getId() = id
+                    override fun getOpprettet() = tidspunkt
+                    override fun getSats() = Sats.HØY
+                    override fun getMånedsberegninger() = listOf(
+                        object : Månedsberegning {
+                            override fun getSumYtelse() = 19637
+                            override fun getSumFradrag() = 1000.0
+                            override fun getBenyttetGrunnbeløp() = 99858
+                            override fun getSats() = Sats.HØY
+                            override fun getSatsbeløp() = 20637.32
+                            override fun getFradrag() = listOf(fradrag)
+
+                            override fun getPeriode() = Periode.create(1.januar(2020), 31.januar(2020))
+                            override fun equals(other: Any?) =
+                                throw IllegalStateException("Skal ikke kalles fra testen")
+                        },
+                    )
+
+                    override fun getFradrag() = listOf(fradrag)
+                    override fun getSumYtelse() = 19637
+                    override fun getSumFradrag() = 12000.0
+                    override fun getPeriode() = periode
+                    override fun getFradragStrategyName() = FradragStrategyName.Enslig
+                    override fun getBegrunnelse() = "forrigeBegrunnelse"
+                    override fun equals(other: Any?) = throw IllegalStateException("Skal ikke kalles fra testen")
+                },
+                behandlingsinformasjon = behandlingsinformasjon,
+            ),
+            saksbehandler = BehandlingTestUtils.saksbehandler,
+            oppgaveId = BehandlingTestUtils.søknadOppgaveId,
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak.copy(årsak = Revurderingsårsak.Årsak.REGULER_GRUNNBELØP),
+            behandlingsinformasjon = behandlingsinformasjon,
+        )
+        val expectedBeregnetRevurdering = BeregnetRevurdering.IngenEndring(
+            id = opprettetRevurdering.id,
+            periode = opprettetRevurdering.periode,
+            opprettet = opprettetRevurdering.opprettet,
+            tilRevurdering = opprettetRevurdering.tilRevurdering,
+            saksbehandler = opprettetRevurdering.saksbehandler,
+            oppgaveId = opprettetRevurdering.oppgaveId,
+            fritekstTilBrev = opprettetRevurdering.fritekstTilBrev,
+            revurderingsårsak = opprettetRevurdering.revurderingsårsak,
+            behandlingsinformasjon = opprettetRevurdering.behandlingsinformasjon,
+            beregning = opprettetRevurdering.tilRevurdering.beregning,
+        )
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(revurderingId) } doReturn opprettetRevurdering
+        }
+
+        val actual = createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+        ).beregnOgSimuler(
+            revurderingId = revurderingId,
+            saksbehandler = BehandlingTestUtils.saksbehandler,
+            fradrag = emptyList(),
+            forventetInntekt = 12000,
+        ).orNull()!! as BeregnetRevurdering.IngenEndring
+
+        actual shouldBe expectedBeregnetRevurdering
+
+        inOrder(
+            revurderingRepoMock,
+        ) {
+            verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
+            verify(revurderingRepoMock).lagre(argThat { it shouldBe actual })
+        }
+        verifyNoMoreInteractions(
+            revurderingRepoMock,
+        )
     }
 
     @Test

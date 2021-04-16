@@ -36,6 +36,19 @@ internal data class PersistertBeregning(
     override fun getBegrunnelse(): String? = begrunnelse
 
     override fun getPeriode(): Periode = periode
+
+    override fun equals(other: Any?) = (other as? Beregning)?.let { this.equals(other) } ?: false
+
+    override fun hashCode(): Int {
+        var result = sats.hashCode()
+        result = 31 * result + månedsberegninger.hashCode()
+        result = 31 * result + fradrag.hashCode()
+        result = 31 * result + sumYtelse
+        result = 31 * result + sumFradrag.hashCode()
+        result = 31 * result + periode.hashCode()
+        result = 31 * result + fradragStrategyName.hashCode()
+        return result
+    }
 }
 
 internal data class PersistertMånedsberegning(
@@ -54,6 +67,19 @@ internal data class PersistertMånedsberegning(
     override fun getSatsbeløp(): Double = satsbeløp
     override fun getFradrag(): List<Fradrag> = fradrag
     override fun getPeriode(): Periode = periode
+
+    override fun equals(other: Any?) = (other as? Månedsberegning)?.let { this.equals(other) } ?: false
+
+    override fun hashCode(): Int {
+        var result = sumYtelse
+        result = 31 * result + sumFradrag.hashCode()
+        result = 31 * result + benyttetGrunnbeløp
+        result = 31 * result + sats.hashCode()
+        result = 31 * result + satsbeløp.hashCode()
+        result = 31 * result + fradrag.hashCode()
+        result = 31 * result + periode.hashCode()
+        return result
+    }
 }
 
 internal data class PersistertFradrag(
@@ -64,12 +90,24 @@ internal data class PersistertFradrag(
     private val tilhører: FradragTilhører
 ) : Fradrag {
     override fun getFradragstype(): Fradragstype = fradragstype
+
     @JsonAlias("totaltFradrag")
     override fun getMånedsbeløp(): Double = månedsbeløp
     override fun getUtenlandskInntekt(): UtenlandskInntekt? = utenlandskInntekt
     override fun getTilhører(): FradragTilhører = tilhører
 
     override fun getPeriode(): Periode = periode
+
+    override fun equals(other: Any?) = (other as? Fradrag)?.let { this.equals(other) } ?: false
+
+    override fun hashCode(): Int {
+        var result = fradragstype.hashCode()
+        result = 31 * result + månedsbeløp.hashCode()
+        result = 31 * result + (utenlandskInntekt?.hashCode() ?: 0)
+        result = 31 * result + periode.hashCode()
+        result = 31 * result + tilhører.hashCode()
+        return result
+    }
 }
 
 internal fun Beregning.toSnapshot() = PersistertBeregning(

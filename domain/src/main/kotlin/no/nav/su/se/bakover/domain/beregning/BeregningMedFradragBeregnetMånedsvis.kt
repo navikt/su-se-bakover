@@ -42,23 +42,23 @@ internal data class BeregningMedFradragBeregnetMånedsvis(
 
         val beregnetPeriodisertFradrag = fradragStrategy.beregn(fradrag, periode)
 
-        return perioder.map {
-            it to MånedsberegningFactory.ny(
+        return perioder.associateWith {
+            MånedsberegningFactory.ny(
                 periode = it,
                 sats = sats,
-                fradrag = beregnetPeriodisertFradrag[it] ?: emptyList()
+                fradrag = beregnetPeriodisertFradrag[it] ?: emptyList(),
             ).let { månedsberegning ->
                 when (månedsberegning.ytelseStørreEnn0MenMindreEnnToProsentAvHøySats()) {
                     true -> MånedsberegningFactory.ny(
                         periode = månedsberegning.getPeriode(),
                         sats = sats,
                         fradrag = månedsberegning.getFradrag()
-                            .plus(månedsberegning.lagFradragForBeløpUnderMinstegrense())
+                            .plus(månedsberegning.lagFradragForBeløpUnderMinstegrense()),
                     )
                     false -> månedsberegning
                 }
             }
-        }.toMap()
+        }
     }
 
     private fun Månedsberegning.lagFradragForBeløpUnderMinstegrense() = FradragFactory.periodiser(
@@ -68,7 +68,7 @@ internal data class BeregningMedFradragBeregnetMånedsvis(
             periode = getPeriode(),
             utenlandskInntekt = null,
             tilhører = FradragTilhører.BRUKER
-        )
+        ),
     )
 
     private fun Månedsberegning.ytelseStørreEnn0MenMindreEnnToProsentAvHøySats() =
@@ -80,4 +80,6 @@ internal data class BeregningMedFradragBeregnetMånedsvis(
     override fun getBegrunnelse(): String? = begrunnelse
 
     override fun getPeriode(): Periode = periode
+
+    override fun equals(other: Any?) = (other as? Beregning)?.let { this.equals(other) } ?: false
 }

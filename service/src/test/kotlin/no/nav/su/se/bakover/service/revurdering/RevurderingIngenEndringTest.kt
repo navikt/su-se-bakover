@@ -44,6 +44,7 @@ import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import org.junit.jupiter.api.Test
 
 class RevurderingIngenEndringTest {
+
     @Test
     fun `Revurderingen går ikke gjennom hvis endring av utbetaling er under ti prosent`() {
         val opprettetRevurdering = OpprettetRevurdering(
@@ -85,13 +86,13 @@ class RevurderingIngenEndringTest {
         actual.shouldBeEqualToIgnoringFields(beregnetRevurdering, BeregnetRevurdering.IngenEndring::beregning)
 
         inOrder(
-            revurderingRepoMock
+            revurderingRepoMock,
         ) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
             verify(revurderingRepoMock).lagre(argThat { it shouldBe actual })
         }
         verifyNoMoreInteractions(
-            revurderingRepoMock
+            revurderingRepoMock,
         )
     }
 

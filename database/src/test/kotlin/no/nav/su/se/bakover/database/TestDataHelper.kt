@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.beregning.PersistertMånedsberegning
 import no.nav.su.se.bakover.database.beregning.TestBeregning
 import no.nav.su.se.bakover.database.beregning.toSnapshot
@@ -67,17 +68,18 @@ internal val journalpostId = JournalpostId("journalpostId")
 internal fun beregning(periode: Periode = stønadsperiode.periode) =
     TestBeregning.toSnapshot().copy(periode = periode)
 
-internal val avslåttBeregning = beregning().copy(
+internal val persistertMånedsberegning = PersistertMånedsberegning(
+    sumYtelse = 0,
+    sumFradrag = 0.0,
+    benyttetGrunnbeløp = 0,
+    sats = Sats.ORDINÆR,
+    satsbeløp = 0.0,
+    fradrag = listOf(),
+    periode = Periode.create(1.januar(2020), 31.desember(2020)),
+)
+internal val avslåttBeregning: PersistertBeregning = beregning().copy(
     månedsberegninger = listOf(
-        PersistertMånedsberegning(
-            sumYtelse = 0,
-            sumFradrag = 0.0,
-            benyttetGrunnbeløp = 0,
-            sats = Sats.ORDINÆR,
-            satsbeløp = 0.0,
-            fradrag = listOf(),
-            periode = Periode.create(1.januar(2020), 31.desember(2020)),
-        ),
+        persistertMånedsberegning,
     ),
 )
 

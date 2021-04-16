@@ -16,4 +16,27 @@ interface Beregning : PeriodisertInformasjon {
     fun getSumFradrag(): Double
     fun getFradragStrategyName(): FradragStrategyName
     fun getBegrunnelse(): String?
+
+    /**
+     * Sammenligner alle metodene  bortsett fraikke getId(), getOpprettet() og getBegrunnelse().
+     * Laget for å kalles fra sub-klassene sine `override fun equals(other: Any?): Boolean` metoder.
+     */
+    fun equals(other: Beregning?): Boolean {
+        if (this === other) return true
+        if (other == null) return false
+
+        if (getSats() != other.getSats()) return false
+        if (getMånedsberegninger() != other.getMånedsberegninger()) return false
+        if (getMånedsberegninger() != other.getMånedsberegninger()) return false
+        if (getFradrag() != other.getFradrag()) return false
+        if (getSumYtelse() != other.getSumYtelse()) return false
+        if (getFradragStrategyName() != other.getFradragStrategyName()) return false
+        return true
+    }
+
+    /**
+     * Det er ikke lov å ha default implementasjon i interfaces for Any.
+     * Denne vil tvinge sub-klassene til å override.
+     */
+    override fun equals(other: Any?): Boolean
 }
