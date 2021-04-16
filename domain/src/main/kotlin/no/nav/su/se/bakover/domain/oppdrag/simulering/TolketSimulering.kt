@@ -23,11 +23,13 @@ data class TolketSimulering(
 data class TolketPeriode(
     val fraOgMed: LocalDate,
     val tilOgMed: LocalDate,
-    val utbetaling: List<TolketUtbetaling>,
+    val utbetalinger: List<TolketUtbetaling>,
 )
 
 sealed class TolketUtbetaling {
     abstract val tolketDetalj: List<TolketDetalj>
+
+    abstract fun bruttobeløp(): Int
 
     companion object {
         fun from(tolketDetaljer: List<TolketDetalj>) = when {
@@ -43,7 +45,7 @@ sealed class TolketUtbetaling {
             else -> throw IllegalStateException("Fikk ikke til")
         }
 
-        private fun List<TolketDetalj>.erFeilutbetaling() = any { it is TolketDetalj.Tilbakekreving }
+        private fun List<TolketDetalj>.erFeilutbetaling() = any { it is TolketDetalj.Feilutbetaling }
 
         private fun List<TolketDetalj>.erEtterbetaling() = count() == 2 &&
             exists { it is TolketDetalj.Ordinær } && exists { it is TolketDetalj.TidligereUtbetalt }
@@ -54,15 +56,28 @@ sealed class TolketUtbetaling {
 
     data class Ordinær(
         override val tolketDetalj: List<TolketDetalj>,
-    ) : TolketUtbetaling()
+    ) : TolketUtbetaling() {
+        override fun bruttobeløp(): Int =
+            tolketDetalj.filterIsInstance<TolketDetalj.Ordinær>()
+                .sumBy { it.beløp }
+    }
 
     data class Feilutbetaling(
         override val tolketDetalj: List<TolketDetalj>,
-    ) : TolketUtbetaling()
+    ) : TolketUtbetaling() {
+        override fun bruttobeløp(): Int =
+            tolketDetalj.filterIsInstance<TolketDetalj.Feilutbetaling>()
+                .sumBy { it.beløp }
+                .times(-1)
+    }
 
     data class Etterbetaling(
         override val tolketDetalj: List<TolketDetalj>,
-    ) : TolketUtbetaling()
+    ) : TolketUtbetaling() {
+        override fun bruttobeløp(): Int =
+            tolketDetalj.filterIsInstance<TolketDetalj.Etterbetaling>()
+                .sumBy { it.beløp }
+    }
 }
 
 sealed class TolketDetalj {
@@ -73,8 +88,8 @@ sealed class TolketDetalj {
             simulertDetaljer.erTidligereUtbetalt() -> {
                 TidligereUtbetalt(beløp = simulertDetaljer.belop)
             }
-            simulertDetaljer.erTilbakekreving() -> {
-                Tilbakekreving(beløp = simulertDetaljer.belop)
+            simulertDetaljer.erFeilutbetaling() -> {
+                Feilutbetaling(beløp = simulertDetaljer.belop)
             }
             simulertDetaljer.erØnsketUtbetalt() -> {
                 Ordinær(beløp = simulertDetaljer.belop)
@@ -82,7 +97,7 @@ sealed class TolketDetalj {
             else -> null
         }
 
-        private fun SimulertDetaljer.erTilbakekreving() = klasseType == KlasseType.FEIL
+        private fun SimulertDetaljer.erFeilutbetaling() = klasseType == KlasseType.FEIL
 
         private fun SimulertDetaljer.erØnsketUtbetalt() = klasseType == KlasseType.YTEL &&
             klassekode == KlasseKode.SUUFORE &&
@@ -104,7 +119,7 @@ sealed class TolketDetalj {
         override val beløp: Int,
     ) : TolketDetalj()
 
-    data class Tilbakekreving(
+    data class Feilutbetaling(
         override val beløp: Int,
     ) : TolketDetalj()
 

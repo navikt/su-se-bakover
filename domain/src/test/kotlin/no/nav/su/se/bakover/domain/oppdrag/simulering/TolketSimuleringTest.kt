@@ -60,7 +60,7 @@ internal class TolketSimuleringTest {
             TolketPeriode(
                 fraOgMed = 1.april(2021),
                 tilOgMed = 30.april(2021),
-                utbetaling = listOf(
+                utbetalinger = listOf(
                     TolketUtbetaling.Ordinær(
                         tolketDetalj = listOf(
                             TolketDetalj.Ordinær(
@@ -188,13 +188,13 @@ internal class TolketSimuleringTest {
             TolketPeriode(
                 fraOgMed = 1.februar(2021),
                 tilOgMed = 28.februar(2021),
-                utbetaling = listOf(
+                utbetalinger = listOf(
                     TolketUtbetaling.Feilutbetaling(
                         tolketDetalj = listOf(
                             TolketDetalj.Ordinær(
                                 beløp = 10000,
                             ),
-                            TolketDetalj.Tilbakekreving(
+                            TolketDetalj.Feilutbetaling(
                                 beløp = 10779,
                             ),
                             TolketDetalj.TidligereUtbetalt(
@@ -207,7 +207,7 @@ internal class TolketSimuleringTest {
             TolketPeriode(
                 fraOgMed = 1.mars(2021),
                 tilOgMed = 31.mars(2021),
-                utbetaling = listOf(
+                utbetalinger = listOf(
                     TolketUtbetaling.Ordinær(
                         tolketDetalj = listOf(
                             TolketDetalj.Ordinær(
@@ -307,7 +307,7 @@ internal class TolketSimuleringTest {
             TolketPeriode(
                 fraOgMed = 1.februar(2021),
                 tilOgMed = 28.februar(2021),
-                utbetaling = listOf(
+                utbetalinger = listOf(
                     TolketUtbetaling.Etterbetaling(
                         tolketDetalj = listOf(
                             TolketDetalj.Ordinær(
@@ -326,7 +326,7 @@ internal class TolketSimuleringTest {
             TolketPeriode(
                 fraOgMed = 1.mars(2021),
                 tilOgMed = 31.mars(2021),
-                utbetaling = listOf(
+                utbetalinger = listOf(
                     TolketUtbetaling.Ordinær(
                         tolketDetalj = listOf(
                             TolketDetalj.Ordinær(
