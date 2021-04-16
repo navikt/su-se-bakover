@@ -20,7 +20,7 @@ allprojects {
     apply(plugin = "se.patrikerdes.use-latest-versions")
     repositories {
         mavenCentral()
-        maven("http://packages.confluent.io/maven/")
+        maven("https://packages.confluent.io/maven/")
         maven("https://jitpack.io")
     }
     val junitJupiterVersion = "5.7.1"
