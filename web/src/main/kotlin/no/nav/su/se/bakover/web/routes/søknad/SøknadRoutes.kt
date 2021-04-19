@@ -60,7 +60,7 @@ internal fun Route.søknadRoutes(
                         },
                         { (saksnummer, søknad) ->
                             call.audit(søknad.søknadInnhold.personopplysninger.fnr, AuditLogEvent.Action.CREATE, null)
-                            call.sikkerlogg("Lagrer søknad for person: ${søknad.id}")
+                            call.sikkerlogg("Lagrer søknad ${søknad.id} på sak ${søknad.sakId}")
                             call.svar(
                                 Resultat.json(
                                     Created,

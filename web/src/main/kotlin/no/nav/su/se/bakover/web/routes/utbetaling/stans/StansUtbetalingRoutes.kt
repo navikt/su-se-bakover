@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.sak.sakPath
+import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.withSakId
 
 @KtorExperimentalAPI
@@ -50,6 +51,7 @@ internal fun Route.stansutbetalingRoutes(
                     },
                     {
                         call.audit(it.fnr, AuditLogEvent.Action.UPDATE, null)
+                        call.sikkerlogg("Stanser utbetaling på sak $sakId")
                         call.respond(serialize(it.toJson()))
                     }
                 )

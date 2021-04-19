@@ -63,7 +63,7 @@ internal fun Route.beregnOgSimulerRevurdering(
                                 ).mapLeft {
                                     it.tilResultat()
                                 }.map { revurdering ->
-                                    call.sikkerlogg("Opprettet en ny revurdering beregning og simulering på sak med id $sakId")
+                                    call.sikkerlogg("Beregnet og simulert revurdering ${revurdering.id} på sak med id $sakId")
                                     call.audit(revurdering.fnr, AuditLogEvent.Action.UPDATE, revurdering.id)
                                     Resultat.json(
                                         HttpStatusCode.Created,

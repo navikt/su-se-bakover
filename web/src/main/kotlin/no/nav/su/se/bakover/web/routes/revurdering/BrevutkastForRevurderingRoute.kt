@@ -19,7 +19,6 @@ import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
-import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresponser.fantIkkeRevurdering
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
@@ -37,7 +36,7 @@ internal fun Route.brevutkastForRevurdering(
         get("$revurderingPath/{revurderingId}/brevutkast") {
             call.withRevurderingId { revurderingId ->
                 val revurdering = revurderingService.hentRevurdering(revurderingId)
-                    ?: return@withRevurderingId call.svar(NotFound.message("Fant ikke revurdering"))
+                    ?: return@withRevurderingId call.svar(NotFound.errorJson("Fant ikke revurdering", "fant_ikke_revurdering"))
 
                 revurderingService.hentBrevutkast(revurderingId).fold(
                     ifLeft = { call.svar(it.tilResultat()) },
@@ -53,7 +52,7 @@ internal fun Route.brevutkastForRevurdering(
             call.withRevurderingId { revurderingId ->
                 call.withBody<Body> { body ->
                     val revurdering = revurderingService.hentRevurdering(revurderingId)
-                        ?: return@withRevurderingId call.svar(NotFound.message("Fant ikke revurdering"))
+                        ?: return@withRevurderingId call.svar(NotFound.errorJson("Fant ikke revurdering", "fant_ikke_revurdering"))
 
                     revurderingService.lagBrevutkast(revurderingId, body.fritekst).fold(
                         ifLeft = { call.svar(it.tilResultat()) },

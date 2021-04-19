@@ -211,7 +211,7 @@ internal fun Route.behandlingRoutes(
                                 }
                                 call.svar(resultat)
                             }.map { behandling ->
-                                call.sikkerlogg("Opprettet en ny beregning på søknadsbehandling med id $behandlingId")
+                                call.sikkerlogg("Beregner på søknadsbehandling med id $behandlingId")
                                 call.audit(behandling.fnr, AuditLogEvent.Action.UPDATE, behandling.id)
                                 call.svar(Created.jsonBody(behandling))
                             }
@@ -222,7 +222,7 @@ internal fun Route.behandlingRoutes(
     }
 
     authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
-        suspend fun handleBrevRequest(call: ApplicationCall, req: BrevRequest) =
+        suspend fun lagBrevutkast(call: ApplicationCall, req: BrevRequest) =
             søknadsbehandlingService.brev(req)
                 .fold(
                     {
@@ -245,7 +245,7 @@ internal fun Route.behandlingRoutes(
                         call.svar(resultat)
                     },
                     {
-                        call.sikkerlogg("Hentet behandling med id ${req.behandling.id}")
+                        call.sikkerlogg("Hentet brev for behandling med id ${req.behandling.id}")
                         call.audit(req.behandling.fnr, AuditLogEvent.Action.ACCESS, req.behandling.id)
                         call.respondBytes(it, ContentType.Application.Pdf)
                     },
@@ -257,7 +257,7 @@ internal fun Route.behandlingRoutes(
                     søknadsbehandlingService.hent(HentRequest(behandlingId))
                         .fold(
                             { call.svar(NotFound.message("fant ikke behandling")) },
-                            { handleBrevRequest(call, BrevRequest.MedFritekst(it, body.fritekst)) },
+                            { lagBrevutkast(call, BrevRequest.MedFritekst(it, body.fritekst)) },
                         )
                 }
             }
@@ -267,7 +267,7 @@ internal fun Route.behandlingRoutes(
                 søknadsbehandlingService.hent(HentRequest(behandlingId))
                     .fold(
                         { call.svar(NotFound.message("fant ikke behandling")) },
-                        { handleBrevRequest(call, BrevRequest.UtenFritekst(it)) },
+                        { lagBrevutkast(call, BrevRequest.UtenFritekst(it)) },
                     )
             }
         }

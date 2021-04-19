@@ -22,7 +22,7 @@ import no.nav.su.se.bakover.web.features.suUserContext
 import java.util.UUID
 
 internal fun ApplicationCall.sikkerlogg(msg: String) {
-    sikkerLogg.info("${suUserContext.navIdent} $msg") // TODO: Må se på om denne kan beholdes, avventer svar fra ATOM
+    sikkerLogg.info("${suUserContext.navIdent} $msg")
 }
 
 /**
