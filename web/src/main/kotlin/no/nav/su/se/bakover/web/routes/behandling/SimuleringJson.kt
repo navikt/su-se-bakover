@@ -1,27 +1,28 @@
 package no.nav.su.se.bakover.web.routes.behandling
 
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.oppdrag.simulering.TolketDetalj
 import no.nav.su.se.bakover.domain.oppdrag.simulering.TolketPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.TolketSimulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.TolketUtbetaling
 import java.time.LocalDate
 
-data class UtbetalingJson(
+internal data class UtbetalingJson(
     val id: String,
     val fraOgMed: LocalDate,
     val tilOgMed: LocalDate,
     val beløp: Int,
-    val type: String
+    val type: String,
 )
 
-enum class SimulertUtbetalingstype {
+internal enum class SimulertUtbetalingstype {
     ETTERBETALING,
     FEILUTBETALING,
-    ORDINÆR
+    ORDINÆR,
+    UENDRET,
+    INGEN_UTBETALING
 }
 
-data class SimuleringJson(
+internal data class SimuleringJson(
     val perioder: List<SimulertPeriodeJson>,
     val totalBruttoYtelse: Int,
 ) {
@@ -46,33 +47,40 @@ data class SimuleringJson(
     }
 }
 
-fun TolketPeriode.toJson(): SimuleringJson.SimulertPeriodeJson {
+internal fun TolketPeriode.toJson(): SimuleringJson.SimulertPeriodeJson {
     val utbetaling = utbetalinger.singleOrNull() ?: throw MerEnnEnUtbetalingIMinstEnAvPeriodene
     return when (utbetaling) {
         is TolketUtbetaling.Etterbetaling -> SimuleringJson.SimulertPeriodeJson(
             fraOgMed = fraOgMed,
             tilOgMed = tilOgMed,
             type = SimulertUtbetalingstype.ETTERBETALING,
-            bruttoYtelse = utbetaling.tolketDetalj
-                .filterIsInstance<TolketDetalj.Etterbetaling>()
-                .sumBy { it.beløp },
+            bruttoYtelse = utbetaling.bruttobeløp(),
         )
         is TolketUtbetaling.Feilutbetaling -> SimuleringJson.SimulertPeriodeJson(
             fraOgMed = fraOgMed,
             tilOgMed = tilOgMed,
             type = SimulertUtbetalingstype.FEILUTBETALING,
-            bruttoYtelse = utbetaling.tolketDetalj
-                .filterIsInstance<TolketDetalj.Feilutbetaling>()
-                .sumBy { it.beløp }
+            bruttoYtelse = utbetaling.bruttobeløp()
                 .times(-1),
         )
         is TolketUtbetaling.Ordinær -> SimuleringJson.SimulertPeriodeJson(
             fraOgMed = fraOgMed,
             tilOgMed = tilOgMed,
             type = SimulertUtbetalingstype.ORDINÆR,
-            bruttoYtelse = utbetaling.tolketDetalj
-                .filterIsInstance<TolketDetalj.Ordinær>()
-                .sumBy { it.beløp },
+            bruttoYtelse = utbetaling.bruttobeløp(),
+        )
+        is TolketUtbetaling.UendretUtbetaling -> SimuleringJson.SimulertPeriodeJson(
+            fraOgMed = fraOgMed,
+            tilOgMed = tilOgMed,
+            type = SimulertUtbetalingstype.UENDRET,
+            bruttoYtelse = utbetaling.bruttobeløp(),
+        )
+
+        is TolketUtbetaling.IngenUtbetaling -> SimuleringJson.SimulertPeriodeJson(
+            fraOgMed = fraOgMed,
+            tilOgMed = tilOgMed,
+            type = SimulertUtbetalingstype.INGEN_UTBETALING,
+            bruttoYtelse = utbetaling.bruttobeløp(),
         )
     }
 }

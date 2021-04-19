@@ -7,15 +7,24 @@ data class TolketSimulering(
     private val simulering: Simulering,
 ) {
     val simulertePerioder = simulering.periodeList.map {
+        val utbetalinger = when (it.utbetaling.isNotEmpty()) {
+            true -> {
+                it.utbetaling.map { simulertUtbetaling ->
+                    val detaljer = simulertUtbetaling.detaljer.map { simulertDetalj ->
+                        TolketDetalj.from(simulertDetalj)
+                    }.filterNotNull()
+                    TolketUtbetaling.from(detaljer)
+                }
+            }
+            false -> {
+                listOf(TolketUtbetaling.IngenUtbetaling())
+            }
+        }
+
         TolketPeriode(
             it.fraOgMed,
             it.tilOgMed,
-            it.utbetaling.map { simulertUtbetaling ->
-                val detaljer = simulertUtbetaling.detaljer.map { simulertDetalj ->
-                    TolketDetalj.from(simulertDetalj)
-                }.filterNotNull()
-                TolketUtbetaling.from(detaljer)
-            },
+            utbetalinger,
         )
     }
 }
@@ -36,22 +45,33 @@ sealed class TolketUtbetaling {
             tolketDetaljer.erFeilutbetaling() -> {
                 Feilutbetaling(tolketDetaljer)
             }
-            tolketDetaljer.erEtterbetaling() -> {
-                Etterbetaling(tolketDetaljer + TolketDetalj.Etterbetaling(tolketDetaljer.sumBy { it.beløp }))
+            tolketDetaljer.erTidligereUtbetalt() -> {
+                val sum = tolketDetaljer.sumBy { it.beløp }
+                when {
+                    sum > 0 -> Etterbetaling(tolketDetaljer + TolketDetalj.Etterbetaling(sum))
+                    sum == 0 -> UendretUtbetaling(tolketDetaljer + TolketDetalj.UendretUtbetaling(sum))
+                    else -> throw IndikererFeilutbetaling
+                }
             }
             tolketDetaljer.erOrdinær() -> {
                 Ordinær(tolketDetaljer)
             }
-            else -> throw IllegalStateException("Fikk ikke til")
+            else -> throw IngenEntydigTolkning
         }
 
-        private fun List<TolketDetalj>.erFeilutbetaling() = any { it is TolketDetalj.Feilutbetaling }
+        private fun List<TolketDetalj>.erFeilutbetaling() =
+            any { it is TolketDetalj.Feilutbetaling } &&
+                exists { it is TolketDetalj.TidligereUtbetalt } &&
+                exists { it is TolketDetalj.Ordinær }
 
-        private fun List<TolketDetalj>.erEtterbetaling() = count() == 2 &&
-            exists { it is TolketDetalj.Ordinær } && exists { it is TolketDetalj.TidligereUtbetalt }
+        private fun List<TolketDetalj>.erTidligereUtbetalt() =
+            count() == 2 &&
+                exists { it is TolketDetalj.Ordinær } &&
+                exists { it is TolketDetalj.TidligereUtbetalt }
 
-        private fun List<TolketDetalj>.erOrdinær() = count() == 1 &&
-            all { it is TolketDetalj.Ordinær }
+        private fun List<TolketDetalj>.erOrdinær() =
+            count() == 1 &&
+                all { it is TolketDetalj.Ordinær }
     }
 
     data class Ordinær(
@@ -78,6 +98,25 @@ sealed class TolketUtbetaling {
             tolketDetalj.filterIsInstance<TolketDetalj.Etterbetaling>()
                 .sumBy { it.beløp }
     }
+
+    data class UendretUtbetaling(
+        override val tolketDetalj: List<TolketDetalj>,
+    ) : TolketUtbetaling() {
+        override fun bruttobeløp(): Int =
+            tolketDetalj.filterIsInstance<TolketDetalj.UendretUtbetaling>()
+                .sumBy { it.beløp }
+    }
+
+    data class IngenUtbetaling(
+        override val tolketDetalj: List<TolketDetalj> = listOf(TolketDetalj.IngenUtbetaling()),
+    ) : TolketUtbetaling() {
+        override fun bruttobeløp(): Int =
+            tolketDetalj.filterIsInstance<TolketDetalj.IngenUtbetaling>()
+                .sumBy { it.beløp }
+    }
+
+    object IngenEntydigTolkning : IllegalStateException("Simulert utbetaling kunne ikke tolkes entydig.")
+    object IndikererFeilutbetaling : IllegalStateException("Indikasjon på feilutbetaling, men detaljer for feilutbetaling mangler.")
 }
 
 sealed class TolketDetalj {
@@ -99,13 +138,6 @@ sealed class TolketDetalj {
 
         private fun SimulertDetaljer.erFeilutbetaling() = klasseType == KlasseType.FEIL
 
-        private fun SimulertDetaljer.erØnsketUtbetalt() = klasseType == KlasseType.YTEL &&
-            klassekode == KlasseKode.SUUFORE &&
-            typeSats == "MND" &&
-            antallSats == 1 &&
-            sats > 0 &&
-            belop > 0
-
         private fun SimulertDetaljer.erTidligereUtbetalt() = klasseType == KlasseType.YTEL &&
             klassekode == KlasseKode.SUUFORE &&
             typeSats == "" &&
@@ -113,6 +145,13 @@ sealed class TolketDetalj {
             tilbakeforing &&
             sats == 0 &&
             belop < 0
+
+        private fun SimulertDetaljer.erØnsketUtbetalt() = klasseType == KlasseType.YTEL &&
+            klassekode == KlasseKode.SUUFORE &&
+            typeSats == "MND" &&
+            antallSats == 1 &&
+            sats > 0 &&
+            belop > 0
     }
 
     data class Etterbetaling(
@@ -129,5 +168,13 @@ sealed class TolketDetalj {
 
     data class TidligereUtbetalt(
         override val beløp: Int,
+    ) : TolketDetalj()
+
+    data class UendretUtbetaling(
+        override val beløp: Int,
+    ) : TolketDetalj()
+
+    data class IngenUtbetaling(
+        override val beløp: Int = 0,
     ) : TolketDetalj()
 }
