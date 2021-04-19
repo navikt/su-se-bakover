@@ -13,6 +13,7 @@ import io.ktor.server.testing.contentType
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLageBrevutkastForRevurdering
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.defaultRequest
@@ -55,8 +56,12 @@ internal class BrevutkastForRevurderingRouteTest {
     @Test
     fun `kan lage brevutkast`() {
         val pdfAsBytes = "<myPreciousByteArray.org".toByteArray()
+        val revurderingMock = mock<Revurdering> {
+            on { fnr } doReturn mock()
+        }
         val revurderingServiceMock = mock<RevurderingService> {
             on { lagBrevutkast(any(), any()) } doReturn pdfAsBytes.right()
+            on { hentRevurdering(any()) } doReturn revurderingMock
         }
 
         withTestApplication({
@@ -143,6 +148,7 @@ internal class BrevutkastForRevurderingRouteTest {
     ) {
         val revurderingServiceMock = mock<RevurderingService> {
             on { lagBrevutkast(any(), any()) } doReturn error.left()
+            on { hentRevurdering(any()) } doReturn mock()
         }
 
         withTestApplication({

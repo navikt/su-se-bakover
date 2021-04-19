@@ -13,6 +13,7 @@ import java.util.UUID
 import kotlin.reflect.KClass
 
 interface RevurderingService {
+    fun hentRevurdering(revurderingId: UUID): Revurdering?
 
     fun opprettRevurdering(
         opprettRevurderingRequest: OpprettRevurderingRequest,

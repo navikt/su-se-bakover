@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering.Ugy
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering.UgyldigÅrsak
 import no.nav.su.se.bakover.service.revurdering.OpprettRevurderingRequest
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
+import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.errorJson
@@ -31,6 +32,7 @@ import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresp
 import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresponser.fantIkkeSak
 import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresponser.kunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresponser.ugyldigPeriode
+import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withSakId
@@ -62,7 +64,8 @@ internal fun Route.opprettRevurderingRoute(
                     ).fold(
                         ifLeft = { call.svar(it.tilResultat()) },
                         ifRight = {
-                            call.audit("Opprettet en ny revurdering på sak med id $sakId")
+                            call.sikkerlogg("Opprettet en ny revurdering på sak med id $sakId")
+                            call.audit(it.fnr, AuditLogEvent.Action.CREATE, it.id)
                             call.svar(Resultat.json(HttpStatusCode.Created, serialize(it.toJson())))
                         },
                     )

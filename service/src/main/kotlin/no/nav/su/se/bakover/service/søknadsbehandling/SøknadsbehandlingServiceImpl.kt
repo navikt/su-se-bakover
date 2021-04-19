@@ -392,9 +392,6 @@ internal class SøknadsbehandlingServiceImpl(
     }
 
     override fun brev(request: SøknadsbehandlingService.BrevRequest): Either<SøknadsbehandlingService.KunneIkkeLageBrev, ByteArray> {
-        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
-            ?: return SøknadsbehandlingService.KunneIkkeLageBrev.FantIkkeBehandling.left()
-
         val visitor = LagBrevRequestVisitor(
             hentPerson = { fnr ->
                 personService.hentPerson(fnr)
@@ -408,9 +405,9 @@ internal class SøknadsbehandlingServiceImpl(
         ).apply {
             val behandling = when (request) {
                 is SøknadsbehandlingService.BrevRequest.MedFritekst ->
-                    søknadsbehandling.medFritekstTilBrev(request.fritekst)
+                    request.behandling.medFritekstTilBrev(request.fritekst)
                 is SøknadsbehandlingService.BrevRequest.UtenFritekst ->
-                    søknadsbehandling
+                    request.behandling
             }
 
             behandling.accept(this)

@@ -53,7 +53,7 @@ internal class SøknadsbehandlingServiceBrevTest {
         stønadsperiode = stønadsperiode,
     )
 
-    private val opprettetSøknadbehandling = Søknadsbehandling.Vilkårsvurdert.Uavklart(
+    private val vilkårsvurdertUavklartSøknadsbehandling = Søknadsbehandling.Vilkårsvurdert.Uavklart(
         id = UUID.randomUUID(),
         opprettet = Tidspunkt.now(),
         behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
@@ -75,18 +75,6 @@ internal class SøknadsbehandlingServiceBrevTest {
     )
 
     @Test
-    fun `svarer med feil hvis vi ikke finner behandling`() {
-        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
-            on { hent(any()) } doReturn null
-        }
-        createSøknadsbehandlingService(
-            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-        ).brev(SøknadsbehandlingService.BrevRequest.UtenFritekst(beregnetAvslag.id)).let {
-            it shouldBe SøknadsbehandlingService.KunneIkkeLageBrev.FantIkkeBehandling.left()
-        }
-    }
-
-    @Test
     fun `svarer med feil hvis vi ikke finner person`() {
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn beregnetAvslag
@@ -99,7 +87,7 @@ internal class SøknadsbehandlingServiceBrevTest {
         createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             personService = personServiceMock
-        ).brev(SøknadsbehandlingService.BrevRequest.UtenFritekst(beregnetAvslag.id)).let {
+        ).brev(SøknadsbehandlingService.BrevRequest.UtenFritekst(beregnetAvslag)).let {
             it shouldBe SøknadsbehandlingService.KunneIkkeLageBrev.FantIkkePerson.left()
         }
     }
@@ -122,7 +110,7 @@ internal class SøknadsbehandlingServiceBrevTest {
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             personService = personServiceMock,
             microsoftGraphApiOppslag = microsoftGraphApiOppslagMock
-        ).brev(SøknadsbehandlingService.BrevRequest.UtenFritekst(beregnetAvslag.id)).let {
+        ).brev(SøknadsbehandlingService.BrevRequest.UtenFritekst(beregnetAvslag)).let {
             it shouldBe SøknadsbehandlingService.KunneIkkeLageBrev.FikkIkkeHentetSaksbehandlerEllerAttestant.left()
         }
     }
@@ -150,7 +138,7 @@ internal class SøknadsbehandlingServiceBrevTest {
             personService = personServiceMock,
             microsoftGraphApiOppslag = microsoftGraphApiOppslagMock,
             brevService = brevServiceMock
-        ).brev(SøknadsbehandlingService.BrevRequest.UtenFritekst(beregnetAvslag.id)).let {
+        ).brev(SøknadsbehandlingService.BrevRequest.UtenFritekst(beregnetAvslag)).let {
             it shouldBe SøknadsbehandlingService.KunneIkkeLageBrev.KunneIkkeLagePDF.left()
         }
     }
@@ -179,7 +167,7 @@ internal class SøknadsbehandlingServiceBrevTest {
             personService = personServiceMock,
             microsoftGraphApiOppslag = microsoftGraphApiOppslagMock,
             brevService = brevServiceMock
-        ).brev(SøknadsbehandlingService.BrevRequest.UtenFritekst(beregnetAvslag.id)).let {
+        ).brev(SøknadsbehandlingService.BrevRequest.UtenFritekst(beregnetAvslag)).let {
             it shouldBe pdf.right()
         }
     }
@@ -187,13 +175,13 @@ internal class SøknadsbehandlingServiceBrevTest {
     @Test
     fun `kaster exception hvis det ikke er mulig å opprette brev for aktuell behandling`() {
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
-            on { hent(any()) } doReturn opprettetSøknadbehandling
+            on { hent(any()) } doReturn vilkårsvurdertUavklartSøknadsbehandling
         }
 
         assertThrows<LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans> {
             createSøknadsbehandlingService(
                 søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            ).brev(SøknadsbehandlingService.BrevRequest.UtenFritekst(beregnetAvslag.id))
+            ).brev(SøknadsbehandlingService.BrevRequest.UtenFritekst(vilkårsvurdertUavklartSøknadsbehandling))
         }
     }
 }

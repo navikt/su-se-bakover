@@ -9,6 +9,7 @@ import io.ktor.routing.get
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.service.sak.SakService
+import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.lesFnr
@@ -31,7 +32,10 @@ internal fun Route.sakRoutes(
                     call.svar(
                         sakService.hentSak(saksnummer).fold(
                             { NotFound.message("Fant ikke sak med saksnummer: $saksnummer") },
-                            { Resultat.json(OK, serialize((it.toJson()))) }
+                            {
+                                call.audit(it.fnr, AuditLogEvent.Action.ACCESS, null)
+                                Resultat.json(OK, serialize((it.toJson())))
+                            }
                         )
                     )
                 }
@@ -41,9 +45,12 @@ internal fun Route.sakRoutes(
                     ifLeft = { call.svar(BadRequest.message(it)) },
                     ifRight = { fnr ->
                         sakService.hentSak(fnr)
-                            .mapLeft { call.svar(NotFound.message("Fant ikke noen sak for person: $fnr")) }
+                            .mapLeft {
+                                call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
+                                call.svar(NotFound.message("Fant ikke noen sak for person: $fnr"))
+                            }
                             .map {
-                                call.audit("Hentet sak for fnr: $fnr")
+                                call.audit(fnr, AuditLogEvent.Action.ACCESS, null)
                                 call.svar(Resultat.json(OK, serialize((it.toJson()))))
                             }
                     }
@@ -58,7 +65,10 @@ internal fun Route.sakRoutes(
             call.svar(
                 sakService.hentSak(sakId).fold(
                     { NotFound.message("Fant ikke sak med id: $sakId") },
-                    { Resultat.json(OK, serialize((it.toJson()))) }
+                    {
+                        call.audit(it.fnr, AuditLogEvent.Action.ACCESS, null)
+                        Resultat.json(OK, serialize((it.toJson())))
+                    }
                 )
             )
         }

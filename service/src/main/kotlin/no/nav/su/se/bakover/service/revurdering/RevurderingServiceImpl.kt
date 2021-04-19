@@ -65,6 +65,9 @@ internal class RevurderingServiceImpl(
 
     fun getObservers(): List<EventObserver> = observers.toList()
 
+    override fun hentRevurdering(revurderingId: UUID): Revurdering? =
+        revurderingRepo.hent(revurderingId)
+
     override fun opprettRevurdering(
         opprettRevurderingRequest: OpprettRevurderingRequest,
     ): Either<KunneIkkeOppretteRevurdering, Revurdering> {
