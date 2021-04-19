@@ -58,32 +58,34 @@ class RevurderingIngenEndringTest {
             revurderingsårsak = revurderingsårsak,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
         )
-        val beregnetRevurdering = BeregnetRevurdering.IngenEndring(
-            id = revurderingId,
-            periode = periode,
-            opprettet = fixedTidspunkt,
-            tilRevurdering = søknadsbehandlingVedtak,
-            oppgaveId = søknadOppgaveId,
-            beregning = TestBeregning,
-            saksbehandler = saksbehandler,
-            fritekstTilBrev = "",
-            revurderingsårsak = revurderingsårsak,
-            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
-        )
+
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn opprettetRevurdering
         }
 
         val actual = createRevurderingService(
-            revurderingRepo = revurderingRepoMock
+            revurderingRepo = revurderingRepoMock,
         ).beregnOgSimuler(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
             fradrag = listOf(),
         ).orNull()!! as BeregnetRevurdering.IngenEndring
-
-        // beregningstypen er internal i domene modulen
-        actual.shouldBeEqualToIgnoringFields(beregnetRevurdering, BeregnetRevurdering.IngenEndring::beregning)
+        actual.shouldBeEqualToIgnoringFields(
+            BeregnetRevurdering.IngenEndring(
+                id = revurderingId,
+                periode = periode,
+                opprettet = fixedTidspunkt,
+                tilRevurdering = søknadsbehandlingVedtak,
+                oppgaveId = søknadOppgaveId,
+                beregning = TestBeregning,
+                saksbehandler = saksbehandler,
+                fritekstTilBrev = "",
+                revurderingsårsak = revurderingsårsak,
+                behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
+            ),
+            // beregningstypen er internal i domene modulen
+            BeregnetRevurdering.IngenEndring::beregning,
+        )
 
         inOrder(
             revurderingRepoMock,
