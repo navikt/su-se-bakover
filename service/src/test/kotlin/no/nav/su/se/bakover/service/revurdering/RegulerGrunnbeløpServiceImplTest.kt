@@ -7,7 +7,7 @@ import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
-import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.assertions.arrow.either.shouldBeLeft
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
@@ -309,20 +309,18 @@ internal class RegulerGrunnbeløpServiceImplTest {
             on { lukkOppgave(any()) } doReturn Unit.right()
         }
 
-        shouldThrow<IllegalStateException> {
-            createRevurderingService(
-                revurderingRepo = revurderingRepoMock,
-                personService = personServiceMock,
-                oppgaveService = oppgaveServiceMock,
-            ).sendTilAttestering(
-                SendTilAttesteringRequest(
-                    revurderingId = revurderingId,
-                    saksbehandler = saksbehandler,
-                    fritekstTilBrev = "Fritekst",
-                    skalFøreTilBrevutsending = true,
-                ),
-            )
-        }.message shouldBe "Kan ikke sende en opphørt g-regulering til attestering"
+        createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+            personService = personServiceMock,
+            oppgaveService = oppgaveServiceMock,
+        ).sendTilAttestering(
+            SendTilAttesteringRequest(
+                revurderingId = revurderingId,
+                saksbehandler = saksbehandler,
+                fritekstTilBrev = "Fritekst",
+                skalFøreTilBrevutsending = true,
+            ),
+        ) shouldBeLeft KunneIkkeSendeRevurderingTilAttestering.KanIkkeRegulereGrunnbeløpTilOpphør
 
         inOrder(revurderingRepoMock, personServiceMock, oppgaveServiceMock) {
             verify(revurderingRepoMock).hent(revurderingId)
@@ -365,20 +363,18 @@ internal class RegulerGrunnbeløpServiceImplTest {
             on { lukkOppgave(any()) } doReturn Unit.right()
         }
 
-        shouldThrow<IllegalStateException> {
-            createRevurderingService(
-                revurderingRepo = revurderingRepoMock,
-                personService = personServiceMock,
-                oppgaveService = oppgaveServiceMock,
-            ).sendTilAttestering(
-                SendTilAttesteringRequest(
-                    revurderingId = revurderingId,
-                    saksbehandler = saksbehandler,
-                    fritekstTilBrev = "Fritekst",
-                    skalFøreTilBrevutsending = true,
-                ),
-            )
-        }.message shouldBe "Kan ikke sende en opphørt g-regulering til attestering"
+        createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+            personService = personServiceMock,
+            oppgaveService = oppgaveServiceMock,
+        ).sendTilAttestering(
+            SendTilAttesteringRequest(
+                revurderingId = revurderingId,
+                saksbehandler = saksbehandler,
+                fritekstTilBrev = "Fritekst",
+                skalFøreTilBrevutsending = true,
+            ),
+        ) shouldBeLeft KunneIkkeSendeRevurderingTilAttestering.KanIkkeRegulereGrunnbeløpTilOpphør
 
         inOrder(revurderingRepoMock, personServiceMock, oppgaveServiceMock) {
             verify(revurderingRepoMock).hent(revurderingId)

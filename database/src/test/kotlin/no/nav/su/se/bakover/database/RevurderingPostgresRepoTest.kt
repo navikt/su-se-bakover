@@ -406,7 +406,7 @@ internal class RevurderingPostgresRepoTest {
             val simulert = simulertOpphørt(beregnet)
             repo.lagre(simulert)
             repo.hent(opprettet.id) shouldBe simulert
-            val tilAttestering = simulert.tilAttestering(opprettet.oppgaveId, opprettet.saksbehandler, opprettet.fritekstTilBrev)
+            val tilAttestering = simulert.tilAttestering(opprettet.oppgaveId, opprettet.saksbehandler, opprettet.fritekstTilBrev).orNull()!!
             repo.lagre(tilAttestering)
 
             val underkjent = UnderkjentRevurdering.Opphørt(
@@ -473,7 +473,7 @@ internal class RevurderingPostgresRepoTest {
             repo.lagre(beregnet)
             val simulert = simulertOpphørt(beregnet)
             repo.lagre(simulert)
-            val tilAttestering = simulert.tilAttestering(opprettet.oppgaveId, opprettet.saksbehandler, opprettet.fritekstTilBrev)
+            val tilAttestering = simulert.tilAttestering(opprettet.oppgaveId, opprettet.saksbehandler, opprettet.fritekstTilBrev).orNull()!!
             repo.lagre(tilAttestering)
 
             val underkjent = IverksattRevurdering.Opphørt(

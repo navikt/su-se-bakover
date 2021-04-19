@@ -287,11 +287,18 @@ internal class RevurderingServiceImpl(
                 request.fritekstTilBrev,
                 if (revurdering.revurderingsårsak.årsak == REGULER_GRUNNBELØP) false else request.skalFøreTilBrevutsending,
             )
-            is SimulertRevurdering -> revurdering.tilAttestering(
+            is SimulertRevurdering.Innvilget -> revurdering.tilAttestering(
                 oppgaveId,
                 request.saksbehandler,
                 request.fritekstTilBrev,
             )
+            is SimulertRevurdering.Opphørt -> revurdering.tilAttestering(
+                oppgaveId,
+                request.saksbehandler,
+                request.fritekstTilBrev,
+            ).getOrElse {
+                return KunneIkkeSendeRevurderingTilAttestering.KanIkkeRegulereGrunnbeløpTilOpphør.left()
+            }
             is UnderkjentRevurdering.IngenEndring -> revurdering.tilAttestering(
                 oppgaveId,
                 request.saksbehandler,
@@ -302,7 +309,9 @@ internal class RevurderingServiceImpl(
                 oppgaveId,
                 request.saksbehandler,
                 request.fritekstTilBrev,
-            )
+            ).getOrElse {
+                return KunneIkkeSendeRevurderingTilAttestering.KanIkkeRegulereGrunnbeløpTilOpphør.left()
+            }
             is UnderkjentRevurdering.Innvilget -> revurdering.tilAttestering(
                 oppgaveId,
                 request.saksbehandler,

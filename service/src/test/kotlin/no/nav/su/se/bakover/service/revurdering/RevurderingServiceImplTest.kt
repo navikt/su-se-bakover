@@ -71,6 +71,7 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.sak
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.sakId
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.saksbehandler
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.saksnummer
+import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.simulertRevurderingInnvilget
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.søknadsbehandlingVedtak
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.Event
@@ -352,18 +353,7 @@ internal class RevurderingServiceImplTest {
 
     @Test
     fun `sender til attestering`() {
-        val simulertRevurdering = mock<SimulertRevurdering> {
-            on { fnr } doReturn fnr
-            on { saksnummer } doReturn saksnummer
-            on { id } doReturn revurderingId
-            on { periode } doReturn periode
-            on { tilRevurdering } doReturn søknadsbehandlingVedtak
-            on { opprettet } doReturn Tidspunkt.EPOCH
-            on { beregning } doReturn mock()
-            on { simulering } doReturn mock()
-            on { tilAttestering(any(), any(), any()) } doReturn mock()
-            on { oppgaveId } doReturn OppgaveId("oppgaveid")
-        }
+        val simulertRevurdering = simulertRevurderingInnvilget
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn simulertRevurdering

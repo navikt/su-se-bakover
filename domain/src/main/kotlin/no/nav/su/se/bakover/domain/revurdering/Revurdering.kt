@@ -93,25 +93,27 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
             behandlingsinformasjon = behandlingsinformasjon,
         )
 
-        fun ingenEndring(revurdertBeregning: Beregning): BeregnetRevurdering.IngenEndring = BeregnetRevurdering.IngenEndring(
-            tilRevurdering = tilRevurdering,
-            id = id,
-            periode = periode,
-            opprettet = opprettet,
-            beregning = revurdertBeregning,
-            saksbehandler = saksbehandler,
-            oppgaveId = oppgaveId,
-            fritekstTilBrev = fritekstTilBrev,
-            revurderingsårsak = revurderingsårsak,
-            behandlingsinformasjon = behandlingsinformasjon,
-        )
+        fun ingenEndring(revurdertBeregning: Beregning): BeregnetRevurdering.IngenEndring =
+            BeregnetRevurdering.IngenEndring(
+                tilRevurdering = tilRevurdering,
+                id = id,
+                periode = periode,
+                opprettet = opprettet,
+                beregning = revurdertBeregning,
+                saksbehandler = saksbehandler,
+                oppgaveId = oppgaveId,
+                fritekstTilBrev = fritekstTilBrev,
+                revurderingsårsak = revurderingsårsak,
+                behandlingsinformasjon = behandlingsinformasjon,
+            )
 
         return when (this.revurderingsårsak.årsak) {
             Revurderingsårsak.Årsak.MIGRERT,
             Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
             Revurderingsårsak.Årsak.INFORMASJON_FRA_KONTROLLSAMTALE,
             Revurderingsårsak.Årsak.DØDSFALL,
-            Revurderingsårsak.Årsak.ANDRE_KILDER -> {
+            Revurderingsårsak.Årsak.ANDRE_KILDER,
+            -> {
                 when (endringerAvUtbetalingerErStørreEllerLik10Prosent(tilRevurdering.beregning, revurdertBeregning)) {
                     true -> {
                         when (erAvslagGrunnetBeregning) {
@@ -273,7 +275,7 @@ sealed class BeregnetRevurdering : Revurdering() {
             attesteringsoppgaveId: OppgaveId,
             saksbehandler: Saksbehandler,
             fritekstTilBrev: String,
-            skalFøreTilBrevutsending: Boolean
+            skalFøreTilBrevutsending: Boolean,
         ) = RevurderingTilAttestering.IngenEndring(
             id = id,
             periode = periode,
@@ -329,17 +331,13 @@ sealed class BeregnetRevurdering : Revurdering() {
     }
 }
 
+object KanIkkeSendeEnOpphørtGReguleringTilAttestering
+
 sealed class SimulertRevurdering : Revurdering() {
     abstract val beregning: Beregning
     abstract val simulering: Simulering
 
     abstract override fun accept(visitor: RevurderingVisitor)
-
-    abstract fun tilAttestering(
-        attesteringsoppgaveId: OppgaveId,
-        saksbehandler: Saksbehandler,
-        fritekstTilBrev: String,
-    ): RevurderingTilAttestering
 
     data class Innvilget(
         override val id: UUID,
@@ -358,7 +356,7 @@ sealed class SimulertRevurdering : Revurdering() {
             visitor.visit(this)
         }
 
-        override fun tilAttestering(
+        fun tilAttestering(
             attesteringsoppgaveId: OppgaveId,
             saksbehandler: Saksbehandler,
             fritekstTilBrev: String,
@@ -394,25 +392,28 @@ sealed class SimulertRevurdering : Revurdering() {
             visitor.visit(this)
         }
 
-        override fun tilAttestering(
+        fun tilAttestering(
             attesteringsoppgaveId: OppgaveId,
             saksbehandler: Saksbehandler,
             fritekstTilBrev: String,
-        ): RevurderingTilAttestering.Opphørt {
-            if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) throw IllegalStateException("Kan ikke sende en opphørt g-regulering til attestering")
-            return RevurderingTilAttestering.Opphørt(
-                id = id,
-                periode = periode,
-                opprettet = opprettet,
-                tilRevurdering = tilRevurdering,
-                saksbehandler = saksbehandler,
-                beregning = beregning,
-                simulering = simulering,
-                oppgaveId = attesteringsoppgaveId,
-                fritekstTilBrev = fritekstTilBrev,
-                revurderingsårsak = revurderingsårsak,
-                behandlingsinformasjon = behandlingsinformasjon,
-            )
+        ): Either<KanIkkeSendeEnOpphørtGReguleringTilAttestering, RevurderingTilAttestering.Opphørt> {
+            if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) {
+                return KanIkkeSendeEnOpphørtGReguleringTilAttestering.left()
+            } else {
+                return RevurderingTilAttestering.Opphørt(
+                    id = id,
+                    periode = periode,
+                    opprettet = opprettet,
+                    tilRevurdering = tilRevurdering,
+                    saksbehandler = saksbehandler,
+                    beregning = beregning,
+                    simulering = simulering,
+                    oppgaveId = attesteringsoppgaveId,
+                    fritekstTilBrev = fritekstTilBrev,
+                    revurderingsårsak = revurderingsårsak,
+                    behandlingsinformasjon = behandlingsinformasjon,
+                ).right()
+            }
         }
     }
 
@@ -437,7 +438,8 @@ sealed class RevurderingTilAttestering : Revurdering() {
 
     abstract override fun accept(visitor: RevurderingVisitor)
 
-    override fun oppdaterBehandlingsinformasjon(behandlingsinformasjon: Behandlingsinformasjon) = throw IllegalStateException("Ikke lov å oppdatere behandlingsinformasjon i attestert status")
+    override fun oppdaterBehandlingsinformasjon(behandlingsinformasjon: Behandlingsinformasjon) =
+        throw IllegalStateException("Ikke lov å oppdatere behandlingsinformasjon i attestert status")
 
     data class Innvilget(
         override val id: UUID,
@@ -651,7 +653,8 @@ sealed class IverksattRevurdering : Revurdering() {
 
     abstract override fun accept(visitor: RevurderingVisitor)
 
-    override fun oppdaterBehandlingsinformasjon(behandlingsinformasjon: Behandlingsinformasjon) = throw IllegalStateException("Ikke lov å oppdatere behandlingsinformasjon i status Iverksatt")
+    override fun oppdaterBehandlingsinformasjon(behandlingsinformasjon: Behandlingsinformasjon) =
+        throw IllegalStateException("Ikke lov å oppdatere behandlingsinformasjon i status Iverksatt")
 
     data class Innvilget(
         override val id: UUID,
@@ -782,21 +785,24 @@ sealed class UnderkjentRevurdering : Revurdering() {
             oppgaveId: OppgaveId,
             saksbehandler: Saksbehandler,
             fritekstTilBrev: String,
-        ): RevurderingTilAttestering.Opphørt {
-            if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) throw IllegalStateException("Kan ikke sende en opphørt g-regulering til attestering")
-            return RevurderingTilAttestering.Opphørt(
-                id = id,
-                periode = periode,
-                opprettet = opprettet,
-                tilRevurdering = tilRevurdering,
-                saksbehandler = saksbehandler,
-                beregning = beregning,
-                simulering = simulering,
-                oppgaveId = oppgaveId,
-                fritekstTilBrev = fritekstTilBrev,
-                revurderingsårsak = revurderingsårsak,
-                behandlingsinformasjon = behandlingsinformasjon,
-            )
+        ): Either<KanIkkeSendeEnOpphørtGReguleringTilAttestering, RevurderingTilAttestering.Opphørt> {
+            if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) {
+                return KanIkkeSendeEnOpphørtGReguleringTilAttestering.left()
+            } else {
+                return RevurderingTilAttestering.Opphørt(
+                    id = id,
+                    periode = periode,
+                    opprettet = opprettet,
+                    tilRevurdering = tilRevurdering,
+                    saksbehandler = saksbehandler,
+                    beregning = beregning,
+                    simulering = simulering,
+                    oppgaveId = oppgaveId,
+                    fritekstTilBrev = fritekstTilBrev,
+                    revurderingsårsak = revurderingsårsak,
+                    behandlingsinformasjon = behandlingsinformasjon,
+                ).right()
+            }
         }
     }
 
