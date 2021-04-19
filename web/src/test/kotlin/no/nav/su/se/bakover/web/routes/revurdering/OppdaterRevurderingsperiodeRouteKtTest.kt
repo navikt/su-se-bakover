@@ -86,9 +86,10 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
+            behandlingsinformasjon = vedtak.behandlingsinformasjon,
         )
         val revurderingServiceMock = mock<RevurderingService> {
-            on { oppdaterRevurderingsperiode(any()) } doReturn opprettetRevurdering.right()
+            on { oppdaterRevurdering(any()) } doReturn opprettetRevurdering.right()
         }
 
         withTestApplication(
@@ -196,7 +197,7 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
         expectedJsonResponse: String,
     ) {
         val revurderingServiceMock = mock<RevurderingService> {
-            on { oppdaterRevurderingsperiode(any()) } doReturn error.left()
+            on { oppdaterRevurdering(any()) } doReturn error.left()
         }
 
         withTestApplication(

@@ -83,6 +83,7 @@ internal class OpprettRevurderingRouteKtTest {
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
+            behandlingsinformasjon = vedtak.behandlingsinformasjon,
         )
         val revurderingServiceMock = mock<RevurderingService> {
             on { opprettRevurdering(any()) } doReturn opprettetRevurdering.right()

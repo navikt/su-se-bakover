@@ -353,23 +353,25 @@ open class AccessCheckProxy(
                     return services.revurdering.opprettRevurdering(opprettRevurderingRequest)
                 }
 
-                override fun oppdaterRevurderingsperiode(
+                override fun oppdaterRevurdering(
                     oppdaterRevurderingRequest: OppdaterRevurderingRequest,
                 ): Either<KunneIkkeOppdatereRevurderingsperiode, OpprettetRevurdering> {
                     assertHarTilgangTilRevurdering(oppdaterRevurderingRequest.revurderingId)
-                    return services.revurdering.oppdaterRevurderingsperiode(oppdaterRevurderingRequest)
+                    return services.revurdering.oppdaterRevurdering(oppdaterRevurderingRequest)
                 }
 
                 override fun beregnOgSimuler(
                     revurderingId: UUID,
                     saksbehandler: NavIdentBruker.Saksbehandler,
                     fradrag: List<Fradrag>,
+                    forventetInntekt: Int?,
                 ): Either<KunneIkkeBeregneOgSimulereRevurdering, Revurdering> {
                     assertHarTilgangTilSak(revurderingId)
                     return services.revurdering.beregnOgSimuler(
                         revurderingId = revurderingId,
                         saksbehandler = saksbehandler,
                         fradrag = fradrag,
+                        forventetInntekt = forventetInntekt
                     )
                 }
 

@@ -2,16 +2,25 @@ package no.nav.su.se.bakover.database.beregning
 
 import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
+import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.database.fixedTidspunkt
+import no.nav.su.se.bakover.database.persistertMånedsberegning
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
+import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategyName
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
+import java.time.temporal.ChronoUnit
+import java.util.UUID
 
 internal class BeregningMapperTest {
 
@@ -110,9 +119,42 @@ internal class BeregningMapperTest {
             månedsbeløp = 12000.0,
             utenlandskInntekt = null,
             periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
-            tilhører = FradragTilhører.BRUKER
+            tilhører = FradragTilhører.BRUKER,
         )
     }
+
+    @Test
+    fun `should be equal to PersistertBeregning ignoring id, opprettet and begrunnelse`() {
+        val a: Beregning = createBeregning(fixedTidspunkt, "a")
+        val b: Beregning = createBeregning(fixedTidspunkt.plus(1, ChronoUnit.SECONDS), "b")
+        a shouldBe b
+        a.getId() shouldNotBe b.getId()
+        a.getOpprettet() shouldNotBe b.getOpprettet()
+        a.getBegrunnelse() shouldNotBe b.getBegrunnelse()
+        (a === b) shouldBe false
+    }
+
+    private fun createBeregning(opprettet: Tidspunkt = fixedTidspunkt, begrunnelse: String = "begrunnelse") =
+        PersistertBeregning(
+            id = UUID.randomUUID(),
+            opprettet = opprettet,
+            sats = Sats.HØY,
+            månedsberegninger = listOf(persistertMånedsberegning),
+            fradrag = listOf(
+                PersistertFradrag(
+                    fradragstype = Fradragstype.ForventetInntekt,
+                    månedsbeløp = 12000.0,
+                    utenlandskInntekt = null,
+                    periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020)),
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
+            sumYtelse = 0,
+            sumFradrag = 0.0,
+            periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020)),
+            fradragStrategyName = FradragStrategyName.Enslig,
+            begrunnelse = begrunnelse,
+        )
 }
 
 internal fun assertFradragMapping(mapped: Fradrag, original: Fradrag) {

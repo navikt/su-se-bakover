@@ -18,12 +18,15 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.MånedsberegningFactory
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
+import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.fixedClock
+import no.nav.su.se.bakover.service.fixedTidspunkt
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
@@ -84,6 +87,11 @@ object RevurderingTestUtils {
         Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
     )
 
+    internal val revurderingsårsakRegulerGrunnbeløp = Revurderingsårsak(
+        Revurderingsårsak.Årsak.REGULER_GRUNNBELØP,
+        Revurderingsårsak.Begrunnelse.create("Nytt Grunnbeløp"),
+    )
+
     internal val søknadsbehandlingVedtak = Vedtak.fromSøknadsbehandling(
         Søknadsbehandling.Iverksatt.Innvilget(
             id = mock(),
@@ -111,6 +119,20 @@ object RevurderingTestUtils {
         ),
         UUID30.randomUUID(),
     )
+    internal val simulertRevurderingInnvilget = SimulertRevurdering.Innvilget(
+        id = revurderingId,
+        periode = periode,
+        opprettet = fixedTidspunkt,
+        tilRevurdering = søknadsbehandlingVedtak,
+        saksbehandler = saksbehandler,
+        oppgaveId = OppgaveId("Oppgaveid"),
+        fritekstTilBrev = "",
+        revurderingsårsak = revurderingsårsak,
+        behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
+        simulering = mock(),
+        beregning = beregningMock,
+    )
+
     internal val sak = Sak(
         id = sakId,
         saksnummer = saksnummer,

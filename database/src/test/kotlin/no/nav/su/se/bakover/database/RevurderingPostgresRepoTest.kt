@@ -61,6 +61,7 @@ internal class RevurderingPostgresRepoTest {
         oppgaveId = oppgaveId,
         fritekstTilBrev = "",
         revurderingsårsak = revurderingsårsak,
+        behandlingsinformasjon = vedtak.behandlingsinformasjon,
     )
 
     private fun beregnetIngenEndring(
@@ -76,6 +77,7 @@ internal class RevurderingPostgresRepoTest {
         fritekstTilBrev = opprettet.fritekstTilBrev,
         revurderingsårsak = opprettet.revurderingsårsak,
         beregning = vedtak.beregning,
+        behandlingsinformasjon = vedtak.behandlingsinformasjon,
     )
 
     private fun beregnetInnvilget(
@@ -91,6 +93,7 @@ internal class RevurderingPostgresRepoTest {
         oppgaveId = opprettet.oppgaveId,
         fritekstTilBrev = opprettet.fritekstTilBrev,
         revurderingsårsak = opprettet.revurderingsårsak,
+        behandlingsinformasjon = vedtak.behandlingsinformasjon,
     )
 
     private fun beregnetOpphørt(
@@ -106,6 +109,7 @@ internal class RevurderingPostgresRepoTest {
         oppgaveId = opprettet.oppgaveId,
         fritekstTilBrev = opprettet.fritekstTilBrev,
         revurderingsårsak = opprettet.revurderingsårsak,
+        behandlingsinformasjon = vedtak.behandlingsinformasjon,
     )
 
     private fun simulertInnvilget(beregnet: BeregnetRevurdering.Innvilget) = SimulertRevurdering.Innvilget(
@@ -119,6 +123,7 @@ internal class RevurderingPostgresRepoTest {
         simulering = simulering,
         fritekstTilBrev = beregnet.fritekstTilBrev,
         revurderingsårsak = beregnet.revurderingsårsak,
+        behandlingsinformasjon = beregnet.behandlingsinformasjon,
     )
 
     private fun simulertOpphørt(beregnet: BeregnetRevurdering.Opphørt) = SimulertRevurdering.Opphørt(
@@ -132,6 +137,7 @@ internal class RevurderingPostgresRepoTest {
         simulering = simulering,
         fritekstTilBrev = beregnet.fritekstTilBrev,
         revurderingsårsak = beregnet.revurderingsårsak,
+        behandlingsinformasjon = beregnet.behandlingsinformasjon,
     )
 
     @Test
@@ -327,6 +333,7 @@ internal class RevurderingPostgresRepoTest {
                 oppgaveId = oppgaveId,
                 fritekstTilBrev = "",
                 revurderingsårsak = revurderingsårsak,
+                behandlingsinformasjon = vedtak.behandlingsinformasjon,
             )
 
             repo.lagre(tilAttestering)
@@ -399,7 +406,7 @@ internal class RevurderingPostgresRepoTest {
             val simulert = simulertOpphørt(beregnet)
             repo.lagre(simulert)
             repo.hent(opprettet.id) shouldBe simulert
-            val tilAttestering = simulert.tilAttestering(opprettet.oppgaveId, opprettet.saksbehandler, opprettet.fritekstTilBrev)
+            val tilAttestering = simulert.tilAttestering(opprettet.oppgaveId, opprettet.saksbehandler, opprettet.fritekstTilBrev).orNull()!!
             repo.lagre(tilAttestering)
 
             val underkjent = UnderkjentRevurdering.Opphørt(
@@ -418,6 +425,7 @@ internal class RevurderingPostgresRepoTest {
                     Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
                     "kommentar",
                 ),
+                behandlingsinformasjon = opprettet.behandlingsinformasjon,
             )
 
             repo.lagre(underkjent)
@@ -446,6 +454,7 @@ internal class RevurderingPostgresRepoTest {
                 revurderingsårsak = opprettet.revurderingsårsak,
                 beregning = vedtak.beregning,
                 simulering = simulering,
+                behandlingsinformasjon = opprettet.behandlingsinformasjon,
             )
 
             repo.lagre(underkjent)
@@ -464,7 +473,7 @@ internal class RevurderingPostgresRepoTest {
             repo.lagre(beregnet)
             val simulert = simulertOpphørt(beregnet)
             repo.lagre(simulert)
-            val tilAttestering = simulert.tilAttestering(opprettet.oppgaveId, opprettet.saksbehandler, opprettet.fritekstTilBrev)
+            val tilAttestering = simulert.tilAttestering(opprettet.oppgaveId, opprettet.saksbehandler, opprettet.fritekstTilBrev).orNull()!!
             repo.lagre(tilAttestering)
 
             val underkjent = IverksattRevurdering.Opphørt(
@@ -481,6 +490,7 @@ internal class RevurderingPostgresRepoTest {
                 attestering = Attestering.Iverksatt(
                     attestant,
                 ),
+                behandlingsinformasjon = opprettet.behandlingsinformasjon,
             )
 
             repo.lagre(underkjent)
@@ -508,7 +518,8 @@ internal class RevurderingPostgresRepoTest {
                 fritekstTilBrev = opprettet.fritekstTilBrev,
                 revurderingsårsak = opprettet.revurderingsårsak,
                 beregning = vedtak.beregning,
-                skalFøreTilBrevutsending = false
+                skalFøreTilBrevutsending = false,
+                behandlingsinformasjon = opprettet.behandlingsinformasjon,
             )
             repo.lagre(underkjentTilAttestering)
             val underkjent = UnderkjentRevurdering.IngenEndring(
@@ -526,7 +537,8 @@ internal class RevurderingPostgresRepoTest {
                     Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
                     "kommentar",
                 ),
-                skalFøreTilBrevutsending = false
+                skalFøreTilBrevutsending = false,
+                behandlingsinformasjon = opprettet.behandlingsinformasjon,
             )
 
             repo.lagre(underkjent)
@@ -553,7 +565,8 @@ internal class RevurderingPostgresRepoTest {
                 fritekstTilBrev = opprettet.fritekstTilBrev,
                 revurderingsårsak = opprettet.revurderingsårsak,
                 beregning = vedtak.beregning,
-                skalFøreTilBrevutsending = true
+                skalFøreTilBrevutsending = true,
+                behandlingsinformasjon = opprettet.behandlingsinformasjon,
             )
 
             repo.lagre(underkjent)
@@ -580,7 +593,8 @@ internal class RevurderingPostgresRepoTest {
                 fritekstTilBrev = opprettet.fritekstTilBrev,
                 revurderingsårsak = opprettet.revurderingsårsak,
                 beregning = vedtak.beregning,
-                skalFøreTilBrevutsending = false
+                skalFøreTilBrevutsending = false,
+                behandlingsinformasjon = opprettet.behandlingsinformasjon,
             )
             repo.lagre(revurderingTilAttestering)
             val underkjent = IverksattRevurdering.IngenEndring(
@@ -596,7 +610,8 @@ internal class RevurderingPostgresRepoTest {
                 attestering = Attestering.Iverksatt(
                     attestant,
                 ),
-                skalFøreTilBrevutsending = false
+                skalFøreTilBrevutsending = false,
+                behandlingsinformasjon = opprettet.behandlingsinformasjon,
             )
 
             repo.lagre(underkjent)

@@ -44,6 +44,7 @@ internal fun Route.beregnOgSimulerRevurdering(
     data class BeregningForRevurderingBody(
         val periode: PeriodeJson,
         val fradrag: List<FradragJson>,
+        val forventetInntekt: Int?,
     ) {
         fun toDomain(): Either<Resultat, List<Fradrag>> =
             periode.toPeriode()
@@ -60,6 +61,7 @@ internal fun Route.beregnOgSimulerRevurdering(
                                     revurderingId = revurderingId,
                                     saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                                     fradrag = fradrag,
+                                    forventetInntekt = body.forventetInntekt,
                                 ).mapLeft {
                                     it.tilResultat()
                                 }.map { revurdering ->
@@ -94,6 +96,10 @@ private fun KunneIkkeBeregneOgSimulereRevurdering.tilResultat(): Resultat {
         is KunneIkkeBeregneOgSimulereRevurdering.UfullstendigBehandlingsinformasjon -> InternalServerError.errorJson(
             "Ufullstendig behandlingsinformasjon",
             "ufullstendig_behandlingsinformasjon",
+        )
+        KunneIkkeBeregneOgSimulereRevurdering.MåSendeGrunnbeløpReguleringSomÅrsakSammenMedForventetInntekt -> InternalServerError.errorJson(
+            "Forventet inntekt kan kun sendes sammen med regulering av grunnbeløp",
+            "grunnbelop_forventetinntekt",
         )
     }
 }

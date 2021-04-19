@@ -19,4 +19,6 @@ internal data class PeriodisertFradrag(
     override fun getMånedsbeløp(): Double = månedsbeløp
     override fun getUtenlandskInntekt(): UtenlandskInntekt? = utenlandskInntekt
     override fun getPeriode(): Periode = periode
+
+    override fun equals(other: Any?) = (other as? Fradrag)?.let { this.equals(other) } ?: false
 }
