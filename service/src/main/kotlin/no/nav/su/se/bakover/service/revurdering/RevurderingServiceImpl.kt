@@ -134,7 +134,7 @@ internal class RevurderingServiceImpl(
         }
     }
 
-    override fun oppdaterRevurderingsperiode(
+    override fun oppdaterRevurdering(
         oppdaterRevurderingRequest: OppdaterRevurderingRequest,
     ): Either<KunneIkkeOppdatereRevurderingsperiode, OpprettetRevurdering> {
         val revurderingsårsak = oppdaterRevurderingRequest.revurderingsårsak.getOrHandle {

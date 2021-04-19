@@ -13,9 +13,11 @@ import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.service.argThat
@@ -61,7 +63,7 @@ internal class OppdaterRevurderingServiceTest {
     @Test
     fun `ugyldig begrunnelse`() {
         val mocks = RevurderingServiceMocks()
-        val actual = mocks.revurderingService.oppdaterRevurderingsperiode(
+        val actual = mocks.revurderingService.oppdaterRevurdering(
             OppdaterRevurderingRequest(
                 revurderingId = revurderingId,
                 fraOgMed = opprettetFraOgMed,
@@ -77,7 +79,7 @@ internal class OppdaterRevurderingServiceTest {
     @Test
     fun `ugyldig årsak`() {
         val mocks = RevurderingServiceMocks()
-        val actual = mocks.revurderingService.oppdaterRevurderingsperiode(
+        val actual = mocks.revurderingService.oppdaterRevurdering(
             OppdaterRevurderingRequest(
                 revurderingId = revurderingId,
                 fraOgMed = opprettetFraOgMed,
@@ -96,7 +98,7 @@ internal class OppdaterRevurderingServiceTest {
             on { hent(any()) } doReturn null
         }
         val mocks = RevurderingServiceMocks(revurderingRepo = revurderingRepoMock)
-        val actual = mocks.revurderingService.oppdaterRevurderingsperiode(
+        val actual = mocks.revurderingService.oppdaterRevurdering(
             OppdaterRevurderingRequest(
                 revurderingId = revurderingId,
                 fraOgMed = opprettetFraOgMed,
@@ -116,7 +118,7 @@ internal class OppdaterRevurderingServiceTest {
             on { hent(any()) } doReturn opprettetRevurdering
         }
         val mocks = RevurderingServiceMocks(revurderingRepo = revurderingRepoMock)
-        val actual = mocks.revurderingService.oppdaterRevurderingsperiode(
+        val actual = mocks.revurderingService.oppdaterRevurdering(
             OppdaterRevurderingRequest(
                 revurderingId = revurderingId,
                 fraOgMed = periode.getFraOgMed().minus(1, ChronoUnit.MONTHS),
@@ -137,7 +139,7 @@ internal class OppdaterRevurderingServiceTest {
             on { hent(any()) } doReturn opprettetRevurdering
         }
         val mocks = RevurderingServiceMocks(revurderingRepo = revurderingRepoMock)
-        val actual = mocks.revurderingService.oppdaterRevurderingsperiode(
+        val actual = mocks.revurderingService.oppdaterRevurdering(
             OppdaterRevurderingRequest(
                 revurderingId = revurderingId,
                 fraOgMed = periode.getFraOgMed().plus(1, ChronoUnit.DAYS),
@@ -153,13 +155,53 @@ internal class OppdaterRevurderingServiceTest {
     }
 
     @Test
+    fun `Ugyldig tilstand`() {
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn opprettetRevurdering.let {
+                IverksattRevurdering.Innvilget(
+                    id = it.id,
+                    periode = it.periode,
+                    opprettet = it.opprettet,
+                    tilRevurdering = it.tilRevurdering,
+                    saksbehandler = it.saksbehandler,
+                    oppgaveId = it.oppgaveId,
+                    fritekstTilBrev = it.fritekstTilBrev,
+                    revurderingsårsak = it.revurderingsårsak,
+                    beregning = mock(),
+                    attestering = Attestering.Iverksatt(
+                        attestant = NavIdentBruker.Attestant("navIdent"),
+                    ),
+                    behandlingsinformasjon = behandlingsinformasjon,
+                    simulering = mock(),
+                )
+            }
+        }
+        val mocks = RevurderingServiceMocks(revurderingRepo = revurderingRepoMock)
+        val actual = mocks.revurderingService.oppdaterRevurdering(
+            OppdaterRevurderingRequest(
+                revurderingId = revurderingId,
+                fraOgMed = periode.getFraOgMed(),
+                årsak = "MELDING_FRA_BRUKER",
+                begrunnelse = "gyldig begrunnelse",
+                saksbehandler = saksbehandler,
+            ),
+        )
+        actual shouldBe KunneIkkeOppdatereRevurderingsperiode.UgyldigTilstand(
+            IverksattRevurdering.Innvilget::class,
+            OpprettetRevurdering::class,
+        ).left()
+        verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
+        mocks.verifyNoMoreInteractions()
+    }
+
+    @Test
     fun `oppdater en revurdering`() {
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn opprettetRevurdering
         }
 
         val mocks = RevurderingServiceMocks(revurderingRepo = revurderingRepoMock)
-        val actual = mocks.revurderingService.oppdaterRevurderingsperiode(
+        val actual = mocks.revurderingService.oppdaterRevurdering(
             OppdaterRevurderingRequest(
                 revurderingId = revurderingId,
                 fraOgMed = periode.getFraOgMed(),

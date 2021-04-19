@@ -89,7 +89,7 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
         )
         val revurderingServiceMock = mock<RevurderingService> {
-            on { oppdaterRevurderingsperiode(any()) } doReturn opprettetRevurdering.right()
+            on { oppdaterRevurdering(any()) } doReturn opprettetRevurdering.right()
         }
 
         withTestApplication(
@@ -197,7 +197,7 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
         expectedJsonResponse: String,
     ) {
         val revurderingServiceMock = mock<RevurderingService> {
-            on { oppdaterRevurderingsperiode(any()) } doReturn error.left()
+            on { oppdaterRevurdering(any()) } doReturn error.left()
         }
 
         withTestApplication(

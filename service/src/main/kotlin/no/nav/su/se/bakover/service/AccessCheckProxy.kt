@@ -353,11 +353,11 @@ open class AccessCheckProxy(
                     return services.revurdering.opprettRevurdering(opprettRevurderingRequest)
                 }
 
-                override fun oppdaterRevurderingsperiode(
+                override fun oppdaterRevurdering(
                     oppdaterRevurderingRequest: OppdaterRevurderingRequest,
                 ): Either<KunneIkkeOppdatereRevurderingsperiode, OpprettetRevurdering> {
                     assertHarTilgangTilRevurdering(oppdaterRevurderingRequest.revurderingId)
-                    return services.revurdering.oppdaterRevurderingsperiode(oppdaterRevurderingRequest)
+                    return services.revurdering.oppdaterRevurdering(oppdaterRevurderingRequest)
                 }
 
                 override fun beregnOgSimuler(
