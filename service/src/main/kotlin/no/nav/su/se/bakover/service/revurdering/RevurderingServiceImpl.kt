@@ -38,8 +38,6 @@ import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
-import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
-import no.nav.su.se.bakover.service.søknad.lukk.LukketSøknad
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
@@ -289,7 +287,7 @@ internal class RevurderingServiceImpl(
                     return revurdering.right()
                 }
             }
-            else -> KunneIkkeForhåndsvarsle.UgyldigStatus.left()
+            else -> KunneIkkeForhåndsvarsle.FantIkkeRevurdering.left()
         }
     }
 

@@ -8,10 +8,13 @@ import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeForhåndsvarsle
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.Resultat
+import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
+import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withRevurderingId
@@ -31,10 +34,32 @@ internal fun Route.forhåndsvarslingRoute(
                         NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                         fritekst = body.fritekst,
                     ).map {
+                        call.sikkerlogg("Forhåndsvarslet bruker med revurderingId $revurderingId")
                         call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson())))
+                    }.mapLeft {
+                        call.svar(it.tilResultat())
                     }
                 }
             }
         }
     }
+}
+
+private fun KunneIkkeForhåndsvarsle.tilResultat() = when (this) {
+    KunneIkkeForhåndsvarsle.AlleredeForhåndsvarslet -> HttpStatusCode.Conflict.errorJson(
+        "Allerede forhåndsvarslet",
+        "allerede_forhåndsvarslet",
+    )
+    KunneIkkeForhåndsvarsle.FantIkkeAktørId -> GenerelleRevurderingsfeilresponser.fantIkkeAktørId
+    KunneIkkeForhåndsvarsle.FantIkkePerson -> GenerelleRevurderingsfeilresponser.fantIkkePerson
+    KunneIkkeForhåndsvarsle.KunneIkkeDistribuere -> HttpStatusCode.InternalServerError.errorJson(
+        "Kunne ikke distribuere brev",
+        "kunne_ikke_distribuere_brev",
+    )
+    KunneIkkeForhåndsvarsle.KunneIkkeJournalføre -> HttpStatusCode.InternalServerError.errorJson(
+        "Kunne ikke journalføre brev",
+        "kunne_ikke_journalføre_brev",
+    )
+    KunneIkkeForhåndsvarsle.KunneIkkeOppretteOppgave -> GenerelleRevurderingsfeilresponser.kunneIkkeOppretteOppgave
+    KunneIkkeForhåndsvarsle.FantIkkeRevurdering -> GenerelleRevurderingsfeilresponser.fantIkkeRevurdering
 }
