@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurd
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering.SimuleringFeilet
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering.UgyldigTilstand
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
+import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.errorJson
@@ -30,6 +31,7 @@ import no.nav.su.se.bakover.web.routes.behandling.beregning.FradragJson.Companio
 import no.nav.su.se.bakover.web.routes.behandling.beregning.PeriodeJson
 import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresponser.fantIkkeRevurdering
 import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresponser.ugyldigTilstand
+import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withRevurderingId
@@ -61,7 +63,8 @@ internal fun Route.beregnOgSimulerRevurdering(
                                 ).mapLeft {
                                     it.tilResultat()
                                 }.map { revurdering ->
-                                    call.audit("Opprettet en ny revurdering beregning og simulering på sak med id $sakId")
+                                    call.sikkerlogg("Beregnet og simulert revurdering ${revurdering.id} på sak med id $sakId")
+                                    call.audit(revurdering.fnr, AuditLogEvent.Action.UPDATE, revurdering.id)
                                     Resultat.json(
                                         HttpStatusCode.Created,
                                         serialize(revurdering.toJson()),

@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.service.søknad.KunneIkkeOppretteSøknad
 import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLageBrevutkast
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
+import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
@@ -30,6 +31,7 @@ import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.receiveTextUTF8
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukkSøknadErrorHandler
 import no.nav.su.se.bakover.web.routes.søknad.lukk.LukkSøknadInputHandler
+import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withSøknadId
 
@@ -57,7 +59,8 @@ internal fun Route.søknadRoutes(
                             )
                         },
                         { (saksnummer, søknad) ->
-                            call.audit("Lagrer søknad for person: ${søknad.id}")
+                            call.audit(søknad.søknadInnhold.personopplysninger.fnr, AuditLogEvent.Action.CREATE, null)
+                            call.sikkerlogg("Lagrer søknad ${søknad.id} på sak ${søknad.sakId}")
                             call.svar(
                                 Resultat.json(
                                     Created,
@@ -110,7 +113,8 @@ internal fun Route.søknadRoutes(
                     lukkSøknadService.lukkSøknad(request).fold(
                         { call.svar(LukkSøknadErrorHandler.kunneIkkeLukkeSøknadResponse(request, it)) },
                         {
-                            call.audit("Lukket søknad for søknad: $søknadId")
+                            call.audit(it.sak.fnr, AuditLogEvent.Action.UPDATE, null)
+                            call.sikkerlogg("Lukket søknad for søknad: $søknadId")
                             call.svar(LukkSøknadErrorHandler.lukketSøknadResponse(it))
                         }
                     )

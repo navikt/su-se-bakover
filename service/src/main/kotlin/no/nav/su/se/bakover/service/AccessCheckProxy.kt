@@ -308,7 +308,7 @@ open class AccessCheckProxy(
                 }
 
                 override fun brev(request: SøknadsbehandlingService.BrevRequest): Either<SøknadsbehandlingService.KunneIkkeLageBrev, ByteArray> {
-                    assertHarTilgangTilBehandling(request.behandlingId)
+                    assertHarTilgangTilBehandling(request.behandling.id)
                     return services.søknadsbehandling.brev(request)
                 }
 
@@ -341,6 +341,11 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
             },
             revurdering = object : RevurderingService {
+                override fun hentRevurdering(revurderingId: UUID): Revurdering? {
+                    assertHarTilgangTilRevurdering(revurderingId)
+                    return services.revurdering.hentRevurdering(revurderingId)
+                }
+
                 override fun opprettRevurdering(
                     opprettRevurderingRequest: OpprettRevurderingRequest,
                 ): Either<KunneIkkeOppretteRevurdering, Revurdering> {

@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering.K
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering.UgyldigTilstand
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
+import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.errorJson
@@ -24,6 +25,7 @@ import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresponser.fantIkkeRevurdering
 import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresponser.ugyldigTilstand
+import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withRevurderingId
 
@@ -42,7 +44,8 @@ internal fun Route.iverksettRevurderingRoute(
                         call.svar(message)
                     },
                     ifRight = {
-                        call.audit("Iverksatt revurdering med id $revurderingId")
+                        call.sikkerlogg("Iverksatt revurdering med id $revurderingId")
+                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                         call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson())))
                     },
                 )

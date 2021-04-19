@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeUnderkjenneRevurdering
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
+import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
@@ -27,6 +28,7 @@ import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresp
 import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresponser.fantIkkeRevurdering
 import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresponser.kunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresponser.ugyldigTilstand
+import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withRevurderingId
 
@@ -86,7 +88,8 @@ internal fun Route.underkjennRevurdering(
                                         call.svar(resultat)
                                     },
                                     ifRight = {
-                                        call.audit("Underkjente behandling med id: $revurderingId")
+                                        call.sikkerlogg("Underkjente behandling med id: $revurderingId")
+                                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                                         call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson())))
                                     }
                                 )

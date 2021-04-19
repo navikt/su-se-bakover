@@ -64,6 +64,9 @@ internal class RevurderingServiceImpl(
 
     fun getObservers(): List<EventObserver> = observers.toList()
 
+    override fun hentRevurdering(revurderingId: UUID): Revurdering? =
+        revurderingRepo.hent(revurderingId)
+
     override fun opprettRevurdering(
         opprettRevurderingRequest: OpprettRevurderingRequest,
     ): Either<KunneIkkeOppretteRevurdering, Revurdering> {
@@ -115,7 +118,7 @@ internal class RevurderingServiceImpl(
                 oppgaveId = oppgaveId,
                 fritekstTilBrev = "",
                 revurderingsårsak = revurderingsårsak,
-                opprettet = Tidspunkt.now(clock)
+                opprettet = Tidspunkt.now(clock),
             ).also {
                 revurderingRepo.lagre(it)
                 observers.forEach { observer ->
@@ -442,7 +445,8 @@ internal class RevurderingServiceImpl(
                 return iverksattRevurdering.right()
             }
             null -> KunneIkkeIverksetteRevurdering.FantIkkeRevurdering.left()
-            else -> KunneIkkeIverksetteRevurdering.UgyldigTilstand(revurdering::class, IverksattRevurdering::class).left()
+            else -> KunneIkkeIverksetteRevurdering.UgyldigTilstand(revurdering::class, IverksattRevurdering::class)
+                .left()
         }
     }
 

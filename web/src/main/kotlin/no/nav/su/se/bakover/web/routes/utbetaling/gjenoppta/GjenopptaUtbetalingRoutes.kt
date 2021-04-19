@@ -13,10 +13,13 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeGjenopptaUtbetalinger
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.web.AuditLogEvent
+import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.sak.sakPath
+import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.withSakId
 
 @KtorExperimentalAPI
@@ -49,7 +52,11 @@ internal fun Route.gjenopptaUtbetalingRoutes(
                                 )
                             }
                         },
-                        { call.respond(serialize(it.toJson())) }
+                        {
+                            call.audit(it.fnr, AuditLogEvent.Action.UPDATE, null)
+                            call.sikkerlogg("Gjenopptar utbetaling på sak $sakId")
+                            call.respond(serialize(it.toJson()))
+                        }
                     )
             }
         }

@@ -105,21 +105,20 @@ interface SøknadsbehandlingService {
     }
 
     sealed class BrevRequest {
-        abstract val behandlingId: UUID
+        abstract val behandling: Søknadsbehandling
 
         data class MedFritekst(
-            override val behandlingId: UUID,
+            override val behandling: Søknadsbehandling,
             val fritekst: String,
         ) : BrevRequest()
 
         data class UtenFritekst(
-            override val behandlingId: UUID,
+            override val behandling: Søknadsbehandling,
         ) : BrevRequest()
     }
 
     sealed class KunneIkkeLageBrev {
         data class KanIkkeLageBrevutkastForStatus(val status: BehandlingsStatus) : KunneIkkeLageBrev()
-        object FantIkkeBehandling : KunneIkkeLageBrev()
         object KunneIkkeLagePDF : KunneIkkeLageBrev()
         object FantIkkePerson : KunneIkkeLageBrev()
         object FikkIkkeHentetSaksbehandlerEllerAttestant : KunneIkkeLageBrev()

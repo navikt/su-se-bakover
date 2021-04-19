@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeSendeRevurderingTilAttestering
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.revurdering.SendTilAttesteringRequest
+import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.features.authorize
@@ -19,6 +20,7 @@ import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresp
 import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresponser.fantIkkeRevurdering
 import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresponser.kunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresponser.ugyldigTilstand
+import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withRevurderingId
@@ -47,7 +49,8 @@ internal fun Route.sendRevurderingTilAttestering(
                     ).fold(
                         ifLeft = { call.svar(it.tilResultat()) },
                         ifRight = {
-                            call.audit("Sendt revurdering til attestering med id $revurderingId")
+                            call.sikkerlogg("Sendt revurdering til attestering med id $revurderingId")
+                            call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                             call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson())))
                         },
                     )

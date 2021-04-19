@@ -25,6 +25,7 @@ dependencies {
     implementation("io.ktor:ktor-locations:$ktorVersion")
     implementation("io.ktor:ktor-jackson:$ktorVersion")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.12.1")
+    implementation("com.papertrailapp", "logback-syslog4j", "1.0.0")
 
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion") {
         exclude(group = "junit")
