@@ -110,10 +110,8 @@ internal class FerdigstillVedtakServiceImpl(
      */
     override fun ferdigstillVedtakEtterUtbetaling(utbetalingId: UUID30) {
         val vedtak = vedtakRepo.hentForUtbetaling(utbetalingId)
-        if (vedtak.skalFerdigstille()) {
-            ferdigstillVedtak(vedtak).getOrHandle {
-                throw KunneIkkeFerdigstilleVedtakException(vedtak, it)
-            }
+        ferdigstillVedtak(vedtak).getOrHandle {
+            throw KunneIkkeFerdigstilleVedtakException(vedtak, it)
         }
     }
 
@@ -123,7 +121,7 @@ internal class FerdigstillVedtakServiceImpl(
     override fun opprettManglendeJournalposterOgBrevbestillinger(): FerdigstillVedtakService.OpprettManglendeJournalpostOgBrevdistribusjonResultat {
         val alleUtenJournalpost = vedtakRepo.hentUtenJournalpost()
         val innvilgetUtenJournalpost = alleUtenJournalpost.filterIsInstance<Vedtak.EndringIYtelse>()
-            .filter { it.skalFerdigstille() }
+            .filter { it.skalSendeBrev() }
             /**
              * Unngår å journalføre og distribuere brev for innvilgelser hvor vi ikke har mottatt kvittering,
              * eller mottatt kvittering ikke er ok.
@@ -166,7 +164,7 @@ internal class FerdigstillVedtakServiceImpl(
 
         val innvilgetUtenBrevbestilling = alleUtenBrevbestilling.filterIsInstance<Vedtak.EndringIYtelse>()
             .filter {
-                it.skalFerdigstille()
+                it.skalSendeBrev()
             }
             /**
              * Unngår å journalføre og distribuere brev for innvilgelser hvor vi ikke har mottatt kvittering,
@@ -203,7 +201,7 @@ internal class FerdigstillVedtakServiceImpl(
     }
 
     private fun ferdigstillVedtak(vedtak: Vedtak): Either<KunneIkkeFerdigstilleVedtak, Vedtak> {
-        if (vedtak.skalFerdigstille()) {
+        if (vedtak.skalSendeBrev()) {
             val journalførtVedtak = journalførOgLagre(vedtak).getOrHandle { feilVedJournalføring ->
                 when (feilVedJournalføring) {
                     is KunneIkkeFerdigstilleVedtak.KunneIkkeJournalføreBrev.AlleredeJournalført -> vedtak
