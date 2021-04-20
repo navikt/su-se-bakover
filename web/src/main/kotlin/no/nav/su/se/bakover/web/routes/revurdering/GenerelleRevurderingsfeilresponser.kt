@@ -26,11 +26,6 @@ internal object GenerelleRevurderingsfeilresponser {
         "Fant ikke revurdering",
         "fant_ikke_revurdering",
     )
-    val kanIkkeRegulereGrunnbeløpTilOppør = NotFound.errorJson(
-        "Kan Ikke Regulere Grunnbeløp Til Oppør",
-        "Kan Ikke Regulere Grunnbeløp Til Oppør",
-    )
-
     fun ugyldigPeriode(ugyldigPeriode: UgyldigPeriode): Resultat {
         return BadRequest.errorJson(
             ugyldigPeriode.toString(),
