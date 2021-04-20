@@ -4,15 +4,14 @@ data class VurderOmBeregningHarEndringerIYtelse(
     private val tidligereBeregning: Beregning,
     private val nyBeregning: Beregning,
 ) {
+    // TODO: Må endres når vi åpner opp for å kunne revurdere på tvers av vedtak
     init {
         assert(tidligereBeregning.getPeriode().inneholder(nyBeregning.getPeriode()))
     }
 
-    val resultat = solve()
-
-    private fun solve(): Boolean {
+    val resultat by lazy {
         val m = tidligereBeregning.getMånedsberegninger().associate { it.getPeriode() to it.getSumYtelse() }
 
-        return nyBeregning.getMånedsberegninger().any { m[it.getPeriode()] != it.getSumYtelse() }
+        nyBeregning.getMånedsberegninger().any { m[it.getPeriode()] != it.getSumYtelse() }
     }
 }
