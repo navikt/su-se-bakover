@@ -323,7 +323,7 @@ open class AccessCheckProxy(
                 }
             },
             ferdigstillVedtak = object : FerdigstillVedtakService {
-                override fun ferdigstillVedtakEtterUtbetaling(utbetalingId: UUID30): Unit =
+                override fun ferdigstillVedtakEtterUtbetaling(utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering): Unit =
                     kastKanKunKallesFraAnnenService()
 
                 override fun opprettManglendeJournalposterOgBrevbestillinger(): FerdigstillVedtakService.OpprettManglendeJournalpostOgBrevdistribusjonResultat {

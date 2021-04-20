@@ -68,10 +68,12 @@ internal class LokalKvitteringJobTest {
         val utbetalingRepoMock = mock<UtbetalingRepo> {
             on { hentUkvitterteUtbetalinger() } doReturn listOf(utbetaling)
         }
+        val utbetalingMedKvittering = utbetaling.toKvittertUtbetaling(
+            kvittering = kvittering
+        )
         val utbetalingServiceMock = mock<UtbetalingService> {
-            on { oppdaterMedKvittering(any(), any()) } doReturn utbetaling.toKvittertUtbetaling(
-                kvittering = kvittering
-            ).right()
+
+            on { oppdaterMedKvittering(any(), any()) } doReturn utbetalingMedKvittering.right()
         }
         val innvilgetSøknadsbehandling = mock<Søknadsbehandling.Iverksatt.Innvilget> {}
         val ferdigstillVedtakServiceMock = mock<FerdigstillVedtakService>()
@@ -88,7 +90,7 @@ internal class LokalKvitteringJobTest {
             kvittering = argThat { it shouldBe kvittering.copy(originalKvittering = it.originalKvittering) }
         )
         verify(ferdigstillVedtakServiceMock, timeout(1000)).ferdigstillVedtakEtterUtbetaling(
-            argThat { it shouldBe utbetaling.id }
+            argThat { it shouldBe utbetalingMedKvittering }
         )
 
         verifyNoMoreInteractions(
