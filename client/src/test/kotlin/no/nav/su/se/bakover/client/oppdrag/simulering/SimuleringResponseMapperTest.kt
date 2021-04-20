@@ -1,9 +1,10 @@
 package no.nav.su.se.bakover.client.oppdrag.simulering
 
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.client.oppdrag.XmlMapper
+import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.februar
-import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
@@ -11,169 +12,758 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
-import no.nav.system.os.entiteter.beregningskjema.Beregning
-import no.nav.system.os.entiteter.beregningskjema.BeregningStoppnivaa
-import no.nav.system.os.entiteter.beregningskjema.BeregningStoppnivaaDetaljer
-import no.nav.system.os.entiteter.beregningskjema.BeregningsPeriode
-import no.nav.system.os.tjenester.simulerfpservice.simulerfpserviceservicetypes.SimulerBeregningResponse
 import org.junit.jupiter.api.Test
-import java.math.BigDecimal
-import java.math.BigInteger
+import no.nav.system.os.tjenester.simulerfpservice.simulerfpservicegrensesnitt.SimulerBeregningResponse as GrensesnittResponse
 
 internal class SimuleringResponseMapperTest {
 
-    @Test
-    fun `mapper til internt format`() {
-        SimuleringResponseMapper(oppdragResponse()).simulering shouldBe Simulering(
-            gjelderId = Fnr("12345678910"),
-            gjelderNavn = "gjelderNavn",
-            datoBeregnet = 1.januar(2020),
-            nettoBeløp = 15000,
-            periodeList = listOf(
-                SimulertPeriode(
-                    fraOgMed = 1.januar(2020),
-                    tilOgMed = 31.desember(2020),
-                    utbetaling = listOf(expectedUtbetaling),
-                ),
-            ),
-        )
-    }
+    private val fagsystemId = "2100"
+    private val fnr = Fnr("12345678910")
+    private val navn = "SNERK RAKRYGGET"
+    private val konto = "123.123.123"
+    private val typeSats = "MND"
+    private val suBeskrivelse = "Supplerende stønad Uføre"
 
     @Test
-    fun `filterer vekk skatt og andre ytelser enn supplerende stønad`() {
-        val medSkattOgAndreYtelser = oppdragResponse(
-            listOf(
-                lagBergningsperiode(
-                    listOf(
-                        lagStoppnivaa(
-                            listOf(
-                                lagDetalj(kode = "SUUFORE", "YTEL"),
-                                lagDetalj(kode = "FSKTSKAT", "SKAT"),
-                            ),
-                        ),
-                        lagStoppnivaa(
-                            listOf(
-                                lagDetalj(kode = "UFOREUT", type = "YTEL"),
-                                lagDetalj(kode = "FSKTSKAT", "SKAT"),
-                            ),
-                        ),
-                    ),
-                ),
-                lagBergningsperiode(
-                    listOf(
-                        lagStoppnivaa(
-                            listOf(
-                                lagDetalj(kode = "SUUFORE", "YTEL"),
-                                lagDetalj(kode = "FSKTSKAT", "SKAT"),
-                            ),
-                        ),
-                        lagStoppnivaa(
-                            listOf(
-                                lagDetalj(kode = "UFOREUT", type = "YTEL"),
-                                lagDetalj(kode = "FSKTSKAT", "SKAT"),
+    fun `mapper fremtidige simulerte utbetalinger`() {
+        val responseMedFremtidigUtbetaling = XmlMapper.readValue(xmlResponseMedFremtidigUtbetaling, GrensesnittResponse::class.java).response
+        SimuleringResponseMapper(responseMedFremtidigUtbetaling).simulering shouldBe Simulering(
+            gjelderId = fnr,
+            gjelderNavn = navn,
+            datoBeregnet = 14.april(2021),
+            nettoBeløp = 10390,
+            periodeList = listOf(
+                SimulertPeriode(
+                    fraOgMed = 1.april(2021),
+                    tilOgMed = 30.april(2021),
+                    utbetaling = listOf(
+                        SimulertUtbetaling(
+                            fagSystemId = fagsystemId,
+                            utbetalesTilId = fnr,
+                            utbetalesTilNavn = navn,
+                            forfall = 19.april(2021),
+                            feilkonto = false,
+                            detaljer = listOf(
+                                SimulertDetaljer(
+                                    faktiskFraOgMed = 1.april(2021),
+                                    faktiskTilOgMed = 30.april(2021),
+                                    konto = konto,
+                                    belop = 20779,
+                                    tilbakeforing = false,
+                                    sats = 20779,
+                                    typeSats = typeSats,
+                                    antallSats = 1,
+                                    uforegrad = 0,
+                                    klassekode = KlasseKode.SUUFORE,
+                                    klassekodeBeskrivelse = suBeskrivelse,
+                                    klasseType = KlasseType.YTEL,
+                                ),
                             ),
                         ),
                     ),
                 ),
             ),
         )
+    }
 
-        SimuleringResponseMapper(medSkattOgAndreYtelser).simulering shouldBe Simulering(
-            gjelderId = Fnr("12345678910"),
-            gjelderNavn = "gjelderNavn",
-            datoBeregnet = 1.januar(2020),
-            nettoBeløp = 15000,
+    //language=xml
+    private val xmlResponseMedFremtidigUtbetaling = """
+    <simulerBeregningResponse xmlns="http://nav.no/system/os/tjenester/simulerFpService/simulerFpServiceGrensesnitt">
+             <response xmlns="">
+                <simulering>
+                   <gjelderId>$fnr</gjelderId>
+                   <gjelderNavn>$navn</gjelderNavn>
+                   <datoBeregnet>2521-04-07</datoBeregnet>
+                   <kodeFaggruppe>INNT</kodeFaggruppe>
+                   <belop>10390.00</belop>
+                   <beregningsPeriode xmlns="http://nav.no/system/os/entiteter/beregningSkjema">
+                      <periodeFom xmlns="">2021-04-01</periodeFom>
+                      <periodeTom xmlns="">2021-04-30</periodeTom>
+                      <beregningStoppnivaa>
+                         <kodeFagomraade xmlns="">SUUFORE</kodeFagomraade>
+                         <stoppNivaaId xmlns="">1</stoppNivaaId>
+                         <behandlendeEnhet xmlns="">8020</behandlendeEnhet>
+                         <oppdragsId xmlns="">53387554</oppdragsId>
+                         <fagsystemId xmlns="">$fagsystemId</fagsystemId>
+                         <kid xmlns=""/>
+                         <utbetalesTilId xmlns="">$fnr</utbetalesTilId>
+                         <utbetalesTilNavn xmlns="">$navn</utbetalesTilNavn>
+                         <bilagsType xmlns="">U</bilagsType>
+                         <forfall xmlns="">2021-04-19</forfall>
+                         <feilkonto xmlns="">false</feilkonto>
+                         <beregningStoppnivaaDetaljer>
+                            <faktiskFom xmlns="">2021-04-01</faktiskFom>
+                            <faktiskTom xmlns="">2021-04-30</faktiskTom>
+                            <kontoStreng xmlns="">$konto</kontoStreng>
+                            <behandlingskode xmlns="">2</behandlingskode>
+                            <belop xmlns="">20779.00</belop>
+                            <trekkVedtakId xmlns="">0</trekkVedtakId>
+                            <stonadId xmlns=""></stonadId>
+                            <korrigering xmlns=""></korrigering>
+                            <tilbakeforing xmlns="">false</tilbakeforing>
+                            <linjeId xmlns="">3</linjeId>
+                            <sats xmlns="">20779.00</sats>
+                            <typeSats xmlns="">MND</typeSats>
+                            <antallSats xmlns="">1.00</antallSats>
+                            <saksbehId xmlns="">Z123</saksbehId>
+                            <uforeGrad xmlns="">0</uforeGrad>
+                            <kravhaverId xmlns=""></kravhaverId>
+                            <delytelseId xmlns="">0adee7fd-f21b-4fcb-9dc0-e2234a</delytelseId>
+                            <bostedsenhet xmlns="">8020</bostedsenhet>
+                            <skykldnerId xmlns=""></skykldnerId>
+                            <klassekode xmlns="">SUUFORE</klassekode>
+                            <klasseKodeBeskrivelse xmlns="">Supplerende stønad Uføre</klasseKodeBeskrivelse>
+                            <typeKlasse xmlns="">YTEL</typeKlasse>
+                            <typeKlasseBeskrivelse xmlns="">Klassetype for ytelseskonti</typeKlasseBeskrivelse>
+                            <refunderesOrgNr xmlns=""></refunderesOrgNr>
+                         </beregningStoppnivaaDetaljer>
+                         <beregningStoppnivaaDetaljer>
+                            <faktiskFom xmlns="">2021-04-01</faktiskFom>
+                            <faktiskTom xmlns="">2021-04-30</faktiskTom>
+                            <kontoStreng xmlns="">0510000</kontoStreng>
+                            <behandlingskode xmlns="">0</behandlingskode>
+                            <belop xmlns="">-10389.00</belop>
+                            <trekkVedtakId xmlns="">11845513</trekkVedtakId>
+                            <stonadId xmlns=""></stonadId>
+                            <korrigering xmlns=""></korrigering>
+                            <tilbakeforing xmlns="">false</tilbakeforing>
+                            <linjeId xmlns="">0</linjeId>
+                            <sats xmlns="">0.00</sats>
+                            <typeSats xmlns="">MND</typeSats>
+                            <antallSats xmlns="">30.00</antallSats>
+                            <saksbehId xmlns="">Z123</saksbehId>
+                            <uforeGrad xmlns="">0</uforeGrad>
+                            <kravhaverId xmlns=""></kravhaverId>
+                            <delytelseId xmlns=""></delytelseId>
+                            <bostedsenhet xmlns="">8020</bostedsenhet>
+                            <skykldnerId xmlns=""></skykldnerId>
+                            <klassekode xmlns="">FSKTSKAT</klassekode>
+                            <klasseKodeBeskrivelse xmlns="">Forskuddskatt</klasseKodeBeskrivelse>
+                            <typeKlasse xmlns="">SKAT</typeKlasse>
+                            <typeKlasseBeskrivelse xmlns="">Klassetype for skatt</typeKlasseBeskrivelse>
+                            <refunderesOrgNr xmlns=""></refunderesOrgNr>
+                         </beregningStoppnivaaDetaljer>
+                      </beregningStoppnivaa>
+                   </beregningsPeriode>
+                </simulering>
+                <infomelding>
+                   <beskrMelding>Simulering er utført uten skattevedtak. Nominell sats benyttet.</beskrMelding>
+                </infomelding>
+             </response>
+          </simulerBeregningResponse>
+    """.trimIndent()
+
+    @Test
+    fun `mapper simulerte feilutbetalinger`() {
+        val responseMedFeilutbetaling = XmlMapper.readValue(xmlResponseMedFeilutbetaling, GrensesnittResponse::class.java).response
+        SimuleringResponseMapper(responseMedFeilutbetaling).simulering shouldBe Simulering(
+            gjelderId = fnr,
+            gjelderNavn = navn,
+            datoBeregnet = 14.april(2021),
+            nettoBeløp = 5000,
             periodeList = listOf(
                 SimulertPeriode(
-                    fraOgMed = 1.januar(2020),
-                    tilOgMed = 31.desember(2020),
-                    utbetaling = listOf(expectedUtbetaling),
+                    fraOgMed = 1.februar(2021),
+                    tilOgMed = 28.februar(2021),
+                    utbetaling = listOf(
+                        SimulertUtbetaling(
+                            fagSystemId = fagsystemId,
+                            utbetalesTilId = fnr,
+                            utbetalesTilNavn = navn,
+                            forfall = 14.april(2021),
+                            feilkonto = false,
+                            detaljer = listOf(
+                                SimulertDetaljer(
+                                    faktiskFraOgMed = 1.februar(2021),
+                                    faktiskTilOgMed = 28.februar(2021),
+                                    konto = konto,
+                                    belop = 10779,
+                                    tilbakeforing = false,
+                                    sats = 0,
+                                    typeSats = "",
+                                    antallSats = 0,
+                                    uforegrad = 0,
+                                    klassekode = KlasseKode.SUUFORE,
+                                    klassekodeBeskrivelse = suBeskrivelse,
+                                    klasseType = KlasseType.YTEL,
+                                ),
+                                SimulertDetaljer(
+                                    faktiskFraOgMed = 1.februar(2021),
+                                    faktiskTilOgMed = 28.februar(2021),
+                                    konto = konto,
+                                    belop = 10000,
+                                    tilbakeforing = false,
+                                    sats = 10000,
+                                    typeSats = typeSats,
+                                    antallSats = 1,
+                                    uforegrad = 0,
+                                    klassekode = KlasseKode.SUUFORE,
+                                    klassekodeBeskrivelse = suBeskrivelse,
+                                    klasseType = KlasseType.YTEL,
+                                ),
+                                SimulertDetaljer(
+                                    faktiskFraOgMed = 1.februar(2021),
+                                    faktiskTilOgMed = 28.februar(2021),
+                                    konto = konto,
+                                    belop = 10779,
+                                    tilbakeforing = false,
+                                    sats = 0,
+                                    typeSats = "",
+                                    antallSats = 0,
+                                    uforegrad = 0,
+                                    klassekode = KlasseKode.KL_KODE_FEIL_INNT,
+                                    klassekodeBeskrivelse = "Feilutbetaling Inntektsytelser",
+                                    klasseType = KlasseType.FEIL,
+                                ),
+                                SimulertDetaljer(
+                                    faktiskFraOgMed = 1.februar(2021),
+                                    faktiskTilOgMed = 28.februar(2021),
+                                    konto = konto,
+                                    belop = -20779,
+                                    tilbakeforing = true,
+                                    sats = 0,
+                                    typeSats = "",
+                                    antallSats = 0,
+                                    uforegrad = 0,
+                                    klassekode = KlasseKode.SUUFORE,
+                                    klassekodeBeskrivelse = suBeskrivelse,
+                                    klasseType = KlasseType.YTEL,
+                                ),
+                            ),
+                        ),
+                    ),
                 ),
                 SimulertPeriode(
-                    fraOgMed = 1.januar(2020),
-                    tilOgMed = 31.desember(2020),
-                    utbetaling = listOf(expectedUtbetaling),
+                    fraOgMed = 1.mars(2021),
+                    tilOgMed = 31.mars(2021),
+                    utbetaling = listOf(
+                        SimulertUtbetaling(
+                            fagSystemId = fagsystemId,
+                            utbetalesTilId = fnr,
+                            utbetalesTilNavn = navn,
+                            forfall = 10.mars(2021),
+                            feilkonto = false,
+                            detaljer = listOf(
+                                SimulertDetaljer(
+                                    faktiskFraOgMed = 1.mars(2021),
+                                    faktiskTilOgMed = 31.mars(2021),
+                                    konto = konto,
+                                    belop = 10000,
+                                    tilbakeforing = false,
+                                    sats = 10000,
+                                    typeSats = typeSats,
+                                    antallSats = 1,
+                                    uforegrad = 0,
+                                    klassekode = KlasseKode.SUUFORE,
+                                    klassekodeBeskrivelse = suBeskrivelse,
+                                    klasseType = KlasseType.YTEL,
+                                ),
+                            ),
+                        ),
+                    ),
                 ),
             ),
         )
     }
-}
 
-private val expectedUtbetaling = SimulertUtbetaling(
-    fagSystemId = "fagsystemId",
-    utbetalesTilId = Fnr("12345678910"),
-    utbetalesTilNavn = "utbetalesTilNavn",
-    forfall = 1.februar(2020),
-    feilkonto = false,
-    detaljer = listOf(
-        SimulertDetaljer(
-            faktiskFraOgMed = 1.januar(2020),
-            faktiskTilOgMed = 31.desember(2020),
-            konto = "1234.12.12345",
-            belop = 12000,
-            tilbakeforing = false,
-            sats = 15000,
-            typeSats = "MND",
-            antallSats = 1,
-            uforegrad = 50,
-            klassekode = KlasseKode.SUUFORE,
-            klassekodeBeskrivelse = "Supplerende stønad for uføre",
-            klasseType = KlasseType.YTEL,
-        ),
-    ),
-)
+    //language=xml
+    private val xmlResponseMedFeilutbetaling = """
+            <simulerBeregningResponse xmlns="http://nav.no/system/os/tjenester/simulerFpService/simulerFpServiceGrensesnitt">
+         <response xmlns="">
+            <simulering>
+               <gjelderId>$fnr</gjelderId>
+               <gjelderNavn>$navn</gjelderNavn>
+               <datoBeregnet>2021-04-14</datoBeregnet>
+               <kodeFaggruppe>INNT</kodeFaggruppe>
+               <belop>5000.00</belop>
+               <beregningsPeriode xmlns="http://nav.no/system/os/entiteter/beregningSkjema">
+                  <periodeFom xmlns="">2021-02-01</periodeFom>
+                  <periodeTom xmlns="">2021-02-28</periodeTom>
+                  <beregningStoppnivaa>
+                     <kodeFagomraade xmlns="">SUUFORE</kodeFagomraade>
+                     <stoppNivaaId xmlns="">1</stoppNivaaId>
+                     <behandlendeEnhet xmlns="">8020</behandlendeEnhet>
+                     <oppdragsId xmlns="">53387554</oppdragsId>
+                     <fagsystemId xmlns="">$fagsystemId</fagsystemId>
+                     <kid xmlns=""/>
+                     <utbetalesTilId xmlns="">$fnr</utbetalesTilId>
+                     <utbetalesTilNavn xmlns="">$navn</utbetalesTilNavn>
+                     <bilagsType xmlns="">U</bilagsType>
+                     <forfall xmlns="">2021-04-14</forfall>
+                     <feilkonto xmlns="">false</feilkonto>
+                     <beregningStoppnivaaDetaljer>
+                        <faktiskFom xmlns="">2021-02-01</faktiskFom>
+                        <faktiskTom xmlns="">2021-02-28</faktiskTom>
+                        <kontoStreng xmlns="">$konto</kontoStreng>
+                        <behandlingskode xmlns="">2</behandlingskode>
+                        <belop xmlns="">10779.00</belop>
+                        <trekkVedtakId xmlns="">0</trekkVedtakId>
+                        <stonadId xmlns=""></stonadId>
+                        <korrigering xmlns=""></korrigering>
+                        <tilbakeforing xmlns="">false</tilbakeforing>
+                        <linjeId xmlns="">0</linjeId>
+                        <sats xmlns="">0.00</sats>
+                        <typeSats xmlns=""></typeSats>
+                        <antallSats xmlns="">0.00</antallSats>
+                        <saksbehId xmlns="">K231B215</saksbehId>
+                        <uforeGrad xmlns="">0</uforeGrad>
+                        <kravhaverId xmlns=""></kravhaverId>
+                        <delytelseId xmlns=""></delytelseId>
+                        <bostedsenhet xmlns="">8020</bostedsenhet>
+                        <skykldnerId xmlns=""></skykldnerId>
+                        <klassekode xmlns="">SUUFORE</klassekode>
+                        <klasseKodeBeskrivelse xmlns="">Supplerende stønad Uføre</klasseKodeBeskrivelse>
+                        <typeKlasse xmlns="">YTEL</typeKlasse>
+                        <typeKlasseBeskrivelse xmlns="">Klassetype for ytelseskonti</typeKlasseBeskrivelse>
+                        <refunderesOrgNr xmlns=""></refunderesOrgNr>
+                     </beregningStoppnivaaDetaljer>
+                     <beregningStoppnivaaDetaljer>
+                        <faktiskFom xmlns="">2021-02-01</faktiskFom>
+                        <faktiskTom xmlns="">2021-02-28</faktiskTom>
+                        <kontoStreng xmlns="">$konto</kontoStreng>
+                        <behandlingskode xmlns="">2</behandlingskode>
+                        <belop xmlns="">10000.00</belop>
+                        <trekkVedtakId xmlns="">0</trekkVedtakId>
+                        <stonadId xmlns=""></stonadId>
+                        <korrigering xmlns=""></korrigering>
+                        <tilbakeforing xmlns="">false</tilbakeforing>
+                        <linjeId xmlns="">3</linjeId>
+                        <sats xmlns="">10000.00</sats>
+                        <typeSats xmlns="">MND</typeSats>
+                        <antallSats xmlns="">1.00</antallSats>
+                        <saksbehId xmlns="">Z123</saksbehId>
+                        <uforeGrad xmlns="">0</uforeGrad>
+                        <kravhaverId xmlns=""></kravhaverId>
+                        <delytelseId xmlns="">0adee7fd-f21b-4fcb-9dc0-e2234a</delytelseId>
+                        <bostedsenhet xmlns="">8020</bostedsenhet>
+                        <skykldnerId xmlns=""></skykldnerId>
+                        <klassekode xmlns="">SUUFORE</klassekode>
+                        <klasseKodeBeskrivelse xmlns="">Supplerende stønad Uføre</klasseKodeBeskrivelse>
+                        <typeKlasse xmlns="">YTEL</typeKlasse>
+                        <typeKlasseBeskrivelse xmlns="">Klassetype for ytelseskonti</typeKlasseBeskrivelse>
+                        <refunderesOrgNr xmlns=""></refunderesOrgNr>
+                     </beregningStoppnivaaDetaljer>
+                     <beregningStoppnivaaDetaljer>
+                        <faktiskFom xmlns="">2021-02-01</faktiskFom>
+                        <faktiskTom xmlns="">2021-02-28</faktiskTom>
+                        <kontoStreng xmlns="">$konto</kontoStreng>
+                        <behandlingskode xmlns="">0</behandlingskode>
+                        <belop xmlns="">10779.00</belop>
+                        <trekkVedtakId xmlns="">0</trekkVedtakId>
+                        <stonadId xmlns=""></stonadId>
+                        <korrigering xmlns="">J</korrigering>
+                        <tilbakeforing xmlns="">false</tilbakeforing>
+                        <linjeId xmlns="">0</linjeId>
+                        <sats xmlns="">0.00</sats>
+                        <typeSats xmlns=""></typeSats>
+                        <antallSats xmlns="">0.00</antallSats>
+                        <saksbehId xmlns="">K231B215</saksbehId>
+                        <uforeGrad xmlns="">0</uforeGrad>
+                        <kravhaverId xmlns=""></kravhaverId>
+                        <delytelseId xmlns=""></delytelseId>
+                        <bostedsenhet xmlns="">8020</bostedsenhet>
+                        <skykldnerId xmlns=""></skykldnerId>
+                        <klassekode xmlns="">KL_KODE_FEIL_INNT</klassekode>
+                        <klasseKodeBeskrivelse xmlns="">Feilutbetaling Inntektsytelser</klasseKodeBeskrivelse>
+                        <typeKlasse xmlns="">FEIL</typeKlasse>
+                        <typeKlasseBeskrivelse xmlns="">Klassetype for feilkontoer</typeKlasseBeskrivelse>
+                        <refunderesOrgNr xmlns=""></refunderesOrgNr>
+                     </beregningStoppnivaaDetaljer>
+                     <beregningStoppnivaaDetaljer>
+                        <faktiskFom xmlns="">2021-02-01</faktiskFom>
+                        <faktiskTom xmlns="">2021-02-28</faktiskTom>
+                        <kontoStreng xmlns="">$konto</kontoStreng>
+                        <behandlingskode xmlns="">0</behandlingskode>
+                        <belop xmlns="">-10779.00</belop>
+                        <trekkVedtakId xmlns="">0</trekkVedtakId>
+                        <stonadId xmlns=""></stonadId>
+                        <korrigering xmlns=""></korrigering>
+                        <tilbakeforing xmlns="">false</tilbakeforing>
+                        <linjeId xmlns="">0</linjeId>
+                        <sats xmlns="">0.00</sats>
+                        <typeSats xmlns=""></typeSats>
+                        <antallSats xmlns="">0.00</antallSats>
+                        <saksbehId xmlns="">K231B215</saksbehId>
+                        <uforeGrad xmlns="">0</uforeGrad>
+                        <kravhaverId xmlns=""></kravhaverId>
+                        <delytelseId xmlns=""></delytelseId>
+                        <bostedsenhet xmlns="">8020</bostedsenhet>
+                        <skykldnerId xmlns=""></skykldnerId>
+                        <klassekode xmlns="">TBMOTOBS</klassekode>
+                        <klasseKodeBeskrivelse xmlns="">Feilutbetaling motkonto til OBS konto</klasseKodeBeskrivelse>
+                        <typeKlasse xmlns="">MOTP</typeKlasse>
+                        <typeKlasseBeskrivelse xmlns="">Klassetype for motposteringskonto</typeKlasseBeskrivelse>
+                        <refunderesOrgNr xmlns=""></refunderesOrgNr>
+                     </beregningStoppnivaaDetaljer>
+                     <beregningStoppnivaaDetaljer>
+                        <faktiskFom xmlns="">2021-02-01</faktiskFom>
+                        <faktiskTom xmlns="">2021-02-28</faktiskTom>
+                        <kontoStreng xmlns="">$konto</kontoStreng>
+                        <behandlingskode xmlns="">2</behandlingskode>
+                        <belop xmlns="">-20779.00</belop>
+                        <trekkVedtakId xmlns="">0</trekkVedtakId>
+                        <stonadId xmlns=""></stonadId>
+                        <korrigering xmlns=""></korrigering>
+                        <tilbakeforing xmlns="">true</tilbakeforing>
+                        <linjeId xmlns="">1</linjeId>
+                        <sats xmlns="">0.00</sats>
+                        <typeSats xmlns=""></typeSats>
+                        <antallSats xmlns="">0.00</antallSats>
+                        <saksbehId xmlns="">K231B215</saksbehId>
+                        <uforeGrad xmlns="">0</uforeGrad>
+                        <kravhaverId xmlns=""></kravhaverId>
+                        <delytelseId xmlns=""></delytelseId>
+                        <bostedsenhet xmlns="">8020</bostedsenhet>
+                        <skykldnerId xmlns=""></skykldnerId>
+                        <klassekode xmlns="">SUUFORE</klassekode>
+                        <klasseKodeBeskrivelse xmlns="">Supplerende stønad Uføre</klasseKodeBeskrivelse>
+                        <typeKlasse xmlns="">YTEL</typeKlasse>
+                        <typeKlasseBeskrivelse xmlns="">Klassetype for ytelseskonti</typeKlasseBeskrivelse>
+                        <refunderesOrgNr xmlns=""></refunderesOrgNr>
+                     </beregningStoppnivaaDetaljer>
+                  </beregningStoppnivaa>
+               </beregningsPeriode>
+               <beregningsPeriode xmlns="http://nav.no/system/os/entiteter/beregningSkjema">
+                  <periodeFom xmlns="">2021-03-01</periodeFom>
+                  <periodeTom xmlns="">2021-03-31</periodeTom>
+                  <beregningStoppnivaa>
+                     <kodeFagomraade xmlns="">SUUFORE</kodeFagomraade>
+                     <stoppNivaaId xmlns="">2</stoppNivaaId>
+                     <behandlendeEnhet xmlns="">8020</behandlendeEnhet>
+                     <oppdragsId xmlns="">53387554</oppdragsId>
+                     <fagsystemId xmlns="">$fagsystemId</fagsystemId>
+                     <kid xmlns=""/>
+                     <utbetalesTilId xmlns="">$fnr</utbetalesTilId>
+                     <utbetalesTilNavn xmlns="">$navn</utbetalesTilNavn>
+                     <bilagsType xmlns="">U</bilagsType>
+                     <forfall xmlns="">2021-03-10</forfall>
+                     <feilkonto xmlns="">false</feilkonto>
+                     <beregningStoppnivaaDetaljer>
+                        <faktiskFom xmlns="">2021-03-01</faktiskFom>
+                        <faktiskTom xmlns="">2021-03-31</faktiskTom>
+                        <kontoStreng xmlns="">$konto</kontoStreng>
+                        <behandlingskode xmlns="">2</behandlingskode>
+                        <belop xmlns="">10000.00</belop>
+                        <trekkVedtakId xmlns="">0</trekkVedtakId>
+                        <stonadId xmlns=""></stonadId>
+                        <korrigering xmlns=""></korrigering>
+                        <tilbakeforing xmlns="">false</tilbakeforing>
+                        <linjeId xmlns="">3</linjeId>
+                        <sats xmlns="">10000.00</sats>
+                        <typeSats xmlns="">MND</typeSats>
+                        <antallSats xmlns="">1.00</antallSats>
+                        <saksbehId xmlns="">Z123</saksbehId>
+                        <uforeGrad xmlns="">0</uforeGrad>
+                        <kravhaverId xmlns=""></kravhaverId>
+                        <delytelseId xmlns="">0adee7fd-f21b-4fcb-9dc0-e2234a</delytelseId>
+                        <bostedsenhet xmlns="">8020</bostedsenhet>
+                        <skykldnerId xmlns=""></skykldnerId>
+                        <klassekode xmlns="">SUUFORE</klassekode>
+                        <klasseKodeBeskrivelse xmlns="">Supplerende stønad Uføre</klasseKodeBeskrivelse>
+                        <typeKlasse xmlns="">YTEL</typeKlasse>
+                        <typeKlasseBeskrivelse xmlns="">Klassetype for ytelseskonti</typeKlasseBeskrivelse>
+                        <refunderesOrgNr xmlns=""></refunderesOrgNr>
+                     </beregningStoppnivaaDetaljer>
+                     <beregningStoppnivaaDetaljer>
+                        <faktiskFom xmlns="">2021-03-01</faktiskFom>
+                        <faktiskTom xmlns="">2021-03-31</faktiskTom>
+                        <kontoStreng xmlns="">0510000</kontoStreng>
+                        <behandlingskode xmlns="">0</behandlingskode>
+                        <belop xmlns="">-5000.00</belop>
+                        <trekkVedtakId xmlns="">11845513</trekkVedtakId>
+                        <stonadId xmlns=""></stonadId>
+                        <korrigering xmlns=""></korrigering>
+                        <tilbakeforing xmlns="">false</tilbakeforing>
+                        <linjeId xmlns="">0</linjeId>
+                        <sats xmlns="">0.00</sats>
+                        <typeSats xmlns="">MND</typeSats>
+                        <antallSats xmlns="">31.00</antallSats>
+                        <saksbehId xmlns="">Z123</saksbehId>
+                        <uforeGrad xmlns="">0</uforeGrad>
+                        <kravhaverId xmlns=""></kravhaverId>
+                        <delytelseId xmlns=""></delytelseId>
+                        <bostedsenhet xmlns="">8020</bostedsenhet>
+                        <skykldnerId xmlns=""></skykldnerId>
+                        <klassekode xmlns="">FSKTSKAT</klassekode>
+                        <klasseKodeBeskrivelse xmlns="">Forskuddskatt</klasseKodeBeskrivelse>
+                        <typeKlasse xmlns="">SKAT</typeKlasse>
+                        <typeKlasseBeskrivelse xmlns="">Klassetype for skatt</typeKlasseBeskrivelse>
+                        <refunderesOrgNr xmlns=""></refunderesOrgNr>
+                     </beregningStoppnivaaDetaljer>
+                  </beregningStoppnivaa>
+               </beregningsPeriode>
+            </simulering>
+            <infomelding>
+               <beskrMelding>Simulering er utført uten skattevedtak. Nominell sats benyttet.</beskrMelding>
+            </infomelding>
+         </response>
+      </simulerBeregningResponse>
+    """.trimIndent()
 
-private fun oppdragResponse(
-    beregningsperioder: List<BeregningsPeriode> = listOf(lagBergningsperiode()),
-) = SimulerBeregningResponse().apply {
-    simulering = Beregning().apply {
-        gjelderId = "12345678910"
-        gjelderNavn = "gjelderNavn"
-        datoBeregnet = "2020-01-01"
-        belop = BigDecimal(15000)
-        beregningsperioder.forEach {
-            beregningsPeriode.add(it)
-        }
+    @Test
+    fun `mapper simulerte etterbetalinger`() {
+        val responseMedEtterbetaling = XmlMapper.readValue(xmlResponseMedEtterbetaling, GrensesnittResponse::class.java).response
+        SimuleringResponseMapper(responseMedEtterbetaling).simulering shouldBe Simulering(
+            gjelderId = fnr,
+            gjelderNavn = navn,
+            datoBeregnet = 14.april(2021),
+            nettoBeløp = 19611,
+            periodeList = listOf(
+                SimulertPeriode(
+                    fraOgMed = 1.februar(2021),
+                    tilOgMed = 28.februar(2021),
+                    utbetaling = listOf(
+                        SimulertUtbetaling(
+                            fagSystemId = fagsystemId,
+                            utbetalesTilId = fnr,
+                            utbetalesTilNavn = navn,
+                            forfall = 14.april(2021),
+                            feilkonto = false,
+                            detaljer = listOf(
+                                SimulertDetaljer(
+                                    faktiskFraOgMed = 1.februar(2021),
+                                    faktiskTilOgMed = 28.februar(2021),
+                                    konto = konto,
+                                    belop = 30000,
+                                    tilbakeforing = false,
+                                    sats = 30000,
+                                    typeSats = typeSats,
+                                    antallSats = 1,
+                                    uforegrad = 0,
+                                    klassekode = KlasseKode.SUUFORE,
+                                    klassekodeBeskrivelse = suBeskrivelse,
+                                    klasseType = KlasseType.YTEL,
+                                ),
+                                SimulertDetaljer(
+                                    faktiskFraOgMed = 1.februar(2021),
+                                    faktiskTilOgMed = 28.februar(2021),
+                                    konto = konto,
+                                    belop = -20779,
+                                    tilbakeforing = true,
+                                    sats = 0,
+                                    typeSats = "",
+                                    antallSats = 0,
+                                    uforegrad = 0,
+                                    klassekode = KlasseKode.SUUFORE,
+                                    klassekodeBeskrivelse = suBeskrivelse,
+                                    klasseType = KlasseType.YTEL,
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+                SimulertPeriode(
+                    fraOgMed = 1.mars(2021),
+                    tilOgMed = 31.mars(2021),
+                    utbetaling = listOf(
+                        SimulertUtbetaling(
+                            fagSystemId = fagsystemId,
+                            utbetalesTilId = fnr,
+                            utbetalesTilNavn = navn,
+                            forfall = 10.mars(2021),
+                            feilkonto = false,
+                            detaljer = listOf(
+                                SimulertDetaljer(
+                                    faktiskFraOgMed = 1.mars(2021),
+                                    faktiskTilOgMed = 31.mars(2021),
+                                    konto = konto,
+                                    belop = 30000,
+                                    tilbakeforing = false,
+                                    sats = 30000,
+                                    typeSats = typeSats,
+                                    antallSats = 1,
+                                    uforegrad = 0,
+                                    klassekode = KlasseKode.SUUFORE,
+                                    klassekodeBeskrivelse = suBeskrivelse,
+                                    klasseType = KlasseType.YTEL,
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
     }
-}
 
-private fun lagBergningsperiode(
-    beregningStoppnivåer: List<BeregningStoppnivaa> = listOf(lagStoppnivaa()),
-) = BeregningsPeriode().apply {
-    periodeFom = "2020-01-01"
-    periodeTom = "2020-12-31"
-    beregningStoppnivåer.forEach {
-        beregningStoppnivaa.add(it)
-    }
-}
-
-private fun lagStoppnivaa(
-    detaljer: List<BeregningStoppnivaaDetaljer> = listOf(lagDetalj()),
-) = BeregningStoppnivaa().apply {
-    fagsystemId = "fagsystemId"
-    utbetalesTilId = "12345678910"
-    utbetalesTilNavn = "utbetalesTilNavn"
-    forfall = "2020-02-01"
-    isFeilkonto = false
-    detaljer.forEach {
-        beregningStoppnivaaDetaljer.add(it)
-    }
-}
-
-private fun lagDetalj(
-    kode: String = "SUUFORE",
-    type: String = "YTEL",
-) = BeregningStoppnivaaDetaljer().apply {
-    faktiskFom = "2020-01-01"
-    faktiskTom = "2020-12-31"
-    uforeGrad = BigInteger.valueOf(50L)
-    antallSats = BigDecimal(1L)
-    typeSats = "MND"
-    belop = BigDecimal(12000)
-    sats = BigDecimal(15000)
-    kontoStreng = "1234.12.12345"
-    isTilbakeforing = false
-    klassekode = kode
-    klasseKodeBeskrivelse = "Supplerende stønad for uføre"
-    typeKlasse = type
+    //language=xml
+    private val xmlResponseMedEtterbetaling = """
+     <simulerBeregningResponse xmlns="http://nav.no/system/os/tjenester/simulerFpService/simulerFpServiceGrensesnitt">
+         <response xmlns="">
+            <simulering>
+               <gjelderId>$fnr</gjelderId>
+               <gjelderNavn>$navn</gjelderNavn>
+               <datoBeregnet>2021-04-14</datoBeregnet>
+               <kodeFaggruppe>INNT</kodeFaggruppe>
+               <belop>19611.00</belop>
+               <beregningsPeriode xmlns="http://nav.no/system/os/entiteter/beregningSkjema">
+                  <periodeFom xmlns="">2021-02-01</periodeFom>
+                  <periodeTom xmlns="">2021-02-28</periodeTom>
+                  <beregningStoppnivaa>
+                     <kodeFagomraade xmlns="">SUUFORE</kodeFagomraade>
+                     <stoppNivaaId xmlns="">1</stoppNivaaId>
+                     <behandlendeEnhet xmlns="">8020</behandlendeEnhet>
+                     <oppdragsId xmlns="">53387554</oppdragsId>
+                     <fagsystemId xmlns="">$fagsystemId</fagsystemId>
+                     <kid xmlns=""/>
+                     <utbetalesTilId xmlns="">$fnr</utbetalesTilId>
+                     <utbetalesTilNavn xmlns="">$navn</utbetalesTilNavn>
+                     <bilagsType xmlns="">U</bilagsType>
+                     <forfall xmlns="">2021-04-14</forfall>
+                     <feilkonto xmlns="">false</feilkonto>
+                     <beregningStoppnivaaDetaljer>
+                        <faktiskFom xmlns="">2021-02-01</faktiskFom>
+                        <faktiskTom xmlns="">2021-02-28</faktiskTom>
+                        <kontoStreng xmlns="">$konto</kontoStreng>
+                        <behandlingskode xmlns="">2</behandlingskode>
+                        <belop xmlns="">30000.00</belop>
+                        <trekkVedtakId xmlns="">0</trekkVedtakId>
+                        <stonadId xmlns=""></stonadId>
+                        <korrigering xmlns=""></korrigering>
+                        <tilbakeforing xmlns="">false</tilbakeforing>
+                        <linjeId xmlns="">3</linjeId>
+                        <sats xmlns="">30000.00</sats>
+                        <typeSats xmlns="">MND</typeSats>
+                        <antallSats xmlns="">1.00</antallSats>
+                        <saksbehId xmlns="">Z123</saksbehId>
+                        <uforeGrad xmlns="">0</uforeGrad>
+                        <kravhaverId xmlns=""></kravhaverId>
+                        <delytelseId xmlns="">0adee7fd-f21b-4fcb-9dc0-e2234a</delytelseId>
+                        <bostedsenhet xmlns="">8020</bostedsenhet>
+                        <skykldnerId xmlns=""></skykldnerId>
+                        <klassekode xmlns="">SUUFORE</klassekode>
+                        <klasseKodeBeskrivelse xmlns="">Supplerende stønad Uføre</klasseKodeBeskrivelse>
+                        <typeKlasse xmlns="">YTEL</typeKlasse>
+                        <typeKlasseBeskrivelse xmlns="">Klassetype for ytelseskonti</typeKlasseBeskrivelse>
+                        <refunderesOrgNr xmlns=""></refunderesOrgNr>
+                     </beregningStoppnivaaDetaljer>
+                     <beregningStoppnivaaDetaljer>
+                        <faktiskFom xmlns="">2021-02-01</faktiskFom>
+                        <faktiskTom xmlns="">2021-02-28</faktiskTom>
+                        <kontoStreng xmlns="">0510000</kontoStreng>
+                        <behandlingskode xmlns="">0</behandlingskode>
+                        <belop xmlns="">-4610.00</belop>
+                        <trekkVedtakId xmlns="">11845513</trekkVedtakId>
+                        <stonadId xmlns=""></stonadId>
+                        <korrigering xmlns=""></korrigering>
+                        <tilbakeforing xmlns="">false</tilbakeforing>
+                        <linjeId xmlns="">0</linjeId>
+                        <sats xmlns="">0.00</sats>
+                        <typeSats xmlns="">MND</typeSats>
+                        <antallSats xmlns="">28.00</antallSats>
+                        <saksbehId xmlns="">Z123</saksbehId>
+                        <uforeGrad xmlns="">0</uforeGrad>
+                        <kravhaverId xmlns=""></kravhaverId>
+                        <delytelseId xmlns=""></delytelseId>
+                        <bostedsenhet xmlns="">8020</bostedsenhet>
+                        <skykldnerId xmlns=""></skykldnerId>
+                        <klassekode xmlns="">FSKTSKAT</klassekode>
+                        <klasseKodeBeskrivelse xmlns="">Forskuddskatt</klasseKodeBeskrivelse>
+                        <typeKlasse xmlns="">SKAT</typeKlasse>
+                        <typeKlasseBeskrivelse xmlns="">Klassetype for skatt</typeKlasseBeskrivelse>
+                        <refunderesOrgNr xmlns=""></refunderesOrgNr>
+                     </beregningStoppnivaaDetaljer>
+                     <beregningStoppnivaaDetaljer>
+                        <faktiskFom xmlns="">2021-02-01</faktiskFom>
+                        <faktiskTom xmlns="">2021-02-28</faktiskTom>
+                        <kontoStreng xmlns="">$konto</kontoStreng>
+                        <behandlingskode xmlns="">2</behandlingskode>
+                        <belop xmlns="">-20779.00</belop>
+                        <trekkVedtakId xmlns="">0</trekkVedtakId>
+                        <stonadId xmlns=""></stonadId>
+                        <korrigering xmlns=""></korrigering>
+                        <tilbakeforing xmlns="">true</tilbakeforing>
+                        <linjeId xmlns="">1</linjeId>
+                        <sats xmlns="">0.00</sats>
+                        <typeSats xmlns=""></typeSats>
+                        <antallSats xmlns="">0.00</antallSats>
+                        <saksbehId xmlns="">K231B215</saksbehId>
+                        <uforeGrad xmlns="">0</uforeGrad>
+                        <kravhaverId xmlns=""></kravhaverId>
+                        <delytelseId xmlns=""></delytelseId>
+                        <bostedsenhet xmlns="">8020</bostedsenhet>
+                        <skykldnerId xmlns=""></skykldnerId>
+                        <klassekode xmlns="">SUUFORE</klassekode>
+                        <klasseKodeBeskrivelse xmlns="">Supplerende stønad Uføre</klasseKodeBeskrivelse>
+                        <typeKlasse xmlns="">YTEL</typeKlasse>
+                        <typeKlasseBeskrivelse xmlns="">Klassetype for ytelseskonti</typeKlasseBeskrivelse>
+                        <refunderesOrgNr xmlns=""></refunderesOrgNr>
+                     </beregningStoppnivaaDetaljer>
+                  </beregningStoppnivaa>
+               </beregningsPeriode>
+               <beregningsPeriode xmlns="http://nav.no/system/os/entiteter/beregningSkjema">
+                  <periodeFom xmlns="">2021-03-01</periodeFom>
+                  <periodeTom xmlns="">2021-03-31</periodeTom>
+                  <beregningStoppnivaa>
+                     <kodeFagomraade xmlns="">SUUFORE</kodeFagomraade>
+                     <stoppNivaaId xmlns="">2</stoppNivaaId>
+                     <behandlendeEnhet xmlns="">8020</behandlendeEnhet>
+                     <oppdragsId xmlns="">53387554</oppdragsId>
+                     <fagsystemId xmlns="">$fagsystemId</fagsystemId>
+                     <kid xmlns=""/>
+                     <utbetalesTilId xmlns="">$fnr</utbetalesTilId>
+                     <utbetalesTilNavn xmlns="">$navn</utbetalesTilNavn>
+                     <bilagsType xmlns="">U</bilagsType>
+                     <forfall xmlns="">2021-03-10</forfall>
+                     <feilkonto xmlns="">false</feilkonto>
+                     <beregningStoppnivaaDetaljer>
+                        <faktiskFom xmlns="">2021-03-01</faktiskFom>
+                        <faktiskTom xmlns="">2021-03-31</faktiskTom>
+                        <kontoStreng xmlns="">$konto</kontoStreng>
+                        <behandlingskode xmlns="">2</behandlingskode>
+                        <belop xmlns="">30000.00</belop>
+                        <trekkVedtakId xmlns="">0</trekkVedtakId>
+                        <stonadId xmlns=""></stonadId>
+                        <korrigering xmlns=""></korrigering>
+                        <tilbakeforing xmlns="">false</tilbakeforing>
+                        <linjeId xmlns="">3</linjeId>
+                        <sats xmlns="">30000.00</sats>
+                        <typeSats xmlns="">MND</typeSats>
+                        <antallSats xmlns="">1.00</antallSats>
+                        <saksbehId xmlns="">Z123</saksbehId>
+                        <uforeGrad xmlns="">0</uforeGrad>
+                        <kravhaverId xmlns=""></kravhaverId>
+                        <delytelseId xmlns="">0adee7fd-f21b-4fcb-9dc0-e2234a</delytelseId>
+                        <bostedsenhet xmlns="">8020</bostedsenhet>
+                        <skykldnerId xmlns=""></skykldnerId>
+                        <klassekode xmlns="">SUUFORE</klassekode>
+                        <klasseKodeBeskrivelse xmlns="">Supplerende stønad Uføre</klasseKodeBeskrivelse>
+                        <typeKlasse xmlns="">YTEL</typeKlasse>
+                        <typeKlasseBeskrivelse xmlns="">Klassetype for ytelseskonti</typeKlasseBeskrivelse>
+                        <refunderesOrgNr xmlns=""></refunderesOrgNr>
+                     </beregningStoppnivaaDetaljer>
+                     <beregningStoppnivaaDetaljer>
+                        <faktiskFom xmlns="">2021-03-01</faktiskFom>
+                        <faktiskTom xmlns="">2021-03-31</faktiskTom>
+                        <kontoStreng xmlns="">0510000</kontoStreng>
+                        <behandlingskode xmlns="">0</behandlingskode>
+                        <belop xmlns="">-15000.00</belop>
+                        <trekkVedtakId xmlns="">11845513</trekkVedtakId>
+                        <stonadId xmlns=""></stonadId>
+                        <korrigering xmlns=""></korrigering>
+                        <tilbakeforing xmlns="">false</tilbakeforing>
+                        <linjeId xmlns="">0</linjeId>
+                        <sats xmlns="">0.00</sats>
+                        <typeSats xmlns="">MND</typeSats>
+                        <antallSats xmlns="">31.00</antallSats>
+                        <saksbehId xmlns="">Z123</saksbehId>
+                        <uforeGrad xmlns="">0</uforeGrad>
+                        <kravhaverId xmlns=""></kravhaverId>
+                        <delytelseId xmlns=""></delytelseId>
+                        <bostedsenhet xmlns="">8020</bostedsenhet>
+                        <skykldnerId xmlns=""></skykldnerId>
+                        <klassekode xmlns="">FSKTSKAT</klassekode>
+                        <klasseKodeBeskrivelse xmlns="">Forskuddskatt</klasseKodeBeskrivelse>
+                        <typeKlasse xmlns="">SKAT</typeKlasse>
+                        <typeKlasseBeskrivelse xmlns="">Klassetype for skatt</typeKlasseBeskrivelse>
+                        <refunderesOrgNr xmlns=""></refunderesOrgNr>
+                     </beregningStoppnivaaDetaljer>
+                  </beregningStoppnivaa>
+               </beregningsPeriode>
+            </simulering>
+            <infomelding>
+               <beskrMelding>Simulering er utført uten skattevedtak. Nominell sats benyttet.</beskrMelding>
+            </infomelding>
+         </response>
+      </simulerBeregningResponse>
+    """.trimIndent()
 }

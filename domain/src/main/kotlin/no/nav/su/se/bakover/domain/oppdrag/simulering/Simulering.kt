@@ -12,12 +12,6 @@ data class Simulering(
     val nettoBeløp: Int,
     val periodeList: List<SimulertPeriode>,
 ) {
-    init {
-        listOf(
-            SimuleringValidering.SimulerteUtbetalingerHarKunEnDetaljAvTypenYtelse(this),
-        ).forEach { require(it.isValid()) { it.message } }
-    }
-
     fun bruttoYtelse() = periodeList
         .sumBy { it.bruttoYtelse() }
 
@@ -89,31 +83,22 @@ enum class SimuleringFeilet {
 
 enum class KlasseType {
     YTEL,
-    SKAT
+    SKAT,
+    FEIL,
+    @Deprecated("Filtreres ut av klient") // TODO flytt dette lenger ut
+    MOTP,
 }
 
 enum class KlasseKode {
     SUUFORE,
+    KL_KODE_FEIL_INNT,
+
+    @Deprecated("Filtreres ut av klient") // TODO flytt dette lenger ut
+    TBMOTOBS,
+
     @Deprecated("Filtreres ut av klient, bakoverkompatabilitet")
     FSKTSKAT,
+
     @Deprecated("Filtreres ut av klient, bakoverkompatabilitet")
     UFOREUT
-}
-
-internal abstract class SimuleringValidering {
-    abstract val simulering: Simulering
-    abstract val message: String
-
-    @JsonIgnore
-    abstract fun isValid(): Boolean
-
-    class SimulerteUtbetalingerHarKunEnDetaljAvTypenYtelse(
-        override val simulering: Simulering,
-        override val message: String = "Simulerte utbetalinger med flere detaljer av typen ${KlasseType.YTEL} indikerer endring av utbetalinger tilbake i tid. Systemet mangler støtte for håndtering av slike tilfeller.",
-    ) : SimuleringValidering() {
-        @JsonIgnore
-        override fun isValid() = simulering.periodeList
-            .flatMap { it.utbetaling }
-            .all { it.detaljer.count { it.isYtelse() } == 1 }
-    }
 }

@@ -46,7 +46,7 @@ private fun BeregningStoppnivaa.toSimulertUtbetaling() =
         forfall = LocalDate.parse(forfall),
         feilkonto = isFeilkonto,
         detaljer = beregningStoppnivaaDetaljer.map { it.toSimulertDetalj() }
-            .filter { detalj -> detalj.klasseType == KlasseType.YTEL },
+            .filter { detalj -> detalj.klasseType == KlasseType.YTEL || detalj.klasseType == KlasseType.FEIL },
     )
 
 private fun BeregningStoppnivaaDetaljer.toSimulertDetalj() =
