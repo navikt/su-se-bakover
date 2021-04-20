@@ -64,14 +64,21 @@ class UtbetalingKvitteringConsumer(
     }
 
     private fun ferdigstillInnvilgelse(utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering) {
-        if (utbetaling.type != Utbetaling.UtbetalingsType.NY) {
-            log.info("Utbetaling ${utbetaling.id} er av type ${utbetaling.type} og vil derfor ikke bli prøvd ferdigstilt.")
-            return
+        return when (utbetaling.type) {
+            Utbetaling.UtbetalingsType.STANS,
+            Utbetaling.UtbetalingsType.GJENOPPTA,
+            -> {
+                log.info("Utbetaling ${utbetaling.id} er av type ${utbetaling.type} og vil derfor ikke bli prøvd ferdigstilt.")
+            }
+            Utbetaling.UtbetalingsType.NY,
+            Utbetaling.UtbetalingsType.OPPHØR,
+            -> {
+                if (!utbetaling.kvittering.erKvittertOk()) {
+                    log.error("Prøver ikke å ferdigstille innvilgelse siden kvitteringen fra oppdrag ikke var OK.")
+                } else {
+                    ferdigstillVedtakService.ferdigstillVedtakEtterUtbetaling(utbetaling.id)
+                }
+            }
         }
-        if (!utbetaling.kvittering.erKvittertOk()) {
-            log.error("Prøver ikke å ferdigstille innvilgelse siden kvitteringen fra oppdrag ikke var OK.")
-            return
-        }
-        ferdigstillVedtakService.ferdigstillVedtakEtterUtbetaling(utbetaling.id)
     }
 }
