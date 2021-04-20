@@ -4,6 +4,7 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.doubles.plusOrMinus
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
@@ -12,7 +13,9 @@ import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
+import no.nav.su.se.bakover.domain.beregning.BeregningMedFradragBeregnetMånedsvis
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
@@ -20,10 +23,14 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.IkkePeriodisertFradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.PeriodisertFradrag
+import no.nav.su.se.bakover.domain.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import java.time.temporal.ChronoUnit
+import java.util.UUID
 
 internal class BeregningMedFradragBeregnetMånedsvisTest {
+
     @Test
     fun `summer for enkel beregning`() {
         val periode = Periode.create(1.januar(2020), 31.desember(2020))
@@ -36,10 +43,10 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                     månedsbeløp = 0.0,
                     periode = periode,
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
-                )
+                    tilhører = FradragTilhører.BRUKER,
+                ),
             ),
-            fradragStrategy = FradragStrategy.Enslig
+            fradragStrategy = FradragStrategy.Enslig,
         )
         beregning.getSumYtelse() shouldBe 250116
         beregning.getSumFradrag() shouldBe 0
@@ -343,11 +350,41 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                         månedsbeløp = 12000.0,
                         periode = Periode.create(fraOgMed = 1.januar(2019), tilOgMed = 31.januar(2022)),
                         utenlandskInntekt = null,
-                        tilhører = FradragTilhører.BRUKER
-                    )
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
                 ),
-                fradragStrategy = FradragStrategy.Enslig
+                fradragStrategy = FradragStrategy.Enslig,
             )
         }
     }
+
+    @Test
+    fun `should be equal to BeregningMedFradragBeregnetMånedsvis ignoring id, opprettet and begrunnelse`() {
+        val a: Beregning = createBeregning(fixedTidspunkt, "a")
+        val b: Beregning = createBeregning(fixedTidspunkt.plus(1, ChronoUnit.SECONDS), "b")
+        a shouldBe b
+        a.getId() shouldNotBe b.getId()
+        a.getOpprettet() shouldNotBe b.getOpprettet()
+        a.getBegrunnelse() shouldNotBe b.getBegrunnelse()
+        (a === b) shouldBe false
+    }
+
+    private fun createBeregning(opprettet: Tidspunkt = fixedTidspunkt, begrunnelse: String = "begrunnelse") =
+        BeregningMedFradragBeregnetMånedsvis(
+            id = UUID.randomUUID(),
+            opprettet = opprettet,
+            periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020)),
+            sats = Sats.HØY,
+            fradrag = listOf(
+                FradragFactory.ny(
+                    type = Fradragstype.ForventetInntekt,
+                    månedsbeløp = 12000.0,
+                    periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020)),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
+            fradragStrategy = FradragStrategy.Enslig,
+            begrunnelse = begrunnelse,
+        )
 }

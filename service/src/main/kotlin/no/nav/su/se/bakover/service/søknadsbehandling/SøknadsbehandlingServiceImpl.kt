@@ -100,6 +100,7 @@ internal class SøknadsbehandlingServiceImpl(
             fnr = søknad.søknadInnhold.personopplysninger.fnr,
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             fritekstTilBrev = "",
+            stønadsperiode = null,
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
@@ -110,8 +111,8 @@ internal class SøknadsbehandlingServiceImpl(
             observers.forEach { observer ->
                 observer.handle(
                     Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingOpprettet(
-                        it
-                    )
+                        it,
+                    ),
                 )
             }
             it.right()
@@ -123,7 +124,7 @@ internal class SøknadsbehandlingServiceImpl(
             ?: return SøknadsbehandlingService.KunneIkkeVilkårsvurdere.FantIkkeBehandling.left()
         return statusovergang(
             søknadsbehandling = saksbehandling,
-            statusovergang = Statusovergang.TilVilkårsvurdert(request.behandlingsinformasjon)
+            statusovergang = Statusovergang.TilVilkårsvurdert(request.behandlingsinformasjon),
         ).let {
             søknadsbehandlingRepo.lagre(it)
             it.right()
@@ -131,13 +132,17 @@ internal class SøknadsbehandlingServiceImpl(
     }
 
     override fun beregn(request: SøknadsbehandlingService.BeregnRequest): Either<SøknadsbehandlingService.KunneIkkeBeregne, Søknadsbehandling.Beregnet> {
-        val saksbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
+        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return SøknadsbehandlingService.KunneIkkeBeregne.FantIkkeBehandling.left()
 
         return statusovergang(
-            søknadsbehandling = saksbehandling,
+            søknadsbehandling = søknadsbehandling,
             statusovergang = Statusovergang.TilBeregnet {
-                beregningService.beregn(saksbehandling, request.periode, request.fradrag)
+                beregningService.beregn(
+                    søknadsbehandling = søknadsbehandling,
+                    fradrag = request.fradrag,
+                    request.begrunnelse,
+                )
             }
         ).let {
             søknadsbehandlingRepo.lagre(it)
@@ -157,7 +162,7 @@ internal class SøknadsbehandlingServiceImpl(
                     }.map {
                         it.simulering
                     }
-            }
+            },
         ).mapLeft {
             SøknadsbehandlingService.KunneIkkeSimulereBehandling.KunneIkkeSimulere
         }.map {
@@ -170,7 +175,7 @@ internal class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)?.let {
             statusovergang(
                 søknadsbehandling = it,
-                statusovergang = Statusovergang.TilAttestering(request.saksbehandler, request.fritekstTilBrev)
+                statusovergang = Statusovergang.TilAttestering(request.saksbehandler, request.fritekstTilBrev),
             )
         } ?: return SøknadsbehandlingService.KunneIkkeSendeTilAttestering.FantIkkeBehandling.left()
 
@@ -188,8 +193,8 @@ internal class SøknadsbehandlingServiceImpl(
                 søknadsbehandling.søknad.id,
                 aktørId = aktørId,
                 // Første gang den sendes til attestering er attestant null, de påfølgende gangene vil den være attestanten som har underkjent.
-                tilordnetRessurs = tilordnetRessurs
-            )
+                tilordnetRessurs = tilordnetRessurs,
+            ),
         ).getOrElse {
             log.error("Kunne ikke opprette Attesteringsoppgave. Avbryter handlingen.")
             return SøknadsbehandlingService.KunneIkkeSendeTilAttestering.KunneIkkeOppretteOppgave.left()
@@ -212,8 +217,8 @@ internal class SøknadsbehandlingServiceImpl(
             observers.forEach { observer ->
                 observer.handle(
                     Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingTilAttestering(
-                        it
-                    )
+                        it,
+                    ),
                 )
             }
             it.right()
@@ -226,7 +231,7 @@ internal class SøknadsbehandlingServiceImpl(
 
         return forsøkStatusovergang(
             søknadsbehandling = søknadsbehandling,
-            statusovergang = Statusovergang.TilUnderkjent(request.attestering)
+            statusovergang = Statusovergang.TilUnderkjent(request.attestering),
         ).mapLeft {
             SøknadsbehandlingService.KunneIkkeUnderkjenne.AttestantOgSaksbehandlerKanIkkeVæreSammePerson
         }.map { underkjent ->
@@ -242,8 +247,8 @@ internal class SøknadsbehandlingServiceImpl(
                     journalpostId = journalpostId,
                     søknadId = underkjent.søknad.id,
                     aktørId = aktørId,
-                    tilordnetRessurs = underkjent.saksbehandler
-                )
+                    tilordnetRessurs = underkjent.saksbehandler,
+                ),
             ).getOrElse {
                 log.error("Behandling ${underkjent.id} ble ikke underkjent. Klarte ikke opprette behandlingsoppgave")
                 return@underkjenn SøknadsbehandlingService.KunneIkkeUnderkjenne.KunneIkkeOppretteOppgave.left()
@@ -269,8 +274,8 @@ internal class SøknadsbehandlingServiceImpl(
                 observers.forEach { observer ->
                     observer.handle(
                         Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingUnderkjent(
-                            it
-                        )
+                            it,
+                        ),
                     )
                 }
             }
@@ -286,13 +291,13 @@ internal class SøknadsbehandlingServiceImpl(
         return forsøkStatusovergang(
             søknadsbehandling = søknadsbehandling,
             statusovergang = Statusovergang.TilIverksatt(
-                attestering = request.attestering
+                attestering = request.attestering,
             ) {
                 utbetalingService.utbetal(
                     sakId = it.sakId,
                     attestant = request.attestering.attestant,
                     beregning = it.beregning,
-                    simulering = it.simulering
+                    simulering = it.simulering,
                 ).mapLeft {
                     log.error("Kunne ikke innvilge behandling ${søknadsbehandling.id} siden utbetaling feilet. Feiltype: $it")
                     when (it) {
@@ -305,7 +310,7 @@ internal class SøknadsbehandlingServiceImpl(
                     utbetaling = it
                     it.id
                 }
-            }
+            },
         ).mapLeft {
             IverksettStatusovergangFeilMapper.map(it)
         }.map { iverksattBehandling ->
@@ -317,7 +322,7 @@ internal class SøknadsbehandlingServiceImpl(
 
                     log.info("Iverksatt innvilgelse for behandling ${iverksattBehandling.id}")
                     opprettVedtakssnapshotService.opprettVedtak(
-                        vedtakssnapshot = Vedtakssnapshot.Innvilgelse.createFromBehandling(iverksattBehandling, utbetaling!!, vedtak.journalføringOgBrevdistribusjon)
+                        vedtakssnapshot = Vedtakssnapshot.Innvilgelse.createFromBehandling(iverksattBehandling, utbetaling!!, vedtak.journalføringOgBrevdistribusjon),
                     )
                     behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.PERSISTERT)
 
@@ -325,8 +330,8 @@ internal class SøknadsbehandlingServiceImpl(
                         observers.forEach { observer ->
                             observer.handle(
                                 Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(
-                                    iverksattBehandling
-                                )
+                                    iverksattBehandling,
+                                ),
                             )
                         }
                     }
@@ -342,7 +347,7 @@ internal class SøknadsbehandlingServiceImpl(
 
                             log.info("Iverksatt avslag for behandling: ${iverksattBehandling.id}, vedtak: ${vedtak.id}")
                             opprettVedtakssnapshotService.opprettVedtak(
-                                vedtakssnapshot = Vedtakssnapshot.Avslag.createFromBehandling(iverksattBehandling, iverksattBehandling.avslagsgrunner, vedtak.journalføringOgBrevdistribusjon)
+                                vedtakssnapshot = Vedtakssnapshot.Avslag.createFromBehandling(iverksattBehandling, iverksattBehandling.avslagsgrunner, vedtak.journalføringOgBrevdistribusjon),
                             )
 
                             behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.PERSISTERT)
@@ -359,8 +364,8 @@ internal class SøknadsbehandlingServiceImpl(
                                 observers.forEach { observer ->
                                     observer.handle(
                                         Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingIverksatt(
-                                            iverksattBehandling
-                                        )
+                                            iverksattBehandling,
+                                        ),
                                     )
                                 }
                             }
@@ -370,7 +375,7 @@ internal class SøknadsbehandlingServiceImpl(
         }
     }
 
-    private fun opprettAvslagsvedtak(iverksattBehandling: Søknadsbehandling.Iverksatt.Avslag): Vedtak = when (iverksattBehandling) {
+    private fun opprettAvslagsvedtak(iverksattBehandling: Søknadsbehandling.Iverksatt.Avslag): Vedtak.Avslag = when (iverksattBehandling) {
         is Søknadsbehandling.Iverksatt.Avslag.MedBeregning -> {
             Vedtak.Avslag.fromSøknadsbehandlingMedBeregning(iverksattBehandling)
         }
@@ -391,9 +396,6 @@ internal class SøknadsbehandlingServiceImpl(
     }
 
     override fun brev(request: SøknadsbehandlingService.BrevRequest): Either<SøknadsbehandlingService.KunneIkkeLageBrev, ByteArray> {
-        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
-            ?: return SøknadsbehandlingService.KunneIkkeLageBrev.FantIkkeBehandling.left()
-
         val visitor = LagBrevRequestVisitor(
             hentPerson = { fnr ->
                 personService.hentPerson(fnr)
@@ -407,9 +409,9 @@ internal class SøknadsbehandlingServiceImpl(
         ).apply {
             val behandling = when (request) {
                 is SøknadsbehandlingService.BrevRequest.MedFritekst ->
-                    søknadsbehandling.medFritekstTilBrev(request.fritekst)
+                    request.behandling.medFritekstTilBrev(request.fritekst)
                 is SøknadsbehandlingService.BrevRequest.UtenFritekst ->
-                    søknadsbehandling
+                    request.behandling
             }
 
             behandling.accept(this)
@@ -438,6 +440,19 @@ internal class SøknadsbehandlingServiceImpl(
     override fun hent(request: SøknadsbehandlingService.HentRequest): Either<SøknadsbehandlingService.FantIkkeBehandling, Søknadsbehandling> {
         return søknadsbehandlingRepo.hent(request.behandlingId)?.right()
             ?: SøknadsbehandlingService.FantIkkeBehandling.left()
+    }
+
+    override fun oppdaterStønadsperiode(request: SøknadsbehandlingService.OppdaterStønadsperiodeRequest): Either<SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode, Søknadsbehandling> {
+        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
+            ?: return SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling.left()
+
+        return statusovergang(
+            søknadsbehandling = søknadsbehandling,
+            statusovergang = Statusovergang.OppdaterStønadsperiode(request.stønadsperiode),
+        ).let {
+            søknadsbehandlingRepo.lagre(it)
+            it.right()
+        }
     }
 
     override fun leggTilUføregrunnlag(request: SøknadsbehandlingService.LeggTilUføregrunnlagRequest): Either<SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag, Søknadsbehandling> {

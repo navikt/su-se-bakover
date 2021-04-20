@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.vedtak
 
 import arrow.core.Either
+import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
@@ -17,17 +18,19 @@ import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.KunneIkkeJournalfø
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknadsbehandling.ErAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.visitor.Visitable
+import java.time.Clock
 import java.util.UUID
 
 enum class VedtakType {
-    SØKNAD,
-    AVSLAG,
-    ENDRING,
-    INGEN_ENDRING,
-    OPPHØR,
+    SØKNAD, // Innvilget Søknadsbehandling                  -> EndringIYtelse
+    AVSLAG, // Avslått Søknadsbehandling                    -> Avslag
+    ENDRING, // Revurdering innvilget                       -> EndringIYtelse
+    INGEN_ENDRING, // Revurdering mellom 2% og 10% endring  -> IngenEndringIYtelse
+    OPPHØR, // Revurdering ført til opphør                  -> EndringIYtelse
 }
 
 interface VedtakFelles {
@@ -45,13 +48,14 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
 
     abstract fun journalfør(journalfør: () -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre, Vedtak>
     abstract fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev, Vedtak>
+    fun skalSendeBrev() = (this.behandling as? IverksattRevurdering.Innvilget)?.revurderingsårsak?.årsak != Revurderingsårsak.Årsak.REGULER_GRUNNBELØP
 
     companion object {
         fun fromSøknadsbehandling(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget, utbetalingId: UUID30) =
             EndringIYtelse(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(),
-                periode = søknadsbehandling.beregning.getPeriode(),
+                periode = søknadsbehandling.periode,
                 behandling = søknadsbehandling,
                 behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
                 beregning = søknadsbehandling.beregning,
@@ -63,12 +67,12 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                 vedtakType = VedtakType.SØKNAD,
             )
 
-        fun from(revurdering: IverksattRevurdering.IngenEndring) = IngenEndringIYtelse(
+        fun from(revurdering: IverksattRevurdering.IngenEndring, clock: Clock) = IngenEndringIYtelse(
             id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(),
+            opprettet = Tidspunkt.now(clock),
             behandling = revurdering,
-            behandlingsinformasjon = revurdering.tilRevurdering.behandlingsinformasjon,
-            periode = revurdering.beregning.getPeriode(),
+            behandlingsinformasjon = revurdering.behandlingsinformasjon,
+            periode = revurdering.periode,
             beregning = revurdering.beregning,
             saksbehandler = revurdering.saksbehandler,
             attestant = revurdering.attestering.attestant,
@@ -79,23 +83,23 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(),
             behandling = revurdering,
-            behandlingsinformasjon = revurdering.tilRevurdering.behandlingsinformasjon,
-            periode = revurdering.beregning.getPeriode(),
+            behandlingsinformasjon = revurdering.behandlingsinformasjon,
+            periode = revurdering.periode,
             beregning = revurdering.beregning,
             simulering = revurdering.simulering,
             saksbehandler = revurdering.saksbehandler,
             attestant = revurdering.attestering.attestant,
             utbetalingId = utbetalingId,
             journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
-            vedtakType = VedtakType.ENDRING,
+            vedtakType = VedtakType.ENDRING
         )
 
         fun from(revurdering: IverksattRevurdering.Opphørt, utbetalingId: UUID30) = EndringIYtelse(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(),
             behandling = revurdering,
-            behandlingsinformasjon = revurdering.tilRevurdering.behandlingsinformasjon,
-            periode = revurdering.beregning.getPeriode(),
+            behandlingsinformasjon = revurdering.behandlingsinformasjon,
+            periode = revurdering.periode,
             beregning = revurdering.beregning,
             simulering = revurdering.simulering,
             saksbehandler = revurdering.saksbehandler,
@@ -122,13 +126,21 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
     ) : Vedtak() {
 
         override fun journalfør(journalfør: () -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre, EndringIYtelse> {
-            return journalføringOgBrevdistribusjon.journalfør(journalfør)
-                .map { copy(journalføringOgBrevdistribusjon = it) }
+            return if (vedtakType == VedtakType.SØKNAD || vedtakType == VedtakType.ENDRING || vedtakType == VedtakType.OPPHØR) {
+                journalføringOgBrevdistribusjon.journalfør(journalfør)
+                    .map { copy(journalføringOgBrevdistribusjon = it) }
+            } else {
+                this.right()
+            }
         }
 
         override fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev, EndringIYtelse> {
-            return journalføringOgBrevdistribusjon.distribuerBrev(distribuerBrev)
-                .map { copy(journalføringOgBrevdistribusjon = it) }
+            return if (vedtakType == VedtakType.SØKNAD || vedtakType == VedtakType.ENDRING || vedtakType == VedtakType.OPPHØR) {
+                journalføringOgBrevdistribusjon.distribuerBrev(distribuerBrev)
+                    .map { copy(journalføringOgBrevdistribusjon = it) }
+            } else {
+                this.right()
+            }
         }
 
         override fun accept(visitor: VedtakVisitor) {
@@ -150,13 +162,21 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
         override val vedtakType: VedtakType = VedtakType.INGEN_ENDRING
 
         override fun journalfør(journalfør: () -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre, IngenEndringIYtelse> {
-            return journalføringOgBrevdistribusjon.journalfør(journalfør)
-                .map { copy(journalføringOgBrevdistribusjon = it) }
+            return if (behandling is IverksattRevurdering.IngenEndring && !behandling.skalFøreTilBrevutsending) {
+                this.right()
+            } else {
+                journalføringOgBrevdistribusjon.journalfør(journalfør)
+                    .map { copy(journalføringOgBrevdistribusjon = it) }
+            }
         }
 
         override fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev, IngenEndringIYtelse> {
-            return journalføringOgBrevdistribusjon.distribuerBrev(distribuerBrev)
-                .map { copy(journalføringOgBrevdistribusjon = it) }
+            return if (behandling is IverksattRevurdering.IngenEndring && !behandling.skalFøreTilBrevutsending) {
+                this.right()
+            } else {
+                journalføringOgBrevdistribusjon.distribuerBrev(distribuerBrev)
+                    .map { copy(journalføringOgBrevdistribusjon = it) }
+            }
         }
 
         override fun accept(visitor: VedtakVisitor) {

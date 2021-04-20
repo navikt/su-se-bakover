@@ -18,5 +18,6 @@ internal data class BehandlingJson(
     val saksbehandler: String?,
     val sakId: UUID,
     val hendelser: List<HendelseJson>? = emptyList(),
+    val stønadsperiode: ValgtStønadsperiodeJson?,
     val grunnlag: GrunnlagsdataJson,
 )

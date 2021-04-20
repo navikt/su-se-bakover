@@ -9,12 +9,16 @@ import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -33,7 +37,7 @@ import org.junit.jupiter.api.assertThrows
 import java.util.UUID
 
 internal class SøknadsbehandlingServiceBrevTest {
-
+    private val stønadsperiode = ValgtStønadsperiode(Periode.create(1.januar(2021), 31.desember(2021)))
     private val beregnetAvslag = Søknadsbehandling.TilAttestering.Innvilget(
         id = UUID.randomUUID(),
         opprettet = Tidspunkt.now(),
@@ -47,10 +51,11 @@ internal class SøknadsbehandlingServiceBrevTest {
         simulering = mock(),
         saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
         fritekstTilBrev = "",
+        stønadsperiode = stønadsperiode,
         grunnlagsdata = Grunnlagsdata.EMPTY,
     )
 
-    private val opprettetSøknadbehandling = Søknadsbehandling.Vilkårsvurdert.Uavklart(
+    private val vilkårsvurdertUavklartSøknadsbehandling = Søknadsbehandling.Vilkårsvurdert.Uavklart(
         id = UUID.randomUUID(),
         opprettet = Tidspunkt.now(),
         behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
@@ -60,6 +65,7 @@ internal class SøknadsbehandlingServiceBrevTest {
         fnr = FnrGenerator.random(),
         oppgaveId = OppgaveId("0"),
         fritekstTilBrev = "",
+        stønadsperiode = stønadsperiode,
         grunnlagsdata = Grunnlagsdata.EMPTY,
     )
 
@@ -70,18 +76,6 @@ internal class SøknadsbehandlingServiceBrevTest {
         ),
         navn = Person.Navn(fornavn = "", mellomnavn = null, etternavn = ""),
     )
-
-    @Test
-    fun `svarer med feil hvis vi ikke finner behandling`() {
-        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
-            on { hent(any()) } doReturn null
-        }
-        createSøknadsbehandlingService(
-            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-        ).brev(SøknadsbehandlingService.BrevRequest.UtenFritekst(beregnetAvslag.id)).let {
-            it shouldBe SøknadsbehandlingService.KunneIkkeLageBrev.FantIkkeBehandling.left()
-        }
-    }
 
     @Test
     fun `svarer med feil hvis vi ikke finner person`() {
@@ -96,7 +90,7 @@ internal class SøknadsbehandlingServiceBrevTest {
         createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             personService = personServiceMock
-        ).brev(SøknadsbehandlingService.BrevRequest.UtenFritekst(beregnetAvslag.id)).let {
+        ).brev(SøknadsbehandlingService.BrevRequest.UtenFritekst(beregnetAvslag)).let {
             it shouldBe SøknadsbehandlingService.KunneIkkeLageBrev.FantIkkePerson.left()
         }
     }
@@ -119,7 +113,7 @@ internal class SøknadsbehandlingServiceBrevTest {
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             personService = personServiceMock,
             microsoftGraphApiOppslag = microsoftGraphApiOppslagMock
-        ).brev(SøknadsbehandlingService.BrevRequest.UtenFritekst(beregnetAvslag.id)).let {
+        ).brev(SøknadsbehandlingService.BrevRequest.UtenFritekst(beregnetAvslag)).let {
             it shouldBe SøknadsbehandlingService.KunneIkkeLageBrev.FikkIkkeHentetSaksbehandlerEllerAttestant.left()
         }
     }
@@ -147,7 +141,7 @@ internal class SøknadsbehandlingServiceBrevTest {
             personService = personServiceMock,
             microsoftGraphApiOppslag = microsoftGraphApiOppslagMock,
             brevService = brevServiceMock
-        ).brev(SøknadsbehandlingService.BrevRequest.UtenFritekst(beregnetAvslag.id)).let {
+        ).brev(SøknadsbehandlingService.BrevRequest.UtenFritekst(beregnetAvslag)).let {
             it shouldBe SøknadsbehandlingService.KunneIkkeLageBrev.KunneIkkeLagePDF.left()
         }
     }
@@ -176,7 +170,7 @@ internal class SøknadsbehandlingServiceBrevTest {
             personService = personServiceMock,
             microsoftGraphApiOppslag = microsoftGraphApiOppslagMock,
             brevService = brevServiceMock
-        ).brev(SøknadsbehandlingService.BrevRequest.UtenFritekst(beregnetAvslag.id)).let {
+        ).brev(SøknadsbehandlingService.BrevRequest.UtenFritekst(beregnetAvslag)).let {
             it shouldBe pdf.right()
         }
     }
@@ -184,13 +178,13 @@ internal class SøknadsbehandlingServiceBrevTest {
     @Test
     fun `kaster exception hvis det ikke er mulig å opprette brev for aktuell behandling`() {
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
-            on { hent(any()) } doReturn opprettetSøknadbehandling
+            on { hent(any()) } doReturn vilkårsvurdertUavklartSøknadsbehandling
         }
 
         assertThrows<LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KanIkkeLageBrevrequestForInstans> {
             createSøknadsbehandlingService(
                 søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-            ).brev(SøknadsbehandlingService.BrevRequest.UtenFritekst(beregnetAvslag.id))
+            ).brev(SøknadsbehandlingService.BrevRequest.UtenFritekst(vilkårsvurdertUavklartSøknadsbehandling))
         }
     }
 }

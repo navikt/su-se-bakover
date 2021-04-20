@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes.behandling
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.deserialize
@@ -31,6 +32,26 @@ internal class SimuleringJsonTest {
         deserialize<SimuleringJson>(expectedJson) shouldBe simulering.toJson()
     }
 
+    @Test
+    fun `throws when there are more than one utbetaling in a SimulertPeriode`() {
+        val s = simulering.copy(
+            periodeList = simulering.periodeList.plus(
+                SimulertPeriode(
+                    fraOgMed = 1.februar(2020),
+                    tilOgMed = 28.februar(2020),
+                    utbetaling = listOf(
+                        simulertUtbetaling,
+                        simulertUtbetaling,
+                    ),
+                ),
+            ),
+        )
+
+        shouldThrow<MerEnnEnUtbetalingIMinstEnAvPeriodene> {
+            serialize(s.toJson())
+        }
+    }
+
     //language=JSON
     private val expectedJson =
         """
@@ -40,16 +61,42 @@ internal class SimuleringJsonTest {
                 {
                   "fraOgMed" : "2020-01-01",
                   "tilOgMed" : "2020-01-31",
-                  "bruttoYtelse" : 20637
+                  "bruttoYtelse" : 20637,
+                  "type": "ORDINÆR"
                 },
                 {
                   "fraOgMed" : "2020-02-01",
                   "tilOgMed" : "2020-02-28",
-                  "bruttoYtelse": 20637
+                  "bruttoYtelse": 20637,
+                  "type": "ORDINÆR"
                 }
             ]
         }
         """.trimIndent()
+
+    private val simulertUtbetaling = SimulertUtbetaling(
+        fagSystemId = UUID30.randomUUID().toString(),
+        feilkonto = false,
+        forfall = idag(),
+        utbetalesTilId = FNR,
+        utbetalesTilNavn = "gjelder",
+        detaljer = listOf(
+            SimulertDetaljer(
+                faktiskFraOgMed = 1.februar(2020),
+                faktiskTilOgMed = 28.februar(2020),
+                konto = "4952000",
+                belop = 20637,
+                tilbakeforing = false,
+                sats = 20637,
+                typeSats = "MND",
+                antallSats = 1,
+                uforegrad = 0,
+                klassekode = KlasseKode.SUUFORE,
+                klassekodeBeskrivelse = "Supplerende stønad Uføre",
+                klasseType = KlasseType.YTEL,
+            ),
+        ),
+    )
 
     private val simulering = Simulering(
         gjelderId = FNR,
@@ -80,11 +127,11 @@ internal class SimuleringJsonTest {
                                 uforegrad = 0,
                                 klassekode = KlasseKode.SUUFORE,
                                 klassekodeBeskrivelse = "Supplerende stønad Uføre",
-                                klasseType = KlasseType.YTEL
-                            )
-                        )
-                    )
-                )
+                                klasseType = KlasseType.YTEL,
+                            ),
+                        ),
+                    ),
+                ),
             ),
             SimulertPeriode(
                 fraOgMed = 1.februar(2020),
@@ -109,12 +156,12 @@ internal class SimuleringJsonTest {
                                 uforegrad = 0,
                                 klassekode = KlasseKode.SUUFORE,
                                 klassekodeBeskrivelse = "Supplerende stønad Uføre",
-                                klasseType = KlasseType.YTEL
-                            )
-                        )
-                    )
-                )
-            )
-        )
+                                klasseType = KlasseType.YTEL,
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        ),
     )
 }

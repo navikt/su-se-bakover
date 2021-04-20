@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
@@ -51,7 +52,8 @@ internal class VedtakssnapshotJsonTest {
     private val søknadId = "68c7dba7-6c5c-422f-862e-94ebae82f24d"
     private val vedtakssnapshotId = "06015ac6-07ef-4017-bd04-1e7b87b160fa"
     private val beregningId = "4111d5ee-0215-4d0f-94fc-0959f900ef2e"
-    private val beregningsPeriode = Periode.create(LocalDate.of(2021, 1, 1), LocalDate.of(2021, 1, 31))
+    private val periode = Periode.create(LocalDate.of(2021, 1, 1), LocalDate.of(2021, 1, 31))
+    private val stønadsperiode = ValgtStønadsperiode(periode, "begrunnelsen")
     private val fnr = Fnr("12345678910")
 
     @Test
@@ -67,7 +69,7 @@ internal class VedtakssnapshotJsonTest {
                 sakId = UUID.fromString(sakId),
                 søknadInnhold = SøknadInnholdTestdataBuilder.build(),
                 journalpostId = JournalpostId("journalpostId"),
-                oppgaveId = OppgaveId("oppgaveId")
+                oppgaveId = OppgaveId("oppgaveId"),
             ),
             oppgaveId = OppgaveId("oppgaveId"),
             behandlingsinformasjon = Behandlingsinformasjon
@@ -78,6 +80,7 @@ internal class VedtakssnapshotJsonTest {
             saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
             fritekstTilBrev = "",
+            stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
@@ -86,7 +89,7 @@ internal class VedtakssnapshotJsonTest {
             opprettet = fixedTidspunkt,
             søknadsbehandling = avslagUtenBeregning,
             avslagsgrunner = listOf(Avslagsgrunn.PERSONLIG_OPPMØTE),
-            journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.fromId(iverksattJournalpostId, iverksattBrevbestillingId)
+            journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.fromId(iverksattJournalpostId, iverksattBrevbestillingId),
         )
 
         //language=JSON
@@ -343,11 +346,11 @@ internal class VedtakssnapshotJsonTest {
                 utenlandskInntekt = UtenlandskInntekt.create(
                     beløpIUtenlandskValuta = 12345,
                     valuta = "Simoleons",
-                    kurs = 129.0
+                    kurs = 129.0,
                 ),
-                periode = beregningsPeriode,
-                tilhører = BRUKER
-            )
+                periode = periode,
+                tilhører = BRUKER,
+            ),
         )
         val innvilget = Søknadsbehandling.Iverksatt.Innvilget(
             id = UUID.fromString(behandlingId),
@@ -360,7 +363,7 @@ internal class VedtakssnapshotJsonTest {
                 sakId = UUID.fromString(sakId),
                 søknadInnhold = SøknadInnholdTestdataBuilder.build(),
                 journalpostId = JournalpostId("journalpostId"),
-                oppgaveId = OppgaveId("oppgaveId")
+                oppgaveId = OppgaveId("oppgaveId"),
             ),
             oppgaveId = OppgaveId("oppgaveId"),
             behandlingsinformasjon = Behandlingsinformasjon
@@ -374,20 +377,21 @@ internal class VedtakssnapshotJsonTest {
                 sats = ORDINÆR,
                 månedsberegninger = listOf(
                     PersistertMånedsberegning(
-                        periode = beregningsPeriode,
+                        periode = periode,
                         sats = ORDINÆR,
                         fradrag = fradrag,
                         sumYtelse = 3,
                         sumFradrag = 1.2,
                         benyttetGrunnbeløp = 66,
                         satsbeløp = 4.1,
-                    )
+                    ),
                 ),
                 fradrag = fradrag,
                 sumYtelse = 3,
                 sumFradrag = 2.1,
-                periode = beregningsPeriode,
+                periode = periode,
                 fradragStrategyName = Enslig,
+                begrunnelse = "har en begrunnelse for beregning"
             ),
             simulering = Simulering(
                 gjelderId = fnr,
@@ -418,17 +422,18 @@ internal class VedtakssnapshotJsonTest {
                                         uforegrad = 4,
                                         klassekode = KlasseKode.SUUFORE,
                                         klassekodeBeskrivelse = "klassekodeBeskrivelse",
-                                        klasseType = YTEL
-                                    )
-                                )
-                            )
-                        )
-                    )
-                )
+                                        klasseType = YTEL,
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
             ),
             saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
             fritekstTilBrev = "",
+            stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
         val utbetaling = oversendtUtbetalingUtenKvittering(innvilget)
@@ -437,7 +442,7 @@ internal class VedtakssnapshotJsonTest {
             opprettet = fixedTidspunkt,
             søknadsbehandling = innvilget,
             utbetaling = utbetaling,
-            journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.fromId(iverksattJournalpostId, iverksattBrevbestillingId)
+            journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.fromId(iverksattJournalpostId, iverksattBrevbestillingId),
         )
 
         //language=JSON
@@ -516,7 +521,8 @@ internal class VedtakssnapshotJsonTest {
                         "fraOgMed":"2021-01-01",
                         "tilOgMed":"2021-01-31"
                     },
-                    "fradragStrategyName":"Enslig"
+                    "fradragStrategyName":"Enslig",
+                    "begrunnelse": "har en begrunnelse for beregning"
                 },
                   "behandlingsinformasjon":{
                      "uførhet":{

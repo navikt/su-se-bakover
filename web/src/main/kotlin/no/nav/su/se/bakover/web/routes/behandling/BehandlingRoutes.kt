@@ -23,7 +23,9 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.beregning.Stønadsperiode
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.BeregnRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.BrevRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.HentRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.IverksettRequest
@@ -40,6 +42,7 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.SimulerRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.UnderkjennRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.VilkårsvurderRequest
+import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
@@ -51,6 +54,7 @@ import no.nav.su.se.bakover.web.routes.behandling.beregning.NyBeregningForSøkna
 import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagBody
 import no.nav.su.se.bakover.web.routes.grunnlag.toDomain
 import no.nav.su.se.bakover.web.routes.sak.sakPath
+import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.toUUID
 import no.nav.su.se.bakover.web.withBehandlingId
@@ -62,7 +66,7 @@ internal const val behandlingPath = "$sakPath/{sakId}/behandlinger"
 
 @KtorExperimentalAPI
 internal fun Route.behandlingRoutes(
-    søknadsbehandlingService: SøknadsbehandlingService
+    søknadsbehandlingService: SøknadsbehandlingService,
 ) {
     val log = LoggerFactory.getLogger(this::class.java)
 
@@ -93,15 +97,50 @@ internal fun Route.behandlingRoutes(
                                             is KunneIkkeOpprette.SøknadErLukket -> {
                                                 BadRequest.message("Søknad med id $søknadId er lukket")
                                             }
-                                        }
+                                        },
                                     )
                                 },
                                 {
-                                    call.audit("Opprettet behandling på sak: $sakId og søknadId: $søknadId")
+                                    call.sikkerlogg("Opprettet behandling på sak: $sakId og søknadId: $søknadId")
+                                    call.audit(it.fnr, AuditLogEvent.Action.CREATE, it.id)
                                     call.svar(Created.jsonBody(it))
-                                }
+                                },
                             )
                     }
+                }
+            }
+        }
+    }
+
+    authorize(Brukerrolle.Saksbehandler) {
+        post("$behandlingPath/{behandlingId}/stønadsperiode") {
+            call.withBehandlingId { behandlingId ->
+                call.withBody<ValgtStønadsperiodeJson> { body ->
+                    body.toDomain()
+                        .mapLeft {
+                            call.svar(it)
+                        }
+                        .flatMap { stønadsperiode ->
+                            søknadsbehandlingService.oppdaterStønadsperiode(SøknadsbehandlingService.OppdaterStønadsperiodeRequest(behandlingId, stønadsperiode))
+                                .mapLeft { error ->
+                                    call.svar(
+                                        when (error) {
+                                            SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FantIkkeBehandling -> {
+                                                NotFound.message("Fant ikke behandling")
+                                            }
+                                            SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.FraOgMedDatoKanIkkeVæreFør2021 -> {
+                                                BadRequest.message("En stønadsperiode kan ikke starte før 2021")
+                                            }
+                                            SøknadsbehandlingService.KunneIkkeOppdatereStønadsperiode.PeriodeKanIkkeVæreLengreEnn12Måneder -> {
+                                                BadRequest.message("En stønadsperiode kan være maks 12 måneder")
+                                            }
+                                        },
+                                    )
+                                }
+                                .map {
+                                    call.svar(Created.jsonBody(it))
+                                }
+                        }
                 }
             }
         }
@@ -113,7 +152,8 @@ internal fun Route.behandlingRoutes(
                 søknadsbehandlingService.hent(HentRequest(behandlingId)).mapLeft {
                     call.svar(NotFound.message("Fant ikke behandling med id $behandlingId"))
                 }.map {
-                    call.audit("Hentet behandling med id $behandlingId")
+                    call.sikkerlogg("Hentet behandling med id $behandlingId")
+                    call.audit(it.fnr, AuditLogEvent.Action.ACCESS, it.id)
                     call.svar(OK.jsonBody(it))
                 }
             }
@@ -157,20 +197,24 @@ internal fun Route.behandlingRoutes(
                         VilkårsvurderRequest(
                             behandlingId = behandlingId,
                             saksbehandler = Saksbehandler(call.suUserContext.navIdent),
-                            behandlingsinformasjon = behandlingsinformasjonFromJson(body)
-                        )
-                    ).mapLeft {
-                        call.svar(
-                            when (it) {
-                                KunneIkkeVilkårsvurdere.FantIkkeBehandling -> {
-                                    NotFound.message("Fant ikke behandling")
-                                }
-                            }
-                        )
-                    }.map {
-                        call.audit("Oppdaterte behandlingsinformasjon med behandlingsid $behandlingId")
-                        call.svar(OK.jsonBody(it))
-                    }
+                            behandlingsinformasjon = behandlingsinformasjonFromJson(body),
+                        ),
+                    ).fold(
+                        {
+                            call.svar(
+                                when (it) {
+                                    KunneIkkeVilkårsvurdere.FantIkkeBehandling -> {
+                                        NotFound.message("Fant ikke behandling")
+                                    }
+                                },
+                            )
+                        },
+                        {
+                            call.sikkerlogg("Oppdaterte behandlingsinformasjon med behandlingsid $behandlingId")
+                            call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
+                            call.svar(OK.jsonBody(it))
+                        },
+                    )
                 }
             }
         }
@@ -179,28 +223,31 @@ internal fun Route.behandlingRoutes(
     authorize(Brukerrolle.Saksbehandler) {
         post("$behandlingPath/{behandlingId}/beregn") {
             call.withBehandlingId { behandlingId ->
+                val behandling = søknadsbehandlingService.hent(HentRequest(behandlingId)).getOrHandle {
+                    return@withBehandlingId call.svar(NotFound.message("Fant ikke behandling"))
+                }
                 call.withBody<NyBeregningForSøknadsbehandlingJson> { body ->
-                    body.toDomain(behandlingId, Saksbehandler(call.suUserContext.navIdent))
+                    body.toDomain(behandlingId, Saksbehandler(call.suUserContext.navIdent), Stønadsperiode.create(behandling.periode))
                         .mapLeft { call.svar(it) }
                         .map {
                             søknadsbehandlingService.beregn(
-                                SøknadsbehandlingService.BeregnRequest(
+                                BeregnRequest(
                                     behandlingId = it.behandlingId,
-                                    periode = it.stønadsperiode.periode,
-                                    fradrag = it.fradrag
-                                )
-                            )
-                                .mapLeft { kunneIkkeBeregne ->
-                                    val resultat = when (kunneIkkeBeregne) {
-                                        KunneIkkeBeregne.FantIkkeBehandling -> {
-                                            NotFound.message("Fant ikke behandling")
-                                        }
+                                    fradrag = it.fradrag,
+                                    begrunnelse = it.begrunnelse,
+                                ),
+                            ).mapLeft { kunneIkkeBeregne ->
+                                val resultat = when (kunneIkkeBeregne) {
+                                    KunneIkkeBeregne.FantIkkeBehandling -> {
+                                        NotFound.message("Fant ikke behandling")
                                     }
-                                    call.svar(resultat)
-                                }.map { behandling ->
-                                    call.audit("Opprettet en ny beregning på søknadsbehandling med id $behandlingId")
-                                    call.svar(Created.jsonBody(behandling))
                                 }
+                                call.svar(resultat)
+                            }.map { behandling ->
+                                call.sikkerlogg("Beregner på søknadsbehandling med id $behandlingId")
+                                call.audit(behandling.fnr, AuditLogEvent.Action.UPDATE, behandling.id)
+                                call.svar(Created.jsonBody(behandling))
+                            }
                         }
                 }
             }
@@ -208,14 +255,11 @@ internal fun Route.behandlingRoutes(
     }
 
     authorize(Brukerrolle.Saksbehandler, Brukerrolle.Attestant) {
-        suspend fun handleBrevRequest(call: ApplicationCall, req: BrevRequest) =
+        suspend fun lagBrevutkast(call: ApplicationCall, req: BrevRequest) =
             søknadsbehandlingService.brev(req)
                 .fold(
                     {
                         val resultat = when (it) {
-                            is KunneIkkeLageBrev.FantIkkeBehandling -> {
-                                NotFound.message("Fant ikke behandling")
-                            }
                             is KunneIkkeLageBrev.KunneIkkeLagePDF -> {
                                 InternalServerError.message("Kunne ikke lage brev")
                             }
@@ -227,28 +271,37 @@ internal fun Route.behandlingRoutes(
                             }
                             is KunneIkkeLageBrev.FikkIkkeHentetSaksbehandlerEllerAttestant -> {
                                 InternalServerError.message(
-                                    "Klarte ikke hente informasjon om saksbehandler og/eller attestant"
+                                    "Klarte ikke hente informasjon om saksbehandler og/eller attestant",
                                 )
                             }
                         }
                         call.svar(resultat)
                     },
                     {
-                        call.audit("Hentet behandling med id ${req.behandlingId}")
+                        call.sikkerlogg("Hentet brev for behandling med id ${req.behandling.id}")
+                        call.audit(req.behandling.fnr, AuditLogEvent.Action.ACCESS, req.behandling.id)
                         call.respondBytes(it, ContentType.Application.Pdf)
-                    }
+                    },
                 )
 
         post("$behandlingPath/{behandlingId}/vedtaksutkast") {
             call.withBehandlingId { behandlingId ->
                 call.withBody<WithFritekstBody> { body ->
-                    handleBrevRequest(call, BrevRequest.MedFritekst(behandlingId, body.fritekst))
+                    søknadsbehandlingService.hent(HentRequest(behandlingId))
+                        .fold(
+                            { call.svar(NotFound.message("fant ikke behandling")) },
+                            { lagBrevutkast(call, BrevRequest.MedFritekst(it, body.fritekst)) },
+                        )
                 }
             }
         }
         get("$behandlingPath/{behandlingId}/vedtaksutkast") {
             call.withBehandlingId { behandlingId ->
-                handleBrevRequest(call, BrevRequest.UtenFritekst(behandlingId))
+                søknadsbehandlingService.hent(HentRequest(behandlingId))
+                    .fold(
+                        { call.svar(NotFound.message("fant ikke behandling")) },
+                        { lagBrevutkast(call, BrevRequest.UtenFritekst(it)) },
+                    )
             }
         }
     }
@@ -259,8 +312,8 @@ internal fun Route.behandlingRoutes(
                 søknadsbehandlingService.simuler(
                     SimulerRequest(
                         behandlingId = behandlingId,
-                        saksbehandler = Saksbehandler(call.suUserContext.navIdent)
-                    )
+                        saksbehandler = Saksbehandler(call.suUserContext.navIdent),
+                    ),
                 ).fold(
                     {
                         val resultat = when (it) {
@@ -274,9 +327,10 @@ internal fun Route.behandlingRoutes(
                         call.svar(resultat)
                     },
                     {
-                        call.audit("Oppdatert simulering for behandling med id $behandlingId")
+                        call.sikkerlogg("Oppdatert simulering for behandling med id $behandlingId")
+                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, behandlingId)
                         call.svar(OK.jsonBody(it))
-                    }
+                    },
                 )
             }
         }
@@ -292,8 +346,8 @@ internal fun Route.behandlingRoutes(
                             SendTilAttesteringRequest(
                                 behandlingId = behandlingId,
                                 saksbehandler = saksBehandler,
-                                fritekstTilBrev = body.fritekst
-                            )
+                                fritekstTilBrev = body.fritekst,
+                            ),
                         ).fold(
                             {
                                 val resultat = when (it) {
@@ -310,9 +364,10 @@ internal fun Route.behandlingRoutes(
                                 call.svar(resultat)
                             },
                             {
-                                call.audit("Sendte behandling med id $behandlingId til attestering")
+                                call.sikkerlogg("Sendte behandling med id $behandlingId til attestering")
+                                call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                                 call.svar(OK.jsonBody(it))
-                            }
+                            },
                         )
                     }
                 }
@@ -335,7 +390,7 @@ internal fun Route.behandlingRoutes(
                 }
                 is KunneIkkeIverksette.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> {
                     InternalServerError.message(
-                        "Oppdaget inkonsistens mellom tidligere utført simulering og kontrollsimulering. Ny simulering må utføres og kontrolleres før iverksetting kan gjennomføres"
+                        "Oppdaget inkonsistens mellom tidligere utført simulering og kontrollsimulering. Ny simulering må utføres og kontrolleres før iverksetting kan gjennomføres",
                     )
                 }
                 is KunneIkkeIverksette.KunneIkkeJournalføreBrev -> {
@@ -349,7 +404,7 @@ internal fun Route.behandlingRoutes(
                 }
                 is KunneIkkeIverksette.FikkIkkeHentetSaksbehandlerEllerAttestant -> {
                     InternalServerError.message(
-                        "Klarte ikke hente informasjon om saksbehandler og/eller attestant"
+                        "Klarte ikke hente informasjon om saksbehandler og/eller attestant",
                     )
                 }
             }
@@ -363,23 +418,25 @@ internal fun Route.behandlingRoutes(
                 søknadsbehandlingService.iverksett(
                     IverksettRequest(
                         behandlingId = behandlingId,
-                        attestering = Attestering.Iverksatt(Attestant(navIdent))
-                    )
+                        attestering = Attestering.Iverksatt(Attestant(navIdent)),
+                    ),
                 ).fold(
                     {
                         call.svar(kunneIkkeIverksetteMelding(it))
                     },
                     {
-                        call.audit("Iverksatte behandling med id: $behandlingId")
+                        call.sikkerlogg("Iverksatte behandling med id: $behandlingId")
+                        call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                         call.svar(OK.jsonBody(it))
-                    }
+                    },
                 )
             }
         }
     }
+
     data class UnderkjennBody(
         val grunn: String,
-        val kommentar: String
+        val kommentar: String,
     ) {
         fun valid() = enumContains<Attestering.Underkjent.Grunn>(grunn) && kommentar.isNotBlank()
     }
@@ -402,9 +459,9 @@ internal fun Route.behandlingRoutes(
                                     attestering = Attestering.Underkjent(
                                         attestant = Attestant(navIdent),
                                         grunn = Attestering.Underkjent.Grunn.valueOf(body.grunn),
-                                        kommentar = body.kommentar
-                                    )
-                                )
+                                        kommentar = body.kommentar,
+                                    ),
+                                ),
                             ).fold(
                                 ifLeft = {
                                     val resultat = when (it) {
@@ -424,14 +481,15 @@ internal fun Route.behandlingRoutes(
                                     call.svar(resultat)
                                 },
                                 ifRight = {
-                                    call.audit("Underkjente behandling med id: $behandlingId")
+                                    call.sikkerlogg("Underkjente behandling med id: $behandlingId")
+                                    call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                                     call.svar(OK.jsonBody(it))
-                                }
+                                },
                             )
                         } else {
                             call.svar(BadRequest.message("Må angi en begrunnelse"))
                         }
-                    }
+                    },
                 )
             }
         }

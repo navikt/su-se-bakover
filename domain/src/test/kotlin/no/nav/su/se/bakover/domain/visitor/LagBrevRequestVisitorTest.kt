@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
@@ -617,6 +618,7 @@ internal class LagBrevRequestVisitorTest {
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
+            behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
         )
 
         val avslåttVedtak = Vedtak.from(revurdering, utbetalingId)
@@ -669,6 +671,7 @@ internal class LagBrevRequestVisitorTest {
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
+            behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
@@ -690,7 +693,7 @@ internal class LagBrevRequestVisitorTest {
         brevRevurdering.brevRequest shouldBe LagBrevRequest.Opphørsvedtak(
             person = person,
             beregning = revurdering.beregning,
-            behandlingsinformasjon = revurdering.tilRevurdering.behandlingsinformasjon,
+            behandlingsinformasjon = revurdering.behandlingsinformasjon,
             saksbehandlerNavn = saksbehandlerNavn,
             attestantNavn = attestantNavn,
             fritekst = "FRITEKST REVURDERING",
@@ -721,10 +724,12 @@ internal class LagBrevRequestVisitorTest {
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
+            skalFøreTilBrevutsending = false,
+            behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
-        val vedtakIngenEndring = Vedtak.from(revurdering)
+        val vedtakIngenEndring = Vedtak.from(revurdering, clock)
 
         val brevRevurdering = LagBrevRequestVisitor(
             hentPerson = { person.right() },
@@ -753,7 +758,7 @@ internal class LagBrevRequestVisitorTest {
                 saksbehandlerNavn = saksbehandlerNavn,
                 attestantNavn = attestantNavn,
                 fritekst = "EN FIN FRITEKST",
-                harEktefelle = revurdering.tilRevurdering.behandlingsinformasjon.harEktefelle(),
+                harEktefelle = revurdering.behandlingsinformasjon.harEktefelle(),
             )
 
             it.lagBrevInnhold(personalia) should beOfType<BrevInnhold.VedtakIngenEndring>()
@@ -832,6 +837,7 @@ internal class LagBrevRequestVisitorTest {
         behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
         fnr = FnrGenerator.random(),
         fritekstTilBrev = "",
+        stønadsperiode = ValgtStønadsperiode(Periode.create(1.januar(2021), 31.desember(2021))),
         grunnlagsdata = Grunnlagsdata.EMPTY,
     )
 }

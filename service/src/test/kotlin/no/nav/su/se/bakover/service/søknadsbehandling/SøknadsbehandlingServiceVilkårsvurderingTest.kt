@@ -10,11 +10,15 @@ import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
@@ -34,6 +38,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
     private val behandlingId = UUID.randomUUID()
     private val saksbehandler = Saksbehandler("AB12345")
     private val oppgaveId = OppgaveId("o")
+    private val stønadsperiode = ValgtStønadsperiode(Periode.create(1.januar(2021), 31.desember(2021)))
     private val opprettetBehandling = Søknadsbehandling.Vilkårsvurdert.Uavklart(
         id = behandlingId,
         opprettet = Tidspunkt.now(),
@@ -51,6 +56,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
         fnr = FnrGenerator.random(),
         oppgaveId = oppgaveId,
         fritekstTilBrev = "",
+        stønadsperiode = stønadsperiode,
         grunnlagsdata = Grunnlagsdata.EMPTY,
     )
 
@@ -103,6 +109,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
             fnr = opprettetBehandling.fnr,
             oppgaveId = opprettetBehandling.oppgaveId,
             fritekstTilBrev = "",
+            stønadsperiode = opprettetBehandling.stønadsperiode!!,
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
@@ -142,6 +149,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
             fnr = opprettetBehandling.fnr,
             oppgaveId = opprettetBehandling.oppgaveId,
             fritekstTilBrev = "",
+            stønadsperiode = opprettetBehandling.stønadsperiode!!,
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 

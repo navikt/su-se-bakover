@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
+import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.util.UUID
@@ -46,6 +47,7 @@ internal class RevurderingStatistikkMapperTest {
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = RevurderingTestUtils.søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
@@ -115,6 +117,7 @@ internal class RevurderingStatistikkMapperTest {
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant(navIdent = "2")),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = RevurderingTestUtils.søknadsbehandlingVedtak.behandlingsinformasjon,
         )
         RevurderingStatistikkMapper(fixedClock).map(iverksattRevurdering) shouldBe Statistikk.Behandling(
             funksjonellTid = iverksattRevurdering.opprettet,
@@ -180,6 +183,8 @@ internal class RevurderingStatistikkMapperTest {
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant(navIdent = "2")),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            skalFøreTilBrevutsending = true,
+            behandlingsinformasjon = RevurderingTestUtils.søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
         RevurderingStatistikkMapper(fixedClock).map(iverksattRevurdering) shouldBe Statistikk.Behandling(

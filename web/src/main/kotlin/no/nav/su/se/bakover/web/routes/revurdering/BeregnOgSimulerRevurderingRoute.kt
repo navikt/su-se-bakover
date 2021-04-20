@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurd
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering.SimuleringFeilet
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering.UgyldigTilstand
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
+import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.errorJson
@@ -30,6 +31,7 @@ import no.nav.su.se.bakover.web.routes.behandling.beregning.FradragJson.Companio
 import no.nav.su.se.bakover.web.routes.behandling.beregning.PeriodeJson
 import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresponser.fantIkkeRevurdering
 import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresponser.ugyldigTilstand
+import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withRevurderingId
@@ -37,11 +39,12 @@ import no.nav.su.se.bakover.web.withSakId
 
 @KtorExperimentalAPI
 internal fun Route.beregnOgSimulerRevurdering(
-    revurderingService: RevurderingService
+    revurderingService: RevurderingService,
 ) {
     data class BeregningForRevurderingBody(
         val periode: PeriodeJson,
         val fradrag: List<FradragJson>,
+        val forventetInntekt: Int?,
     ) {
         fun toDomain(): Either<Resultat, List<Fradrag>> =
             periode.toPeriode()
@@ -57,14 +60,16 @@ internal fun Route.beregnOgSimulerRevurdering(
                                 revurderingService.beregnOgSimuler(
                                     revurderingId = revurderingId,
                                     saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
-                                    fradrag = fradrag
+                                    fradrag = fradrag,
+                                    forventetInntekt = body.forventetInntekt,
                                 ).mapLeft {
                                     it.tilResultat()
                                 }.map { revurdering ->
-                                    call.audit("Opprettet en ny revurdering beregning og simulering på sak med id $sakId")
+                                    call.sikkerlogg("Beregnet og simulert revurdering ${revurdering.id} på sak med id $sakId")
+                                    call.audit(revurdering.fnr, AuditLogEvent.Action.UPDATE, revurdering.id)
                                     Resultat.json(
                                         HttpStatusCode.Created,
-                                        serialize(revurdering.toJson())
+                                        serialize(revurdering.toJson()),
                                     )
                                 }
                             }.getOrHandle { it }
@@ -91,6 +96,10 @@ private fun KunneIkkeBeregneOgSimulereRevurdering.tilResultat(): Resultat {
         is KunneIkkeBeregneOgSimulereRevurdering.UfullstendigBehandlingsinformasjon -> InternalServerError.errorJson(
             "Ufullstendig behandlingsinformasjon",
             "ufullstendig_behandlingsinformasjon",
+        )
+        KunneIkkeBeregneOgSimulereRevurdering.MåSendeGrunnbeløpReguleringSomÅrsakSammenMedForventetInntekt -> InternalServerError.errorJson(
+            "Forventet inntekt kan kun sendes sammen med regulering av grunnbeløp",
+            "grunnbelop_forventetinntekt",
         )
     }
 }

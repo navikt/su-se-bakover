@@ -138,8 +138,8 @@ internal fun Application.susebakover(
         exception<Tilgangssjekkfeil> {
             when (it.feil) {
                 is KunneIkkeHentePerson.IkkeTilgangTilPerson -> {
-                    call.audit("[Tilgangssjekk] Bruker har ikke tilgang til person ${it.fnr}")
-                    log.warn("[Tilgangssjekk] Bruker har ikke tilgang til person.", it)
+                    call.sikkerlogg("slo opp person hen ikke har tilgang til")
+                    log.warn("[Tilgangssjekk] Ikke tilgang til person.", it)
                     call.respond(HttpStatusCode.Forbidden, ErrorJson("Ikke tilgang til å se person"))
                 }
                 is KunneIkkeHentePerson.FantIkkePerson -> {

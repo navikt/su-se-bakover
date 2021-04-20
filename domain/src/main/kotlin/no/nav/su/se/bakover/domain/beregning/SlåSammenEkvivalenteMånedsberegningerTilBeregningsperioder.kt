@@ -87,6 +87,8 @@ internal data class EkvivalenteMånedsberegninger(
 ) : Månedsberegning by månedsberegninger.first() {
     override fun getPeriode(): Periode = Periode.create(
         fraOgMed = månedsberegninger.minOf { it.getPeriode().getFraOgMed() },
-        tilOgMed = månedsberegninger.maxOf { it.getPeriode().getTilOgMed() }
+        tilOgMed = månedsberegninger.maxOf { it.getPeriode().getTilOgMed() },
     )
+
+    override fun equals(other: Any?) = (other as? Månedsberegning)?.let { this.equals(other) } ?: false
 }

@@ -6,11 +6,13 @@ import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.FnrGenerator
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
@@ -31,6 +33,7 @@ import org.junit.jupiter.api.Test
 import java.util.UUID
 
 internal class FinnAttestantVisitorTest {
+
     @Test
     fun `finner attestant for både søknadsbehandlinger og revurderinger`() {
         FinnAttestantVisitor().let {
@@ -135,15 +138,19 @@ internal class FinnAttestantVisitorTest {
         behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
         fnr = FnrGenerator.random(),
         fritekstTilBrev = "",
+        stønadsperiode = ValgtStønadsperiode(Periode.create(1.januar(2021), 31.desember(2021))),
         grunnlagsdata = Grunnlagsdata.EMPTY,
     )
 
+    private val behandlingsinformasjonMedAlleVilkårOppfylt = Behandlingsinformasjon.lagTomBehandlingsinformasjon()
+        .withAlleVilkårOppfylt()
+
     private val vilkårsvurdertInnvilgetSøknadsbehandling = søknadsbehandling.tilVilkårsvurdert(
-        Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
+        behandlingsinformasjonMedAlleVilkårOppfylt,
     )
 
     private val vilkårsvurdertAvslagSøknadsbehandling = søknadsbehandling.tilVilkårsvurdert(
-        Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
+        behandlingsinformasjonMedAlleVilkårOppfylt,
     )
 
     private val månedsberegningAvslagMock = mock<Månedsberegning> { on { getSumYtelse() } doReturn 0 }
@@ -207,8 +214,8 @@ internal class FinnAttestantVisitorTest {
         periode = Periode.create(1.januar(2021), 31.januar(2021)),
         opprettet = Tidspunkt.now(),
         tilRevurdering = mock() {
-            on { behandlingsinformasjon } doReturn Behandlingsinformasjon.lagTomBehandlingsinformasjon()
-                .withAlleVilkårOppfylt()
+
+            on { behandlingsinformasjon } doReturn behandlingsinformasjonMedAlleVilkårOppfylt
             on { beregning } doReturn beregningMock
         },
         saksbehandler = NavIdentBruker.Saksbehandler("Petter"),
@@ -218,6 +225,7 @@ internal class FinnAttestantVisitorTest {
             Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
             Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
         ),
+        behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt,
         grunnlagsdata = Grunnlagsdata.EMPTY,
     )
 

@@ -18,6 +18,8 @@ import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
+import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.domain.visitor.Visitable
@@ -84,7 +86,7 @@ interface FerdigstillVedtakService {
 
     data class OpprettManglendeJournalpostOgBrevdistribusjonResultat(
         val journalpostresultat: List<Either<KunneIkkeOppretteJournalpostForIverksetting, OpprettetJournalpostForIverksetting>>,
-        val brevbestillingsresultat: List<Either<KunneIkkeBestilleBrev, BestiltBrev>>
+        val brevbestillingsresultat: List<Either<KunneIkkeBestilleBrev, BestiltBrev>>,
     ) {
         fun harFeil(): Boolean = journalpostresultat.mapNotNull { it.swap().orNull() }.isNotEmpty() ||
             brevbestillingsresultat.mapNotNull { it.swap().orNull() }.isNotEmpty()
@@ -99,7 +101,7 @@ internal class FerdigstillVedtakServiceImpl(
     private val microsoftGraphApiOppslag: MicrosoftGraphApiOppslag,
     private val clock: Clock,
     private val utbetalingRepo: UtbetalingRepo,
-    private val behandlingMetrics: BehandlingMetrics
+    private val behandlingMetrics: BehandlingMetrics,
 ) : FerdigstillVedtakService {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -119,6 +121,7 @@ internal class FerdigstillVedtakServiceImpl(
     override fun opprettManglendeJournalposterOgBrevbestillinger(): FerdigstillVedtakService.OpprettManglendeJournalpostOgBrevdistribusjonResultat {
         val alleUtenJournalpost = vedtakRepo.hentUtenJournalpost()
         val innvilgetUtenJournalpost = alleUtenJournalpost.filterIsInstance<Vedtak.EndringIYtelse>()
+            .filter { it.skalSendeBrev() }
             /**
              * Unngår å journalføre og distribuere brev for innvilgelser hvor vi ikke har mottatt kvittering,
              * eller mottatt kvittering ikke er ok.
@@ -137,14 +140,14 @@ internal class FerdigstillVedtakServiceImpl(
                             return@map FerdigstillVedtakService.KunneIkkeOppretteJournalpostForIverksetting(
                                 sakId = vedtak.behandling.sakId,
                                 behandlingId = vedtak.behandling.id,
-                                grunn = "Kunne ikke opprette journalpost for iverksetting siden den allerede eksisterer"
+                                grunn = "Kunne ikke opprette journalpost for iverksetting siden den allerede eksisterer",
                             ).left()
                         }
                         else -> {
                             FerdigstillVedtakService.KunneIkkeOppretteJournalpostForIverksetting(
                                 sakId = vedtak.behandling.sakId,
                                 behandlingId = vedtak.behandling.id,
-                                grunn = feilVedJournalføring.javaClass.simpleName
+                                grunn = feilVedJournalføring.javaClass.simpleName,
                             )
                         }
                     }
@@ -152,7 +155,7 @@ internal class FerdigstillVedtakServiceImpl(
                     FerdigstillVedtakService.OpprettetJournalpostForIverksetting(
                         sakId = journalførtVedtak.behandling.sakId,
                         behandlingId = journalførtVedtak.behandling.id,
-                        journalpostId = journalførtVedtak.journalføringOgBrevdistribusjon.journalpostId()!!
+                        journalpostId = journalførtVedtak.journalføringOgBrevdistribusjon.journalpostId()!!,
                     )
                 }
         }
@@ -160,6 +163,9 @@ internal class FerdigstillVedtakServiceImpl(
         val alleUtenBrevbestilling = vedtakRepo.hentUtenBrevbestilling()
 
         val innvilgetUtenBrevbestilling = alleUtenBrevbestilling.filterIsInstance<Vedtak.EndringIYtelse>()
+            .filter {
+                it.skalSendeBrev()
+            }
             /**
              * Unngår å journalføre og distribuere brev for innvilgelser hvor vi ikke har mottatt kvittering,
              * eller mottatt kvittering ikke er ok.
@@ -177,7 +183,8 @@ internal class FerdigstillVedtakServiceImpl(
                     kunneIkkeBestilleBrev(vedtak, it)
                 }
                 .map { distribuertVedtak ->
-                    val steg = (distribuertVedtak.journalføringOgBrevdistribusjon as JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev)
+                    val steg =
+                        (distribuertVedtak.journalføringOgBrevdistribusjon as JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev)
                     FerdigstillVedtakService.BestiltBrev(
                         sakId = distribuertVedtak.behandling.sakId,
                         behandlingId = distribuertVedtak.behandling.id,
@@ -189,32 +196,39 @@ internal class FerdigstillVedtakServiceImpl(
 
         return FerdigstillVedtakService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
             journalpostresultat = journalpostResultat,
-            brevbestillingsresultat = brevbestillingResultat
+            brevbestillingsresultat = brevbestillingResultat,
         )
     }
 
     private fun ferdigstillVedtak(vedtak: Vedtak): Either<KunneIkkeFerdigstilleVedtak, Vedtak> {
-        val journalførtVedtak = journalførOgLagre(vedtak).getOrHandle { feilVedJournalføring ->
-            when (feilVedJournalføring) {
-                is KunneIkkeFerdigstilleVedtak.KunneIkkeJournalføreBrev.AlleredeJournalført -> vedtak
-                else -> return feilVedJournalføring.left()
+        if (vedtak.skalSendeBrev()) {
+            val journalførtVedtak = journalførOgLagre(vedtak).getOrHandle { feilVedJournalføring ->
+                when (feilVedJournalføring) {
+                    is KunneIkkeFerdigstilleVedtak.KunneIkkeJournalføreBrev.AlleredeJournalført -> vedtak
+                    else -> return feilVedJournalføring.left()
+                }
             }
-        }
 
-        val distribuertVedtak = distribuerOgLagre(journalførtVedtak).getOrHandle { feilVedDistribusjon ->
-            when (feilVedDistribusjon) {
-                is KunneIkkeFerdigstilleVedtak.KunneIkkeDistribuereBrev.AlleredeDistribuert -> journalførtVedtak
-                else -> return feilVedDistribusjon.left()
+            val distribuertVedtak = distribuerOgLagre(journalførtVedtak).getOrHandle { feilVedDistribusjon ->
+                when (feilVedDistribusjon) {
+                    is KunneIkkeFerdigstilleVedtak.KunneIkkeDistribuereBrev.AlleredeDistribuert -> journalførtVedtak
+                    else -> return feilVedDistribusjon.left()
+                }
             }
+
+            lukkOppgaveMedSystembruker(distribuertVedtak)
+            return distribuertVedtak.right()
+        } else {
+            lukkOppgaveMedSystembruker(vedtak)
+            return vedtak.right()
         }
-
-        lukkOppgaveMedSystembruker(distribuertVedtak)
-
-        return distribuertVedtak.right()
     }
 
     override fun journalførOgLagre(vedtak: Vedtak): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeJournalføreBrev, Vedtak> {
         val brevRequest = lagBrevRequest(vedtak).getOrHandle { return it.left() }
+        if (vedtak.behandling is IverksattRevurdering.IngenEndring && !(vedtak.behandling as IverksattRevurdering.IngenEndring).skalFøreTilBrevutsending) {
+            return vedtak.right()
+        }
         return vedtak.journalfør {
             brevService.journalførBrev(brevRequest, vedtak.behandling.saksnummer)
                 .mapLeft { KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring }
@@ -238,7 +252,11 @@ internal class FerdigstillVedtakServiceImpl(
     override fun distribuerOgLagre(vedtak: Vedtak): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeDistribuereBrev, Vedtak> {
         return vedtak.distribuerBrev { journalpostId ->
             brevService.distribuerBrev(journalpostId)
-                .mapLeft { KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev(journalpostId) }
+                .mapLeft {
+                    KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev(
+                        journalpostId,
+                    )
+                }
         }.mapLeft {
             when (it) {
                 is KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.AlleredeDistribuertBrev -> {
@@ -323,50 +341,56 @@ internal class FerdigstillVedtakServiceImpl(
 
     private fun kunneIkkeBestilleBrev(
         vedtak: Vedtak,
-        error: Any
+        error: Any,
     ) = FerdigstillVedtakService.KunneIkkeBestilleBrev(
         sakId = vedtak.behandling.sakId,
         behandlingId = vedtak.behandling.id,
         journalpostId = vedtak.journalføringOgBrevdistribusjon.journalpostId(),
-        grunn = error.javaClass.simpleName
+        grunn = error.javaClass.simpleName,
     )
 
     private fun incrementJournalført(vedtak: Vedtak) {
-        when (vedtak) {
-            is Vedtak.Avslag -> {
+        return when (vedtak.behandling) {
+            is Søknadsbehandling.Iverksatt.Avslag -> {
                 behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.JOURNALFØRT)
             }
-            is Vedtak.EndringIYtelse -> {
+            is Søknadsbehandling.Iverksatt.Innvilget -> {
                 behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.JOURNALFØRT)
             }
+            // TODO jah: Nå som vi har vedtakstyper og revurdering må vi vurdere hva vi ønsker grafer på.
+            else -> Unit
         }
     }
 
     private fun incrementDistribuert(vedtak: Vedtak) {
-        when (vedtak) {
-            is Vedtak.Avslag -> {
+        return when (vedtak.behandling) {
+            is Søknadsbehandling.Iverksatt.Avslag -> {
                 behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.DISTRIBUERT_BREV)
             }
-            is Vedtak.EndringIYtelse -> {
+            is Søknadsbehandling.Iverksatt.Innvilget -> {
                 behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.DISTRIBUERT_BREV)
             }
+            // TODO jah: Nå som vi har vedtakstyper og revurdering må vi vurdere hva vi ønsker grafer på.
+            else -> Unit
         }
     }
 
     private fun incrementLukketOppgave(vedtak: Vedtak) {
-        when (vedtak) {
-            is Vedtak.Avslag -> {
+        return when (vedtak.behandling) {
+            is Søknadsbehandling.Iverksatt.Avslag -> {
                 behandlingMetrics.incrementAvslåttCounter(BehandlingMetrics.AvslåttHandlinger.LUKKET_OPPGAVE)
             }
-            is Vedtak.EndringIYtelse -> {
+            is Søknadsbehandling.Iverksatt.Innvilget -> {
                 behandlingMetrics.incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.LUKKET_OPPGAVE)
             }
+            // TODO jah: Nå som vi har vedtakstyper og revurdering må vi vurdere hva vi ønsker grafer på.
+            else -> Unit
         }
     }
 
     internal data class KunneIkkeFerdigstilleVedtakException(
         private val vedtak: Vedtak,
         private val error: KunneIkkeFerdigstilleVedtak,
-        val msg: String = "Kunne ikke ferdigstille vedtakId: ${vedtak.id}. Original feil: ${error::class.qualifiedName}"
+        val msg: String = "Kunne ikke ferdigstille vedtakId: ${vedtak.id}. Original feil: ${error::class.qualifiedName}",
     ) : RuntimeException(msg)
 }

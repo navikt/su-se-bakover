@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.domain.Fnr
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
 
 internal class SimuleringTest {
@@ -25,9 +24,9 @@ internal class SimuleringTest {
                 SimulertPeriode(
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.januar(2020),
-                    utbetaling = listOf()
-                )
-            )
+                    utbetaling = listOf(),
+                ),
+            ),
         ).bruttoYtelse() shouldBe 0
     }
 
@@ -47,55 +46,6 @@ internal class SimuleringTest {
         simulering shouldBe simulering.copy(datoBeregnet = 1.januar(2020))
     }
 
-    @Test
-    fun `simulerte utbetalinger skal kun inneholde en detalj av tpen ytelse`() {
-        SimuleringValidering.SimulerteUtbetalingerHarKunEnDetaljAvTypenYtelse(simulering).isValid() shouldBe true
-
-        assertThrows<IllegalArgumentException> {
-            simulering(
-                nettoBeløp = 5000,
-                periodeList = listOf(
-                    SimulertPeriode(
-                        fraOgMed = 1.januar(2020),
-                        tilOgMed = 31.desember(2020),
-                        utbetaling = listOf(
-                            simulertUtbetaling(
-                                listOf(
-                                    detalj(
-                                        faktiskFraOgMed = 1.januar(2020),
-                                        faktiskTilOgMed = 31.januar(2020),
-                                        belop = 20637,
-                                        klasseType = KlasseType.YTEL
-                                    ),
-                                    detalj(
-                                        faktiskFraOgMed = 1.januar(2020),
-                                        faktiskTilOgMed = 31.januar(2020),
-                                        belop = -5000,
-                                        klasseType = KlasseType.YTEL
-                                    ),
-                                )
-                            )
-                        )
-                    )
-                )
-            )
-        }
-
-        // check "empty response" case.
-        SimuleringValidering.SimulerteUtbetalingerHarKunEnDetaljAvTypenYtelse(
-            simulering(
-                nettoBeløp = 0,
-                periodeList = listOf(
-                    SimulertPeriode(
-                        fraOgMed = 1.januar(2020),
-                        tilOgMed = 31.desember(2020),
-                        utbetaling = emptyList()
-                    )
-                )
-            )
-        ).isValid() shouldBe true
-    }
-
     private val FNR = Fnr("07028820547")
 
     private val simulering = simulering(
@@ -111,17 +61,17 @@ internal class SimuleringTest {
                                 faktiskFraOgMed = 1.januar(2020),
                                 faktiskTilOgMed = 31.januar(2020),
                                 belop = 20637,
-                                klasseType = KlasseType.YTEL
+                                klasseType = KlasseType.YTEL,
                             ),
                             detalj(
                                 faktiskFraOgMed = 1.januar(2020),
                                 faktiskTilOgMed = 31.januar(2020),
                                 belop = -10318,
-                                klasseType = KlasseType.SKAT
-                            )
-                        )
-                    )
-                )
+                                klasseType = KlasseType.SKAT,
+                            ),
+                        ),
+                    ),
+                ),
             ),
             SimulertPeriode(
                 fraOgMed = 1.januar(2020),
@@ -133,48 +83,48 @@ internal class SimuleringTest {
                                 faktiskFraOgMed = 1.februar(2020),
                                 faktiskTilOgMed = 28.februar(2020),
                                 belop = 20637,
-                                klasseType = KlasseType.YTEL
+                                klasseType = KlasseType.YTEL,
                             ),
                             detalj(
                                 faktiskFraOgMed = 1.februar(2020),
                                 faktiskTilOgMed = 28.februar(2020),
                                 belop = -10318,
-                                klasseType = KlasseType.SKAT
-                            )
-                        )
-                    )
-                )
-            )
-        )
+                                klasseType = KlasseType.SKAT,
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        ),
     )
 
     private fun simulering(
         nettoBeløp: Int,
-        periodeList: List<SimulertPeriode>
+        periodeList: List<SimulertPeriode>,
     ) = Simulering(
         gjelderId = FNR,
         gjelderNavn = "MYGG LUR",
         datoBeregnet = idag(),
         nettoBeløp = nettoBeløp,
-        periodeList
+        periodeList,
     )
 
     private fun simulertUtbetaling(
-        detaljer: List<SimulertDetaljer>
+        detaljer: List<SimulertDetaljer>,
     ) = SimulertUtbetaling(
         fagSystemId = UUID30.randomUUID().toString(),
         feilkonto = false,
         forfall = idag(),
         utbetalesTilId = FNR,
         utbetalesTilNavn = "MYGG LUR",
-        detaljer = detaljer
+        detaljer = detaljer,
     )
 
     private fun detalj(
         faktiskFraOgMed: LocalDate,
         faktiskTilOgMed: LocalDate,
         belop: Int,
-        klasseType: KlasseType
+        klasseType: KlasseType,
     ) = SimulertDetaljer(
         faktiskFraOgMed = faktiskFraOgMed,
         faktiskTilOgMed = faktiskTilOgMed,
@@ -187,6 +137,6 @@ internal class SimuleringTest {
         uforegrad = 0,
         klassekode = if (klasseType == KlasseType.YTEL) KlasseKode.valueOf("SUUFORE") else KlasseKode.valueOf("FSKTSKAT"),
         klassekodeBeskrivelse = if (klasseType == KlasseType.YTEL) "Supplerende stønad Uføre" else "Forskuddskatt",
-        klasseType = klasseType
+        klasseType = klasseType,
     )
 }

@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.journalførtSøknadMedOppgave
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.sakId
+import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.stønadsperiode
 import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.søknadId
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.testSusebakover
@@ -50,21 +51,24 @@ class NyBehandlingRoutesTest {
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             fnr = FnrGenerator.random(),
             fritekstTilBrev = "",
+            stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
         val saksbehandlingServiceMock = mock<SøknadsbehandlingService> {
             on { opprett(any()) } doReturn søknadsbehandling.right()
         }
 
-        withTestApplication({
-            testSusebakover(services = services.copy(søknadsbehandling = saksbehandlingServiceMock))
-        }) {
+        withTestApplication(
+            {
+                testSusebakover(services = services.copy(søknadsbehandling = saksbehandlingServiceMock))
+            },
+        ) {
             defaultRequest(
                 HttpMethod.Post,
                 requestPath,
-                listOf(Brukerrolle.Saksbehandler)
+                listOf(Brukerrolle.Saksbehandler),
             ) {
-                setBody("""{ "soknadId": "$søknadId" }""")
+                setBody("""{ "soknadId": "$søknadId", "stønadsperiode": {"fraOgMed" : "${stønadsperiode.periode.getFraOgMed()}", "tilOgMed": "${stønadsperiode.periode.getTilOgMed()}"}}""".trimIndent())
             }.apply {
                 response.status() shouldBe HttpStatusCode.Created
                 val actualResponse = objectMapper.readValue<BehandlingJson>(response.content!!)

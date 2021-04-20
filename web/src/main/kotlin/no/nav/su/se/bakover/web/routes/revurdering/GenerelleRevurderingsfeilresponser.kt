@@ -26,7 +26,6 @@ internal object GenerelleRevurderingsfeilresponser {
         "Fant ikke revurdering",
         "fant_ikke_revurdering",
     )
-
     fun ugyldigPeriode(ugyldigPeriode: UgyldigPeriode): Resultat {
         return BadRequest.errorJson(
             ugyldigPeriode.toString(),

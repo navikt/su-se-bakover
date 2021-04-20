@@ -1,22 +1,21 @@
 package no.nav.su.se.bakover.domain.beregning
 
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.behandling.Satsgrunn
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 
 class BeregningStrategyFactory {
-    fun beregn(søknadsbehandling: Søknadsbehandling, periode: Periode, fradrag: List<Fradrag>): Beregning {
+    fun beregn(søknadsbehandling: Søknadsbehandling, fradrag: List<Fradrag>, begrunnelse: String?): Beregning {
         val beregningsgrunnlag = Beregningsgrunnlag.create(
-            beregningsperiode = Periode.create(periode.getFraOgMed(), periode.getTilOgMed()),
+            beregningsperiode = søknadsbehandling.periode,
             forventetInntektPerÅr = søknadsbehandling.behandlingsinformasjon.uførhet?.forventetInntekt?.toDouble()
                 ?: 0.0,
-            fradragFraSaksbehandler = fradrag
+            fradragFraSaksbehandler = fradrag,
         )
         val strategy = søknadsbehandling.behandlingsinformasjon.getBeregningStrategy()
         // TODO jah: Kan vurdere å legge på en left her (KanIkkeBeregne.UfullstendigBehandlingsinformasjon
-        return strategy.orNull()!!.beregn(beregningsgrunnlag)
+        return strategy.orNull()!!.beregn(beregningsgrunnlag, begrunnelse)
     }
 }
 
@@ -24,12 +23,13 @@ internal sealed class BeregningStrategy {
     abstract fun fradragStrategy(): FradragStrategy
     abstract fun sats(): Sats
     abstract fun satsgrunn(): Satsgrunn
-    fun beregn(beregningsgrunnlag: Beregningsgrunnlag): Beregning {
+    fun beregn(beregningsgrunnlag: Beregningsgrunnlag, begrunnelse: String? = null): Beregning {
         return BeregningFactory.ny(
             periode = beregningsgrunnlag.beregningsperiode,
             sats = sats(),
             fradrag = beregningsgrunnlag.fradrag,
-            fradragStrategy = fradragStrategy()
+            fradragStrategy = fradragStrategy(),
+            begrunnelse = begrunnelse
         )
     }
 

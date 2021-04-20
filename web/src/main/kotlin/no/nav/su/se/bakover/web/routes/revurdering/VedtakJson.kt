@@ -17,17 +17,61 @@ internal data class VedtakJson(
     val id: String,
     val opprettet: String,
     val behandlingsinformasjon: BehandlingsinformasjonJson,
-    val beregning: BeregningJson,
-    val simulering: SimuleringJson,
+    val beregning: BeregningJson?,
+    val simulering: SimuleringJson?,
     val attestant: String,
     val saksbehandler: String,
-    val utbetalingId: String,
+    val utbetalingId: String?,
     val behandlingId: UUID,
     val sakId: UUID,
     val saksnummer: String,
     val fnr: String,
-    val periode: PeriodeJson,
-    val type: VedtakType
+    val periode: PeriodeJson?,
+    val type: VedtakType,
+)
+
+internal fun Vedtak.toJson(): VedtakJson {
+    return when (this) {
+        is Vedtak.Avslag.AvslagBeregning -> this.toJson()
+        is Vedtak.Avslag.AvslagVilkår -> this.toJson()
+        is Vedtak.EndringIYtelse -> this.toJson()
+        is Vedtak.IngenEndringIYtelse -> this.toJson()
+    }
+}
+
+internal fun Vedtak.Avslag.AvslagVilkår.toJson(): VedtakJson = VedtakJson(
+    id = id.toString(),
+    opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
+    behandlingsinformasjon = behandlingsinformasjon.toJson(),
+    beregning = null,
+    simulering = null,
+    attestant = attestant.navIdent,
+    saksbehandler = saksbehandler.navIdent,
+    utbetalingId = null,
+    behandlingId = behandling.id,
+    sakId = behandling.sakId,
+    saksnummer = behandling.saksnummer.toString(),
+    fnr = behandling.fnr.toString(),
+    // TODO jah: Sett denne til perioden hvis vi legger på dette senere
+    periode = null,
+    type = vedtakType,
+)
+
+internal fun Vedtak.Avslag.AvslagBeregning.toJson(): VedtakJson = VedtakJson(
+    id = id.toString(),
+    opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
+    behandlingsinformasjon = behandlingsinformasjon.toJson(),
+    beregning = beregning.toJson(),
+    simulering = null,
+    attestant = attestant.navIdent,
+    saksbehandler = saksbehandler.navIdent,
+    utbetalingId = null,
+    behandlingId = behandling.id,
+    sakId = behandling.sakId,
+    saksnummer = behandling.saksnummer.toString(),
+    fnr = behandling.fnr.toString(),
+    periode = beregning.getPeriode().toJson(),
+    type = vedtakType,
 )
 
 internal fun Vedtak.EndringIYtelse.toJson(): VedtakJson = VedtakJson(
@@ -44,5 +88,22 @@ internal fun Vedtak.EndringIYtelse.toJson(): VedtakJson = VedtakJson(
     saksnummer = behandling.saksnummer.toString(),
     fnr = behandling.fnr.toString(),
     periode = periode.toJson(),
-    type = vedtakType
+    type = vedtakType,
+)
+
+internal fun Vedtak.IngenEndringIYtelse.toJson(): VedtakJson = VedtakJson(
+    id = id.toString(),
+    opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
+    behandlingsinformasjon = behandlingsinformasjon.toJson(),
+    beregning = beregning.toJson(),
+    simulering = null,
+    attestant = attestant.navIdent,
+    saksbehandler = saksbehandler.navIdent,
+    utbetalingId = null,
+    behandlingId = behandling.id,
+    sakId = behandling.sakId,
+    saksnummer = behandling.saksnummer.toString(),
+    fnr = behandling.fnr.toString(),
+    periode = periode.toJson(),
+    type = vedtakType,
 )

@@ -1,12 +1,16 @@
 package no.nav.su.se.bakover.web.routes.behandling
 
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -26,6 +30,7 @@ object BehandlingTestUtils {
     internal val søknadInnhold = SøknadInnholdTestdataBuilder.build()
     internal val oppgaveId = OppgaveId("o")
     internal val journalpostId = JournalpostId("j")
+    internal val stønadsperiode = ValgtStønadsperiode(Periode.create(1.januar(2021), 31.desember(2021)), "begrunnelsen")
     internal val journalførtSøknadMedOppgave = Søknad.Journalført.MedOppgave(
         sakId = sakId,
         opprettet = Tidspunkt.EPOCH,
@@ -41,7 +46,7 @@ object BehandlingTestUtils {
         kjønn = null,
         fødselsdato = LocalDate.of(1975, 8, 17),
         adressebeskyttelse = null,
-        skjermet = null
+        skjermet = null,
     )
 
     internal fun innvilgetSøknadsbehandling() = Søknadsbehandling.Iverksatt.Innvilget(
@@ -56,27 +61,27 @@ object BehandlingTestUtils {
                 status = Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
                 uføregrad = 20,
                 forventetInntekt = 10,
-                begrunnelse = null
+                begrunnelse = null,
             ),
             flyktning = Behandlingsinformasjon.Flyktning(
                 status = Behandlingsinformasjon.Flyktning.Status.VilkårOppfylt,
-                begrunnelse = null
+                begrunnelse = null,
             ),
             lovligOpphold = Behandlingsinformasjon.LovligOpphold(
                 status = Behandlingsinformasjon.LovligOpphold.Status.VilkårOppfylt,
-                begrunnelse = null
+                begrunnelse = null,
             ),
             fastOppholdINorge = Behandlingsinformasjon.FastOppholdINorge(
                 status = Behandlingsinformasjon.FastOppholdINorge.Status.VilkårOppfylt,
-                begrunnelse = null
+                begrunnelse = null,
             ),
             institusjonsopphold = Behandlingsinformasjon.Institusjonsopphold(
                 status = Behandlingsinformasjon.Institusjonsopphold.Status.VilkårOppfylt,
-                begrunnelse = null
+                begrunnelse = null,
             ),
             oppholdIUtlandet = Behandlingsinformasjon.OppholdIUtlandet(
                 status = Behandlingsinformasjon.OppholdIUtlandet.Status.SkalHoldeSegINorge,
-                begrunnelse = null
+                begrunnelse = null,
             ),
             formue = Behandlingsinformasjon.Formue(
                 status = Behandlingsinformasjon.Formue.Status.VilkårOppfylt,
@@ -88,7 +93,7 @@ object BehandlingTestUtils {
                     verdipapir = 0,
                     pengerSkyldt = 0,
                     kontanter = 0,
-                    depositumskonto = 0
+                    depositumskonto = 0,
                 ),
                 epsVerdier = Behandlingsinformasjon.Formue.Verdier(
                     verdiIkkePrimærbolig = 0,
@@ -98,21 +103,21 @@ object BehandlingTestUtils {
                     verdipapir = 0,
                     pengerSkyldt = 0,
                     kontanter = 0,
-                    depositumskonto = 0
+                    depositumskonto = 0,
                 ),
-                begrunnelse = null
+                begrunnelse = null,
             ),
             personligOppmøte = Behandlingsinformasjon.PersonligOppmøte(
                 status = Behandlingsinformasjon.PersonligOppmøte.Status.MøttPersonlig,
-                begrunnelse = null
+                begrunnelse = null,
             ),
             bosituasjon = Behandlingsinformasjon.Bosituasjon(
                 ektefelle = ektefelle,
                 delerBolig = false,
                 ektemakeEllerSamboerUførFlyktning = false,
-                begrunnelse = null
+                begrunnelse = null,
             ),
-            ektefelle = ektefelle
+            ektefelle = ektefelle,
         ),
         fnr = fnr,
         beregning = TestBeregning,
@@ -121,11 +126,12 @@ object BehandlingTestUtils {
             gjelderNavn = "navn",
             datoBeregnet = LocalDate.EPOCH,
             nettoBeløp = 1000,
-            periodeList = listOf()
+            periodeList = listOf(),
         ),
         saksbehandler = NavIdentBruker.Saksbehandler("pro-saksbehandler"),
         attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("kjella")),
         fritekstTilBrev = "",
+        stønadsperiode = stønadsperiode,
         grunnlagsdata = Grunnlagsdata.EMPTY,
     )
 }

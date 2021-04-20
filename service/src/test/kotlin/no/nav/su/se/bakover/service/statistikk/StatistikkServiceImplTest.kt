@@ -8,6 +8,7 @@ import com.nhaarman.mockitokotlin2.verify
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.kafka.KafkaPublisher
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.endOfDay
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
@@ -21,6 +22,7 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -44,6 +46,7 @@ import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.time.LocalDate
@@ -149,10 +152,11 @@ internal class StatistikkServiceImplTest {
             on { sakId } doReturn UUID.randomUUID()
             on { saksnummer } doReturn Saksnummer(5959)
             on { status } doReturn BehandlingsStatus.OPPRETTET
+            on { periode } doReturn Periode.create(1.januar(2021), 31.desember(2021))
         }
 
         val expected = Statistikk.Behandling(
-            funksjonellTid = søknadsbehandling.opprettet,
+            funksjonellTid = søknadsbehandling.periode.getFraOgMed().startOfDay(zoneIdOslo),
             tekniskTid = Tidspunkt.now(clock),
             registrertDato = søknadsbehandling.opprettet.toLocalDate(zoneIdOslo),
             mottattDato = søknadsbehandling.opprettet.toLocalDate(zoneIdOslo),
@@ -202,10 +206,11 @@ internal class StatistikkServiceImplTest {
             on { status } doReturn BehandlingsStatus.IVERKSATT_AVSLAG
             on { saksbehandler } doReturn NavIdentBruker.Saksbehandler("Z1595")
             on { avslagsgrunner } doReturn listOf(Avslagsgrunn.UFØRHET, Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER)
+            on { periode } doReturn Periode.create(1.januar(2021), 31.desember(2021))
         }
 
         val expected = Statistikk.Behandling(
-            funksjonellTid = behandling.opprettet,
+            funksjonellTid = behandling.periode.getFraOgMed().startOfDay(zoneIdOslo),
             tekniskTid = Tidspunkt.now(clock),
             registrertDato = behandling.opprettet.toLocalDate(zoneIdOslo),
             mottattDato = behandling.opprettet.toLocalDate(zoneIdOslo),
@@ -254,10 +259,11 @@ internal class StatistikkServiceImplTest {
             on { beregning } doReturn beregningMock
             on { saksbehandler } doReturn NavIdentBruker.Saksbehandler("55")
             on { attestering } doReturn Attestering.Iverksatt(NavIdentBruker.Attestant("56"))
+            on { periode } doReturn Periode.create(1.januar(2021), 31.desember(2021))
         }
 
         val expected = Statistikk.Behandling(
-            funksjonellTid = 1.januar(2021).startOfDay(zoneIdOslo),
+            funksjonellTid = behandling.periode.getFraOgMed().startOfDay(zoneIdOslo),
             tekniskTid = Tidspunkt.now(clock),
             registrertDato = behandling.opprettet.toLocalDate(zoneIdOslo),
             mottattDato = behandling.opprettet.toLocalDate(zoneIdOslo),
@@ -305,10 +311,11 @@ internal class StatistikkServiceImplTest {
             on { saksbehandler } doReturn NavIdentBruker.Saksbehandler("55")
             on { attestering } doReturn Attestering.Iverksatt(NavIdentBruker.Attestant("56"))
             on { avslagsgrunner } doReturn listOf(Avslagsgrunn.UFØRHET, Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER)
+            on { periode } doReturn Periode.create(1.januar(2021), 31.desember(2021))
         }
 
         val expected = Statistikk.Behandling(
-            funksjonellTid = behandling.opprettet,
+            funksjonellTid = behandling.periode.getFraOgMed().startOfDay(zoneIdOslo),
             tekniskTid = Tidspunkt.now(clock),
             registrertDato = behandling.opprettet.toLocalDate(zoneIdOslo),
             mottattDato = behandling.opprettet.toLocalDate(zoneIdOslo),
@@ -366,11 +373,12 @@ internal class StatistikkServiceImplTest {
                 "",
             ),
             fritekstTilBrev = "",
+            stønadsperiode = ValgtStønadsperiode(Periode.create(1.januar(2021), 31.desember(2021))),
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
         val expected = Statistikk.Behandling(
-            funksjonellTid = beregning.getPeriode().getFraOgMed().startOfDay(zoneIdOslo),
+            funksjonellTid = underkjent.periode.getFraOgMed().startOfDay(zoneIdOslo),
             tekniskTid = Tidspunkt.now(clock),
             registrertDato = underkjent.opprettet.toLocalDate(zoneIdOslo),
             mottattDato = underkjent.opprettet.toLocalDate(zoneIdOslo),
@@ -403,8 +411,7 @@ internal class StatistikkServiceImplTest {
             on { publiser(any(), any()) }.doNothing()
         }
         val clock = Clock.fixed(1.januar(2020).endOfDay(ZoneOffset.UTC).instant, ZoneOffset.UTC)
-        val beregning = TestBeregning
-
+        val behandlingsperiode = Periode.create(1.januar(2021), 31.desember(2021))
         val behandlingMock = mock<Behandling> {
             on { sakId } doReturn UUID.randomUUID()
             on { saksnummer } doReturn Saksnummer(49L)
@@ -417,10 +424,11 @@ internal class StatistikkServiceImplTest {
                 on { id } doReturn UUID.randomUUID()
             },
             saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-            periode = beregning.getPeriode(),
+            periode = behandlingsperiode,
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = RevurderingTestUtils.søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
@@ -459,6 +467,7 @@ internal class StatistikkServiceImplTest {
         }
         val clock = Clock.fixed(1.januar(2020).endOfDay(ZoneOffset.UTC).instant, ZoneOffset.UTC)
         val beregning = TestBeregning
+        val behandlingsperiode = Periode.create(1.januar(2021), 31.desember(2021))
 
         val behandlingMock = mock<Behandling> {
             on { sakId } doReturn UUID.randomUUID()
@@ -472,7 +481,7 @@ internal class StatistikkServiceImplTest {
                 on { id } doReturn UUID.randomUUID()
             },
             saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-            periode = beregning.getPeriode(),
+            periode = behandlingsperiode,
             beregning = beregning,
             simulering = Simulering(
                 gjelderId = FnrGenerator.random(),
@@ -484,6 +493,7 @@ internal class StatistikkServiceImplTest {
             oppgaveId = OppgaveId("55"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = RevurderingTestUtils.søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
@@ -522,6 +532,7 @@ internal class StatistikkServiceImplTest {
         }
         val clock = Clock.fixed(1.januar(2020).endOfDay(ZoneOffset.UTC).instant, ZoneOffset.UTC)
         val beregning = TestBeregning
+        val behandlingsperiode = Periode.create(1.januar(2021), 31.desember(2021))
 
         val behandlingMock = mock<Behandling> {
             on { sakId } doReturn UUID.randomUUID()
@@ -529,7 +540,7 @@ internal class StatistikkServiceImplTest {
         }
         val iverksattRevurdering = IverksattRevurdering.Innvilget(
             id = UUID.randomUUID(),
-            periode = beregning.getPeriode(),
+            periode = behandlingsperiode,
             opprettet = LocalDate.now(clock).atStartOfDay().toTidspunkt(zoneIdOslo),
             tilRevurdering = mock {
                 on { id } doReturn UUID.randomUUID()
@@ -549,6 +560,7 @@ internal class StatistikkServiceImplTest {
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = RevurderingTestUtils.søknadsbehandlingVedtak.behandlingsinformasjon,
         )
 
         val expected = Statistikk.Behandling(

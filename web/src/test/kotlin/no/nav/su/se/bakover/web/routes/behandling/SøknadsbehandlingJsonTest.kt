@@ -119,6 +119,13 @@ internal class SøknadsbehandlingJsonTest {
           "saksbehandler" : "pro-saksbehandler",
           "sakId": "$sakId",
           "hendelser": [],
+          "stønadsperiode": {
+            "periode": {
+              "fraOgMed": "2021-01-01",
+              "tilOgMed": "2021-12-31"
+            },
+            "begrunnelse": "begrunnelsen"
+          },
           "grunnlag": {
             "uføre":[]
           }
@@ -148,6 +155,7 @@ internal class SøknadsbehandlingJsonTest {
             oppgaveId = oppgaveId,
             opprettet = Tidspunkt.EPOCH,
             fritekstTilBrev = "",
+            stønadsperiode = null,
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
         val opprettetTidspunkt = DateTimeFormatter.ISO_INSTANT.format(behandlingWithNulls.opprettet)
@@ -179,6 +187,7 @@ internal class SøknadsbehandlingJsonTest {
           "saksbehandler": null,
           "sakId": "$sakId",
           "hendelser": [],
+          "stønadsperiode": null,
           "grunnlag": {
             "uføre":[]
           }

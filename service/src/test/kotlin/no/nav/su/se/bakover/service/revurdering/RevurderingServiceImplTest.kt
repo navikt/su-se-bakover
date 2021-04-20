@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.service.revurdering
 
+import arrow.core.getOrElse
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
@@ -47,6 +48,7 @@ import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
+import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakType
@@ -71,6 +73,7 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.sak
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.sakId
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.saksbehandler
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.saksnummer
+import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.simulertRevurderingInnvilget
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.søknadsbehandlingVedtak
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.Event
@@ -235,6 +238,7 @@ internal class RevurderingServiceImplTest {
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
@@ -258,7 +262,7 @@ internal class RevurderingServiceImplTest {
                 FradragFactory.ny(
                     type = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = 10000.0,
-                    periode = søknadsbehandlingVedtak.beregning.getPeriode(),
+                    periode = søknadsbehandlingVedtak.periode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
@@ -291,6 +295,7 @@ internal class RevurderingServiceImplTest {
             oppgaveId = mock(),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
@@ -326,6 +331,7 @@ internal class RevurderingServiceImplTest {
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
@@ -347,7 +353,7 @@ internal class RevurderingServiceImplTest {
                 FradragFactory.ny(
                     type = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = 10000.0,
-                    periode = søknadsbehandlingVedtak.beregning.getPeriode(),
+                    periode = søknadsbehandlingVedtak.periode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
@@ -364,18 +370,7 @@ internal class RevurderingServiceImplTest {
 
     @Test
     fun `sender til attestering`() {
-        val simulertRevurdering = mock<SimulertRevurdering> {
-            on { fnr } doReturn fnr
-            on { saksnummer } doReturn saksnummer
-            on { id } doReturn revurderingId
-            on { periode } doReturn periode
-            on { tilRevurdering } doReturn søknadsbehandlingVedtak
-            on { opprettet } doReturn Tidspunkt.EPOCH
-            on { beregning } doReturn mock()
-            on { simulering } doReturn mock()
-            on { tilAttestering(any(), any(), any()) } doReturn mock()
-            on { oppgaveId } doReturn OppgaveId("oppgaveid")
-        }
+        val simulertRevurdering = simulertRevurderingInnvilget
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn simulertRevurdering
@@ -397,9 +392,12 @@ internal class RevurderingServiceImplTest {
         ).apply { addObserver(eventObserver) }
 
         val actual = revurderingService.sendTilAttestering(
-            revurderingId = revurderingId,
-            saksbehandler = saksbehandler,
-            fritekstTilBrev = "Fritekst",
+            SendTilAttesteringRequest(
+                revurderingId = revurderingId,
+                saksbehandler = saksbehandler,
+                fritekstTilBrev = "Fritekst",
+                skalFøreTilBrevutsending = true,
+            ),
         ).getOrHandle { throw RuntimeException("Skal ikke kunne skje") }
 
         inOrder(revurderingRepoMock, personServiceMock, oppgaveServiceMock, eventObserver) {
@@ -440,9 +438,12 @@ internal class RevurderingServiceImplTest {
         val result = createRevurderingService(
             revurderingRepo = revurderingRepoMock,
         ).sendTilAttestering(
-            revurderingId = revurderingId,
-            saksbehandler = saksbehandler,
-            fritekstTilBrev = "Fritekst",
+            SendTilAttesteringRequest(
+                revurderingId = revurderingId,
+                saksbehandler = saksbehandler,
+                fritekstTilBrev = "Fritekst",
+                skalFøreTilBrevutsending = true,
+            ),
         )
 
         result shouldBe KunneIkkeSendeRevurderingTilAttestering.UgyldigTilstand(
@@ -470,9 +471,12 @@ internal class RevurderingServiceImplTest {
             revurderingRepo = revurderingRepoMock,
             personService = personServiceMock,
         ).sendTilAttestering(
-            revurderingId = revurderingId,
-            saksbehandler = saksbehandler,
-            fritekstTilBrev = "Fritekst",
+            SendTilAttesteringRequest(
+                revurderingId = revurderingId,
+                saksbehandler = saksbehandler,
+                fritekstTilBrev = "Fritekst",
+                skalFøreTilBrevutsending = true,
+            ),
         )
 
         actual shouldBe KunneIkkeSendeRevurderingTilAttestering.FantIkkeAktørId.left()
@@ -505,9 +509,12 @@ internal class RevurderingServiceImplTest {
             personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
         ).sendTilAttestering(
-            revurderingId = revurderingId,
-            saksbehandler = saksbehandler,
-            fritekstTilBrev = "Fritekst",
+            SendTilAttesteringRequest(
+                revurderingId = revurderingId,
+                saksbehandler = saksbehandler,
+                fritekstTilBrev = "Fritekst",
+                skalFøreTilBrevutsending = true,
+            ),
         )
 
         actual shouldBe KunneIkkeSendeRevurderingTilAttestering.KunneIkkeOppretteOppgave.left()
@@ -545,6 +552,7 @@ internal class RevurderingServiceImplTest {
             attestering = Attestering.Iverksatt(attestant),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
         val revurderingTilAttestering = RevurderingTilAttestering.Innvilget(
@@ -558,6 +566,7 @@ internal class RevurderingServiceImplTest {
             saksbehandler = saksbehandler,
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
@@ -630,6 +639,7 @@ internal class RevurderingServiceImplTest {
             saksbehandler = saksbehandler,
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
         val attestant = NavIdentBruker.Attestant("ATTT")
@@ -637,10 +647,10 @@ internal class RevurderingServiceImplTest {
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn revurderingTilAttestering
         }
-        val utbetalingMock = mock<Utbetaling.OversendtUtbetaling.UtenKvittering>() {
+        val utbetalingMock = mock<Utbetaling.OversendtUtbetaling.UtenKvittering> {
             on { id } doReturn UUID30.randomUUID()
         }
-        val utbetalingServiceMock = mock<UtbetalingService>() {
+        val utbetalingServiceMock = mock<UtbetalingService> {
             on { opphør(any(), any(), any(), any()) } doReturn utbetalingMock.right()
         }
         val vedtakRepoMock = mock<VedtakRepo>()
@@ -664,7 +674,7 @@ internal class RevurderingServiceImplTest {
                 sakId = argThat { it shouldBe sakId },
                 attestant = argThat { it shouldBe attestant },
                 simulering = argThat { it shouldBe revurderingTilAttestering.simulering },
-                opphørsdato = argThat { it shouldBe revurderingTilAttestering.beregning.getPeriode().getFraOgMed() },
+                opphørsdato = argThat { it shouldBe revurderingTilAttestering.periode.getFraOgMed() },
             )
             verify(vedtakRepoMock).lagre(
                 argThat {
@@ -694,6 +704,7 @@ internal class RevurderingServiceImplTest {
             oppgaveId = OppgaveId("oppgaveId"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
@@ -759,6 +770,73 @@ internal class RevurderingServiceImplTest {
     }
 
     @Test
+    fun `kan beregne og simuler underkjent revurdering på nytt`() {
+        val attestering = Attestering.Underkjent(
+            attestant = NavIdentBruker.Attestant(navIdent = "123"),
+            grunn = Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
+            kommentar = "pls math",
+        )
+        val underkjentRevurdering = UnderkjentRevurdering.Innvilget(
+            id = revurderingId,
+            periode = periode,
+            opprettet = Tidspunkt.EPOCH,
+            tilRevurdering = søknadsbehandlingVedtak,
+            saksbehandler = saksbehandler,
+            beregning = beregningMock,
+            simulering = mock(),
+            oppgaveId = OppgaveId("oppgaveId"),
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
+            attestering = attestering,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
+        )
+
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(revurderingId) } doReturn underkjentRevurdering
+        }
+
+        val simulertUtbetaling = mock<Utbetaling.SimulertUtbetaling> {
+            on { simulering } doReturn mock()
+        }
+        val utbetalingServiceMock = mock<UtbetalingService> {
+            on { simulerUtbetaling(any(), any(), any()) } doReturn simulertUtbetaling.right()
+        }
+
+        val revurderingService = createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+            utbetalingService = utbetalingServiceMock,
+        )
+
+        val actual = revurderingService.beregnOgSimuler(
+            underkjentRevurdering.id,
+            saksbehandler,
+            listOf(
+                FradragFactory.ny(
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 4000.0,
+                    periode = periode,
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
+        ).getOrElse { throw RuntimeException("Noe gikk galt") }
+        if (actual !is SimulertRevurdering.Innvilget) throw RuntimeException("Skal returnere en simulert revurdering")
+
+        inOrder(revurderingRepoMock, utbetalingServiceMock) {
+            verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
+            verify(utbetalingServiceMock).simulerUtbetaling(
+                sakId = argThat { it shouldBe sakId },
+                saksbehandler = argThat { it shouldBe saksbehandler },
+                beregning = argThat { it shouldBe actual.beregning },
+            )
+            verify(revurderingRepoMock).lagre(argThat { it shouldBe actual })
+        }
+
+        verifyNoMoreInteractions(revurderingRepoMock, utbetalingServiceMock)
+    }
+
+    @Test
     fun `kan lage brev`() {
         val person = mock<Person>()
         val brevPdf = "".toByteArray()
@@ -794,6 +872,7 @@ internal class RevurderingServiceImplTest {
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
@@ -872,6 +951,7 @@ internal class RevurderingServiceImplTest {
             ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
@@ -923,6 +1003,7 @@ internal class RevurderingServiceImplTest {
             ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
@@ -982,6 +1063,7 @@ internal class RevurderingServiceImplTest {
             ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
 
@@ -1038,6 +1120,7 @@ internal class RevurderingServiceImplTest {
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -1069,6 +1152,7 @@ internal class RevurderingServiceImplTest {
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
         val revurderingRepoMock = mock<RevurderingRepo> {

@@ -11,12 +11,16 @@ import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -43,11 +47,15 @@ internal class SøknadsbehandlingServiceOpprettetTest {
 
         val service = createSøknadsbehandlingService(
             søknadsbehandlingRepo = saksbehandlingRepo,
-            søknadService = søknadServiceMock
+            søknadService = søknadServiceMock,
         )
 
         val søknadId = UUID.randomUUID()
-        service.opprett(SøknadsbehandlingService.OpprettRequest((søknadId))) shouldBe SøknadsbehandlingService.KunneIkkeOpprette.FantIkkeSøknad.left()
+        service.opprett(
+            SøknadsbehandlingService.OpprettRequest(
+                søknadId = søknadId,
+            ),
+        ) shouldBe SøknadsbehandlingService.KunneIkkeOpprette.FantIkkeSøknad.left()
 
         verify(søknadServiceMock).hentSøknad(søknadId)
         verifyNoMoreInteractions(søknadServiceMock, saksbehandlingRepo)
@@ -66,7 +74,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             lukketAv = NavIdentBruker.Saksbehandler("sas"),
             lukketType = Søknad.Lukket.LukketType.BORTFALT,
             lukketJournalpostId = null,
-            lukketBrevbestillingId = null
+            lukketBrevbestillingId = null,
         )
 
         val søknadServiceMock = mock<SøknadService> {
@@ -77,10 +85,14 @@ internal class SøknadsbehandlingServiceOpprettetTest {
 
         val service = createSøknadsbehandlingService(
             søknadsbehandlingRepo = saksbehandlingRepo,
-            søknadService = søknadServiceMock
+            søknadService = søknadServiceMock,
         )
 
-        service.opprett(SøknadsbehandlingService.OpprettRequest((lukketSøknad.id))) shouldBe SøknadsbehandlingService.KunneIkkeOpprette.SøknadErLukket.left()
+        service.opprett(
+            SøknadsbehandlingService.OpprettRequest(
+                søknadId = lukketSøknad.id,
+            ),
+        ) shouldBe SøknadsbehandlingService.KunneIkkeOpprette.SøknadErLukket.left()
 
         verify(søknadServiceMock).hentSøknad(lukketSøknad.id)
         verifyNoMoreInteractions(søknadServiceMock, saksbehandlingRepo)
@@ -92,7 +104,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(),
             sakId = UUID.randomUUID(),
-            søknadInnhold = SøknadInnholdTestdataBuilder.build()
+            søknadInnhold = SøknadInnholdTestdataBuilder.build(),
         )
 
         val søknadServiceMock = mock<SøknadService> {
@@ -103,10 +115,14 @@ internal class SøknadsbehandlingServiceOpprettetTest {
 
         val service = createSøknadsbehandlingService(
             søknadsbehandlingRepo = saksbehandlingRepo,
-            søknadService = søknadServiceMock
+            søknadService = søknadServiceMock,
         )
 
-        service.opprett(SøknadsbehandlingService.OpprettRequest((utenJournalpostOgOppgave.id))) shouldBe SøknadsbehandlingService.KunneIkkeOpprette.SøknadManglerOppgave.left()
+        service.opprett(
+            SøknadsbehandlingService.OpprettRequest(
+                søknadId = utenJournalpostOgOppgave.id,
+            ),
+        ) shouldBe SøknadsbehandlingService.KunneIkkeOpprette.SøknadManglerOppgave.left()
 
         verify(søknadServiceMock).hentSøknad(utenJournalpostOgOppgave.id)
         verifyNoMoreInteractions(søknadServiceMock, saksbehandlingRepo)
@@ -120,7 +136,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             sakId = UUID.randomUUID(),
             søknadInnhold = SøknadInnholdTestdataBuilder.build(),
             journalpostId = JournalpostId(value = "2"),
-            oppgaveId = OppgaveId(value = "1")
+            oppgaveId = OppgaveId(value = "1"),
         )
         val søknadServiceMock = mock<SøknadService> {
             on { hentSøknad(any()) } doReturn søknad.right()
@@ -134,10 +150,14 @@ internal class SøknadsbehandlingServiceOpprettetTest {
         val service = createSøknadsbehandlingService(
             søknadsbehandlingRepo = saksbehandlingRepo,
             søknadService = søknadServiceMock,
-            søknadRepo = søknadRepoMock
+            søknadRepo = søknadRepoMock,
         )
 
-        service.opprett(SøknadsbehandlingService.OpprettRequest((søknad.id))) shouldBe SøknadsbehandlingService.KunneIkkeOpprette.SøknadHarAlleredeBehandling.left()
+        service.opprett(
+            SøknadsbehandlingService.OpprettRequest(
+                søknadId = søknad.id,
+            ),
+        ) shouldBe SøknadsbehandlingService.KunneIkkeOpprette.SøknadHarAlleredeBehandling.left()
 
         verify(søknadServiceMock).hentSøknad(søknad.id)
         verify(søknadRepoMock).harSøknadPåbegyntBehandling(søknad.id)
@@ -147,6 +167,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
     @Test
     fun `Oppretter behandling og publiserer event`() {
         val sakId = UUID.randomUUID()
+        val stønadsperiode = ValgtStønadsperiode(Periode.create(1.januar(2021), 31.desember(2021)))
         val søknadInnhold = SøknadInnholdTestdataBuilder.build()
         val fnr = søknadInnhold.personopplysninger.fnr
         val søknad = Søknad.Journalført.MedOppgave(
@@ -155,7 +176,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             sakId = sakId,
             søknadInnhold = søknadInnhold,
             journalpostId = JournalpostId(value = "2"),
-            oppgaveId = OppgaveId(value = "1")
+            oppgaveId = OppgaveId(value = "1"),
         )
         val expectedSøknadsbehandling = Søknadsbehandling.Vilkårsvurdert.Uavklart(
             id = UUID.randomUUID(), // blir ignorert eller overskrevet
@@ -167,6 +188,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             fnr = fnr,
             fritekstTilBrev = "",
+            stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
         val søknadService: SøknadService = mock {
@@ -194,7 +216,11 @@ internal class SøknadsbehandlingServiceOpprettetTest {
         }
         behandlingService.addObserver(eventObserver)
 
-        behandlingService.opprett(SøknadsbehandlingService.OpprettRequest(søknad.id)).orNull()!!.shouldBeEqualToIgnoringFields(
+        behandlingService.opprett(
+            SøknadsbehandlingService.OpprettRequest(
+                søknadId = søknad.id,
+            ),
+        ).orNull()!!.shouldBeEqualToIgnoringFields(
             expectedSøknadsbehandling,
             Søknadsbehandling.Vilkårsvurdert.Uavklart::id,
             Søknadsbehandling.Vilkårsvurdert.Uavklart::opprettet,
@@ -207,14 +233,14 @@ internal class SøknadsbehandlingServiceOpprettetTest {
         verify(søknadsbehandlingRepoMock).lagre(persistertSøknadsbehandling.capture())
 
         verify(søknadsbehandlingRepoMock).hent(
-            argThat { it shouldBe persistertSøknadsbehandling.firstValue.id }
+            argThat { it shouldBe persistertSøknadsbehandling.firstValue.id },
         )
         verify(eventObserver).handle(
             argThat {
                 it shouldBe Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingOpprettet(
-                    expectedSøknadsbehandling
+                    expectedSøknadsbehandling,
                 )
-            }
+            },
         )
     }
 }

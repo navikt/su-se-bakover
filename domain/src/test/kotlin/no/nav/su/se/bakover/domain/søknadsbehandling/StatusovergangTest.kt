@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
@@ -32,6 +33,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
 import java.util.UUID
@@ -49,10 +51,10 @@ internal class StatusovergangTest {
                 månedsbeløp = 1000.0,
                 periode = Periode.create(1.januar(2021), 31.desember(2021)),
                 utenlandskInntekt = null,
-                tilhører = FradragTilhører.BRUKER
-            )
+                tilhører = FradragTilhører.BRUKER,
+            ),
         ),
-        fradragStrategy = FradragStrategy.Enslig
+        fradragStrategy = FradragStrategy.Enslig,
     )
 
     private val avslagBeregning = BeregningFactory.ny(
@@ -66,12 +68,13 @@ internal class StatusovergangTest {
                 månedsbeløp = 1000000.0,
                 periode = Periode.create(1.januar(2021), 31.desember(2021)),
                 utenlandskInntekt = null,
-                tilhører = FradragTilhører.BRUKER
-            )
+                tilhører = FradragTilhører.BRUKER,
+            ),
         ),
-        fradragStrategy = FradragStrategy.Enslig
+        fradragStrategy = FradragStrategy.Enslig,
     )
 
+    private val stønadsperiode = ValgtStønadsperiode(Periode.create(1.januar(2021), 31.desember(2021)), "begrunnelsen")
     private val opprettet = Søknadsbehandling.Vilkårsvurdert.Uavklart(
         id = UUID.randomUUID(),
         opprettet = Tidspunkt.now(),
@@ -83,13 +86,13 @@ internal class StatusovergangTest {
             sakId = UUID.randomUUID(),
             søknadInnhold = SøknadInnholdTestdataBuilder.build(),
             journalpostId = JournalpostId(""),
-            oppgaveId = OppgaveId("")
-
+            oppgaveId = OppgaveId(""),
         ),
         oppgaveId = OppgaveId(""),
         behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
         fnr = FnrGenerator.random(),
         fritekstTilBrev = "",
+        stønadsperiode = stønadsperiode,
         grunnlagsdata = Grunnlagsdata.EMPTY,
     )
 
@@ -98,7 +101,7 @@ internal class StatusovergangTest {
         gjelderNavn = "",
         datoBeregnet = LocalDate.EPOCH,
         nettoBeløp = 2500,
-        periodeList = emptyList()
+        periodeList = emptyList(),
     )
 
     private val saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler")
@@ -111,17 +114,17 @@ internal class StatusovergangTest {
     private val distribuertIverksettingssteg =
         JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
             journalpostId = JournalpostId("journalpostId"),
-            brevbestillingId = BrevbestillingId("brevbesttilingId")
+            brevbestillingId = BrevbestillingId("brevbesttilingId"),
         )
     private val fritekstTilBrev: String = "Fritekst til brev"
 
     private val vilkårsvurdertInnvilget: Søknadsbehandling.Vilkårsvurdert.Innvilget =
         opprettet.tilVilkårsvurdert(
-            Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
+            Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
         ) as Søknadsbehandling.Vilkårsvurdert.Innvilget
     private val vilkårsvurdertAvslag: Søknadsbehandling.Vilkårsvurdert.Avslag =
         opprettet.tilVilkårsvurdert(
-            Behandlingsinformasjon.lagTomBehandlingsinformasjon().withVilkårAvslått()
+            Behandlingsinformasjon.lagTomBehandlingsinformasjon().withVilkårAvslått(),
         ) as Søknadsbehandling.Vilkårsvurdert.Avslag
     private val beregnetInnvilget: Søknadsbehandling.Beregnet.Innvilget =
         vilkårsvurdertInnvilget.tilBeregnet(innvilgetBeregning) as Søknadsbehandling.Beregnet.Innvilget
@@ -153,7 +156,7 @@ internal class StatusovergangTest {
         fun `opprettet til vilkårsvurdert innvilget`() {
             statusovergang(
                 opprettet,
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt())
+                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt()),
             ) shouldBe vilkårsvurdertInnvilget
         }
 
@@ -161,7 +164,7 @@ internal class StatusovergangTest {
         fun `opprettet til vilkårsvurdert avslag`() {
             statusovergang(
                 opprettet,
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårAvslått())
+                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårAvslått()),
             ) shouldBe vilkårsvurdertAvslag
         }
 
@@ -169,7 +172,7 @@ internal class StatusovergangTest {
         fun `opprettet til vilkårsvurdert uavklart (opprettet)`() {
             statusovergang(
                 opprettet,
-                Statusovergang.TilVilkårsvurdert(withVilkårIkkeVurdert())
+                Statusovergang.TilVilkårsvurdert(withVilkårIkkeVurdert()),
             ) shouldBe opprettet
         }
 
@@ -177,7 +180,7 @@ internal class StatusovergangTest {
         fun `vilkårsvurdert innvilget til vilkårsvurdert innvilget`() {
             statusovergang(
                 vilkårsvurdertInnvilget,
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt())
+                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt()),
             ) shouldBe vilkårsvurdertInnvilget
         }
 
@@ -185,7 +188,7 @@ internal class StatusovergangTest {
         fun `vilkårsvurdert innvilget til vilkårsvurdert avslag`() {
             statusovergang(
                 vilkårsvurdertInnvilget,
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårAvslått())
+                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårAvslått()),
             ) shouldBe vilkårsvurdertAvslag
         }
 
@@ -193,7 +196,7 @@ internal class StatusovergangTest {
         fun `vilkårsvurdert avslag til vilkårsvurdert innvilget`() {
             statusovergang(
                 vilkårsvurdertAvslag,
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt())
+                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt()),
             ) shouldBe vilkårsvurdertInnvilget
         }
 
@@ -201,7 +204,7 @@ internal class StatusovergangTest {
         fun `vilkårsvurdert avslag til vilkårsvurdert avslag`() {
             statusovergang(
                 vilkårsvurdertAvslag,
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårAvslått())
+                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårAvslått()),
             ) shouldBe vilkårsvurdertAvslag
         }
 
@@ -209,7 +212,7 @@ internal class StatusovergangTest {
         fun `beregnet innvilget til vilkårsvurdert innvilget`() {
             statusovergang(
                 beregnetInnvilget,
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt())
+                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt()),
             ) shouldBe vilkårsvurdertInnvilget
         }
 
@@ -217,7 +220,7 @@ internal class StatusovergangTest {
         fun `beregnet innvilget til vilkårsvurdert avslag`() {
             statusovergang(
                 beregnetInnvilget,
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårAvslått())
+                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårAvslått()),
             ) shouldBe vilkårsvurdertAvslag
         }
 
@@ -225,7 +228,7 @@ internal class StatusovergangTest {
         fun `beregnet avslag til vilkårsvurdert innvilget`() {
             statusovergang(
                 beregnetAvslag,
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt())
+                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt()),
             ) shouldBe vilkårsvurdertInnvilget
         }
 
@@ -233,7 +236,7 @@ internal class StatusovergangTest {
         fun `beregnet avslag til vilkårsvurdert avslag`() {
             statusovergang(
                 beregnetAvslag,
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårAvslått())
+                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårAvslått()),
             ) shouldBe vilkårsvurdertAvslag
         }
 
@@ -241,7 +244,7 @@ internal class StatusovergangTest {
         fun `simulert til vilkårsvurdert innvilget`() {
             statusovergang(
                 simulert,
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt())
+                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt()),
             ) shouldBe vilkårsvurdertInnvilget
         }
 
@@ -249,7 +252,7 @@ internal class StatusovergangTest {
         fun `simulert til vilkårsvurdert avslag`() {
             statusovergang(
                 simulert,
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårAvslått())
+                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårAvslått()),
             ) shouldBe vilkårsvurdertAvslag
         }
 
@@ -257,7 +260,7 @@ internal class StatusovergangTest {
         fun `underkjent innvilget til vilkårsvurdert innvilget`() {
             statusovergang(
                 underkjentInnvilget,
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt())
+                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt()),
             ) shouldBe vilkårsvurdertInnvilget.medFritekstTilBrev(underkjentInnvilget.fritekstTilBrev)
         }
 
@@ -265,7 +268,7 @@ internal class StatusovergangTest {
         fun `underkjent innvilget til vilkårsvurdert avslag`() {
             statusovergang(
                 underkjentInnvilget,
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårAvslått())
+                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårAvslått()),
             ) shouldBe vilkårsvurdertAvslag.medFritekstTilBrev(underkjentInnvilget.fritekstTilBrev)
         }
 
@@ -273,7 +276,7 @@ internal class StatusovergangTest {
         fun `underkjent avslag vilkår til vilkårsvurdert innvilget`() {
             statusovergang(
                 underkjentAvslagVilkår,
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt())
+                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt()),
             ) shouldBe vilkårsvurdertInnvilget.medFritekstTilBrev(underkjentAvslagVilkår.fritekstTilBrev)
         }
 
@@ -281,7 +284,7 @@ internal class StatusovergangTest {
         fun `underkjent avslag vilkår til vilkårsvurdert avslag`() {
             statusovergang(
                 underkjentAvslagVilkår,
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårAvslått())
+                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårAvslått()),
             ) shouldBe vilkårsvurdertAvslag.medFritekstTilBrev(underkjentAvslagVilkår.fritekstTilBrev)
         }
 
@@ -289,7 +292,7 @@ internal class StatusovergangTest {
         fun `underkjent avslag beregning til vilkårsvurdert innvilget`() {
             statusovergang(
                 underkjentAvslagBeregning,
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt())
+                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt()),
             ) shouldBe vilkårsvurdertInnvilget.medFritekstTilBrev(underkjentAvslagBeregning.fritekstTilBrev)
         }
 
@@ -297,7 +300,7 @@ internal class StatusovergangTest {
         fun `underkjent avslag beregning til vilkårsvurdert avslag`() {
             statusovergang(
                 underkjentAvslagBeregning,
-                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårAvslått())
+                Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårAvslått()),
             ) shouldBe vilkårsvurdertAvslag.medFritekstTilBrev(underkjentAvslagBeregning.fritekstTilBrev)
         }
 
@@ -314,13 +317,13 @@ internal class StatusovergangTest {
                 assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
                     statusovergang(
                         it,
-                        Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt())
+                        Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withAlleVilkårOppfylt()),
                     )
                 }
                 assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
                     statusovergang(
                         it,
-                        Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårAvslått())
+                        Statusovergang.TilVilkårsvurdert(Behandlingsinformasjon().withVilkårAvslått()),
                     )
                 }
             }
@@ -333,7 +336,7 @@ internal class StatusovergangTest {
         fun `vilkårsvurdert innvilget til beregnet innvilget`() {
             statusovergang(
                 vilkårsvurdertInnvilget,
-                Statusovergang.TilBeregnet { innvilgetBeregning }
+                Statusovergang.TilBeregnet { innvilgetBeregning },
             ) shouldBe beregnetInnvilget
         }
 
@@ -341,7 +344,7 @@ internal class StatusovergangTest {
         fun `vilkårsvurdert innvilget til beregnet avslag`() {
             statusovergang(
                 vilkårsvurdertInnvilget,
-                Statusovergang.TilBeregnet { avslagBeregning }
+                Statusovergang.TilBeregnet { avslagBeregning },
             ) shouldBe beregnetAvslag
         }
 
@@ -349,7 +352,7 @@ internal class StatusovergangTest {
         fun `beregnet innvilget til beregnet innvilget`() {
             statusovergang(
                 beregnetInnvilget,
-                Statusovergang.TilBeregnet { innvilgetBeregning }
+                Statusovergang.TilBeregnet { innvilgetBeregning },
             ) shouldBe beregnetInnvilget
         }
 
@@ -357,7 +360,7 @@ internal class StatusovergangTest {
         fun `beregnet innvilget til beregnet avslag`() {
             statusovergang(
                 beregnetInnvilget,
-                Statusovergang.TilBeregnet { avslagBeregning }
+                Statusovergang.TilBeregnet { avslagBeregning },
             ) shouldBe beregnetAvslag
         }
 
@@ -365,7 +368,7 @@ internal class StatusovergangTest {
         fun `beregnet avslag til beregnet innvilget`() {
             statusovergang(
                 beregnetAvslag,
-                Statusovergang.TilBeregnet { innvilgetBeregning }
+                Statusovergang.TilBeregnet { innvilgetBeregning },
             ) shouldBe beregnetInnvilget
         }
 
@@ -373,7 +376,7 @@ internal class StatusovergangTest {
         fun `beregnet avslag til beregnet avslag`() {
             statusovergang(
                 beregnetAvslag,
-                Statusovergang.TilBeregnet { avslagBeregning }
+                Statusovergang.TilBeregnet { avslagBeregning },
             ) shouldBe beregnetAvslag
         }
 
@@ -381,7 +384,7 @@ internal class StatusovergangTest {
         fun `simulert til beregnet innvilget`() {
             statusovergang(
                 simulert,
-                Statusovergang.TilBeregnet { innvilgetBeregning }
+                Statusovergang.TilBeregnet { innvilgetBeregning },
             ) shouldBe beregnetInnvilget
         }
 
@@ -389,7 +392,7 @@ internal class StatusovergangTest {
         fun `simulert til beregnet avslag`() {
             statusovergang(
                 simulert,
-                Statusovergang.TilBeregnet { avslagBeregning }
+                Statusovergang.TilBeregnet { avslagBeregning },
             ) shouldBe beregnetAvslag
         }
 
@@ -397,7 +400,7 @@ internal class StatusovergangTest {
         fun `underkjent avslag med beregning til beregnet innvilget`() {
             statusovergang(
                 underkjentAvslagBeregning,
-                Statusovergang.TilBeregnet { innvilgetBeregning }
+                Statusovergang.TilBeregnet { innvilgetBeregning },
             ) shouldBe beregnetInnvilget.medFritekstTilBrev(underkjentAvslagBeregning.fritekstTilBrev)
         }
 
@@ -405,7 +408,7 @@ internal class StatusovergangTest {
         fun `underkjent avslag med beregning til beregnet avslag`() {
             statusovergang(
                 underkjentAvslagBeregning,
-                Statusovergang.TilBeregnet { avslagBeregning }
+                Statusovergang.TilBeregnet { avslagBeregning },
             ) shouldBe beregnetAvslag.medFritekstTilBrev(underkjentAvslagBeregning.fritekstTilBrev)
         }
 
@@ -413,7 +416,7 @@ internal class StatusovergangTest {
         fun `underkjent innvilget til beregnet innvilget`() {
             statusovergang(
                 underkjentInnvilget,
-                Statusovergang.TilBeregnet { innvilgetBeregning }
+                Statusovergang.TilBeregnet { innvilgetBeregning },
             ) shouldBe beregnetInnvilget.medFritekstTilBrev(underkjentInnvilget.fritekstTilBrev)
         }
 
@@ -421,7 +424,7 @@ internal class StatusovergangTest {
         fun `underkjent innvilget til beregnet avslag`() {
             statusovergang(
                 underkjentInnvilget,
-                Statusovergang.TilBeregnet { avslagBeregning }
+                Statusovergang.TilBeregnet { avslagBeregning },
             ) shouldBe beregnetAvslag.medFritekstTilBrev(underkjentInnvilget.fritekstTilBrev)
         }
 
@@ -436,18 +439,18 @@ internal class StatusovergangTest {
                 underkjentAvslagVilkår,
                 iverksattAvslagBeregning,
                 iverksattAvslagVilkår,
-                iverksattInnvilget
+                iverksattInnvilget,
             ).forEach {
                 assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
                     statusovergang(
                         it,
-                        Statusovergang.TilBeregnet { innvilgetBeregning }
+                        Statusovergang.TilBeregnet { innvilgetBeregning },
                     )
                 }
                 assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
                     statusovergang(
                         it,
-                        Statusovergang.TilBeregnet { avslagBeregning }
+                        Statusovergang.TilBeregnet { avslagBeregning },
                     )
                 }
             }
@@ -462,7 +465,7 @@ internal class StatusovergangTest {
                 beregnetInnvilget,
                 Statusovergang.TilSimulert {
                     Statusovergang.KunneIkkeSimulereBehandling.left()
-                }
+                },
             ) shouldBe Statusovergang.KunneIkkeSimulereBehandling.left()
         }
 
@@ -472,7 +475,7 @@ internal class StatusovergangTest {
                 beregnetInnvilget,
                 Statusovergang.TilSimulert {
                     simulering.right()
-                }
+                },
             ) shouldBe simulert.right()
         }
 
@@ -482,7 +485,7 @@ internal class StatusovergangTest {
                 simulert,
                 Statusovergang.TilSimulert {
                     Statusovergang.KunneIkkeSimulereBehandling.left()
-                }
+                },
             ) shouldBe Statusovergang.KunneIkkeSimulereBehandling.left()
         }
 
@@ -492,7 +495,7 @@ internal class StatusovergangTest {
                 simulert,
                 Statusovergang.TilSimulert {
                     simulering.right()
-                }
+                },
             ) shouldBe simulert.right()
         }
 
@@ -502,7 +505,7 @@ internal class StatusovergangTest {
                 underkjentInnvilget,
                 Statusovergang.TilSimulert {
                     Statusovergang.KunneIkkeSimulereBehandling.left()
-                }
+                },
             ) shouldBe Statusovergang.KunneIkkeSimulereBehandling.left()
         }
 
@@ -512,7 +515,7 @@ internal class StatusovergangTest {
                 underkjentInnvilget,
                 Statusovergang.TilSimulert {
                     simulering.right()
-                }
+                },
             ) shouldBe simulert.copy(fritekstTilBrev = "Fritekst til brev").right()
         }
 
@@ -530,12 +533,12 @@ internal class StatusovergangTest {
                 underkjentAvslagVilkår,
                 iverksattAvslagBeregning,
                 iverksattAvslagVilkår,
-                iverksattInnvilget
+                iverksattInnvilget,
             ).forEach {
                 assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
                     forsøkStatusovergang(
                         it,
-                        Statusovergang.TilSimulert { simulering.right() }
+                        Statusovergang.TilSimulert { simulering.right() },
                     )
                 }
             }
@@ -548,7 +551,7 @@ internal class StatusovergangTest {
         fun `vilkårsvurder avslag til attestering`() {
             statusovergang(
                 vilkårsvurdertAvslag,
-                Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev)
+                Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev),
             ) shouldBe tilAttesteringAvslagVilkår
         }
 
@@ -556,7 +559,7 @@ internal class StatusovergangTest {
         fun `vilkårsvurder beregning til attestering`() {
             statusovergang(
                 beregnetAvslag,
-                Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev)
+                Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev),
             ) shouldBe tilAttesteringAvslagBeregning
         }
 
@@ -564,7 +567,7 @@ internal class StatusovergangTest {
         fun `simulert til attestering`() {
             statusovergang(
                 simulert,
-                Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev)
+                Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev),
             ) shouldBe tilAttesteringInnvilget
         }
 
@@ -572,7 +575,7 @@ internal class StatusovergangTest {
         fun `underkjent avslag vilkår til attestering`() {
             statusovergang(
                 underkjentAvslagVilkår,
-                Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev)
+                Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev),
             ) shouldBe tilAttesteringAvslagVilkår
         }
 
@@ -580,7 +583,7 @@ internal class StatusovergangTest {
         fun `underkjent avslag beregning til attestering`() {
             statusovergang(
                 underkjentAvslagBeregning,
-                Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev)
+                Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev),
             ) shouldBe tilAttesteringAvslagBeregning
         }
 
@@ -588,7 +591,7 @@ internal class StatusovergangTest {
         fun `underkjent innvilging til attestering`() {
             statusovergang(
                 underkjentInnvilget,
-                Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev)
+                Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev),
             ) shouldBe tilAttesteringInnvilget
         }
 
@@ -603,12 +606,12 @@ internal class StatusovergangTest {
                 tilAttesteringAvslagVilkår,
                 iverksattAvslagBeregning,
                 iverksattAvslagVilkår,
-                iverksattInnvilget
+                iverksattInnvilget,
             ).forEach {
                 assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
                     statusovergang(
                         it,
-                        Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev)
+                        Statusovergang.TilAttestering(saksbehandler, fritekstTilBrev),
                     )
                 }
             }
@@ -621,7 +624,7 @@ internal class StatusovergangTest {
         fun `til attestering avslag vilkår til underkjent avslag vilkår`() {
             forsøkStatusovergang(
                 tilAttesteringAvslagVilkår,
-                Statusovergang.TilUnderkjent(underkjentAttestering)
+                Statusovergang.TilUnderkjent(underkjentAttestering),
             ) shouldBe underkjentAvslagVilkår.right()
         }
 
@@ -629,7 +632,7 @@ internal class StatusovergangTest {
         fun `til attestering avslag beregning til underkjent avslag beregning`() {
             forsøkStatusovergang(
                 tilAttesteringAvslagBeregning,
-                Statusovergang.TilUnderkjent(underkjentAttestering)
+                Statusovergang.TilUnderkjent(underkjentAttestering),
             ) shouldBe underkjentAvslagBeregning.right()
         }
 
@@ -637,7 +640,7 @@ internal class StatusovergangTest {
         fun `til attestering innvilget til underkjent innvilging`() {
             forsøkStatusovergang(
                 tilAttesteringInnvilget,
-                Statusovergang.TilUnderkjent(underkjentAttestering)
+                Statusovergang.TilUnderkjent(underkjentAttestering),
             ) shouldBe underkjentInnvilget.right()
         }
 
@@ -649,9 +652,9 @@ internal class StatusovergangTest {
                     Attestering.Underkjent(
                         NavIdentBruker.Attestant("sneaky"),
                         Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
-                        ""
-                    )
-                )
+                        "",
+                    ),
+                ),
             ) shouldBe Statusovergang.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
         }
 
@@ -663,9 +666,9 @@ internal class StatusovergangTest {
                     Attestering.Underkjent(
                         NavIdentBruker.Attestant("sneaky"),
                         Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
-                        ""
-                    )
-                )
+                        "",
+                    ),
+                ),
             ) shouldBe Statusovergang.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
         }
 
@@ -677,9 +680,9 @@ internal class StatusovergangTest {
                     Attestering.Underkjent(
                         NavIdentBruker.Attestant("sneaky"),
                         Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
-                        ""
-                    )
-                )
+                        "",
+                    ),
+                ),
             ) shouldBe Statusovergang.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
         }
 
@@ -697,12 +700,12 @@ internal class StatusovergangTest {
                 underkjentInnvilget,
                 iverksattAvslagBeregning,
                 iverksattAvslagVilkår,
-                iverksattInnvilget
+                iverksattInnvilget,
             ).forEach {
                 assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
                     forsøkStatusovergang(
                         it,
-                        Statusovergang.TilUnderkjent(underkjentAttestering)
+                        Statusovergang.TilUnderkjent(underkjentAttestering),
                     )
                 }
             }
@@ -716,8 +719,8 @@ internal class StatusovergangTest {
             forsøkStatusovergang(
                 tilAttesteringAvslagVilkår,
                 Statusovergang.TilIverksatt(
-                    attestering = attestering
-                ) { throw IllegalStateException() }
+                    attestering = attestering,
+                ) { throw IllegalStateException() },
             ) shouldBe iverksattAvslagVilkår.right()
         }
 
@@ -726,8 +729,8 @@ internal class StatusovergangTest {
             forsøkStatusovergang(
                 tilAttesteringAvslagBeregning,
                 Statusovergang.TilIverksatt(
-                    attestering = attestering
-                ) { throw IllegalStateException() }
+                    attestering = attestering,
+                ) { throw IllegalStateException() },
             ) shouldBe iverksattAvslagBeregning.right()
         }
 
@@ -736,8 +739,8 @@ internal class StatusovergangTest {
             forsøkStatusovergang(
                 tilAttesteringInnvilget,
                 Statusovergang.TilIverksatt(
-                    attestering = attestering
-                ) { utbetalingId.right() }
+                    attestering = attestering,
+                ) { utbetalingId.right() },
             ) shouldBe iverksattInnvilget.right()
         }
 
@@ -746,8 +749,8 @@ internal class StatusovergangTest {
             forsøkStatusovergang(
                 tilAttesteringAvslagVilkår.copy(saksbehandler = NavIdentBruker.Saksbehandler(attestering.attestant.navIdent)),
                 Statusovergang.TilIverksatt(
-                    attestering = attestering
-                ) { throw IllegalStateException() }
+                    attestering = attestering,
+                ) { throw IllegalStateException() },
             ) shouldBe Statusovergang.KunneIkkeIverksetteSøknadsbehandling.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
         }
 
@@ -756,8 +759,8 @@ internal class StatusovergangTest {
             forsøkStatusovergang(
                 tilAttesteringAvslagBeregning.copy(saksbehandler = NavIdentBruker.Saksbehandler(attestering.attestant.navIdent)),
                 Statusovergang.TilIverksatt(
-                    attestering = attestering
-                ) { throw IllegalStateException() }
+                    attestering = attestering,
+                ) { throw IllegalStateException() },
             ) shouldBe Statusovergang.KunneIkkeIverksetteSøknadsbehandling.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
         }
 
@@ -766,8 +769,8 @@ internal class StatusovergangTest {
             forsøkStatusovergang(
                 tilAttesteringInnvilget.copy(saksbehandler = NavIdentBruker.Saksbehandler(attestering.attestant.navIdent)),
                 Statusovergang.TilIverksatt(
-                    attestering = attestering
-                ) { UUID30.randomUUID().right() }
+                    attestering = attestering,
+                ) { UUID30.randomUUID().right() },
             ) shouldBe Statusovergang.KunneIkkeIverksetteSøknadsbehandling.SaksbehandlerOgAttestantKanIkkeVæreSammePerson.left()
         }
 
@@ -785,12 +788,57 @@ internal class StatusovergangTest {
                 underkjentInnvilget,
                 iverksattAvslagBeregning,
                 iverksattAvslagVilkår,
-                iverksattInnvilget
+                iverksattInnvilget,
             ).forEach {
                 assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
                     forsøkStatusovergang(
                         it,
-                        Statusovergang.TilUnderkjent(underkjentAttestering)
+                        Statusovergang.TilUnderkjent(underkjentAttestering),
+                    )
+                }
+            }
+        }
+    }
+
+    @Nested
+    inner class OppdaterStønadsperiode {
+
+        @Test
+        fun `lovlige overganger`() {
+            listOf(
+                opprettet,
+                vilkårsvurdertInnvilget,
+                vilkårsvurdertAvslag,
+                beregnetInnvilget,
+                beregnetAvslag,
+                simulert,
+                underkjentAvslagVilkår,
+                underkjentAvslagBeregning,
+                underkjentInnvilget,
+            ).forEach {
+                assertDoesNotThrow {
+                    statusovergang(
+                        søknadsbehandling = it,
+                        statusovergang = Statusovergang.OppdaterStønadsperiode(stønadsperiode),
+                    )
+                }
+            }
+        }
+
+        @Test
+        fun `ulovlige overganger`() {
+            listOf(
+                tilAttesteringAvslagBeregning,
+                tilAttesteringAvslagVilkår,
+                tilAttesteringInnvilget,
+                iverksattAvslagBeregning,
+                iverksattAvslagVilkår,
+                iverksattInnvilget,
+            ).forEach {
+                assertThrows<StatusovergangVisitor.UgyldigStatusovergangException>("Kastet ikke exception: ${it.status}") {
+                    statusovergang(
+                        søknadsbehandling = it,
+                        statusovergang = Statusovergang.OppdaterStønadsperiode(stønadsperiode),
                     )
                 }
             }

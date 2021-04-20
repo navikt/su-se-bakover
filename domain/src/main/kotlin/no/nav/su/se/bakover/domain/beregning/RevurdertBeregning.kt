@@ -17,29 +17,27 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
  *
  * Det kan hende vi vil gi denne navnet: EndretBeregning (dersom den er gjenbrukbar for klage, anke og automatiske/recurring endringer som grunnbeløpsendring.
  */
-internal class RevurdertBeregning private constructor(revurdertBeregning: Beregning) : Beregning by revurdertBeregning {
+internal object RevurdertBeregning {
 
-    companion object {
-        fun fraSøknadsbehandling(
-            vedtattBeregning: Beregning,
-            beregningsgrunnlag: Beregningsgrunnlag,
-            beregningsstrategi: BeregningStrategy,
-            beregnMedVirkningNesteMånedDersomStønadenGårNed: Boolean = false,
-        ): Either<KanIkkeVelgeSisteMånedVedNedgangIStønaden, Beregning> {
-            val revurdertBeregning = beregningsstrategi.beregn(beregningsgrunnlag)
-            if (!beregnMedVirkningNesteMånedDersomStønadenGårNed) {
-                return revurdertBeregning.right()
-            }
+    fun fraSøknadsbehandling(
+        vedtattBeregning: Beregning,
+        beregningsgrunnlag: Beregningsgrunnlag,
+        beregningsstrategi: BeregningStrategy,
+        beregnMedVirkningNesteMånedDersomStønadenGårNed: Boolean = false,
+    ): Either<KanIkkeVelgeSisteMånedVedNedgangIStønaden, Beregning> {
+        val revurdertBeregning = beregningsstrategi.beregn(beregningsgrunnlag)
+        if (!beregnMedVirkningNesteMånedDersomStønadenGårNed) {
+            return revurdertBeregning.right()
+        }
 
-            return when {
-                revurdertBeregning.getMånedsberegninger().first()
-                    .getSumYtelse() > vedtattBeregning.getMånedsberegninger().first()
-                    .getSumYtelse() -> revurdertBeregning.right()
-                revurdertBeregning.getMånedsberegninger().first()
-                    .getSumYtelse() < vedtattBeregning.getMånedsberegninger().first()
-                    .getSumYtelse() -> beregnMedVirkningFraOgMedMånedenEtter(revurdertBeregning)
-                else -> revurdertBeregning.right()
-            }
+        return when {
+            revurdertBeregning.getMånedsberegninger().first()
+                .getSumYtelse() > vedtattBeregning.getMånedsberegninger().first()
+                .getSumYtelse() -> revurdertBeregning.right()
+            revurdertBeregning.getMånedsberegninger().first()
+                .getSumYtelse() < vedtattBeregning.getMånedsberegninger().first()
+                .getSumYtelse() -> beregnMedVirkningFraOgMedMånedenEtter(revurdertBeregning)
+            else -> revurdertBeregning.right()
         }
     }
 }
@@ -84,7 +82,8 @@ private fun beregnMedVirkningFraOgMedMånedenEtter(
                     tilhører = it.getTilhører(),
                 )
             },
-        fradragStrategy = FradragStrategy.fromName(revurdertBeregning.getFradragStrategyName())
+        fradragStrategy = FradragStrategy.fromName(revurdertBeregning.getFradragStrategyName()),
+        begrunnelse = revurdertBeregning.getBegrunnelse()
     ).right()
 }
 

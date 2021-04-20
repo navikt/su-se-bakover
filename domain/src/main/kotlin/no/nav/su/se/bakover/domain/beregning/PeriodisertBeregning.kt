@@ -30,4 +30,6 @@ internal data class PeriodisertBeregning(
     override fun getSatsbeløp(): Double = sats.periodiser(periode).getValue(periode)
     override fun getFradrag(): List<Fradrag> = fradrag
     override fun getPeriode(): Periode = periode
+
+    override fun equals(other: Any?) = (other as? Månedsberegning)?.let { this.equals(other) } ?: false
 }

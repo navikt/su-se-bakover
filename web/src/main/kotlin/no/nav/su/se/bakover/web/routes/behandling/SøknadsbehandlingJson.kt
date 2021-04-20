@@ -25,6 +25,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
             saksbehandler = null,
             beregning = null,
             simulering = null,
+            stønadsperiode = saksbehandling.stønadsperiode?.toJson(),
             grunnlag = saksbehandling.grunnlagsdata.toJson(),
         )
         is Søknadsbehandling.Beregnet -> {
@@ -39,6 +40,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 saksbehandler = null,
                 beregning = saksbehandling.beregning.toJson(),
                 simulering = null,
+                stønadsperiode = saksbehandling.stønadsperiode.toJson(),
                 grunnlag = saksbehandling.grunnlagsdata.toJson(),
             )
         }
@@ -54,6 +56,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 saksbehandler = null,
                 beregning = saksbehandling.beregning.toJson(),
                 simulering = saksbehandling.simulering.toJson(),
+                stønadsperiode = saksbehandling.stønadsperiode.toJson(),
                 grunnlag = saksbehandling.grunnlagsdata.toJson(),
             )
         }
@@ -69,6 +72,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 saksbehandler = saksbehandling.saksbehandler.toString(),
                 beregning = saksbehandling.beregning.toJson(),
                 simulering = saksbehandling.simulering.toJson(),
+                stønadsperiode = saksbehandling.stønadsperiode.toJson(),
                 grunnlag = saksbehandling.grunnlagsdata.toJson(),
             )
         }
@@ -84,6 +88,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 saksbehandler = saksbehandling.saksbehandler.toString(),
                 beregning = saksbehandling.beregning.toJson(),
                 simulering = null,
+                stønadsperiode = saksbehandling.stønadsperiode.toJson(),
                 grunnlag = saksbehandling.grunnlagsdata.toJson(),
             )
         }
@@ -99,6 +104,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 saksbehandler = saksbehandling.saksbehandler.toString(),
                 beregning = null,
                 simulering = null,
+                stønadsperiode = saksbehandling.stønadsperiode.toJson(),
                 grunnlag = saksbehandling.grunnlagsdata.toJson(),
             )
         }
@@ -114,20 +120,21 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                     when (it) {
                         is Attestering.Iverksatt -> AttesteringJson(
                             attestant = it.attestant.navIdent,
-                            underkjennelse = null
+                            underkjennelse = null,
                         )
                         is Attestering.Underkjent -> AttesteringJson(
                             attestant = it.attestant.navIdent,
                             underkjennelse = UnderkjennelseJson(
                                 grunn = it.grunn.toString(),
-                                kommentar = it.kommentar
-                            )
+                                kommentar = it.kommentar,
+                            ),
                         )
                     }
                 },
                 saksbehandler = saksbehandling.saksbehandler.toString(),
                 beregning = saksbehandling.beregning.toJson(),
                 simulering = saksbehandling.simulering.toJson(),
+                stønadsperiode = saksbehandling.stønadsperiode.toJson(),
                 grunnlag = saksbehandling.grunnlagsdata.toJson(),
             )
         }
@@ -143,20 +150,21 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                     when (it) {
                         is Attestering.Iverksatt -> AttesteringJson(
                             attestant = it.attestant.navIdent,
-                            underkjennelse = null
+                            underkjennelse = null,
                         )
                         is Attestering.Underkjent -> AttesteringJson(
                             attestant = it.attestant.navIdent,
                             underkjennelse = UnderkjennelseJson(
                                 grunn = it.grunn.toString(),
-                                kommentar = it.kommentar
-                            )
+                                kommentar = it.kommentar,
+                            ),
                         )
                     }
                 },
                 saksbehandler = saksbehandling.saksbehandler.toString(),
                 beregning = null,
                 simulering = null,
+                stønadsperiode = saksbehandling.stønadsperiode.toJson(),
                 grunnlag = saksbehandling.grunnlagsdata.toJson(),
             )
         }
@@ -172,20 +180,21 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                     when (it) {
                         is Attestering.Iverksatt -> AttesteringJson(
                             attestant = it.attestant.navIdent,
-                            underkjennelse = null
+                            underkjennelse = null,
                         )
                         is Attestering.Underkjent -> AttesteringJson(
                             attestant = it.attestant.navIdent,
                             underkjennelse = UnderkjennelseJson(
                                 grunn = it.grunn.toString(),
-                                kommentar = it.kommentar
-                            )
+                                kommentar = it.kommentar,
+                            ),
                         )
                     }
                 },
                 saksbehandler = saksbehandling.saksbehandler.toString(),
                 beregning = saksbehandling.beregning.toJson(),
                 simulering = null,
+                stønadsperiode = saksbehandling.stønadsperiode.toJson(),
                 grunnlag = saksbehandling.grunnlagsdata.toJson(),
             )
         }
@@ -201,20 +210,21 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                     when (it) {
                         is Attestering.Iverksatt -> AttesteringJson(
                             attestant = it.attestant.navIdent,
-                            underkjennelse = null
+                            underkjennelse = null,
                         )
                         is Attestering.Underkjent -> AttesteringJson(
                             attestant = it.attestant.navIdent,
                             underkjennelse = UnderkjennelseJson(
                                 grunn = it.grunn.toString(),
-                                kommentar = it.kommentar
-                            )
+                                kommentar = it.kommentar,
+                            ),
                         )
                     }
                 },
                 saksbehandler = saksbehandling.saksbehandler.toString(),
                 beregning = saksbehandling.beregning.toJson(),
                 simulering = null,
+                stønadsperiode = saksbehandling.stønadsperiode.toJson(),
                 grunnlag = saksbehandling.grunnlagsdata.toJson(),
             )
         }
@@ -230,20 +240,21 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                     when (it) {
                         is Attestering.Iverksatt -> AttesteringJson(
                             attestant = it.attestant.navIdent,
-                            underkjennelse = null
+                            underkjennelse = null,
                         )
                         is Attestering.Underkjent -> AttesteringJson(
                             attestant = it.attestant.navIdent,
                             underkjennelse = UnderkjennelseJson(
                                 grunn = it.grunn.toString(),
-                                kommentar = it.kommentar
-                            )
+                                kommentar = it.kommentar,
+                            ),
                         )
                     }
                 },
                 saksbehandler = saksbehandling.saksbehandler.toString(),
                 beregning = null,
                 simulering = null,
+                stønadsperiode = saksbehandling.stønadsperiode.toJson(),
                 grunnlag = saksbehandling.grunnlagsdata.toJson(),
             )
         }
@@ -259,20 +270,21 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                     when (it) {
                         is Attestering.Iverksatt -> AttesteringJson(
                             attestant = it.attestant.navIdent,
-                            underkjennelse = null
+                            underkjennelse = null,
                         )
                         is Attestering.Underkjent -> AttesteringJson(
                             attestant = it.attestant.navIdent,
                             underkjennelse = UnderkjennelseJson(
                                 grunn = it.grunn.toString(),
-                                kommentar = it.kommentar
-                            )
+                                kommentar = it.kommentar,
+                            ),
                         )
                     }
                 },
                 saksbehandler = saksbehandling.saksbehandler.toString(),
                 beregning = saksbehandling.beregning.toJson(),
                 simulering = saksbehandling.simulering.toJson(),
+                stønadsperiode = saksbehandling.stønadsperiode.toJson(),
                 grunnlag = saksbehandling.grunnlagsdata.toJson(),
             )
         }

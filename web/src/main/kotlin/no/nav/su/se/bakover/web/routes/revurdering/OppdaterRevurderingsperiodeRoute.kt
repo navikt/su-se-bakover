@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppdatereRevurderingsperiode
 import no.nav.su.se.bakover.service.revurdering.OppdaterRevurderingRequest
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
+import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.errorJson
@@ -19,6 +20,7 @@ import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresponser.fantIkkeRevurdering
 import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresponser.ugyldigTilstand
+import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withRevurderingId
@@ -40,7 +42,7 @@ internal fun Route.oppdaterRevurderingRoute(
                 call.withBody<Body> { body ->
                     val navIdent = call.suUserContext.navIdent
 
-                    revurderingService.oppdaterRevurderingsperiode(
+                    revurderingService.oppdaterRevurdering(
                         OppdaterRevurderingRequest(
                             revurderingId = revurderingId,
                             fraOgMed = body.fraOgMed,
@@ -51,7 +53,8 @@ internal fun Route.oppdaterRevurderingRoute(
                     ).fold(
                         ifLeft = { call.svar(it.tilResultat()) },
                         ifRight = {
-                            call.audit("Oppdaterte perioden på revurdering med id: $revurderingId")
+                            call.sikkerlogg("Oppdaterte perioden på revurdering med id: $revurderingId")
+                            call.audit(it.fnr, AuditLogEvent.Action.UPDATE, it.id)
                             call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson())))
                         },
                     )

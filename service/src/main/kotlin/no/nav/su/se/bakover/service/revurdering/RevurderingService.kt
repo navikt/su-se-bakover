@@ -15,16 +15,13 @@ import java.util.UUID
 import kotlin.reflect.KClass
 
 interface RevurderingService {
-
-    fun hentRevurdering(
-        revurderingId: UUID,
-    ): Either<FantIkkeRevurdering, Revurdering>
+    fun hentRevurdering(revurderingId: UUID): Revurdering?
 
     fun opprettRevurdering(
         opprettRevurderingRequest: OpprettRevurderingRequest,
     ): Either<KunneIkkeOppretteRevurdering, Revurdering>
 
-    fun oppdaterRevurderingsperiode(
+    fun oppdaterRevurdering(
         oppdaterRevurderingRequest: OppdaterRevurderingRequest,
     ): Either<KunneIkkeOppdatereRevurderingsperiode, OpprettetRevurdering>
 
@@ -32,12 +29,11 @@ interface RevurderingService {
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
         fradrag: List<Fradrag>,
+        forventetInntekt: Int? = null,
     ): Either<KunneIkkeBeregneOgSimulereRevurdering, Revurdering>
 
     fun sendTilAttestering(
-        revurderingId: UUID,
-        saksbehandler: NavIdentBruker.Saksbehandler,
-        fritekstTilBrev: String,
+        request: SendTilAttesteringRequest,
     ): Either<KunneIkkeSendeRevurderingTilAttestering, Revurdering>
 
     fun lagBrevutkast(revurderingId: UUID, fritekst: String): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray>
@@ -57,6 +53,13 @@ interface RevurderingService {
 }
 
 object FantIkkeRevurdering
+
+data class SendTilAttesteringRequest(
+    val revurderingId: UUID,
+    val saksbehandler: NavIdentBruker.Saksbehandler,
+    val fritekstTilBrev: String,
+    val skalFøreTilBrevutsending: Boolean
+)
 
 sealed class KunneIkkeOppretteRevurdering {
     object FantIkkeSak : KunneIkkeOppretteRevurdering()
@@ -82,6 +85,7 @@ sealed class KunneIkkeOppdatereRevurderingsperiode {
 }
 
 sealed class KunneIkkeBeregneOgSimulereRevurdering {
+    object MåSendeGrunnbeløpReguleringSomÅrsakSammenMedForventetInntekt : KunneIkkeBeregneOgSimulereRevurdering()
     object FantIkkeRevurdering : KunneIkkeBeregneOgSimulereRevurdering()
     object SimuleringFeilet : KunneIkkeBeregneOgSimulereRevurdering()
     object KanIkkeVelgeSisteMånedVedNedgangIStønaden : KunneIkkeBeregneOgSimulereRevurdering()
@@ -95,6 +99,7 @@ sealed class KunneIkkeSendeRevurderingTilAttestering {
     object FantIkkeRevurdering : KunneIkkeSendeRevurderingTilAttestering()
     object FantIkkeAktørId : KunneIkkeSendeRevurderingTilAttestering()
     object KunneIkkeOppretteOppgave : KunneIkkeSendeRevurderingTilAttestering()
+    object KanIkkeRegulereGrunnbeløpTilOpphør : KunneIkkeSendeRevurderingTilAttestering()
     data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
         KunneIkkeSendeRevurderingTilAttestering()
 }
@@ -103,6 +108,8 @@ sealed class KunneIkkeIverksetteRevurdering {
     object AttestantOgSaksbehandlerKanIkkeVæreSammePerson : KunneIkkeIverksetteRevurdering()
     object KunneIkkeUtbetale : KunneIkkeIverksetteRevurdering()
     object KunneIkkeKontrollsimulere : KunneIkkeIverksetteRevurdering()
+    object KunneIkkeJournaleføreBrev : KunneIkkeIverksetteRevurdering()
+    object KunneIkkeDistribuereBrev : KunneIkkeIverksetteRevurdering()
     object FantIkkeRevurdering : KunneIkkeIverksetteRevurdering()
     data class UgyldigTilstand(
         val fra: KClass<out Revurdering>,

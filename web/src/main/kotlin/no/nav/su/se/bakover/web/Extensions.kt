@@ -6,6 +6,7 @@ import io.ktor.application.ApplicationCall
 import io.ktor.auth.Principal
 import io.ktor.auth.jwt.JWTCredential
 import io.ktor.auth.jwt.JWTPrincipal
+import io.ktor.features.callId
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.request.header
@@ -20,8 +21,24 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.web.features.suUserContext
 import java.util.UUID
 
-internal fun ApplicationCall.audit(msg: String) {
+internal fun ApplicationCall.sikkerlogg(msg: String) {
     sikkerLogg.info("${suUserContext.navIdent} $msg")
+}
+
+/**
+ * Logg til audit.nais (som går videre til ArcSight)
+ * @see AuditLogger
+ */
+internal fun ApplicationCall.audit(berørtBruker: Fnr, action: AuditLogEvent.Action, behandlingId: UUID?) {
+    AuditLogger.log(
+        AuditLogEvent(
+            suUserContext.navIdent,
+            berørtBruker,
+            action,
+            behandlingId,
+            this.callId
+        )
+    )
 }
 
 internal fun getGroupsFromJWT(applicationConfig: ApplicationConfig, principal: Principal?): List<String> =

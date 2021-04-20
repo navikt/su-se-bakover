@@ -25,10 +25,11 @@ internal class NyBeregningForSøknadsbehandlingJsonTest {
     private val tilOgMedDato: LocalDate = LocalDate.of(2021, 12, 31)
 
     private val periode = Periode.create(fraOgMedDato, tilOgMedDato)
+    private val stønadsperiode = Stønadsperiode.create(periode = periode)
     private val nyBeregningForSøknadsbehandling = NyBeregningForSøknadsbehandling.create(
         behandlingId = UUID.randomUUID(),
         saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-        stønadsperiode = Stønadsperiode.create(periode = periode),
+        stønadsperiode = stønadsperiode,
         fradrag = listOf(
             FradragFactory.ny(
                 periode = Periode.create(
@@ -40,11 +41,12 @@ internal class NyBeregningForSøknadsbehandlingJsonTest {
                 utenlandskInntekt = UtenlandskInntekt.create(
                     beløpIUtenlandskValuta = 88,
                     valuta = "SEK",
-                    kurs = 8.8
+                    kurs = 8.8,
                 ),
-                tilhører = FradragTilhører.BRUKER
+                tilhører = FradragTilhører.BRUKER,
             )
-        )
+        ),
+        begrunnelse = "begrunnelse",
     )
 
     @Test
@@ -72,18 +74,13 @@ internal class NyBeregningForSøknadsbehandlingJsonTest {
                             "tilOgMed":"$tilOgMed"
                          },
                          "tilhører": "BRUKER"
-                     }]
+                     }],
+                     "begrunnelse": "begrunnelse"
                 }
-            """.trimIndent()
+            """.trimIndent(),
         )
         assertSoftly {
             nyBeregningForSøknadsbehandlingJson shouldBe NyBeregningForSøknadsbehandlingJson(
-                stønadsperiode = StønadsperiodeJson(
-                    periode = PeriodeJson(
-                        fraOgMed = fraOgMed,
-                        tilOgMed = tilOgMed,
-                    )
-                ),
                 fradrag = listOf(
                     FradragJson(
                         periode = PeriodeJson(
@@ -95,15 +92,17 @@ internal class NyBeregningForSøknadsbehandlingJsonTest {
                         utenlandskInntekt = UtenlandskInntektJson(
                             beløpIUtenlandskValuta = 88,
                             valuta = "SEK",
-                            kurs = 8.8
+                            kurs = 8.8,
                         ),
-                        tilhører = "BRUKER"
+                        tilhører = "BRUKER",
                     )
-                )
+                ),
+                begrunnelse = "begrunnelse",
             )
             nyBeregningForSøknadsbehandlingJson.toDomain(
                 nyBeregningForSøknadsbehandling.behandlingId,
-                nyBeregningForSøknadsbehandling.saksbehandler
+                nyBeregningForSøknadsbehandling.saksbehandler,
+                nyBeregningForSøknadsbehandling.stønadsperiode,
             ) shouldBe nyBeregningForSøknadsbehandling.right()
         }
     }

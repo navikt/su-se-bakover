@@ -12,6 +12,32 @@ interface Månedsberegning : PeriodisertInformasjon {
     fun getSatsbeløp(): Double
     fun getFradrag(): List<Fradrag>
 
-    fun erFradragForEpsBenyttetIBeregning() = getFradrag().any { it.getFradragstype() == Fradragstype.BeregnetFradragEPS }
-    fun erSumYtelseUnderMinstebeløp() = getSumYtelse() == 0 && getFradrag().any { it.getFradragstype() == Fradragstype.UnderMinstenivå }
+    fun erFradragForEpsBenyttetIBeregning() =
+        getFradrag().any { it.getFradragstype() == Fradragstype.BeregnetFradragEPS }
+
+    fun erSumYtelseUnderMinstebeløp() =
+        getSumYtelse() == 0 && getFradrag().any { it.getFradragstype() == Fradragstype.UnderMinstenivå }
+
+    /**
+     * Sammenligner alle metodene.
+     * Laget for å kalles fra sub-klassene sine `override fun equals(other: Any?): Boolean` metoder.
+     */
+    fun equals(other: Månedsberegning?): Boolean {
+        if (this === other) return true
+        if (other == null) return false
+
+        if (getSumYtelse() != other.getSumYtelse()) return false
+        if (getSumFradrag() != other.getSumFradrag()) return false
+        if (getBenyttetGrunnbeløp() != other.getBenyttetGrunnbeløp()) return false
+        if (getSats() != other.getSats()) return false
+        if (getSatsbeløp() != other.getSatsbeløp()) return false
+        if (getFradrag() != other.getFradrag()) return false
+        return true
+    }
+
+    /**
+     * Det er ikke lov å ha default implementasjon i interfaces for Any.
+     * Denne vil tvinge sub-klassene til å override.
+     */
+    override fun equals(other: Any?): Boolean
 }
