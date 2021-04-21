@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.domain.brev
 
-import no.nav.su.se.bakover.common.roundToDecimals
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.behandling.AvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -32,7 +31,7 @@ interface LagBrevRequest {
                 sats = beregning.getSats().toString().toLowerCase(),
                 // TODO jah: Vi burde sannsynligvis ikke ta inn BehandlingsInformasjon direkte her. Da kan vi heller validere ting lenger ut.
                 satsGrunn = behandlingsinformasjon.getSatsgrunn().orNull()!!,
-                satsBeløp = beregning.getSats().månedsbeløp(beregning.getPeriode().getTilOgMed()).roundToDecimals(0),
+                satsBeløp = beregning.getSats().månedsbeløpSomHeltall(beregning.getPeriode().getTilOgMed()),
                 harEktefelle = behandlingsinformasjon.harEktefelle(),
                 beregningsperioder = LagBrevinnholdForBeregning(beregning).brevInnhold,
                 saksbehandlerNavn = saksbehandlerNavn,
@@ -62,7 +61,7 @@ interface LagBrevRequest {
             return BrevInnhold.Opphørsvedtak(
                 personalia = personalia,
                 sats = beregning.getSats().toString().toLowerCase(),
-                satsBeløp = beregning.getSats().månedsbeløp(beregning.getPeriode().getTilOgMed()).roundToDecimals(0),
+                satsBeløp = beregning.getSats().månedsbeløpSomHeltall(beregning.getPeriode().getTilOgMed()),
                 harEktefelle = behandlingsinformasjon.harEktefelle(),
                 beregningsperioder = LagBrevinnholdForBeregning(beregning).brevInnhold,
                 saksbehandlerNavn = saksbehandlerNavn,
