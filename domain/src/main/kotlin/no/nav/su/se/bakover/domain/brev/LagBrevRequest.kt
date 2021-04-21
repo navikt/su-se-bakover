@@ -31,7 +31,7 @@ interface LagBrevRequest {
                 sats = beregning.getSats().toString().toLowerCase(),
                 // TODO jah: Vi burde sannsynligvis ikke ta inn BehandlingsInformasjon direkte her. Da kan vi heller validere ting lenger ut.
                 satsGrunn = behandlingsinformasjon.getSatsgrunn().orNull()!!,
-                satsBeløp = beregning.getSats().månedsbeløp(beregning.getPeriode().getTilOgMed()),
+                satsBeløp = beregning.getSats().månedsbeløpSomHeltall(beregning.getPeriode().getTilOgMed()),
                 harEktefelle = behandlingsinformasjon.harEktefelle(),
                 beregningsperioder = LagBrevinnholdForBeregning(beregning).brevInnhold,
                 saksbehandlerNavn = saksbehandlerNavn,
@@ -61,7 +61,7 @@ interface LagBrevRequest {
             return BrevInnhold.Opphørsvedtak(
                 personalia = personalia,
                 sats = beregning.getSats().toString().toLowerCase(),
-                satsBeløp = beregning.getSats().månedsbeløp(beregning.getPeriode().getTilOgMed()),
+                satsBeløp = beregning.getSats().månedsbeløpSomHeltall(beregning.getPeriode().getTilOgMed()),
                 harEktefelle = behandlingsinformasjon.harEktefelle(),
                 beregningsperioder = LagBrevinnholdForBeregning(beregning).brevInnhold,
                 saksbehandlerNavn = saksbehandlerNavn,

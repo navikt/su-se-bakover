@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain.beregning
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Grunnbeløp
 import java.time.LocalDate
+import kotlin.math.roundToInt
 
 enum class Sats(val grunnbeløp: Grunnbeløp) {
     ORDINÆR(Grunnbeløp.`2,28G`),
@@ -11,6 +12,8 @@ enum class Sats(val grunnbeløp: Grunnbeløp) {
     fun årsbeløp(dato: LocalDate): Double = satsSomÅrsbeløp(dato)
 
     fun månedsbeløp(dato: LocalDate): Double = satsSomMånedsbeløp(dato)
+
+    fun månedsbeløpSomHeltall(dato: LocalDate): Int = satsSomMånedsbeløp(dato).roundToInt()
 
     fun periodiser(periode: Periode): Map<Periode, Double> {
         return periode.tilMånedsperioder().associateWith { satsSomMånedsbeløp(it.getFraOgMed()) }
