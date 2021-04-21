@@ -95,7 +95,7 @@ internal class VurderOmBeregningHarEndringerIYtelseTest {
         val periode2 = Periode.create(1.februar(2020), 29.februar(2020))
 
         val b1 = BeregningFactory.ny(
-            periode = Periode.create(periode1.getFraOgMed(), periode2.getTilOgMed()),
+            periode = Periode.create(periode1.fraOgMed, periode2.tilOgMed),
             sats = Sats.HØY,
             fradrag = listOf(
                 FradragFactory.ny(
@@ -118,7 +118,7 @@ internal class VurderOmBeregningHarEndringerIYtelseTest {
         )
 
         val b2 = BeregningFactory.ny(
-            periode = Periode.create(periode1.getFraOgMed(), periode2.getTilOgMed()),
+            periode = Periode.create(periode1.fraOgMed, periode2.tilOgMed),
             sats = Sats.HØY,
             fradrag = listOf(
                 FradragFactory.ny(

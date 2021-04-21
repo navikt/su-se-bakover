@@ -21,7 +21,7 @@ enum class Minstepensjonsnivå {
         .first { dato.isAfter(it.key) || dato.isEqual(it.key) }.value.get(this)
 
     fun periodiser(periode: Periode): Map<Periode, Double> = periode.tilMånedsperioder()
-        .map { it to minstepensjonsnivåSomMånedsbeløp(it.getTilOgMed()) }
+        .map { it to minstepensjonsnivåSomMånedsbeløp(it.tilOgMed) }
         .toMap()
 
     private fun minstepensjonsnivåSomMånedsbeløp(dato: LocalDate) = this.forDato(dato) / 12.0

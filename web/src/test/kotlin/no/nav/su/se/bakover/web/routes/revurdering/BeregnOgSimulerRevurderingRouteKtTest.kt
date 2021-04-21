@@ -47,7 +47,7 @@ import java.util.UUID
 internal class BeregnOgSimulerRevurderingRouteKtTest {
     private val validBody = """
         {
-            "periode": { "fraOgMed": "${periode.getFraOgMed()}", "tilOgMed": "${periode.getTilOgMed()}"},
+            "periode": { "fraOgMed": "${periode.fraOgMed}", "tilOgMed": "${periode.tilOgMed}"},
             "fradrag": []
         }
     """.trimIndent()

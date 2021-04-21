@@ -18,8 +18,8 @@ internal data class MånedsberegningJson(
     val epsInputFradrag: List<FradragJson>
 )
 internal fun Månedsberegning.toJson(epsFribeløp: Double, epsInputFradrag: List<Fradrag>) = MånedsberegningJson(
-    fraOgMed = getPeriode().getFraOgMed().format(DateTimeFormatter.ISO_DATE),
-    tilOgMed = getPeriode().getTilOgMed().format(DateTimeFormatter.ISO_DATE),
+    fraOgMed = getPeriode().fraOgMed.format(DateTimeFormatter.ISO_DATE),
+    tilOgMed = getPeriode().tilOgMed.format(DateTimeFormatter.ISO_DATE),
     sats = getSats().name,
     grunnbeløp = getBenyttetGrunnbeløp(),
     beløp = getSumYtelse(),

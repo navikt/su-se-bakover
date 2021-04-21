@@ -31,17 +31,17 @@ object SimuleringStub : SimuleringClient {
             Periode.create(utbetalingslinje.fraOgMed, utbetalingslinje.tilOgMed).tilMånedsperioder().mapNotNull {
                 if (utbetalingslinje.beløp > 0) {
                     SimulertPeriode(
-                        fraOgMed = it.getFraOgMed(),
-                        tilOgMed = it.getTilOgMed(),
+                        fraOgMed = it.fraOgMed,
+                        tilOgMed = it.tilOgMed,
                         utbetaling = listOf(
                             SimulertUtbetaling(
                                 fagSystemId = saksnummer.toString(),
                                 feilkonto = false,
-                                forfall = it.getTilOgMed(),
+                                forfall = it.tilOgMed,
                                 utbetalesTilId = utbetaling.fnr,
                                 utbetalesTilNavn = "MYGG LUR",
                                 detaljer = listOf(
-                                    createYtelse(it.getFraOgMed(), it.getTilOgMed(), utbetalingslinje.beløp),
+                                    createYtelse(it.fraOgMed, it.tilOgMed, utbetalingslinje.beløp),
                                 ),
                             ),
                         ),
