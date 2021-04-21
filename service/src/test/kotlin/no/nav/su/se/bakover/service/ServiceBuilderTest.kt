@@ -25,7 +25,8 @@ internal class ServiceBuilderTest {
                 søknadsbehandling = mock(),
                 revurderingRepo = mock(),
                 vedtakRepo = mock(),
-                grunnlagRepo = mock()
+                grunnlagRepo = mock(),
+                vilkårsvurderingRepo = mock(),
             ),
             clients = Clients(
                 oauth = mock(),
@@ -42,12 +43,12 @@ internal class ServiceBuilderTest {
                 microsoftGraphApiClient = mock(),
                 digitalKontaktinformasjon = mock(),
                 leaderPodLookup = mock(),
-                kafkaPublisher = mock()
+                kafkaPublisher = mock(),
             ),
             behandlingMetrics = mock(),
             søknadMetrics = mock(),
             clock = Clock.systemUTC(),
-            unleash = mock()
+            unleash = mock(),
         ).let {
             (it.sak as SakServiceImpl).observers shouldContain it.statistikk
             (it.søknadsbehandling as SøknadsbehandlingServiceImpl).getObservers() shouldContain it.statistikk

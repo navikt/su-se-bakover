@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -150,14 +151,15 @@ internal class RevurderingServiceImpl(
         if (revurdering is RevurderingTilAttestering || revurdering is IverksattRevurdering)
             return KunneIkkeLeggeTilGrunnlag.UgyldigStatus.left()
 
-        grunnlagService.leggTilUføregrunnlag(revurdering.id, uføregrunnlag)
-        val updated = revurderingRepo.hent(revurdering.id)!!
-
         val simulertEndringGrunnlag = grunnlagService.simulerEndretGrunnlag(
             sakId = revurdering.sakId,
             periode = revurdering.periode,
-            endring = updated.grunnlagsdata
+            endring = Grunnlagsdata(uføregrunnlag = uføregrunnlag)
         )
+
+        grunnlagService.leggTilUføregrunnlag(revurdering.id, simulertEndringGrunnlag.resultat.uføregrunnlag)
+
+        val updated = revurderingRepo.hent(revurdering.id)!!
 
         return LeggTilUføregrunnlagResponse(
             revurdering = updated,

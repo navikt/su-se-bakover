@@ -1,7 +1,8 @@
 package no.nav.su.se.bakover.domain.vilkår
 
-import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import java.util.UUID
 
 /**
 Et inngangsvilkår er de vilkårene som kan føre til avslag før det beregnes?
@@ -30,7 +31,7 @@ data class Vilkårsvurderinger(private val value: Set<Vilkårsvurdering<*>>) : S
             erInnvilget() -> Vilkårsvurderingsresultat.Innvilget(value)
             erAvslag() -> Vilkårsvurderingsresultat.Avslag(
                 value.filter { it.vurdering.resultat is Resultat.Avslag }
-                    .toSet()
+                    .toSet(),
             )
             else -> Vilkårsvurderingsresultat.Uavklart(emptySet()) // TODO fyll inn
         }
@@ -47,15 +48,15 @@ data class Vilkårsvurderinger(private val value: Set<Vilkårsvurdering<*>>) : S
 
 sealed class Vilkårsvurderingsresultat {
     data class Avslag(
-        val vilkår: Set<Vilkårsvurdering<*>>
+        val vilkår: Set<Vilkårsvurdering<*>>,
     ) : Vilkårsvurderingsresultat()
 
     data class Innvilget(
-        val vilkår: Set<Vilkårsvurdering<*>>
+        val vilkår: Set<Vilkårsvurdering<*>>,
     ) : Vilkårsvurderingsresultat()
 
     data class Uavklart(
-        val vilkår: Set<Inngangsvilkår>
+        val vilkår: Set<Inngangsvilkår>,
     ) : Vilkårsvurderingsresultat()
 }
 
@@ -63,20 +64,26 @@ sealed class Vilkårsvurderingsresultat {
  * Vurderingen av et vilkår mot en eller flere grunnlagsdata
  */
 sealed class Vilkårsvurdering<T : Grunnlag> {
+    abstract val id: UUID
+    abstract val opprettet: Tidspunkt
     abstract val vilkår: Inngangsvilkår
     abstract val vurdering: Vurdering
-    abstract val grunnlag: List<T>
+    abstract val grunnlag: T?
 
     data class Uførhet(
+        override val id: UUID = UUID.randomUUID(),
+        override val opprettet: Tidspunkt = Tidspunkt.now(),
         override val vurdering: Vurdering,
-        override val grunnlag: List<Grunnlag.Uføregrunnlag>,
+        override val grunnlag: Grunnlag.Uføregrunnlag?,
     ) : Vilkårsvurdering<Grunnlag.Uføregrunnlag>() {
         override val vilkår = Inngangsvilkår.Uførhet
     }
 
     data class Flyktning(
+        override val id: UUID = UUID.randomUUID(),
+        override val opprettet: Tidspunkt = Tidspunkt.now(),
         override val vurdering: Vurdering,
-        override val grunnlag: List<Grunnlag.Flyktninggrunnlag>,
+        override val grunnlag: Grunnlag.Flyktninggrunnlag,
     ) : Vilkårsvurdering<Grunnlag.Flyktninggrunnlag>() {
         override val vilkår = Inngangsvilkår.Flyktning
     }
@@ -85,15 +92,17 @@ sealed class Vilkårsvurdering<T : Grunnlag> {
 sealed class Vurdering {
     abstract val resultat: Resultat
 
-    object Automatisk
-    data class Manuell(val begrunnelse: String)
+    data class Automatisk(
+        override val resultat: Resultat,
+    ) : Vurdering()
 
-    /** Til bruk i preutfylling*/
-    object Anbefaling
+    data class Manuell(
+        override val resultat: Resultat,
+        val begrunnelse: String,
+    ) : Vurdering()
 }
 
 sealed class Resultat {
-    data class Avslag(val avslagsgrunner: List<Avslagsgrunn>) : Resultat()
-    object Opphør : Resultat()
+    object Avslag : Resultat()
     object Innvilget : Resultat()
 }

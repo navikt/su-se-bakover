@@ -15,12 +15,12 @@ import java.util.UUID
 import javax.sql.DataSource
 
 internal class UføregrunnlagPostgresRepo(
-    private val dataSource: DataSource
+    private val dataSource: DataSource,
 ) : UføregrunnlagRepo {
 
     override fun lagre(behandlingId: UUID, uføregrunnlag: List<Grunnlag.Uføregrunnlag>) {
         dataSource.withTransaction { tx ->
-            slettForBehandlingId(behandlingId)
+            slettForBehandlingId(behandlingId, tx)
             uføregrunnlag.forEach {
                 lagre(it, tx)
                 koble(behandlingId, it.id, tx)
@@ -38,30 +38,28 @@ internal class UføregrunnlagPostgresRepo(
             """.trimIndent()
                 .hentListe(
                     mapOf(
-                        "behandlingId" to behandlingId
+                        "behandlingId" to behandlingId,
                     ),
-                    sesison
+                    sesison,
                 ) {
                     it.toUføregrunnlag()
                 }
         }
     }
 
-    private fun slettForBehandlingId(behandlingId: UUID) {
-        dataSource.withSession { session ->
-            """
+    private fun slettForBehandlingId(behandlingId: UUID, session: Session) {
+        """
                 delete from grunnlag_uføre gu 
                 using behandling_grunnlag bg 
                 where bg.uføre_grunnlag_id=gu.id 
                 and bg.behandlingId = :behandlingId
-            """.trimIndent()
-                .oppdatering(
-                    mapOf(
-                        "behandlingId" to behandlingId
-                    ),
-                    session
-                )
-        }
+        """.trimIndent()
+            .oppdatering(
+                mapOf(
+                    "behandlingId" to behandlingId,
+                ),
+                session,
+            )
     }
 
     override fun slett(uføregrunnlagId: UUID) {
@@ -71,9 +69,9 @@ internal class UføregrunnlagPostgresRepo(
             """.trimIndent()
                 .oppdatering(
                     mapOf(
-                        "id" to uføregrunnlagId
+                        "id" to uføregrunnlagId,
                     ),
-                    session
+                    session,
                 )
         }
     }
@@ -84,7 +82,7 @@ internal class UføregrunnlagPostgresRepo(
             opprettet = tidspunkt("opprettet"),
             periode = Periode.create(localDate("fom"), localDate("tom")),
             uføregrad = Uføregrad.parse(int("uføregrad")),
-            forventetInntekt = int("forventetInntekt")
+            forventetInntekt = int("forventetInntekt"),
         )
     }
 
@@ -115,9 +113,9 @@ internal class UføregrunnlagPostgresRepo(
                     "fom" to uføregrunnlag.getPeriode().getFraOgMed(),
                     "tom" to uføregrunnlag.getPeriode().getTilOgMed(),
                     "uforegrad" to uføregrunnlag.uføregrad.value,
-                    "forventetInntekt" to uføregrunnlag.forventetInntekt
+                    "forventetInntekt" to uføregrunnlag.forventetInntekt,
                 ),
-                session
+                session,
             )
     }
 
@@ -136,9 +134,9 @@ internal class UføregrunnlagPostgresRepo(
             .oppdatering(
                 mapOf(
                     "behandlingId" to behandlingId,
-                    "ufore_grunnlag_id" to uføregrunnlagId
+                    "ufore_grunnlag_id" to uføregrunnlagId,
                 ),
-                session
+                session,
             )
     }
 }

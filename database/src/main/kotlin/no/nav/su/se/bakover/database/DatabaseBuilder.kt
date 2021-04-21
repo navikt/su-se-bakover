@@ -8,6 +8,8 @@ import no.nav.su.se.bakover.database.avstemming.AvstemmingRepo
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagRepo
 import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.VilkårsvurderingPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.VilkårsvurderingRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggRepo
 import no.nav.su.se.bakover.database.person.PersonPostgresRepo
@@ -79,6 +81,7 @@ object DatabaseBuilder {
             revurderingRepo = revurderingRepo,
             vedtakRepo = vedtakRepo,
             grunnlagRepo = grunnlagRepo,
+            vilkårsvurderingRepo = VilkårsvurderingPostgresRepo(dataSource)
         )
     }
 }
@@ -94,5 +97,6 @@ data class DatabaseRepos(
     val søknadsbehandling: SøknadsbehandlingRepo,
     val revurderingRepo: RevurderingRepo,
     val vedtakRepo: VedtakRepo,
-    val grunnlagRepo: GrunnlagRepo
+    val grunnlagRepo: GrunnlagRepo,
+    val vilkårsvurderingRepo: VilkårsvurderingRepo
 )
