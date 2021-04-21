@@ -133,9 +133,11 @@ internal class VedtakPosgresRepo(
     private fun Row.toVedtak(session: Session): Vedtak {
         val id = uuid("id")
         val opprettet = tidspunkt("opprettet")
-        val fraOgMed = localDateOrNull("fraOgMed")
-        val tilOgMed = localDateOrNull("tilOgMed")
 
+        val periode = Periode.create(
+            fraOgMed = localDate("fraOgMed"),
+            tilOgMed = localDate("tilOgMed"),
+        )
         val behandling = when (val knytning = hentBehandlingVedtakKnytning(id, session)) {
             is BehandlingVedtakKnytning.ForSøknadsbehandling ->
                 søknadsbehandlingRepo.hent(knytning.søknadsbehandlingId, session)!!
@@ -163,7 +165,7 @@ internal class VedtakPosgresRepo(
                 Vedtak.EndringIYtelse(
                     id = id,
                     opprettet = opprettet,
-                    periode = Periode.create(fraOgMed!!, tilOgMed!!),
+                    periode = periode,
                     behandling = behandling,
                     behandlingsinformasjon = behandlingsinformasjon,
                     beregning = beregning!!,
@@ -192,6 +194,7 @@ internal class VedtakPosgresRepo(
                             iverksattJournalpostId,
                             iverksattBrevbestillingId,
                         ),
+                        periode = periode,
                     )
                 } else {
                     Vedtak.Avslag.AvslagVilkår(
@@ -205,13 +208,14 @@ internal class VedtakPosgresRepo(
                             iverksattJournalpostId,
                             iverksattBrevbestillingId,
                         ),
+                        periode = periode,
                     )
                 }
             }
             VedtakType.INGEN_ENDRING -> Vedtak.IngenEndringIYtelse(
                 id = id,
                 opprettet = opprettet,
-                periode = Periode.create(fraOgMed!!, tilOgMed!!),
+                periode = periode,
                 behandling = behandling,
                 behandlingsinformasjon = behandlingsinformasjon,
                 beregning = beregning!!,
@@ -329,8 +333,8 @@ internal class VedtakPosgresRepo(
                     mapOf(
                         "id" to vedtak.id,
                         "opprettet" to vedtak.opprettet,
-                        "fraOgMed" to null,
-                        "tilOgMed" to null,
+                        "fraOgMed" to vedtak.periode.getFraOgMed(),
+                        "tilOgMed" to vedtak.periode.getTilOgMed(),
                         "saksbehandler" to vedtak.saksbehandler,
                         "attestant" to vedtak.attestant,
                         "beregning" to beregning?.let { objectMapper.writeValueAsString(it.toSnapshot()) },
