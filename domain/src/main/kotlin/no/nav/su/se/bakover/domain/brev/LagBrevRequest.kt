@@ -62,7 +62,7 @@ interface LagBrevRequest {
             return BrevInnhold.Opphørsvedtak(
                 personalia = personalia,
                 sats = beregning.getSats().toString().toLowerCase(),
-                satsBeløp = beregning.getSats().månedsbeløp(beregning.getPeriode().getTilOgMed()),
+                satsBeløp = beregning.getSats().månedsbeløp(beregning.getPeriode().getTilOgMed()).roundToDecimals(0),
                 harEktefelle = behandlingsinformasjon.harEktefelle(),
                 beregningsperioder = LagBrevinnholdForBeregning(beregning).brevInnhold,
                 saksbehandlerNavn = saksbehandlerNavn,
