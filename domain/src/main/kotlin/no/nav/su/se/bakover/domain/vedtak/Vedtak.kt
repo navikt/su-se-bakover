@@ -42,6 +42,7 @@ interface VedtakFelles {
     val attestant: NavIdentBruker.Attestant
     val journalføringOgBrevdistribusjon: JournalføringOgBrevdistribusjon
     val vedtakType: VedtakType
+    val periode: Periode
 }
 
 sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
@@ -118,7 +119,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val attestant: NavIdentBruker.Attestant,
         override val journalføringOgBrevdistribusjon: JournalføringOgBrevdistribusjon,
-        val periode: Periode,
+        override val periode: Periode,
         val beregning: Beregning,
         val simulering: Simulering,
         val utbetalingId: UUID30,
@@ -156,7 +157,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val attestant: NavIdentBruker.Attestant,
         override val journalføringOgBrevdistribusjon: JournalføringOgBrevdistribusjon,
-        val periode: Periode,
+        override val periode: Periode,
         val beregning: Beregning,
     ) : Vedtak() {
         override val vedtakType: VedtakType = VedtakType.INGEN_ENDRING
@@ -198,6 +199,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                     saksbehandler = avslag.saksbehandler,
                     attestant = avslag.attestering.attestant,
                     journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
+                    periode = avslag.periode,
                 )
 
             fun fromSøknadsbehandlingUtenBeregning(avslag: Søknadsbehandling.Iverksatt.Avslag.UtenBeregning) =
@@ -209,6 +211,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                     saksbehandler = avslag.saksbehandler,
                     attestant = avslag.attestering.attestant,
                     journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
+                    periode = avslag.periode,
                 )
         }
 
@@ -220,6 +223,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val attestant: NavIdentBruker.Attestant,
             override val journalføringOgBrevdistribusjon: JournalføringOgBrevdistribusjon,
+            override val periode: Periode,
         ) : Avslag() {
             override val avslagsgrunner: List<Avslagsgrunn> = behandlingsinformasjon.utledAvslagsgrunner()
 
@@ -246,6 +250,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val attestant: NavIdentBruker.Attestant,
             override val journalføringOgBrevdistribusjon: JournalføringOgBrevdistribusjon,
+            override val periode: Periode,
             val beregning: Beregning,
         ) : Avslag() {
             private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
