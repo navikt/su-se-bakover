@@ -36,7 +36,7 @@ import java.util.UUID
 internal class OppdaterRevurderingsperiodeRouteKtTest {
     private val validBody = """
         {
-         "fraOgMed": "${periode.getFraOgMed()}",
+         "fraOgMed": "${periode.fraOgMed}",
          "årsak":"INFORMASJON_FRA_KONTROLLSAMTALE",
          "begrunnelse":"begrunnelse"
         }
@@ -105,7 +105,7 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
                 setBody(
                     """
                     {
-                        "fraOgMed": "${periode.getFraOgMed()}",
+                        "fraOgMed": "${periode.fraOgMed}",
                         "årsak":"DØDSFALL",
                         "begrunnelse":"begrunnelse"
                     }

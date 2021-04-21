@@ -27,7 +27,7 @@ fun LocalDate.startOfDay(zoneId: ZoneId = zoneIdOslo) = this.atStartOfDay().toTi
 fun LocalDate.endOfDay(zoneId: ZoneId = zoneIdOslo) = this.atStartOfDay().plusDays(1).minusNanos(1).toTidspunkt(zoneId)
 fun LocalDate.startOfMonth(): LocalDate = this.withDayOfMonth(1)
 fun LocalDate.endOfMonth(): LocalDate = this.withDayOfMonth(this.lengthOfMonth())
-fun LocalDate.between(periode: Periode) = this.between(periode.getFraOgMed(), periode.getTilOgMed())
+fun LocalDate.between(periode: Periode) = this.between(periode.fraOgMed, periode.tilOgMed)
 fun LocalDate.between(fraOgMed: LocalDate, tilOgMed: LocalDate) =
     (this == fraOgMed || this == tilOgMed) || this.isAfter(fraOgMed) && this.isBefore(tilOgMed)
 fun LocalDate.erFørsteDagIMåned() = dayOfMonth == 1

@@ -108,7 +108,7 @@ internal class RevurderingServiceImplTest {
         ).opprettRevurdering(
             OpprettRevurderingRequest(
                 sakId = sakId,
-                fraOgMed = periode.getFraOgMed(),
+                fraOgMed = periode.fraOgMed,
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "Ny informasjon",
                 saksbehandler = saksbehandler,
@@ -146,7 +146,7 @@ internal class RevurderingServiceImplTest {
         ).opprettRevurdering(
             OpprettRevurderingRequest(
                 sakId = sakId,
-                fraOgMed = periode.getFraOgMed(),
+                fraOgMed = periode.fraOgMed,
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "Ny informasjon",
                 saksbehandler = saksbehandler,
@@ -186,7 +186,7 @@ internal class RevurderingServiceImplTest {
         ).opprettRevurdering(
             OpprettRevurderingRequest(
                 sakId = sakId,
-                fraOgMed = periode.getFraOgMed(),
+                fraOgMed = periode.fraOgMed,
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "Ny informasjon",
                 saksbehandler = saksbehandler,
@@ -654,7 +654,7 @@ internal class RevurderingServiceImplTest {
                 sakId = argThat { it shouldBe sakId },
                 attestant = argThat { it shouldBe attestant },
                 simulering = argThat { it shouldBe revurderingTilAttestering.simulering },
-                opphørsdato = argThat { it shouldBe revurderingTilAttestering.periode.getFraOgMed() },
+                opphørsdato = argThat { it shouldBe revurderingTilAttestering.periode.fraOgMed },
             )
             verify(vedtakRepoMock).lagre(
                 argThat {

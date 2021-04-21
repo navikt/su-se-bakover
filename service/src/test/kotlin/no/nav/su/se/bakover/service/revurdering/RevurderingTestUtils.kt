@@ -141,8 +141,8 @@ object RevurderingTestUtils {
         søknader = listOf(),
         utbetalinger = listOf(
             mock {
-                on { senesteDato() } doReturn periode.getTilOgMed()
-                on { tidligsteDato() } doReturn periode.getFraOgMed()
+                on { senesteDato() } doReturn periode.tilOgMed
+                on { tidligsteDato() } doReturn periode.fraOgMed
             },
         ),
         vedtakListe = listOf(søknadsbehandlingVedtak),

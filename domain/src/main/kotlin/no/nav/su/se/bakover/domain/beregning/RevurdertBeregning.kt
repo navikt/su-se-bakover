@@ -54,8 +54,8 @@ private fun beregnMedVirkningFraOgMedMånedenEtter(
         return KanIkkeVelgeSisteMånedVedNedgangIStønaden.left()
     }
     val nyPeriode = Periode.create(
-        revurdertBeregning.getPeriode().getFraOgMed().plusMonths(1),
-        revurdertBeregning.getPeriode().getTilOgMed()
+        revurdertBeregning.getPeriode().fraOgMed.plusMonths(1),
+        revurdertBeregning.getPeriode().tilOgMed
     )
     return BeregningMedFradragBeregnetMånedsvis(
         periode = nyPeriode,
@@ -69,14 +69,14 @@ private fun beregnMedVirkningFraOgMedMånedenEtter(
                     type = it.getFradragstype(),
                     månedsbeløp = it.getMånedsbeløp(),
                     periode = Periode.create(
-                        fraOgMed = it.getPeriode().getFraOgMed().let { fraOgMed ->
-                            if (fraOgMed == revurdertBeregning.getPeriode().getFraOgMed()) {
+                        fraOgMed = it.getPeriode().fraOgMed.let { fraOgMed ->
+                            if (fraOgMed == revurdertBeregning.getPeriode().fraOgMed) {
                                 fraOgMed.plusMonths(1)
                             } else {
                                 fraOgMed
                             }
                         },
-                        tilOgMed = it.getPeriode().getTilOgMed()
+                        tilOgMed = it.getPeriode().tilOgMed
                     ),
                     utenlandskInntekt = it.getUtenlandskInntekt(),
                     tilhører = it.getTilhører(),

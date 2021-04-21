@@ -35,7 +35,7 @@ internal class OpprettRevurderingRouteKtTest {
     //language=JSON
     private val validBody = """
         {
-         "fraOgMed": "${periode.getFraOgMed()}",
+         "fraOgMed": "${periode.fraOgMed}",
          "årsak": "ANDRE_KILDER",
          "begrunnelse": "begrunnelse"
         }
@@ -102,7 +102,7 @@ internal class OpprettRevurderingRouteKtTest {
                 setBody(
                     """
                     {
-                        "fraOgMed": "${periode.getFraOgMed()}",
+                        "fraOgMed": "${periode.fraOgMed}",
                         "årsak":"DØDSFALL",
                         "begrunnelse":"begrunnelse"
                     }

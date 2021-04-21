@@ -121,7 +121,7 @@ internal class SøknadsbehandlingStatistikkMapper(
             is Søknadsbehandling.Vilkårsvurdert.Uavklart,
             -> {
                 try {
-                    søknadsbehandling.periode.getFraOgMed().startOfDay(zoneIdOslo)
+                    søknadsbehandling.periode.fraOgMed.startOfDay(zoneIdOslo)
                 } catch (ex: Søknadsbehandling.Vilkårsvurdert.StønadsperiodeIkkeDefinertException) {
                     søknadsbehandling.opprettet
                 }
@@ -132,7 +132,7 @@ internal class SøknadsbehandlingStatistikkMapper(
             is Søknadsbehandling.TilAttestering.Innvilget,
             is Søknadsbehandling.Underkjent.Avslag,
             is Søknadsbehandling.Underkjent.Innvilget,
-            -> søknadsbehandling.periode.getFraOgMed().startOfDay(zoneIdOslo)
+            -> søknadsbehandling.periode.fraOgMed.startOfDay(zoneIdOslo)
             else -> throw ManglendeStatistikkMappingException(this, søknadsbehandling::class.java)
         }
     }

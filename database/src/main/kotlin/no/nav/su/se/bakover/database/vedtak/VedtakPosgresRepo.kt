@@ -268,8 +268,8 @@ internal class VedtakPosgresRepo(
                     mapOf(
                         "id" to vedtak.id,
                         "opprettet" to vedtak.opprettet,
-                        "fraOgMed" to vedtak.periode.getFraOgMed(),
-                        "tilOgMed" to vedtak.periode.getTilOgMed(),
+                        "fraOgMed" to vedtak.periode.fraOgMed,
+                        "tilOgMed" to vedtak.periode.tilOgMed,
                         "saksbehandler" to vedtak.saksbehandler,
                         "attestant" to vedtak.attestant,
                         "utbetalingid" to vedtak.utbetalingId,
@@ -333,8 +333,8 @@ internal class VedtakPosgresRepo(
                     mapOf(
                         "id" to vedtak.id,
                         "opprettet" to vedtak.opprettet,
-                        "fraOgMed" to vedtak.periode.getFraOgMed(),
-                        "tilOgMed" to vedtak.periode.getTilOgMed(),
+                        "fraOgMed" to vedtak.periode.fraOgMed,
+                        "tilOgMed" to vedtak.periode.tilOgMed,
                         "saksbehandler" to vedtak.saksbehandler,
                         "attestant" to vedtak.attestant,
                         "beregning" to beregning?.let { objectMapper.writeValueAsString(it.toSnapshot()) },
@@ -392,8 +392,8 @@ internal class VedtakPosgresRepo(
                     mapOf(
                         "id" to vedtak.id,
                         "opprettet" to vedtak.opprettet,
-                        "fraOgMed" to vedtak.periode.getFraOgMed(),
-                        "tilOgMed" to vedtak.periode.getTilOgMed(),
+                        "fraOgMed" to vedtak.periode.fraOgMed,
+                        "tilOgMed" to vedtak.periode.tilOgMed,
                         "saksbehandler" to vedtak.saksbehandler,
                         "attestant" to vedtak.attestant,
                         "utbetalingid" to null,

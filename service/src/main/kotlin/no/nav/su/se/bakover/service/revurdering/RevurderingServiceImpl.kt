@@ -93,7 +93,7 @@ internal class RevurderingServiceImpl(
             ?: return KunneIkkeOppretteRevurdering.FantIngentingSomKanRevurderes.left()
 
         val periode =
-            Periode.tryCreate(opprettRevurderingRequest.fraOgMed, tilRevurdering.periode.getTilOgMed()).getOrHandle {
+            Periode.tryCreate(opprettRevurderingRequest.fraOgMed, tilRevurdering.periode.tilOgMed).getOrHandle {
                 return KunneIkkeOppretteRevurdering.UgyldigPeriode(it).left()
             }
 
@@ -153,7 +153,7 @@ internal class RevurderingServiceImpl(
                 .left()
         }
         val nyPeriode =
-            Periode.tryCreate(oppdaterRevurderingRequest.fraOgMed, stønadsperiode.getTilOgMed()).getOrHandle {
+            Periode.tryCreate(oppdaterRevurderingRequest.fraOgMed, stønadsperiode.tilOgMed).getOrHandle {
                 return KunneIkkeOppdatereRevurderingsperiode.UgyldigPeriode(it).left()
             }
 
@@ -225,7 +225,7 @@ internal class RevurderingServiceImpl(
                         utbetalingService.simulerOpphør(
                             sakId = beregnetRevurdering.sakId,
                             saksbehandler = saksbehandler,
-                            opphørsdato = beregnetRevurdering.periode.getFraOgMed(),
+                            opphørsdato = beregnetRevurdering.periode.fraOgMed,
                         ).mapLeft {
                             KunneIkkeBeregneOgSimulereRevurdering.SimuleringFeilet
                         }.map {
@@ -439,7 +439,7 @@ internal class RevurderingServiceImpl(
                             utbetalingService.opphør(
                                 sakId = revurdering.sakId,
                                 attestant = attestant,
-                                opphørsdato = revurdering.periode.getFraOgMed(),
+                                opphørsdato = revurdering.periode.fraOgMed,
                                 simulering = revurdering.simulering,
                             ).mapLeft {
                                 when (it) {

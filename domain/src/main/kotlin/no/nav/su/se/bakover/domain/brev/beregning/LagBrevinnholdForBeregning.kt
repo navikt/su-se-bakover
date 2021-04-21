@@ -33,8 +33,8 @@ data class LagBrevinnholdForBeregning(
 
     private fun Periode.formaterForBrev() = DateTimeFormatter.ofPattern("LLLL yyyy", Locale("nb", "NO")).let {
         BrevPeriode(
-            fraOgMed = it.format(this.getFraOgMed()),
-            tilOgMed = it.format(this.getTilOgMed())
+            fraOgMed = it.format(this.fraOgMed),
+            tilOgMed = it.format(this.tilOgMed)
         )
     }
 
