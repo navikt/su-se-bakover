@@ -20,7 +20,7 @@ object FradragFactory {
     }
 
     fun periodiser(fradrag: Fradrag): List<Fradrag> =
-        fradrag.getPeriode().tilMånedsperioder().map {
+        fradrag.periode.tilMånedsperioder().map {
             PeriodisertFradrag(
                 type = fradrag.getFradragstype(),
                 månedsbeløp = fradrag.getMånedsbeløp(),

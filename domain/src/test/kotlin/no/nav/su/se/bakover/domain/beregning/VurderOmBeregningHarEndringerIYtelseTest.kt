@@ -58,7 +58,7 @@ internal class VurderOmBeregningHarEndringerIYtelseTest {
     @Test
     fun `kaster exception hvis tidligereBeregning ikke inneholder nyBeregning`() {
         val beregningUtanforPeriode: Beregning = mock {
-            on { getPeriode() } doReturn Periode.create(fraOgMed = 1.juni(2020), tilOgMed = 31.januar(2021))
+            on { periode } doReturn Periode.create(fraOgMed = 1.juni(2020), tilOgMed = 31.januar(2021))
         }
 
         assertThrows<AssertionError> {

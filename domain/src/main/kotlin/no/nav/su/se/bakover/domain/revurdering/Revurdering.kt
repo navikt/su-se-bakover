@@ -878,12 +878,12 @@ private fun endringerAvUtbetalingerErStørreEllerLik10Prosent(
     vedtattBeregning: Beregning,
     revurdertBeregning: Beregning,
 ): Boolean {
-    val vedtattBeregningsperioder = vedtattBeregning.getMånedsberegninger().associateBy { it.getPeriode() }
+    val vedtattBeregningsperioder = vedtattBeregning.getMånedsberegninger().associateBy { it.periode }
 
     return revurdertBeregning.getMånedsberegninger().let {
         val førsteUtbetaling = it.first()
         førsteUtbetaling.differanseErStørreEllerLik10Prosent(
-            vedtattBeregningsperioder[førsteUtbetaling.getPeriode()]!!,
+            vedtattBeregningsperioder[førsteUtbetaling.periode]!!,
         )
     }
 }

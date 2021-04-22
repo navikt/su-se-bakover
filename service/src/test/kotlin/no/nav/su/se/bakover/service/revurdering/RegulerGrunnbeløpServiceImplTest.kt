@@ -197,7 +197,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             override fun getMånedsbeløp() = 1000.0
             override fun getUtenlandskInntekt(): UtenlandskInntekt? = null
             override fun getTilhører() = FradragTilhører.BRUKER
-            override fun getPeriode() = Periode.create(1.januar(2020), 31.januar(2020))
+            override val periode = Periode.create(1.januar(2020), 31.januar(2020))
             override fun equals(other: Any?) =
                 throw IllegalStateException("Skal ikke kalles fra testen")
         }
@@ -221,7 +221,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                             override fun getSatsbeløp() = 20637.32
                             override fun getFradrag() = listOf(fradrag)
 
-                            override fun getPeriode() = Periode.create(1.januar(2020), 31.januar(2020))
+                            override val periode = Periode.create(1.januar(2020), 31.januar(2020))
                             override fun equals(other: Any?) =
                                 throw IllegalStateException("Skal ikke kalles fra testen")
                         },
@@ -230,7 +230,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                     override fun getFradrag() = listOf(fradrag)
                     override fun getSumYtelse() = 19637
                     override fun getSumFradrag() = 12000.0
-                    override fun getPeriode() = periode
+                    override val periode = periode
                     override fun getFradragStrategyName() = FradragStrategyName.Enslig
                     override fun getBegrunnelse() = "forrigeBegrunnelse"
                     override fun equals(other: Any?) = throw IllegalStateException("Skal ikke kalles fra testen")

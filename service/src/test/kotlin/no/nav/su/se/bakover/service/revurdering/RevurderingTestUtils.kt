@@ -74,7 +74,7 @@ object RevurderingTestUtils {
     internal val aktørId = AktørId("aktørId")
 
     internal val beregningMock = mock<Beregning> {
-        on { getPeriode() } doReturn periode
+        on { periode } doReturn periode
         on { getMånedsberegninger() } doReturn periode.tilMånedsperioder()
             .map { MånedsberegningFactory.ny(it, Sats.HØY, listOf()) }
         on { getFradrag() } doReturn listOf()

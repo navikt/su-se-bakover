@@ -21,7 +21,7 @@ internal data class PersistertBeregning(
     private val fradrag: List<PersistertFradrag>,
     private val sumYtelse: Int,
     private val sumFradrag: Double,
-    private val periode: Periode,
+    override val periode: Periode,
     private val fradragStrategyName: FradragStrategyName,
     private val begrunnelse: String?
 ) : Beregning {
@@ -34,8 +34,6 @@ internal data class PersistertBeregning(
     override fun getSumFradrag(): Double = sumFradrag
     override fun getFradragStrategyName(): FradragStrategyName = fradragStrategyName
     override fun getBegrunnelse(): String? = begrunnelse
-
-    override fun getPeriode(): Periode = periode
 
     override fun equals(other: Any?) = (other as? Beregning)?.let { this.equals(other) } ?: false
 
@@ -58,7 +56,7 @@ internal data class PersistertMånedsberegning(
     private val sats: Sats,
     private val satsbeløp: Double,
     private val fradrag: List<PersistertFradrag>,
-    private val periode: Periode
+    override val periode: Periode
 ) : Månedsberegning {
     override fun getSumYtelse(): Int = sumYtelse
     override fun getSumFradrag(): Double = sumFradrag
@@ -66,7 +64,6 @@ internal data class PersistertMånedsberegning(
     override fun getSats(): Sats = sats
     override fun getSatsbeløp(): Double = satsbeløp
     override fun getFradrag(): List<Fradrag> = fradrag
-    override fun getPeriode(): Periode = periode
 
     override fun equals(other: Any?) = (other as? Månedsberegning)?.let { this.equals(other) } ?: false
 
@@ -86,7 +83,7 @@ internal data class PersistertFradrag(
     private val fradragstype: Fradragstype,
     private val månedsbeløp: Double,
     private val utenlandskInntekt: UtenlandskInntekt?,
-    private val periode: Periode,
+    override val periode: Periode,
     private val tilhører: FradragTilhører
 ) : Fradrag {
     override fun getFradragstype(): Fradragstype = fradragstype
@@ -95,8 +92,6 @@ internal data class PersistertFradrag(
     override fun getMånedsbeløp(): Double = månedsbeløp
     override fun getUtenlandskInntekt(): UtenlandskInntekt? = utenlandskInntekt
     override fun getTilhører(): FradragTilhører = tilhører
-
-    override fun getPeriode(): Periode = periode
 
     override fun equals(other: Any?) = (other as? Fradrag)?.let { this.equals(other) } ?: false
 
@@ -118,7 +113,7 @@ internal fun Beregning.toSnapshot() = PersistertBeregning(
     fradrag = getFradrag().map { it.toSnapshot() },
     sumYtelse = getSumYtelse(),
     sumFradrag = getSumFradrag(),
-    periode = getPeriode(),
+    periode = periode,
     fradragStrategyName = getFradragStrategyName(),
     begrunnelse = getBegrunnelse()
 )
@@ -130,13 +125,13 @@ internal fun Månedsberegning.toSnapshot() = PersistertMånedsberegning(
     sats = getSats(),
     satsbeløp = getSatsbeløp(),
     fradrag = getFradrag().map { it.toSnapshot() },
-    periode = getPeriode()
+    periode = periode
 )
 
 internal fun Fradrag.toSnapshot() = PersistertFradrag(
     fradragstype = getFradragstype(),
     månedsbeløp = getMånedsbeløp(),
     utenlandskInntekt = getUtenlandskInntekt(),
-    periode = getPeriode(),
+    periode = periode,
     tilhører = getTilhører()
 )

@@ -54,7 +54,7 @@ internal data class SakJson(
         val utbetalingslinje: Utbetalingslinje,
         val type: Utbetaling.UtbetalingsType,
     ) : KanPlasseresPåTidslinje<UtbetalingslinjeMedUtbetalingstype> {
-        override fun getPeriode() = utbetalingslinje.getPeriode()
+        override val periode = utbetalingslinje.periode
 
         override fun copy(args: CopyArgs.Tidslinje) = this.copy(utbetalingslinje = utbetalingslinje.copy(args))
 

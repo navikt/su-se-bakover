@@ -158,7 +158,7 @@ internal class BeregningMapperTest {
 }
 
 internal fun assertFradragMapping(mapped: Fradrag, original: Fradrag) {
-    mapped.getPeriode() shouldBe original.getPeriode()
+    mapped.periode shouldBe original.periode
     mapped.getUtenlandskInntekt() shouldBe original.getUtenlandskInntekt()
     mapped.getMånedsbeløp() shouldBe original.getMånedsbeløp()
 }
@@ -177,7 +177,7 @@ internal fun assertMånedsberegningMapping(mapped: Månedsberegning, original: M
 internal fun assertBeregningMapping(mapped: Beregning, original: Beregning) {
     mapped.getId() shouldBe original.getId()
     mapped.getOpprettet() shouldBe original.getOpprettet()
-    mapped.getPeriode() shouldBe original.getPeriode()
+    mapped.periode shouldBe original.periode
     mapped.getSats() shouldBe original.getSats()
     mapped.getSumFradrag() shouldBe original.getSumFradrag()
     mapped.getSumYtelse() shouldBe original.getSumYtelse()
