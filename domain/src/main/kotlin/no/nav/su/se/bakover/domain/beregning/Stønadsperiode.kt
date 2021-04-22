@@ -15,7 +15,7 @@ data class Stønadsperiode private constructor(
         }
 
         fun tryCreate(periode: Periode): Either<UgyldigStønadsperiode, Stønadsperiode> {
-            if (periode.getFraOgMed().year < 2021) {
+            if (periode.fraOgMed.year < 2021) {
                 return UgyldigStønadsperiode.FraOgMedDatoKanIkkeVæreFør2021.left()
             }
             if (periode.getAntallMåneder() > 12) {
@@ -26,7 +26,7 @@ data class Stønadsperiode private constructor(
         }
 
         fun List<Stønadsperiode>.sisteStønadsperiode(): Stønadsperiode? {
-            return this.maxByOrNull { it.periode.getFraOgMed() }
+            return this.maxByOrNull { it.periode.fraOgMed }
         }
     }
 

@@ -123,7 +123,7 @@ internal class OppdaterRevurderingServiceTest {
         val actual = mocks.revurderingService.oppdaterRevurdering(
             OppdaterRevurderingRequest(
                 revurderingId = revurderingId,
-                fraOgMed = periode.getFraOgMed().minus(1, ChronoUnit.MONTHS),
+                fraOgMed = periode.fraOgMed.minus(1, ChronoUnit.MONTHS),
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "gyldig begrunnelse",
                 saksbehandler = saksbehandler,
@@ -144,7 +144,7 @@ internal class OppdaterRevurderingServiceTest {
         val actual = mocks.revurderingService.oppdaterRevurdering(
             OppdaterRevurderingRequest(
                 revurderingId = revurderingId,
-                fraOgMed = periode.getFraOgMed().plus(1, ChronoUnit.DAYS),
+                fraOgMed = periode.fraOgMed.plus(1, ChronoUnit.DAYS),
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "gyldig begrunnelse",
                 saksbehandler = saksbehandler,
@@ -183,7 +183,7 @@ internal class OppdaterRevurderingServiceTest {
         val actual = mocks.revurderingService.oppdaterRevurdering(
             OppdaterRevurderingRequest(
                 revurderingId = revurderingId,
-                fraOgMed = periode.getFraOgMed(),
+                fraOgMed = periode.fraOgMed,
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "gyldig begrunnelse",
                 saksbehandler = saksbehandler,
@@ -207,7 +207,7 @@ internal class OppdaterRevurderingServiceTest {
         val actual = mocks.revurderingService.oppdaterRevurdering(
             OppdaterRevurderingRequest(
                 revurderingId = revurderingId,
-                fraOgMed = periode.getFraOgMed(),
+                fraOgMed = periode.fraOgMed,
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "Ny informasjon",
                 saksbehandler = saksbehandler,

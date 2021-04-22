@@ -11,12 +11,9 @@ import java.time.LocalDate
 import java.time.Period
 
 data class Periode private constructor(
-    private val fraOgMed: LocalDate,
-    private val tilOgMed: LocalDate
+    val fraOgMed: LocalDate,
+    val tilOgMed: LocalDate,
 ) {
-    fun getFraOgMed() = fraOgMed
-    fun getTilOgMed() = tilOgMed
-
     @JsonIgnore
     fun getAntallMåneder() = Period.between(fraOgMed, tilOgMed.plusDays(1)).toTotalMonths().toInt()
     fun tilMånedsperioder(): List<Periode> {

@@ -38,8 +38,8 @@ sealed class Utbetalingslinje : KanPlasseresPåTidslinje<Utbetalingslinje> {
         override fun copy(args: CopyArgs.Tidslinje) = when (args) {
             is CopyArgs.Tidslinje.Full -> this.copy()
             is CopyArgs.Tidslinje.NyPeriode -> this.copy(
-                fraOgMed = args.periode.getFraOgMed(),
-                tilOgMed = args.periode.getTilOgMed(),
+                fraOgMed = args.periode.fraOgMed,
+                tilOgMed = args.periode.tilOgMed,
             )
         }
     }
@@ -70,8 +70,8 @@ sealed class Utbetalingslinje : KanPlasseresPåTidslinje<Utbetalingslinje> {
         override fun copy(args: CopyArgs.Tidslinje) = when (args) {
             is CopyArgs.Tidslinje.Full -> this.copy()
             is CopyArgs.Tidslinje.NyPeriode -> this.copy(
-                fraOgMed = args.periode.getFraOgMed(),
-                tilOgMed = args.periode.getTilOgMed(),
+                fraOgMed = args.periode.fraOgMed,
+                tilOgMed = args.periode.tilOgMed,
             )
         }
     }

@@ -144,8 +144,8 @@ internal class OpprettRevurderingServiceTest {
 
     private fun createUtbetalinger(): List<Utbetaling> = listOf(
         mock {
-            on { senesteDato() } doReturn periode.getTilOgMed()
-            on { tidligsteDato() } doReturn periode.getFraOgMed()
+            on { senesteDato() } doReturn periode.tilOgMed
+            on { tidligsteDato() } doReturn periode.fraOgMed
         },
     )
 
@@ -179,7 +179,7 @@ internal class OpprettRevurderingServiceTest {
         val actual = mocks.revurderingService.opprettRevurdering(
             OpprettRevurderingRequest(
                 sakId = sakId,
-                fraOgMed = periode.getFraOgMed(),
+                fraOgMed = periode.fraOgMed,
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "Ny informasjon",
                 saksbehandler = saksbehandler,
@@ -252,7 +252,7 @@ internal class OpprettRevurderingServiceTest {
         val actual = mocks.revurderingService.opprettRevurdering(
             OpprettRevurderingRequest(
                 sakId = sakId,
-                fraOgMed = periode.getFraOgMed(),
+                fraOgMed = periode.fraOgMed,
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "Ny informasjon",
                 saksbehandler = saksbehandler,
@@ -278,7 +278,7 @@ internal class OpprettRevurderingServiceTest {
         val actual = mocks.revurderingService.opprettRevurdering(
             OpprettRevurderingRequest(
                 sakId = sakId,
-                fraOgMed = periode.getFraOgMed(),
+                fraOgMed = periode.fraOgMed,
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "Ny informasjon",
                 saksbehandler = saksbehandler,
@@ -319,7 +319,7 @@ internal class OpprettRevurderingServiceTest {
         val actual = mocks.revurderingService.opprettRevurdering(
             OpprettRevurderingRequest(
                 sakId = sakId,
-                fraOgMed = periode.getFraOgMed(),
+                fraOgMed = periode.fraOgMed,
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "Ny informasjon",
                 saksbehandler = saksbehandler,
@@ -476,7 +476,7 @@ internal class OpprettRevurderingServiceTest {
         val actual = mocks.revurderingService.opprettRevurdering(
             OpprettRevurderingRequest(
                 sakId = sakId,
-                fraOgMed = periode.getFraOgMed(),
+                fraOgMed = periode.fraOgMed,
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "Ny informasjon",
                 saksbehandler = saksbehandler,
@@ -519,7 +519,7 @@ internal class OpprettRevurderingServiceTest {
             OpprettRevurderingRequest(
                 sakId = sakId,
                 // tester at fraOgMed må starte på 1.
-                fraOgMed = periode.getTilOgMed(),
+                fraOgMed = periode.tilOgMed,
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "Ny informasjon",
                 saksbehandler = saksbehandler,
@@ -551,7 +551,7 @@ internal class OpprettRevurderingServiceTest {
         val actual = mocks.revurderingService.opprettRevurdering(
             OpprettRevurderingRequest(
                 sakId = sakId,
-                fraOgMed = periode.getFraOgMed(),
+                fraOgMed = periode.fraOgMed,
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "Ny informasjon",
                 saksbehandler = saksbehandler,
@@ -593,7 +593,7 @@ internal class OpprettRevurderingServiceTest {
         val actual = mocks.revurderingService.opprettRevurdering(
             OpprettRevurderingRequest(
                 sakId = sakId,
-                fraOgMed = periode.getFraOgMed(),
+                fraOgMed = periode.fraOgMed,
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "Ny informasjon",
                 saksbehandler = saksbehandler,

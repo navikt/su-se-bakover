@@ -156,7 +156,7 @@ internal class StatistikkServiceImplTest {
         }
 
         val expected = Statistikk.Behandling(
-            funksjonellTid = søknadsbehandling.periode.getFraOgMed().startOfDay(zoneIdOslo),
+            funksjonellTid = søknadsbehandling.periode.fraOgMed.startOfDay(zoneIdOslo),
             tekniskTid = Tidspunkt.now(clock),
             registrertDato = søknadsbehandling.opprettet.toLocalDate(zoneIdOslo),
             mottattDato = søknadsbehandling.opprettet.toLocalDate(zoneIdOslo),
@@ -210,7 +210,7 @@ internal class StatistikkServiceImplTest {
         }
 
         val expected = Statistikk.Behandling(
-            funksjonellTid = behandling.periode.getFraOgMed().startOfDay(zoneIdOslo),
+            funksjonellTid = behandling.periode.fraOgMed.startOfDay(zoneIdOslo),
             tekniskTid = Tidspunkt.now(clock),
             registrertDato = behandling.opprettet.toLocalDate(zoneIdOslo),
             mottattDato = behandling.opprettet.toLocalDate(zoneIdOslo),
@@ -263,7 +263,7 @@ internal class StatistikkServiceImplTest {
         }
 
         val expected = Statistikk.Behandling(
-            funksjonellTid = behandling.periode.getFraOgMed().startOfDay(zoneIdOslo),
+            funksjonellTid = behandling.periode.fraOgMed.startOfDay(zoneIdOslo),
             tekniskTid = Tidspunkt.now(clock),
             registrertDato = behandling.opprettet.toLocalDate(zoneIdOslo),
             mottattDato = behandling.opprettet.toLocalDate(zoneIdOslo),
@@ -315,7 +315,7 @@ internal class StatistikkServiceImplTest {
         }
 
         val expected = Statistikk.Behandling(
-            funksjonellTid = behandling.periode.getFraOgMed().startOfDay(zoneIdOslo),
+            funksjonellTid = behandling.periode.fraOgMed.startOfDay(zoneIdOslo),
             tekniskTid = Tidspunkt.now(clock),
             registrertDato = behandling.opprettet.toLocalDate(zoneIdOslo),
             mottattDato = behandling.opprettet.toLocalDate(zoneIdOslo),
@@ -378,7 +378,7 @@ internal class StatistikkServiceImplTest {
         )
 
         val expected = Statistikk.Behandling(
-            funksjonellTid = underkjent.periode.getFraOgMed().startOfDay(zoneIdOslo),
+            funksjonellTid = underkjent.periode.fraOgMed.startOfDay(zoneIdOslo),
             tekniskTid = Tidspunkt.now(clock),
             registrertDato = underkjent.opprettet.toLocalDate(zoneIdOslo),
             mottattDato = underkjent.opprettet.toLocalDate(zoneIdOslo),

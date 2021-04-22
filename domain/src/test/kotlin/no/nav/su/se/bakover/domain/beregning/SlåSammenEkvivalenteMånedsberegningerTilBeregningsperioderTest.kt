@@ -29,8 +29,8 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
 
         SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(listOf(januar, februar)).beregningsperioder shouldBe listOf(
             EkvivalenteMånedsberegninger(listOf(januar, februar)).also {
-                it.getPeriode().getFraOgMed() shouldBe januar.getPeriode().getFraOgMed()
-                it.getPeriode().getTilOgMed() shouldBe februar.getPeriode().getTilOgMed()
+                it.getPeriode().fraOgMed shouldBe januar.getPeriode().fraOgMed
+                it.getPeriode().tilOgMed shouldBe februar.getPeriode().tilOgMed
             }
         )
     }
@@ -59,12 +59,12 @@ internal class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioderTest 
 
         SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(listOf(januar, februar)).beregningsperioder shouldBe listOf(
             EkvivalenteMånedsberegninger(listOf(januar)).also {
-                it.getPeriode().getFraOgMed() shouldBe januar.getPeriode().getFraOgMed()
-                it.getPeriode().getTilOgMed() shouldBe januar.getPeriode().getTilOgMed()
+                it.getPeriode().fraOgMed shouldBe januar.getPeriode().fraOgMed
+                it.getPeriode().tilOgMed shouldBe januar.getPeriode().tilOgMed
             },
             EkvivalenteMånedsberegninger(listOf(februar)).also {
-                it.getPeriode().getFraOgMed() shouldBe februar.getPeriode().getFraOgMed()
-                it.getPeriode().getTilOgMed() shouldBe februar.getPeriode().getTilOgMed()
+                it.getPeriode().fraOgMed shouldBe februar.getPeriode().fraOgMed
+                it.getPeriode().tilOgMed shouldBe februar.getPeriode().tilOgMed
             },
         )
     }

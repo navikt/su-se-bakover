@@ -96,8 +96,8 @@ internal class BeregnRoutesKtTest {
             }.apply {
                 response.status() shouldBe HttpStatusCode.Created
                 val behandlingJson = deserialize<BehandlingJson>(response.content!!)
-                behandlingJson.beregning!!.fraOgMed shouldBe stønadsperiode.periode.getFraOgMed().toString()
-                behandlingJson.beregning.tilOgMed shouldBe stønadsperiode.periode.getTilOgMed().toString()
+                behandlingJson.beregning!!.fraOgMed shouldBe stønadsperiode.periode.fraOgMed.toString()
+                behandlingJson.beregning.tilOgMed shouldBe stønadsperiode.periode.tilOgMed.toString()
                 behandlingJson.beregning.sats shouldBe Sats.HØY.name
                 behandlingJson.beregning.månedsberegninger shouldHaveSize 12
             }

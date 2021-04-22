@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.RevurdertBeregning
+import no.nav.su.se.bakover.domain.beregning.VurderOmBeregningHarEndringerIYtelse
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -141,7 +142,12 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
                         opphør(revurdertBeregning)
                     }
                     AvslagGrunnetBeregning.Nei -> {
-                        if (revurdertBeregning.equals(tilRevurdering.beregning)) {
+                        val harEndringerIYtelse = VurderOmBeregningHarEndringerIYtelse(
+                            tilRevurdering.beregning,
+                            revurdertBeregning,
+                        ).resultat
+
+                        if (!harEndringerIYtelse) {
                             ingenEndring(revurdertBeregning)
                         } else {
                             innvilget(revurdertBeregning)

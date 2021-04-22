@@ -68,7 +68,7 @@ class NyBehandlingRoutesTest {
                 requestPath,
                 listOf(Brukerrolle.Saksbehandler),
             ) {
-                setBody("""{ "soknadId": "$søknadId", "stønadsperiode": {"fraOgMed" : "${stønadsperiode.periode.getFraOgMed()}", "tilOgMed": "${stønadsperiode.periode.getTilOgMed()}"}}""".trimIndent())
+                setBody("""{ "soknadId": "$søknadId", "stønadsperiode": {"fraOgMed" : "${stønadsperiode.periode.fraOgMed}", "tilOgMed": "${stønadsperiode.periode.tilOgMed}"}}""".trimIndent())
             }.apply {
                 response.status() shouldBe HttpStatusCode.Created
                 val actualResponse = objectMapper.readValue<BehandlingJson>(response.content!!)

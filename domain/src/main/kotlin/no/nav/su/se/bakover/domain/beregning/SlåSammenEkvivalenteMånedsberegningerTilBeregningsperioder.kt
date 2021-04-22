@@ -69,7 +69,7 @@ internal data class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder
     }
 
     private fun List<Månedsberegning>.sorterMånedsberegninger() = this
-        .sortedBy { it.getPeriode().getFraOgMed() }
+        .sortedBy { it.getPeriode().fraOgMed }
 
     private fun List<Fradrag>.sorterFradrag() = this
         .sortedBy { it.getMånedsbeløp() }
@@ -86,8 +86,8 @@ internal data class EkvivalenteMånedsberegninger(
     private val månedsberegninger: List<Månedsberegning>
 ) : Månedsberegning by månedsberegninger.first() {
     override fun getPeriode(): Periode = Periode.create(
-        fraOgMed = månedsberegninger.minOf { it.getPeriode().getFraOgMed() },
-        tilOgMed = månedsberegninger.maxOf { it.getPeriode().getTilOgMed() },
+        fraOgMed = månedsberegninger.minOf { it.getPeriode().fraOgMed },
+        tilOgMed = månedsberegninger.maxOf { it.getPeriode().tilOgMed },
     )
 
     override fun equals(other: Any?) = (other as? Månedsberegning)?.let { this.equals(other) } ?: false

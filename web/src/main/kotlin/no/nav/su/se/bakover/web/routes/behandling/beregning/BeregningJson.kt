@@ -27,8 +27,8 @@ internal fun Beregning.toJson(): BeregningJson {
     return BeregningJson(
         id = getId().toString(),
         opprettet = getOpprettet().toString(),
-        fraOgMed = getPeriode().getFraOgMed().format(DateTimeFormatter.ISO_DATE),
-        tilOgMed = getPeriode().getTilOgMed().format(DateTimeFormatter.ISO_DATE),
+        fraOgMed = getPeriode().fraOgMed.format(DateTimeFormatter.ISO_DATE),
+        tilOgMed = getPeriode().tilOgMed.format(DateTimeFormatter.ISO_DATE),
         sats = getSats().name,
         månedsberegninger = getMånedsberegninger().map {
             it.toJson(

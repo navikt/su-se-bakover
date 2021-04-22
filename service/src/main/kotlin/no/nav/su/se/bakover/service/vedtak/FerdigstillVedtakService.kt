@@ -5,7 +5,6 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -32,7 +31,7 @@ import java.time.Clock
 import java.util.UUID
 
 interface FerdigstillVedtakService {
-    fun ferdigstillVedtakEtterUtbetaling(utbetalingId: UUID30)
+    fun ferdigstillVedtakEtterUtbetaling(utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering)
     fun opprettManglendeJournalposterOgBrevbestillinger(): OpprettManglendeJournalpostOgBrevdistribusjonResultat
     fun journalførOgLagre(vedtak: Vedtak): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeJournalføreBrev, Vedtak>
     fun distribuerOgLagre(vedtak: Vedtak): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeDistribuereBrev, Vedtak>
@@ -108,10 +107,26 @@ internal class FerdigstillVedtakServiceImpl(
     /**
      * Entry point for kvittering consumer.
      */
-    override fun ferdigstillVedtakEtterUtbetaling(utbetalingId: UUID30) {
-        val vedtak = vedtakRepo.hentForUtbetaling(utbetalingId)
-        ferdigstillVedtak(vedtak).getOrHandle {
-            throw KunneIkkeFerdigstilleVedtakException(vedtak, it)
+    override fun ferdigstillVedtakEtterUtbetaling(utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering) {
+        return when (utbetaling.type) {
+            Utbetaling.UtbetalingsType.STANS,
+            Utbetaling.UtbetalingsType.GJENOPPTA,
+            -> {
+                log.info("Utbetaling ${utbetaling.id} er av type ${utbetaling.type} og vil derfor ikke bli prøvd ferdigstilt.")
+            }
+            Utbetaling.UtbetalingsType.NY,
+            Utbetaling.UtbetalingsType.OPPHØR,
+            -> {
+                if (!utbetaling.kvittering.erKvittertOk()) {
+                    log.error("Prøver ikke å ferdigstille innvilgelse siden kvitteringen fra oppdrag ikke var OK.")
+                } else {
+                    val vedtak = vedtakRepo.hentForUtbetaling(utbetaling.id)
+                    ferdigstillVedtak(vedtak).getOrHandle {
+                        throw KunneIkkeFerdigstilleVedtakException(vedtak, it)
+                    }
+                    Unit
+                }
+            }
         }
     }
 
@@ -225,10 +240,11 @@ internal class FerdigstillVedtakServiceImpl(
     }
 
     override fun journalførOgLagre(vedtak: Vedtak): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeJournalføreBrev, Vedtak> {
-        val brevRequest = lagBrevRequest(vedtak).getOrHandle { return it.left() }
         if (vedtak.behandling is IverksattRevurdering.IngenEndring && !(vedtak.behandling as IverksattRevurdering.IngenEndring).skalFøreTilBrevutsending) {
             return vedtak.right()
         }
+        val brevRequest = lagBrevRequest(vedtak).getOrHandle { return it.left() }
+
         return vedtak.journalfør {
             brevService.journalførBrev(brevRequest, vedtak.behandling.saksnummer)
                 .mapLeft { KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring }

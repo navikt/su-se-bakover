@@ -81,7 +81,7 @@ internal class SøknadsbehandlingStatistikkMapperTest {
     @Test
     fun `mapper iverksatt behandling`() {
         SøknadsbehandlingStatistikkMapper(fixedClock).map(iverksattSøknadsbehandling) shouldBe Statistikk.Behandling(
-            funksjonellTid = iverksattSøknadsbehandling.periode.getFraOgMed().startOfDay(zoneIdOslo),
+            funksjonellTid = iverksattSøknadsbehandling.periode.fraOgMed.startOfDay(zoneIdOslo),
             tekniskTid = Tidspunkt.now(fixedClock),
             mottattDato = iverksattSøknadsbehandling.opprettet.toLocalDate(zoneIdOslo),
             registrertDato = iverksattSøknadsbehandling.opprettet.toLocalDate(zoneIdOslo),
@@ -143,9 +143,9 @@ internal class SøknadsbehandlingStatistikkMapperTest {
         @Test
         fun `funksjonell til settes til dato for beregning dersom tilgjengelig`() {
             SøknadsbehandlingStatistikkMapper.FunksjonellTidMapper.map(tilAttesteringSøknadsbehandling) shouldBe tilAttesteringSøknadsbehandling.periode
-                .getFraOgMed().startOfDay(zoneIdOslo)
+                .fraOgMed.startOfDay(zoneIdOslo)
             SøknadsbehandlingStatistikkMapper.FunksjonellTidMapper.map(iverksattSøknadsbehandling) shouldBe tilAttesteringSøknadsbehandling.periode
-                .getFraOgMed().startOfDay(zoneIdOslo)
+                .fraOgMed.startOfDay(zoneIdOslo)
         }
     }
 
