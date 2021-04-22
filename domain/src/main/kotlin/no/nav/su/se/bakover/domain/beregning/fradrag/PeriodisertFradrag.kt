@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 internal data class PeriodisertFradrag(
     private val type: Fradragstype,
     private val månedsbeløp: Double,
-    private val periode: Periode,
+    override val periode: Periode,
     private val utenlandskInntekt: UtenlandskInntekt? = null,
     private val tilhører: FradragTilhører
 ) : Fradrag {
@@ -18,7 +18,6 @@ internal data class PeriodisertFradrag(
     override fun getFradragstype(): Fradragstype = type
     override fun getMånedsbeløp(): Double = månedsbeløp
     override fun getUtenlandskInntekt(): UtenlandskInntekt? = utenlandskInntekt
-    override fun getPeriode(): Periode = periode
 
     override fun equals(other: Any?) = (other as? Fradrag)?.let { this.equals(other) } ?: false
 }

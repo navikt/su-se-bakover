@@ -54,8 +54,8 @@ private fun beregnMedVirkningFraOgMedMånedenEtter(
         return KanIkkeVelgeSisteMånedVedNedgangIStønaden.left()
     }
     val nyPeriode = Periode.create(
-        revurdertBeregning.getPeriode().fraOgMed.plusMonths(1),
-        revurdertBeregning.getPeriode().tilOgMed
+        revurdertBeregning.periode.fraOgMed.plusMonths(1),
+        revurdertBeregning.periode.tilOgMed
     )
     return BeregningMedFradragBeregnetMånedsvis(
         periode = nyPeriode,
@@ -69,14 +69,14 @@ private fun beregnMedVirkningFraOgMedMånedenEtter(
                     type = it.getFradragstype(),
                     månedsbeløp = it.getMånedsbeløp(),
                     periode = Periode.create(
-                        fraOgMed = it.getPeriode().fraOgMed.let { fraOgMed ->
-                            if (fraOgMed == revurdertBeregning.getPeriode().fraOgMed) {
+                        fraOgMed = it.periode.fraOgMed.let { fraOgMed ->
+                            if (fraOgMed == revurdertBeregning.periode.fraOgMed) {
                                 fraOgMed.plusMonths(1)
                             } else {
                                 fraOgMed
                             }
                         },
-                        tilOgMed = it.getPeriode().tilOgMed
+                        tilOgMed = it.periode.tilOgMed
                     ),
                     utenlandskInntekt = it.getUtenlandskInntekt(),
                     tilhører = it.getTilhører(),
@@ -91,5 +91,5 @@ private fun fjernFradragSomLiggerUtenforDenNyePerioden(
     fradrag: Fradrag,
     nyPeriode: Periode
 ): Boolean {
-    return nyPeriode.tilstøter(fradrag.getPeriode())
+    return nyPeriode.tilstøter(fradrag.periode)
 }

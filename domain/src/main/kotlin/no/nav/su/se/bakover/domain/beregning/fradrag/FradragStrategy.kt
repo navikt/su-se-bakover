@@ -21,7 +21,7 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
     fun beregn(fradrag: List<Fradrag>, beregningsperiode: Periode): Map<Periode, List<Fradrag>> {
         val periodiserteFradrag = fradrag
             .flatMap { FradragFactory.periodiser(it) }
-            .groupBy { it.getPeriode() }
+            .groupBy { it.periode }
         val beregningsperiodeMedFradrag = beregningsperiode.tilMånedsperioder()
             .map { it to (periodiserteFradrag[it] ?: emptyList()) }
             .toMap()

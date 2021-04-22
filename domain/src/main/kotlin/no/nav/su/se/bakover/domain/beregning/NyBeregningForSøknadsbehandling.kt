@@ -39,7 +39,7 @@ data class NyBeregningForSøknadsbehandling private constructor(
             fradrag: List<Fradrag>,
             begrunnelse: String?,
         ): Either<UgyldigBeregning, NyBeregningForSøknadsbehandling> {
-            if (!fradrag.all { stønadsperiode.periode inneholder it.getPeriode() }) {
+            if (!fradrag.all { stønadsperiode.periode inneholder it.periode }) {
                 return UgyldigBeregning.IkkeLovMedFradragUtenforPerioden.left()
             }
 

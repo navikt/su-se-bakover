@@ -162,7 +162,7 @@ internal class RevurderingServiceImplTest {
     fun `kan ikke revurdere når stønadsperioden ikke inneholder revurderingsperioden`() {
 
         val beregningMock = mock<Beregning> {
-            on { getPeriode() } doReturn Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.desember(2021))
+            on { periode } doReturn Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.desember(2021))
         }
         val behandling = mock<Søknadsbehandling.Iverksatt.Innvilget> {
             on { beregning } doReturn beregningMock

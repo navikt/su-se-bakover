@@ -167,7 +167,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
 
         val (janAprUnderMinstenivå, janAprAndre) = beregning.getMånedsberegninger()
             .flatMap { it.getFradrag() }
-            .filter { Periode.create(1.januar(2020), 30.april(2020)) inneholder it.getPeriode() }
+            .filter { Periode.create(1.januar(2020), 30.april(2020)) inneholder it.periode }
             .partition { it.getFradragstype() == Fradragstype.UnderMinstenivå }
 
         janAprUnderMinstenivå shouldHaveSize 4
@@ -175,7 +175,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             it shouldBe PeriodisertFradrag(
                 type = Fradragstype.UnderMinstenivå,
                 månedsbeløp = 211.0,
-                periode = it.getPeriode(),
+                periode = it.periode,
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.BRUKER
             )
@@ -185,7 +185,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             it shouldBe PeriodisertFradrag(
                 type = Fradragstype.ForventetInntekt,
                 månedsbeløp = 20426.42,
-                periode = it.getPeriode(),
+                periode = it.periode,
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.BRUKER
             )
@@ -193,7 +193,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
 
         val (maiDesUnderMinstenivå, maiDesAndre) = beregning.getMånedsberegninger()
             .flatMap { it.getFradrag() }
-            .filter { Periode.create(1.mai(2020), 31.desember(2020)) inneholder it.getPeriode() }
+            .filter { Periode.create(1.mai(2020), 31.desember(2020)) inneholder it.periode }
             .partition { it.getFradragstype() == Fradragstype.UnderMinstenivå }
 
         maiDesUnderMinstenivå shouldHaveSize 0
@@ -202,7 +202,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
             it shouldBe PeriodisertFradrag(
                 type = Fradragstype.ForventetInntekt,
                 månedsbeløp = 20426.42,
-                periode = it.getPeriode(),
+                periode = it.periode,
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.BRUKER
             )
@@ -260,7 +260,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
 
         beregning.getSumYtelse() shouldBe 41274
         beregning.getSumFradrag() shouldBe 20637.32
-        val grouped = beregning.getMånedsberegninger().groupBy { it.getPeriode() }
+        val grouped = beregning.getMånedsberegninger().groupBy { it.periode }
         val januar = grouped[Periode.create(1.januar(2020), 31.januar(2020))]!!.first()
         januar.getSumFradrag() shouldBe 20637.32
         januar.getSumYtelse() shouldBe 0

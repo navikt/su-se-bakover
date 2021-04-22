@@ -13,7 +13,7 @@ import java.util.UUID
 internal data class BeregningMedFradragBeregnetMånedsvis(
     private val id: UUID = UUID.randomUUID(),
     private val opprettet: Tidspunkt = Tidspunkt.now(),
-    private val periode: Periode,
+    override val periode: Periode,
     private val sats: Sats,
     private val fradrag: List<Fradrag>,
     private val fradragStrategy: FradragStrategy,
@@ -22,7 +22,7 @@ internal data class BeregningMedFradragBeregnetMånedsvis(
     private val beregning = beregn()
 
     init {
-        require(fradrag.all { periode inneholder it.getPeriode() })
+        require(fradrag.all { periode inneholder it.periode })
     }
 
     override fun getId(): UUID = id
@@ -50,7 +50,7 @@ internal data class BeregningMedFradragBeregnetMånedsvis(
             ).let { månedsberegning ->
                 when (månedsberegning.ytelseStørreEnn0MenMindreEnnToProsentAvHøySats()) {
                     true -> MånedsberegningFactory.ny(
-                        periode = månedsberegning.getPeriode(),
+                        periode = månedsberegning.periode,
                         sats = sats,
                         fradrag = månedsberegning.getFradrag()
                             .plus(månedsberegning.lagFradragForBeløpUnderMinstegrense()),
@@ -65,21 +65,18 @@ internal data class BeregningMedFradragBeregnetMånedsvis(
         FradragFactory.ny(
             type = Fradragstype.UnderMinstenivå,
             månedsbeløp = getSumYtelse().toDouble(),
-            periode = getPeriode(),
+            periode = periode,
             utenlandskInntekt = null,
             tilhører = FradragTilhører.BRUKER
         ),
     )
 
     private fun Månedsberegning.ytelseStørreEnn0MenMindreEnnToProsentAvHøySats() =
-        getSumYtelse() > 0 && getSumYtelse() < Sats.toProsentAvHøy(getPeriode())
+        getSumYtelse() > 0 && getSumYtelse() < Sats.toProsentAvHøy(periode)
 
     override fun getSats(): Sats = sats
     override fun getMånedsberegninger(): List<Månedsberegning> = beregning.values.toList()
     override fun getFradrag(): List<Fradrag> = fradrag
     override fun getBegrunnelse(): String? = begrunnelse
-
-    override fun getPeriode(): Periode = periode
-
     override fun equals(other: Any?) = (other as? Beregning)?.let { this.equals(other) } ?: false
 }

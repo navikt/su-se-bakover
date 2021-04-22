@@ -22,18 +22,18 @@ internal fun Beregning.toJson(): BeregningJson {
     val epsInputFradragMap = getFradrag()
         .filter { it.getTilhører() == FradragTilhører.EPS }
         .flatMap { FradragFactory.periodiser(it) }
-        .groupBy { it.getPeriode() }
+        .groupBy { it.periode }
 
     return BeregningJson(
         id = getId().toString(),
         opprettet = getOpprettet().toString(),
-        fraOgMed = getPeriode().fraOgMed.format(DateTimeFormatter.ISO_DATE),
-        tilOgMed = getPeriode().tilOgMed.format(DateTimeFormatter.ISO_DATE),
+        fraOgMed = periode.fraOgMed.format(DateTimeFormatter.ISO_DATE),
+        tilOgMed = periode.tilOgMed.format(DateTimeFormatter.ISO_DATE),
         sats = getSats().name,
         månedsberegninger = getMånedsberegninger().map {
             it.toJson(
-                getEpsFribeløp(getFradragStrategyName(), it.getPeriode()),
-                epsInputFradrag = epsInputFradragMap[it.getPeriode()] ?: emptyList()
+                getEpsFribeløp(getFradragStrategyName(), it.periode),
+                epsInputFradrag = epsInputFradragMap[it.periode] ?: emptyList()
             )
         },
         fradrag = getFradrag().toJson(),

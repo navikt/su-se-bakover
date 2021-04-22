@@ -87,7 +87,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
         val månedsberegninger = listOf<Månedsberegning>(
             mock {
                 on { getSumYtelse() } doReturn 1
-                on { getPeriode() } doReturn TestBeregning.getPeriode()
+                on { periode } doReturn TestBeregning.periode
                 on { getSats() } doReturn TestBeregning.getSats()
             },
         )
@@ -101,12 +101,12 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
             on { getOpprettet() } doReturn TestBeregning.getOpprettet()
             on { getSats() } doReturn TestBeregning.getSats()
             on { getSumFradrag() } doReturn TestBeregning.getSumFradrag()
-            on { getPeriode() } doReturn TestBeregning.getPeriode()
+            on { periode } doReturn TestBeregning.periode
         }
 
         val beregnetRevurdering = OpprettetRevurdering(
             id = UUID.randomUUID(),
-            periode = TestBeregning.getPeriode(),
+            periode = TestBeregning.periode,
             opprettet = Tidspunkt.now(),
             tilRevurdering = vedtak.copy(beregning = beregning),
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = ""),
@@ -122,7 +122,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                 FradragFactory.ny(
                     type = Fradragstype.BidragEtterEkteskapsloven,
                     månedsbeløp = 12.0,
-                    periode = TestBeregning.getMånedsberegninger()[0].getPeriode(),
+                    periode = TestBeregning.getMånedsberegninger()[0].periode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),

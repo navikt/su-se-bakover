@@ -29,7 +29,7 @@ internal data class Beregningsgrunnlag private constructor (
                     tilhører = FradragTilhører.BRUKER
                 )
             )
-            if (!fradrag.all { beregningsperiode inneholder it.getPeriode() }) { return UgyldigBeregningsgrunnlag.IkkeLovMedFradragUtenforPerioden.left() }
+            if (!fradrag.all { beregningsperiode inneholder it.periode }) { return UgyldigBeregningsgrunnlag.IkkeLovMedFradragUtenforPerioden.left() }
             if (fradrag.count { it.getFradragstype() == Fradragstype.ForventetInntekt && it.getTilhører() == FradragTilhører.BRUKER } != 1) { return UgyldigBeregningsgrunnlag.BrukerMåHaNøyaktig1ForventetInntekt.left() }
 
             return Beregningsgrunnlag(beregningsperiode, fradrag).right()
