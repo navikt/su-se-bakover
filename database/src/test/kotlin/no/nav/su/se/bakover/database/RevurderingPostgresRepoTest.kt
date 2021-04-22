@@ -126,7 +126,7 @@ internal class RevurderingPostgresRepoTest {
         simulering = simulering,
         fritekstTilBrev = beregnet.fritekstTilBrev,
         revurderingsårsak = beregnet.revurderingsårsak,
-        forhåndsvarsel = null,
+        forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
     )
 
     private fun simulertOpphørt(beregnet: BeregnetRevurdering.Opphørt) = SimulertRevurdering.Opphørt(
@@ -140,7 +140,7 @@ internal class RevurderingPostgresRepoTest {
         simulering = simulering,
         fritekstTilBrev = beregnet.fritekstTilBrev,
         revurderingsårsak = beregnet.revurderingsårsak,
-        forhåndsvarsel = null,
+        forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
     )
 
     @Test
@@ -247,7 +247,7 @@ internal class RevurderingPostgresRepoTest {
 
             repo.lagre(simulert)
             repo.lagre(beregnet)
-            repo.hent(opprettet.id) shouldBe beregnet
+            repo.hent(opprettet.id) shouldBe beregnet.copy(forhåndsvarsel = simulert.forhåndsvarsel)
         }
     }
 
@@ -272,6 +272,7 @@ internal class RevurderingPostgresRepoTest {
                     attesteringsoppgaveId = OppgaveId("attesteringsoppgaveId"),
                     saksbehandler = saksbehandler,
                     fritekstTilBrev = "fritekst",
+                    forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
                 )
 
             repo.lagre(tilAttestering)
@@ -300,6 +301,7 @@ internal class RevurderingPostgresRepoTest {
                 attesteringsoppgaveId = OppgaveId("attesteringsoppgaveId"),
                 saksbehandler = Saksbehandler("Ny saksbehandler"),
                 fritekstTilBrev = "fritekst",
+                forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             )
 
             repo.lagre(tilAttestering)
@@ -319,6 +321,8 @@ internal class RevurderingPostgresRepoTest {
             val opprettet = opprettet(vedtak)
             repo.lagre(opprettet)
 
+            repo.oppdaterForhåndsvarsel(opprettet.id, Forhåndsvarsel.IngenForhåndsvarsel)
+
             val tilAttestering = RevurderingTilAttestering.Innvilget(
                 id = opprettet.id,
                 periode = periode,
@@ -336,7 +340,7 @@ internal class RevurderingPostgresRepoTest {
                 oppgaveId = oppgaveId,
                 fritekstTilBrev = "",
                 revurderingsårsak = revurderingsårsak,
-                forhåndsvarsel = null,
+                forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             )
 
             repo.lagre(tilAttestering)
@@ -379,6 +383,7 @@ internal class RevurderingPostgresRepoTest {
                     attesteringsoppgaveId = OppgaveId("attesteringsoppgaveId"),
                     saksbehandler = saksbehandler,
                     fritekstTilBrev = "",
+                    forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
                 )
             repo.lagre(tilAttestering)
 
@@ -410,7 +415,12 @@ internal class RevurderingPostgresRepoTest {
             repo.lagre(simulert)
             repo.hent(opprettet.id) shouldBe simulert
             val tilAttestering =
-                simulert.tilAttestering(opprettet.oppgaveId, opprettet.saksbehandler, opprettet.fritekstTilBrev)
+                simulert.tilAttestering(
+                    opprettet.oppgaveId,
+                    opprettet.saksbehandler,
+                    opprettet.fritekstTilBrev,
+                    forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+                )
             repo.lagre(tilAttestering)
 
             val underkjent = UnderkjentRevurdering.Opphørt(
@@ -429,7 +439,7 @@ internal class RevurderingPostgresRepoTest {
                     Attestering.Underkjent.Grunn.ANDRE_FORHOLD,
                     "kommentar",
                 ),
-                forhåndsvarsel = null,
+                forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             )
 
             repo.lagre(underkjent)
@@ -458,7 +468,7 @@ internal class RevurderingPostgresRepoTest {
                 revurderingsårsak = opprettet.revurderingsårsak,
                 beregning = vedtak.beregning,
                 simulering = simulering,
-                forhåndsvarsel = null,
+                forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             )
 
             repo.lagre(underkjent)
@@ -478,7 +488,7 @@ internal class RevurderingPostgresRepoTest {
             val simulert = simulertOpphørt(beregnet)
             repo.lagre(simulert)
             val tilAttestering =
-                simulert.tilAttestering(opprettet.oppgaveId, opprettet.saksbehandler, opprettet.fritekstTilBrev)
+                simulert.tilAttestering(opprettet.oppgaveId, opprettet.saksbehandler, opprettet.fritekstTilBrev, Forhåndsvarsel.IngenForhåndsvarsel)
             repo.lagre(tilAttestering)
 
             val underkjent = IverksattRevurdering.Opphørt(
@@ -495,7 +505,7 @@ internal class RevurderingPostgresRepoTest {
                 attestering = Attestering.Iverksatt(
                     attestant,
                 ),
-                forhåndsvarsel = null,
+                forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             )
 
             repo.lagre(underkjent)
@@ -631,8 +641,10 @@ internal class RevurderingPostgresRepoTest {
 
             val opprettet = opprettet(vedtak)
             repo.lagre(opprettet)
+
             val beregnet = beregnetIngenEndring(opprettet, vedtak)
             repo.lagre(beregnet)
+
             val forhåndsvarsletRevurdering = SimulertRevurdering.Innvilget(
                 id = opprettet.id,
                 periode = opprettet.periode,
@@ -643,15 +655,19 @@ internal class RevurderingPostgresRepoTest {
                 fritekstTilBrev = opprettet.fritekstTilBrev,
                 revurderingsårsak = opprettet.revurderingsårsak,
                 beregning = vedtak.beregning,
-                forhåndsvarsel = Forhåndsvarsel(JournalpostId(UUID.randomUUID().toString()), BrevbestillingId(UUID.randomUUID().toString())),
+                forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt(
+                    JournalpostId(UUID.randomUUID().toString()),
+                    BrevbestillingId(UUID.randomUUID().toString()),
+                ),
                 simulering = Simulering(
                     gjelderId = FnrGenerator.random(),
                     gjelderNavn = "Mr Per",
                     datoBeregnet = LocalDate.now(),
                     nettoBeløp = 0,
-                    periodeList = listOf()
-                )
+                    periodeList = listOf(),
+                ),
             )
+
             repo.lagre(forhåndsvarsletRevurdering)
 
             repo.hent(forhåndsvarsletRevurdering.id)!! shouldBe forhåndsvarsletRevurdering

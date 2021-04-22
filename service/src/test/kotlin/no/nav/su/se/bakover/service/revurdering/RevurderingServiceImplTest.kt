@@ -43,6 +43,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
@@ -279,7 +280,7 @@ internal class RevurderingServiceImplTest {
             oppgaveId = mock(),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = null
+            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -361,8 +362,9 @@ internal class RevurderingServiceImplTest {
             on { opprettet } doReturn Tidspunkt.EPOCH
             on { beregning } doReturn mock()
             on { simulering } doReturn mock()
-            on { tilAttestering(any(), any(), any()) } doReturn mock()
+            on { tilAttestering(any(), any(), any(), any()) } doReturn mock()
             on { oppgaveId } doReturn OppgaveId("oppgaveid")
+            on { forhåndsvarsel } doReturn Forhåndsvarsel.IngenForhåndsvarsel
         }
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -452,6 +454,7 @@ internal class RevurderingServiceImplTest {
     fun `sender ikke til attestering hvis henting av aktørId feiler`() {
         val simulertRevurdering = mock<SimulertRevurdering> {
             on { fnr } doReturn fnr
+            on { forhåndsvarsel } doReturn Forhåndsvarsel.IngenForhåndsvarsel
         }
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn simulertRevurdering
@@ -485,6 +488,7 @@ internal class RevurderingServiceImplTest {
         val simulertRevurdering = mock<SimulertRevurdering> {
             on { fnr } doReturn fnr
             on { saksnummer } doReturn saksnummer
+            on { forhåndsvarsel } doReturn Forhåndsvarsel.IngenForhåndsvarsel
         }
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn simulertRevurdering
@@ -545,7 +549,7 @@ internal class RevurderingServiceImplTest {
             attestering = Attestering.Iverksatt(attestant),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = null
+            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel
         )
         val revurderingTilAttestering = RevurderingTilAttestering.Innvilget(
             id = revurderingId,
@@ -558,7 +562,7 @@ internal class RevurderingServiceImplTest {
             saksbehandler = saksbehandler,
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = null
+            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -630,7 +634,7 @@ internal class RevurderingServiceImplTest {
             saksbehandler = saksbehandler,
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = null
+            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel
         )
         val attestant = NavIdentBruker.Attestant("ATTT")
 
@@ -694,7 +698,7 @@ internal class RevurderingServiceImplTest {
             oppgaveId = OppgaveId("oppgaveId"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = null
+            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel
         )
 
         val attestering = Attestering.Underkjent(
@@ -776,7 +780,7 @@ internal class RevurderingServiceImplTest {
             oppgaveId = OppgaveId("oppgaveId"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = null,
+            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             attestering = attestering,
         )
 

@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.service.revurdering
 
+import arrow.core.getOrHandle
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
@@ -151,7 +152,7 @@ class RevurderingIngenEndringTest {
                 "endret fritekst",
                 true
             )
-        ).orNull()!! as RevurderingTilAttestering.IngenEndring
+        ).getOrHandle { throw RuntimeException(it.toString()) } as RevurderingTilAttestering.IngenEndring
 
         actual shouldBe revurderingTilAttestering
 

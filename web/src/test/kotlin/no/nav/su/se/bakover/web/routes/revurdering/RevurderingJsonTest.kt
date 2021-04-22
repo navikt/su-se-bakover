@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
@@ -64,7 +65,7 @@ internal class RevurderingJsonTest {
                 "fritekstTilBrev": "",
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon",
-                "harForhåndsvarslet": false
+                "forhåndsvarsel": null
             }
             """.trimIndent()
 
@@ -112,7 +113,7 @@ internal class RevurderingJsonTest {
                 "fritekstTilBrev": "",
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon",
-                "harForhåndsvarslet": false
+                "forhåndsvarsel": null
             }
             """.trimIndent()
 
@@ -160,7 +161,7 @@ internal class RevurderingJsonTest {
                 "fritekstTilBrev": "",
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon",
-                "harForhåndsvarslet": false
+                "forhåndsvarsel": null
             }
             """.trimIndent()
 
@@ -208,7 +209,7 @@ internal class RevurderingJsonTest {
                 "fritekstTilBrev": "",
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon",
-                "harForhåndsvarslet": false
+                "forhåndsvarsel": null
             }
             """.trimIndent()
 
@@ -257,7 +258,7 @@ internal class RevurderingJsonTest {
                 "fritekstTilBrev": "",
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon",
-                "harForhåndsvarslet": false
+                "forhåndsvarsel": null
             }
             """.trimIndent()
 
@@ -306,7 +307,7 @@ internal class RevurderingJsonTest {
                 "fritekstTilBrev": "",
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon",
-                "harForhåndsvarslet": false
+                "forhåndsvarsel": null
             }
             """.trimIndent()
 
@@ -331,7 +332,7 @@ internal class RevurderingJsonTest {
             oppgaveId = OppgaveId("OppgaveId"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = null
+            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel
         )
 
         val revurderingJson =
@@ -356,7 +357,7 @@ internal class RevurderingJsonTest {
                 "skalFøreTilBrevutsending": true,
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon",
-                "harForhåndsvarslet": false
+                "forhåndsvarsel": { "type": "INGEN_FORHÅNDSVARSEL" }
             }
             """.trimIndent()
 
@@ -381,7 +382,7 @@ internal class RevurderingJsonTest {
             oppgaveId = OppgaveId("OppgaveId"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = null
+            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel
         )
 
         val revurderingJson =
@@ -406,7 +407,7 @@ internal class RevurderingJsonTest {
                 "skalFøreTilBrevutsending": true,
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon",
-                "harForhåndsvarslet": false
+                "forhåndsvarsel": { "type": "INGEN_FORHÅNDSVARSEL" }
             }
             """.trimIndent()
 
@@ -456,7 +457,7 @@ internal class RevurderingJsonTest {
                 "skalFøreTilBrevutsending": false,
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon",
-                "harForhåndsvarslet": false
+                "forhåndsvarsel": null
             }
             """.trimIndent()
 
@@ -486,7 +487,7 @@ internal class RevurderingJsonTest {
             ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = null
+            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel
         )
 
         val expected =
@@ -518,7 +519,7 @@ internal class RevurderingJsonTest {
                 "skalFøreTilBrevutsending": true,
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon",
-                "harForhåndsvarslet": false
+                "forhåndsvarsel": { "type": "INGEN_FORHÅNDSVARSEL"}
             }
             """.trimIndent()
 
@@ -548,7 +549,7 @@ internal class RevurderingJsonTest {
             ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = null
+            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel
         )
 
         val expected =
@@ -580,7 +581,7 @@ internal class RevurderingJsonTest {
                 "skalFøreTilBrevutsending": true,
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon",
-                "harForhåndsvarslet": false
+                "forhåndsvarsel": { "type": "INGEN_FORHÅNDSVARSEL"}
             }
             """.trimIndent()
 
@@ -642,7 +643,7 @@ internal class RevurderingJsonTest {
                 "skalFøreTilBrevutsending": false,
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon",
-                "harForhåndsvarslet": false
+                "forhåndsvarsel": null
             }
             """.trimIndent()
 
@@ -668,7 +669,7 @@ internal class RevurderingJsonTest {
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = null
+            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel
         )
 
         val revurderingJson =
@@ -694,7 +695,7 @@ internal class RevurderingJsonTest {
                 "skalFøreTilBrevutsending": true,
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon",
-                "harForhåndsvarslet": false
+                "forhåndsvarsel": { "type":  "INGEN_FORHÅNDSVARSEL" }
             }
             """.trimIndent()
 
@@ -720,7 +721,7 @@ internal class RevurderingJsonTest {
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant")),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = null
+            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel
         )
 
         val revurderingJson =
@@ -746,7 +747,7 @@ internal class RevurderingJsonTest {
                 "skalFøreTilBrevutsending": true,
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon",
-                "harForhåndsvarslet": false
+                "forhåndsvarsel": { "type":  "INGEN_FORHÅNDSVARSEL" }
             }
             """.trimIndent()
 
@@ -798,7 +799,7 @@ internal class RevurderingJsonTest {
                 "skalFøreTilBrevutsending": true,
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon",
-                "harForhåndsvarslet": false
+                "forhåndsvarsel": null
             }
             """.trimIndent()
 

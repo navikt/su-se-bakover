@@ -1,7 +1,11 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.BeslutningEtterForhåndsvarsling
+import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
@@ -50,7 +54,7 @@ internal data class OpprettetRevurderingJson(
     val fritekstTilBrev: String,
     val årsak: String,
     val begrunnelse: String,
-    val harForhåndsvarslet: Boolean,
+    val forhåndsvarsel: ForhåndsvarselJson?,
 ) : RevurderingJson() {
     @JsonInclude
     val status = RevurderingsStatus.OPPRETTET
@@ -67,7 +71,7 @@ internal data class BeregnetRevurderingJson(
     val årsak: String,
     val begrunnelse: String,
     val status: RevurderingsStatus,
-    val harForhåndsvarslet: Boolean,
+    val forhåndsvarsel: ForhåndsvarselJson?,
 ) : RevurderingJson()
 
 internal data class SimulertRevurderingJson(
@@ -81,7 +85,7 @@ internal data class SimulertRevurderingJson(
     val årsak: String,
     val begrunnelse: String,
     val status: RevurderingsStatus,
-    val harForhåndsvarslet: Boolean,
+    val forhåndsvarsel: ForhåndsvarselJson?,
 ) : RevurderingJson()
 
 internal data class TilAttesteringJson(
@@ -96,7 +100,7 @@ internal data class TilAttesteringJson(
     val årsak: String,
     val begrunnelse: String,
     val status: RevurderingsStatus,
-    val harForhåndsvarslet: Boolean,
+    val forhåndsvarsel: ForhåndsvarselJson?,
 ) : RevurderingJson()
 
 internal data class IverksattRevurderingJson(
@@ -112,7 +116,7 @@ internal data class IverksattRevurderingJson(
     val begrunnelse: String,
     val attestant: String,
     val status: RevurderingsStatus,
-    val harForhåndsvarslet: Boolean,
+    val forhåndsvarsel: ForhåndsvarselJson?,
 ) : RevurderingJson()
 
 internal data class UnderkjentRevurderingJson(
@@ -128,8 +132,43 @@ internal data class UnderkjentRevurderingJson(
     val begrunnelse: String,
     val attestering: AttesteringJson,
     val status: RevurderingsStatus,
-    val harForhåndsvarslet: Boolean,
+    val forhåndsvarsel: ForhåndsvarselJson?,
 ) : RevurderingJson()
+
+internal fun Forhåndsvarsel.toJson() = when (this) {
+    is Forhåndsvarsel.IngenForhåndsvarsel -> ForhåndsvarselJson.IngenForhåndsvarsel
+    is Forhåndsvarsel.SkalForhåndsvarsles.Besluttet -> ForhåndsvarselJson.SkalVarslesBesluttet(
+        begrunnelse = begrunnelse,
+        beslutningEtterForhåndsvarsling = valg,
+
+    )
+    is Forhåndsvarsel.SkalForhåndsvarsles.Sendt -> ForhåndsvarselJson.SkalVarslesSendt
+}
+
+@JsonTypeInfo(
+    use = JsonTypeInfo.Id.NAME,
+    include = JsonTypeInfo.As.PROPERTY,
+    property = "type",
+)
+@JsonSubTypes(
+    JsonSubTypes.Type(value = ForhåndsvarselJson.IngenForhåndsvarsel::class, name = "INGEN_FORHÅNDSVARSEL"),
+    JsonSubTypes.Type(value = ForhåndsvarselJson.SkalVarslesSendt::class, name = "SKAL_FORHÅNDSVARSLES_SENDT"),
+    JsonSubTypes.Type(value = ForhåndsvarselJson.SkalVarslesBesluttet::class, name = "SKAL_FORHÅNDSVARSLES_BESLUTTET"),
+)
+internal sealed class ForhåndsvarselJson {
+    object IngenForhåndsvarsel : ForhåndsvarselJson() {
+        override fun equals(other: Any?) = other is IngenForhåndsvarsel
+    }
+
+    object SkalVarslesSendt : ForhåndsvarselJson() {
+        override fun equals(other: Any?) = other is SkalVarslesSendt
+    }
+
+    data class SkalVarslesBesluttet(
+        val begrunnelse: String,
+        val beslutningEtterForhåndsvarsling: BeslutningEtterForhåndsvarsling,
+    ) : ForhåndsvarselJson()
+}
 
 internal fun Revurdering.toJson(): RevurderingJson = when (this) {
     is OpprettetRevurdering -> OpprettetRevurderingJson(
@@ -141,7 +180,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         fritekstTilBrev = fritekstTilBrev,
         årsak = revurderingsårsak.årsak.toString(),
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
-        harForhåndsvarslet = forhåndsvarsel != null,
+        forhåndsvarsel = forhåndsvarsel?.let { it.toJson() },
     )
     is SimulertRevurdering -> SimulertRevurderingJson(
         id = id.toString(),
@@ -157,7 +196,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         årsak = revurderingsårsak.årsak.toString(),
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
         status = InstansTilStatusMapper(this).status,
-        harForhåndsvarslet = forhåndsvarsel != null,
+        forhåndsvarsel = forhåndsvarsel?.let { it.toJson() },
     )
     is RevurderingTilAttestering -> TilAttesteringJson(
         id = id.toString(),
@@ -178,7 +217,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         årsak = revurderingsårsak.årsak.toString(),
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
         status = InstansTilStatusMapper(this).status,
-        harForhåndsvarslet = forhåndsvarsel != null,
+        forhåndsvarsel = forhåndsvarsel?.let { it.toJson() },
     )
     is IverksattRevurdering -> IverksattRevurderingJson(
         id = id.toString(),
@@ -200,7 +239,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
         attestant = attestering.attestant.toString(),
         status = InstansTilStatusMapper(this).status,
-        harForhåndsvarslet = forhåndsvarsel != null,
+        forhåndsvarsel = forhåndsvarsel?.let { it.toJson() },
     )
     is UnderkjentRevurdering -> UnderkjentRevurderingJson(
         id = id.toString(),
@@ -228,7 +267,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         årsak = revurderingsårsak.årsak.toString(),
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
         status = InstansTilStatusMapper(this).status,
-        harForhåndsvarslet = forhåndsvarsel != null,
+        forhåndsvarsel = forhåndsvarsel?.let { it.toJson() },
     )
     is BeregnetRevurdering -> BeregnetRevurderingJson(
         id = id.toString(),
@@ -244,7 +283,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         årsak = revurderingsårsak.årsak.toString(),
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
         status = InstansTilStatusMapper(this).status,
-        harForhåndsvarslet = forhåndsvarsel != null,
+        forhåndsvarsel = forhåndsvarsel?.let { it.toJson() },
     )
 }
 

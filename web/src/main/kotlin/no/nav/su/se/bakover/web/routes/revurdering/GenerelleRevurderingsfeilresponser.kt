@@ -30,6 +30,10 @@ internal object GenerelleRevurderingsfeilresponser {
         "Fant ikke revurdering",
         "fant_ikke_revurdering",
     )
+    val manglerBeslutningPåForhåndsvarsel = BadRequest.errorJson(
+        "Mangler beslutning på forhåndsvarsel",
+        "mangler_beslutning_på_forhåndsvarsel",
+    )
 
     fun ugyldigPeriode(ugyldigPeriode: UgyldigPeriode): Resultat {
         return BadRequest.errorJson(
