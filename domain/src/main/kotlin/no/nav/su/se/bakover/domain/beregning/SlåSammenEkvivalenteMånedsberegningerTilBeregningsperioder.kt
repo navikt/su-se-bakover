@@ -44,7 +44,7 @@ internal data class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder
 
     private fun List<Månedsberegning>.sisteMånedsberegningErLikOgTilstøtende(månedsberegning: Månedsberegning): Boolean =
         this.last().let { sisteMånedsberegning ->
-            sisteMånedsberegning likehetUtenDato månedsberegning && sisteMånedsberegning.getPeriode() tilstøter månedsberegning.getPeriode()
+            sisteMånedsberegning likehetUtenDato månedsberegning && sisteMånedsberegning.periode tilstøter månedsberegning.periode
         }
 
     private infix fun Månedsberegning.likehetUtenDato(other: Månedsberegning): Boolean =
@@ -69,7 +69,7 @@ internal data class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder
     }
 
     private fun List<Månedsberegning>.sorterMånedsberegninger() = this
-        .sortedBy { it.getPeriode().fraOgMed }
+        .sortedBy { it.periode.fraOgMed }
 
     private fun List<Fradrag>.sorterFradrag() = this
         .sortedBy { it.getMånedsbeløp() }
@@ -85,9 +85,9 @@ internal data class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder
 internal data class EkvivalenteMånedsberegninger(
     private val månedsberegninger: List<Månedsberegning>
 ) : Månedsberegning by månedsberegninger.first() {
-    override fun getPeriode(): Periode = Periode.create(
-        fraOgMed = månedsberegninger.minOf { it.getPeriode().fraOgMed },
-        tilOgMed = månedsberegninger.maxOf { it.getPeriode().tilOgMed },
+    override val periode: Periode = Periode.create(
+        fraOgMed = månedsberegninger.minOf { it.periode.fraOgMed },
+        tilOgMed = månedsberegninger.maxOf { it.periode.tilOgMed },
     )
 
     override fun equals(other: Any?) = (other as? Månedsberegning)?.let { this.equals(other) } ?: false

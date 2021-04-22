@@ -8,12 +8,12 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import kotlin.math.roundToInt
 
 internal data class PeriodisertBeregning(
-    private val periode: Periode,
+    override val periode: Periode,
     private val sats: Sats,
     private val fradrag: List<Fradrag>
 ) : Månedsberegning {
     init {
-        require(fradrag.all { it.getPeriode() == periode }) { "Fradrag må være gjeldende for aktuell måned" }
+        require(fradrag.all { it.periode == periode }) { "Fradrag må være gjeldende for aktuell måned" }
         require(periode.getAntallMåneder() == 1) { "Månedsberegning kan kun utføres for en enkelt måned" }
     }
 
@@ -29,7 +29,6 @@ internal data class PeriodisertBeregning(
     override fun getSats(): Sats = sats
     override fun getSatsbeløp(): Double = sats.periodiser(periode).getValue(periode)
     override fun getFradrag(): List<Fradrag> = fradrag
-    override fun getPeriode(): Periode = periode
 
     override fun equals(other: Any?) = (other as? Månedsberegning)?.let { this.equals(other) } ?: false
 }

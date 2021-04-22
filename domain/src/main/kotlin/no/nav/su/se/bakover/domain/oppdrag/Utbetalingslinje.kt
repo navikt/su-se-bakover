@@ -16,8 +16,7 @@ sealed class Utbetalingslinje : KanPlasseresPåTidslinje<Utbetalingslinje> {
     abstract var forrigeUtbetalingslinjeId: UUID30?
     abstract val beløp: Int
 
-    @JsonIgnore
-    override fun getPeriode() = Periode.create(fraOgMed, tilOgMed)
+    abstract override val periode: Periode
 
     data class Ny(
         override val id: UUID30 = UUID30.randomUUID(),
@@ -27,6 +26,10 @@ sealed class Utbetalingslinje : KanPlasseresPåTidslinje<Utbetalingslinje> {
         override var forrigeUtbetalingslinjeId: UUID30?,
         override val beløp: Int,
     ) : Utbetalingslinje() {
+
+        @JsonIgnore
+        override val periode = Periode.create(fraOgMed, tilOgMed)
+
         init {
             require(fraOgMed < tilOgMed) { "fraOgMed må være tidligere enn tilOgMed" }
         }
@@ -53,6 +56,9 @@ sealed class Utbetalingslinje : KanPlasseresPåTidslinje<Utbetalingslinje> {
         override val beløp: Int,
         val statusendring: Statusendring,
     ) : Utbetalingslinje() {
+
+        @JsonIgnore
+        override val periode = Periode.create(fraOgMed, tilOgMed)
 
         constructor(
             utbetalingslinje: Utbetalingslinje,

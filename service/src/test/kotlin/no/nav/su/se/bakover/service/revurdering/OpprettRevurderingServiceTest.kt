@@ -98,7 +98,7 @@ internal class OpprettRevurderingServiceTest {
     )
 
     private fun createBeregningMock() = mock<Beregning> {
-        on { getPeriode() } doReturn periode
+        on { periode } doReturn periode
         on { getMånedsberegninger() } doReturn periode.tilMånedsperioder()
             .map { MånedsberegningFactory.ny(it, Sats.HØY, listOf()) }
         on { getFradrag() } doReturn listOf()
@@ -294,7 +294,7 @@ internal class OpprettRevurderingServiceTest {
     fun `kan ikke revurdere når stønadsperioden ikke inneholder revurderingsperioden`() {
 
         val beregningMock = mock<Beregning> {
-            on { getPeriode() } doReturn Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.desember(2021))
+            on { periode } doReturn Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.desember(2021))
         }
         val behandling = mock<Søknadsbehandling.Iverksatt.Innvilget> {
             on { beregning } doReturn beregningMock

@@ -26,12 +26,12 @@ interface LagBrevRequest {
         override fun lagBrevInnhold(personalia: BrevInnhold.Personalia): BrevInnhold.InnvilgetVedtak {
             return BrevInnhold.InnvilgetVedtak(
                 personalia = personalia,
-                fradato = beregning.getPeriode().fraOgMed.formatMonthYear(),
-                tildato = beregning.getPeriode().tilOgMed.formatMonthYear(),
+                fradato = beregning.periode.fraOgMed.formatMonthYear(),
+                tildato = beregning.periode.tilOgMed.formatMonthYear(),
                 sats = beregning.getSats().toString().toLowerCase(),
                 // TODO jah: Vi burde sannsynligvis ikke ta inn BehandlingsInformasjon direkte her. Da kan vi heller validere ting lenger ut.
                 satsGrunn = behandlingsinformasjon.getSatsgrunn().orNull()!!,
-                satsBeløp = beregning.getSats().månedsbeløpSomHeltall(beregning.getPeriode().tilOgMed),
+                satsBeløp = beregning.getSats().månedsbeløpSomHeltall(beregning.periode.tilOgMed),
                 harEktefelle = behandlingsinformasjon.harEktefelle(),
                 beregningsperioder = LagBrevinnholdForBeregning(beregning).brevInnhold,
                 saksbehandlerNavn = saksbehandlerNavn,
@@ -61,7 +61,7 @@ interface LagBrevRequest {
             return BrevInnhold.Opphørsvedtak(
                 personalia = personalia,
                 sats = beregning.getSats().toString().toLowerCase(),
-                satsBeløp = beregning.getSats().månedsbeløpSomHeltall(beregning.getPeriode().tilOgMed),
+                satsBeløp = beregning.getSats().månedsbeløpSomHeltall(beregning.periode.tilOgMed),
                 harEktefelle = behandlingsinformasjon.harEktefelle(),
                 beregningsperioder = LagBrevinnholdForBeregning(beregning).brevInnhold,
                 saksbehandlerNavn = saksbehandlerNavn,

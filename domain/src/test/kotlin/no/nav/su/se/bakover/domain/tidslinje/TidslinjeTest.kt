@@ -30,9 +30,8 @@ import java.time.temporal.ChronoUnit.DAYS
 
 private data class Tidslinjeobjekt(
     override val opprettet: Tidspunkt,
-    private val periode: Periode
+    override val periode: Periode
 ) : KanPlasseresPåTidslinje<Tidslinjeobjekt> {
-    override fun getPeriode(): Periode = periode
     override fun copy(args: CopyArgs.Tidslinje): Tidslinjeobjekt = when (args) {
         CopyArgs.Tidslinje.Full -> this.copy()
         is CopyArgs.Tidslinje.NyPeriode -> this.copy(periode = args.periode)

@@ -15,9 +15,9 @@ internal class UtbetalingslinjeTest {
         assertThrows<IllegalArgumentException> {
             createUtbetalingslinje(2.januar(2020), 1.januar(2020))
         }
-        createUtbetalingslinje(1.januar(2020), 2.januar(2020)).let {
+        createUtbetalingslinje(1.januar(2020), 31.januar(2020)).let {
             it.fraOgMed shouldBe 1.januar(2020)
-            it.tilOgMed shouldBe 2.januar(2020)
+            it.tilOgMed shouldBe 31.januar(2020)
         }
     }
 

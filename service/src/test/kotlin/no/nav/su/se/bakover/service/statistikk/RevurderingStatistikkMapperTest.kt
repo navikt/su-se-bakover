@@ -110,7 +110,7 @@ internal class RevurderingStatistikkMapperTest {
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "99"),
             oppgaveId = OppgaveId(value = "7"),
             beregning = mock {
-                on { getPeriode() } doReturn periode
+                on { this.periode } doReturn periode
             },
             simulering = mock(),
             grunnlagsdata = Grunnlagsdata.EMPTY,
@@ -178,7 +178,7 @@ internal class RevurderingStatistikkMapperTest {
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "99"),
             oppgaveId = OppgaveId(value = "7"),
             beregning = mock {
-                on { getPeriode() } doReturn periode
+                on { this.periode } doReturn periode
             },
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant(navIdent = "2")),
             fritekstTilBrev = "",
