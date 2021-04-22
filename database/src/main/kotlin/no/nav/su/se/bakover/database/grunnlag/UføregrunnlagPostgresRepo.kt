@@ -110,8 +110,8 @@ internal class UføregrunnlagPostgresRepo(
                 mapOf(
                     "id" to uføregrunnlag.id,
                     "opprettet" to uføregrunnlag.opprettet,
-                    "fom" to uføregrunnlag.getPeriode().getFraOgMed(),
-                    "tom" to uføregrunnlag.getPeriode().getTilOgMed(),
+                    "fom" to uføregrunnlag.getPeriode().fraOgMed,
+                    "tom" to uføregrunnlag.getPeriode().tilOgMed,
                     "uforegrad" to uføregrunnlag.uføregrad.value,
                     "forventetInntekt" to uføregrunnlag.forventetInntekt,
                 ),
