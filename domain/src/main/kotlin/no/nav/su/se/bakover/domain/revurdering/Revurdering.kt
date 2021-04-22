@@ -66,6 +66,8 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
         val revurdertBeregning: Beregning = beregnInternt(
             fradrag = fradrag,
             behandlingsinformasjon = behandlingsinformasjon,
+            // TODO jah: Mulighet til å sende f.eks sende uføregrunnlag som en liste med fradrag e.l.
+            forventetInntekt = grunnlagsdata.hentNyesteUføreGrunnlag().forventetInntekt,
             periode = periode,
             vedtattBeregning = tilRevurdering.beregning,
         ).getOrHandle { return it.left() }
@@ -164,12 +166,13 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
         private fun beregnInternt(
             fradrag: List<Fradrag>,
             behandlingsinformasjon: Behandlingsinformasjon,
+            forventetInntekt: Int,
             periode: Periode,
             vedtattBeregning: Beregning,
         ): Either<KunneIkkeBeregneRevurdering, Beregning> {
             val beregningsgrunnlag = Beregningsgrunnlag.create(
                 beregningsperiode = periode,
-                forventetInntektPerÅr = behandlingsinformasjon.uførhet?.forventetInntekt?.toDouble() ?: 0.0,
+                forventetInntektPerÅr = forventetInntekt.toDouble(),
                 fradragFraSaksbehandler = fradrag,
             )
             // TODO jah: Også mulig å ta inn beregningsstrategi slik at man kan validere dette på service-nivå

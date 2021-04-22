@@ -227,12 +227,26 @@ internal class RevurderingServiceImpl(
                     if (orginalRevurdering.revurderingsårsak.årsak != REGULER_GRUNNBELØP) {
                         return KunneIkkeBeregneOgSimulereRevurdering.MåSendeGrunnbeløpReguleringSomÅrsakSammenMedForventetInntekt.left()
                     }
+
+                    val oppdatertUføregrunnlag = listOf(
+                        Grunnlag.Uføregrunnlag(
+                            periode = orginalRevurdering.periode,
+                            uføregrad = orginalRevurdering.grunnlagsdata.hentNyesteUføreGrunnlag().uføregrad,
+                            forventetInntekt = forventetInntekt,
+                        ),
+                    )
+                    grunnlagService.leggTilUføregrunnlag(
+                        orginalRevurdering.id,
+                        oppdatertUføregrunnlag,
+                    )
                     orginalRevurdering.oppdaterBehandlingsinformasjon(
                         orginalRevurdering.behandlingsinformasjon.copy(
                             uførhet = orginalRevurdering.behandlingsinformasjon.uførhet!!.copy(
                                 forventetInntekt = forventetInntekt,
                             ),
                         ),
+                    ).copy(
+                        grunnlagsdata = Grunnlagsdata(oppdatertUføregrunnlag),
                     )
                 } else {
                     orginalRevurdering
