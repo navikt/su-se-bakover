@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.message
+import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withRevurderingId
 
@@ -75,7 +76,7 @@ internal fun Route.fortsettEtterForhåndsvarselRoute(
                         }
                         .fold(
                             { call.respond(it) },
-                            { call.respond(Resultat.json(HttpStatusCode.OK, serialize(it.toJson()))) },
+                            { call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson()))) },
                         )
                 }
             }
