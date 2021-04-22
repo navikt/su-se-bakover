@@ -43,7 +43,7 @@ internal class VilkårsvurderingPostgresRepo(
                     resultat,
                     begrunnelse,
                     fraOgMed,
-                    tilOgMed,
+                    tilOgMed
                 ) values 
                 (
                     :id,

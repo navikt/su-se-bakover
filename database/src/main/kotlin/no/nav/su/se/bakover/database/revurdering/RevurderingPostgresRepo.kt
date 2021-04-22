@@ -423,7 +423,9 @@ internal class RevurderingPostgresRepo(
                     "behandlingsinformasjon" to objectMapper.writeValueAsString(revurdering.behandlingsinformasjon),
                 ),
                 session,
-            )
+            ).also {
+                grunnlagRepo.lagre(revurdering.id, revurdering.grunnlagsdata.uføregrunnlag)
+            }
         }
 
     private fun lagre(revurdering: BeregnetRevurdering) =

@@ -143,7 +143,7 @@ internal class RevurderingServiceImpl(
 
     override fun leggTilUføregrunnlag(
         revurderingId: UUID,
-        uføregrunnlag: List<Grunnlag.Uføregrunnlag>
+        uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
     ): Either<KunneIkkeLeggeTilGrunnlag, LeggTilUføregrunnlagResponse> {
         val revurdering = revurderingRepo.hent(revurderingId)
             ?: return KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling.left()
@@ -154,7 +154,7 @@ internal class RevurderingServiceImpl(
         val simulertEndringGrunnlag = grunnlagService.simulerEndretGrunnlag(
             sakId = revurdering.sakId,
             periode = revurdering.periode,
-            endring = Grunnlagsdata(uføregrunnlag = uføregrunnlag)
+            endring = Grunnlagsdata(uføregrunnlag = uføregrunnlag),
         )
 
         grunnlagService.leggTilUføregrunnlag(revurdering.id, simulertEndringGrunnlag.resultat.uføregrunnlag)
@@ -163,7 +163,7 @@ internal class RevurderingServiceImpl(
 
         return LeggTilUføregrunnlagResponse(
             revurdering = updated,
-            simulertEndringGrunnlag = simulertEndringGrunnlag
+            simulertEndringGrunnlag = simulertEndringGrunnlag,
         ).right()
     }
 
@@ -173,7 +173,7 @@ internal class RevurderingServiceImpl(
         return grunnlagService.simulerEndretGrunnlag(
             sakId = revurdering.sakId,
             periode = revurdering.periode,
-            endring = revurdering.grunnlagsdata
+            endring = revurdering.grunnlagsdata,
         ).right()
     }
 
