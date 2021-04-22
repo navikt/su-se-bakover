@@ -138,6 +138,8 @@ sealed class KunneIkkeForhåndsvarsle {
     object KunneIkkeJournalføre : KunneIkkeForhåndsvarsle()
     object KunneIkkeDistribuere : KunneIkkeForhåndsvarsle()
     object KunneIkkeOppretteOppgave : KunneIkkeForhåndsvarsle()
+    data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
+        KunneIkkeForhåndsvarsle()
 }
 
 sealed class KunneIkkeSendeRevurderingTilAttestering {

@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.flatMap
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
-import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
@@ -75,7 +74,7 @@ internal fun Route.fortsettEtterForhåndsvarselRoute(
                                 }
                         }
                         .fold(
-                            { call.respond(it) },
+                            { call.svar(it) },
                             { call.svar(Resultat.json(HttpStatusCode.OK, serialize(it.toJson()))) },
                         )
                 }

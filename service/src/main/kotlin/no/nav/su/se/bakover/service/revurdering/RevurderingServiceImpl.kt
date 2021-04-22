@@ -294,7 +294,11 @@ internal class RevurderingServiceImpl(
                     return revurdering.right()
                 }
             }
-            else -> KunneIkkeForhåndsvarsle.FantIkkeRevurdering.left()
+            null -> KunneIkkeForhåndsvarsle.FantIkkeRevurdering.left()
+            else -> KunneIkkeForhåndsvarsle.UgyldigTilstand(
+                revurdering::class,
+                SimulertRevurdering::class,
+            ).left()
         }
     }
 

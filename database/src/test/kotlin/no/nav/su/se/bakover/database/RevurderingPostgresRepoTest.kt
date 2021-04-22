@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.BeslutningEtterForhåndsvarsling
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
@@ -635,42 +636,81 @@ internal class RevurderingPostgresRepoTest {
     }
 
     @Test
-    fun `Lagrer revurdering med forhåndsvarsel`() {
+    fun `Lagrer revurdering med ingen forhåndsvarsel`() {
         withMigratedDb {
             val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
 
             val opprettet = opprettet(vedtak)
             repo.lagre(opprettet)
 
-            val beregnet = beregnetIngenEndring(opprettet, vedtak)
-            repo.lagre(beregnet)
+            repo.oppdaterForhåndsvarsel(opprettet.id, Forhåndsvarsel.IngenForhåndsvarsel)
 
-            val forhåndsvarsletRevurdering = SimulertRevurdering.Innvilget(
-                id = opprettet.id,
-                periode = opprettet.periode,
-                opprettet = opprettet.opprettet,
-                tilRevurdering = vedtak,
-                saksbehandler = opprettet.saksbehandler,
-                oppgaveId = opprettet.oppgaveId,
-                fritekstTilBrev = opprettet.fritekstTilBrev,
-                revurderingsårsak = opprettet.revurderingsårsak,
-                beregning = vedtak.beregning,
-                forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt(
-                    JournalpostId(UUID.randomUUID().toString()),
-                    BrevbestillingId(UUID.randomUUID().toString()),
-                ),
-                simulering = Simulering(
-                    gjelderId = FnrGenerator.random(),
-                    gjelderNavn = "Mr Per",
-                    datoBeregnet = LocalDate.now(),
-                    nettoBeløp = 0,
-                    periodeList = listOf(),
-                ),
+            repo.hent(opprettet.id)!!.forhåndsvarsel shouldBe Forhåndsvarsel.IngenForhåndsvarsel
+        }
+    }
+
+    @Test
+    fun `Lagrer revurdering med sendt forhåndsvarsel`() {
+        withMigratedDb {
+            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+
+            val opprettet = opprettet(vedtak)
+            repo.lagre(opprettet)
+
+            val forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt(
+                journalpostId = JournalpostId("journalpostId"),
+                brevbestillingId = BrevbestillingId("brevbestillignsId"),
             )
 
-            repo.lagre(forhåndsvarsletRevurdering)
+            repo.oppdaterForhåndsvarsel(
+                opprettet.id,
+                forhåndsvarsel,
+            )
+            repo.hent(opprettet.id)!!.forhåndsvarsel shouldBe forhåndsvarsel
+        }
+    }
 
-            repo.hent(forhåndsvarsletRevurdering.id)!! shouldBe forhåndsvarsletRevurdering
+    @Test
+    fun `Lagrer revurdering med besluttet forhåndsvarsel`() {
+        withMigratedDb {
+            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+
+            val opprettet = opprettet(vedtak)
+            repo.lagre(opprettet)
+
+            val forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Besluttet(
+                journalpostId = JournalpostId("journalpostId"),
+                brevbestillingId = BrevbestillingId("brevbestillignsId"),
+                valg = BeslutningEtterForhåndsvarsling.FortsettSammeOpplysninger,
+                begrunnelse = "",
+            )
+
+            repo.oppdaterForhåndsvarsel(
+                opprettet.id,
+                forhåndsvarsel,
+            )
+            repo.hent(opprettet.id)!!.forhåndsvarsel shouldBe forhåndsvarsel
+        }
+    }
+
+    @Test
+    fun `Bare simulertRevurdering kan lagre forhåndsvarsel`() {
+        withMigratedDb {
+            val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+
+            val opprettet = opprettet(vedtak)
+            repo.lagre(opprettet.copy(forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel))
+
+            repo.hent(opprettet.id)!!.forhåndsvarsel shouldBe null
+
+            val beregnetRevurdering = beregnetInnvilget(opprettet, vedtak)
+
+            repo.lagre(beregnetRevurdering)
+            repo.hent(beregnetRevurdering.id)!!.forhåndsvarsel shouldBe null
+
+            val simulertRevurdering = simulertInnvilget(beregnetRevurdering)
+            repo.lagre(simulertRevurdering)
+            repo.hent(beregnetRevurdering.id)!!.forhåndsvarsel shouldBe Forhåndsvarsel.IngenForhåndsvarsel
         }
     }
 }
