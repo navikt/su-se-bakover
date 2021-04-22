@@ -583,6 +583,7 @@ internal class FerdigstillVedtakServiceImplTest {
                         Revurderingsårsak.Begrunnelse.create("begrunnelse"),
                     ),
                     skalFøreTilBrevutsending = false,
+                    grunnlagsdata = Grunnlagsdata.EMPTY,
                 ),
             )
         }
@@ -1269,7 +1270,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 fritekstTilBrev = "",
                 stønadsperiode = ValgtStønadsperiode(Periode.create(1.januar(2021), 31.desember(2021))),
                 grunnlagsdata = Grunnlagsdata.EMPTY,
-            )
+            ),
         )
 
     private fun journalførtAvslagsVedtak() =

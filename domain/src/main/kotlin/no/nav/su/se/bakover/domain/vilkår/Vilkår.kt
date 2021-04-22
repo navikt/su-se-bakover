@@ -25,26 +25,40 @@ data class Paragraf(
     val lovverkVersjon: String,
 )
 
-data class Vilkårsvurderinger(private val value: Set<Vilkårsvurdering<*>>) : Set<Vilkårsvurdering<*>> by value {
-    fun hentResultat(): Vilkårsvurderingsresultat {
-        return when {
-            erInnvilget() -> Vilkårsvurderingsresultat.Innvilget(value)
-            erAvslag() -> Vilkårsvurderingsresultat.Avslag(
-                value.filter { it.vurdering.resultat is Resultat.Avslag }
-                    .toSet(),
-            )
-            else -> Vilkårsvurderingsresultat.Uavklart(emptySet()) // TODO fyll inn
-        }
-    }
+// //TODO ENKELT Å FÅ TAK I HVER ENKELT TYPE
+// data class Vilkårsvurderinger(
+//    private val value: Set<Vilkårsvurdering<*>>,
+// ) : Set<Vilkårsvurdering<*>> by value {
+//
+//    //TODO FLAT UT FOR HVER TYPE GRUNNAG
+//
+//
+//    fun hentResultat(): Vilkårsvurderingsresultat {
+//        return when {
+//            erInnvilget() -> Vilkårsvurderingsresultat.Innvilget(value)
+//            erAvslag() -> Vilkårsvurderingsresultat.Avslag(
+//                value.filter { it.vurdering.resultat is Resultat.Avslag }
+//                    .toSet(),
+//            )
+//            else -> Vilkårsvurderingsresultat.Uavklart(emptySet()) // TODO fyll inn
+//        }
+//    }
+//
+//    private fun erInnvilget(): Boolean {
+//        return value.all { it.vurdering.resultat is Resultat.Innvilget }
+//    }
+//
+//    private fun erAvslag(): Boolean {
+//        return value.any { it.vurdering.resultat is Resultat.Avslag }
+//    }
+// }
 
-    private fun erInnvilget(): Boolean {
-        return value.all { it.vurdering.resultat is Resultat.Innvilget }
-    }
-
-    private fun erAvslag(): Boolean {
-        return value.any { it.vurdering.resultat is Resultat.Avslag }
-    }
-}
+/**
+ * vilkårsvurderinger - inneholder vilkårsvurdering av alle grunnlagstyper
+ * vilkårsvurdering - aggregert vilkårsvurdering for en enkelt type grunnlag inneholder flere vurderingsperioder (en periode per grunnlag)
+ * vurderingsperiode - inneholder vilkårsvurdering for ett enkelt grunnlag (kan være manuell (kan vurderes uten grunnlag) eller automatisk (har alltid grunnlag))
+ * grunnlag - informasjon for en spesifikk periode som forteller noe om oppfyllelsen av et vilkår
+ */
 
 sealed class Vilkårsvurderingsresultat {
     data class Avslag(
@@ -67,39 +81,66 @@ sealed class Vilkårsvurdering<T : Grunnlag> {
     abstract val id: UUID
     abstract val opprettet: Tidspunkt
     abstract val vilkår: Inngangsvilkår
-    abstract val vurdering: Vurdering
-    abstract val grunnlag: T?
+    abstract val grunnlag: List<T>
+    abstract val vurdering: List<Vurderingsperiode<T>>
 
-    data class Uførhet(
+    data class Uførhet private constructor(
         override val id: UUID = UUID.randomUUID(),
         override val opprettet: Tidspunkt = Tidspunkt.now(),
-        override val vurdering: Vurdering,
-        override val grunnlag: Grunnlag.Uføregrunnlag?,
+        override val grunnlag: List<Grunnlag.Uføregrunnlag>,
+        override val vurdering: List<Vurderingsperiode<Grunnlag.Uføregrunnlag>>,
     ) : Vilkårsvurdering<Grunnlag.Uføregrunnlag>() {
         override val vilkår = Inngangsvilkår.Uførhet
+
+        companion object {
+            fun manuell(
+                resultat: Resultat,
+                begrunnelse: String,
+                grunnlag: List<Grunnlag.Uføregrunnlag>,
+            ) = Uførhet(
+                grunnlag = grunnlag,
+                vurdering = grunnlag.map {
+                    Vurderingsperiode.Manuell(
+                        resultat = resultat,
+                        grunnlag = it,
+                        begrunnelse = begrunnelse,
+                    )
+                }.ifEmpty {
+                    listOf(
+                        Vurderingsperiode.Manuell<Grunnlag.Uføregrunnlag>(
+                            resultat = resultat,
+                            grunnlag = null,
+                            begrunnelse = begrunnelse,
+                        ),
+                    )
+                },
+            )
+        }
     }
 
-    data class Flyktning(
-        override val id: UUID = UUID.randomUUID(),
-        override val opprettet: Tidspunkt = Tidspunkt.now(),
-        override val vurdering: Vurdering,
-        override val grunnlag: Grunnlag.Flyktninggrunnlag,
-    ) : Vilkårsvurdering<Grunnlag.Flyktninggrunnlag>() {
-        override val vilkår = Inngangsvilkår.Flyktning
-    }
+//    data class Flyktning(
+//        override val id: UUID = UUID.randomUUID(),
+//        override val opprettet: Tidspunkt = Tidspunkt.now(),
+//        override val vurdering: Vurdering,
+//        override val grunnlag: Grunnlag.Flyktninggrunnlag,
+//    ) : Vilkårsvurdering<Grunnlag.Flyktninggrunnlag>() {
+//        override val vilkår = Inngangsvilkår.Flyktning
+//    }
 }
 
-sealed class Vurdering {
+sealed class Vurderingsperiode<T : Grunnlag> {
+    abstract val id: UUID
+    abstract val opprettet: Tidspunkt
     abstract val resultat: Resultat
+    abstract val grunnlag: T?
 
-    data class Automatisk(
+    data class Manuell<T : Grunnlag>(
+        override val id: UUID = UUID.randomUUID(),
+        override val opprettet: Tidspunkt = Tidspunkt.now(),
         override val resultat: Resultat,
-    ) : Vurdering()
-
-    data class Manuell(
-        override val resultat: Resultat,
+        override val grunnlag: T?,
         val begrunnelse: String,
-    ) : Vurdering()
+    ) : Vurderingsperiode<T>()
 }
 
 sealed class Resultat {

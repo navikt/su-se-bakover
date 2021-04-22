@@ -31,7 +31,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.statusovergang
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
 import no.nav.su.se.bakover.domain.vilkår.Resultat
-import no.nav.su.se.bakover.domain.vilkår.Vurdering
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurdering
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.service.beregning.BeregningService
 import no.nav.su.se.bakover.service.brev.BrevService
@@ -146,34 +146,27 @@ internal class SøknadsbehandlingServiceImpl(
                             ),
                         )
                         grunnlagService.leggTilUføregrunnlag(vilkårsvurdert.id, grunnlag)
-                        vilkårsvurderingService.manuell(
-                            behandlingId = vilkårsvurdert.id,
-                            uføregrunnlag = grunnlag,
-                            vurdering = Vurdering.Manuell(
+
+                        vilkårsvurderingService.lagre(
+                            vilkårsvurdert.id,
+                            Vilkårsvurdering.Uførhet.manuell(
                                 resultat = Resultat.Innvilget,
-                                begrunnelse = vilkårsvurdert.behandlingsinformasjon.uførhet?.begrunnelse ?: "",
+                                begrunnelse = it.begrunnelse ?: "",
+                                grunnlag = grunnlag,
                             ),
                         )
                     }
-                    Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt -> {
+                    Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt,
+                    Behandlingsinformasjon.Uførhet.Status.HarUføresakTilBehandling,
+                    -> {
                         grunnlagService.leggTilUføregrunnlag(vilkårsvurdert.id, emptyList())
-                        vilkårsvurderingService.manuell(
-                            behandlingId = vilkårsvurdert.id,
-                            uføregrunnlag = emptyList(),
-                            vurdering = Vurdering.Manuell(
+
+                        vilkårsvurderingService.lagre(
+                            vilkårsvurdert.id,
+                            Vilkårsvurdering.Uførhet.manuell(
                                 resultat = Resultat.Avslag,
-                                begrunnelse = vilkårsvurdert.behandlingsinformasjon.uførhet?.begrunnelse ?: "",
-                            ),
-                        )
-                    }
-                    Behandlingsinformasjon.Uførhet.Status.HarUføresakTilBehandling -> {
-                        grunnlagService.leggTilUføregrunnlag(vilkårsvurdert.id, emptyList())
-                        vilkårsvurderingService.manuell(
-                            behandlingId = vilkårsvurdert.id,
-                            uføregrunnlag = emptyList(),
-                            vurdering = Vurdering.Manuell(
-                                resultat = Resultat.Avslag,
-                                begrunnelse = vilkårsvurdert.behandlingsinformasjon.uførhet?.begrunnelse ?: "",
+                                begrunnelse = it.begrunnelse ?: "",
+                                grunnlag = emptyList(),
                             ),
                         )
                     }
@@ -520,7 +513,15 @@ internal class SøknadsbehandlingServiceImpl(
             endring = Grunnlagsdata(uføregrunnlag = request.uføregrunnlag),
         )
         grunnlagService.leggTilUføregrunnlag(søknadsbehandling.id, simulertEndringGrunnlag.resultat.uføregrunnlag)
-        vilkårsvurderingService.automatisk(søknadsbehandling.id, simulertEndringGrunnlag.resultat.uføregrunnlag)
+
+        vilkårsvurderingService.lagre(
+            søknadsbehandling.id,
+            Vilkårsvurdering.Uførhet.manuell(
+                resultat = Resultat.Innvilget,
+                begrunnelse = "AUTOMATISK",
+                grunnlag = simulertEndringGrunnlag.resultat.uføregrunnlag,
+            ),
+        )
 
         return søknadsbehandlingRepo.hent(søknadsbehandling.id)!!.right()
     }
