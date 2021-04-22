@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.util.UUID
 import kotlin.math.abs
@@ -44,6 +45,7 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
     abstract val fritekstTilBrev: String
     abstract val revurderingsårsak: Revurderingsårsak
     abstract val behandlingsinformasjon: Behandlingsinformasjon
+    override val vilkårsvurderinger: Vilkårsvurderinger = Vilkårsvurderinger.EMPTY
 
     open fun oppdaterBehandlingsinformasjon(behandlingsinformasjon: Behandlingsinformasjon) = OpprettetRevurdering(
         id = id,

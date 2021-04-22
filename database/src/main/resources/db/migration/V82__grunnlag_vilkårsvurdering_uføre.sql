@@ -6,5 +6,7 @@ create table if not exists vilkårsvurdering_uføre
     uføre_grunnlag_id uuid references grunnlag_uføre(id) on delete cascade,
     vurdering text not null,
     resultat text not null,
-    begrunnelse text
+    begrunnelse text,
+    fraOgMed date not null,
+    tilOgMed date not null
 );

@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.util.UUID
 
@@ -25,6 +26,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
     abstract val behandlingsinformasjon: Behandlingsinformasjon
     abstract val status: BehandlingsStatus
     abstract val stønadsperiode: ValgtStønadsperiode?
+    override val vilkårsvurderinger: Vilkårsvurderinger = Vilkårsvurderinger.EMPTY
 
     // TODO ia: fritekst bør flyttes ut av denne klassen og til et eget konsept (som også omfatter fritekst på revurderinger)
     abstract val fritekstTilBrev: String

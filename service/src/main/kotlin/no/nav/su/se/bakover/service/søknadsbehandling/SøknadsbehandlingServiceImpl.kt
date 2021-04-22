@@ -31,7 +31,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.statusovergang
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
 import no.nav.su.se.bakover.domain.vilkår.Resultat
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurdering
+import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.service.beregning.BeregningService
 import no.nav.su.se.bakover.service.brev.BrevService
@@ -149,10 +149,11 @@ internal class SøknadsbehandlingServiceImpl(
 
                         vilkårsvurderingService.lagre(
                             vilkårsvurdert.id,
-                            Vilkårsvurdering.Uførhet.manuell(
+                            Vilkår.Vurdert.Uførhet.manuell(
                                 resultat = Resultat.Innvilget,
                                 begrunnelse = it.begrunnelse ?: "",
                                 grunnlag = grunnlag,
+                                periode = vilkårsvurdert.periode
                             ),
                         )
                     }
@@ -163,10 +164,11 @@ internal class SøknadsbehandlingServiceImpl(
 
                         vilkårsvurderingService.lagre(
                             vilkårsvurdert.id,
-                            Vilkårsvurdering.Uførhet.manuell(
+                            Vilkår.Vurdert.Uførhet.manuell(
                                 resultat = Resultat.Avslag,
                                 begrunnelse = it.begrunnelse ?: "",
                                 grunnlag = emptyList(),
+                                periode = vilkårsvurdert.periode
                             ),
                         )
                     }
@@ -516,10 +518,11 @@ internal class SøknadsbehandlingServiceImpl(
 
         vilkårsvurderingService.lagre(
             søknadsbehandling.id,
-            Vilkårsvurdering.Uførhet.manuell(
+            Vilkår.Vurdert.Uførhet.manuell(
                 resultat = Resultat.Innvilget,
                 begrunnelse = "AUTOMATISK",
                 grunnlag = simulertEndringGrunnlag.resultat.uføregrunnlag,
+                periode = søknadsbehandling.periode
             ),
         )
 

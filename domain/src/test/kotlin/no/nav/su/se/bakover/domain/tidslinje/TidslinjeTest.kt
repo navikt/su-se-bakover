@@ -1044,7 +1044,7 @@ internal class TidslinjeTest {
             it[0].let { resultat ->
                 resultat.id shouldNotBe a.id
                 resultat.id shouldNotBe b.id
-                resultat.getPeriode() shouldBe Periode.create(
+                resultat.periode shouldBe Periode.create(
                     fraOgMed = 1.januar(2021),
                     tilOgMed = 31.desember(2021)
                 )

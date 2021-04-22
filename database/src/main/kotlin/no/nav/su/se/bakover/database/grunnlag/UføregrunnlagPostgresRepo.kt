@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.database.grunnlag
 import kotliquery.Row
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.Session
+import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.tidspunkt
@@ -41,6 +42,20 @@ internal class UføregrunnlagPostgresRepo(
                         "behandlingId" to behandlingId,
                     ),
                     sesison,
+                ) {
+                    it.toUføregrunnlag()
+                }
+        }
+    }
+
+    override fun hentForUføregrunnlagId(uføregrunnlagId: UUID): Grunnlag.Uføregrunnlag? {
+        return dataSource.withSession { session ->
+            """ select * from grunnlag_uføre where id=:id""".trimIndent()
+                .hent(
+                    mapOf(
+                        "id" to uføregrunnlagId,
+                    ),
+                    session,
                 ) {
                     it.toUføregrunnlag()
                 }
@@ -110,8 +125,8 @@ internal class UføregrunnlagPostgresRepo(
                 mapOf(
                     "id" to uføregrunnlag.id,
                     "opprettet" to uføregrunnlag.opprettet,
-                    "fom" to uføregrunnlag.getPeriode().fraOgMed,
-                    "tom" to uføregrunnlag.getPeriode().tilOgMed,
+                    "fom" to uføregrunnlag.periode.fraOgMed,
+                    "tom" to uføregrunnlag.periode.tilOgMed,
                     "uforegrad" to uføregrunnlag.uføregrad.value,
                     "forventetInntekt" to uføregrunnlag.forventetInntekt,
                 ),

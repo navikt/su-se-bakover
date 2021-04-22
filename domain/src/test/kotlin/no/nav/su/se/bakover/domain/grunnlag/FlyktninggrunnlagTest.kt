@@ -27,7 +27,7 @@ internal class FlyktninggrunnlagTest {
         original.copy(CopyArgs.Tidslinje.Full).let {
             it.id shouldNotBe original.id
             it.opprettet shouldBe original.opprettet
-            it.getPeriode() shouldBe original.getPeriode()
+            it.periode shouldBe original.periode
         }
     }
 
@@ -45,7 +45,7 @@ internal class FlyktninggrunnlagTest {
         ).let {
             it.id shouldNotBe original.id
             it.opprettet shouldBe original.opprettet
-            it.getPeriode() shouldBe Periode.create(1.mai(2021), 31.desember(2021))
+            it.periode shouldBe Periode.create(1.mai(2021), 31.desember(2021))
         }
     }
 }

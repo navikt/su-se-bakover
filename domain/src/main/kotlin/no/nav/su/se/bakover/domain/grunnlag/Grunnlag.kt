@@ -16,7 +16,7 @@ sealed class Grunnlag : KanPlasseresPåTidslinje<Grunnlag> {
     data class Uføregrunnlag(
         override val id: UUID = UUID.randomUUID(),
         override val opprettet: Tidspunkt = Tidspunkt.now(),
-        private val periode: Periode,
+        override val periode: Periode,
         val uføregrad: Uføregrad,
         /** Kan ikke være negativ. */
         val forventetInntekt: Int,
@@ -24,8 +24,6 @@ sealed class Grunnlag : KanPlasseresPåTidslinje<Grunnlag> {
         init {
             if (forventetInntekt < 0) throw IllegalArgumentException("forventetInntekt kan ikke være mindre enn 0")
         }
-
-        override fun getPeriode(): Periode = periode
 
         override fun copy(args: CopyArgs.Tidslinje): Uføregrunnlag = when (args) {
             CopyArgs.Tidslinje.Full -> {
@@ -40,9 +38,8 @@ sealed class Grunnlag : KanPlasseresPåTidslinje<Grunnlag> {
     data class Flyktninggrunnlag(
         override val id: UUID = UUID.randomUUID(),
         override val opprettet: Tidspunkt = Tidspunkt.now(),
-        private val periode: Periode,
+        override val periode: Periode,
     ) : Grunnlag() {
-        override fun getPeriode(): Periode = periode
 
         override fun copy(args: CopyArgs.Tidslinje): Flyktninggrunnlag = when (args) {
             CopyArgs.Tidslinje.Full -> {

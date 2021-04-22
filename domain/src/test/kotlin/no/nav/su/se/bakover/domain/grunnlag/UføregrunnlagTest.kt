@@ -29,7 +29,7 @@ internal class UføregrunnlagTest {
         original.copy(CopyArgs.Tidslinje.Full).let {
             it.id shouldNotBe original.id
             it.opprettet shouldBe original.opprettet
-            it.getPeriode() shouldBe original.getPeriode()
+            it.periode shouldBe original.periode
             it.uføregrad shouldBe original.uføregrad
             it.forventetInntekt shouldBe original.forventetInntekt
         }
@@ -51,7 +51,7 @@ internal class UføregrunnlagTest {
         ).let {
             it.id shouldNotBe original.id
             it.opprettet shouldBe original.opprettet
-            it.getPeriode() shouldBe Periode.create(1.mai(2021), 31.desember(2021))
+            it.periode shouldBe Periode.create(1.mai(2021), 31.desember(2021))
             it.uføregrad shouldBe original.uføregrad
             it.forventetInntekt shouldBe original.forventetInntekt
         }
