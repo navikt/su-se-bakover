@@ -29,7 +29,9 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategyName
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -127,7 +129,16 @@ internal class RegulerGrunnbeløpServiceImplTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsakRegulerGrunnbeløp,
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata(
+                uføregrunnlag = listOf(
+                    Grunnlag.Uføregrunnlag(
+                        opprettet = fixedTidspunkt,
+                        periode = periode,
+                        uføregrad = Uføregrad.parse(20),
+                        forventetInntekt = 10,
+                    ),
+                ),
+            ),
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -174,7 +185,16 @@ internal class RegulerGrunnbeløpServiceImplTest {
                 ),
             ),
             simulering = simulertUtbetaling.simulering,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata(
+                uføregrunnlag = listOf(
+                    Grunnlag.Uføregrunnlag(
+                        // TODO SOLVE FOR RANDOM GENERATED UUID AND TIDSPUNKT IN TEST
+                        periode = periode,
+                        uføregrad = Uføregrad.parse(20),
+                        forventetInntekt = 1,
+                    ),
+                ),
+            ),
         )
 
         inOrder(revurderingRepoMock, utbetalingServiceMock) {
@@ -246,7 +266,15 @@ internal class RegulerGrunnbeløpServiceImplTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak.copy(årsak = Revurderingsårsak.Årsak.REGULER_GRUNNBELØP),
             behandlingsinformasjon = behandlingsinformasjon,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata(
+                uføregrunnlag = listOf(
+                    Grunnlag.Uføregrunnlag(
+                        periode = periode,
+                        uføregrad = Uføregrad.parse(20),
+                        forventetInntekt = 12000,
+                    ),
+                ),
+            ),
         )
         val expectedBeregnetRevurdering = BeregnetRevurdering.IngenEndring(
             id = opprettetRevurdering.id,
@@ -259,7 +287,16 @@ internal class RegulerGrunnbeløpServiceImplTest {
             revurderingsårsak = opprettetRevurdering.revurderingsårsak,
             behandlingsinformasjon = opprettetRevurdering.behandlingsinformasjon,
             beregning = opprettetRevurdering.tilRevurdering.beregning,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata(
+                uføregrunnlag = listOf(
+                    Grunnlag.Uføregrunnlag(
+                        // TODO SOLVE FOR RANDOM GENERATED UUID AND TIDSPUNKT IN TEST
+                        periode = periode,
+                        uføregrad = Uføregrad.parse(20),
+                        forventetInntekt = 12000,
+                    ),
+                ),
+            ),
         )
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn opprettetRevurdering

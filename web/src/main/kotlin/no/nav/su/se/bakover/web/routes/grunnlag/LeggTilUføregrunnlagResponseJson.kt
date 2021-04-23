@@ -11,5 +11,5 @@ internal data class LeggTilUføregrunnlagResponseJson(
 
 internal fun LeggTilUføregrunnlagResponse.toJson() = LeggTilUføregrunnlagResponseJson(
     revurdering = revurdering.toJson(),
-    simulertEndringGrunnlag = simulertEndringGrunnlag.toJson()
+    simulertEndringGrunnlag = simulerEndretGrunnlagsdata.toJson()
 )

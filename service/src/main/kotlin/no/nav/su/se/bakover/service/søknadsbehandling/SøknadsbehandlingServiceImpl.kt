@@ -145,7 +145,12 @@ internal class SøknadsbehandlingServiceImpl(
                                 forventetInntekt = it.forventetInntekt!!,
                             ),
                         )
-                        grunnlagService.leggTilUføregrunnlag(vilkårsvurdert.id, grunnlag)
+                        grunnlagService.lagre(
+                            vilkårsvurdert.id,
+                            vilkårsvurdert.grunnlagsdata.copy(
+                                uføregrunnlag = grunnlag,
+                            ),
+                        )
 
                         vilkårsvurderingService.lagre(
                             vilkårsvurdert.id,
@@ -153,14 +158,19 @@ internal class SøknadsbehandlingServiceImpl(
                                 resultat = Resultat.Innvilget,
                                 begrunnelse = it.begrunnelse ?: "",
                                 grunnlag = grunnlag,
-                                periode = vilkårsvurdert.periode
+                                periode = vilkårsvurdert.periode,
                             ),
                         )
                     }
                     Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt,
                     Behandlingsinformasjon.Uførhet.Status.HarUføresakTilBehandling,
                     -> {
-                        grunnlagService.leggTilUføregrunnlag(vilkårsvurdert.id, emptyList())
+                        grunnlagService.lagre(
+                            vilkårsvurdert.id,
+                            vilkårsvurdert.grunnlagsdata.copy(
+                                uføregrunnlag = emptyList(),
+                            ),
+                        )
 
                         vilkårsvurderingService.lagre(
                             vilkårsvurdert.id,
@@ -168,7 +178,7 @@ internal class SøknadsbehandlingServiceImpl(
                                 resultat = Resultat.Avslag,
                                 begrunnelse = it.begrunnelse ?: "",
                                 grunnlag = emptyList(),
-                                periode = vilkårsvurdert.periode
+                                periode = vilkårsvurdert.periode,
                             ),
                         )
                     }
@@ -509,12 +519,12 @@ internal class SøknadsbehandlingServiceImpl(
         if (søknadsbehandling is Søknadsbehandling.Iverksatt || søknadsbehandling is Søknadsbehandling.TilAttestering)
             return SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.UgyldigStatus.left()
 
-        val simulertEndringGrunnlag = grunnlagService.simulerEndretGrunnlag(
+        val simulertEndringGrunnlag = grunnlagService.simulerEndretGrunnlagsdata(
             sakId = søknadsbehandling.sakId,
             periode = søknadsbehandling.periode,
             endring = Grunnlagsdata(uføregrunnlag = request.uføregrunnlag),
         )
-        grunnlagService.leggTilUføregrunnlag(søknadsbehandling.id, simulertEndringGrunnlag.resultat.uføregrunnlag)
+        grunnlagService.lagre(søknadsbehandling.id, simulertEndringGrunnlag.resultat)
 
         vilkårsvurderingService.lagre(
             søknadsbehandling.id,
@@ -522,7 +532,7 @@ internal class SøknadsbehandlingServiceImpl(
                 resultat = Resultat.Innvilget,
                 begrunnelse = "AUTOMATISK",
                 grunnlag = simulertEndringGrunnlag.resultat.uføregrunnlag,
-                periode = søknadsbehandling.periode
+                periode = søknadsbehandling.periode,
             ),
         )
 

@@ -106,7 +106,7 @@ internal class RevurderingServiceImpl(
             return KunneIkkeOppretteRevurdering.FantIkkeAktørId.left()
         }
 
-        val grunnlag = grunnlagService.opprettGrunnlag(sak.id, periode)
+        val grunnlag = grunnlagService.opprettGrunnlagsdata(sak.id, periode)
 
         // TODO ai 25.02.2021 - Oppgaven skal egentligen ikke opprettes her. Den burde egentligen komma utifra melding av endring, som skal føres til revurdering.
         return oppgaveService.opprettOppgave(
@@ -151,26 +151,26 @@ internal class RevurderingServiceImpl(
         if (revurdering is RevurderingTilAttestering || revurdering is IverksattRevurdering)
             return KunneIkkeLeggeTilGrunnlag.UgyldigStatus.left()
 
-        val simulertEndringGrunnlag = grunnlagService.simulerEndretGrunnlag(
+        val simulertEndringGrunnlag = grunnlagService.simulerEndretGrunnlagsdata(
             sakId = revurdering.sakId,
             periode = revurdering.periode,
             endring = Grunnlagsdata(uføregrunnlag = uføregrunnlag),
         )
 
-        grunnlagService.leggTilUføregrunnlag(revurdering.id, simulertEndringGrunnlag.resultat.uføregrunnlag)
+        grunnlagService.lagre(revurdering.id, simulertEndringGrunnlag.resultat)
 
         val updated = revurderingRepo.hent(revurdering.id)!!
 
         return LeggTilUføregrunnlagResponse(
             revurdering = updated,
-            simulertEndringGrunnlag = simulertEndringGrunnlag,
+            simulerEndretGrunnlagsdata = simulertEndringGrunnlag,
         ).right()
     }
 
-    override fun hentUføregrunnlag(revurderingId: UUID): Either<KunneIkkeHenteGrunnlag, GrunnlagService.SimulertEndringGrunnlag> {
+    override fun hentUføregrunnlag(revurderingId: UUID): Either<KunneIkkeHenteGrunnlag, GrunnlagService.SimulerEndretGrunnlagsdata> {
         val revurdering = revurderingRepo.hent(revurderingId)
             ?: return KunneIkkeHenteGrunnlag.FantIkkeBehandling.left()
-        return grunnlagService.simulerEndretGrunnlag(
+        return grunnlagService.simulerEndretGrunnlagsdata(
             sakId = revurdering.sakId,
             periode = revurdering.periode,
             endring = revurdering.grunnlagsdata,
@@ -235,9 +235,9 @@ internal class RevurderingServiceImpl(
                             forventetInntekt = forventetInntekt,
                         ),
                     )
-                    grunnlagService.leggTilUføregrunnlag(
+                    grunnlagService.lagre(
                         orginalRevurdering.id,
-                        oppdatertUføregrunnlag,
+                        Grunnlagsdata(oppdatertUføregrunnlag),
                     )
                     orginalRevurdering.oppdaterBehandlingsinformasjon(
                         orginalRevurdering.behandlingsinformasjon.copy(

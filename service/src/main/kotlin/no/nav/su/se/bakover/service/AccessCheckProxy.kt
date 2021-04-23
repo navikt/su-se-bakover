@@ -20,7 +20,6 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
@@ -429,7 +428,7 @@ open class AccessCheckProxy(
                     return services.revurdering.leggTilUføregrunnlag(revurderingId, uføregrunnlag)
                 }
 
-                override fun hentUføregrunnlag(revurderingId: UUID): Either<KunneIkkeHenteGrunnlag, GrunnlagService.SimulertEndringGrunnlag> {
+                override fun hentUføregrunnlag(revurderingId: UUID): Either<KunneIkkeHenteGrunnlag, GrunnlagService.SimulerEndretGrunnlagsdata> {
                     assertHarTilgangTilSak(revurderingId)
                     return services.revurdering.hentUføregrunnlag(revurderingId)
                 }
@@ -440,13 +439,13 @@ open class AccessCheckProxy(
                 }
             },
             grunnlagService = object : GrunnlagService {
-                override fun leggTilUføregrunnlag(behandlingId: UUID, uføregrunnlag: List<Grunnlag.Uføregrunnlag>) =
+                override fun lagre(behandlingId: UUID, grunnlagsdata: Grunnlagsdata) =
                     kastKanKunKallesFraAnnenService()
 
-                override fun opprettGrunnlag(sakId: UUID, periode: Periode): Grunnlagsdata =
+                override fun opprettGrunnlagsdata(sakId: UUID, periode: Periode): Grunnlagsdata =
                     kastKanKunKallesFraAnnenService()
 
-                override fun simulerEndretGrunnlag(sakId: UUID, periode: Periode, endring: Grunnlagsdata) =
+                override fun simulerEndretGrunnlagsdata(sakId: UUID, periode: Periode, endring: Grunnlagsdata) =
                     kastKanKunKallesFraAnnenService()
             },
         )

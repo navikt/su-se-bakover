@@ -9,7 +9,6 @@ import java.util.UUID
 sealed class Grunnlag : KanPlasseresPåTidslinje<Grunnlag> {
     abstract val id: UUID
 
-    // TODO change periodisert informasjon to avoid "get", fun -> val
     /**
      * @throws IllegalArgumentException hvis forventetInntekt er negativ
      */

@@ -49,7 +49,7 @@ interface RevurderingService {
     ): Either<KunneIkkeUnderkjenneRevurdering, UnderkjentRevurdering>
 
     fun leggTilUføregrunnlag(revurderingId: UUID, uføregrunnlag: List<Grunnlag.Uføregrunnlag>): Either<KunneIkkeLeggeTilGrunnlag, LeggTilUføregrunnlagResponse>
-    fun hentUføregrunnlag(revurderingId: UUID): Either<KunneIkkeHenteGrunnlag, GrunnlagService.SimulertEndringGrunnlag>
+    fun hentUføregrunnlag(revurderingId: UUID): Either<KunneIkkeHenteGrunnlag, GrunnlagService.SimulerEndretGrunnlagsdata>
 }
 
 object FantIkkeRevurdering
@@ -146,5 +146,5 @@ sealed class KunneIkkeHenteGrunnlag {
 
 data class LeggTilUføregrunnlagResponse(
     val revurdering: Revurdering,
-    val simulertEndringGrunnlag: GrunnlagService.SimulertEndringGrunnlag
+    val simulerEndretGrunnlagsdata: GrunnlagService.SimulerEndretGrunnlagsdata
 )

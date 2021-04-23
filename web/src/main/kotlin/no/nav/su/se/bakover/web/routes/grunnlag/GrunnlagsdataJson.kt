@@ -15,7 +15,7 @@ internal data class SimulertEndringGrunnlagJson(
     val resultat: GrunnlagsdataJson,
 )
 
-internal fun GrunnlagService.SimulertEndringGrunnlag.toJson() = SimulertEndringGrunnlagJson(
+internal fun GrunnlagService.SimulerEndretGrunnlagsdata.toJson() = SimulertEndringGrunnlagJson(
     førBehandling = førBehandling.toJson(),
     endring = endring.toJson(),
     resultat = resultat.toJson(),

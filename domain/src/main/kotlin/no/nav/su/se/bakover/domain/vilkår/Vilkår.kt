@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.domain.vilkår
 
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.beregning.Stønadsperiode
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import java.util.UUID
 
@@ -38,7 +37,7 @@ data class Vilkårsvurderinger(
     //     val uføre: Vilkårsvurdering<Grunnlag.Uføregrunnlag>? = null,
     // ): Vilkårsvurderinger()
 
-    //private val alleVilkår: Set<Vilkårsvurdering<*>> = setOf(uføre)
+    // private val alleVilkår: Set<Vilkårsvurdering<*>> = setOf(uføre)
 
     // fun hentResultat(): Vilkårsvurderingsresultat {
     //     return when {

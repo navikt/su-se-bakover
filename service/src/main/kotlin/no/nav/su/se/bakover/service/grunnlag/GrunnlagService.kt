@@ -12,16 +12,16 @@ import java.util.UUID
 
 interface GrunnlagService {
     /** Denne brukes både fra Søknadsbehandling og Revurdering **/
-    fun leggTilUføregrunnlag(behandlingId: UUID, uføregrunnlag: List<Uføregrunnlag>)
-    fun opprettGrunnlag(sakId: UUID, periode: Periode): Grunnlagsdata
-    fun simulerEndretGrunnlag(sakId: UUID, periode: Periode, endring: Grunnlagsdata): SimulertEndringGrunnlag
+    fun lagre(behandlingId: UUID, grunnlagsdata: Grunnlagsdata)
+    fun opprettGrunnlagsdata(sakId: UUID, periode: Periode): Grunnlagsdata
+    fun simulerEndretGrunnlagsdata(sakId: UUID, periode: Periode, endring: Grunnlagsdata): SimulerEndretGrunnlagsdata
 
     sealed class KunneIkkeLeggeTilGrunnlagsdata {
         object FantIkkeBehandling : KunneIkkeLeggeTilGrunnlagsdata()
         object UgyldigTilstand : KunneIkkeLeggeTilGrunnlagsdata()
     }
 
-    data class SimulertEndringGrunnlag(
+    data class SimulerEndretGrunnlagsdata(
         /** Sammensmelting av vedtakene før revurderingen. Det som lå til grunn for revurderingen */
         val førBehandling: Grunnlagsdata,
         /** De endringene som er lagt til i revurderingen (denne oppdateres ved lagring) */
@@ -36,47 +36,47 @@ internal class GrunnlagServiceImpl(
     private val vedtakRepo: VedtakRepo,
     private val clock: Clock,
 ) : GrunnlagService {
-    override fun leggTilUføregrunnlag(behandlingId: UUID, uføregrunnlag: List<Uføregrunnlag>) = grunnlagRepo.lagre(behandlingId, uføregrunnlag)
+    override fun lagre(behandlingId: UUID, grunnlagsdata: Grunnlagsdata) {
+        grunnlagRepo.lagre(behandlingId, grunnlagsdata.uføregrunnlag)
+    }
 
-    override fun simulerEndretGrunnlag(sakId: UUID, periode: Periode, endring: Grunnlagsdata): GrunnlagService.SimulertEndringGrunnlag {
+    override fun simulerEndretGrunnlagsdata(sakId: UUID, periode: Periode, endring: Grunnlagsdata): GrunnlagService.SimulerEndretGrunnlagsdata {
         // TODO jah: Vil ikke dette grunnlaget endre seg over tid for en revurdering, dersom andre revurderinger gjøres i mellomtiden?
         // Vil da ordet nåværendeGrunnlag være mer dekkende?
-        val originaltGrunnlag = opprettGrunnlag(sakId, periode)
+        val originaltGrunnlag = opprettGrunnlagsdata(sakId, periode)
 
         val simulertEndringUføregrunnlag = Grunnlagsdata(
             uføregrunnlag = Tidslinje<Uføregrunnlag>(
                 periode,
                 originaltGrunnlag.uføregrunnlag + endring.uføregrunnlag,
-                clock
-            ).tidslinje
+                clock,
+            ).tidslinje,
         )
 
-        return GrunnlagService.SimulertEndringGrunnlag(
+        return GrunnlagService.SimulerEndretGrunnlagsdata(
             førBehandling = originaltGrunnlag,
             endring = endring,
-            resultat = simulertEndringUføregrunnlag
+            resultat = simulertEndringUføregrunnlag,
         )
     }
 
-    override fun opprettGrunnlag(sakId: UUID, periode: Periode): Grunnlagsdata {
-        return OpprettGrunnlagForRevurdering(
+    override fun opprettGrunnlagsdata(sakId: UUID, periode: Periode): Grunnlagsdata {
+        return OpprettGrunnlagsdataForPeriode(
             sakId = sakId,
             periode = periode,
             vedtakRepo = vedtakRepo,
-            clock = clock
+            clock = clock,
         ).grunnlag
     }
 }
 
-internal class OpprettGrunnlagForRevurdering(
+internal class OpprettGrunnlagsdataForPeriode(
     private val sakId: UUID,
     private val periode: Periode,
     private val vedtakRepo: VedtakRepo,
-    private val clock: Clock
+    private val clock: Clock,
 ) {
-    val grunnlag = opprettGrunnlag()
-
-    private fun opprettGrunnlag(): Grunnlagsdata {
+    val grunnlag by lazy {
         val vedtakIPeriode = vedtakRepo.hentForSakId(sakId)
             .filterIsInstance<Vedtak.EndringIYtelse>() // TODO this must surely change at some point, needed to perserve information added by i.e revurdering below 10% or avslag.
             .filter { it.periode overlapper periode }
@@ -87,12 +87,10 @@ internal class OpprettGrunnlagForRevurdering(
                 Tidslinje<Uføregrunnlag>(
                     periode = periode,
                     objekter = grunnlag.flatMap { it.uføregrunnlag },
-                    clock = clock
+                    clock = clock,
                 )
             }.tidslinje
 
-        return Grunnlagsdata(
-            uføregrunnlag = uføregrunnlagIPeriode
-        )
+        Grunnlagsdata(uføregrunnlag = uføregrunnlagIPeriode)
     }
 }
