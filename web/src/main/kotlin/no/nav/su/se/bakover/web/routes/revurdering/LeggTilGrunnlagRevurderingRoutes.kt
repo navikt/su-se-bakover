@@ -34,8 +34,8 @@ internal fun Route.leggTilGrunnlagRevurderingRoutes(
                         body.toDomain()
                             .flatMap { uføregrunnlag ->
                                 revurderingService.leggTilUføregrunnlag(
-                                    revurderingId,
-                                    uføregrunnlag
+                                    revurderingId = revurderingId,
+                                    uføregrunnlag = uføregrunnlag
                                 ).mapLeft {
                                     when (it) {
                                         KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling -> HttpStatusCode.NotFound.errorJson("fant ikke behandling", "fant_ikke_behandling")

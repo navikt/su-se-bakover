@@ -13,7 +13,9 @@ import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -58,7 +60,15 @@ class RevurderingIngenEndringTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata(
+                uføregrunnlag = listOf(
+                    Grunnlag.Uføregrunnlag(
+                        periode = periode,
+                        uføregrad = Uføregrad.parse(20),
+                        forventetInntekt = 12000,
+                    ),
+                ),
+            ),
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -88,6 +98,7 @@ class RevurderingIngenEndringTest {
             ),
             // beregningstypen er internal i domene modulen
             BeregnetRevurdering.IngenEndring::beregning,
+            BeregnetRevurdering::grunnlagsdata
         )
 
         inOrder(

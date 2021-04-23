@@ -3,8 +3,8 @@ package no.nav.su.se.bakover.web.routes.grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
-import no.nav.su.se.bakover.web.routes.behandling.beregning.PeriodeJson
-import no.nav.su.se.bakover.web.routes.behandling.beregning.PeriodeJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson.Companion.toJson
 
 internal data class SimulertEndringGrunnlagJson(
     /** Sammensmelting av vedtakene før revurderingen.*/

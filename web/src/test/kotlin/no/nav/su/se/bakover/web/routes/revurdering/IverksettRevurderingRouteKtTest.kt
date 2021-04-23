@@ -24,11 +24,11 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.routes.behandling.TestBeregning
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.periode
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.requestPath
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.testServices
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.vedtak
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.TestBeregning
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert

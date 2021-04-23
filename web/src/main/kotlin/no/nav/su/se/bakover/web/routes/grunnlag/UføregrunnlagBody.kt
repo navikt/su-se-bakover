@@ -12,14 +12,17 @@ import arrow.core.right
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
-import no.nav.su.se.bakover.web.routes.behandling.beregning.PeriodeJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson
 
 internal data class UføregrunnlagBody(
     val periode: PeriodeJson,
     val uføregrad: Int,
     val forventetInntekt: Int,
+    val oppfylt: SøknadsbehandlingService.Oppfylt,
+    val begrunnelse: String,
 ) {
 
     fun toDomain(): Either<Resultat, Grunnlag.Uføregrunnlag> {
@@ -35,7 +38,7 @@ internal data class UføregrunnlagBody(
         return Grunnlag.Uføregrunnlag(
             periode = periode,
             uføregrad = validUføregrad,
-            forventetInntekt = forventetInntekt
+            forventetInntekt = forventetInntekt,
         ).right()
     }
 }

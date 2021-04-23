@@ -151,19 +151,22 @@ internal class RevurderingServiceImpl(
         if (revurdering is RevurderingTilAttestering || revurdering is IverksattRevurdering)
             return KunneIkkeLeggeTilGrunnlag.UgyldigStatus.left()
 
-        val simulertEndringGrunnlag = grunnlagService.simulerEndretGrunnlagsdata(
-            sakId = revurdering.sakId,
-            periode = revurdering.periode,
-            endring = Grunnlagsdata(uføregrunnlag = uføregrunnlag),
+        grunnlagService.lagre(
+            revurdering.id,
+            revurdering.grunnlagsdata.copy(
+                uføregrunnlag = uføregrunnlag,
+            ),
         )
-
-        grunnlagService.lagre(revurdering.id, simulertEndringGrunnlag.resultat)
 
         val updated = revurderingRepo.hent(revurdering.id)!!
 
         return LeggTilUføregrunnlagResponse(
             revurdering = updated,
-            simulerEndretGrunnlagsdata = simulertEndringGrunnlag,
+            simulerEndretGrunnlagsdata = grunnlagService.simulerEndretGrunnlagsdata(
+                sakId = updated.sakId,
+                periode = updated.periode,
+                endring = updated.grunnlagsdata,
+            ),
         ).right()
     }
 

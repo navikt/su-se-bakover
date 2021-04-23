@@ -19,10 +19,10 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
-import no.nav.su.se.bakover.web.routes.behandling.BehandlingsinformasjonJson.Companion.toJson
-import no.nav.su.se.bakover.web.routes.behandling.TestBeregning
-import no.nav.su.se.bakover.web.routes.behandling.beregning.toJson
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.vedtak
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingsinformasjonJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.TestBeregning
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.toJson
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import java.util.UUID

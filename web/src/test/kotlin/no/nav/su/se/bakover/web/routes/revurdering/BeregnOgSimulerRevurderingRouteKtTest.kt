@@ -23,7 +23,9 @@ import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -34,11 +36,11 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurd
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.defaultRequest
-import no.nav.su.se.bakover.web.routes.behandling.TestBeregning
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.periode
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.requestPath
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.testServices
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.vedtak
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.TestBeregning
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
@@ -118,7 +120,15 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata(
+                uføregrunnlag = listOf(
+                    Grunnlag.Uføregrunnlag(
+                        periode = periode,
+                        uføregrad = Uføregrad.parse(20),
+                        forventetInntekt = 12000,
+                    ),
+                ),
+            ),
         ).beregn(
             listOf(
                 FradragFactory.ny(

@@ -16,9 +16,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -133,62 +131,7 @@ internal class SøknadsbehandlingServiceImpl(
             statusovergang = Statusovergang.TilVilkårsvurdert(request.behandlingsinformasjon),
         ).let { vilkårsvurdert ->
             søknadsbehandlingRepo.lagre(vilkårsvurdert)
-
-            // fra behandlingsinformasjon
-            vilkårsvurdert.behandlingsinformasjon.uførhet?.let {
-                when (it.status) {
-                    Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt -> {
-                        val grunnlag = listOf(
-                            Grunnlag.Uføregrunnlag(
-                                periode = vilkårsvurdert.periode,
-                                uføregrad = Uføregrad.parse(it.uføregrad!!),
-                                forventetInntekt = it.forventetInntekt!!,
-                            ),
-                        )
-                        grunnlagService.lagre(
-                            vilkårsvurdert.id,
-                            vilkårsvurdert.grunnlagsdata.copy(
-                                uføregrunnlag = grunnlag,
-                            ),
-                        )
-
-                        vilkårsvurderingService.lagre(
-                            vilkårsvurdert.id,
-                            vilkårsvurdert.vilkårsvurderinger.copy(
-                                uføre = Vilkår.Vurdert.Uførhet.manuell(
-                                    resultat = Resultat.Innvilget,
-                                    begrunnelse = it.begrunnelse ?: "",
-                                    grunnlag = grunnlag,
-                                    periode = vilkårsvurdert.periode,
-                                ),
-                            ),
-                        )
-                    }
-                    Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt,
-                    Behandlingsinformasjon.Uførhet.Status.HarUføresakTilBehandling,
-                    -> {
-                        grunnlagService.lagre(
-                            vilkårsvurdert.id,
-                            vilkårsvurdert.grunnlagsdata.copy(
-                                uføregrunnlag = emptyList(),
-                            ),
-                        )
-
-                        vilkårsvurderingService.lagre(
-                            vilkårsvurdert.id,
-                            vilkårsvurdert.vilkårsvurderinger.copy(
-                                Vilkår.Vurdert.Uførhet.manuell(
-                                    resultat = Resultat.Avslag,
-                                    begrunnelse = it.begrunnelse ?: "",
-                                    grunnlag = emptyList(),
-                                    periode = vilkårsvurdert.periode,
-                                ),
-                            ),
-                        )
-                    }
-                }
-            }
-            (søknadsbehandlingRepo.hent(vilkårsvurdert.id)!! as Søknadsbehandling.Vilkårsvurdert).right()
+            vilkårsvurdert.right()
         }
     }
 
@@ -523,25 +466,45 @@ internal class SøknadsbehandlingServiceImpl(
         if (søknadsbehandling is Søknadsbehandling.Iverksatt || søknadsbehandling is Søknadsbehandling.TilAttestering)
             return SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.UgyldigStatus.left()
 
-        val simulertEndringGrunnlag = grunnlagService.simulerEndretGrunnlagsdata(
-            sakId = søknadsbehandling.sakId,
-            periode = søknadsbehandling.periode,
-            endring = Grunnlagsdata(uføregrunnlag = request.uføregrunnlag),
-        )
-        grunnlagService.lagre(søknadsbehandling.id, simulertEndringGrunnlag.resultat)
-
-        vilkårsvurderingService.lagre(
-            søknadsbehandling.id,
-            søknadsbehandling.vilkårsvurderinger.copy(
-                uføre = Vilkår.Vurdert.Uførhet.manuell(
-                    resultat = Resultat.Innvilget,
-                    begrunnelse = "AUTOMATISK",
-                    grunnlag = simulertEndringGrunnlag.resultat.uføregrunnlag,
-                    periode = søknadsbehandling.periode,
+        // TODO midliertidig til behandlingsinformasjon er borte
+        return vilkårsvurder(
+            SøknadsbehandlingService.VilkårsvurderRequest(
+                behandlingId = søknadsbehandling.id,
+                behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon.copy(
+                    uførhet = Behandlingsinformasjon.Uførhet(
+                        status = when (request.oppfylt) {
+                            SøknadsbehandlingService.Oppfylt.JA -> Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt
+                            SøknadsbehandlingService.Oppfylt.NEI -> Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt
+                            SøknadsbehandlingService.Oppfylt.UAVKLART -> Behandlingsinformasjon.Uførhet.Status.HarUføresakTilBehandling
+                        },
+                        uføregrad = request.uføregrunnlag.uføregrad.value,
+                        forventetInntekt = request.uføregrunnlag.forventetInntekt,
+                        begrunnelse = request.begrunnelse,
+                    ),
                 ),
             ),
-        )
-
-        return søknadsbehandlingRepo.hent(søknadsbehandling.id)!!.right()
+        ).mapLeft {
+            SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.KunneIkkeVilkårsvurdere
+        }.map {
+            // TODO fornuftig med en transaksjon her kanskje
+            grunnlagService.lagre(
+                behandlingId = søknadsbehandling.id,
+                grunnlagsdata = søknadsbehandling.grunnlagsdata.copy(
+                    uføregrunnlag = listOf(request.uføregrunnlag),
+                ),
+            )
+            vilkårsvurderingService.lagre(
+                søknadsbehandling.id,
+                søknadsbehandling.vilkårsvurderinger.copy(
+                    uføre = Vilkår.Vurdert.Uførhet.manuell(
+                        resultat = Resultat.Innvilget,
+                        begrunnelse = request.begrunnelse,
+                        grunnlag = listOf(request.uføregrunnlag),
+                        periode = søknadsbehandling.periode,
+                    ),
+                ),
+            )
+            it
+        }
     }
 }

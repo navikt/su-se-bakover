@@ -9,9 +9,9 @@ import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.fnrUnder67
-import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.sakId
-import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.søknadId
-import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.søknadInnhold
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.sakId
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.søknadId
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.søknadInnhold
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import java.time.ZoneOffset

@@ -19,9 +19,9 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.TestServicesBuilder
-import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.stønadsperiode
-import no.nav.su.se.bakover.web.routes.behandling.TestBeregning
 import no.nav.su.se.bakover.web.routes.sak.sakPath
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.stønadsperiode
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.TestBeregning
 import java.util.UUID
 
 object RevurderingRoutesTestData {

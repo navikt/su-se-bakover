@@ -7,7 +7,6 @@ import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.doReturnConsecutively
 import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
-import com.nhaarman.mockitokotlin2.times
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.shouldBe
@@ -73,7 +72,6 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
         ).vilkårsvurder(
             SøknadsbehandlingService.VilkårsvurderRequest(
                 behandlingId = behandlingId,
-                saksbehandler = saksbehandler,
                 behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             ),
         )
@@ -111,7 +109,6 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
         ).vilkårsvurder(
             SøknadsbehandlingService.VilkårsvurderRequest(
                 behandlingId,
-                saksbehandler,
                 behandlingsinformasjon,
             ),
         )
@@ -121,7 +118,6 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
         inOrder(søknadsbehandlingRepoMock) {
             verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandlingId })
             verify(søknadsbehandlingRepoMock).lagre(expected)
-            verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandlingId })
         }
         verifyNoMoreInteractions(søknadsbehandlingRepoMock)
     }
@@ -153,7 +149,6 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
         ).vilkårsvurder(
             SøknadsbehandlingService.VilkårsvurderRequest(
                 behandlingId,
-                saksbehandler,
                 behandlingsinformasjon,
             ),
         )
@@ -163,7 +158,6 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
         inOrder(søknadsbehandlingRepoMock) {
             verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandlingId })
             verify(søknadsbehandlingRepoMock).lagre(expected)
-            verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandlingId })
         }
         verifyNoMoreInteractions(søknadsbehandlingRepoMock)
     }

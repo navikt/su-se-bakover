@@ -15,8 +15,8 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
-import no.nav.su.se.bakover.web.routes.behandling.UtbetalingJson
 import no.nav.su.se.bakover.web.routes.sak.SakJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.UtbetalingJson
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert

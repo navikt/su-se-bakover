@@ -8,6 +8,7 @@ import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.assertions.arrow.either.shouldBeLeft
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
@@ -169,32 +170,26 @@ internal class RegulerGrunnbeløpServiceImplTest {
             forventetInntekt = 1,
         ).orNull()!! as SimulertRevurdering.Innvilget
 
-        actual shouldBe SimulertRevurdering.Innvilget(
-            tilRevurdering = søknadsbehandlingVedtak,
-            id = revurderingId,
-            periode = periode,
-            opprettet = Tidspunkt.EPOCH,
-            beregning = actual.beregning,
-            saksbehandler = saksbehandler,
-            oppgaveId = OppgaveId("oppgaveid"),
-            fritekstTilBrev = "",
-            revurderingsårsak = revurderingsårsakRegulerGrunnbeløp,
-            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt().copy(
-                uførhet = opprettetRevurdering.behandlingsinformasjon.uførhet!!.copy(
-                    forventetInntekt = 1,
-                ),
-            ),
-            simulering = simulertUtbetaling.simulering,
-            grunnlagsdata = Grunnlagsdata(
-                uføregrunnlag = listOf(
-                    Grunnlag.Uføregrunnlag(
-                        // TODO SOLVE FOR RANDOM GENERATED UUID AND TIDSPUNKT IN TEST
-                        periode = periode,
-                        uføregrad = Uføregrad.parse(20),
+        actual.shouldBeEqualToIgnoringFields(
+            SimulertRevurdering.Innvilget(
+                tilRevurdering = søknadsbehandlingVedtak,
+                id = revurderingId,
+                periode = periode,
+                opprettet = Tidspunkt.EPOCH,
+                beregning = actual.beregning,
+                saksbehandler = saksbehandler,
+                oppgaveId = OppgaveId("oppgaveid"),
+                fritekstTilBrev = "",
+                revurderingsårsak = revurderingsårsakRegulerGrunnbeløp,
+                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt().copy(
+                    uførhet = opprettetRevurdering.behandlingsinformasjon.uførhet!!.copy(
                         forventetInntekt = 1,
                     ),
                 ),
+                simulering = simulertUtbetaling.simulering,
+                grunnlagsdata = Grunnlagsdata.EMPTY,
             ),
+            SimulertRevurdering.Innvilget::grunnlagsdata,
         )
 
         inOrder(revurderingRepoMock, utbetalingServiceMock) {
@@ -287,16 +282,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             revurderingsårsak = opprettetRevurdering.revurderingsårsak,
             behandlingsinformasjon = opprettetRevurdering.behandlingsinformasjon,
             beregning = opprettetRevurdering.tilRevurdering.beregning,
-            grunnlagsdata = Grunnlagsdata(
-                uføregrunnlag = listOf(
-                    Grunnlag.Uføregrunnlag(
-                        // TODO SOLVE FOR RANDOM GENERATED UUID AND TIDSPUNKT IN TEST
-                        periode = periode,
-                        uføregrad = Uføregrad.parse(20),
-                        forventetInntekt = 12000,
-                    ),
-                ),
-            ),
+            grunnlagsdata = Grunnlagsdata.EMPTY,
         )
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn opprettetRevurdering
@@ -311,7 +297,10 @@ internal class RegulerGrunnbeløpServiceImplTest {
             forventetInntekt = 12000,
         ).orNull()!! as BeregnetRevurdering.IngenEndring
 
-        actual shouldBe expectedBeregnetRevurdering
+        actual.shouldBeEqualToIgnoringFields(
+            expectedBeregnetRevurdering,
+            BeregnetRevurdering.IngenEndring::grunnlagsdata,
+        )
 
         inOrder(
             revurderingRepoMock,

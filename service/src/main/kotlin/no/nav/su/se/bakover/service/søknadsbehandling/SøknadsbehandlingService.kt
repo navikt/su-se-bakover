@@ -38,7 +38,6 @@ interface SøknadsbehandlingService {
 
     data class VilkårsvurderRequest(
         val behandlingId: UUID,
-        val saksbehandler: NavIdentBruker.Saksbehandler,
         val behandlingsinformasjon: Behandlingsinformasjon,
     )
 
@@ -156,11 +155,20 @@ interface SøknadsbehandlingService {
 
     data class LeggTilUføregrunnlagRequest(
         val behandlingId: UUID,
-        val uføregrunnlag: List<Grunnlag.Uføregrunnlag>
+        val uføregrunnlag: Grunnlag.Uføregrunnlag,
+        val oppfylt: Oppfylt,
+        val begrunnelse: String,
     )
+
+    enum class Oppfylt {
+        JA,
+        NEI,
+        UAVKLART
+    }
 
     sealed class KunneIkkeLeggeTilGrunnlag {
         object FantIkkeBehandling : KunneIkkeLeggeTilGrunnlag()
         object UgyldigStatus : KunneIkkeLeggeTilGrunnlag()
+        object KunneIkkeVilkårsvurdere : KunneIkkeLeggeTilGrunnlag()
     }
 }
