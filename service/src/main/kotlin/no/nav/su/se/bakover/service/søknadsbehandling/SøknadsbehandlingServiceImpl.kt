@@ -459,47 +459,55 @@ internal class SøknadsbehandlingServiceImpl(
         }
     }
 
-    override fun leggTilUføregrunnlag(request: SøknadsbehandlingService.LeggTilUføregrunnlagRequest): Either<SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag, Søknadsbehandling> {
+    override fun leggTilUføregrunnlag(request: LeggTilUførevurderingRequest): Either<SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag, Søknadsbehandling> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling.left()
 
         if (søknadsbehandling is Søknadsbehandling.Iverksatt || søknadsbehandling is Søknadsbehandling.TilAttestering)
-            return SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.UgyldigStatus.left()
+            return SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.UgyldigTilstand(søknadsbehandling::class, Søknadsbehandling.Vilkårsvurdert::class).left()
 
+        val vilkår = request.toVilkår().getOrHandle {
+            return SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.UføregradOgForventetInntektMangler.left()
+        }
         // TODO midliertidig til behandlingsinformasjon er borte
+        val grunnlag = (vilkår as? Vilkår.Vurdert.Uførhet)?.grunnlag?.firstOrNull()
         return vilkårsvurder(
             SøknadsbehandlingService.VilkårsvurderRequest(
                 behandlingId = søknadsbehandling.id,
                 behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon.copy(
                     uførhet = Behandlingsinformasjon.Uførhet(
-                        status = when (request.oppfylt) {
-                            SøknadsbehandlingService.Oppfylt.JA -> Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt
-                            SøknadsbehandlingService.Oppfylt.NEI -> Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt
-                            SøknadsbehandlingService.Oppfylt.UAVKLART -> Behandlingsinformasjon.Uførhet.Status.HarUføresakTilBehandling
+                        status = when (vilkår) {
+                            Vilkår.IkkeVurdertUføregrunnlag -> Behandlingsinformasjon.Uførhet.Status.HarUføresakTilBehandling
+                            is Vilkår.Vurdert.Uførhet -> when (vilkår.resultat) {
+                                Resultat.Avslag -> Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt
+                                Resultat.Innvilget -> Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt
+                            }
                         },
-                        uføregrad = request.uføregrunnlag.uføregrad.value,
-                        forventetInntekt = request.uføregrunnlag.forventetInntekt,
+                        uføregrad = grunnlag?.uføregrad?.value,
+                        forventetInntekt = grunnlag?.forventetInntekt,
                         begrunnelse = request.begrunnelse,
                     ),
                 ),
             ),
         ).mapLeft {
-            SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.KunneIkkeVilkårsvurdere
+            SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling
         }.map {
             // TODO fornuftig med en transaksjon her kanskje
-            grunnlagService.lagre(
-                behandlingId = søknadsbehandling.id,
-                grunnlagsdata = søknadsbehandling.grunnlagsdata.copy(
-                    uføregrunnlag = listOf(request.uføregrunnlag),
-                ),
-            )
+            grunnlag?.let {
+                grunnlagService.lagre(
+                    behandlingId = søknadsbehandling.id,
+                    grunnlagsdata = søknadsbehandling.grunnlagsdata.copy(
+                        uføregrunnlag = listOf(it),
+                    ),
+                )
+            }
             vilkårsvurderingService.lagre(
                 søknadsbehandling.id,
                 søknadsbehandling.vilkårsvurderinger.copy(
                     uføre = Vilkår.Vurdert.Uførhet.manuell(
                         resultat = Resultat.Innvilget,
                         begrunnelse = request.begrunnelse,
-                        grunnlag = listOf(request.uføregrunnlag),
+                        grunnlag = listOfNotNull(grunnlag),
                         periode = søknadsbehandling.periode,
                     ),
                 ),

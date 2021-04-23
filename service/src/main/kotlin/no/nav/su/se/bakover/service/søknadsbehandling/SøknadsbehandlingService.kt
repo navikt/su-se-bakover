@@ -6,11 +6,11 @@ import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import java.time.LocalDate
 import java.util.UUID
+import kotlin.reflect.KClass
 
 interface SøknadsbehandlingService {
     fun opprett(request: OpprettRequest): Either<KunneIkkeOpprette, Søknadsbehandling.Vilkårsvurdert.Uavklart>
@@ -23,7 +23,7 @@ interface SøknadsbehandlingService {
     fun brev(request: BrevRequest): Either<KunneIkkeLageBrev, ByteArray>
     fun hent(request: HentRequest): Either<FantIkkeBehandling, Søknadsbehandling>
     fun oppdaterStønadsperiode(request: OppdaterStønadsperiodeRequest): Either<KunneIkkeOppdatereStønadsperiode, Søknadsbehandling>
-    fun leggTilUføregrunnlag(request: LeggTilUføregrunnlagRequest): Either<KunneIkkeLeggeTilGrunnlag, Søknadsbehandling>
+    fun leggTilUføregrunnlag(request: LeggTilUførevurderingRequest): Either<KunneIkkeLeggeTilGrunnlag, Søknadsbehandling>
 
     data class OpprettRequest(
         val søknadId: UUID,
@@ -153,13 +153,6 @@ interface SøknadsbehandlingService {
         val stønadsperiode: ValgtStønadsperiode,
     )
 
-    data class LeggTilUføregrunnlagRequest(
-        val behandlingId: UUID,
-        val uføregrunnlag: Grunnlag.Uføregrunnlag,
-        val oppfylt: Oppfylt,
-        val begrunnelse: String,
-    )
-
     enum class Oppfylt {
         JA,
         NEI,
@@ -168,7 +161,7 @@ interface SøknadsbehandlingService {
 
     sealed class KunneIkkeLeggeTilGrunnlag {
         object FantIkkeBehandling : KunneIkkeLeggeTilGrunnlag()
-        object UgyldigStatus : KunneIkkeLeggeTilGrunnlag()
-        object KunneIkkeVilkårsvurdere : KunneIkkeLeggeTilGrunnlag()
+        data class UgyldigTilstand(val fra: KClass<out Søknadsbehandling>, val til: KClass<out Søknadsbehandling>) : KunneIkkeLeggeTilGrunnlag()
+        object UføregradOgForventetInntektMangler : KunneIkkeLeggeTilGrunnlag()
     }
 }
