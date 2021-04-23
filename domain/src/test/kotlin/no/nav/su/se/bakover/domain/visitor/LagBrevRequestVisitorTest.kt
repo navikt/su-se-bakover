@@ -617,7 +617,8 @@ internal class LagBrevRequestVisitorTest {
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
-            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel
+            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+            behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
         )
 
         val avslåttVedtak = Vedtak.from(revurdering, utbetalingId)
@@ -670,7 +671,8 @@ internal class LagBrevRequestVisitorTest {
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
-            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel
+            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+            behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
         )
 
         val opphørsvedtak = Vedtak.from(revurdering, utbetalingId)
@@ -691,7 +693,7 @@ internal class LagBrevRequestVisitorTest {
         brevRevurdering.brevRequest shouldBe LagBrevRequest.Opphørsvedtak(
             person = person,
             beregning = revurdering.beregning,
-            behandlingsinformasjon = revurdering.tilRevurdering.behandlingsinformasjon,
+            behandlingsinformasjon = revurdering.behandlingsinformasjon,
             saksbehandlerNavn = saksbehandlerNavn,
             attestantNavn = attestantNavn,
             fritekst = "FRITEKST REVURDERING",
@@ -723,7 +725,8 @@ internal class LagBrevRequestVisitorTest {
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
             skalFøreTilBrevutsending = false,
-            forhåndsvarsel = null
+            forhåndsvarsel = null,
+            behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
         )
 
         val vedtakIngenEndring = Vedtak.from(revurdering, clock)
@@ -755,7 +758,7 @@ internal class LagBrevRequestVisitorTest {
                 saksbehandlerNavn = saksbehandlerNavn,
                 attestantNavn = attestantNavn,
                 fritekst = "EN FIN FRITEKST",
-                harEktefelle = revurdering.tilRevurdering.behandlingsinformasjon.harEktefelle(),
+                harEktefelle = revurdering.behandlingsinformasjon.harEktefelle(),
             )
 
             it.lagBrevInnhold(personalia) should beOfType<BrevInnhold.VedtakIngenEndring>()

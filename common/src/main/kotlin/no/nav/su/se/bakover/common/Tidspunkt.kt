@@ -57,6 +57,7 @@ class Tidspunkt @JsonCreator(mode = JsonCreator.Mode.DELEGATING) constructor(
 
     override fun hashCode() = instant.hashCode()
     override fun plus(amount: Long, unit: TemporalUnit): Tidspunkt = instant.plus(amount, unit).toTidspunkt()
+    override fun minus(amount: Long, unit: TemporalUnit): Tidspunkt = instant.minus(amount, unit).toTidspunkt()
     fun toLocalDate(zoneId: ZoneId): LocalDate = LocalDate.ofInstant(instant, zoneId)
 }
 

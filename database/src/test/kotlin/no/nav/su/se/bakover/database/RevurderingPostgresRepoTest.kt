@@ -66,6 +66,7 @@ internal class RevurderingPostgresRepoTest {
         fritekstTilBrev = "",
         revurderingsårsak = revurderingsårsak,
         forhåndsvarsel = null,
+        behandlingsinformasjon = vedtak.behandlingsinformasjon,
     )
 
     private fun beregnetIngenEndring(
@@ -82,6 +83,7 @@ internal class RevurderingPostgresRepoTest {
         revurderingsårsak = opprettet.revurderingsårsak,
         beregning = vedtak.beregning,
         forhåndsvarsel = null,
+        behandlingsinformasjon = vedtak.behandlingsinformasjon,
     )
 
     private fun beregnetInnvilget(
@@ -98,6 +100,7 @@ internal class RevurderingPostgresRepoTest {
         fritekstTilBrev = opprettet.fritekstTilBrev,
         revurderingsårsak = opprettet.revurderingsårsak,
         forhåndsvarsel = null,
+        behandlingsinformasjon = vedtak.behandlingsinformasjon,
     )
 
     private fun beregnetOpphørt(
@@ -114,6 +117,7 @@ internal class RevurderingPostgresRepoTest {
         fritekstTilBrev = opprettet.fritekstTilBrev,
         revurderingsårsak = opprettet.revurderingsårsak,
         forhåndsvarsel = null,
+        behandlingsinformasjon = vedtak.behandlingsinformasjon,
     )
 
     private fun simulertInnvilget(beregnet: BeregnetRevurdering.Innvilget) = SimulertRevurdering.Innvilget(
@@ -128,6 +132,7 @@ internal class RevurderingPostgresRepoTest {
         fritekstTilBrev = beregnet.fritekstTilBrev,
         revurderingsårsak = beregnet.revurderingsårsak,
         forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+        behandlingsinformasjon = beregnet.behandlingsinformasjon,
     )
 
     private fun simulertOpphørt(beregnet: BeregnetRevurdering.Opphørt) = SimulertRevurdering.Opphørt(
@@ -142,6 +147,7 @@ internal class RevurderingPostgresRepoTest {
         fritekstTilBrev = beregnet.fritekstTilBrev,
         revurderingsårsak = beregnet.revurderingsårsak,
         forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+        behandlingsinformasjon = beregnet.behandlingsinformasjon,
     )
 
     @Test
@@ -342,6 +348,7 @@ internal class RevurderingPostgresRepoTest {
                 fritekstTilBrev = "",
                 revurderingsårsak = revurderingsårsak,
                 forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+                behandlingsinformasjon = vedtak.behandlingsinformasjon,
             )
 
             repo.lagre(tilAttestering)
@@ -419,9 +426,9 @@ internal class RevurderingPostgresRepoTest {
                 simulert.tilAttestering(
                     opprettet.oppgaveId,
                     opprettet.saksbehandler,
+                    Forhåndsvarsel.IngenForhåndsvarsel,
                     opprettet.fritekstTilBrev,
-                    forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-                )
+                ).orNull()!!
             repo.lagre(tilAttestering)
 
             val underkjent = UnderkjentRevurdering.Opphørt(
@@ -441,6 +448,7 @@ internal class RevurderingPostgresRepoTest {
                     "kommentar",
                 ),
                 forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+                behandlingsinformasjon = opprettet.behandlingsinformasjon,
             )
 
             repo.lagre(underkjent)
@@ -470,6 +478,7 @@ internal class RevurderingPostgresRepoTest {
                 beregning = vedtak.beregning,
                 simulering = simulering,
                 forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+                behandlingsinformasjon = opprettet.behandlingsinformasjon,
             )
 
             repo.lagre(underkjent)
@@ -489,7 +498,12 @@ internal class RevurderingPostgresRepoTest {
             val simulert = simulertOpphørt(beregnet)
             repo.lagre(simulert)
             val tilAttestering =
-                simulert.tilAttestering(opprettet.oppgaveId, opprettet.saksbehandler, opprettet.fritekstTilBrev, Forhåndsvarsel.IngenForhåndsvarsel)
+                simulert.tilAttestering(
+                    opprettet.oppgaveId,
+                    opprettet.saksbehandler,
+                    Forhåndsvarsel.IngenForhåndsvarsel,
+                    opprettet.fritekstTilBrev,
+                ).orNull()!!
             repo.lagre(tilAttestering)
 
             val underkjent = IverksattRevurdering.Opphørt(
@@ -507,6 +521,7 @@ internal class RevurderingPostgresRepoTest {
                     attestant,
                 ),
                 forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+                behandlingsinformasjon = opprettet.behandlingsinformasjon,
             )
 
             repo.lagre(underkjent)
@@ -536,6 +551,7 @@ internal class RevurderingPostgresRepoTest {
                 beregning = vedtak.beregning,
                 skalFøreTilBrevutsending = false,
                 forhåndsvarsel = null,
+                behandlingsinformasjon = opprettet.behandlingsinformasjon,
             )
             repo.lagre(underkjentTilAttestering)
             val underkjent = UnderkjentRevurdering.IngenEndring(
@@ -555,6 +571,7 @@ internal class RevurderingPostgresRepoTest {
                 ),
                 skalFøreTilBrevutsending = false,
                 forhåndsvarsel = null,
+                behandlingsinformasjon = opprettet.behandlingsinformasjon,
             )
 
             repo.lagre(underkjent)
@@ -583,6 +600,7 @@ internal class RevurderingPostgresRepoTest {
                 beregning = vedtak.beregning,
                 skalFøreTilBrevutsending = true,
                 forhåndsvarsel = null,
+                behandlingsinformasjon = opprettet.behandlingsinformasjon,
             )
 
             repo.lagre(underkjent)
@@ -611,6 +629,7 @@ internal class RevurderingPostgresRepoTest {
                 beregning = vedtak.beregning,
                 skalFøreTilBrevutsending = false,
                 forhåndsvarsel = null,
+                behandlingsinformasjon = opprettet.behandlingsinformasjon,
             )
             repo.lagre(revurderingTilAttestering)
             val underkjent = IverksattRevurdering.IngenEndring(
@@ -628,6 +647,7 @@ internal class RevurderingPostgresRepoTest {
                 ),
                 skalFøreTilBrevutsending = false,
                 forhåndsvarsel = null,
+                behandlingsinformasjon = opprettet.behandlingsinformasjon,
             )
 
             repo.lagre(underkjent)

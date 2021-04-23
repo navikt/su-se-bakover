@@ -7,7 +7,6 @@ import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.eq
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
-import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -73,99 +72,6 @@ internal class UtbetalingKvitteringConsumerTest {
     }
 
     @Test
-    fun `prøver ikke å ferdigstille dersom utbetalingstype er stans eller gjennoppta`() {
-        val xmlMessage = kvitteringXml(UtbetalingKvitteringResponse.Alvorlighetsgrad.OK)
-        listOf(Utbetaling.UtbetalingsType.GJENOPPTA, Utbetaling.UtbetalingsType.STANS)
-            .forEach { utbetalingstype ->
-                val utbetaling = utbetalingUtenKvittering.copy(type = utbetalingstype)
-
-                val kvittering = Kvittering(
-                    utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
-                    originalKvittering = xmlMessage,
-                    mottattTidspunkt = Tidspunkt.now(clock)
-                )
-
-                val utbetalingMedKvittering = utbetaling.toKvittertUtbetaling(kvittering)
-
-                val utbetalingServiceMock = mock<UtbetalingService> {
-                    on { oppdaterMedKvittering(any(), any()) } doReturn utbetalingMedKvittering.right()
-                }
-
-                val ferdigstillVedtakServiceMock = mock<FerdigstillVedtakService>()
-                val consumer = UtbetalingKvitteringConsumer(utbetalingServiceMock, ferdigstillVedtakServiceMock, clock)
-
-                consumer.onMessage(xmlMessage)
-
-                verify(utbetalingServiceMock).oppdaterMedKvittering(
-                    avstemmingsnøkkel = argThat { it shouldBe avstemmingsnøkkel },
-                    kvittering = argThat { it shouldBe kvittering }
-                )
-                verifyNoMoreInteractions(utbetalingServiceMock, ferdigstillVedtakServiceMock)
-            }
-    }
-
-    @Test
-    fun `prøver ikke ferdigstille dersom kvittering er feil`() {
-        val xmlMessage = kvitteringXml(UtbetalingKvitteringResponse.Alvorlighetsgrad.ALVORLIG_FEIL)
-        val utbetaling = utbetalingUtenKvittering.copy(type = Utbetaling.UtbetalingsType.NY)
-
-        val kvittering = Kvittering(
-            utbetalingsstatus = Kvittering.Utbetalingsstatus.FEIL,
-            originalKvittering = xmlMessage,
-            mottattTidspunkt = Tidspunkt.now(clock)
-        )
-
-        val utbetalingMedKvittering = utbetaling.toKvittertUtbetaling(kvittering)
-
-        val utbetalingServiceMock = mock<UtbetalingService> {
-            on { oppdaterMedKvittering(any(), any()) } doReturn utbetalingMedKvittering.right()
-        }
-
-        val ferdigstillIverksettingServiceMock = mock<FerdigstillVedtakService>()
-        val consumer = UtbetalingKvitteringConsumer(utbetalingServiceMock, ferdigstillIverksettingServiceMock, clock)
-
-        consumer.onMessage(xmlMessage)
-
-        verify(utbetalingServiceMock).oppdaterMedKvittering(
-            avstemmingsnøkkel = argThat { it shouldBe avstemmingsnøkkel },
-            kvittering = argThat { it shouldBe kvittering }
-        )
-        verifyNoMoreInteractions(utbetalingServiceMock, ferdigstillIverksettingServiceMock)
-    }
-
-    @Test
-    fun `kaller tjeneste for å ferdigstille hvis utbetaling er kvittert ok `() {
-        val xmlMessage = kvitteringXml(UtbetalingKvitteringResponse.Alvorlighetsgrad.OK)
-        val utbetaling = utbetalingUtenKvittering.copy(type = Utbetaling.UtbetalingsType.NY)
-
-        val kvittering = Kvittering(
-            utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
-            originalKvittering = xmlMessage,
-            mottattTidspunkt = Tidspunkt.now(clock)
-        )
-        val utbetalingMedKvittering = utbetaling.toKvittertUtbetaling(kvittering)
-
-        val utbetalingServiceMock = mock<UtbetalingService> {
-            on { oppdaterMedKvittering(any(), any()) } doReturn utbetalingMedKvittering.right()
-        }
-
-        val ferdigstillVedtakServiceMock = mock<FerdigstillVedtakService> {}
-        val consumer = UtbetalingKvitteringConsumer(utbetalingServiceMock, ferdigstillVedtakServiceMock, clock)
-
-        consumer.onMessage(xmlMessage)
-
-        verify(utbetalingServiceMock).oppdaterMedKvittering(
-            avstemmingsnøkkel = argThat { it shouldBe avstemmingsnøkkel },
-            kvittering = argThat { it shouldBe kvittering }
-        )
-
-        verify(ferdigstillVedtakServiceMock).ferdigstillVedtakEtterUtbetaling(
-            argThat { it shouldBe utbetaling.id }
-        )
-        verifyNoMoreInteractions(utbetalingServiceMock, ferdigstillVedtakServiceMock)
-    }
-
-    @Test
     fun `kaster videre eventuelle exceptions fra kall til ferdigstill`() {
         val xmlMessage = kvitteringXml(UtbetalingKvitteringResponse.Alvorlighetsgrad.OK)
         val utbetaling = utbetalingUtenKvittering.copy(type = Utbetaling.UtbetalingsType.NY)
@@ -199,7 +105,7 @@ internal class UtbetalingKvitteringConsumerTest {
         )
 
         verify(ferdigstillVedtakServiceMock).ferdigstillVedtakEtterUtbetaling(
-            argThat { it shouldBe utbetaling.id }
+            argThat { it shouldBe utbetalingMedKvittering }
         )
     }
 }

@@ -23,6 +23,6 @@ internal data class PeriodeJson(
     }
 
     companion object {
-        fun Periode.toJson() = PeriodeJson(getFraOgMed().format(DateTimeFormatter.ISO_DATE), getTilOgMed().format(DateTimeFormatter.ISO_DATE))
+        fun Periode.toJson() = PeriodeJson(fraOgMed.format(DateTimeFormatter.ISO_DATE), tilOgMed.format(DateTimeFormatter.ISO_DATE))
     }
 }

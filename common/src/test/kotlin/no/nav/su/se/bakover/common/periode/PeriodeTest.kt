@@ -25,20 +25,20 @@ internal class PeriodeTest {
     @Test
     fun `fra og med og til og med`() {
         val periode = Periode.create(1.januar(2021), 31.januar(2021))
-        periode.getFraOgMed() shouldBe 1.januar(2021)
-        periode.getTilOgMed() shouldBe 31.januar(2021)
+        periode.fraOgMed shouldBe 1.januar(2021)
+        periode.tilOgMed shouldBe 31.januar(2021)
     }
 
     @Test
     fun `periodisert fra og med og til og med`() {
         val periode = Periode.create(1.januar(2021), 31.desember(2021))
         val periodisert = periode.tilMånedsperioder()
-        periode.getFraOgMed() shouldBe 1.januar(2021)
-        periode.getTilOgMed() shouldBe 31.desember(2021)
-        periodisert.first().getFraOgMed() shouldBe 1.januar(2021)
-        periodisert.first().getTilOgMed() shouldBe 31.januar(2021)
-        periodisert.last().getFraOgMed() shouldBe 1.desember(2021)
-        periodisert.last().getTilOgMed() shouldBe 31.desember(2021)
+        periode.fraOgMed shouldBe 1.januar(2021)
+        periode.tilOgMed shouldBe 31.desember(2021)
+        periodisert.first().fraOgMed shouldBe 1.januar(2021)
+        periodisert.first().tilOgMed shouldBe 31.januar(2021)
+        periodisert.last().fraOgMed shouldBe 1.desember(2021)
+        periodisert.last().tilOgMed shouldBe 31.desember(2021)
     }
 
     @Test

@@ -56,7 +56,7 @@ internal data class FradragJson(
                     type = it.getFradragstype().toString(),
                     beløp = it.getMånedsbeløp(),
                     utenlandskInntekt = it.getUtenlandskInntekt()?.toJson(),
-                    periode = it.getPeriode().toJson(),
+                    periode = it.periode.toJson(),
                     tilhører = it.getTilhører().toString()
                 )
             }

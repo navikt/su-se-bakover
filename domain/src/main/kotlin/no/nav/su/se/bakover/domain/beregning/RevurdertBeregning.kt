@@ -17,29 +17,27 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
  *
  * Det kan hende vi vil gi denne navnet: EndretBeregning (dersom den er gjenbrukbar for klage, anke og automatiske/recurring endringer som grunnbeløpsendring.
  */
-internal class RevurdertBeregning private constructor(revurdertBeregning: Beregning) : Beregning by revurdertBeregning {
+internal object RevurdertBeregning {
 
-    companion object {
-        fun fraSøknadsbehandling(
-            vedtattBeregning: Beregning,
-            beregningsgrunnlag: Beregningsgrunnlag,
-            beregningsstrategi: BeregningStrategy,
-            beregnMedVirkningNesteMånedDersomStønadenGårNed: Boolean = false,
-        ): Either<KanIkkeVelgeSisteMånedVedNedgangIStønaden, Beregning> {
-            val revurdertBeregning = beregningsstrategi.beregn(beregningsgrunnlag)
-            if (!beregnMedVirkningNesteMånedDersomStønadenGårNed) {
-                return revurdertBeregning.right()
-            }
+    fun fraSøknadsbehandling(
+        vedtattBeregning: Beregning,
+        beregningsgrunnlag: Beregningsgrunnlag,
+        beregningsstrategi: BeregningStrategy,
+        beregnMedVirkningNesteMånedDersomStønadenGårNed: Boolean = false,
+    ): Either<KanIkkeVelgeSisteMånedVedNedgangIStønaden, Beregning> {
+        val revurdertBeregning = beregningsstrategi.beregn(beregningsgrunnlag)
+        if (!beregnMedVirkningNesteMånedDersomStønadenGårNed) {
+            return revurdertBeregning.right()
+        }
 
-            return when {
-                revurdertBeregning.getMånedsberegninger().first()
-                    .getSumYtelse() > vedtattBeregning.getMånedsberegninger().first()
-                    .getSumYtelse() -> revurdertBeregning.right()
-                revurdertBeregning.getMånedsberegninger().first()
-                    .getSumYtelse() < vedtattBeregning.getMånedsberegninger().first()
-                    .getSumYtelse() -> beregnMedVirkningFraOgMedMånedenEtter(revurdertBeregning)
-                else -> revurdertBeregning.right()
-            }
+        return when {
+            revurdertBeregning.getMånedsberegninger().first()
+                .getSumYtelse() > vedtattBeregning.getMånedsberegninger().first()
+                .getSumYtelse() -> revurdertBeregning.right()
+            revurdertBeregning.getMånedsberegninger().first()
+                .getSumYtelse() < vedtattBeregning.getMånedsberegninger().first()
+                .getSumYtelse() -> beregnMedVirkningFraOgMedMånedenEtter(revurdertBeregning)
+            else -> revurdertBeregning.right()
         }
     }
 }
@@ -56,8 +54,8 @@ private fun beregnMedVirkningFraOgMedMånedenEtter(
         return KanIkkeVelgeSisteMånedVedNedgangIStønaden.left()
     }
     val nyPeriode = Periode.create(
-        revurdertBeregning.getPeriode().getFraOgMed().plusMonths(1),
-        revurdertBeregning.getPeriode().getTilOgMed()
+        revurdertBeregning.periode.fraOgMed.plusMonths(1),
+        revurdertBeregning.periode.tilOgMed
     )
     return BeregningMedFradragBeregnetMånedsvis(
         periode = nyPeriode,
@@ -71,14 +69,14 @@ private fun beregnMedVirkningFraOgMedMånedenEtter(
                     type = it.getFradragstype(),
                     månedsbeløp = it.getMånedsbeløp(),
                     periode = Periode.create(
-                        fraOgMed = it.getPeriode().getFraOgMed().let { fraOgMed ->
-                            if (fraOgMed == revurdertBeregning.getPeriode().getFraOgMed()) {
+                        fraOgMed = it.periode.fraOgMed.let { fraOgMed ->
+                            if (fraOgMed == revurdertBeregning.periode.fraOgMed) {
                                 fraOgMed.plusMonths(1)
                             } else {
                                 fraOgMed
                             }
                         },
-                        tilOgMed = it.getPeriode().getTilOgMed()
+                        tilOgMed = it.periode.tilOgMed
                     ),
                     utenlandskInntekt = it.getUtenlandskInntekt(),
                     tilhører = it.getTilhører(),
@@ -93,5 +91,5 @@ private fun fjernFradragSomLiggerUtenforDenNyePerioden(
     fradrag: Fradrag,
     nyPeriode: Periode
 ): Boolean {
-    return nyPeriode.tilstøter(fradrag.getPeriode())
+    return nyPeriode.tilstøter(fradrag.periode)
 }

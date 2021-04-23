@@ -19,7 +19,7 @@ interface RevurderingService {
         opprettRevurderingRequest: OpprettRevurderingRequest,
     ): Either<KunneIkkeOppretteRevurdering, Revurdering>
 
-    fun oppdaterRevurderingsperiode(
+    fun oppdaterRevurdering(
         oppdaterRevurderingRequest: OppdaterRevurderingRequest,
     ): Either<KunneIkkeOppdatereRevurderingsperiode, OpprettetRevurdering>
 
@@ -27,6 +27,7 @@ interface RevurderingService {
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
         fradrag: List<Fradrag>,
+        forventetInntekt: Int? = null,
     ): Either<KunneIkkeBeregneOgSimulereRevurdering, Revurdering>
 
     fun forhåndsvarsleEllerSendTilAttestering(
@@ -127,6 +128,7 @@ sealed class KunneIkkeOppdatereRevurderingsperiode {
 }
 
 sealed class KunneIkkeBeregneOgSimulereRevurdering {
+    object MåSendeGrunnbeløpReguleringSomÅrsakSammenMedForventetInntekt : KunneIkkeBeregneOgSimulereRevurdering()
     object FantIkkeRevurdering : KunneIkkeBeregneOgSimulereRevurdering()
     object SimuleringFeilet : KunneIkkeBeregneOgSimulereRevurdering()
     object KanIkkeVelgeSisteMånedVedNedgangIStønaden : KunneIkkeBeregneOgSimulereRevurdering()
@@ -153,6 +155,7 @@ sealed class KunneIkkeSendeRevurderingTilAttestering {
     object FantIkkeRevurdering : KunneIkkeSendeRevurderingTilAttestering()
     object FantIkkeAktørId : KunneIkkeSendeRevurderingTilAttestering()
     object KunneIkkeOppretteOppgave : KunneIkkeSendeRevurderingTilAttestering()
+    object KanIkkeRegulereGrunnbeløpTilOpphør : KunneIkkeSendeRevurderingTilAttestering()
     data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
         KunneIkkeSendeRevurderingTilAttestering()
     object ManglerBeslutningPåForhåndsvarsel : KunneIkkeSendeRevurderingTilAttestering()

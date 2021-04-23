@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
+import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.util.UUID
@@ -46,7 +47,8 @@ internal class RevurderingStatistikkMapperTest {
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = null
+            forhåndsvarsel = null,
+            behandlingsinformasjon = RevurderingTestUtils.søknadsbehandlingVedtak.behandlingsinformasjon,
         )
 
         RevurderingStatistikkMapper(fixedClock).map(opprettetRevurdering) shouldBe Statistikk.Behandling(
@@ -108,13 +110,14 @@ internal class RevurderingStatistikkMapperTest {
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "99"),
             oppgaveId = OppgaveId(value = "7"),
             beregning = mock {
-                on { getPeriode() } doReturn periode
+                on { this.periode } doReturn periode
             },
             simulering = mock(),
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant(navIdent = "2")),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel
+            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+            behandlingsinformasjon = RevurderingTestUtils.søknadsbehandlingVedtak.behandlingsinformasjon,
         )
         RevurderingStatistikkMapper(fixedClock).map(iverksattRevurdering) shouldBe Statistikk.Behandling(
             funksjonellTid = iverksattRevurdering.opprettet,
@@ -175,13 +178,14 @@ internal class RevurderingStatistikkMapperTest {
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = "99"),
             oppgaveId = OppgaveId(value = "7"),
             beregning = mock {
-                on { getPeriode() } doReturn periode
+                on { this.periode } doReturn periode
             },
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant(navIdent = "2")),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            skalFøreTilBrevutsending = true
+            skalFøreTilBrevutsending = true,
+            behandlingsinformasjon = RevurderingTestUtils.søknadsbehandlingVedtak.behandlingsinformasjon,
         )
         RevurderingStatistikkMapper(fixedClock).map(iverksattRevurdering) shouldBe Statistikk.Behandling(
             funksjonellTid = iverksattRevurdering.opprettet,

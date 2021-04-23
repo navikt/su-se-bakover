@@ -18,12 +18,16 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.MånedsberegningFactory
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
+import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.fixedClock
+import no.nav.su.se.bakover.service.fixedTidspunkt
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
@@ -71,7 +75,7 @@ object RevurderingTestUtils {
     internal val aktørId = AktørId("aktørId")
 
     internal val beregningMock = mock<Beregning> {
-        on { getPeriode() } doReturn periode
+        on { periode } doReturn periode
         on { getMånedsberegninger() } doReturn periode.tilMånedsperioder()
             .map { MånedsberegningFactory.ny(it, Sats.HØY, listOf()) }
         on { getFradrag() } doReturn listOf()
@@ -82,6 +86,11 @@ object RevurderingTestUtils {
     internal val revurderingsårsak = Revurderingsårsak(
         Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
         Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
+    )
+
+    internal val revurderingsårsakRegulerGrunnbeløp = Revurderingsårsak(
+        Revurderingsårsak.Årsak.REGULER_GRUNNBELØP,
+        Revurderingsårsak.Begrunnelse.create("Nytt Grunnbeløp"),
     )
 
     internal val søknadsbehandlingVedtak = Vedtak.fromSøknadsbehandling(
@@ -111,6 +120,21 @@ object RevurderingTestUtils {
         ),
         UUID30.randomUUID(),
     )
+    internal val simulertRevurderingInnvilget = SimulertRevurdering.Innvilget(
+        id = revurderingId,
+        periode = periode,
+        opprettet = fixedTidspunkt,
+        tilRevurdering = søknadsbehandlingVedtak,
+        saksbehandler = saksbehandler,
+        oppgaveId = OppgaveId("Oppgaveid"),
+        fritekstTilBrev = "",
+        revurderingsårsak = revurderingsårsak,
+        behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
+        simulering = mock(),
+        beregning = beregningMock,
+        forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+    )
+
     internal val sak = Sak(
         id = sakId,
         saksnummer = saksnummer,
@@ -119,8 +143,8 @@ object RevurderingTestUtils {
         søknader = listOf(),
         utbetalinger = listOf(
             mock {
-                on { senesteDato() } doReturn periode.getTilOgMed()
-                on { tidligsteDato() } doReturn periode.getFraOgMed()
+                on { senesteDato() } doReturn periode.tilOgMed
+                on { tidligsteDato() } doReturn periode.fraOgMed
             },
         ),
         vedtakListe = listOf(søknadsbehandlingVedtak),

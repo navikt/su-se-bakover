@@ -21,7 +21,7 @@ internal data class PersistertBeregning(
     private val fradrag: List<PersistertFradrag>,
     private val sumYtelse: Int,
     private val sumFradrag: Double,
-    private val periode: Periode,
+    override val periode: Periode,
     private val fradragStrategyName: FradragStrategyName,
     private val begrunnelse: String?
 ) : Beregning {
@@ -35,7 +35,18 @@ internal data class PersistertBeregning(
     override fun getFradragStrategyName(): FradragStrategyName = fradragStrategyName
     override fun getBegrunnelse(): String? = begrunnelse
 
-    override fun getPeriode(): Periode = periode
+    override fun equals(other: Any?) = (other as? Beregning)?.let { this.equals(other) } ?: false
+
+    override fun hashCode(): Int {
+        var result = sats.hashCode()
+        result = 31 * result + månedsberegninger.hashCode()
+        result = 31 * result + fradrag.hashCode()
+        result = 31 * result + sumYtelse
+        result = 31 * result + sumFradrag.hashCode()
+        result = 31 * result + periode.hashCode()
+        result = 31 * result + fradragStrategyName.hashCode()
+        return result
+    }
 }
 
 internal data class PersistertMånedsberegning(
@@ -45,7 +56,7 @@ internal data class PersistertMånedsberegning(
     private val sats: Sats,
     private val satsbeløp: Double,
     private val fradrag: List<PersistertFradrag>,
-    private val periode: Periode
+    override val periode: Periode
 ) : Månedsberegning {
     override fun getSumYtelse(): Int = sumYtelse
     override fun getSumFradrag(): Double = sumFradrag
@@ -53,23 +64,45 @@ internal data class PersistertMånedsberegning(
     override fun getSats(): Sats = sats
     override fun getSatsbeløp(): Double = satsbeløp
     override fun getFradrag(): List<Fradrag> = fradrag
-    override fun getPeriode(): Periode = periode
+
+    override fun equals(other: Any?) = (other as? Månedsberegning)?.let { this.equals(other) } ?: false
+
+    override fun hashCode(): Int {
+        var result = sumYtelse
+        result = 31 * result + sumFradrag.hashCode()
+        result = 31 * result + benyttetGrunnbeløp
+        result = 31 * result + sats.hashCode()
+        result = 31 * result + satsbeløp.hashCode()
+        result = 31 * result + fradrag.hashCode()
+        result = 31 * result + periode.hashCode()
+        return result
+    }
 }
 
 internal data class PersistertFradrag(
     private val fradragstype: Fradragstype,
     private val månedsbeløp: Double,
     private val utenlandskInntekt: UtenlandskInntekt?,
-    private val periode: Periode,
+    override val periode: Periode,
     private val tilhører: FradragTilhører
 ) : Fradrag {
     override fun getFradragstype(): Fradragstype = fradragstype
+
     @JsonAlias("totaltFradrag")
     override fun getMånedsbeløp(): Double = månedsbeløp
     override fun getUtenlandskInntekt(): UtenlandskInntekt? = utenlandskInntekt
     override fun getTilhører(): FradragTilhører = tilhører
 
-    override fun getPeriode(): Periode = periode
+    override fun equals(other: Any?) = (other as? Fradrag)?.let { this.equals(other) } ?: false
+
+    override fun hashCode(): Int {
+        var result = fradragstype.hashCode()
+        result = 31 * result + månedsbeløp.hashCode()
+        result = 31 * result + (utenlandskInntekt?.hashCode() ?: 0)
+        result = 31 * result + periode.hashCode()
+        result = 31 * result + tilhører.hashCode()
+        return result
+    }
 }
 
 internal fun Beregning.toSnapshot() = PersistertBeregning(
@@ -80,7 +113,7 @@ internal fun Beregning.toSnapshot() = PersistertBeregning(
     fradrag = getFradrag().map { it.toSnapshot() },
     sumYtelse = getSumYtelse(),
     sumFradrag = getSumFradrag(),
-    periode = getPeriode(),
+    periode = periode,
     fradragStrategyName = getFradragStrategyName(),
     begrunnelse = getBegrunnelse()
 )
@@ -92,13 +125,13 @@ internal fun Månedsberegning.toSnapshot() = PersistertMånedsberegning(
     sats = getSats(),
     satsbeløp = getSatsbeløp(),
     fradrag = getFradrag().map { it.toSnapshot() },
-    periode = getPeriode()
+    periode = periode
 )
 
 internal fun Fradrag.toSnapshot() = PersistertFradrag(
     fradragstype = getFradragstype(),
     månedsbeløp = getMånedsbeløp(),
     utenlandskInntekt = getUtenlandskInntekt(),
-    periode = getPeriode(),
+    periode = periode,
     tilhører = getTilhører()
 )

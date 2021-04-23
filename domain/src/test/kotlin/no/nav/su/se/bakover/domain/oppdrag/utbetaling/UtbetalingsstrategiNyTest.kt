@@ -97,7 +97,7 @@ internal class UtbetalingsstrategiNyTest {
                         id = forrigeUtbetalingslinjeId,
                         opprettet = Tidspunkt.MIN,
                         fraOgMed = 1.januar(2018),
-                        tilOgMed = 1.desember(2018),
+                        tilOgMed = 31.desember(2018),
                         forrigeUtbetalingslinjeId = null,
                         beløp = 5000
                     )

@@ -42,7 +42,7 @@ internal fun Route.oppdaterRevurderingRoute(
                 call.withBody<Body> { body ->
                     val navIdent = call.suUserContext.navIdent
 
-                    revurderingService.oppdaterRevurderingsperiode(
+                    revurderingService.oppdaterRevurdering(
                         OppdaterRevurderingRequest(
                             revurderingId = revurderingId,
                             fraOgMed = body.fraOgMed,

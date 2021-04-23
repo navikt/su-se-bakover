@@ -35,7 +35,7 @@ internal class OpprettRevurderingRouteKtTest {
     //language=JSON
     private val validBody = """
         {
-         "fraOgMed": "${periode.getFraOgMed()}",
+         "fraOgMed": "${periode.fraOgMed}",
          "årsak": "ANDRE_KILDER",
          "begrunnelse": "begrunnelse"
         }
@@ -83,7 +83,8 @@ internal class OpprettRevurderingRouteKtTest {
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
-            forhåndsvarsel = null
+            forhåndsvarsel = null,
+            behandlingsinformasjon = vedtak.behandlingsinformasjon,
         )
         val revurderingServiceMock = mock<RevurderingService> {
             on { opprettRevurdering(any()) } doReturn opprettetRevurdering.right()
@@ -102,7 +103,7 @@ internal class OpprettRevurderingRouteKtTest {
                 setBody(
                     """
                     {
-                        "fraOgMed": "${periode.getFraOgMed()}",
+                        "fraOgMed": "${periode.fraOgMed}",
                         "årsak":"DØDSFALL",
                         "begrunnelse":"begrunnelse"
                     }

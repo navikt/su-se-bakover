@@ -36,7 +36,7 @@ import java.util.UUID
 internal class OppdaterRevurderingsperiodeRouteKtTest {
     private val validBody = """
         {
-         "fraOgMed": "${periode.getFraOgMed()}",
+         "fraOgMed": "${periode.fraOgMed}",
          "årsak":"INFORMASJON_FRA_KONTROLLSAMTALE",
          "begrunnelse":"begrunnelse"
         }
@@ -86,10 +86,11 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
-            forhåndsvarsel = null
+            forhåndsvarsel = null,
+            behandlingsinformasjon = vedtak.behandlingsinformasjon,
         )
         val revurderingServiceMock = mock<RevurderingService> {
-            on { oppdaterRevurderingsperiode(any()) } doReturn opprettetRevurdering.right()
+            on { oppdaterRevurdering(any()) } doReturn opprettetRevurdering.right()
         }
 
         withTestApplication(
@@ -105,7 +106,7 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
                 setBody(
                     """
                     {
-                        "fraOgMed": "${periode.getFraOgMed()}",
+                        "fraOgMed": "${periode.fraOgMed}",
                         "årsak":"DØDSFALL",
                         "begrunnelse":"begrunnelse"
                     }
@@ -197,7 +198,7 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
         expectedJsonResponse: String,
     ) {
         val revurderingServiceMock = mock<RevurderingService> {
-            on { oppdaterRevurderingsperiode(any()) } doReturn error.left()
+            on { oppdaterRevurdering(any()) } doReturn error.left()
         }
 
         withTestApplication(

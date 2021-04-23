@@ -17,12 +17,12 @@ data class LagBrevinnholdForBeregning(
         SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(beregning.getMånedsberegninger()).beregningsperioder.map { beregningsperiode ->
             Beregningsperiode(
                 // TODO eps firbeløp ikke safe vel?
-                periode = beregningsperiode.getPeriode().formaterForBrev(),
+                periode = beregningsperiode.periode.formaterForBrev(),
                 ytelsePerMåned = beregningsperiode.getSumYtelse(),
                 satsbeløpPerMåned = beregningsperiode.getSatsbeløp().roundToInt(),
                 epsFribeløp = FradragStrategy.fromName(beregning.getFradragStrategyName())
-                    .getEpsFribeløp(beregningsperiode.getPeriode()).let {
-                        it / beregningsperiode.getPeriode().getAntallMåneder()
+                    .getEpsFribeløp(beregningsperiode.periode).let {
+                        it / beregningsperiode.periode.getAntallMåneder()
                     }.roundToDecimals(2),
                 fradrag = Fradrag(
                     bruker = BrukerFradragBenyttetIBeregningsperiode(beregningsperiode.getFradrag()).fradrag,
@@ -33,8 +33,8 @@ data class LagBrevinnholdForBeregning(
 
     private fun Periode.formaterForBrev() = DateTimeFormatter.ofPattern("LLLL yyyy", Locale("nb", "NO")).let {
         BrevPeriode(
-            fraOgMed = it.format(this.getFraOgMed()),
-            tilOgMed = it.format(this.getTilOgMed())
+            fraOgMed = it.format(this.fraOgMed),
+            tilOgMed = it.format(this.tilOgMed)
         )
     }
 
@@ -49,7 +49,7 @@ data class LagBrevinnholdForBeregning(
         // find all input-fradrag that are applicable for the period in question
         val epsFradragFraSaksbehandler = EpsFradragFraSaksbehandlerIBeregningsperiode(
             beregning.getFradrag(), // found from the original input-fradrag
-            beregningsperiode.getPeriode()
+            beregningsperiode.periode
         ).fradrag
 
         return when (beregningsperiode.erFradragForEpsBenyttetIBeregning()) {

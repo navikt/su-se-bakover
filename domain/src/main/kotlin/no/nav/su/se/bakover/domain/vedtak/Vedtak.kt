@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.KunneIkkeJournalfø
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknadsbehandling.ErAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.visitor.Visitable
@@ -25,11 +26,11 @@ import java.time.Clock
 import java.util.UUID
 
 enum class VedtakType {
-    SØKNAD,
-    AVSLAG,
-    ENDRING,
-    INGEN_ENDRING,
-    OPPHØR,
+    SØKNAD, // Innvilget Søknadsbehandling                  -> EndringIYtelse
+    AVSLAG, // Avslått Søknadsbehandling                    -> Avslag
+    ENDRING, // Revurdering innvilget                       -> EndringIYtelse
+    INGEN_ENDRING, // Revurdering mellom 2% og 10% endring  -> IngenEndringIYtelse
+    OPPHØR, // Revurdering ført til opphør                  -> EndringIYtelse
 }
 
 interface VedtakFelles {
@@ -41,12 +42,14 @@ interface VedtakFelles {
     val attestant: NavIdentBruker.Attestant
     val journalføringOgBrevdistribusjon: JournalføringOgBrevdistribusjon
     val vedtakType: VedtakType
+    val periode: Periode
 }
 
 sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
 
     abstract fun journalfør(journalfør: () -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre, Vedtak>
     abstract fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev, Vedtak>
+    fun skalSendeBrev() = (this.behandling as? IverksattRevurdering.Innvilget)?.revurderingsårsak?.årsak != Revurderingsårsak.Årsak.REGULER_GRUNNBELØP
 
     companion object {
         fun fromSøknadsbehandling(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget, utbetalingId: UUID30) =
@@ -69,7 +72,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(clock),
             behandling = revurdering,
-            behandlingsinformasjon = revurdering.tilRevurdering.behandlingsinformasjon,
+            behandlingsinformasjon = revurdering.behandlingsinformasjon,
             periode = revurdering.periode,
             beregning = revurdering.beregning,
             saksbehandler = revurdering.saksbehandler,
@@ -81,7 +84,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(),
             behandling = revurdering,
-            behandlingsinformasjon = revurdering.tilRevurdering.behandlingsinformasjon,
+            behandlingsinformasjon = revurdering.behandlingsinformasjon,
             periode = revurdering.periode,
             beregning = revurdering.beregning,
             simulering = revurdering.simulering,
@@ -89,14 +92,14 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
             attestant = revurdering.attestering.attestant,
             utbetalingId = utbetalingId,
             journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
-            vedtakType = VedtakType.ENDRING,
+            vedtakType = VedtakType.ENDRING
         )
 
         fun from(revurdering: IverksattRevurdering.Opphørt, utbetalingId: UUID30) = EndringIYtelse(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(),
             behandling = revurdering,
-            behandlingsinformasjon = revurdering.tilRevurdering.behandlingsinformasjon,
+            behandlingsinformasjon = revurdering.behandlingsinformasjon,
             periode = revurdering.periode,
             beregning = revurdering.beregning,
             simulering = revurdering.simulering,
@@ -116,7 +119,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val attestant: NavIdentBruker.Attestant,
         override val journalføringOgBrevdistribusjon: JournalføringOgBrevdistribusjon,
-        val periode: Periode,
+        override val periode: Periode,
         val beregning: Beregning,
         val simulering: Simulering,
         val utbetalingId: UUID30,
@@ -124,13 +127,21 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
     ) : Vedtak() {
 
         override fun journalfør(journalfør: () -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre, EndringIYtelse> {
-            return journalføringOgBrevdistribusjon.journalfør(journalfør)
-                .map { copy(journalføringOgBrevdistribusjon = it) }
+            return if (vedtakType == VedtakType.SØKNAD || vedtakType == VedtakType.ENDRING || vedtakType == VedtakType.OPPHØR) {
+                journalføringOgBrevdistribusjon.journalfør(journalfør)
+                    .map { copy(journalføringOgBrevdistribusjon = it) }
+            } else {
+                this.right()
+            }
         }
 
         override fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev, EndringIYtelse> {
-            return journalføringOgBrevdistribusjon.distribuerBrev(distribuerBrev)
-                .map { copy(journalføringOgBrevdistribusjon = it) }
+            return if (vedtakType == VedtakType.SØKNAD || vedtakType == VedtakType.ENDRING || vedtakType == VedtakType.OPPHØR) {
+                journalføringOgBrevdistribusjon.distribuerBrev(distribuerBrev)
+                    .map { copy(journalføringOgBrevdistribusjon = it) }
+            } else {
+                this.right()
+            }
         }
 
         override fun accept(visitor: VedtakVisitor) {
@@ -146,7 +157,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
         override val saksbehandler: NavIdentBruker.Saksbehandler,
         override val attestant: NavIdentBruker.Attestant,
         override val journalføringOgBrevdistribusjon: JournalføringOgBrevdistribusjon,
-        val periode: Periode,
+        override val periode: Periode,
         val beregning: Beregning,
     ) : Vedtak() {
         override val vedtakType: VedtakType = VedtakType.INGEN_ENDRING
@@ -188,6 +199,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                     saksbehandler = avslag.saksbehandler,
                     attestant = avslag.attestering.attestant,
                     journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
+                    periode = avslag.periode,
                 )
 
             fun fromSøknadsbehandlingUtenBeregning(avslag: Søknadsbehandling.Iverksatt.Avslag.UtenBeregning) =
@@ -199,6 +211,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                     saksbehandler = avslag.saksbehandler,
                     attestant = avslag.attestering.attestant,
                     journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
+                    periode = avslag.periode,
                 )
         }
 
@@ -210,6 +223,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val attestant: NavIdentBruker.Attestant,
             override val journalføringOgBrevdistribusjon: JournalføringOgBrevdistribusjon,
+            override val periode: Periode,
         ) : Avslag() {
             override val avslagsgrunner: List<Avslagsgrunn> = behandlingsinformasjon.utledAvslagsgrunner()
 
@@ -236,6 +250,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
             override val saksbehandler: NavIdentBruker.Saksbehandler,
             override val attestant: NavIdentBruker.Attestant,
             override val journalføringOgBrevdistribusjon: JournalføringOgBrevdistribusjon,
+            override val periode: Periode,
             val beregning: Beregning,
         ) : Avslag() {
             private val avslagsgrunnForBeregning: List<Avslagsgrunn> =

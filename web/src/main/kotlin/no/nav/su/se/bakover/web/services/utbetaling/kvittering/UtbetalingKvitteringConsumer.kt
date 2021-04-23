@@ -39,6 +39,9 @@ class UtbetalingKvitteringConsumer(
         }
 
         val kvittering: Kvittering = kvitteringResponse.toKvittering(xmlMessage, clock)
+        if (!kvittering.erKvittertOk()) {
+            log.error("Mottok en kvittering fra oppdragssystemet som ikke var OK: $kvittering, dette bør muligens følges opp!")
+        }
         utbetalingService.oppdaterMedKvittering(avstemmingsnøkkel, kvittering)
             .map { ferdigstillInnvilgelse(it) }
             .mapLeft {
@@ -64,14 +67,6 @@ class UtbetalingKvitteringConsumer(
     }
 
     private fun ferdigstillInnvilgelse(utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering) {
-        if (utbetaling.type != Utbetaling.UtbetalingsType.NY) {
-            log.info("Utbetaling ${utbetaling.id} er av type ${utbetaling.type} og vil derfor ikke bli prøvd ferdigstilt.")
-            return
-        }
-        if (!utbetaling.kvittering.erKvittertOk()) {
-            log.error("Prøver ikke å ferdigstille innvilgelse siden kvitteringen fra oppdrag ikke var OK.")
-            return
-        }
-        ferdigstillVedtakService.ferdigstillVedtakEtterUtbetaling(utbetaling.id)
+        ferdigstillVedtakService.ferdigstillVedtakEtterUtbetaling(utbetaling)
     }
 }

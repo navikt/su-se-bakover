@@ -97,8 +97,8 @@ sealed class Utbetalingsstrategi {
             SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder(beregning.getMånedsberegninger()).beregningsperioder
                 .map {
                     Utbetalingsperiode(
-                        fraOgMed = it.getPeriode().getFraOgMed(),
-                        tilOgMed = it.getPeriode().getTilOgMed(),
+                        fraOgMed = it.periode.fraOgMed,
+                        tilOgMed = it.periode.tilOgMed,
                         beløp = it.getSumYtelse(),
                     )
                 }

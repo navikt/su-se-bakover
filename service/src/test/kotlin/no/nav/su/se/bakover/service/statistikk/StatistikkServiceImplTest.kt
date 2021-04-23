@@ -46,6 +46,7 @@ import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.time.LocalDate
@@ -155,7 +156,7 @@ internal class StatistikkServiceImplTest {
         }
 
         val expected = Statistikk.Behandling(
-            funksjonellTid = søknadsbehandling.periode.getFraOgMed().startOfDay(zoneIdOslo),
+            funksjonellTid = søknadsbehandling.periode.fraOgMed.startOfDay(zoneIdOslo),
             tekniskTid = Tidspunkt.now(clock),
             registrertDato = søknadsbehandling.opprettet.toLocalDate(zoneIdOslo),
             mottattDato = søknadsbehandling.opprettet.toLocalDate(zoneIdOslo),
@@ -209,7 +210,7 @@ internal class StatistikkServiceImplTest {
         }
 
         val expected = Statistikk.Behandling(
-            funksjonellTid = behandling.periode.getFraOgMed().startOfDay(zoneIdOslo),
+            funksjonellTid = behandling.periode.fraOgMed.startOfDay(zoneIdOslo),
             tekniskTid = Tidspunkt.now(clock),
             registrertDato = behandling.opprettet.toLocalDate(zoneIdOslo),
             mottattDato = behandling.opprettet.toLocalDate(zoneIdOslo),
@@ -244,7 +245,7 @@ internal class StatistikkServiceImplTest {
             mock { on { søknadInnhold } doReturn SøknadInnholdTestdataBuilder.build() }
         val clock = Clock.fixed(1.januar(2020).endOfDay(ZoneOffset.UTC).instant, ZoneOffset.UTC)
         val beregningMock: Beregning = mock {
-            on { getPeriode() } doReturn Periode.create(1.januar(2021), 31.januar(2021))
+            on { periode } doReturn Periode.create(1.januar(2021), 31.januar(2021))
         }
 
         val behandling: Søknadsbehandling.Iverksatt.Innvilget = mock {
@@ -262,7 +263,7 @@ internal class StatistikkServiceImplTest {
         }
 
         val expected = Statistikk.Behandling(
-            funksjonellTid = behandling.periode.getFraOgMed().startOfDay(zoneIdOslo),
+            funksjonellTid = behandling.periode.fraOgMed.startOfDay(zoneIdOslo),
             tekniskTid = Tidspunkt.now(clock),
             registrertDato = behandling.opprettet.toLocalDate(zoneIdOslo),
             mottattDato = behandling.opprettet.toLocalDate(zoneIdOslo),
@@ -314,7 +315,7 @@ internal class StatistikkServiceImplTest {
         }
 
         val expected = Statistikk.Behandling(
-            funksjonellTid = behandling.periode.getFraOgMed().startOfDay(zoneIdOslo),
+            funksjonellTid = behandling.periode.fraOgMed.startOfDay(zoneIdOslo),
             tekniskTid = Tidspunkt.now(clock),
             registrertDato = behandling.opprettet.toLocalDate(zoneIdOslo),
             mottattDato = behandling.opprettet.toLocalDate(zoneIdOslo),
@@ -376,7 +377,7 @@ internal class StatistikkServiceImplTest {
         )
 
         val expected = Statistikk.Behandling(
-            funksjonellTid = underkjent.periode.getFraOgMed().startOfDay(zoneIdOslo),
+            funksjonellTid = underkjent.periode.fraOgMed.startOfDay(zoneIdOslo),
             tekniskTid = Tidspunkt.now(clock),
             registrertDato = underkjent.opprettet.toLocalDate(zoneIdOslo),
             mottattDato = underkjent.opprettet.toLocalDate(zoneIdOslo),
@@ -427,6 +428,7 @@ internal class StatistikkServiceImplTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
+            behandlingsinformasjon = RevurderingTestUtils.søknadsbehandlingVedtak.behandlingsinformasjon,
         )
 
         val expected = Statistikk.Behandling(
@@ -491,6 +493,7 @@ internal class StatistikkServiceImplTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+            behandlingsinformasjon = RevurderingTestUtils.søknadsbehandlingVedtak.behandlingsinformasjon,
         )
 
         val expected = Statistikk.Behandling(
@@ -556,6 +559,7 @@ internal class StatistikkServiceImplTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+            behandlingsinformasjon = RevurderingTestUtils.søknadsbehandlingVedtak.behandlingsinformasjon,
         )
 
         val expected = Statistikk.Behandling(

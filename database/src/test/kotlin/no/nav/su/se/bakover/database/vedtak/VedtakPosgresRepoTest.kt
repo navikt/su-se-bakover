@@ -88,6 +88,7 @@ internal class VedtakPosgresRepoTest {
                     Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
                 ),
                 forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+                behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 
@@ -232,6 +233,7 @@ internal class VedtakPosgresRepoTest {
                 ),
                 skalFøreTilBrevutsending = true,
                 forhåndsvarsel = null,
+                behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             )
             testDataHelper.revurderingRepo.lagre(atteststertRevurdering)
             val iverksattRevurdering = IverksattRevurdering.IngenEndring(
@@ -250,6 +252,7 @@ internal class VedtakPosgresRepoTest {
                 ),
                 skalFøreTilBrevutsending = true,
                 forhåndsvarsel = null,
+                behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 

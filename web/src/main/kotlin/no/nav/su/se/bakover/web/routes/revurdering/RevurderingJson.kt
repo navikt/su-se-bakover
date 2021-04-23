@@ -13,6 +13,10 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.web.routes.behandling.AttesteringJson
+import no.nav.su.se.bakover.web.routes.behandling.BehandlingsinformasjonJson
+import no.nav.su.se.bakover.web.routes.behandling.BehandlingsinformasjonJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.behandling.SimuleringJson
+import no.nav.su.se.bakover.web.routes.behandling.SimuleringJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.behandling.UnderkjennelseJson
 import no.nav.su.se.bakover.web.routes.behandling.beregning.BeregningJson
 import no.nav.su.se.bakover.web.routes.behandling.beregning.PeriodeJson
@@ -55,6 +59,7 @@ internal data class OpprettetRevurderingJson(
     val årsak: String,
     val begrunnelse: String,
     val forhåndsvarsel: ForhåndsvarselJson?,
+    val behandlingsinformasjon: BehandlingsinformasjonJson,
 ) : RevurderingJson() {
     @JsonInclude
     val status = RevurderingsStatus.OPPRETTET
@@ -72,6 +77,7 @@ internal data class BeregnetRevurderingJson(
     val begrunnelse: String,
     val status: RevurderingsStatus,
     val forhåndsvarsel: ForhåndsvarselJson?,
+    val behandlingsinformasjon: BehandlingsinformasjonJson,
 ) : RevurderingJson()
 
 internal data class SimulertRevurderingJson(
@@ -86,6 +92,8 @@ internal data class SimulertRevurderingJson(
     val begrunnelse: String,
     val status: RevurderingsStatus,
     val forhåndsvarsel: ForhåndsvarselJson?,
+    val behandlingsinformasjon: BehandlingsinformasjonJson,
+    val simulering: SimuleringJson,
 ) : RevurderingJson()
 
 internal data class TilAttesteringJson(
@@ -101,6 +109,8 @@ internal data class TilAttesteringJson(
     val begrunnelse: String,
     val status: RevurderingsStatus,
     val forhåndsvarsel: ForhåndsvarselJson?,
+    val behandlingsinformasjon: BehandlingsinformasjonJson,
+    val simulering: SimuleringJson?,
 ) : RevurderingJson()
 
 internal data class IverksattRevurderingJson(
@@ -117,6 +127,8 @@ internal data class IverksattRevurderingJson(
     val attestant: String,
     val status: RevurderingsStatus,
     val forhåndsvarsel: ForhåndsvarselJson?,
+    val behandlingsinformasjon: BehandlingsinformasjonJson,
+    val simulering: SimuleringJson?,
 ) : RevurderingJson()
 
 internal data class UnderkjentRevurderingJson(
@@ -133,6 +145,8 @@ internal data class UnderkjentRevurderingJson(
     val attestering: AttesteringJson,
     val status: RevurderingsStatus,
     val forhåndsvarsel: ForhåndsvarselJson?,
+    val behandlingsinformasjon: BehandlingsinformasjonJson,
+    val simulering: SimuleringJson?,
 ) : RevurderingJson()
 
 internal fun Forhåndsvarsel.toJson() = when (this) {
@@ -181,6 +195,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         årsak = revurderingsårsak.årsak.toString(),
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
         forhåndsvarsel = forhåndsvarsel?.let { it.toJson() },
+        behandlingsinformasjon = behandlingsinformasjon.toJson(),
     )
     is SimulertRevurdering -> SimulertRevurderingJson(
         id = id.toString(),
@@ -197,6 +212,8 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
         status = InstansTilStatusMapper(this).status,
         forhåndsvarsel = forhåndsvarsel?.let { it.toJson() },
+        behandlingsinformasjon = behandlingsinformasjon.toJson(),
+        simulering = simulering.toJson(),
     )
     is RevurderingTilAttestering -> TilAttesteringJson(
         id = id.toString(),
@@ -218,6 +235,13 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
         status = InstansTilStatusMapper(this).status,
         forhåndsvarsel = forhåndsvarsel?.let { it.toJson() },
+        behandlingsinformasjon = behandlingsinformasjon.toJson(),
+        simulering = when (this) {
+            is RevurderingTilAttestering.IngenEndring -> null
+            is RevurderingTilAttestering.Innvilget -> simulering.toJson()
+            is RevurderingTilAttestering.Opphørt -> simulering.toJson()
+        },
+
     )
     is IverksattRevurdering -> IverksattRevurderingJson(
         id = id.toString(),
@@ -240,6 +264,12 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         attestant = attestering.attestant.toString(),
         status = InstansTilStatusMapper(this).status,
         forhåndsvarsel = forhåndsvarsel?.let { it.toJson() },
+        behandlingsinformasjon = behandlingsinformasjon.toJson(),
+        simulering = when (this) {
+            is IverksattRevurdering.IngenEndring -> null
+            is IverksattRevurdering.Innvilget -> simulering.toJson()
+            is IverksattRevurdering.Opphørt -> simulering.toJson()
+        },
     )
     is UnderkjentRevurdering -> UnderkjentRevurderingJson(
         id = id.toString(),
@@ -268,6 +298,12 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
         status = InstansTilStatusMapper(this).status,
         forhåndsvarsel = forhåndsvarsel?.let { it.toJson() },
+        behandlingsinformasjon = behandlingsinformasjon.toJson(),
+        simulering = when (this) {
+            is UnderkjentRevurdering.IngenEndring -> null
+            is UnderkjentRevurdering.Innvilget -> simulering.toJson()
+            is UnderkjentRevurdering.Opphørt -> simulering.toJson()
+        },
     )
     is BeregnetRevurdering -> BeregnetRevurderingJson(
         id = id.toString(),
@@ -284,6 +320,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
         status = InstansTilStatusMapper(this).status,
         forhåndsvarsel = forhåndsvarsel?.let { it.toJson() },
+        behandlingsinformasjon = behandlingsinformasjon.toJson(),
     )
 }
 

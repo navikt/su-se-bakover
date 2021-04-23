@@ -38,7 +38,7 @@ internal class SimuleringRequestBuilderValidationTest {
                 utbetalingslinjer = listOf(
                     Utbetalingslinje.Ny(
                         fraOgMed = 1.januar(2020),
-                        tilOgMed = 14.januar(2020),
+                        tilOgMed = 31.januar(2020),
                         beløp = 10,
                         forrigeUtbetalingslinjeId = eksisterendeOppdragslinjeid
                     )

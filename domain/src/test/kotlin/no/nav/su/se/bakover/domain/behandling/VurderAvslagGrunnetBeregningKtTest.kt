@@ -51,11 +51,11 @@ internal class VurderAvslagGrunnetBeregningKtTest {
     @Test
     fun `beregning med alle måneder under minstebeløp skal gi avslag`() {
         val januar = mock<Månedsberegning> {
-            on { getPeriode() } doReturn Periode.create(1.januar(2021), 31.januar(2021))
+            on { periode } doReturn Periode.create(1.januar(2021), 31.januar(2021))
             on { erSumYtelseUnderMinstebeløp() } doReturn true
         }
         val desember = mock<Månedsberegning> {
-            on { getPeriode() } doReturn Periode.create(1.desember(2021), 31.desember(2021))
+            on { periode } doReturn Periode.create(1.desember(2021), 31.desember(2021))
             on { erSumYtelseUnderMinstebeløp() } doReturn true
         }
         val beregning = mock<Beregning> {
@@ -69,12 +69,12 @@ internal class VurderAvslagGrunnetBeregningKtTest {
     @Test
     fun `bruker den første avslagsgrunnen fra første og siste måned`() {
         val januar = mock<Månedsberegning> {
-            on { getPeriode() } doReturn Periode.create(1.januar(2021), 31.januar(2021))
+            on { periode } doReturn Periode.create(1.januar(2021), 31.januar(2021))
             on { getSumYtelse() } doReturn 0
             on { erSumYtelseUnderMinstebeløp() } doReturn true
         }
         val desember = mock<Månedsberegning> {
-            on { getPeriode() } doReturn Periode.create(1.desember(2021), 31.desember(2021))
+            on { periode } doReturn Periode.create(1.desember(2021), 31.desember(2021))
             on { getSumYtelse() } doReturn 0
             on { erSumYtelseUnderMinstebeløp() } doReturn false
         }
@@ -89,11 +89,11 @@ internal class VurderAvslagGrunnetBeregningKtTest {
     @Test
     fun `beregning med alle måneder over minstebeløp skal ikke gi avslag`() {
         val januar = mock<Månedsberegning> {
-            on { getPeriode() } doReturn Periode.create(1.januar(2021), 31.januar(2021))
+            on { periode } doReturn Periode.create(1.januar(2021), 31.januar(2021))
             on { getSumYtelse() } doReturn 18500
         }
         val desember = mock<Månedsberegning> {
-            on { getPeriode() } doReturn Periode.create(1.desember(2021), 31.desember(2021))
+            on { periode } doReturn Periode.create(1.desember(2021), 31.desember(2021))
             on { getSumYtelse() } doReturn 16400
         }
         val beregningSumYtelse = listOf(januar, desember).sumBy { it.getSumYtelse() }
@@ -107,11 +107,11 @@ internal class VurderAvslagGrunnetBeregningKtTest {
     @Test
     fun `beregning med første måned under minstebeløp skal gi avslag`() {
         val januar = mock<Månedsberegning> {
-            on { getPeriode() } doReturn Periode.create(1.januar(2021), 31.januar(2021))
+            on { periode } doReturn Periode.create(1.januar(2021), 31.januar(2021))
             on { erSumYtelseUnderMinstebeløp() } doReturn true
         }
         val desember = mock<Månedsberegning> {
-            on { getPeriode() } doReturn Periode.create(1.desember(2021), 31.desember(2021))
+            on { periode } doReturn Periode.create(1.desember(2021), 31.desember(2021))
             on { getSumYtelse() } doReturn 2500
         }
 
@@ -126,12 +126,12 @@ internal class VurderAvslagGrunnetBeregningKtTest {
     @Test
     fun `beregning med siste måned under minstebeløp skal gi avslag`() {
         val januar = mock<Månedsberegning> {
-            on { getPeriode() } doReturn Periode.create(1.januar(2021), 31.januar(2021))
+            on { periode } doReturn Periode.create(1.januar(2021), 31.januar(2021))
             on { getSumYtelse() } doReturn 2500
             on { erSumYtelseUnderMinstebeløp() } doReturn false
         }
         val desember = mock<Månedsberegning> {
-            on { getPeriode() } doReturn Periode.create(1.desember(2021), 31.desember(2021))
+            on { periode } doReturn Periode.create(1.desember(2021), 31.desember(2021))
             on { erSumYtelseUnderMinstebeløp() } doReturn true
         }
 
@@ -146,16 +146,16 @@ internal class VurderAvslagGrunnetBeregningKtTest {
     @Test
     fun `en måned som ikke er første eller siste i en beregning kan ikke gi avslag`() {
         val januar = mock<Månedsberegning> {
-            on { getPeriode() } doReturn Periode.create(1.januar(2021), 31.januar(2021))
+            on { periode } doReturn Periode.create(1.januar(2021), 31.januar(2021))
             on { getSumYtelse() } doReturn 2500
         }
         val juni = mock<Månedsberegning> {
-            on { getPeriode() } doReturn Periode.create(1.juni(2021), 30.juni(2021))
+            on { periode } doReturn Periode.create(1.juni(2021), 30.juni(2021))
             on { getSumYtelse() } doReturn 0
             on { erSumYtelseUnderMinstebeløp() } doReturn true
         }
         val desember = mock<Månedsberegning> {
-            on { getPeriode() } doReturn Periode.create(1.desember(2021), 31.desember(2021))
+            on { periode } doReturn Periode.create(1.desember(2021), 31.desember(2021))
             on { getSumYtelse() } doReturn 2500
         }
 

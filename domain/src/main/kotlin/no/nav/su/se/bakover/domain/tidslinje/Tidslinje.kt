@@ -13,7 +13,7 @@ data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
 ) {
 
     private val stigendeFraOgMed = Comparator<T> { o1, o2 ->
-        o1.getPeriode().getFraOgMed().compareTo(o2.getPeriode().getFraOgMed())
+        o1.periode.fraOgMed.compareTo(o2.periode.fraOgMed)
     }
 
     private val nyesteFørst = Comparator<T> { o1, o2 ->
@@ -26,7 +26,7 @@ data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
         if (objekter.isEmpty()) return emptyList()
 
         val overlappMedPeriode = objekter
-            .filter { it.getPeriode() overlapper periode }
+            .filter { it.periode overlapper periode }
 
         val innenforPeriode = overlappMedPeriode
             .justerFraOgMedForElementerDelvisUtenforPeriode()
@@ -49,19 +49,19 @@ data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
             val first = queue.poll()
             if (queue.isNotEmpty()) {
                 val peek = queue.peek()
-                if (first.getPeriode() overlapper peek.getPeriode()) {
+                if (first.periode overlapper peek.periode) {
                     val second = queue.poll()
-                    if (first.getPeriode() slutterTidligere second.getPeriode()) {
+                    if (first.periode slutterTidligere second.periode) {
                         when {
                             first.opprettet.instant < second.opprettet.instant -> {
                                 result.add(
                                     first.copy(
                                         CopyArgs.Tidslinje.NyPeriode(
                                             periode = Periode.create(
-                                                fraOgMed = first.getPeriode().getFraOgMed(),
+                                                fraOgMed = first.periode.fraOgMed,
                                                 tilOgMed = minOf(
-                                                    first.getPeriode().getTilOgMed(),
-                                                    second.getPeriode().getFraOgMed().minusDays(1)
+                                                    first.periode.tilOgMed,
+                                                    second.periode.fraOgMed.minusDays(1)
                                                 )
                                             )
                                         )
@@ -72,10 +72,10 @@ data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
                                         CopyArgs.Tidslinje.NyPeriode(
                                             periode = Periode.create(
                                                 fraOgMed = minOf(
-                                                    first.getPeriode().getTilOgMed().plusDays(1),
-                                                    second.getPeriode().getFraOgMed()
+                                                    first.periode.tilOgMed.plusDays(1),
+                                                    second.periode.fraOgMed
                                                 ),
-                                                tilOgMed = second.getPeriode().getTilOgMed()
+                                                tilOgMed = second.periode.tilOgMed
                                             )
                                         )
                                     )
@@ -86,10 +86,10 @@ data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
                                     first.copy(
                                         CopyArgs.Tidslinje.NyPeriode(
                                             periode = Periode.create(
-                                                fraOgMed = first.getPeriode().getFraOgMed(),
+                                                fraOgMed = first.periode.fraOgMed,
                                                 tilOgMed = maxOf(
-                                                    first.getPeriode().getTilOgMed(),
-                                                    second.getPeriode().getFraOgMed().minusDays(1)
+                                                    first.periode.tilOgMed,
+                                                    second.periode.fraOgMed.minusDays(1)
                                                 )
                                             )
                                         )
@@ -100,10 +100,10 @@ data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
                                         CopyArgs.Tidslinje.NyPeriode(
                                             periode = Periode.create(
                                                 fraOgMed = maxOf(
-                                                    first.getPeriode().getTilOgMed().plusDays(1),
-                                                    second.getPeriode().getFraOgMed()
+                                                    first.periode.tilOgMed.plusDays(1),
+                                                    second.periode.fraOgMed
                                                 ),
-                                                tilOgMed = second.getPeriode().getTilOgMed()
+                                                tilOgMed = second.periode.tilOgMed
                                             )
                                         )
                                     )
@@ -112,30 +112,30 @@ data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
                         }
                     }
 
-                    if (first.getPeriode() inneholder second.getPeriode()) {
+                    if (first.periode inneholder second.periode) {
                         when {
-                            !(first.getPeriode() starterSamtidig second.getPeriode()) -> {
+                            !(first.periode starterSamtidig second.periode) -> {
                                 when {
-                                    first.getPeriode() starterTidligere second.getPeriode() -> {
+                                    first.periode starterTidligere second.periode -> {
                                         result.add(
                                             first.copy(
                                                 CopyArgs.Tidslinje.NyPeriode(
                                                     periode = Periode.create(
-                                                        fraOgMed = first.getPeriode().getFraOgMed(),
-                                                        tilOgMed = second.getPeriode().getFraOgMed().minusDays(1)
+                                                        fraOgMed = first.periode.fraOgMed,
+                                                        tilOgMed = second.periode.fraOgMed.minusDays(1)
                                                     )
                                                 )
                                             )
                                         )
                                         result.add(second.copy(CopyArgs.Tidslinje.Full))
 
-                                        if (!(first.getPeriode() slutterSamtidig second.getPeriode())) {
+                                        if (!(first.periode slutterSamtidig second.periode)) {
                                             result.add(
                                                 first.copy(
                                                     CopyArgs.Tidslinje.NyPeriode(
                                                         periode = Periode.create(
-                                                            fraOgMed = second.getPeriode().getTilOgMed().plusDays(1),
-                                                            tilOgMed = first.getPeriode().getTilOgMed()
+                                                            fraOgMed = second.periode.tilOgMed.plusDays(1),
+                                                            tilOgMed = first.periode.tilOgMed
                                                         )
                                                     )
                                                 )
@@ -144,23 +144,23 @@ data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
                                     }
                                 }
                             }
-                            first.getPeriode() starterSamtidig second.getPeriode() -> {
+                            first.periode starterSamtidig second.periode -> {
                                 when {
                                     // TODO is this case impossible or not?
 //                                    first.opprettet.instant > second.opprettet.instant -> {
 //                                        result.add(
 //                                            first.copy(
 //                                                periode = Periode.create(
-//                                                    fraOgMed = first.getPeriode().getFraOgMed(),
-//                                                    tilOgMed = second.getPeriode().getTilOgMed()
+//                                                    fraOgMed = first.periode.getFraOgMed(),
+//                                                    tilOgMed = second.periode.getTilOgMed()
 //                                                )
 //                                            )
 //                                        )
 //                                        result.add(
 //                                            second.copy(
 //                                                periode = Periode.create(
-//                                                    fraOgMed = second.getPeriode().getTilOgMed().plusDays(1),
-//                                                    tilOgMed = first.getPeriode().getTilOgMed()
+//                                                    fraOgMed = second.periode.getTilOgMed().plusDays(1),
+//                                                    tilOgMed = first.periode.getTilOgMed()
 //                                                )
 //                                            )
 //                                        )
@@ -170,8 +170,8 @@ data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
                                             second.copy(
                                                 CopyArgs.Tidslinje.NyPeriode(
                                                     periode = Periode.create(
-                                                        fraOgMed = second.getPeriode().getFraOgMed(),
-                                                        tilOgMed = second.getPeriode().getTilOgMed()
+                                                        fraOgMed = second.periode.fraOgMed,
+                                                        tilOgMed = second.periode.tilOgMed
                                                     )
                                                 )
                                             )
@@ -180,8 +180,8 @@ data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
                                             first.copy(
                                                 CopyArgs.Tidslinje.NyPeriode(
                                                     periode = Periode.create(
-                                                        fraOgMed = second.getPeriode().getTilOgMed().plusDays(1),
-                                                        tilOgMed = first.getPeriode().getTilOgMed()
+                                                        fraOgMed = second.periode.tilOgMed.plusDays(1),
+                                                        tilOgMed = first.periode.tilOgMed
                                                     )
                                                 )
                                             )
@@ -207,12 +207,12 @@ data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
 
     private fun List<T>.justerFraOgMedForElementerDelvisUtenforPeriode(): List<T> {
         return map {
-            if (it.getPeriode() starterTidligere periode) {
+            if (it.periode starterTidligere periode) {
                 it.copy(
                     CopyArgs.Tidslinje.NyPeriode(
                         periode = Periode.create(
-                            fraOgMed = periode.getFraOgMed(),
-                            tilOgMed = it.getPeriode().getTilOgMed()
+                            fraOgMed = periode.fraOgMed,
+                            tilOgMed = it.periode.tilOgMed
                         )
                     )
                 )
@@ -224,12 +224,12 @@ data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
 
     private fun List<T>.justerTilOgMedForElementerDelvisUtenforPeriode(): List<T> {
         return map {
-            if (it.getPeriode() slutterEtter periode) {
+            if (it.periode slutterEtter periode) {
                 it.copy(
                     CopyArgs.Tidslinje.NyPeriode(
                         periode = Periode.create(
-                            fraOgMed = it.getPeriode().getFraOgMed(),
-                            tilOgMed = periode.getTilOgMed()
+                            fraOgMed = it.periode.fraOgMed,
+                            tilOgMed = periode.tilOgMed
                         )
                     )
                 )
@@ -241,13 +241,13 @@ data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
 
     private fun List<T>.overlappMedAndreEksisterer(): Boolean {
         return filter { t1 ->
-            exists { t2 -> t1 != t2 && t1.getPeriode() overlapper t2.getPeriode() }
+            exists { t2 -> t1 != t2 && t1.periode overlapper t2.periode }
         }.count() > 0
     }
 
     private fun List<T>.filtrerVekkAlleSomOverskivesFullstendigAvNyere(): List<T> {
         return filterNot { t1 ->
-            exists { t2 -> t1.opprettet.instant < t2.opprettet.instant && t2.getPeriode().inneholder(t1.getPeriode()) }
+            exists { t2 -> t1.opprettet.instant < t2.opprettet.instant && t2.periode.inneholder(t1.periode) }
         }
     }
 }

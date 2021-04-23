@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -86,6 +87,7 @@ internal class ForhåndsvarslingRouteTest {
                 journalpostId = JournalpostId("lol"),
                 brevbestillingId = null,
             ),
+            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
         )
 
         val revurderingServiceMock = mock<RevurderingService> {
@@ -145,6 +147,7 @@ internal class ForhåndsvarslingRouteTest {
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
         )
 
         val revurderingServiceMock = mock<RevurderingService> {

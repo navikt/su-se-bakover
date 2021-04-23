@@ -25,7 +25,7 @@ internal data class EpsFradragFraSaksbehandlerIBeregningsperiode(
 }
 
 internal fun List<Fradrag>.fradragStørreEnn0IPeriode(periode: Periode) =
-    this.filter { it.getPeriode() inneholder periode }
+    this.filter { it.periode inneholder periode }
         .filter { it.getMånedsbeløp() > 0 }
         .toMånedsfradragPerType()
 

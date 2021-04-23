@@ -26,9 +26,10 @@ internal object TestBeregning : Beregning {
     override fun getFradrag(): List<Fradrag> = listOf(TestFradrag, TestFradragEps)
     override fun getSumYtelse(): Int = 8637
     override fun getSumFradrag(): Double = 12000.0
-    override fun getPeriode(): Periode = Periode.create(1.august(2020), 31.august(2020))
+    override val periode: Periode = Periode.create(1.august(2020), 31.august(2020))
     override fun getFradragStrategyName(): FradragStrategyName = FradragStrategyName.Enslig
     override fun getBegrunnelse(): String? = null
+    override fun equals(other: Any?) = (other as? Beregning)?.let { this.equals(other) } ?: false
 }
 
 internal object TestMånedsberegning : Månedsberegning {
@@ -38,7 +39,8 @@ internal object TestMånedsberegning : Månedsberegning {
     override fun getSats(): Sats = Sats.HØY
     override fun getSatsbeløp(): Double = 20637.32
     override fun getFradrag(): List<Fradrag> = listOf(TestFradrag, TestFradragEps)
-    override fun getPeriode(): Periode = Periode.create(1.august(2020), 31.august(2020))
+    override val periode: Periode = Periode.create(1.august(2020), 31.august(2020))
+    override fun equals(other: Any?) = (other as? Månedsberegning)?.let { this.equals(other) } ?: false
 }
 
 internal object TestFradrag : Fradrag {
@@ -46,7 +48,8 @@ internal object TestFradrag : Fradrag {
     override fun getMånedsbeløp(): Double = 1000.0
     override fun getUtenlandskInntekt(): UtenlandskInntekt? = null
     override fun getTilhører(): FradragTilhører = FradragTilhører.BRUKER
-    override fun getPeriode(): Periode = Periode.create(1.august(2020), 31.august(2020))
+    override val periode: Periode = Periode.create(1.august(2020), 31.august(2020))
+    override fun equals(other: Any?) = (other as? Fradrag)?.let { this.equals(other) } ?: false
 }
 
 internal object TestFradragEps : Fradrag {
@@ -54,5 +57,6 @@ internal object TestFradragEps : Fradrag {
     override fun getMånedsbeløp(): Double = 20000.0
     override fun getUtenlandskInntekt(): UtenlandskInntekt? = null
     override fun getTilhører(): FradragTilhører = FradragTilhører.EPS
-    override fun getPeriode(): Periode = Periode.create(1.august(2020), 31.august(2020))
+    override val periode: Periode = Periode.create(1.august(2020), 31.august(2020))
+    override fun equals(other: Any?) = (other as? Fradrag)?.let { this.equals(other) } ?: false
 }

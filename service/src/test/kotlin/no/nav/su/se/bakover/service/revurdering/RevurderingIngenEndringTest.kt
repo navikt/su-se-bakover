@@ -45,6 +45,7 @@ import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import org.junit.jupiter.api.Test
 
 class RevurderingIngenEndringTest {
+
     @Test
     fun `Revurderingen går ikke gjennom hvis endring av utbetaling er under ti prosent`() {
         val opprettetRevurdering = OpprettetRevurdering(
@@ -56,43 +57,47 @@ class RevurderingIngenEndringTest {
             oppgaveId = søknadOppgaveId,
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = null
+            forhåndsvarsel = null,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
         )
-        val beregnetRevurdering = BeregnetRevurdering.IngenEndring(
-            id = revurderingId,
-            periode = periode,
-            opprettet = fixedTidspunkt,
-            tilRevurdering = søknadsbehandlingVedtak,
-            oppgaveId = søknadOppgaveId,
-            beregning = TestBeregning,
-            saksbehandler = saksbehandler,
-            fritekstTilBrev = "",
-            revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = null
-        )
+
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn opprettetRevurdering
         }
 
         val actual = createRevurderingService(
-            revurderingRepo = revurderingRepoMock
+            revurderingRepo = revurderingRepoMock,
         ).beregnOgSimuler(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
             fradrag = listOf(),
         ).orNull()!! as BeregnetRevurdering.IngenEndring
-
-        // beregningstypen er internal i domene modulen
-        actual.shouldBeEqualToIgnoringFields(beregnetRevurdering, BeregnetRevurdering.IngenEndring::beregning)
+        actual.shouldBeEqualToIgnoringFields(
+            BeregnetRevurdering.IngenEndring(
+                id = revurderingId,
+                periode = periode,
+                opprettet = fixedTidspunkt,
+                tilRevurdering = søknadsbehandlingVedtak,
+                oppgaveId = søknadOppgaveId,
+                beregning = TestBeregning,
+                saksbehandler = saksbehandler,
+                fritekstTilBrev = "",
+                revurderingsårsak = revurderingsårsak,
+                behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
+                forhåndsvarsel = null,
+            ),
+            // beregningstypen er internal i domene modulen
+            BeregnetRevurdering.IngenEndring::beregning,
+        )
 
         inOrder(
-            revurderingRepoMock
+            revurderingRepoMock,
         ) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
             verify(revurderingRepoMock).lagre(argThat { it shouldBe actual })
         }
         verifyNoMoreInteractions(
-            revurderingRepoMock
+            revurderingRepoMock,
         )
     }
 
@@ -108,7 +113,8 @@ class RevurderingIngenEndringTest {
             saksbehandler = RevurderingTestUtils.saksbehandler,
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = null
+            forhåndsvarsel = null,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
         )
         val endretSaksbehandler = NavIdentBruker.Saksbehandler("endretSaksbehandler")
         val revurderingTilAttestering = RevurderingTilAttestering.IngenEndring(
@@ -122,7 +128,8 @@ class RevurderingIngenEndringTest {
             fritekstTilBrev = "endret fritekst",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            skalFøreTilBrevutsending = true
+            skalFøreTilBrevutsending = true,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
         )
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn beregnetRevurdering
@@ -199,7 +206,8 @@ class RevurderingIngenEndringTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            skalFøreTilBrevutsending = false
+            skalFøreTilBrevutsending = false,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
         )
         val underkjentRevurdering = UnderkjentRevurdering.IngenEndring(
             id = revurderingId,
@@ -213,7 +221,8 @@ class RevurderingIngenEndringTest {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
             attestering = attesteringUnderkjent,
-            skalFøreTilBrevutsending = false
+            skalFøreTilBrevutsending = false,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
         )
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn revurderingTilAttestering
@@ -285,7 +294,8 @@ class RevurderingIngenEndringTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            skalFøreTilBrevutsending = true
+            skalFøreTilBrevutsending = true,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
         )
         val attestant = NavIdentBruker.Attestant("ATTT")
         val iverksattRevurdering = revurderingTilAttestering.tilIverksatt(attestant).orNull()!!
@@ -344,7 +354,8 @@ class RevurderingIngenEndringTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
-            skalFøreTilBrevutsending = false
+            skalFøreTilBrevutsending = false,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
         )
         val attestant = NavIdentBruker.Attestant("ATTT")
         val iverksattRevurdering = revurderingTilAttestering.tilIverksatt(attestant).orNull()!!

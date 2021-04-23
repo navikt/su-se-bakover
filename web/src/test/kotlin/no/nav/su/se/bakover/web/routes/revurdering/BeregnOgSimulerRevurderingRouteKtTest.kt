@@ -4,6 +4,7 @@ import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.anyOrNull
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
@@ -46,7 +47,7 @@ import java.util.UUID
 internal class BeregnOgSimulerRevurderingRouteKtTest {
     private val validBody = """
         {
-            "periode": { "fraOgMed": "${periode.getFraOgMed()}", "tilOgMed": "${periode.getTilOgMed()}"},
+            "periode": { "fraOgMed": "${periode.fraOgMed}", "tilOgMed": "${periode.tilOgMed}"},
             "fradrag": []
         }
     """.trimIndent()
@@ -86,7 +87,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
         val månedsberegninger = listOf<Månedsberegning>(
             mock {
                 on { getSumYtelse() } doReturn 1
-                on { getPeriode() } doReturn TestBeregning.getPeriode()
+                on { periode } doReturn TestBeregning.periode
                 on { getSats() } doReturn TestBeregning.getSats()
             },
         )
@@ -100,12 +101,12 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
             on { getOpprettet() } doReturn TestBeregning.getOpprettet()
             on { getSats() } doReturn TestBeregning.getSats()
             on { getSumFradrag() } doReturn TestBeregning.getSumFradrag()
-            on { getPeriode() } doReturn TestBeregning.getPeriode()
+            on { periode } doReturn TestBeregning.periode
         }
 
         val beregnetRevurdering = OpprettetRevurdering(
             id = UUID.randomUUID(),
-            periode = TestBeregning.getPeriode(),
+            periode = TestBeregning.periode,
             opprettet = Tidspunkt.now(),
             tilRevurdering = vedtak.copy(beregning = beregning),
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = ""),
@@ -115,13 +116,14 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
-            forhåndsvarsel = null
+            forhåndsvarsel = null,
+            behandlingsinformasjon = vedtak.behandlingsinformasjon,
         ).beregn(
             listOf(
                 FradragFactory.ny(
                     type = Fradragstype.BidragEtterEkteskapsloven,
                     månedsbeløp = 12.0,
-                    periode = TestBeregning.getMånedsberegninger()[0].getPeriode(),
+                    periode = TestBeregning.getMånedsberegninger()[0].periode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
                 ),
@@ -145,7 +147,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
         }
 
         val revurderingServiceMock = mock<RevurderingService> {
-            on { beregnOgSimuler(any(), any(), any()) } doReturn simulertRevurdering.right()
+            on { beregnOgSimuler(any(), any(), any(), anyOrNull()) } doReturn simulertRevurdering.right()
         }
 
         withTestApplication(
@@ -166,6 +168,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                     argThat { it shouldBe simulertRevurdering.id },
                     argThat { it shouldBe NavIdentBruker.Saksbehandler("Z990Lokal") },
                     argThat { it shouldBe emptyList() },
+                    anyOrNull(),
                 )
                 verifyNoMoreInteractions(revurderingServiceMock)
                 actualResponse.id shouldBe simulertRevurdering.id.toString()
@@ -242,7 +245,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
         expectedJsonResponse: String,
     ) {
         val revurderingServiceMock = mock<RevurderingService> {
-            on { beregnOgSimuler(any(), any(), any()) } doReturn error.left()
+            on { beregnOgSimuler(any(), any(), any(), anyOrNull()) } doReturn error.left()
         }
 
         withTestApplication(

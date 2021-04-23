@@ -70,7 +70,7 @@ internal fun Vedtak.Avslag.AvslagBeregning.toJson(): VedtakJson = VedtakJson(
     sakId = behandling.sakId,
     saksnummer = behandling.saksnummer.toString(),
     fnr = behandling.fnr.toString(),
-    periode = beregning.getPeriode().toJson(),
+    periode = beregning.periode.toJson(),
     type = vedtakType,
 )
 
