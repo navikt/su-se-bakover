@@ -15,6 +15,7 @@ import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.deserialize
+import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -153,7 +154,10 @@ suspend fun ApplicationCall.withBehandlingId(ifRight: suspend (UUID) -> Unit) {
 
 internal suspend inline fun <reified T> ApplicationCall.withBody(ifRight: (T) -> Unit) {
     Either.catch { deserialize<T>(this) }.fold(
-        ifLeft = { this.svar(HttpStatusCode.BadRequest.message("Ugyldig body")) },
-        ifRight = { ifRight(it) }
+        ifLeft = {
+            log.error("Feil ved deserialisering", it)
+            this.svar(HttpStatusCode.BadRequest.message("Ugyldig body"))
+        },
+        ifRight = { ifRight(it) },
     )
 }
