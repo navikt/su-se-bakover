@@ -22,11 +22,16 @@ internal class VilkårsvurderingPostgresRepo(
     private val grunnlagPostgresRepo: GrunnlagPostgresRepo,
 ) : VilkårsvurderingRepo {
 
-    override fun lagre(behandlingId: UUID, vilkår: Vilkår.Vurdert<Grunnlag.Uføregrunnlag>) {
+    override fun lagre(behandlingId: UUID, vilkår: Vilkår<Grunnlag.Uføregrunnlag>) {
         dataSource.withTransaction { tx ->
             slettForBehandlingId(behandlingId, tx)
-            vilkår.vurdering.forEach {
-                lagre(behandlingId, it, tx)
+            when (vilkår) {
+                Vilkår.IkkeVurdertUføregrunnlag -> Unit
+                is Vilkår.Vurdert.Uførhet -> {
+                    vilkår.vurdering.forEach {
+                        lagre(behandlingId, it, tx)
+                    }
+                }
             }
         }
     }

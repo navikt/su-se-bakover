@@ -154,11 +154,13 @@ internal class SøknadsbehandlingServiceImpl(
 
                         vilkårsvurderingService.lagre(
                             vilkårsvurdert.id,
-                            Vilkår.Vurdert.Uførhet.manuell(
-                                resultat = Resultat.Innvilget,
-                                begrunnelse = it.begrunnelse ?: "",
-                                grunnlag = grunnlag,
-                                periode = vilkårsvurdert.periode,
+                            vilkårsvurdert.vilkårsvurderinger.copy(
+                                uføre = Vilkår.Vurdert.Uførhet.manuell(
+                                    resultat = Resultat.Innvilget,
+                                    begrunnelse = it.begrunnelse ?: "",
+                                    grunnlag = grunnlag,
+                                    periode = vilkårsvurdert.periode,
+                                ),
                             ),
                         )
                     }
@@ -174,11 +176,13 @@ internal class SøknadsbehandlingServiceImpl(
 
                         vilkårsvurderingService.lagre(
                             vilkårsvurdert.id,
-                            Vilkår.Vurdert.Uførhet.manuell(
-                                resultat = Resultat.Avslag,
-                                begrunnelse = it.begrunnelse ?: "",
-                                grunnlag = emptyList(),
-                                periode = vilkårsvurdert.periode,
+                            vilkårsvurdert.vilkårsvurderinger.copy(
+                                Vilkår.Vurdert.Uførhet.manuell(
+                                    resultat = Resultat.Avslag,
+                                    begrunnelse = it.begrunnelse ?: "",
+                                    grunnlag = emptyList(),
+                                    periode = vilkårsvurdert.periode,
+                                ),
                             ),
                         )
                     }
@@ -528,11 +532,13 @@ internal class SøknadsbehandlingServiceImpl(
 
         vilkårsvurderingService.lagre(
             søknadsbehandling.id,
-            Vilkår.Vurdert.Uførhet.manuell(
-                resultat = Resultat.Innvilget,
-                begrunnelse = "AUTOMATISK",
-                grunnlag = simulertEndringGrunnlag.resultat.uføregrunnlag,
-                periode = søknadsbehandling.periode,
+            søknadsbehandling.vilkårsvurderinger.copy(
+                uføre = Vilkår.Vurdert.Uførhet.manuell(
+                    resultat = Resultat.Innvilget,
+                    begrunnelse = "AUTOMATISK",
+                    grunnlag = simulertEndringGrunnlag.resultat.uføregrunnlag,
+                    periode = søknadsbehandling.periode,
+                ),
             ),
         )
 

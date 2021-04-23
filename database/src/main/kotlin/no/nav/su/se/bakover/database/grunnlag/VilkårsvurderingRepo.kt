@@ -5,5 +5,5 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import java.util.UUID
 
 interface VilkårsvurderingRepo {
-    fun lagre(behandlingId: UUID, vilkår: Vilkår.Vurdert<Grunnlag.Uføregrunnlag>)
+    fun lagre(behandlingId: UUID, vilkår: Vilkår<Grunnlag.Uføregrunnlag>)
 }
