@@ -504,15 +504,10 @@ internal class SøknadsbehandlingServiceImpl(
             vilkårsvurderingService.lagre(
                 søknadsbehandling.id,
                 søknadsbehandling.vilkårsvurderinger.copy(
-                    uføre = Vilkår.Vurdert.Uførhet.manuell(
-                        resultat = Resultat.Innvilget,
-                        begrunnelse = request.begrunnelse,
-                        grunnlag = listOfNotNull(grunnlag),
-                        periode = søknadsbehandling.periode,
-                    ),
+                    uføre = vilkår,
                 ),
             )
-            it
+            søknadsbehandlingRepo.hent(søknadsbehandling.id)!!
         }
     }
 }
