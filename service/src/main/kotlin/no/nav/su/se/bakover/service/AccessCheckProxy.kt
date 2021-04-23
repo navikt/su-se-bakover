@@ -53,6 +53,7 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeUnderkjenneRevurdering
 import no.nav.su.se.bakover.service.revurdering.OppdaterRevurderingRequest
 import no.nav.su.se.bakover.service.revurdering.OpprettRevurderingRequest
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
+import no.nav.su.se.bakover.service.revurdering.Revurderingshandling
 import no.nav.su.se.bakover.service.revurdering.SendTilAttesteringRequest
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
@@ -376,13 +377,19 @@ open class AccessCheckProxy(
                     )
                 }
 
-                override fun forhåndsvarsle(
+                override fun forhåndsvarsleEllerSendTilAttestering(
                     revurderingId: UUID,
                     saksbehandler: NavIdentBruker.Saksbehandler,
+                    revurderingshandling: Revurderingshandling,
                     fritekst: String,
                 ): Either<KunneIkkeForhåndsvarsle, Revurdering> {
                     assertHarTilgangTilRevurdering(revurderingId)
-                    return services.revurdering.forhåndsvarsle(revurderingId, saksbehandler, fritekst)
+                    return services.revurdering.forhåndsvarsleEllerSendTilAttestering(
+                        revurderingId,
+                        saksbehandler,
+                        revurderingshandling,
+                        fritekst,
+                    )
                 }
 
                 override fun sendTilAttestering(

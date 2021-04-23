@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeForhåndsvarsle
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
+import no.nav.su.se.bakover.service.revurdering.Revurderingshandling
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
@@ -24,15 +25,17 @@ import no.nav.su.se.bakover.web.withRevurderingId
 internal fun Route.forhåndsvarslingRoute(
     revurderingService: RevurderingService,
 ) {
-    data class Body(val fritekst: String)
+
+    data class Body(val revurderingshandling: Revurderingshandling, val fritekst: String)
 
     authorize(Brukerrolle.Saksbehandler) {
-        post("$revurderingPath/{revurderingId}/forhandsvarsle") {
+        post("$revurderingPath/{revurderingId}/forhandsvarsleEllerSendTilAttestering") {
             call.withBody<Body> { body ->
                 call.withRevurderingId { revurderingId ->
-                    revurderingService.forhåndsvarsle(
+                    revurderingService.forhåndsvarsleEllerSendTilAttestering(
                         revurderingId,
                         NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
+                        body.revurderingshandling,
                         fritekst = body.fritekst,
                     ).map {
                         call.sikkerlogg("Forhåndsvarslet bruker med revurderingId $revurderingId")
@@ -64,4 +67,5 @@ private fun KunneIkkeForhåndsvarsle.tilResultat() = when (this) {
     is KunneIkkeForhåndsvarsle.KunneIkkeOppretteOppgave -> GenerelleRevurderingsfeilresponser.kunneIkkeOppretteOppgave
     is KunneIkkeForhåndsvarsle.FantIkkeRevurdering -> GenerelleRevurderingsfeilresponser.fantIkkeRevurdering
     is KunneIkkeForhåndsvarsle.UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)
+    is KunneIkkeForhåndsvarsle.Attestering -> this.subError.tilResultat()
 }

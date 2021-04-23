@@ -29,9 +29,10 @@ interface RevurderingService {
         fradrag: List<Fradrag>,
     ): Either<KunneIkkeBeregneOgSimulereRevurdering, Revurdering>
 
-    fun forhåndsvarsle(
+    fun forhåndsvarsleEllerSendTilAttestering(
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
+        revurderingshandling: Revurderingshandling,
         fritekst: String,
     ): Either<KunneIkkeForhåndsvarsle, Revurdering>
 
@@ -97,6 +98,11 @@ data class SendTilAttesteringRequest(
     val skalFøreTilBrevutsending: Boolean,
 )
 
+enum class Revurderingshandling {
+    SEND_TIL_ATTESTERING,
+    FORHÅNDSVARSLE,
+}
+
 sealed class KunneIkkeOppretteRevurdering {
     object FantIkkeSak : KunneIkkeOppretteRevurdering()
     object FantIngentingSomKanRevurderes : KunneIkkeOppretteRevurdering()
@@ -140,6 +146,7 @@ sealed class KunneIkkeForhåndsvarsle {
     object KunneIkkeOppretteOppgave : KunneIkkeForhåndsvarsle()
     data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
         KunneIkkeForhåndsvarsle()
+    data class Attestering(val subError: KunneIkkeSendeRevurderingTilAttestering) : KunneIkkeForhåndsvarsle()
 }
 
 sealed class KunneIkkeSendeRevurderingTilAttestering {

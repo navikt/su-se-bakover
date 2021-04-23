@@ -231,67 +231,31 @@ internal class RevurderingServiceImpl(
         }
     }
 
-    override fun forhåndsvarsle(
+    override fun forhåndsvarsleEllerSendTilAttestering(
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
+        revurderingshandling: Revurderingshandling,
         fritekst: String,
     ): Either<KunneIkkeForhåndsvarsle, Revurdering> {
         val revurdering = revurderingRepo.hent(revurderingId)
         if (revurdering?.forhåndsvarsel != null) {
             return KunneIkkeForhåndsvarsle.AlleredeForhåndsvarslet.left()
         }
-
         return when (revurdering) {
             is SimulertRevurdering -> {
-                val aktørId = personService.hentAktørId(revurdering.fnr).getOrElse {
-                    log.error("Fant ikke aktør-id for revurdering: ${revurdering.id}")
-                    return KunneIkkeForhåndsvarsle.FantIkkeAktørId.left()
+                if (revurderingshandling == Revurderingshandling.FORHÅNDSVARSLE) {
+                    return sendForhåndsvarsling(revurdering, fritekst)
                 }
-
-                val person = personService.hentPerson(revurdering.fnr).getOrElse {
-                    log.error("Fant ikke aktør-id for revurdering: ${revurdering.id}")
-                    return KunneIkkeForhåndsvarsle.FantIkkePerson.left()
-                }
-
-                brevService.journalførBrev(
-                    request = LagBrevRequest.Forhåndsvarsel(
-                        person = person,
-                        beregning = revurdering.beregning, fritekst = fritekst,
-                    ),
-                    saksnummer = revurdering.saksnummer,
-                ).mapLeft {
-                    log.error("Kunne ikke forhåndsvarsle bruker ${revurdering.id} fordi journalføring feilet")
-                    return KunneIkkeForhåndsvarsle.KunneIkkeJournalføre.left()
-                }.flatMap { journalpostId ->
-                    val forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt(journalpostId, null)
-
-                    revurdering.forhåndsvarsel = forhåndsvarsel
-
-                    brevService.distribuerBrev(journalpostId)
-                        .mapLeft {
-                            revurderingRepo.lagre(revurdering)
-                            log.error("Revurdering ${revurdering.id} med journalpostId $journalpostId. Det skjedde en feil ved brevbestilling som må følges opp manuelt")
-                            return KunneIkkeForhåndsvarsle.KunneIkkeDistribuere.left()
-                        }
-                        .map { brevbestillingId ->
-                            revurdering.forhåndsvarsel = forhåndsvarsel.copy(brevbestillingId = brevbestillingId)
-
-                            revurderingRepo.lagre(revurdering)
-                            log.info("Revurdering ${revurdering.id} med journalpostId $journalpostId og bestilt brev $brevbestillingId")
-
-                            revurdering
-                        }
-                }
-                oppgaveService.opprettOppgave(
-                    OppgaveConfig.Forhåndsvarsling(
-                        saksnummer = revurdering.saksnummer,
-                        aktørId = aktørId,
-                        tilordnetRessurs = null,
+                lagreForhåndsvarsling(revurdering, Forhåndsvarsel.IngenForhåndsvarsel)
+                return sendTilAttestering(
+                    SendTilAttesteringRequest(
+                        revurderingId = revurderingId,
+                        saksbehandler = saksbehandler,
+                        fritekstTilBrev = fritekst,
+                        skalFøreTilBrevutsending = true,
                     ),
                 ).mapLeft {
-                    KunneIkkeForhåndsvarsle.KunneIkkeOppretteOppgave
-                }.map {
-                    return revurdering.right()
+                    KunneIkkeForhåndsvarsle.Attestering(it)
                 }
             }
             null -> KunneIkkeForhåndsvarsle.FantIkkeRevurdering.left()
@@ -639,7 +603,72 @@ internal class RevurderingServiceImpl(
             }
     }
 
-    fun utledBeslutningEtterForhåndsvarling(req: FortsettEtterForhåndsvarslingRequest) =
+    private fun sendForhåndsvarsling(
+        revurdering: SimulertRevurdering,
+        fritekst: String,
+    ): Either<KunneIkkeForhåndsvarsle, Revurdering> {
+        val aktørId = personService.hentAktørId(revurdering.fnr).getOrElse {
+            log.error("Fant ikke aktør-id for revurdering: ${revurdering.id}")
+            return KunneIkkeForhåndsvarsle.FantIkkeAktørId.left()
+        }
+
+        val person = personService.hentPerson(revurdering.fnr).getOrElse {
+            log.error("Fant ikke aktør-id for revurdering: ${revurdering.id}")
+            return KunneIkkeForhåndsvarsle.FantIkkePerson.left()
+        }
+
+        brevService.journalførBrev(
+            request = LagBrevRequest.Forhåndsvarsel(
+                person = person,
+                beregning = revurdering.beregning, fritekst = fritekst,
+            ),
+            saksnummer = revurdering.saksnummer,
+        ).mapLeft {
+            log.error("Kunne ikke forhåndsvarsle bruker ${revurdering.id} fordi journalføring feilet")
+            return KunneIkkeForhåndsvarsle.KunneIkkeJournalføre.left()
+        }.flatMap { journalpostId ->
+            val forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt(journalpostId, null)
+
+            revurdering.forhåndsvarsel = forhåndsvarsel
+
+            brevService.distribuerBrev(journalpostId)
+                .mapLeft {
+                    revurderingRepo.lagre(revurdering)
+                    log.error("Revurdering ${revurdering.id} med journalpostId $journalpostId. Det skjedde en feil ved brevbestilling som må følges opp manuelt")
+                    return KunneIkkeForhåndsvarsle.KunneIkkeDistribuere.left()
+                }
+                .map { brevbestillingId ->
+                    revurdering.forhåndsvarsel = forhåndsvarsel.copy(brevbestillingId = brevbestillingId)
+
+                    revurderingRepo.lagre(revurdering)
+                    log.info("Revurdering ${revurdering.id} med journalpostId $journalpostId og bestilt brev $brevbestillingId")
+
+                    revurdering
+                }
+        }
+        oppgaveService.opprettOppgave(
+            OppgaveConfig.Forhåndsvarsling(
+                saksnummer = revurdering.saksnummer,
+                aktørId = aktørId,
+                tilordnetRessurs = null,
+            ),
+        ).mapLeft {
+            return KunneIkkeForhåndsvarsle.KunneIkkeOppretteOppgave.left()
+        }
+
+        return revurdering.right()
+    }
+
+    private fun lagreForhåndsvarsling(
+        revurdering: SimulertRevurdering,
+        forhåndsvarsel: Forhåndsvarsel,
+    ): Revurdering {
+        revurderingRepo.oppdaterForhåndsvarsel(revurdering.id, forhåndsvarsel)
+        revurdering.forhåndsvarsel = forhåndsvarsel
+        return revurdering
+    }
+
+    private fun utledBeslutningEtterForhåndsvarling(req: FortsettEtterForhåndsvarslingRequest) =
         when (req) {
             is FortsettEtterForhåndsvarslingRequest.AvsluttUtenEndringer -> BeslutningEtterForhåndsvarsling.AvsluttUtenEndringer
             is FortsettEtterForhåndsvarslingRequest.FortsettMedAndreOpplysninger -> BeslutningEtterForhåndsvarsling.FortsettMedAndreOpplysninger

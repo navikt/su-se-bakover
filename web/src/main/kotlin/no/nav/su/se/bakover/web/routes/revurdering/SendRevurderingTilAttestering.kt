@@ -61,7 +61,7 @@ internal fun Route.sendRevurderingTilAttestering(
     }
 }
 
-private fun KunneIkkeSendeRevurderingTilAttestering.tilResultat(): Resultat {
+internal fun KunneIkkeSendeRevurderingTilAttestering.tilResultat(): Resultat {
     return when (this) {
         is KunneIkkeSendeRevurderingTilAttestering.FantIkkeRevurdering -> fantIkkeRevurdering
         is KunneIkkeSendeRevurderingTilAttestering.UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)

@@ -1215,9 +1215,10 @@ internal class RevurderingServiceImplTest {
             personService = personServiceMock,
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
-        ).forhåndsvarsle(
+        ).forhåndsvarsleEllerSendTilAttestering(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
+            revurderingshandling = Revurderingshandling.FORHÅNDSVARSLE,
             fritekst = "",
         ).getOrHandle { throw RuntimeException("Her skulle vi ha fått en revurdering") }
 
@@ -1288,9 +1289,10 @@ internal class RevurderingServiceImplTest {
 
         createRevurderingService(
             revurderingRepo = revurderingRepoMock,
-        ).forhåndsvarsle(
+        ).forhåndsvarsleEllerSendTilAttestering(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
+            revurderingshandling = Revurderingshandling.FORHÅNDSVARSLE,
             fritekst = "",
         ) shouldBe KunneIkkeForhåndsvarsle.AlleredeForhåndsvarslet.left()
     }
@@ -1302,9 +1304,10 @@ internal class RevurderingServiceImplTest {
 
         createRevurderingService(
             revurderingRepo = revurderingRepoMock,
-        ).forhåndsvarsle(
+        ).forhåndsvarsleEllerSendTilAttestering(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
+            revurderingshandling = Revurderingshandling.FORHÅNDSVARSLE,
             fritekst = "",
         ) shouldBe KunneIkkeForhåndsvarsle.UgyldigTilstand(
             revurdering::class,
@@ -1375,9 +1378,10 @@ internal class RevurderingServiceImplTest {
         createRevurderingService(
             revurderingRepo = revurderingRepoMock,
             personService = personServiceMock,
-        ).forhåndsvarsle(
+        ).forhåndsvarsleEllerSendTilAttestering(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
+            revurderingshandling = Revurderingshandling.FORHÅNDSVARSLE,
             fritekst = "",
         ) shouldBe KunneIkkeForhåndsvarsle.FantIkkeAktørId.left()
     }
@@ -1416,9 +1420,10 @@ internal class RevurderingServiceImplTest {
         createRevurderingService(
             revurderingRepo = revurderingRepoMock,
             personService = personServiceMock,
-        ).forhåndsvarsle(
+        ).forhåndsvarsleEllerSendTilAttestering(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
+            revurderingshandling = Revurderingshandling.FORHÅNDSVARSLE,
             fritekst = "",
         ) shouldBe KunneIkkeForhåndsvarsle.FantIkkePerson.left()
     }
@@ -1462,9 +1467,10 @@ internal class RevurderingServiceImplTest {
             revurderingRepo = revurderingRepoMock,
             personService = personServiceMock,
             brevService = brevServiceMock,
-        ).forhåndsvarsle(
+        ).forhåndsvarsleEllerSendTilAttestering(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
+            revurderingshandling = Revurderingshandling.FORHÅNDSVARSLE,
             fritekst = "",
         ) shouldBe KunneIkkeForhåndsvarsle.KunneIkkeJournalføre.left()
     }
@@ -1509,9 +1515,10 @@ internal class RevurderingServiceImplTest {
             revurderingRepo = revurderingRepoMock,
             personService = personServiceMock,
             brevService = brevServiceMock,
-        ).forhåndsvarsle(
+        ).forhåndsvarsleEllerSendTilAttestering(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
+            revurderingshandling = Revurderingshandling.FORHÅNDSVARSLE,
             fritekst = "",
         ) shouldBe KunneIkkeForhåndsvarsle.KunneIkkeDistribuere.left()
     }
@@ -1561,9 +1568,10 @@ internal class RevurderingServiceImplTest {
             personService = personServiceMock,
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
-        ).forhåndsvarsle(
+        ).forhåndsvarsleEllerSendTilAttestering(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
+            revurderingshandling = Revurderingshandling.FORHÅNDSVARSLE,
             fritekst = "",
         ) shouldBe KunneIkkeForhåndsvarsle.KunneIkkeOppretteOppgave.left()
     }
