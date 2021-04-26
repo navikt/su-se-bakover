@@ -108,7 +108,7 @@ internal class VilkårsvurderingPostgresRepoTest {
 
             testDataHelper.grunnlagRepo.slett(uføregrunnlag.id)
 
-            testDataHelper.vilkårsvurderingRepo.hent(søknadsbehandling.id) shouldBe Vilkår.IkkeVurdertUføregrunnlag
+            testDataHelper.vilkårsvurderingRepo.hent(søknadsbehandling.id) shouldBe Vilkår.IkkeVurdert.Uførhet
         }
     }
 }

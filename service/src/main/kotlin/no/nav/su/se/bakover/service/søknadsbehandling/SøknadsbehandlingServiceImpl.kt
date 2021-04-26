@@ -479,11 +479,12 @@ internal class SøknadsbehandlingServiceImpl(
                 behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon.copy(
                     uførhet = Behandlingsinformasjon.Uførhet(
                         status = when (vilkår) {
-                            Vilkår.IkkeVurdertUføregrunnlag -> Behandlingsinformasjon.Uførhet.Status.HarUføresakTilBehandling
                             is Vilkår.Vurdert.Uførhet -> when (vilkår.resultat) {
                                 Resultat.Avslag -> Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt
                                 Resultat.Innvilget -> Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt
+                                Resultat.Uavklart -> Behandlingsinformasjon.Uførhet.Status.HarUføresakTilBehandling
                             }
+                            Vilkår.IkkeVurdert.Uførhet -> TODO()
                         },
                         uføregrad = grunnlag?.uføregrad?.value,
                         forventetInntekt = grunnlag?.forventetInntekt,

@@ -27,7 +27,7 @@ data class Paragraf(
 )
 
 data class Vilkårsvurderinger(
-    val uføre: Vilkår<Grunnlag.Uføregrunnlag> = Vilkår.IkkeVurdertUføregrunnlag,
+    val uføre: Vilkår<Grunnlag.Uføregrunnlag> = Vilkår.IkkeVurdert.Uførhet,
 ) {
     companion object {
         val EMPTY = Vilkårsvurderinger()
@@ -84,7 +84,10 @@ sealed class Vilkårsvurderingsresultat {
  * Vurderingen av et vilkår mot en eller flere grunnlagsdata
  */
 sealed class Vilkår<T : Grunnlag> {
-    object IkkeVurdertUføregrunnlag : Vilkår<Grunnlag.Uføregrunnlag>()
+
+    sealed class IkkeVurdert<T : Grunnlag> : Vilkår<T>() {
+        object Uførhet : Vilkår<Grunnlag.Uføregrunnlag>()
+    }
 
     sealed class Vurdert<T : Grunnlag> : Vilkår<T>() {
         abstract val vilkår: Inngangsvilkår
@@ -162,4 +165,5 @@ sealed class Vurderingsperiode<T : Grunnlag> {
 sealed class Resultat {
     object Avslag : Resultat()
     object Innvilget : Resultat()
+    object Uavklart : Resultat()
 }

@@ -12,6 +12,7 @@ import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.service.søknadsbehandling.LeggTilUførevurderingRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
@@ -33,7 +34,7 @@ internal fun Route.leggTilGrunnlagSøknadsbehandlingRoutes(
         val periode: PeriodeJson,
         val uføregrad: Int?,
         val forventetInntekt: Int?,
-        val oppfylt: SøknadsbehandlingService.Oppfylt,
+        val resultat: Behandlingsinformasjon.Uførhet.Status,
         val begrunnelse: String,
     ) {
 
@@ -52,7 +53,7 @@ internal fun Route.leggTilGrunnlagSøknadsbehandlingRoutes(
                     }
                 },
                 forventetInntekt = forventetInntekt,
-                oppfylt = oppfylt,
+                oppfylt = resultat,
                 begrunnelse = begrunnelse,
             ).right()
         }

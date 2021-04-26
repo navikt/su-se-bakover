@@ -26,7 +26,7 @@ internal class VilkårsvurderingPostgresRepo(
         dataSource.withTransaction { tx ->
             slettForBehandlingId(behandlingId, tx)
             when (vilkår) {
-                Vilkår.IkkeVurdertUføregrunnlag -> Unit
+                Vilkår.IkkeVurdert.Uførhet -> Unit
                 is Vilkår.Vurdert.Uførhet -> {
                     vilkår.vurdering.forEach {
                         lagre(behandlingId, it, tx)
@@ -74,6 +74,7 @@ internal class VilkårsvurderingPostgresRepo(
                     "resultat" to when (vurderingsperiode.resultat) {
                         Resultat.Avslag -> "AVSLAG"
                         Resultat.Innvilget -> "INNVILGET"
+                        Resultat.Uavklart -> "UAVKLART"
                     },
                     "begrunnelse" to vurderingsperiode.begrunnelse,
                     "fraOgMed" to vurderingsperiode.periode.fraOgMed,
@@ -113,7 +114,7 @@ internal class VilkårsvurderingPostgresRepo(
         }
         return when (vurderingsperioder.isNotEmpty()) {
             true -> Vilkår.Vurdert.Uførhet(vurdering = vurderingsperioder)
-            false -> Vilkår.IkkeVurdertUføregrunnlag
+            false -> Vilkår.IkkeVurdert.Uførhet
         }
     }
 
@@ -124,6 +125,7 @@ internal class VilkårsvurderingPostgresRepo(
             resultat = when (val resultat = string("resultat")) {
                 "AVSLAG" -> Resultat.Avslag
                 "INNVILGET" -> Resultat.Innvilget
+                "UAVKLART" -> Resultat.Uavklart
                 else -> throw IllegalStateException("Kan ikke mappe databaseverdi til domenemodell. Ukjent uføregrunnlagsresultat: $resultat")
             },
             grunnlag = uuidOrNull("uføre_grunnlag_id")?.let {
