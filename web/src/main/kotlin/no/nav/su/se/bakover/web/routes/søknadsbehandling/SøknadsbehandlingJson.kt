@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.web.Resultat
+import no.nav.su.se.bakover.web.routes.grunnlag.søknadsbehandling.toSøknadsbehandlingJson
 import no.nav.su.se.bakover.web.routes.grunnlag.toJson
 import no.nav.su.se.bakover.web.routes.søknad.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingsinformasjonJson.Companion.toJson
@@ -13,110 +14,116 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.toJson
 import java.time.format.DateTimeFormatter
 
 internal fun Søknadsbehandling.toJson(): BehandlingJson {
-    return when (val saksbehandling = this) {
+    return when (this) {
         is Søknadsbehandling.Vilkårsvurdert -> BehandlingJson(
-            id = saksbehandling.id.toString(),
-            opprettet = DateTimeFormatter.ISO_INSTANT.format(saksbehandling.opprettet),
-            sakId = saksbehandling.sakId,
-            søknad = saksbehandling.søknad.toJson(),
-            behandlingsinformasjon = saksbehandling.behandlingsinformasjon.toJson(),
-            status = saksbehandling.status.toString(),
+            id = id.toString(),
+            opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
+            sakId = sakId,
+            søknad = søknad.toJson(),
+            behandlingsinformasjon = behandlingsinformasjon.toJson(),
+            status = status.toString(),
             attestering = null,
             saksbehandler = null,
             beregning = null,
             simulering = null,
-            stønadsperiode = saksbehandling.stønadsperiode?.toJson(),
-            grunnlag = saksbehandling.grunnlagsdata.toJson(),
+            stønadsperiode = stønadsperiode?.toJson(),
+            grunnlag = grunnlagsdata.toSøknadsbehandlingJson(),
+            vilkårsvurderinger = vilkårsvurderinger.toJson(),
         )
         is Søknadsbehandling.Beregnet -> {
             BehandlingJson(
-                id = saksbehandling.id.toString(),
-                opprettet = DateTimeFormatter.ISO_INSTANT.format(saksbehandling.opprettet),
-                sakId = saksbehandling.sakId,
-                søknad = saksbehandling.søknad.toJson(),
-                behandlingsinformasjon = saksbehandling.behandlingsinformasjon.toJson(),
-                status = saksbehandling.status.toString(),
+                id = id.toString(),
+                opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
+                sakId = sakId,
+                søknad = søknad.toJson(),
+                behandlingsinformasjon = behandlingsinformasjon.toJson(),
+                status = status.toString(),
                 attestering = null,
                 saksbehandler = null,
-                beregning = saksbehandling.beregning.toJson(),
+                beregning = beregning.toJson(),
                 simulering = null,
-                stønadsperiode = saksbehandling.stønadsperiode.toJson(),
-                grunnlag = saksbehandling.grunnlagsdata.toJson(),
+                stønadsperiode = stønadsperiode.toJson(),
+                grunnlag = grunnlagsdata.toSøknadsbehandlingJson(),
+                vilkårsvurderinger = vilkårsvurderinger.toJson(),
             )
         }
         is Søknadsbehandling.Simulert -> {
             BehandlingJson(
-                id = saksbehandling.id.toString(),
-                opprettet = DateTimeFormatter.ISO_INSTANT.format(saksbehandling.opprettet),
-                sakId = saksbehandling.sakId,
-                søknad = saksbehandling.søknad.toJson(),
-                behandlingsinformasjon = saksbehandling.behandlingsinformasjon.toJson(),
-                status = saksbehandling.status.toString(),
+                id = id.toString(),
+                opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
+                sakId = sakId,
+                søknad = søknad.toJson(),
+                behandlingsinformasjon = behandlingsinformasjon.toJson(),
+                status = status.toString(),
                 attestering = null,
                 saksbehandler = null,
-                beregning = saksbehandling.beregning.toJson(),
-                simulering = saksbehandling.simulering.toJson(),
-                stønadsperiode = saksbehandling.stønadsperiode.toJson(),
-                grunnlag = saksbehandling.grunnlagsdata.toJson(),
+                beregning = beregning.toJson(),
+                simulering = simulering.toJson(),
+                stønadsperiode = stønadsperiode.toJson(),
+                grunnlag = grunnlagsdata.toSøknadsbehandlingJson(),
+                vilkårsvurderinger = vilkårsvurderinger.toJson(),
             )
         }
         is Søknadsbehandling.TilAttestering.Innvilget -> {
             BehandlingJson(
-                id = saksbehandling.id.toString(),
-                opprettet = DateTimeFormatter.ISO_INSTANT.format(saksbehandling.opprettet),
-                sakId = saksbehandling.sakId,
-                søknad = saksbehandling.søknad.toJson(),
-                behandlingsinformasjon = saksbehandling.behandlingsinformasjon.toJson(),
-                status = saksbehandling.status.toString(),
+                id = id.toString(),
+                opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
+                sakId = sakId,
+                søknad = søknad.toJson(),
+                behandlingsinformasjon = behandlingsinformasjon.toJson(),
+                status = status.toString(),
                 attestering = null,
-                saksbehandler = saksbehandling.saksbehandler.toString(),
-                beregning = saksbehandling.beregning.toJson(),
-                simulering = saksbehandling.simulering.toJson(),
-                stønadsperiode = saksbehandling.stønadsperiode.toJson(),
-                grunnlag = saksbehandling.grunnlagsdata.toJson(),
+                saksbehandler = saksbehandler.toString(),
+                beregning = beregning.toJson(),
+                simulering = simulering.toJson(),
+                stønadsperiode = stønadsperiode.toJson(),
+                grunnlag = grunnlagsdata.toSøknadsbehandlingJson(),
+                vilkårsvurderinger = vilkårsvurderinger.toJson(),
             )
         }
         is Søknadsbehandling.TilAttestering.Avslag.MedBeregning -> {
             BehandlingJson(
-                id = saksbehandling.id.toString(),
-                opprettet = DateTimeFormatter.ISO_INSTANT.format(saksbehandling.opprettet),
-                sakId = saksbehandling.sakId,
-                søknad = saksbehandling.søknad.toJson(),
-                behandlingsinformasjon = saksbehandling.behandlingsinformasjon.toJson(),
-                status = saksbehandling.status.toString(),
+                id = id.toString(),
+                opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
+                sakId = sakId,
+                søknad = søknad.toJson(),
+                behandlingsinformasjon = behandlingsinformasjon.toJson(),
+                status = status.toString(),
                 attestering = null,
-                saksbehandler = saksbehandling.saksbehandler.toString(),
-                beregning = saksbehandling.beregning.toJson(),
+                saksbehandler = saksbehandler.toString(),
+                beregning = beregning.toJson(),
                 simulering = null,
-                stønadsperiode = saksbehandling.stønadsperiode.toJson(),
-                grunnlag = saksbehandling.grunnlagsdata.toJson(),
+                stønadsperiode = stønadsperiode.toJson(),
+                grunnlag = grunnlagsdata.toSøknadsbehandlingJson(),
+                vilkårsvurderinger = vilkårsvurderinger.toJson(),
             )
         }
         is Søknadsbehandling.TilAttestering.Avslag.UtenBeregning -> {
             BehandlingJson(
-                id = saksbehandling.id.toString(),
-                opprettet = DateTimeFormatter.ISO_INSTANT.format(saksbehandling.opprettet),
-                sakId = saksbehandling.sakId,
-                søknad = saksbehandling.søknad.toJson(),
-                behandlingsinformasjon = saksbehandling.behandlingsinformasjon.toJson(),
-                status = saksbehandling.status.toString(),
+                id = id.toString(),
+                opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
+                sakId = sakId,
+                søknad = søknad.toJson(),
+                behandlingsinformasjon = behandlingsinformasjon.toJson(),
+                status = status.toString(),
                 attestering = null,
-                saksbehandler = saksbehandling.saksbehandler.toString(),
+                saksbehandler = saksbehandler.toString(),
                 beregning = null,
                 simulering = null,
-                stønadsperiode = saksbehandling.stønadsperiode.toJson(),
-                grunnlag = saksbehandling.grunnlagsdata.toJson(),
+                stønadsperiode = stønadsperiode.toJson(),
+                grunnlag = grunnlagsdata.toSøknadsbehandlingJson(),
+                vilkårsvurderinger = vilkårsvurderinger.toJson(),
             )
         }
         is Søknadsbehandling.Underkjent.Innvilget -> {
             BehandlingJson(
-                id = saksbehandling.id.toString(),
-                opprettet = DateTimeFormatter.ISO_INSTANT.format(saksbehandling.opprettet),
-                sakId = saksbehandling.sakId,
-                søknad = saksbehandling.søknad.toJson(),
-                behandlingsinformasjon = saksbehandling.behandlingsinformasjon.toJson(),
-                status = saksbehandling.status.toString(),
-                attestering = saksbehandling.attestering.let {
+                id = id.toString(),
+                opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
+                sakId = sakId,
+                søknad = søknad.toJson(),
+                behandlingsinformasjon = behandlingsinformasjon.toJson(),
+                status = status.toString(),
+                attestering = attestering.let {
                     when (it) {
                         is Attestering.Iverksatt -> AttesteringJson(
                             attestant = it.attestant.navIdent,
@@ -131,22 +138,23 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                         )
                     }
                 },
-                saksbehandler = saksbehandling.saksbehandler.toString(),
-                beregning = saksbehandling.beregning.toJson(),
-                simulering = saksbehandling.simulering.toJson(),
-                stønadsperiode = saksbehandling.stønadsperiode.toJson(),
-                grunnlag = saksbehandling.grunnlagsdata.toJson(),
+                saksbehandler = saksbehandler.toString(),
+                beregning = beregning.toJson(),
+                simulering = simulering.toJson(),
+                stønadsperiode = stønadsperiode.toJson(),
+                grunnlag = grunnlagsdata.toSøknadsbehandlingJson(),
+                vilkårsvurderinger = vilkårsvurderinger.toJson(),
             )
         }
         is Søknadsbehandling.Underkjent.Avslag.UtenBeregning -> {
             BehandlingJson(
-                id = saksbehandling.id.toString(),
-                opprettet = DateTimeFormatter.ISO_INSTANT.format(saksbehandling.opprettet),
-                sakId = saksbehandling.sakId,
-                søknad = saksbehandling.søknad.toJson(),
-                behandlingsinformasjon = saksbehandling.behandlingsinformasjon.toJson(),
-                status = saksbehandling.status.toString(),
-                attestering = saksbehandling.attestering.let {
+                id = id.toString(),
+                opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
+                sakId = sakId,
+                søknad = søknad.toJson(),
+                behandlingsinformasjon = behandlingsinformasjon.toJson(),
+                status = status.toString(),
+                attestering = attestering.let {
                     when (it) {
                         is Attestering.Iverksatt -> AttesteringJson(
                             attestant = it.attestant.navIdent,
@@ -161,22 +169,23 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                         )
                     }
                 },
-                saksbehandler = saksbehandling.saksbehandler.toString(),
+                saksbehandler = saksbehandler.toString(),
                 beregning = null,
                 simulering = null,
-                stønadsperiode = saksbehandling.stønadsperiode.toJson(),
-                grunnlag = saksbehandling.grunnlagsdata.toJson(),
+                stønadsperiode = stønadsperiode.toJson(),
+                grunnlag = grunnlagsdata.toSøknadsbehandlingJson(),
+                vilkårsvurderinger = vilkårsvurderinger.toJson(),
             )
         }
         is Søknadsbehandling.Underkjent.Avslag.MedBeregning -> {
             BehandlingJson(
-                id = saksbehandling.id.toString(),
-                opprettet = DateTimeFormatter.ISO_INSTANT.format(saksbehandling.opprettet),
-                sakId = saksbehandling.sakId,
-                søknad = saksbehandling.søknad.toJson(),
-                behandlingsinformasjon = saksbehandling.behandlingsinformasjon.toJson(),
-                status = saksbehandling.status.toString(),
-                attestering = saksbehandling.attestering.let {
+                id = id.toString(),
+                opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
+                sakId = sakId,
+                søknad = søknad.toJson(),
+                behandlingsinformasjon = behandlingsinformasjon.toJson(),
+                status = status.toString(),
+                attestering = attestering.let {
                     when (it) {
                         is Attestering.Iverksatt -> AttesteringJson(
                             attestant = it.attestant.navIdent,
@@ -191,22 +200,23 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                         )
                     }
                 },
-                saksbehandler = saksbehandling.saksbehandler.toString(),
-                beregning = saksbehandling.beregning.toJson(),
+                saksbehandler = saksbehandler.toString(),
+                beregning = beregning.toJson(),
                 simulering = null,
-                stønadsperiode = saksbehandling.stønadsperiode.toJson(),
-                grunnlag = saksbehandling.grunnlagsdata.toJson(),
+                stønadsperiode = stønadsperiode.toJson(),
+                grunnlag = grunnlagsdata.toSøknadsbehandlingJson(),
+                vilkårsvurderinger = vilkårsvurderinger.toJson(),
             )
         }
         is Søknadsbehandling.Iverksatt.Avslag.MedBeregning -> {
             BehandlingJson(
-                id = saksbehandling.id.toString(),
-                opprettet = DateTimeFormatter.ISO_INSTANT.format(saksbehandling.opprettet),
-                sakId = saksbehandling.sakId,
-                søknad = saksbehandling.søknad.toJson(),
-                behandlingsinformasjon = saksbehandling.behandlingsinformasjon.toJson(),
-                status = saksbehandling.status.toString(),
-                attestering = saksbehandling.attestering.let {
+                id = id.toString(),
+                opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
+                sakId = sakId,
+                søknad = søknad.toJson(),
+                behandlingsinformasjon = behandlingsinformasjon.toJson(),
+                status = status.toString(),
+                attestering = attestering.let {
                     when (it) {
                         is Attestering.Iverksatt -> AttesteringJson(
                             attestant = it.attestant.navIdent,
@@ -221,22 +231,23 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                         )
                     }
                 },
-                saksbehandler = saksbehandling.saksbehandler.toString(),
-                beregning = saksbehandling.beregning.toJson(),
+                saksbehandler = saksbehandler.toString(),
+                beregning = beregning.toJson(),
                 simulering = null,
-                stønadsperiode = saksbehandling.stønadsperiode.toJson(),
-                grunnlag = saksbehandling.grunnlagsdata.toJson(),
+                stønadsperiode = stønadsperiode.toJson(),
+                grunnlag = grunnlagsdata.toSøknadsbehandlingJson(),
+                vilkårsvurderinger = vilkårsvurderinger.toJson(),
             )
         }
         is Søknadsbehandling.Iverksatt.Avslag.UtenBeregning -> {
             BehandlingJson(
-                id = saksbehandling.id.toString(),
-                opprettet = DateTimeFormatter.ISO_INSTANT.format(saksbehandling.opprettet),
-                sakId = saksbehandling.sakId,
-                søknad = saksbehandling.søknad.toJson(),
-                behandlingsinformasjon = saksbehandling.behandlingsinformasjon.toJson(),
-                status = saksbehandling.status.toString(),
-                attestering = saksbehandling.attestering.let {
+                id = id.toString(),
+                opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
+                sakId = sakId,
+                søknad = søknad.toJson(),
+                behandlingsinformasjon = behandlingsinformasjon.toJson(),
+                status = status.toString(),
+                attestering = attestering.let {
                     when (it) {
                         is Attestering.Iverksatt -> AttesteringJson(
                             attestant = it.attestant.navIdent,
@@ -251,22 +262,23 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                         )
                     }
                 },
-                saksbehandler = saksbehandling.saksbehandler.toString(),
+                saksbehandler = saksbehandler.toString(),
                 beregning = null,
                 simulering = null,
-                stønadsperiode = saksbehandling.stønadsperiode.toJson(),
-                grunnlag = saksbehandling.grunnlagsdata.toJson(),
+                stønadsperiode = stønadsperiode.toJson(),
+                grunnlag = grunnlagsdata.toSøknadsbehandlingJson(),
+                vilkårsvurderinger = vilkårsvurderinger.toJson(),
             )
         }
         is Søknadsbehandling.Iverksatt.Innvilget -> {
             BehandlingJson(
-                id = saksbehandling.id.toString(),
-                opprettet = DateTimeFormatter.ISO_INSTANT.format(saksbehandling.opprettet),
-                sakId = saksbehandling.sakId,
-                søknad = saksbehandling.søknad.toJson(),
-                behandlingsinformasjon = saksbehandling.behandlingsinformasjon.toJson(),
-                status = saksbehandling.status.toString(),
-                attestering = saksbehandling.attestering.let {
+                id = id.toString(),
+                opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
+                sakId = sakId,
+                søknad = søknad.toJson(),
+                behandlingsinformasjon = behandlingsinformasjon.toJson(),
+                status = status.toString(),
+                attestering = attestering.let {
                     when (it) {
                         is Attestering.Iverksatt -> AttesteringJson(
                             attestant = it.attestant.navIdent,
@@ -281,11 +293,12 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                         )
                     }
                 },
-                saksbehandler = saksbehandling.saksbehandler.toString(),
-                beregning = saksbehandling.beregning.toJson(),
-                simulering = saksbehandling.simulering.toJson(),
-                stønadsperiode = saksbehandling.stønadsperiode.toJson(),
-                grunnlag = saksbehandling.grunnlagsdata.toJson(),
+                saksbehandler = saksbehandler.toString(),
+                beregning = beregning.toJson(),
+                simulering = simulering.toJson(),
+                stønadsperiode = stønadsperiode.toJson(),
+                grunnlag = grunnlagsdata.toSøknadsbehandlingJson(),
+                vilkårsvurderinger = vilkårsvurderinger.toJson(),
             )
         }
     }

@@ -9,6 +9,8 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.web.FnrGenerator
+import no.nav.su.se.bakover.web.routes.grunnlag.expectedUføregrunnlagJson
+import no.nav.su.se.bakover.web.routes.grunnlag.expectedVurderingUføreJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadJsonTest.Companion.søknadJsonString
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.behandlingId
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.innvilgetSøknadsbehandling
@@ -128,7 +130,10 @@ internal class SøknadsbehandlingJsonTest {
             "begrunnelse": "begrunnelsen"
           },
           "grunnlag": {
-            "uføre":[]
+            "uføre": $expectedUføregrunnlagJson
+          },
+          "vilkårsvurderinger": {
+            "uføre": $expectedVurderingUføreJson
           }
         }
             """.trimIndent()
@@ -191,7 +196,10 @@ internal class SøknadsbehandlingJsonTest {
           "hendelser": [],
           "stønadsperiode": null,
           "grunnlag": {
-            "uføre":[]
+            "uføre": null
+          },
+          "vilkårsvurderinger": {
+            "uføre": null
           }
         }
         """

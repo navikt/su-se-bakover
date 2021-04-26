@@ -18,8 +18,11 @@ import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.web.FnrGenerator
+import no.nav.su.se.bakover.web.routes.grunnlag.uføregrunnlag
+import no.nav.su.se.bakover.web.routes.grunnlag.vurderingsperiodeUføre
 import java.time.LocalDate
 import java.util.UUID
 
@@ -133,7 +136,13 @@ object BehandlingTestUtils {
         attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("kjella")),
         fritekstTilBrev = "",
         stønadsperiode = stønadsperiode,
-        grunnlagsdata = Grunnlagsdata.EMPTY,
-        vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+        grunnlagsdata = Grunnlagsdata(
+            uføregrunnlag = listOf(uføregrunnlag),
+        ),
+        vilkårsvurderinger = Vilkårsvurderinger(
+            uføre = Vilkår.Vurdert.Uførhet(
+                vurdering = listOf(vurderingsperiodeUføre),
+            ),
+        ),
     )
 }
