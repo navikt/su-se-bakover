@@ -6,4 +6,5 @@ import java.util.UUID
 
 interface VilkårsvurderingRepo {
     fun lagre(behandlingId: UUID, vilkår: Vilkår<Grunnlag.Uføregrunnlag>)
+    fun hent(behandlingId: UUID): Vilkår<Grunnlag.Uføregrunnlag>
 }

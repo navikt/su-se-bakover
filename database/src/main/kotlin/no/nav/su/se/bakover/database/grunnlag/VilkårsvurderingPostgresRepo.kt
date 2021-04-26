@@ -19,7 +19,7 @@ import javax.sql.DataSource
 
 internal class VilkårsvurderingPostgresRepo(
     private val dataSource: DataSource,
-    private val grunnlagPostgresRepo: GrunnlagPostgresRepo,
+    private val grunnlagRepo: GrunnlagRepo,
 ) : VilkårsvurderingRepo {
 
     override fun lagre(behandlingId: UUID, vilkår: Vilkår<Grunnlag.Uføregrunnlag>) {
@@ -96,7 +96,7 @@ internal class VilkårsvurderingPostgresRepo(
             )
     }
 
-    fun hent(behandlingId: UUID): Vilkår<Grunnlag.Uføregrunnlag> {
+    override fun hent(behandlingId: UUID): Vilkår<Grunnlag.Uføregrunnlag> {
         val vurderingsperioder = dataSource.withSession { session ->
             """
                 select * from vilkårsvurdering_uføre vu
@@ -111,9 +111,10 @@ internal class VilkårsvurderingPostgresRepo(
                     it.toVurderingsperioder()
                 }
         }
-        return Vilkår.Vurdert.Uførhet(
-            vurdering = vurderingsperioder,
-        )
+        return when (vurderingsperioder.isNotEmpty()) {
+            true -> Vilkår.Vurdert.Uførhet(vurdering = vurderingsperioder)
+            false -> Vilkår.IkkeVurdertUføregrunnlag
+        }
     }
 
     private fun Row.toVurderingsperioder(): Vurderingsperiode<Grunnlag.Uføregrunnlag> {
@@ -126,7 +127,7 @@ internal class VilkårsvurderingPostgresRepo(
                 else -> throw IllegalStateException("Kan ikke mappe databaseverdi til domenemodell. Ukjent uføregrunnlagsresultat: $resultat")
             },
             grunnlag = uuidOrNull("uføre_grunnlag_id")?.let {
-                grunnlagPostgresRepo.hentForUføregrunnlagId(it)
+                grunnlagRepo.hentForUføregrunnlagId(it)
             },
             begrunnelse = string("begrunnelse"),
             periode = Periode.create(

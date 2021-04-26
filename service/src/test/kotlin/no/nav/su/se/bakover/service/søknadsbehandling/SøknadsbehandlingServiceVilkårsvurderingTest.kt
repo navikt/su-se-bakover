@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.behandlingsinformasjon
@@ -59,6 +60,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
         fritekstTilBrev = "",
         stønadsperiode = stønadsperiode,
         grunnlagsdata = Grunnlagsdata.EMPTY,
+        vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
     )
 
     @Test
@@ -98,6 +100,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
             fritekstTilBrev = "",
             stønadsperiode = opprettetBehandling.stønadsperiode!!,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
@@ -138,6 +141,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
             fritekstTilBrev = "",
             stønadsperiode = opprettetBehandling.stønadsperiode!!,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {

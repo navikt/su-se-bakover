@@ -43,7 +43,7 @@ object DatabaseBuilder {
             is RotatingCredentials -> Flyway(
                 dataSource = dataSource,
                 // Pga roterende credentials i preprod/prod må tabeller opprettes/endres av samme rolle hver gang. Se https://github.com/navikt/utvikling/blob/master/PostgreSQL.md#hvordan-kj%C3%B8re-flyway-migreringerendre-p%C3%A5-databaseskjemaet
-                role = "${databaseConfig.databaseName}-${Postgres.Role.Admin}"
+                role = "${databaseConfig.databaseName}-${Postgres.Role.Admin}",
             )
         }.migrate()
 
@@ -61,10 +61,15 @@ object DatabaseBuilder {
         val uføregrunnlagRepo = UføregrunnlagPostgresRepo(dataSource)
 
         val grunnlagRepo = GrunnlagPostgresRepo(
-            uføregrunnlagRepo = uføregrunnlagRepo
+            uføregrunnlagRepo = uføregrunnlagRepo,
         )
 
-        val saksbehandlingRepo = SøknadsbehandlingPostgresRepo(dataSource, grunnlagRepo)
+        val vilkårsvurderingRepo = VilkårsvurderingPostgresRepo(
+            dataSource = dataSource,
+            grunnlagRepo = grunnlagRepo,
+        )
+
+        val saksbehandlingRepo = SøknadsbehandlingPostgresRepo(dataSource, grunnlagRepo, vilkårsvurderingRepo)
 
         val revurderingRepo = RevurderingPostgresRepo(dataSource, saksbehandlingRepo, grunnlagRepo)
         val vedtakRepo = VedtakPosgresRepo(dataSource, saksbehandlingRepo, revurderingRepo)
@@ -81,7 +86,7 @@ object DatabaseBuilder {
             revurderingRepo = revurderingRepo,
             vedtakRepo = vedtakRepo,
             grunnlagRepo = grunnlagRepo,
-            vilkårsvurderingRepo = VilkårsvurderingPostgresRepo(dataSource, grunnlagRepo)
+            vilkårsvurderingRepo = VilkårsvurderingPostgresRepo(dataSource, grunnlagRepo),
         )
     }
 }
@@ -98,5 +103,5 @@ data class DatabaseRepos(
     val revurderingRepo: RevurderingRepo,
     val vedtakRepo: VedtakRepo,
     val grunnlagRepo: GrunnlagRepo,
-    val vilkårsvurderingRepo: VilkårsvurderingRepo
+    val vilkårsvurderingRepo: VilkårsvurderingRepo,
 )

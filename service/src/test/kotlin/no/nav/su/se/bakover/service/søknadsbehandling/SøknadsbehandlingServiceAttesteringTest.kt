@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.beregning.TestBeregning
@@ -81,6 +82,7 @@ class SøknadsbehandlingServiceAttesteringTest {
         fritekstTilBrev = "",
         stønadsperiode = stønadsperiode,
         grunnlagsdata = Grunnlagsdata.EMPTY,
+        vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
     )
 
     private val saksbehandler = NavIdentBruker.Saksbehandler("Z12345")
@@ -127,6 +129,7 @@ class SøknadsbehandlingServiceAttesteringTest {
             fritekstTilBrev = "",
             stønadsperiode = simulertBehandling.stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
         actual shouldBe expected.right()
@@ -284,6 +287,7 @@ class SøknadsbehandlingServiceAttesteringTest {
             fritekstTilBrev = "",
             stønadsperiode = simulertBehandling.stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
         actual shouldBe expected.right()

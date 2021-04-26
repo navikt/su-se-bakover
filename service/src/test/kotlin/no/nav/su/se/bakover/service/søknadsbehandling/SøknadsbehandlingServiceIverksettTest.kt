@@ -43,6 +43,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakType
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
@@ -276,6 +277,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             fritekstTilBrev = "",
             stønadsperiode = behandling.stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
         response shouldBe expected.right()
@@ -354,6 +356,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             fritekstTilBrev = "",
             stønadsperiode = behandling.stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
         val behandlingMetricsMock = mock<BehandlingMetrics>()
@@ -443,6 +446,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 fritekstTilBrev = "",
                 stønadsperiode = it.stønadsperiode,
                 grunnlagsdata = Grunnlagsdata.EMPTY,
+                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
             )
         }
 
@@ -490,6 +494,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
     private fun avslagTilAttestering() =
@@ -514,6 +519,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
     private val beregning = TestBeregning
