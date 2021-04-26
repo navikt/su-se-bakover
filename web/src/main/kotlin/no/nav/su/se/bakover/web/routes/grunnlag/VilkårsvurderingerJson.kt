@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.web.routes.grunnlag
 
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson
 
 internal data class VilkårsvurderingerJson(
@@ -18,7 +19,7 @@ internal fun Vilkårsvurderinger.toJson() = VilkårsvurderingerJson(
 internal data class VurderingsperiodeUføreJson(
     val id: String,
     val opprettet: String,
-    val resultat: String,
+    val oppfylt: SøknadsbehandlingService.Oppfylt,
     val grunnlag: UføregrunnlagJson?,
     val periode: PeriodeJson,
     val begrunnelse: String,

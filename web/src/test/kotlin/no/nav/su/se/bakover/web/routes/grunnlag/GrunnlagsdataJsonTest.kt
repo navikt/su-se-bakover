@@ -71,7 +71,7 @@ internal val expectedVurderingUføreJson = """
       "vurdering": {
         "id": "$vilkårsvurderingUføreId",
         "opprettet": "${DateTimeFormatter.ISO_INSTANT.format(vilkårsvurderingUføreOpprettet)}",
-        "resultat": "Innvilget",
+        "oppfylt": "JA",
         "grunnlag": $expectedUføregrunnlagJson,
         "periode": {
           "fraOgMed": "2021-01-01",
@@ -79,7 +79,7 @@ internal val expectedVurderingUføreJson = """
         },
         "begrunnelse": "text"
       },
-      "resultat": "Innvilget"
+      "oppfylt": "JA"
     }
 """.trimIndent()
 

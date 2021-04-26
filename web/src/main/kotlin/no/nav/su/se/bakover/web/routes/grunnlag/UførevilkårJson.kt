@@ -5,19 +5,20 @@ import no.nav.su.se.bakover.domain.vilkår.Inngangsvilkår
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson.Companion.toJson
 import java.time.format.DateTimeFormatter
 
 internal data class UføreVilkårJson(
     val vilkår: String,
     val vurdering: VurderingsperiodeUføreJson,
-    val resultat: String,
+    val oppfylt: String,
 )
 
 internal fun Vurderingsperiode<Grunnlag.Uføregrunnlag>.toJson() = VurderingsperiodeUføreJson(
     id = id.toString(),
     opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
-    resultat = resultat.stringVaue(),
+    oppfylt = resultat.toOppfylt(),
     grunnlag = grunnlag?.toJson(),
     periode = periode.toJson(),
     begrunnelse = begrunnelse,
@@ -26,7 +27,7 @@ internal fun Vurderingsperiode<Grunnlag.Uføregrunnlag>.toJson() = Vurderingsper
 internal fun Vilkår.Vurdert.Uførhet.toJson() = UføreVilkårJson(
     vilkår = vilkår.stringValue(),
     vurdering = vurdering.first().toJson(),
-    resultat = resultat.stringVaue(),
+    oppfylt = resultat.toOppfylt().toString(),
 )
 
 internal fun Vilkår.IkkeVurdertUføregrunnlag.toJson() = null
@@ -42,7 +43,7 @@ internal fun Inngangsvilkår.stringValue() = when (this) {
     Inngangsvilkår.utenlandsoppholdOver90Dager -> TODO()
 }
 
-internal fun Resultat.stringVaue() = when (this) {
-    Resultat.Avslag -> "Avslag"
-    Resultat.Innvilget -> "Innvilget"
+internal fun Resultat.toOppfylt() = when (this) {
+    Resultat.Avslag -> SøknadsbehandlingService.Oppfylt.NEI
+    Resultat.Innvilget -> SøknadsbehandlingService.Oppfylt.JA
 }
