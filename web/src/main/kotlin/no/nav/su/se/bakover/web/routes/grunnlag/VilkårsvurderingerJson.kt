@@ -22,5 +22,5 @@ internal data class VurderingsperiodeUføreJson(
     val resultat: Behandlingsinformasjon.Uførhet.Status,
     val grunnlag: UføregrunnlagJson?,
     val periode: PeriodeJson,
-    val begrunnelse: String,
+    val begrunnelse: String?,
 )

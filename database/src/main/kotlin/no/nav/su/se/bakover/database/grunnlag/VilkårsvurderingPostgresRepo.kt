@@ -131,7 +131,7 @@ internal class VilkårsvurderingPostgresRepo(
             grunnlag = uuidOrNull("uføre_grunnlag_id")?.let {
                 grunnlagRepo.hentForUføregrunnlagId(it)
             },
-            begrunnelse = string("begrunnelse"),
+            begrunnelse = stringOrNull("begrunnelse"),
             periode = Periode.create(
                 fraOgMed = localDate("fraOgMed"),
                 tilOgMed = localDate("tilOgMed"),

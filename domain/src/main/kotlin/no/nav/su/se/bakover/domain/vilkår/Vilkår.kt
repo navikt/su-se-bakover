@@ -94,9 +94,9 @@ sealed class Vilkår<T : Grunnlag> {
         abstract val grunnlag: List<T>
         abstract val vurdering: List<Vurderingsperiode<T>>
 
-         val resultat: Resultat by lazy {
-             if (erInnvilget) Resultat.Innvilget else if(erAvslag) Resultat.Avslag else Resultat.Uavklart
-         }
+        val resultat: Resultat by lazy {
+            if (erInnvilget) Resultat.Innvilget else if (erAvslag) Resultat.Avslag else Resultat.Uavklart
+        }
 
         val erInnvilget: Boolean by lazy {
             vurdering.all { it.resultat == Resultat.Innvilget }
@@ -159,7 +159,7 @@ sealed class Vurderingsperiode<T : Grunnlag> {
     abstract val resultat: Resultat
     abstract val grunnlag: T?
     abstract val periode: Periode
-    abstract val begrunnelse: String
+    abstract val begrunnelse: String?
 
     data class Manuell<T : Grunnlag>(
         override val id: UUID = UUID.randomUUID(),
@@ -167,7 +167,7 @@ sealed class Vurderingsperiode<T : Grunnlag> {
         override val resultat: Resultat,
         override val grunnlag: T?,
         override val periode: Periode,
-        override val begrunnelse: String,
+        override val begrunnelse: String?,
     ) : Vurderingsperiode<T>()
 }
 
