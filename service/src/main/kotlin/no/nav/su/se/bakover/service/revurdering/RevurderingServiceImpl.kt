@@ -129,6 +129,12 @@ internal class RevurderingServiceImpl(
                 grunnlagsdata = grunnlag,
             ).also {
                 revurderingRepo.lagre(it)
+
+                grunnlagService.lagre(
+                    behandlingId = it.id,
+                    grunnlagsdata = it.grunnlagsdata,
+                )
+
                 observers.forEach { observer ->
                     observer.handle(
                         Event.Statistikk.RevurderingStatistikk.RevurderingOpprettet(
@@ -158,7 +164,7 @@ internal class RevurderingServiceImpl(
             revurdering.behandlingsinformasjon.copy(
                 uførhet = revurdering.behandlingsinformasjon.uførhet!!.copy(
                     forventetInntekt = uføregrunnlag.first().forventetInntekt,
-                    uføregrad = uføregrunnlag.first().uføregrad.value
+                    uføregrad = uføregrunnlag.first().uføregrad.value,
                 ),
             ),
         )

@@ -221,6 +221,7 @@ internal class OpprettRevurderingServiceTest {
                 },
             )
             verify(revurderingRepoMock).lagre(argThat { it.right() shouldBe actual.right() })
+            verify(grunnlagServiceMock).lagre(argThat { actual.id }, argThat { it shouldBe actual.grunnlagsdata })
         }
 
         mocks.verifyNoMoreInteractions()
@@ -503,6 +504,7 @@ internal class OpprettRevurderingServiceTest {
                 )
             },
         )
+        verify(grunnlagServiceMock).lagre(any(), any())
         mocks.verifyNoMoreInteractions()
     }
 
