@@ -86,6 +86,7 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
+            forhåndsvarsel = null,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
         )
         val revurderingServiceMock = mock<RevurderingService> {

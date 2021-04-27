@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
@@ -87,6 +88,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
+            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
         )
 
@@ -130,6 +132,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
             skalFøreTilBrevutsending = false,
+            forhåndsvarsel = null,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
         )
 
@@ -175,6 +178,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
             skalFøreTilBrevutsending = true,
+            forhåndsvarsel = null,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
         )
 

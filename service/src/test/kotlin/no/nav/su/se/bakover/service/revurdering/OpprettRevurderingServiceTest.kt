@@ -35,6 +35,7 @@ import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
@@ -187,6 +188,7 @@ internal class OpprettRevurderingServiceTest {
             oppgaveId = OppgaveId("oppgaveId"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = null,
             behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
         )
         inOrder(sakServiceMock, personServiceMock, oppgaveServiceMock, revurderingRepoMock) {
@@ -415,6 +417,7 @@ internal class OpprettRevurderingServiceTest {
                 attestering = Attestering.Iverksatt(opprinneligVedtak.attestant),
                 fritekstTilBrev = "",
                 revurderingsårsak = revurderingsårsak,
+                forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
                 behandlingsinformasjon = opprinneligVedtak.behandlingsinformasjon,
             )
             it.copy(

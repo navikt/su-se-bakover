@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
@@ -46,6 +47,7 @@ internal class RevurderingStatistikkMapperTest {
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = null,
             behandlingsinformasjon = RevurderingTestUtils.søknadsbehandlingVedtak.behandlingsinformasjon,
         )
 
@@ -114,6 +116,7 @@ internal class RevurderingStatistikkMapperTest {
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant(navIdent = "2")),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = RevurderingTestUtils.søknadsbehandlingVedtak.behandlingsinformasjon,
         )
         RevurderingStatistikkMapper(fixedClock).map(iverksattRevurdering) shouldBe Statistikk.Behandling(
@@ -180,6 +183,7 @@ internal class RevurderingStatistikkMapperTest {
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant(navIdent = "2")),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = null,
             skalFøreTilBrevutsending = true,
             behandlingsinformasjon = RevurderingTestUtils.søknadsbehandlingVedtak.behandlingsinformasjon,
         )

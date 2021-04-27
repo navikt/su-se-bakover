@@ -223,6 +223,7 @@ internal class FinnAttestantVisitorTest {
             Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
             Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
         ),
+        forhåndsvarsel = null,
         behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt,
     )
 
@@ -234,7 +235,7 @@ internal class FinnAttestantVisitorTest {
     }
     private val simulertRevurdering = beregnetRevurdering.toSimulert(mock())
     private val tilAttesteringRevurdering =
-        simulertRevurdering.tilAttestering(mock(), saksbehandler, "fritekst til brevet")
+        simulertRevurdering.tilAttestering(mock(), saksbehandler, "fritekst til brevet", mock())
     private val iverksattRevurdering = tilAttesteringRevurdering.tilIverksatt(attestant) { UUID30.randomUUID().right() }
         .orNull()!!
 }

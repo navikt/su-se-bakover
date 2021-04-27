@@ -17,9 +17,12 @@ import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.BeslutningEtterForhåndsvarsling
+import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
@@ -28,6 +31,7 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak.Årsak.REGULER_GRUNNBELØP
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
+import no.nav.su.se.bakover.domain.revurdering.erKlarForAttestering
 import no.nav.su.se.bakover.domain.revurdering.medFritekst
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
@@ -120,6 +124,7 @@ internal class RevurderingServiceImpl(
                 fritekstTilBrev = "",
                 revurderingsårsak = revurderingsårsak,
                 opprettet = Tidspunkt.now(clock),
+                forhåndsvarsel = if (revurderingsårsak.årsak == REGULER_GRUNNBELØP) Forhåndsvarsel.IngenForhåndsvarsel else null,
                 behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
             ).also {
                 revurderingRepo.lagre(it)
@@ -244,6 +249,41 @@ internal class RevurderingServiceImpl(
         }
     }
 
+    override fun forhåndsvarsleEllerSendTilAttestering(
+        revurderingId: UUID,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        revurderingshandling: Revurderingshandling,
+        fritekst: String,
+    ): Either<KunneIkkeForhåndsvarsle, Revurdering> {
+        val revurdering = revurderingRepo.hent(revurderingId)
+        if (revurdering?.forhåndsvarsel != null) {
+            return KunneIkkeForhåndsvarsle.AlleredeForhåndsvarslet.left()
+        }
+        return when (revurdering) {
+            is SimulertRevurdering -> {
+                if (revurderingshandling == Revurderingshandling.FORHÅNDSVARSLE) {
+                    return sendForhåndsvarsling(revurdering, fritekst)
+                }
+                lagreForhåndsvarsling(revurdering, Forhåndsvarsel.IngenForhåndsvarsel)
+                return sendTilAttestering(
+                    SendTilAttesteringRequest(
+                        revurderingId = revurderingId,
+                        saksbehandler = saksbehandler,
+                        fritekstTilBrev = fritekst,
+                        skalFøreTilBrevutsending = true,
+                    ),
+                ).mapLeft {
+                    KunneIkkeForhåndsvarsle.Attestering(it)
+                }
+            }
+            null -> KunneIkkeForhåndsvarsle.FantIkkeRevurdering.left()
+            else -> KunneIkkeForhåndsvarsle.UgyldigTilstand(
+                revurdering::class,
+                SimulertRevurdering::class,
+            ).left()
+        }
+    }
+
     override fun sendTilAttestering(
         request: SendTilAttesteringRequest,
     ): Either<KunneIkkeSendeRevurderingTilAttestering, Revurdering> {
@@ -255,6 +295,10 @@ internal class RevurderingServiceImpl(
                 revurdering::class,
                 RevurderingTilAttestering::class,
             ).left()
+        }
+
+        if (!(revurdering is BeregnetRevurdering.IngenEndring || revurdering.forhåndsvarsel.erKlarForAttestering())) {
+            return KunneIkkeSendeRevurderingTilAttestering.ManglerBeslutningPåForhåndsvarsel.left()
         }
 
         val aktørId = personService.hentAktørId(revurdering.fnr).getOrElse {
@@ -291,10 +335,12 @@ internal class RevurderingServiceImpl(
                 oppgaveId,
                 request.saksbehandler,
                 request.fritekstTilBrev,
+                revurdering.forhåndsvarsel!!,
             )
             is SimulertRevurdering.Opphørt -> revurdering.tilAttestering(
                 oppgaveId,
                 request.saksbehandler,
+                revurdering.forhåndsvarsel!!,
                 request.fritekstTilBrev,
             ).getOrElse {
                 return KunneIkkeSendeRevurderingTilAttestering.KanIkkeRegulereGrunnbeløpTilOpphør.left()
@@ -530,4 +576,132 @@ internal class RevurderingServiceImpl(
 
         return underkjent.right()
     }
+
+    override fun fortsettEtterForhåndsvarsling(request: FortsettEtterForhåndsvarslingRequest): Either<FortsettEtterForhåndsvarselFeil, Revurdering> {
+        return Either.fromNullable(revurderingRepo.hent(request.revurderingId))
+            .mapLeft { FortsettEtterForhåndsvarselFeil.FantIkkeRevurdering }
+            .flatMap {
+                if (it !is SimulertRevurdering) {
+                    Either.left(FortsettEtterForhåndsvarselFeil.RevurderingErIkkeIRiktigTilstand)
+                } else {
+                    when (val forhåndsvarsel = it.forhåndsvarsel) {
+                        null ->
+                            Either.left(FortsettEtterForhåndsvarselFeil.RevurderingErIkkeForhåndsvarslet)
+                        is Forhåndsvarsel.SkalForhåndsvarsles.Besluttet ->
+                            Either.left(FortsettEtterForhåndsvarselFeil.AlleredeBesluttet)
+                        is Forhåndsvarsel.IngenForhåndsvarsel ->
+                            Either.left(FortsettEtterForhåndsvarselFeil.AlleredeBesluttet)
+                        is Forhåndsvarsel.SkalForhåndsvarsles.Sendt ->
+                            Either.right(Pair(it, forhåndsvarsel))
+                    }
+                }
+            }
+            .map { (revurdering, eksisterendeForhåndsvarsel) ->
+                val forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Besluttet(
+                    journalpostId = eksisterendeForhåndsvarsel.journalpostId,
+                    brevbestillingId = eksisterendeForhåndsvarsel.brevbestillingId,
+                    valg = utledBeslutningEtterForhåndsvarling(request),
+                    begrunnelse = request.begrunnelse,
+                )
+                revurderingRepo.oppdaterForhåndsvarsel(
+                    id = revurdering.id,
+                    forhåndsvarsel = forhåndsvarsel,
+                )
+
+                revurdering
+            }
+            .flatMap { revurdering ->
+                when (request) {
+                    is FortsettEtterForhåndsvarslingRequest.FortsettMedSammeOpplysninger -> {
+                        sendTilAttestering(
+                            SendTilAttesteringRequest(
+                                revurderingId = revurdering.id,
+                                saksbehandler = request.saksbehandler,
+                                fritekstTilBrev = request.fritekstTilBrev,
+                                skalFøreTilBrevutsending = true,
+                            ),
+                        ).mapLeft { FortsettEtterForhåndsvarselFeil.Attestering(it) }
+                    }
+                    is FortsettEtterForhåndsvarslingRequest.FortsettMedAndreOpplysninger -> {
+                        // Her er allerede revurderingen i riktig tilstand
+                        Either.right(revurdering)
+                    }
+                    is FortsettEtterForhåndsvarslingRequest.AvsluttUtenEndringer -> {
+                        TODO("Not yet implemented")
+                    }
+                }
+            }
+    }
+
+    private fun sendForhåndsvarsling(
+        revurdering: SimulertRevurdering,
+        fritekst: String,
+    ): Either<KunneIkkeForhåndsvarsle, Revurdering> {
+        val aktørId = personService.hentAktørId(revurdering.fnr).getOrElse {
+            log.error("Fant ikke aktør-id for revurdering: ${revurdering.id}")
+            return KunneIkkeForhåndsvarsle.FantIkkeAktørId.left()
+        }
+
+        val person = personService.hentPerson(revurdering.fnr).getOrElse {
+            log.error("Fant ikke aktør-id for revurdering: ${revurdering.id}")
+            return KunneIkkeForhåndsvarsle.FantIkkePerson.left()
+        }
+
+        brevService.journalførBrev(
+            request = LagBrevRequest.Forhåndsvarsel(
+                person = person,
+                beregning = revurdering.beregning, fritekst = fritekst,
+            ),
+            saksnummer = revurdering.saksnummer,
+        ).mapLeft {
+            log.error("Kunne ikke forhåndsvarsle bruker ${revurdering.id} fordi journalføring feilet")
+            return KunneIkkeForhåndsvarsle.KunneIkkeJournalføre.left()
+        }.flatMap { journalpostId ->
+            val forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt(journalpostId, null)
+
+            revurdering.forhåndsvarsel = forhåndsvarsel
+
+            brevService.distribuerBrev(journalpostId)
+                .mapLeft {
+                    revurderingRepo.lagre(revurdering)
+                    log.error("Revurdering ${revurdering.id} med journalpostId $journalpostId. Det skjedde en feil ved brevbestilling som må følges opp manuelt")
+                    return KunneIkkeForhåndsvarsle.KunneIkkeDistribuere.left()
+                }
+                .map { brevbestillingId ->
+                    revurdering.forhåndsvarsel = forhåndsvarsel.copy(brevbestillingId = brevbestillingId)
+
+                    revurderingRepo.lagre(revurdering)
+                    log.info("Revurdering ${revurdering.id} med journalpostId $journalpostId og bestilt brev $brevbestillingId")
+
+                    revurdering
+                }
+        }
+        oppgaveService.opprettOppgave(
+            OppgaveConfig.Forhåndsvarsling(
+                saksnummer = revurdering.saksnummer,
+                aktørId = aktørId,
+                tilordnetRessurs = null,
+            ),
+        ).mapLeft {
+            return KunneIkkeForhåndsvarsle.KunneIkkeOppretteOppgave.left()
+        }
+
+        return revurdering.right()
+    }
+
+    private fun lagreForhåndsvarsling(
+        revurdering: SimulertRevurdering,
+        forhåndsvarsel: Forhåndsvarsel,
+    ): Revurdering {
+        revurderingRepo.oppdaterForhåndsvarsel(revurdering.id, forhåndsvarsel)
+        revurdering.forhåndsvarsel = forhåndsvarsel
+        return revurdering
+    }
+
+    private fun utledBeslutningEtterForhåndsvarling(req: FortsettEtterForhåndsvarslingRequest) =
+        when (req) {
+            is FortsettEtterForhåndsvarslingRequest.AvsluttUtenEndringer -> BeslutningEtterForhåndsvarsling.AvsluttUtenEndringer
+            is FortsettEtterForhåndsvarslingRequest.FortsettMedAndreOpplysninger -> BeslutningEtterForhåndsvarsling.FortsettMedAndreOpplysninger
+            is FortsettEtterForhåndsvarslingRequest.FortsettMedSammeOpplysninger -> BeslutningEtterForhåndsvarsling.FortsettSammeOpplysninger
+        }
 }

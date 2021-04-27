@@ -287,6 +287,7 @@ internal class TestDataHelper(
                 Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                 Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
             ),
+            forhåndsvarsel = null,
             behandlingsinformasjon = innvilget.behandlingsinformasjon,
         ).also {
             revurderingRepo.lagre(it)

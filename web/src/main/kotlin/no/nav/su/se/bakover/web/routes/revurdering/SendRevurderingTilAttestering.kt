@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresponser.fantIkkeAktørId
 import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresponser.fantIkkeRevurdering
 import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresponser.kunneIkkeOppretteOppgave
+import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresponser.manglerBeslutningPåForhåndsvarsel
 import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
@@ -62,7 +63,7 @@ internal fun Route.sendRevurderingTilAttestering(
     }
 }
 
-private fun KunneIkkeSendeRevurderingTilAttestering.tilResultat(): Resultat {
+internal fun KunneIkkeSendeRevurderingTilAttestering.tilResultat(): Resultat {
     return when (this) {
         is KunneIkkeSendeRevurderingTilAttestering.FantIkkeRevurdering -> fantIkkeRevurdering
         is KunneIkkeSendeRevurderingTilAttestering.UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)
@@ -72,5 +73,6 @@ private fun KunneIkkeSendeRevurderingTilAttestering.tilResultat(): Resultat {
             "G-regulering kan ikke føre til opphør",
             "g_regulering_kan_ikke_føre_til_opphør",
         )
+        is KunneIkkeSendeRevurderingTilAttestering.ManglerBeslutningPåForhåndsvarsel -> manglerBeslutningPåForhåndsvarsel
     }
 }

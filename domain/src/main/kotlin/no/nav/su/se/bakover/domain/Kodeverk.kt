@@ -41,7 +41,8 @@ enum class Behandlingstema(val value: String) {
  */
 enum class Oppgavetype(val value: String) {
     BEHANDLE_SAK("BEH_SAK"),
-    ATTESTERING("ATT");
+    ATTESTERING("ATT"),
+    FREMLEGGING("FREM");
 
     override fun toString() = this.value
 }

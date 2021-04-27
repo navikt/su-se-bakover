@@ -14,6 +14,10 @@ internal object GenerelleRevurderingsfeilresponser {
         "Fant ikke sak",
         "fant_ikke_sak",
     )
+    val fantIkkePerson = NotFound.errorJson(
+        "Fant ikke person",
+        "fant_ikke_person",
+    )
     val fantIkkeAktørId = NotFound.errorJson(
         "Fant ikke aktør id",
         "fant_ikke_aktør_id",
@@ -26,6 +30,11 @@ internal object GenerelleRevurderingsfeilresponser {
         "Fant ikke revurdering",
         "fant_ikke_revurdering",
     )
+    val manglerBeslutningPåForhåndsvarsel = BadRequest.errorJson(
+        "Mangler beslutning på forhåndsvarsel",
+        "mangler_beslutning_på_forhåndsvarsel",
+    )
+
     fun ugyldigPeriode(ugyldigPeriode: UgyldigPeriode): Resultat {
         return BadRequest.errorJson(
             ugyldigPeriode.toString(),
