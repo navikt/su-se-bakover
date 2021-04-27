@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -151,14 +150,29 @@ internal class RevurderingServiceImpl(
         if (revurdering is RevurderingTilAttestering || revurdering is IverksattRevurdering)
             return KunneIkkeLeggeTilGrunnlag.UgyldigStatus.left()
 
+        if (uføregrunnlag.size != 1) {
+            throw IllegalArgumentException("Flere perioder med forskjellig IEU støttes ikke enda")
+        }
+
+        val oppdatertBehandlingsinformasjon = revurdering.oppdaterBehandlingsinformasjon(
+            revurdering.behandlingsinformasjon.copy(
+                uførhet = revurdering.behandlingsinformasjon.uførhet!!.copy(
+                    forventetInntekt = uføregrunnlag.first().forventetInntekt,
+                    uføregrad = uføregrunnlag.first().uføregrad.value
+                ),
+            ),
+        )
+
+        revurderingRepo.lagre(oppdatertBehandlingsinformasjon)
+
         grunnlagService.lagre(
-            revurdering.id,
-            revurdering.grunnlagsdata.copy(
+            oppdatertBehandlingsinformasjon.id,
+            oppdatertBehandlingsinformasjon.grunnlagsdata.copy(
                 uføregrunnlag = uføregrunnlag,
             ),
         )
 
-        val updated = revurderingRepo.hent(revurdering.id)!!
+        val updated = revurderingRepo.hent(oppdatertBehandlingsinformasjon.id)!!
 
         return LeggTilUføregrunnlagResponse(
             revurdering = updated,
@@ -222,40 +236,11 @@ internal class RevurderingServiceImpl(
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
         fradrag: List<Fradrag>,
-        forventetInntekt: Int?,
     ): Either<KunneIkkeBeregneOgSimulereRevurdering, Revurdering> {
         return when (val orginalRevurdering = revurderingRepo.hent(revurderingId)) {
             is BeregnetRevurdering, is OpprettetRevurdering, is SimulertRevurdering, is UnderkjentRevurdering -> {
-                val revurdering = if (forventetInntekt != null) {
-                    if (orginalRevurdering.revurderingsårsak.årsak != REGULER_GRUNNBELØP) {
-                        return KunneIkkeBeregneOgSimulereRevurdering.MåSendeGrunnbeløpReguleringSomÅrsakSammenMedForventetInntekt.left()
-                    }
-
-                    val oppdatertUføregrunnlag = listOf(
-                        Grunnlag.Uføregrunnlag(
-                            periode = orginalRevurdering.periode,
-                            uføregrad = orginalRevurdering.grunnlagsdata.hentNyesteUføreGrunnlag().uføregrad,
-                            forventetInntekt = forventetInntekt,
-                        ),
-                    )
-                    grunnlagService.lagre(
-                        orginalRevurdering.id,
-                        Grunnlagsdata(oppdatertUføregrunnlag),
-                    )
-                    orginalRevurdering.oppdaterBehandlingsinformasjon(
-                        orginalRevurdering.behandlingsinformasjon.copy(
-                            uførhet = orginalRevurdering.behandlingsinformasjon.uførhet!!.copy(
-                                forventetInntekt = forventetInntekt,
-                            ),
-                        ),
-                    ).copy(
-                        grunnlagsdata = Grunnlagsdata(oppdatertUføregrunnlag),
-                    )
-                } else {
-                    orginalRevurdering
-                }
                 when (
-                    val beregnetRevurdering = revurdering.beregn(fradrag)
+                    val beregnetRevurdering = orginalRevurdering.beregn(fradrag)
                         .getOrHandle {
                             return when (it) {
                                 is Revurdering.KunneIkkeBeregneRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden -> KunneIkkeBeregneOgSimulereRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden

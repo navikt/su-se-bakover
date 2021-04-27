@@ -44,7 +44,6 @@ internal fun Route.beregnOgSimulerRevurdering(
     data class BeregningForRevurderingBody(
         val periode: PeriodeJson,
         val fradrag: List<FradragJson>,
-        val forventetInntekt: Int?,
     ) {
         fun toDomain(): Either<Resultat, List<Fradrag>> =
             periode.toPeriode()
@@ -61,7 +60,6 @@ internal fun Route.beregnOgSimulerRevurdering(
                                     revurderingId = revurderingId,
                                     saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                                     fradrag = fradrag,
-                                    forventetInntekt = body.forventetInntekt,
                                 ).mapLeft {
                                     it.tilResultat()
                                 }.map { revurdering ->

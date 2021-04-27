@@ -29,7 +29,6 @@ interface RevurderingService {
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
         fradrag: List<Fradrag>,
-        forventetInntekt: Int? = null,
     ): Either<KunneIkkeBeregneOgSimulereRevurdering, Revurdering>
 
     fun sendTilAttestering(
@@ -58,7 +57,7 @@ data class SendTilAttesteringRequest(
     val revurderingId: UUID,
     val saksbehandler: NavIdentBruker.Saksbehandler,
     val fritekstTilBrev: String,
-    val skalFøreTilBrevutsending: Boolean
+    val skalFøreTilBrevutsending: Boolean,
 )
 
 sealed class KunneIkkeOppretteRevurdering {
@@ -146,5 +145,5 @@ sealed class KunneIkkeHenteGrunnlag {
 
 data class LeggTilUføregrunnlagResponse(
     val revurdering: Revurdering,
-    val simulerEndretGrunnlagsdata: GrunnlagService.SimulerEndretGrunnlagsdata
+    val simulerEndretGrunnlagsdata: GrunnlagService.SimulerEndretGrunnlagsdata,
 )

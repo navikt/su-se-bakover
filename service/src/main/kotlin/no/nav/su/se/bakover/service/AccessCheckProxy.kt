@@ -377,14 +377,12 @@ open class AccessCheckProxy(
                     revurderingId: UUID,
                     saksbehandler: NavIdentBruker.Saksbehandler,
                     fradrag: List<Fradrag>,
-                    forventetInntekt: Int?,
                 ): Either<KunneIkkeBeregneOgSimulereRevurdering, Revurdering> {
                     assertHarTilgangTilSak(revurderingId)
                     return services.revurdering.beregnOgSimuler(
                         revurderingId = revurderingId,
                         saksbehandler = saksbehandler,
-                        fradrag = fradrag,
-                        forventetInntekt = forventetInntekt
+                        fradrag = fradrag
                     )
                 }
 
