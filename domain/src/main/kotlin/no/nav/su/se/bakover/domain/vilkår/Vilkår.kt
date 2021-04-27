@@ -93,7 +93,18 @@ sealed class Vilkår<T : Grunnlag> {
         abstract val vilkår: Inngangsvilkår
         abstract val grunnlag: List<T>
         abstract val vurdering: List<Vurderingsperiode<T>>
-        abstract val resultat: Resultat
+
+         val resultat: Resultat by lazy {
+             if (erInnvilget) Resultat.Innvilget else if(erAvslag) Resultat.Avslag else Resultat.Uavklart
+         }
+
+        val erInnvilget: Boolean by lazy {
+            vurdering.all { it.resultat == Resultat.Innvilget }
+        }
+
+        val erAvslag: Boolean by lazy {
+            vurdering.any { it.resultat == Resultat.Avslag }
+        }
 
         data class Uførhet(
             override val vurdering: List<Vurderingsperiode<Grunnlag.Uføregrunnlag>>,
@@ -102,8 +113,6 @@ sealed class Vilkår<T : Grunnlag> {
             override val grunnlag: List<Grunnlag.Uføregrunnlag> = vurdering.mapNotNull {
                 it.grunnlag
             }
-            override val resultat =
-                if (vurdering.all { it.resultat == Resultat.Innvilget }) Resultat.Innvilget else Resultat.Avslag
 
             companion object {
                 fun manuell(
