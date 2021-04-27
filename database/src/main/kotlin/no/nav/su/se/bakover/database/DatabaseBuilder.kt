@@ -86,7 +86,7 @@ object DatabaseBuilder {
             revurderingRepo = revurderingRepo,
             vedtakRepo = vedtakRepo,
             grunnlagRepo = grunnlagRepo,
-            vilkårsvurderingRepo = VilkårsvurderingPostgresRepo(dataSource, grunnlagRepo),
+            vilkårsvurderingRepo = vilkårsvurderingRepo,
         )
     }
 }
