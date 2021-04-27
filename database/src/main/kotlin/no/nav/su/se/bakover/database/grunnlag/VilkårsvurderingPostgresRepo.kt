@@ -101,7 +101,7 @@ internal class VilkårsvurderingPostgresRepo(
         val vurderingsperioder = dataSource.withSession { session ->
             """
                 select * from vilkårsvurdering_uføre vu
-                join behandling b on vu.behandlingid = b.id
+                join behandling b on vu.behandlingid = :behandlingId
             """.trimIndent()
                 .hentListe(
                     mapOf(
