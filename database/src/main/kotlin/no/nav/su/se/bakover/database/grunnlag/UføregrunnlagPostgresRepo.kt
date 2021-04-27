@@ -95,7 +95,7 @@ internal class UføregrunnlagPostgresRepo(
         return Grunnlag.Uføregrunnlag(
             id = uuid("id"),
             opprettet = tidspunkt("opprettet"),
-            periode = Periode.create(localDate("fom"), localDate("tom")),
+            periode = Periode.create(localDate("fraOgMed"), localDate("tilOgMed")),
             uføregrad = Uføregrad.parse(int("uføregrad")),
             forventetInntekt = int("forventetInntekt"),
         )
@@ -107,16 +107,16 @@ internal class UføregrunnlagPostgresRepo(
             (
                 id,
                 opprettet,
-                fom,
-                tom,
+                fraOgMed,
+                tilOgMed,
                 uføregrad,
                 forventetInntekt
             ) values 
             (
                 :id,
                 :opprettet,
-                :fom,
-                :tom,
+                :fraOgMed,
+                :tilOgMed,
                 :uforegrad,
                 :forventetInntekt
             )
@@ -125,8 +125,8 @@ internal class UføregrunnlagPostgresRepo(
                 mapOf(
                     "id" to uføregrunnlag.id,
                     "opprettet" to uføregrunnlag.opprettet,
-                    "fom" to uføregrunnlag.periode.fraOgMed,
-                    "tom" to uføregrunnlag.periode.tilOgMed,
+                    "fraOgMed" to uføregrunnlag.periode.fraOgMed,
+                    "tilOgMed" to uføregrunnlag.periode.tilOgMed,
                     "uforegrad" to uføregrunnlag.uføregrad.value,
                     "forventetInntekt" to uføregrunnlag.forventetInntekt,
                 ),

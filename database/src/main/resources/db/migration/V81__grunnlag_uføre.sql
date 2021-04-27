@@ -2,8 +2,8 @@ create table if not exists grunnlag_uføre
 (
     id uuid primary key,
     opprettet timestamptz not null,
-    fom date,
-    tom date,
+    fraOgMed date not null,
+    tilOgMed date not null,
     uføregrad integer not null,
     forventetInntekt integer not null
 );
