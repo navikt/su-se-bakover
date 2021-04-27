@@ -189,9 +189,9 @@ internal class LagBrevinnholdForBeregningTest {
         LagBrevinnholdForBeregning(beregning).brevInnhold shouldBe listOf(
             Beregningsperiode(
                 periode = BrevPeriode(fraOgMed = "mai 2020", tilOgMed = "november 2020"),
-                ytelsePerMåned = 15245,
+                ytelsePerMåned = 14756,
                 satsbeløpPerMåned = 20946,
-                epsFribeløp = 15298.92,
+                epsFribeløp = 14810.33,
                 fradrag = Fradrag(
                     bruker = listOf(
                         Månedsfradrag(
@@ -218,9 +218,9 @@ internal class LagBrevinnholdForBeregningTest {
             ),
             Beregningsperiode(
                 periode = BrevPeriode(fraOgMed = "desember 2020", tilOgMed = "desember 2020"),
-                ytelsePerMåned = 14245,
+                ytelsePerMåned = 13756,
                 satsbeløpPerMåned = 20946,
-                epsFribeløp = 15298.92,
+                epsFribeløp = 14810.33,
                 fradrag = Fradrag(
                     bruker = listOf(
                         Månedsfradrag(
@@ -254,9 +254,9 @@ internal class LagBrevinnholdForBeregningTest {
             ),
             Beregningsperiode(
                 periode = BrevPeriode(fraOgMed = "januar 2021", tilOgMed = "april 2021"),
-                ytelsePerMåned = 15245,
+                ytelsePerMåned = 14756,
                 satsbeløpPerMåned = 20946,
-                epsFribeløp = 15298.92,
+                epsFribeløp = 14810.33,
                 fradrag = Fradrag(
                     bruker = listOf(
                         Månedsfradrag(
@@ -414,7 +414,7 @@ internal class LagBrevinnholdForBeregningTest {
                 periode = BrevPeriode(fraOgMed = "mai 2020", tilOgMed = "april 2021"),
                 ytelsePerMåned = 19946,
                 satsbeløpPerMåned = 20946,
-                epsFribeløp = 15298.92,
+                epsFribeløp = 14810.33,
                 fradrag = Fradrag(
                     bruker = listOf(
                         Månedsfradrag(
@@ -435,7 +435,7 @@ internal class LagBrevinnholdForBeregningTest {
     }
 
     @Test
-    fun `Tar med alle fradrag for eps hvis sum av fradagen er høyere enn fribeløp`() {
+    fun `Tar med alle fradrag for eps hvis sum av fradragene er høyere enn fribeløp`() {
         val beregning = BeregningFactory.ny(
             periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
             sats = Sats.HØY,
@@ -475,9 +475,9 @@ internal class LagBrevinnholdForBeregningTest {
         LagBrevinnholdForBeregning(beregning).brevInnhold shouldBe listOf(
             Beregningsperiode(
                 periode = BrevPeriode(fraOgMed = "mai 2020", tilOgMed = "april 2021"),
-                ytelsePerMåned = 17245,
+                ytelsePerMåned = 16756,
                 satsbeløpPerMåned = 20946,
-                epsFribeløp = 15298.92,
+                epsFribeløp = 14810.33,
                 fradrag = Fradrag(
                     bruker = listOf(
                         Månedsfradrag(
