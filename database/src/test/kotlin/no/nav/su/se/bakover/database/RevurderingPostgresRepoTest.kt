@@ -8,7 +8,9 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
+import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo.ForhåndsvarselDto
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -29,6 +31,7 @@ import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import org.junit.jupiter.api.Test
+import org.skyscreamer.jsonassert.JSONAssert
 import java.time.LocalDate
 import java.util.UUID
 
@@ -732,5 +735,75 @@ internal class RevurderingPostgresRepoTest {
             repo.lagre(simulertRevurdering)
             repo.hent(beregnetRevurdering.id)!!.forhåndsvarsel shouldBe Forhåndsvarsel.IngenForhåndsvarsel
         }
+    }
+
+    @Test
+    fun `ingen frhåndsvarsel json`() {
+        //language=JSON
+        val ingenJson = """
+            {
+              "type": "IngenForhåndsvarsel"
+            }
+        """.trimIndent()
+
+        JSONAssert.assertEquals(
+            ingenJson,
+            serialize(ForhåndsvarselDto.from(Forhåndsvarsel.IngenForhåndsvarsel)),
+            true,
+        )
+    }
+
+    @Test
+    fun `sendt frhåndsvarsel json`() {
+        //language=JSON
+        val sendtJson = """
+            {
+              "type": "Sendt",
+              "journalpostId": "1",
+              "brevbestillingId": "2"
+            }
+        """.trimIndent()
+
+        JSONAssert.assertEquals(
+            sendtJson,
+            serialize(
+                ForhåndsvarselDto.from(
+                    Forhåndsvarsel.SkalForhåndsvarsles.Sendt(
+                        JournalpostId("1"),
+                        BrevbestillingId("2"),
+                    ),
+                ),
+            ),
+            true,
+        )
+    }
+
+    @Test
+    fun `besluttet frhåndsvarsel json`() {
+        //language=JSON
+        val besluttetJson = """
+            {
+              "type": "Besluttet",
+              "journalpostId": "1",
+              "brevbestillingId": "2",
+              "valg": "FortsettSammeOpplysninger",
+              "begrunnelse": "begrunnelse"
+            }
+        """.trimIndent()
+
+        JSONAssert.assertEquals(
+            besluttetJson,
+            serialize(
+                ForhåndsvarselDto.from(
+                    Forhåndsvarsel.SkalForhåndsvarsles.Besluttet(
+                        JournalpostId("1"),
+                        BrevbestillingId("2"),
+                        BeslutningEtterForhåndsvarsling.FortsettSammeOpplysninger,
+                        "begrunnelse"
+                    ),
+                ),
+            ),
+            true,
+        )
     }
 }
