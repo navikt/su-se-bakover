@@ -401,6 +401,7 @@ internal class RevurderingPostgresRepo(
                         fritekstTilBrev,
                         årsak,
                         begrunnelse,
+                        forhåndsvarsel,
                         behandlingsinformasjon
                     ) values (
                         :id,
@@ -416,6 +417,7 @@ internal class RevurderingPostgresRepo(
                         :fritekstTilBrev,
                         :arsak,
                         :begrunnelse,
+                        to_json(:forhandsvarsel::json),
                         to_json(:behandlingsinformasjon::json)
                     )
                         ON CONFLICT(id) do update set
@@ -432,6 +434,7 @@ internal class RevurderingPostgresRepo(
                         fritekstTilBrev=:fritekstTilBrev,
                         årsak=:arsak,
                         begrunnelse=:begrunnelse,
+                        forhåndsvarsel=to_json(:forhandsvarsel::json),
                         behandlingsinformasjon=to_json(:behandlingsinformasjon::json)
                 """.trimIndent()
                 ).oppdatering(
@@ -445,6 +448,7 @@ internal class RevurderingPostgresRepo(
                     "fritekstTilBrev" to revurdering.fritekstTilBrev,
                     "arsak" to revurdering.revurderingsårsak.årsak.toString(),
                     "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
+                    "forhandsvarsel" to revurdering.forhåndsvarsel?.let { objectMapper.writeValueAsString(ForhåndsvarselDto.from(it)) },
                     "behandlingsinformasjon" to objectMapper.writeValueAsString(revurdering.behandlingsinformasjon),
                 ),
                 session,

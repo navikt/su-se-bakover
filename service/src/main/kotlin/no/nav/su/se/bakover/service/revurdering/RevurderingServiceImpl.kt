@@ -124,7 +124,7 @@ internal class RevurderingServiceImpl(
                 fritekstTilBrev = "",
                 revurderingsårsak = revurderingsårsak,
                 opprettet = Tidspunkt.now(clock),
-                forhåndsvarsel = null,
+                forhåndsvarsel = if (revurderingsårsak.årsak == REGULER_GRUNNBELØP) Forhåndsvarsel.IngenForhåndsvarsel else null,
                 behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
             ).also {
                 revurderingRepo.lagre(it)

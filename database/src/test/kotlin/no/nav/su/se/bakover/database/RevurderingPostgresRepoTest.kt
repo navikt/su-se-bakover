@@ -717,23 +717,37 @@ internal class RevurderingPostgresRepoTest {
     }
 
     @Test
-    fun `Bare simulertRevurdering kan lagre forhåndsvarsel`() {
+    fun `Bare opprettet og simulerte revurderinger kan lagre forhåndsvarsel`() {
         withMigratedDb {
             val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
 
             val opprettet = opprettet(vedtak)
             repo.lagre(opprettet.copy(forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel))
 
-            repo.hent(opprettet.id)!!.forhåndsvarsel shouldBe null
+            repo.hent(opprettet.id)!!.forhåndsvarsel shouldBe Forhåndsvarsel.IngenForhåndsvarsel
 
             val beregnetRevurdering = beregnetInnvilget(opprettet, vedtak)
 
             repo.lagre(beregnetRevurdering)
-            repo.hent(beregnetRevurdering.id)!!.forhåndsvarsel shouldBe null
+            repo.hent(beregnetRevurdering.id)!!.forhåndsvarsel shouldBe Forhåndsvarsel.IngenForhåndsvarsel
 
             val simulertRevurdering = simulertInnvilget(beregnetRevurdering)
             repo.lagre(simulertRevurdering)
             repo.hent(beregnetRevurdering.id)!!.forhåndsvarsel shouldBe Forhåndsvarsel.IngenForhåndsvarsel
+
+            val nyOpprettet = opprettet(vedtak)
+            repo.lagre(nyOpprettet.copy(forhåndsvarsel = null))
+
+            repo.hent(nyOpprettet.id)!!.forhåndsvarsel shouldBe null
+
+            val nyBeregnetRevurdering = beregnetInnvilget(nyOpprettet, vedtak)
+
+            repo.lagre(nyBeregnetRevurdering)
+            repo.hent(nyBeregnetRevurdering.id)!!.forhåndsvarsel shouldBe null
+
+            val nySimulertRevurdering = simulertInnvilget(nyBeregnetRevurdering.copy(forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel))
+            repo.lagre(nySimulertRevurdering)
+            repo.hent(nySimulertRevurdering.id)!!.forhåndsvarsel shouldBe Forhåndsvarsel.IngenForhåndsvarsel
         }
     }
 
