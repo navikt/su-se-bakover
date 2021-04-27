@@ -153,12 +153,6 @@ interface SøknadsbehandlingService {
         val stønadsperiode: ValgtStønadsperiode,
     )
 
-    enum class Oppfylt {
-        JA,
-        NEI,
-        UAVKLART
-    }
-
     sealed class KunneIkkeLeggeTilGrunnlag {
         object FantIkkeBehandling : KunneIkkeLeggeTilGrunnlag()
         data class UgyldigTilstand(val fra: KClass<out Søknadsbehandling>, val til: KClass<out Søknadsbehandling>) : KunneIkkeLeggeTilGrunnlag()
