@@ -19,14 +19,14 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype.PrivatPensjon
 import org.junit.jupiter.api.Test
 
 /**
- * Mpn 1.jan = 181908 -> pr.mnd = 15159
- * Mpn 1.mai = 183587 -> pr.mnd = 15298.9166666
- * * Periodisert grense 2020 = (4 * 15159) + (8 * 15298.9166666) = 183027.3333
+ * Garantipensjon 1.jan = 176099 -> pr.mnd = 14674.9166666
+ * Garantipensjon 1.mai = 177724 -> pr.mnd = 14810.3333333
+ * * Periodisert grense 2020 = (4 * 14674.9166666) + (8 * 14810.3333333) = 177182.333333
  */
 internal class EpsOver67StrategyTest {
 
     @Test
-    fun `inkluderer ikke fradrag for EPS som er lavere enn ordinært minstepensjonsnivå for aktuell måned`() {
+    fun `inkluderer ikke fradrag for EPS som er lavere enn ordinært garantipensjonsnivå for aktuell måned`() {
         val periode = Periode.create(1.januar(2020), 31.januar(2020))
         val forventetInntekt = lagPeriodisertFradrag(ForventetInntekt, 12000.0, periode, tilhører = BRUKER)
         val epsArbeidsinntekt = lagPeriodisertFradrag(Arbeidsinntekt, 5000.0, periode, tilhører = EPS)
@@ -41,12 +41,12 @@ internal class EpsOver67StrategyTest {
     }
 
     @Test
-    fun `inkluderer fradrag for EPS som overstiger ordinært minstepensjonsnivå for aktuell måned`() {
+    fun `inkluderer fradrag for EPS som overstiger ordinært garantipensjonsnivå for aktuell måned`() {
         val periode = Periode.create(1.januar(2020), 31.januar(2020))
         val forventetInntekt = lagPeriodisertFradrag(ForventetInntekt, 12000.0, periode, tilhører = BRUKER)
         val epsArbeidsinntekt = lagPeriodisertFradrag(Arbeidsinntekt, 20000.0, periode, tilhører = EPS)
 
-        val expectedEpsFradrag = lagPeriodisertFradrag(BeregnetFradragEPS, 20000.0 - 15159, periode, tilhører = EPS)
+        val expectedEpsFradrag = lagPeriodisertFradrag(BeregnetFradragEPS, 20000.0 - 14674.916666666666667, periode, tilhører = EPS)
 
         FradragStrategy.EpsOver67År.beregn(
             fradrag = listOf(forventetInntekt, epsArbeidsinntekt),
@@ -75,14 +75,14 @@ internal class EpsOver67StrategyTest {
         val expectedEpsFradragJan =
             lagPeriodisertFradrag(
                 BeregnetFradragEPS,
-                20000.0 - 15159,
+                20000.0 - 14674.916666666666667,
                 Periode.create(1.januar(2020), 31.januar(2020)),
                 tilhører = EPS
             )
         val expectedEpsFradragJuli =
             lagPeriodisertFradrag(
                 BeregnetFradragEPS,
-                20000.0 - 15298.916666666666,
+                20000.0 - 14810.333333333333333,
                 Periode.create(1.juli(2020), 31.juli(2020)),
                 tilhører = EPS
             )
