@@ -2,7 +2,9 @@ package no.nav.su.se.bakover.domain.vilkår
 
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import java.util.UUID
 
 /**
@@ -92,53 +94,26 @@ sealed class Vilkår<T : Grunnlag> {
     sealed class Vurdert<T : Grunnlag> : Vilkår<T>() {
         abstract val vilkår: Inngangsvilkår
         abstract val grunnlag: List<T>
-        abstract val vurdering: List<Vurderingsperiode<T>>
+        abstract val vurderingsperioder: List<Vurderingsperiode<T>>
 
         val resultat: Resultat by lazy {
             if (erInnvilget) Resultat.Innvilget else if (erAvslag) Resultat.Avslag else Resultat.Uavklart
         }
 
         val erInnvilget: Boolean by lazy {
-            vurdering.all { it.resultat == Resultat.Innvilget }
+            vurderingsperioder.all { it.resultat == Resultat.Innvilget }
         }
 
         val erAvslag: Boolean by lazy {
-            vurdering.any { it.resultat == Resultat.Avslag }
+            vurderingsperioder.any { it.resultat == Resultat.Avslag }
         }
 
         data class Uførhet(
-            override val vurdering: List<Vurderingsperiode<Grunnlag.Uføregrunnlag>>,
+            override val vurderingsperioder: List<Vurderingsperiode<Grunnlag.Uføregrunnlag>>,
         ) : Vurdert<Grunnlag.Uføregrunnlag>() {
             override val vilkår = Inngangsvilkår.Uførhet
-            override val grunnlag: List<Grunnlag.Uføregrunnlag> = vurdering.mapNotNull {
+            override val grunnlag: List<Grunnlag.Uføregrunnlag> = vurderingsperioder.mapNotNull {
                 it.grunnlag
-            }
-
-            companion object {
-                fun manuell(
-                    resultat: Resultat,
-                    begrunnelse: String,
-                    grunnlag: List<Grunnlag.Uføregrunnlag>,
-                    periode: Periode,
-                ) = Uførhet(
-                    vurdering = grunnlag.map {
-                        Vurderingsperiode.Manuell(
-                            resultat = resultat,
-                            grunnlag = it,
-                            begrunnelse = begrunnelse,
-                            periode = it.periode,
-                        )
-                    }.ifEmpty {
-                        listOf(
-                            Vurderingsperiode.Manuell<Grunnlag.Uføregrunnlag>(
-                                resultat = resultat,
-                                grunnlag = null,
-                                begrunnelse = begrunnelse,
-                                periode = periode,
-                            ),
-                        )
-                    },
-                )
             }
         }
 
@@ -153,12 +128,12 @@ sealed class Vilkår<T : Grunnlag> {
     }
 }
 
-sealed class Vurderingsperiode<T : Grunnlag> {
+sealed class Vurderingsperiode<T : Grunnlag> : KanPlasseresPåTidslinje<Vurderingsperiode<T>> {
     abstract val id: UUID
-    abstract val opprettet: Tidspunkt
+    abstract override val opprettet: Tidspunkt
     abstract val resultat: Resultat
     abstract val grunnlag: T?
-    abstract val periode: Periode
+    abstract override val periode: Periode
     abstract val begrunnelse: String?
 
     data class Manuell<T : Grunnlag>(
@@ -168,7 +143,22 @@ sealed class Vurderingsperiode<T : Grunnlag> {
         override val grunnlag: T?,
         override val periode: Periode,
         override val begrunnelse: String?,
-    ) : Vurderingsperiode<T>()
+    ) : Vurderingsperiode<T>() {
+
+        @Suppress("UNCHECKED_CAST")
+        override fun copy(args: CopyArgs.Tidslinje): Manuell<T> = when (args) {
+            CopyArgs.Tidslinje.Full -> {
+                this.copy(id = UUID.randomUUID())
+            }
+            is CopyArgs.Tidslinje.NyPeriode -> {
+                this.copy(
+                    id = UUID.randomUUID(),
+                    periode = args.periode,
+                    grunnlag = grunnlag?.copy(args) as T,
+                )
+            }
+        }
+    }
 }
 
 sealed class Resultat {

@@ -26,7 +26,7 @@ internal fun Vurderingsperiode<Grunnlag.Uføregrunnlag>.toJson() = Vurderingsper
 
 internal fun Vilkår.Vurdert.Uførhet.toJson() = UføreVilkårJson(
     vilkår = vilkår.stringValue(),
-    vurdering = vurdering.first().toJson(),
+    vurdering = vurderingsperioder.first().toJson(),
     resultat = resultat.toStatusString(),
 )
 

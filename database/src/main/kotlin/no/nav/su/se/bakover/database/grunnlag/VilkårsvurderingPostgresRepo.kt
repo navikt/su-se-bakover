@@ -28,7 +28,7 @@ internal class VilkårsvurderingPostgresRepo(
             when (vilkår) {
                 Vilkår.IkkeVurdert.Uførhet -> Unit
                 is Vilkår.Vurdert.Uførhet -> {
-                    vilkår.vurdering.forEach {
+                    vilkår.vurderingsperioder.forEach {
                         lagre(behandlingId, it, tx)
                     }
                 }
@@ -113,7 +113,7 @@ internal class VilkårsvurderingPostgresRepo(
                 }
         }
         return when (vurderingsperioder.isNotEmpty()) {
-            true -> Vilkår.Vurdert.Uførhet(vurdering = vurderingsperioder)
+            true -> Vilkår.Vurdert.Uførhet(vurderingsperioder = vurderingsperioder)
             false -> Vilkår.IkkeVurdert.Uførhet
         }
     }

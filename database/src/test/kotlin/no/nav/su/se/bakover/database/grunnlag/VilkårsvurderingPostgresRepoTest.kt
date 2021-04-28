@@ -26,7 +26,7 @@ internal class VilkårsvurderingPostgresRepoTest {
         withMigratedDb {
             val søknadsbehandling = testDataHelper.nyUavklartVilkårsvurdering()
             val vurderingUførhet = Vilkår.Vurdert.Uførhet(
-                vurdering = listOf(
+                vurderingsperioder = listOf(
                     Vurderingsperiode.Manuell(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
@@ -58,7 +58,7 @@ internal class VilkårsvurderingPostgresRepoTest {
             testDataHelper.grunnlagRepo.lagre(søknadsbehandling.id, listOf(uføregrunnlag))
 
             val vurderingUførhet = Vilkår.Vurdert.Uførhet(
-                vurdering = listOf(
+                vurderingsperioder = listOf(
                     Vurderingsperiode.Manuell(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
@@ -90,7 +90,7 @@ internal class VilkårsvurderingPostgresRepoTest {
             testDataHelper.grunnlagRepo.lagre(søknadsbehandling.id, listOf(uføregrunnlag))
 
             val vurderingUførhet = Vilkår.Vurdert.Uførhet(
-                vurdering = listOf(
+                vurderingsperioder = listOf(
                     Vurderingsperiode.Manuell(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),

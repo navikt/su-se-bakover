@@ -25,7 +25,7 @@ data class LeggTilUførevurderingRequest(
     fun toVilkår(): Either<UføregradOgForventetInntektMangler, Vilkår<Grunnlag.Uføregrunnlag>> {
         return when (oppfylt) {
             Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt -> Vilkår.Vurdert.Uførhet(
-                vurdering = listOf(
+                vurderingsperioder = listOf(
                     Vurderingsperiode.Manuell(
                         resultat = Resultat.Innvilget,
                         grunnlag = if (uføregrad == null || forventetInntekt == null) return UføregradOgForventetInntektMangler.left() else {
@@ -41,7 +41,7 @@ data class LeggTilUførevurderingRequest(
                 ),
             )
             Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt -> Vilkår.Vurdert.Uførhet(
-                vurdering = listOf(
+                vurderingsperioder = listOf(
                     Vurderingsperiode.Manuell(
                         resultat = Resultat.Avslag,
                         grunnlag = if (uføregrad == null || forventetInntekt == null) null else {
@@ -57,7 +57,7 @@ data class LeggTilUførevurderingRequest(
                 ),
             )
             Behandlingsinformasjon.Uførhet.Status.HarUføresakTilBehandling -> Vilkår.Vurdert.Uførhet(
-                vurdering = listOf(
+                vurderingsperioder = listOf(
                     Vurderingsperiode.Manuell(
                         resultat = Resultat.Uavklart,
                         grunnlag = if (uføregrad == null || forventetInntekt == null) null else {

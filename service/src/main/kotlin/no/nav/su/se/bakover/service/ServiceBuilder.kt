@@ -148,7 +148,11 @@ object ServiceBuilder {
                 vedtakRepo = databaseRepos.vedtakRepo,
                 ferdigstillVedtakService = ferdigstillVedtakService,
                 grunnlagService = grunnlagService,
-                vilkårsvurderingService = VilkårsvurderingServiceImpl(databaseRepos.vilkårsvurderingRepo),
+                vilkårsvurderingService = VilkårsvurderingServiceImpl(
+                    vilkårsvurderingRepo = databaseRepos.vilkårsvurderingRepo,
+                    vedtakRepo = databaseRepos.vedtakRepo,
+                    clock = clock,
+                ),
             ).apply {
                 addObserver(statistikkService)
             },

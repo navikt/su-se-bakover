@@ -111,7 +111,7 @@ internal val vurderingsperiodeUføre = Vurderingsperiode.Manuell(
 )
 
 internal val uførevurdering = Vilkår.Vurdert.Uførhet(
-    vurdering = listOf(vurderingsperiodeUføre),
+    vurderingsperioder = listOf(vurderingsperiodeUføre),
 )
 
 internal val vilkårsvurderinger = Vilkårsvurderinger(

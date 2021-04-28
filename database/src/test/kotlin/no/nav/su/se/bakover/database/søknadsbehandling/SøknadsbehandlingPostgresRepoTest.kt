@@ -440,7 +440,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
             testDataHelper.grunnlagRepo.lagre(iverksatt.id, listOf(uføregrunnlag))
 
             val vurderingUførhet = Vilkår.Vurdert.Uførhet(
-                vurdering = listOf(
+                vurderingsperioder = listOf(
                     Vurderingsperiode.Manuell(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
@@ -482,9 +482,9 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     ),
                     vilkårsvurderinger = Vilkårsvurderinger(
                         uføre = Vilkår.Vurdert.Uførhet(
-                            vurdering = listOf(
+                            vurderingsperioder = listOf(
                                 Vurderingsperiode.Manuell(
-                                    id = vurderingUførhet.vurdering[0].id,
+                                    id = vurderingUførhet.vurderingsperioder[0].id,
                                     opprettet = Tidspunkt.now(fixedClock),
                                     resultat = Resultat.Avslag,
                                     grunnlag = uføregrunnlag,
