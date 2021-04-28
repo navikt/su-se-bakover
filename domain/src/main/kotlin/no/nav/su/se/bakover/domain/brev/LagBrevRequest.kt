@@ -98,7 +98,6 @@ interface LagBrevRequest {
 
     data class Forhåndsvarsel(
         private val person: Person,
-        private val beregning: Beregning,
         private val fritekst: String,
     ) : LagBrevRequest {
         override fun getPerson(): Person = person
@@ -106,9 +105,7 @@ interface LagBrevRequest {
         override fun lagBrevInnhold(personalia: BrevInnhold.Personalia): BrevInnhold {
             return BrevInnhold.Forhåndsvarsel(
                 personalia = personalia,
-                beregningsperioder = LagBrevinnholdForBeregning(beregning).brevInnhold,
                 fritekst = fritekst,
-                sats = beregning.getSats(),
             )
         }
     }

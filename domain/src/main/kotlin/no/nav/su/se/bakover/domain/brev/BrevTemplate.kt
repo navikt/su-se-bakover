@@ -44,7 +44,7 @@ sealed class BrevTemplate(
 
     object Forhåndsvarsel : BrevTemplate(
         pdfTemplate = PdfTemplate.Forhåndsvarsel,
-        brevTittel = "" // TODO ai: Legg in tittel till forhåndsvarslingsbrevet
+        brevTittel = "Varsel om at vi vil ta opp stønaden din til ny vurdering"
     )
 
     sealed class Revurdering(pdfTemplate: PdfTemplate, brevTittel: String) : BrevTemplate(pdfTemplate, brevTittel) {

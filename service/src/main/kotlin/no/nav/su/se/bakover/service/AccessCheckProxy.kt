@@ -158,7 +158,12 @@ open class AccessCheckProxy(
                     return services.utbetaling.gjenopptaUtbetalinger(sakId, saksbehandler)
                 }
 
-                override fun opphør(sakId: UUID, attestant: NavIdentBruker, simulering: Simulering, opphørsdato: LocalDate): Either<KunneIkkeUtbetale, Utbetaling.OversendtUtbetaling.UtenKvittering> {
+                override fun opphør(
+                    sakId: UUID,
+                    attestant: NavIdentBruker,
+                    simulering: Simulering,
+                    opphørsdato: LocalDate,
+                ): Either<KunneIkkeUtbetale, Utbetaling.OversendtUtbetaling.UtenKvittering> {
                     assertHarTilgangTilSak(sakId)
                     return services.utbetaling.opphør(sakId, attestant, simulering, opphørsdato)
                 }
@@ -375,7 +380,7 @@ open class AccessCheckProxy(
                         revurderingId = revurderingId,
                         saksbehandler = saksbehandler,
                         fradrag = fradrag,
-                        forventetInntekt = forventetInntekt
+                        forventetInntekt = forventetInntekt,
                     )
                 }
 
@@ -392,6 +397,14 @@ open class AccessCheckProxy(
                         revurderingshandling,
                         fritekst,
                     )
+                }
+
+                override fun lagBrevutkastForForhåndsvarsling(
+                    revurderingId: UUID,
+                    fritekst: String,
+                ): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray> {
+                    assertHarTilgangTilRevurdering(revurderingId)
+                    return services.revurdering.lagBrevutkastForForhåndsvarsling(revurderingId, fritekst)
                 }
 
                 override fun sendTilAttestering(
