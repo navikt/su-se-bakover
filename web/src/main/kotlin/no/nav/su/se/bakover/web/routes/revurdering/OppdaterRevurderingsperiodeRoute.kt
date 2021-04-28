@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
-import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppdatereRevurderingsperiode
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.service.revurdering.OppdaterRevurderingRequest
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.AuditLogEvent
@@ -64,24 +64,28 @@ internal fun Route.oppdaterRevurderingRoute(
     }
 }
 
-private fun KunneIkkeOppdatereRevurderingsperiode.tilResultat(): Resultat {
+private fun KunneIkkeOppdatereRevurdering.tilResultat(): Resultat {
     return when (this) {
-        is KunneIkkeOppdatereRevurderingsperiode.UgyldigPeriode -> GenerelleRevurderingsfeilresponser.ugyldigPeriode(
+        is KunneIkkeOppdatereRevurdering.UgyldigPeriode -> GenerelleRevurderingsfeilresponser.ugyldigPeriode(
             this.subError,
         )
-        is KunneIkkeOppdatereRevurderingsperiode.FantIkkeRevurdering -> fantIkkeRevurdering
-        is KunneIkkeOppdatereRevurderingsperiode.UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)
-        is KunneIkkeOppdatereRevurderingsperiode.PeriodenMåVæreInnenforAlleredeValgtStønadsperiode -> HttpStatusCode.BadRequest.errorJson(
+        is KunneIkkeOppdatereRevurdering.FantIkkeRevurdering -> fantIkkeRevurdering
+        is KunneIkkeOppdatereRevurdering.UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)
+        is KunneIkkeOppdatereRevurdering.PeriodenMåVæreInnenforAlleredeValgtStønadsperiode -> HttpStatusCode.BadRequest.errorJson(
             "Perioden må være innenfor allerede valgt stønadsperiode",
             "perioden_må_være_innenfor_stønadsperioden",
         )
-        KunneIkkeOppdatereRevurderingsperiode.UgyldigBegrunnelse -> HttpStatusCode.BadRequest.errorJson(
+        KunneIkkeOppdatereRevurdering.UgyldigBegrunnelse -> HttpStatusCode.BadRequest.errorJson(
             "Begrunnelse kan ikke være tom",
             "begrunnelse_kan_ikke_være_tom",
         )
-        KunneIkkeOppdatereRevurderingsperiode.UgyldigÅrsak -> HttpStatusCode.BadRequest.errorJson(
+        KunneIkkeOppdatereRevurdering.UgyldigÅrsak -> HttpStatusCode.BadRequest.errorJson(
             "Ugyldig årsak, må være en av: ${Revurderingsårsak.Årsak.values()}",
             "ugyldig_årsak",
+        )
+        KunneIkkeOppdatereRevurdering.KanIkkeOppdatereRevurderingSomErForhåndsvarslet -> HttpStatusCode.BadRequest.errorJson(
+            "Kan ikke oppdatere revurdering som er forhåndsvarslet",
+            "kan_ikke_oppdatere_revurdering_som_er_forhåndsvarslet",
         )
     }
 }

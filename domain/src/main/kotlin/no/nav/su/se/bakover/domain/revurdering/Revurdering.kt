@@ -253,6 +253,7 @@ data class OpprettetRevurdering(
         periode = periode,
         revurderingsårsak = revurderingsårsak,
         behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
+        forhåndsvarsel = if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) Forhåndsvarsel.IngenForhåndsvarsel else null,
     )
 }
 
@@ -273,7 +274,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         oppgaveId = oppgaveId,
         fritekstTilBrev = fritekstTilBrev,
         revurderingsårsak = revurderingsårsak,
-        forhåndsvarsel = forhåndsvarsel,
+        forhåndsvarsel = if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) Forhåndsvarsel.IngenForhåndsvarsel else null,
         behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
     )
 
@@ -492,7 +493,7 @@ sealed class SimulertRevurdering : Revurdering() {
         oppgaveId = oppgaveId,
         fritekstTilBrev = fritekstTilBrev,
         revurderingsårsak = revurderingsårsak,
-        forhåndsvarsel = forhåndsvarsel,
+        forhåndsvarsel = if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) Forhåndsvarsel.IngenForhåndsvarsel else null,
         behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
     )
 }
@@ -941,7 +942,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         oppgaveId = oppgaveId,
         fritekstTilBrev = fritekstTilBrev,
         revurderingsårsak = revurderingsårsak,
-        forhåndsvarsel = forhåndsvarsel,
+        forhåndsvarsel = if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) Forhåndsvarsel.IngenForhåndsvarsel else null,
         behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
     )
 }

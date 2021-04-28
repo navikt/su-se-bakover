@@ -141,25 +141,29 @@ internal class RevurderingServiceImpl(
 
     override fun oppdaterRevurdering(
         oppdaterRevurderingRequest: OppdaterRevurderingRequest,
-    ): Either<KunneIkkeOppdatereRevurderingsperiode, OpprettetRevurdering> {
+    ): Either<KunneIkkeOppdatereRevurdering, OpprettetRevurdering> {
         val revurderingsårsak = oppdaterRevurderingRequest.revurderingsårsak.getOrHandle {
             return when (it) {
-                Revurderingsårsak.UgyldigRevurderingsårsak.UgyldigBegrunnelse -> KunneIkkeOppdatereRevurderingsperiode.UgyldigBegrunnelse
-                Revurderingsårsak.UgyldigRevurderingsårsak.UgyldigÅrsak -> KunneIkkeOppdatereRevurderingsperiode.UgyldigÅrsak
+                Revurderingsårsak.UgyldigRevurderingsårsak.UgyldigBegrunnelse -> KunneIkkeOppdatereRevurdering.UgyldigBegrunnelse
+                Revurderingsårsak.UgyldigRevurderingsårsak.UgyldigÅrsak -> KunneIkkeOppdatereRevurdering.UgyldigÅrsak
             }.left()
         }
 
         val revurdering = revurderingRepo.hent(oppdaterRevurderingRequest.revurderingId)
-            ?: return KunneIkkeOppdatereRevurderingsperiode.FantIkkeRevurdering.left()
+            ?: return KunneIkkeOppdatereRevurdering.FantIkkeRevurdering.left()
+
+        if (revurdering.forhåndsvarsel is Forhåndsvarsel.SkalForhåndsvarsles) {
+            return KunneIkkeOppdatereRevurdering.KanIkkeOppdatereRevurderingSomErForhåndsvarslet.left()
+        }
 
         val stønadsperiode = revurdering.tilRevurdering.periode
         if (!oppdaterRevurderingRequest.fraOgMed.between(stønadsperiode)) {
-            return KunneIkkeOppdatereRevurderingsperiode.PeriodenMåVæreInnenforAlleredeValgtStønadsperiode(revurdering.periode)
+            return KunneIkkeOppdatereRevurdering.PeriodenMåVæreInnenforAlleredeValgtStønadsperiode(revurdering.periode)
                 .left()
         }
         val nyPeriode =
             Periode.tryCreate(oppdaterRevurderingRequest.fraOgMed, stønadsperiode.tilOgMed).getOrHandle {
-                return KunneIkkeOppdatereRevurderingsperiode.UgyldigPeriode(it).left()
+                return KunneIkkeOppdatereRevurdering.UgyldigPeriode(it).left()
             }
 
         return when (revurdering) {
@@ -167,7 +171,7 @@ internal class RevurderingServiceImpl(
             is BeregnetRevurdering -> revurdering.oppdater(nyPeriode, revurderingsårsak).right()
             is SimulertRevurdering -> revurdering.oppdater(nyPeriode, revurderingsårsak).right()
             is UnderkjentRevurdering -> revurdering.oppdater(nyPeriode, revurderingsårsak).right()
-            else -> KunneIkkeOppdatereRevurderingsperiode.UgyldigTilstand(
+            else -> KunneIkkeOppdatereRevurdering.UgyldigTilstand(
                 revurdering::class,
                 OpprettetRevurdering::class,
             ).left()
