@@ -30,7 +30,7 @@ internal class UføregrunnlagPostgresRepo(
     }
 
     override fun hent(behandlingId: UUID): List<Grunnlag.Uføregrunnlag> {
-        return dataSource.withSession { sesison ->
+        return dataSource.withSession { session ->
             """
                 select * from grunnlag_uføre gu
                 join behandling_grunnlag bg
@@ -41,7 +41,7 @@ internal class UføregrunnlagPostgresRepo(
                     mapOf(
                         "behandlingId" to behandlingId,
                     ),
-                    sesison,
+                    session,
                 ) {
                     it.toUføregrunnlag()
                 }
