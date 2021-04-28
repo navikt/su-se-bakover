@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBre
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
@@ -88,6 +89,7 @@ internal class VedtakPosgresRepoTest {
                     Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                     Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
                 ),
+                forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
                 behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
@@ -232,6 +234,7 @@ internal class VedtakPosgresRepoTest {
                     Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
                 ),
                 skalFøreTilBrevutsending = true,
+                forhåndsvarsel = null,
                 behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
                 grunnlagsdata = søknadsbehandlingVedtak.behandling.grunnlagsdata,
             )
@@ -251,6 +254,7 @@ internal class VedtakPosgresRepoTest {
                     Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
                 ),
                 skalFøreTilBrevutsending = true,
+                forhåndsvarsel = null,
                 behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
                 grunnlagsdata = søknadsbehandlingVedtak.behandling.grunnlagsdata,
             )

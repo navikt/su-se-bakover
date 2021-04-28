@@ -31,6 +31,13 @@ interface RevurderingService {
         fradrag: List<Fradrag>,
     ): Either<KunneIkkeBeregneOgSimulereRevurdering, Revurdering>
 
+    fun forhåndsvarsleEllerSendTilAttestering(
+        revurderingId: UUID,
+        saksbehandler: NavIdentBruker.Saksbehandler,
+        revurderingshandling: Revurderingshandling,
+        fritekst: String,
+    ): Either<KunneIkkeForhåndsvarsle, Revurdering>
+
     fun sendTilAttestering(
         request: SendTilAttesteringRequest,
     ): Either<KunneIkkeSendeRevurderingTilAttestering, Revurdering>
@@ -47,8 +54,46 @@ interface RevurderingService {
         attestering: Attestering.Underkjent,
     ): Either<KunneIkkeUnderkjenneRevurdering, UnderkjentRevurdering>
 
+    fun fortsettEtterForhåndsvarsling(
+        request: FortsettEtterForhåndsvarslingRequest,
+    ): Either<FortsettEtterForhåndsvarselFeil, Revurdering>
+
     fun leggTilUføregrunnlag(revurderingId: UUID, uføregrunnlag: List<Grunnlag.Uføregrunnlag>): Either<KunneIkkeLeggeTilGrunnlag, LeggTilUføregrunnlagResponse>
     fun hentUføregrunnlag(revurderingId: UUID): Either<KunneIkkeHenteGrunnlag, GrunnlagService.SimulerEndretGrunnlagsdata>
+}
+
+sealed class FortsettEtterForhåndsvarslingRequest {
+    abstract val revurderingId: UUID
+    abstract val saksbehandler: NavIdentBruker.Saksbehandler
+    abstract val begrunnelse: String
+
+    data class FortsettMedSammeOpplysninger(
+        override val revurderingId: UUID,
+        override val saksbehandler: NavIdentBruker.Saksbehandler,
+        override val begrunnelse: String,
+        val fritekstTilBrev: String,
+    ) : FortsettEtterForhåndsvarslingRequest()
+
+    data class FortsettMedAndreOpplysninger(
+        override val revurderingId: UUID,
+        override val saksbehandler: NavIdentBruker.Saksbehandler,
+        override val begrunnelse: String,
+    ) : FortsettEtterForhåndsvarslingRequest()
+
+    data class AvsluttUtenEndringer(
+        override val revurderingId: UUID,
+        override val saksbehandler: NavIdentBruker.Saksbehandler,
+        override val begrunnelse: String,
+        val fritekstTilBrev: String,
+    ) : FortsettEtterForhåndsvarslingRequest()
+}
+
+sealed class FortsettEtterForhåndsvarselFeil {
+    object FantIkkeRevurdering : FortsettEtterForhåndsvarselFeil()
+    object RevurderingErIkkeIRiktigTilstand : FortsettEtterForhåndsvarselFeil()
+    object RevurderingErIkkeForhåndsvarslet : FortsettEtterForhåndsvarselFeil()
+    object AlleredeBesluttet : FortsettEtterForhåndsvarselFeil()
+    data class Attestering(val subError: KunneIkkeSendeRevurderingTilAttestering) : FortsettEtterForhåndsvarselFeil()
 }
 
 object FantIkkeRevurdering
@@ -59,6 +104,11 @@ data class SendTilAttesteringRequest(
     val fritekstTilBrev: String,
     val skalFøreTilBrevutsending: Boolean,
 )
+
+enum class Revurderingshandling {
+    SEND_TIL_ATTESTERING,
+    FORHÅNDSVARSLE,
+}
 
 sealed class KunneIkkeOppretteRevurdering {
     object FantIkkeSak : KunneIkkeOppretteRevurdering()
@@ -94,6 +144,19 @@ sealed class KunneIkkeBeregneOgSimulereRevurdering {
     object UfullstendigBehandlingsinformasjon : KunneIkkeBeregneOgSimulereRevurdering()
 }
 
+sealed class KunneIkkeForhåndsvarsle {
+    object AlleredeForhåndsvarslet : KunneIkkeForhåndsvarsle()
+    object FantIkkeRevurdering : KunneIkkeForhåndsvarsle()
+    object FantIkkeAktørId : KunneIkkeForhåndsvarsle()
+    object FantIkkePerson : KunneIkkeForhåndsvarsle()
+    object KunneIkkeJournalføre : KunneIkkeForhåndsvarsle()
+    object KunneIkkeDistribuere : KunneIkkeForhåndsvarsle()
+    object KunneIkkeOppretteOppgave : KunneIkkeForhåndsvarsle()
+    data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
+        KunneIkkeForhåndsvarsle()
+    data class Attestering(val subError: KunneIkkeSendeRevurderingTilAttestering) : KunneIkkeForhåndsvarsle()
+}
+
 sealed class KunneIkkeSendeRevurderingTilAttestering {
     object FantIkkeRevurdering : KunneIkkeSendeRevurderingTilAttestering()
     object FantIkkeAktørId : KunneIkkeSendeRevurderingTilAttestering()
@@ -101,6 +164,7 @@ sealed class KunneIkkeSendeRevurderingTilAttestering {
     object KanIkkeRegulereGrunnbeløpTilOpphør : KunneIkkeSendeRevurderingTilAttestering()
     data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
         KunneIkkeSendeRevurderingTilAttestering()
+    object ManglerBeslutningPåForhåndsvarsel : KunneIkkeSendeRevurderingTilAttestering()
 }
 
 sealed class KunneIkkeIverksetteRevurdering {

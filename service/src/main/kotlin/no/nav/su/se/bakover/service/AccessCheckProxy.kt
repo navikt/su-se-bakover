@@ -44,7 +44,10 @@ import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarselFeil
+import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarslingRequest
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeForhåndsvarsle
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeHenteGrunnlag
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLageBrevutkastForRevurdering
@@ -57,6 +60,7 @@ import no.nav.su.se.bakover.service.revurdering.LeggTilUføregrunnlagResponse
 import no.nav.su.se.bakover.service.revurdering.OppdaterRevurderingRequest
 import no.nav.su.se.bakover.service.revurdering.OpprettRevurderingRequest
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
+import no.nav.su.se.bakover.service.revurdering.Revurderingshandling
 import no.nav.su.se.bakover.service.revurdering.SendTilAttesteringRequest
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
@@ -386,6 +390,21 @@ open class AccessCheckProxy(
                     )
                 }
 
+                override fun forhåndsvarsleEllerSendTilAttestering(
+                    revurderingId: UUID,
+                    saksbehandler: NavIdentBruker.Saksbehandler,
+                    revurderingshandling: Revurderingshandling,
+                    fritekst: String,
+                ): Either<KunneIkkeForhåndsvarsle, Revurdering> {
+                    assertHarTilgangTilRevurdering(revurderingId)
+                    return services.revurdering.forhåndsvarsleEllerSendTilAttestering(
+                        revurderingId,
+                        saksbehandler,
+                        revurderingshandling,
+                        fritekst,
+                    )
+                }
+
                 override fun sendTilAttestering(
                     request: SendTilAttesteringRequest,
                 ): Either<KunneIkkeSendeRevurderingTilAttestering, Revurdering> {
@@ -420,6 +439,11 @@ open class AccessCheckProxy(
                 ): Either<KunneIkkeUnderkjenneRevurdering, UnderkjentRevurdering> {
                     assertHarTilgangTilSak(revurderingId)
                     return services.revurdering.underkjenn(revurderingId, attestering)
+                }
+
+                override fun fortsettEtterForhåndsvarsling(request: FortsettEtterForhåndsvarslingRequest): Either<FortsettEtterForhåndsvarselFeil, Revurdering> {
+                    assertHarTilgangTilSak(request.revurderingId)
+                    return services.revurdering.fortsettEtterForhåndsvarsling(request)
                 }
 
                 override fun leggTilUføregrunnlag(revurderingId: UUID, uføregrunnlag: List<Grunnlag.Uføregrunnlag>): Either<KunneIkkeLeggeTilGrunnlag, LeggTilUføregrunnlagResponse> {

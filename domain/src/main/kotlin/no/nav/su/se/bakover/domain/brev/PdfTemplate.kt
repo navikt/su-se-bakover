@@ -15,6 +15,7 @@ sealed class PdfTemplate(
     object AvvistSøknadFritekst : PdfTemplate("avvistSøknadFritekst")
     object Opphørsvedtak : PdfTemplate("opphørsvedtak")
     object VedtakIngenEndring : PdfTemplate("vedtakIngenEndring")
+    object Forhåndsvarsel : PdfTemplate("forhåndsvarsel")
     sealed class Revurdering(templateName: String) : PdfTemplate(templateName) {
         object Inntekt : Revurdering("revurderingAvInntekt")
     }

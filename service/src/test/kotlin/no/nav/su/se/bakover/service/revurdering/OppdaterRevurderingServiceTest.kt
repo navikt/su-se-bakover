@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
@@ -58,6 +59,7 @@ internal class OppdaterRevurderingServiceTest {
         oppgaveId = oppgaveId,
         fritekstTilBrev = "",
         revurderingsårsak = revurderingsårsak,
+        forhåndsvarsel = null,
         behandlingsinformasjon = behandlingsinformasjon,
         grunnlagsdata = Grunnlagsdata.EMPTY,
     )
@@ -175,6 +177,7 @@ internal class OppdaterRevurderingServiceTest {
                     ),
                     behandlingsinformasjon = behandlingsinformasjon,
                     simulering = mock(),
+                    forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
                     grunnlagsdata = Grunnlagsdata.EMPTY,
                 )
             }
@@ -224,6 +227,7 @@ internal class OppdaterRevurderingServiceTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
             behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
+            forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
         inOrder(revurderingRepoMock) {

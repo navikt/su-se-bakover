@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.service.revurdering
 
+import arrow.core.getOrHandle
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
@@ -59,6 +60,7 @@ class RevurderingIngenEndringTest {
             oppgaveId = søknadOppgaveId,
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = null,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata(
                 uføregrunnlag = listOf(
@@ -94,6 +96,7 @@ class RevurderingIngenEndringTest {
                 fritekstTilBrev = "",
                 revurderingsårsak = revurderingsårsak,
                 behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
+                forhåndsvarsel = null,
                 grunnlagsdata = Grunnlagsdata.EMPTY,
             ),
             // beregningstypen er internal i domene modulen
@@ -124,6 +127,7 @@ class RevurderingIngenEndringTest {
             saksbehandler = RevurderingTestUtils.saksbehandler,
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = null,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
@@ -138,6 +142,7 @@ class RevurderingIngenEndringTest {
             saksbehandler = endretSaksbehandler,
             fritekstTilBrev = "endret fritekst",
             revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = null,
             skalFøreTilBrevutsending = true,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
@@ -170,7 +175,7 @@ class RevurderingIngenEndringTest {
                 "endret fritekst",
                 true
             )
-        ).orNull()!! as RevurderingTilAttestering.IngenEndring
+        ).getOrHandle { throw RuntimeException(it.toString()) } as RevurderingTilAttestering.IngenEndring
 
         actual shouldBe revurderingTilAttestering
 
@@ -216,6 +221,7 @@ class RevurderingIngenEndringTest {
             saksbehandler = saksbehandler,
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = null,
             skalFøreTilBrevutsending = false,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
@@ -230,6 +236,7 @@ class RevurderingIngenEndringTest {
             saksbehandler = saksbehandler,
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = null,
             attestering = attesteringUnderkjent,
             skalFøreTilBrevutsending = false,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
@@ -304,6 +311,7 @@ class RevurderingIngenEndringTest {
             saksbehandler = RevurderingTestUtils.saksbehandler,
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = null,
             skalFøreTilBrevutsending = true,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
@@ -364,6 +372,7 @@ class RevurderingIngenEndringTest {
             saksbehandler = RevurderingTestUtils.saksbehandler,
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = null,
             skalFøreTilBrevutsending = false,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,

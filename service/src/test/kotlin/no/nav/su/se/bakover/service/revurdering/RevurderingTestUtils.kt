@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.beregning.MånedsberegningFactory
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -136,6 +137,7 @@ object RevurderingTestUtils {
         behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
         simulering = mock(),
         beregning = beregningMock,
+        forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
         grunnlagsdata = Grunnlagsdata.EMPTY,
     )
 

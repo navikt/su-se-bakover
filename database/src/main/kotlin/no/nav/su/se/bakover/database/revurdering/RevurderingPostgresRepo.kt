@@ -1,10 +1,13 @@
 package no.nav.su.se.bakover.database.revurdering
 
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonTypeInfo
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagRepo
@@ -20,10 +23,14 @@ import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.BeslutningEtterForhåndsvarsling
+import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
@@ -40,6 +47,7 @@ interface RevurderingRepo {
     fun hent(id: UUID, session: Session): Revurdering?
     fun hentEventuellTidligereAttestering(id: UUID): Attestering?
     fun lagre(revurdering: Revurdering)
+    fun oppdaterForhåndsvarsel(id: UUID, forhåndsvarsel: Forhåndsvarsel)
 }
 
 enum class RevurderingsType {
@@ -105,6 +113,26 @@ internal class RevurderingPostgresRepo(
         }
     }
 
+    override fun oppdaterForhåndsvarsel(id: UUID, forhåndsvarsel: Forhåndsvarsel) {
+        dataSource.withSession { session ->
+            """
+                UPDATE
+                    revurdering r
+                SET
+                    forhåndsvarsel = to_json(:forhandsvarsel::json)
+                WHERE
+                    r.id = :id
+            """.trimIndent()
+                .oppdatering(
+                    mapOf(
+                        "id" to id,
+                        "forhandsvarsel" to serialize(ForhåndsvarselDto.from(forhåndsvarsel)),
+                    ),
+                    session,
+                )
+        }
+    }
+
     internal fun hentRevurderingerForSak(sakId: UUID, session: Session): List<Revurdering> =
         """
             SELECT
@@ -137,6 +165,9 @@ internal class RevurderingPostgresRepo(
             begrunnelse = begrunnelse,
         )
         val skalFøreTilBrevutsending = boolean("skalFøreTilBrevutsending")
+        val forhåndsvarsel = stringOrNull("forhåndsvarsel")?.let {
+            objectMapper.readValue<ForhåndsvarselDto>(it).toDomain()
+        }
 
         val behandlingsinformasjon: Behandlingsinformasjon = deserialize(string("behandlingsinformasjon"))
 
@@ -156,6 +187,7 @@ internal class RevurderingPostgresRepo(
                 attestering = attestering!! as Attestering.Underkjent,
                 fritekstTilBrev = fritekstTilBrev ?: "",
                 revurderingsårsak = revurderingsårsak,
+                forhåndsvarsel = forhåndsvarsel!!,
                 behandlingsinformasjon = behandlingsinformasjon,
                 grunnlagsdata = grunnlagsdata,
             )
@@ -171,6 +203,7 @@ internal class RevurderingPostgresRepo(
                 attestering = attestering!! as Attestering.Underkjent,
                 fritekstTilBrev = fritekstTilBrev ?: "",
                 revurderingsårsak = revurderingsårsak,
+                forhåndsvarsel = forhåndsvarsel!!,
                 behandlingsinformasjon = behandlingsinformasjon,
                 grunnlagsdata = grunnlagsdata,
             )
@@ -186,6 +219,7 @@ internal class RevurderingPostgresRepo(
                 attestering = attestering!! as Attestering.Iverksatt,
                 fritekstTilBrev = fritekstTilBrev ?: "",
                 revurderingsårsak = revurderingsårsak,
+                forhåndsvarsel = forhåndsvarsel!!,
                 behandlingsinformasjon = behandlingsinformasjon,
                 grunnlagsdata = grunnlagsdata,
             )
@@ -202,6 +236,7 @@ internal class RevurderingPostgresRepo(
                 grunnlagsdata = grunnlagsdata,
                 fritekstTilBrev = fritekstTilBrev ?: "",
                 revurderingsårsak = revurderingsårsak,
+                forhåndsvarsel = forhåndsvarsel!!,
                 behandlingsinformasjon = behandlingsinformasjon,
             )
             RevurderingsType.TIL_ATTESTERING_INNVILGET -> RevurderingTilAttestering.Innvilget(
@@ -216,6 +251,7 @@ internal class RevurderingPostgresRepo(
                 grunnlagsdata = grunnlagsdata,
                 fritekstTilBrev = fritekstTilBrev ?: "",
                 revurderingsårsak = revurderingsårsak,
+                forhåndsvarsel = forhåndsvarsel!!,
                 behandlingsinformasjon = behandlingsinformasjon,
             )
             RevurderingsType.TIL_ATTESTERING_OPPHØRT -> RevurderingTilAttestering.Opphørt(
@@ -229,6 +265,7 @@ internal class RevurderingPostgresRepo(
                 oppgaveId = OppgaveId(oppgaveId!!),
                 fritekstTilBrev = fritekstTilBrev ?: "",
                 revurderingsårsak = revurderingsårsak,
+                forhåndsvarsel = forhåndsvarsel!!,
                 behandlingsinformasjon = behandlingsinformasjon,
                 grunnlagsdata = grunnlagsdata,
             )
@@ -243,6 +280,7 @@ internal class RevurderingPostgresRepo(
                 oppgaveId = OppgaveId(oppgaveId!!),
                 fritekstTilBrev = fritekstTilBrev ?: "",
                 revurderingsårsak = revurderingsårsak,
+                forhåndsvarsel = forhåndsvarsel,
                 behandlingsinformasjon = behandlingsinformasjon,
                 grunnlagsdata = grunnlagsdata,
             )
@@ -258,6 +296,7 @@ internal class RevurderingPostgresRepo(
                 grunnlagsdata = grunnlagsdata,
                 fritekstTilBrev = fritekstTilBrev ?: "",
                 revurderingsårsak = revurderingsårsak,
+                forhåndsvarsel = forhåndsvarsel,
                 behandlingsinformasjon = behandlingsinformasjon,
             )
             RevurderingsType.BEREGNET_INNVILGET -> BeregnetRevurdering.Innvilget(
@@ -271,6 +310,7 @@ internal class RevurderingPostgresRepo(
                 grunnlagsdata = grunnlagsdata,
                 fritekstTilBrev = fritekstTilBrev ?: "",
                 revurderingsårsak = revurderingsårsak,
+                forhåndsvarsel = forhåndsvarsel,
                 behandlingsinformasjon = behandlingsinformasjon,
             )
             RevurderingsType.BEREGNET_OPPHØRT -> BeregnetRevurdering.Opphørt(
@@ -284,6 +324,7 @@ internal class RevurderingPostgresRepo(
                 grunnlagsdata = grunnlagsdata,
                 fritekstTilBrev = fritekstTilBrev ?: "",
                 revurderingsårsak = revurderingsårsak,
+                forhåndsvarsel = forhåndsvarsel,
                 behandlingsinformasjon = behandlingsinformasjon,
             )
             RevurderingsType.OPPRETTET -> OpprettetRevurdering(
@@ -296,6 +337,7 @@ internal class RevurderingPostgresRepo(
                 grunnlagsdata = grunnlagsdata,
                 fritekstTilBrev = fritekstTilBrev ?: "",
                 revurderingsårsak = revurderingsårsak,
+                forhåndsvarsel = forhåndsvarsel,
                 behandlingsinformasjon = behandlingsinformasjon,
             )
             RevurderingsType.BEREGNET_INGEN_ENDRING -> BeregnetRevurdering.IngenEndring(
@@ -308,6 +350,7 @@ internal class RevurderingPostgresRepo(
                 oppgaveId = OppgaveId(oppgaveId!!),
                 fritekstTilBrev = fritekstTilBrev ?: "",
                 revurderingsårsak = revurderingsårsak,
+                forhåndsvarsel = forhåndsvarsel,
                 behandlingsinformasjon = behandlingsinformasjon,
                 grunnlagsdata = grunnlagsdata,
             )
@@ -321,6 +364,7 @@ internal class RevurderingPostgresRepo(
                 oppgaveId = OppgaveId(oppgaveId!!),
                 fritekstTilBrev = fritekstTilBrev ?: "",
                 revurderingsårsak = revurderingsårsak,
+                forhåndsvarsel = forhåndsvarsel,
                 skalFøreTilBrevutsending = skalFøreTilBrevutsending,
                 behandlingsinformasjon = behandlingsinformasjon,
                 grunnlagsdata = grunnlagsdata,
@@ -335,6 +379,7 @@ internal class RevurderingPostgresRepo(
                 oppgaveId = OppgaveId(oppgaveId!!),
                 fritekstTilBrev = fritekstTilBrev ?: "",
                 revurderingsårsak = revurderingsårsak,
+                forhåndsvarsel = forhåndsvarsel,
                 attestering = attestering!! as Attestering.Iverksatt,
                 skalFøreTilBrevutsending = skalFøreTilBrevutsending,
                 behandlingsinformasjon = behandlingsinformasjon,
@@ -350,6 +395,7 @@ internal class RevurderingPostgresRepo(
                 oppgaveId = OppgaveId(oppgaveId!!),
                 fritekstTilBrev = fritekstTilBrev ?: "",
                 revurderingsårsak = revurderingsårsak,
+                forhåndsvarsel = forhåndsvarsel,
                 attestering = attestering!! as Attestering.Underkjent,
                 skalFøreTilBrevutsending = skalFøreTilBrevutsending,
                 behandlingsinformasjon = behandlingsinformasjon,
@@ -376,6 +422,7 @@ internal class RevurderingPostgresRepo(
                         fritekstTilBrev,
                         årsak,
                         begrunnelse,
+                        forhåndsvarsel,
                         behandlingsinformasjon
                     ) values (
                         :id,
@@ -391,6 +438,7 @@ internal class RevurderingPostgresRepo(
                         :fritekstTilBrev,
                         :arsak,
                         :begrunnelse,
+                        to_json(:forhandsvarsel::json),
                         to_json(:behandlingsinformasjon::json)
                     )
                         ON CONFLICT(id) do update set
@@ -407,6 +455,7 @@ internal class RevurderingPostgresRepo(
                         fritekstTilBrev=:fritekstTilBrev,
                         årsak=:arsak,
                         begrunnelse=:begrunnelse,
+                        forhåndsvarsel=to_json(:forhandsvarsel::json),
                         behandlingsinformasjon=to_json(:behandlingsinformasjon::json)
                 """.trimIndent()
                 ).oppdatering(
@@ -420,6 +469,7 @@ internal class RevurderingPostgresRepo(
                     "fritekstTilBrev" to revurdering.fritekstTilBrev,
                     "arsak" to revurdering.revurderingsårsak.årsak.toString(),
                     "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
+                    "forhandsvarsel" to revurdering.forhåndsvarsel?.let { objectMapper.writeValueAsString(ForhåndsvarselDto.from(it)) },
                     "behandlingsinformasjon" to objectMapper.writeValueAsString(revurdering.behandlingsinformasjon),
                 ),
                 session,
@@ -474,6 +524,7 @@ internal class RevurderingPostgresRepo(
                         revurderingsType = :revurderingsType,
                         årsak = :arsak,
                         begrunnelse =:begrunnelse,
+                        forhåndsvarsel = to_json(:forhandsvarsel::json),
                         behandlingsinformasjon = to_json(:behandlingsinformasjon::json)
                     where
                         id = :id
@@ -490,6 +541,7 @@ internal class RevurderingPostgresRepo(
                         is SimulertRevurdering.Innvilget -> RevurderingsType.SIMULERT_INNVILGET
                         is SimulertRevurdering.Opphørt -> RevurderingsType.SIMULERT_OPPHØRT
                     },
+                    "forhandsvarsel" to revurdering.forhåndsvarsel?.let { objectMapper.writeValueAsString(ForhåndsvarselDto.from(it)) },
                     "behandlingsinformasjon" to objectMapper.writeValueAsString(revurdering.behandlingsinformasjon),
                 ),
                 session,
@@ -623,4 +675,62 @@ internal class RevurderingPostgresRepo(
                 session,
             )
         }
+
+    @JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.PROPERTY,
+        property = "type",
+    )
+    @JsonSubTypes(
+        JsonSubTypes.Type(value = ForhåndsvarselDto.IngenForhåndsvarsel::class, name = "IngenForhåndsvarsel"),
+        JsonSubTypes.Type(value = ForhåndsvarselDto.Sendt::class, name = "Sendt"),
+        JsonSubTypes.Type(value = ForhåndsvarselDto.Besluttet::class, name = "Besluttet"),
+    )
+    sealed class ForhåndsvarselDto {
+        object IngenForhåndsvarsel : ForhåndsvarselDto()
+
+        data class Sendt(
+            val journalpostId: JournalpostId,
+            val brevbestillingId: BrevbestillingId?,
+        ) : ForhåndsvarselDto()
+
+        data class Besluttet(
+            val journalpostId: JournalpostId,
+            val brevbestillingId: BrevbestillingId?,
+            val valg: BeslutningEtterForhåndsvarsling,
+            val begrunnelse: String,
+        ) : ForhåndsvarselDto()
+
+        fun toDomain(): Forhåndsvarsel =
+            when (this) {
+                is Sendt -> Forhåndsvarsel.SkalForhåndsvarsles.Sendt(
+                    journalpostId = journalpostId,
+                    brevbestillingId = brevbestillingId,
+                )
+                is IngenForhåndsvarsel -> Forhåndsvarsel.IngenForhåndsvarsel
+                is Besluttet -> Forhåndsvarsel.SkalForhåndsvarsles.Besluttet(
+                    journalpostId = journalpostId,
+                    brevbestillingId = brevbestillingId,
+                    valg = valg,
+                    begrunnelse = begrunnelse,
+                )
+            }
+
+        companion object {
+            fun from(forhåndsvarsel: Forhåndsvarsel) =
+                when (forhåndsvarsel) {
+                    is Forhåndsvarsel.SkalForhåndsvarsles.Sendt -> Sendt(
+                        journalpostId = forhåndsvarsel.journalpostId,
+                        brevbestillingId = forhåndsvarsel.brevbestillingId,
+                    )
+                    is Forhåndsvarsel.IngenForhåndsvarsel -> IngenForhåndsvarsel
+                    is Forhåndsvarsel.SkalForhåndsvarsles.Besluttet -> Besluttet(
+                        journalpostId = forhåndsvarsel.journalpostId,
+                        brevbestillingId = forhåndsvarsel.brevbestillingId,
+                        valg = forhåndsvarsel.valg,
+                        begrunnelse = forhåndsvarsel.begrunnelse,
+                    )
+                }
+        }
+    }
 }

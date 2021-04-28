@@ -9,13 +9,15 @@ internal const val revurderingPath = "$sakPath/{sakId}/revurderinger"
 
 @KtorExperimentalAPI
 internal fun Route.revurderingRoutes(
-    revurderingService: RevurderingService
+    revurderingService: RevurderingService,
 ) {
     opprettRevurderingRoute(revurderingService)
 
     oppdaterRevurderingRoute(revurderingService)
 
     beregnOgSimulerRevurdering(revurderingService)
+
+    forhåndsvarslingRoute(revurderingService)
 
     sendRevurderingTilAttestering(revurderingService)
 
@@ -24,6 +26,8 @@ internal fun Route.revurderingRoutes(
     iverksettRevurderingRoute(revurderingService)
 
     brevutkastForRevurdering(revurderingService)
+
+    fortsettEtterForhåndsvarselRoute(revurderingService)
 
     leggTilGrunnlagRevurderingRoutes(revurderingService)
 

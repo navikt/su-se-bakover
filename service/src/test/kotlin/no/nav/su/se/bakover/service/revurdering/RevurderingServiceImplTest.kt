@@ -11,6 +11,8 @@ import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.times
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
+import io.kotest.assertions.arrow.either.shouldBeLeft
+import io.kotest.assertions.arrow.either.shouldBeRight
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
@@ -34,10 +36,12 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
@@ -46,8 +50,11 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.BeslutningEtterForhåndsvarsling
+import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
@@ -56,9 +63,12 @@ import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakType
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.person
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.beregning.TestBeregningSomGirOpphør
 import no.nav.su.se.bakover.service.brev.BrevService
+import no.nav.su.se.bakover.service.brev.KunneIkkeDistribuereBrev
+import no.nav.su.se.bakover.service.brev.KunneIkkeJournalføreBrev
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
@@ -240,6 +250,7 @@ internal class RevurderingServiceImplTest {
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = null,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata(
                 uføregrunnlag = listOf(
@@ -305,6 +316,7 @@ internal class RevurderingServiceImplTest {
             oppgaveId = mock(),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
@@ -341,6 +353,7 @@ internal class RevurderingServiceImplTest {
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = null,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata(
                 uføregrunnlag = listOf(
@@ -477,6 +490,7 @@ internal class RevurderingServiceImplTest {
     fun `sender ikke til attestering hvis henting av aktørId feiler`() {
         val simulertRevurdering = mock<SimulertRevurdering> {
             on { fnr } doReturn fnr
+            on { forhåndsvarsel } doReturn Forhåndsvarsel.IngenForhåndsvarsel
         }
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn simulertRevurdering
@@ -510,6 +524,7 @@ internal class RevurderingServiceImplTest {
         val simulertRevurdering = mock<SimulertRevurdering> {
             on { fnr } doReturn fnr
             on { saksnummer } doReturn saksnummer
+            on { forhåndsvarsel } doReturn Forhåndsvarsel.IngenForhåndsvarsel
         }
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn simulertRevurdering
@@ -570,6 +585,7 @@ internal class RevurderingServiceImplTest {
             attestering = Attestering.Iverksatt(attestant),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
@@ -584,6 +600,7 @@ internal class RevurderingServiceImplTest {
             saksbehandler = saksbehandler,
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
@@ -657,6 +674,7 @@ internal class RevurderingServiceImplTest {
             saksbehandler = saksbehandler,
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
@@ -722,6 +740,7 @@ internal class RevurderingServiceImplTest {
             oppgaveId = OppgaveId("oppgaveId"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
@@ -805,6 +824,7 @@ internal class RevurderingServiceImplTest {
             oppgaveId = OppgaveId("oppgaveId"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             attestering = attestering,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata(
@@ -898,6 +918,7 @@ internal class RevurderingServiceImplTest {
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = null,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
@@ -977,6 +998,7 @@ internal class RevurderingServiceImplTest {
             ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = null,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
@@ -1029,6 +1051,7 @@ internal class RevurderingServiceImplTest {
             ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = null,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
@@ -1089,6 +1112,7 @@ internal class RevurderingServiceImplTest {
             ),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = null,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
@@ -1146,6 +1170,7 @@ internal class RevurderingServiceImplTest {
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = null,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
@@ -1178,6 +1203,7 @@ internal class RevurderingServiceImplTest {
             oppgaveId = OppgaveId("oppgaveid"),
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = null,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
         )
@@ -1196,5 +1222,610 @@ internal class RevurderingServiceImplTest {
 
         verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
         verifyNoMoreInteractions(revurderingRepoMock)
+    }
+
+    @Test
+    fun `forhåndsvarsler en simulert-revurdering`() {
+        val simulertRevurdering = SimulertRevurdering.Innvilget(
+            id = revurderingId,
+            periode = periode,
+            opprettet = Tidspunkt.now(),
+            tilRevurdering = søknadsbehandlingVedtak,
+            saksbehandler = saksbehandler,
+            beregning = TestBeregning,
+            simulering = Simulering(
+                gjelderId = fnr,
+                gjelderNavn = "navn",
+                datoBeregnet = LocalDate.now(),
+                nettoBeløp = 0,
+                periodeList = listOf(),
+            ),
+            oppgaveId = OppgaveId("oppgaveid"),
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = null,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
+        )
+
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn simulertRevurdering
+            on { lagre(any()) }.doNothing()
+        }
+
+        val personServiceMock = mock<PersonService> {
+            on { hentAktørId(any()) } doReturn aktørId.right()
+            on { hentPerson(any()) } doReturn person.right()
+        }
+
+        val journalpostId = JournalpostId("journalpostId")
+        val brevbestillingId = BrevbestillingId("brevbestillignsId")
+        val brevServiceMock = mock<BrevService> {
+            on { journalførBrev(any(), any()) } doReturn journalpostId.right()
+            on { distribuerBrev(any()) } doReturn brevbestillingId.right()
+        }
+
+        val oppgaveServiceMock = mock<OppgaveService> {
+            on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
+        }
+
+        val revurdering = createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+            personService = personServiceMock,
+            brevService = brevServiceMock,
+            oppgaveService = oppgaveServiceMock,
+        ).forhåndsvarsleEllerSendTilAttestering(
+            revurderingId = revurderingId,
+            saksbehandler = saksbehandler,
+            revurderingshandling = Revurderingshandling.FORHÅNDSVARSLE,
+            fritekst = "",
+        ).getOrHandle { throw RuntimeException("Her skulle vi ha fått en revurdering") }
+
+        revurdering.forhåndsvarsel shouldBe Forhåndsvarsel.SkalForhåndsvarsles.Sendt(journalpostId, brevbestillingId)
+
+        inOrder(revurderingRepoMock, personServiceMock, brevServiceMock, oppgaveServiceMock) {
+            verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
+            verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
+            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
+            verify(brevServiceMock).journalførBrev(
+                argThat {
+                    it shouldBe LagBrevRequest.Forhåndsvarsel(
+                        person = person,
+                        beregning = simulertRevurdering.beregning,
+                        fritekst = "",
+                    )
+                },
+                argThat { it shouldBe saksnummer },
+            )
+            verify(brevServiceMock).distribuerBrev(argThat { it shouldBe journalpostId })
+            verify(revurderingRepoMock).lagre(
+                argThat { it shouldBe simulertRevurdering },
+            )
+            verify(oppgaveServiceMock).opprettOppgave(
+                argThat {
+                    it shouldBe OppgaveConfig.Forhåndsvarsling(
+                        saksnummer = saksnummer,
+                        aktørId = aktørId,
+                        tilordnetRessurs = null,
+                    )
+                },
+            )
+        }
+
+        verifyNoMoreInteractions(
+            revurderingRepoMock,
+            personServiceMock,
+            brevServiceMock,
+            oppgaveServiceMock,
+        )
+    }
+
+    @Test
+    fun `forhåndsvarsler ikke en allerede forhåndsvarslet revurdering`() {
+        val simulertRevurdering = SimulertRevurdering.Innvilget(
+            id = revurderingId,
+            periode = periode,
+            opprettet = Tidspunkt.now(),
+            tilRevurdering = søknadsbehandlingVedtak,
+            saksbehandler = saksbehandler,
+            beregning = TestBeregning,
+            simulering = Simulering(
+                gjelderId = fnr,
+                gjelderNavn = "navn",
+                datoBeregnet = LocalDate.now(),
+                nettoBeløp = 0,
+                periodeList = listOf(),
+            ),
+            oppgaveId = OppgaveId("oppgaveid"),
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
+        )
+
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn simulertRevurdering
+        }
+
+        createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+        ).forhåndsvarsleEllerSendTilAttestering(
+            revurderingId = revurderingId,
+            saksbehandler = saksbehandler,
+            revurderingshandling = Revurderingshandling.FORHÅNDSVARSLE,
+            fritekst = "",
+        ) shouldBe KunneIkkeForhåndsvarsle.AlleredeForhåndsvarslet.left()
+    }
+
+    private fun testForhåndsvarslerIkkeGittRevurdering(revurdering: Revurdering) {
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn revurdering
+        }
+
+        createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+        ).forhåndsvarsleEllerSendTilAttestering(
+            revurderingId = revurderingId,
+            saksbehandler = saksbehandler,
+            revurderingshandling = Revurderingshandling.FORHÅNDSVARSLE,
+            fritekst = "",
+        ) shouldBe KunneIkkeForhåndsvarsle.UgyldigTilstand(
+            revurdering::class,
+            SimulertRevurdering::class,
+        ).left()
+    }
+
+    @Test
+    fun `forhåndsvarsler bare simulerte revurderinger`() {
+        val opprettet = OpprettetRevurdering(
+            id = revurderingId,
+            periode = periode,
+            opprettet = Tidspunkt.now(),
+            tilRevurdering = søknadsbehandlingVedtak,
+            saksbehandler = saksbehandler,
+            oppgaveId = OppgaveId("oppgaveid"),
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = null,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
+        )
+        testForhåndsvarslerIkkeGittRevurdering(opprettet)
+
+        val beregnet = BeregnetRevurdering.Innvilget(
+            id = revurderingId,
+            periode = periode,
+            opprettet = Tidspunkt.now(),
+            tilRevurdering = søknadsbehandlingVedtak,
+            saksbehandler = saksbehandler,
+            oppgaveId = OppgaveId("oppgaveid"),
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = null,
+            beregning = TestBeregning,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
+        )
+        testForhåndsvarslerIkkeGittRevurdering(beregnet)
+    }
+
+    @Test
+    fun `forhåndsvarsler men hentAktørId failer`() {
+        val simulertRevurdering = SimulertRevurdering.Innvilget(
+            id = revurderingId,
+            periode = periode,
+            opprettet = Tidspunkt.now(),
+            tilRevurdering = søknadsbehandlingVedtak,
+            saksbehandler = saksbehandler,
+            beregning = TestBeregning,
+            simulering = Simulering(
+                gjelderId = fnr,
+                gjelderNavn = "navn",
+                datoBeregnet = LocalDate.now(),
+                nettoBeløp = 0,
+                periodeList = listOf(),
+            ),
+            oppgaveId = OppgaveId("oppgaveid"),
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = null,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
+        )
+
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn simulertRevurdering
+        }
+
+        val personServiceMock = mock<PersonService> {
+            on { hentAktørId(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
+        }
+
+        createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+            personService = personServiceMock,
+        ).forhåndsvarsleEllerSendTilAttestering(
+            revurderingId = revurderingId,
+            saksbehandler = saksbehandler,
+            revurderingshandling = Revurderingshandling.FORHÅNDSVARSLE,
+            fritekst = "",
+        ) shouldBe KunneIkkeForhåndsvarsle.FantIkkeAktørId.left()
+    }
+
+    @Test
+    fun `forhåndsvarsler men hentPerson failer`() {
+        val simulertRevurdering = SimulertRevurdering.Innvilget(
+            id = revurderingId,
+            periode = periode,
+            opprettet = Tidspunkt.now(),
+            tilRevurdering = søknadsbehandlingVedtak,
+            saksbehandler = saksbehandler,
+            beregning = TestBeregning,
+            simulering = Simulering(
+                gjelderId = fnr,
+                gjelderNavn = "navn",
+                datoBeregnet = LocalDate.now(),
+                nettoBeløp = 0,
+                periodeList = listOf(),
+            ),
+            oppgaveId = OppgaveId("oppgaveid"),
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = null,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
+        )
+
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn simulertRevurdering
+        }
+
+        val personServiceMock = mock<PersonService> {
+            on { hentAktørId(any()) } doReturn aktørId.right()
+            on { hentPerson(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
+        }
+
+        createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+            personService = personServiceMock,
+        ).forhåndsvarsleEllerSendTilAttestering(
+            revurderingId = revurderingId,
+            saksbehandler = saksbehandler,
+            revurderingshandling = Revurderingshandling.FORHÅNDSVARSLE,
+            fritekst = "",
+        ) shouldBe KunneIkkeForhåndsvarsle.FantIkkePerson.left()
+    }
+
+    @Test
+    fun `forhåndsvarsler men journalføring failer`() {
+        val simulertRevurdering = SimulertRevurdering.Innvilget(
+            id = revurderingId,
+            periode = periode,
+            opprettet = Tidspunkt.now(),
+            tilRevurdering = søknadsbehandlingVedtak,
+            saksbehandler = saksbehandler,
+            beregning = TestBeregning,
+            simulering = Simulering(
+                gjelderId = fnr,
+                gjelderNavn = "navn",
+                datoBeregnet = LocalDate.now(),
+                nettoBeløp = 0,
+                periodeList = listOf(),
+            ),
+            oppgaveId = OppgaveId("oppgaveid"),
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = null,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
+        )
+
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn simulertRevurdering
+        }
+
+        val personServiceMock = mock<PersonService> {
+            on { hentAktørId(any()) } doReturn aktørId.right()
+            on { hentPerson(any()) } doReturn person.right()
+        }
+
+        val brevServiceMock = mock<BrevService> {
+            on { journalførBrev(any(), any()) } doReturn KunneIkkeJournalføreBrev.KunneIkkeOppretteJournalpost.left()
+        }
+
+        createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+            personService = personServiceMock,
+            brevService = brevServiceMock,
+        ).forhåndsvarsleEllerSendTilAttestering(
+            revurderingId = revurderingId,
+            saksbehandler = saksbehandler,
+            revurderingshandling = Revurderingshandling.FORHÅNDSVARSLE,
+            fritekst = "",
+        ) shouldBe KunneIkkeForhåndsvarsle.KunneIkkeJournalføre.left()
+    }
+
+    @Test
+    fun `forhåndsvarsler men distribuering failer`() {
+        val simulertRevurdering = SimulertRevurdering.Innvilget(
+            id = revurderingId,
+            periode = periode,
+            opprettet = Tidspunkt.now(),
+            tilRevurdering = søknadsbehandlingVedtak,
+            saksbehandler = saksbehandler,
+            beregning = TestBeregning,
+            simulering = Simulering(
+                gjelderId = fnr,
+                gjelderNavn = "navn",
+                datoBeregnet = LocalDate.now(),
+                nettoBeløp = 0,
+                periodeList = listOf(),
+            ),
+            oppgaveId = OppgaveId("oppgaveid"),
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = null,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
+        )
+
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn simulertRevurdering
+        }
+
+        val personServiceMock = mock<PersonService> {
+            on { hentAktørId(any()) } doReturn aktørId.right()
+            on { hentPerson(any()) } doReturn person.right()
+        }
+
+        val brevServiceMock = mock<BrevService> {
+            on { journalførBrev(any(), any()) } doReturn JournalpostId("journalpostId").right()
+            on { distribuerBrev(any()) } doReturn KunneIkkeDistribuereBrev.left()
+        }
+
+        createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+            personService = personServiceMock,
+            brevService = brevServiceMock,
+        ).forhåndsvarsleEllerSendTilAttestering(
+            revurderingId = revurderingId,
+            saksbehandler = saksbehandler,
+            revurderingshandling = Revurderingshandling.FORHÅNDSVARSLE,
+            fritekst = "",
+        ) shouldBe KunneIkkeForhåndsvarsle.KunneIkkeDistribuere.left()
+    }
+
+    @Test
+    fun `forhåndsvarsler men oppgave failer`() {
+        val simulertRevurdering = SimulertRevurdering.Innvilget(
+            id = revurderingId,
+            periode = periode,
+            opprettet = Tidspunkt.now(),
+            tilRevurdering = søknadsbehandlingVedtak,
+            saksbehandler = saksbehandler,
+            beregning = TestBeregning,
+            simulering = Simulering(
+                gjelderId = fnr,
+                gjelderNavn = "navn",
+                datoBeregnet = LocalDate.now(),
+                nettoBeløp = 0,
+                periodeList = listOf(),
+            ),
+            oppgaveId = OppgaveId("oppgaveid"),
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = null,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
+        )
+
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn simulertRevurdering
+        }
+
+        val personServiceMock = mock<PersonService> {
+            on { hentAktørId(any()) } doReturn aktørId.right()
+            on { hentPerson(any()) } doReturn person.right()
+        }
+
+        val brevServiceMock = mock<BrevService> {
+            on { journalførBrev(any(), any()) } doReturn JournalpostId("journalpostId").right()
+            on { distribuerBrev(any()) } doReturn BrevbestillingId("brevbeswtillignsId").right()
+        }
+
+        val oppgaveServiceMock = mock<OppgaveService> {
+            on { opprettOppgave(any()) } doReturn KunneIkkeOppretteOppgave.left()
+        }
+
+        createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+            personService = personServiceMock,
+            brevService = brevServiceMock,
+            oppgaveService = oppgaveServiceMock,
+        ).forhåndsvarsleEllerSendTilAttestering(
+            revurderingId = revurderingId,
+            saksbehandler = saksbehandler,
+            revurderingshandling = Revurderingshandling.FORHÅNDSVARSLE,
+            fritekst = "",
+        ) shouldBe KunneIkkeForhåndsvarsle.KunneIkkeOppretteOppgave.left()
+    }
+
+    @Test
+    fun `fortsetter etter forhåndsvarsling`() {
+        val journalpostId = JournalpostId(
+            "journalpostId",
+        )
+        val brevbestillingId = BrevbestillingId("brevbestillignsid")
+        val simulertRevurdering = SimulertRevurdering.Innvilget(
+            id = revurderingId,
+            periode = periode,
+            opprettet = Tidspunkt.now(),
+            tilRevurdering = søknadsbehandlingVedtak,
+            saksbehandler = saksbehandler,
+            beregning = TestBeregning,
+            simulering = Simulering(
+                gjelderId = fnr,
+                gjelderNavn = "navn",
+                datoBeregnet = LocalDate.now(),
+                nettoBeløp = 0,
+                periodeList = listOf(),
+            ),
+            oppgaveId = OppgaveId("oppgaveid"),
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt(
+                journalpostId,
+                brevbestillingId,
+            ),
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
+        )
+
+        var harKalltForhådsvarsel = false
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) }.then {
+                if (harKalltForhådsvarsel) {
+                    simulertRevurdering.copy(
+                        forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Besluttet(
+                            journalpostId = journalpostId,
+                            brevbestillingId = brevbestillingId,
+                            valg = BeslutningEtterForhåndsvarsling.FortsettSammeOpplysninger,
+                            begrunnelse = "",
+                        ),
+                    )
+                } else {
+                    simulertRevurdering
+                }
+            }
+            on { oppdaterForhåndsvarsel(any(), any()) }.then {
+                harKalltForhådsvarsel = true
+                Unit
+            }
+            on { hentEventuellTidligereAttestering(any()) } doReturn null
+            on { lagre(any()) }.doNothing()
+        }
+
+        val personServiceMock = mock<PersonService> {
+            on { hentAktørId(any()) } doReturn aktørId.right()
+        }
+
+        val oppgaveServiceMock = mock<OppgaveService> {
+            on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
+            on { lukkOppgave(any()) } doReturn Unit.right()
+        }
+
+        val eventObserver: EventObserver = mock()
+
+        val revurderingService = createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+            personService = personServiceMock,
+            oppgaveService = oppgaveServiceMock,
+        ).apply { addObserver(eventObserver) }
+
+        val revurdering = revurderingService.fortsettEtterForhåndsvarsling(
+            FortsettEtterForhåndsvarslingRequest.FortsettMedSammeOpplysninger(
+                revurderingId = revurderingId,
+                saksbehandler = saksbehandler,
+                begrunnelse = "",
+                fritekstTilBrev = "",
+            ),
+        )
+
+        revurdering.map { it.forhåndsvarsel } shouldBeRight Forhåndsvarsel.SkalForhåndsvarsles.Besluttet(
+            journalpostId = journalpostId,
+            brevbestillingId = brevbestillingId,
+            valg = BeslutningEtterForhåndsvarsling.FortsettSammeOpplysninger,
+            begrunnelse = "",
+        )
+    }
+
+    @Test
+    fun `beslutter ikke en allerede besluttet forhåndsvarsling`() {
+        val journalpostId = JournalpostId(
+            "journalpostId",
+        )
+        val brevbestillingId = BrevbestillingId("brevbestillignsid")
+        val simulertRevurdering = SimulertRevurdering.Innvilget(
+            id = revurderingId,
+            periode = periode,
+            opprettet = Tidspunkt.now(),
+            tilRevurdering = søknadsbehandlingVedtak,
+            saksbehandler = saksbehandler,
+            beregning = TestBeregning,
+            simulering = Simulering(
+                gjelderId = fnr,
+                gjelderNavn = "navn",
+                datoBeregnet = LocalDate.now(),
+                nettoBeløp = 0,
+                periodeList = listOf(),
+            ),
+            oppgaveId = OppgaveId("oppgaveid"),
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Besluttet(
+                journalpostId,
+                brevbestillingId,
+                BeslutningEtterForhåndsvarsling.FortsettMedAndreOpplysninger,
+                "",
+            ),
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
+        )
+
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn simulertRevurdering
+        }
+
+        createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+        ).fortsettEtterForhåndsvarsling(
+            FortsettEtterForhåndsvarslingRequest.FortsettMedSammeOpplysninger(
+                revurderingId = revurderingId,
+                saksbehandler = saksbehandler,
+                begrunnelse = "",
+                fritekstTilBrev = "",
+            ),
+        ) shouldBeLeft FortsettEtterForhåndsvarselFeil.AlleredeBesluttet
+    }
+
+    @Test
+    fun `beslutter ikke en allerede besluttet forhåndsvarsling ingenEndring`() {
+        val simulertRevurdering = SimulertRevurdering.Innvilget(
+            id = revurderingId,
+            periode = periode,
+            opprettet = Tidspunkt.now(),
+            tilRevurdering = søknadsbehandlingVedtak,
+            saksbehandler = saksbehandler,
+            beregning = TestBeregning,
+            simulering = Simulering(
+                gjelderId = fnr,
+                gjelderNavn = "navn",
+                datoBeregnet = LocalDate.now(),
+                nettoBeløp = 0,
+                periodeList = listOf(),
+            ),
+            oppgaveId = OppgaveId("oppgaveid"),
+            fritekstTilBrev = "",
+            revurderingsårsak = revurderingsårsak,
+            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+            behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
+        )
+
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn simulertRevurdering
+        }
+
+        createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+        ).fortsettEtterForhåndsvarsling(
+            FortsettEtterForhåndsvarslingRequest.FortsettMedSammeOpplysninger(
+                revurderingId = revurderingId,
+                saksbehandler = saksbehandler,
+                begrunnelse = "",
+                fritekstTilBrev = "",
+            ),
+        ) shouldBeLeft FortsettEtterForhåndsvarselFeil.AlleredeBesluttet
     }
 }
