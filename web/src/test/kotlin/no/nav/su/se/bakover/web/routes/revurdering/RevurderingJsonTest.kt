@@ -20,6 +20,12 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
+import no.nav.su.se.bakover.domain.vilkår.Vilkår
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.web.routes.grunnlag.expectedUføregrunnlagJson
+import no.nav.su.se.bakover.web.routes.grunnlag.expectedVurderingUføreJson
+import no.nav.su.se.bakover.web.routes.grunnlag.uføregrunnlag
+import no.nav.su.se.bakover.web.routes.grunnlag.vurderingsperiodeUføre
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.vedtak
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingsinformasjonJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.TestBeregning
@@ -50,7 +56,14 @@ internal class RevurderingJsonTest {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata(
+                uføregrunnlag = listOf(uføregrunnlag)
+            ),
+            vilkårsvurderinger = Vilkårsvurderinger(
+                uføre = Vilkår.Vurdert.Uførhet(
+                    vurderingsperioder = listOf(vurderingsperiodeUføre)
+                )
+            ),
         )
 
         val revurderingJson =
@@ -72,7 +85,10 @@ internal class RevurderingJsonTest {
                 "forhåndsvarsel": null,
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "grunnlag": {
-                    "uføre": []
+                   "uføre": [$expectedUføregrunnlagJson]
+                },
+                "vilkårsvurderinger": {
+                  "uføre": $expectedVurderingUføreJson
                 }
             }
             """.trimIndent()
@@ -100,6 +116,7 @@ internal class RevurderingJsonTest {
             forhåndsvarsel = null,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
         val revurderingJson =
@@ -127,6 +144,9 @@ internal class RevurderingJsonTest {
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "grunnlag": {
                     "uføre": []
+                },
+                "vilkårsvurderinger": {
+                  "uføre": null
                 }
             }
             """.trimIndent()
@@ -154,6 +174,7 @@ internal class RevurderingJsonTest {
             forhåndsvarsel = null,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
         val revurderingJson =
@@ -181,6 +202,9 @@ internal class RevurderingJsonTest {
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "grunnlag": {
                     "uføre": []
+                },
+                "vilkårsvurderinger": {
+                  "uføre": null
                 }
             }
             """.trimIndent()
@@ -208,6 +232,7 @@ internal class RevurderingJsonTest {
             forhåndsvarsel = null,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
         val revurderingJson =
@@ -235,6 +260,9 @@ internal class RevurderingJsonTest {
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "grunnlag": {
                     "uføre": []
+                },
+                "vilkårsvurderinger": {
+                  "uføre": null
                 }
             }
             """.trimIndent()
@@ -263,6 +291,7 @@ internal class RevurderingJsonTest {
             forhåndsvarsel = null,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
         val revurderingJson =
@@ -294,6 +323,9 @@ internal class RevurderingJsonTest {
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "grunnlag": {
                     "uføre": []
+                },
+                "vilkårsvurderinger": {
+                  "uføre": null
                 }
             }
             """.trimIndent()
@@ -322,6 +354,7 @@ internal class RevurderingJsonTest {
             forhåndsvarsel = null,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
         val revurderingJson =
@@ -353,6 +386,9 @@ internal class RevurderingJsonTest {
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "grunnlag": {
                     "uføre": []
+                },
+                "vilkårsvurderinger": {
+                  "uføre": null
                 }
             }
             """.trimIndent()
@@ -381,6 +417,7 @@ internal class RevurderingJsonTest {
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
         val revurderingJson =
@@ -413,6 +450,9 @@ internal class RevurderingJsonTest {
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "grunnlag": {
                     "uføre": []
+                },
+                "vilkårsvurderinger": {
+                  "uføre": null
                 }
             }
             """.trimIndent()
@@ -441,6 +481,7 @@ internal class RevurderingJsonTest {
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
         val revurderingJson =
@@ -473,6 +514,9 @@ internal class RevurderingJsonTest {
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "grunnlag": {
                     "uføre": []
+                },
+                "vilkårsvurderinger": {
+                  "uføre": null
                 }
             }
             """.trimIndent()
@@ -501,6 +545,7 @@ internal class RevurderingJsonTest {
             skalFøreTilBrevutsending = false,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
         val revurderingJson =
@@ -530,6 +575,9 @@ internal class RevurderingJsonTest {
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "grunnlag": {
                     "uføre": []
+                },
+                "vilkårsvurderinger": {
+                  "uføre": null
                 }
             }
             """.trimIndent()
@@ -563,6 +611,7 @@ internal class RevurderingJsonTest {
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
         val expected =
@@ -602,6 +651,9 @@ internal class RevurderingJsonTest {
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "grunnlag": {
                     "uføre": []
+                },
+                "vilkårsvurderinger": {
+                  "uføre": null
                 }
             }
             """.trimIndent()
@@ -635,6 +687,7 @@ internal class RevurderingJsonTest {
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
         val expected =
@@ -674,6 +727,9 @@ internal class RevurderingJsonTest {
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "grunnlag": {
                     "uføre": []
+                },
+                "vilkårsvurderinger": {
+                  "uføre": null
                 }
             }
             """.trimIndent()
@@ -707,6 +763,7 @@ internal class RevurderingJsonTest {
             skalFøreTilBrevutsending = false,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
         val expected =
@@ -743,6 +800,9 @@ internal class RevurderingJsonTest {
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "grunnlag": {
                     "uføre": []
+                },
+                "vilkårsvurderinger": {
+                  "uføre": null
                 }
             }
             """.trimIndent()
@@ -772,6 +832,7 @@ internal class RevurderingJsonTest {
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
         val revurderingJson =
@@ -805,6 +866,9 @@ internal class RevurderingJsonTest {
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "grunnlag": {
                     "uføre": []
+                },
+                "vilkårsvurderinger": {
+                  "uføre": null
                 }
             }
             """.trimIndent()
@@ -834,6 +898,7 @@ internal class RevurderingJsonTest {
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
         val revurderingJson =
@@ -867,6 +932,9 @@ internal class RevurderingJsonTest {
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "grunnlag": {
                     "uføre": []
+                },
+                "vilkårsvurderinger": {
+                  "uføre": null
                 }
             }
             """.trimIndent()
@@ -896,6 +964,7 @@ internal class RevurderingJsonTest {
             skalFøreTilBrevutsending = true,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
         val revurderingJson =
@@ -926,6 +995,9 @@ internal class RevurderingJsonTest {
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "grunnlag": {
                     "uføre": []
+                },
+                "vilkårsvurderinger": {
+                  "uføre": null
                 }
             }
             """.trimIndent()

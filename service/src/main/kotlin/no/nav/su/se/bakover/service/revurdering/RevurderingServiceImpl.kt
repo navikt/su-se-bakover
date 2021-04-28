@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -35,9 +36,13 @@ import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.erKlarForAttestering
 import no.nav.su.se.bakover.domain.revurdering.medFritekst
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.vilkår.Vilkår
+import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
+import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
@@ -62,6 +67,7 @@ internal class RevurderingServiceImpl(
     internal val vedtakRepo: VedtakRepo,
     internal val ferdigstillVedtakService: FerdigstillVedtakService,
     private val grunnlagService: GrunnlagService,
+    private val vilkårsvurderingService: VilkårsvurderingService,
 ) : RevurderingService {
 
     private val observers: MutableList<EventObserver> = mutableListOf()
@@ -109,7 +115,11 @@ internal class RevurderingServiceImpl(
             return KunneIkkeOppretteRevurdering.FantIkkeAktørId.left()
         }
 
-        val grunnlag = grunnlagService.opprettGrunnlagsdata(sak.id, periode)
+        val vilkårsvurderinger = vilkårsvurderingService.opprettVilkårsvurderinger(sak.id, periode)
+        val grunnlag = when (val vilkårsvurderingUføre = vilkårsvurderinger.uføre) {
+            Vilkår.IkkeVurdert.Uførhet -> Grunnlagsdata(uføregrunnlag = emptyList())
+            is Vilkår.Vurdert.Uførhet -> Grunnlagsdata(uføregrunnlag = vilkårsvurderingUføre.grunnlag)
+        }
 
         // TODO ai 25.02.2021 - Oppgaven skal egentligen ikke opprettes her. Den burde egentligen komma utifra melding av endring, som skal føres til revurdering.
         return oppgaveService.opprettOppgave(
@@ -132,12 +142,13 @@ internal class RevurderingServiceImpl(
                 forhåndsvarsel = if (revurderingsårsak.årsak == REGULER_GRUNNBELØP) Forhåndsvarsel.IngenForhåndsvarsel else null,
                 behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
                 grunnlagsdata = grunnlag,
+                vilkårsvurderinger = vilkårsvurderinger,
             ).also {
                 revurderingRepo.lagre(it)
 
-                grunnlagService.lagre(
+                vilkårsvurderingService.lagre(
                     behandlingId = it.id,
-                    grunnlagsdata = it.grunnlagsdata,
+                    vilkårsvurderinger = it.vilkårsvurderinger,
                 )
 
                 observers.forEach { observer ->
@@ -176,10 +187,23 @@ internal class RevurderingServiceImpl(
 
         revurderingRepo.lagre(oppdatertBehandlingsinformasjon)
 
-        grunnlagService.lagre(
-            oppdatertBehandlingsinformasjon.id,
-            oppdatertBehandlingsinformasjon.grunnlagsdata.copy(
-                uføregrunnlag = uføregrunnlag,
+        vilkårsvurderingService.lagre(
+            behandlingId = oppdatertBehandlingsinformasjon.id,
+            vilkårsvurderinger = oppdatertBehandlingsinformasjon.vilkårsvurderinger.copy(
+                uføre = Vilkår.Vurdert.Uførhet(
+                    vurderingsperioder = listOf(
+                        Vurderingsperiode.Manuell(
+                            resultat = Resultat.Innvilget,
+                            grunnlag = Grunnlag.Uføregrunnlag(
+                                periode = oppdatertBehandlingsinformasjon.periode,
+                                uføregrad = uføregrunnlag.first().uføregrad,
+                                forventetInntekt = uføregrunnlag.first().forventetInntekt,
+                            ),
+                            periode = oppdatertBehandlingsinformasjon.periode,
+                            begrunnelse = null,
+                        ),
+                    ),
+                ),
             ),
         )
 

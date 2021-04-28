@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeSendeRevurderingTilAttestering
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.defaultRequest
@@ -92,6 +93,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
         val revurderingServiceMock = mock<RevurderingService> {
@@ -137,6 +139,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             forhåndsvarsel = null,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
         val revurderingServiceMock = mock<RevurderingService> {
@@ -184,6 +187,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             forhåndsvarsel = null,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
         val revurderingServiceMock = mock<RevurderingService> {

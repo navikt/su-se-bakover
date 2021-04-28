@@ -43,11 +43,16 @@ import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakType
+import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.vilkår.Vilkår
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.fixedTidspunkt
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
+import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.createRevurderingService
@@ -88,6 +93,17 @@ internal class RegulerGrunnbeløpServiceImplTest {
 
     @Test
     fun `oppdaterer behandlingsinformasjon når uføregrunnlag legges til`() {
+        val eksisterendeGrunnlagsdata = Grunnlagsdata(
+            uføregrunnlag = listOf(
+                Grunnlag.Uføregrunnlag(
+                    opprettet = fixedTidspunkt,
+                    periode = periode,
+                    uføregrad = Uføregrad.parse(20),
+                    forventetInntekt = 10,
+                ),
+            ),
+        )
+
         val opprettetRevurdering = OpprettetRevurdering(
             id = revurderingId,
             periode = periode,
@@ -99,13 +115,18 @@ internal class RegulerGrunnbeløpServiceImplTest {
             revurderingsårsak = revurderingsårsakRegulerGrunnbeløp,
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
             forhåndsvarsel = null,
-            grunnlagsdata = Grunnlagsdata(
-                uføregrunnlag = listOf(
-                    Grunnlag.Uføregrunnlag(
-                        opprettet = fixedTidspunkt,
-                        periode = periode,
-                        uføregrad = Uføregrad.parse(20),
-                        forventetInntekt = 10,
+            grunnlagsdata = eksisterendeGrunnlagsdata,
+            vilkårsvurderinger = Vilkårsvurderinger(
+                uføre = Vilkår.Vurdert.Uførhet(
+                    vurderingsperioder = listOf(
+                        Vurderingsperiode.Manuell(
+                            id = UUID.randomUUID(),
+                            opprettet = fixedTidspunkt,
+                            resultat = Resultat.Innvilget,
+                            grunnlag = eksisterendeGrunnlagsdata.uføregrunnlag.first(),
+                            periode = periode,
+                            begrunnelse = null,
+                        ),
                     ),
                 ),
             ),
@@ -131,11 +152,12 @@ internal class RegulerGrunnbeløpServiceImplTest {
             behandlingsinformasjon = opprettetRevurdering.behandlingsinformasjon.copy(
                 uførhet = opprettetRevurdering.behandlingsinformasjon.uførhet!!.copy(
                     forventetInntekt = nyttUføregrunnlag.forventetInntekt,
-                    uføregrad = nyttUføregrunnlag.uføregrad.value
+                    uføregrad = nyttUføregrunnlag.uføregrad.value,
                 ),
             ),
             forhåndsvarsel = null,
             grunnlagsdata = opprettetRevurdering.grunnlagsdata,
+            vilkårsvurderinger = opprettetRevurdering.vilkårsvurderinger,
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -144,6 +166,8 @@ internal class RegulerGrunnbeløpServiceImplTest {
                 forventetLagretRevurdering.copy(grunnlagsdata = Grunnlagsdata(uføregrunnlag = listOf(nyttUføregrunnlag))),
             )
         }
+        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService>()
+
         val grunnlagServiceMock = mock<GrunnlagService>() {
             on { simulerEndretGrunnlagsdata(any(), any(), any()) } doReturn GrunnlagService.SimulerEndretGrunnlagsdata(
                 førBehandling = opprettetRevurdering.grunnlagsdata,
@@ -154,6 +178,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
 
         createRevurderingService(
             revurderingRepo = revurderingRepoMock,
+            vilkårsvurderingService = vilkårsvurderingServiceMock,
             grunnlagService = grunnlagServiceMock,
         ).leggTilUføregrunnlag(
             revurderingId = revurderingId,
@@ -163,16 +188,13 @@ internal class RegulerGrunnbeløpServiceImplTest {
         inOrder(
             revurderingRepoMock,
             grunnlagServiceMock,
+            vilkårsvurderingServiceMock,
         ) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
             verify(revurderingRepoMock).lagre(argThat { it shouldBe forventetLagretRevurdering })
-            verify(grunnlagServiceMock).lagre(
+            verify(vilkårsvurderingServiceMock).lagre(
                 argThat { it shouldBe opprettetRevurdering.id },
-                argThat {
-                    it shouldBe forventetLagretRevurdering.grunnlagsdata.copy(
-                        uføregrunnlag = listOf(nyttUføregrunnlag),
-                    )
-                },
+                any(),
             )
             verify(revurderingRepoMock).hent(forventetLagretRevurdering.id)
             verify(grunnlagServiceMock).simulerEndretGrunnlagsdata(
@@ -255,6 +277,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                     ),
                 ),
             ),
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
         val expectedBeregnetRevurdering = BeregnetRevurdering.IngenEndring(
             id = opprettetRevurdering.id,
@@ -269,6 +292,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             beregning = opprettetRevurdering.tilRevurdering.beregning,
             forhåndsvarsel = null,
             grunnlagsdata = opprettetRevurdering.grunnlagsdata,
+            vilkårsvurderinger = opprettetRevurdering.vilkårsvurderinger,
         )
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn opprettetRevurdering
@@ -311,6 +335,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             simulering = mock(),
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -367,6 +392,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             attestering = mock(),
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -421,6 +447,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             beregning = mock(),
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -462,6 +489,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             skalFøreTilBrevutsending = false,
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
         inOrder(revurderingRepoMock, personServiceMock, oppgaveServiceMock) {
@@ -495,6 +523,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             skalFøreTilBrevutsending = true,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -536,6 +565,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             skalFøreTilBrevutsending = false,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
         inOrder(revurderingRepoMock, personServiceMock, oppgaveServiceMock) {
@@ -571,6 +601,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             skalFøreTilBrevutsending = false,
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
         val revurderingTilAttestering = RevurderingTilAttestering.IngenEndring(
             id = revurderingId,
@@ -586,6 +617,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             skalFøreTilBrevutsending = false,
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {

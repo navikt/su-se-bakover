@@ -21,11 +21,15 @@ internal class UføregrunnlagPostgresRepo(
 
     override fun lagre(behandlingId: UUID, uføregrunnlag: List<Grunnlag.Uføregrunnlag>) {
         dataSource.withTransaction { tx ->
-            slettForBehandlingId(behandlingId, tx)
-            uføregrunnlag.forEach {
-                lagre(it, tx)
-                koble(behandlingId, it.id, tx)
-            }
+            lagre(behandlingId, uføregrunnlag, tx)
+        }
+    }
+
+    override fun lagre(behandlingId: UUID, uføregrunnlag: List<Grunnlag.Uføregrunnlag>, session: Session) {
+        slettForBehandlingId(behandlingId, session)
+        uføregrunnlag.forEach {
+            lagre(it, session)
+            koble(behandlingId, it.id, session)
         }
     }
 

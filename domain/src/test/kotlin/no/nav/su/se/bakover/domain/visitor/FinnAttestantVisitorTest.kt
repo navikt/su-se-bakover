@@ -240,6 +240,7 @@ internal class FinnAttestantVisitorTest {
                 ),
             ),
         ),
+        vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
     )
 
     private val beregnetRevurdering = when (val a = revurdering.beregn(emptyList()).orNull()!!) {

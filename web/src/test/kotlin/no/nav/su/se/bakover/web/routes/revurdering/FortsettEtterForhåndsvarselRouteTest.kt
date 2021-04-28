@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.domain.revurdering.BeslutningEtterForhåndsvarsling
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.TestBeregning
@@ -94,6 +95,7 @@ internal class FortsettEtterForhåndsvarselRouteTest {
             ),
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
         val revurderingServiceMock = mock<RevurderingService> {
@@ -164,6 +166,7 @@ internal class FortsettEtterForhåndsvarselRouteTest {
             ),
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
         val revurderingServiceMock = mock<RevurderingService> {
@@ -234,6 +237,7 @@ internal class FortsettEtterForhåndsvarselRouteTest {
             ),
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
         val revurderingServiceMock = mock<RevurderingService> {

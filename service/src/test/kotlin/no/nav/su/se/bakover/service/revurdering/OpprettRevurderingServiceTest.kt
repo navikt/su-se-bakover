@@ -42,12 +42,13 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.fixedLocalDate
 import no.nav.su.se.bakover.service.fixedTidspunkt
-import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
+import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
@@ -168,8 +169,8 @@ internal class OpprettRevurderingServiceTest {
             on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
         }
 
-        val grunnlagServiceMock = mock<GrunnlagService> {
-            on { opprettGrunnlagsdata(any(), any()) } doReturn Grunnlagsdata.EMPTY
+        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService> {
+            on { opprettVilkårsvurderinger(any(), any()) } doReturn Vilkårsvurderinger.EMPTY
         }
 
         val mocks = RevurderingServiceMocks(
@@ -177,7 +178,7 @@ internal class OpprettRevurderingServiceTest {
             revurderingRepo = revurderingRepoMock,
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
-            grunnlagService = grunnlagServiceMock,
+            vilkårsvurderingService = vilkårsvurderingServiceMock,
         )
         val actual = mocks.revurderingService.opprettRevurdering(
             OpprettRevurderingRequest(
@@ -202,17 +203,18 @@ internal class OpprettRevurderingServiceTest {
             forhåndsvarsel = null,
             behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
         inOrder(
             sakServiceMock,
             personServiceMock,
             oppgaveServiceMock,
             revurderingRepoMock,
-            grunnlagServiceMock,
+            vilkårsvurderingServiceMock,
         ) {
             verify(sakServiceMock).hentSak(sakId)
             verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
-            verify(grunnlagServiceMock).opprettGrunnlagsdata(sakId, periode)
+            verify(vilkårsvurderingServiceMock).opprettVilkårsvurderinger(sakId, periode)
             verify(oppgaveServiceMock).opprettOppgave(
                 argThat {
                     it shouldBe OppgaveConfig.Revurderingsbehandling(
@@ -223,7 +225,7 @@ internal class OpprettRevurderingServiceTest {
                 },
             )
             verify(revurderingRepoMock).lagre(argThat { it.right() shouldBe actual.right() })
-            verify(grunnlagServiceMock).lagre(argThat { actual.id }, argThat { it shouldBe actual.grunnlagsdata })
+            verify(vilkårsvurderingServiceMock).lagre(argThat { it shouldBe actual.id }, argThat { it shouldBe Vilkårsvurderinger(uføre = Vilkår.IkkeVurdert.Uførhet) })
         }
 
         mocks.verifyNoMoreInteractions()
@@ -383,8 +385,8 @@ internal class OpprettRevurderingServiceTest {
             on { hentSak(sakId) } doReturn sak.right()
         }
 
-        val grunnlagServiceMock = mock<GrunnlagService> {
-            on { opprettGrunnlagsdata(any(), any()) } doReturn Grunnlagsdata.EMPTY
+        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService> {
+            on { opprettVilkårsvurderinger(any(), any()) } doReturn Vilkårsvurderinger.EMPTY
         }
 
         val mocks = RevurderingServiceMocks(
@@ -396,7 +398,7 @@ internal class OpprettRevurderingServiceTest {
             personService = mock {
                 on { hentAktørId(any()) } doReturn aktørId.right()
             },
-            grunnlagService = grunnlagServiceMock,
+            vilkårsvurderingService = vilkårsvurderingServiceMock,
 
         )
         val revurderingForFebruar = mocks.revurderingService.opprettRevurdering(
@@ -447,6 +449,7 @@ internal class OpprettRevurderingServiceTest {
                 forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
                 behandlingsinformasjon = opprinneligVedtak.behandlingsinformasjon,
                 grunnlagsdata = Grunnlagsdata.EMPTY,
+                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
             )
             it.copy(
                 revurderinger = listOf(
@@ -469,15 +472,15 @@ internal class OpprettRevurderingServiceTest {
         val personServiceMock = mock<PersonService> {
             on { hentAktørId(any()) } doReturn aktørId.right()
         }
-        val grunnlagServiceMock = mock<GrunnlagService> {
-            on { opprettGrunnlagsdata(any(), any()) } doReturn Grunnlagsdata.EMPTY
+        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService> {
+            on { opprettVilkårsvurderinger(any(), any()) } doReturn Vilkårsvurderinger.EMPTY
         }
         val mocks = RevurderingServiceMocks(
             sakService = sakServiceMock,
             personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
             revurderingRepo = revurderingRepoMock,
-            grunnlagService = grunnlagServiceMock,
+            vilkårsvurderingService = vilkårsvurderingServiceMock,
         )
         val actual = mocks.revurderingService.opprettRevurdering(
             OpprettRevurderingRequest(
@@ -497,7 +500,7 @@ internal class OpprettRevurderingServiceTest {
         verify(sakServiceMock).hentSak(sakId)
         verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
         verify(revurderingRepoMock).lagre(argThat { it.right() shouldBe actual })
-        verify(grunnlagServiceMock).opprettGrunnlagsdata(sakId, periode)
+        verify(vilkårsvurderingServiceMock).opprettVilkårsvurderinger(sakId, periode)
         verify(oppgaveServiceMock).opprettOppgave(
             argThat {
                 it shouldBe OppgaveConfig.Revurderingsbehandling(
@@ -507,7 +510,7 @@ internal class OpprettRevurderingServiceTest {
                 )
             },
         )
-        verify(grunnlagServiceMock).lagre(any(), any())
+        verify(vilkårsvurderingServiceMock).lagre(any(), any())
         mocks.verifyNoMoreInteractions()
     }
 
@@ -587,15 +590,15 @@ internal class OpprettRevurderingServiceTest {
             on { opprettOppgave(any()) } doReturn KunneIkkeOppretteOppgave.left()
         }
 
-        val grunnlagServiceMock = mock<GrunnlagService> {
-            on { opprettGrunnlagsdata(any(), any()) } doReturn Grunnlagsdata.EMPTY
+        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService> {
+            on { opprettVilkårsvurderinger(any(), any()) } doReturn Vilkårsvurderinger.EMPTY
         }
 
         val mocks = RevurderingServiceMocks(
             sakService = sakServiceMock,
             personService = personServiceMock,
             oppgaveService = oppgaveServiceMock,
-            grunnlagService = grunnlagServiceMock,
+            vilkårsvurderingService = vilkårsvurderingServiceMock,
         )
         val actual = mocks.revurderingService.opprettRevurdering(
             OpprettRevurderingRequest(
@@ -609,7 +612,7 @@ internal class OpprettRevurderingServiceTest {
         actual shouldBe KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave.left()
         verify(sakServiceMock).hentSak(sakId)
         verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
-        verify(grunnlagServiceMock).opprettGrunnlagsdata(sakId, periode)
+        verify(vilkårsvurderingServiceMock).opprettVilkårsvurderinger(sakId, periode)
         verify(oppgaveServiceMock).opprettOppgave(
             argThat {
                 it shouldBe OppgaveConfig.Revurderingsbehandling(

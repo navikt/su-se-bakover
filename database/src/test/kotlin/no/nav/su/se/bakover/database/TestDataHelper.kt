@@ -175,7 +175,7 @@ internal class TestDataHelper(
     val grunnlagRepo = GrunnlagPostgresRepo(uføregrunnlagPostgresRepo)
     val vilkårsvurderingRepo = VilkårsvurderingPostgresRepo(dataSource, grunnlagRepo)
     private val søknadsbehandlingRepo = SøknadsbehandlingPostgresRepo(dataSource, grunnlagRepo, vilkårsvurderingRepo)
-    val revurderingRepo = RevurderingPostgresRepo(dataSource, søknadsbehandlingRepo, grunnlagRepo)
+    val revurderingRepo = RevurderingPostgresRepo(dataSource, søknadsbehandlingRepo, grunnlagRepo, vilkårsvurderingRepo)
     val vedtakRepo = VedtakPosgresRepo(dataSource, søknadsbehandlingRepo, revurderingRepo)
     private val sakRepo = SakPostgresRepo(dataSource, søknadsbehandlingRepo, revurderingRepo, vedtakRepo)
 
@@ -298,6 +298,7 @@ internal class TestDataHelper(
             forhåndsvarsel = null,
             behandlingsinformasjon = innvilget.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         ).also {
             revurderingRepo.lagre(it)
         }

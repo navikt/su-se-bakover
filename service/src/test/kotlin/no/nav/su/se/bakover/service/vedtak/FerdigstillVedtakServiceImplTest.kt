@@ -587,6 +587,7 @@ internal class FerdigstillVedtakServiceImplTest {
                     skalFøreTilBrevutsending = false,
                     forhåndsvarsel = null,
                     grunnlagsdata = Grunnlagsdata.EMPTY,
+                    vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
                 ),
             )
         }
@@ -1346,6 +1347,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 ),
                 forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
                 grunnlagsdata = Grunnlagsdata.EMPTY,
+                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
             ),
             utbetalingId = UUID30.randomUUID(),
         )

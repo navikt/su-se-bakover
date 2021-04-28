@@ -434,6 +434,7 @@ internal class StatistikkServiceImplTest {
             forhåndsvarsel = null,
             behandlingsinformasjon = RevurderingTestUtils.søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
         val expected = Statistikk.Behandling(
@@ -500,6 +501,7 @@ internal class StatistikkServiceImplTest {
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = RevurderingTestUtils.søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
         val expected = Statistikk.Behandling(
@@ -567,6 +569,7 @@ internal class StatistikkServiceImplTest {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = RevurderingTestUtils.søknadsbehandlingVedtak.behandlingsinformasjon,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
         val expected = Statistikk.Behandling(

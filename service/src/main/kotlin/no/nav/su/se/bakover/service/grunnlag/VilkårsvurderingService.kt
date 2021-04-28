@@ -13,7 +13,7 @@ import java.util.UUID
 
 interface VilkårsvurderingService {
     fun lagre(behandlingId: UUID, vilkårsvurderinger: Vilkårsvurderinger)
-    fun opprettVilkårsvurderinger(sakId: UUID, periode: Periode)
+    fun opprettVilkårsvurderinger(sakId: UUID, periode: Periode): Vilkårsvurderinger
 }
 
 internal class VilkårsvurderingServiceImpl(
@@ -25,7 +25,7 @@ internal class VilkårsvurderingServiceImpl(
         vilkårsvurderingRepo.lagre(behandlingId, vilkårsvurderinger.uføre)
     }
 
-    override fun opprettVilkårsvurderinger(sakId: UUID, periode: Periode) {
+    override fun opprettVilkårsvurderinger(sakId: UUID, periode: Periode): Vilkårsvurderinger {
         val vedtakIPeriode = vedtakRepo.hentForSakId(sakId)
             .filterIsInstance<Vedtak.EndringIYtelse>() // TODO this must surely change at some point, needed to perserve information added by i.e revurdering below 10% or avslag.
             .filter { it.periode overlapper periode }
@@ -42,7 +42,7 @@ internal class VilkårsvurderingServiceImpl(
                 )
             }.tidslinje
 
-        Vilkårsvurderinger(
+        return Vilkårsvurderinger(
             uføre = Vilkår.Vurdert.Uførhet(uføreVilkårsvurderingerIPeriode),
         )
     }

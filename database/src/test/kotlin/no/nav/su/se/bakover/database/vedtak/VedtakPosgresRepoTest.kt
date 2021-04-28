@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import org.junit.jupiter.api.Test
 
 internal class VedtakPosgresRepoTest {
@@ -91,6 +92,7 @@ internal class VedtakPosgresRepoTest {
                 ),
                 forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
                 behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
+                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 
@@ -237,6 +239,7 @@ internal class VedtakPosgresRepoTest {
                 forhåndsvarsel = null,
                 behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
                 grunnlagsdata = søknadsbehandlingVedtak.behandling.grunnlagsdata,
+                vilkårsvurderinger = søknadsbehandlingVedtak.behandling.vilkårsvurderinger,
             )
             testDataHelper.revurderingRepo.lagre(atteststertRevurdering)
             val iverksattRevurdering = IverksattRevurdering.IngenEndring(
@@ -257,6 +260,7 @@ internal class VedtakPosgresRepoTest {
                 forhåndsvarsel = null,
                 behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
                 grunnlagsdata = søknadsbehandlingVedtak.behandling.grunnlagsdata,
+                vilkårsvurderinger = søknadsbehandlingVedtak.behandling.vilkårsvurderinger,
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 

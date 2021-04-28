@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.argThat
@@ -129,6 +130,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                     ),
                 ),
             ),
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         ).beregn(
             listOf(
                 FradragFactory.ny(

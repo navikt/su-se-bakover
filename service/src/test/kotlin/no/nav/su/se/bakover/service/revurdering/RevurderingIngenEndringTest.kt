@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.saksbehandler
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.søknadOppgaveId
@@ -71,6 +72,7 @@ class RevurderingIngenEndringTest {
                     ),
                 ),
             ),
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -98,6 +100,7 @@ class RevurderingIngenEndringTest {
                 behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
                 forhåndsvarsel = null,
                 grunnlagsdata = Grunnlagsdata.EMPTY,
+                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
             ),
             // beregningstypen er internal i domene modulen
             BeregnetRevurdering.IngenEndring::beregning,
@@ -130,6 +133,7 @@ class RevurderingIngenEndringTest {
             forhåndsvarsel = null,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
         val endretSaksbehandler = NavIdentBruker.Saksbehandler("endretSaksbehandler")
         val revurderingTilAttestering = RevurderingTilAttestering.IngenEndring(
@@ -146,6 +150,7 @@ class RevurderingIngenEndringTest {
             skalFøreTilBrevutsending = true,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn beregnetRevurdering
@@ -225,6 +230,7 @@ class RevurderingIngenEndringTest {
             skalFøreTilBrevutsending = false,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
         val underkjentRevurdering = UnderkjentRevurdering.IngenEndring(
             id = revurderingId,
@@ -241,6 +247,7 @@ class RevurderingIngenEndringTest {
             skalFøreTilBrevutsending = false,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn revurderingTilAttestering
@@ -315,6 +322,7 @@ class RevurderingIngenEndringTest {
             skalFøreTilBrevutsending = true,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
         val attestant = NavIdentBruker.Attestant("ATTT")
         val iverksattRevurdering = revurderingTilAttestering.tilIverksatt(attestant).orNull()!!
@@ -376,6 +384,7 @@ class RevurderingIngenEndringTest {
             skalFøreTilBrevutsending = false,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
         val attestant = NavIdentBruker.Attestant("ATTT")
         val iverksattRevurdering = revurderingTilAttestering.tilIverksatt(attestant).orNull()!!

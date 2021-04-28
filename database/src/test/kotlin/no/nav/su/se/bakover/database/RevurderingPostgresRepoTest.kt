@@ -34,6 +34,7 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import java.time.LocalDate
@@ -47,7 +48,7 @@ internal class RevurderingPostgresRepoTest {
     )
     private val vilkårsvurderingRepo = VilkårsvurderingPostgresRepo(ds, grunnlagRepo)
     private val søknadsbehandlingRepo: SøknadsbehandlingRepo = SøknadsbehandlingPostgresRepo(ds, grunnlagRepo, vilkårsvurderingRepo)
-    private val repo: RevurderingPostgresRepo = RevurderingPostgresRepo(ds, søknadsbehandlingRepo, grunnlagRepo)
+    private val repo: RevurderingPostgresRepo = RevurderingPostgresRepo(ds, søknadsbehandlingRepo, grunnlagRepo, vilkårsvurderingRepo)
     private val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())
     private val saksbehandler = Saksbehandler("Sak S. Behandler")
     private val periode = Periode.create(
@@ -80,6 +81,7 @@ internal class RevurderingPostgresRepoTest {
         forhåndsvarsel = null,
         behandlingsinformasjon = vedtak.behandlingsinformasjon,
         grunnlagsdata = Grunnlagsdata.EMPTY,
+        vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
     )
 
     private fun beregnetIngenEndring(
@@ -98,6 +100,7 @@ internal class RevurderingPostgresRepoTest {
         forhåndsvarsel = null,
         behandlingsinformasjon = vedtak.behandlingsinformasjon,
         grunnlagsdata = Grunnlagsdata.EMPTY,
+        vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
     )
 
     private fun beregnetInnvilget(
@@ -116,6 +119,7 @@ internal class RevurderingPostgresRepoTest {
         forhåndsvarsel = null,
         behandlingsinformasjon = vedtak.behandlingsinformasjon,
         grunnlagsdata = Grunnlagsdata.EMPTY,
+        vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
     )
 
     private fun beregnetOpphørt(
@@ -134,6 +138,7 @@ internal class RevurderingPostgresRepoTest {
         forhåndsvarsel = null,
         behandlingsinformasjon = vedtak.behandlingsinformasjon,
         grunnlagsdata = Grunnlagsdata.EMPTY,
+        vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
     )
 
     private fun simulertInnvilget(beregnet: BeregnetRevurdering.Innvilget) = SimulertRevurdering.Innvilget(
@@ -150,6 +155,7 @@ internal class RevurderingPostgresRepoTest {
         forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
         behandlingsinformasjon = beregnet.behandlingsinformasjon,
         grunnlagsdata = Grunnlagsdata.EMPTY,
+        vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
     )
 
     private fun simulertOpphørt(beregnet: BeregnetRevurdering.Opphørt) = SimulertRevurdering.Opphørt(
@@ -166,6 +172,7 @@ internal class RevurderingPostgresRepoTest {
         forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
         behandlingsinformasjon = beregnet.behandlingsinformasjon,
         grunnlagsdata = Grunnlagsdata.EMPTY,
+        vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
     )
 
     @Test
@@ -368,6 +375,7 @@ internal class RevurderingPostgresRepoTest {
                 forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
                 behandlingsinformasjon = vedtak.behandlingsinformasjon,
                 grunnlagsdata = Grunnlagsdata.EMPTY,
+                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
             )
 
             repo.lagre(tilAttestering)
@@ -469,6 +477,7 @@ internal class RevurderingPostgresRepoTest {
                 forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
                 behandlingsinformasjon = opprettet.behandlingsinformasjon,
                 grunnlagsdata = Grunnlagsdata.EMPTY,
+                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
             )
 
             repo.lagre(underkjent)
@@ -500,6 +509,7 @@ internal class RevurderingPostgresRepoTest {
                 forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
                 behandlingsinformasjon = opprettet.behandlingsinformasjon,
                 grunnlagsdata = Grunnlagsdata.EMPTY,
+                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
             )
 
             repo.lagre(underkjent)
@@ -544,6 +554,7 @@ internal class RevurderingPostgresRepoTest {
                 forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
                 behandlingsinformasjon = opprettet.behandlingsinformasjon,
                 grunnlagsdata = Grunnlagsdata.EMPTY,
+                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
             )
 
             repo.lagre(underkjent)
@@ -575,6 +586,7 @@ internal class RevurderingPostgresRepoTest {
                 forhåndsvarsel = null,
                 behandlingsinformasjon = opprettet.behandlingsinformasjon,
                 grunnlagsdata = opprettet.grunnlagsdata,
+                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
             )
             repo.lagre(underkjentTilAttestering)
             val underkjent = UnderkjentRevurdering.IngenEndring(
@@ -596,6 +608,7 @@ internal class RevurderingPostgresRepoTest {
                 forhåndsvarsel = null,
                 behandlingsinformasjon = opprettet.behandlingsinformasjon,
                 grunnlagsdata = Grunnlagsdata.EMPTY,
+                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
             )
 
             repo.lagre(underkjent)
@@ -626,6 +639,7 @@ internal class RevurderingPostgresRepoTest {
                 forhåndsvarsel = null,
                 behandlingsinformasjon = opprettet.behandlingsinformasjon,
                 grunnlagsdata = Grunnlagsdata.EMPTY,
+                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
             )
 
             repo.lagre(underkjent)
@@ -656,6 +670,7 @@ internal class RevurderingPostgresRepoTest {
                 forhåndsvarsel = null,
                 behandlingsinformasjon = opprettet.behandlingsinformasjon,
                 grunnlagsdata = opprettet.grunnlagsdata,
+                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
             )
             repo.lagre(revurderingTilAttestering)
             val underkjent = IverksattRevurdering.IngenEndring(
@@ -675,6 +690,7 @@ internal class RevurderingPostgresRepoTest {
                 forhåndsvarsel = null,
                 behandlingsinformasjon = opprettet.behandlingsinformasjon,
                 grunnlagsdata = opprettet.grunnlagsdata,
+                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
             )
 
             repo.lagre(underkjent)

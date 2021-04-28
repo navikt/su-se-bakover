@@ -495,15 +495,6 @@ internal class SøknadsbehandlingServiceImpl(
         ).mapLeft {
             SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling
         }.map {
-            // TODO fornuftig med en transaksjon her kanskje
-            grunnlag?.let {
-                grunnlagService.lagre(
-                    behandlingId = søknadsbehandling.id,
-                    grunnlagsdata = søknadsbehandling.grunnlagsdata.copy(
-                        uføregrunnlag = listOf(it),
-                    ),
-                )
-            }
             vilkårsvurderingService.lagre(
                 søknadsbehandling.id,
                 søknadsbehandling.vilkårsvurderinger.copy(

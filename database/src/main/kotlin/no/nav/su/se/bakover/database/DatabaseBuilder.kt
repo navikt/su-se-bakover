@@ -71,7 +71,7 @@ object DatabaseBuilder {
 
         val saksbehandlingRepo = SøknadsbehandlingPostgresRepo(dataSource, grunnlagRepo, vilkårsvurderingRepo)
 
-        val revurderingRepo = RevurderingPostgresRepo(dataSource, saksbehandlingRepo, grunnlagRepo)
+        val revurderingRepo = RevurderingPostgresRepo(dataSource, saksbehandlingRepo, grunnlagRepo, vilkårsvurderingRepo)
         val vedtakRepo = VedtakPosgresRepo(dataSource, saksbehandlingRepo, revurderingRepo)
 
         return DatabaseRepos(

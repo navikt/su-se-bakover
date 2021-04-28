@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.fixedTidspunkt
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
+import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
@@ -139,6 +140,7 @@ object RevurderingTestUtils {
         beregning = beregningMock,
         forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
         grunnlagsdata = Grunnlagsdata.EMPTY,
+        vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
     )
 
     internal val sak = Sak(
@@ -167,6 +169,7 @@ object RevurderingTestUtils {
         vedtakRepo: VedtakRepo = mock(),
         ferdigstillVedtakService: FerdigstillVedtakService = mock(),
         grunnlagService: GrunnlagService = mock(),
+        vilkårsvurderingService: VilkårsvurderingService = mock(),
     ) =
         RevurderingServiceImpl(
             sakService = sakService,
@@ -180,5 +183,6 @@ object RevurderingTestUtils {
             vedtakRepo = vedtakRepo,
             ferdigstillVedtakService = ferdigstillVedtakService,
             grunnlagService = grunnlagService,
+            vilkårsvurderingService = vilkårsvurderingService,
         )
 }

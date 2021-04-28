@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.fixedLocalDate
 import no.nav.su.se.bakover.service.fixedTidspunkt
@@ -62,6 +63,7 @@ internal class OppdaterRevurderingServiceTest {
         forhåndsvarsel = null,
         behandlingsinformasjon = behandlingsinformasjon,
         grunnlagsdata = Grunnlagsdata.EMPTY,
+        vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
     )
 
     @Test
@@ -179,6 +181,7 @@ internal class OppdaterRevurderingServiceTest {
                     simulering = mock(),
                     forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
                     grunnlagsdata = Grunnlagsdata.EMPTY,
+                    vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
                 )
             }
         }
@@ -229,6 +232,7 @@ internal class OppdaterRevurderingServiceTest {
             behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
         inOrder(revurderingRepoMock) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })

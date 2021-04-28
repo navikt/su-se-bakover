@@ -28,6 +28,7 @@ internal class VilkårsvurderingPostgresRepo(
             when (vilkår) {
                 Vilkår.IkkeVurdert.Uførhet -> Unit
                 is Vilkår.Vurdert.Uførhet -> {
+                    grunnlagRepo.lagre(behandlingId, vilkår.grunnlag, tx)
                     vilkår.vurderingsperioder.forEach {
                         lagre(behandlingId, it, tx)
                     }
