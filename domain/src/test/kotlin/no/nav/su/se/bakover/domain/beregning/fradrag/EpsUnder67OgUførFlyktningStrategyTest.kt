@@ -19,8 +19,8 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype.PrivatPensjon
 import org.junit.jupiter.api.Test
 
 /**
- * Mpn 1.jan = 227676.28 -> pr.mnd = 18973.02
- * Mpn 1.mai = 231080.28 -> pr.mnd = 19256.69
+ * Sats 1.jan = 227676.28 -> pr.mnd = 18973.02
+ * Sats 1.mai = 231080.28 -> pr.mnd = 19256.69
  * Periodisert grense 2020 = (4 * 18973.02) + (8 * 19256.69) = 229945.6
  */
 internal class EpsUnder67OgUførFlyktningStrategyTest {
