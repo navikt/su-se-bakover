@@ -19,14 +19,9 @@ sealed class Inngangsvilkår {
     object PersonligOppmøte : Inngangsvilkår()
     object Formue : Inngangsvilkår()
     object BorOgOppholderSegINorge : Inngangsvilkår()
-    object utenlandsoppholdOver90Dager : Inngangsvilkår()
-    object innlagtPåInstitusjon : Inngangsvilkår()
+    object UtenlandsoppholdOver90Dager : Inngangsvilkår()
+    object InnlagtPåInstitusjon : Inngangsvilkår()
 }
-
-data class Paragraf(
-    val value: String,
-    val lovverkVersjon: String,
-)
 
 data class Vilkårsvurderinger(
     val uføre: Vilkår<Grunnlag.Uføregrunnlag> = Vilkår.IkkeVurdert.Uførhet,
@@ -34,31 +29,6 @@ data class Vilkårsvurderinger(
     companion object {
         val EMPTY = Vilkårsvurderinger()
     }
-
-    // data class IkkeVurdert(
-    //     val uføre: Vilkårsvurdering<Grunnlag.Uføregrunnlag>? = null,
-    // ): Vilkårsvurderinger()
-
-    // private val alleVilkår: Set<Vilkårsvurdering<*>> = setOf(uføre)
-
-    // fun hentResultat(): Vilkårsvurderingsresultat {
-    //     return when {
-    //         erInnvilget() -> Vilkårsvurderingsresultat.Innvilget(alleVilkår)
-    //         erAvslag() -> Vilkårsvurderingsresultat.Avslag(
-    //             value.filter { it.vurdering.resultat is Resultat.Avslag }
-    //                 .toSet(),
-    //         )
-    //         else -> Vilkårsvurderingsresultat.Uavklart(emptySet()) // TODO fyll inn
-    //     }
-    // }
-    //
-    // private fun erInnvilget(): Boolean {
-    //     return alleVilkår.all { it.resultat is Resultat.Innvilget }
-    // }
-    //
-    // private fun erAvslag(): Boolean {
-    //     return value.any { it.vurdering.resultat is Resultat.Avslag }
-    // }
 }
 
 /**
@@ -116,15 +86,6 @@ sealed class Vilkår<T : Grunnlag> {
                 it.grunnlag
             }
         }
-
-//    data class Flyktning(
-//        override val id: UUID = UUID.randomUUID(),
-//        override val opprettet: Tidspunkt = Tidspunkt.now(),
-//        override val vurdering: Vurdering,
-//        override val grunnlag: Grunnlag.Flyktninggrunnlag,
-//    ) : Vilkårsvurdering<Grunnlag.Flyktninggrunnlag>() {
-//        override val vilkår = Inngangsvilkår.Flyktning
-//    }
     }
 }
 

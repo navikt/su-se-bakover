@@ -39,8 +39,8 @@ internal fun Inngangsvilkår.stringValue() = when (this) {
     Inngangsvilkår.Oppholdstillatelse -> TODO()
     Inngangsvilkår.PersonligOppmøte -> TODO()
     Inngangsvilkår.Uførhet -> "Uførhet"
-    Inngangsvilkår.innlagtPåInstitusjon -> TODO()
-    Inngangsvilkår.utenlandsoppholdOver90Dager -> TODO()
+    Inngangsvilkår.InnlagtPåInstitusjon -> TODO()
+    Inngangsvilkår.UtenlandsoppholdOver90Dager -> TODO()
 }
 
 internal fun Resultat.toStatusString() = when (this) {
