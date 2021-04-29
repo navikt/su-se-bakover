@@ -22,7 +22,6 @@ import no.nav.su.se.bakover.domain.TrygdeytelseIUtlandet
 import no.nav.su.se.bakover.domain.Uførevedtak
 import no.nav.su.se.bakover.domain.Utenlandsopphold
 import no.nav.su.se.bakover.domain.UtenlandsoppholdPeriode
-import no.nav.su.se.bakover.web.routes.behandling.enumContains
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.BoforholdJson.Companion.toBoforholdJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.EktefelleJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.FlyktningsstatusJson.Companion.toFlyktningsstatusJson
@@ -37,6 +36,7 @@ import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.TrygdeytelserI
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.UførevedtakJson.Companion.toUførevedtakJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.UtenlandsoppholdJson.Companion.toUtenlandsoppholdJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadInnholdJson.UtenlandsoppholdPeriodeJson.Companion.toUtenlandsoppholdJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.enumContains
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 

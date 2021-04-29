@@ -24,7 +24,7 @@ import no.nav.su.se.bakover.web.withSakId
 
 @KtorExperimentalAPI
 internal fun Route.gjenopptaUtbetalingRoutes(
-    service: UtbetalingService
+    service: UtbetalingService,
 ) {
     authorize(Brukerrolle.Saksbehandler) {
         post("$sakPath/{sakId}/utbetalinger/gjenoppta") {

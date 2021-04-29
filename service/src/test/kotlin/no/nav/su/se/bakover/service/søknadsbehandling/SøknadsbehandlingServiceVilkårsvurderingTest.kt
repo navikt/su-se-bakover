@@ -4,6 +4,7 @@ import arrow.core.left
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
+import com.nhaarman.mockitokotlin2.doReturnConsecutively
 import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
@@ -22,9 +23,11 @@ import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.behandlingsinformasjon
@@ -56,6 +59,8 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
         oppgaveId = oppgaveId,
         fritekstTilBrev = "",
         stønadsperiode = stønadsperiode,
+        grunnlagsdata = Grunnlagsdata.EMPTY,
+        vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
     )
 
     @Test
@@ -69,9 +74,8 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
         ).vilkårsvurder(
             SøknadsbehandlingService.VilkårsvurderRequest(
                 behandlingId = behandlingId,
-                saksbehandler = saksbehandler,
-                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon()
-            )
+                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
+            ),
         )
 
         response shouldBe SøknadsbehandlingService.KunneIkkeVilkårsvurdere.FantIkkeBehandling.left()
@@ -83,19 +87,6 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
     @Test
     fun `vilkårsvurderer med alle vilkår oppfylt`() {
         val behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
-        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
-            on { hent(any()) } doReturn opprettetBehandling
-        }
-
-        val response = createSøknadsbehandlingService(
-            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-        ).vilkårsvurder(
-            SøknadsbehandlingService.VilkårsvurderRequest(
-                behandlingId,
-                saksbehandler,
-                behandlingsinformasjon
-            )
-        )
 
         val expected = Søknadsbehandling.Vilkårsvurdert.Innvilget(
             id = opprettetBehandling.id,
@@ -108,6 +99,21 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
             oppgaveId = opprettetBehandling.oppgaveId,
             fritekstTilBrev = "",
             stønadsperiode = opprettetBehandling.stønadsperiode!!,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+        )
+
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
+            on { hent(any()) } doReturnConsecutively listOf(opprettetBehandling, expected)
+        }
+
+        val response = createSøknadsbehandlingService(
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
+        ).vilkårsvurder(
+            SøknadsbehandlingService.VilkårsvurderRequest(
+                behandlingId,
+                behandlingsinformasjon,
+            ),
         )
 
         response shouldBe expected.right()
@@ -122,19 +128,6 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
     @Test
     fun `vilkårsvurderer med alle avslag`() {
         val behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withVilkårAvslått()
-        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
-            on { hent(any()) } doReturn opprettetBehandling
-        }
-
-        val response = createSøknadsbehandlingService(
-            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
-        ).vilkårsvurder(
-            SøknadsbehandlingService.VilkårsvurderRequest(
-                behandlingId,
-                saksbehandler,
-                behandlingsinformasjon
-            )
-        )
 
         val expected = Søknadsbehandling.Vilkårsvurdert.Avslag(
             id = opprettetBehandling.id,
@@ -147,6 +140,21 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
             oppgaveId = opprettetBehandling.oppgaveId,
             fritekstTilBrev = "",
             stønadsperiode = opprettetBehandling.stønadsperiode!!,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+        )
+
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
+            on { hent(any()) } doReturnConsecutively listOf(opprettetBehandling, expected)
+        }
+
+        val response = createSøknadsbehandlingService(
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
+        ).vilkårsvurder(
+            SøknadsbehandlingService.VilkårsvurderRequest(
+                behandlingId,
+                behandlingsinformasjon,
+            ),
         )
 
         response shouldBe expected.right()

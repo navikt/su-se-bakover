@@ -6,6 +6,8 @@ import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.fixedClock
+import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
+import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.SakService
@@ -22,6 +24,8 @@ internal data class RevurderingServiceMocks(
     val brevService: BrevService = mock(),
     val vedtakRepo: VedtakRepo = mock(),
     val ferdigstillVedtakService: FerdigstillVedtakService = mock(),
+    val grunnlagService: GrunnlagService = mock(),
+    val vilkårsvurderingService: VilkårsvurderingService = mock(),
 ) {
     val revurderingService = RevurderingServiceImpl(
         sakService = sakService,
@@ -33,6 +37,8 @@ internal data class RevurderingServiceMocks(
         brevService = brevService,
         vedtakRepo = vedtakRepo,
         ferdigstillVedtakService = ferdigstillVedtakService,
+        grunnlagService = grunnlagService,
+        vilkårsvurderingService = vilkårsvurderingService,
         clock = fixedClock,
     )
 
@@ -47,6 +53,8 @@ internal data class RevurderingServiceMocks(
             brevService,
             vedtakRepo,
             ferdigstillVedtakService,
+            grunnlagService,
+            vilkårsvurderingService,
         )
     }
 }

@@ -23,10 +23,12 @@ import no.nav.su.se.bakover.domain.beregning.RevurdertBeregning
 import no.nav.su.se.bakover.domain.beregning.VurderOmBeregningHarEndringerIYtelse
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.util.UUID
 import kotlin.math.abs
@@ -91,6 +93,8 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
         revurderingsårsak = revurderingsårsak,
         forhåndsvarsel = forhåndsvarsel,
         behandlingsinformasjon = behandlingsinformasjon,
+        grunnlagsdata = grunnlagsdata,
+        vilkårsvurderinger = vilkårsvurderinger,
     )
 
     open fun beregn(
@@ -99,6 +103,8 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
         val revurdertBeregning: Beregning = beregnInternt(
             fradrag = fradrag,
             behandlingsinformasjon = behandlingsinformasjon,
+            // TODO jah: Mulighet til å sende f.eks sende uføregrunnlag som en liste med fradrag e.l.
+            forventetInntekt = grunnlagsdata.hentNyesteUføreGrunnlag().forventetInntekt,
             periode = periode,
             vedtattBeregning = tilRevurdering.beregning,
         ).getOrHandle { return it.left() }
@@ -117,6 +123,8 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = forhåndsvarsel,
             behandlingsinformasjon = behandlingsinformasjon,
+            grunnlagsdata = grunnlagsdata,
+            vilkårsvurderinger = vilkårsvurderinger,
         )
 
         fun innvilget(revurdertBeregning: Beregning): BeregnetRevurdering.Innvilget = BeregnetRevurdering.Innvilget(
@@ -130,8 +138,9 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
             fritekstTilBrev = fritekstTilBrev,
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = forhåndsvarsel,
-
             behandlingsinformasjon = behandlingsinformasjon,
+            grunnlagsdata = grunnlagsdata,
+            vilkårsvurderinger = vilkårsvurderinger,
         )
 
         fun ingenEndring(revurdertBeregning: Beregning): BeregnetRevurdering.IngenEndring =
@@ -146,8 +155,9 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
                 fritekstTilBrev = fritekstTilBrev,
                 revurderingsårsak = revurderingsårsak,
                 forhåndsvarsel = forhåndsvarsel,
-
                 behandlingsinformasjon = behandlingsinformasjon,
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = vilkårsvurderinger,
             )
 
         return when (this.revurderingsårsak.årsak) {
@@ -199,12 +209,13 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
         private fun beregnInternt(
             fradrag: List<Fradrag>,
             behandlingsinformasjon: Behandlingsinformasjon,
+            forventetInntekt: Int,
             periode: Periode,
             vedtattBeregning: Beregning,
         ): Either<KunneIkkeBeregneRevurdering, Beregning> {
             val beregningsgrunnlag = Beregningsgrunnlag.create(
                 beregningsperiode = periode,
-                forventetInntektPerÅr = behandlingsinformasjon.uførhet?.forventetInntekt?.toDouble() ?: 0.0,
+                forventetInntektPerÅr = forventetInntekt.toDouble(),
                 fradragFraSaksbehandler = fradrag,
             )
             // TODO jah: Også mulig å ta inn beregningsstrategi slik at man kan validere dette på service-nivå
@@ -240,6 +251,8 @@ data class OpprettetRevurdering(
     override val revurderingsårsak: Revurderingsårsak,
     override val forhåndsvarsel: Forhåndsvarsel?,
     override val behandlingsinformasjon: Behandlingsinformasjon,
+    override val grunnlagsdata: Grunnlagsdata,
+    override val vilkårsvurderinger: Vilkårsvurderinger,
 ) : Revurdering() {
 
     override fun accept(visitor: RevurderingVisitor) {
@@ -276,6 +289,8 @@ sealed class BeregnetRevurdering : Revurdering() {
         revurderingsårsak = revurderingsårsak,
         forhåndsvarsel = if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) Forhåndsvarsel.IngenForhåndsvarsel else null,
         behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
+        grunnlagsdata = grunnlagsdata,
+        vilkårsvurderinger = vilkårsvurderinger,
     )
 
     data class Innvilget(
@@ -290,6 +305,8 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val revurderingsårsak: Revurderingsårsak,
         override val forhåndsvarsel: Forhåndsvarsel?,
         override val behandlingsinformasjon: Behandlingsinformasjon,
+        override val grunnlagsdata: Grunnlagsdata,
+        override val vilkårsvurderinger: Vilkårsvurderinger,
     ) : BeregnetRevurdering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -308,6 +325,8 @@ sealed class BeregnetRevurdering : Revurdering() {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = forhåndsvarsel,
             behandlingsinformasjon = behandlingsinformasjon,
+            grunnlagsdata = grunnlagsdata,
+            vilkårsvurderinger = vilkårsvurderinger,
         )
     }
 
@@ -323,6 +342,8 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val revurderingsårsak: Revurderingsårsak,
         override val forhåndsvarsel: Forhåndsvarsel?,
         override val behandlingsinformasjon: Behandlingsinformasjon,
+        override val grunnlagsdata: Grunnlagsdata,
+        override val vilkårsvurderinger: Vilkårsvurderinger,
     ) : BeregnetRevurdering() {
 
         fun tilAttestering(
@@ -343,6 +364,8 @@ sealed class BeregnetRevurdering : Revurdering() {
             skalFøreTilBrevutsending = skalFøreTilBrevutsending,
             forhåndsvarsel = forhåndsvarsel,
             behandlingsinformasjon = behandlingsinformasjon,
+            grunnlagsdata = grunnlagsdata,
+            vilkårsvurderinger = vilkårsvurderinger,
         )
 
         override fun toSimulert(simulering: Simulering): SimulertRevurdering {
@@ -366,6 +389,8 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val revurderingsårsak: Revurderingsårsak,
         override val forhåndsvarsel: Forhåndsvarsel?,
         override val behandlingsinformasjon: Behandlingsinformasjon,
+        override val grunnlagsdata: Grunnlagsdata,
+        override val vilkårsvurderinger: Vilkårsvurderinger,
     ) : BeregnetRevurdering() {
         override fun toSimulert(simulering: Simulering) = SimulertRevurdering.Opphørt(
             id = id,
@@ -380,6 +405,8 @@ sealed class BeregnetRevurdering : Revurdering() {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = forhåndsvarsel,
             behandlingsinformasjon = behandlingsinformasjon,
+            grunnlagsdata = grunnlagsdata,
+            vilkårsvurderinger = vilkårsvurderinger,
         )
 
         override fun accept(visitor: RevurderingVisitor) {
@@ -394,6 +421,7 @@ sealed class SimulertRevurdering : Revurdering() {
     abstract val beregning: Beregning
     abstract val simulering: Simulering
     abstract override var forhåndsvarsel: Forhåndsvarsel?
+    abstract override val grunnlagsdata: Grunnlagsdata
 
     abstract override fun accept(visitor: RevurderingVisitor)
 
@@ -410,6 +438,8 @@ sealed class SimulertRevurdering : Revurdering() {
         override val simulering: Simulering,
         override var forhåndsvarsel: Forhåndsvarsel?,
         override val behandlingsinformasjon: Behandlingsinformasjon,
+        override val grunnlagsdata: Grunnlagsdata,
+        override val vilkårsvurderinger: Vilkårsvurderinger,
     ) : SimulertRevurdering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -433,6 +463,8 @@ sealed class SimulertRevurdering : Revurdering() {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = forhåndsvarsel,
             behandlingsinformasjon = behandlingsinformasjon,
+            grunnlagsdata = grunnlagsdata,
+            vilkårsvurderinger = vilkårsvurderinger,
         )
     }
 
@@ -449,6 +481,8 @@ sealed class SimulertRevurdering : Revurdering() {
         override val simulering: Simulering,
         override var forhåndsvarsel: Forhåndsvarsel?,
         override val behandlingsinformasjon: Behandlingsinformasjon,
+        override val grunnlagsdata: Grunnlagsdata,
+        override val vilkårsvurderinger: Vilkårsvurderinger,
     ) : SimulertRevurdering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -476,6 +510,8 @@ sealed class SimulertRevurdering : Revurdering() {
                     revurderingsårsak = revurderingsårsak,
                     forhåndsvarsel = forhåndsvarsel,
                     behandlingsinformasjon = behandlingsinformasjon,
+                    grunnlagsdata = grunnlagsdata,
+                    vilkårsvurderinger = vilkårsvurderinger,
                 ).right()
             }
         }
@@ -495,11 +531,14 @@ sealed class SimulertRevurdering : Revurdering() {
         revurderingsårsak = revurderingsårsak,
         forhåndsvarsel = if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) Forhåndsvarsel.IngenForhåndsvarsel else null,
         behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
+        grunnlagsdata = grunnlagsdata,
+        vilkårsvurderinger = vilkårsvurderinger,
     )
 }
 
 sealed class RevurderingTilAttestering : Revurdering() {
     abstract val beregning: Beregning
+    abstract override val grunnlagsdata: Grunnlagsdata
 
     abstract override fun accept(visitor: RevurderingVisitor)
 
@@ -519,6 +558,8 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val behandlingsinformasjon: Behandlingsinformasjon,
         val simulering: Simulering,
         override val forhåndsvarsel: Forhåndsvarsel,
+        override val grunnlagsdata: Grunnlagsdata,
+        override val vilkårsvurderinger: Vilkårsvurderinger,
     ) : RevurderingTilAttestering() {
 
         override fun accept(visitor: RevurderingVisitor) {
@@ -548,6 +589,8 @@ sealed class RevurderingTilAttestering : Revurdering() {
                     attestering = Attestering.Iverksatt(attestant),
                     forhåndsvarsel = forhåndsvarsel,
                     behandlingsinformasjon = behandlingsinformasjon,
+                    grunnlagsdata = grunnlagsdata,
+                    vilkårsvurderinger = vilkårsvurderinger,
                 )
             }
         }
@@ -566,6 +609,8 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val behandlingsinformasjon: Behandlingsinformasjon,
         val simulering: Simulering,
         override val forhåndsvarsel: Forhåndsvarsel,
+        override val grunnlagsdata: Grunnlagsdata,
+        override val vilkårsvurderinger: Vilkårsvurderinger,
     ) : RevurderingTilAttestering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -595,6 +640,8 @@ sealed class RevurderingTilAttestering : Revurdering() {
                     attestering = Attestering.Iverksatt(attestant),
                     forhåndsvarsel = forhåndsvarsel,
                     behandlingsinformasjon = behandlingsinformasjon,
+                    grunnlagsdata = grunnlagsdata,
+                    vilkårsvurderinger = vilkårsvurderinger,
                 )
             }
         }
@@ -613,6 +660,8 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val behandlingsinformasjon: Behandlingsinformasjon,
         val skalFøreTilBrevutsending: Boolean,
         override val forhåndsvarsel: Forhåndsvarsel?,
+        override val grunnlagsdata: Grunnlagsdata,
+        override val vilkårsvurderinger: Vilkårsvurderinger,
     ) : RevurderingTilAttestering() {
 
         override fun accept(visitor: RevurderingVisitor) {
@@ -640,6 +689,8 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 skalFøreTilBrevutsending = skalFøreTilBrevutsending,
                 forhåndsvarsel = forhåndsvarsel,
                 behandlingsinformasjon = behandlingsinformasjon,
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = vilkårsvurderinger,
             ).right()
         }
     }
@@ -678,6 +729,8 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 revurderingsårsak = revurderingsårsak,
                 forhåndsvarsel = forhåndsvarsel,
                 behandlingsinformasjon = behandlingsinformasjon,
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = vilkårsvurderinger,
             )
             is Opphørt -> UnderkjentRevurdering.Opphørt(
                 id = id,
@@ -693,6 +746,8 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 revurderingsårsak = revurderingsårsak,
                 forhåndsvarsel = forhåndsvarsel,
                 behandlingsinformasjon = behandlingsinformasjon,
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = vilkårsvurderinger,
             )
             is IngenEndring -> UnderkjentRevurdering.IngenEndring(
                 id = id,
@@ -708,6 +763,8 @@ sealed class RevurderingTilAttestering : Revurdering() {
                 skalFøreTilBrevutsending = skalFøreTilBrevutsending,
                 forhåndsvarsel = forhåndsvarsel,
                 behandlingsinformasjon = behandlingsinformasjon,
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = vilkårsvurderinger,
             )
         }
     }
@@ -744,6 +801,8 @@ sealed class IverksattRevurdering : Revurdering() {
         override val forhåndsvarsel: Forhåndsvarsel,
         override val behandlingsinformasjon: Behandlingsinformasjon,
         val simulering: Simulering,
+        override val grunnlagsdata: Grunnlagsdata,
+        override val vilkårsvurderinger: Vilkårsvurderinger,
     ) : IverksattRevurdering() {
 
         override fun accept(visitor: RevurderingVisitor) {
@@ -765,6 +824,8 @@ sealed class IverksattRevurdering : Revurdering() {
         override val behandlingsinformasjon: Behandlingsinformasjon,
         val simulering: Simulering,
         override val forhåndsvarsel: Forhåndsvarsel,
+        override val grunnlagsdata: Grunnlagsdata,
+        override val vilkårsvurderinger: Vilkårsvurderinger,
     ) : IverksattRevurdering() {
 
         override fun accept(visitor: RevurderingVisitor) {
@@ -786,6 +847,8 @@ sealed class IverksattRevurdering : Revurdering() {
         override val behandlingsinformasjon: Behandlingsinformasjon,
         val skalFøreTilBrevutsending: Boolean,
         override val forhåndsvarsel: Forhåndsvarsel?,
+        override val grunnlagsdata: Grunnlagsdata,
+        override val vilkårsvurderinger: Vilkårsvurderinger,
     ) : IverksattRevurdering() {
 
         override fun accept(visitor: RevurderingVisitor) {
@@ -801,6 +864,7 @@ sealed class IverksattRevurdering : Revurdering() {
 sealed class UnderkjentRevurdering : Revurdering() {
     abstract val beregning: Beregning
     abstract val attestering: Attestering.Underkjent
+    abstract override val grunnlagsdata: Grunnlagsdata
 
     abstract override fun accept(visitor: RevurderingVisitor)
 
@@ -818,6 +882,8 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val forhåndsvarsel: Forhåndsvarsel,
         override val behandlingsinformasjon: Behandlingsinformasjon,
         val simulering: Simulering,
+        override val grunnlagsdata: Grunnlagsdata,
+        override val vilkårsvurderinger: Vilkårsvurderinger,
     ) : UnderkjentRevurdering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -840,6 +906,8 @@ sealed class UnderkjentRevurdering : Revurdering() {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = forhåndsvarsel,
             behandlingsinformasjon = behandlingsinformasjon,
+            grunnlagsdata = grunnlagsdata,
+            vilkårsvurderinger = vilkårsvurderinger,
         )
     }
 
@@ -857,6 +925,8 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val forhåndsvarsel: Forhåndsvarsel,
         override val behandlingsinformasjon: Behandlingsinformasjon,
         val simulering: Simulering,
+        override val grunnlagsdata: Grunnlagsdata,
+        override val vilkårsvurderinger: Vilkårsvurderinger,
     ) : UnderkjentRevurdering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -882,8 +952,9 @@ sealed class UnderkjentRevurdering : Revurdering() {
                     fritekstTilBrev = fritekstTilBrev,
                     revurderingsårsak = revurderingsårsak,
                     forhåndsvarsel = forhåndsvarsel,
-
                     behandlingsinformasjon = behandlingsinformasjon,
+                    grunnlagsdata = grunnlagsdata,
+                    vilkårsvurderinger = vilkårsvurderinger,
                 ).right()
             }
         }
@@ -903,6 +974,8 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val behandlingsinformasjon: Behandlingsinformasjon,
         val skalFøreTilBrevutsending: Boolean,
         override val forhåndsvarsel: Forhåndsvarsel?,
+        override val grunnlagsdata: Grunnlagsdata,
+        override val vilkårsvurderinger: Vilkårsvurderinger,
     ) : UnderkjentRevurdering() {
 
         override fun accept(visitor: RevurderingVisitor) {
@@ -927,6 +1000,8 @@ sealed class UnderkjentRevurdering : Revurdering() {
             skalFøreTilBrevutsending = skalFøreTilBrevutsending,
             forhåndsvarsel = forhåndsvarsel,
             behandlingsinformasjon = behandlingsinformasjon,
+            grunnlagsdata = grunnlagsdata,
+            vilkårsvurderinger = vilkårsvurderinger,
         )
     }
 
@@ -944,6 +1019,8 @@ sealed class UnderkjentRevurdering : Revurdering() {
         revurderingsårsak = revurderingsårsak,
         forhåndsvarsel = if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) Forhåndsvarsel.IngenForhåndsvarsel else null,
         behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
+        grunnlagsdata = grunnlagsdata,
+        vilkårsvurderinger = vilkårsvurderinger,
     )
 }
 

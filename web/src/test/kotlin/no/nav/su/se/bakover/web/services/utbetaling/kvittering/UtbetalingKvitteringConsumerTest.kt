@@ -25,8 +25,8 @@ import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.fixedClock
-import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.sakId
-import no.nav.su.se.bakover.web.routes.behandling.BehandlingTestUtils.saksnummer
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.sakId
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.saksnummer
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringResponseTest.Companion.avstemmingsnøkkelIXml
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringResponseTest.Companion.kvitteringXml
 import org.junit.jupiter.api.Test

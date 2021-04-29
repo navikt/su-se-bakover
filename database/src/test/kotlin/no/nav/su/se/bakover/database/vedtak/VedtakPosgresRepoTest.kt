@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
@@ -21,6 +22,7 @@ import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import org.junit.jupiter.api.Test
 
 internal class VedtakPosgresRepoTest {
@@ -81,6 +83,7 @@ internal class VedtakPosgresRepoTest {
                 oppgaveId = OppgaveId(""),
                 beregning = søknadsbehandlingVedtak.beregning,
                 simulering = søknadsbehandlingVedtak.simulering,
+                grunnlagsdata = Grunnlagsdata.EMPTY,
                 attestering = Attestering.Iverksatt(søknadsbehandlingVedtak.attestant),
                 fritekstTilBrev = "",
                 revurderingsårsak = Revurderingsårsak(
@@ -89,6 +92,7 @@ internal class VedtakPosgresRepoTest {
                 ),
                 forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
                 behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
+                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 
@@ -234,6 +238,8 @@ internal class VedtakPosgresRepoTest {
                 skalFøreTilBrevutsending = true,
                 forhåndsvarsel = null,
                 behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
+                grunnlagsdata = søknadsbehandlingVedtak.behandling.grunnlagsdata,
+                vilkårsvurderinger = søknadsbehandlingVedtak.behandling.vilkårsvurderinger,
             )
             testDataHelper.revurderingRepo.lagre(atteststertRevurdering)
             val iverksattRevurdering = IverksattRevurdering.IngenEndring(
@@ -253,6 +259,8 @@ internal class VedtakPosgresRepoTest {
                 skalFøreTilBrevutsending = true,
                 forhåndsvarsel = null,
                 behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
+                grunnlagsdata = søknadsbehandlingVedtak.behandling.grunnlagsdata,
+                vilkårsvurderinger = søknadsbehandlingVedtak.behandling.vilkårsvurderinger,
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 

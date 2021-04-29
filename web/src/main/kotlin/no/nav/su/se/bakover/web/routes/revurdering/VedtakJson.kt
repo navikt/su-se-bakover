@@ -2,14 +2,14 @@ package no.nav.su.se.bakover.web.routes.revurdering
 
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakType
-import no.nav.su.se.bakover.web.routes.behandling.BehandlingsinformasjonJson
-import no.nav.su.se.bakover.web.routes.behandling.BehandlingsinformasjonJson.Companion.toJson
-import no.nav.su.se.bakover.web.routes.behandling.SimuleringJson
-import no.nav.su.se.bakover.web.routes.behandling.SimuleringJson.Companion.toJson
-import no.nav.su.se.bakover.web.routes.behandling.beregning.BeregningJson
-import no.nav.su.se.bakover.web.routes.behandling.beregning.PeriodeJson
-import no.nav.su.se.bakover.web.routes.behandling.beregning.PeriodeJson.Companion.toJson
-import no.nav.su.se.bakover.web.routes.behandling.beregning.toJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingsinformasjonJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingsinformasjonJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.BeregningJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.toJson
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 

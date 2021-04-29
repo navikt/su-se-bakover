@@ -10,6 +10,8 @@ import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.service.beregning.BeregningService
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.doNothing
+import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
+import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.EventObserver
@@ -34,7 +36,9 @@ internal fun createSøknadsbehandlingService(
     opprettVedtakssnapshotService: OpprettVedtakssnapshotService = mock(),
     clock: Clock = Clock.systemUTC(),
     vedtakRepo: VedtakRepo = mock(),
-    ferdigstillVedtakService: FerdigstillVedtakService = mock()
+    ferdigstillVedtakService: FerdigstillVedtakService = mock(),
+    grunnlagService: GrunnlagService = mock(),
+    vilkårsvurderingService: VilkårsvurderingService = mock(),
 ) = SøknadsbehandlingServiceImpl(
     søknadService,
     søknadRepo,
@@ -50,4 +54,6 @@ internal fun createSøknadsbehandlingService(
     clock,
     vedtakRepo,
     ferdigstillVedtakService,
+    grunnlagService,
+    vilkårsvurderingService,
 ).apply { addObserver(observer) }

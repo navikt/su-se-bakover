@@ -5,10 +5,12 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
+import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import java.util.UUID
 import kotlin.reflect.KClass
 
@@ -27,7 +29,6 @@ interface RevurderingService {
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
         fradrag: List<Fradrag>,
-        forventetInntekt: Int? = null,
     ): Either<KunneIkkeBeregneOgSimulereRevurdering, Revurdering>
 
     fun forhåndsvarsleEllerSendTilAttestering(
@@ -61,6 +62,9 @@ interface RevurderingService {
     fun fortsettEtterForhåndsvarsling(
         request: FortsettEtterForhåndsvarslingRequest,
     ): Either<FortsettEtterForhåndsvarselFeil, Revurdering>
+
+    fun leggTilUføregrunnlag(revurderingId: UUID, uføregrunnlag: List<Grunnlag.Uføregrunnlag>): Either<KunneIkkeLeggeTilGrunnlag, LeggTilUføregrunnlagResponse>
+    fun hentUføregrunnlag(revurderingId: UUID): Either<KunneIkkeHenteGrunnlag, GrunnlagService.SimulerEndretGrunnlagsdata>
 }
 
 sealed class FortsettEtterForhåndsvarslingRequest {
@@ -96,6 +100,8 @@ sealed class FortsettEtterForhåndsvarselFeil {
     object AlleredeBesluttet : FortsettEtterForhåndsvarselFeil()
     data class Attestering(val subError: KunneIkkeSendeRevurderingTilAttestering) : FortsettEtterForhåndsvarselFeil()
 }
+
+object FantIkkeRevurdering
 
 data class SendTilAttesteringRequest(
     val revurderingId: UUID,
@@ -199,3 +205,17 @@ sealed class KunneIkkeUnderkjenneRevurdering {
 
     object KunneIkkeOppretteOppgave : KunneIkkeUnderkjenneRevurdering()
 }
+
+sealed class KunneIkkeLeggeTilGrunnlag {
+    object FantIkkeBehandling : KunneIkkeLeggeTilGrunnlag()
+    object UgyldigStatus : KunneIkkeLeggeTilGrunnlag()
+}
+
+sealed class KunneIkkeHenteGrunnlag {
+    object FantIkkeBehandling : KunneIkkeHenteGrunnlag()
+}
+
+data class LeggTilUføregrunnlagResponse(
+    val revurdering: Revurdering,
+    val simulerEndretGrunnlagsdata: GrunnlagService.SimulerEndretGrunnlagsdata,
+)

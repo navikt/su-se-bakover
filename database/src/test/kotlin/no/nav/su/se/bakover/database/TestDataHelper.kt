@@ -9,6 +9,9 @@ import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.beregning.PersistertMånedsberegning
 import no.nav.su.se.bakover.database.beregning.TestBeregning
 import no.nav.su.se.bakover.database.beregning.toSnapshot
+import no.nav.su.se.bakover.database.grunnlag.GrunnlagPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.VilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
 import no.nav.su.se.bakover.database.sak.SakPostgresRepo
@@ -31,7 +34,7 @@ import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
@@ -46,6 +49,7 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.time.Clock
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -155,9 +159,6 @@ internal val kvitteringOk = Kvittering(
     originalKvittering = "hallo",
     mottattTidspunkt = fixedTidspunkt,
 )
-internal val journalførtIverksettingForAvslag = JournalføringOgBrevdistribusjon.Journalført(
-    journalpostId = iverksattJournalpostId,
-)
 
 internal class TestDataHelper(
     dataSource: DataSource = EmbeddedDatabase.instance(),
@@ -166,8 +167,11 @@ internal class TestDataHelper(
     private val utbetalingRepo = UtbetalingPostgresRepo(dataSource)
     private val hendelsesloggRepo = HendelsesloggPostgresRepo(dataSource)
     private val søknadRepo = SøknadPostgresRepo(dataSource)
-    private val søknadsbehandlingRepo = SøknadsbehandlingPostgresRepo(dataSource)
-    val revurderingRepo = RevurderingPostgresRepo(dataSource, søknadsbehandlingRepo)
+    private val uføregrunnlagPostgresRepo = UføregrunnlagPostgresRepo(dataSource)
+    val grunnlagRepo = GrunnlagPostgresRepo(uføregrunnlagPostgresRepo)
+    val vilkårsvurderingRepo = VilkårsvurderingPostgresRepo(dataSource, uføregrunnlagPostgresRepo)
+    private val søknadsbehandlingRepo = SøknadsbehandlingPostgresRepo(dataSource, grunnlagRepo, vilkårsvurderingRepo)
+    val revurderingRepo = RevurderingPostgresRepo(dataSource, søknadsbehandlingRepo, grunnlagRepo, vilkårsvurderingRepo)
     val vedtakRepo = VedtakPosgresRepo(dataSource, søknadsbehandlingRepo, revurderingRepo)
     private val sakRepo = SakPostgresRepo(dataSource, søknadsbehandlingRepo, revurderingRepo, vedtakRepo)
 
@@ -289,6 +293,8 @@ internal class TestDataHelper(
             ),
             forhåndsvarsel = null,
             behandlingsinformasjon = innvilget.behandlingsinformasjon,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         ).also {
             revurderingRepo.lagre(it)
         }
@@ -297,7 +303,7 @@ internal class TestDataHelper(
         sak: Sak = nySakMedJournalførtSøknadOgOppgave(),
         søknad: Søknad.Journalført.MedOppgave = sak.journalførtSøknadMedOppgave(),
         behandlingsinformasjon: Behandlingsinformasjon = tomBehandlingsinformasjon,
-        stønadsperiode: ValgtStønadsperiode? = no.nav.su.se.bakover.database.stønadsperiode
+        stønadsperiode: ValgtStønadsperiode? = no.nav.su.se.bakover.database.stønadsperiode,
     ): Søknadsbehandling.Vilkårsvurdert.Uavklart {
 
         return Søknadsbehandling.Vilkårsvurdert.Uavklart(
@@ -311,6 +317,8 @@ internal class TestDataHelper(
             fnr = sak.fnr,
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         ).also {
             søknadsbehandlingRepo.lagre(it)
         }

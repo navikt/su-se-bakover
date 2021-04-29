@@ -28,4 +28,8 @@ internal fun Route.revurderingRoutes(
     brevutkastForRevurdering(revurderingService)
 
     fortsettEtterForhåndsvarselRoute(revurderingService)
+
+    leggTilGrunnlagRevurderingRoutes(revurderingService)
+
+    hentGrunnlagRevurderingRoutes(revurderingService)
 }

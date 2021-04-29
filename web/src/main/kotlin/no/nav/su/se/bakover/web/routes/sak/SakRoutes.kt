@@ -23,7 +23,7 @@ internal const val sakPath = "/saker"
 
 @KtorExperimentalAPI
 internal fun Route.sakRoutes(
-    sakService: SakService
+    sakService: SakService,
 ) {
     get(sakPath) {
         when {
