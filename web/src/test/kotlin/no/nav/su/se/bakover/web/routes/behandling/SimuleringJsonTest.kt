@@ -77,7 +77,7 @@ internal class SimuleringJsonTest {
     private val simulertUtbetaling = SimulertUtbetaling(
         fagSystemId = UUID30.randomUUID().toString(),
         feilkonto = false,
-        forfall = idag(),
+        forfall = 15.februar(2020),
         utbetalesTilId = FNR,
         utbetalesTilNavn = "gjelder",
         detaljer = listOf(
@@ -111,7 +111,7 @@ internal class SimuleringJsonTest {
                     SimulertUtbetaling(
                         fagSystemId = UUID30.randomUUID().toString(),
                         feilkonto = false,
-                        forfall = idag(),
+                        forfall = 15.januar(2020),
                         utbetalesTilId = FNR,
                         utbetalesTilNavn = "gjelder",
                         detaljer = listOf(
@@ -140,7 +140,7 @@ internal class SimuleringJsonTest {
                     SimulertUtbetaling(
                         fagSystemId = UUID30.randomUUID().toString(),
                         feilkonto = false,
-                        forfall = idag(),
+                        forfall = 15.februar(2020),
                         utbetalesTilId = FNR,
                         utbetalesTilNavn = "gjelder",
                         detaljer = listOf(
