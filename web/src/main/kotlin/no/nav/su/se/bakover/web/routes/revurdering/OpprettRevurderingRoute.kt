@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering.FantIkkeAktørId
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering.FantIkkeSak
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering.FantIngentingSomKanRevurderes
-import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering.KanIkkeRevurdereInneværendeMånedEllerTidligere
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering.UgyldigBegrunnelse
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering.UgyldigPeriode
@@ -85,11 +84,6 @@ private fun KunneIkkeOppretteRevurdering.tilResultat(): Resultat {
             "Ingen behandlinger som kan revurderes for angitt periode",
             "ingenting_å_revurdere_i_perioden",
         )
-        is KanIkkeRevurdereInneværendeMånedEllerTidligere -> BadRequest.errorJson(
-            // TODO jah: På sikt vil vi kunne revurdere tilbake i tid også.
-            "Revurdering kan kun gjøres fra og med neste kalendermåned",
-            "tidligest_neste_måned",
-        )
         is UgyldigBegrunnelse -> BadRequest.errorJson(
             "Begrunnelse kan ikke være tom",
             "begrunnelse_kan_ikke_være_tom",
@@ -97,6 +91,10 @@ private fun KunneIkkeOppretteRevurdering.tilResultat(): Resultat {
         is UgyldigÅrsak -> BadRequest.errorJson(
             "Ugyldig årsak, må være en av: ${Revurderingsårsak.Årsak.values()}",
             "ugyldig_årsak",
+        )
+        KunneIkkeOppretteRevurdering.PeriodeOgÅrsakKombinasjonErUgyldig -> BadRequest.errorJson(
+            "periode og årsak kombinasjon er ugyldig",
+            "periode_og_årsak_kombinasjon_er_ugyldig",
         )
     }
 }

@@ -114,10 +114,10 @@ sealed class KunneIkkeOppretteRevurdering {
     object FantIngentingSomKanRevurderes : KunneIkkeOppretteRevurdering()
     object FantIkkeAktørId : KunneIkkeOppretteRevurdering()
     object KunneIkkeOppretteOppgave : KunneIkkeOppretteRevurdering()
-    object KanIkkeRevurdereInneværendeMånedEllerTidligere : KunneIkkeOppretteRevurdering()
     data class UgyldigPeriode(val subError: Periode.UgyldigPeriode) : KunneIkkeOppretteRevurdering()
     object UgyldigÅrsak : KunneIkkeOppretteRevurdering()
     object UgyldigBegrunnelse : KunneIkkeOppretteRevurdering()
+    object PeriodeOgÅrsakKombinasjonErUgyldig : KunneIkkeOppretteRevurdering()
 }
 
 sealed class KunneIkkeOppdatereRevurdering {

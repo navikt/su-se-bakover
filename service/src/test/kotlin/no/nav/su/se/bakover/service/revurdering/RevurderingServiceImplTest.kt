@@ -220,7 +220,7 @@ internal class RevurderingServiceImplTest {
             ),
         )
 
-        actual shouldBe KunneIkkeOppretteRevurdering.KanIkkeRevurdereInneværendeMånedEllerTidligere.left()
+        actual shouldBe KunneIkkeOppretteRevurdering.PeriodeOgÅrsakKombinasjonErUgyldig.left()
     }
 
     @Test

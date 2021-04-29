@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -83,8 +84,15 @@ internal class RevurderingServiceImpl(
         }
 
         val dagensDato = LocalDate.now(clock)
-        if (!opprettRevurderingRequest.fraOgMed.isAfter(dagensDato.endOfMonth())) {
-            return KunneIkkeOppretteRevurdering.KanIkkeRevurdereInneværendeMånedEllerTidligere.left()
+        val startenAvForrigeKalenderMåned = dagensDato.minusMonths(1).startOfMonth()
+
+        val regulererGVerdiTilbakeITid =
+            revurderingsårsak.årsak == REGULER_GRUNNBELØP && !opprettRevurderingRequest.fraOgMed.isBefore(
+                startenAvForrigeKalenderMåned,
+            )
+
+        if (!regulererGVerdiTilbakeITid && !opprettRevurderingRequest.fraOgMed.isAfter(dagensDato.endOfMonth())) {
+            return KunneIkkeOppretteRevurdering.PeriodeOgÅrsakKombinasjonErUgyldig.left()
         }
         val sak = sakService.hentSak(opprettRevurderingRequest.sakId).getOrElse {
             return KunneIkkeOppretteRevurdering.FantIkkeSak.left()
