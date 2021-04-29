@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.periodeOgÅrsakKombinasjonErUgyldig
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
@@ -71,10 +72,6 @@ private fun KunneIkkeOppdatereRevurdering.tilResultat(): Resultat {
         )
         is KunneIkkeOppdatereRevurdering.FantIkkeRevurdering -> fantIkkeRevurdering
         is KunneIkkeOppdatereRevurdering.UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)
-        is KunneIkkeOppdatereRevurdering.PeriodenMåVæreInnenforAlleredeValgtStønadsperiode -> HttpStatusCode.BadRequest.errorJson(
-            "Perioden må være innenfor allerede valgt stønadsperiode",
-            "perioden_må_være_innenfor_stønadsperioden",
-        )
         KunneIkkeOppdatereRevurdering.UgyldigBegrunnelse -> HttpStatusCode.BadRequest.errorJson(
             "Begrunnelse kan ikke være tom",
             "begrunnelse_kan_ikke_være_tom",
@@ -87,5 +84,6 @@ private fun KunneIkkeOppdatereRevurdering.tilResultat(): Resultat {
             "Kan ikke oppdatere revurdering som er forhåndsvarslet",
             "kan_ikke_oppdatere_revurdering_som_er_forhåndsvarslet",
         )
+        KunneIkkeOppdatereRevurdering.PeriodeOgÅrsakKombinasjonErUgyldig -> periodeOgÅrsakKombinasjonErUgyldig
     }
 }

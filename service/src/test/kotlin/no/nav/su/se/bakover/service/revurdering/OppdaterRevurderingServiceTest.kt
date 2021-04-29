@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.service.revurdering
 
+import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
@@ -9,8 +10,8 @@ import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -31,6 +32,7 @@ import no.nav.su.se.bakover.service.fixedLocalDate
 import no.nav.su.se.bakover.service.fixedTidspunkt
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.søknadsbehandlingVedtak
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
@@ -40,10 +42,29 @@ internal class OppdaterRevurderingServiceTest {
     private val behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
 
     private val opprettetFraOgMed = fixedLocalDate
-    private val opprettetTilOgMed = fixedLocalDate.plus(11, ChronoUnit.MONTHS).endOfMonth()
+    private val denFørsteInneværendeMåned = fixedLocalDate.let {
+        LocalDate.of(
+            it.year,
+            it.month,
+            1,
+        )
+    }
+    private val nesteMåned =
+        LocalDate.of(
+            denFørsteInneværendeMåned.year,
+            denFørsteInneværendeMåned.month.plus(1),
+            1,
+        )
     private val periode = Periode.create(
-        fraOgMed = opprettetFraOgMed,
-        tilOgMed = opprettetTilOgMed,
+        fraOgMed = nesteMåned,
+        tilOgMed = nesteMåned.let {
+            val treMånederFramITid = it.plusMonths(3)
+            LocalDate.of(
+                treMånederFramITid.year,
+                treMånederFramITid.month,
+                treMånederFramITid.lengthOfMonth(),
+            )
+        },
     )
     private val saksbehandler = NavIdentBruker.Saksbehandler("Sak S. behandler")
     private val revurderingId = UUID.randomUUID()
@@ -174,7 +195,7 @@ internal class OppdaterRevurderingServiceTest {
     }
 
     @Test
-    fun `Perioden må være innenfor allerede valgt stønadsperiode`() {
+    fun `oppdatert periode må være fra neste kalendermåned`() {
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn opprettetRevurdering
         }
@@ -188,8 +209,7 @@ internal class OppdaterRevurderingServiceTest {
                 saksbehandler = saksbehandler,
             ),
         )
-        actual shouldBe KunneIkkeOppdatereRevurdering.PeriodenMåVæreInnenforAlleredeValgtStønadsperiode(periode)
-            .left()
+        actual shouldBe KunneIkkeOppdatereRevurdering.PeriodeOgÅrsakKombinasjonErUgyldig.left()
         verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
         mocks.verifyNoMoreInteractions()
     }
@@ -273,7 +293,9 @@ internal class OppdaterRevurderingServiceTest {
                 begrunnelse = "Ny informasjon",
                 saksbehandler = saksbehandler,
             ),
-        ).orNull()!!
+        ).getOrHandle {
+            throw RuntimeException("$it")
+        }
 
         actual shouldBe OpprettetRevurdering(
             id = actual.id,
@@ -289,6 +311,60 @@ internal class OppdaterRevurderingServiceTest {
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
+        inOrder(revurderingRepoMock) {
+            verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
+            verify(revurderingRepoMock).lagre(argThat { it.right() shouldBe actual.right() })
+        }
+        verifyNoMoreInteractions(revurderingRepoMock)
+    }
+
+    @Test
+    fun `oppdatert periode for g-regulering kan være nåværende kalendermåned`() {
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn opprettetRevurdering
+        }
+        val mocks = RevurderingServiceMocks(revurderingRepo = revurderingRepoMock)
+        val actual = mocks.revurderingService.oppdaterRevurdering(
+            OppdaterRevurderingRequest(
+                revurderingId = revurderingId,
+                fraOgMed = LocalDate.now().startOfMonth(),
+                årsak = "REGULER_GRUNNBELØP",
+                begrunnelse = "g-regulering",
+                saksbehandler = saksbehandler,
+            ),
+        ).getOrHandle { throw RuntimeException("$it") }
+
+        actual.periode.fraOgMed shouldBe LocalDate.now().startOfMonth()
+        actual.revurderingsårsak.årsak shouldBe Revurderingsårsak.Årsak.REGULER_GRUNNBELØP
+        actual.revurderingsårsak.begrunnelse.toString() shouldBe "g-regulering"
+
+        inOrder(revurderingRepoMock) {
+            verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
+            verify(revurderingRepoMock).lagre(argThat { it.right() shouldBe actual.right() })
+        }
+        verifyNoMoreInteractions(revurderingRepoMock)
+    }
+
+    @Test
+    fun `oppdatert periode for g-regulering kan være forrige kalendermåned`() {
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn opprettetRevurdering
+        }
+        val mocks = RevurderingServiceMocks(revurderingRepo = revurderingRepoMock)
+        val actual = mocks.revurderingService.oppdaterRevurdering(
+            OppdaterRevurderingRequest(
+                revurderingId = revurderingId,
+                fraOgMed = LocalDate.now().minusMonths(1).startOfMonth(),
+                årsak = "REGULER_GRUNNBELØP",
+                begrunnelse = "g-regulering",
+                saksbehandler = saksbehandler,
+            ),
+        ).getOrHandle { throw RuntimeException("$it") }
+
+        actual.periode.fraOgMed shouldBe LocalDate.now().minusMonths(1).startOfMonth()
+        actual.revurderingsårsak.årsak shouldBe Revurderingsårsak.Årsak.REGULER_GRUNNBELØP
+        actual.revurderingsårsak.begrunnelse.toString() shouldBe "g-regulering"
+
         inOrder(revurderingRepoMock) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
             verify(revurderingRepoMock).lagre(argThat { it.right() shouldBe actual.right() })
