@@ -23,7 +23,7 @@ interface RevurderingService {
 
     fun oppdaterRevurdering(
         oppdaterRevurderingRequest: OppdaterRevurderingRequest,
-    ): Either<KunneIkkeOppdatereRevurderingsperiode, OpprettetRevurdering>
+    ): Either<KunneIkkeOppdatereRevurdering, OpprettetRevurdering>
 
     fun beregnOgSimuler(
         revurderingId: UUID,
@@ -121,16 +121,17 @@ sealed class KunneIkkeOppretteRevurdering {
     object UgyldigBegrunnelse : KunneIkkeOppretteRevurdering()
 }
 
-sealed class KunneIkkeOppdatereRevurderingsperiode {
-    object FantIkkeRevurdering : KunneIkkeOppdatereRevurderingsperiode()
+sealed class KunneIkkeOppdatereRevurdering {
+    object FantIkkeRevurdering : KunneIkkeOppdatereRevurdering()
     data class PeriodenMåVæreInnenforAlleredeValgtStønadsperiode(val periode: Periode) :
-        KunneIkkeOppdatereRevurderingsperiode()
+        KunneIkkeOppdatereRevurdering()
 
-    data class UgyldigPeriode(val subError: Periode.UgyldigPeriode) : KunneIkkeOppdatereRevurderingsperiode()
-    object UgyldigÅrsak : KunneIkkeOppdatereRevurderingsperiode()
-    object UgyldigBegrunnelse : KunneIkkeOppdatereRevurderingsperiode()
+    data class UgyldigPeriode(val subError: Periode.UgyldigPeriode) : KunneIkkeOppdatereRevurdering()
+    object UgyldigÅrsak : KunneIkkeOppdatereRevurdering()
+    object UgyldigBegrunnelse : KunneIkkeOppdatereRevurdering()
     data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
-        KunneIkkeOppdatereRevurderingsperiode()
+        KunneIkkeOppdatereRevurdering()
+    object KanIkkeOppdatereRevurderingSomErForhåndsvarslet : KunneIkkeOppdatereRevurdering()
 }
 
 sealed class KunneIkkeBeregneOgSimulereRevurdering {

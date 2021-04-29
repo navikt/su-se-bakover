@@ -77,9 +77,9 @@ internal class FradragStrategyTest {
         val periode = Periode.create(1.januar(2020), 31.januar(2020))
 
         @Test
-        fun `EPS over 67 år bruker minste pensjonsnivå`() {
+        fun `EPS over 67 år bruker garantipensjonsnivå`() {
             FradragStrategy.fromName(FradragStrategyName.EpsOver67År)
-                .getEpsFribeløp(periode) shouldBe 15159.0.plusOrMinus(0.5)
+                .getEpsFribeløp(periode) shouldBe 14674.9166666.plusOrMinus(0.5)
         }
 
         @Test

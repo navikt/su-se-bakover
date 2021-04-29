@@ -23,7 +23,7 @@ import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppdatereRevurderingsperiode
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.periode
@@ -129,7 +129,7 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
     @Test
     fun `ugyldig fraOgMed dato`() {
         shouldMapErrorCorrectly(
-            error = KunneIkkeOppdatereRevurderingsperiode.UgyldigPeriode(
+            error = KunneIkkeOppdatereRevurdering.UgyldigPeriode(
                 Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden,
             ),
             expectedStatusCode = HttpStatusCode.BadRequest,
@@ -146,7 +146,7 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
     @Test
     fun `fant ikke revurdering`() {
         shouldMapErrorCorrectly(
-            error = KunneIkkeOppdatereRevurderingsperiode.FantIkkeRevurdering,
+            error = KunneIkkeOppdatereRevurdering.FantIkkeRevurdering,
             expectedStatusCode = HttpStatusCode.NotFound,
             expectedJsonResponse = """
                 {
@@ -161,7 +161,7 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
     @Test
     fun `perioden må være innenfor allerede valgt stønadsperiode`() {
         shouldMapErrorCorrectly(
-            error = KunneIkkeOppdatereRevurderingsperiode.PeriodenMåVæreInnenforAlleredeValgtStønadsperiode(
+            error = KunneIkkeOppdatereRevurdering.PeriodenMåVæreInnenforAlleredeValgtStønadsperiode(
                 Periode.create(
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.januar(2020),
@@ -181,7 +181,7 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
     @Test
     fun `ugyldig tilstand`() {
         shouldMapErrorCorrectly(
-            error = KunneIkkeOppdatereRevurderingsperiode.UgyldigTilstand(
+            error = KunneIkkeOppdatereRevurdering.UgyldigTilstand(
                 fra = IverksattRevurdering::class,
                 til = OpprettetRevurdering::class,
             ),
@@ -197,7 +197,7 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
     }
 
     private fun shouldMapErrorCorrectly(
-        error: KunneIkkeOppdatereRevurderingsperiode,
+        error: KunneIkkeOppdatereRevurdering,
         expectedStatusCode: HttpStatusCode,
         expectedJsonResponse: String,
     ) {

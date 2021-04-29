@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.beregning.fradrag
 
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.Minstepensjonsnivå
+import no.nav.su.se.bakover.domain.Garantipensjonsnivå
 import no.nav.su.se.bakover.domain.beregning.Sats
 
 enum class FradragStrategyName {
@@ -53,19 +53,19 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
         override fun beregnFradrag(fradrag: Map<Periode, List<Fradrag>>): Map<Periode, List<Fradrag>> {
             return fradrag
                 .`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`()
-                .`fjern EPS fradrag opp til minstepensjonsnivå`()
+                .`fjern EPS fradrag opp til garantipensjonsnivå`()
         }
 
-        override fun getEpsFribeløp(periode: Periode): Double = periodisertSumMinstepensjonsnivå(periode)
+        override fun getEpsFribeløp(periode: Periode): Double = periodisertSumGarantipensjonsnivå(periode)
 
-        private fun periodisertSumMinstepensjonsnivå(periode: Periode) =
-            Minstepensjonsnivå.Ordinær.periodiser(periode).values.sumByDouble { it }
+        private fun periodisertSumGarantipensjonsnivå(periode: Periode) =
+            Garantipensjonsnivå.Ordinær.periodiser(periode).values.sumByDouble { it }
 
-        private fun Map<Periode, List<Fradrag>>.`fjern EPS fradrag opp til minstepensjonsnivå`(): Map<Periode, List<Fradrag>> {
+        private fun Map<Periode, List<Fradrag>>.`fjern EPS fradrag opp til garantipensjonsnivå`(): Map<Periode, List<Fradrag>> {
             return mapValues {
                 `fjern EPS fradrag opp til beløpsgrense`(
                     periode = it.key,
-                    beløpsgrense = periodisertSumMinstepensjonsnivå(it.key),
+                    beløpsgrense = periodisertSumGarantipensjonsnivå(it.key),
                     fradrag = it.value
                 )
             }

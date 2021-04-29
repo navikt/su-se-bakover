@@ -52,7 +52,7 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeHenteGrunnlag
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLageBrevutkastForRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilGrunnlag
-import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppdatereRevurderingsperiode
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeSendeRevurderingTilAttestering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeUnderkjenneRevurdering
@@ -372,7 +372,7 @@ open class AccessCheckProxy(
 
                 override fun oppdaterRevurdering(
                     oppdaterRevurderingRequest: OppdaterRevurderingRequest,
-                ): Either<KunneIkkeOppdatereRevurderingsperiode, OpprettetRevurdering> {
+                ): Either<KunneIkkeOppdatereRevurdering, OpprettetRevurdering> {
                     assertHarTilgangTilRevurdering(oppdaterRevurderingRequest.revurderingId)
                     return services.revurdering.oppdaterRevurdering(oppdaterRevurderingRequest)
                 }
