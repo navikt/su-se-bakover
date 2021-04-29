@@ -39,12 +39,12 @@ internal class GrunnbeløpTest {
     }
 
     @Test
-    fun høy2020for2025() {
-        Grunnbeløp.`2,48G`.fraDato(LocalDate.of(2025, MAY, 1)) shouldBe 2.48 * 101351
+    fun fiktivHøy2021for2021() {
+        Grunnbeløp.`2,48G`.fraDato(LocalDate.of(2021, MAY, 1)) shouldBe 2.48 * 104463
     }
 
     @Test
-    fun ordinær2020for2025() {
-        Grunnbeløp.`2,28G`.fraDato(LocalDate.of(2025, MAY, 1)) shouldBe 2.28 * 101351
+    fun fiktivOrdinær2021for2021() {
+        Grunnbeløp.`2,28G`.fraDato(LocalDate.of(2021, MAY, 1)) shouldBe 2.28 * 104463
     }
 }

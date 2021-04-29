@@ -441,5 +441,6 @@ data class ApplicationConfig(
             }
 
         fun isRunningLocally() = naisCluster() == null
+        fun isNotProd() = isRunningLocally() || naisCluster() == NaisCluster.Dev
     }
 }
