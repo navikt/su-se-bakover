@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -92,8 +93,15 @@ internal class RevurderingServiceImpl(
         }
 
         val dagensDato = LocalDate.now(clock)
-        if (!opprettRevurderingRequest.fraOgMed.isAfter(dagensDato.endOfMonth())) {
-            return KunneIkkeOppretteRevurdering.KanIkkeRevurdereInneværendeMånedEllerTidligere.left()
+        val startenAvForrigeKalenderMåned = dagensDato.minusMonths(1).startOfMonth()
+
+        val regulererGVerdiTilbakeITid =
+            revurderingsårsak.årsak == REGULER_GRUNNBELØP && !opprettRevurderingRequest.fraOgMed.isBefore(
+                startenAvForrigeKalenderMåned,
+            )
+
+        if (!regulererGVerdiTilbakeITid && !opprettRevurderingRequest.fraOgMed.isAfter(dagensDato.endOfMonth())) {
+            return KunneIkkeOppretteRevurdering.PeriodeOgÅrsakKombinasjonErUgyldig.left()
         }
         val sak = sakService.hentSak(opprettRevurderingRequest.sakId).getOrElse {
             return KunneIkkeOppretteRevurdering.FantIkkeSak.left()
@@ -361,6 +369,26 @@ internal class RevurderingServiceImpl(
                 SimulertRevurdering::class,
             ).left()
         }
+    }
+
+    override fun lagBrevutkastForForhåndsvarsling(
+        revurderingId: UUID,
+        fritekst: String,
+    ): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray> {
+        val revurdering = revurderingRepo.hent(revurderingId)
+            ?: return KunneIkkeLageBrevutkastForRevurdering.FantIkkeRevurdering.left()
+
+        val person = personService.hentPerson(revurdering.fnr).getOrElse {
+            log.error("Fant ikke person for revurdering: ${revurdering.id}")
+            return KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson.left()
+        }
+
+        val brevRequest = LagBrevRequest.Forhåndsvarsel(
+            person = person, fritekst = fritekst,
+        )
+
+        return brevService.lagBrev(brevRequest)
+            .mapLeft { KunneIkkeLageBrevutkastForRevurdering.KunneIkkeLageBrevutkast }
     }
 
     override fun sendTilAttestering(
@@ -722,14 +750,14 @@ internal class RevurderingServiceImpl(
         }
 
         val person = personService.hentPerson(revurdering.fnr).getOrElse {
-            log.error("Fant ikke aktør-id for revurdering: ${revurdering.id}")
+            log.error("Fant ikke person for revurdering: ${revurdering.id}")
             return KunneIkkeForhåndsvarsle.FantIkkePerson.left()
         }
 
         brevService.journalførBrev(
             request = LagBrevRequest.Forhåndsvarsel(
                 person = person,
-                beregning = revurdering.beregning, fritekst = fritekst,
+                fritekst = fritekst,
             ),
             saksnummer = revurdering.saksnummer,
         ).mapLeft {

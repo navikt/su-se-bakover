@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.service.revurdering
 
+import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
@@ -16,6 +17,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.AktørId
@@ -232,7 +234,7 @@ internal class OpprettRevurderingServiceTest {
     }
 
     @Test
-    fun `oppretter ikke en revurdering hvis perioden er i samme måned`() {
+    fun `oppretter ikke en revurdering hvis perioden er i samme måned for årsaker som ikke er g-regulering`() {
         val mocks = RevurderingServiceMocks()
         val actual = mocks.revurderingService.opprettRevurdering(
             OpprettRevurderingRequest(
@@ -244,7 +246,169 @@ internal class OpprettRevurderingServiceTest {
             ),
         )
 
-        actual shouldBe KunneIkkeOppretteRevurdering.KanIkkeRevurdereInneværendeMånedEllerTidligere.left()
+        actual shouldBe KunneIkkeOppretteRevurdering.PeriodeOgÅrsakKombinasjonErUgyldig.left()
+        mocks.verifyNoMoreInteractions()
+    }
+
+    @Test
+    fun `kan opprette revurdering med årsak g-regulering i samme måned`() {
+        val sak = createSak()
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(sakId) } doReturn sak.right()
+        }
+        val revurderingRepoMock = mock<RevurderingRepo>()
+
+        val personServiceMock = mock<PersonService> {
+            on { hentAktørId(any()) } doReturn aktørId.right()
+        }
+
+        val oppgaveServiceMock = mock<OppgaveService> {
+            on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
+        }
+
+        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService> {
+            on { opprettVilkårsvurderinger(any(), any()) } doReturn Vilkårsvurderinger.EMPTY
+        }
+        val mocks = RevurderingServiceMocks(
+            sakService = sakServiceMock,
+            revurderingRepo = revurderingRepoMock,
+            oppgaveService = oppgaveServiceMock,
+            personService = personServiceMock,
+            vilkårsvurderingService = vilkårsvurderingServiceMock,
+        )
+        val actual = mocks.revurderingService.opprettRevurdering(
+            OpprettRevurderingRequest(
+                sakId = sakId,
+                fraOgMed = LocalDate.now().startOfMonth(),
+                årsak = "REGULER_GRUNNBELØP",
+                begrunnelse = "g-regulering",
+                saksbehandler = saksbehandler,
+            ),
+        ).getOrHandle {
+            throw RuntimeException("$it")
+        }
+
+        val tilRevurdering = sak.vedtakListe.first() as Vedtak.EndringIYtelse
+        actual shouldBe OpprettetRevurdering(
+            id = actual.id,
+            periode = Periode.create(LocalDate.now().startOfMonth(), periode.tilOgMed),
+            opprettet = actual.opprettet,
+            tilRevurdering = tilRevurdering,
+            saksbehandler = saksbehandler,
+            oppgaveId = OppgaveId("oppgaveId"),
+            fritekstTilBrev = "",
+            revurderingsårsak = Revurderingsårsak(
+                Revurderingsårsak.Årsak.REGULER_GRUNNBELØP,
+                Revurderingsårsak.Begrunnelse.create("g-regulering"),
+            ),
+            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+            behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+        )
+        inOrder(
+            sakServiceMock,
+            personServiceMock,
+            oppgaveServiceMock,
+            revurderingRepoMock,
+            vilkårsvurderingServiceMock
+        ) {
+            verify(sakServiceMock).hentSak(sakId)
+            verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
+            verify(vilkårsvurderingServiceMock).opprettVilkårsvurderinger(sakId, actual.periode)
+            verify(oppgaveServiceMock).opprettOppgave(
+                argThat {
+                    it shouldBe OppgaveConfig.Revurderingsbehandling(
+                        saksnummer = saksnummer,
+                        aktørId = aktørId,
+                        tilordnetRessurs = null,
+                    )
+                },
+            )
+            verify(revurderingRepoMock).lagre(argThat { it.right() shouldBe actual.right() })
+            verify(vilkårsvurderingServiceMock).lagre(any(), any())
+        }
+
+        mocks.verifyNoMoreInteractions()
+    }
+
+    @Test
+    fun `kan opprette revurdering med årsak g-regulering 1 kalendermåned tilbake i tid`() {
+        val sak = createSak()
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(sakId) } doReturn sak.right()
+        }
+        val revurderingRepoMock = mock<RevurderingRepo>()
+
+        val personServiceMock = mock<PersonService> {
+            on { hentAktørId(any()) } doReturn aktørId.right()
+        }
+
+        val oppgaveServiceMock = mock<OppgaveService> {
+            on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
+        }
+        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService> {
+            on { opprettVilkårsvurderinger(any(), any()) } doReturn Vilkårsvurderinger.EMPTY
+        }
+        val mocks = RevurderingServiceMocks(
+            sakService = sakServiceMock,
+            revurderingRepo = revurderingRepoMock,
+            oppgaveService = oppgaveServiceMock,
+            personService = personServiceMock,
+            vilkårsvurderingService = vilkårsvurderingServiceMock,
+        )
+        val actual = mocks.revurderingService.opprettRevurdering(
+            OpprettRevurderingRequest(
+                sakId = sakId,
+                fraOgMed = LocalDate.now().minusMonths(1).startOfMonth(),
+                årsak = "REGULER_GRUNNBELØP",
+                begrunnelse = "g-regulering",
+                saksbehandler = saksbehandler,
+            ),
+        ).getOrHandle {
+            throw RuntimeException("$it")
+        }
+        val tilRevurdering = sak.vedtakListe.first() as Vedtak.EndringIYtelse
+        actual shouldBe OpprettetRevurdering(
+            id = actual.id,
+            periode = Periode.create(LocalDate.now().minusMonths(1).startOfMonth(), periode.tilOgMed),
+            opprettet = actual.opprettet,
+            tilRevurdering = tilRevurdering,
+            saksbehandler = saksbehandler,
+            oppgaveId = OppgaveId("oppgaveId"),
+            fritekstTilBrev = "",
+            revurderingsårsak = Revurderingsårsak(
+                Revurderingsårsak.Årsak.REGULER_GRUNNBELØP,
+                Revurderingsårsak.Begrunnelse.create("g-regulering"),
+            ),
+            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+            behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+        )
+        inOrder(
+            sakServiceMock,
+            personServiceMock,
+            oppgaveServiceMock,
+            revurderingRepoMock,
+            vilkårsvurderingServiceMock,
+        ) {
+            verify(sakServiceMock).hentSak(sakId)
+            verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
+            verify(vilkårsvurderingServiceMock).opprettVilkårsvurderinger(sakId, actual.periode)
+            verify(oppgaveServiceMock).opprettOppgave(
+                argThat {
+                    it shouldBe OppgaveConfig.Revurderingsbehandling(
+                        saksnummer = saksnummer,
+                        aktørId = aktørId,
+                        tilordnetRessurs = null,
+                    )
+                },
+            )
+            verify(revurderingRepoMock).lagre(argThat { it.right() shouldBe actual.right() })
+            verify(vilkårsvurderingServiceMock).lagre(any(), any())
+        }
+
         mocks.verifyNoMoreInteractions()
     }
 
@@ -399,7 +563,6 @@ internal class OpprettRevurderingServiceTest {
                 on { hentAktørId(any()) } doReturn aktørId.right()
             },
             vilkårsvurderingService = vilkårsvurderingServiceMock,
-
         )
         val revurderingForFebruar = mocks.revurderingService.opprettRevurdering(
             OpprettRevurderingRequest(

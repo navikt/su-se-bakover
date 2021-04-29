@@ -18,8 +18,8 @@ import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
-import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresponser.fantIkkeRevurdering
-import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresponser.ugyldigTilstand
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
@@ -66,7 +66,7 @@ internal fun Route.oppdaterRevurderingRoute(
 
 private fun KunneIkkeOppdatereRevurdering.tilResultat(): Resultat {
     return when (this) {
-        is KunneIkkeOppdatereRevurdering.UgyldigPeriode -> GenerelleRevurderingsfeilresponser.ugyldigPeriode(
+        is KunneIkkeOppdatereRevurdering.UgyldigPeriode -> Revurderingsfeilresponser.ugyldigPeriode(
             this.subError,
         )
         is KunneIkkeOppdatereRevurdering.FantIkkeRevurdering -> fantIkkeRevurdering

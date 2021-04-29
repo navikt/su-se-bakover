@@ -179,14 +179,14 @@ internal class OpprettRevurderingRouteKtTest {
     }
 
     @Test
-    fun `kunne ikke revurdere inneværende måned eller tidligere`() {
+    fun `årsak og periode kombinasjon er ugyldig`() {
         shouldMapErrorCorrectly(
-            error = KunneIkkeOppretteRevurdering.KanIkkeRevurdereInneværendeMånedEllerTidligere,
+            error = KunneIkkeOppretteRevurdering.PeriodeOgÅrsakKombinasjonErUgyldig,
             expectedStatusCode = HttpStatusCode.BadRequest,
             expectedJsonResponse = """
                 {
-                    "message":"Revurdering kan kun gjøres fra og med neste kalendermåned",
-                    "code":"tidligest_neste_måned"
+                    "message":"periode og årsak kombinasjon er ugyldig",
+                    "code":"periode_og_årsak_kombinasjon_er_ugyldig"
                 }
             """.trimIndent(),
 
