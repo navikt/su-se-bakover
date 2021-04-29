@@ -37,6 +37,11 @@ interface RevurderingService {
         fritekst: String,
     ): Either<KunneIkkeForhåndsvarsle, Revurdering>
 
+    fun lagBrevutkastForForhåndsvarsling(
+        revurderingId: UUID,
+        fritekst: String,
+    ): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray>
+
     fun sendTilAttestering(
         request: SendTilAttesteringRequest,
     ): Either<KunneIkkeSendeRevurderingTilAttestering, Revurdering>
@@ -149,6 +154,7 @@ sealed class KunneIkkeForhåndsvarsle {
     object KunneIkkeOppretteOppgave : KunneIkkeForhåndsvarsle()
     data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
         KunneIkkeForhåndsvarsle()
+
     data class Attestering(val subError: KunneIkkeSendeRevurderingTilAttestering) : KunneIkkeForhåndsvarsle()
 }
 
@@ -159,6 +165,7 @@ sealed class KunneIkkeSendeRevurderingTilAttestering {
     object KanIkkeRegulereGrunnbeløpTilOpphør : KunneIkkeSendeRevurderingTilAttestering()
     data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
         KunneIkkeSendeRevurderingTilAttestering()
+
     object ManglerBeslutningPåForhåndsvarsel : KunneIkkeSendeRevurderingTilAttestering()
 }
 

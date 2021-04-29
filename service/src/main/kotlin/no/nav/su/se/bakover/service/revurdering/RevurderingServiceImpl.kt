@@ -288,6 +288,26 @@ internal class RevurderingServiceImpl(
         }
     }
 
+    override fun lagBrevutkastForForhåndsvarsling(
+        revurderingId: UUID,
+        fritekst: String,
+    ): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray> {
+        val revurdering = revurderingRepo.hent(revurderingId)
+            ?: return KunneIkkeLageBrevutkastForRevurdering.FantIkkeRevurdering.left()
+
+        val person = personService.hentPerson(revurdering.fnr).getOrElse {
+            log.error("Fant ikke person for revurdering: ${revurdering.id}")
+            return KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson.left()
+        }
+
+        val brevRequest = LagBrevRequest.Forhåndsvarsel(
+            person = person, fritekst = fritekst,
+        )
+
+        return brevService.lagBrev(brevRequest)
+            .mapLeft { KunneIkkeLageBrevutkastForRevurdering.KunneIkkeLageBrevutkast }
+    }
+
     override fun sendTilAttestering(
         request: SendTilAttesteringRequest,
     ): Either<KunneIkkeSendeRevurderingTilAttestering, Revurdering> {
@@ -647,14 +667,14 @@ internal class RevurderingServiceImpl(
         }
 
         val person = personService.hentPerson(revurdering.fnr).getOrElse {
-            log.error("Fant ikke aktør-id for revurdering: ${revurdering.id}")
+            log.error("Fant ikke person for revurdering: ${revurdering.id}")
             return KunneIkkeForhåndsvarsle.FantIkkePerson.left()
         }
 
         brevService.journalførBrev(
             request = LagBrevRequest.Forhåndsvarsel(
                 person = person,
-                beregning = revurdering.beregning, fritekst = fritekst,
+                fritekst = fritekst,
             ),
             saksnummer = revurdering.saksnummer,
         ).mapLeft {

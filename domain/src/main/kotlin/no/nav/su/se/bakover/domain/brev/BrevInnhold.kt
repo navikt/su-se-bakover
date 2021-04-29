@@ -128,19 +128,9 @@ abstract class BrevInnhold {
 
     data class Forhåndsvarsel(
         val personalia: Personalia,
-        val beregningsperioder: List<Beregningsperiode>,
         val fritekst: String,
-        val sats: Sats,
     ) : BrevInnhold() {
-        override val brevTemplate = BrevTemplate.VedtakIngenEndring
-
-        @Suppress("unused")
-        @JsonInclude
-        val satsBeløp = beregningsperioder.firstOrNull()?.satsbeløpPerMåned
-
-        @Suppress("unused")
-        @JsonInclude
-        val harFradrag: Boolean = beregningsperioder.harFradrag()
+        override val brevTemplate = BrevTemplate.Forhåndsvarsel
     }
 }
 
