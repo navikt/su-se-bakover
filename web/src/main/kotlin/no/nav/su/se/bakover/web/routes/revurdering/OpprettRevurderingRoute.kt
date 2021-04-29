@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeAktørId
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeSak
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.kunneIkkeOppretteOppgave
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.periodeOgÅrsakKombinasjonErUgyldig
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.ugyldigPeriode
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
@@ -92,9 +93,6 @@ private fun KunneIkkeOppretteRevurdering.tilResultat(): Resultat {
             "Ugyldig årsak, må være en av: ${Revurderingsårsak.Årsak.values()}",
             "ugyldig_årsak",
         )
-        KunneIkkeOppretteRevurdering.PeriodeOgÅrsakKombinasjonErUgyldig -> BadRequest.errorJson(
-            "periode og årsak kombinasjon er ugyldig",
-            "periode_og_årsak_kombinasjon_er_ugyldig",
-        )
+        KunneIkkeOppretteRevurdering.PeriodeOgÅrsakKombinasjonErUgyldig -> periodeOgÅrsakKombinasjonErUgyldig
     }
 }

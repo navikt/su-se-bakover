@@ -37,18 +37,22 @@ internal object Revurderingsfeilresponser {
         "Mangler beslutning på forhåndsvarsel",
         "mangler_beslutning_på_forhåndsvarsel",
     )
+    val periodeOgÅrsakKombinasjonErUgyldig = BadRequest.errorJson(
+        "periode og årsak kombinasjon er ugyldig",
+        "periode_og_årsak_kombinasjon_er_ugyldig",
+    )
 
     fun ugyldigPeriode(ugyldigPeriode: UgyldigPeriode): Resultat {
         return BadRequest.errorJson(
             ugyldigPeriode.toString(),
-            "ugyldig_periode"
+            "ugyldig_periode",
         )
     }
 
     fun ugyldigTilstand(fra: KClass<out Revurdering>, til: KClass<out Revurdering>): Resultat {
         return BadRequest.errorJson(
             "Kan ikke gå fra tilstanden ${fra.simpleName} til tilstanden ${til.simpleName}",
-            "ugyldig_tilstand"
+            "ugyldig_tilstand",
         )
     }
 

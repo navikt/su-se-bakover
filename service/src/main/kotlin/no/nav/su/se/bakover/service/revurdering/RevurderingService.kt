@@ -122,15 +122,13 @@ sealed class KunneIkkeOppretteRevurdering {
 
 sealed class KunneIkkeOppdatereRevurdering {
     object FantIkkeRevurdering : KunneIkkeOppdatereRevurdering()
-    data class PeriodenMåVæreInnenforAlleredeValgtStønadsperiode(val periode: Periode) :
-        KunneIkkeOppdatereRevurdering()
-
     data class UgyldigPeriode(val subError: Periode.UgyldigPeriode) : KunneIkkeOppdatereRevurdering()
     object UgyldigÅrsak : KunneIkkeOppdatereRevurdering()
     object UgyldigBegrunnelse : KunneIkkeOppdatereRevurdering()
     data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
         KunneIkkeOppdatereRevurdering()
     object KanIkkeOppdatereRevurderingSomErForhåndsvarslet : KunneIkkeOppdatereRevurdering()
+    object PeriodeOgÅrsakKombinasjonErUgyldig : KunneIkkeOppdatereRevurdering()
 }
 
 sealed class KunneIkkeBeregneOgSimulereRevurdering {
