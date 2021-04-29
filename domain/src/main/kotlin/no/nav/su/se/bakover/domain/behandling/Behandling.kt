@@ -4,7 +4,9 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.util.UUID
 
 interface Behandling {
@@ -15,4 +17,6 @@ interface Behandling {
     val fnr: Fnr
     val oppgaveId: OppgaveId
     val periode: Periode
+    val grunnlagsdata: Grunnlagsdata
+    val vilkårsvurderinger: Vilkårsvurderinger
 }

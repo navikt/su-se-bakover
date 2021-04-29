@@ -40,7 +40,7 @@ internal const val søknadPath = "/soknad"
 @KtorExperimentalAPI
 internal fun Route.søknadRoutes(
     søknadService: SøknadService,
-    lukkSøknadService: LukkSøknadService
+    lukkSøknadService: LukkSøknadService,
 ) {
     authorize(Brukerrolle.Veileder, Brukerrolle.Saksbehandler) {
         post(søknadPath) {

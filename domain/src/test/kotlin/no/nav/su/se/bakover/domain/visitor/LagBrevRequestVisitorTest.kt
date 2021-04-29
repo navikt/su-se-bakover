@@ -37,6 +37,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
@@ -44,6 +45,7 @@ import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.Clock
@@ -609,6 +611,7 @@ internal class LagBrevRequestVisitorTest {
             tilRevurdering = Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetalingId),
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("15"),
+            grunnlagsdata = Grunnlagsdata.EMPTY,
             beregning = innvilgetBeregning,
             simulering = simulering,
             attestering = Attestering.Iverksatt(attestant),
@@ -619,6 +622,7 @@ internal class LagBrevRequestVisitorTest {
             ),
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
         val avslåttVedtak = Vedtak.from(revurdering, utbetalingId)
@@ -673,6 +677,8 @@ internal class LagBrevRequestVisitorTest {
             ),
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
         val opphørsvedtak = Vedtak.from(revurdering, utbetalingId)
@@ -727,6 +733,8 @@ internal class LagBrevRequestVisitorTest {
             skalFøreTilBrevutsending = false,
             forhåndsvarsel = null,
             behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
         val vedtakIngenEndring = Vedtak.from(revurdering, clock)
@@ -838,5 +846,7 @@ internal class LagBrevRequestVisitorTest {
         fnr = FnrGenerator.random(),
         fritekstTilBrev = "",
         stønadsperiode = ValgtStønadsperiode(Periode.create(1.januar(2021), 31.desember(2021))),
+        grunnlagsdata = Grunnlagsdata.EMPTY,
+        vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
     )
 }

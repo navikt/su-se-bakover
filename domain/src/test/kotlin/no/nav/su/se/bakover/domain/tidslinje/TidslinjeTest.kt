@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.domain.tidslinje
 
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.april
@@ -18,6 +20,8 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.september
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.CopyArgs
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import org.junit.jupiter.api.Test
 import java.time.Clock
@@ -1004,6 +1008,50 @@ internal class TidslinjeTest {
                 beløp = 10000
             ),
         )
+    }
+
+    @Test
+    fun `kan lage tidslinje for forskjellige typer objekter`() {
+        val a = Grunnlag.Uføregrunnlag(
+            opprettet = Tidspunkt.now(fixedClock),
+            periode = Periode.create(
+                fraOgMed = 1.januar(2021),
+                tilOgMed = 31.desember(2021)
+            ),
+            uføregrad = Uføregrad.parse(50),
+            forventetInntekt = 15000
+        )
+
+        val b = Grunnlag.Uføregrunnlag(
+            opprettet = Tidspunkt.now(fixedClock).plus(1, DAYS),
+            periode = Periode.create(
+                fraOgMed = 1.januar(2021),
+                tilOgMed = 31.desember(2021)
+            ),
+            uføregrad = Uføregrad.parse(100),
+            forventetInntekt = 0
+        )
+
+        Tidslinje<Grunnlag.Uføregrunnlag>(
+            periode = Periode.create(
+                fraOgMed = 1.januar(2021),
+                tilOgMed = 31.desember(2021)
+            ),
+            objekter = listOf(a, b),
+            clock = fixedClock
+        ).tidslinje.let {
+            it shouldHaveSize 1
+            it[0].let { resultat ->
+                resultat.id shouldNotBe a.id
+                resultat.id shouldNotBe b.id
+                resultat.periode shouldBe Periode.create(
+                    fraOgMed = 1.januar(2021),
+                    tilOgMed = 31.desember(2021)
+                )
+                resultat.uføregrad shouldBe Uføregrad.parse(100)
+                resultat.forventetInntekt shouldBe 0
+            }
+        }
     }
 
     @Test

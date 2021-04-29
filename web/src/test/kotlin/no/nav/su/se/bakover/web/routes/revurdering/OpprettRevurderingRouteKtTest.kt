@@ -16,9 +16,11 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.defaultRequest
@@ -85,6 +87,8 @@ internal class OpprettRevurderingRouteKtTest {
             ),
             forhåndsvarsel = null,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
         val revurderingServiceMock = mock<RevurderingService> {
             on { opprettRevurdering(any()) } doReturn opprettetRevurdering.right()
@@ -175,14 +179,14 @@ internal class OpprettRevurderingRouteKtTest {
     }
 
     @Test
-    fun `kunne ikke revurdere inneværende måned eller tidligere`() {
+    fun `årsak og periode kombinasjon er ugyldig`() {
         shouldMapErrorCorrectly(
-            error = KunneIkkeOppretteRevurdering.KanIkkeRevurdereInneværendeMånedEllerTidligere,
+            error = KunneIkkeOppretteRevurdering.PeriodeOgÅrsakKombinasjonErUgyldig,
             expectedStatusCode = HttpStatusCode.BadRequest,
             expectedJsonResponse = """
                 {
-                    "message":"Revurdering kan kun gjøres fra og med neste kalendermåned",
-                    "code":"tidligest_neste_måned"
+                    "message":"periode og årsak kombinasjon er ugyldig",
+                    "code":"periode_og_årsak_kombinasjon_er_ugyldig"
                 }
             """.trimIndent(),
 

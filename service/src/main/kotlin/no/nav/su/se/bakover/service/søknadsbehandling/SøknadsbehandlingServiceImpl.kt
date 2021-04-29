@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -27,9 +28,14 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.medFritekstTilBrev
 import no.nav.su.se.bakover.domain.søknadsbehandling.statusovergang
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
+import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.vilkår.Vilkår
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.service.beregning.BeregningService
 import no.nav.su.se.bakover.service.brev.BrevService
+import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
+import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.Event
@@ -58,6 +64,8 @@ internal class SøknadsbehandlingServiceImpl(
     private val clock: Clock,
     private val vedtakRepo: VedtakRepo,
     private val ferdigstillVedtakService: FerdigstillVedtakService,
+    private val grunnlagService: GrunnlagService,
+    private val vilkårsvurderingService: VilkårsvurderingService,
 ) : SøknadsbehandlingService {
 
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -98,6 +106,8 @@ internal class SøknadsbehandlingServiceImpl(
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             fritekstTilBrev = "",
             stønadsperiode = null,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
         søknadsbehandlingRepo.lagre(opprettet)
@@ -121,9 +131,9 @@ internal class SøknadsbehandlingServiceImpl(
         return statusovergang(
             søknadsbehandling = saksbehandling,
             statusovergang = Statusovergang.TilVilkårsvurdert(request.behandlingsinformasjon),
-        ).let {
-            søknadsbehandlingRepo.lagre(it)
-            it.right()
+        ).let { vilkårsvurdert ->
+            søknadsbehandlingRepo.lagre(vilkårsvurdert)
+            vilkårsvurdert.right()
         }
     }
 
@@ -139,7 +149,7 @@ internal class SøknadsbehandlingServiceImpl(
                     fradrag = request.fradrag,
                     request.begrunnelse,
                 )
-            }
+            },
         ).let {
             søknadsbehandlingRepo.lagre(it)
             it.right()
@@ -448,6 +458,50 @@ internal class SøknadsbehandlingServiceImpl(
         ).let {
             søknadsbehandlingRepo.lagre(it)
             it.right()
+        }
+    }
+
+    override fun leggTilUføregrunnlag(request: LeggTilUførevurderingRequest): Either<SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag, Søknadsbehandling> {
+        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
+            ?: return SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling.left()
+
+        if (søknadsbehandling is Søknadsbehandling.Iverksatt || søknadsbehandling is Søknadsbehandling.TilAttestering)
+            return SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.UgyldigTilstand(søknadsbehandling::class, Søknadsbehandling.Vilkårsvurdert::class).left()
+
+        val vilkår = request.toVilkår().getOrHandle {
+            return SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.UføregradOgForventetInntektMangler.left()
+        }
+        // TODO midliertidig til behandlingsinformasjon er borte
+        val grunnlag = (vilkår as? Vilkår.Vurdert.Uførhet)?.grunnlag?.firstOrNull()
+        return vilkårsvurder(
+            SøknadsbehandlingService.VilkårsvurderRequest(
+                behandlingId = søknadsbehandling.id,
+                behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon.copy(
+                    uførhet = Behandlingsinformasjon.Uførhet(
+                        status = when (vilkår) {
+                            is Vilkår.Vurdert.Uførhet -> when (vilkår.resultat) {
+                                Resultat.Avslag -> Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt
+                                Resultat.Innvilget -> Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt
+                                Resultat.Uavklart -> Behandlingsinformasjon.Uførhet.Status.HarUføresakTilBehandling
+                            }
+                            Vilkår.IkkeVurdert.Uførhet -> TODO()
+                        },
+                        uføregrad = grunnlag?.uføregrad?.value,
+                        forventetInntekt = grunnlag?.forventetInntekt,
+                        begrunnelse = request.begrunnelse,
+                    ),
+                ),
+            ),
+        ).mapLeft {
+            SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling
+        }.map {
+            vilkårsvurderingService.lagre(
+                søknadsbehandling.id,
+                søknadsbehandling.vilkårsvurderinger.copy(
+                    uføre = vilkår,
+                ),
+            )
+            søknadsbehandlingRepo.hent(søknadsbehandling.id)!!
         }
     }
 }

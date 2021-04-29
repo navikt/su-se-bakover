@@ -26,8 +26,7 @@ data class Periode private constructor(
     }
 
     infix fun inneholder(other: Periode): Boolean =
-        (fraOgMed.isEqual(other.fraOgMed) || fraOgMed.isBefore(other.fraOgMed)) &&
-            (tilOgMed.isEqual(other.tilOgMed) || tilOgMed.isAfter(other.tilOgMed))
+        starterSamtidigEllerTidligere(other) && slutterSamtidigEllerSenere(other)
 
     infix fun tilstøter(other: Periode): Boolean {
         val sluttStart = Period.between(tilOgMed, other.fraOgMed)
@@ -66,9 +65,15 @@ data class Periode private constructor(
         }
 
         fun tryCreate(fraOgMed: LocalDate, tilOgMed: LocalDate): Either<UgyldigPeriode, Periode> {
-            if (!fraOgMed.erFørsteDagIMåned()) { return UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden.left() }
-            if (!tilOgMed.erSisteDagIMåned()) { return UgyldigPeriode.TilOgMedDatoMåVæreSisteDagIMåneden.left() }
-            if (!fraOgMed.isBefore(tilOgMed)) { return UgyldigPeriode.FraOgMedDatoMåVæreFørTilOgMedDato.left() }
+            if (!fraOgMed.erFørsteDagIMåned()) {
+                return UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden.left()
+            }
+            if (!tilOgMed.erSisteDagIMåned()) {
+                return UgyldigPeriode.TilOgMedDatoMåVæreSisteDagIMåneden.left()
+            }
+            if (!fraOgMed.isBefore(tilOgMed)) {
+                return UgyldigPeriode.FraOgMedDatoMåVæreFørTilOgMedDato.left()
+            }
 
             return Periode(fraOgMed, tilOgMed).right()
         }
@@ -78,9 +83,11 @@ data class Periode private constructor(
         object FraOgMedDatoMåVæreFørsteDagIMåneden : UgyldigPeriode() {
             override fun toString(): String = this.javaClass.simpleName
         }
+
         object TilOgMedDatoMåVæreSisteDagIMåneden : UgyldigPeriode() {
             override fun toString(): String = this.javaClass.simpleName
         }
+
         object FraOgMedDatoMåVæreFørTilOgMedDato : UgyldigPeriode() {
             override fun toString(): String = this.javaClass.simpleName
         }

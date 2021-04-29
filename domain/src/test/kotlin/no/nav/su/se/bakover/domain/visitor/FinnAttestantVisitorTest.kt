@@ -23,11 +23,15 @@ import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -138,6 +142,8 @@ internal class FinnAttestantVisitorTest {
         fnr = FnrGenerator.random(),
         fritekstTilBrev = "",
         stønadsperiode = ValgtStønadsperiode(Periode.create(1.januar(2021), 31.desember(2021))),
+        grunnlagsdata = Grunnlagsdata.EMPTY,
+        vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
     )
 
     private val behandlingsinformasjonMedAlleVilkårOppfylt = Behandlingsinformasjon.lagTomBehandlingsinformasjon()
@@ -225,6 +231,16 @@ internal class FinnAttestantVisitorTest {
         ),
         forhåndsvarsel = null,
         behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt,
+        grunnlagsdata = Grunnlagsdata(
+            uføregrunnlag = listOf(
+                Grunnlag.Uføregrunnlag(
+                    periode = Periode.create(1.januar(2021), 31.januar(2021)),
+                    uføregrad = Uføregrad.parse(20),
+                    forventetInntekt = 10,
+                ),
+            ),
+        ),
+        vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
     )
 
     private val beregnetRevurdering = when (val a = revurdering.beregn(emptyList()).orNull()!!) {

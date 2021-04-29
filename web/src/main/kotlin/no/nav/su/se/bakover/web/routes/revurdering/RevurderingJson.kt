@@ -12,16 +12,20 @@ import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
-import no.nav.su.se.bakover.web.routes.behandling.AttesteringJson
-import no.nav.su.se.bakover.web.routes.behandling.BehandlingsinformasjonJson
-import no.nav.su.se.bakover.web.routes.behandling.BehandlingsinformasjonJson.Companion.toJson
-import no.nav.su.se.bakover.web.routes.behandling.SimuleringJson
-import no.nav.su.se.bakover.web.routes.behandling.SimuleringJson.Companion.toJson
-import no.nav.su.se.bakover.web.routes.behandling.UnderkjennelseJson
-import no.nav.su.se.bakover.web.routes.behandling.beregning.BeregningJson
-import no.nav.su.se.bakover.web.routes.behandling.beregning.PeriodeJson
-import no.nav.su.se.bakover.web.routes.behandling.beregning.PeriodeJson.Companion.toJson
-import no.nav.su.se.bakover.web.routes.behandling.beregning.toJson
+import no.nav.su.se.bakover.web.routes.grunnlag.VilkårsvurderingerJson
+import no.nav.su.se.bakover.web.routes.grunnlag.revurdering.GrunnlagsdataRevurderingJson
+import no.nav.su.se.bakover.web.routes.grunnlag.revurdering.toRevurderingJson
+import no.nav.su.se.bakover.web.routes.grunnlag.toJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.AttesteringJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingsinformasjonJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingsinformasjonJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.UnderkjennelseJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.BeregningJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.toJson
 import java.time.format.DateTimeFormatter
 
 sealed class RevurderingJson
@@ -60,6 +64,8 @@ internal data class OpprettetRevurderingJson(
     val begrunnelse: String,
     val forhåndsvarsel: ForhåndsvarselJson?,
     val behandlingsinformasjon: BehandlingsinformasjonJson,
+    val grunnlag: GrunnlagsdataRevurderingJson,
+    val vilkårsvurderinger: VilkårsvurderingerJson,
 ) : RevurderingJson() {
     @JsonInclude
     val status = RevurderingsStatus.OPPRETTET
@@ -78,6 +84,8 @@ internal data class BeregnetRevurderingJson(
     val status: RevurderingsStatus,
     val forhåndsvarsel: ForhåndsvarselJson?,
     val behandlingsinformasjon: BehandlingsinformasjonJson,
+    val grunnlag: GrunnlagsdataRevurderingJson,
+    val vilkårsvurderinger: VilkårsvurderingerJson,
 ) : RevurderingJson()
 
 internal data class SimulertRevurderingJson(
@@ -94,6 +102,8 @@ internal data class SimulertRevurderingJson(
     val forhåndsvarsel: ForhåndsvarselJson?,
     val behandlingsinformasjon: BehandlingsinformasjonJson,
     val simulering: SimuleringJson,
+    val grunnlag: GrunnlagsdataRevurderingJson,
+    val vilkårsvurderinger: VilkårsvurderingerJson,
 ) : RevurderingJson()
 
 internal data class TilAttesteringJson(
@@ -111,6 +121,8 @@ internal data class TilAttesteringJson(
     val forhåndsvarsel: ForhåndsvarselJson?,
     val behandlingsinformasjon: BehandlingsinformasjonJson,
     val simulering: SimuleringJson?,
+    val grunnlag: GrunnlagsdataRevurderingJson,
+    val vilkårsvurderinger: VilkårsvurderingerJson,
 ) : RevurderingJson()
 
 internal data class IverksattRevurderingJson(
@@ -129,6 +141,8 @@ internal data class IverksattRevurderingJson(
     val forhåndsvarsel: ForhåndsvarselJson?,
     val behandlingsinformasjon: BehandlingsinformasjonJson,
     val simulering: SimuleringJson?,
+    val grunnlag: GrunnlagsdataRevurderingJson,
+    val vilkårsvurderinger: VilkårsvurderingerJson,
 ) : RevurderingJson()
 
 internal data class UnderkjentRevurderingJson(
@@ -147,6 +161,8 @@ internal data class UnderkjentRevurderingJson(
     val forhåndsvarsel: ForhåndsvarselJson?,
     val behandlingsinformasjon: BehandlingsinformasjonJson,
     val simulering: SimuleringJson?,
+    val grunnlag: GrunnlagsdataRevurderingJson,
+    val vilkårsvurderinger: VilkårsvurderingerJson,
 ) : RevurderingJson()
 
 internal fun Forhåndsvarsel.toJson() = when (this) {
@@ -154,7 +170,6 @@ internal fun Forhåndsvarsel.toJson() = when (this) {
     is Forhåndsvarsel.SkalForhåndsvarsles.Besluttet -> ForhåndsvarselJson.SkalVarslesBesluttet(
         begrunnelse = begrunnelse,
         beslutningEtterForhåndsvarsling = valg,
-
     )
     is Forhåndsvarsel.SkalForhåndsvarsles.Sendt -> ForhåndsvarselJson.SkalVarslesSendt
 }
@@ -196,6 +211,8 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
         forhåndsvarsel = forhåndsvarsel?.let { it.toJson() },
         behandlingsinformasjon = behandlingsinformasjon.toJson(),
+        grunnlag = grunnlagsdata.toRevurderingJson(),
+        vilkårsvurderinger = vilkårsvurderinger.toJson(),
     )
     is SimulertRevurdering -> SimulertRevurderingJson(
         id = id.toString(),
@@ -214,6 +231,8 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         forhåndsvarsel = forhåndsvarsel?.let { it.toJson() },
         behandlingsinformasjon = behandlingsinformasjon.toJson(),
         simulering = simulering.toJson(),
+        grunnlag = grunnlagsdata.toRevurderingJson(),
+        vilkårsvurderinger = vilkårsvurderinger.toJson(),
     )
     is RevurderingTilAttestering -> TilAttesteringJson(
         id = id.toString(),
@@ -241,7 +260,8 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
             is RevurderingTilAttestering.Innvilget -> simulering.toJson()
             is RevurderingTilAttestering.Opphørt -> simulering.toJson()
         },
-
+        grunnlag = grunnlagsdata.toRevurderingJson(),
+        vilkårsvurderinger = vilkårsvurderinger.toJson(),
     )
     is IverksattRevurdering -> IverksattRevurderingJson(
         id = id.toString(),
@@ -270,6 +290,8 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
             is IverksattRevurdering.Innvilget -> simulering.toJson()
             is IverksattRevurdering.Opphørt -> simulering.toJson()
         },
+        grunnlag = grunnlagsdata.toRevurderingJson(),
+        vilkårsvurderinger = vilkårsvurderinger.toJson(),
     )
     is UnderkjentRevurdering -> UnderkjentRevurderingJson(
         id = id.toString(),
@@ -304,6 +326,8 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
             is UnderkjentRevurdering.Innvilget -> simulering.toJson()
             is UnderkjentRevurdering.Opphørt -> simulering.toJson()
         },
+        grunnlag = grunnlagsdata.toRevurderingJson(),
+        vilkårsvurderinger = vilkårsvurderinger.toJson(),
     )
     is BeregnetRevurdering -> BeregnetRevurderingJson(
         id = id.toString(),
@@ -321,6 +345,8 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         status = InstansTilStatusMapper(this).status,
         forhåndsvarsel = forhåndsvarsel?.let { it.toJson() },
         behandlingsinformasjon = behandlingsinformasjon.toJson(),
+        grunnlag = grunnlagsdata.toRevurderingJson(),
+        vilkårsvurderinger = vilkårsvurderinger.toJson(),
     )
 }
 

@@ -26,11 +26,11 @@ import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
-import no.nav.su.se.bakover.web.routes.behandling.beregning.FradragJson
-import no.nav.su.se.bakover.web.routes.behandling.beregning.FradragJson.Companion.toFradrag
-import no.nav.su.se.bakover.web.routes.behandling.beregning.PeriodeJson
-import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresponser.fantIkkeRevurdering
-import no.nav.su.se.bakover.web.routes.revurdering.GenerelleRevurderingsfeilresponser.ugyldigTilstand
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.ugyldigTilstand
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson.Companion.toFradrag
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
@@ -44,7 +44,6 @@ internal fun Route.beregnOgSimulerRevurdering(
     data class BeregningForRevurderingBody(
         val periode: PeriodeJson,
         val fradrag: List<FradragJson>,
-        val forventetInntekt: Int?,
     ) {
         fun toDomain(): Either<Resultat, List<Fradrag>> =
             periode.toPeriode()
@@ -61,7 +60,6 @@ internal fun Route.beregnOgSimulerRevurdering(
                                     revurderingId = revurderingId,
                                     saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                                     fradrag = fradrag,
-                                    forventetInntekt = body.forventetInntekt,
                                 ).mapLeft {
                                     it.tilResultat()
                                 }.map { revurdering ->

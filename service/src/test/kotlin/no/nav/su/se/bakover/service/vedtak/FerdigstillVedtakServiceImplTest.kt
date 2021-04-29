@@ -40,6 +40,7 @@ import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -51,6 +52,7 @@ import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
@@ -583,7 +585,9 @@ internal class FerdigstillVedtakServiceImplTest {
                         Revurderingsårsak.Begrunnelse.create("begrunnelse"),
                     ),
                     skalFøreTilBrevutsending = false,
-                    forhåndsvarsel = null
+                    forhåndsvarsel = null,
+                    grunnlagsdata = Grunnlagsdata.EMPTY,
+                    vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
                 ),
             )
         }
@@ -1269,6 +1273,8 @@ internal class FerdigstillVedtakServiceImplTest {
                 saksbehandler = saksbehandler,
                 fritekstTilBrev = "",
                 stønadsperiode = ValgtStønadsperiode(Periode.create(1.januar(2021), 31.desember(2021))),
+                grunnlagsdata = Grunnlagsdata.EMPTY,
+                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
             ),
         )
 
@@ -1314,6 +1320,8 @@ internal class FerdigstillVedtakServiceImplTest {
                 attestering = Attestering.Iverksatt(attestant),
                 fritekstTilBrev = "",
                 stønadsperiode = ValgtStønadsperiode(Periode.create(1.januar(2021), 31.desember(2021))),
+                grunnlagsdata = Grunnlagsdata.EMPTY,
+                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
             ),
             utbetalingId = UUID30.randomUUID(),
         )
@@ -1337,7 +1345,9 @@ internal class FerdigstillVedtakServiceImplTest {
                     Revurderingsårsak.Årsak.REGULER_GRUNNBELØP,
                     Revurderingsårsak.Begrunnelse.create("regulert grunnbeløp"),
                 ),
-                forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel
+                forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+                grunnlagsdata = Grunnlagsdata.EMPTY,
+                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
             ),
             utbetalingId = UUID30.randomUUID(),
         )

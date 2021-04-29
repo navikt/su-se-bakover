@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeslutningEtterForhåndsvarsling
@@ -24,6 +25,7 @@ import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.fixedLocalDate
 import no.nav.su.se.bakover.service.fixedTidspunkt
@@ -63,6 +65,8 @@ internal class OppdaterRevurderingServiceTest {
         revurderingsårsak = revurderingsårsak,
         forhåndsvarsel = null,
         behandlingsinformasjon = behandlingsinformasjon,
+        grunnlagsdata = Grunnlagsdata.EMPTY,
+        vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
     )
 
     @Test
@@ -231,6 +235,8 @@ internal class OppdaterRevurderingServiceTest {
                     behandlingsinformasjon = behandlingsinformasjon,
                     simulering = mock(),
                     forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+                    grunnlagsdata = Grunnlagsdata.EMPTY,
+                    vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
                 )
             }
         }
@@ -280,6 +286,8 @@ internal class OppdaterRevurderingServiceTest {
             revurderingsårsak = revurderingsårsak,
             behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
             forhåndsvarsel = null,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
         inOrder(revurderingRepoMock) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })

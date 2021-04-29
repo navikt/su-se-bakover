@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import java.time.LocalDate
 import java.util.UUID
+import kotlin.reflect.KClass
 
 interface SøknadsbehandlingService {
     fun opprett(request: OpprettRequest): Either<KunneIkkeOpprette, Søknadsbehandling.Vilkårsvurdert.Uavklart>
@@ -22,6 +23,7 @@ interface SøknadsbehandlingService {
     fun brev(request: BrevRequest): Either<KunneIkkeLageBrev, ByteArray>
     fun hent(request: HentRequest): Either<FantIkkeBehandling, Søknadsbehandling>
     fun oppdaterStønadsperiode(request: OppdaterStønadsperiodeRequest): Either<KunneIkkeOppdatereStønadsperiode, Søknadsbehandling>
+    fun leggTilUføregrunnlag(request: LeggTilUførevurderingRequest): Either<KunneIkkeLeggeTilGrunnlag, Søknadsbehandling>
 
     data class OpprettRequest(
         val søknadId: UUID,
@@ -36,7 +38,6 @@ interface SøknadsbehandlingService {
 
     data class VilkårsvurderRequest(
         val behandlingId: UUID,
-        val saksbehandler: NavIdentBruker.Saksbehandler,
         val behandlingsinformasjon: Behandlingsinformasjon,
     )
 
@@ -151,4 +152,10 @@ interface SøknadsbehandlingService {
         val behandlingId: UUID,
         val stønadsperiode: ValgtStønadsperiode,
     )
+
+    sealed class KunneIkkeLeggeTilGrunnlag {
+        object FantIkkeBehandling : KunneIkkeLeggeTilGrunnlag()
+        data class UgyldigTilstand(val fra: KClass<out Søknadsbehandling>, val til: KClass<out Søknadsbehandling>) : KunneIkkeLeggeTilGrunnlag()
+        object UføregradOgForventetInntektMangler : KunneIkkeLeggeTilGrunnlag()
+    }
 }

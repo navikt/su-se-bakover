@@ -9,6 +9,8 @@ import no.nav.su.se.bakover.domain.søknad.SøknadMetrics
 import no.nav.su.se.bakover.service.avstemming.AvstemmingServiceImpl
 import no.nav.su.se.bakover.service.beregning.BeregningService
 import no.nav.su.se.bakover.service.brev.BrevServiceImpl
+import no.nav.su.se.bakover.service.grunnlag.GrunnlagServiceImpl
+import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingServiceImpl
 import no.nav.su.se.bakover.service.oppgave.OppgaveServiceImpl
 import no.nav.su.se.bakover.service.person.PersonServiceImpl
 import no.nav.su.se.bakover.service.revurdering.RevurderingServiceImpl
@@ -31,12 +33,12 @@ object ServiceBuilder {
         behandlingMetrics: BehandlingMetrics,
         søknadMetrics: SøknadMetrics,
         clock: Clock,
-        unleash: Unleash
+        unleash: Unleash,
     ): Services {
         val personService = PersonServiceImpl(clients.personOppslag)
         val statistikkService = StatistikkServiceImpl(clients.kafkaPublisher, personService, clock)
         val sakService = SakServiceImpl(
-            sakRepo = databaseRepos.sak
+            sakRepo = databaseRepos.sak,
         ).apply { observers.add(statistikkService) }
         val utbetalingService = UtbetalingServiceImpl(
             utbetalingRepo = databaseRepos.utbetaling,
@@ -48,10 +50,10 @@ object ServiceBuilder {
         val brevService = BrevServiceImpl(
             pdfGenerator = clients.pdfGenerator,
             dokArkiv = clients.dokArkiv,
-            dokDistFordeling = clients.dokDistFordeling
+            dokDistFordeling = clients.dokDistFordeling,
         )
         val oppgaveService = OppgaveServiceImpl(
-            oppgaveClient = clients.oppgaveClient
+            oppgaveClient = clients.oppgaveClient,
         )
         val søknadService = SøknadServiceImpl(
             søknadRepo = databaseRepos.søknad,
@@ -74,8 +76,20 @@ object ServiceBuilder {
             microsoftGraphApiOppslag = clients.microsoftGraphApiClient,
             clock = clock,
             utbetalingRepo = databaseRepos.utbetaling,
-            behandlingMetrics = behandlingMetrics
+            behandlingMetrics = behandlingMetrics,
         )
+
+        val grunnlagService = GrunnlagServiceImpl(
+            vedtakRepo = databaseRepos.vedtakRepo,
+            clock = clock,
+        )
+
+        val vilkårsvurderingService = VilkårsvurderingServiceImpl(
+            vilkårsvurderingRepo = databaseRepos.vilkårsvurderingRepo,
+            vedtakRepo = databaseRepos.vedtakRepo,
+            clock = clock,
+        )
+
         val revurderingService = RevurderingServiceImpl(
             sakService = sakService,
             utbetalingService = utbetalingService,
@@ -86,14 +100,17 @@ object ServiceBuilder {
             brevService = brevService,
             clock = clock,
             vedtakRepo = databaseRepos.vedtakRepo,
-            ferdigstillVedtakService = ferdigstillVedtakService
+            ferdigstillVedtakService = ferdigstillVedtakService,
+            grunnlagService = grunnlagService,
+            vilkårsvurderingService = vilkårsvurderingService
         ).apply { addObserver(statistikkService) }
+
         val opprettVedtakssnapshotService = OpprettVedtakssnapshotService(databaseRepos.vedtakssnapshot)
 
         val toggleService = ToggleServiceImpl(unleash)
 
         val vedtakService = VedtakServiceImpl(
-            vedtakRepo = databaseRepos.vedtakRepo
+            vedtakRepo = databaseRepos.vedtakRepo,
         )
 
         return Services(
@@ -135,13 +152,16 @@ object ServiceBuilder {
                 opprettVedtakssnapshotService = opprettVedtakssnapshotService,
                 clock = clock,
                 vedtakRepo = databaseRepos.vedtakRepo,
-                ferdigstillVedtakService = ferdigstillVedtakService
+                ferdigstillVedtakService = ferdigstillVedtakService,
+                grunnlagService = grunnlagService,
+                vilkårsvurderingService = vilkårsvurderingService,
             ).apply {
                 addObserver(statistikkService)
             },
             ferdigstillVedtak = ferdigstillVedtakService,
             revurdering = revurderingService,
             vedtakService = vedtakService,
+            grunnlagService = grunnlagService,
         )
     }
 }
