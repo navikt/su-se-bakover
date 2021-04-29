@@ -28,46 +28,28 @@ internal class UføregrunnlagPostgresRepoTest {
             val uføregrunnlag1 = Uføregrunnlag(
                 periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.april(2021)),
                 uføregrad = Uføregrad.parse(100),
-                forventetInntekt = 0
+                forventetInntekt = 0,
             )
 
             val uføregrunnlag2 = Uføregrunnlag(
                 periode = Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.desember(2021)),
                 uføregrad = Uføregrad.parse(80),
-                forventetInntekt = 14000
+                forventetInntekt = 14000,
             )
 
-            grunnlagRepo.lagre(behandling.id, listOf(uføregrunnlag1, uføregrunnlag2))
+            datasource.withSession { session ->
+                grunnlagRepo.lagre(behandling.id, listOf(uføregrunnlag1, uføregrunnlag2), session)
+            }
 
             grunnlagRepo.hent(behandling.id) shouldBe listOf(
                 uføregrunnlag1,
-                uføregrunnlag2
+                uføregrunnlag2,
             )
 
             datasource.withSession {
                 """
-                    select count(*) from behandling_grunnlag
-                """.antall(emptyMap(), it) shouldBe 2
-                """
                     select count(*) from grunnlag_uføre
                 """.antall(emptyMap(), it) shouldBe 2
-            }
-
-            listOf(
-                uføregrunnlag1
-            ).forEach {
-                grunnlagRepo.slett(it.id)
-            }
-
-            grunnlagRepo.hent(behandling.id) shouldBe listOf(uføregrunnlag2)
-
-            datasource.withSession {
-                """
-                    select count(*) from behandling_grunnlag
-                """.antall(emptyMap(), it) shouldBe 1
-                """
-                    select count(*) from grunnlag_uføre
-                """.antall(emptyMap(), it) shouldBe 1
             }
         }
     }

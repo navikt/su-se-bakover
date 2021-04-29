@@ -34,7 +34,6 @@ import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -160,9 +159,6 @@ internal val kvitteringOk = Kvittering(
     originalKvittering = "hallo",
     mottattTidspunkt = fixedTidspunkt,
 )
-internal val journalførtIverksettingForAvslag = JournalføringOgBrevdistribusjon.Journalført(
-    journalpostId = iverksattJournalpostId,
-)
 
 internal class TestDataHelper(
     dataSource: DataSource = EmbeddedDatabase.instance(),
@@ -173,7 +169,7 @@ internal class TestDataHelper(
     private val søknadRepo = SøknadPostgresRepo(dataSource)
     private val uføregrunnlagPostgresRepo = UføregrunnlagPostgresRepo(dataSource)
     val grunnlagRepo = GrunnlagPostgresRepo(uføregrunnlagPostgresRepo)
-    val vilkårsvurderingRepo = VilkårsvurderingPostgresRepo(dataSource, grunnlagRepo)
+    val vilkårsvurderingRepo = VilkårsvurderingPostgresRepo(dataSource, uføregrunnlagPostgresRepo)
     private val søknadsbehandlingRepo = SøknadsbehandlingPostgresRepo(dataSource, grunnlagRepo, vilkårsvurderingRepo)
     val revurderingRepo = RevurderingPostgresRepo(dataSource, søknadsbehandlingRepo, grunnlagRepo, vilkårsvurderingRepo)
     val vedtakRepo = VedtakPosgresRepo(dataSource, søknadsbehandlingRepo, revurderingRepo)

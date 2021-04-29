@@ -46,7 +46,7 @@ internal class RevurderingPostgresRepoTest {
     private val grunnlagRepo = GrunnlagPostgresRepo(
         uføregrunnlagRepo = uføregrunnlagPostgresRepo
     )
-    private val vilkårsvurderingRepo = VilkårsvurderingPostgresRepo(ds, grunnlagRepo)
+    private val vilkårsvurderingRepo = VilkårsvurderingPostgresRepo(ds, uføregrunnlagPostgresRepo)
     private val søknadsbehandlingRepo: SøknadsbehandlingRepo = SøknadsbehandlingPostgresRepo(ds, grunnlagRepo, vilkårsvurderingRepo)
     private val repo: RevurderingPostgresRepo = RevurderingPostgresRepo(ds, søknadsbehandlingRepo, grunnlagRepo, vilkårsvurderingRepo)
     private val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())

@@ -55,7 +55,6 @@ internal class VilkårsvurderingPostgresRepoTest {
                 uføregrad = Uføregrad.parse(50),
                 forventetInntekt = 12000,
             )
-            testDataHelper.grunnlagRepo.lagre(søknadsbehandling.id, listOf(uføregrunnlag))
 
             val vurderingUførhet = Vilkår.Vurdert.Uførhet(
                 vurderingsperioder = listOf(
@@ -77,7 +76,7 @@ internal class VilkårsvurderingPostgresRepoTest {
     }
 
     @Test
-    fun `sletter vilkårsvurderinger dersom tilknyttet grunnlag slettes`() {
+    fun `kan erstatte eksisterende vilkårsvurderinger med grunnlag`() {
         withMigratedDb {
             val søknadsbehandling = testDataHelper.nyUavklartVilkårsvurdering()
             val uføregrunnlag = Grunnlag.Uføregrunnlag(
@@ -87,7 +86,6 @@ internal class VilkårsvurderingPostgresRepoTest {
                 uføregrad = Uføregrad.parse(50),
                 forventetInntekt = 12000,
             )
-            testDataHelper.grunnlagRepo.lagre(søknadsbehandling.id, listOf(uføregrunnlag))
 
             val vurderingUførhet = Vilkår.Vurdert.Uførhet(
                 vurderingsperioder = listOf(
@@ -106,9 +104,9 @@ internal class VilkårsvurderingPostgresRepoTest {
 
             testDataHelper.vilkårsvurderingRepo.hent(søknadsbehandling.id) shouldBe vurderingUførhet
 
-            testDataHelper.grunnlagRepo.slett(uføregrunnlag.id)
+            testDataHelper.vilkårsvurderingRepo.lagre(søknadsbehandling.id, vurderingUførhet)
 
-            testDataHelper.vilkårsvurderingRepo.hent(søknadsbehandling.id) shouldBe Vilkår.IkkeVurdert.Uførhet
+            testDataHelper.vilkårsvurderingRepo.hent(søknadsbehandling.id) shouldBe vurderingUførhet
         }
     }
 }

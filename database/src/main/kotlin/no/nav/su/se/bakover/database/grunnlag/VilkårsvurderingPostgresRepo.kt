@@ -19,7 +19,7 @@ import javax.sql.DataSource
 
 internal class VilkårsvurderingPostgresRepo(
     private val dataSource: DataSource,
-    private val grunnlagRepo: GrunnlagRepo,
+    private val uføregrunnlagPostgresRepo: UføregrunnlagPostgresRepo,
 ) : VilkårsvurderingRepo {
 
     override fun lagre(behandlingId: UUID, vilkår: Vilkår<Grunnlag.Uføregrunnlag>) {
@@ -28,7 +28,7 @@ internal class VilkårsvurderingPostgresRepo(
             when (vilkår) {
                 Vilkår.IkkeVurdert.Uførhet -> Unit
                 is Vilkår.Vurdert.Uførhet -> {
-                    grunnlagRepo.lagre(behandlingId, vilkår.grunnlag, tx)
+                    uføregrunnlagPostgresRepo.lagre(behandlingId, vilkår.grunnlag, tx)
                     vilkår.vurderingsperioder.forEach {
                         lagre(behandlingId, it, tx)
                     }
@@ -69,14 +69,8 @@ internal class VilkårsvurderingPostgresRepo(
                     "opprettet" to vurderingsperiode.opprettet,
                     "behandlingId" to behandlingId,
                     "ufore_grunnlag_id" to vurderingsperiode.grunnlag?.id,
-                    "vurdering" to when (vurderingsperiode) {
-                        is Vurderingsperiode.Manuell -> "MANUELL"
-                    },
-                    "resultat" to when (vurderingsperiode.resultat) {
-                        Resultat.Avslag -> "AVSLAG"
-                        Resultat.Innvilget -> "INNVILGET"
-                        Resultat.Uavklart -> "UAVKLART"
-                    },
+                    "vurdering" to "MANUELL",
+                    "resultat" to vurderingsperiode.resultat.toDto().toString(),
                     "begrunnelse" to vurderingsperiode.begrunnelse,
                     "fraOgMed" to vurderingsperiode.periode.fraOgMed,
                     "tilOgMed" to vurderingsperiode.periode.tilOgMed,
@@ -123,14 +117,9 @@ internal class VilkårsvurderingPostgresRepo(
         return Vurderingsperiode.Manuell(
             id = uuid("id"),
             opprettet = tidspunkt("opprettet"),
-            resultat = when (val resultat = string("resultat")) {
-                "AVSLAG" -> Resultat.Avslag
-                "INNVILGET" -> Resultat.Innvilget
-                "UAVKLART" -> Resultat.Uavklart
-                else -> throw IllegalStateException("Kan ikke mappe databaseverdi til domenemodell. Ukjent uføregrunnlagsresultat: $resultat")
-            },
+            resultat = ResultatDto.valueOf(string("resultat")).toDomain(),
             grunnlag = uuidOrNull("uføre_grunnlag_id")?.let {
-                grunnlagRepo.hentForUføregrunnlagId(it)
+                uføregrunnlagPostgresRepo.hentForUføregrunnlagId(it)
             },
             begrunnelse = stringOrNull("begrunnelse"),
             periode = Periode.create(
@@ -138,5 +127,23 @@ internal class VilkårsvurderingPostgresRepo(
                 tilOgMed = localDate("tilOgMed"),
             ),
         )
+    }
+
+    private enum class ResultatDto {
+        AVSLAG,
+        INNVILGET,
+        UAVKLART;
+
+        fun toDomain() = when (this) {
+            AVSLAG -> Resultat.Avslag
+            INNVILGET -> Resultat.Innvilget
+            UAVKLART -> Resultat.Uavklart
+        }
+    }
+
+    private fun Resultat.toDto() = when (this) {
+        Resultat.Avslag -> ResultatDto.AVSLAG
+        Resultat.Innvilget -> ResultatDto.INNVILGET
+        Resultat.Uavklart -> ResultatDto.UAVKLART
     }
 }

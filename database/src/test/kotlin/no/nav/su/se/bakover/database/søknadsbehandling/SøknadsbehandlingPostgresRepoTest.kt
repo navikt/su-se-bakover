@@ -45,7 +45,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
     private val grunnlagRepo = GrunnlagPostgresRepo(
         uføregrunnlagRepo = uføregrunnlagPostgresRepo,
     )
-    private val vilkårsvurderingRepo = VilkårsvurderingPostgresRepo(dataSource, grunnlagRepo)
+    private val vilkårsvurderingRepo = VilkårsvurderingPostgresRepo(dataSource, uføregrunnlagPostgresRepo)
     private val repo = SøknadsbehandlingPostgresRepo(dataSource, grunnlagRepo, vilkårsvurderingRepo)
 
     @Test
@@ -437,7 +437,6 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 uføregrad = Uføregrad.parse(50),
                 forventetInntekt = 12000,
             )
-            testDataHelper.grunnlagRepo.lagre(iverksatt.id, listOf(uføregrunnlag))
 
             val vurderingUførhet = Vilkår.Vurdert.Uførhet(
                 vurderingsperioder = listOf(

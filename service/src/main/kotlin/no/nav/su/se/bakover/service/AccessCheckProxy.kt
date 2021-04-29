@@ -462,9 +462,6 @@ open class AccessCheckProxy(
                 }
             },
             grunnlagService = object : GrunnlagService {
-                override fun lagre(behandlingId: UUID, grunnlagsdata: Grunnlagsdata) =
-                    kastKanKunKallesFraAnnenService()
-
                 override fun opprettGrunnlagsdata(sakId: UUID, periode: Periode): Grunnlagsdata =
                     kastKanKunKallesFraAnnenService()
 

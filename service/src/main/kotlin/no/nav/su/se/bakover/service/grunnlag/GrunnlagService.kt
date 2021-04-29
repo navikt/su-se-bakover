@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.service.grunnlag
 
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.database.grunnlag.GrunnlagRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Uføregrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -11,8 +10,6 @@ import java.time.Clock
 import java.util.UUID
 
 interface GrunnlagService {
-    /** Denne brukes både fra Søknadsbehandling og Revurdering **/
-    fun lagre(behandlingId: UUID, grunnlagsdata: Grunnlagsdata)
     fun opprettGrunnlagsdata(sakId: UUID, periode: Periode): Grunnlagsdata
     fun simulerEndretGrunnlagsdata(sakId: UUID, periode: Periode, endring: Grunnlagsdata): SimulerEndretGrunnlagsdata
 
@@ -32,17 +29,11 @@ interface GrunnlagService {
 }
 
 internal class GrunnlagServiceImpl(
-    private val grunnlagRepo: GrunnlagRepo,
     private val vedtakRepo: VedtakRepo,
     private val clock: Clock,
 ) : GrunnlagService {
-    override fun lagre(behandlingId: UUID, grunnlagsdata: Grunnlagsdata) {
-        grunnlagRepo.lagre(behandlingId, grunnlagsdata.uføregrunnlag)
-    }
 
     override fun simulerEndretGrunnlagsdata(sakId: UUID, periode: Periode, endring: Grunnlagsdata): GrunnlagService.SimulerEndretGrunnlagsdata {
-        // TODO jah: Vil ikke dette grunnlaget endre seg over tid for en revurdering, dersom andre revurderinger gjøres i mellomtiden?
-        // Vil da ordet nåværendeGrunnlag være mer dekkende?
         val originaltGrunnlag = opprettGrunnlagsdata(sakId, periode)
 
         val simulertEndringUføregrunnlag = Grunnlagsdata(
@@ -78,7 +69,7 @@ internal class OpprettGrunnlagsdataForPeriode(
 ) {
     val grunnlag by lazy {
         val vedtakIPeriode = vedtakRepo.hentForSakId(sakId)
-            .filterIsInstance<Vedtak.EndringIYtelse>() // TODO this must surely change at some point, needed to perserve information added by i.e revurdering below 10% or avslag.
+            .filterIsInstance<Vedtak.EndringIYtelse>() // TODO jacob: this must surely change at some point, needed to perserve information added by i.e revurdering below 10% or avslag.
             .filter { it.periode overlapper periode }
 
         val uføregrunnlagIPeriode = vedtakIPeriode

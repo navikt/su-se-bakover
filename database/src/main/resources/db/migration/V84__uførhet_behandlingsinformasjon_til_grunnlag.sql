@@ -76,17 +76,15 @@ with uførhetUtenOpplysninger (behandlingsid, behandlingsresultat, uførebegrunn
       and periode is not null
 )
 
-   , ins_grunnlag_uføre as (insert into grunnlag_uføre (id, opprettet, fraOgMed, tilOgMed, uføregrad, forventetinntekt)
+   , ins_grunnlag_uføre as (insert into grunnlag_uføre (id, opprettet, behandlingId, fraOgMed, tilOgMed, uføregrad, forventetinntekt)
     select id,
            opprettet,
+           behandlingsid,
            fom,
            tom,
            uføregrad,
            forventetinntekt
     from uføregrunnlagsdata)
-
-   , ins_behandling_grunnlag
-    as (insert into behandling_grunnlag (behandlingid, uføre_grunnlag_id) select behandlingsid, id from uføregrunnlagsdata)
 
 insert into vilkårsvurdering_uføre(id, opprettet, behandlingid, uføre_grunnlag_id, vurdering, resultat, begrunnelse, fraogmed,
                                    tilogmed)

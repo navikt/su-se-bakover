@@ -80,7 +80,6 @@ object ServiceBuilder {
         )
 
         val grunnlagService = GrunnlagServiceImpl(
-            grunnlagRepo = databaseRepos.grunnlagRepo,
             vedtakRepo = databaseRepos.vedtakRepo,
             clock = clock,
         )
