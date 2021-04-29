@@ -12,4 +12,4 @@ create table if not exists behandling_grunnlag
 (
     behandlingId uuid not null,
     uføre_grunnlag_id uuid references grunnlag_uføre(id) on delete cascade
-)
+);

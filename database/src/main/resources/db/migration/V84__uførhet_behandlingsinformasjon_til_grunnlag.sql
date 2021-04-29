@@ -29,8 +29,8 @@ with uførhetUtenOpplysninger (behandlingsid, behandlingsresultat, uførebegrunn
            r.behandlingsinformasjon -> 'uførhet' ->> 'begrunnelse',
            uuid_generate_v4(),
            opprettet,
-           (periode -> 'periode' ->> 'fraOgMed')::date,
-           (periode -> 'periode' ->> 'tilOgMed')::date,
+           (periode ->> 'fraOgMed')::date,
+           (periode ->> 'tilOgMed')::date,
            null,
            null
     from revurdering r
@@ -67,8 +67,8 @@ with uførhetUtenOpplysninger (behandlingsid, behandlingsresultat, uførebegrunn
            r.behandlingsinformasjon -> 'uførhet' ->> 'begrunnelse',
            uuid_generate_v4(),
            opprettet,
-           (periode -> 'periode' ->> 'fraOgMed')::date,
-           (periode -> 'periode' ->> 'tilOgMed')::date,
+           (periode ->> 'fraOgMed')::date,
+           (periode ->> 'tilOgMed')::date,
            (behandlingsinformasjon -> 'uførhet' ->> 'uføregrad')::integer,
            (behandlingsinformasjon -> 'uførhet' ->> 'forventetInntekt')::integer
     from revurdering r
