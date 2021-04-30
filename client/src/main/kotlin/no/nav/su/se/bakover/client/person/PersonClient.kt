@@ -1,14 +1,10 @@
 package no.nav.su.se.bakover.client.person
 
 import arrow.core.Either
-import no.finn.unleash.Unleash
-import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.client.dkif.DigitalKontaktinformasjon
 import no.nav.su.se.bakover.client.dkif.Kontaktinformasjon
 import no.nav.su.se.bakover.client.kodeverk.Kodeverk
 import no.nav.su.se.bakover.client.skjerming.Skjerming
-import no.nav.su.se.bakover.client.sts.TokenOppslag
-import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Ident
@@ -16,16 +12,17 @@ import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.person.PersonOppslag
 
-class PersonClient(
-    pdlConfig: ApplicationConfig.ClientsConfig.PdlConfig,
-    private val kodeverk: Kodeverk,
-    private val skjerming: Skjerming,
-    private val digitalKontaktinformasjon: DigitalKontaktinformasjon,
-    tokenOppslag: TokenOppslag,
-    azureAd: OAuth,
-    unleash: Unleash,
+internal data class PersonClientConfig(
+    val kodeverk: Kodeverk,
+    val skjerming: Skjerming,
+    val digitalKontaktinformasjon: DigitalKontaktinformasjon,
+    val pdlClientConfig: PdlClientConfig,
+)
+
+internal class PersonClient(
+    val config: PersonClientConfig,
 ) : PersonOppslag {
-    private val pdlClient = PdlClient(pdlConfig, tokenOppslag, azureAd, unleash)
+    private val pdlClient = PdlClient(config.pdlClientConfig)
 
     override fun person(fnr: Fnr): Either<KunneIkkeHentePerson, Person> = pdlClient.person(fnr).map { toPerson(it) }
     override fun personMedSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, Person> =
@@ -64,7 +61,7 @@ class PersonClient(
             kjønn = pdlData.kjønn,
             fødselsdato = pdlData.fødselsdato,
             adressebeskyttelse = pdlData.adressebeskyttelse,
-            skjermet = skjerming.erSkjermet(pdlData.ident.fnr),
+            skjermet = config.skjerming.erSkjermet(pdlData.ident.fnr),
             kontaktinfo = kontaktinfo(pdlData.ident.fnr),
             vergemål = pdlData.vergemålEllerFremtidsfullmakt,
             fullmakt = pdlData.fullmakt,
@@ -72,16 +69,16 @@ class PersonClient(
 
     private fun toPoststed(postnummer: String) = Person.Poststed(
         postnummer = postnummer,
-        poststed = kodeverk.hentPoststed(postnummer).orNull(),
+        poststed = config.kodeverk.hentPoststed(postnummer).orNull(),
     )
 
     private fun toKommune(kommunenummer: String) = Person.Kommune(
         kommunenummer = kommunenummer,
-        kommunenavn = kodeverk.hentKommunenavn(kommunenummer).orNull(),
+        kommunenavn = config.kodeverk.hentKommunenavn(kommunenummer).orNull(),
     )
 
     private fun kontaktinfo(fnr: Fnr): Person.Kontaktinfo? {
-        val dkifInfo: Kontaktinformasjon? = digitalKontaktinformasjon.hentKontaktinformasjon(fnr).orNull()
+        val dkifInfo: Kontaktinformasjon? = config.digitalKontaktinformasjon.hentKontaktinformasjon(fnr).orNull()
         return dkifInfo?.let {
             Person.Kontaktinfo(
                 it.epostadresse,

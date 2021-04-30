@@ -62,7 +62,14 @@ internal class PdlClientTest : WiremockBase {
                 .willReturn(WireMock.ok(errorResponseJson)),
         )
 
-        val client = PdlClient(ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"), tokenOppslag, mock(), unleash)
+        val client = PdlClient(
+            PdlClientConfig(
+                vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
+                tokenOppslag = tokenOppslag,
+                azureAd = mock(),
+                unleash = unleash,
+            ),
+        )
         client.aktørId(Fnr("12345678912")) shouldBe KunneIkkeHentePerson.Ukjent.left()
     }
 
@@ -74,7 +81,14 @@ internal class PdlClientTest : WiremockBase {
                 .willReturn(WireMock.serverError()),
         )
 
-        val client = PdlClient(ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"), tokenOppslag, mock(), unleash)
+        val client = PdlClient(
+            PdlClientConfig(
+                vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
+                tokenOppslag = tokenOppslag,
+                azureAd = mock(),
+                unleash = unleash,
+            ),
+        )
         client.aktørId(Fnr("12345678912")) shouldBe KunneIkkeHentePerson.Ukjent.left()
     }
 
@@ -106,7 +120,14 @@ internal class PdlClientTest : WiremockBase {
                 .willReturn(WireMock.ok(suksessResponseJson)),
         )
 
-        val client = PdlClient(ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"), tokenOppslag, mock(), unleash)
+        val client = PdlClient(
+            PdlClientConfig(
+                vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
+                tokenOppslag = tokenOppslag,
+                azureAd = mock(),
+                unleash = unleash,
+            ),
+        )
         client.aktørId(Fnr("12345678912")) shouldBe AktørId("2751637578706").right()
     }
 
@@ -142,10 +163,12 @@ internal class PdlClientTest : WiremockBase {
         )
 
         val client = PdlClient(
-            config = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
-            tokenOppslag = tokenOppslag,
-            azureAd = azureAdMock,
-            unleash = FakeUnleash().also { it.enableAll() },
+            PdlClientConfig(
+                vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
+                tokenOppslag = tokenOppslag,
+                azureAd = azureAdMock,
+                unleash = FakeUnleash().also { it.enableAll() },
+            ),
         )
         client.aktørId(Fnr("12345678912")) shouldBe AktørId("2751637578706").right()
     }
@@ -185,7 +208,14 @@ internal class PdlClientTest : WiremockBase {
                 .willReturn(WireMock.ok(errorResponseJson)),
         )
 
-        val client = PdlClient(ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"), tokenOppslag, mock(), unleash)
+        val client = PdlClient(
+            PdlClientConfig(
+                vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
+                tokenOppslag = tokenOppslag,
+                azureAd = mock(),
+                unleash = unleash,
+            ),
+        )
         client.person(Fnr("12345678912")) shouldBe KunneIkkeHentePerson.FantIkkePerson.left()
     }
 
@@ -196,7 +226,14 @@ internal class PdlClientTest : WiremockBase {
                 .willReturn(WireMock.serverError()),
         )
 
-        val client = PdlClient(ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"), tokenOppslag, mock(), unleash)
+        val client = PdlClient(
+            PdlClientConfig(
+                vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
+                tokenOppslag = tokenOppslag,
+                azureAd = mock(),
+                unleash = unleash,
+            ),
+        )
         client.person(Fnr("12345678912")) shouldBe KunneIkkeHentePerson.Ukjent.left()
     }
 
@@ -298,7 +335,14 @@ internal class PdlClientTest : WiremockBase {
                 .willReturn(WireMock.ok(suksessResponseJson)),
         )
 
-        val client = PdlClient(ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"), tokenOppslag, mock(), unleash)
+        val client = PdlClient(
+            PdlClientConfig(
+                vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
+                tokenOppslag = tokenOppslag,
+                azureAd = mock(),
+                unleash = unleash,
+            ),
+        )
         client.person(Fnr("07028820547")) shouldBe PdlData(
             ident = PdlData.Ident(Fnr("07028820547"), AktørId("2751637578706")),
             navn = PdlData.Navn(
@@ -428,7 +472,14 @@ internal class PdlClientTest : WiremockBase {
                 .willReturn(WireMock.ok(suksessResponseJson)),
         )
 
-        val client = PdlClient(ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"), tokenOppslag, mock(), unleash)
+        val client = PdlClient(
+            PdlClientConfig(
+                vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
+                tokenOppslag = tokenOppslag,
+                azureAd = mock(),
+                unleash = unleash,
+            ),
+        )
         client.person(Fnr("07028820547")) shouldBe PdlData(
             ident = PdlData.Ident(Fnr("07028820547"), AktørId("2751637578706")),
             navn = PdlData.Navn(
@@ -565,7 +616,14 @@ internal class PdlClientTest : WiremockBase {
                 .willReturn(WireMock.ok(suksessResponseJson)),
         )
 
-        val client = PdlClient(ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"), tokenOppslag, mock(), unleash)
+        val client = PdlClient(
+            PdlClientConfig(
+                vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
+                tokenOppslag = tokenOppslag,
+                azureAd = mock(),
+                unleash = unleash,
+            ),
+        )
         client.person(Fnr("07028820547")) shouldBe PdlData(
             ident = PdlData.Ident(Fnr("07028820547"), AktørId("2751637578706")),
             navn = PdlData.Navn(
@@ -656,7 +714,14 @@ internal class PdlClientTest : WiremockBase {
                 .willReturn(WireMock.ok(suksessResponseJson)),
         )
 
-        val client = PdlClient(ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"), tokenOppslag, mock(), unleash)
+        val client = PdlClient(
+            PdlClientConfig(
+                vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
+                tokenOppslag = tokenOppslag,
+                azureAd = mock(),
+                unleash = unleash,
+            ),
+        )
         client.personForSystembruker(Fnr("07028820547")) shouldBe PdlData(
             ident = PdlData.Ident(Fnr("07028820547"), AktørId("2751637578706")),
             navn = PdlData.Navn(
@@ -727,7 +792,14 @@ internal class PdlClientTest : WiremockBase {
                 .willReturn(WireMock.ok(suksessResponseJson)),
         )
 
-        val client = PdlClient(ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"), tokenOppslag, azureAdMock, FakeUnleash().also { it.enableAll() })
+        val client = PdlClient(
+            PdlClientConfig(
+                vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
+                tokenOppslag = tokenOppslag,
+                azureAd = azureAdMock,
+                unleash = FakeUnleash().also { it.enableAll() },
+            ),
+        )
         client.person(Fnr("07028820547")) shouldBe PdlData(
             ident = PdlData.Ident(Fnr("07028820547"), AktørId("2751637578706")),
             navn = PdlData.Navn(
@@ -787,7 +859,14 @@ internal class PdlClientTest : WiremockBase {
                 .willReturn(WireMock.ok(suksessResponseJson)),
         )
 
-        val client = PdlClient(ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"), tokenOppslag, mock(), unleash)
+        val client = PdlClient(
+            PdlClientConfig(
+                vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
+                tokenOppslag = tokenOppslag,
+                azureAd = mock(),
+                unleash = unleash,
+            ),
+        )
         client.person(Fnr("07028820547")) shouldBe KunneIkkeHentePerson.FantIkkePerson.left()
     }
 

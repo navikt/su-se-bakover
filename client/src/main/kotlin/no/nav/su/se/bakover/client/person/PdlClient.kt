@@ -30,14 +30,18 @@ import org.slf4j.LoggerFactory
 import org.slf4j.MDC
 import java.time.LocalDate
 
+internal data class PdlClientConfig(
+    val vars: ApplicationConfig.ClientsConfig.PdlConfig,
+    val tokenOppslag: TokenOppslag,
+    val azureAd: OAuth,
+    val unleash: Unleash,
+)
+
 internal class PdlClient(
-    private val config: ApplicationConfig.ClientsConfig.PdlConfig,
-    private val tokenOppslag: TokenOppslag,
-    private val azureAd: OAuth,
-    private val unleash: Unleash,
+    private val config: PdlClientConfig,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
-    private val brukKunOnBehalfOfToken = unleash.isEnabled("supstonad.ufore.pdl.bruk.obo.token", false)
+    private val brukKunOnBehalfOfToken = config.unleash.isEnabled("supstonad.ufore.pdl.bruk.obo.token", false)
 
     private val hentPersonQuery = this::class.java.getResource("/hentPerson.graphql").readText()
     private val hentIdenterQuery = this::class.java.getResource("/hentIdenter.graphql").readText()
@@ -47,14 +51,14 @@ internal class PdlClient(
             when (brukKunOnBehalfOfToken) {
                 false -> kallpdl<PersonResponseData>(fnr, hentPersonQuery, jwt)
                     .flatMap { mapResponse(it) }
-                true -> kallPdlMedKunOnBehalfOfToken<PersonResponseData>(fnr, hentPersonQuery, azureAd.onBehalfOfToken(jwt, config.clientId))
+                true -> kallPdlMedKunOnBehalfOfToken<PersonResponseData>(fnr, hentPersonQuery, config.azureAd.onBehalfOfToken(jwt, config.vars.clientId))
                     .flatMap { mapResponse(it) }
             }
         }
     }
 
     fun personForSystembruker(fnr: Fnr): Either<KunneIkkeHentePerson, PdlData> {
-        return kallpdl<PersonResponseData>(fnr, hentPersonQuery, "Bearer ".plus(tokenOppslag.token()))
+        return kallpdl<PersonResponseData>(fnr, hentPersonQuery, "Bearer ".plus(config.tokenOppslag.token()))
             .flatMap { mapResponse(it) }
     }
 
@@ -107,7 +111,7 @@ internal class PdlClient(
                 val identer = it.hentIdenter ?: return FantIkkePerson.left()
                 finnIdent(identer).aktørId
             }
-            true -> kallPdlMedKunOnBehalfOfToken<IdentResponseData>(fnr, hentIdenterQuery, azureAd.onBehalfOfToken(MDC.get("Authorization"), config.clientId)).map {
+            true -> kallPdlMedKunOnBehalfOfToken<IdentResponseData>(fnr, hentIdenterQuery, config.azureAd.onBehalfOfToken(MDC.get("Authorization"), config.vars.clientId)).map {
                 val identer = it.hentIdenter ?: return FantIkkePerson.left()
                 finnIdent(identer).aktørId
             }
@@ -122,8 +126,8 @@ internal class PdlClient(
 
     private inline fun <reified T> kallpdl(fnr: Fnr, query: String, jwt: String): Either<KunneIkkeHentePerson, T> {
         val pdlRequest = PdlRequest(query, Variables(ident = fnr.toString()))
-        val token = tokenOppslag.token()
-        val (_, response, result) = "${config.url}/graphql".httpPost()
+        val token = config.tokenOppslag.token()
+        val (_, response, result) = "${config.vars.url}/graphql".httpPost()
             .header("Authorization", jwt)
             .header("Nav-Consumer-Token", "Bearer $token")
             .header("Tema", Tema.SUPPLERENDE_STØNAD.value)
@@ -153,7 +157,7 @@ internal class PdlClient(
 
     private inline fun <reified T> kallPdlMedKunOnBehalfOfToken(fnr: Fnr, query: String, jwtOnBehalfOf: String): Either<KunneIkkeHentePerson, T> {
         val pdlRequest = PdlRequest(query, Variables(ident = fnr.toString()))
-        val (_, response, result) = "${config.url}/graphql".httpPost()
+        val (_, response, result) = "${config.vars.url}/graphql".httpPost()
             .header("Authorization", jwtOnBehalfOf)
             .header("Tema", Tema.SUPPLERENDE_STØNAD.value)
             .header("Accept", "application/json")
