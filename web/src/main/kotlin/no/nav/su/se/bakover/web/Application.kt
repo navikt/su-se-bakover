@@ -26,6 +26,7 @@ import io.ktor.routing.routing
 import io.ktor.util.KtorExperimentalAPI
 import no.finn.unleash.DefaultUnleash
 import no.finn.unleash.FakeUnleash
+import no.finn.unleash.Unleash
 import no.finn.unleash.util.UnleashConfig
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ProdClientsBuilder
@@ -96,6 +97,14 @@ internal fun Application.susebakover(
     behandlingMetrics: BehandlingMetrics = BehandlingMicrometerMetrics(),
     søknadMetrics: SøknadMetrics = SøknadMicrometerMetrics(),
     applicationConfig: ApplicationConfig = ApplicationConfig.createConfig(),
+    unleash: Unleash = DefaultUnleash(
+        UnleashConfig.builder()
+            .appName(applicationConfig.unleash.appName)
+            .instanceId(applicationConfig.unleash.appName)
+            .unleashAPI(applicationConfig.unleash.unleashUrl)
+            .build(),
+        IsNotProdStrategy(applicationConfig.naisCluster == ApplicationConfig.NaisCluster.Prod)
+    ),
     databaseRepos: DatabaseRepos = DatabaseBuilder.build(applicationConfig.database),
     jmsConfig: JmsConfig = JmsConfig(applicationConfig),
     clients: Clients =
@@ -105,6 +114,7 @@ internal fun Application.susebakover(
             ProdClientsBuilder(
                 jmsConfig,
                 clock = clock,
+                unleash = unleash,
             ).build(applicationConfig),
     services: Services = if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {
         ServiceBuilder.build(
@@ -113,14 +123,7 @@ internal fun Application.susebakover(
             behandlingMetrics = behandlingMetrics,
             søknadMetrics = søknadMetrics,
             clock = clock,
-            unleash = DefaultUnleash(
-                UnleashConfig.builder()
-                    .appName(applicationConfig.unleash.appName)
-                    .instanceId(applicationConfig.unleash.appName)
-                    .unleashAPI(applicationConfig.unleash.unleashUrl)
-                    .build(),
-                IsNotProdStrategy(applicationConfig.naisCluster == ApplicationConfig.NaisCluster.Prod)
-            )
+            unleash = unleash
         )
     } else {
         ServiceBuilder.build(

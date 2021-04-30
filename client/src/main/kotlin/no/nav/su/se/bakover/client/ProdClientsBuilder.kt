@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client
 
+import no.finn.unleash.Unleash
 import no.nav.su.se.bakover.client.azure.AzureClient
 import no.nav.su.se.bakover.client.dkif.DkifClient
 import no.nav.su.se.bakover.client.dokarkiv.DokArkivClient
@@ -26,6 +27,7 @@ import java.time.Clock
 data class ProdClientsBuilder(
     private val jmsConfig: JmsConfig,
     private val clock: Clock,
+    private val unleash: Unleash,
 ) : ClientsBuilder {
 
     override fun build(applicationConfig: ApplicationConfig): Clients {
@@ -39,7 +41,7 @@ data class ProdClientsBuilder(
         val tokenOppslag = StsClient(clientsConfig.stsUrl, serviceUser.username, serviceUser.password)
         val dkif = DkifClient(clientsConfig.dkifUrl, tokenOppslag, consumerId)
         val skjermingClient = SkjermingClient(clientsConfig.skjermingUrl)
-        val personOppslag = PersonClient(clientsConfig.pdlUrl, kodeverk, skjermingClient, dkif, tokenOppslag)
+        val personOppslag = PersonClient(clientsConfig.pdlConfig, kodeverk, skjermingClient, dkif, tokenOppslag, oAuth, unleash)
 
         return Clients(
             oauth = oAuth,

@@ -3,10 +3,16 @@ package no.nav.su.se.bakover.client.person
 import arrow.core.left
 import arrow.core.right
 import com.github.tomakehurst.wiremock.client.WireMock
+import com.nhaarman.mockitokotlin2.any
+import com.nhaarman.mockitokotlin2.doReturn
+import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
+import no.finn.unleash.FakeUnleash
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
+import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.client.stubs.sts.TokenOppslagStub
+import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
@@ -17,6 +23,9 @@ import org.slf4j.MDC
 internal class PdlClientTest : WiremockBase {
 
     private val tokenOppslag = TokenOppslagStub
+    private val unleash = FakeUnleash().also {
+        it.disableAll()
+    }
 
     @Test
     fun `hent aktørid inneholder errors`() {
@@ -50,10 +59,10 @@ internal class PdlClientTest : WiremockBase {
             """.trimIndent()
         wireMockServer.stubFor(
             wiremockBuilder()
-                .willReturn(WireMock.ok(errorResponseJson))
+                .willReturn(WireMock.ok(errorResponseJson)),
         )
 
-        val client = PdlClient(wireMockServer.baseUrl(), tokenOppslag)
+        val client = PdlClient(ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"), tokenOppslag, mock(), unleash)
         client.aktørId(Fnr("12345678912")) shouldBe KunneIkkeHentePerson.Ukjent.left()
     }
 
@@ -62,10 +71,10 @@ internal class PdlClientTest : WiremockBase {
 
         wireMockServer.stubFor(
             wiremockBuilder()
-                .willReturn(WireMock.serverError())
+                .willReturn(WireMock.serverError()),
         )
 
-        val client = PdlClient(wireMockServer.baseUrl(), tokenOppslag)
+        val client = PdlClient(ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"), tokenOppslag, mock(), unleash)
         client.aktørId(Fnr("12345678912")) shouldBe KunneIkkeHentePerson.Ukjent.left()
     }
 
@@ -94,10 +103,50 @@ internal class PdlClientTest : WiremockBase {
             """.trimIndent()
         wireMockServer.stubFor(
             wiremockBuilder()
-                .willReturn(WireMock.ok(suksessResponseJson))
+                .willReturn(WireMock.ok(suksessResponseJson)),
         )
 
-        val client = PdlClient(wireMockServer.baseUrl(), tokenOppslag)
+        val client = PdlClient(ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"), tokenOppslag, mock(), unleash)
+        client.aktørId(Fnr("12345678912")) shouldBe AktørId("2751637578706").right()
+    }
+
+    @Test
+    fun `hent aktørid OK med kun on behalf of token`() {
+        //language=JSON
+        val suksessResponseJson =
+            """
+            {
+              "data": {
+                "hentIdenter": {
+                  "identer": [
+                    {
+                      "ident": "07028820547",
+                      "gruppe": "FOLKEREGISTERIDENT"
+                    },
+                    {
+                      "ident": "2751637578706",
+                      "gruppe": "AKTORID"
+                    }
+                  ]
+                }
+              }
+            }
+            """.trimIndent()
+        val azureAdMock = mock<OAuth> {
+            on { onBehalfOfToken(any(), any()) } doReturn "etOnBehalfOfToken"
+        }
+
+        wireMockServer.stubFor(
+            wiremockBuilderOnBehalfOf("etOnBehalfOfToken")
+                .willReturn(WireMock.ok(suksessResponseJson)),
+        )
+
+        val client = PdlClient(
+            config = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
+            tokenOppslag = tokenOppslag,
+            azureAd = azureAdMock,
+            unleash = FakeUnleash().also { it.enableAll() },
+        )
         client.aktørId(Fnr("12345678912")) shouldBe AktørId("2751637578706").right()
     }
 
@@ -133,22 +182,21 @@ internal class PdlClientTest : WiremockBase {
             """.trimIndent()
         wireMockServer.stubFor(
             wiremockBuilder()
-                .willReturn(WireMock.ok(errorResponseJson))
+                .willReturn(WireMock.ok(errorResponseJson)),
         )
 
-        val client = PdlClient(wireMockServer.baseUrl(), tokenOppslag)
+        val client = PdlClient(ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"), tokenOppslag, mock(), unleash)
         client.person(Fnr("12345678912")) shouldBe KunneIkkeHentePerson.FantIkkePerson.left()
     }
 
     @Test
     fun `hent person ukjent feil`() {
-
         wireMockServer.stubFor(
             wiremockBuilder()
-                .willReturn(WireMock.serverError())
+                .willReturn(WireMock.serverError()),
         )
 
-        val client = PdlClient(wireMockServer.baseUrl(), tokenOppslag)
+        val client = PdlClient(ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"), tokenOppslag, mock(), unleash)
         client.person(Fnr("12345678912")) shouldBe KunneIkkeHentePerson.Ukjent.left()
     }
 
@@ -247,16 +295,16 @@ internal class PdlClientTest : WiremockBase {
             """.trimIndent()
         wireMockServer.stubFor(
             wiremockBuilder()
-                .willReturn(WireMock.ok(suksessResponseJson))
+                .willReturn(WireMock.ok(suksessResponseJson)),
         )
 
-        val client = PdlClient(wireMockServer.baseUrl(), tokenOppslag)
+        val client = PdlClient(ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"), tokenOppslag, mock(), unleash)
         client.person(Fnr("07028820547")) shouldBe PdlData(
             ident = PdlData.Ident(Fnr("07028820547"), AktørId("2751637578706")),
             navn = PdlData.Navn(
                 fornavn = "NYDELIG",
                 mellomnavn = null,
-                etternavn = "KRONJUVEL"
+                etternavn = "KRONJUVEL",
             ),
             telefonnummer = null,
             kjønn = "MANN",
@@ -377,16 +425,16 @@ internal class PdlClientTest : WiremockBase {
             """.trimIndent()
         wireMockServer.stubFor(
             wiremockBuilder()
-                .willReturn(WireMock.ok(suksessResponseJson))
+                .willReturn(WireMock.ok(suksessResponseJson)),
         )
 
-        val client = PdlClient(wireMockServer.baseUrl(), tokenOppslag)
+        val client = PdlClient(ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"), tokenOppslag, mock(), unleash)
         client.person(Fnr("07028820547")) shouldBe PdlData(
             ident = PdlData.Ident(Fnr("07028820547"), AktørId("2751637578706")),
             navn = PdlData.Navn(
                 fornavn = "NYDELIG",
                 mellomnavn = null,
-                etternavn = "KRONJUVEL"
+                etternavn = "KRONJUVEL",
             ),
             telefonnummer = null,
             kjønn = "MANN",
@@ -398,7 +446,7 @@ internal class PdlClientTest : WiremockBase {
                     bruksenhet = null,
                     kommunenummer = "5427",
                     adressetype = "Bostedsadresse",
-                    adresseformat = "Vegadresse"
+                    adresseformat = "Vegadresse",
                 ),
                 PdlData.Adresse(
                     adresselinje = "HER ER POSTLINJE 1, OG POSTLINJE 2",
@@ -406,7 +454,7 @@ internal class PdlClientTest : WiremockBase {
                     bruksenhet = null,
                     kommunenummer = null,
                     adressetype = "Kontaktadresse",
-                    adresseformat = "PostadresseIFrittFormat"
+                    adresseformat = "PostadresseIFrittFormat",
                 ),
             ),
             statsborgerskap = "SYR",
@@ -514,16 +562,16 @@ internal class PdlClientTest : WiremockBase {
             """.trimIndent()
         wireMockServer.stubFor(
             wiremockBuilder()
-                .willReturn(WireMock.ok(suksessResponseJson))
+                .willReturn(WireMock.ok(suksessResponseJson)),
         )
 
-        val client = PdlClient(wireMockServer.baseUrl(), tokenOppslag)
+        val client = PdlClient(ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"), tokenOppslag, mock(), unleash)
         client.person(Fnr("07028820547")) shouldBe PdlData(
             ident = PdlData.Ident(Fnr("07028820547"), AktørId("2751637578706")),
             navn = PdlData.Navn(
                 fornavn = "NYDELIG",
                 mellomnavn = null,
-                etternavn = "KRONJUVEL"
+                etternavn = "KRONJUVEL",
             ),
             telefonnummer = null,
             kjønn = "MANN",
@@ -535,7 +583,7 @@ internal class PdlClientTest : WiremockBase {
                     bruksenhet = null,
                     kommunenummer = "5427",
                     adressetype = "Bostedsadresse",
-                    adresseformat = "Vegadresse"
+                    adresseformat = "Vegadresse",
                 ),
                 PdlData.Adresse(
                     adresselinje = "Storgården",
@@ -543,7 +591,7 @@ internal class PdlClientTest : WiremockBase {
                     bruksenhet = "H0606",
                     kommunenummer = "5427",
                     adressetype = "Oppholdsadresse",
-                    adresseformat = "Matrikkeladresse"
+                    adresseformat = "Matrikkeladresse",
                 ),
                 PdlData.Adresse(
                     adresselinje = "HER ER POSTLINJE 1, OG POSTLINJE 2",
@@ -551,7 +599,7 @@ internal class PdlClientTest : WiremockBase {
                     bruksenhet = null,
                     kommunenummer = null,
                     adressetype = "Kontaktadresse",
-                    adresseformat = "PostadresseIFrittFormat"
+                    adresseformat = "PostadresseIFrittFormat",
                 ),
             ),
             statsborgerskap = "SYR",
@@ -605,16 +653,87 @@ internal class PdlClientTest : WiremockBase {
             """.trimIndent()
         wireMockServer.stubFor(
             wiremockBuilder("Bearer ${tokenOppslag.token()}")
-                .willReturn(WireMock.ok(suksessResponseJson))
+                .willReturn(WireMock.ok(suksessResponseJson)),
         )
 
-        val client = PdlClient(wireMockServer.baseUrl(), tokenOppslag)
+        val client = PdlClient(ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"), tokenOppslag, mock(), unleash)
         client.personForSystembruker(Fnr("07028820547")) shouldBe PdlData(
             ident = PdlData.Ident(Fnr("07028820547"), AktørId("2751637578706")),
             navn = PdlData.Navn(
                 fornavn = "NYDELIG",
                 mellomnavn = null,
-                etternavn = "KRONJUVEL"
+                etternavn = "KRONJUVEL",
+            ),
+            telefonnummer = null,
+            kjønn = null,
+            fødselsdato = null,
+            adresse = emptyList(),
+            statsborgerskap = null,
+            adressebeskyttelse = null,
+            vergemålEllerFremtidsfullmakt = false,
+            fullmakt = false,
+        ).right()
+    }
+
+    @Test
+    fun `hent person OK med on behalf of token`() {
+        //language=JSON
+        val suksessResponseJson =
+            """
+            {
+              "data": {
+                "hentPerson": {
+                  "navn": [{
+                "fornavn": "NYDELIG",
+                "mellomnavn": null,
+                "etternavn": "KRONJUVEL",
+                "metadata": {
+                  "master": "Freg"
+                 }
+                }],
+                  "telefonnummer": [],
+                  "bostedsadresse": [],
+                  "kontaktadresse": [],
+                  "oppholdsadresse": [],
+                  "statsborgerskap": [],
+                  "kjoenn": [],
+                  "foedsel": [],
+                  "adressebeskyttelse": [],
+                  "vergemaalEllerFremtidsfullmakt": [],
+                  "fullmakt": []
+                },
+                "hentIdenter": {
+                  "identer": [
+                    {
+                      "ident": "07028820547",
+                      "gruppe": "FOLKEREGISTERIDENT"
+                    },
+                    {
+                      "ident": "2751637578706",
+                      "gruppe": "AKTORID"
+                    }
+                  ]
+                }
+              }
+            }
+            """.trimIndent()
+
+        val azureAdMock = mock<OAuth> {
+            on { onBehalfOfToken(any(), any()) } doReturn "etOnBehalfOfToken"
+        }
+
+        wireMockServer.stubFor(
+            wiremockBuilderOnBehalfOf("etOnBehalfOfToken")
+                .willReturn(WireMock.ok(suksessResponseJson)),
+        )
+
+        val client = PdlClient(ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"), tokenOppslag, azureAdMock, FakeUnleash().also { it.enableAll() })
+        client.person(Fnr("07028820547")) shouldBe PdlData(
+            ident = PdlData.Ident(Fnr("07028820547"), AktørId("2751637578706")),
+            navn = PdlData.Navn(
+                fornavn = "NYDELIG",
+                mellomnavn = null,
+                etternavn = "KRONJUVEL",
             ),
             telefonnummer = null,
             kjønn = null,
@@ -665,10 +784,10 @@ internal class PdlClientTest : WiremockBase {
             """.trimIndent()
         wireMockServer.stubFor(
             wiremockBuilder()
-                .willReturn(WireMock.ok(suksessResponseJson))
+                .willReturn(WireMock.ok(suksessResponseJson)),
         )
 
-        val client = PdlClient(wireMockServer.baseUrl(), tokenOppslag)
+        val client = PdlClient(ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"), tokenOppslag, mock(), unleash)
         client.person(Fnr("07028820547")) shouldBe KunneIkkeHentePerson.FantIkkePerson.left()
     }
 
@@ -677,6 +796,12 @@ internal class PdlClientTest : WiremockBase {
         .withHeader("Content-Type", WireMock.equalTo("application/json"))
         .withHeader("Accept", WireMock.equalTo("application/json"))
         .withHeader("Nav-Consumer-Token", WireMock.equalTo("Bearer ${tokenOppslag.token()}"))
+        .withHeader("Tema", WireMock.equalTo("SUP"))
+
+    private fun wiremockBuilderOnBehalfOf(authorization: String = "Bearer abc") = WireMock.post(WireMock.urlPathEqualTo("/graphql"))
+        .withHeader("Authorization", WireMock.equalTo(authorization))
+        .withHeader("Content-Type", WireMock.equalTo("application/json"))
+        .withHeader("Accept", WireMock.equalTo("application/json"))
         .withHeader("Tema", WireMock.equalTo("SUP"))
 
     @BeforeEach
