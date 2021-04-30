@@ -21,6 +21,68 @@ internal class TolketSimuleringTest {
     private val suBeskrivelse = "Supplerende stønad Uføre"
 
     @Test
+    fun `tolker etterbetaling av ordinære utbetalinger`() {
+        TolketSimulering(
+            Simulering(
+                gjelderId = fnr,
+                gjelderNavn = navn,
+                datoBeregnet = 14.april(2021),
+                nettoBeløp = 10390,
+                periodeList = listOf(
+                    SimulertPeriode(
+                        fraOgMed = 1.januar(2021),
+                        tilOgMed = 31.januar(2021),
+                        utbetaling = listOf(
+                            SimulertUtbetaling(
+                                fagSystemId = fagsystemId,
+                                utbetalesTilId = fnr,
+                                utbetalesTilNavn = navn,
+                                forfall = 14.april(2021),
+                                feilkonto = false,
+                                detaljer = listOf(
+                                    SimulertDetaljer(
+                                        faktiskFraOgMed = 1.januar(2021),
+                                        faktiskTilOgMed = 31.januar(2021),
+                                        konto = konto,
+                                        belop = 20779,
+                                        tilbakeforing = false,
+                                        sats = 20779,
+                                        typeSats = typeSats,
+                                        antallSats = 1,
+                                        uforegrad = 0,
+                                        klassekode = KlasseKode.SUUFORE,
+                                        klassekodeBeskrivelse = suBeskrivelse,
+                                        klasseType = KlasseType.YTEL,
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        ).simulertePerioder shouldBe listOf(
+            TolketPeriode(
+                fraOgMed = 1.januar(2021),
+                tilOgMed = 31.januar(2021),
+                utbetalinger = listOf(
+                    TolketUtbetaling.Etterbetaling(
+                        tolketDetalj = listOf(
+                            TolketDetalj.Ordinær(
+                                beløp = 20779,
+                                forfall = 14.april(2021),
+                                fraOgMed = 1.januar(2021),
+                            ),
+                            TolketDetalj.Etterbetaling(
+                                beløp = 20779,
+                            )
+                        ),
+                    ),
+                ),
+            ),
+        )
+    }
+
+    @Test
     fun `tolker fremtidige simulerte utbetalinger`() {
         TolketSimulering(
             Simulering(
@@ -69,6 +131,8 @@ internal class TolketSimuleringTest {
                         tolketDetalj = listOf(
                             TolketDetalj.Ordinær(
                                 beløp = 20779,
+                                forfall = 19.april(2021),
+                                fraOgMed = 1.april(2021),
                             ),
                         ),
                     ),
@@ -197,6 +261,8 @@ internal class TolketSimuleringTest {
                         tolketDetalj = listOf(
                             TolketDetalj.Ordinær(
                                 beløp = 10000,
+                                forfall = 14.april(2021),
+                                fraOgMed = 1.februar(2021),
                             ),
                             TolketDetalj.Feilutbetaling(
                                 beløp = 10779,
@@ -216,6 +282,8 @@ internal class TolketSimuleringTest {
                         tolketDetalj = listOf(
                             TolketDetalj.Ordinær(
                                 beløp = 10000,
+                                forfall = 10.mars(2021),
+                                fraOgMed = 1.mars(2021),
                             ),
                         ),
                     ),
@@ -316,6 +384,8 @@ internal class TolketSimuleringTest {
                         tolketDetalj = listOf(
                             TolketDetalj.Ordinær(
                                 beløp = 30000,
+                                forfall = 14.april(2021),
+                                fraOgMed = 1.februar(2021),
                             ),
                             TolketDetalj.TidligereUtbetalt(
                                 beløp = -20779,
@@ -335,6 +405,8 @@ internal class TolketSimuleringTest {
                         tolketDetalj = listOf(
                             TolketDetalj.Ordinær(
                                 beløp = 30000,
+                                forfall = 10.mars(2021),
+                                fraOgMed = 1.mars(2021),
                             ),
                         ),
                     ),
@@ -435,6 +507,8 @@ internal class TolketSimuleringTest {
                         tolketDetalj = listOf(
                             TolketDetalj.Ordinær(
                                 beløp = 20779,
+                                forfall = 14.april(2021),
+                                fraOgMed = 1.februar(2021),
                             ),
                             TolketDetalj.TidligereUtbetalt(
                                 beløp = -20779,
@@ -454,6 +528,8 @@ internal class TolketSimuleringTest {
                         tolketDetalj = listOf(
                             TolketDetalj.Ordinær(
                                 beløp = 20779,
+                                forfall = 10.mars(2021),
+                                fraOgMed = 1.mars(2021),
                             ),
                         ),
                     ),
