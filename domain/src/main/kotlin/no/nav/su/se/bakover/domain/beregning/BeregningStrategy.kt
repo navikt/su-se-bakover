@@ -9,8 +9,7 @@ class BeregningStrategyFactory {
     fun beregn(søknadsbehandling: Søknadsbehandling, fradrag: List<Fradrag>, begrunnelse: String?): Beregning {
         val beregningsgrunnlag = Beregningsgrunnlag.create(
             beregningsperiode = søknadsbehandling.periode,
-            forventetInntektPerÅr = søknadsbehandling.behandlingsinformasjon.uførhet?.forventetInntekt?.toDouble()
-                ?: 0.0,
+            uføregrunnlag = søknadsbehandling.grunnlagsdata.uføregrunnlag,
             fradragFraSaksbehandler = fradrag,
         )
         val strategy = søknadsbehandling.behandlingsinformasjon.getBeregningStrategy()

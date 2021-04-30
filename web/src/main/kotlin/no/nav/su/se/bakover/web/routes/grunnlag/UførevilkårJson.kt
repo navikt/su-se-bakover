@@ -11,7 +11,7 @@ import java.time.format.DateTimeFormatter
 
 internal data class UføreVilkårJson(
     val vilkår: String,
-    val vurdering: VurderingsperiodeUføreJson,
+    val vurdering: List<VurderingsperiodeUføreJson>,
     val resultat: Behandlingsinformasjon.Uførhet.Status,
 )
 
@@ -26,7 +26,7 @@ internal fun Vurderingsperiode<Grunnlag.Uføregrunnlag>.toJson() = Vurderingsper
 
 internal fun Vilkår.Vurdert.Uførhet.toJson() = UføreVilkårJson(
     vilkår = vilkår.stringValue(),
-    vurdering = vurderingsperioder.first().toJson(),
+    vurdering = vurderingsperioder.map { it.toJson() },
     resultat = resultat.toStatusString(),
 )
 

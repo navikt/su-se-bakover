@@ -45,6 +45,7 @@ import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
+import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.UUID
@@ -478,13 +479,10 @@ internal class SøknadsbehandlingServiceImpl(
                 behandlingId = søknadsbehandling.id,
                 behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon.copy(
                     uførhet = Behandlingsinformasjon.Uførhet(
-                        status = when (vilkår) {
-                            is Vilkår.Vurdert.Uførhet -> when (vilkår.resultat) {
-                                Resultat.Avslag -> Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt
-                                Resultat.Innvilget -> Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt
-                                Resultat.Uavklart -> Behandlingsinformasjon.Uførhet.Status.HarUføresakTilBehandling
-                            }
-                            Vilkår.IkkeVurdert.Uførhet -> TODO()
+                        status = when (vilkår.resultat) {
+                            Resultat.Avslag -> Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt
+                            Resultat.Innvilget -> Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt
+                            Resultat.Uavklart -> Behandlingsinformasjon.Uførhet.Status.HarUføresakTilBehandling
                         },
                         uføregrad = grunnlag?.uføregrad?.value,
                         forventetInntekt = grunnlag?.forventetInntekt,

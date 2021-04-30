@@ -7,6 +7,8 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
@@ -17,16 +19,22 @@ internal class BeregningsgrunnlagTest {
         val beregningsperiode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020))
         Beregningsgrunnlag.create(
             beregningsperiode = beregningsperiode,
-            forventetInntektPerÅr = 120_000.0,
+            uføregrunnlag = listOf(
+                Grunnlag.Uføregrunnlag(
+                    periode = beregningsperiode,
+                    uføregrad = Uføregrad.parse(20),
+                    forventetInntekt = 120_000,
+                ),
+            ),
             fradragFraSaksbehandler = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.Kapitalinntekt,
                     månedsbeløp = 2000.0,
                     periode = beregningsperiode,
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
-                )
-            )
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
         ).fradrag shouldBe listOf(
             FradragFactory.ny(
                 type = Fradragstype.Kapitalinntekt,
@@ -50,16 +58,22 @@ internal class BeregningsgrunnlagTest {
         val beregningsperiode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.januar(2020))
         Beregningsgrunnlag.create(
             beregningsperiode = beregningsperiode,
-            forventetInntektPerÅr = 120_000.0,
+            uføregrunnlag = listOf(
+                Grunnlag.Uføregrunnlag(
+                    periode = beregningsperiode,
+                    uføregrad = Uføregrad.parse(20),
+                    forventetInntekt = 120_000,
+                ),
+            ),
             fradragFraSaksbehandler = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.Kapitalinntekt,
                     månedsbeløp = 2000.0,
                     periode = beregningsperiode,
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
-                )
-            )
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
         ).fradrag shouldBe listOf(
             FradragFactory.ny(
                 type = Fradragstype.Kapitalinntekt,
@@ -83,8 +97,14 @@ internal class BeregningsgrunnlagTest {
         val beregningsperiode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.januar(2020))
         Beregningsgrunnlag.create(
             beregningsperiode = beregningsperiode,
-            forventetInntektPerÅr = 0.0,
-            fradragFraSaksbehandler = emptyList()
+            uføregrunnlag = listOf(
+                Grunnlag.Uføregrunnlag(
+                    periode = beregningsperiode,
+                    uføregrad = Uføregrad.parse(100),
+                    forventetInntekt = 0,
+                ),
+            ),
+            fradragFraSaksbehandler = emptyList(),
         ).fradrag shouldBe listOf(
             FradragFactory.ny(
                 type = Fradragstype.ForventetInntekt,
@@ -98,27 +118,40 @@ internal class BeregningsgrunnlagTest {
 
     @Test
     fun `validerer fradrag`() {
+        val beregningsperiode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.januar(2020))
         assertDoesNotThrow {
             Beregningsgrunnlag.create(
-                beregningsperiode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.januar(2020)),
-                forventetInntektPerÅr = 0.0,
-                fradragFraSaksbehandler = emptyList()
+                beregningsperiode = beregningsperiode,
+                uføregrunnlag = listOf(
+                    Grunnlag.Uføregrunnlag(
+                        periode = beregningsperiode,
+                        uføregrad = Uføregrad.parse(100),
+                        forventetInntekt = 0,
+                    ),
+                ),
+                fradragFraSaksbehandler = emptyList(),
             )
         }
 
         assertThrows<IllegalArgumentException> {
             Beregningsgrunnlag.create(
-                beregningsperiode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.januar(2020)),
-                forventetInntektPerÅr = 0.0,
+                beregningsperiode = beregningsperiode,
+                uføregrunnlag = listOf(
+                    Grunnlag.Uføregrunnlag(
+                        periode = beregningsperiode,
+                        uføregrad = Uføregrad.parse(100),
+                        forventetInntekt = 0,
+                    ),
+                ),
                 fradragFraSaksbehandler = listOf(
                     FradragFactory.ny(
                         type = Fradragstype.ForventetInntekt,
                         månedsbeløp = 0.0,
                         periode = Periode.create(1.januar(2019), 31.desember(2019)),
                         utenlandskInntekt = null,
-                        tilhører = FradragTilhører.BRUKER
-                    )
-                )
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                ),
             )
         }
     }

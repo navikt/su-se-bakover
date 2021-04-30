@@ -5,12 +5,12 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
-import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import java.util.UUID
 import kotlin.reflect.KClass
 
@@ -63,8 +63,11 @@ interface RevurderingService {
         request: FortsettEtterForhåndsvarslingRequest,
     ): Either<FortsettEtterForhåndsvarselFeil, Revurdering>
 
-    fun leggTilUføregrunnlag(revurderingId: UUID, uføregrunnlag: List<Grunnlag.Uføregrunnlag>): Either<KunneIkkeLeggeTilGrunnlag, LeggTilUføregrunnlagResponse>
-    fun hentUføregrunnlag(revurderingId: UUID): Either<KunneIkkeHenteGrunnlag, GrunnlagService.SimulerEndretGrunnlagsdata>
+    fun leggTilUføregrunnlag(
+        request: LeggTilUførevurderingerRequest
+    ): Either<KunneIkkeLeggeTilGrunnlag, LeggTilUføregrunnlagResponse>
+
+    fun hentGjeldendeVilkårsvurderinger(revurderingId: UUID): Either<KunneIkkeHenteGrunnlag, Vilkårsvurderinger>
 }
 
 sealed class FortsettEtterForhåndsvarslingRequest {
@@ -209,6 +212,7 @@ sealed class KunneIkkeUnderkjenneRevurdering {
 sealed class KunneIkkeLeggeTilGrunnlag {
     object FantIkkeBehandling : KunneIkkeLeggeTilGrunnlag()
     object UgyldigStatus : KunneIkkeLeggeTilGrunnlag()
+    object UføregradOgForventetInntektMangler : KunneIkkeLeggeTilGrunnlag()
 }
 
 sealed class KunneIkkeHenteGrunnlag {
@@ -217,5 +221,5 @@ sealed class KunneIkkeHenteGrunnlag {
 
 data class LeggTilUføregrunnlagResponse(
     val revurdering: Revurdering,
-    val simulerEndretGrunnlagsdata: GrunnlagService.SimulerEndretGrunnlagsdata,
+    val gjeldendeVilkårsvurderinger: Vilkårsvurderinger,
 )

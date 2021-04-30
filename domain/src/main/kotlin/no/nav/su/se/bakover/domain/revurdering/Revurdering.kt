@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.beregning.RevurdertBeregning
 import no.nav.su.se.bakover.domain.beregning.VurderOmBeregningHarEndringerIYtelse
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -103,8 +104,7 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
         val revurdertBeregning: Beregning = beregnInternt(
             fradrag = fradrag,
             behandlingsinformasjon = behandlingsinformasjon,
-            // TODO jah: Mulighet til å sende f.eks sende uføregrunnlag som en liste med fradrag e.l.
-            forventetInntekt = grunnlagsdata.hentNyesteUføreGrunnlag().forventetInntekt,
+            uføregrunnlag = grunnlagsdata.uføregrunnlag,
             periode = periode,
             vedtattBeregning = tilRevurdering.beregning,
         ).getOrHandle { return it.left() }
@@ -209,13 +209,13 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
         private fun beregnInternt(
             fradrag: List<Fradrag>,
             behandlingsinformasjon: Behandlingsinformasjon,
-            forventetInntekt: Int,
+            uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
             periode: Periode,
             vedtattBeregning: Beregning,
         ): Either<KunneIkkeBeregneRevurdering, Beregning> {
             val beregningsgrunnlag = Beregningsgrunnlag.create(
                 beregningsperiode = periode,
-                forventetInntektPerÅr = forventetInntekt.toDouble(),
+                uføregrunnlag = uføregrunnlag,
                 fradragFraSaksbehandler = fradrag,
             )
             // TODO jah: Også mulig å ta inn beregningsstrategi slik at man kan validere dette på service-nivå

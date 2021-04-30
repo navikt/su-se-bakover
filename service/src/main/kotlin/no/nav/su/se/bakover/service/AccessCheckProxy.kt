@@ -19,7 +19,6 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
@@ -38,6 +37,7 @@ import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.avstemming.AvstemmingFeilet
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
 import no.nav.su.se.bakover.service.brev.BrevService
@@ -74,7 +74,6 @@ import no.nav.su.se.bakover.service.søknad.SøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.KunneIkkeLukkeSøknad
 import no.nav.su.se.bakover.service.søknad.lukk.LukkSøknadService
 import no.nav.su.se.bakover.service.søknad.lukk.LukketSøknad
-import no.nav.su.se.bakover.service.søknadsbehandling.LeggTilUførevurderingRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.utbetaling.FantIkkeUtbetaling
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeGjenopptaUtbetalinger
@@ -83,6 +82,8 @@ import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
+import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import java.time.LocalDate
 import java.util.UUID
 
@@ -387,7 +388,7 @@ open class AccessCheckProxy(
                     saksbehandler: NavIdentBruker.Saksbehandler,
                     fradrag: List<Fradrag>,
                 ): Either<KunneIkkeBeregneOgSimulereRevurdering, Revurdering> {
-                    assertHarTilgangTilSak(revurderingId)
+                    assertHarTilgangTilRevurdering(revurderingId)
                     return services.revurdering.beregnOgSimuler(
                         revurderingId = revurderingId,
                         saksbehandler = saksbehandler,
@@ -421,7 +422,7 @@ open class AccessCheckProxy(
                 override fun sendTilAttestering(
                     request: SendTilAttesteringRequest,
                 ): Either<KunneIkkeSendeRevurderingTilAttestering, Revurdering> {
-                    assertHarTilgangTilSak(request.revurderingId)
+                    assertHarTilgangTilRevurdering(request.revurderingId)
                     return services.revurdering.sendTilAttestering(request)
                 }
 
@@ -429,12 +430,12 @@ open class AccessCheckProxy(
                     revurderingId: UUID,
                     fritekst: String,
                 ): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray> {
-                    assertHarTilgangTilSak(revurderingId)
+                    assertHarTilgangTilRevurdering(revurderingId)
                     return services.revurdering.lagBrevutkast(revurderingId, fritekst)
                 }
 
                 override fun hentBrevutkast(revurderingId: UUID): Either<KunneIkkeLageBrevutkastForRevurdering, ByteArray> {
-                    assertHarTilgangTilSak(revurderingId)
+                    assertHarTilgangTilRevurdering(revurderingId)
                     return services.revurdering.hentBrevutkast(revurderingId)
                 }
 
@@ -442,7 +443,7 @@ open class AccessCheckProxy(
                     revurderingId: UUID,
                     attestant: NavIdentBruker.Attestant,
                 ): Either<KunneIkkeIverksetteRevurdering, IverksattRevurdering> {
-                    assertHarTilgangTilSak(revurderingId)
+                    assertHarTilgangTilRevurdering(revurderingId)
                     return services.revurdering.iverksett(revurderingId, attestant)
                 }
 
@@ -450,23 +451,25 @@ open class AccessCheckProxy(
                     revurderingId: UUID,
                     attestering: Attestering.Underkjent,
                 ): Either<KunneIkkeUnderkjenneRevurdering, UnderkjentRevurdering> {
-                    assertHarTilgangTilSak(revurderingId)
+                    assertHarTilgangTilRevurdering(revurderingId)
                     return services.revurdering.underkjenn(revurderingId, attestering)
                 }
 
                 override fun fortsettEtterForhåndsvarsling(request: FortsettEtterForhåndsvarslingRequest): Either<FortsettEtterForhåndsvarselFeil, Revurdering> {
-                    assertHarTilgangTilSak(request.revurderingId)
+                    assertHarTilgangTilRevurdering(request.revurderingId)
                     return services.revurdering.fortsettEtterForhåndsvarsling(request)
                 }
 
-                override fun leggTilUføregrunnlag(revurderingId: UUID, uføregrunnlag: List<Grunnlag.Uføregrunnlag>): Either<KunneIkkeLeggeTilGrunnlag, LeggTilUføregrunnlagResponse> {
-                    assertHarTilgangTilSak(revurderingId)
-                    return services.revurdering.leggTilUføregrunnlag(revurderingId, uføregrunnlag)
+                override fun leggTilUføregrunnlag(
+                    request: LeggTilUførevurderingerRequest,
+                ): Either<KunneIkkeLeggeTilGrunnlag, LeggTilUføregrunnlagResponse> {
+                    assertHarTilgangTilRevurdering(request.behandlingId)
+                    return services.revurdering.leggTilUføregrunnlag(request)
                 }
 
-                override fun hentUføregrunnlag(revurderingId: UUID): Either<KunneIkkeHenteGrunnlag, GrunnlagService.SimulerEndretGrunnlagsdata> {
-                    assertHarTilgangTilSak(revurderingId)
-                    return services.revurdering.hentUføregrunnlag(revurderingId)
+                override fun hentGjeldendeVilkårsvurderinger(revurderingId: UUID): Either<KunneIkkeHenteGrunnlag, Vilkårsvurderinger> {
+                    assertHarTilgangTilRevurdering(revurderingId)
+                    return services.revurdering.hentGjeldendeVilkårsvurderinger(revurderingId)
                 }
             },
             vedtakService = object : VedtakService {
@@ -476,9 +479,6 @@ open class AccessCheckProxy(
             },
             grunnlagService = object : GrunnlagService {
                 override fun opprettGrunnlagsdata(sakId: UUID, periode: Periode): Grunnlagsdata =
-                    kastKanKunKallesFraAnnenService()
-
-                override fun simulerEndretGrunnlagsdata(sakId: UUID, periode: Periode, endring: Grunnlagsdata) =
                     kastKanKunKallesFraAnnenService()
             },
         )
