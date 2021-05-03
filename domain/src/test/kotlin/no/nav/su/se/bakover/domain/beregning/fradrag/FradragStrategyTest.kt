@@ -12,7 +12,7 @@ import org.junit.jupiter.api.assertThrows
 
 internal class FradragStrategyTest {
 
-    private val expectedError = "Hver måned i beregningsperioden må inneholde nøyaktig ett fradrag for brukers forventde inntekt"
+    private val expectedError = "Hver måned i beregningsperioden må inneholde nøyaktig ett fradrag for brukers forventede inntekt"
 
     @Test
     fun `hver måned må inneholde nøyaktig ett fradrag for brukers forventede inntekt`() {
