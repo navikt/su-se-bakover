@@ -5,6 +5,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.AvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.Behandling
@@ -21,6 +22,7 @@ import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknadsbehandling.ErAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.time.Clock
 import java.util.UUID
@@ -45,11 +47,12 @@ interface VedtakFelles {
     val periode: Periode
 }
 
-sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
+sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor>, KanPlasseresPåTidslinje<Vedtak> {
 
     abstract fun journalfør(journalfør: () -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre, Vedtak>
     abstract fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev, Vedtak>
-    fun skalSendeBrev() = (this.behandling as? IverksattRevurdering.Innvilget)?.revurderingsårsak?.årsak != Revurderingsårsak.Årsak.REGULER_GRUNNBELØP
+    fun skalSendeBrev() =
+        (this.behandling as? IverksattRevurdering.Innvilget)?.revurderingsårsak?.årsak != Revurderingsårsak.Årsak.REGULER_GRUNNBELØP
 
     companion object {
         fun fromSøknadsbehandling(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget, utbetalingId: UUID30) =
@@ -92,7 +95,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
             attestant = revurdering.attestering.attestant,
             utbetalingId = utbetalingId,
             journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
-            vedtakType = VedtakType.ENDRING
+            vedtakType = VedtakType.ENDRING,
         )
 
         fun from(revurdering: IverksattRevurdering.Opphørt, utbetalingId: UUID30) = EndringIYtelse(
@@ -147,6 +150,13 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
         override fun accept(visitor: VedtakVisitor) {
             visitor.visit(this)
         }
+
+        override fun copy(args: CopyArgs.Tidslinje): Vedtak = when (args) {
+            CopyArgs.Tidslinje.Full -> this.copy()
+            is CopyArgs.Tidslinje.NyPeriode -> this.copy(
+                periode = args.periode,
+            )
+        }
     }
 
     data class IngenEndringIYtelse(
@@ -182,6 +192,11 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
 
         override fun accept(visitor: VedtakVisitor) {
             visitor.visit(this)
+        }
+
+        override fun copy(args: CopyArgs.Tidslinje): Vedtak = when (args) {
+            CopyArgs.Tidslinje.Full -> this.copy()
+            is CopyArgs.Tidslinje.NyPeriode -> this.copy(periode = args.periode)
         }
     }
 
@@ -240,6 +255,11 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
             override fun accept(visitor: VedtakVisitor) {
                 visitor.visit(this)
             }
+
+            override fun copy(args: CopyArgs.Tidslinje): Vedtak = when (args) {
+                CopyArgs.Tidslinje.Full -> this.copy()
+                is CopyArgs.Tidslinje.NyPeriode -> this.copy(periode = args.periode)
+            }
         }
 
         data class AvslagBeregning(
@@ -275,6 +295,11 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
 
             override fun accept(visitor: VedtakVisitor) {
                 visitor.visit(this)
+            }
+
+            override fun copy(args: CopyArgs.Tidslinje): Vedtak = when (args) {
+                CopyArgs.Tidslinje.Full -> this.copy()
+                is CopyArgs.Tidslinje.NyPeriode -> this.copy(periode = args.periode)
             }
         }
     }

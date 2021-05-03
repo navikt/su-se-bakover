@@ -9,7 +9,7 @@ import java.util.LinkedList
 data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
     private val periode: Periode,
     private val objekter: List<T>,
-    private val clock: Clock
+    private val clock: Clock = Clock.systemUTC()
 ) {
 
     private val stigendeFraOgMed = Comparator<T> { o1, o2 ->
