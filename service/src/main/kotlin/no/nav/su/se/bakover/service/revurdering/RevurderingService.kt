@@ -146,6 +146,7 @@ sealed class KunneIkkeBeregneOgSimulereRevurdering {
         KunneIkkeBeregneOgSimulereRevurdering()
 
     object UfullstendigBehandlingsinformasjon : KunneIkkeBeregneOgSimulereRevurdering()
+    object UfullstendigVilkårsvurdering : KunneIkkeBeregneOgSimulereRevurdering()
 }
 
 sealed class KunneIkkeForhåndsvarsle {

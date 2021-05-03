@@ -99,5 +99,9 @@ private fun KunneIkkeBeregneOgSimulereRevurdering.tilResultat(): Resultat {
             "Forventet inntekt kan kun sendes sammen med regulering av grunnbeløp",
             "grunnbelop_forventetinntekt",
         )
+        KunneIkkeBeregneOgSimulereRevurdering.UfullstendigVilkårsvurdering -> BadRequest.errorJson(
+            "Vurdering av vilkår er ufullstendig",
+            "ufullstendig_vilkårsvurdering"
+        )
     }
 }

@@ -29,6 +29,16 @@ data class Vilkårsvurderinger(
     companion object {
         val EMPTY = Vilkårsvurderinger()
     }
+
+    val resultat: Resultat by lazy {
+        setOf(uføre).map { it.resultat }.let { alleVurderingsresultat ->
+            when {
+                alleVurderingsresultat.all { it is Resultat.Innvilget } -> Resultat.Innvilget
+                alleVurderingsresultat.any { it is Resultat.Avslag } -> Resultat.Avslag
+                else -> Resultat.Uavklart
+            }
+        }
+    }
 }
 
 /**
@@ -58,15 +68,19 @@ sealed class Vilkårsvurderingsresultat {
 sealed class Vilkår<T : Grunnlag> {
 
     sealed class IkkeVurdert<T : Grunnlag> : Vilkår<T>() {
-        object Uførhet : Vilkår<Grunnlag.Uføregrunnlag>()
+        object Uførhet : Vilkår<Grunnlag.Uføregrunnlag>() {
+            override val resultat: Resultat = Resultat.Uavklart
+        }
     }
+
+    abstract val resultat: Resultat
 
     sealed class Vurdert<T : Grunnlag> : Vilkår<T>() {
         abstract val vilkår: Inngangsvilkår
         abstract val grunnlag: List<T>
         abstract val vurderingsperioder: List<Vurderingsperiode<T>>
 
-        val resultat: Resultat by lazy {
+        override val resultat: Resultat by lazy {
             if (erInnvilget) Resultat.Innvilget else if (erAvslag) Resultat.Avslag else Resultat.Uavklart
         }
 

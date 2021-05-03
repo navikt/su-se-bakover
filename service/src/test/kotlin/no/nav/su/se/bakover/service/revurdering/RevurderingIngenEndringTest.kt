@@ -25,7 +25,10 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.saksbehandler
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.søknadOppgaveId
@@ -47,11 +50,17 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.søknadsbeh
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import org.junit.jupiter.api.Test
+import java.util.UUID
 
 class RevurderingIngenEndringTest {
 
     @Test
     fun `Revurderingen går ikke gjennom hvis endring av utbetaling er under ti prosent`() {
+        val uføregrunnlag = Grunnlag.Uføregrunnlag(
+            periode = periode,
+            uføregrad = Uføregrad.parse(20),
+            forventetInntekt = 12000,
+        )
         val opprettetRevurdering = OpprettetRevurdering(
             id = revurderingId,
             periode = periode,
@@ -64,15 +73,22 @@ class RevurderingIngenEndringTest {
             forhåndsvarsel = null,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata(
-                uføregrunnlag = listOf(
-                    Grunnlag.Uføregrunnlag(
-                        periode = periode,
-                        uføregrad = Uføregrad.parse(20),
-                        forventetInntekt = 12000,
+                uføregrunnlag = listOf(uføregrunnlag),
+            ),
+            vilkårsvurderinger = Vilkårsvurderinger(
+                uføre = Vilkår.Vurdert.Uførhet(
+                    vurderingsperioder = listOf(
+                        Vurderingsperiode.Manuell(
+                            id = UUID.randomUUID(),
+                            opprettet = fixedTidspunkt,
+                            resultat = Resultat.Innvilget,
+                            grunnlag = uføregrunnlag,
+                            periode = periode,
+                            begrunnelse = "ok2k",
+                        ),
                     ),
                 ),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -99,12 +115,12 @@ class RevurderingIngenEndringTest {
                 revurderingsårsak = revurderingsårsak,
                 behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
                 forhåndsvarsel = null,
-                grunnlagsdata = Grunnlagsdata.EMPTY,
-                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+                grunnlagsdata = opprettetRevurdering.grunnlagsdata,
+                vilkårsvurderinger = opprettetRevurdering.vilkårsvurderinger,
             ),
             // beregningstypen er internal i domene modulen
             BeregnetRevurdering.IngenEndring::beregning,
-            BeregnetRevurdering::grunnlagsdata
+            BeregnetRevurdering::grunnlagsdata,
         )
 
         inOrder(
@@ -172,14 +188,14 @@ class RevurderingIngenEndringTest {
             utbetalingService = utbetalingServiceMock,
             vedtakRepo = vedtakRepoMock,
             personService = personServiceMock,
-            oppgaveService = oppgaveServiceMock
+            oppgaveService = oppgaveServiceMock,
         ).sendTilAttestering(
             SendTilAttesteringRequest(
                 revurderingId,
                 endretSaksbehandler,
                 "endret fritekst",
-                true
-            )
+                true,
+            ),
         ).getOrHandle { throw RuntimeException(it.toString()) } as RevurderingTilAttestering.IngenEndring
 
         actual shouldBe revurderingTilAttestering
@@ -189,7 +205,7 @@ class RevurderingIngenEndringTest {
             utbetalingServiceMock,
             vedtakRepoMock,
             personServiceMock,
-            oppgaveServiceMock
+            oppgaveServiceMock,
         ) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
             verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
@@ -200,7 +216,7 @@ class RevurderingIngenEndringTest {
                         saksnummer = saksnummer,
                         aktørId = aktørId,
                     )
-                }
+                },
             )
             verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe søknadOppgaveId })
             verify(revurderingRepoMock).lagre(argThat { it shouldBe revurderingTilAttestering })
@@ -268,10 +284,10 @@ class RevurderingIngenEndringTest {
             utbetalingService = utbetalingServiceMock,
             vedtakRepo = vedtakRepoMock,
             personService = personServiceMock,
-            oppgaveService = oppgaveServiceMock
+            oppgaveService = oppgaveServiceMock,
         ).underkjenn(
             revurderingId,
-            attesteringUnderkjent
+            attesteringUnderkjent,
         ).orNull()!! as UnderkjentRevurdering.IngenEndring
 
         actual shouldBe underkjentRevurdering
@@ -281,7 +297,7 @@ class RevurderingIngenEndringTest {
             utbetalingServiceMock,
             vedtakRepoMock,
             personServiceMock,
-            oppgaveServiceMock
+            oppgaveServiceMock,
         ) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
             verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
@@ -290,9 +306,9 @@ class RevurderingIngenEndringTest {
                     it shouldBe OppgaveConfig.Revurderingsbehandling(
                         saksnummer = saksnummer,
                         aktørId = aktørId,
-                        tilordnetRessurs = saksbehandler
+                        tilordnetRessurs = saksbehandler,
                     )
-                }
+                },
             )
             verify(revurderingRepoMock).lagre(argThat { it shouldBe underkjentRevurdering })
             verify(oppgaveServiceMock).lukkOppgave(argThat { it shouldBe søknadOppgaveId })
