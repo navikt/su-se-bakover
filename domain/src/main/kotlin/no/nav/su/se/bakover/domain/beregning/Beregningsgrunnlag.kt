@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.beregning
 
 import arrow.core.Either
+import arrow.core.extensions.list.foldable.forAll
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
@@ -11,9 +12,9 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 
-internal data class Beregningsgrunnlag private constructor (
+internal data class Beregningsgrunnlag private constructor(
     val beregningsperiode: Periode,
-    val fradrag: List<Fradrag>
+    val fradrag: List<Fradrag>,
 ) {
     companion object {
         fun create(
@@ -59,8 +60,24 @@ internal data class Beregningsgrunnlag private constructor (
             if (!fradrag.all { beregningsperiode inneholder it.periode }) {
                 return UgyldigBeregningsgrunnlag.IkkeLovMedFradragUtenforPerioden.left()
             }
-            if (fradrag.count { it.getFradragstype() == Fradragstype.ForventetInntekt && it.getTilhører() == FradragTilhører.BRUKER } < 1) {
-                return UgyldigBeregningsgrunnlag.BrukerMåHaMinst1ForventetInntekt.left()
+
+            fradrag.filter { it.getFradragstype() == Fradragstype.ForventetInntekt && it.getTilhører() == FradragTilhører.BRUKER }.let { forventedeInntekter ->
+                if (forventedeInntekter.count() < 1) {
+                    return UgyldigBeregningsgrunnlag.BrukerMåHaMinst1ForventetInntekt.left()
+                }
+                if (forventedeInntekter.forAll { f1 ->
+                    forventedeInntekter.minus(f1).any { f2 -> f1.periode overlapper f2.periode }
+                }
+                ) {
+                    return UgyldigBeregningsgrunnlag.OverlappendePerioderMedForventetInntekt.left()
+                }
+            }
+
+            if (!beregningsperiode.tilMånedsperioder().forAll { it ->
+                fradrag.flatMap { it.periode.tilMånedsperioder() }.contains(it)
+            }
+            ) {
+                return UgyldigBeregningsgrunnlag.ManglerForventetInntektForEnkelteMåneder.left()
             }
 
             return Beregningsgrunnlag(beregningsperiode, fradrag).right()
@@ -70,5 +87,7 @@ internal data class Beregningsgrunnlag private constructor (
     sealed class UgyldigBeregningsgrunnlag {
         object IkkeLovMedFradragUtenforPerioden : UgyldigBeregningsgrunnlag()
         object BrukerMåHaMinst1ForventetInntekt : UgyldigBeregningsgrunnlag()
+        object OverlappendePerioderMedForventetInntekt : UgyldigBeregningsgrunnlag()
+        object ManglerForventetInntektForEnkelteMåneder : UgyldigBeregningsgrunnlag()
     }
 }

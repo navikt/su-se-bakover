@@ -30,7 +30,7 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
     }
 
     protected open fun validate(fradrag: Map<Periode, List<Fradrag>>) {
-        require(fradrag.values.all { it.`har nøyaktig en forventet inntekt for bruker`() }) { "Hele beregningsperioden må inneholde fradrag for brukers forventede inntekt etter uførhet." }
+        require(fradrag.values.all { it.`har nøyaktig en forventet inntekt for bruker`() }) { "Hver måned i beregningsperioden må inneholde nøyaktig ett fradrag for brukers forventede inntekt" }
     }
 
     protected abstract fun beregnFradrag(fradrag: Map<Periode, List<Fradrag>>): Map<Periode, List<Fradrag>>
