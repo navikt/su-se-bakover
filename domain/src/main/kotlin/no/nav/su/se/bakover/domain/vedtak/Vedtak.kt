@@ -16,6 +16,8 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.KunneIkkeJournalføreOgDistribuereBrev
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
@@ -23,6 +25,7 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknadsbehandling.ErAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
+import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.time.Clock
 import java.util.UUID
@@ -47,7 +50,7 @@ interface VedtakFelles {
     val periode: Periode
 }
 
-sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor>, KanPlasseresPåTidslinje<Vedtak> {
+sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
 
     abstract fun journalfør(journalfør: () -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre, Vedtak>
     abstract fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev, Vedtak>
@@ -150,13 +153,6 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor>, KanPlasseresPåTid
         override fun accept(visitor: VedtakVisitor) {
             visitor.visit(this)
         }
-
-        override fun copy(args: CopyArgs.Tidslinje): Vedtak = when (args) {
-            CopyArgs.Tidslinje.Full -> this.copy()
-            is CopyArgs.Tidslinje.NyPeriode -> this.copy(
-                periode = args.periode,
-            )
-        }
     }
 
     data class IngenEndringIYtelse(
@@ -192,11 +188,6 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor>, KanPlasseresPåTid
 
         override fun accept(visitor: VedtakVisitor) {
             visitor.visit(this)
-        }
-
-        override fun copy(args: CopyArgs.Tidslinje): Vedtak = when (args) {
-            CopyArgs.Tidslinje.Full -> this.copy()
-            is CopyArgs.Tidslinje.NyPeriode -> this.copy(periode = args.periode)
         }
     }
 
@@ -255,11 +246,6 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor>, KanPlasseresPåTid
             override fun accept(visitor: VedtakVisitor) {
                 visitor.visit(this)
             }
-
-            override fun copy(args: CopyArgs.Tidslinje): Vedtak = when (args) {
-                CopyArgs.Tidslinje.Full -> this.copy()
-                is CopyArgs.Tidslinje.NyPeriode -> this.copy(periode = args.periode)
-            }
         }
 
         data class AvslagBeregning(
@@ -296,11 +282,34 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor>, KanPlasseresPåTid
             override fun accept(visitor: VedtakVisitor) {
                 visitor.visit(this)
             }
+        }
+    }
 
-            override fun copy(args: CopyArgs.Tidslinje): Vedtak = when (args) {
+    data class GrunnlagTidslinje(
+        override val periode: Periode,
+        override val opprettet: Tidspunkt,
+        val grunnlagsdata: Grunnlagsdata,
+    ) : KanPlasseresPåTidslinje<GrunnlagTidslinje> {
+        override fun copy(args: CopyArgs.Tidslinje): GrunnlagTidslinje =
+            when (args) {
                 CopyArgs.Tidslinje.Full -> this.copy()
-                is CopyArgs.Tidslinje.NyPeriode -> this.copy(periode = args.periode)
+                is CopyArgs.Tidslinje.NyPeriode -> this.copy(
+                    periode = args.periode,
+                    grunnlagsdata = Grunnlagsdata(
+                        uføregrunnlag = lagTidslinje(
+                            this.grunnlagsdata.uføregrunnlag,
+                            periode,
+                        ).filterIsInstance<Grunnlag.Uføregrunnlag>(),
+                        flyktninggrunnlag = lagTidslinje(
+                            this.grunnlagsdata.flyktninggrunnlag,
+                            periode,
+                        ).filterIsInstance<Grunnlag.Flyktninggrunnlag>(),
+                    ),
+                )
             }
+
+        private fun <T : KanPlasseresPåTidslinje<T>> lagTidslinje(objekter: List<T>, periode: Periode): List<T> {
+            return Tidslinje(periode = periode, objekter = objekter).tidslinje
         }
     }
 }

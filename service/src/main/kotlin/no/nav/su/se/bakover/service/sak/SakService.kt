@@ -14,7 +14,6 @@ interface SakService {
     fun hentSak(fnr: Fnr): Either<FantIkkeSak, Sak>
     fun hentSak(saksnummer: Saksnummer): Either<FantIkkeSak, Sak>
     fun opprettSak(sak: NySak)
-    fun hentGrunnlagsdata(fnr: Fnr, periode: Periode): Grunnlagsdata?
 }
 
 object FantIkkeSak

@@ -9,10 +9,9 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NySak
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
+import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import org.slf4j.LoggerFactory
@@ -47,30 +46,20 @@ internal class SakServiceImpl(
         }
     }
 
-    override fun hentGrunnlagsdata(fnr: Fnr, periode: Periode): Grunnlagsdata? {
+    fun hentGrunnlagsdata(fnr: Fnr, periode: Periode): Grunnlagsdata? {
         val sak = sakRepo.hentSak(fnr) ?: return null
 
-        return lagTidslinje(sak.vedtakListe, periode)
-            .map { it.behandling.grunnlagsdata }
-            .let {
-            Grunnlagsdata(
-                uføregrunnlag = lagTidslinjeAvGrunnlag(it.flatMap { grunnlag -> grunnlag.uføregrunnlag }, periode),
-                flyktninggrunnlag = lagTidslinjeAvGrunnlag(
-                    it.flatMap { grunnlag -> grunnlag.flyktninggrunnlag },
-                    periode,
-                ),
-            )
+        val grunnlagsdata = sak.vedtakListe.map {
+            Vedtak.GrunnlagTidslinje(periode = it.periode, opprettet = it.opprettet, grunnlagsdata = it.behandling.grunnlagsdata)
+        }.let {
+            Tidslinje(periode = periode, objekter = it).tidslinje
+        }.map {
+            it.grunnlagsdata
         }
-    }
 
-    @JvmName("lagTidslinjeAvGrunnlagsdata1")
-    private fun lagTidslinjeAvGrunnlag(grunnlag: List<Grunnlag.Flyktninggrunnlag>, periode: Periode) =
-        lagTidslinje(grunnlag, periode).filterIsInstance<Grunnlag.Flyktninggrunnlag>()
-
-    private fun lagTidslinjeAvGrunnlag(grunnlag: List<Grunnlag.Uføregrunnlag>, periode: Periode) =
-        lagTidslinje(grunnlag, periode).filterIsInstance<Grunnlag.Uføregrunnlag>()
-
-    private fun <T : KanPlasseresPåTidslinje<T>> lagTidslinje(objekter: List<T>, periode: Periode): List<T> {
-        return Tidslinje(periode = periode, objekter = objekter).tidslinje
+        return Grunnlagsdata(
+            uføregrunnlag = grunnlagsdata.flatMap { it.uføregrunnlag },
+            flyktninggrunnlag = grunnlagsdata.flatMap { it.flyktninggrunnlag },
+        )
     }
 }
