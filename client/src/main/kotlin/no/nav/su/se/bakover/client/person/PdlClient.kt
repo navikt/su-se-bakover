@@ -41,14 +41,15 @@ internal class PdlClient(
     private val config: PdlClientConfig,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
-    private val brukKunOnBehalfOfToken = config.unleash.isEnabled("supstonad.ufore.pdl.bruk.obo.token", false)
 
     private val hentPersonQuery = this::class.java.getResource("/hentPerson.graphql").readText()
     private val hentIdenterQuery = this::class.java.getResource("/hentIdenter.graphql").readText()
 
+    private fun brukKunOnBehalfOfToken() = config.unleash.isEnabled("supstonad.ufore.pdl.bruk.obo.token", false)
+
     fun person(fnr: Fnr): Either<KunneIkkeHentePerson, PdlData> {
         return MDC.get("Authorization").let { jwt ->
-            when (brukKunOnBehalfOfToken) {
+            when (brukKunOnBehalfOfToken()) {
                 false -> kallpdl<PersonResponseData>(fnr, hentPersonQuery, jwt)
                     .flatMap { mapResponse(it) }
                 true -> kallPdlMedKunOnBehalfOfToken<PersonResponseData>(fnr, hentPersonQuery, config.azureAd.onBehalfOfToken(jwt, config.vars.clientId))
@@ -106,7 +107,7 @@ internal class PdlClient(
     private fun folkeregisteretAsMaster(metadata: Metadata) = metadata.master.toLowerCase() == "freg"
 
     fun aktørId(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> {
-        return when (brukKunOnBehalfOfToken) {
+        return when (brukKunOnBehalfOfToken()) {
             false -> kallpdl<IdentResponseData>(fnr, hentIdenterQuery, MDC.get("Authorization")).map {
                 val identer = it.hentIdenter ?: return FantIkkePerson.left()
                 finnIdent(identer).aktørId
