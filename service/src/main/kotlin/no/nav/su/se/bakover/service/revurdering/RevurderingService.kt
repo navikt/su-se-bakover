@@ -151,6 +151,9 @@ sealed class KunneIkkeBeregneOgSimulereRevurdering {
         KunneIkkeBeregneOgSimulereRevurdering()
 
     object UfullstendigBehandlingsinformasjon : KunneIkkeBeregneOgSimulereRevurdering()
+    data class UgyldigBeregningsgrunnlag(
+        val reason: no.nav.su.se.bakover.domain.beregning.UgyldigBeregningsgrunnlag
+    ) : KunneIkkeBeregneOgSimulereRevurdering()
 }
 
 sealed class KunneIkkeForhåndsvarsle {

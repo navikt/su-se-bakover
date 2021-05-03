@@ -213,11 +213,13 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
             periode: Periode,
             vedtattBeregning: Beregning,
         ): Either<KunneIkkeBeregneRevurdering, Beregning> {
-            val beregningsgrunnlag = Beregningsgrunnlag.create(
+            val beregningsgrunnlag = Beregningsgrunnlag.tryCreate(
                 beregningsperiode = periode,
                 uføregrunnlag = uføregrunnlag,
                 fradragFraSaksbehandler = fradrag,
-            )
+            ).getOrHandle {
+                return KunneIkkeBeregneRevurdering.UgyldigBeregningsgrunnlag(it).left()
+            }
             // TODO jah: Også mulig å ta inn beregningsstrategi slik at man kan validere dette på service-nivå
             val beregningStrategy = behandlingsinformasjon.getBeregningStrategy().getOrHandle {
                 return KunneIkkeBeregneRevurdering.UfullstendigBehandlingsinformasjon(it).left()
@@ -236,6 +238,10 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
         object KanIkkeVelgeSisteMånedVedNedgangIStønaden : KunneIkkeBeregneRevurdering()
         data class UfullstendigBehandlingsinformasjon(
             val bakenforliggendeGrunn: Behandlingsinformasjon.UfullstendigBehandlingsinformasjon,
+        ) : KunneIkkeBeregneRevurdering()
+
+        data class UgyldigBeregningsgrunnlag(
+            val reason: no.nav.su.se.bakover.domain.beregning.UgyldigBeregningsgrunnlag
         ) : KunneIkkeBeregneRevurdering()
     }
 }

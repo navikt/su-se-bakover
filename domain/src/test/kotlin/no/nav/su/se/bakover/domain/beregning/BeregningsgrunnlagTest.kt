@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.beregning
 
+import arrow.core.left
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
@@ -17,8 +17,6 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertDoesNotThrow
-import org.junit.jupiter.api.assertThrows
 
 internal class BeregningsgrunnlagTest {
     @Test
@@ -126,104 +124,93 @@ internal class BeregningsgrunnlagTest {
     @Test
     fun `validerer fradrag`() {
         val beregningsperiode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.januar(2020))
-        assertDoesNotThrow {
-            Beregningsgrunnlag.create(
-                beregningsperiode = beregningsperiode,
-                uføregrunnlag = listOf(
-                    Grunnlag.Uføregrunnlag(
-                        periode = beregningsperiode,
-                        uføregrad = Uføregrad.parse(100),
-                        forventetInntekt = 0,
-                    ),
+        Beregningsgrunnlag.tryCreate(
+            beregningsperiode = beregningsperiode,
+            uføregrunnlag = listOf(
+                Grunnlag.Uføregrunnlag(
+                    periode = beregningsperiode,
+                    uføregrad = Uføregrad.parse(100),
+                    forventetInntekt = 0,
                 ),
-                fradragFraSaksbehandler = emptyList(),
-            )
-        }
+            ),
+            fradragFraSaksbehandler = emptyList(),
+        ).isRight() shouldBe true
 
-        assertThrows<IllegalArgumentException> {
-            Beregningsgrunnlag.create(
-                beregningsperiode = beregningsperiode,
-                uføregrunnlag = listOf(
-                    Grunnlag.Uføregrunnlag(
-                        periode = beregningsperiode,
-                        uføregrad = Uføregrad.parse(100),
-                        forventetInntekt = 0,
-                    ),
+        Beregningsgrunnlag.tryCreate(
+            beregningsperiode = beregningsperiode,
+            uføregrunnlag = listOf(
+                Grunnlag.Uføregrunnlag(
+                    periode = beregningsperiode,
+                    uføregrad = Uføregrad.parse(100),
+                    forventetInntekt = 0,
                 ),
-                fradragFraSaksbehandler = listOf(
-                    FradragFactory.ny(
-                        type = Fradragstype.ForventetInntekt,
-                        månedsbeløp = 0.0,
-                        periode = Periode.create(1.januar(2019), 31.desember(2019)),
-                        utenlandskInntekt = null,
-                        tilhører = FradragTilhører.BRUKER,
-                    ),
+            ),
+            fradragFraSaksbehandler = listOf(
+                FradragFactory.ny(
+                    type = Fradragstype.ForventetInntekt,
+                    månedsbeløp = 0.0,
+                    periode = Periode.create(1.januar(2019), 31.desember(2019)),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
                 ),
-            )
-        }
+            ),
+        ) shouldBe UgyldigBeregningsgrunnlag.IkkeLovMedFradragUtenforPerioden.left()
     }
 
     @Test
     fun `tillater ikke overlappende perioder med forventet inntekt`() {
-        val expectedError = "OverlappendePerioderMedForventetInntekt"
         val beregningsperiode = Periode.create(1.januar(2021), 31.desember(2021))
 
-        assertThrows<IllegalArgumentException> {
-            Beregningsgrunnlag.create(
-                beregningsperiode = beregningsperiode,
-                uføregrunnlag = listOf(
-                    Grunnlag.Uføregrunnlag(
-                        periode = beregningsperiode,
-                        uføregrad = Uføregrad.parse(100),
-                        forventetInntekt = 2000,
-                    ),
-                    Grunnlag.Uføregrunnlag(
-                        periode = beregningsperiode,
-                        uføregrad = Uføregrad.parse(100),
-                        forventetInntekt = 2000,
-                    ),
+        Beregningsgrunnlag.tryCreate(
+            beregningsperiode = beregningsperiode,
+            uføregrunnlag = listOf(
+                Grunnlag.Uføregrunnlag(
+                    periode = beregningsperiode,
+                    uføregrad = Uføregrad.parse(100),
+                    forventetInntekt = 2000,
                 ),
-                fradragFraSaksbehandler = emptyList(),
-            )
-        }.message shouldContain expectedError
+                Grunnlag.Uføregrunnlag(
+                    periode = beregningsperiode,
+                    uføregrad = Uføregrad.parse(100),
+                    forventetInntekt = 2000,
+                ),
+            ),
+            fradragFraSaksbehandler = emptyList(),
+        ) shouldBe UgyldigBeregningsgrunnlag.OverlappendePerioderMedForventetInntekt.left()
 
-        assertThrows<IllegalArgumentException> {
-            Beregningsgrunnlag.create(
-                beregningsperiode = beregningsperiode,
-                uføregrunnlag = listOf(
-                    Grunnlag.Uføregrunnlag(
-                        periode = Periode.create(1.januar(2021), 31.desember(2021)),
-                        uføregrad = Uføregrad.parse(100),
-                        forventetInntekt = 2000,
-                    ),
-                    Grunnlag.Uføregrunnlag(
-                        periode = Periode.create(1.mai(2021), 31.juli(2021)),
-                        uføregrad = Uføregrad.parse(100),
-                        forventetInntekt = 2000,
-                    ),
+        Beregningsgrunnlag.tryCreate(
+            beregningsperiode = beregningsperiode,
+            uføregrunnlag = listOf(
+                Grunnlag.Uføregrunnlag(
+                    periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                    uføregrad = Uføregrad.parse(100),
+                    forventetInntekt = 2000,
                 ),
-                fradragFraSaksbehandler = emptyList(),
-            )
-        }.message shouldContain expectedError
+                Grunnlag.Uføregrunnlag(
+                    periode = Periode.create(1.mai(2021), 31.juli(2021)),
+                    uføregrad = Uføregrad.parse(100),
+                    forventetInntekt = 2000,
+                ),
+            ),
+            fradragFraSaksbehandler = emptyList(),
+        ) shouldBe UgyldigBeregningsgrunnlag.OverlappendePerioderMedForventetInntekt.left()
 
-        assertThrows<IllegalArgumentException> {
-            Beregningsgrunnlag.create(
-                beregningsperiode = beregningsperiode,
-                uføregrunnlag = listOf(
-                    Grunnlag.Uføregrunnlag(
-                        periode = Periode.create(1.mai(2021), 31.juli(2021)),
-                        uføregrad = Uføregrad.parse(100),
-                        forventetInntekt = 2000,
-                    ),
-                    Grunnlag.Uføregrunnlag(
-                        periode = Periode.create(1.januar(2021), 31.desember(2021)),
-                        uføregrad = Uføregrad.parse(100),
-                        forventetInntekt = 2000,
-                    ),
+        Beregningsgrunnlag.tryCreate(
+            beregningsperiode = beregningsperiode,
+            uføregrunnlag = listOf(
+                Grunnlag.Uføregrunnlag(
+                    periode = Periode.create(1.mai(2021), 31.juli(2021)),
+                    uføregrad = Uføregrad.parse(100),
+                    forventetInntekt = 2000,
                 ),
-                fradragFraSaksbehandler = emptyList(),
-            )
-        }.message shouldContain expectedError
+                Grunnlag.Uføregrunnlag(
+                    periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                    uføregrad = Uføregrad.parse(100),
+                    forventetInntekt = 2000,
+                ),
+            ),
+            fradragFraSaksbehandler = emptyList(),
+        ) shouldBe UgyldigBeregningsgrunnlag.OverlappendePerioderMedForventetInntekt.left()
 
         Beregningsgrunnlag.create(
             beregningsperiode = beregningsperiode,
@@ -260,55 +247,48 @@ internal class BeregningsgrunnlagTest {
 
     @Test
     fun `forventet inntekt må være definert for hele beregningsperioden`() {
-        val expectedError = "ManglerForventetInntektForEnkelteMåneder"
         val beregningsperiode = Periode.create(1.januar(2021), 31.desember(2021))
 
-        assertThrows<IllegalArgumentException> {
-            Beregningsgrunnlag.create(
-                beregningsperiode = beregningsperiode,
-                uføregrunnlag = listOf(
-                    Grunnlag.Uføregrunnlag(
-                        periode = Periode.create(1.januar(2021), 31.januar(2021)),
-                        uføregrad = Uføregrad.parse(100),
-                        forventetInntekt = 2000,
-                    ),
-                    Grunnlag.Uføregrunnlag(
-                        periode = Periode.create(1.desember(2021), 31.desember(2021)),
-                        uføregrad = Uføregrad.parse(100),
-                        forventetInntekt = 2000,
-                    ),
+        Beregningsgrunnlag.tryCreate(
+            beregningsperiode = beregningsperiode,
+            uføregrunnlag = listOf(
+                Grunnlag.Uføregrunnlag(
+                    periode = Periode.create(1.januar(2021), 31.januar(2021)),
+                    uføregrad = Uføregrad.parse(100),
+                    forventetInntekt = 2000,
                 ),
-                fradragFraSaksbehandler = emptyList(),
-            )
-        }.message shouldContain expectedError
+                Grunnlag.Uføregrunnlag(
+                    periode = Periode.create(1.desember(2021), 31.desember(2021)),
+                    uføregrad = Uføregrad.parse(100),
+                    forventetInntekt = 2000,
+                ),
+            ),
+            fradragFraSaksbehandler = emptyList(),
+        ) shouldBe UgyldigBeregningsgrunnlag.ManglerForventetInntektForEnkelteMåneder.left()
 
-        assertThrows<IllegalArgumentException> {
-            Beregningsgrunnlag.create(
-                beregningsperiode = beregningsperiode,
-                uføregrunnlag = listOf(
-                    Grunnlag.Uføregrunnlag(
-                        periode = Periode.create(1.januar(2021), 30.november(2021)),
-                        uføregrad = Uføregrad.parse(100),
-                        forventetInntekt = 2000,
-                    ),
+        Beregningsgrunnlag.tryCreate(
+            beregningsperiode = beregningsperiode,
+            uføregrunnlag = listOf(
+                Grunnlag.Uføregrunnlag(
+                    periode = Periode.create(1.januar(2021), 30.november(2021)),
+                    uføregrad = Uføregrad.parse(100),
+                    forventetInntekt = 2000,
                 ),
-                fradragFraSaksbehandler = emptyList(),
-            )
-        }.message shouldContain expectedError
+            ),
+            fradragFraSaksbehandler = emptyList(),
+        ) shouldBe UgyldigBeregningsgrunnlag.ManglerForventetInntektForEnkelteMåneder.left()
 
-        assertThrows<IllegalArgumentException> {
-            Beregningsgrunnlag.create(
-                beregningsperiode = beregningsperiode,
-                uføregrunnlag = listOf(
-                    Grunnlag.Uføregrunnlag(
-                        periode = Periode.create(1.februar(2021), 31.desember(2021)),
-                        uføregrad = Uføregrad.parse(100),
-                        forventetInntekt = 2000,
-                    ),
+        Beregningsgrunnlag.tryCreate(
+            beregningsperiode = beregningsperiode,
+            uføregrunnlag = listOf(
+                Grunnlag.Uføregrunnlag(
+                    periode = Periode.create(1.februar(2021), 31.desember(2021)),
+                    uføregrad = Uføregrad.parse(100),
+                    forventetInntekt = 2000,
                 ),
-                fradragFraSaksbehandler = emptyList(),
-            )
-        }.message shouldContain expectedError
+            ),
+            fradragFraSaksbehandler = emptyList(),
+        ) shouldBe UgyldigBeregningsgrunnlag.ManglerForventetInntektForEnkelteMåneder.left()
 
         Beregningsgrunnlag.create(
             beregningsperiode = beregningsperiode,

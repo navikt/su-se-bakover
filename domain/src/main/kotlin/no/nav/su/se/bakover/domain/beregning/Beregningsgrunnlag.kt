@@ -11,12 +11,15 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import org.jetbrains.annotations.TestOnly
 
 internal data class Beregningsgrunnlag private constructor(
     val beregningsperiode: Periode,
     val fradrag: List<Fradrag>,
 ) {
     companion object {
+
+        @TestOnly
         fun create(
             beregningsperiode: Periode,
             uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
@@ -29,7 +32,7 @@ internal data class Beregningsgrunnlag private constructor(
             ).getOrHandle { throw IllegalArgumentException(it.toString()) }
         }
 
-        private fun tryCreate(
+        fun tryCreate(
             beregningsperiode: Periode,
             uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
             fradragFraSaksbehandler: List<Fradrag>,
@@ -63,6 +66,7 @@ internal data class Beregningsgrunnlag private constructor(
 
             fradrag.filter { it.getFradragstype() == Fradragstype.ForventetInntekt && it.getTilhører() == FradragTilhører.BRUKER }.let { forventedeInntekter ->
                 if (forventedeInntekter.count() < 1) {
+                    // TODO jah: Denne kan ikke slå til så lenge vi har ifEmpty-blokka
                     return UgyldigBeregningsgrunnlag.BrukerMåHaMinst1ForventetInntekt.left()
                 }
                 if (forventedeInntekter.forAll { f1 ->
@@ -82,11 +86,11 @@ internal data class Beregningsgrunnlag private constructor(
             return Beregningsgrunnlag(beregningsperiode, fradrag).right()
         }
     }
+}
 
-    sealed class UgyldigBeregningsgrunnlag {
-        object IkkeLovMedFradragUtenforPerioden : UgyldigBeregningsgrunnlag()
-        object BrukerMåHaMinst1ForventetInntekt : UgyldigBeregningsgrunnlag()
-        object OverlappendePerioderMedForventetInntekt : UgyldigBeregningsgrunnlag()
-        object ManglerForventetInntektForEnkelteMåneder : UgyldigBeregningsgrunnlag()
-    }
+sealed class UgyldigBeregningsgrunnlag {
+    object IkkeLovMedFradragUtenforPerioden : UgyldigBeregningsgrunnlag()
+    object BrukerMåHaMinst1ForventetInntekt : UgyldigBeregningsgrunnlag()
+    object OverlappendePerioderMedForventetInntekt : UgyldigBeregningsgrunnlag()
+    object ManglerForventetInntektForEnkelteMåneder : UgyldigBeregningsgrunnlag()
 }
