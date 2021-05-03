@@ -132,22 +132,6 @@ object RevurderingTestUtils {
         ),
         UUID30.randomUUID(),
     )
-    internal val simulertRevurderingInnvilget = SimulertRevurdering.Innvilget(
-        id = revurderingId,
-        periode = periode,
-        opprettet = fixedTidspunkt,
-        tilRevurdering = søknadsbehandlingVedtak,
-        saksbehandler = saksbehandler,
-        oppgaveId = OppgaveId("Oppgaveid"),
-        fritekstTilBrev = "",
-        revurderingsårsak = revurderingsårsak,
-        behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
-        simulering = mock(),
-        beregning = beregningMock,
-        forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-        grunnlagsdata = Grunnlagsdata.EMPTY,
-        vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-    )
 
     internal val sak = Sak(
         id = sakId,
@@ -227,6 +211,25 @@ object RevurderingTestUtils {
         revurderingsårsak = revurderingsårsak,
         forhåndsvarsel = null,
         behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
+        grunnlagsdata = Grunnlagsdata(
+            uføregrunnlag = listOf(uføregrunnlag),
+        ),
+        vilkårsvurderinger = vilkårsvurderinger,
+    )
+
+    internal val simulertRevurderingInnvilget = SimulertRevurdering.Innvilget(
+        id = revurderingId,
+        periode = periode,
+        opprettet = fixedTidspunkt,
+        tilRevurdering = søknadsbehandlingVedtak,
+        saksbehandler = saksbehandler,
+        oppgaveId = OppgaveId("Oppgaveid"),
+        fritekstTilBrev = "",
+        revurderingsårsak = revurderingsårsak,
+        behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
+        simulering = mock(),
+        beregning = beregningMock,
+        forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
         grunnlagsdata = Grunnlagsdata(
             uføregrunnlag = listOf(uføregrunnlag),
         ),
