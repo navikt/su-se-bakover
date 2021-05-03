@@ -71,13 +71,12 @@ internal data class Beregningsgrunnlag private constructor(
                 ) {
                     return UgyldigBeregningsgrunnlag.OverlappendePerioderMedForventetInntekt.left()
                 }
-            }
-
-            if (!beregningsperiode.tilMånedsperioder().forAll { it ->
-                fradrag.flatMap { it.periode.tilMånedsperioder() }.contains(it)
-            }
-            ) {
-                return UgyldigBeregningsgrunnlag.ManglerForventetInntektForEnkelteMåneder.left()
+                if (!beregningsperiode.tilMånedsperioder().forAll { it ->
+                    forventedeInntekter.flatMap { it.periode.tilMånedsperioder() }.contains(it)
+                }
+                ) {
+                    return UgyldigBeregningsgrunnlag.ManglerForventetInntektForEnkelteMåneder.left()
+                }
             }
 
             return Beregningsgrunnlag(beregningsperiode, fradrag).right()
