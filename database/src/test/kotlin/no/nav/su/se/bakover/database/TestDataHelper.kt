@@ -80,6 +80,7 @@ internal val persistertMånedsberegning = PersistertMånedsberegning(
     satsbeløp = 0.0,
     fradrag = listOf(),
     periode = Periode.create(1.januar(2020), 31.desember(2020)),
+    fribeløpForEps = null
 )
 internal val avslåttBeregning: PersistertBeregning = beregning().copy(
     månedsberegninger = listOf(
