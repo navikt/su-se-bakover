@@ -470,7 +470,11 @@ internal class SøknadsbehandlingServiceImpl(
             return SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.UgyldigTilstand(søknadsbehandling::class, Søknadsbehandling.Vilkårsvurdert::class).left()
 
         val vilkår = request.toVilkår().getOrHandle {
-            return SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.UføregradOgForventetInntektMangler.left()
+            return when (it) {
+                LeggTilUførevurderingRequest.UgyldigUførevurdering.UføregradOgForventetInntektMangler -> SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.UføregradOgForventetInntektMangler.left()
+                LeggTilUførevurderingRequest.UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig -> SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.PeriodeForGrunnlagOgVurderingErForskjellig.left()
+                LeggTilUførevurderingRequest.UgyldigUførevurdering.OverlappendeVurderingsperioder -> SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.OverlappendeVurderingsperioder.left()
+            }
         }
         // TODO midliertidig til behandlingsinformasjon er borte
         val grunnlag = (vilkår as? Vilkår.Vurdert.Uførhet)?.grunnlag?.firstOrNull()

@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.søknadsbehandling
 
+import arrow.core.Nel
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeTypeOf
@@ -438,9 +439,9 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 forventetInntekt = 12000,
             )
 
-            val vurderingUførhet = Vilkår.Vurdert.Uførhet(
-                vurderingsperioder = listOf(
-                    Vurderingsperiode.Manuell(
+            val vurderingUførhet = Vilkår.Vurdert.Uførhet.create(
+                vurderingsperioder = Nel.of(
+                    Vurderingsperiode.Manuell.create(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
                         resultat = Resultat.Avslag,
@@ -480,9 +481,9 @@ internal class SøknadsbehandlingPostgresRepoTest {
                         ),
                     ),
                     vilkårsvurderinger = Vilkårsvurderinger(
-                        uføre = Vilkår.Vurdert.Uførhet(
-                            vurderingsperioder = listOf(
-                                Vurderingsperiode.Manuell(
+                        uføre = Vilkår.Vurdert.Uførhet.create(
+                            vurderingsperioder = Nel.of(
+                                Vurderingsperiode.Manuell.create(
                                     id = vurderingUførhet.vurderingsperioder[0].id,
                                     opprettet = Tidspunkt.now(fixedClock),
                                     resultat = Resultat.Avslag,
