@@ -285,25 +285,23 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
         }
     }
 
-    data class GrunnlagTidslinje(
+    data class VedtakGrunnlagTidslinje(
         override val periode: Periode,
         override val opprettet: Tidspunkt,
+        val vedtakId: UUID,
         val grunnlagsdata: Grunnlagsdata,
-    ) : KanPlasseresPåTidslinje<GrunnlagTidslinje> {
-        override fun copy(args: CopyArgs.Tidslinje): GrunnlagTidslinje =
+    ) : KanPlasseresPåTidslinje<VedtakGrunnlagTidslinje> {
+        override fun copy(args: CopyArgs.Tidslinje): VedtakGrunnlagTidslinje =
             when (args) {
                 CopyArgs.Tidslinje.Full -> this.copy()
                 is CopyArgs.Tidslinje.NyPeriode -> this.copy(
                     periode = args.periode,
+                    vedtakId = this.vedtakId,
                     grunnlagsdata = Grunnlagsdata(
-                        uføregrunnlag = lagTidslinje(
+                        uføregrunnlag = lagTidslinje<Grunnlag.Uføregrunnlag>(
                             this.grunnlagsdata.uføregrunnlag,
                             args.periode,
-                        ).filterIsInstance<Grunnlag.Uføregrunnlag>(),
-                        flyktninggrunnlag = lagTidslinje(
-                            this.grunnlagsdata.flyktninggrunnlag,
-                            args.periode,
-                        ).filterIsInstance<Grunnlag.Flyktninggrunnlag>(),
+                        ),
                     ),
                 )
             }
@@ -315,9 +313,10 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
         companion object {
             fun fromVedtak(vedtak: List<Vedtak>, periode: Periode): Grunnlagsdata {
                 val grunnlagTidslinje = vedtak.map {
-                    GrunnlagTidslinje(
+                    VedtakGrunnlagTidslinje(
                         periode = it.periode,
                         opprettet = it.opprettet,
+                        vedtakId = it.id,
                         grunnlagsdata = it.behandling.grunnlagsdata
                     )
                 }.let {
@@ -326,7 +325,6 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
 
                 return Grunnlagsdata(
                     uføregrunnlag = grunnlagTidslinje.flatMap { it.grunnlagsdata.uføregrunnlag },
-                    flyktninggrunnlag = grunnlagTidslinje.flatMap { it.grunnlagsdata.flyktninggrunnlag },
                 )
             }
         }

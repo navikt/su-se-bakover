@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import org.junit.jupiter.api.Test
 import java.time.Clock
+import java.time.LocalDate
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 import java.util.UUID
@@ -35,216 +36,40 @@ internal class VedtakTest {
     fun `klarer å lage tidslinje av vedtak`() {
         //  1.jan       31.mars
         //  |--u1---|-u2-|  uføre
-        //  |-----f1-----|  flykting
         //  |------------|  Vedtaket
 
         //          1.mars   30.april
         //          |--u3----|  uføre
-        //          |--f2----|  flykting
         //          |--------|  Vedtaket
 
         //       1.feb             30.mai
         //       |--u4---|-u5------|  uføre
-        //                            flykting
         //       |-----------------|  Vedtaket
 
         // |-------------| periode
 
         // |--u1-|--u4--|
-        // |--f1-|
 
-        val søknadsbehandlingVedtak = Vedtak.fromSøknadsbehandling(
-            Søknadsbehandling.Iverksatt.Innvilget(
-                id = mock(),
-                opprettet = Tidspunkt.now(fixedClock).plus(1, ChronoUnit.DAYS),
-                sakId = UUID.randomUUID(),
-                saksnummer = Saksnummer(123),
-                søknad = mock(),
-                oppgaveId = mock(),
-                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
-                fnr = FnrGenerator.random(),
-                beregning = mock(),
-                simulering = mock(),
-                saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-                attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("Attes T. Ant")),
-                fritekstTilBrev = "",
-                stønadsperiode = ValgtStønadsperiode(
-                    periode = Periode.create(1.januar(2021), 31.mars(2021)),
-                    begrunnelse = "begrunnelsen for perioden",
-                ),
-                grunnlagsdata = Grunnlagsdata(
-                    listOf(
-                        Grunnlag.Uføregrunnlag(
-                            id = UUID.randomUUID(),
-                            opprettet = Tidspunkt.now(fixedClock).plus(1, ChronoUnit.DAYS),
-                            periode = Periode.create(
-                                fraOgMed = 1.januar(2021),
-                                tilOgMed = 28.februar(2021),
-                            ),
-                            uføregrad = Uføregrad.parse(100),
-                            forventetInntekt = 0,
-                        ),
-                        Grunnlag.Uføregrunnlag(
-                            id = UUID.randomUUID(),
-                            opprettet = Tidspunkt.now(fixedClock).plus(2, ChronoUnit.DAYS),
-                            periode = Periode.create(
-                                fraOgMed = 1.mars(2021),
-                                tilOgMed = 31.mars(2021),
-                            ),
-                            uføregrad = Uføregrad.parse(100),
-                            forventetInntekt = 1000,
-                        ),
-                    ),
-                    listOf(
-                        Grunnlag.Flyktninggrunnlag(
-                            id = UUID.randomUUID(),
-                            opprettet = Tidspunkt.now(fixedClock).plus(1, ChronoUnit.DAYS),
-                            periode = Periode.create(
-                                fraOgMed = 1.januar(2021),
-                                tilOgMed = 31.mars(2021),
-                            ),
-                        ),
-                    ),
-                ),
-                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-            ),
-            UUID30.randomUUID(),
-        )
+        val u1 = lagUføregrunnlag(1, 1.januar(2021), 28.februar(2021))
+        val u2 = lagUføregrunnlag(2, 1.mars(2021), 31.mars(2021))
+        val vedtak1 = lagVedtak(1, 1.januar(2021), 31.mars(2021), listOf(u1, u2))
 
-        val vedtak2 = Vedtak.fromSøknadsbehandling(
-            Søknadsbehandling.Iverksatt.Innvilget(
-                id = mock(),
-                opprettet = Tidspunkt.now(fixedClock).plus(2, ChronoUnit.DAYS),
-                sakId = UUID.randomUUID(),
-                saksnummer = Saksnummer(123),
-                søknad = mock(),
-                oppgaveId = mock(),
-                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
-                fnr = FnrGenerator.random(),
-                beregning = mock(),
-                simulering = mock(),
-                saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-                attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("Attes T. Ant")),
-                fritekstTilBrev = "",
-                stønadsperiode = ValgtStønadsperiode(
-                    periode = Periode.create(1.mars(2021), 30.april(2021)),
-                    begrunnelse = "begrunnelsen for perioden",
-                ),
-                grunnlagsdata = Grunnlagsdata(
-                    listOf(
-                        Grunnlag.Uføregrunnlag(
-                            id = UUID.randomUUID(),
-                            opprettet = Tidspunkt.now(fixedClock).plus(3, ChronoUnit.DAYS),
-                            periode = Periode.create(
-                                fraOgMed = 1.mars(2021),
-                                tilOgMed = 30.april(2021),
-                            ),
-                            uføregrad = Uføregrad.parse(50),
-                            forventetInntekt = 2000,
-                        ),
-                    ),
-                    listOf(
-                        Grunnlag.Flyktninggrunnlag(
-                            id = UUID.randomUUID(),
-                            opprettet = Tidspunkt.now(fixedClock).plus(2, ChronoUnit.DAYS),
-                            periode = Periode.create(
-                                fraOgMed = 1.mars(2021),
-                                tilOgMed = 30.april(2021),
-                            ),
-                        ),
-                    ),
-                ),
-                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-            ),
-            UUID30.randomUUID(),
-        )
+        val u3 = lagUføregrunnlag(3, 1.mars(2021), 30.april(2021))
+        val u4 = lagUføregrunnlag(4, 1.februar(2021), 31.mars(2021))
+        val vedtak2 = lagVedtak(2, 1.mars(2021), 30.april(2021), listOf(u3))
 
-        val vedtak3 = Vedtak.fromSøknadsbehandling(
-            Søknadsbehandling.Iverksatt.Innvilget(
-                id = mock(),
-                opprettet = Tidspunkt.now(fixedClock).plus(3, ChronoUnit.DAYS),
-                sakId = UUID.randomUUID(),
-                saksnummer = Saksnummer(123),
-                søknad = mock(),
-                oppgaveId = mock(),
-                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
-                fnr = FnrGenerator.random(),
-                beregning = mock(),
-                simulering = mock(),
-                saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-                attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("Attes T. Ant")),
-                fritekstTilBrev = "",
-                stønadsperiode = ValgtStønadsperiode(
-                    periode = Periode.create(1.februar(2021), 31.mai(2021)),
-                    begrunnelse = "begrunnelsen for perioden",
-                ),
-                grunnlagsdata = Grunnlagsdata(
-                    listOf(
-                        Grunnlag.Uføregrunnlag(
-                            id = UUID.randomUUID(),
-                            opprettet = Tidspunkt.now(fixedClock).plus(4, ChronoUnit.DAYS),
-                            periode = Periode.create(
-                                fraOgMed = 1.februar(2021),
-                                tilOgMed = 31.mars(2021),
-                            ),
-                            uføregrad = Uføregrad.parse(50),
-                            forventetInntekt = 2000,
-                        ),
-                        Grunnlag.Uføregrunnlag(
-                            id = UUID.randomUUID(),
-                            opprettet = Tidspunkt.now(fixedClock).plus(5, ChronoUnit.DAYS),
-                            periode = Periode.create(
-                                fraOgMed = 1.april(2021),
-                                tilOgMed = 31.mai(2021),
-                            ),
-                            uføregrad = Uføregrad.parse(25),
-                            forventetInntekt = 3000,
-                        ),
-                    ),
-                    emptyList()
-                ),
-                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-            ),
-            UUID30.randomUUID(),
-        )
+        val u5 = lagUføregrunnlag(5, 1.april(2021), 31.mai(2021))
+        val vedtak3 = lagVedtak(3, 1.februar(2021), 31.mai(2021), listOf(u4, u5))
 
-        val actual = Vedtak.GrunnlagTidslinje.fromVedtak(
-            listOf(søknadsbehandlingVedtak, vedtak2, vedtak3),
+        val actual = Vedtak.VedtakGrunnlagTidslinje.fromVedtak(
+            listOf(vedtak1, vedtak2, vedtak3),
             Periode.create(fraOgMed = 1.januar(2021), 31.mars(2021)),
         )
 
         actual shouldBe Grunnlagsdata(
             uføregrunnlag = listOf(
-                Grunnlag.Uføregrunnlag(
-                    id = actual.uføregrunnlag.first().id,
-                    opprettet = Tidspunkt.now(fixedClock).plus(1, ChronoUnit.DAYS),
-                    periode = Periode.create(
-                        fraOgMed = 1.januar(2021),
-                        tilOgMed = 31.januar(2021),
-                    ),
-                    uføregrad = Uføregrad.parse(100),
-                    forventetInntekt = 0,
-                ),
-                Grunnlag.Uføregrunnlag(
-                    id = actual.uføregrunnlag.last().id,
-                    opprettet = Tidspunkt.now(fixedClock).plus(4, ChronoUnit.DAYS),
-                    periode = Periode.create(
-                        fraOgMed = 1.februar(2021),
-                        tilOgMed = 31.mars(2021),
-                    ),
-                    uføregrad = Uføregrad.parse(50),
-                    forventetInntekt = 2000,
-                ),
-            ),
-            flyktninggrunnlag = listOf(
-                Grunnlag.Flyktninggrunnlag(
-                    id = actual.flyktninggrunnlag.first().id,
-                    opprettet = Tidspunkt.now(fixedClock).plus(1, ChronoUnit.DAYS),
-                    periode = Periode.create(
-                        fraOgMed = 1.januar(2021),
-                        tilOgMed = 31.januar(2021),
-                    ),
-                ),
+                lagUføregrunnlagMedId(actual.uføregrunnlag.first().id, 1, 1.januar(2021), 31.januar(2021)),
+                lagUføregrunnlagMedId(actual.uføregrunnlag.last().id, 4, 1.februar(2021), 31.mars(2021))
             ),
         )
     }
@@ -253,171 +78,76 @@ internal class VedtakTest {
     fun `klarer å lage tidslinje av grunnlagsdata`() {
         //  1.jan       31.mars
         //  |--u1---|-u2-|  uføre
-        //  |-----f1-----|  flykting
         //  |------------|  Vedtaket
 
         //          1.mars   30.april
         //          |--u3----|  uføre
-        //          |--f2----|  flykting
         //          |--------|  Vedtaket
 
         //  |------------| periode
 
         // |--u1----|-u3-|
-        // |---f1---|-f2-|
 
-        val søknadsbehandlingVedtak = Vedtak.fromSøknadsbehandling(
-            Søknadsbehandling.Iverksatt.Innvilget(
-                id = mock(),
-                opprettet = Tidspunkt.now(fixedClock).plus(1, ChronoUnit.DAYS),
-                sakId = UUID.randomUUID(),
-                saksnummer = Saksnummer(123),
-                søknad = mock(),
-                oppgaveId = mock(),
-                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
-                fnr = FnrGenerator.random(),
-                beregning = mock(),
-                simulering = mock(),
-                saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-                attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("Attes T. Ant")),
-                fritekstTilBrev = "",
-                stønadsperiode = ValgtStønadsperiode(
-                    periode = Periode.create(1.januar(2021), 31.mars(2021)),
-                    begrunnelse = "begrunnelsen for perioden",
-                ),
-                grunnlagsdata = Grunnlagsdata(
-                    listOf(
-                        Grunnlag.Uføregrunnlag(
-                            id = UUID.randomUUID(),
-                            opprettet = Tidspunkt.now(fixedClock).plus(1, ChronoUnit.DAYS),
-                            periode = Periode.create(
-                                fraOgMed = 1.januar(2021),
-                                tilOgMed = 28.februar(2021),
-                            ),
-                            uføregrad = Uføregrad.parse(100),
-                            forventetInntekt = 0,
-                        ),
-                        Grunnlag.Uføregrunnlag(
-                            id = UUID.randomUUID(),
-                            opprettet = Tidspunkt.now(fixedClock).plus(2, ChronoUnit.DAYS),
-                            periode = Periode.create(
-                                fraOgMed = 1.mars(2021),
-                                tilOgMed = 31.mars(2021),
-                            ),
-                            uføregrad = Uføregrad.parse(100),
-                            forventetInntekt = 1000,
-                        ),
-                    ),
-                    listOf(
-                        Grunnlag.Flyktninggrunnlag(
-                            id = UUID.randomUUID(),
-                            opprettet = Tidspunkt.now(fixedClock).plus(1, ChronoUnit.DAYS),
-                            periode = Periode.create(
-                                fraOgMed = 1.januar(2021),
-                                tilOgMed = 31.mars(2021),
-                            ),
-                        ),
-                    ),
-                ),
-                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-            ),
-            UUID30.randomUUID(),
-        )
+        val u1 = lagUføregrunnlag(1, 1.januar(2021), 28.februar(2021))
+        val u2 = lagUføregrunnlag(2, 1.mars(2021), 31.mars(2021))
+        val vedtak1 = lagVedtak(1, 1.januar(2021), 31.mars(2021), listOf(u1, u2))
 
-        val vedtak2 = Vedtak.fromSøknadsbehandling(
-            Søknadsbehandling.Iverksatt.Innvilget(
-                id = mock(),
-                opprettet = Tidspunkt.now(fixedClock).plus(1, ChronoUnit.DAYS),
-                sakId = UUID.randomUUID(),
-                saksnummer = Saksnummer(123),
-                søknad = mock(),
-                oppgaveId = mock(),
-                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
-                fnr = FnrGenerator.random(),
-                beregning = mock(),
-                simulering = mock(),
-                saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
-                attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("Attes T. Ant")),
-                fritekstTilBrev = "",
-                stønadsperiode = ValgtStønadsperiode(
-                    periode = Periode.create(1.mars(2021), 30.april(2021)),
-                    begrunnelse = "begrunnelsen for perioden",
-                ),
-                grunnlagsdata = Grunnlagsdata(
-                    listOf(
-                        Grunnlag.Uføregrunnlag(
-                            id = UUID.randomUUID(),
-                            opprettet = Tidspunkt.now(fixedClock).plus(3, ChronoUnit.DAYS),
-                            periode = Periode.create(
-                                fraOgMed = 1.mars(2021),
-                                tilOgMed = 30.april(2021),
-                            ),
-                            uføregrad = Uføregrad.parse(50),
-                            forventetInntekt = 2000,
-                        ),
-                    ),
-                    listOf(
-                        Grunnlag.Flyktninggrunnlag(
-                            id = UUID.randomUUID(),
-                            opprettet = Tidspunkt.now(fixedClock).plus(2, ChronoUnit.DAYS),
-                            periode = Periode.create(
-                                fraOgMed = 1.mars(2021),
-                                tilOgMed = 30.april(2021),
-                            ),
-                        ),
-                    ),
-                ),
-                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-            ),
-            UUID30.randomUUID(),
-        )
+        val u3 = lagUføregrunnlag(3, 1.mars(2021), 30.april(2021))
+        val vedtak2 = lagVedtak(2, 1.mars(2021), 30.april(2021), listOf(u3))
 
-        val actual = Vedtak.GrunnlagTidslinje.fromVedtak(
-            listOf(søknadsbehandlingVedtak, vedtak2),
+        val actual = Vedtak.VedtakGrunnlagTidslinje.fromVedtak(
+            listOf(vedtak1, vedtak2),
             Periode.create(fraOgMed = 1.januar(2021), 31.mars(2021)),
         )
 
         actual shouldBe Grunnlagsdata(
             uføregrunnlag = listOf(
-                Grunnlag.Uføregrunnlag(
-                    id = actual.uføregrunnlag.first().id,
-                    opprettet = Tidspunkt.now(fixedClock).plus(1, ChronoUnit.DAYS),
-                    periode = Periode.create(
-                        fraOgMed = 1.januar(2021),
-                        tilOgMed = 28.februar(2021),
-                    ),
-                    uføregrad = Uføregrad.parse(100),
-                    forventetInntekt = 0,
-                ),
-                Grunnlag.Uføregrunnlag(
-                    id = actual.uføregrunnlag.last().id,
-                    opprettet = Tidspunkt.now(fixedClock).plus(3, ChronoUnit.DAYS),
-                    periode = Periode.create(
-                        fraOgMed = 1.mars(2021),
-                        tilOgMed = 31.mars(2021),
-                    ),
-                    uføregrad = Uføregrad.parse(50),
-                    forventetInntekt = 2000,
-                ),
-            ),
-            flyktninggrunnlag = listOf(
-                Grunnlag.Flyktninggrunnlag(
-                    id = actual.flyktninggrunnlag.first().id,
-                    opprettet = Tidspunkt.now(fixedClock).plus(1, ChronoUnit.DAYS),
-                    periode = Periode.create(
-                        fraOgMed = 1.januar(2021),
-                        tilOgMed = 28.februar(2021),
-                    ),
-                ),
-                Grunnlag.Flyktninggrunnlag(
-                    id = actual.flyktninggrunnlag.last().id,
-                    opprettet = Tidspunkt.now(fixedClock).plus(2, ChronoUnit.DAYS),
-                    periode = Periode.create(
-                        fraOgMed = 1.mars(2021),
-                        tilOgMed = 31.mars(2021),
-                    ),
-                ),
+                lagUføregrunnlagMedId(actual.uføregrunnlag.first().id, 1, 1.januar(2021), 28.februar(2021)),
+                lagUføregrunnlagMedId(actual.uføregrunnlag.last().id, 3, 1.mars(2021), 31.mars(2021))
             ),
         )
     }
+
+    private fun lagUføregrunnlag(rekkefølge: Long, fraDato: LocalDate, tilDato: LocalDate) = Grunnlag.Uføregrunnlag(
+        id = UUID.randomUUID(),
+        opprettet = Tidspunkt.now(fixedClock).plus(rekkefølge, ChronoUnit.DAYS),
+        periode = Periode.create(fraDato, tilDato),
+        uføregrad = Uføregrad.parse(100),
+        forventetInntekt = 0,
+    )
+
+    private fun lagUføregrunnlagMedId(id: UUID, rekkefølge: Long, fraDato: LocalDate, tilDato: LocalDate) = Grunnlag.Uføregrunnlag(
+        id = id,
+        opprettet = Tidspunkt.now(fixedClock).plus(rekkefølge, ChronoUnit.DAYS),
+        periode = Periode.create(fraDato, tilDato),
+        uføregrad = Uføregrad.parse(100),
+        forventetInntekt = 0,
+    )
+
+    private fun lagVedtak(rekkefølge: Long, fraDato: LocalDate, tilDato: LocalDate, listGrunnlag: List<Grunnlag.Uføregrunnlag>) = Vedtak.fromSøknadsbehandling(
+        Søknadsbehandling.Iverksatt.Innvilget(
+            id = mock(),
+            opprettet = Tidspunkt.now(fixedClock).plus(rekkefølge, ChronoUnit.DAYS),
+            sakId = UUID.randomUUID(),
+            saksnummer = Saksnummer(123),
+            søknad = mock(),
+            oppgaveId = mock(),
+            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
+            fnr = FnrGenerator.random(),
+            beregning = mock(),
+            simulering = mock(),
+            saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
+            attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("Attes T. Ant")),
+            fritekstTilBrev = "",
+            stønadsperiode = ValgtStønadsperiode(
+                periode = Periode.create(fraDato, tilDato),
+                begrunnelse = "begrunnelsen for perioden",
+            ),
+            grunnlagsdata = Grunnlagsdata(
+                listGrunnlag,
+            ),
+            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+        ),
+        UUID30.randomUUID(),
+    )
 }
