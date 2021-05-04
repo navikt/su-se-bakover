@@ -27,7 +27,7 @@ internal class VilkårsvurderingPostgresRepoTest {
             val søknadsbehandling = testDataHelper.nyUavklartVilkårsvurdering()
             val vurderingUførhet = Vilkår.Vurdert.Uførhet(
                 vurderingsperioder = listOf(
-                    Vurderingsperiode.Manuell(
+                    Vurderingsperiode.Manuell.create(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
                         resultat = Resultat.Avslag,
@@ -58,7 +58,7 @@ internal class VilkårsvurderingPostgresRepoTest {
 
             val vurderingUførhet = Vilkår.Vurdert.Uførhet(
                 vurderingsperioder = listOf(
-                    Vurderingsperiode.Manuell(
+                    Vurderingsperiode.Manuell.create(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
                         resultat = Resultat.Avslag,
@@ -89,7 +89,7 @@ internal class VilkårsvurderingPostgresRepoTest {
 
             val vurderingUførhet = Vilkår.Vurdert.Uførhet(
                 vurderingsperioder = listOf(
-                    Vurderingsperiode.Manuell(
+                    Vurderingsperiode.Manuell.create(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
                         resultat = Resultat.Avslag,

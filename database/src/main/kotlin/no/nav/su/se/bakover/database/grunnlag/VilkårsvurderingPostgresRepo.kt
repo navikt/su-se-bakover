@@ -114,7 +114,7 @@ internal class VilkårsvurderingPostgresRepo(
     }
 
     private fun Row.toVurderingsperioder(): Vurderingsperiode<Grunnlag.Uføregrunnlag> {
-        return Vurderingsperiode.Manuell(
+        return Vurderingsperiode.Manuell.create(
             id = uuid("id"),
             opprettet = tidspunkt("opprettet"),
             resultat = ResultatDto.valueOf(string("resultat")).toDomain(),

@@ -101,7 +101,7 @@ internal val grunnlagsdata = Grunnlagsdata(
     uføregrunnlag = listOf(uføregrunnlag),
 )
 
-internal val vurderingsperiodeUføre = Vurderingsperiode.Manuell(
+internal val vurderingsperiodeUføre = Vurderingsperiode.Manuell.create(
     id = vilkårsvurderingUføreId,
     opprettet = vilkårsvurderingUføreOpprettet,
     resultat = Resultat.Innvilget,

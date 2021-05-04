@@ -177,7 +177,10 @@ internal class RevurderingServiceImpl(
             return KunneIkkeLeggeTilGrunnlag.UgyldigStatus.left()
 
         val uførevilkår = request.toVilkår().getOrHandle {
-            return KunneIkkeLeggeTilGrunnlag.UføregradOgForventetInntektMangler.left()
+            return when (it) {
+                LeggTilUførevurderingerRequest.UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig -> KunneIkkeLeggeTilGrunnlag.PeriodeForGrunnlagOgVurderingErForskjellig.left()
+                LeggTilUførevurderingerRequest.UgyldigUførevurdering.UføregradOgForventetInntektMangler -> KunneIkkeLeggeTilGrunnlag.UføregradOgForventetInntektMangler.left()
+            }
         }
 
         // TODO jah: Her har vi kommet til et veiskille.

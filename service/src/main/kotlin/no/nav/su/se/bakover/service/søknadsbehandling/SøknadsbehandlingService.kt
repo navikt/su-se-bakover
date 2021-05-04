@@ -158,5 +158,6 @@ interface SøknadsbehandlingService {
         object FantIkkeBehandling : KunneIkkeLeggeTilGrunnlag()
         data class UgyldigTilstand(val fra: KClass<out Søknadsbehandling>, val til: KClass<out Søknadsbehandling>) : KunneIkkeLeggeTilGrunnlag()
         object UføregradOgForventetInntektMangler : KunneIkkeLeggeTilGrunnlag()
+        object PeriodeForGrunnlagOgVurderingErForskjellig : KunneIkkeLeggeTilGrunnlag()
     }
 }

@@ -96,7 +96,14 @@ internal fun Route.leggTilGrunnlagRevurderingRoutes(
                                                 "ugyldig status for å legge til",
                                                 "ugyldig_status_for_å_legge_til",
                                             )
-                                            KunneIkkeLeggeTilGrunnlag.UføregradOgForventetInntektMangler -> TODO()
+                                            KunneIkkeLeggeTilGrunnlag.UføregradOgForventetInntektMangler -> HttpStatusCode.BadRequest.errorJson(
+                                                "Hvis man innvilger uførevilkåret må man sende med uføregrad og forventet inntekt",
+                                                "uføregrad_og_forventet_inntekt_mangler",
+                                            )
+                                            KunneIkkeLeggeTilGrunnlag.PeriodeForGrunnlagOgVurderingErForskjellig -> HttpStatusCode.BadRequest.errorJson(
+                                                "Det er ikke samsvar mellom perioden for vurdering og perioden for grunnlaget",
+                                                "periode_for_grunnlag_og_vurdering_er_forskjellig",
+                                            )
                                         }
                                     }.map {
                                         Resultat.json(HttpStatusCode.Created, serialize(it.toJson()))

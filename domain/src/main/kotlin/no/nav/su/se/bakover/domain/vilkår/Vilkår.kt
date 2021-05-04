@@ -1,5 +1,9 @@
 package no.nav.su.se.bakover.domain.vilkår
 
+import arrow.core.Either
+import arrow.core.getOrHandle
+import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
@@ -97,7 +101,7 @@ sealed class Vurderingsperiode<T : Grunnlag> : KanPlasseresPåTidslinje<Vurderin
     abstract override val periode: Periode
     abstract val begrunnelse: String?
 
-    data class Manuell<T : Grunnlag>(
+    data class Manuell<T : Grunnlag> private constructor(
         override val id: UUID = UUID.randomUUID(),
         override val opprettet: Tidspunkt = Tidspunkt.now(),
         override val resultat: Resultat,
@@ -118,6 +122,48 @@ sealed class Vurderingsperiode<T : Grunnlag> : KanPlasseresPåTidslinje<Vurderin
                     grunnlag = grunnlag?.copy(args) as T,
                 )
             }
+        }
+
+        companion object {
+            fun <T : Grunnlag> create(
+                id: UUID = UUID.randomUUID(),
+                opprettet: Tidspunkt = Tidspunkt.now(),
+                resultat: Resultat,
+                grunnlag: T?,
+                periode: Periode,
+                begrunnelse: String?,
+            ): Manuell<T> {
+                return tryCreate(id, opprettet, resultat, grunnlag, periode, begrunnelse).getOrHandle {
+                    throw IllegalArgumentException(it.toString())
+                }
+            }
+
+            fun <T : Grunnlag> tryCreate(
+                id: UUID = UUID.randomUUID(),
+                opprettet: Tidspunkt = Tidspunkt.now(),
+                resultat: Resultat,
+                grunnlag: T?,
+                periode: Periode,
+                begrunnelse: String?,
+            ): Either<UgyldigVurderingsperiode, Manuell<T>> {
+
+                grunnlag?.let {
+                    if (periode != it.periode) return UgyldigVurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig.left()
+                }
+
+                return Manuell(
+                    id = id,
+                    opprettet = opprettet,
+                    resultat = resultat,
+                    grunnlag = grunnlag,
+                    periode = periode,
+                    begrunnelse = begrunnelse,
+                ).right()
+            }
+        }
+
+        sealed class UgyldigVurderingsperiode {
+            object PeriodeForGrunnlagOgVurderingErForskjellig : UgyldigVurderingsperiode()
         }
     }
 }

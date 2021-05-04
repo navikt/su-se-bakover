@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.service.vilkår
 
 import arrow.core.Either
 import arrow.core.left
-import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -20,13 +19,16 @@ data class LeggTilUførevurderingRequest(
     val oppfylt: Behandlingsinformasjon.Uførhet.Status,
     val begrunnelse: String?,
 ) {
-    object UføregradOgForventetInntektMangler
+    sealed class UgyldigUførevurdering {
+        object UføregradOgForventetInntektMangler : UgyldigUførevurdering()
+        object PeriodeForGrunnlagOgVurderingErForskjellig : UgyldigUførevurdering()
+    }
 
-    fun toVurderingsperiode(): Either<UføregradOgForventetInntektMangler, Vurderingsperiode<Grunnlag.Uføregrunnlag>> {
+    fun toVurderingsperiode(): Either<UgyldigUførevurdering, Vurderingsperiode<Grunnlag.Uføregrunnlag>> {
         return when (oppfylt) {
-            Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt -> Vurderingsperiode.Manuell(
+            Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt -> Vurderingsperiode.Manuell.tryCreate(
                 resultat = Resultat.Innvilget,
-                grunnlag = if (uføregrad == null || forventetInntekt == null) return UføregradOgForventetInntektMangler.left() else {
+                grunnlag = if (uføregrad == null || forventetInntekt == null) return UgyldigUførevurdering.UføregradOgForventetInntektMangler.left() else {
                     Grunnlag.Uføregrunnlag(
                         periode = periode,
                         uføregrad = uføregrad,
@@ -36,7 +38,7 @@ data class LeggTilUførevurderingRequest(
                 periode = periode,
                 begrunnelse = begrunnelse,
             )
-            Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt -> Vurderingsperiode.Manuell(
+            Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt -> Vurderingsperiode.Manuell.tryCreate(
                 resultat = Resultat.Avslag,
                 grunnlag = if (uføregrad == null || forventetInntekt == null) null else {
                     Grunnlag.Uføregrunnlag(
@@ -48,7 +50,7 @@ data class LeggTilUførevurderingRequest(
                 periode = periode,
                 begrunnelse = begrunnelse,
             )
-            Behandlingsinformasjon.Uførhet.Status.HarUføresakTilBehandling -> Vurderingsperiode.Manuell(
+            Behandlingsinformasjon.Uførhet.Status.HarUføresakTilBehandling -> Vurderingsperiode.Manuell.tryCreate(
                 resultat = Resultat.Uavklart,
                 grunnlag = if (uføregrad == null || forventetInntekt == null) null else {
                     Grunnlag.Uføregrunnlag(
@@ -60,12 +62,15 @@ data class LeggTilUførevurderingRequest(
                 periode = periode,
                 begrunnelse = begrunnelse,
             )
-        }.right()
+        }.mapLeft {
+            when (it) {
+                Vurderingsperiode.Manuell.UgyldigVurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig -> UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig
+            }
+        }
     }
 
-    fun toVilkår(): Either<UføregradOgForventetInntektMangler, Vilkår.Vurdert.Uførhet> {
-        return toVurderingsperiode().map {
-            Vilkår.Vurdert.Uførhet(listOf(it))
-        }
+    fun toVilkår(): Either<UgyldigUførevurdering, Vilkår.Vurdert.Uførhet> {
+        return toVurderingsperiode()
+            .map { Vilkår.Vurdert.Uførhet(listOf(it)) }
     }
 }

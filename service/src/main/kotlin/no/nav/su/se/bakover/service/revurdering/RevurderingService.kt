@@ -64,7 +64,7 @@ interface RevurderingService {
     ): Either<FortsettEtterForhåndsvarselFeil, Revurdering>
 
     fun leggTilUføregrunnlag(
-        request: LeggTilUførevurderingerRequest
+        request: LeggTilUførevurderingerRequest,
     ): Either<KunneIkkeLeggeTilGrunnlag, LeggTilUføregrunnlagResponse>
 
     fun hentGjeldendeVilkårsvurderinger(revurderingId: UUID): Either<KunneIkkeHenteGrunnlag, Vilkårsvurderinger>
@@ -139,6 +139,7 @@ sealed class KunneIkkeOppdatereRevurdering {
     object UgyldigBegrunnelse : KunneIkkeOppdatereRevurdering()
     data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
         KunneIkkeOppdatereRevurdering()
+
     object KanIkkeOppdatereRevurderingSomErForhåndsvarslet : KunneIkkeOppdatereRevurdering()
 }
 
@@ -152,7 +153,7 @@ sealed class KunneIkkeBeregneOgSimulereRevurdering {
 
     object UfullstendigBehandlingsinformasjon : KunneIkkeBeregneOgSimulereRevurdering()
     data class UgyldigBeregningsgrunnlag(
-        val reason: no.nav.su.se.bakover.domain.beregning.UgyldigBeregningsgrunnlag
+        val reason: no.nav.su.se.bakover.domain.beregning.UgyldigBeregningsgrunnlag,
     ) : KunneIkkeBeregneOgSimulereRevurdering()
 }
 
@@ -216,6 +217,7 @@ sealed class KunneIkkeLeggeTilGrunnlag {
     object FantIkkeBehandling : KunneIkkeLeggeTilGrunnlag()
     object UgyldigStatus : KunneIkkeLeggeTilGrunnlag()
     object UføregradOgForventetInntektMangler : KunneIkkeLeggeTilGrunnlag()
+    object PeriodeForGrunnlagOgVurderingErForskjellig : KunneIkkeLeggeTilGrunnlag()
 }
 
 sealed class KunneIkkeHenteGrunnlag {

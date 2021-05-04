@@ -13,12 +13,18 @@ data class LeggTilUførevurderingerRequest(
     // TODO jah: Bytt til NEL
     val vurderinger: List<LeggTilUførevurderingRequest>,
 ) {
-    object UføregradOgForventetInntektMangler
+    sealed class UgyldigUførevurdering {
+        object UføregradOgForventetInntektMangler : UgyldigUførevurdering()
+        object PeriodeForGrunnlagOgVurderingErForskjellig : UgyldigUførevurdering()
+    }
 
-    fun toVilkår(): Either<UføregradOgForventetInntektMangler, Vilkår.Vurdert.Uførhet> {
-        return vurderinger.map {
-            it.toVurderingsperiode().getOrHandle {
-                return UføregradOgForventetInntektMangler.left()
+    fun toVilkår(): Either<UgyldigUførevurdering, Vilkår.Vurdert.Uførhet> {
+        return vurderinger.map { request ->
+            request.toVurderingsperiode().getOrHandle {
+                return when (it) {
+                    LeggTilUførevurderingRequest.UgyldigUførevurdering.UføregradOgForventetInntektMangler -> UgyldigUførevurdering.UføregradOgForventetInntektMangler.left()
+                    LeggTilUførevurderingRequest.UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig -> UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig.left()
+                }
             }
         }.let {
             Vilkår.Vurdert.Uførhet(it).right()
