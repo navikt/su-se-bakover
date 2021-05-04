@@ -20,7 +20,6 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -31,6 +30,7 @@ import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.FnrGenerator
@@ -54,7 +54,7 @@ class SøknadsbehandlingServiceAttesteringTest {
     private val nyOppgaveId = OppgaveId("999")
     private val aktørId = AktørId("12345")
     private val periode = Periode.create(1.januar(2021), 31.desember(2021))
-    private val stønadsperiode = ValgtStønadsperiode(periode, "")
+    private val stønadsperiode = Stønadsperiode.create(periode, "")
     private val simulertBehandling = Søknadsbehandling.Simulert(
         id = UUID.randomUUID(),
         opprettet = Tidspunkt.now(),
@@ -65,7 +65,7 @@ class SøknadsbehandlingServiceAttesteringTest {
             sakId = sakId,
             søknadInnhold = SøknadInnholdTestdataBuilder.build(),
             oppgaveId = oppgaveId,
-            journalpostId = JournalpostId("j")
+            journalpostId = JournalpostId("j"),
         ),
         beregning = TestBeregning,
         simulering = Simulering(

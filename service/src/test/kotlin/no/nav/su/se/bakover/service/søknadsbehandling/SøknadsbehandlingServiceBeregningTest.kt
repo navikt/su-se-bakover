@@ -17,12 +17,12 @@ import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.FnrGenerator
@@ -36,7 +36,7 @@ import java.util.UUID
 class SøknadsbehandlingServiceBeregningTest {
     private val sakId = UUID.randomUUID()
     private val behandlingId = UUID.randomUUID()
-    private val stønadsperiode = ValgtStønadsperiode(Periode.create(1.januar(2021), 31.desember(2021)))
+    private val stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))
     private val vilkårsvurdertBehandling = Søknadsbehandling.Vilkårsvurdert.Innvilget(
         id = UUID.randomUUID(),
         opprettet = tidspunkt,
@@ -103,8 +103,8 @@ class SøknadsbehandlingServiceBeregningTest {
             verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandlingId })
             verify(beregningServiceMock).beregn(
                 søknadsbehandling = argThat { it shouldBe vilkårsvurdertBehandling },
-                fradrag = argThat { it shouldBe request.fradrag },
-                begrunnelse = argThat { it shouldBe "her er en begrunnelse" }
+                fradrag = argThat { it shouldBe emptyList() },
+                begrunnelse = argThat { it shouldBe "her er en begrunnelse" },
             )
             verify(søknadsbehandlingRepoMock).lagre(expected)
         }

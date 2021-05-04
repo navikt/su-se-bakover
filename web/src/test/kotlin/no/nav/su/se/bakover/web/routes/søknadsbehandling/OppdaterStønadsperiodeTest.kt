@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.be
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.sakId
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
+import java.nio.charset.StandardCharsets
 import java.util.UUID
 
 class OppdaterStønadsperiodeTest {

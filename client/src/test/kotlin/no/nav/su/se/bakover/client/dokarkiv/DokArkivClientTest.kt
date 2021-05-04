@@ -36,12 +36,12 @@ internal class DokArkivClientTest : WiremockBase {
     private val navn = "Strømøy, Tore Johnas"
     private val søknadInnhold = SøknadInnholdTestdataBuilder.build()
     private val søknadPdfInnhold = SøknadPdfInnhold.create(
-        saksnummer = Saksnummer(Random.nextLong()),
+        saksnummer = Saksnummer(Random.nextLong(0, Long.MAX_VALUE)),
         søknadsId = UUID.randomUUID(),
         navn = Person.Navn("Tore", null, "Strømøy"),
         søknadOpprettet = Tidspunkt.EPOCH,
         søknadInnhold = søknadInnhold,
-        clock = fixedClock
+        clock = fixedClock,
     )
     private val vedtakInnhold = VedtakInnholdTestdataBuilder.build()
 

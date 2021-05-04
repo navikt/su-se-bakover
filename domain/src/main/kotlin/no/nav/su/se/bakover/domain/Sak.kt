@@ -6,8 +6,6 @@ import arrow.core.right
 import com.fasterxml.jackson.annotation.JsonValue
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUIDFactory
-import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.beregning.Stønadsperiode
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -15,15 +13,27 @@ import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import java.time.Clock
 import java.util.UUID
 
-// TODO ai 04.04.2021: Legg till validering av saksnummer
 data class Saksnummer(@JsonValue val nummer: Long) {
     override fun toString() = nummer.toString()
 
-    companion object {
-        fun tryParse(saksnummer: String): Either<UgyldigSaksnummer, Saksnummer> =
-            if (isNumeric(saksnummer)) Saksnummer(saksnummer.toLong()).right() else UgyldigSaksnummer.left()
+    init {
+        // Since we have a public ctor and json-deserialization directly into the domain object
+        if (isInvalid(nummer)) throw IllegalArgumentException(UgyldigSaksnummer.toString())
+    }
 
-        private fun isNumeric(saksnummer: String) = saksnummer.chars().allMatch(Character::isDigit)
+    companion object {
+        fun tryParse(saksnummer: String): Either<UgyldigSaksnummer, Saksnummer> {
+            return saksnummer.toLongOrNull()?.let {
+                tryParse(it)
+            } ?: UgyldigSaksnummer.left()
+        }
+
+        private fun tryParse(saksnummer: Long): Either<UgyldigSaksnummer, Saksnummer> {
+            if (isInvalid(saksnummer)) return UgyldigSaksnummer.left()
+            return Saksnummer(saksnummer).right()
+        }
+
+        private fun isInvalid(saksnummer: Long) = saksnummer < 0
     }
 
     object UgyldigSaksnummer
@@ -38,19 +48,8 @@ data class Sak(
     val behandlinger: List<Søknadsbehandling> = emptyList(),
     val utbetalinger: List<Utbetaling>,
     val revurderinger: List<Revurdering> = emptyList(),
-    val vedtakListe: List<Vedtak> = emptyList()
-) {
-    fun hentStønadsperioder(): List<Stønadsperiode> {
-        return utbetalinger.map {
-            Stønadsperiode.create(
-                Periode.create(
-                    fraOgMed = it.tidligsteDato(),
-                    tilOgMed = it.senesteDato(),
-                )
-            )
-        }
-    }
-}
+    val vedtakListe: List<Vedtak> = emptyList(),
+)
 
 data class NySak(
     val id: UUID = UUID.randomUUID(),

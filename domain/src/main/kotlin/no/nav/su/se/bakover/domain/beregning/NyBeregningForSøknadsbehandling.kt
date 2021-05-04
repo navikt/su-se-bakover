@@ -6,12 +6,12 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import java.util.UUID
 
 data class NyBeregningForSøknadsbehandling private constructor(
     val behandlingId: UUID,
     val saksbehandler: Saksbehandler,
-    val stønadsperiode: Stønadsperiode,
     val fradrag: List<Fradrag>,
     val begrunnelse: String?,
 ) {
@@ -43,7 +43,7 @@ data class NyBeregningForSøknadsbehandling private constructor(
                 return UgyldigBeregning.IkkeLovMedFradragUtenforPerioden.left()
             }
 
-            return NyBeregningForSøknadsbehandling(behandlingId, saksbehandler, stønadsperiode, fradrag, begrunnelse).right()
+            return NyBeregningForSøknadsbehandling(behandlingId, saksbehandler, fradrag, begrunnelse).right()
         }
     }
 

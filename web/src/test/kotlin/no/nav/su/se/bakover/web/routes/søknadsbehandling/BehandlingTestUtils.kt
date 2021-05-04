@@ -10,13 +10,13 @@ import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -34,7 +34,8 @@ object BehandlingTestUtils {
     internal val søknadInnhold = SøknadInnholdTestdataBuilder.build()
     internal val oppgaveId = OppgaveId("o")
     internal val journalpostId = JournalpostId("j")
-    internal val stønadsperiode = ValgtStønadsperiode(Periode.create(1.januar(2021), 31.desember(2021)), "begrunnelsen")
+    internal val stønadsperiode =
+        Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)), "begrunnelsen")
     internal val journalførtSøknadMedOppgave = Søknad.Journalført.MedOppgave(
         sakId = sakId,
         opprettet = Tidspunkt.EPOCH,

@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
@@ -37,6 +36,7 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertDetaljer
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertPeriode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimulertUtbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -54,7 +54,7 @@ internal class VedtakssnapshotJsonTest {
     private val vedtakssnapshotId = "06015ac6-07ef-4017-bd04-1e7b87b160fa"
     private val beregningId = "4111d5ee-0215-4d0f-94fc-0959f900ef2e"
     private val periode = Periode.create(LocalDate.of(2021, 1, 1), LocalDate.of(2021, 1, 31))
-    private val stønadsperiode = ValgtStønadsperiode(periode, "begrunnelsen")
+    private val stønadsperiode = Stønadsperiode.create(periode, "begrunnelsen")
     private val fnr = Fnr("12345678910")
 
     @Test

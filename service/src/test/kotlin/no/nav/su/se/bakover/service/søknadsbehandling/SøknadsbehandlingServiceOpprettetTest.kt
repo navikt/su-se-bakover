@@ -20,11 +20,12 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.argThat
@@ -168,7 +169,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
     @Test
     fun `Oppretter behandling og publiserer event`() {
         val sakId = UUID.randomUUID()
-        val stønadsperiode = ValgtStønadsperiode(Periode.create(1.januar(2021), 31.desember(2021)))
+        val stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))
         val søknadInnhold = SøknadInnholdTestdataBuilder.build()
         val fnr = søknadInnhold.personopplysninger.fnr
         val søknad = Søknad.Journalført.MedOppgave(
@@ -230,9 +231,9 @@ internal class SøknadsbehandlingServiceOpprettetTest {
         verify(søknadService).hentSøknad(argThat { it shouldBe søknad.id })
         verify(søknadRepo).harSøknadPåbegyntBehandling(argThat { it shouldBe søknad.id })
 
-        val persistertSøknadsbehandling = argumentCaptor<Søknadsbehandling.Vilkårsvurdert.Uavklart>()
+        val persistertSøknadsbehandling = argumentCaptor<NySøknadsbehandling>()
 
-        verify(søknadsbehandlingRepoMock).lagre(persistertSøknadsbehandling.capture())
+        verify(søknadsbehandlingRepoMock).lagreNySøknadsbehandling(persistertSøknadsbehandling.capture())
 
         verify(søknadsbehandlingRepoMock).hent(
             argThat { it shouldBe persistertSøknadsbehandling.firstValue.id },
