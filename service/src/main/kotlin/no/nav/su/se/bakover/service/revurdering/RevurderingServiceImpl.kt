@@ -306,7 +306,7 @@ internal class RevurderingServiceImpl(
                         utbetalingService.simulerOpphør(
                             sakId = opphør.sakId,
                             saksbehandler = opphør.saksbehandler,
-                            opphørsdato = originalRevurdering.periode.fraOgMed,
+                            opphørsdato = opphør.periode.fraOgMed,
                         ).mapLeft {
                             KunneIkkeBeregneOgSimulereRevurdering.SimuleringFeilet
                         }.map {
