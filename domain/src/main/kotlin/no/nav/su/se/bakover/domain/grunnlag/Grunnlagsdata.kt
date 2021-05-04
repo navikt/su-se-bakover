@@ -12,4 +12,3 @@ data class Grunnlagsdata(
     /** TODO: Legg i Utleda klassen med NEL */
     fun hentNyesteUføreGrunnlag(): Grunnlag.Uføregrunnlag = uføregrunnlag.maxByOrNull { it.opprettet.instant }!!
 }
-

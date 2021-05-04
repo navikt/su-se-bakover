@@ -298,11 +298,11 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                     grunnlagsdata = Grunnlagsdata(
                         uføregrunnlag = lagTidslinje(
                             this.grunnlagsdata.uføregrunnlag,
-                            periode,
+                            args.periode,
                         ).filterIsInstance<Grunnlag.Uføregrunnlag>(),
                         flyktninggrunnlag = lagTidslinje(
                             this.grunnlagsdata.flyktninggrunnlag,
-                            periode,
+                            args.periode,
                         ).filterIsInstance<Grunnlag.Flyktninggrunnlag>(),
                     ),
                 )
@@ -310,6 +310,34 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
 
         private fun <T : KanPlasseresPåTidslinje<T>> lagTidslinje(objekter: List<T>, periode: Periode): List<T> {
             return Tidslinje(periode = periode, objekter = objekter).tidslinje
+        }
+
+        companion object {
+            fun fromVedtak(vedtak: List<Vedtak>, periode: Periode): Grunnlagsdata? {
+                val grunnlagTidslinje = vedtak.map {
+                    GrunnlagTidslinje(
+                        periode = it.periode,
+                        opprettet = it.opprettet,
+                        grunnlagsdata = it.behandling.grunnlagsdata
+                    )
+                }.let {
+                    Tidslinje(periode, it).tidslinje
+                }
+
+                val uføregrunnlagTidslinje = Tidslinje(
+                    periode = periode,
+                    objekter = grunnlagTidslinje.flatMap { it.grunnlagsdata.uføregrunnlag },
+                ).tidslinje
+                val flyktninggrunnlagTidslinje = Tidslinje(
+                    periode = periode,
+                    objekter = grunnlagTidslinje.flatMap { it.grunnlagsdata.flyktninggrunnlag },
+                ).tidslinje
+
+                return Grunnlagsdata(
+                    uføregrunnlag = uføregrunnlagTidslinje.filterIsInstance<Grunnlag.Uføregrunnlag>(),
+                    flyktninggrunnlag = flyktninggrunnlagTidslinje.filterIsInstance<Grunnlag.Flyktninggrunnlag>(),
+                )
+            }
         }
     }
 }
