@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes.grunnlag
 
+import arrow.core.Nel
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
@@ -111,7 +112,7 @@ internal val vurderingsperiodeUføre = Vurderingsperiode.Manuell.create(
 )
 
 internal val uførevurdering = Vilkår.Vurdert.Uførhet.create(
-    vurderingsperioder = listOf(vurderingsperiodeUføre),
+    vurderingsperioder = Nel.of(vurderingsperiodeUføre),
 )
 
 internal val vilkårsvurderinger = Vilkårsvurderinger(

@@ -181,7 +181,6 @@ internal class RevurderingServiceImpl(
                 LeggTilUførevurderingerRequest.UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig -> KunneIkkeLeggeTilGrunnlag.PeriodeForGrunnlagOgVurderingErForskjellig.left()
                 LeggTilUførevurderingerRequest.UgyldigUførevurdering.UføregradOgForventetInntektMangler -> KunneIkkeLeggeTilGrunnlag.UføregradOgForventetInntektMangler.left()
                 LeggTilUførevurderingerRequest.UgyldigUførevurdering.OverlappendeVurderingsperioder -> KunneIkkeLeggeTilGrunnlag.OverlappendeVurderingsperioder.left()
-                LeggTilUførevurderingerRequest.UgyldigUførevurdering.VurderingsperiodeMangler -> KunneIkkeLeggeTilGrunnlag.VurderingsperiodeMangler.left()
             }
         }
 

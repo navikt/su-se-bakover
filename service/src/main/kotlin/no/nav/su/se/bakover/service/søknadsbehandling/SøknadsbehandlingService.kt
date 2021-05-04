@@ -160,6 +160,5 @@ interface SøknadsbehandlingService {
         object UføregradOgForventetInntektMangler : KunneIkkeLeggeTilGrunnlag()
         object PeriodeForGrunnlagOgVurderingErForskjellig : KunneIkkeLeggeTilGrunnlag()
         object OverlappendeVurderingsperioder : KunneIkkeLeggeTilGrunnlag()
-        object VurderingsperiodeMangler : KunneIkkeLeggeTilGrunnlag()
     }
 }

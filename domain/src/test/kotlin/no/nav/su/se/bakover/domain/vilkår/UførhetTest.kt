@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.vilkår
 
+import arrow.core.Nel
 import io.kotest.assertions.arrow.either.shouldBeLeft
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
@@ -10,7 +11,7 @@ internal class UførhetTest {
     @Test
     fun `validerer at vurderingsperioder ikke overlapper`() {
         Vilkår.Vurdert.Uførhet.tryCreate(
-            vurderingsperioder = listOf(
+            vurderingsperioder = Nel.of(
                 Vurderingsperiode.Manuell.create(
                     resultat = Resultat.Innvilget,
                     grunnlag = null,
@@ -25,12 +26,5 @@ internal class UførhetTest {
                 ),
             ),
         ) shouldBeLeft Vilkår.Vurdert.Uførhet.UgyldigUførevilkår.OverlappendeVurderingsperioder
-    }
-
-    @Test
-    fun `validerer at vurderingsperioder eksisterer`() {
-        Vilkår.Vurdert.Uførhet.tryCreate(
-            vurderingsperioder = emptyList(),
-        ) shouldBeLeft Vilkår.Vurdert.Uførhet.UgyldigUførevilkår.VurderingsperioderMangler
     }
 }

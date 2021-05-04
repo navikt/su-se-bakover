@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.grunnlag
 
+import arrow.core.Nel
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
@@ -26,7 +27,7 @@ internal class VilkårsvurderingPostgresRepoTest {
         withMigratedDb {
             val søknadsbehandling = testDataHelper.nyUavklartVilkårsvurdering()
             val vurderingUførhet = Vilkår.Vurdert.Uførhet.create(
-                vurderingsperioder = listOf(
+                vurderingsperioder = Nel.of(
                     Vurderingsperiode.Manuell.create(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
@@ -57,7 +58,7 @@ internal class VilkårsvurderingPostgresRepoTest {
             )
 
             val vurderingUførhet = Vilkår.Vurdert.Uførhet.create(
-                vurderingsperioder = listOf(
+                vurderingsperioder = Nel.of(
                     Vurderingsperiode.Manuell.create(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
@@ -88,7 +89,7 @@ internal class VilkårsvurderingPostgresRepoTest {
             )
 
             val vurderingUførhet = Vilkår.Vurdert.Uførhet.create(
-                vurderingsperioder = listOf(
+                vurderingsperioder = Nel.of(
                     Vurderingsperiode.Manuell.create(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),

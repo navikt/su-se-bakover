@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
 import arrow.core.Either
+import arrow.core.Nel
 import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.getOrHandle
@@ -8,7 +9,6 @@ import arrow.core.left
 import arrow.core.right
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.routing.Route
 import io.ktor.routing.post
@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
+import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.grunnlag.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson
 import no.nav.su.se.bakover.web.svar
@@ -33,9 +34,14 @@ import java.util.UUID
 
 private data class Body(val vurderinger: List<Vurdering>) {
     fun toServiceCommand(revurderingId: UUID): Either<Resultat, LeggTilUførevurderingerRequest> {
+        if (vurderinger.isEmpty()) return HttpStatusCode.BadRequest.errorJson(
+            "Ingen perioder er vurdert",
+            "vurderingsperioder_mangler",
+        ).left()
+
         return LeggTilUførevurderingerRequest(
             behandlingId = revurderingId,
-            vurderinger = vurderinger.map { vurdering ->
+            vurderinger = Nel.fromListUnsafe(vurderinger).map { vurdering ->
                 vurdering.toServiceCommand(revurderingId).getOrHandle {
                     return it.left()
                 }
@@ -89,30 +95,14 @@ internal fun Route.leggTilGrunnlagRevurderingRoutes(
                                 revurderingService.leggTilUføregrunnlag(command)
                                     .mapLeft {
                                         when (it) {
-                                            KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling -> HttpStatusCode.NotFound.errorJson(
-                                                "fant ikke behandling",
-                                                "fant_ikke_behandling",
-                                            )
+                                            KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling -> Feilresponser.fantIkkeBehandling
                                             KunneIkkeLeggeTilGrunnlag.UgyldigStatus -> InternalServerError.errorJson(
                                                 "ugyldig status for å legge til",
                                                 "ugyldig_status_for_å_legge_til",
                                             )
-                                            KunneIkkeLeggeTilGrunnlag.UføregradOgForventetInntektMangler -> HttpStatusCode.BadRequest.errorJson(
-                                                "Hvis man innvilger uførevilkåret må man sende med uføregrad og forventet inntekt",
-                                                "uføregrad_og_forventet_inntekt_mangler",
-                                            )
-                                            KunneIkkeLeggeTilGrunnlag.PeriodeForGrunnlagOgVurderingErForskjellig -> HttpStatusCode.BadRequest.errorJson(
-                                                "Det er ikke samsvar mellom perioden for vurdering og perioden for grunnlaget",
-                                                "periode_for_grunnlag_og_vurdering_er_forskjellig",
-                                            )
-                                            KunneIkkeLeggeTilGrunnlag.OverlappendeVurderingsperioder -> BadRequest.errorJson(
-                                                "Vurderingperioder kan ikke overlappe",
-                                                "overlappende_vurderingsperioder",
-                                            )
-                                            KunneIkkeLeggeTilGrunnlag.VurderingsperiodeMangler -> BadRequest.errorJson(
-                                                "Ingen perioder er vurdert",
-                                                "vurderingsperioder_mangler",
-                                            )
+                                            KunneIkkeLeggeTilGrunnlag.UføregradOgForventetInntektMangler -> Feilresponser.uføregradOgForventetInntektMangler
+                                            KunneIkkeLeggeTilGrunnlag.PeriodeForGrunnlagOgVurderingErForskjellig -> Feilresponser.periodeForGrunnlagOgVurderingErForskjellig
+                                            KunneIkkeLeggeTilGrunnlag.OverlappendeVurderingsperioder -> Feilresponser.overlappendeVurderingsperioder
                                         }
                                     }.map {
                                         Resultat.json(HttpStatusCode.Created, serialize(it.toJson()))

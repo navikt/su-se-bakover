@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.service.revurdering
 
+import arrow.core.Nel
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
@@ -98,7 +99,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             grunnlagsdata = eksisterendeGrunnlagsdata,
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Vurdert.Uførhet.create(
-                    vurderingsperioder = listOf(
+                    vurderingsperioder = Nel.of(
                         Vurderingsperiode.Manuell.create(
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
@@ -158,7 +159,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
         ).leggTilUføregrunnlag(
             LeggTilUførevurderingerRequest(
                 behandlingId = revurderingId,
-                vurderinger = listOf(
+                vurderinger = Nel.of(
                     LeggTilUførevurderingRequest(
                         behandlingId = nyttUføregrunnlag.id,
                         periode = nyttUføregrunnlag.periode,
