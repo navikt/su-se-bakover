@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.brev.beregning
 
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.roundToDecimals
 import no.nav.su.se.bakover.domain.beregning.EkvivalenteMånedsberegninger
 import no.nav.su.se.bakover.domain.beregning.SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
@@ -23,7 +22,7 @@ data class LagBrevinnholdForBeregning(
                 epsFribeløp = FradragStrategy.fromName(beregning.getFradragStrategyName())
                     .getEpsFribeløp(beregningsperiode.periode).let {
                         it / beregningsperiode.periode.getAntallMåneder()
-                    }.roundToDecimals(2),
+                    }.roundToInt(),
                 fradrag = Fradrag(
                     bruker = BrukerFradragBenyttetIBeregningsperiode(beregningsperiode.getFradrag()).fradrag,
                     eps = finnFradragForEps(beregningsperiode)
