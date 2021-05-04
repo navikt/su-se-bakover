@@ -32,7 +32,7 @@ internal class VedtakTest {
     private val fixedClock: Clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC)
 
     @Test
-    fun `klarer å lage tidslinje av vedtaket`() {
+    fun `klarer å lage tidslinje av vedtak`() {
         //  1.jan       31.mars
         //  |--u1---|-u2-|  uføre
         //  |-----f1-----|  flykting
@@ -216,7 +216,7 @@ internal class VedtakTest {
         actual shouldBe Grunnlagsdata(
             uføregrunnlag = listOf(
                 Grunnlag.Uføregrunnlag(
-                    id = actual!!.uføregrunnlag.first().id,
+                    id = actual.uføregrunnlag.first().id,
                     opprettet = Tidspunkt.now(fixedClock).plus(1, ChronoUnit.DAYS),
                     periode = Periode.create(
                         fraOgMed = 1.januar(2021),
@@ -380,7 +380,7 @@ internal class VedtakTest {
         actual shouldBe Grunnlagsdata(
             uføregrunnlag = listOf(
                 Grunnlag.Uføregrunnlag(
-                    id = actual!!.uføregrunnlag.first().id,
+                    id = actual.uføregrunnlag.first().id,
                     opprettet = Tidspunkt.now(fixedClock).plus(1, ChronoUnit.DAYS),
                     periode = Periode.create(
                         fraOgMed = 1.januar(2021),
