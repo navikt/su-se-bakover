@@ -140,7 +140,7 @@ object BehandlingTestUtils {
             uføregrunnlag = listOf(uføregrunnlag),
         ),
         vilkårsvurderinger = Vilkårsvurderinger(
-            uføre = Vilkår.Vurdert.Uførhet(
+            uføre = Vilkår.Vurdert.Uførhet.create(
                 vurderingsperioder = listOf(vurderingsperiodeUføre),
             ),
         ),

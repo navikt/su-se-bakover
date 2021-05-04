@@ -473,6 +473,8 @@ internal class SøknadsbehandlingServiceImpl(
             return when (it) {
                 LeggTilUførevurderingRequest.UgyldigUførevurdering.UføregradOgForventetInntektMangler -> SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.UføregradOgForventetInntektMangler.left()
                 LeggTilUførevurderingRequest.UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig -> SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.PeriodeForGrunnlagOgVurderingErForskjellig.left()
+                LeggTilUførevurderingRequest.UgyldigUførevurdering.OverlappendeVurderingsperioder -> SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.OverlappendeVurderingsperioder.left()
+                LeggTilUførevurderingRequest.UgyldigUførevurdering.VurderingsperiodeMangler -> SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.VurderingsperiodeMangler.left()
             }
         }
         // TODO midliertidig til behandlingsinformasjon er borte

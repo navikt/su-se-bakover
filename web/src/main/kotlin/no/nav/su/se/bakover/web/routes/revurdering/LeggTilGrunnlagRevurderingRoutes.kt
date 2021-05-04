@@ -8,6 +8,7 @@ import arrow.core.left
 import arrow.core.right
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.routing.Route
 import io.ktor.routing.post
@@ -103,6 +104,14 @@ internal fun Route.leggTilGrunnlagRevurderingRoutes(
                                             KunneIkkeLeggeTilGrunnlag.PeriodeForGrunnlagOgVurderingErForskjellig -> HttpStatusCode.BadRequest.errorJson(
                                                 "Det er ikke samsvar mellom perioden for vurdering og perioden for grunnlaget",
                                                 "periode_for_grunnlag_og_vurdering_er_forskjellig",
+                                            )
+                                            KunneIkkeLeggeTilGrunnlag.OverlappendeVurderingsperioder -> BadRequest.errorJson(
+                                                "Vurderingperioder kan ikke overlappe",
+                                                "overlappende_vurderingsperioder",
+                                            )
+                                            KunneIkkeLeggeTilGrunnlag.VurderingsperiodeMangler -> BadRequest.errorJson(
+                                                "Ingen perioder er vurdert",
+                                                "vurderingsperioder_mangler",
                                             )
                                         }
                                     }.map {

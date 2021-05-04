@@ -43,7 +43,7 @@ internal class VilkårsvurderingServiceImpl(
             }.tidslinje
 
         return Vilkårsvurderinger(
-            uføre = Vilkår.Vurdert.Uførhet(uføreVilkårsvurderingerIPeriode),
+            uføre = Vilkår.Vurdert.Uførhet.create(uføreVilkårsvurderingerIPeriode),
         )
     }
 }

@@ -86,6 +86,14 @@ internal fun Route.leggTilGrunnlagSøknadsbehandlingRoutes(
                                             "Det er ikke samsvar mellom perioden for vurdering og perioden for grunnlaget",
                                             "periode_for_grunnlag_og_vurdering_er_forskjellig",
                                         )
+                                        SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.OverlappendeVurderingsperioder -> HttpStatusCode.BadRequest.errorJson(
+                                            "Vurderingperioder kan ikke overlappe",
+                                            "overlappende_vurderingsperioder",
+                                        )
+                                        SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.VurderingsperiodeMangler -> HttpStatusCode.BadRequest.errorJson(
+                                            "Ingen perioder er vurdert",
+                                            "vurderingsperioder_mangler",
+                                        )
                                     }
                                 }.map {
                                     Resultat.json(HttpStatusCode.Created, serialize(it.toJson()))

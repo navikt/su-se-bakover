@@ -97,7 +97,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             forhåndsvarsel = null,
             grunnlagsdata = eksisterendeGrunnlagsdata,
             vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Vurdert.Uførhet(
+                uføre = Vilkår.Vurdert.Uførhet.create(
                     vurderingsperioder = listOf(
                         Vurderingsperiode.Manuell.create(
                             id = UUID.randomUUID(),

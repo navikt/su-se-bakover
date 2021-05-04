@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.vilkår
 
 import arrow.core.Either
+import arrow.core.extensions.list.foldable.forAll
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
@@ -82,12 +83,38 @@ sealed class Vilkår<T : Grunnlag> {
             vurderingsperioder.any { it.resultat == Resultat.Avslag }
         }
 
-        data class Uførhet(
+        data class Uførhet private constructor(
             override val vurderingsperioder: List<Vurderingsperiode<Grunnlag.Uføregrunnlag>>,
         ) : Vurdert<Grunnlag.Uføregrunnlag>() {
             override val vilkår = Inngangsvilkår.Uførhet
             override val grunnlag: List<Grunnlag.Uføregrunnlag> = vurderingsperioder.mapNotNull {
                 it.grunnlag
+            }
+
+            companion object {
+                fun create(
+                    vurderingsperioder: List<Vurderingsperiode<Grunnlag.Uføregrunnlag>>,
+                ): Uførhet = tryCreate(vurderingsperioder).getOrHandle { throw IllegalArgumentException(it.toString()) }
+
+                fun tryCreate(
+                    vurderingsperioder: List<Vurderingsperiode<Grunnlag.Uføregrunnlag>>,
+                ): Either<UgyldigUførevilkår, Uførhet> {
+                    if (vurderingsperioder.isEmpty()) {
+                        return UgyldigUførevilkår.VurderingsperioderMangler.left()
+                    }
+                    if (vurderingsperioder.forAll { v1 ->
+                        vurderingsperioder.minus(v1).any { v2 -> v1.periode overlapper v2.periode }
+                    }
+                    ) {
+                        return UgyldigUførevilkår.OverlappendeVurderingsperioder.left()
+                    }
+                    return Uførhet(vurderingsperioder).right()
+                }
+            }
+
+            sealed class UgyldigUførevilkår {
+                object OverlappendeVurderingsperioder : UgyldigUførevilkår()
+                object VurderingsperioderMangler : UgyldigUførevilkår()
             }
         }
     }

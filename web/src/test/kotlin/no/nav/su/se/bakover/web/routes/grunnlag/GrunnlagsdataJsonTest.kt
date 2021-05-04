@@ -110,7 +110,7 @@ internal val vurderingsperiodeUføre = Vurderingsperiode.Manuell.create(
     begrunnelse = "text",
 )
 
-internal val uførevurdering = Vilkår.Vurdert.Uførhet(
+internal val uførevurdering = Vilkår.Vurdert.Uførhet.create(
     vurderingsperioder = listOf(vurderingsperiodeUføre),
 )
 

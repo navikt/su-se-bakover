@@ -108,7 +108,7 @@ internal class VilkårsvurderingPostgresRepo(
                 }
         }
         return when (vurderingsperioder.isNotEmpty()) {
-            true -> Vilkår.Vurdert.Uførhet(vurderingsperioder = vurderingsperioder)
+            true -> Vilkår.Vurdert.Uførhet.create(vurderingsperioder = vurderingsperioder)
             false -> Vilkår.IkkeVurdert.Uførhet
         }
     }

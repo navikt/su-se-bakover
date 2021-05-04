@@ -25,7 +25,7 @@ internal class VilkårsvurderingPostgresRepoTest {
     fun `lagrer og henter vilkårsvurdering uten grunnlag`() {
         withMigratedDb {
             val søknadsbehandling = testDataHelper.nyUavklartVilkårsvurdering()
-            val vurderingUførhet = Vilkår.Vurdert.Uførhet(
+            val vurderingUførhet = Vilkår.Vurdert.Uførhet.create(
                 vurderingsperioder = listOf(
                     Vurderingsperiode.Manuell.create(
                         id = UUID.randomUUID(),
@@ -56,7 +56,7 @@ internal class VilkårsvurderingPostgresRepoTest {
                 forventetInntekt = 12000,
             )
 
-            val vurderingUførhet = Vilkår.Vurdert.Uførhet(
+            val vurderingUførhet = Vilkår.Vurdert.Uførhet.create(
                 vurderingsperioder = listOf(
                     Vurderingsperiode.Manuell.create(
                         id = UUID.randomUUID(),
@@ -87,7 +87,7 @@ internal class VilkårsvurderingPostgresRepoTest {
                 forventetInntekt = 12000,
             )
 
-            val vurderingUførhet = Vilkår.Vurdert.Uførhet(
+            val vurderingUførhet = Vilkår.Vurdert.Uførhet.create(
                 vurderingsperioder = listOf(
                     Vurderingsperiode.Manuell.create(
                         id = UUID.randomUUID(),
