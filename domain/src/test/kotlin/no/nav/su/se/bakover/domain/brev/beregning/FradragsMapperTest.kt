@@ -37,7 +37,7 @@ internal class FradragsMapperTest {
         BrukerFradragBenyttetIBeregningsperiode(fradrag).fradrag shouldBe listOf(
             Månedsfradrag(
                 type = Fradragstype.Kapitalinntekt.toReadableTypeName(false),
-                beløp = 5000.0,
+                beløp = 5000,
                 utenlandskInntekt = null
             )
         )
@@ -48,7 +48,7 @@ internal class FradragsMapperTest {
         ).fradrag shouldBe listOf(
             Månedsfradrag(
                 type = Fradragstype.BidragEtterEkteskapsloven.toReadableTypeName(false),
-                beløp = 3000.0,
+                beløp = 3000,
                 utenlandskInntekt = null
             )
         )
@@ -77,7 +77,7 @@ internal class FradragsMapperTest {
         BrukerFradragBenyttetIBeregningsperiode(fradrag).fradrag shouldBe listOf(
             Månedsfradrag(
                 type = Fradragstype.Kapitalinntekt.toReadableTypeName(false),
-                beløp = 3337.0,
+                beløp = 3337,
                 utenlandskInntekt = null
             )
         )
@@ -116,12 +116,12 @@ internal class FradragsMapperTest {
         ).fradrag shouldBe listOf(
             Månedsfradrag(
                 type = Fradragstype.Arbeidsinntekt.toReadableTypeName(false),
-                beløp = 10000.0,
+                beløp = 10000,
                 utenlandskInntekt = null
             ),
             Månedsfradrag(
                 type = Fradragstype.Kapitalinntekt.toReadableTypeName(false),
-                beløp = 3337.0,
+                beløp = 3337,
                 utenlandskInntekt = null
             ),
         )
@@ -132,7 +132,7 @@ internal class FradragsMapperTest {
         ).fradrag shouldBe listOf(
             Månedsfradrag(
                 type = Fradragstype.Kapitalinntekt.toReadableTypeName(false),
-                beløp = 3337.0,
+                beløp = 3337,
                 utenlandskInntekt = null
             ),
         )

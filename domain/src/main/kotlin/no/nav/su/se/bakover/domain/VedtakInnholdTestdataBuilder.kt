@@ -29,7 +29,7 @@ object VedtakInnholdTestdataBuilder {
                 periode = BrevPeriode("1 januar", "31 desember"),
                 ytelsePerMåned = 0,
                 satsbeløpPerMåned = 0,
-                epsFribeløp = 0.0,
+                epsFribeløp = 0,
                 fradrag = Fradrag(emptyList(), Fradrag.Eps(emptyList(), true))
             )
         ),
