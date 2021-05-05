@@ -28,7 +28,7 @@ import java.util.UUID
 
 object BehandlingTestUtils {
     internal val sakId = UUID.randomUUID()
-    internal val saksnummer = Saksnummer(0)
+    internal val saksnummer = Saksnummer(2021)
     internal val søknadId = UUID.randomUUID()
     internal val behandlingId = UUID.randomUUID()
     internal val søknadInnhold = SøknadInnholdTestdataBuilder.build()

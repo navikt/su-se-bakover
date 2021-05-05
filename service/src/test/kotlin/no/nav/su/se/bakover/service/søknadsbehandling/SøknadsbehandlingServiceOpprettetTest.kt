@@ -184,7 +184,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             id = UUID.randomUUID(), // blir ignorert eller overskrevet
             opprettet = Tidspunkt.EPOCH, // blir ignorert eller overskrevet
             sakId = sakId,
-            saksnummer = Saksnummer(123),
+            saksnummer = Saksnummer(2021),
             søknad = søknad,
             oppgaveId = søknad.oppgaveId,
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),

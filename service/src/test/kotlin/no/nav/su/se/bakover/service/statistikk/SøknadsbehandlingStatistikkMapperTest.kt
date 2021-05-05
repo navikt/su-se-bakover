@@ -287,7 +287,7 @@ internal class SøknadsbehandlingStatistikkMapperTest {
         id = UUID.randomUUID(),
         opprettet = Tidspunkt.now(fixedClock),
         sakId = UUID.randomUUID(),
-        saksnummer = Saksnummer(0),
+        saksnummer = Saksnummer(2021),
         søknad = søknad,
         oppgaveId = OppgaveId(""),
         behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),

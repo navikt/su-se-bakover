@@ -54,7 +54,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
             journalpostId = JournalpostId("j"),
         ),
         sakId = sakId,
-        saksnummer = Saksnummer(0),
+        saksnummer = Saksnummer(2021),
         fnr = FnrGenerator.random(),
         oppgaveId = oppgaveId,
         fritekstTilBrev = "",

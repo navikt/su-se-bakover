@@ -58,7 +58,7 @@ internal class AccessCheckProxyTest {
                         } doReturn Either.right(
                             Sak(
                                 id = sakId,
-                                saksnummer = Saksnummer(1234),
+                                saksnummer = Saksnummer(2021),
                                 fnr = fnr,
                                 utbetalinger = emptyList()
                             )
@@ -178,7 +178,7 @@ internal class AccessCheckProxyTest {
                 } doReturn Either.right(
                     Sak(
                         id = UUID.randomUUID(),
-                        saksnummer = Saksnummer(1234),
+                        saksnummer = Saksnummer(2021),
                         fnr = fnr,
                         utbetalinger = emptyList()
                     )

@@ -33,7 +33,7 @@ data class Saksnummer(@JsonValue val nummer: Long) {
             return Saksnummer(saksnummer).right()
         }
 
-        private fun isInvalid(saksnummer: Long) = saksnummer < 0
+        private fun isInvalid(saksnummer: Long) = saksnummer < 2021
     }
 
     object UgyldigSaksnummer

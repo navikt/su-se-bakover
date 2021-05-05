@@ -50,7 +50,7 @@ class SøknadsbehandlingServiceBeregningTest {
             journalpostId = JournalpostId("j"),
         ),
         sakId = sakId,
-        saksnummer = Saksnummer(0),
+        saksnummer = Saksnummer(2021),
         fnr = FnrGenerator.random(),
         oppgaveId = OppgaveId("o"),
         fritekstTilBrev = "",

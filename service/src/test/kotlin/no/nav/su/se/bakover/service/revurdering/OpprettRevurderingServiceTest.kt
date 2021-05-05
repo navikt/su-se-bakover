@@ -506,7 +506,7 @@ internal class OpprettRevurderingServiceTest {
     fun `for en ny revurdering vil det tas utgangspunkt i nyeste vedtak hvor fraOgMed er inni perioden`() {
         val behandlingMock = mock<Behandling> {
             on { fnr } doReturn FnrGenerator.random()
-            on { saksnummer } doReturn Saksnummer(1337)
+            on { saksnummer } doReturn Saksnummer(2021)
         }
         val vedtakForFørsteJanuarLagetNå = mock<Vedtak.EndringIYtelse> {
             on { opprettet } doReturn fixedTidspunkt

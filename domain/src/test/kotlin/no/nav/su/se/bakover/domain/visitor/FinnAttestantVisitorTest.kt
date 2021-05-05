@@ -135,7 +135,7 @@ internal class FinnAttestantVisitorTest {
         id = UUID.randomUUID(),
         opprettet = Tidspunkt.now(),
         sakId = UUID.randomUUID(),
-        saksnummer = Saksnummer(0),
+        saksnummer = Saksnummer(2021),
         søknad = mock(),
         oppgaveId = OppgaveId(""),
         behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),

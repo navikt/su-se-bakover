@@ -361,7 +361,7 @@ internal class StatistikkServiceImplTest {
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(clock),
             sakId = UUID.randomUUID(),
-            saksnummer = Saksnummer(0),
+            saksnummer = Saksnummer(2021),
             søknad = søknadMock,
             oppgaveId = OppgaveId(value = ""),
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
@@ -417,7 +417,7 @@ internal class StatistikkServiceImplTest {
         val behandlingsperiode = Periode.create(1.januar(2021), 31.desember(2021))
         val behandlingMock = mock<Behandling> {
             on { sakId } doReturn UUID.randomUUID()
-            on { saksnummer } doReturn Saksnummer(49L)
+            on { saksnummer } doReturn Saksnummer(2021)
         }
         val opprettetRevurdering = OpprettetRevurdering(
             id = UUID.randomUUID(),
@@ -476,7 +476,7 @@ internal class StatistikkServiceImplTest {
 
         val behandlingMock = mock<Behandling> {
             on { sakId } doReturn UUID.randomUUID()
-            on { saksnummer } doReturn Saksnummer(49L)
+            on { saksnummer } doReturn Saksnummer(2021)
         }
         val revurderingTilAttestering = RevurderingTilAttestering.Innvilget(
             id = UUID.randomUUID(),
@@ -543,7 +543,7 @@ internal class StatistikkServiceImplTest {
 
         val behandlingMock = mock<Behandling> {
             on { sakId } doReturn UUID.randomUUID()
-            on { saksnummer } doReturn Saksnummer(49L)
+            on { saksnummer } doReturn Saksnummer(2021)
         }
         val iverksattRevurdering = IverksattRevurdering.Innvilget(
             id = UUID.randomUUID(),

@@ -132,7 +132,7 @@ internal class SøknadsbehandlingServiceSimuleringTest {
     }
 
     private val sakId = UUID.randomUUID()
-    private val saksnummer = Saksnummer(0)
+    private val saksnummer = Saksnummer(2021)
     private val fnr = Fnr("12345678910")
     private val saksbehandler = Saksbehandler("AB12345")
     private val oppgaveId = OppgaveId("o")

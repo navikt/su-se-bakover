@@ -32,7 +32,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
 
     private val fnr = Fnr("12345678910")
     private val sakId = UUID.randomUUID()
-    private val saksnummer = Saksnummer(1234)
+    private val saksnummer = Saksnummer(2021)
     private val attestant = NavIdentBruker.Attestant("Z123")
 
     @Test

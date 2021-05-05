@@ -839,7 +839,7 @@ internal class LagBrevRequestVisitorTest {
         id = UUID.randomUUID(),
         opprettet = Tidspunkt.now(),
         sakId = UUID.randomUUID(),
-        saksnummer = Saksnummer(123),
+        saksnummer = Saksnummer(2021),
         søknad = mock(),
         oppgaveId = OppgaveId(""),
         behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),

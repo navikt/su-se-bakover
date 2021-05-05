@@ -112,7 +112,7 @@ internal class VedtakServiceImplTest {
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(),
                 sakId = UUID.randomUUID(),
-                saksnummer = Saksnummer(1),
+                saksnummer = Saksnummer(2021),
                 søknad = Søknad.Journalført.MedOppgave(
                     id = BehandlingTestUtils.søknadId,
                     opprettet = Tidspunkt.EPOCH,

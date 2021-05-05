@@ -52,7 +52,7 @@ import java.util.UUID
 
 class SøknadsbehandlingServiceUnderkjennTest {
     private val sakId = UUID.randomUUID()
-    private val saksnummer = Saksnummer(0)
+    private val saksnummer = Saksnummer(2021)
     private val søknadId = UUID.randomUUID()
     private val fnr = FnrGenerator.random()
     private val oppgaveId = OppgaveId("o")

@@ -37,7 +37,7 @@ object RevurderingRoutesTestData {
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(),
             sakId = sakId,
-            saksnummer = Saksnummer(1569),
+            saksnummer = Saksnummer(2021),
             søknad = Søknad.Journalført.MedOppgave(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(),

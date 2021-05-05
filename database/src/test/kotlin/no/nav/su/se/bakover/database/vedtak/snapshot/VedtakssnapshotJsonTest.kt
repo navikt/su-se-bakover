@@ -48,7 +48,7 @@ import java.util.UUID
 internal class VedtakssnapshotJsonTest {
 
     private val sakId = "7a8b4a95-9736-4f79-bb38-e1d4a7c42799"
-    private val saksnummer = 1234L
+    private val saksnummer = 2021L
     private val behandlingId = "62478b8d-8c5a-4da4-8fcf-b48c9b426698"
     private val søknadId = "68c7dba7-6c5c-422f-862e-94ebae82f24d"
     private val vedtakssnapshotId = "06015ac6-07ef-4017-bd04-1e7b87b160fa"
@@ -63,7 +63,7 @@ internal class VedtakssnapshotJsonTest {
             id = UUID.fromString(behandlingId),
             opprettet = fixedTidspunkt,
             sakId = UUID.fromString(sakId),
-            saksnummer = Saksnummer(1234),
+            saksnummer = Saksnummer(2021),
             søknad = Søknad.Journalført.MedOppgave(
                 id = UUID.fromString(søknadId),
                 opprettet = fixedTidspunkt,
@@ -105,7 +105,7 @@ internal class VedtakssnapshotJsonTest {
                   "id":"$behandlingId",
                   "opprettet":"2021-01-01T01:02:03.456789Z",
                   "sakId":"$sakId",
-                  "saksnummer":1234,
+                  "saksnummer":2021,
                   "fnr":"12345678910",
                   "status":"IVERKSATT_AVSLAG",
                   "saksbehandler":"saksbehandler",
@@ -358,7 +358,7 @@ internal class VedtakssnapshotJsonTest {
             id = UUID.fromString(behandlingId),
             opprettet = fixedTidspunkt,
             sakId = UUID.fromString(sakId),
-            saksnummer = Saksnummer(1234),
+            saksnummer = Saksnummer(2021),
             søknad = Søknad.Journalført.MedOppgave(
                 id = UUID.fromString(søknadId),
                 opprettet = fixedTidspunkt,
@@ -458,7 +458,7 @@ internal class VedtakssnapshotJsonTest {
                   "id":"$behandlingId",
                   "opprettet":"2021-01-01T01:02:03.456789Z",
                   "sakId":"$sakId",
-                  "saksnummer":1234,
+                  "saksnummer":2021,
                   "fnr":"12345678910",
                   "status":"IVERKSATT_INNVILGET",
                   "saksbehandler":"saksbehandler",
