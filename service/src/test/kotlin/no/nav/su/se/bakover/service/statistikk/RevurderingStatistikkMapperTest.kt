@@ -35,7 +35,7 @@ internal class RevurderingStatistikkMapperTest {
     fun `mapper opprettet revurdering`() {
         val behandlingMock = mock<Behandling> {
             on { sakId } doReturn UUID.randomUUID()
-            on { saksnummer } doReturn Saksnummer(49L)
+            on { saksnummer } doReturn Saksnummer(2021)
         }
         val opprettetRevurdering = OpprettetRevurdering(
             id = UUID.randomUUID(),
@@ -101,7 +101,7 @@ internal class RevurderingStatistikkMapperTest {
 
         val behandlingMock = mock<Behandling> {
             on { sakId } doReturn UUID.randomUUID()
-            on { saksnummer } doReturn Saksnummer(49L)
+            on { saksnummer } doReturn Saksnummer(2021)
         }
         val iverksattRevurdering = IverksattRevurdering.Innvilget(
             id = UUID.randomUUID(),
@@ -171,7 +171,7 @@ internal class RevurderingStatistikkMapperTest {
 
         val behandlingMock = mock<Behandling> {
             on { sakId } doReturn UUID.randomUUID()
-            on { saksnummer } doReturn Saksnummer(49L)
+            on { saksnummer } doReturn Saksnummer(2021)
         }
         val iverksattRevurdering = IverksattRevurdering.IngenEndring(
             id = UUID.randomUUID(),

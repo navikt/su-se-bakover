@@ -29,7 +29,6 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
@@ -38,9 +37,10 @@ import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.ServiceBuilder
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.BeregnRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.SendTilAttesteringRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.SimulerRequest
@@ -79,14 +79,16 @@ internal class SøknadsbehandlingRoutesKtTest {
     inner class `Henting av behandling` {
         @Test
         fun `Forbidden når bruker bare er veileder`() {
-            withTestApplication({
-                testSusebakover(services = services)
-            }) {
+            withTestApplication(
+                {
+                    testSusebakover(services = services)
+                },
+            ) {
                 val objects = setup()
                 defaultRequest(
                     HttpMethod.Get,
                     "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}",
-                    listOf(Brukerrolle.Veileder)
+                    listOf(Brukerrolle.Veileder),
                 ).apply {
                     response.status() shouldBe HttpStatusCode.Forbidden
                 }
@@ -95,14 +97,16 @@ internal class SøknadsbehandlingRoutesKtTest {
 
         @Test
         fun `OK når bruker er saksbehandler`() {
-            withTestApplication({
-                testSusebakover(services = services)
-            }) {
+            withTestApplication(
+                {
+                    testSusebakover(services = services)
+                },
+            ) {
                 val objects = setup()
                 defaultRequest(
                     HttpMethod.Get,
                     "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}",
-                    listOf(Brukerrolle.Saksbehandler)
+                    listOf(Brukerrolle.Saksbehandler),
                 ).apply {
                     objectMapper.readValue<BehandlingJson>(response.content!!).let {
                         it.id shouldBe objects.søknadsbehandling.id.toString()
@@ -115,14 +119,16 @@ internal class SøknadsbehandlingRoutesKtTest {
 
         @Test
         fun `OK når bruker er attestant`() {
-            withTestApplication({
-                testSusebakover(services = services)
-            }) {
+            withTestApplication(
+                {
+                    testSusebakover(services = services)
+                },
+            ) {
                 val objects = setup()
                 defaultRequest(
                     HttpMethod.Get,
                     "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}",
-                    listOf(Brukerrolle.Attestant)
+                    listOf(Brukerrolle.Attestant),
                 ).apply {
                     objectMapper.readValue<BehandlingJson>(response.content!!).let {
                         it.id shouldBe objects.søknadsbehandling.id.toString()
@@ -136,28 +142,30 @@ internal class SøknadsbehandlingRoutesKtTest {
 
     @Test
     fun `Opprette en oppgave til attestering er OK`() {
-        withTestApplication({
-            testSusebakover(services = services)
-        }) {
+        withTestApplication(
+            {
+                testSusebakover(services = services)
+            },
+        ) {
             val objects = setup()
             services.søknadsbehandling.vilkårsvurder(
                 VilkårsvurderRequest(
                     objects.søknadsbehandling.id,
-                    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
-                )
+                    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
+                ),
             )
             services.søknadsbehandling.beregn(
                 BeregnRequest(
                     behandlingId = objects.søknadsbehandling.id,
                     fradrag = emptyList(),
-                    begrunnelse = null
-                )
+                    begrunnelse = null,
+                ),
             )
             services.søknadsbehandling.simuler(SimulerRequest(objects.søknadsbehandling.id, saksbehandler))
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/tilAttestering",
-                listOf(Brukerrolle.Saksbehandler)
+                listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody("""{ "fritekst": "Fritekst!" }""")
             }.apply {
@@ -170,42 +178,44 @@ internal class SøknadsbehandlingRoutesKtTest {
 
     @Test
     fun `Opprette en oppgave til attestering feiler mot oppgave`() {
-        withTestApplication({
-            testSusebakover(
-                clients = testClients.copy(
-                    oppgaveClient = object : OppgaveClient {
-                        override fun opprettOppgave(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, OppgaveId> {
-                            return Either.left(KunneIkkeOppretteOppgave)
-                        }
+        withTestApplication(
+            {
+                testSusebakover(
+                    clients = testClients.copy(
+                        oppgaveClient = object : OppgaveClient {
+                            override fun opprettOppgave(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, OppgaveId> {
+                                return Either.left(KunneIkkeOppretteOppgave)
+                            }
 
-                        override fun opprettOppgaveMedSystembruker(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, OppgaveId> {
-                            return Either.left(KunneIkkeOppretteOppgave)
-                        }
+                            override fun opprettOppgaveMedSystembruker(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, OppgaveId> {
+                                return Either.left(KunneIkkeOppretteOppgave)
+                            }
 
-                        override fun lukkOppgave(oppgaveId: OppgaveId) = Unit.right()
-                        override fun lukkOppgaveMedSystembruker(oppgaveId: OppgaveId) = Unit.right()
-                    }
+                            override fun lukkOppgave(oppgaveId: OppgaveId) = Unit.right()
+                            override fun lukkOppgaveMedSystembruker(oppgaveId: OppgaveId) = Unit.right()
+                        },
+                    ),
                 )
-            )
-        }) {
+            },
+        ) {
             val objects = setup()
             services.søknadsbehandling.vilkårsvurder(
                 VilkårsvurderRequest(
                     objects.søknadsbehandling.id,
-                    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
-                )
+                    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
+                ),
             )
             services.søknadsbehandling.beregn(
                 BeregnRequest(
                     behandlingId = objects.søknadsbehandling.id,
                     fradrag = emptyList(),
                     begrunnelse = null,
-                )
+                ),
             )
             services.søknadsbehandling.simuler(
                 SimulerRequest(
-                    objects.søknadsbehandling.id, saksbehandler
-                )
+                    objects.søknadsbehandling.id, saksbehandler,
+                ),
             )
             defaultRequest(
                 HttpMethod.Post,
@@ -222,15 +232,17 @@ internal class SøknadsbehandlingRoutesKtTest {
 
     @Test
     fun simulering() {
-        withTestApplication({
-            testSusebakover()
-        }) {
+        withTestApplication(
+            {
+                testSusebakover()
+            },
+        ) {
             val objects = setup()
 
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/${objects.sak.id}/behandlinger/blabla/simuler",
-                listOf(Brukerrolle.Saksbehandler)
+                listOf(Brukerrolle.Saksbehandler),
             ).apply {
                 assertSoftly {
                     response.status() shouldBe HttpStatusCode.BadRequest
@@ -240,7 +252,7 @@ internal class SøknadsbehandlingRoutesKtTest {
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/simuler",
-                listOf(Brukerrolle.Saksbehandler)
+                listOf(Brukerrolle.Saksbehandler),
             ).apply {
                 assertSoftly {
                     response.status() shouldBe HttpStatusCode.NotFound
@@ -251,21 +263,21 @@ internal class SøknadsbehandlingRoutesKtTest {
             services.søknadsbehandling.vilkårsvurder(
                 VilkårsvurderRequest(
                     objects.søknadsbehandling.id,
-                    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
-                )
+                    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
+                ),
             )
             services.søknadsbehandling.beregn(
                 BeregnRequest(
                     behandlingId = objects.søknadsbehandling.id,
                     fradrag = emptyList(),
                     begrunnelse = null,
-                )
+                ),
             )
 
             defaultRequest(
                 HttpMethod.Post,
                 "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/simuler",
-                listOf(Brukerrolle.Saksbehandler)
+                listOf(Brukerrolle.Saksbehandler),
             ).apply {
                 response.status() shouldBe HttpStatusCode.OK
             }
@@ -275,25 +287,25 @@ internal class SøknadsbehandlingRoutesKtTest {
     @Nested
     inner class `Iverksetting av behandling` {
         private fun <R> withFerdigbehandletSakForBruker(
-            test: TestApplicationEngine.(objects: Objects) -> R
+            test: TestApplicationEngine.(objects: Objects) -> R,
         ) =
             withSetupForBruker(
                 {
                     services.søknadsbehandling.vilkårsvurder(
                         VilkårsvurderRequest(
                             søknadsbehandling.id,
-                            søknadsbehandling.behandlingsinformasjon.withAlleVilkårOppfylt()
-                        )
+                            søknadsbehandling.behandlingsinformasjon.withAlleVilkårOppfylt(),
+                        ),
                     )
                     services.søknadsbehandling.beregn(
                         BeregnRequest(
                             behandlingId = søknadsbehandling.id,
                             fradrag = emptyList(),
                             begrunnelse = null,
-                        )
+                        ),
                     )
                     services.søknadsbehandling.simuler(
-                        SimulerRequest(søknadsbehandling.id, saksbehandler)
+                        SimulerRequest(søknadsbehandling.id, saksbehandler),
                     )
                         .map {
                             services.søknadsbehandling.sendTilAttestering(
@@ -301,10 +313,10 @@ internal class SøknadsbehandlingRoutesKtTest {
                                     søknadsbehandling.id,
                                     NavIdentBruker.Saksbehandler(navIdentSaksbehandler),
                                     "",
-                                )
+                                ),
                             )
                         }
-                }
+                },
             ) { test(it) }
 
         @Test
@@ -314,7 +326,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                     HttpMethod.Patch,
                     "$sakPath/rubbish/behandlinger/${it.søknadsbehandling.id}/iverksett",
                     listOf(Brukerrolle.Saksbehandler),
-                    navIdentSaksbehandler
+                    navIdentSaksbehandler,
                 ).apply {
                     response.status() shouldBe HttpStatusCode.Forbidden
                 }
@@ -322,7 +334,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                 defaultRequest(
                     HttpMethod.Patch,
                     "$sakPath/${it.sak.id}/behandlinger/${UUID.randomUUID()}/iverksett",
-                    listOf(Brukerrolle.Saksbehandler)
+                    listOf(Brukerrolle.Saksbehandler),
                 ).apply {
                     response.status() shouldBe HttpStatusCode.Forbidden
                 }
@@ -335,7 +347,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                 requestSomAttestant(
                     HttpMethod.Patch,
                     "$sakPath/rubbish/behandlinger/${UUID.randomUUID()}/iverksett",
-                    navIdentSaksbehandler
+                    navIdentSaksbehandler,
                 )
                     .apply {
                         response.status() shouldBe HttpStatusCode.NotFound
@@ -344,7 +356,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                 requestSomAttestant(
                     HttpMethod.Patch,
                     "$sakPath/rubbish/behandlinger/rubbish/iverksett",
-                    navIdentSaksbehandler
+                    navIdentSaksbehandler,
                 )
                     .apply {
                         response.status() shouldBe HttpStatusCode.BadRequest
@@ -358,7 +370,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                 requestSomAttestant(
                     HttpMethod.Patch,
                     "$sakPath/${it.sak.id}/behandlinger/${UUID.randomUUID()}/iverksett",
-                    navIdentSaksbehandler
+                    navIdentSaksbehandler,
                 )
                     .apply {
                         response.status() shouldBe HttpStatusCode.NotFound
@@ -378,8 +390,8 @@ internal class SøknadsbehandlingRoutesKtTest {
                         jwtStub.createJwtToken(
                             subject = "random",
                             roller = listOf(Brukerrolle.Attestant),
-                            navIdent = navIdentSaksbehandler
-                        ).asBearerToken()
+                            navIdent = navIdentSaksbehandler,
+                        ).asBearerToken(),
                     )
                 }.apply {
                     response.status() shouldBe HttpStatusCode.Forbidden
@@ -393,7 +405,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                 requestSomAttestant(
                     HttpMethod.Patch,
                     "$sakPath/${it.sak.id}/behandlinger/${it.søknadsbehandling.id}/iverksett",
-                    navIdentAttestant
+                    navIdentAttestant,
                 )
                     .apply {
                         response.status() shouldBe HttpStatusCode.OK
@@ -410,28 +422,28 @@ internal class SøknadsbehandlingRoutesKtTest {
     @Nested
     inner class `Underkjenning av behandling` {
         private fun <R> withFerdigbehandletSakForBruker(
-            test: TestApplicationEngine.(objects: Objects) -> R
+            test: TestApplicationEngine.(objects: Objects) -> R,
         ) =
             withSetupForBruker(
                 {
                     services.søknadsbehandling.vilkårsvurder(
                         VilkårsvurderRequest(
                             søknadsbehandling.id,
-                            søknadsbehandling.behandlingsinformasjon.withAlleVilkårOppfylt()
-                        )
+                            søknadsbehandling.behandlingsinformasjon.withAlleVilkårOppfylt(),
+                        ),
                     )
                     services.søknadsbehandling.beregn(
                         BeregnRequest(
                             behandlingId = søknadsbehandling.id,
                             fradrag = emptyList(),
                             begrunnelse = null,
-                        )
+                        ),
                     )
                     services.søknadsbehandling.simuler(
                         SimulerRequest(
                             søknadsbehandling.id,
-                            saksbehandler
-                        )
+                            saksbehandler,
+                        ),
                     )
                         .map {
                             services.søknadsbehandling.sendTilAttestering(
@@ -439,10 +451,10 @@ internal class SøknadsbehandlingRoutesKtTest {
                                     søknadsbehandling.id,
                                     NavIdentBruker.Saksbehandler(navIdentSaksbehandler),
                                     "",
-                                )
+                                ),
                             )
                         }
-                }
+                },
             ) { test(it) }
 
         @Test
@@ -452,7 +464,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                     HttpMethod.Patch,
                     "$sakPath/rubbish/behandlinger/${objects.søknadsbehandling.id}/underkjenn",
                     listOf(Brukerrolle.Saksbehandler),
-                    navIdentSaksbehandler
+                    navIdentSaksbehandler,
                 ).apply {
                     response.status() shouldBe HttpStatusCode.Forbidden
                 }
@@ -460,7 +472,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                 defaultRequest(
                     HttpMethod.Patch,
                     "$sakPath/${objects.sak.id}/behandlinger/rubbish/underkjenn",
-                    listOf(Brukerrolle.Saksbehandler)
+                    listOf(Brukerrolle.Saksbehandler),
                 ).apply {
                     response.status() shouldBe HttpStatusCode.Forbidden
                 }
@@ -468,7 +480,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                 defaultRequest(
                     HttpMethod.Patch,
                     "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/underkjenn",
-                    listOf(Brukerrolle.Saksbehandler)
+                    listOf(Brukerrolle.Saksbehandler),
                 ).apply {
                     response.status() shouldBe HttpStatusCode.Forbidden
                 }
@@ -481,7 +493,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                 requestSomAttestant(
                     HttpMethod.Patch,
                     "$sakPath/rubbish/behandlinger/${objects.søknadsbehandling.id}/underkjenn",
-                    navIdentSaksbehandler
+                    navIdentSaksbehandler,
                 ).apply {
                     response.status() shouldBe HttpStatusCode.BadRequest
                 }
@@ -489,7 +501,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                 requestSomAttestant(
                     HttpMethod.Patch,
                     "$sakPath/${objects.sak.id}/behandlinger/rubbish/underkjenn",
-                    navIdentSaksbehandler
+                    navIdentSaksbehandler,
                 ).apply {
                     response.status() shouldBe HttpStatusCode.BadRequest
                 }
@@ -502,7 +514,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                 requestSomAttestant(
                     HttpMethod.Patch,
                     "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/underkjenn",
-                    navIdentSaksbehandler
+                    navIdentSaksbehandler,
                 ) {
                     setBody("""{"kommentar":"b", "grunn": "BEREGNINGEN_ER_FEIL"}""")
                 }.apply {
@@ -518,7 +530,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                 requestSomAttestant(
                     HttpMethod.Patch,
                     "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/underkjenn",
-                    navIdentSaksbehandler
+                    navIdentSaksbehandler,
                 ) {
                     setBody(
                         """
@@ -526,7 +538,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                         "grunn":"BEREGNINGEN_ER_FEIL",
                         "kommentar":""
                     }
-                        """.trimIndent()
+                        """.trimIndent(),
                     )
                 }.apply {
                     response.status() shouldBe HttpStatusCode.BadRequest
@@ -547,8 +559,8 @@ internal class SøknadsbehandlingRoutesKtTest {
                         jwtStub.createJwtToken(
                             subject = "S123456",
                             roller = listOf(Brukerrolle.Attestant),
-                            navIdent = navIdentSaksbehandler
-                        ).asBearerToken()
+                            navIdent = navIdentSaksbehandler,
+                        ).asBearerToken(),
                     )
                     setBody(
                         """
@@ -556,7 +568,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                         "grunn": "BEREGNINGEN_ER_FEIL",
                         "kommentar": "Ser fel ut. Men denna borde bli forbidden eftersom attestant og saksbehandler er samme."
                     }
-                        """.trimIndent()
+                        """.trimIndent(),
                     )
                 }.apply {
                     response.status() shouldBe HttpStatusCode.Forbidden
@@ -570,7 +582,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                 requestSomAttestant(
                     HttpMethod.Patch,
                     "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/underkjenn",
-                    navIdentAttestant
+                    navIdentAttestant,
                 ) {
                     setBody("""{"kommentar":"kommentar", "grunn": "BEREGNINGEN_ER_FEIL" }""")
                 }.apply {
@@ -584,36 +596,38 @@ internal class SøknadsbehandlingRoutesKtTest {
 
         @Test
         fun `Feiler dersom man ikke får sendt til utbetaling`() {
-            withTestApplication({
-                testSusebakover(
-                    clients = testClients.copy(
-                        utbetalingPublisher = object : UtbetalingPublisher {
-                            override fun publish(
-                                utbetaling: Utbetaling.SimulertUtbetaling
-                            ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Utbetalingsrequest> =
-                                UtbetalingPublisher.KunneIkkeSendeUtbetaling(
-                                    Utbetalingsrequest("")
-                                ).left()
-                        },
+            withTestApplication(
+                {
+                    testSusebakover(
+                        clients = testClients.copy(
+                            utbetalingPublisher = object : UtbetalingPublisher {
+                                override fun publish(
+                                    utbetaling: Utbetaling.SimulertUtbetaling,
+                                ): Either<UtbetalingPublisher.KunneIkkeSendeUtbetaling, Utbetalingsrequest> =
+                                    UtbetalingPublisher.KunneIkkeSendeUtbetaling(
+                                        Utbetalingsrequest(""),
+                                    ).left()
+                            },
+                        ),
                     )
-                )
-            }) {
+                },
+            ) {
                 val objects = setup()
                 services.søknadsbehandling.vilkårsvurder(
                     VilkårsvurderRequest(
                         objects.søknadsbehandling.id,
-                        Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
-                    )
+                        Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
+                    ),
                 )
                 services.søknadsbehandling.beregn(
                     BeregnRequest(
                         behandlingId = objects.søknadsbehandling.id,
                         fradrag = emptyList(),
                         begrunnelse = null,
-                    )
+                    ),
                 )
                 services.søknadsbehandling.simuler(
-                    SimulerRequest(objects.søknadsbehandling.id, saksbehandler)
+                    SimulerRequest(objects.søknadsbehandling.id, saksbehandler),
                 ).fold(
                     { it },
                     {
@@ -622,15 +636,15 @@ internal class SøknadsbehandlingRoutesKtTest {
                             SendTilAttesteringRequest(
                                 objects.søknadsbehandling.id,
                                 saksbehandler,
-                                ""
-                            )
+                                "",
+                            ),
                         )
-                    }
+                    },
                 )
 
                 requestSomAttestant(
                     HttpMethod.Patch,
-                    "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/iverksett"
+                    "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/iverksett",
                 ).apply {
                     response.status() shouldBe HttpStatusCode.InternalServerError
                 }
@@ -641,7 +655,7 @@ internal class SøknadsbehandlingRoutesKtTest {
     data class Objects(
         val sak: Sak,
         val søknad: Søknad,
-        val søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Uavklart
+        val søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Uavklart,
     )
 
     private fun setup(): Objects {
@@ -657,27 +671,30 @@ internal class SøknadsbehandlingRoutesKtTest {
             .journalfør(journalpostId).also { repos.søknad.oppdaterjournalpostId(it) }
             .medOppgave(oppgaveId).also { repos.søknad.oppdaterOppgaveId(it) }
 
-        val søknadsbehandling = Søknadsbehandling.Vilkårsvurdert.Uavklart(
+        val nySøknadsbehandling = NySøknadsbehandling(
             id = UUID.randomUUID(),
             opprettet = sak.opprettet,
             sakId = sak.id,
             søknad = søknadMedOppgave,
             oppgaveId = OppgaveId("1234"),
-            saksnummer = sak.saksnummer,
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             fnr = sak.fnr,
-            fritekstTilBrev = "",
-            stønadsperiode = stønadsperiode,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
-        repos.søknadsbehandling.lagre(
-            søknadsbehandling
+        repos.søknadsbehandling.lagreNySøknadsbehandling(
+            nySøknadsbehandling,
         )
+
+        services.søknadsbehandling.oppdaterStønadsperiode(
+            SøknadsbehandlingService.OppdaterStønadsperiodeRequest(
+                behandlingId = nySøknadsbehandling.id,
+                stønadsperiode = stønadsperiode,
+            ),
+        )
+
         return Objects(
             repos.sak.hentSak(sak.id)!!,
             repos.søknad.hentSøknad(søknadMedOppgave.id)!!,
-            søknadsbehandling
+            repos.søknadsbehandling.hent(nySøknadsbehandling.id) as Søknadsbehandling.Vilkårsvurdert.Uavklart,
         )
     }
 
@@ -686,13 +703,15 @@ internal class SøknadsbehandlingRoutesKtTest {
 
     fun <R> withSetupForBruker(
         s: Objects.() -> Unit,
-        test: TestApplicationEngine.(objects: Objects) -> R
+        test: TestApplicationEngine.(objects: Objects) -> R,
     ) =
-        withTestApplication({
-            testSusebakover(
-                clients = testClients
-            )
-        }) {
+        withTestApplication(
+            {
+                testSusebakover(
+                    clients = testClients,
+                )
+            },
+        ) {
             val objects = setup()
             s(objects)
             test(objects)

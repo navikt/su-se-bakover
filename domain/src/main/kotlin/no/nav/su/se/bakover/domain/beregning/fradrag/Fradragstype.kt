@@ -1,7 +1,8 @@
 package no.nav.su.se.bakover.domain.beregning.fradrag
 
 import arrow.core.Either
-import kotlinx.coroutines.runBlocking
+import arrow.core.left
+import arrow.core.right
 
 enum class Fradragstype {
     NAVytelserTilLivsopphold,
@@ -25,10 +26,10 @@ enum class Fradragstype {
     UnderMinstenivå;
 
     companion object {
-        fun isValid(s: String) =
-            runBlocking {
-                Either.catch { valueOf(s) }
-                    .isRight()
-            }
+        fun tryParse(value: String): Either<UgyldigFradragstype, Fradragstype> {
+            return values().firstOrNull { it.name == value }?.right() ?: UgyldigFradragstype.left()
+        }
     }
+
+    object UgyldigFradragstype
 }

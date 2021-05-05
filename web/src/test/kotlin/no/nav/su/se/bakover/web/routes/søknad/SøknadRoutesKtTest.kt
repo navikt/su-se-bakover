@@ -65,6 +65,7 @@ import no.nav.su.se.bakover.web.routes.søknad.lukk.LukketJson
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import java.util.UUID
+import kotlin.random.Random
 import kotlin.test.assertEquals
 
 internal class SøknadRoutesKtTest {
@@ -76,7 +77,7 @@ internal class SøknadRoutesKtTest {
     )
 
     private val sakId: UUID = UUID.randomUUID()
-    private val saksnummer = Math.random().toLong()
+    private val saksnummer = Random.nextLong(2021, Long.MAX_VALUE)
     private val tidspunkt = Tidspunkt.EPOCH
 
     private val sak = Sak(

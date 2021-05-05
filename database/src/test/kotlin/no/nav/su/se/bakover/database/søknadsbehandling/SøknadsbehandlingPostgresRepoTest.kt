@@ -73,7 +73,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
     @Test
     fun `kan sette inn tom saksbehandling`() {
         withMigratedDb {
-            val vilkårsvurdert = testDataHelper.nyUavklartVilkårsvurdering()
+            val vilkårsvurdert = testDataHelper.nySøknadsbehandling()
             repo.hent(vilkårsvurdert.id).also {
                 it shouldBe vilkårsvurdert
                 it.shouldBeTypeOf<Søknadsbehandling.Vilkårsvurdert.Uavklart>()
@@ -106,7 +106,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
     @Test
     fun `kan oppdatere stønadsperiode`() {
         withMigratedDb {
-            val vilkårsvurdert = testDataHelper.nyUavklartVilkårsvurdering(
+            val vilkårsvurdert = testDataHelper.nySøknadsbehandling(
                 stønadsperiode = null,
             )
             repo.hent(vilkårsvurdert.id).also {
@@ -125,7 +125,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
     fun `oppdaterer status og behandlingsinformasjon og sletter beregning og simulering hvis de eksisterer`() {
 
         withMigratedDb {
-            val uavklartVilkårsvurdering = testDataHelper.nyUavklartVilkårsvurdering().also {
+            val uavklartVilkårsvurdering = testDataHelper.nySøknadsbehandling().also {
                 val behandlingId = it.id
                 repo.hent(behandlingId) shouldBe it
                 dataSource.withSession {

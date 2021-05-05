@@ -1,14 +1,20 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
+import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
+import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import java.time.LocalDate
 import java.util.UUID
 import kotlin.reflect.KClass
 
@@ -47,12 +53,37 @@ interface SøknadsbehandlingService {
 
     data class BeregnRequest(
         val behandlingId: UUID,
-        val fradrag: List<Fradrag>,
+        val fradrag: List<FradragRequest>,
         val begrunnelse: String?,
-    )
+    ) {
+        data class FradragRequest(
+            val periode: Periode?,
+            val type: Fradragstype,
+            val månedsbeløp: Double,
+            val utenlandskInntekt: UtenlandskInntekt?,
+            val tilhører: FradragTilhører,
+        )
+
+        object IkkeLovMedFradragUtenforPerioden
+
+        fun toFradrag(stønadsperiode: Stønadsperiode): Either<IkkeLovMedFradragUtenforPerioden, List<Fradrag>> =
+            fradrag.map {
+                if (it.periode != null && !(stønadsperiode.periode inneholder it.periode)) {
+                    return IkkeLovMedFradragUtenforPerioden.left()
+                }
+                FradragFactory.ny(
+                    type = it.type,
+                    månedsbeløp = it.månedsbeløp,
+                    periode = it.periode ?: stønadsperiode.periode,
+                    utenlandskInntekt = it.utenlandskInntekt,
+                    tilhører = it.tilhører,
+                )
+            }.right()
+    }
 
     sealed class KunneIkkeBeregne {
         object FantIkkeBehandling : KunneIkkeBeregne()
+        object IkkeLovMedFradragUtenforPerioden : KunneIkkeBeregne()
     }
 
     data class SimulerRequest(
@@ -129,16 +160,6 @@ interface SøknadsbehandlingService {
         val behandlingId: UUID,
     )
 
-    data class HentAktiveRequest(
-        val aktivDato: LocalDate,
-    )
-
-    data class FrikortJson(
-        val fnr: String,
-        val fraOgMed: String,
-        val tilOgMed: String,
-    )
-
     object FantIkkeBehandling
     object KunneIkkeHenteAktiveBehandlinger
 
@@ -150,7 +171,7 @@ interface SøknadsbehandlingService {
 
     data class OppdaterStønadsperiodeRequest(
         val behandlingId: UUID,
-        val stønadsperiode: ValgtStønadsperiode,
+        val stønadsperiode: Stønadsperiode,
     )
 
     sealed class KunneIkkeLeggeTilGrunnlag {

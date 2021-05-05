@@ -13,7 +13,6 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
@@ -75,12 +74,13 @@ internal class StatusovergangTest {
         fradragStrategy = FradragStrategy.Enslig,
     )
 
-    private val stønadsperiode = ValgtStønadsperiode(Periode.create(1.januar(2021), 31.desember(2021)), "begrunnelsen")
+    private val stønadsperiode =
+        Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)), "begrunnelsen")
     private val opprettet = Søknadsbehandling.Vilkårsvurdert.Uavklart(
         id = UUID.randomUUID(),
         opprettet = Tidspunkt.now(),
         sakId = UUID.randomUUID(),
-        saksnummer = Saksnummer(1),
+        saksnummer = Saksnummer(2021),
         søknad = Søknad.Journalført.MedOppgave(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(),

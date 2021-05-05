@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.brev.BrevTemplate
 import org.junit.jupiter.api.Test
 import java.util.Base64
+import kotlin.random.Random
 
 internal class JournalpostFactoryTest {
 
@@ -20,7 +21,7 @@ internal class JournalpostFactoryTest {
         on { ident } doReturn Ident(Fnr("12345678910"), AktørId("12345"))
         on { navn } doReturn Person.Navn("fornavn", "mellomnavn", "etternavn")
     }
-    private val saksnummer = Saksnummer(Math.random().toLong())
+    private val saksnummer = Saksnummer(Random.nextLong(2021, Long.MAX_VALUE))
     private val pdf = "".toByteArray()
 
     @Test

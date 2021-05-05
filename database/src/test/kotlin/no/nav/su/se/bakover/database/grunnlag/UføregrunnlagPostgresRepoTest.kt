@@ -23,7 +23,7 @@ internal class UføregrunnlagPostgresRepoTest {
     @Test
     fun `lagrer uføregrunnlag, kobler til behandling og sletter`() {
         withMigratedDb {
-            val behandling = testDataHelper.nyUavklartVilkårsvurdering()
+            val behandling = testDataHelper.nySøknadsbehandling()
 
             val uføregrunnlag1 = Uføregrunnlag(
                 periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 30.april(2021)),
