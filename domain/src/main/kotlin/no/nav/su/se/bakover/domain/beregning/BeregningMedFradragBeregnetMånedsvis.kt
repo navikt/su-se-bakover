@@ -47,6 +47,7 @@ internal data class BeregningMedFradragBeregnetMånedsvis(
                 periode = it,
                 sats = sats,
                 fradrag = beregnetPeriodisertFradrag[it] ?: emptyList(),
+                fribeløpForEps = fradragStrategy.getEpsFribeløp(it)
             ).let { månedsberegning ->
                 when (månedsberegning.ytelseStørreEnn0MenMindreEnnToProsentAvHøySats()) {
                     true -> MånedsberegningFactory.ny(

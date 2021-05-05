@@ -57,7 +57,7 @@ internal data class PersistertMånedsberegning(
     private val satsbeløp: Double,
     private val fradrag: List<PersistertFradrag>,
     override val periode: Periode,
-    private val fribeløpForEps: Double? = null,
+    private val fribeløpForEps: Double = 0.0,
 ) : Månedsberegning {
     override fun getSumYtelse(): Int = sumYtelse
     override fun getSumFradrag(): Double = sumFradrag
@@ -65,7 +65,7 @@ internal data class PersistertMånedsberegning(
     override fun getSats(): Sats = sats
     override fun getSatsbeløp(): Double = satsbeløp
     override fun getFradrag(): List<Fradrag> = fradrag
-    override fun getFribeløpForEps(): Double? = fribeløpForEps
+    override fun getFribeløpForEps(): Double = fribeløpForEps
 
     override fun equals(other: Any?) = (other as? Månedsberegning)?.let { this.equals(other) } ?: false
 

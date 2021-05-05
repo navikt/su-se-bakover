@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.fradrag.getEpsFribeløp
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson.Companion.toJson
 import java.time.format.DateTimeFormatter
 
@@ -32,7 +31,7 @@ internal fun Beregning.toJson(): BeregningJson {
         sats = getSats().name,
         månedsberegninger = getMånedsberegninger().map {
             it.toJson(
-                getEpsFribeløp(getFradragStrategyName(), it.periode),
+                it.getFribeløpForEps(),
                 epsInputFradrag = epsInputFradragMap[it.periode] ?: emptyList()
             )
         },

@@ -11,7 +11,7 @@ internal data class PeriodisertBeregning(
     override val periode: Periode,
     private val sats: Sats,
     private val fradrag: List<Fradrag>,
-    private val fribeløpForEps: Double? = null,
+    private val fribeløpForEps: Double = 0.0,
 ) : Månedsberegning {
     init {
         require(fradrag.all { it.periode == periode }) { "Fradrag må være gjeldende for aktuell måned" }
@@ -30,7 +30,7 @@ internal data class PeriodisertBeregning(
     override fun getSats(): Sats = sats
     override fun getSatsbeløp(): Double = sats.periodiser(periode).getValue(periode)
     override fun getFradrag(): List<Fradrag> = fradrag
-    override fun getFribeløpForEps(): Double? = fribeløpForEps
+    override fun getFribeløpForEps(): Double = fribeløpForEps
 
     override fun equals(other: Any?) = (other as? Månedsberegning)?.let { this.equals(other) } ?: false
 }

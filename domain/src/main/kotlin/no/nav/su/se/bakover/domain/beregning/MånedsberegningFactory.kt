@@ -8,7 +8,7 @@ object MånedsberegningFactory {
         periode: Periode,
         sats: Sats,
         fradrag: List<Fradrag>,
-        fribeløpForEps: Double? = null,
+        fribeløpForEps: Double = 0.0,
     ): Månedsberegning {
         return PeriodisertBeregning(
             periode = periode,

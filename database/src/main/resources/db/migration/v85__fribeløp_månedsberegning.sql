@@ -6,7 +6,7 @@ with eps_info as (select (behandlingsinformasjon -> 'ektefelle' ->> 'alder')::in
 
      mapped_fribeløpsverdier as (
          select case
-                    when (epsÅlder is null) then null
+                    when (epsÅlder is null) then 0
                     when (epsÅlder >= 67) then 14810.333333333333333
                     when (epsÅlder < 67 and epsErUfør = 'true') then 19256.69
                     when (epsÅlder < 67 and epsErUfør = 'false') then 0
