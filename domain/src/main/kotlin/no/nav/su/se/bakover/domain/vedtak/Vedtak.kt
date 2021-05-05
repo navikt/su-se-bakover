@@ -26,6 +26,8 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.ErAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
+import no.nav.su.se.bakover.domain.vilkår.Vilkår
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.time.Clock
 import java.util.UUID
@@ -290,6 +292,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
         override val opprettet: Tidspunkt,
         override val periode: Periode,
         val grunnlagsdata: Grunnlagsdata,
+        val vilkårsvurderinger: Vilkårsvurderinger,
     ) : KanPlasseresPåTidslinje<VedtakPåTidslinje> {
         override fun copy(args: CopyArgs.Tidslinje): VedtakPåTidslinje =
             when (args) {
@@ -302,6 +305,17 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                             objekter = grunnlagsdata.uføregrunnlag,
                         ).tidslinje,
                     ),
+                    vilkårsvurderinger = Vilkårsvurderinger(
+                        uføre = when (vilkårsvurderinger.uføre) {
+                            Vilkår.IkkeVurdert.Uførhet -> Vilkår.IkkeVurdert.Uførhet
+                            is Vilkår.Vurdert.Uførhet -> vilkårsvurderinger.uføre.copy(
+                                vurderingsperioder = Tidslinje(
+                                    periode = periode,
+                                    objekter = vilkårsvurderinger.uføre.vurderingsperioder,
+                                ).tidslinje,
+                            )
+                        },
+                    ),
                 )
                 is CopyArgs.Tidslinje.NyPeriode -> copy(
                     periode = args.periode,
@@ -311,6 +325,17 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                             periode = args.periode,
                             objekter = grunnlagsdata.uføregrunnlag,
                         ).tidslinje,
+                    ),
+                    vilkårsvurderinger = Vilkårsvurderinger(
+                        uføre = when (vilkårsvurderinger.uføre) {
+                            Vilkår.IkkeVurdert.Uførhet -> Vilkår.IkkeVurdert.Uførhet
+                            is Vilkår.Vurdert.Uførhet -> vilkårsvurderinger.uføre.copy(
+                                vurderingsperioder = Tidslinje(
+                                    periode = args.periode,
+                                    objekter = vilkårsvurderinger.uføre.vurderingsperioder,
+                                ).tidslinje,
+                            )
+                        },
                     ),
                 )
             }
@@ -324,6 +349,7 @@ fun List<Vedtak>.lagTidslinje(periode: Periode): List<Vedtak.VedtakPåTidslinje>
             opprettet = it.opprettet,
             periode = it.periode,
             grunnlagsdata = it.behandling.grunnlagsdata,
+            vilkårsvurderinger = it.behandling.vilkårsvurderinger,
         )
     }.let {
         Tidslinje(

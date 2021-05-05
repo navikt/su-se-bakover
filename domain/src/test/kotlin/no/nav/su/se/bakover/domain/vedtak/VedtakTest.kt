@@ -16,12 +16,16 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import org.junit.jupiter.api.Test
 import java.time.Clock
 import java.time.LocalDate
@@ -38,7 +42,8 @@ internal class VedtakTest {
             rekkefølge = 1,
             fraDato = 1.januar(2021),
             tilDato = 31.desember(2021),
-            listGrunnlag = emptyList(),
+            grunnlagsdata = Grunnlagsdata(emptyList()),
+            vilkårsvurderinger = Vilkårsvurderinger(uføre = Vilkår.IkkeVurdert.Uførhet),
         )
         listOf(vedtak).lagTidslinje(Periode.create(1.januar(2021), 31.desember(2021))) shouldBe listOf(
             Vedtak.VedtakPåTidslinje(
@@ -46,6 +51,7 @@ internal class VedtakTest {
                 opprettet = vedtak.opprettet,
                 periode = vedtak.periode,
                 grunnlagsdata = vedtak.behandling.grunnlagsdata,
+                vilkårsvurderinger = vedtak.behandling.vilkårsvurderinger,
             ),
         )
     }
@@ -61,13 +67,15 @@ internal class VedtakTest {
             rekkefølge = 1,
             fraDato = 1.januar(2021),
             tilDato = 31.desember(2021),
-            listGrunnlag = emptyList(),
+            grunnlagsdata = Grunnlagsdata(emptyList()),
+            vilkårsvurderinger = Vilkårsvurderinger(uføre = Vilkår.IkkeVurdert.Uførhet),
         )
         val b = lagVedtak(
             rekkefølge = 2,
             fraDato = 1.mai(2021),
             tilDato = 31.desember(2021),
-            listGrunnlag = emptyList(),
+            grunnlagsdata = Grunnlagsdata(emptyList()),
+            vilkårsvurderinger = Vilkårsvurderinger(uføre = Vilkår.IkkeVurdert.Uførhet),
         )
         listOf(a, b).lagTidslinje(Periode.create(1.januar(2021), 31.desember(2021))) shouldBe listOf(
             Vedtak.VedtakPåTidslinje(
@@ -75,12 +83,14 @@ internal class VedtakTest {
                 opprettet = a.opprettet,
                 periode = Periode.create(1.januar(2021), 30.april(2021)),
                 grunnlagsdata = a.behandling.grunnlagsdata,
+                vilkårsvurderinger = a.behandling.vilkårsvurderinger,
             ),
             Vedtak.VedtakPåTidslinje(
                 vedtakId = b.id,
                 opprettet = b.opprettet,
                 periode = b.periode,
                 grunnlagsdata = b.behandling.grunnlagsdata,
+                vilkårsvurderinger = b.behandling.vilkårsvurderinger,
             ),
         )
     }
@@ -95,29 +105,52 @@ internal class VedtakTest {
      */
     @Test
     fun `begrenser perioden på grunnlagene til samme perioden som vedtaket`() {
+        val p1 = Periode.create(1.januar(2021), 31.desember(2021))
+        val u1 = lagUføregrunnlag(
+            rekkefølge = 1,
+            fraDato = p1.fraOgMed,
+            tilDato = p1.tilOgMed,
+        )
+        val v1 = Vurderingsperiode.Manuell(
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
+            resultat = Resultat.Innvilget,
+            grunnlag = u1,
+            periode = p1,
+            begrunnelse = "hei"
+        )
         val a = lagVedtak(
             rekkefølge = 1,
-            fraDato = 1.januar(2021),
-            tilDato = 31.desember(2021),
-            listGrunnlag = listOf(
-                lagUføregrunnlag(
-                    rekkefølge = 1,
-                    fraDato = 1.januar(2021),
-                    tilDato = 31.desember(2021),
-                ),
+            fraDato = p1.fraOgMed,
+            tilDato = p1.tilOgMed,
+            grunnlagsdata = Grunnlagsdata(
+                listOf(u1),
             ),
+            vilkårsvurderinger = Vilkårsvurderinger(uføre = Vilkår.Vurdert.Uførhet(listOf(v1))),
+        )
+
+        val p2 = Periode.create(1.mai(2021), 31.desember(2021))
+        val u2 = lagUføregrunnlag(
+            rekkefølge = 2,
+            fraDato = p2.fraOgMed,
+            tilDato = p2.tilOgMed,
+        )
+        val v2 = Vurderingsperiode.Manuell(
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
+            resultat = Resultat.Avslag,
+            grunnlag = u2,
+            periode = p2,
+            begrunnelse = "hei"
         )
         val b = lagVedtak(
             rekkefølge = 2,
-            fraDato = 1.mai(2021),
-            tilDato = 31.desember(2021),
-            listGrunnlag = listOf(
-                lagUføregrunnlag(
-                    rekkefølge = 2,
-                    fraDato = 1.mai(2021),
-                    tilDato = 31.desember(2021),
-                ),
+            fraDato = p2.fraOgMed,
+            tilDato = p2.tilOgMed,
+            grunnlagsdata = Grunnlagsdata(
+                listOf(u2),
             ),
+            vilkårsvurderinger = Vilkårsvurderinger(uføre = Vilkår.Vurdert.Uførhet(listOf(v2))),
         )
         listOf(a, b).lagTidslinje(Periode.create(1.januar(2021), 31.desember(2021))).let { tidslinje ->
             tidslinje[0].let { vedtakPåTidslinje ->
@@ -125,10 +158,24 @@ internal class VedtakTest {
                 vedtakPåTidslinje.opprettet shouldBe a.opprettet
                 vedtakPåTidslinje.periode shouldBe Periode.create(1.januar(2021), 30.april(2021))
                 vedtakPåTidslinje.grunnlagsdata.uføregrunnlag[0].let {
-                    it.id shouldNotBe a.behandling.grunnlagsdata.uføregrunnlag[0].id
+                    it.id shouldNotBe u1.id
                     it.periode shouldBe Periode.create(1.januar(2021), 30.april(2021))
-                    it.uføregrad shouldBe a.behandling.grunnlagsdata.uføregrunnlag[0].uføregrad
-                    it.forventetInntekt shouldBe a.behandling.grunnlagsdata.uføregrunnlag[0].forventetInntekt
+                    it.uføregrad shouldBe u1.uføregrad
+                    it.forventetInntekt shouldBe u1.forventetInntekt
+                }
+                (vedtakPåTidslinje.vilkårsvurderinger.uføre as Vilkår.Vurdert.Uførhet).let { vilkårcopy ->
+                    vilkårcopy.vurderingsperioder[0].let { vurderingsperiodecopy ->
+                        vurderingsperiodecopy.id shouldNotBe v1.id
+                        vurderingsperiodecopy.begrunnelse shouldBe v1.begrunnelse
+                        vurderingsperiodecopy.resultat shouldBe v1.resultat
+                        vurderingsperiodecopy.periode shouldBe Periode.create(1.januar(2021), 30.april(2021))
+                        vurderingsperiodecopy.grunnlag!!.let {
+                            it.id shouldNotBe u1.id
+                            it.periode shouldBe Periode.create(1.januar(2021), 30.april(2021))
+                            it.uføregrad shouldBe u1.uføregrad
+                            it.forventetInntekt shouldBe u1.forventetInntekt
+                        }
+                    }
                 }
             }
             tidslinje[1].let { vedtakPåTidslinje ->
@@ -136,10 +183,24 @@ internal class VedtakTest {
                 vedtakPåTidslinje.opprettet shouldBe b.opprettet
                 vedtakPåTidslinje.periode shouldBe b.periode
                 vedtakPåTidslinje.grunnlagsdata.uføregrunnlag[0].let {
-                    it.id shouldNotBe b.behandling.grunnlagsdata.uføregrunnlag[0].id
-                    it.periode shouldBe b.periode
-                    it.uføregrad shouldBe b.behandling.grunnlagsdata.uføregrunnlag[0].uføregrad
-                    it.forventetInntekt shouldBe b.behandling.grunnlagsdata.uføregrunnlag[0].forventetInntekt
+                    it.id shouldNotBe u2.id
+                    it.periode shouldBe u2.periode
+                    it.uføregrad shouldBe u2.uføregrad
+                    it.forventetInntekt shouldBe u2.forventetInntekt
+                }
+                (vedtakPåTidslinje.vilkårsvurderinger.uføre as Vilkår.Vurdert.Uførhet).let { vilkårcopy ->
+                    vilkårcopy.vurderingsperioder[0].let { vurderingsperiodecopy ->
+                        vurderingsperiodecopy.id shouldNotBe v2.id
+                        vurderingsperiodecopy.begrunnelse shouldBe v2.begrunnelse
+                        vurderingsperiodecopy.resultat shouldBe v2.resultat
+                        vurderingsperiodecopy.periode shouldBe v2.periode
+                        vurderingsperiodecopy.grunnlag!!.let {
+                            it.id shouldNotBe u2.id
+                            it.periode shouldBe u2.periode
+                            it.uføregrad shouldBe u2.uføregrad
+                            it.forventetInntekt shouldBe u2.forventetInntekt
+                        }
+                    }
                 }
             }
         }
@@ -155,23 +216,43 @@ internal class VedtakTest {
      */
     @Test
     fun `informasjon som overskrives av nyere vedtak forsvinner fra tidslinjen`() {
+        val p1 = Periode.create(1.januar(2021), 31.desember(2021))
+        val u1 = lagUføregrunnlag(
+            rekkefølge = 1,
+            fraDato = p1.fraOgMed,
+            tilDato = p1.tilOgMed,
+        )
+        val v1 = Vurderingsperiode.Manuell(
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
+            resultat = Resultat.Innvilget,
+            grunnlag = u1,
+            periode = p1,
+            begrunnelse = "hei"
+        )
         val a = lagVedtak(
             rekkefølge = 1,
             fraDato = 1.januar(2021),
             tilDato = 31.desember(2021),
-            listGrunnlag = listOf(
-                lagUføregrunnlag(
-                    rekkefølge = 1,
-                    fraDato = 1.januar(2021),
-                    tilDato = 31.desember(2021),
+            grunnlagsdata = Grunnlagsdata(
+                listOf(
+                    lagUføregrunnlag(
+                        rekkefølge = 1,
+                        fraDato = 1.januar(2021),
+                        tilDato = 31.desember(2021),
+                    ),
                 ),
             ),
+            vilkårsvurderinger = Vilkårsvurderinger(uføre = Vilkår.Vurdert.Uførhet(listOf(v1))),
         )
         val b = lagVedtak(
             rekkefølge = 2,
             fraDato = 1.januar(2021),
             tilDato = 31.desember(2021),
-            listGrunnlag = emptyList(),
+            grunnlagsdata = Grunnlagsdata(
+                emptyList(),
+            ),
+            vilkårsvurderinger = Vilkårsvurderinger(uføre = Vilkår.IkkeVurdert.Uførhet),
         )
 
         listOf(a, b).lagTidslinje(periode = Periode.create(1.januar(2021), 31.desember(2021))) shouldBe listOf(
@@ -180,6 +261,7 @@ internal class VedtakTest {
                 opprettet = b.opprettet,
                 periode = b.periode,
                 grunnlagsdata = b.behandling.grunnlagsdata,
+                vilkårsvurderinger = b.behandling.vilkårsvurderinger,
             ),
         )
     }
@@ -192,7 +274,13 @@ internal class VedtakTest {
         forventetInntekt = 0,
     )
 
-    private fun lagVedtak(rekkefølge: Long, fraDato: LocalDate, tilDato: LocalDate, listGrunnlag: List<Grunnlag.Uføregrunnlag>) = Vedtak.fromSøknadsbehandling(
+    private fun lagVedtak(
+        rekkefølge: Long,
+        fraDato: LocalDate,
+        tilDato: LocalDate,
+        grunnlagsdata: Grunnlagsdata,
+        vilkårsvurderinger: Vilkårsvurderinger,
+    ) = Vedtak.fromSøknadsbehandling(
         Søknadsbehandling.Iverksatt.Innvilget(
             id = mock(),
             opprettet = Tidspunkt.now(fixedClock).plus(rekkefølge, ChronoUnit.DAYS),
@@ -211,10 +299,8 @@ internal class VedtakTest {
                 periode = Periode.create(fraDato, tilDato),
                 begrunnelse = "begrunnelsen for perioden",
             ),
-            grunnlagsdata = Grunnlagsdata(
-                listGrunnlag,
-            ),
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            grunnlagsdata = grunnlagsdata,
+            vilkårsvurderinger = vilkårsvurderinger,
         ),
         UUID30.randomUUID(),
     )

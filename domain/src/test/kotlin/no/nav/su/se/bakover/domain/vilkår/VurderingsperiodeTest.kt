@@ -44,9 +44,15 @@ internal class VurderingsperiodeTest {
             vurderingsperiodeCopy.id shouldNotBe original.id
             vurderingsperiodeCopy.opprettet shouldBe original.opprettet
             vurderingsperiodeCopy.periode shouldBe original.periode
-            vurderingsperiodeCopy.grunnlag shouldBe original.grunnlag
             vurderingsperiodeCopy.periode shouldBe original.periode
             vurderingsperiodeCopy.begrunnelse shouldBe original.begrunnelse
+            vurderingsperiodeCopy.grunnlag!!.let { grunnlagCopy ->
+                grunnlagCopy.id shouldNotBe original.grunnlag!!.id
+                grunnlagCopy.opprettet shouldBe original.grunnlag!!.opprettet
+                grunnlagCopy.periode shouldBe Periode.create(1.januar(2021), 31.desember(2021))
+                grunnlagCopy.uføregrad shouldBe original.grunnlag!!.uføregrad
+                grunnlagCopy.forventetInntekt shouldBe original.grunnlag!!.forventetInntekt
+            }
         }
     }
 
@@ -125,7 +131,8 @@ internal class VurderingsperiodeTest {
                 copy.id shouldNotBe b.id
                 copy.periode shouldBe Periode.create(1.januar(2021), 30.april(2021))
                 copy.begrunnelse shouldBe a.begrunnelse
-                copy.grunnlag?.let { grunnlagCopy ->
+                copy.grunnlag!!.let { grunnlagCopy ->
+                    grunnlagCopy.id shouldNotBe a.grunnlag!!.id
                     grunnlagCopy.periode shouldBe copy.periode
                     grunnlagCopy.uføregrad shouldBe a.grunnlag!!.uføregrad
                     grunnlagCopy.forventetInntekt shouldBe a.grunnlag!!.forventetInntekt
@@ -136,7 +143,8 @@ internal class VurderingsperiodeTest {
                 copy.id shouldNotBe b.id
                 copy.periode shouldBe Periode.create(1.mai(2021), 31.desember(2021))
                 copy.begrunnelse shouldBe b.begrunnelse
-                copy.grunnlag?.let { grunnlagCopy ->
+                copy.grunnlag!!.let { grunnlagCopy ->
+                    grunnlagCopy.id shouldNotBe b.grunnlag!!.id
                     grunnlagCopy.periode shouldBe copy.periode
                     grunnlagCopy.uføregrad shouldBe b.grunnlag!!.uføregrad
                     grunnlagCopy.forventetInntekt shouldBe b.grunnlag!!.forventetInntekt
