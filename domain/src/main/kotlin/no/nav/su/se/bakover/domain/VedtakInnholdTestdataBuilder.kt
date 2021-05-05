@@ -23,6 +23,7 @@ object VedtakInnholdTestdataBuilder {
         sats = "100",
         satsGrunn = Satsgrunn.DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN,
         satsBeløp = 100,
+        satsGjeldendeFraDato = "01.05.2020",
         harEktefelle = true,
         beregningsperioder = listOf(
             Beregningsperiode(

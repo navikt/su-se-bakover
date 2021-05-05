@@ -63,6 +63,7 @@ internal class BrevInnholdTest {
             saksbehandlerNavn = "Hei",
             attestantNavn = "Hopp",
             fritekst = "",
+            satsGjeldendeFraDato = "01.01.2020",
         )
 
         val actualJson = objectMapper.writeValueAsString(innvilgetVedtak)
@@ -81,6 +82,7 @@ internal class BrevInnholdTest {
                 "sats": "HØY",
                 "satsGrunn": "DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN",
                 "satsBeløp": 100,
+                "satsGjeldendeFraDato": "01.01.2020",
                 "harEktefelle": true,
                 "harFradrag": false,
                 "beregningsperioder": [{
@@ -148,6 +150,7 @@ internal class BrevInnholdTest {
             fritekst = "",
             avslagsgrunner = listOf(Avslagsgrunn.FOR_HØY_INNTEKT),
             avslagsparagrafer = listOf(1),
+            satsGjeldendeFraDato = "01.01.2020",
         )
 
         //language=JSON
@@ -161,6 +164,7 @@ internal class BrevInnholdTest {
                 },
                 "sats": "HØY",
                 "satsBeløp": 100,
+                "satsGjeldendeFraDato": "01.01.2020",
                 "harEktefelle": true,
                 "harFradrag": false,
                 "beregningsperioder": [{
