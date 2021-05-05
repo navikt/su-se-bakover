@@ -47,4 +47,25 @@ internal class GrunnbeløpTest {
     fun fiktivOrdinær2021for2021() {
         Grunnbeløp.`2,28G`.fraDato(LocalDate.of(2021, MAY, 1)) shouldBe 2.28 * 104463
     }
+
+    @Test
+    fun `finn siste g-endringsdato for 2020-01-01`() {
+        Grunnbeløp.`2,48G`.datoForSisteEndringAvGrunnbeløp(
+            LocalDate.of(2020, JANUARY, 1),
+        ) shouldBe LocalDate.of(2019, MAY, 1)
+    }
+
+    @Test
+    fun `finn siste g-endringsdato for 2021-04-30`() {
+        Grunnbeløp.`2,48G`.datoForSisteEndringAvGrunnbeløp(
+            LocalDate.of(2021, APRIL, 30),
+        ) shouldBe LocalDate.of(2020, MAY, 1)
+    }
+
+    @Test
+    fun `finn siste g-endringsdato for 2021-05-01`() {
+        Grunnbeløp.`2,48G`.datoForSisteEndringAvGrunnbeløp(
+            LocalDate.of(2021, MAY, 1),
+        ) shouldBe LocalDate.of(2021, MAY, 1)
+    }
 }

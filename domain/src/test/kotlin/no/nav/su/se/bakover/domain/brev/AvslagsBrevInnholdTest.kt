@@ -24,7 +24,8 @@ class AvslagsBrevInnholdTest {
         saksbehandlerNavn = "Sak Sakesen",
         attestantNavn = "Att Attestantsen",
         sats = "lav",
-        fritekst = "Fritekst til brevet"
+        fritekst = "Fritekst til brevet",
+        satsGjeldendeFraDato = "01.01.2020",
     )
 
     @Test
@@ -49,6 +50,7 @@ class AvslagsBrevInnholdTest {
               "attestantNavn": "Att Attestantsen",
               "sats": "lav",
               "satsBeløp": null,
+              "satsGjeldendeFraDato": "01.01.2020",
               "fritekst": "Fritekst til brevet"
             }
         """.trimIndent()
