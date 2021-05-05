@@ -28,7 +28,7 @@ internal class UtbetalingsstrategiOpphørTest {
 
     private val fnr = Fnr("12345678910")
     private val sakId = UUID.randomUUID()
-    private val saksnummer = Saksnummer(1234)
+    private val saksnummer = Saksnummer(2021)
     private val behandler = NavIdentBruker.Saksbehandler("Z123")
 
     private val enUtbetalingslinje = Utbetalingslinje.Ny(

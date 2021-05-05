@@ -47,7 +47,7 @@ data class ApplicationConfig(
     val database: DatabaseConfig,
     val clientsConfig: ClientsConfig,
     val kafkaConfig: KafkaConfig,
-    val unleash: UnleashConfig
+    val unleash: UnleashConfig,
 ) {
     enum class RuntimeEnvironment {
         Test,
@@ -88,12 +88,12 @@ data class ApplicationConfig(
         companion object {
             fun createFromEnvironmentVariables() = FrikortConfig(
                 serviceUsername = getEnvironmentVariableOrThrow("FRIKORT_SERVICE_USERNAME"),
-                useStubForSts = false
+                useStubForSts = false,
             )
 
             fun createLocalConfig() = FrikortConfig(
                 serviceUsername = getEnvironmentVariableOrDefault("FRIKORT_SERVICE_USERNAME", "frikort"),
-                useStubForSts = getEnvironmentVariableOrDefault("USE_STUB_FOR_STS", "true") == "true"
+                useStubForSts = getEnvironmentVariableOrDefault("USE_STUB_FOR_STS", "true") == "true",
             )
         }
     }
@@ -123,37 +123,37 @@ data class ApplicationConfig(
                     saksbehandler = getEnvironmentVariableOrThrow("AZURE_GROUP_SAKSBEHANDLER"),
                     veileder = getEnvironmentVariableOrThrow("AZURE_GROUP_VEILEDER"),
                     drift = getEnvironmentVariableOrThrow("AZURE_GROUP_DRIFT"),
-                )
+                ),
             )
 
             fun createLocalConfig() = AzureConfig(
                 clientSecret = getEnvironmentVariableOrDefault("AZURE_APP_CLIENT_SECRET", "Denne brukes bare dersom man bruker en reell PDL/Oppgave-integrasjon o.l."),
                 wellKnownUrl = getEnvironmentVariableOrDefault(
                     "AZURE_APP_WELL_KNOWN_URL",
-                    "http://localhost:4321/default/.well-known/openid-configuration"
+                    "http://localhost:4321/default/.well-known/openid-configuration",
                 ),
                 clientId = getEnvironmentVariableOrDefault(
                     "AZURE_APP_CLIENT_ID",
-                    "su-se-bakover"
+                    "su-se-bakover",
                 ),
                 groups = AzureGroups(
                     attestant = getEnvironmentVariableOrDefault(
                         "AZURE_GROUP_ATTESTANT",
-                        "d75164fa-39e6-4149-956e-8404bc9080b6"
+                        "d75164fa-39e6-4149-956e-8404bc9080b6",
                     ),
                     saksbehandler = getEnvironmentVariableOrDefault(
                         "AZURE_GROUP_SAKSBEHANDLER",
-                        "0ba009c4-d148-4a51-b501-4b1cf906889d"
+                        "0ba009c4-d148-4a51-b501-4b1cf906889d",
                     ),
                     veileder = getEnvironmentVariableOrDefault(
                         "AZURE_GROUP_VEILEDER",
-                        "062d4814-8538-4f3a-bcb9-32821af7909a"
+                        "062d4814-8538-4f3a-bcb9-32821af7909a",
                     ),
                     drift = getEnvironmentVariableOrDefault(
                         "AZURE_GROUP_DRIFT",
-                        "5ccd88bd-58d6-41a7-9652-5e0597b00f9b"
-                    )
-                )
+                        "5ccd88bd-58d6-41a7-9652-5e0597b00f9b",
+                    ),
+                ),
             )
         }
     }
@@ -219,20 +219,20 @@ data class ApplicationConfig(
                 mqChannel = "unused",
                 utbetaling = UtbetalingConfig(
                     mqSendQueue = "unused",
-                    mqReplyTo = "unused"
+                    mqReplyTo = "unused",
                 ),
                 avstemming = AvstemmingConfig(mqSendQueue = "unused"),
                 simulering = SimuleringConfig(
                     url = "unused",
-                    stsSoapUrl = "unused"
-                )
+                    stsSoapUrl = "unused",
+                ),
             )
         }
     }
 
     data class UnleashConfig(
         val unleashUrl: String,
-        val appName: String
+        val appName: String,
     ) {
         companion object {
             fun createFromEnvironmentVariables() = UnleashConfig(
@@ -268,7 +268,7 @@ data class ApplicationConfig(
             fun createLocalConfig() = StaticCredentials(
                 jdbcUrl = getEnvironmentVariableOrDefault(
                     "DATABASE_JDBC_URL",
-                    "jdbc:postgresql://localhost:5432/supstonad-db-local"
+                    "jdbc:postgresql://localhost:5432/supstonad-db-local",
                 ),
             )
         }
@@ -276,7 +276,7 @@ data class ApplicationConfig(
 
     data class ClientsConfig(
         val oppgaveConfig: OppgaveConfig,
-        val pdlUrl: String,
+        val pdlConfig: PdlConfig,
         val dokDistUrl: String,
         val pdfgenUrl: String,
         val dokarkivUrl: String,
@@ -288,14 +288,14 @@ data class ApplicationConfig(
         companion object {
             fun createFromEnvironmentVariables() = ClientsConfig(
                 oppgaveConfig = OppgaveConfig.createFromEnvironmentVariables(),
-                pdlUrl = getEnvironmentVariableOrDefault("PDL_URL", "http://pdl-api.default.svc.nais.local"),
+                pdlConfig = PdlConfig.createFromEnvironmentVariables(),
                 dokDistUrl = getEnvironmentVariableOrThrow("DOKDIST_URL"),
                 pdfgenUrl = getEnvironmentVariableOrDefault("PDFGEN_URL", "http://su-pdfgen.supstonad.svc.nais.local"),
                 dokarkivUrl = getEnvironmentVariableOrThrow("DOKARKIV_URL"),
                 kodeverkUrl = getEnvironmentVariableOrDefault("KODEVERK_URL", "http://kodeverk.default.svc.nais.local"),
                 stsUrl = getEnvironmentVariableOrDefault(
                     "STS_URL",
-                    "http://security-token-service.default.svc.nais.local"
+                    "http://security-token-service.default.svc.nais.local",
                 ),
                 skjermingUrl = getEnvironmentVariableOrThrow("SKJERMING_URL"),
                 dkifUrl = getEnvironmentVariableOrDefault("DKIF_URL", "http://dkif.default.svc.nais.local"),
@@ -303,14 +303,14 @@ data class ApplicationConfig(
 
             fun createLocalConfig() = ClientsConfig(
                 oppgaveConfig = OppgaveConfig.createLocalConfig(),
-                pdlUrl = "mocked",
+                pdlConfig = PdlConfig.createLocalConfig(),
                 dokDistUrl = "mocked",
                 pdfgenUrl = "mocked",
                 dokarkivUrl = "mocked",
                 kodeverkUrl = "mocked",
                 stsUrl = getEnvironmentVariableOrDefault(
                     "STS_URL",
-                    "mocked"
+                    "mocked",
                 ),
                 skjermingUrl = "mocked",
                 dkifUrl = "mocked",
@@ -333,6 +333,23 @@ data class ApplicationConfig(
                 )
             }
         }
+
+        data class PdlConfig(
+            val url: String,
+            val clientId: String,
+        ) {
+            companion object {
+                fun createFromEnvironmentVariables() = PdlConfig(
+                    url = getEnvironmentVariableOrDefault("PDL_URL", "http://pdl-api.default.svc.nais.local"),
+                    clientId = getEnvironmentVariableOrThrow("PDL_CLIENT_ID"),
+                )
+
+                fun createLocalConfig() = PdlConfig(
+                    url = "mocked",
+                    clientId = "mocked",
+                )
+            }
+        }
     }
 
     data class KafkaConfig(
@@ -347,24 +364,24 @@ data class ApplicationConfig(
                         ProducerConfig.ACKS_CONFIG to "all",
                         ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
                         ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
-                    )
-                )
+                    ),
+                ),
             )
 
             fun createLocalConfig() = KafkaConfig(
                 common = emptyMap(),
-                producerCfg = ProducerCfg(emptyMap())
+                producerCfg = ProducerCfg(emptyMap()),
             )
         }
 
         data class ProducerCfg(
             val kafkaConfig: Map<String, Any>,
-            val retryTaskInterval: Long = 15_000L
+            val retryTaskInterval: Long = 15_000L,
         )
 
         private data class Common(
             val brokers: String = getEnvironmentVariableOrDefault("KAFKA_BROKERS", "brokers"),
-            val sslConfig: Map<String, String> = SslConfig().configure()
+            val sslConfig: Map<String, String> = SslConfig().configure(),
         ) {
             fun configure(): Map<String, String> =
                 mapOf(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG to brokers) + sslConfig
@@ -384,7 +401,7 @@ data class ApplicationConfig(
                 SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG to credstorePwd,
                 SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG to keystorePath,
                 SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG to credstorePwd,
-                SslConfigs.SSL_KEY_PASSWORD_CONFIG to credstorePwd
+                SslConfigs.SSL_KEY_PASSWORD_CONFIG to credstorePwd,
             )
         }
     }
@@ -411,7 +428,7 @@ data class ApplicationConfig(
             database = DatabaseConfig.createFromEnvironmentVariables(),
             clientsConfig = ClientsConfig.createFromEnvironmentVariables(),
             kafkaConfig = KafkaConfig.createFromEnvironmentVariables(),
-            unleash = UnleashConfig.createFromEnvironmentVariables()
+            unleash = UnleashConfig.createFromEnvironmentVariables(),
         )
 
         fun createLocalConfig() = ApplicationConfig(
@@ -426,7 +443,7 @@ data class ApplicationConfig(
             database = DatabaseConfig.createLocalConfig(),
             clientsConfig = ClientsConfig.createLocalConfig(),
             kafkaConfig = KafkaConfig.createLocalConfig(),
-            unleash = UnleashConfig.createFromEnvironmentVariables()
+            unleash = UnleashConfig.createFromEnvironmentVariables(),
         ).also {
             log.warn("**********  Using local config (the environment variable 'NAIS_CLUSTER_NAME' is missing.)")
         }
@@ -441,5 +458,6 @@ data class ApplicationConfig(
             }
 
         fun isRunningLocally() = naisCluster() == null
+        fun isNotProd() = isRunningLocally() || naisCluster() == NaisCluster.Dev
     }
 }

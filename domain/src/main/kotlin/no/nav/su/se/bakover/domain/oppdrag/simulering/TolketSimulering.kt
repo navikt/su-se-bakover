@@ -11,7 +11,7 @@ data class TolketSimulering(
             true -> {
                 it.utbetaling.map { simulertUtbetaling ->
                     val detaljer = simulertUtbetaling.detaljer.map { simulertDetalj ->
-                        TolketDetalj.from(simulertDetalj)
+                        TolketDetalj.from(simulertDetalj, simulertUtbetaling.forfall)
                     }.filterNotNull()
                     TolketUtbetaling.from(detaljer)
                 }
@@ -54,7 +54,12 @@ sealed class TolketUtbetaling {
                 }
             }
             tolketDetaljer.erOrdinær() -> {
-                Ordinær(tolketDetaljer)
+                val tolketDetalj = tolketDetaljer.first() as TolketDetalj.Ordinær
+                if (tolketDetalj.fraOgMed < tolketDetalj.forfall.withDayOfMonth(1)) {
+                    Etterbetaling(tolketDetaljer + TolketDetalj.Etterbetaling(tolketDetalj.beløp))
+                } else {
+                    Ordinær(tolketDetaljer)
+                }
             }
             else -> throw IngenEntydigTolkning
         }
@@ -123,7 +128,7 @@ sealed class TolketDetalj {
     abstract val beløp: Int
 
     companion object {
-        fun from(simulertDetaljer: SimulertDetaljer) = when {
+        fun from(simulertDetaljer: SimulertDetaljer, forfall: LocalDate) = when {
             simulertDetaljer.erTidligereUtbetalt() -> {
                 TidligereUtbetalt(beløp = simulertDetaljer.belop)
             }
@@ -131,7 +136,7 @@ sealed class TolketDetalj {
                 Feilutbetaling(beløp = simulertDetaljer.belop)
             }
             simulertDetaljer.erØnsketUtbetalt() -> {
-                Ordinær(beløp = simulertDetaljer.belop)
+                Ordinær(beløp = simulertDetaljer.belop, forfall, simulertDetaljer.faktiskFraOgMed)
             }
             else -> null
         }
@@ -164,6 +169,8 @@ sealed class TolketDetalj {
 
     data class Ordinær(
         override val beløp: Int,
+        val forfall: LocalDate,
+        val fraOgMed: LocalDate,
     ) : TolketDetalj()
 
     data class TidligereUtbetalt(

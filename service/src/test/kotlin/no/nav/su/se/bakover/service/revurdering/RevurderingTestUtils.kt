@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -23,6 +22,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
+import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -67,11 +67,15 @@ object RevurderingTestUtils {
             )
         },
     )
-    internal val stønadsperiode = ValgtStønadsperiode(
+    internal val stønadsperiode = Stønadsperiode.create(
         periode = periode,
-        begrunnelse = "begrunnelsen for perioden"
+        begrunnelse = "begrunnelsen for perioden",
     )
-    internal val attesteringUnderkjent = Attestering.Underkjent(NavIdentBruker.Attestant("Attes T. Ant"), Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL, "kommentar")
+    internal val attesteringUnderkjent = Attestering.Underkjent(
+        NavIdentBruker.Attestant("Attes T. Ant"),
+        Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
+        "kommentar",
+    )
     internal val saksbehandler = NavIdentBruker.Saksbehandler("Sak S. behandler")
     internal val saksnummer = Saksnummer(nummer = 12345676)
     internal val fnr = FnrGenerator.random()

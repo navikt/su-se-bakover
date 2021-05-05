@@ -8,6 +8,8 @@ import io.ktor.server.testing.TestApplicationCall
 import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.TestApplicationRequest
 import io.ktor.server.testing.handleRequest
+import no.finn.unleash.FakeUnleash
+import no.finn.unleash.Unleash
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.januar
@@ -46,11 +48,11 @@ val applicationConfig = ApplicationConfig(
             saksbehandler = "testAzureGroupSaksbehandler",
             veileder = "testAzureGroupVeileder",
             drift = "testAzureGroupDrift",
-        )
+        ),
     ),
     frikort = ApplicationConfig.FrikortConfig(
         serviceUsername = "frikort",
-        useStubForSts = true
+        useStubForSts = true,
     ),
     oppdrag = ApplicationConfig.OppdragConfig(
         mqQueueManager = "testMqQueueManager",
@@ -59,13 +61,13 @@ val applicationConfig = ApplicationConfig(
         mqChannel = "testMqChannel",
         utbetaling = ApplicationConfig.OppdragConfig.UtbetalingConfig(
             mqSendQueue = "testMqSendQueue",
-            mqReplyTo = "testMqReplyTo"
+            mqReplyTo = "testMqReplyTo",
         ),
         avstemming = ApplicationConfig.OppdragConfig.AvstemmingConfig(mqSendQueue = "avstemmingMqTestSendQueue"),
         simulering = ApplicationConfig.OppdragConfig.SimuleringConfig(
             url = "simuleringTestUrl",
-            stsSoapUrl = "simuleringStsTestSoapUrl"
-        )
+            stsSoapUrl = "simuleringStsTestSoapUrl",
+        ),
     ),
     database = ApplicationConfig.DatabaseConfig.StaticCredentials(
         jdbcUrl = "jdbcTestUrl",
@@ -73,9 +75,12 @@ val applicationConfig = ApplicationConfig(
     clientsConfig = ApplicationConfig.ClientsConfig(
         oppgaveConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
             clientId = "oppgaveClientId",
-            url = "oppgaveUrl"
+            url = "oppgaveUrl",
         ),
-        pdlUrl = "pdlUrl",
+        pdlConfig = ApplicationConfig.ClientsConfig.PdlConfig(
+            url = "pdlUrl",
+            clientId = "pdlClientId",
+        ),
         dokDistUrl = "dokDistUrl",
         pdfgenUrl = "pdfgenUrl",
         dokarkivUrl = "dokarkivUrl",
@@ -85,7 +90,7 @@ val applicationConfig = ApplicationConfig(
         dkifUrl = "dkifUrl",
     ),
     kafkaConfig = ApplicationConfig.KafkaConfig(emptyMap(), ApplicationConfig.KafkaConfig.ProducerCfg(emptyMap())),
-    unleash = ApplicationConfig.UnleashConfig("https://localhost", "su-se-bakover")
+    unleash = ApplicationConfig.UnleashConfig("https://localhost", "su-se-bakover"),
 )
 
 internal val jwtStub = JwtStub(applicationConfig)
@@ -94,15 +99,17 @@ internal fun Application.testSusebakover(
     clock: Clock = fixedClock,
     clients: Clients = TestClientsBuilder.build(applicationConfig),
     databaseRepos: DatabaseRepos = DatabaseBuilder.build(EmbeddedDatabase.instance()),
-    services: Services = ServiceBuilder.build( // build actual clients
+    unleash: Unleash = FakeUnleash().apply { enableAll() },
+    services: Services = ServiceBuilder.build(
+        // build actual clients
         databaseRepos = databaseRepos,
         clients = clients,
         behandlingMetrics = mock(),
         søknadMetrics = mock(),
         clock = clock,
-        unleash = mock()
+        unleash = unleash,
     ),
-    accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services)
+    accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
 ) {
     return susebakover(
         databaseRepos = databaseRepos,
@@ -110,7 +117,7 @@ internal fun Application.testSusebakover(
         services = services,
         accessCheckProxy = accessCheckProxy,
         applicationConfig = applicationConfig,
-        clock = clock
+        clock = clock,
     )
 }
 
@@ -151,7 +158,7 @@ fun TestApplicationEngine.requestSomAttestant(
         addHeader(HttpHeaders.XCorrelationId, DEFAULT_CALL_ID)
         addHeader(
             HttpHeaders.Authorization,
-            jwtStub.createJwtToken(roller = listOf(Brukerrolle.Attestant), navIdent = navIdent).asBearerToken()
+            jwtStub.createJwtToken(roller = listOf(Brukerrolle.Attestant), navIdent = navIdent).asBearerToken(),
         )
         setup()
     }

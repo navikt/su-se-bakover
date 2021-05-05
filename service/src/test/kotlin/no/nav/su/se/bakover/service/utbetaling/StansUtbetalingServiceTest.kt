@@ -42,7 +42,7 @@ import java.util.UUID
 internal class StansUtbetalingServiceTest {
     private val fnr = Fnr("12345678910")
     private val sakId = UUID.randomUUID()
-    private val saksnummer = Saksnummer(1234)
+    private val saksnummer = Saksnummer(2021)
     private val saksbehandler = NavIdentBruker.Saksbehandler("Z123")
     private val avstemmingsnøkkel = Avstemmingsnøkkel()
 

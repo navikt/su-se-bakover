@@ -32,16 +32,16 @@ internal class DokArkivClientTest : WiremockBase {
 
     private val fixedClock: Clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC)
 
-    private val saksnummer: Long = 1
+    private val saksnummer: Long = 2021
     private val navn = "Strømøy, Tore Johnas"
     private val søknadInnhold = SøknadInnholdTestdataBuilder.build()
     private val søknadPdfInnhold = SøknadPdfInnhold.create(
-        saksnummer = Saksnummer(Random.nextLong()),
+        saksnummer = Saksnummer(Random.nextLong(2021, Long.MAX_VALUE)),
         søknadsId = UUID.randomUUID(),
         navn = Person.Navn("Tore", null, "Strømøy"),
         søknadOpprettet = Tidspunkt.EPOCH,
         søknadInnhold = søknadInnhold,
-        clock = fixedClock
+        clock = fixedClock,
     )
     private val vedtakInnhold = VedtakInnholdTestdataBuilder.build()
 
@@ -175,7 +175,7 @@ internal class DokArkivClientTest : WiremockBase {
         )
         client.opprettJournalpost(
             Journalpost.Søknadspost(
-                saksnummer = Saksnummer(1),
+                saksnummer = Saksnummer(2021),
                 person = person,
                 søknadInnhold = søknadInnhold,
                 pdf = pdf
@@ -195,7 +195,7 @@ internal class DokArkivClientTest : WiremockBase {
 
         client.opprettJournalpost(
             Journalpost.Søknadspost(
-                saksnummer = Saksnummer(1),
+                saksnummer = Saksnummer(2021),
                 person = person,
                 søknadInnhold = søknadInnhold,
                 pdf = pdf

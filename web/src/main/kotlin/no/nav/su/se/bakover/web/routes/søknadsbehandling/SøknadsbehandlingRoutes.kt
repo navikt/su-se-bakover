@@ -3,6 +3,8 @@ package no.nav.su.se.bakover.web.routes.søknadsbehandling
 import arrow.core.Either
 import arrow.core.flatMap
 import arrow.core.getOrHandle
+import arrow.core.left
+import arrow.core.right
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
 import io.ktor.http.ContentType
@@ -22,7 +24,8 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker.Attestant
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.beregning.Stønadsperiode
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.BeregnRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.BrevRequest
@@ -45,11 +48,13 @@ import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.deserialize
+import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.routes.sak.sakPath
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.NyBeregningForSøknadsbehandlingJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.StønadsperiodeJson
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.toUUID
@@ -57,6 +62,7 @@ import no.nav.su.se.bakover.web.withBehandlingId
 import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withSakId
 import org.slf4j.LoggerFactory
+import java.util.UUID
 
 internal const val behandlingPath = "$sakPath/{sakId}/behandlinger"
 
@@ -110,14 +116,20 @@ internal fun Route.søknadsbehandlingRoutes(
 
     authorize(Brukerrolle.Saksbehandler) {
         post("$behandlingPath/{behandlingId}/stønadsperiode") {
+
             call.withBehandlingId { behandlingId ->
-                call.withBody<ValgtStønadsperiodeJson> { body ->
-                    body.toDomain()
+                call.withBody<StønadsperiodeJson> { body ->
+                    body.toStønadsperiode()
                         .mapLeft {
                             call.svar(it)
                         }
                         .flatMap { stønadsperiode ->
-                            søknadsbehandlingService.oppdaterStønadsperiode(SøknadsbehandlingService.OppdaterStønadsperiodeRequest(behandlingId, stønadsperiode))
+                            søknadsbehandlingService.oppdaterStønadsperiode(
+                                SøknadsbehandlingService.OppdaterStønadsperiodeRequest(
+                                    behandlingId,
+                                    stønadsperiode,
+                                ),
+                            )
                                 .mapLeft { error ->
                                     call.svar(
                                         when (error) {
@@ -188,32 +200,60 @@ internal fun Route.søknadsbehandlingRoutes(
 
     authorize(Brukerrolle.Saksbehandler) {
         post("$behandlingPath/{behandlingId}/beregn") {
-            call.withBehandlingId { behandlingId ->
-                val behandling = søknadsbehandlingService.hent(HentRequest(behandlingId)).getOrHandle {
-                    return@withBehandlingId call.svar(NotFound.message("Fant ikke behandling"))
-                }
-                call.withBody<NyBeregningForSøknadsbehandlingJson> { body ->
-                    body.toDomain(behandlingId, Saksbehandler(call.suUserContext.navIdent), Stønadsperiode.create(behandling.periode))
-                        .mapLeft { call.svar(it) }
-                        .map {
-                            søknadsbehandlingService.beregn(
-                                BeregnRequest(
-                                    behandlingId = it.behandlingId,
-                                    fradrag = it.fradrag,
-                                    begrunnelse = it.begrunnelse,
-                                ),
-                            ).mapLeft { kunneIkkeBeregne ->
-                                val resultat = when (kunneIkkeBeregne) {
-                                    KunneIkkeBeregne.FantIkkeBehandling -> {
-                                        NotFound.message("Fant ikke behandling")
+            data class Body(
+                val fradrag: List<FradragJson>,
+                val begrunnelse: String?,
+            ) {
+                fun toDomain(behandlingId: UUID): Either<Resultat, BeregnRequest> {
+                    return BeregnRequest(
+                        behandlingId = behandlingId,
+                        fradrag = fradrag.map {
+                            BeregnRequest.FradragRequest(
+                                periode = it.periode?.toPeriode()?.getOrHandle { feilResultat ->
+                                    return feilResultat.left()
+                                },
+                                type = it.type.let {
+                                    Fradragstype.tryParse(it).getOrHandle {
+                                        return BadRequest.errorJson("Ugyldig fradragstype", "ugyldig_fradragstype")
+                                            .left()
                                     }
+                                },
+                                månedsbeløp = it.beløp,
+                                utenlandskInntekt = it.utenlandskInntekt?.toUtlandskInntekt()
+                                    ?.getOrHandle { feilResultat ->
+                                        return feilResultat.left()
+                                    },
+                                tilhører = it.tilhører.let { FradragTilhører.BRUKER },
+
+                            )
+                        },
+                        begrunnelse = begrunnelse,
+                    ).right()
+                }
+            }
+
+            call.withBehandlingId { behandlingId ->
+                call.withBody<Body> { body ->
+                    body.toDomain(behandlingId)
+                        .mapLeft { call.svar(it) }
+                        .map { serviceCommand ->
+                            søknadsbehandlingService.beregn(serviceCommand)
+                                .mapLeft { kunneIkkeBeregne ->
+                                    val resultat = when (kunneIkkeBeregne) {
+                                        KunneIkkeBeregne.FantIkkeBehandling -> {
+                                            NotFound.errorJson("Fant ikke behandling", "fant_ikke_behandling")
+                                        }
+                                        KunneIkkeBeregne.IkkeLovMedFradragUtenforPerioden -> BadRequest.errorJson(
+                                            "Ikke lov med fradrag utenfor perioden",
+                                            "ikke_lov_med_fradrag_utenfor_perioden",
+                                        )
+                                    }
+                                    call.svar(resultat)
+                                }.map { behandling ->
+                                    call.sikkerlogg("Beregner på søknadsbehandling med id $behandlingId")
+                                    call.audit(behandling.fnr, AuditLogEvent.Action.UPDATE, behandling.id)
+                                    call.svar(Created.jsonBody(behandling))
                                 }
-                                call.svar(resultat)
-                            }.map { behandling ->
-                                call.sikkerlogg("Beregner på søknadsbehandling med id $behandlingId")
-                                call.audit(behandling.fnr, AuditLogEvent.Action.UPDATE, behandling.id)
-                                call.svar(Created.jsonBody(behandling))
-                            }
                         }
                 }
             }

@@ -41,7 +41,7 @@ internal class LokalKvitteringJobTest {
         id = UUID30.randomUUID(),
         opprettet = tidspunkt,
         sakId = UUID.randomUUID(),
-        saksnummer = Saksnummer(1234),
+        saksnummer = Saksnummer(2021),
         fnr = fnr,
         utbetalingslinjer = listOf(),
         type = Utbetaling.UtbetalingsType.NY,

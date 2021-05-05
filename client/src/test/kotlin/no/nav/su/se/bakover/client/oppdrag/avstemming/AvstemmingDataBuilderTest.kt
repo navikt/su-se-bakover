@@ -99,7 +99,7 @@ internal class AvstemmingDataBuilderTest {
     }
 }
 
-internal val saksnummer = Saksnummer(1234)
+internal val saksnummer = Saksnummer(2021)
 internal val sakId = UUID.randomUUID()
 
 internal fun lagUtbetalingLinje(fraOgMed: LocalDate, tilOgMed: LocalDate, beløp: Int) = Utbetalingslinje.Ny(

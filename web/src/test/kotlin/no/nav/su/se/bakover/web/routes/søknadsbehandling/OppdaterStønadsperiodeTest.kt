@@ -152,7 +152,7 @@ class OppdaterStønadsperiodeTest {
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.EPOCH,
             sakId = UUID.randomUUID(),
-            saksnummer = Saksnummer(0),
+            saksnummer = Saksnummer(2021),
             søknad = BehandlingTestUtils.journalførtSøknadMedOppgave,
             oppgaveId = OppgaveId("oppgaveId"),
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
