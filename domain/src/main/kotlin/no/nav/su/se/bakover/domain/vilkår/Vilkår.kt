@@ -137,10 +137,13 @@ sealed class Vurderingsperiode<T : Grunnlag> : KanPlasseresPåTidslinje<Vurderin
         @Suppress("UNCHECKED_CAST")
         override fun copy(args: CopyArgs.Tidslinje): Manuell<T> = when (args) {
             CopyArgs.Tidslinje.Full -> {
-                this.copy(id = UUID.randomUUID())
+                copy(
+                    id = UUID.randomUUID(),
+                    grunnlag = grunnlag?.copy(args) as T,
+                )
             }
             is CopyArgs.Tidslinje.NyPeriode -> {
-                this.copy(
+                copy(
                     id = UUID.randomUUID(),
                     periode = args.periode,
                     grunnlag = grunnlag?.copy(args) as T,

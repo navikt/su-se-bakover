@@ -45,9 +45,15 @@ internal class VurderingsperiodeTest {
             vurderingsperiodeCopy.id shouldNotBe original.id
             vurderingsperiodeCopy.opprettet shouldBe original.opprettet
             vurderingsperiodeCopy.periode shouldBe original.periode
-            vurderingsperiodeCopy.grunnlag shouldBe original.grunnlag
             vurderingsperiodeCopy.periode shouldBe original.periode
             vurderingsperiodeCopy.begrunnelse shouldBe original.begrunnelse
+            vurderingsperiodeCopy.grunnlag!!.let { grunnlagCopy ->
+                grunnlagCopy.id shouldNotBe original.grunnlag!!.id
+                grunnlagCopy.opprettet shouldBe original.grunnlag!!.opprettet
+                grunnlagCopy.periode shouldBe Periode.create(1.januar(2021), 31.desember(2021))
+                grunnlagCopy.uføregrad shouldBe original.grunnlag!!.uføregrad
+                grunnlagCopy.forventetInntekt shouldBe original.grunnlag!!.forventetInntekt
+            }
         }
     }
 
