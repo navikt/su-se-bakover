@@ -6,8 +6,12 @@ import no.finn.unleash.Unleash
 import no.finn.unleash.strategy.Strategy
 import no.finn.unleash.util.UnleashConfig
 import no.nav.su.se.bakover.common.ApplicationConfig
+import org.slf4j.LoggerFactory
 
 object UnleashBuilder {
+
+    private val log = LoggerFactory.getLogger(this::class.java)
+
     fun build(applicationConfig: ApplicationConfig): Unleash = when (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {
         true -> {
             DefaultUnleash(
@@ -20,7 +24,9 @@ object UnleashBuilder {
             )
         }
         false -> {
-            FakeUnleash().apply { enableAll() }
+            FakeUnleash().apply { enableAll() }.also {
+                log.warn("********** Using stub for ${Unleash::class.java} **********")
+            }
         }
     }
 }
