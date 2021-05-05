@@ -285,48 +285,49 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
         }
     }
 
-    data class VedtakGrunnlagTidslinje(
-        override val periode: Periode,
-        override val opprettet: Tidspunkt,
+    data class VedtakPåTidslinje(
         val vedtakId: UUID,
+        override val opprettet: Tidspunkt,
+        override val periode: Periode,
         val grunnlagsdata: Grunnlagsdata,
-    ) : KanPlasseresPåTidslinje<VedtakGrunnlagTidslinje> {
-        override fun copy(args: CopyArgs.Tidslinje): VedtakGrunnlagTidslinje =
+    ) : KanPlasseresPåTidslinje<VedtakPåTidslinje> {
+        override fun copy(args: CopyArgs.Tidslinje): VedtakPåTidslinje =
             when (args) {
-                CopyArgs.Tidslinje.Full -> this.copy()
-                is CopyArgs.Tidslinje.NyPeriode -> this.copy(
-                    periode = args.periode,
-                    vedtakId = this.vedtakId,
+                CopyArgs.Tidslinje.Full -> copy(
+                    periode = periode,
+                    vedtakId = vedtakId,
                     grunnlagsdata = Grunnlagsdata(
-                        uføregrunnlag = lagTidslinje<Grunnlag.Uføregrunnlag>(
-                            this.grunnlagsdata.uføregrunnlag,
-                            args.periode,
-                        ),
+                        uføregrunnlag = Tidslinje<Grunnlag.Uføregrunnlag>(
+                            periode = periode,
+                            objekter = grunnlagsdata.uføregrunnlag,
+                        ).tidslinje,
+                    ),
+                )
+                is CopyArgs.Tidslinje.NyPeriode -> copy(
+                    periode = args.periode,
+                    vedtakId = vedtakId,
+                    grunnlagsdata = Grunnlagsdata(
+                        uføregrunnlag = Tidslinje<Grunnlag.Uføregrunnlag>(
+                            periode = args.periode,
+                            objekter = grunnlagsdata.uføregrunnlag,
+                        ).tidslinje,
                     ),
                 )
             }
-
-        private fun <T : KanPlasseresPåTidslinje<T>> lagTidslinje(objekter: List<T>, periode: Periode): List<T> {
-            return Tidslinje(periode = periode, objekter = objekter).tidslinje
-        }
-
-        companion object {
-            fun fromVedtak(vedtak: List<Vedtak>, periode: Periode): Grunnlagsdata {
-                val grunnlagTidslinje = vedtak.map {
-                    VedtakGrunnlagTidslinje(
-                        periode = it.periode,
-                        opprettet = it.opprettet,
-                        vedtakId = it.id,
-                        grunnlagsdata = it.behandling.grunnlagsdata
-                    )
-                }.let {
-                    Tidslinje(periode, it).tidslinje
-                }
-
-                return Grunnlagsdata(
-                    uføregrunnlag = grunnlagTidslinje.flatMap { it.grunnlagsdata.uføregrunnlag },
-                )
-            }
-        }
     }
 }
+
+fun List<Vedtak>.lagTidslinje(periode: Periode): List<Vedtak.VedtakPåTidslinje> =
+    map {
+        Vedtak.VedtakPåTidslinje(
+            vedtakId = it.id,
+            opprettet = it.opprettet,
+            periode = it.periode,
+            grunnlagsdata = it.behandling.grunnlagsdata,
+        )
+    }.let {
+        Tidslinje(
+            periode = periode,
+            objekter = it,
+        ).tidslinje
+    }

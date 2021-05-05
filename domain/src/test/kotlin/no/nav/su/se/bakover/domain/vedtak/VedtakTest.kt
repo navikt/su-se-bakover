@@ -2,13 +2,13 @@ package no.nav.su.se.bakover.domain.vedtak
 
 import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.april
-import no.nav.su.se.bakover.common.februar
+import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
-import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.FnrGenerator
@@ -33,91 +33,159 @@ internal class VedtakTest {
     private val fixedClock: Clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC)
 
     @Test
-    fun `klarer å lage tidslinje av vedtak`() {
-        //  1.jan       31.mars
-        //  |--u1---|-u2-|  uføre
-        //  |------------|  Vedtaket
-
-        //          1.mars   30.april
-        //          |--u3----|  uføre
-        //          |--------|  Vedtaket
-
-        //       1.feb             30.mai
-        //       |--u4---|-u5------|  uføre
-        //       |-----------------|  Vedtaket
-
-        // |-------------| periode
-
-        // |--u1-|--u4--|
-
-        val u1 = lagUføregrunnlag(1, 1.januar(2021), 28.februar(2021))
-        val u2 = lagUføregrunnlag(2, 1.mars(2021), 31.mars(2021))
-        val vedtak1 = lagVedtak(1, 1.januar(2021), 31.mars(2021), listOf(u1, u2))
-
-        val u3 = lagUføregrunnlag(3, 1.mars(2021), 30.april(2021))
-        val u4 = lagUføregrunnlag(4, 1.februar(2021), 31.mars(2021))
-        val vedtak2 = lagVedtak(2, 1.mars(2021), 30.april(2021), listOf(u3))
-
-        val u5 = lagUføregrunnlag(5, 1.april(2021), 31.mai(2021))
-        val vedtak3 = lagVedtak(3, 1.februar(2021), 31.mai(2021), listOf(u4, u5))
-
-        val actual = Vedtak.VedtakGrunnlagTidslinje.fromVedtak(
-            listOf(vedtak1, vedtak2, vedtak3),
-            Periode.create(fraOgMed = 1.januar(2021), 31.mars(2021)),
+    fun `lager tidslinje for enkelt vedtak`() {
+        val vedtak = lagVedtak(
+            rekkefølge = 1,
+            fraDato = 1.januar(2021),
+            tilDato = 31.desember(2021),
+            listGrunnlag = emptyList(),
         )
-
-        actual shouldBe Grunnlagsdata(
-            uføregrunnlag = listOf(
-                lagUføregrunnlagMedId(actual.uføregrunnlag.first().id, 1, 1.januar(2021), 31.januar(2021)),
-                lagUføregrunnlagMedId(actual.uføregrunnlag.last().id, 4, 1.februar(2021), 31.mars(2021))
+        listOf(vedtak).lagTidslinje(Periode.create(1.januar(2021), 31.desember(2021))) shouldBe listOf(
+            Vedtak.VedtakPåTidslinje(
+                vedtakId = vedtak.id,
+                opprettet = vedtak.opprettet,
+                periode = vedtak.periode,
+                grunnlagsdata = vedtak.behandling.grunnlagsdata,
             ),
         )
     }
 
+    /**
+     *  |––––|      a
+     *      |–––––| b
+     *  |---|-----| resultat
+     */
     @Test
-    fun `klarer å lage tidslinje av grunnlagsdata`() {
-        //  1.jan       31.mars
-        //  |--u1---|-u2-|  uføre
-        //  |------------|  Vedtaket
+    fun `lager tidslinje for flere vedtak`() {
+        val a = lagVedtak(
+            rekkefølge = 1,
+            fraDato = 1.januar(2021),
+            tilDato = 31.desember(2021),
+            listGrunnlag = emptyList(),
+        )
+        val b = lagVedtak(
+            rekkefølge = 2,
+            fraDato = 1.mai(2021),
+            tilDato = 31.desember(2021),
+            listGrunnlag = emptyList(),
+        )
+        listOf(a, b).lagTidslinje(Periode.create(1.januar(2021), 31.desember(2021))) shouldBe listOf(
+            Vedtak.VedtakPåTidslinje(
+                vedtakId = a.id,
+                opprettet = a.opprettet,
+                periode = Periode.create(1.januar(2021), 30.april(2021)),
+                grunnlagsdata = a.behandling.grunnlagsdata,
+            ),
+            Vedtak.VedtakPåTidslinje(
+                vedtakId = b.id,
+                opprettet = b.opprettet,
+                periode = b.periode,
+                grunnlagsdata = b.behandling.grunnlagsdata,
+            ),
+        )
+    }
 
-        //          1.mars   30.april
-        //          |--u3----|  uføre
-        //          |--------|  Vedtaket
+    /**
+     *  |-––––-|      a
+     *  |------|      u1
+     *       |------| b
+     *       |------| u2
+     *  |----|------| resultat
+     *  |-u1-|--u2--|
+     */
+    @Test
+    fun `begrenser perioden på grunnlagene til samme perioden som vedtaket`() {
+        val a = lagVedtak(
+            rekkefølge = 1,
+            fraDato = 1.januar(2021),
+            tilDato = 31.desember(2021),
+            listGrunnlag = listOf(
+                lagUføregrunnlag(
+                    rekkefølge = 1,
+                    fraDato = 1.januar(2021),
+                    tilDato = 31.desember(2021),
+                ),
+            ),
+        )
+        val b = lagVedtak(
+            rekkefølge = 2,
+            fraDato = 1.mai(2021),
+            tilDato = 31.desember(2021),
+            listGrunnlag = listOf(
+                lagUføregrunnlag(
+                    rekkefølge = 2,
+                    fraDato = 1.mai(2021),
+                    tilDato = 31.desember(2021),
+                ),
+            ),
+        )
+        listOf(a, b).lagTidslinje(Periode.create(1.januar(2021), 31.desember(2021))).let { tidslinje ->
+            tidslinje[0].let { vedtakPåTidslinje ->
+                vedtakPåTidslinje.vedtakId shouldBe a.id
+                vedtakPåTidslinje.opprettet shouldBe a.opprettet
+                vedtakPåTidslinje.periode shouldBe Periode.create(1.januar(2021), 30.april(2021))
+                vedtakPåTidslinje.grunnlagsdata.uføregrunnlag[0].let {
+                    it.id shouldNotBe a.behandling.grunnlagsdata.uføregrunnlag[0].id
+                    it.periode shouldBe Periode.create(1.januar(2021), 30.april(2021))
+                    it.uføregrad shouldBe a.behandling.grunnlagsdata.uføregrunnlag[0].uføregrad
+                    it.forventetInntekt shouldBe a.behandling.grunnlagsdata.uføregrunnlag[0].forventetInntekt
+                }
+            }
+            tidslinje[1].let { vedtakPåTidslinje ->
+                vedtakPåTidslinje.vedtakId shouldBe b.id
+                vedtakPåTidslinje.opprettet shouldBe b.opprettet
+                vedtakPåTidslinje.periode shouldBe b.periode
+                vedtakPåTidslinje.grunnlagsdata.uføregrunnlag[0].let {
+                    it.id shouldNotBe b.behandling.grunnlagsdata.uføregrunnlag[0].id
+                    it.periode shouldBe b.periode
+                    it.uføregrad shouldBe b.behandling.grunnlagsdata.uføregrunnlag[0].uføregrad
+                    it.forventetInntekt shouldBe b.behandling.grunnlagsdata.uføregrunnlag[0].forventetInntekt
+                }
+            }
+        }
+    }
 
-        //  |------------| periode
-
-        // |--u1----|-u3-|
-
-        val u1 = lagUføregrunnlag(1, 1.januar(2021), 28.februar(2021))
-        val u2 = lagUføregrunnlag(2, 1.mars(2021), 31.mars(2021))
-        val vedtak1 = lagVedtak(1, 1.januar(2021), 31.mars(2021), listOf(u1, u2))
-
-        val u3 = lagUføregrunnlag(3, 1.mars(2021), 30.april(2021))
-        val vedtak2 = lagVedtak(2, 1.mars(2021), 30.april(2021), listOf(u3))
-
-        val actual = Vedtak.VedtakGrunnlagTidslinje.fromVedtak(
-            listOf(vedtak1, vedtak2),
-            Periode.create(fraOgMed = 1.januar(2021), 31.mars(2021)),
+    /**
+     *  |------| a
+     *  |------| u1
+     *  |––––––| b
+     *           u2 (fjernet)
+     *  |------| resultat
+     *           (ingen uføregrunnlag)
+     */
+    @Test
+    fun `informasjon som overskrives av nyere vedtak forsvinner fra tidslinjen`() {
+        val a = lagVedtak(
+            rekkefølge = 1,
+            fraDato = 1.januar(2021),
+            tilDato = 31.desember(2021),
+            listGrunnlag = listOf(
+                lagUføregrunnlag(
+                    rekkefølge = 1,
+                    fraDato = 1.januar(2021),
+                    tilDato = 31.desember(2021),
+                ),
+            ),
+        )
+        val b = lagVedtak(
+            rekkefølge = 2,
+            fraDato = 1.januar(2021),
+            tilDato = 31.desember(2021),
+            listGrunnlag = emptyList(),
         )
 
-        actual shouldBe Grunnlagsdata(
-            uføregrunnlag = listOf(
-                lagUføregrunnlagMedId(actual.uføregrunnlag.first().id, 1, 1.januar(2021), 28.februar(2021)),
-                lagUføregrunnlagMedId(actual.uføregrunnlag.last().id, 3, 1.mars(2021), 31.mars(2021))
+        listOf(a, b).lagTidslinje(periode = Periode.create(1.januar(2021), 31.desember(2021))) shouldBe listOf(
+            Vedtak.VedtakPåTidslinje(
+                vedtakId = b.id,
+                opprettet = b.opprettet,
+                periode = b.periode,
+                grunnlagsdata = b.behandling.grunnlagsdata,
             ),
         )
     }
 
     private fun lagUføregrunnlag(rekkefølge: Long, fraDato: LocalDate, tilDato: LocalDate) = Grunnlag.Uføregrunnlag(
         id = UUID.randomUUID(),
-        opprettet = Tidspunkt.now(fixedClock).plus(rekkefølge, ChronoUnit.DAYS),
-        periode = Periode.create(fraDato, tilDato),
-        uføregrad = Uføregrad.parse(100),
-        forventetInntekt = 0,
-    )
-
-    private fun lagUføregrunnlagMedId(id: UUID, rekkefølge: Long, fraDato: LocalDate, tilDato: LocalDate) = Grunnlag.Uføregrunnlag(
-        id = id,
         opprettet = Tidspunkt.now(fixedClock).plus(rekkefølge, ChronoUnit.DAYS),
         periode = Periode.create(fraDato, tilDato),
         uføregrad = Uføregrad.parse(100),
