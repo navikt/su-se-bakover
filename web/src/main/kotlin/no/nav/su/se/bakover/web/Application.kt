@@ -24,13 +24,11 @@ import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.routing
 import io.ktor.util.KtorExperimentalAPI
-import no.finn.unleash.DefaultUnleash
-import no.finn.unleash.FakeUnleash
 import no.finn.unleash.Unleash
-import no.finn.unleash.util.UnleashConfig
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ProdClientsBuilder
 import no.nav.su.se.bakover.client.StubClientsBuilder
+import no.nav.su.se.bakover.client.UnleashBuilder
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.JmsConfig
 import no.nav.su.se.bakover.common.log
@@ -59,7 +57,6 @@ import no.nav.su.se.bakover.web.features.withUser
 import no.nav.su.se.bakover.web.metrics.BehandlingMicrometerMetrics
 import no.nav.su.se.bakover.web.metrics.SuMetrics
 import no.nav.su.se.bakover.web.metrics.SøknadMicrometerMetrics
-import no.nav.su.se.bakover.web.routes.IsNotProdStrategy
 import no.nav.su.se.bakover.web.routes.avstemming.avstemmingRoutes
 import no.nav.su.se.bakover.web.routes.drift.driftRoutes
 import no.nav.su.se.bakover.web.routes.installMetrics
@@ -97,14 +94,7 @@ internal fun Application.susebakover(
     behandlingMetrics: BehandlingMetrics = BehandlingMicrometerMetrics(),
     søknadMetrics: SøknadMetrics = SøknadMicrometerMetrics(),
     applicationConfig: ApplicationConfig = ApplicationConfig.createConfig(),
-    unleash: Unleash = DefaultUnleash(
-        UnleashConfig.builder()
-            .appName(applicationConfig.unleash.appName)
-            .instanceId(applicationConfig.unleash.appName)
-            .unleashAPI(applicationConfig.unleash.unleashUrl)
-            .build(),
-        IsNotProdStrategy(applicationConfig.naisCluster == ApplicationConfig.NaisCluster.Prod)
-    ),
+    unleash: Unleash = UnleashBuilder.build(applicationConfig),
     databaseRepos: DatabaseRepos = DatabaseBuilder.build(applicationConfig.database),
     jmsConfig: JmsConfig = JmsConfig(applicationConfig),
     clients: Clients =
@@ -116,26 +106,15 @@ internal fun Application.susebakover(
                 clock = clock,
                 unleash = unleash,
             ).build(applicationConfig),
-    services: Services = if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Nais) {
-        ServiceBuilder.build(
-            databaseRepos = databaseRepos,
-            clients = clients,
-            behandlingMetrics = behandlingMetrics,
-            søknadMetrics = søknadMetrics,
-            clock = clock,
-            unleash = unleash
-        )
-    } else {
-        ServiceBuilder.build(
-            databaseRepos = databaseRepos,
-            clients = clients,
-            behandlingMetrics = behandlingMetrics,
-            søknadMetrics = søknadMetrics,
-            clock = clock,
-            unleash = FakeUnleash().apply { enableAll() }
-        )
-    },
-    accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services)
+    services: Services = ServiceBuilder.build(
+        databaseRepos = databaseRepos,
+        clients = clients,
+        behandlingMetrics = behandlingMetrics,
+        søknadMetrics = søknadMetrics,
+        clock = clock,
+        unleash = unleash,
+    ),
+    accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
 ) {
     install(StatusPages) {
         exception<Tilgangssjekkfeil> {
@@ -166,8 +145,8 @@ internal fun Application.susebakover(
                             "Kunne ikke hente informasjon om innlogget bruker"
                         is ManglerAuthHeader, IkkeInitialisert, FantBrukerMenManglerNAVIdent ->
                             "En feil oppstod"
-                    }
-                )
+                    },
+                ),
             )
         }
         exception<AuthorizationException> {
@@ -250,13 +229,13 @@ internal fun Application.susebakover(
                 meRoutes(applicationConfig, azureGroupMapper)
 
                 withAccessProtectedServices(
-                    accessCheckProxy
+                    accessCheckProxy,
                 ) { accessProtectedServices ->
                     personRoutes(accessProtectedServices.person, clock)
                     sakRoutes(accessProtectedServices.sak)
                     søknadRoutes(
                         accessProtectedServices.søknad,
-                        accessProtectedServices.lukkSøknad
+                        accessProtectedServices.lukkSøknad,
                     )
                     overordnetSøknadsbehandligRoutes(accessProtectedServices.søknadsbehandling)
                     avstemmingRoutes(accessProtectedServices.avstemming)
@@ -277,11 +256,11 @@ internal fun Application.susebakover(
         UtbetalingKvitteringIbmMqConsumer(
             kvitteringQueueName = applicationConfig.oppdrag.utbetaling.mqReplyTo,
             globalJmsContext = jmsConfig.jmsContext,
-            kvitteringConsumer = utbetalingKvitteringConsumer
+            kvitteringConsumer = utbetalingKvitteringConsumer,
         )
         AvstemmingJob(
             avstemmingService = services.avstemming,
-            leaderPodLookup = clients.leaderPodLookup
+            leaderPodLookup = clients.leaderPodLookup,
         ).schedule()
     } else if (applicationConfig.runtimeEnvironment == ApplicationConfig.RuntimeEnvironment.Local) {
         LokalKvitteringJob(databaseRepos.utbetaling, utbetalingKvitteringConsumer).schedule()
@@ -290,7 +269,7 @@ internal fun Application.susebakover(
 
 fun Route.withAccessProtectedServices(
     accessCheckProxy: AccessCheckProxy,
-    build: Route.(services: Services) -> Unit
+    build: Route.(services: Services) -> Unit,
 ) = build(accessCheckProxy.proxy())
 
 fun ApplicationCall.pathShouldBeExcluded(paths: List<String>): Boolean {

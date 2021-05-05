@@ -8,6 +8,8 @@ import io.ktor.server.testing.TestApplicationCall
 import io.ktor.server.testing.TestApplicationEngine
 import io.ktor.server.testing.TestApplicationRequest
 import io.ktor.server.testing.handleRequest
+import no.finn.unleash.FakeUnleash
+import no.finn.unleash.Unleash
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.januar
@@ -97,6 +99,7 @@ internal fun Application.testSusebakover(
     clock: Clock = fixedClock,
     clients: Clients = TestClientsBuilder.build(applicationConfig),
     databaseRepos: DatabaseRepos = DatabaseBuilder.build(EmbeddedDatabase.instance()),
+    unleash: Unleash = FakeUnleash().apply { enableAll() },
     services: Services = ServiceBuilder.build(
         // build actual clients
         databaseRepos = databaseRepos,
@@ -104,7 +107,7 @@ internal fun Application.testSusebakover(
         behandlingMetrics = mock(),
         søknadMetrics = mock(),
         clock = clock,
-        unleash = mock(),
+        unleash = unleash,
     ),
     accessCheckProxy: AccessCheckProxy = AccessCheckProxy(databaseRepos.person, services),
 ) {
