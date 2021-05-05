@@ -21,11 +21,12 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import java.util.UUID
+import kotlin.random.Random
 
 internal class SakJsonTest {
 
     private val sakId = UUID.randomUUID()
-    private val saksnummer = Math.random().toLong()
+    private val saksnummer = Random.nextLong(2021, Long.MAX_VALUE)
     private val sak = Sak(
         id = sakId,
         saksnummer = Saksnummer(saksnummer),

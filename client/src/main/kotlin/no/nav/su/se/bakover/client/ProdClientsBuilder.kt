@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client
 
+import no.finn.unleash.Unleash
 import no.nav.su.se.bakover.client.azure.AzureClient
 import no.nav.su.se.bakover.client.dkif.DkifClient
 import no.nav.su.se.bakover.client.dokarkiv.DokArkivClient
@@ -16,7 +17,9 @@ import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingMqPublisher
 import no.nav.su.se.bakover.client.oppgave.OppgaveHttpClient
 import no.nav.su.se.bakover.client.pdf.PdfClient
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
+import no.nav.su.se.bakover.client.person.PdlClientConfig
 import no.nav.su.se.bakover.client.person.PersonClient
+import no.nav.su.se.bakover.client.person.PersonClientConfig
 import no.nav.su.se.bakover.client.skjerming.SkjermingClient
 import no.nav.su.se.bakover.client.sts.StsClient
 import no.nav.su.se.bakover.common.ApplicationConfig
@@ -26,6 +29,7 @@ import java.time.Clock
 data class ProdClientsBuilder(
     private val jmsConfig: JmsConfig,
     private val clock: Clock,
+    private val unleash: Unleash,
 ) : ClientsBuilder {
 
     override fun build(applicationConfig: ApplicationConfig): Clients {
@@ -39,7 +43,20 @@ data class ProdClientsBuilder(
         val tokenOppslag = StsClient(clientsConfig.stsUrl, serviceUser.username, serviceUser.password)
         val dkif = DkifClient(clientsConfig.dkifUrl, tokenOppslag, consumerId)
         val skjermingClient = SkjermingClient(clientsConfig.skjermingUrl)
-        val personOppslag = PersonClient(clientsConfig.pdlUrl, kodeverk, skjermingClient, dkif, tokenOppslag)
+        val pdlClientConfig = PdlClientConfig(
+            vars = clientsConfig.pdlConfig,
+            tokenOppslag = tokenOppslag,
+            azureAd = oAuth,
+            unleash = unleash,
+        )
+        val personOppslag = PersonClient(
+            PersonClientConfig(
+                kodeverk = kodeverk,
+                skjerming = skjermingClient,
+                digitalKontaktinformasjon = dkif,
+                pdlClientConfig = pdlClientConfig,
+            ),
+        )
 
         return Clients(
             oauth = oAuth,
@@ -59,33 +76,33 @@ data class ProdClientsBuilder(
                     simuleringServiceUrl = applicationConfig.oppdrag.simulering.url,
                     stsSoapUrl = applicationConfig.oppdrag.simulering.stsSoapUrl,
                     disableCNCheck = true,
-                    serviceUser = serviceUser
-                ).wrapWithSTSSimulerFpService()
+                    serviceUser = serviceUser,
+                ).wrapWithSTSSimulerFpService(),
             ),
             utbetalingPublisher = UtbetalingMqPublisher(
                 mqPublisher = applicationConfig.oppdrag.let {
                     IbmMqPublisher(
                         MqPublisherConfig(
                             sendQueue = it.utbetaling.mqSendQueue,
-                            replyTo = it.utbetaling.mqReplyTo
+                            replyTo = it.utbetaling.mqReplyTo,
                         ),
-                        jmsContext = jmsConfig.jmsContext
+                        jmsContext = jmsConfig.jmsContext,
                     )
-                }
+                },
             ),
             dokDistFordeling = DokDistFordelingClient(clientsConfig.dokDistUrl, tokenOppslag),
             avstemmingPublisher = AvstemmingMqPublisher(
                 mqPublisher = IbmMqPublisher(
                     MqPublisherConfig(
-                        sendQueue = applicationConfig.oppdrag.avstemming.mqSendQueue
+                        sendQueue = applicationConfig.oppdrag.avstemming.mqSendQueue,
                     ),
-                    jmsContext = jmsConfig.jmsContext
-                )
+                    jmsContext = jmsConfig.jmsContext,
+                ),
             ),
             microsoftGraphApiClient = MicrosoftGraphApiClient(oAuth),
             digitalKontaktinformasjon = dkif,
             leaderPodLookup = LeaderPodLookupClient(applicationConfig.leaderPodLookupPath),
-            kafkaPublisher = KafkaPublisherClient(applicationConfig.kafkaConfig.producerCfg)
+            kafkaPublisher = KafkaPublisherClient(applicationConfig.kafkaConfig.producerCfg),
         )
     }
 }

@@ -5,7 +5,6 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -225,7 +224,7 @@ abstract class Statusovergang<L, T> : StatusovergangVisitor {
     }
 
     class OppdaterStønadsperiode(
-        private val stønadsperiode: ValgtStønadsperiode
+        private val stønadsperiode: Stønadsperiode,
     ) : Statusovergang<Nothing, Søknadsbehandling.Vilkårsvurdert>() {
 
         override fun visit(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Uavklart) {

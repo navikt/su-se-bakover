@@ -12,7 +12,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Brukerrolle
@@ -161,17 +160,12 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
     @Test
     fun `perioden må være innenfor allerede valgt stønadsperiode`() {
         shouldMapErrorCorrectly(
-            error = KunneIkkeOppdatereRevurdering.PeriodenMåVæreInnenforAlleredeValgtStønadsperiode(
-                Periode.create(
-                    fraOgMed = 1.januar(2020),
-                    tilOgMed = 31.januar(2020),
-                ),
-            ),
+            error = KunneIkkeOppdatereRevurdering.PeriodeOgÅrsakKombinasjonErUgyldig,
             expectedStatusCode = HttpStatusCode.BadRequest,
             expectedJsonResponse = """
                 {
-                    "message":"Perioden må være innenfor allerede valgt stønadsperiode",
-                    "code":"perioden_må_være_innenfor_stønadsperioden"
+                    "message":"periode og årsak kombinasjon er ugyldig",
+                    "code":"periode_og_årsak_kombinasjon_er_ugyldig"
                 }
             """.trimIndent(),
 

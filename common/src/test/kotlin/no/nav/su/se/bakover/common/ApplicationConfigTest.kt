@@ -14,7 +14,7 @@ internal class ApplicationConfigTest {
         pdfgenLocal = false,
         serviceUser = ApplicationConfig.ServiceUserConfig(
             username = "username",
-            password = "password"
+            password = "password",
         ),
         azure = ApplicationConfig.AzureConfig(
             clientSecret = "clientSecret",
@@ -25,11 +25,11 @@ internal class ApplicationConfigTest {
                 saksbehandler = "saksbehandler",
                 veileder = "veileder",
                 drift = "drift",
-            )
+            ),
         ),
         frikort = ApplicationConfig.FrikortConfig(
             serviceUsername = "frikort",
-            useStubForSts = false
+            useStubForSts = false,
         ),
         oppdrag = ApplicationConfig.OppdragConfig(
             mqQueueManager = "oppdragMqQueueManager",
@@ -38,13 +38,13 @@ internal class ApplicationConfigTest {
             mqChannel = "mqChannel",
             utbetaling = ApplicationConfig.OppdragConfig.UtbetalingConfig(
                 mqSendQueue = "utbetalingMqSendQueue",
-                mqReplyTo = "utbetalingMqReplyTo"
+                mqReplyTo = "utbetalingMqReplyTo",
             ),
             avstemming = ApplicationConfig.OppdragConfig.AvstemmingConfig(mqSendQueue = "avstemmingMqSendQueue"),
             simulering = ApplicationConfig.OppdragConfig.SimuleringConfig(
                 url = "simuleringUrl",
-                stsSoapUrl = "stsSoapUrl"
-            )
+                stsSoapUrl = "stsSoapUrl",
+            ),
         ),
         database = ApplicationConfig.DatabaseConfig.RotatingCredentials(
             databaseName = "databaseName",
@@ -54,9 +54,12 @@ internal class ApplicationConfigTest {
         clientsConfig = ApplicationConfig.ClientsConfig(
             oppgaveConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
                 clientId = "oppgaveClientId",
-                url = "oppgaveUrl"
+                url = "oppgaveUrl",
             ),
-            pdlUrl = "http://pdl-api.default.svc.nais.local",
+            pdlConfig = ApplicationConfig.ClientsConfig.PdlConfig(
+                url = "http://pdl-api.default.svc.nais.local",
+                clientId = "pdlClientId",
+            ),
             dokDistUrl = "dokDistUrl",
             pdfgenUrl = "http://su-pdfgen.supstonad.svc.nais.local",
             dokarkivUrl = "dokarkivUrl",
@@ -92,12 +95,12 @@ internal class ApplicationConfigTest {
                     "ssl.key.password" to "credstorePwd",
                     "acks" to "all",
                     "key.serializer" to StringSerializer::class.java,
-                    "value.serializer" to StringSerializer::class.java
+                    "value.serializer" to StringSerializer::class.java,
                 ),
-                retryTaskInterval = 15_000L
-            )
+                retryTaskInterval = 15_000L,
+            ),
         ),
-        unleash = ApplicationConfig.UnleashConfig("https://unleash.nais.io/api", "su-se-bakover")
+        unleash = ApplicationConfig.UnleashConfig("https://unleash.nais.io/api", "su-se-bakover"),
     )
 
     @Test
@@ -134,7 +137,8 @@ internal class ApplicationConfigTest {
                 "STS_URL" to "stsUrl",
                 "SKJERMING_URL" to "skjermingUrl",
                 "ELECTOR_PATH" to "leaderPodLookupPath",
-            )
+                "PDL_CLIENT_ID" to "pdlClientId",
+            ),
         ) {
             ApplicationConfig.createFromEnvironmentVariables() shouldBe expectedApplicationConfig
         }
@@ -151,7 +155,7 @@ internal class ApplicationConfigTest {
                 "AZURE_GROUP_SAKSBEHANDLER" to "saksbehandler",
                 "AZURE_GROUP_VEILEDER" to "veileder",
                 "AZURE_GROUP_DRIFT" to "drift",
-            )
+            ),
         ) {
             ApplicationConfig.createLocalConfig() shouldBe expectedApplicationConfig.copy(
                 runtimeEnvironment = ApplicationConfig.RuntimeEnvironment.Local,
@@ -159,11 +163,11 @@ internal class ApplicationConfigTest {
                 leaderPodLookupPath = "",
                 serviceUser = ApplicationConfig.ServiceUserConfig(
                     username = "unused",
-                    password = "unused"
+                    password = "unused",
                 ),
                 frikort = ApplicationConfig.FrikortConfig(
                     serviceUsername = "frikort",
-                    useStubForSts = true
+                    useStubForSts = true,
                 ),
                 oppdrag = ApplicationConfig.OppdragConfig(
                     mqQueueManager = "unused",
@@ -172,13 +176,13 @@ internal class ApplicationConfigTest {
                     mqChannel = "unused",
                     utbetaling = ApplicationConfig.OppdragConfig.UtbetalingConfig(
                         mqSendQueue = "unused",
-                        mqReplyTo = "unused"
+                        mqReplyTo = "unused",
                     ),
                     avstemming = ApplicationConfig.OppdragConfig.AvstemmingConfig(mqSendQueue = "unused"),
                     simulering = ApplicationConfig.OppdragConfig.SimuleringConfig(
                         url = "unused",
-                        stsSoapUrl = "unused"
-                    )
+                        stsSoapUrl = "unused",
+                    ),
                 ),
                 database = ApplicationConfig.DatabaseConfig.StaticCredentials(
                     jdbcUrl = "jdbc:postgresql://localhost:5432/supstonad-db-local",
@@ -186,9 +190,12 @@ internal class ApplicationConfigTest {
                 clientsConfig = ApplicationConfig.ClientsConfig(
                     oppgaveConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
                         clientId = "mocked",
-                        url = "mocked"
+                        url = "mocked",
                     ),
-                    pdlUrl = "mocked",
+                    pdlConfig = ApplicationConfig.ClientsConfig.PdlConfig(
+                        url = "mocked",
+                        clientId = "mocked",
+                    ),
                     dokDistUrl = "mocked",
                     pdfgenUrl = "mocked",
                     dokarkivUrl = "mocked",
@@ -198,9 +205,9 @@ internal class ApplicationConfigTest {
                     dkifUrl = "mocked",
                 ),
                 kafkaConfig = ApplicationConfig.KafkaConfig(
-                    emptyMap(), ApplicationConfig.KafkaConfig.ProducerCfg((emptyMap()))
+                    emptyMap(), ApplicationConfig.KafkaConfig.ProducerCfg((emptyMap())),
                 ),
-                unleash = ApplicationConfig.UnleashConfig("https://unleash.nais.io/api", "su-se-bakover")
+                unleash = ApplicationConfig.UnleashConfig("https://unleash.nais.io/api", "su-se-bakover"),
             )
         }
     }

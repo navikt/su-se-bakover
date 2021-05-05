@@ -1,5 +1,8 @@
 package no.nav.su.se.bakover.domain.beregning.fradrag
 
+import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.common.periode.PeriodisertInformasjon
 
 interface Fradrag : PeriodisertInformasjon {
@@ -33,4 +36,12 @@ interface Fradrag : PeriodisertInformasjon {
 enum class FradragTilhører {
     BRUKER,
     EPS;
+
+    companion object {
+        fun tryParse(value: String): Either<UgyldigFradragTilhører, Fradragstype> {
+            return Fradragstype.values().firstOrNull { it.name == value }?.right() ?: UgyldigFradragTilhører.left()
+        }
+    }
+
+    object UgyldigFradragTilhører
 }

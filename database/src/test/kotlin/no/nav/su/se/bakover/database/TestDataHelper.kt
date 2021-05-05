@@ -27,7 +27,6 @@ import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
@@ -47,6 +46,8 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
+import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -60,7 +61,7 @@ internal val fixedClock: Clock =
     Clock.fixed(1.januar(2021).atTime(1, 2, 3, 456789000).toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
 internal val fixedTidspunkt: Tidspunkt = Tidspunkt.now(fixedClock)
 internal val fixedLocalDate: LocalDate = fixedTidspunkt.toLocalDate(ZoneOffset.UTC)
-internal val stønadsperiode = ValgtStønadsperiode(Periode.create(1.januar(2021), 31.januar(2021)))
+internal val stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.januar(2021)))
 internal val tomBehandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon()
 internal val behandlingsinformasjonMedAlleVilkårOppfylt =
     Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
@@ -299,35 +300,36 @@ internal class TestDataHelper(
             revurderingRepo.lagre(it)
         }
 
-    fun nyUavklartVilkårsvurdering(
+    /* Kaller lagreNySøknadsbehandling (insert) */
+    fun nySøknadsbehandling(
         sak: Sak = nySakMedJournalførtSøknadOgOppgave(),
         søknad: Søknad.Journalført.MedOppgave = sak.journalførtSøknadMedOppgave(),
         behandlingsinformasjon: Behandlingsinformasjon = tomBehandlingsinformasjon,
-        stønadsperiode: ValgtStønadsperiode? = no.nav.su.se.bakover.database.stønadsperiode,
+        stønadsperiode: Stønadsperiode? = no.nav.su.se.bakover.database.stønadsperiode,
     ): Søknadsbehandling.Vilkårsvurdert.Uavklart {
 
-        return Søknadsbehandling.Vilkårsvurdert.Uavklart(
+        return NySøknadsbehandling(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             sakId = sak.id,
-            saksnummer = sak.saksnummer,
             søknad = søknad,
             oppgaveId = søknad.oppgaveId,
             behandlingsinformasjon = behandlingsinformasjon,
             fnr = sak.fnr,
-            fritekstTilBrev = "",
-            stønadsperiode = stønadsperiode,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-        ).also {
-            søknadsbehandlingRepo.lagre(it)
+        ).let {
+            søknadsbehandlingRepo.lagreNySøknadsbehandling(it)
+            (søknadsbehandlingRepo.hent(it.id)!! as Søknadsbehandling.Vilkårsvurdert.Uavklart).copy(
+                stønadsperiode = stønadsperiode,
+            ).also {
+                søknadsbehandlingRepo.lagre(it)
+            }
         }
     }
 
     internal fun nyInnvilgetVilkårsvurdering(
         behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt,
     ): Søknadsbehandling.Vilkårsvurdert.Innvilget {
-        return nyUavklartVilkårsvurdering(behandlingsinformasjon = behandlingsinformasjon).tilVilkårsvurdert(
+        return nySøknadsbehandling(behandlingsinformasjon = behandlingsinformasjon).tilVilkårsvurdert(
             behandlingsinformasjon,
         ).also {
             søknadsbehandlingRepo.lagre(it)
@@ -335,7 +337,7 @@ internal class TestDataHelper(
     }
 
     internal fun nyAvslåttVilkårsvurdering(): Søknadsbehandling.Vilkårsvurdert.Avslag {
-        return nyUavklartVilkårsvurdering().tilVilkårsvurdert(
+        return nySøknadsbehandling().tilVilkårsvurdert(
             behandlingsinformasjonMedAvslag,
         ).also {
             søknadsbehandlingRepo.lagre(it)

@@ -81,7 +81,7 @@ internal class SøknadPostgresRepoTest {
         withMigratedDb {
             val sak: Sak = testDataHelper.nySakMedJournalførtSøknadOgOppgave()
             val søknad = sak.journalførtSøknadMedOppgave()
-            testDataHelper.nyUavklartVilkårsvurdering(sak, søknad)
+            testDataHelper.nySøknadsbehandling(sak, søknad)
             søknadRepo.harSøknadPåbegyntBehandling(søknad.id) shouldBe true
         }
     }

@@ -82,8 +82,7 @@ internal class VilkårsvurderingPostgresRepo(
 
     private fun slettForBehandlingId(behandlingId: UUID, session: Session) {
         """
-                delete from vilkårsvurdering_uføre vu 
-                where vu.behandlingId = :behandlingId
+                delete from vilkårsvurdering_uføre where behandlingId = :behandlingId
         """.trimIndent()
             .oppdatering(
                 mapOf(
@@ -96,8 +95,7 @@ internal class VilkårsvurderingPostgresRepo(
     override fun hent(behandlingId: UUID): Vilkår<Grunnlag.Uføregrunnlag> {
         val vurderingsperioder = dataSource.withSession { session ->
             """
-                select * from vilkårsvurdering_uføre vu
-                join behandling b on vu.behandlingid = :behandlingId
+                select * from vilkårsvurdering_uføre where behandlingId = :behandlingId
             """.trimIndent()
                 .hentListe(
                     mapOf(

@@ -18,12 +18,12 @@ import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
@@ -38,14 +38,14 @@ import org.junit.jupiter.api.assertThrows
 import java.util.UUID
 
 internal class SøknadsbehandlingServiceBrevTest {
-    private val stønadsperiode = ValgtStønadsperiode(Periode.create(1.januar(2021), 31.desember(2021)))
+    private val stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))
     private val beregnetAvslag = Søknadsbehandling.TilAttestering.Innvilget(
         id = UUID.randomUUID(),
         opprettet = Tidspunkt.now(),
         behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
         søknad = mock(),
         sakId = UUID.randomUUID(),
-        saksnummer = Saksnummer(0),
+        saksnummer = Saksnummer(2021),
         fnr = FnrGenerator.random(),
         oppgaveId = OppgaveId("0"),
         beregning = TestBeregning,
@@ -63,7 +63,7 @@ internal class SøknadsbehandlingServiceBrevTest {
         behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
         søknad = mock(),
         sakId = UUID.randomUUID(),
-        saksnummer = Saksnummer(0),
+        saksnummer = Saksnummer(2021),
         fnr = FnrGenerator.random(),
         oppgaveId = OppgaveId("0"),
         fritekstTilBrev = "",

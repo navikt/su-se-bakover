@@ -89,15 +89,11 @@ internal class RevurderingServiceImpl(
             }.left()
         }
 
-        val dagensDato = LocalDate.now(clock)
-        val startenAvForrigeKalenderMåned = dagensDato.minusMonths(1).startOfMonth()
-
-        val regulererGVerdiTilbakeITid =
-            revurderingsårsak.årsak == REGULER_GRUNNBELØP && !opprettRevurderingRequest.fraOgMed.isBefore(
-                startenAvForrigeKalenderMåned,
+        if (!kanOppretteEllerOppdatereRevurderingsPeriodeOgEllerÅrsak(
+                revurderingsårsak,
+                opprettRevurderingRequest.fraOgMed,
             )
-
-        if (!regulererGVerdiTilbakeITid && !opprettRevurderingRequest.fraOgMed.isAfter(dagensDato.endOfMonth())) {
+        ) {
             return KunneIkkeOppretteRevurdering.PeriodeOgÅrsakKombinasjonErUgyldig.left()
         }
         val sak = sakService.hentSak(opprettRevurderingRequest.sakId).getOrElse {
@@ -236,11 +232,15 @@ internal class RevurderingServiceImpl(
             return KunneIkkeOppdatereRevurdering.KanIkkeOppdatereRevurderingSomErForhåndsvarslet.left()
         }
 
-        val stønadsperiode = revurdering.tilRevurdering.periode
-        if (!oppdaterRevurderingRequest.fraOgMed.between(stønadsperiode)) {
-            return KunneIkkeOppdatereRevurdering.PeriodenMåVæreInnenforAlleredeValgtStønadsperiode(revurdering.periode)
-                .left()
+        if (!kanOppretteEllerOppdatereRevurderingsPeriodeOgEllerÅrsak(
+                revurderingsårsak,
+                oppdaterRevurderingRequest.fraOgMed,
+            )
+        ) {
+            return KunneIkkeOppdatereRevurdering.PeriodeOgÅrsakKombinasjonErUgyldig.left()
         }
+
+        val stønadsperiode = revurdering.tilRevurdering.periode
         val nyPeriode =
             Periode.tryCreate(oppdaterRevurderingRequest.fraOgMed, stønadsperiode.tilOgMed).getOrHandle {
                 return KunneIkkeOppdatereRevurdering.UgyldigPeriode(it).left()
@@ -777,6 +777,24 @@ internal class RevurderingServiceImpl(
         }
 
         return revurdering.right()
+    }
+
+    private fun kanOppretteEllerOppdatereRevurderingsPeriodeOgEllerÅrsak(
+        revurderingsårsak: Revurderingsårsak,
+        fraOgMed: LocalDate,
+    ): Boolean {
+        val dagensDato = LocalDate.now(clock)
+        val startenAvForrigeKalenderMåned = dagensDato.minusMonths(1).startOfMonth()
+
+        val regulererGVerdiTilbakeITid =
+            revurderingsårsak.årsak == REGULER_GRUNNBELØP && !fraOgMed.isBefore(
+                startenAvForrigeKalenderMåned,
+            )
+
+        if (regulererGVerdiTilbakeITid || fraOgMed.isAfter(dagensDato.endOfMonth())) {
+            return true
+        }
+        return false
     }
 
     private fun lagreForhåndsvarsling(

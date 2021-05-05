@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.web.routes.grunnlag.søknadsbehandling.Grunnlagsdata
 import no.nav.su.se.bakover.web.routes.hendelse.HendelseJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.BeregningJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.StønadsperiodeJson
 import java.util.UUID
 
 internal data class BehandlingJson(
@@ -19,7 +20,7 @@ internal data class BehandlingJson(
     val saksbehandler: String?,
     val sakId: UUID,
     val hendelser: List<HendelseJson>? = emptyList(),
-    val stønadsperiode: ValgtStønadsperiodeJson?,
+    val stønadsperiode: StønadsperiodeJson?,
     val grunnlag: GrunnlagsdataSøknadsbehandlingJson,
-    val vilkårsvurderinger: VilkårsvurderingerJson
+    val vilkårsvurderinger: VilkårsvurderingerJson,
 )

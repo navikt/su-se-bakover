@@ -50,7 +50,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
     private val journalførtSøknad = nySøknad.journalfør(JournalpostId("1"))
     private val sak = Sak(
         id = sakId,
-        saksnummer = Saksnummer(1),
+        saksnummer = Saksnummer(2021),
         opprettet = Tidspunkt.EPOCH,
         fnr = fnr,
         søknader = emptyList(),
@@ -383,7 +383,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
                 argThat {
                     it shouldBe Journalpost.Søknadspost(
                         person = person,
-                        saksnummer = Saksnummer(1),
+                        saksnummer = Saksnummer(2021),
                         søknadInnhold = søknadInnhold,
                         pdf = pdf
                     )

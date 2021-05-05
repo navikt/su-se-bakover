@@ -61,7 +61,7 @@ internal class UtbetalingTest {
         utbetalingsLinjer: List<Utbetalingslinje> = createUtbetalingslinjer()
     ) = Utbetaling.UtbetalingForSimulering(
         sakId = UUID.randomUUID(),
-        saksnummer = Saksnummer(1234),
+        saksnummer = Saksnummer(2021),
         utbetalingslinjer = utbetalingsLinjer,
         fnr = fnr,
         opprettet = opprettet,

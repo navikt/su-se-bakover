@@ -25,12 +25,12 @@ internal class PdfClientTest : WiremockBase {
     private val fixedClock: Clock = Clock.fixed(1.januar(2021).startOfDay().instant, ZoneOffset.UTC)
 
     private val søknadPdfInnhold = SøknadPdfInnhold.create(
-        saksnummer = Saksnummer(Random.nextLong()),
+        saksnummer = Saksnummer(Random.nextLong(2021, Long.MAX_VALUE)),
         søknadsId = UUID.randomUUID(),
         navn = Person.Navn("Tore", null, "Strømøy"),
         søknadOpprettet = Tidspunkt.EPOCH,
         søknadInnhold = SøknadInnholdTestdataBuilder.build(),
-        clock = fixedClock
+        clock = fixedClock,
     )
     private val søknadPdfInnholdJson = objectMapper.writeValueAsString(søknadPdfInnhold)
 

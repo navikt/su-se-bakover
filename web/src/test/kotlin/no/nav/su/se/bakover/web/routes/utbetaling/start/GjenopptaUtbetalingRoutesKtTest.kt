@@ -211,7 +211,7 @@
 //         )
 //         val sak = Sak(
 //             fnr = FnrGenerator.random(),
-//             saksnummer = Saksnummer(Math.random().toLong()),
+//             saksnummer = Saksnummer(Random.nextLong(2021, Long.MAX_VALUE)),
 //             utbetalinger = listOf(utbetaling)
 //         )
 //         val utbetalingServiceMock = mock<UtbetalingService> {

@@ -12,15 +12,14 @@ import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Statusovergang
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.forsøkStatusovergang
@@ -30,11 +29,9 @@ import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.service.beregning.BeregningService
 import no.nav.su.se.bakover.service.brev.BrevService
-import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -65,7 +62,6 @@ internal class SøknadsbehandlingServiceImpl(
     private val clock: Clock,
     private val vedtakRepo: VedtakRepo,
     private val ferdigstillVedtakService: FerdigstillVedtakService,
-    private val grunnlagService: GrunnlagService,
     private val vilkårsvurderingService: VilkårsvurderingService,
 ) : SøknadsbehandlingService {
 
@@ -95,26 +91,22 @@ internal class SøknadsbehandlingServiceImpl(
             return SøknadsbehandlingService.KunneIkkeOpprette.SøknadHarAlleredeBehandling.left()
         }
 
-        val opprettet = Søknadsbehandling.Vilkårsvurdert.Uavklart(
-            id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(),
-            sakId = søknad.sakId,
-            // Denne blir ikke persistert i databasen, men joines inn ved select fra sak
-            saksnummer = Saksnummer(-1),
-            søknad = søknad,
-            oppgaveId = søknad.oppgaveId,
-            fnr = søknad.søknadInnhold.personopplysninger.fnr,
-            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
-            fritekstTilBrev = "",
-            stønadsperiode = null,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+        val søknadsbehandlingId = UUID.randomUUID()
+
+        søknadsbehandlingRepo.lagreNySøknadsbehandling(
+            NySøknadsbehandling(
+                id = søknadsbehandlingId,
+                opprettet = Tidspunkt.now(clock),
+                sakId = søknad.sakId,
+                søknad = søknad,
+                oppgaveId = søknad.oppgaveId,
+                fnr = søknad.søknadInnhold.personopplysninger.fnr,
+                behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
+            )
         )
 
-        søknadsbehandlingRepo.lagre(opprettet)
-
         // Må hente fra db for å få joinet med saksnummer.
-        return (søknadsbehandlingRepo.hent(opprettet.id)!! as Søknadsbehandling.Vilkårsvurdert.Uavklart).let {
+        return (søknadsbehandlingRepo.hent(søknadsbehandlingId)!! as Søknadsbehandling.Vilkårsvurdert.Uavklart).let {
             observers.forEach { observer ->
                 observer.handle(
                     Event.Statistikk.SøknadsbehandlingStatistikk.SøknadsbehandlingOpprettet(
@@ -142,12 +134,15 @@ internal class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return SøknadsbehandlingService.KunneIkkeBeregne.FantIkkeBehandling.left()
 
+        val fradrag = request.toFradrag(søknadsbehandling.stønadsperiode!!).getOrHandle {
+            return SøknadsbehandlingService.KunneIkkeBeregne.IkkeLovMedFradragUtenforPerioden.left()
+        }
         return statusovergang(
             søknadsbehandling = søknadsbehandling,
             statusovergang = Statusovergang.TilBeregnet {
                 beregningService.beregn(
                     søknadsbehandling = søknadsbehandling,
-                    fradrag = request.fradrag,
+                    fradrag = fradrag,
                     request.begrunnelse,
                 )
             },
@@ -305,17 +300,17 @@ internal class SøknadsbehandlingServiceImpl(
                     attestant = request.attestering.attestant,
                     beregning = it.beregning,
                     simulering = it.simulering,
-                ).mapLeft {
-                    log.error("Kunne ikke innvilge behandling ${søknadsbehandling.id} siden utbetaling feilet. Feiltype: $it")
-                    when (it) {
+                ).mapLeft { kunneIkkeUtbetale ->
+                    log.error("Kunne ikke innvilge behandling ${søknadsbehandling.id} siden utbetaling feilet. Feiltype: $kunneIkkeUtbetale")
+                    when (kunneIkkeUtbetale) {
                         KunneIkkeUtbetale.KunneIkkeSimulere -> Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.KunneIkkeKontrollsimulere
                         KunneIkkeUtbetale.Protokollfeil -> Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.TekniskFeil
                         KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte -> Statusovergang.KunneIkkeIverksetteSøknadsbehandling.KunneIkkeUtbetale.SimuleringHarBlittEndretSidenSaksbehandlerSimulerte
                     }
-                }.map {
+                }.map { utbetalingUtenKvittering ->
                     // Dersom vi skal unngå denne hacken må Iverksatt.Innvilget innholde denne istedenfor kun IDen
-                    utbetaling = it
-                    it.id
+                    utbetaling = utbetalingUtenKvittering
+                    utbetalingUtenKvittering.id
                 }
             },
         ).mapLeft {

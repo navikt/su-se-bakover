@@ -41,7 +41,7 @@ internal class GjenopptaUtbetalingerServiceTest {
     private val tidspunkt = 15.juni(2020).startOfDay()
     private val fnr = Fnr("12345678910")
     private val sakId = UUID.randomUUID()
-    private val saksnummer = Saksnummer(1234)
+    private val saksnummer = Saksnummer(2021)
     private val saksbehandler = NavIdentBruker.Saksbehandler("AB12345")
     private val avstemmingsnøkkel = Avstemmingsnøkkel(tidspunkt)
 

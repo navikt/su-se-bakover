@@ -19,13 +19,14 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
-import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
+import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
+import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.util.UUID
@@ -44,6 +45,43 @@ internal class SøknadsbehandlingPostgresRepo(
             is Søknadsbehandling.TilAttestering -> lagre(søknadsbehandling)
             is Søknadsbehandling.Underkjent -> lagre(søknadsbehandling)
             is Søknadsbehandling.Iverksatt -> lagre(søknadsbehandling)
+        }
+    }
+
+    override fun lagreNySøknadsbehandling(søknadsbehandling: NySøknadsbehandling) {
+        dataSource.withSession { session ->
+            (
+                """
+                    insert into behandling (
+                        id,
+                        sakId,
+                        søknadId,
+                        opprettet,
+                        status,
+                        behandlingsinformasjon,
+                        oppgaveId
+                    ) values (
+                        :id,
+                        :sakId,
+                        :soknadId,
+                        :opprettet,
+                        :status,
+                        to_json(:behandlingsinformasjon::json),
+                        :oppgaveId
+                    )
+                """.trimIndent()
+                ).oppdatering(
+                params = mapOf(
+                    "id" to søknadsbehandling.id,
+                    "sakId" to søknadsbehandling.sakId,
+                    "soknadId" to søknadsbehandling.søknad.id,
+                    "opprettet" to søknadsbehandling.opprettet,
+                    "status" to BehandlingsStatus.OPPRETTET.toString(),
+                    "behandlingsinformasjon" to objectMapper.writeValueAsString(søknadsbehandling.behandlingsinformasjon),
+                    "oppgaveId" to søknadsbehandling.oppgaveId.toString(),
+                ),
+                session = session,
+            )
         }
     }
 
@@ -100,7 +138,7 @@ internal class SøknadsbehandlingPostgresRepo(
         val saksbehandler = stringOrNull("saksbehandler")?.let { NavIdentBruker.Saksbehandler(it) }
         val saksnummer = Saksnummer(long("saksnummer"))
         val fritekstTilBrev = stringOrNull("fritekstTilBrev") ?: ""
-        val stønadsperiode = stringOrNull("stønadsperiode")?.let { objectMapper.readValue<ValgtStønadsperiode>(it) }
+        val stønadsperiode = stringOrNull("stønadsperiode")?.let { objectMapper.readValue<Stønadsperiode>(it) }
 
         val fnr = Fnr(string("fnr"))
         val grunnlagsdata = Grunnlagsdata(
@@ -366,33 +404,7 @@ internal class SøknadsbehandlingPostgresRepo(
         dataSource.withSession { session ->
             (
                 """
-                    insert into behandling (
-                        id,
-                        sakId,
-                        søknadId,
-                        opprettet,
-                        status,
-                        behandlingsinformasjon,
-                        oppgaveId,
-                        beregning,
-                        simulering,
-                        saksbehandler,
-                        attestering,
-                        stønadsperiode
-                    ) values (
-                        :id,
-                        :sakId,
-                        :soknadId,
-                        :opprettet,
-                        :status,
-                        to_json(:behandlingsinformasjon::json),
-                        :oppgaveId,
-                        null,
-                        null,
-                        null,
-                        null,
-                        to_json(:stonadsperiode::json)
-                    ) on conflict (id) do update set
+                    update behandling set
                         status = :status,
                         behandlingsinformasjon = to_json(:behandlingsinformasjon::json),
                         beregning = null,

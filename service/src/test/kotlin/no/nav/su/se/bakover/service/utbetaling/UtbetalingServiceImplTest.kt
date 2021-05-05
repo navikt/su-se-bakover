@@ -39,7 +39,7 @@ import java.util.UUID
 internal class UtbetalingServiceImplTest {
 
     private val sakId = UUID.randomUUID()
-    private val saksnummer = Saksnummer(1234)
+    private val saksnummer = Saksnummer(2021)
     private val fnr = Fnr("12345678910")
     private val sak = Sak(
         id = sakId,
