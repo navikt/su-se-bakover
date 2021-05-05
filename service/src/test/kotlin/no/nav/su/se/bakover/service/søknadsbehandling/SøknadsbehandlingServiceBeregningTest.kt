@@ -19,6 +19,9 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -31,6 +34,7 @@ import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.tidspunkt
 import no.nav.su.se.bakover.service.beregning.BeregningService
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import org.junit.jupiter.api.Test
+import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 class SøknadsbehandlingServiceBeregningTest {
@@ -68,10 +72,19 @@ class SøknadsbehandlingServiceBeregningTest {
             on { beregn(any(), any(), any()) } doReturn TestBeregning
         }
 
+        val fradragRequest = SøknadsbehandlingService.BeregnRequest.FradragRequest(
+            periode = stønadsperiode.periode,
+            type = Fradragstype.Arbeidsinntekt,
+            månedsbeløp = 12000.0,
+            utenlandskInntekt = null,
+            tilhører = FradragTilhører.BRUKER,
+        )
         val request = SøknadsbehandlingService.BeregnRequest(
             behandlingId = behandlingId,
-            fradrag = emptyList(),
-            begrunnelse = "her er en begrunnelse"
+            fradrag = listOf(
+                fradragRequest,
+            ),
+            begrunnelse = "her er en begrunnelse",
         )
 
         val response = createSøknadsbehandlingService(
@@ -103,12 +116,58 @@ class SøknadsbehandlingServiceBeregningTest {
             verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandlingId })
             verify(beregningServiceMock).beregn(
                 søknadsbehandling = argThat { it shouldBe vilkårsvurdertBehandling },
-                fradrag = argThat { it shouldBe emptyList() },
+                fradrag = argThat {
+                    it shouldBe listOf(
+                        FradragFactory.ny(
+                            type = fradragRequest.type,
+                            månedsbeløp = fradragRequest.månedsbeløp,
+                            periode = fradragRequest.periode!!,
+                            utenlandskInntekt = fradragRequest.utenlandskInntekt,
+                            tilhører = fradragRequest.tilhører,
+                        ),
+                    )
+                },
                 begrunnelse = argThat { it shouldBe "her er en begrunnelse" },
             )
             verify(søknadsbehandlingRepoMock).lagre(expected)
         }
         verifyNoMoreInteractions(søknadsbehandlingRepoMock)
+    }
+
+    @Test
+    fun `fradragsperiode kan ikke være utenfor stønadsperioden`() {
+        val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
+            on { hent(any()) } doReturn vilkårsvurdertBehandling
+        }
+        val beregningServiceMock = mock<BeregningService>()
+        val request = SøknadsbehandlingService.BeregnRequest(
+            behandlingId = behandlingId,
+            fradrag = listOf(
+                SøknadsbehandlingService.BeregnRequest.FradragRequest(
+                    periode = stønadsperiode.periode.copy(
+                        fraOgMed = stønadsperiode.periode.fraOgMed.minus(
+                            1,
+                            ChronoUnit.MONTHS,
+                        ),
+                    ),
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 12000.0,
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
+            begrunnelse = "her er en begrunnelse",
+        )
+
+        createSøknadsbehandlingService(
+            søknadsbehandlingRepo = søknadsbehandlingRepoMock,
+            beregningService = beregningServiceMock,
+        ).beregn(request) shouldBe SøknadsbehandlingService.KunneIkkeBeregne.IkkeLovMedFradragUtenforPerioden.left()
+
+        inOrder(søknadsbehandlingRepoMock, beregningServiceMock) {
+            verify(søknadsbehandlingRepoMock).hent(argThat { it shouldBe behandlingId })
+        }
+        verifyNoMoreInteractions(søknadsbehandlingRepoMock, beregningServiceMock)
     }
 
     @Test
@@ -121,7 +180,7 @@ class SøknadsbehandlingServiceBeregningTest {
             SøknadsbehandlingService.BeregnRequest(
                 behandlingId = behandlingId,
                 fradrag = emptyList(),
-                begrunnelse = null
+                begrunnelse = null,
             ),
         )
 
