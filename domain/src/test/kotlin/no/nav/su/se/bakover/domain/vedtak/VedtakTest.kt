@@ -14,12 +14,12 @@ import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.FnrGenerator
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import org.junit.jupiter.api.Test
@@ -197,7 +197,7 @@ internal class VedtakTest {
             id = mock(),
             opprettet = Tidspunkt.now(fixedClock).plus(rekkefølge, ChronoUnit.DAYS),
             sakId = UUID.randomUUID(),
-            saksnummer = Saksnummer(123),
+            saksnummer = Saksnummer(2222),
             søknad = mock(),
             oppgaveId = mock(),
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
@@ -207,7 +207,7 @@ internal class VedtakTest {
             saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("Attes T. Ant")),
             fritekstTilBrev = "",
-            stønadsperiode = ValgtStønadsperiode(
+            stønadsperiode = Stønadsperiode.create(
                 periode = Periode.create(fraDato, tilDato),
                 begrunnelse = "begrunnelsen for perioden",
             ),
