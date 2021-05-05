@@ -51,8 +51,8 @@ private data class Body(val vurderinger: List<Vurdering>) {
 
     private data class Vurdering(
         val periode: PeriodeJson,
-        val uføregrad: Int,
-        val forventetInntekt: Int,
+        val uføregrad: Int?,
+        val forventetInntekt: Int?,
         // TODO jah: Bruk en egen type for dette
         val resultat: Behandlingsinformasjon.Uførhet.Status,
         val begrunnelse: String?,
@@ -63,11 +63,13 @@ private data class Body(val vurderinger: List<Vurdering>) {
             val periode = periode.toPeriode().getOrHandle {
                 return it.left()
             }
-            val validUføregrad = Uføregrad.tryParse(uføregrad).getOrElse {
-                return HttpStatusCode.BadRequest.errorJson(
-                    message = "Uføregrad må være mellom en og hundre",
-                    code = "uføregrad_må_være_mellom_en_og_hundre",
-                ).left()
+            val validUføregrad = uføregrad?.let {
+                Uføregrad.tryParse(it).getOrElse {
+                    return HttpStatusCode.BadRequest.errorJson(
+                        message = "Uføregrad må være mellom en og hundre",
+                        code = "uføregrad_må_være_mellom_en_og_hundre",
+                    ).left()
+                }
             }
             return LeggTilUførevurderingRequest(
                 behandlingId = revurderingId,

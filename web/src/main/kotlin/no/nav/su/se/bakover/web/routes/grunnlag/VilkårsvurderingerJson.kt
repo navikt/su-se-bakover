@@ -11,7 +11,7 @@ internal data class VilkårsvurderingerJson(
 
 internal fun Vilkårsvurderinger.toJson() = VilkårsvurderingerJson(
     uføre = when (uføre) {
-        Vilkår.IkkeVurdert.Uførhet -> (uføre as Vilkår.IkkeVurdert.Uførhet).toJson()
+        Vilkår.IkkeVurdert.Uførhet -> null
         is Vilkår.Vurdert.Uførhet -> (uføre as Vilkår.Vurdert.Uførhet).toJson()
     },
 )
