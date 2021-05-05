@@ -68,7 +68,7 @@ interface SøknadsbehandlingService {
 
         fun toFradrag(stønadsperiode: Stønadsperiode): Either<IkkeLovMedFradragUtenforPerioden, List<Fradrag>> =
             fradrag.map {
-                if (it.periode != null && stønadsperiode.periode inneholder it.periode) {
+                if (it.periode != null && !(stønadsperiode.periode inneholder it.periode)) {
                     return IkkeLovMedFradragUtenforPerioden.left()
                 }
                 FradragFactory.ny(
