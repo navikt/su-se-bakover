@@ -69,7 +69,7 @@ internal val vilkårsvurderingUføreOpprettet = Tidspunkt.now(fixedClock)
 internal val expectedVurderingUføreJson = """
     {
       "vilkår": "Uførhet",
-      "vurdering": [{
+      "vurderinger": [{
         "id": "$vilkårsvurderingUføreId",
         "opprettet": "${DateTimeFormatter.ISO_INSTANT.format(vilkårsvurderingUføreOpprettet)}",
         "resultat": "VilkårOppfylt",

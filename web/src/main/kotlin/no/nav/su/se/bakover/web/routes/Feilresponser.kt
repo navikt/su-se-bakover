@@ -24,4 +24,8 @@ internal object Feilresponser {
         "Hvis man innvilger uførevilkåret må man sende med uføregrad og forventet inntekt",
         "uføregrad_og_forventet_inntekt_mangler",
     )
+    val utenforBehandlingsperioden = HttpStatusCode.BadRequest.errorJson(
+        "Vurderingsperioden(e) kan ikke være utenfor behandlingsperioden",
+        "vurderingsperiode_utenfor_behandlingsperiode",
+    )
 }

@@ -165,7 +165,7 @@ internal class VurderingsperiodeTest {
                 uføregrad = Uføregrad.parse(50),
                 forventetInntekt = 500,
             ),
-            periode = Periode.create(1.mai(2021), 31.desember(2021)),
+            vurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
             begrunnelse = "begrunnelsen",
         ) shouldBeLeft Vurderingsperiode.Manuell.UgyldigVurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig
     }
@@ -177,7 +177,7 @@ internal class VurderingsperiodeTest {
             opprettet = Tidspunkt.now(fixedClock),
             resultat = Resultat.Innvilget,
             grunnlag = null,
-            periode = Periode.create(1.mai(2021), 31.desember(2021)),
+            vurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
             begrunnelse = "begrunnelsen",
         ).isRight() shouldBe true
     }

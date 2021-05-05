@@ -217,6 +217,7 @@ sealed class KunneIkkeLeggeTilGrunnlag {
     object UføregradOgForventetInntektMangler : KunneIkkeLeggeTilGrunnlag()
     object PeriodeForGrunnlagOgVurderingErForskjellig : KunneIkkeLeggeTilGrunnlag()
     object OverlappendeVurderingsperioder : KunneIkkeLeggeTilGrunnlag()
+    object VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden : KunneIkkeLeggeTilGrunnlag()
 }
 
 sealed class KunneIkkeHenteGrunnlag {

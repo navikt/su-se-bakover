@@ -76,11 +76,11 @@ sealed class Vilkår<T : Grunnlag> {
             if (erInnvilget) Resultat.Innvilget else if (erAvslag) Resultat.Avslag else Resultat.Uavklart
         }
 
-        val erInnvilget: Boolean by lazy {
+        private val erInnvilget: Boolean by lazy {
             vurderingsperioder.all { it.resultat == Resultat.Innvilget }
         }
 
-        val erAvslag: Boolean by lazy {
+        private val erAvslag: Boolean by lazy {
             vurderingsperioder.any { it.resultat == Resultat.Avslag }
         }
 
@@ -170,12 +170,12 @@ sealed class Vurderingsperiode<T : Grunnlag> : KanPlasseresPåTidslinje<Vurderin
                 opprettet: Tidspunkt = Tidspunkt.now(),
                 resultat: Resultat,
                 grunnlag: T?,
-                periode: Periode,
+                vurderingsperiode: Periode,
                 begrunnelse: String?,
             ): Either<UgyldigVurderingsperiode, Manuell<T>> {
 
                 grunnlag?.let {
-                    if (periode != it.periode) return UgyldigVurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig.left()
+                    if (vurderingsperiode != it.periode) return UgyldigVurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig.left()
                 }
 
                 return Manuell(
@@ -183,7 +183,7 @@ sealed class Vurderingsperiode<T : Grunnlag> : KanPlasseresPåTidslinje<Vurderin
                     opprettet = opprettet,
                     resultat = resultat,
                     grunnlag = grunnlag,
-                    periode = periode,
+                    periode = vurderingsperiode,
                     begrunnelse = begrunnelse,
                 ).right()
             }
