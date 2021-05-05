@@ -26,7 +26,6 @@ import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.BeregnRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.BrevRequest
@@ -244,7 +243,7 @@ internal fun Route.søknadsbehandlingRoutes(
                                         KunneIkkeBeregne.FantIkkeBehandling -> {
                                             NotFound.errorJson("Fant ikke behandling", "fant_ikke_behandling")
                                         }
-                                        KunneIkkeBeregne.IkkeLovMedFradragUtenforPerioden -> NotFound.errorJson(
+                                        KunneIkkeBeregne.IkkeLovMedFradragUtenforPerioden -> BadRequest.errorJson(
                                             "Ikke lov med fradrag utenfor perioden",
                                             "ikke_lov_med_fradrag_utenfor_perioden",
                                         )

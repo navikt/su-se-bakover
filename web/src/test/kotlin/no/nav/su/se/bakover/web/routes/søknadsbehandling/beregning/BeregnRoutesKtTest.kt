@@ -25,14 +25,14 @@ import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.beregning.Sats
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
+import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.ServiceBuilder
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.VilkårsvurderRequest
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.TestClientsBuilder
@@ -147,7 +147,7 @@ internal class BeregnRoutesKtTest {
             }.apply {
                 assertSoftly {
                     response.status() shouldBe HttpStatusCode.BadRequest
-                    response.content shouldContain "Fradragsperioden kan ikke være utenfor stønadsperioden"
+                    response.content shouldContain "ikke_lov_med_fradrag_utenfor_perioden"
                 }
             }
         }
@@ -291,7 +291,20 @@ internal class BeregnRoutesKtTest {
                 HttpMethod.Post,
                 "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/beregn",
                 listOf(Brukerrolle.Saksbehandler),
-            ).apply {
+            ) {
+                setBody(
+                    //language=JSON
+                    """{
+                           "fradrag":[{
+                             "type":"Arbeidsinntekt",
+                             "beløp":200,
+                             "utenlandskInntekt": null,
+                             "tilhører": "BRUKER"
+                          }]
+                        }
+                    """.trimIndent(),
+                )
+            }.apply {
                 assertSoftly {
                     response.status() shouldBe HttpStatusCode.NotFound
                     response.content shouldContain "Fant ikke behandling"
@@ -396,27 +409,30 @@ internal class BeregnRoutesKtTest {
             .journalfør(journalpostId).also { repos.søknad.oppdaterjournalpostId(it) }
             .medOppgave(oppgaveId).also { repos.søknad.oppdaterOppgaveId(it) }
 
-        val nySøknadsbehandling = Søknadsbehandling.Vilkårsvurdert.Uavklart(
+        val nySøknadsbehandling = NySøknadsbehandling(
             id = UUID.randomUUID(),
             opprettet = sak.opprettet,
             sakId = sak.id,
             søknad = søknadMedOppgave,
             oppgaveId = OppgaveId("1234"),
-            saksnummer = sak.saksnummer,
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             fnr = sak.fnr,
-            fritekstTilBrev = "",
-            stønadsperiode = stønadsperiode,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
-        repos.søknadsbehandling.lagre(
+        repos.søknadsbehandling.lagreNySøknadsbehandling(
             nySøknadsbehandling,
         )
+
+        services.søknadsbehandling.oppdaterStønadsperiode(
+            SøknadsbehandlingService.OppdaterStønadsperiodeRequest(
+                behandlingId = nySøknadsbehandling.id,
+                stønadsperiode = stønadsperiode,
+            ),
+        )
+
         return Objects(
             repos.sak.hentSak(sak.id)!!,
             repos.søknad.hentSøknad(søknadMedOppgave.id)!!,
-            nySøknadsbehandling,
+            repos.søknadsbehandling.hent(nySøknadsbehandling.id) as Søknadsbehandling.Vilkårsvurdert.Uavklart,
         )
     }
 }
