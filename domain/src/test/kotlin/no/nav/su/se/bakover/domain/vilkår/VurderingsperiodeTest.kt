@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.vilkår
 
+import io.kotest.assertions.arrow.either.shouldBeLeft
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -24,7 +25,7 @@ internal class VurderingsperiodeTest {
 
     @Test
     fun `bevarer korrekte verdier ved kopiering for plassering på tidslinje - full kopi`() {
-        val original = Vurderingsperiode.Manuell(
+        val original = Vurderingsperiode.Manuell.create(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(fixedClock),
             resultat = Resultat.Innvilget,
@@ -58,7 +59,7 @@ internal class VurderingsperiodeTest {
 
     @Test
     fun `bevarer korrekte verdier ved kopiering for plassering på tidslinje - ny periode`() {
-        val original = Vurderingsperiode.Manuell(
+        val original = Vurderingsperiode.Manuell.create(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(fixedClock),
             resultat = Resultat.Innvilget,
@@ -91,7 +92,7 @@ internal class VurderingsperiodeTest {
 
     @Test
     fun `kan lage tidslinje for vurderingsperioder`() {
-        val a = Vurderingsperiode.Manuell(
+        val a = Vurderingsperiode.Manuell.create(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(fixedClock),
             resultat = Resultat.Innvilget,
@@ -106,7 +107,7 @@ internal class VurderingsperiodeTest {
             begrunnelse = "begrunnelsen a",
         )
 
-        val b = Vurderingsperiode.Manuell(
+        val b = Vurderingsperiode.Manuell.create(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(fixedClock).plus(1, ChronoUnit.DAYS),
             resultat = Resultat.Innvilget,
@@ -151,5 +152,35 @@ internal class VurderingsperiodeTest {
                 }
             }
         }
+    }
+
+    @Test
+    fun `krever samsvar med periode for grunnlag dersom det eksisterer`() {
+        Vurderingsperiode.Manuell.tryCreate(
+            id = UUID.randomUUID(),
+            opprettet = Tidspunkt.now(fixedClock),
+            resultat = Resultat.Innvilget,
+            grunnlag = Grunnlag.Uføregrunnlag(
+                id = UUID.randomUUID(),
+                opprettet = Tidspunkt.now(fixedClock),
+                periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                uføregrad = Uføregrad.parse(50),
+                forventetInntekt = 500,
+            ),
+            vurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
+            begrunnelse = "begrunnelsen",
+        ) shouldBeLeft Vurderingsperiode.Manuell.UgyldigVurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig
+    }
+
+    @Test
+    fun `kan opprettes selv om grunnlag ikke eksisterer`() {
+        Vurderingsperiode.Manuell.tryCreate(
+            id = UUID.randomUUID(),
+            opprettet = Tidspunkt.now(fixedClock),
+            resultat = Resultat.Innvilget,
+            grunnlag = null,
+            vurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
+            begrunnelse = "begrunnelsen",
+        ).isRight() shouldBe true
     }
 }

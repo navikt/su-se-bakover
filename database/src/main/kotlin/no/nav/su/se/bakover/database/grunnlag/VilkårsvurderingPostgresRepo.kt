@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.grunnlag
 
+import arrow.core.Nel
 import kotliquery.Row
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.Session
@@ -106,13 +107,13 @@ internal class VilkårsvurderingPostgresRepo(
                 }
         }
         return when (vurderingsperioder.isNotEmpty()) {
-            true -> Vilkår.Vurdert.Uførhet(vurderingsperioder = vurderingsperioder)
+            true -> Vilkår.Vurdert.Uførhet.create(vurderingsperioder = Nel.fromListUnsafe(vurderingsperioder))
             false -> Vilkår.IkkeVurdert.Uførhet
         }
     }
 
     private fun Row.toVurderingsperioder(): Vurderingsperiode<Grunnlag.Uføregrunnlag> {
-        return Vurderingsperiode.Manuell(
+        return Vurderingsperiode.Manuell.create(
             id = uuid("id"),
             opprettet = tidspunkt("opprettet"),
             resultat = ResultatDto.valueOf(string("resultat")).toDomain(),

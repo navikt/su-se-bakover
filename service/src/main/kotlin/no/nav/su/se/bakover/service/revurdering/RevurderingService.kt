@@ -5,12 +5,12 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
-import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import java.util.UUID
 import kotlin.reflect.KClass
 
@@ -63,8 +63,11 @@ interface RevurderingService {
         request: FortsettEtterForhåndsvarslingRequest,
     ): Either<FortsettEtterForhåndsvarselFeil, Revurdering>
 
-    fun leggTilUføregrunnlag(revurderingId: UUID, uføregrunnlag: List<Grunnlag.Uføregrunnlag>): Either<KunneIkkeLeggeTilGrunnlag, LeggTilUføregrunnlagResponse>
-    fun hentUføregrunnlag(revurderingId: UUID): Either<KunneIkkeHenteGrunnlag, GrunnlagService.SimulerEndretGrunnlagsdata>
+    fun leggTilUføregrunnlag(
+        request: LeggTilUførevurderingerRequest,
+    ): Either<KunneIkkeLeggeTilGrunnlag, LeggTilUføregrunnlagResponse>
+
+    fun hentGjeldendeVilkårsvurderinger(revurderingId: UUID): Either<KunneIkkeHenteGrunnlag, Vilkårsvurderinger>
 }
 
 sealed class FortsettEtterForhåndsvarslingRequest {
@@ -133,6 +136,7 @@ sealed class KunneIkkeOppdatereRevurdering {
     object UgyldigBegrunnelse : KunneIkkeOppdatereRevurdering()
     data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
         KunneIkkeOppdatereRevurdering()
+
     object KanIkkeOppdatereRevurderingSomErForhåndsvarslet : KunneIkkeOppdatereRevurdering()
     object PeriodeOgÅrsakKombinasjonErUgyldig : KunneIkkeOppdatereRevurdering()
 }
@@ -146,6 +150,9 @@ sealed class KunneIkkeBeregneOgSimulereRevurdering {
         KunneIkkeBeregneOgSimulereRevurdering()
 
     object UfullstendigBehandlingsinformasjon : KunneIkkeBeregneOgSimulereRevurdering()
+    data class UgyldigBeregningsgrunnlag(
+        val reason: no.nav.su.se.bakover.domain.beregning.UgyldigBeregningsgrunnlag,
+    ) : KunneIkkeBeregneOgSimulereRevurdering()
 }
 
 sealed class KunneIkkeForhåndsvarsle {
@@ -207,6 +214,11 @@ sealed class KunneIkkeUnderkjenneRevurdering {
 sealed class KunneIkkeLeggeTilGrunnlag {
     object FantIkkeBehandling : KunneIkkeLeggeTilGrunnlag()
     object UgyldigStatus : KunneIkkeLeggeTilGrunnlag()
+    object UføregradOgForventetInntektMangler : KunneIkkeLeggeTilGrunnlag()
+    object PeriodeForGrunnlagOgVurderingErForskjellig : KunneIkkeLeggeTilGrunnlag()
+    object OverlappendeVurderingsperioder : KunneIkkeLeggeTilGrunnlag()
+    object VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden : KunneIkkeLeggeTilGrunnlag()
+    object AlleVurderingeneMåHaSammeResultat : KunneIkkeLeggeTilGrunnlag()
 }
 
 sealed class KunneIkkeHenteGrunnlag {
@@ -215,5 +227,5 @@ sealed class KunneIkkeHenteGrunnlag {
 
 data class LeggTilUføregrunnlagResponse(
     val revurdering: Revurdering,
-    val simulerEndretGrunnlagsdata: GrunnlagService.SimulerEndretGrunnlagsdata,
+    val gjeldendeVilkårsvurderinger: Vilkårsvurderinger,
 )

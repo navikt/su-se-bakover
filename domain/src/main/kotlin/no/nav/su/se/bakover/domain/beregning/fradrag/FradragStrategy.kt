@@ -22,27 +22,24 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
         val periodiserteFradrag = fradrag
             .flatMap { FradragFactory.periodiser(it) }
             .groupBy { it.periode }
-        val beregningsperiodeMedFradrag = beregningsperiode.tilMånedsperioder()
-            .map { it to (periodiserteFradrag[it] ?: emptyList()) }
-            .toMap()
+        val beregningsperiodeMedFradrag =
+            beregningsperiode.tilMånedsperioder().associateWith { (periodiserteFradrag[it] ?: emptyList()) }
 
         validate(beregningsperiodeMedFradrag)
         return beregnFradrag(beregningsperiodeMedFradrag)
     }
 
     protected open fun validate(fradrag: Map<Periode, List<Fradrag>>) {
-        require(fradrag.values.all { it.`har nøyaktig en forventet inntekt for bruker`() }) { "Hele beregningsperioden må inneholde fradrag for brukers forventede inntekt etter uførhet." }
+        require(fradrag.values.all { it.`har nøyaktig en forventet inntekt for bruker`() }) { "Hver måned i beregningsperioden må inneholde nøyaktig ett fradrag for brukers forventede inntekt" }
     }
 
     protected abstract fun beregnFradrag(fradrag: Map<Periode, List<Fradrag>>): Map<Periode, List<Fradrag>>
-
-    object IngenEpsFribeløp
 
     abstract fun getEpsFribeløp(periode: Periode): Double
 
     object Enslig : FradragStrategy(FradragStrategyName.Enslig) {
         override fun beregnFradrag(fradrag: Map<Periode, List<Fradrag>>): Map<Periode, List<Fradrag>> {
-            return fradrag.mapValues { it.value.filter { it.getTilhører() == FradragTilhører.BRUKER } }
+            return fradrag.mapValues { it.value.filter { fradrag -> fradrag.getTilhører() == FradragTilhører.BRUKER } }
                 .`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`()
         }
 
@@ -165,9 +162,9 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
                     månedsbeløp = beregnetFradragEps,
                     periode = periode,
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.EPS
-                )
-            )
+                    tilhører = FradragTilhører.EPS,
+                ),
+            ),
         )
     }
 

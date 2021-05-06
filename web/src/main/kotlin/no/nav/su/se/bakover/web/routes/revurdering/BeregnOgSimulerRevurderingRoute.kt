@@ -95,9 +95,13 @@ private fun KunneIkkeBeregneOgSimulereRevurdering.tilResultat(): Resultat {
             "Ufullstendig behandlingsinformasjon",
             "ufullstendig_behandlingsinformasjon",
         )
-        KunneIkkeBeregneOgSimulereRevurdering.MåSendeGrunnbeløpReguleringSomÅrsakSammenMedForventetInntekt -> InternalServerError.errorJson(
+        KunneIkkeBeregneOgSimulereRevurdering.MåSendeGrunnbeløpReguleringSomÅrsakSammenMedForventetInntekt -> BadRequest.errorJson(
             "Forventet inntekt kan kun sendes sammen med regulering av grunnbeløp",
             "grunnbelop_forventetinntekt",
+        )
+        is KunneIkkeBeregneOgSimulereRevurdering.UgyldigBeregningsgrunnlag -> BadRequest.errorJson(
+            "Ugyldig beregningsgrunnlag. Underliggende årsak: ${this.reason}",
+            "ugyldig_beregningsgrunnlag",
         )
     }
 }

@@ -1,5 +1,11 @@
 package no.nav.su.se.bakover.domain.vilkår
 
+import arrow.core.Either
+import arrow.core.Nel
+import arrow.core.extensions.list.foldable.forAll
+import arrow.core.getOrHandle
+import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
@@ -70,20 +76,42 @@ sealed class Vilkår<T : Grunnlag> {
             if (erInnvilget) Resultat.Innvilget else if (erAvslag) Resultat.Avslag else Resultat.Uavklart
         }
 
-        val erInnvilget: Boolean by lazy {
+        private val erInnvilget: Boolean by lazy {
             vurderingsperioder.all { it.resultat == Resultat.Innvilget }
         }
 
-        val erAvslag: Boolean by lazy {
+        private val erAvslag: Boolean by lazy {
             vurderingsperioder.any { it.resultat == Resultat.Avslag }
         }
 
-        data class Uførhet(
-            override val vurderingsperioder: List<Vurderingsperiode<Grunnlag.Uføregrunnlag>>,
+        data class Uførhet private constructor(
+            override val vurderingsperioder: Nel<Vurderingsperiode<Grunnlag.Uføregrunnlag>>,
         ) : Vurdert<Grunnlag.Uføregrunnlag>() {
             override val vilkår = Inngangsvilkår.Uførhet
             override val grunnlag: List<Grunnlag.Uføregrunnlag> = vurderingsperioder.mapNotNull {
                 it.grunnlag
+            }
+
+            companion object {
+                fun create(
+                    vurderingsperioder: Nel<Vurderingsperiode<Grunnlag.Uføregrunnlag>>,
+                ): Uførhet = tryCreate(vurderingsperioder).getOrHandle { throw IllegalArgumentException(it.toString()) }
+
+                fun tryCreate(
+                    vurderingsperioder: Nel<Vurderingsperiode<Grunnlag.Uføregrunnlag>>,
+                ): Either<UgyldigUførevilkår, Uførhet> {
+                    if (vurderingsperioder.forAll { v1 ->
+                        vurderingsperioder.minus(v1).any { v2 -> v1.periode overlapper v2.periode }
+                    }
+                    ) {
+                        return UgyldigUførevilkår.OverlappendeVurderingsperioder.left()
+                    }
+                    return Uførhet(vurderingsperioder).right()
+                }
+            }
+
+            sealed class UgyldigUførevilkår {
+                object OverlappendeVurderingsperioder : UgyldigUførevilkår()
             }
         }
     }
@@ -97,7 +125,7 @@ sealed class Vurderingsperiode<T : Grunnlag> : KanPlasseresPåTidslinje<Vurderin
     abstract override val periode: Periode
     abstract val begrunnelse: String?
 
-    data class Manuell<T : Grunnlag>(
+    data class Manuell<T : Grunnlag> private constructor(
         override val id: UUID = UUID.randomUUID(),
         override val opprettet: Tidspunkt = Tidspunkt.now(),
         override val resultat: Resultat,
@@ -115,12 +143,54 @@ sealed class Vurderingsperiode<T : Grunnlag> : KanPlasseresPåTidslinje<Vurderin
                 )
             }
             is CopyArgs.Tidslinje.NyPeriode -> {
-                this.copy(
+                copy(
                     id = UUID.randomUUID(),
                     periode = args.periode,
                     grunnlag = grunnlag?.copy(args) as T,
                 )
             }
+        }
+
+        companion object {
+            fun <T : Grunnlag> create(
+                id: UUID = UUID.randomUUID(),
+                opprettet: Tidspunkt = Tidspunkt.now(),
+                resultat: Resultat,
+                grunnlag: T?,
+                periode: Periode,
+                begrunnelse: String?,
+            ): Manuell<T> {
+                return tryCreate(id, opprettet, resultat, grunnlag, periode, begrunnelse).getOrHandle {
+                    throw IllegalArgumentException(it.toString())
+                }
+            }
+
+            fun <T : Grunnlag> tryCreate(
+                id: UUID = UUID.randomUUID(),
+                opprettet: Tidspunkt = Tidspunkt.now(),
+                resultat: Resultat,
+                grunnlag: T?,
+                vurderingsperiode: Periode,
+                begrunnelse: String?,
+            ): Either<UgyldigVurderingsperiode, Manuell<T>> {
+
+                grunnlag?.let {
+                    if (vurderingsperiode != it.periode) return UgyldigVurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig.left()
+                }
+
+                return Manuell(
+                    id = id,
+                    opprettet = opprettet,
+                    resultat = resultat,
+                    grunnlag = grunnlag,
+                    periode = vurderingsperiode,
+                    begrunnelse = begrunnelse,
+                ).right()
+            }
+        }
+
+        sealed class UgyldigVurderingsperiode {
+            object PeriodeForGrunnlagOgVurderingErForskjellig : UgyldigVurderingsperiode()
         }
     }
 }

@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
 import java.util.UUID
 import kotlin.reflect.KClass
 
@@ -178,5 +179,8 @@ interface SøknadsbehandlingService {
         object FantIkkeBehandling : KunneIkkeLeggeTilGrunnlag()
         data class UgyldigTilstand(val fra: KClass<out Søknadsbehandling>, val til: KClass<out Søknadsbehandling>) : KunneIkkeLeggeTilGrunnlag()
         object UføregradOgForventetInntektMangler : KunneIkkeLeggeTilGrunnlag()
+        object PeriodeForGrunnlagOgVurderingErForskjellig : KunneIkkeLeggeTilGrunnlag()
+        object OverlappendeVurderingsperioder : KunneIkkeLeggeTilGrunnlag()
+        object VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden : KunneIkkeLeggeTilGrunnlag()
     }
 }

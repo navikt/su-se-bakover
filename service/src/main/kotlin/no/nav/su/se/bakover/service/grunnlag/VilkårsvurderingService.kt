@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.service.grunnlag
 
+import arrow.core.Nel
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.grunnlag.VilkårsvurderingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
@@ -43,7 +44,7 @@ internal class VilkårsvurderingServiceImpl(
             }.tidslinje
 
         return Vilkårsvurderinger(
-            uføre = Vilkår.Vurdert.Uførhet(uføreVilkårsvurderingerIPeriode),
+            uføre = if (uføreVilkårsvurderingerIPeriode.isNotEmpty()) Vilkår.Vurdert.Uførhet.create(Nel.fromListUnsafe(uføreVilkårsvurderingerIPeriode)) else Vilkår.IkkeVurdert.Uførhet,
         )
     }
 }

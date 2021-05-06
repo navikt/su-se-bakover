@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.beregning
 
+import arrow.core.getOrHandle
 import no.nav.su.se.bakover.domain.behandling.Satsgrunn
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
@@ -7,12 +8,14 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 
 class BeregningStrategyFactory {
     fun beregn(søknadsbehandling: Søknadsbehandling, fradrag: List<Fradrag>, begrunnelse: String?): Beregning {
-        val beregningsgrunnlag = Beregningsgrunnlag.create(
+        val beregningsgrunnlag = Beregningsgrunnlag.tryCreate(
             beregningsperiode = søknadsbehandling.periode,
-            forventetInntektPerÅr = søknadsbehandling.behandlingsinformasjon.uførhet?.forventetInntekt?.toDouble()
-                ?: 0.0,
+            uføregrunnlag = søknadsbehandling.grunnlagsdata.uføregrunnlag,
             fradragFraSaksbehandler = fradrag,
-        )
+        ).getOrHandle {
+            // TODO jah: Kan vurdere å legge på en left her (KanIkkeBeregne.UgyldigBeregningsgrunnlag
+            throw IllegalArgumentException(it.toString())
+        }
         val strategy = søknadsbehandling.behandlingsinformasjon.getBeregningStrategy()
         // TODO jah: Kan vurdere å legge på en left her (KanIkkeBeregne.UfullstendigBehandlingsinformasjon
         return strategy.orNull()!!.beregn(beregningsgrunnlag, begrunnelse)

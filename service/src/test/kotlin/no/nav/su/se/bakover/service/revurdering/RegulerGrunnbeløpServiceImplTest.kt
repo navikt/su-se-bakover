@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.service.revurdering
 
+import arrow.core.Nel
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
@@ -10,7 +11,6 @@ import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.assertions.arrow.either.shouldBeLeft
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.januar
@@ -64,32 +64,13 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.saksbehandl
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.søknadsbehandlingVedtak
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
+import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
 internal class RegulerGrunnbeløpServiceImplTest {
-
-    @Test
-    fun `kaster exception hvis man forsøker å legge til flere uføregrunnlag`() {
-        val revurderingMock = mock<OpprettetRevurdering>()
-
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(any()) } doReturn revurderingMock
-        }
-
-        assertThrows<IllegalArgumentException> {
-            createRevurderingService(
-                revurderingRepo = revurderingRepoMock,
-            ).leggTilUføregrunnlag(
-                revurderingId = revurderingId,
-                uføregrunnlag = listOf(mock(), mock(), mock()),
-            )
-        }.also {
-            it.message shouldContain "Flere perioder med forskjellig IEU støttes ikke enda"
-        }
-    }
 
     @Test
     fun `oppdaterer behandlingsinformasjon når uføregrunnlag legges til`() {
@@ -117,9 +98,9 @@ internal class RegulerGrunnbeløpServiceImplTest {
             forhåndsvarsel = null,
             grunnlagsdata = eksisterendeGrunnlagsdata,
             vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Vurdert.Uførhet(
-                    vurderingsperioder = listOf(
-                        Vurderingsperiode.Manuell(
+                uføre = Vilkår.Vurdert.Uførhet.create(
+                    vurderingsperioder = Nel.of(
+                        Vurderingsperiode.Manuell.create(
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
                             resultat = Resultat.Innvilget,
@@ -166,28 +147,34 @@ internal class RegulerGrunnbeløpServiceImplTest {
                 forventetLagretRevurdering.copy(grunnlagsdata = Grunnlagsdata(uføregrunnlag = listOf(nyttUføregrunnlag))),
             )
         }
-        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService>()
-
-        val grunnlagServiceMock = mock<GrunnlagService>() {
-            on { simulerEndretGrunnlagsdata(any(), any(), any()) } doReturn GrunnlagService.SimulerEndretGrunnlagsdata(
-                førBehandling = opprettetRevurdering.grunnlagsdata,
-                endring = Grunnlagsdata(uføregrunnlag = listOf(nyttUføregrunnlag)),
-                resultat = Grunnlagsdata(uføregrunnlag = listOf(nyttUføregrunnlag)),
-            )
+        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService> {
+            on { opprettVilkårsvurderinger(any(), any()) } doReturn opprettetRevurdering.vilkårsvurderinger
         }
+
+        val grunnlagServiceMock = mock<GrunnlagService>()
 
         createRevurderingService(
             revurderingRepo = revurderingRepoMock,
             vilkårsvurderingService = vilkårsvurderingServiceMock,
-            grunnlagService = grunnlagServiceMock,
         ).leggTilUføregrunnlag(
-            revurderingId = revurderingId,
-            uføregrunnlag = listOf(nyttUføregrunnlag),
+            LeggTilUførevurderingerRequest(
+                behandlingId = revurderingId,
+                vurderinger = Nel.of(
+                    LeggTilUførevurderingRequest(
+                        behandlingId = nyttUføregrunnlag.id,
+                        periode = nyttUføregrunnlag.periode,
+                        uføregrad = nyttUføregrunnlag.uføregrad,
+                        forventetInntekt = nyttUføregrunnlag.forventetInntekt,
+                        oppfylt = Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
+                        begrunnelse = "",
+                    ),
+                ),
+            ),
         )
 
         inOrder(
             revurderingRepoMock,
-            grunnlagServiceMock,
+            vilkårsvurderingServiceMock,
             vilkårsvurderingServiceMock,
         ) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
@@ -197,10 +184,9 @@ internal class RegulerGrunnbeløpServiceImplTest {
                 any(),
             )
             verify(revurderingRepoMock).hent(forventetLagretRevurdering.id)
-            verify(grunnlagServiceMock).simulerEndretGrunnlagsdata(
+            verify(vilkårsvurderingServiceMock).opprettVilkårsvurderinger(
                 sakId = forventetLagretRevurdering.sakId,
                 periode = forventetLagretRevurdering.periode,
-                endring = Grunnlagsdata(uføregrunnlag = listOf(nyttUføregrunnlag)),
             )
         }
         verifyNoMoreInteractions(revurderingRepoMock, grunnlagServiceMock)

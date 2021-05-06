@@ -101,7 +101,6 @@ object ServiceBuilder {
             clock = clock,
             vedtakRepo = databaseRepos.vedtakRepo,
             ferdigstillVedtakService = ferdigstillVedtakService,
-            grunnlagService = grunnlagService,
             vilkårsvurderingService = vilkårsvurderingService
         ).apply { addObserver(statistikkService) }
 

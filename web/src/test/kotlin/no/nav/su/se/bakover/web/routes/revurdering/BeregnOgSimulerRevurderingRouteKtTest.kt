@@ -124,7 +124,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
             grunnlagsdata = Grunnlagsdata(
                 uføregrunnlag = listOf(
                     Grunnlag.Uføregrunnlag(
-                        periode = periode,
+                        periode = TestBeregning.periode,
                         uføregrad = Uføregrad.parse(20),
                         forventetInntekt = 12000,
                     ),

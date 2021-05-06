@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.grunnlag
 
+import arrow.core.Nel
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
@@ -25,9 +26,9 @@ internal class VilkårsvurderingPostgresRepoTest {
     fun `lagrer og henter vilkårsvurdering uten grunnlag`() {
         withMigratedDb {
             val søknadsbehandling = testDataHelper.nySøknadsbehandling()
-            val vurderingUførhet = Vilkår.Vurdert.Uførhet(
-                vurderingsperioder = listOf(
-                    Vurderingsperiode.Manuell(
+            val vurderingUførhet = Vilkår.Vurdert.Uførhet.create(
+                vurderingsperioder = Nel.of(
+                    Vurderingsperiode.Manuell.create(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
                         resultat = Resultat.Avslag,
@@ -56,9 +57,9 @@ internal class VilkårsvurderingPostgresRepoTest {
                 forventetInntekt = 12000,
             )
 
-            val vurderingUførhet = Vilkår.Vurdert.Uførhet(
-                vurderingsperioder = listOf(
-                    Vurderingsperiode.Manuell(
+            val vurderingUførhet = Vilkår.Vurdert.Uførhet.create(
+                vurderingsperioder = Nel.of(
+                    Vurderingsperiode.Manuell.create(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
                         resultat = Resultat.Avslag,
@@ -87,9 +88,9 @@ internal class VilkårsvurderingPostgresRepoTest {
                 forventetInntekt = 12000,
             )
 
-            val vurderingUførhet = Vilkår.Vurdert.Uførhet(
-                vurderingsperioder = listOf(
-                    Vurderingsperiode.Manuell(
+            val vurderingUførhet = Vilkår.Vurdert.Uførhet.create(
+                vurderingsperioder = Nel.of(
+                    Vurderingsperiode.Manuell.create(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
                         resultat = Resultat.Avslag,

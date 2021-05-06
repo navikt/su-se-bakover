@@ -42,6 +42,7 @@ import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
+import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
 import org.slf4j.LoggerFactory
 import java.time.Clock
 import java.util.UUID
@@ -463,8 +464,13 @@ internal class SøknadsbehandlingServiceImpl(
         if (søknadsbehandling is Søknadsbehandling.Iverksatt || søknadsbehandling is Søknadsbehandling.TilAttestering)
             return SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.UgyldigTilstand(søknadsbehandling::class, Søknadsbehandling.Vilkårsvurdert::class).left()
 
-        val vilkår = request.toVilkår().getOrHandle {
-            return SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.UføregradOgForventetInntektMangler.left()
+        val vilkår = request.toVilkår(søknadsbehandling.periode).getOrHandle {
+            return when (it) {
+                LeggTilUførevurderingRequest.UgyldigUførevurdering.UføregradOgForventetInntektMangler -> SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.UføregradOgForventetInntektMangler.left()
+                LeggTilUførevurderingRequest.UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig -> SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.PeriodeForGrunnlagOgVurderingErForskjellig.left()
+                LeggTilUførevurderingRequest.UgyldigUførevurdering.OverlappendeVurderingsperioder -> SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.OverlappendeVurderingsperioder.left()
+                LeggTilUførevurderingRequest.UgyldigUførevurdering.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden -> SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden.left()
+            }
         }
         // TODO midliertidig til behandlingsinformasjon er borte
         val grunnlag = (vilkår as? Vilkår.Vurdert.Uførhet)?.grunnlag?.firstOrNull()
@@ -473,13 +479,10 @@ internal class SøknadsbehandlingServiceImpl(
                 behandlingId = søknadsbehandling.id,
                 behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon.copy(
                     uførhet = Behandlingsinformasjon.Uførhet(
-                        status = when (vilkår) {
-                            is Vilkår.Vurdert.Uførhet -> when (vilkår.resultat) {
-                                Resultat.Avslag -> Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt
-                                Resultat.Innvilget -> Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt
-                                Resultat.Uavklart -> Behandlingsinformasjon.Uførhet.Status.HarUføresakTilBehandling
-                            }
-                            Vilkår.IkkeVurdert.Uførhet -> TODO()
+                        status = when (vilkår.resultat) {
+                            Resultat.Avslag -> Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt
+                            Resultat.Innvilget -> Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt
+                            Resultat.Uavklart -> Behandlingsinformasjon.Uførhet.Status.HarUføresakTilBehandling
                         },
                         uføregrad = grunnlag?.uføregrad?.value,
                         forventetInntekt = grunnlag?.forventetInntekt,

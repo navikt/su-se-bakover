@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
+import arrow.core.Nel
 import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -22,7 +23,6 @@ import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import no.nav.su.se.bakover.web.routes.grunnlag.expectedUføregrunnlagJson
 import no.nav.su.se.bakover.web.routes.grunnlag.expectedVurderingUføreJson
 import no.nav.su.se.bakover.web.routes.grunnlag.uføregrunnlag
 import no.nav.su.se.bakover.web.routes.grunnlag.vurderingsperiodeUføre
@@ -60,8 +60,8 @@ internal class RevurderingJsonTest {
                 uføregrunnlag = listOf(uføregrunnlag)
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Vurdert.Uførhet(
-                    vurderingsperioder = listOf(vurderingsperiodeUføre)
+                uføre = Vilkår.Vurdert.Uførhet.create(
+                    vurderingsperioder = Nel.of(vurderingsperiodeUføre)
                 )
             ),
         )
@@ -84,9 +84,6 @@ internal class RevurderingJsonTest {
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": null,
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
-                "grunnlag": {
-                   "uføre": [$expectedUføregrunnlagJson]
-                },
                 "vilkårsvurderinger": {
                   "uføre": $expectedVurderingUføreJson
                 }
@@ -142,9 +139,6 @@ internal class RevurderingJsonTest {
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": null,
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
-                "grunnlag": {
-                    "uføre": []
-                },
                 "vilkårsvurderinger": {
                   "uføre": null
                 }
@@ -200,9 +194,6 @@ internal class RevurderingJsonTest {
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": null,
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
-                "grunnlag": {
-                    "uføre": []
-                },
                 "vilkårsvurderinger": {
                   "uføre": null
                 }
@@ -258,9 +249,6 @@ internal class RevurderingJsonTest {
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": null,
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
-                "grunnlag": {
-                    "uføre": []
-                },
                 "vilkårsvurderinger": {
                   "uføre": null
                 }
@@ -321,9 +309,6 @@ internal class RevurderingJsonTest {
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": null,
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
-                "grunnlag": {
-                    "uføre": []
-                },
                 "vilkårsvurderinger": {
                   "uføre": null
                 }
@@ -384,9 +369,6 @@ internal class RevurderingJsonTest {
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": null,
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
-                "grunnlag": {
-                    "uføre": []
-                },
                 "vilkårsvurderinger": {
                   "uføre": null
                 }
@@ -448,9 +430,6 @@ internal class RevurderingJsonTest {
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": { "type": "INGEN_FORHÅNDSVARSEL" },
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
-                "grunnlag": {
-                    "uføre": []
-                },
                 "vilkårsvurderinger": {
                   "uføre": null
                 }
@@ -512,9 +491,6 @@ internal class RevurderingJsonTest {
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": { "type": "INGEN_FORHÅNDSVARSEL" },
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
-                "grunnlag": {
-                    "uføre": []
-                },
                 "vilkårsvurderinger": {
                   "uføre": null
                 }
@@ -573,9 +549,6 @@ internal class RevurderingJsonTest {
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": null,
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
-                "grunnlag": {
-                    "uføre": []
-                },
                 "vilkårsvurderinger": {
                   "uføre": null
                 }
@@ -649,9 +622,6 @@ internal class RevurderingJsonTest {
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": { "type": "INGEN_FORHÅNDSVARSEL"},
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
-                "grunnlag": {
-                    "uføre": []
-                },
                 "vilkårsvurderinger": {
                   "uføre": null
                 }
@@ -725,9 +695,6 @@ internal class RevurderingJsonTest {
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": { "type": "INGEN_FORHÅNDSVARSEL"},
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
-                "grunnlag": {
-                    "uføre": []
-                },
                 "vilkårsvurderinger": {
                   "uføre": null
                 }
@@ -798,9 +765,6 @@ internal class RevurderingJsonTest {
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": null,
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
-                "grunnlag": {
-                    "uføre": []
-                },
                 "vilkårsvurderinger": {
                   "uføre": null
                 }
@@ -864,9 +828,6 @@ internal class RevurderingJsonTest {
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": { "type":  "INGEN_FORHÅNDSVARSEL" },
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
-                "grunnlag": {
-                    "uføre": []
-                },
                 "vilkårsvurderinger": {
                   "uføre": null
                 }
@@ -930,9 +891,6 @@ internal class RevurderingJsonTest {
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": { "type":  "INGEN_FORHÅNDSVARSEL" },
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
-                "grunnlag": {
-                    "uføre": []
-                },
                 "vilkårsvurderinger": {
                   "uføre": null
                 }
@@ -993,9 +951,6 @@ internal class RevurderingJsonTest {
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": null,
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
-                "grunnlag": {
-                    "uføre": []
-                },
                 "vilkårsvurderinger": {
                   "uføre": null
                 }

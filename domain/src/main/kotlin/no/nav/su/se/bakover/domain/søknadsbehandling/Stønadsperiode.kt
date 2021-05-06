@@ -11,6 +11,10 @@ data class Stønadsperiode private constructor(
     val periode: Periode,
     val begrunnelse: String,
 ) {
+
+    infix fun inneholder(periode: Periode) = this.periode.inneholder(periode)
+    infix fun inneholder(stønadsperiode: Stønadsperiode) = this.periode.inneholder(stønadsperiode.periode)
+
     companion object {
 
         @TestOnly
@@ -27,10 +31,6 @@ data class Stønadsperiode private constructor(
             }
 
             return Stønadsperiode(periode, begrunnelse).right()
-        }
-
-        fun List<Stønadsperiode>.sisteStønadsperiode(): Stønadsperiode? {
-            return this.maxByOrNull { it.periode.fraOgMed }
         }
     }
 
