@@ -148,7 +148,7 @@ internal class FerdigstillVedtakServiceImplTest {
         }
 
         val microsoftGraphApiOppslagMock = mock<MicrosoftGraphApiOppslag> {
-            on { hentBrukerinformasjonForNavIdent(any()) } doReturn graphApiResponse.right()
+            on { hentNavnForNavIdent(any()) } doReturn graphApiResponse.displayName.right()
         }
 
         val brevServiceMock = mock<BrevService> {
@@ -181,7 +181,7 @@ internal class FerdigstillVedtakServiceImplTest {
         ) {
             verify(vedtakRepoMock).hentForUtbetaling(vedtak.utbetalingId)
             verify(personServiceMock).hentPersonMedSystembruker(vedtak.behandling.fnr)
-            verify(microsoftGraphApiOppslagMock, times(2)).hentBrukerinformasjonForNavIdent(any())
+            verify(microsoftGraphApiOppslagMock, times(2)).hentNavnForNavIdent(any())
             verify(brevServiceMock).journalførBrev(any(), any())
         }
     }
@@ -195,7 +195,7 @@ internal class FerdigstillVedtakServiceImplTest {
         }
 
         val microsoftGraphApiOppslagMock = mock<MicrosoftGraphApiOppslag> {
-            on { hentBrukerinformasjonForNavIdent(any()) } doReturn graphApiResponse.right()
+            on { hentNavnForNavIdent(any()) } doReturn graphApiResponse.displayName.right()
         }
 
         val brevServiceMock = mock<BrevService> {
@@ -229,7 +229,7 @@ internal class FerdigstillVedtakServiceImplTest {
         ) {
             verify(vedtakRepoMock).hentForUtbetaling(vedtak.utbetalingId)
             verify(personServiceMock).hentPersonMedSystembruker(vedtak.behandling.fnr)
-            verify(microsoftGraphApiOppslagMock, times(2)).hentBrukerinformasjonForNavIdent(any())
+            verify(microsoftGraphApiOppslagMock, times(2)).hentNavnForNavIdent(any())
             verify(brevServiceMock).journalførBrev(any(), any())
             verify(brevServiceMock).distribuerBrev(any())
         }
@@ -244,7 +244,7 @@ internal class FerdigstillVedtakServiceImplTest {
         }
 
         val microsoftGraphApiOppslagMock = mock<MicrosoftGraphApiOppslag> {
-            on { hentBrukerinformasjonForNavIdent(any()) } doReturn graphApiResponse.right()
+            on { hentNavnForNavIdent(any()) } doReturn graphApiResponse.displayName.right()
         }
 
         val brevServiceMock = mock<BrevService>() {
@@ -286,7 +286,7 @@ internal class FerdigstillVedtakServiceImplTest {
         ) {
             verify(vedtakRepoMock).hentForUtbetaling(vedtak.utbetalingId)
             verify(personServiceMock).hentPersonMedSystembruker(vedtak.behandling.fnr)
-            verify(microsoftGraphApiOppslagMock, times(2)).hentBrukerinformasjonForNavIdent(any())
+            verify(microsoftGraphApiOppslagMock, times(2)).hentNavnForNavIdent(any())
             verify(brevServiceMock, never()).journalførBrev(any(), any())
             verify(brevServiceMock).distribuerBrev(iverksattJournalpostId)
             verify(behandlingMetricsMock).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.DISTRIBUERT_BREV)
@@ -304,7 +304,7 @@ internal class FerdigstillVedtakServiceImplTest {
         }
 
         val microsoftGraphApiOppslagMock = mock<MicrosoftGraphApiOppslag> {
-            on { hentBrukerinformasjonForNavIdent(any()) } doReturn graphApiResponse.right()
+            on { hentNavnForNavIdent(any()) } doReturn graphApiResponse.displayName.right()
         }
 
         val brevServiceMock = mock<BrevService>()
@@ -344,7 +344,7 @@ internal class FerdigstillVedtakServiceImplTest {
         ) {
             verify(vedtakRepoMock).hentForUtbetaling(vedtak.utbetalingId)
             verify(personServiceMock).hentPersonMedSystembruker(vedtak.behandling.fnr)
-            verify(microsoftGraphApiOppslagMock, times(2)).hentBrukerinformasjonForNavIdent(any())
+            verify(microsoftGraphApiOppslagMock, times(2)).hentNavnForNavIdent(any())
             verify(brevServiceMock, never()).journalførBrev(any(), any())
             verify(brevServiceMock, never()).distribuerBrev(any())
             verify(oppgaveServiceMock).lukkOppgaveMedSystembruker(vedtak.behandling.oppgaveId)
@@ -363,9 +363,9 @@ internal class FerdigstillVedtakServiceImplTest {
         }
 
         val microsoftGraphApiOppslagMock = mock<MicrosoftGraphApiOppslag> {
-            on { hentBrukerinformasjonForNavIdent(any()) } doReturnConsecutively listOf(
-                graphApiResponse.copy(displayName = saksbehandler.navIdent).right(),
-                graphApiResponse.copy(displayName = attestant.navIdent).right(),
+            on { hentNavnForNavIdent(any()) } doReturnConsecutively listOf(
+                saksbehandler.navIdent.right(),
+                attestant.navIdent.right(),
             )
         }
 
@@ -408,7 +408,7 @@ internal class FerdigstillVedtakServiceImplTest {
         ) {
             verify(vedtakRepoMock).hentForUtbetaling(vedtak.utbetalingId)
             verify(personServiceMock).hentPersonMedSystembruker(vedtak.behandling.fnr)
-            verify(microsoftGraphApiOppslagMock, times(2)).hentBrukerinformasjonForNavIdent(any())
+            verify(microsoftGraphApiOppslagMock, times(2)).hentNavnForNavIdent(any())
             verify(brevServiceMock).journalførBrev(
                 argThat {
                     LagBrevRequest.InnvilgetVedtak(
@@ -493,7 +493,7 @@ internal class FerdigstillVedtakServiceImplTest {
         }
 
         val microsoftGraphApiOppslagMock = mock<MicrosoftGraphApiOppslag> {
-            on { hentBrukerinformasjonForNavIdent(any()) } doReturn MicrosoftGraphApiOppslagFeil.FantIkkeBrukerForNavIdent.left()
+            on { hentNavnForNavIdent(any()) } doReturn MicrosoftGraphApiOppslagFeil.FantIkkeBrukerForNavIdent.left()
         }
 
         val vedtak = avslagsVedtak()
@@ -510,7 +510,7 @@ internal class FerdigstillVedtakServiceImplTest {
             microsoftGraphApiOppslagMock,
         ) {
             verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe vedtak.behandling.fnr })
-            verify(microsoftGraphApiOppslagMock).hentBrukerinformasjonForNavIdent(argThat { it shouldBe vedtak.saksbehandler })
+            verify(microsoftGraphApiOppslagMock).hentNavnForNavIdent(argThat { it shouldBe vedtak.saksbehandler })
         }
     }
 
@@ -540,8 +540,8 @@ internal class FerdigstillVedtakServiceImplTest {
         }
 
         val microsoftGraphApiOppslagMock = mock<MicrosoftGraphApiOppslag> {
-            on { hentBrukerinformasjonForNavIdent(any()) } doReturnConsecutively listOf(
-                graphApiResponse.right(),
+            on { hentNavnForNavIdent(any()) } doReturnConsecutively listOf(
+                graphApiResponse.displayName.right(),
                 MicrosoftGraphApiOppslagFeil.FantIkkeBrukerForNavIdent.left(),
             )
         }
@@ -560,7 +560,7 @@ internal class FerdigstillVedtakServiceImplTest {
             microsoftGraphApiOppslagMock,
         ) {
             verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe vedtak.behandling.fnr })
-            verify(microsoftGraphApiOppslagMock, times(2)).hentBrukerinformasjonForNavIdent(any())
+            verify(microsoftGraphApiOppslagMock, times(2)).hentNavnForNavIdent(any())
         }
     }
 
@@ -604,7 +604,7 @@ internal class FerdigstillVedtakServiceImplTest {
         }
 
         val microsoftGraphApiOppslagMock = mock<MicrosoftGraphApiOppslag> {
-            on { hentBrukerinformasjonForNavIdent(any()) } doReturn graphApiResponse.right()
+            on { hentNavnForNavIdent(any()) } doReturn graphApiResponse.displayName.right()
         }
 
         val brevServiceMock = mock<BrevService> {
@@ -627,7 +627,7 @@ internal class FerdigstillVedtakServiceImplTest {
             brevServiceMock,
         ) {
             verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe vedtak.behandling.fnr })
-            verify(microsoftGraphApiOppslagMock, times(2)).hentBrukerinformasjonForNavIdent(any())
+            verify(microsoftGraphApiOppslagMock, times(2)).hentNavnForNavIdent(any())
             verify(brevServiceMock).journalførBrev(any(), any())
         }
     }
@@ -639,7 +639,7 @@ internal class FerdigstillVedtakServiceImplTest {
         }
 
         val microsoftGraphApiOppslagMock = mock<MicrosoftGraphApiOppslag> {
-            on { hentBrukerinformasjonForNavIdent(any()) } doReturn graphApiResponse.right()
+            on { hentNavnForNavIdent(any()) } doReturn graphApiResponse.displayName.right()
         }
 
         val vedtakRepoMock = mock<VedtakRepo>()
@@ -666,7 +666,7 @@ internal class FerdigstillVedtakServiceImplTest {
             vedtakRepoMock,
         ) {
             verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe vedtak.behandling.fnr })
-            verify(microsoftGraphApiOppslagMock, times(2)).hentBrukerinformasjonForNavIdent(any())
+            verify(microsoftGraphApiOppslagMock, times(2)).hentNavnForNavIdent(any())
             verifyZeroInteractions(vedtakRepoMock, brevServiceMock, behandlingMetricsMock)
         }
     }
@@ -678,9 +678,9 @@ internal class FerdigstillVedtakServiceImplTest {
         }
 
         val microsoftGraphApiOppslagMock = mock<MicrosoftGraphApiOppslag> {
-            on { hentBrukerinformasjonForNavIdent(any()) } doReturnConsecutively listOf(
-                graphApiResponse.copy(displayName = saksbehandler.navIdent).right(),
-                graphApiResponse.copy(displayName = attestant.navIdent).right(),
+            on { hentNavnForNavIdent(any()) } doReturnConsecutively listOf(
+                saksbehandler.navIdent.right(),
+                attestant.navIdent.right(),
             )
         }
 
@@ -716,7 +716,7 @@ internal class FerdigstillVedtakServiceImplTest {
             behandlingMetricsMock,
         ) {
             verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe vedtak.behandling.fnr })
-            verify(microsoftGraphApiOppslagMock, times(2)).hentBrukerinformasjonForNavIdent(any())
+            verify(microsoftGraphApiOppslagMock, times(2)).hentNavnForNavIdent(any())
             verify(brevServiceMock).journalførBrev(
                 argThat {
                     it shouldBe AvslagBrevRequest(
@@ -923,9 +923,9 @@ internal class FerdigstillVedtakServiceImplTest {
         }
 
         val microsoftGraphApiOppslagMock = mock<MicrosoftGraphApiOppslag> {
-            on { hentBrukerinformasjonForNavIdent(any()) } doReturnConsecutively listOf(
-                graphApiResponse.copy(displayName = "saksa").right(),
-                graphApiResponse.copy(displayName = "atta").right(),
+            on { hentNavnForNavIdent(any()) } doReturnConsecutively listOf(
+                "saksa".right(),
+                "atta".right(),
             )
         }
 
@@ -987,7 +987,7 @@ internal class FerdigstillVedtakServiceImplTest {
         }
 
         val microsoftGraphApiOppslagMock = mock<MicrosoftGraphApiOppslag> {
-            on { hentBrukerinformasjonForNavIdent(any()) } doReturn graphApiResponse.right()
+            on { hentNavnForNavIdent(any()) } doReturn graphApiResponse.displayName.right()
         }
 
         val vedtakRepoMock = mock<VedtakRepo> {

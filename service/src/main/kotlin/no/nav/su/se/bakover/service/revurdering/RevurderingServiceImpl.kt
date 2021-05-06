@@ -399,8 +399,15 @@ internal class RevurderingServiceImpl(
             return KunneIkkeLageBrevutkastForRevurdering.FantIkkePerson.left()
         }
 
+        val saksbehandlerNavn = microsoftGraphApiClient.hentNavnForNavIdent(revurdering.saksbehandler).getOrElse {
+            log.error("Fant ikke saksbehandlernavn for saksbehandler: ${revurdering.saksbehandler}")
+            return KunneIkkeLageBrevutkastForRevurdering.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
+        }
+
         val brevRequest = LagBrevRequest.Forhåndsvarsel(
-            person = person, fritekst = fritekst,
+            person = person,
+            fritekst = fritekst,
+            saksbehandlerNavn = saksbehandlerNavn,
         )
 
         return brevService.lagBrev(brevRequest)
@@ -770,9 +777,15 @@ internal class RevurderingServiceImpl(
             return KunneIkkeForhåndsvarsle.FantIkkePerson.left()
         }
 
+        val saksbehandlerNavn = microsoftGraphApiClient.hentNavnForNavIdent(revurdering.saksbehandler).getOrElse {
+            log.error("Fant ikke saksbehandlernavn for saksbehandler: ${revurdering.saksbehandler}")
+            return KunneIkkeForhåndsvarsle.KunneIkkeHenteNavnForSaksbehandler.left()
+        }
+
         brevService.journalførBrev(
             request = LagBrevRequest.Forhåndsvarsel(
                 person = person,
+                saksbehandlerNavn = saksbehandlerNavn,
                 fritekst = fritekst,
             ),
             saksnummer = revurdering.saksnummer,

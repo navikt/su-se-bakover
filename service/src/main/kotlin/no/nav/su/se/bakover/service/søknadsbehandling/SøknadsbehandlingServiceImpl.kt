@@ -435,8 +435,7 @@ internal class SøknadsbehandlingServiceImpl(
     }
 
     private fun hentNavnForNavIdent(navIdent: NavIdentBruker): Either<MicrosoftGraphApiOppslagFeil, String> {
-        return microsoftGraphApiClient.hentBrukerinformasjonForNavIdent(navIdent)
-            .map { it.displayName }
+        return microsoftGraphApiClient.hentNavnForNavIdent(navIdent)
     }
 
     override fun hent(request: SøknadsbehandlingService.HentRequest): Either<SøknadsbehandlingService.FantIkkeBehandling, Søknadsbehandling> {

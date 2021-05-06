@@ -74,6 +74,10 @@ internal object Revurderingsfeilresponser {
         is KunneIkkeForhåndsvarsle.FantIkkeRevurdering -> fantIkkeRevurdering
         is KunneIkkeForhåndsvarsle.UgyldigTilstand -> ugyldigTilstand(this.fra, this.til)
         is KunneIkkeForhåndsvarsle.Attestering -> this.subError.tilResultat()
+        is KunneIkkeForhåndsvarsle.KunneIkkeHenteNavnForSaksbehandler -> InternalServerError.errorJson(
+            "Kunne ikke hente navn for saksbehandler eller attestant",
+            "navneoppslag_feilet",
+        )
     }
 
     fun KunneIkkeLageBrevutkastForRevurdering.tilResultat(): Resultat {

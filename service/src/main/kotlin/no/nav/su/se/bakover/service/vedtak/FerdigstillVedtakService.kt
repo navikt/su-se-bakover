@@ -323,9 +323,8 @@ internal class FerdigstillVedtakServiceImpl(
     )
 
     private fun hentNavnForNavIdent(navIdent: NavIdentBruker): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeJournalføreBrev.FantIkkeNavnPåSaksbehandlerEllerAttestant, String> {
-        return microsoftGraphApiOppslag.hentBrukerinformasjonForNavIdent(navIdent)
+        return microsoftGraphApiOppslag.hentNavnForNavIdent(navIdent)
             .mapLeft { KunneIkkeFerdigstilleVedtak.KunneIkkeJournalføreBrev.FantIkkeNavnPåSaksbehandlerEllerAttestant }
-            .map { it.displayName }
     }
 
     private fun lukkOppgaveMedSystembruker(vedtak: Vedtak): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Vedtak> {
