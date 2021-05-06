@@ -96,7 +96,7 @@ internal class VurderAvslagGrunnetBeregningKtTest {
             on { periode } doReturn Periode.create(1.desember(2021), 31.desember(2021))
             on { getSumYtelse() } doReturn 16400
         }
-        val beregningSumYtelse = listOf(januar, desember).sumBy { it.getSumYtelse() }
+        val beregningSumYtelse = listOf(januar, desember).sumOf { it.getSumYtelse() }
         val beregning = mock<Beregning> {
             on { getSumYtelse() } doReturn beregningSumYtelse
             on { getMånedsberegninger() } doReturn listOf(januar, desember)

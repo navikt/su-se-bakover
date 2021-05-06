@@ -30,10 +30,10 @@ internal data class BeregningMedFradragBeregnetMånedsvis(
     override fun getOpprettet(): Tidspunkt = opprettet
 
     override fun getSumYtelse() = beregning.values
-        .sumBy { it.getSumYtelse() }
+        .sumOf { it.getSumYtelse() }
 
     override fun getSumFradrag() = beregning.values
-        .sumByDouble { it.getSumFradrag() }
+        .sumOf { it.getSumFradrag() }
 
     override fun getFradragStrategyName(): FradragStrategyName = fradragStrategy.getName()
 

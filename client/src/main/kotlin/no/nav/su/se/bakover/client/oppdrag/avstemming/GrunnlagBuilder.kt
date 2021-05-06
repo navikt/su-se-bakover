@@ -42,7 +42,7 @@ class GrunnlagBuilder(
         this.getOrDefault(utbetalingsstatus, emptyList()).sum()
 
     private fun List<Utbetaling>.sum() =
-        this.flatMap { it.utbetalingslinjer }.sumBy { it.beløp }.toBigDecimal().let {
+        this.flatMap { it.utbetalingslinjer }.sumOf { it.beløp }.toBigDecimal().let {
             Sum(antall = this.size, beløp = it, fortegn = it.fortegn())
         }
 

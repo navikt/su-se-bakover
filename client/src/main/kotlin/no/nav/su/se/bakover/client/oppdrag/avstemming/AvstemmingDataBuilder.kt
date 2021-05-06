@@ -21,7 +21,7 @@ class AvstemmingDataBuilder(
             ),
             total = AvstemmingDataRequest.Totaldata(
                 totalAntall = utbetalinger.size,
-                totalBelop = utbetalinger.flatMap { it.utbetalingslinjer }.sumBy { it.beløp }.toBigDecimal(),
+                totalBelop = utbetalinger.flatMap { it.utbetalingslinjer }.sumOf { it.beløp }.toBigDecimal(),
                 fortegn = AvstemmingDataRequest.Fortegn.TILLEGG
             ),
             periode = AvstemmingDataRequest.Periodedata(

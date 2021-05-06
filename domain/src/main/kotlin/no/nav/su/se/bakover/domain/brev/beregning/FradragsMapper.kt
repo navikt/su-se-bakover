@@ -47,7 +47,7 @@ internal fun List<Fradrag>.toMånedsfradragPerType(): List<Månedsfradrag> =
                         utenlandsk = fradrag[0].getUtenlandskInntekt() != null
                     ),
                 beløp = fradrag
-                    .sumByDouble { it.getMånedsbeløp() }
+                    .sumOf { it.getMånedsbeløp() }
                     .roundToInt(),
                 utenlandskInntekt = fradrag[0].getUtenlandskInntekt()
             )

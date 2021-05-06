@@ -46,7 +46,7 @@ sealed class TolketUtbetaling {
                 Feilutbetaling(tolketDetaljer)
             }
             tolketDetaljer.erTidligereUtbetalt() -> {
-                val sum = tolketDetaljer.sumBy { it.beløp }
+                val sum = tolketDetaljer.sumOf { it.beløp }
                 when {
                     sum > 0 -> Etterbetaling(tolketDetaljer + TolketDetalj.Etterbetaling(sum))
                     sum == 0 -> UendretUtbetaling(tolketDetaljer + TolketDetalj.UendretUtbetaling(sum))
@@ -84,7 +84,7 @@ sealed class TolketUtbetaling {
     ) : TolketUtbetaling() {
         override fun bruttobeløp(): Int =
             tolketDetalj.filterIsInstance<TolketDetalj.Ordinær>()
-                .sumBy { it.beløp }
+                .sumOf { it.beløp }
     }
 
     data class Feilutbetaling(
@@ -92,7 +92,7 @@ sealed class TolketUtbetaling {
     ) : TolketUtbetaling() {
         override fun bruttobeløp(): Int =
             tolketDetalj.filterIsInstance<TolketDetalj.Feilutbetaling>()
-                .sumBy { it.beløp }
+                .sumOf { it.beløp }
                 .times(-1)
     }
 
@@ -101,7 +101,7 @@ sealed class TolketUtbetaling {
     ) : TolketUtbetaling() {
         override fun bruttobeløp(): Int =
             tolketDetalj.filterIsInstance<TolketDetalj.Etterbetaling>()
-                .sumBy { it.beløp }
+                .sumOf { it.beløp }
     }
 
     data class UendretUtbetaling(
@@ -109,7 +109,7 @@ sealed class TolketUtbetaling {
     ) : TolketUtbetaling() {
         override fun bruttobeløp(): Int =
             tolketDetalj.filterIsInstance<TolketDetalj.UendretUtbetaling>()
-                .sumBy { it.beløp }
+                .sumOf { it.beløp }
     }
 
     data class IngenUtbetaling(
@@ -117,7 +117,7 @@ sealed class TolketUtbetaling {
     ) : TolketUtbetaling() {
         override fun bruttobeløp(): Int =
             tolketDetalj.filterIsInstance<TolketDetalj.IngenUtbetaling>()
-                .sumBy { it.beløp }
+                .sumOf { it.beløp }
     }
 
     object IngenEntydigTolkning : IllegalStateException("Simulert utbetaling kunne ikke tolkes entydig.")

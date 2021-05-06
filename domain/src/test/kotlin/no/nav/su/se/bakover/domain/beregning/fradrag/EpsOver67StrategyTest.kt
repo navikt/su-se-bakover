@@ -139,7 +139,7 @@ internal class EpsOver67StrategyTest {
             beregningsperiode = periode
         ).let {
             it shouldHaveSize 12
-            it.values.forEach { it.sumByDouble { it.getMånedsbeløp() } shouldBe arbeidsinntekt.getMånedsbeløp() }
+            it.values.forEach { it.sumOf { it.getMånedsbeløp() } shouldBe arbeidsinntekt.getMånedsbeløp() }
             it.values.forEach { it.none { it.getTilhører() == EPS } shouldBe true }
         }
     }

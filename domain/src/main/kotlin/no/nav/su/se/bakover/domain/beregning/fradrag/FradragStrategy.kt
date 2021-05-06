@@ -52,7 +52,7 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
         override fun getEpsFribeløp(periode: Periode): Double = periodisertSumGarantipensjonsnivå(periode)
 
         private fun periodisertSumGarantipensjonsnivå(periode: Periode) =
-            Garantipensjonsnivå.Ordinær.periodiser(periode).values.sumByDouble { it }
+            Garantipensjonsnivå.Ordinær.periodiser(periode).values.sumOf { it }
 
         private fun Map<Periode, List<Fradrag>>.`fjern EPS fradrag opp til garantipensjonsnivå`(): Map<Periode, List<Fradrag>> {
             return mapValues {
@@ -75,7 +75,7 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
         override fun getEpsFribeløp(periode: Periode): Double = periodisertSumSatsbeløp(periode)
 
         private fun periodisertSumSatsbeløp(periode: Periode) =
-            Sats.ORDINÆR.periodiser(periode).values.sumByDouble { it }
+            Sats.ORDINÆR.periodiser(periode).values.sumOf { it }
 
         private fun Map<Periode, List<Fradrag>>.`fjern EPS fradrag opp til satsbeløp`(): Map<Periode, List<Fradrag>> {
             return mapValues {
@@ -109,7 +109,7 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
             val sammenslått = FradragFactory.periodiser(
                 FradragFactory.ny(
                     type = Fradragstype.BeregnetFradragEPS,
-                    månedsbeløp = epsFradrag.sumByDouble { it.getMånedsbeløp() },
+                    månedsbeløp = epsFradrag.sumOf { it.getMånedsbeløp() },
                     periode = periode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.EPS
@@ -131,7 +131,7 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
         val forventetInntekt =
             fradrag.filter { it.getTilhører() == FradragTilhører.BRUKER && it.getFradragstype() == Fradragstype.ForventetInntekt }
 
-        return if (arbeidsinntekter.sumByDouble { it.getMånedsbeløp() } > forventetInntekt.sumByDouble { it.getMånedsbeløp() })
+        return if (arbeidsinntekter.sumOf { it.getMånedsbeløp() } > forventetInntekt.sumOf { it.getMånedsbeløp() })
             fradrag.minus(forventetInntekt)
         else
             fradrag.minus(arbeidsinntekter)
@@ -143,7 +143,7 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
         fradrag: List<Fradrag>
     ): List<Fradrag> {
         val (epsFradrag, søkersFradrag) = fradrag.partition { it.getTilhører() == FradragTilhører.EPS }
-        val epsFradragSum = epsFradrag.sumByDouble { it.getMånedsbeløp() }
+        val epsFradragSum = epsFradrag.sumOf { it.getMånedsbeløp() }
 
         val beregnetFradragEps = epsFradragSum - beløpsgrense
 
