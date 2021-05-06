@@ -386,6 +386,7 @@ internal class VedtakssnapshotJsonTest {
                         sumFradrag = 1.2,
                         benyttetGrunnbeløp = 66,
                         satsbeløp = 4.1,
+                        fribeløpForEps = 0.0,
                     ),
                 ),
                 fradrag = fradrag,
@@ -499,7 +500,8 @@ internal class VedtakssnapshotJsonTest {
                             "periode":{
                                 "fraOgMed":"2021-01-01",
                                 "tilOgMed":"2021-01-31"
-                            }
+                            },
+                            "fribeløpForEps": 0.0
                         }
                     ],
                     "fradrag":[
@@ -815,7 +817,6 @@ internal class VedtakssnapshotJsonTest {
         """.trimIndent()
 
         val actualJson = objectMapper.writeValueAsString(innvilgelse.toJson())
-        println(actualJson)
         JSONAssert.assertEquals(expectedJson, actualJson, true)
     }
 }

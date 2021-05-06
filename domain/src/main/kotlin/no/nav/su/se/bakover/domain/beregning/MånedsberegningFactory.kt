@@ -7,12 +7,14 @@ object MånedsberegningFactory {
     fun ny(
         periode: Periode,
         sats: Sats,
-        fradrag: List<Fradrag>
+        fradrag: List<Fradrag>,
+        fribeløpForEps: Double = 0.0,
     ): Månedsberegning {
         return PeriodisertBeregning(
             periode = periode,
             sats = sats,
-            fradrag = fradrag
+            fradrag = fradrag,
+            fribeløpForEps = fribeløpForEps
         )
     }
 }

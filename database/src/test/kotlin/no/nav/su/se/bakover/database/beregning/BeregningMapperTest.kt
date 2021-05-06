@@ -69,7 +69,8 @@ internal class BeregningMapperTest {
                   "periode": {
                     "fraOgMed": "2021-01-01",
                     "tilOgMed": "2021-01-31"
-                  }
+                  },
+                "fribeløpForEps": 0.0
                 }
               ],
               "fradrag": [

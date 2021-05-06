@@ -11,6 +11,7 @@ interface Månedsberegning : PeriodisertInformasjon {
     fun getSats(): Sats
     fun getSatsbeløp(): Double
     fun getFradrag(): List<Fradrag>
+    fun getFribeløpForEps(): Double
 
     fun erFradragForEpsBenyttetIBeregning() =
         getFradrag().any { it.getFradragstype() == Fradragstype.BeregnetFradragEPS }
@@ -32,6 +33,7 @@ interface Månedsberegning : PeriodisertInformasjon {
         if (getSats() != other.getSats()) return false
         if (getSatsbeløp() != other.getSatsbeløp()) return false
         if (getFradrag() != other.getFradrag()) return false
+        if (getFribeløpForEps() != other.getFribeløpForEps()) return false
         return true
     }
 

@@ -23,7 +23,7 @@ internal data class PersistertBeregning(
     private val sumFradrag: Double,
     override val periode: Periode,
     private val fradragStrategyName: FradragStrategyName,
-    private val begrunnelse: String?
+    private val begrunnelse: String?,
 ) : Beregning {
     override fun getId(): UUID = id
     override fun getOpprettet(): Tidspunkt = opprettet
@@ -56,7 +56,8 @@ internal data class PersistertMånedsberegning(
     private val sats: Sats,
     private val satsbeløp: Double,
     private val fradrag: List<PersistertFradrag>,
-    override val periode: Periode
+    override val periode: Periode,
+    private val fribeløpForEps: Double,
 ) : Månedsberegning {
     override fun getSumYtelse(): Int = sumYtelse
     override fun getSumFradrag(): Double = sumFradrag
@@ -64,6 +65,7 @@ internal data class PersistertMånedsberegning(
     override fun getSats(): Sats = sats
     override fun getSatsbeløp(): Double = satsbeløp
     override fun getFradrag(): List<Fradrag> = fradrag
+    override fun getFribeløpForEps(): Double = fribeløpForEps
 
     override fun equals(other: Any?) = (other as? Månedsberegning)?.let { this.equals(other) } ?: false
 
@@ -75,6 +77,7 @@ internal data class PersistertMånedsberegning(
         result = 31 * result + satsbeløp.hashCode()
         result = 31 * result + fradrag.hashCode()
         result = 31 * result + periode.hashCode()
+        result = 31 * result + fribeløpForEps.hashCode()
         return result
     }
 }
@@ -125,7 +128,8 @@ internal fun Månedsberegning.toSnapshot() = PersistertMånedsberegning(
     sats = getSats(),
     satsbeløp = getSatsbeløp(),
     fradrag = getFradrag().map { it.toSnapshot() },
-    periode = periode
+    periode = periode,
+    fribeløpForEps = getFribeløpForEps()
 )
 
 internal fun Fradrag.toSnapshot() = PersistertFradrag(
