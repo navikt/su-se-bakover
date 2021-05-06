@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.vedtak
 
+import arrow.core.Nel
 import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -111,7 +112,7 @@ internal class VedtakTest {
             fraDato = p1.fraOgMed,
             tilDato = p1.tilOgMed,
         )
-        val v1 = Vurderingsperiode.Manuell(
+        val v1 = Vurderingsperiode.Manuell.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             resultat = Resultat.Innvilget,
@@ -126,7 +127,7 @@ internal class VedtakTest {
             grunnlagsdata = Grunnlagsdata(
                 listOf(u1),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger(uføre = Vilkår.Vurdert.Uførhet(listOf(v1))),
+            vilkårsvurderinger = Vilkårsvurderinger(uføre = Vilkår.Vurdert.Uførhet.create(Nel.of(v1))),
         )
 
         val p2 = Periode.create(1.mai(2021), 31.desember(2021))
@@ -135,7 +136,7 @@ internal class VedtakTest {
             fraDato = p2.fraOgMed,
             tilDato = p2.tilOgMed,
         )
-        val v2 = Vurderingsperiode.Manuell(
+        val v2 = Vurderingsperiode.Manuell.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             resultat = Resultat.Avslag,
@@ -150,7 +151,7 @@ internal class VedtakTest {
             grunnlagsdata = Grunnlagsdata(
                 listOf(u2),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger(uføre = Vilkår.Vurdert.Uførhet(listOf(v2))),
+            vilkårsvurderinger = Vilkårsvurderinger(uføre = Vilkår.Vurdert.Uførhet.create(Nel.of(v2))),
         )
         listOf(a, b).lagTidslinje(Periode.create(1.januar(2021), 31.desember(2021))).let { tidslinje ->
             tidslinje[0].let { vedtakPåTidslinje ->
@@ -222,7 +223,7 @@ internal class VedtakTest {
             fraDato = p1.fraOgMed,
             tilDato = p1.tilOgMed,
         )
-        val v1 = Vurderingsperiode.Manuell(
+        val v1 = Vurderingsperiode.Manuell.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             resultat = Resultat.Innvilget,
@@ -243,7 +244,7 @@ internal class VedtakTest {
                     ),
                 ),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger(uføre = Vilkår.Vurdert.Uførhet(listOf(v1))),
+            vilkårsvurderinger = Vilkårsvurderinger(uføre = Vilkår.Vurdert.Uførhet.create(Nel.of(v1))),
         )
         val b = lagVedtak(
             rekkefølge = 2,

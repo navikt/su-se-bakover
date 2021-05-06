@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.vedtak
 
 import arrow.core.Either
+import arrow.core.Nel
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
@@ -309,10 +310,12 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                         uføre = when (vilkårsvurderinger.uføre) {
                             Vilkår.IkkeVurdert.Uførhet -> Vilkår.IkkeVurdert.Uførhet
                             is Vilkår.Vurdert.Uførhet -> vilkårsvurderinger.uføre.copy(
-                                vurderingsperioder = Tidslinje(
-                                    periode = periode,
-                                    objekter = vilkårsvurderinger.uføre.vurderingsperioder,
-                                ).tidslinje,
+                                vurderingsperioder = Nel.fromListUnsafe(
+                                    Tidslinje(
+                                        periode = periode,
+                                        objekter = vilkårsvurderinger.uføre.vurderingsperioder,
+                                    ).tidslinje,
+                                ),
                             )
                         },
                     ),
@@ -330,10 +333,12 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                         uføre = when (vilkårsvurderinger.uføre) {
                             Vilkår.IkkeVurdert.Uførhet -> Vilkår.IkkeVurdert.Uførhet
                             is Vilkår.Vurdert.Uførhet -> vilkårsvurderinger.uføre.copy(
-                                vurderingsperioder = Tidslinje(
-                                    periode = args.periode,
-                                    objekter = vilkårsvurderinger.uføre.vurderingsperioder,
-                                ).tidslinje,
+                                vurderingsperioder = Nel.fromListUnsafe(
+                                    Tidslinje(
+                                        periode = args.periode,
+                                        objekter = vilkårsvurderinger.uføre.vurderingsperioder,
+                                    ).tidslinje,
+                                ),
                             )
                         },
                     ),

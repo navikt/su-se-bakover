@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.vedtak
 
+import arrow.core.Nel
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -36,7 +37,7 @@ internal class VedtakPåTidslinjeTest {
             forventetInntekt = 100,
         )
 
-        val vurderingsperiode = Vurderingsperiode.Manuell(
+        val vurderingsperiode = Vurderingsperiode.Manuell.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             resultat = Resultat.Innvilget,
@@ -52,8 +53,8 @@ internal class VedtakPåTidslinjeTest {
                 uføregrunnlag = listOf(uføregrunnlag),
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Vurdert.Uførhet(
-                    vurderingsperioder = listOf(
+                uføre = Vilkår.Vurdert.Uførhet.create(
+                    vurderingsperioder = Nel.of(
                         vurderingsperiode
                     )
                 )
@@ -96,7 +97,7 @@ internal class VedtakPåTidslinjeTest {
             forventetInntekt = 100,
         )
 
-        val vurderingsperiode = Vurderingsperiode.Manuell(
+        val vurderingsperiode = Vurderingsperiode.Manuell.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             resultat = Resultat.Innvilget,
@@ -112,8 +113,8 @@ internal class VedtakPåTidslinjeTest {
                 uføregrunnlag = listOf(uføregrunnlag),
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Vurdert.Uførhet(
-                    vurderingsperioder = listOf(
+                uføre = Vilkår.Vurdert.Uførhet.create(
+                    vurderingsperioder = Nel.of(
                         vurderingsperiode
                     )
                 )
