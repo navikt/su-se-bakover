@@ -410,6 +410,7 @@ internal class SøknadsbehandlingPostgresRepo(
                         beregning = null,
                         simulering = null,
                         stønadsperiode = to_json(:stonadsperiode::json)
+                    where id = :id    
                 """.trimIndent()
                 ).oppdatering(
                 defaultParams(søknadsbehandling), session,
