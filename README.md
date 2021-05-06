@@ -97,18 +97,18 @@ Spør en fra teamet, eller hent de fra `Vault` under team-secrets for  `supstona
 ## Ktlint
 
 Hvordan kjøre Ktlint:
-* Fra IDEA: Kjør Gradle Task: su-se-bakover->Tasks->formatting->ktlintFormat
+* Fra IDEA: Kjør Gradle Task: su-se-bakover->Tasks->formatting->formatKotlin
 * Fra terminal:
-   * Kun formater: `./gradlew ktlintFormat`
-   * Formater og bygg: `./gradlew ktlintFormat build` eller kjør `./lint_and_build.sh`
-   * Hvis IntelliJ begynner å hikke, kan en kjøre `./gradlew clean ktlintFormat build`
+   * Kun formater: `./gradlew formatKotlin`
+   * Formater og bygg: `./gradlew formatKotlin build` eller kjør `./lint_and_build.sh`
+   * Hvis IntelliJ begynner å hikke, kan en kjøre `./gradlew clean formatKotlin build`
 
 Endre IntelliJ autoformateringskonfigurasjon for dette prosjektet:
-* `./gradlew ktlintApplyToIdea`
+* Installer ktlint https://github.com/pinterest/ktlint/releases/ (inntil plugin støtter dette. Kan vurdere legge binæren i prosjektet)
+* ktlint applyToIDEAProject
 
-Legg til pre-commit check/format hooks:
-* `./gradlew addKtlintCheckGitPreCommitHook`
-* `./gradlew addKtlintFormatGitPreCommitHook`
+Kjente feil:
+* Kjør `rm ./.git/hooks/pre-commit` for å slette gammel hook hvis den feiler ved commit
 
 ## Metrics
 Vi bruker Prometheus for å samle inn metrikker.
