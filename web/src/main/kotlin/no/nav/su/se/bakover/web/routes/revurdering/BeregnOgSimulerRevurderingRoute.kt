@@ -103,5 +103,9 @@ private fun KunneIkkeBeregneOgSimulereRevurdering.tilResultat(): Resultat {
             "Ugyldig beregningsgrunnlag. Underliggende årsak: ${this.reason}",
             "ugyldig_beregningsgrunnlag",
         )
+        KunneIkkeBeregneOgSimulereRevurdering.UfullstendigVilkårsvurdering -> InternalServerError.errorJson(
+            "Vurdering av vilkår er ufullstendig",
+            "ufullstendig_vilkårsvurdering"
+        )
     }
 }

@@ -36,6 +36,7 @@ import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.erKlarForAttestering
 import no.nav.su.se.bakover.domain.revurdering.medFritekst
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
@@ -265,54 +266,87 @@ internal class RevurderingServiceImpl(
         saksbehandler: NavIdentBruker.Saksbehandler,
         fradrag: List<Fradrag>,
     ): Either<KunneIkkeBeregneOgSimulereRevurdering, Revurdering> {
-        return when (val orginalRevurdering = revurderingRepo.hent(revurderingId)) {
+        return when (val originalRevurdering = revurderingRepo.hent(revurderingId)) {
             is BeregnetRevurdering, is OpprettetRevurdering, is SimulertRevurdering, is UnderkjentRevurdering -> {
-                when (
-                    val beregnetRevurdering = orginalRevurdering.beregn(fradrag)
-                        .getOrHandle {
-                            return when (it) {
-                                is Revurdering.KunneIkkeBeregneRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden -> KunneIkkeBeregneOgSimulereRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden
-                                is Revurdering.KunneIkkeBeregneRevurdering.UfullstendigBehandlingsinformasjon -> KunneIkkeBeregneOgSimulereRevurdering.UfullstendigBehandlingsinformasjon
-                                is Revurdering.KunneIkkeBeregneRevurdering.UgyldigBeregningsgrunnlag -> KunneIkkeBeregneOgSimulereRevurdering.UgyldigBeregningsgrunnlag(it.reason)
-                            }.left()
-                        }
-                ) {
-                    is BeregnetRevurdering.IngenEndring -> {
-                        revurderingRepo.lagre(beregnetRevurdering)
-                        beregnetRevurdering.right()
-                    }
-                    is BeregnetRevurdering.Innvilget -> {
-                        utbetalingService.simulerUtbetaling(
-                            sakId = beregnetRevurdering.sakId,
+                when (originalRevurdering.vilkårsvurderinger.resultat) {
+                    Resultat.Avslag -> {
+                        val opphør = BeregnetRevurdering.Opphørt(
+                            tilRevurdering = originalRevurdering.tilRevurdering,
+                            id = originalRevurdering.id,
+                            periode = originalRevurdering.periode,
+                            opprettet = originalRevurdering.opprettet,
+                            beregning = originalRevurdering.tilRevurdering.beregning,
                             saksbehandler = saksbehandler,
-                            beregning = beregnetRevurdering.beregning,
-                        ).mapLeft {
-                            KunneIkkeBeregneOgSimulereRevurdering.SimuleringFeilet
-                        }.map {
-                            val simulert = beregnetRevurdering.toSimulert(it.simulering)
-                            revurderingRepo.lagre(simulert)
-                            simulert
-                        }
-                    }
-
-                    is BeregnetRevurdering.Opphørt -> {
+                            oppgaveId = originalRevurdering.oppgaveId,
+                            fritekstTilBrev = originalRevurdering.fritekstTilBrev,
+                            revurderingsårsak = originalRevurdering.revurderingsårsak,
+                            forhåndsvarsel = originalRevurdering.forhåndsvarsel,
+                            behandlingsinformasjon = originalRevurdering.behandlingsinformasjon,
+                            grunnlagsdata = originalRevurdering.grunnlagsdata,
+                            vilkårsvurderinger = originalRevurdering.vilkårsvurderinger,
+                        )
                         utbetalingService.simulerOpphør(
-                            sakId = beregnetRevurdering.sakId,
-                            saksbehandler = saksbehandler,
-                            opphørsdato = beregnetRevurdering.periode.fraOgMed,
+                            sakId = opphør.sakId,
+                            saksbehandler = opphør.saksbehandler,
+                            opphørsdato = opphør.periode.fraOgMed,
                         ).mapLeft {
                             KunneIkkeBeregneOgSimulereRevurdering.SimuleringFeilet
                         }.map {
-                            val simulert = beregnetRevurdering.toSimulert(it.simulering)
+                            val simulert = opphør.toSimulert(it.simulering)
                             revurderingRepo.lagre(simulert)
                             simulert
                         }
                     }
+                    Resultat.Innvilget -> {
+                        when (
+                            val beregnetRevurdering = originalRevurdering.beregn(fradrag)
+                                .getOrHandle {
+                                    return when (it) {
+                                        is Revurdering.KunneIkkeBeregneRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden -> KunneIkkeBeregneOgSimulereRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden
+                                        is Revurdering.KunneIkkeBeregneRevurdering.UfullstendigBehandlingsinformasjon -> KunneIkkeBeregneOgSimulereRevurdering.UfullstendigBehandlingsinformasjon
+                                        is Revurdering.KunneIkkeBeregneRevurdering.UgyldigBeregningsgrunnlag -> KunneIkkeBeregneOgSimulereRevurdering.UgyldigBeregningsgrunnlag(it.reason)
+                                    }.left()
+                                }
+                        ) {
+                            is BeregnetRevurdering.IngenEndring -> {
+                                revurderingRepo.lagre(beregnetRevurdering)
+                                beregnetRevurdering.right()
+                            }
+                            is BeregnetRevurdering.Innvilget -> {
+                                utbetalingService.simulerUtbetaling(
+                                    sakId = beregnetRevurdering.sakId,
+                                    saksbehandler = saksbehandler,
+                                    beregning = beregnetRevurdering.beregning,
+                                ).mapLeft {
+                                    KunneIkkeBeregneOgSimulereRevurdering.SimuleringFeilet
+                                }.map {
+                                    val simulert = beregnetRevurdering.toSimulert(it.simulering)
+                                    revurderingRepo.lagre(simulert)
+                                    simulert
+                                }
+                            }
+
+                            is BeregnetRevurdering.Opphørt -> {
+                                utbetalingService.simulerOpphør(
+                                    sakId = beregnetRevurdering.sakId,
+                                    saksbehandler = saksbehandler,
+                                    opphørsdato = beregnetRevurdering.periode.fraOgMed,
+                                ).mapLeft {
+                                    KunneIkkeBeregneOgSimulereRevurdering.SimuleringFeilet
+                                }.map {
+                                    val simulert = beregnetRevurdering.toSimulert(it.simulering)
+                                    revurderingRepo.lagre(simulert)
+                                    simulert
+                                }
+                            }
+                        }
+                    }
+                    Resultat.Uavklart -> return KunneIkkeBeregneOgSimulereRevurdering.UfullstendigVilkårsvurdering.left()
                 }
             }
             null -> return KunneIkkeBeregneOgSimulereRevurdering.FantIkkeRevurdering.left()
             else -> return KunneIkkeBeregneOgSimulereRevurdering.UgyldigTilstand(
-                orginalRevurdering::class,
+                originalRevurdering::class,
                 SimulertRevurdering::class,
             ).left()
         }

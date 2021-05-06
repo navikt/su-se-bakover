@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.service.revurdering
 
+import arrow.core.Nel
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
@@ -17,15 +18,21 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.MånedsberegningFactory
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
+import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.fixedClock
@@ -129,22 +136,6 @@ object RevurderingTestUtils {
         ),
         UUID30.randomUUID(),
     )
-    internal val simulertRevurderingInnvilget = SimulertRevurdering.Innvilget(
-        id = revurderingId,
-        periode = periode,
-        opprettet = fixedTidspunkt,
-        tilRevurdering = søknadsbehandlingVedtak,
-        saksbehandler = saksbehandler,
-        oppgaveId = OppgaveId("Oppgaveid"),
-        fritekstTilBrev = "",
-        revurderingsårsak = revurderingsårsak,
-        behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
-        simulering = mock(),
-        beregning = beregningMock,
-        forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-        grunnlagsdata = Grunnlagsdata.EMPTY,
-        vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-    )
 
     internal val sak = Sak(
         id = sakId,
@@ -160,6 +151,7 @@ object RevurderingTestUtils {
         ),
         vedtakListe = listOf(søknadsbehandlingVedtak),
     )
+
     internal fun createRevurderingService(
         sakService: SakService = mock(),
         utbetalingService: UtbetalingService = mock(),
@@ -186,4 +178,63 @@ object RevurderingTestUtils {
             ferdigstillVedtakService = ferdigstillVedtakService,
             vilkårsvurderingService = vilkårsvurderingService,
         )
+
+    internal val uføregrunnlag = Grunnlag.Uføregrunnlag(
+        periode = periode,
+        uføregrad = Uføregrad.parse(20),
+        forventetInntekt = 10,
+    )
+
+    internal val vurderingsperiodeUføre = Vurderingsperiode.Manuell.create(
+        id = UUID.randomUUID(),
+        opprettet = fixedTidspunkt,
+        resultat = Resultat.Avslag,
+        grunnlag = uføregrunnlag,
+        periode = periode,
+        begrunnelse = "ok2k",
+    )
+
+    internal val vilkårsvurderinger = Vilkårsvurderinger(
+        uføre = Vilkår.Vurdert.Uførhet.create(
+            vurderingsperioder = Nel.of(
+                vurderingsperiodeUføre,
+            ),
+        ),
+    )
+
+    internal val opprettetRevurdering = OpprettetRevurdering(
+        id = revurderingId,
+        periode = periode,
+        opprettet = fixedTidspunkt,
+        tilRevurdering = søknadsbehandlingVedtak,
+        saksbehandler = saksbehandler,
+        oppgaveId = oppgaveId,
+        fritekstTilBrev = "",
+        revurderingsårsak = revurderingsårsak,
+        forhåndsvarsel = null,
+        behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
+        grunnlagsdata = Grunnlagsdata(
+            uføregrunnlag = listOf(uføregrunnlag),
+        ),
+        vilkårsvurderinger = vilkårsvurderinger,
+    )
+
+    internal val simulertRevurderingInnvilget = SimulertRevurdering.Innvilget(
+        id = revurderingId,
+        periode = periode,
+        opprettet = fixedTidspunkt,
+        tilRevurdering = søknadsbehandlingVedtak,
+        saksbehandler = saksbehandler,
+        oppgaveId = OppgaveId("Oppgaveid"),
+        fritekstTilBrev = "",
+        revurderingsårsak = revurderingsårsak,
+        behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
+        simulering = mock(),
+        beregning = beregningMock,
+        forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+        grunnlagsdata = Grunnlagsdata(
+            uføregrunnlag = listOf(uføregrunnlag),
+        ),
+        vilkårsvurderinger = vilkårsvurderinger,
+    )
 }

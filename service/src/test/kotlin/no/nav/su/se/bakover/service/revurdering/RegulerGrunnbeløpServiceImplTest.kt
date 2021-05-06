@@ -212,6 +212,11 @@ internal class RegulerGrunnbeløpServiceImplTest {
             override fun equals(other: Any?) =
                 throw IllegalStateException("Skal ikke kalles fra testen")
         }
+        val uføregrunnlag = Grunnlag.Uføregrunnlag(
+            periode = periode,
+            uføregrad = Uføregrad.parse(20),
+            forventetInntekt = 12000,
+        )
         val opprettetRevurdering = OpprettetRevurdering(
             id = revurderingId,
             periode = periode,
@@ -255,15 +260,22 @@ internal class RegulerGrunnbeløpServiceImplTest {
             behandlingsinformasjon = behandlingsinformasjon,
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata(
-                uføregrunnlag = listOf(
-                    Grunnlag.Uføregrunnlag(
-                        periode = periode,
-                        uføregrad = Uføregrad.parse(20),
-                        forventetInntekt = 12000,
+                uføregrunnlag = listOf(uføregrunnlag),
+            ),
+            vilkårsvurderinger = Vilkårsvurderinger(
+                uføre = Vilkår.Vurdert.Uførhet.create(
+                    vurderingsperioder = Nel.of(
+                        Vurderingsperiode.Manuell.create(
+                            id = UUID.randomUUID(),
+                            opprettet = fixedTidspunkt,
+                            resultat = Resultat.Innvilget,
+                            grunnlag = uføregrunnlag,
+                            periode = uføregrunnlag.periode,
+                            begrunnelse = "ok2k",
+                        ),
                     ),
                 ),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
         val expectedBeregnetRevurdering = BeregnetRevurdering.IngenEndring(
             id = opprettetRevurdering.id,
