@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseKode
 import no.nav.su.se.bakover.domain.oppdrag.simulering.KlasseType
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -70,18 +71,25 @@ object SimuleringStub : SimuleringClient {
         }
 
     private fun simulerIngenUtbetaling(utbetaling: Utbetaling): Simulering {
+        val simuleringsPeriode = when (val sisteUtbetalingslinje = utbetaling.sisteUtbetalingslinje()) {
+            is Utbetalingslinje.Endring -> SimulertPeriode(
+                fraOgMed = sisteUtbetalingslinje.statusendring.fraOgMed,
+                tilOgMed = utbetaling.senesteDato(),
+                utbetaling = emptyList(),
+            )
+            else -> SimulertPeriode(
+                fraOgMed = utbetaling.tidligsteDato(),
+                tilOgMed = utbetaling.senesteDato(),
+                utbetaling = emptyList(),
+            )
+        }
+
         return Simulering(
             gjelderId = utbetaling.fnr,
             gjelderNavn = "MYGG LUR",
             datoBeregnet = idag(),
             nettoBeløp = 0,
-            periodeList = listOf(
-                SimulertPeriode(
-                    fraOgMed = utbetaling.tidligsteDato(),
-                    tilOgMed = utbetaling.senesteDato(),
-                    utbetaling = emptyList(),
-                ),
-            ),
+            periodeList = listOf(simuleringsPeriode),
         )
     }
 
