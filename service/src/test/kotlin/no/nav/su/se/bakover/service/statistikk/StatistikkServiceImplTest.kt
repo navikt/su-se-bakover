@@ -22,7 +22,6 @@ import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -40,6 +39,7 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
+import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.FnrGenerator
@@ -361,7 +361,7 @@ internal class StatistikkServiceImplTest {
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(clock),
             sakId = UUID.randomUUID(),
-            saksnummer = Saksnummer(0),
+            saksnummer = Saksnummer(2021),
             søknad = søknadMock,
             oppgaveId = OppgaveId(value = ""),
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
@@ -375,7 +375,7 @@ internal class StatistikkServiceImplTest {
                 "",
             ),
             fritekstTilBrev = "",
-            stønadsperiode = ValgtStønadsperiode(Periode.create(1.januar(2021), 31.desember(2021))),
+            stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
@@ -417,7 +417,7 @@ internal class StatistikkServiceImplTest {
         val behandlingsperiode = Periode.create(1.januar(2021), 31.desember(2021))
         val behandlingMock = mock<Behandling> {
             on { sakId } doReturn UUID.randomUUID()
-            on { saksnummer } doReturn Saksnummer(49L)
+            on { saksnummer } doReturn Saksnummer(2021)
         }
         val opprettetRevurdering = OpprettetRevurdering(
             id = UUID.randomUUID(),
@@ -476,7 +476,7 @@ internal class StatistikkServiceImplTest {
 
         val behandlingMock = mock<Behandling> {
             on { sakId } doReturn UUID.randomUUID()
-            on { saksnummer } doReturn Saksnummer(49L)
+            on { saksnummer } doReturn Saksnummer(2021)
         }
         val revurderingTilAttestering = RevurderingTilAttestering.Innvilget(
             id = UUID.randomUUID(),
@@ -543,7 +543,7 @@ internal class StatistikkServiceImplTest {
 
         val behandlingMock = mock<Behandling> {
             on { sakId } doReturn UUID.randomUUID()
-            on { saksnummer } doReturn Saksnummer(49L)
+            on { saksnummer } doReturn Saksnummer(2021)
         }
         val iverksattRevurdering = IverksattRevurdering.Innvilget(
             id = UUID.randomUUID(),

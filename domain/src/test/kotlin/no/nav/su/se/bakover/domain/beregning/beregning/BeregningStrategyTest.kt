@@ -12,6 +12,8 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import org.junit.jupiter.api.Test
 
 internal class BeregningStrategyTest {
@@ -23,7 +25,13 @@ internal class BeregningStrategyTest {
         )
         val beregningsgrunnlag = Beregningsgrunnlag.create(
             beregningsperiode = periode,
-            forventetInntektPerÅr = 12000.0,
+            uføregrunnlag = listOf(
+                Grunnlag.Uføregrunnlag(
+                    periode = periode,
+                    uføregrad = Uføregrad.parse(90),
+                    forventetInntekt = 12000,
+                ),
+            ),
             fradragFraSaksbehandler = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.Kontantstøtte,

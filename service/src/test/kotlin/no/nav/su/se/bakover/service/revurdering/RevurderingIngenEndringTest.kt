@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.service.revurdering
 
+import arrow.core.Nel
 import arrow.core.getOrHandle
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
@@ -76,9 +77,9 @@ class RevurderingIngenEndringTest {
                 uføregrunnlag = listOf(uføregrunnlag),
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Vurdert.Uførhet(
-                    vurderingsperioder = listOf(
-                        Vurderingsperiode.Manuell(
+                uføre = Vilkår.Vurdert.Uførhet.create(
+                    vurderingsperioder = Nel.of(
+                        Vurderingsperiode.Manuell.create(
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
                             resultat = Resultat.Innvilget,

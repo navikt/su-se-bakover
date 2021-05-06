@@ -42,14 +42,14 @@ internal class LagBrevinnholdForBeregningTest {
                 periode = BrevPeriode(fraOgMed = "mai 2020", tilOgMed = "april 2021"),
                 ytelsePerMåned = 19946,
                 satsbeløpPerMåned = 20946,
-                epsFribeløp = 0.0,
+                epsFribeløp = 0,
                 fradrag = Fradrag(
                     bruker = listOf(
                         Månedsfradrag(
                             type = Fradragstype.ForventetInntekt.toReadableTypeName(
                                 utenlandsk = false
                             ),
-                            beløp = 1000.0,
+                            beløp = 1000,
                             utenlandskInntekt = null
                         )
                     ),
@@ -95,14 +95,14 @@ internal class LagBrevinnholdForBeregningTest {
                 periode = BrevPeriode(fraOgMed = "mai 2020", tilOgMed = "mai 2020"),
                 ytelsePerMåned = 19946,
                 satsbeløpPerMåned = 20946,
-                epsFribeløp = 0.0,
+                epsFribeløp = 0,
                 fradrag = Fradrag(
                     bruker = listOf(
                         Månedsfradrag(
                             type = Fradragstype.ForventetInntekt.toReadableTypeName(
                                 utenlandsk = false
                             ),
-                            beløp = 1000.0,
+                            beløp = 1000,
                             utenlandskInntekt = null
                         )
                     ),
@@ -113,21 +113,21 @@ internal class LagBrevinnholdForBeregningTest {
                 periode = BrevPeriode(fraOgMed = "juni 2020", tilOgMed = "august 2020"),
                 ytelsePerMåned = 8947,
                 satsbeløpPerMåned = 20946,
-                epsFribeløp = 0.0,
+                epsFribeløp = 0,
                 fradrag = Fradrag(
                     bruker = listOf(
                         Månedsfradrag(
                             type = Fradragstype.Arbeidsinntekt.toReadableTypeName(
                                 utenlandsk = false
                             ),
-                            beløp = 9999.0,
+                            beløp = 9999,
                             utenlandskInntekt = null
                         ),
                         Månedsfradrag(
                             type = Fradragstype.Sosialstønad.toReadableTypeName(
                                 utenlandsk = false
                             ),
-                            beløp = 2000.0,
+                            beløp = 2000,
                             utenlandskInntekt = null
                         ),
                     ),
@@ -138,14 +138,14 @@ internal class LagBrevinnholdForBeregningTest {
                 periode = BrevPeriode(fraOgMed = "september 2020", tilOgMed = "april 2021"),
                 ytelsePerMåned = 19946,
                 satsbeløpPerMåned = 20946,
-                epsFribeløp = 0.0,
+                epsFribeløp = 0,
                 fradrag = Fradrag(
                     bruker = listOf(
                         Månedsfradrag(
                             type = Fradragstype.ForventetInntekt.toReadableTypeName(
                                 utenlandsk = false
                             ),
-                            beløp = 1000.0,
+                            beløp = 1000,
                             utenlandskInntekt = null
                         )
                     ),
@@ -191,14 +191,14 @@ internal class LagBrevinnholdForBeregningTest {
                 periode = BrevPeriode(fraOgMed = "mai 2020", tilOgMed = "november 2020"),
                 ytelsePerMåned = 14756,
                 satsbeløpPerMåned = 20946,
-                epsFribeløp = 14810.33,
+                epsFribeløp = 14810,
                 fradrag = Fradrag(
                     bruker = listOf(
                         Månedsfradrag(
                             type = Fradragstype.ForventetInntekt.toReadableTypeName(
                                 utenlandsk = false
                             ),
-                            beløp = 1000.0,
+                            beløp = 1000,
                             utenlandskInntekt = null
                         )
                     ),
@@ -208,7 +208,7 @@ internal class LagBrevinnholdForBeregningTest {
                                 type = Fradragstype.Arbeidsinntekt.toReadableTypeName(
                                     utenlandsk = false
                                 ),
-                                beløp = 20000.0,
+                                beløp = 20000,
                                 utenlandskInntekt = null
                             )
                         ),
@@ -220,14 +220,14 @@ internal class LagBrevinnholdForBeregningTest {
                 periode = BrevPeriode(fraOgMed = "desember 2020", tilOgMed = "desember 2020"),
                 ytelsePerMåned = 13756,
                 satsbeløpPerMåned = 20946,
-                epsFribeløp = 14810.33,
+                epsFribeløp = 14810,
                 fradrag = Fradrag(
                     bruker = listOf(
                         Månedsfradrag(
                             type = Fradragstype.ForventetInntekt.toReadableTypeName(
                                 utenlandsk = false
                             ),
-                            beløp = 1000.0,
+                            beløp = 1000,
                             utenlandskInntekt = null
                         )
                     ),
@@ -237,14 +237,14 @@ internal class LagBrevinnholdForBeregningTest {
                                 type = Fradragstype.Arbeidsinntekt.toReadableTypeName(
                                     utenlandsk = false
                                 ),
-                                beløp = 20000.0,
+                                beløp = 20000,
                                 utenlandskInntekt = null
                             ),
                             Månedsfradrag(
                                 type = Fradragstype.Kapitalinntekt.toReadableTypeName(
                                     utenlandsk = false
                                 ),
-                                beløp = 1000.0,
+                                beløp = 1000,
                                 utenlandskInntekt = null
                             )
                         ),
@@ -256,14 +256,14 @@ internal class LagBrevinnholdForBeregningTest {
                 periode = BrevPeriode(fraOgMed = "januar 2021", tilOgMed = "april 2021"),
                 ytelsePerMåned = 14756,
                 satsbeløpPerMåned = 20946,
-                epsFribeløp = 14810.33,
+                epsFribeløp = 14810,
                 fradrag = Fradrag(
                     bruker = listOf(
                         Månedsfradrag(
                             type = Fradragstype.ForventetInntekt.toReadableTypeName(
                                 utenlandsk = false
                             ),
-                            beløp = 1000.0,
+                            beløp = 1000,
                             utenlandskInntekt = null
                         )
                     ),
@@ -273,7 +273,7 @@ internal class LagBrevinnholdForBeregningTest {
                                 type = Fradragstype.Arbeidsinntekt.toReadableTypeName(
                                     utenlandsk = false
                                 ),
-                                beløp = 20000.0,
+                                beløp = 20000,
                                 utenlandskInntekt = null
                             )
                         ),
@@ -290,22 +290,22 @@ internal class LagBrevinnholdForBeregningTest {
             periode = BrevPeriode(fraOgMed = "mai 2020", tilOgMed = "april 2021"),
             ytelsePerMåned = 100,
             satsbeløpPerMåned = 100,
-            epsFribeløp = 100.0,
+            epsFribeløp = 100,
             fradrag = Fradrag(
                 bruker = listOf(
                     Månedsfradrag(
                         type = Fradragstype.Arbeidsinntekt.toReadableTypeName(utenlandsk = false),
-                        beløp = 10.0,
+                        beløp = 10,
                         utenlandskInntekt = null
                     ),
                     Månedsfradrag(
                         type = Fradragstype.OffentligPensjon.toReadableTypeName(utenlandsk = false),
-                        beløp = 35.0,
+                        beløp = 35,
                         utenlandskInntekt = null
                     ),
                     Månedsfradrag(
                         type = Fradragstype.OffentligPensjon.toReadableTypeName(utenlandsk = true),
-                        beløp = 70.0,
+                        beløp = 70,
                         utenlandskInntekt = UtenlandskInntekt.create(
                             beløpIUtenlandskValuta = 140,
                             valuta = "SEK",
@@ -317,12 +317,12 @@ internal class LagBrevinnholdForBeregningTest {
                     listOf(
                         Månedsfradrag(
                             type = Fradragstype.Arbeidsinntekt.toReadableTypeName(utenlandsk = false),
-                            beløp = 20.0,
+                            beløp = 20,
                             utenlandskInntekt = null
                         ),
                         Månedsfradrag(
                             type = Fradragstype.OffentligPensjon.toReadableTypeName(utenlandsk = false),
-                            beløp = 70.0,
+                            beløp = 70,
                             utenlandskInntekt = null
                         )
                     ),
@@ -414,14 +414,14 @@ internal class LagBrevinnholdForBeregningTest {
                 periode = BrevPeriode(fraOgMed = "mai 2020", tilOgMed = "april 2021"),
                 ytelsePerMåned = 19946,
                 satsbeløpPerMåned = 20946,
-                epsFribeløp = 14810.33,
+                epsFribeløp = 14810,
                 fradrag = Fradrag(
                     bruker = listOf(
                         Månedsfradrag(
                             type = Fradragstype.ForventetInntekt.toReadableTypeName(
                                 utenlandsk = false
                             ),
-                            beløp = 1000.0,
+                            beløp = 1000,
                             utenlandskInntekt = null
                         )
                     ),
@@ -477,14 +477,14 @@ internal class LagBrevinnholdForBeregningTest {
                 periode = BrevPeriode(fraOgMed = "mai 2020", tilOgMed = "april 2021"),
                 ytelsePerMåned = 16756,
                 satsbeløpPerMåned = 20946,
-                epsFribeløp = 14810.33,
+                epsFribeløp = 14810,
                 fradrag = Fradrag(
                     bruker = listOf(
                         Månedsfradrag(
                             type = Fradragstype.ForventetInntekt.toReadableTypeName(
                                 utenlandsk = false
                             ),
-                            beløp = 1000.0,
+                            beløp = 1000,
                             utenlandskInntekt = null
                         )
                     ),
@@ -494,21 +494,21 @@ internal class LagBrevinnholdForBeregningTest {
                                 type = Fradragstype.BidragEtterEkteskapsloven.toReadableTypeName(
                                     utenlandsk = false
                                 ),
-                                beløp = 6000.0,
+                                beløp = 6000,
                                 utenlandskInntekt = null
                             ),
                             Månedsfradrag(
                                 type = Fradragstype.Introduksjonsstønad.toReadableTypeName(
                                     utenlandsk = false
                                 ),
-                                beløp = 6000.0,
+                                beløp = 6000,
                                 utenlandskInntekt = null
                             ),
                             Månedsfradrag(
                                 type = Fradragstype.Kontantstøtte.toReadableTypeName(
                                     utenlandsk = false
                                 ),
-                                beløp = 6000.0,
+                                beløp = 6000,
                                 utenlandskInntekt = null
                             ),
                         ),

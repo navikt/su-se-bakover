@@ -10,6 +10,8 @@ import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import org.junit.jupiter.api.Test
 
 internal class EpsUnder67OgUførFlyktningBeregningTest {
@@ -44,7 +46,13 @@ internal class EpsUnder67OgUførFlyktningBeregningTest {
         val uføreOrdinærSatsbeløp = 231080.0
         val beregningsgrunnlag = Beregningsgrunnlag.create(
             beregningsperiode = periode,
-            forventetInntektPerÅr = 0.0,
+            uføregrunnlag = listOf(
+                Grunnlag.Uføregrunnlag(
+                    periode = periode,
+                    uføregrad = Uføregrad.parse(100),
+                    forventetInntekt = 0,
+                ),
+            ),
             fradragFraSaksbehandler = listOf(
                 FradragFactory.ny(
                     type = Fradragstype.Arbeidsinntekt,

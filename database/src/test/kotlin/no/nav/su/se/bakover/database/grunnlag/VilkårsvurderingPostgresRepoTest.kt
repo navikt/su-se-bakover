@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.grunnlag
 
+import arrow.core.Nel
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
@@ -24,10 +25,10 @@ internal class VilkårsvurderingPostgresRepoTest {
     @Test
     fun `lagrer og henter vilkårsvurdering uten grunnlag`() {
         withMigratedDb {
-            val søknadsbehandling = testDataHelper.nyUavklartVilkårsvurdering()
-            val vurderingUførhet = Vilkår.Vurdert.Uførhet(
-                vurderingsperioder = listOf(
-                    Vurderingsperiode.Manuell(
+            val søknadsbehandling = testDataHelper.nySøknadsbehandling()
+            val vurderingUførhet = Vilkår.Vurdert.Uførhet.create(
+                vurderingsperioder = Nel.of(
+                    Vurderingsperiode.Manuell.create(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
                         resultat = Resultat.Avslag,
@@ -47,7 +48,7 @@ internal class VilkårsvurderingPostgresRepoTest {
     @Test
     fun `lagrer og henter vilkårsvurdering med grunnlag`() {
         withMigratedDb {
-            val søknadsbehandling = testDataHelper.nyUavklartVilkårsvurdering()
+            val søknadsbehandling = testDataHelper.nySøknadsbehandling()
             val uføregrunnlag = Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(fixedClock),
@@ -56,9 +57,9 @@ internal class VilkårsvurderingPostgresRepoTest {
                 forventetInntekt = 12000,
             )
 
-            val vurderingUførhet = Vilkår.Vurdert.Uførhet(
-                vurderingsperioder = listOf(
-                    Vurderingsperiode.Manuell(
+            val vurderingUførhet = Vilkår.Vurdert.Uførhet.create(
+                vurderingsperioder = Nel.of(
+                    Vurderingsperiode.Manuell.create(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
                         resultat = Resultat.Avslag,
@@ -78,7 +79,7 @@ internal class VilkårsvurderingPostgresRepoTest {
     @Test
     fun `kan erstatte eksisterende vilkårsvurderinger med grunnlag`() {
         withMigratedDb {
-            val søknadsbehandling = testDataHelper.nyUavklartVilkårsvurdering()
+            val søknadsbehandling = testDataHelper.nySøknadsbehandling()
             val uføregrunnlag = Grunnlag.Uføregrunnlag(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(fixedClock),
@@ -87,9 +88,9 @@ internal class VilkårsvurderingPostgresRepoTest {
                 forventetInntekt = 12000,
             )
 
-            val vurderingUførhet = Vilkår.Vurdert.Uførhet(
-                vurderingsperioder = listOf(
-                    Vurderingsperiode.Manuell(
+            val vurderingUførhet = Vilkår.Vurdert.Uførhet.create(
+                vurderingsperioder = Nel.of(
+                    Vurderingsperiode.Manuell.create(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
                         resultat = Resultat.Avslag,

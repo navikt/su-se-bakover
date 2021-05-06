@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.søknadsbehandling
 
+import arrow.core.Nel
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeTypeOf
@@ -9,6 +10,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.TestDataHelper
+import no.nav.su.se.bakover.database.antall
 import no.nav.su.se.bakover.database.avslåttBeregning
 import no.nav.su.se.bakover.database.behandlingsinformasjonMedAlleVilkårOppfylt
 import no.nav.su.se.bakover.database.beregning
@@ -28,6 +30,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
@@ -73,10 +76,25 @@ internal class SøknadsbehandlingPostgresRepoTest {
     @Test
     fun `kan sette inn tom saksbehandling`() {
         withMigratedDb {
-            val vilkårsvurdert = testDataHelper.nyUavklartVilkårsvurdering()
+            val vilkårsvurdert = testDataHelper.nySøknadsbehandling()
             repo.hent(vilkårsvurdert.id).also {
                 it shouldBe vilkårsvurdert
                 it.shouldBeTypeOf<Søknadsbehandling.Vilkårsvurdert.Uavklart>()
+            }
+        }
+    }
+
+    @Test
+    fun `lagring av vilkårsvurdert behandling påvirker ikke andre behandlinger`() {
+        withMigratedDb {
+            testDataHelper.nyIverksattAvslagMedBeregning()
+            testDataHelper.nyInnvilgetVilkårsvurdering()
+
+            dataSource.withSession { session ->
+                "select count(1) from behandling where status = :status ".let {
+                    it.antall(mapOf("status" to BehandlingsStatus.VILKÅRSVURDERT_INNVILGET.toString()), session) shouldBe 1
+                    it.antall(mapOf("status" to BehandlingsStatus.IVERKSATT_AVSLAG.toString()), session) shouldBe 1
+                }
             }
         }
     }
@@ -106,7 +124,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
     @Test
     fun `kan oppdatere stønadsperiode`() {
         withMigratedDb {
-            val vilkårsvurdert = testDataHelper.nyUavklartVilkårsvurdering(
+            val vilkårsvurdert = testDataHelper.nySøknadsbehandling(
                 stønadsperiode = null,
             )
             repo.hent(vilkårsvurdert.id).also {
@@ -125,7 +143,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
     fun `oppdaterer status og behandlingsinformasjon og sletter beregning og simulering hvis de eksisterer`() {
 
         withMigratedDb {
-            val uavklartVilkårsvurdering = testDataHelper.nyUavklartVilkårsvurdering().also {
+            val uavklartVilkårsvurdering = testDataHelper.nySøknadsbehandling().also {
                 val behandlingId = it.id
                 repo.hent(behandlingId) shouldBe it
                 dataSource.withSession {
@@ -438,9 +456,9 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 forventetInntekt = 12000,
             )
 
-            val vurderingUførhet = Vilkår.Vurdert.Uførhet(
-                vurderingsperioder = listOf(
-                    Vurderingsperiode.Manuell(
+            val vurderingUførhet = Vilkår.Vurdert.Uførhet.create(
+                vurderingsperioder = Nel.of(
+                    Vurderingsperiode.Manuell.create(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(fixedClock),
                         resultat = Resultat.Avslag,
@@ -480,9 +498,9 @@ internal class SøknadsbehandlingPostgresRepoTest {
                         ),
                     ),
                     vilkårsvurderinger = Vilkårsvurderinger(
-                        uføre = Vilkår.Vurdert.Uførhet(
-                            vurderingsperioder = listOf(
-                                Vurderingsperiode.Manuell(
+                        uføre = Vilkår.Vurdert.Uførhet.create(
+                            vurderingsperioder = Nel.of(
+                                Vurderingsperiode.Manuell.create(
                                     id = vurderingUførhet.vurderingsperioder[0].id,
                                     opprettet = Tidspunkt.now(fixedClock),
                                     resultat = Resultat.Avslag,

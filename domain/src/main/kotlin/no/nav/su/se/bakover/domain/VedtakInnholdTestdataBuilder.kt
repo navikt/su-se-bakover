@@ -23,13 +23,14 @@ object VedtakInnholdTestdataBuilder {
         sats = "100",
         satsGrunn = Satsgrunn.DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN,
         satsBeløp = 100,
+        satsGjeldendeFraDato = "01.05.2020",
         harEktefelle = true,
         beregningsperioder = listOf(
             Beregningsperiode(
                 periode = BrevPeriode("1 januar", "31 desember"),
                 ytelsePerMåned = 0,
                 satsbeløpPerMåned = 0,
-                epsFribeløp = 0.0,
+                epsFribeløp = 0,
                 fradrag = Fradrag(emptyList(), Fradrag.Eps(emptyList(), true))
             )
         ),

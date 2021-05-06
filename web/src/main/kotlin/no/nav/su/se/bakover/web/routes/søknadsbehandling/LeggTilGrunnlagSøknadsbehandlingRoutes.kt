@@ -14,11 +14,12 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
-import no.nav.su.se.bakover.service.søknadsbehandling.LeggTilUførevurderingRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
+import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
+import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson
 import no.nav.su.se.bakover.web.svar
@@ -70,18 +71,15 @@ internal fun Route.leggTilGrunnlagSøknadsbehandlingRoutes(
                                     leggTilUføregrunnlagRequest,
                                 ).mapLeft {
                                     when (it) {
-                                        SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling -> HttpStatusCode.NotFound.errorJson(
-                                            "fant ikke behandling",
-                                            "fant_ikke_behandling",
-                                        )
+                                        SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling -> Feilresponser.fantIkkeBehandling
                                         is SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.UgyldigTilstand -> ugyldigTilstand(
                                             it.fra,
                                             it.til,
                                         )
-                                        SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.UføregradOgForventetInntektMangler -> HttpStatusCode.BadRequest.errorJson(
-                                            "Hvis man innvilger uførevilkåret må man sende med uføregrad og forventet inntekt",
-                                            "uføregrad_og_forventet_inntekt_mangler",
-                                        )
+                                        SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.UføregradOgForventetInntektMangler -> Feilresponser.uføregradOgForventetInntektMangler
+                                        SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.PeriodeForGrunnlagOgVurderingErForskjellig -> Feilresponser.periodeForGrunnlagOgVurderingErForskjellig
+                                        SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.OverlappendeVurderingsperioder -> Feilresponser.overlappendeVurderingsperioder
+                                        SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden -> Feilresponser.utenforBehandlingsperioden
                                     }
                                 }.map {
                                     Resultat.json(HttpStatusCode.Created, serialize(it.toJson()))

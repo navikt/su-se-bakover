@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.web.routes.grunnlag.toJson
 import no.nav.su.se.bakover.web.routes.søknad.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingsinformasjonJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.StønadsperiodeJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.toJson
 import java.time.format.DateTimeFormatter
 

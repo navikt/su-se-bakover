@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes.grunnlag
 
+import arrow.core.Nel
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
@@ -68,7 +69,7 @@ internal val vilkårsvurderingUføreOpprettet = Tidspunkt.now(fixedClock)
 internal val expectedVurderingUføreJson = """
     {
       "vilkår": "Uførhet",
-      "vurdering": {
+      "vurderinger": [{
         "id": "$vilkårsvurderingUføreId",
         "opprettet": "${DateTimeFormatter.ISO_INSTANT.format(vilkårsvurderingUføreOpprettet)}",
         "resultat": "VilkårOppfylt",
@@ -78,7 +79,7 @@ internal val expectedVurderingUføreJson = """
           "tilOgMed": "2021-12-31"
         },
         "begrunnelse": "text"
-      },
+      }],
       "resultat": "VilkårOppfylt"
     }
 """.trimIndent()
@@ -101,7 +102,7 @@ internal val grunnlagsdata = Grunnlagsdata(
     uføregrunnlag = listOf(uføregrunnlag),
 )
 
-internal val vurderingsperiodeUføre = Vurderingsperiode.Manuell(
+internal val vurderingsperiodeUføre = Vurderingsperiode.Manuell.create(
     id = vilkårsvurderingUføreId,
     opprettet = vilkårsvurderingUføreOpprettet,
     resultat = Resultat.Innvilget,
@@ -110,8 +111,8 @@ internal val vurderingsperiodeUføre = Vurderingsperiode.Manuell(
     begrunnelse = "text",
 )
 
-internal val uførevurdering = Vilkår.Vurdert.Uførhet(
-    vurderingsperioder = listOf(vurderingsperiodeUføre),
+internal val uførevurdering = Vilkår.Vurdert.Uførhet.create(
+    vurderingsperioder = Nel.of(vurderingsperiodeUføre),
 )
 
 internal val vilkårsvurderinger = Vilkårsvurderinger(

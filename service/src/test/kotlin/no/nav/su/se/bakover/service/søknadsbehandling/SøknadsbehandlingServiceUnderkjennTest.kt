@@ -23,7 +23,6 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -37,6 +36,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
+import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.FnrGenerator
@@ -52,7 +52,7 @@ import java.util.UUID
 
 class SøknadsbehandlingServiceUnderkjennTest {
     private val sakId = UUID.randomUUID()
-    private val saksnummer = Saksnummer(0)
+    private val saksnummer = Saksnummer(2021)
     private val søknadId = UUID.randomUUID()
     private val fnr = FnrGenerator.random()
     private val oppgaveId = OppgaveId("o")
@@ -60,7 +60,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
     private val nyOppgaveId = OppgaveId("999")
     private val aktørId = AktørId("12345")
     private val saksbehandler = NavIdentBruker.Saksbehandler("s")
-    private val stønadsperiode = ValgtStønadsperiode(Periode.create(1.januar(2021), 31.desember(2021)))
+    private val stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))
 
     private val underkjentAttestering = Attestering.Underkjent(
         attestant = NavIdentBruker.Attestant("a"),

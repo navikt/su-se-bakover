@@ -30,15 +30,14 @@ import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
-import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
-import no.nav.su.se.bakover.domain.behandling.avslag.AvslagBrevRequest
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.brev.LagBrevRequest.AvslagBrevRequest
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -50,6 +49,7 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
+import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -1256,7 +1256,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(),
                 sakId = UUID.randomUUID(),
-                saksnummer = Saksnummer(1),
+                saksnummer = Saksnummer(2021),
                 søknad = Søknad.Journalført.MedOppgave(
                     id = BehandlingTestUtils.søknadId,
                     opprettet = Tidspunkt.EPOCH,
@@ -1272,7 +1272,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 attestering = Attestering.Iverksatt(attestant),
                 saksbehandler = saksbehandler,
                 fritekstTilBrev = "",
-                stønadsperiode = ValgtStønadsperiode(Periode.create(1.januar(2021), 31.desember(2021))),
+                stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
                 grunnlagsdata = Grunnlagsdata.EMPTY,
                 vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
             ),
@@ -1309,7 +1309,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(),
                 sakId = UUID.randomUUID(),
-                saksnummer = Saksnummer(1),
+                saksnummer = Saksnummer(2021),
                 søknad = createSøknad(),
                 oppgaveId = oppgaveId,
                 behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
@@ -1319,7 +1319,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 saksbehandler = saksbehandler,
                 attestering = Attestering.Iverksatt(attestant),
                 fritekstTilBrev = "",
-                stønadsperiode = ValgtStønadsperiode(Periode.create(1.januar(2021), 31.desember(2021))),
+                stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
                 grunnlagsdata = Grunnlagsdata.EMPTY,
                 vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
             ),

@@ -77,7 +77,7 @@ internal class BrevServiceImplTest {
     @Test
     fun `journalfører brev`() {
         val pdf = "".toByteArray()
-        val saksnummer = Saksnummer(1337)
+        val saksnummer = Saksnummer(2021)
 
         val pdfGeneratorMock = mock<PdfGenerator> {
             on { genererPdf(any<BrevInnhold>()) } doReturn pdf.right()

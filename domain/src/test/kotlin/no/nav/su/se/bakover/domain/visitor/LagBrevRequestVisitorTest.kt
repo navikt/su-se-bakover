@@ -21,11 +21,9 @@ import no.nav.su.se.bakover.domain.Ident
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
-import no.nav.su.se.bakover.domain.behandling.avslag.AvslagBrevRequest
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
@@ -37,12 +35,15 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.brev.LagBrevRequest.AvslagBrevRequest
+import no.nav.su.se.bakover.domain.brev.LagBrevRequest.InnvilgetVedtak
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
+import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -144,7 +145,7 @@ internal class LagBrevRequestVisitorTest {
                     hentNavn = { hentNavn(it) },
                     clock = clock,
                 ).apply { søknadsbehandling.accept(this) }.let {
-                    it.brevRequest shouldBe LagBrevRequest.InnvilgetVedtak(
+                    it.brevRequest shouldBe InnvilgetVedtak(
                         person = person,
                         beregning = innvilgetBeregning,
                         behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
@@ -193,7 +194,7 @@ internal class LagBrevRequestVisitorTest {
                     hentNavn = { hentNavn(it) },
                     clock = clock,
                 ).apply { søknadsbehandling.accept(this) }.let {
-                    it.brevRequest shouldBe LagBrevRequest.InnvilgetVedtak(
+                    it.brevRequest shouldBe InnvilgetVedtak(
                         person = person,
                         beregning = innvilgetBeregning,
                         behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
@@ -276,7 +277,7 @@ internal class LagBrevRequestVisitorTest {
                     hentNavn = { hentNavn(it) },
                     clock = clock,
                 ).apply { søknadsbehandling.accept(this) }.let {
-                    it.brevRequest shouldBe LagBrevRequest.InnvilgetVedtak(
+                    it.brevRequest shouldBe InnvilgetVedtak(
                         person = person,
                         beregning = innvilgetBeregning,
                         behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
@@ -380,7 +381,7 @@ internal class LagBrevRequestVisitorTest {
                     hentNavn = { hentNavn(it) },
                     clock = clock,
                 ).apply { søknadsbehandling.accept(this) }.let {
-                    it.brevRequest shouldBe LagBrevRequest.InnvilgetVedtak(
+                    it.brevRequest shouldBe InnvilgetVedtak(
                         person = person,
                         beregning = innvilgetBeregning,
                         behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
@@ -470,7 +471,7 @@ internal class LagBrevRequestVisitorTest {
                     hentNavn = { hentNavn(it) },
                     clock = clock,
                 ).apply { søknadsbehandling.accept(this) }.let {
-                    it.brevRequest shouldBe LagBrevRequest.InnvilgetVedtak(
+                    it.brevRequest shouldBe InnvilgetVedtak(
                         person = person,
                         beregning = innvilgetBeregning,
                         behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
@@ -507,7 +508,7 @@ internal class LagBrevRequestVisitorTest {
         ).apply { innvilgetVedtak.accept(this) }
 
         brevSøknadsbehandling.brevRequest shouldBe brevVedtak.brevRequest
-        brevSøknadsbehandling.brevRequest shouldBe LagBrevRequest.InnvilgetVedtak(
+        brevSøknadsbehandling.brevRequest shouldBe InnvilgetVedtak(
             person = person,
             beregning = innvilgetBeregning,
             behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
@@ -839,13 +840,13 @@ internal class LagBrevRequestVisitorTest {
         id = UUID.randomUUID(),
         opprettet = Tidspunkt.now(),
         sakId = UUID.randomUUID(),
-        saksnummer = Saksnummer(123),
+        saksnummer = Saksnummer(2021),
         søknad = mock(),
         oppgaveId = OppgaveId(""),
         behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
         fnr = FnrGenerator.random(),
         fritekstTilBrev = "",
-        stønadsperiode = ValgtStønadsperiode(Periode.create(1.januar(2021), 31.desember(2021))),
+        stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
         grunnlagsdata = Grunnlagsdata.EMPTY,
         vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
     )

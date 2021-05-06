@@ -37,7 +37,6 @@ internal data class RevurderingServiceMocks(
         brevService = brevService,
         vedtakRepo = vedtakRepo,
         ferdigstillVedtakService = ferdigstillVedtakService,
-        grunnlagService = grunnlagService,
         vilkårsvurderingService = vilkårsvurderingService,
         clock = fixedClock,
     )

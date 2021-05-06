@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.service.revurdering
 
+import arrow.core.Nel
 import arrow.core.getOrElse
 import arrow.core.getOrHandle
 import arrow.core.left
@@ -270,9 +271,9 @@ internal class RevurderingServiceImplTest {
                 uføregrunnlag = listOf(uføregrunnlag),
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Vurdert.Uførhet(
-                    vurderingsperioder = listOf(
-                        Vurderingsperiode.Manuell(
+                uføre = Vilkår.Vurdert.Uførhet.create(
+                    vurderingsperioder = Nel.of(
+                        Vurderingsperiode.Manuell.create(
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
                             resultat = Resultat.Innvilget,
@@ -387,9 +388,9 @@ internal class RevurderingServiceImplTest {
                 uføregrunnlag = listOf(uføregrunnlag),
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Vurdert.Uførhet(
-                    vurderingsperioder = listOf(
-                        Vurderingsperiode.Manuell(
+                uføre = Vilkår.Vurdert.Uførhet.create(
+                    vurderingsperioder = Nel.of(
+                        Vurderingsperiode.Manuell.create(
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
                             resultat = Resultat.Innvilget,
@@ -877,9 +878,9 @@ internal class RevurderingServiceImplTest {
                 uføregrunnlag = listOf(uføregrunnlag),
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Vurdert.Uførhet(
-                    vurderingsperioder = listOf(
-                        Vurderingsperiode.Manuell(
+                uføre = Vilkår.Vurdert.Uførhet.create(
+                    vurderingsperioder = Nel.of(
+                        Vurderingsperiode.Manuell.create(
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
                             resultat = Resultat.Innvilget,
@@ -1765,8 +1766,8 @@ internal class RevurderingServiceImplTest {
             on { simulering } doReturn mock()
         }
         val vilkårMedAvslag = vilkårsvurderinger.copy(
-            uføre = Vilkår.Vurdert.Uførhet(
-                vurderingsperioder = listOf(
+            uføre = Vilkår.Vurdert.Uførhet.create(
+                vurderingsperioder = Nel.of(
                     vurderingsperiodeUføre.copy(
                         resultat = Resultat.Avslag,
                     ),

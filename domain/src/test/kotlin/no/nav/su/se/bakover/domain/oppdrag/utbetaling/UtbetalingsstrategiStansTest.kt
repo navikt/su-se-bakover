@@ -30,7 +30,7 @@ internal class OppdragStansTest {
     private val fixedClock = Clock.fixed(15.juni(2020).atStartOfDay().toInstant(ZoneOffset.UTC), ZoneOffset.UTC)
     private val fnr = Fnr("12345678910")
     private val sakId = UUID.randomUUID()
-    private val saksnummer = Saksnummer(1234)
+    private val saksnummer = Saksnummer(2021)
 
     @Test
     fun `stans av utbetaling`() {

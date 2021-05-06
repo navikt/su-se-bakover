@@ -7,7 +7,6 @@ import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.routing.post
-import no.finn.unleash.strategy.Strategy
 import no.nav.su.se.bakover.service.toggles.ToggleService
 import no.nav.su.se.bakover.web.deserialize
 import no.nav.su.se.bakover.web.message
@@ -42,10 +41,4 @@ internal fun Route.toggleRoutes(toggleService: ToggleService) {
             }
         )
     }
-}
-
-class IsNotProdStrategy(private val isProd: Boolean) : Strategy {
-    override fun getName() = "isNotProd"
-
-    override fun isEnabled(parameters: Map<String, String>) = !isProd
 }

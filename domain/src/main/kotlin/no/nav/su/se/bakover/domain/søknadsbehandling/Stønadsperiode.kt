@@ -1,20 +1,28 @@
-package no.nav.su.se.bakover.domain.beregning
+package no.nav.su.se.bakover.domain.søknadsbehandling
 
 import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
+import org.jetbrains.annotations.TestOnly
 
 data class Stønadsperiode private constructor(
-    val periode: Periode
+    val periode: Periode,
+    val begrunnelse: String,
 ) {
+
+    infix fun inneholder(periode: Periode) = this.periode.inneholder(periode)
+    infix fun inneholder(stønadsperiode: Stønadsperiode) = this.periode.inneholder(stønadsperiode.periode)
+
     companion object {
-        fun create(periode: Periode): Stønadsperiode {
-            return tryCreate(periode).getOrHandle { throw IllegalArgumentException(it.toString()) }
+
+        @TestOnly
+        fun create(periode: Periode, begrunnelse: String = ""): Stønadsperiode {
+            return tryCreate(periode, begrunnelse).getOrHandle { throw IllegalArgumentException(it.toString()) }
         }
 
-        fun tryCreate(periode: Periode): Either<UgyldigStønadsperiode, Stønadsperiode> {
+        fun tryCreate(periode: Periode, begrunnelse: String): Either<UgyldigStønadsperiode, Stønadsperiode> {
             if (periode.fraOgMed.year < 2021) {
                 return UgyldigStønadsperiode.FraOgMedDatoKanIkkeVæreFør2021.left()
             }
@@ -22,11 +30,7 @@ data class Stønadsperiode private constructor(
                 return UgyldigStønadsperiode.PeriodeKanIkkeVæreLengreEnn12Måneder.left()
             }
 
-            return Stønadsperiode(periode).right()
-        }
-
-        fun List<Stønadsperiode>.sisteStønadsperiode(): Stønadsperiode? {
-            return this.maxByOrNull { it.periode.fraOgMed }
+            return Stønadsperiode(periode, begrunnelse).right()
         }
     }
 

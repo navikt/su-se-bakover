@@ -19,7 +19,6 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -39,10 +38,9 @@ import no.nav.su.se.bakover.domain.revurdering.medFritekst
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
-import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.service.brev.BrevService
-import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -52,6 +50,7 @@ import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
+import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -67,7 +66,6 @@ internal class RevurderingServiceImpl(
     private val clock: Clock,
     internal val vedtakRepo: VedtakRepo,
     internal val ferdigstillVedtakService: FerdigstillVedtakService,
-    private val grunnlagService: GrunnlagService,
     private val vilkårsvurderingService: VilkårsvurderingService,
 ) : RevurderingService {
 
@@ -167,47 +165,39 @@ internal class RevurderingServiceImpl(
     }
 
     override fun leggTilUføregrunnlag(
-        revurderingId: UUID,
-        uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
+        request: LeggTilUførevurderingerRequest,
     ): Either<KunneIkkeLeggeTilGrunnlag, LeggTilUføregrunnlagResponse> {
-        val revurdering = revurderingRepo.hent(revurderingId)
+        val revurdering = revurderingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling.left()
 
         if (revurdering is RevurderingTilAttestering || revurdering is IverksattRevurdering)
             return KunneIkkeLeggeTilGrunnlag.UgyldigStatus.left()
 
-        if (uføregrunnlag.size != 1) {
-            throw IllegalArgumentException("Flere perioder med forskjellig IEU støttes ikke enda")
+        val uførevilkår = request.toVilkår(revurdering.periode).getOrHandle {
+            return when (it) {
+                LeggTilUførevurderingerRequest.UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig -> KunneIkkeLeggeTilGrunnlag.PeriodeForGrunnlagOgVurderingErForskjellig.left()
+                LeggTilUførevurderingerRequest.UgyldigUførevurdering.UføregradOgForventetInntektMangler -> KunneIkkeLeggeTilGrunnlag.UføregradOgForventetInntektMangler.left()
+                LeggTilUførevurderingerRequest.UgyldigUførevurdering.OverlappendeVurderingsperioder -> KunneIkkeLeggeTilGrunnlag.OverlappendeVurderingsperioder.left()
+                LeggTilUførevurderingerRequest.UgyldigUførevurdering.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden -> KunneIkkeLeggeTilGrunnlag.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden.left()
+                LeggTilUførevurderingerRequest.UgyldigUførevurdering.AlleVurderingeneMåHaSammeResultat -> KunneIkkeLeggeTilGrunnlag.AlleVurderingeneMåHaSammeResultat.left()
+            }
         }
 
+        // TODO jah: Vi trenger fremdeles behandlingsinformasjon for å utlede sats, så den må ligge inntil vi har flyttet den modellen/logikken til Vilkår
         val oppdatertBehandlingsinformasjon = revurdering.oppdaterBehandlingsinformasjon(
             revurdering.behandlingsinformasjon.copy(
                 uførhet = revurdering.behandlingsinformasjon.uførhet!!.copy(
-                    forventetInntekt = uføregrunnlag.first().forventetInntekt,
-                    uføregrad = uføregrunnlag.first().uføregrad.value,
+                    forventetInntekt = uførevilkår.grunnlag.first().forventetInntekt,
+                    uføregrad = uførevilkår.grunnlag.first().uføregrad.value,
                 ),
             ),
-        )
-
-        revurderingRepo.lagre(oppdatertBehandlingsinformasjon)
-
+        ).also {
+            revurderingRepo.lagre(it)
+        }
         vilkårsvurderingService.lagre(
             behandlingId = oppdatertBehandlingsinformasjon.id,
             vilkårsvurderinger = oppdatertBehandlingsinformasjon.vilkårsvurderinger.copy(
-                uføre = Vilkår.Vurdert.Uførhet(
-                    vurderingsperioder = listOf(
-                        Vurderingsperiode.Manuell(
-                            resultat = Resultat.Innvilget,
-                            grunnlag = Grunnlag.Uføregrunnlag(
-                                periode = oppdatertBehandlingsinformasjon.periode,
-                                uføregrad = uføregrunnlag.first().uføregrad,
-                                forventetInntekt = uføregrunnlag.first().forventetInntekt,
-                            ),
-                            periode = oppdatertBehandlingsinformasjon.periode,
-                            begrunnelse = null,
-                        ),
-                    ),
-                ),
+                uføre = uførevilkår,
             ),
         )
 
@@ -215,22 +205,14 @@ internal class RevurderingServiceImpl(
 
         return LeggTilUføregrunnlagResponse(
             revurdering = updated,
-            simulerEndretGrunnlagsdata = grunnlagService.simulerEndretGrunnlagsdata(
-                sakId = updated.sakId,
-                periode = updated.periode,
-                endring = updated.grunnlagsdata,
-            ),
+            gjeldendeVilkårsvurderinger = vilkårsvurderingService.opprettVilkårsvurderinger(updated.sakId, updated.periode),
         ).right()
     }
 
-    override fun hentUføregrunnlag(revurderingId: UUID): Either<KunneIkkeHenteGrunnlag, GrunnlagService.SimulerEndretGrunnlagsdata> {
+    override fun hentGjeldendeVilkårsvurderinger(revurderingId: UUID): Either<KunneIkkeHenteGrunnlag, Vilkårsvurderinger> {
         val revurdering = revurderingRepo.hent(revurderingId)
             ?: return KunneIkkeHenteGrunnlag.FantIkkeBehandling.left()
-        return grunnlagService.simulerEndretGrunnlagsdata(
-            sakId = revurdering.sakId,
-            periode = revurdering.periode,
-            endring = revurdering.grunnlagsdata,
-        ).right()
+        return vilkårsvurderingService.opprettVilkårsvurderinger(revurdering.sakId, revurdering.periode).right()
     }
 
     override fun oppdaterRevurdering(
@@ -322,6 +304,7 @@ internal class RevurderingServiceImpl(
                                     return when (it) {
                                         is Revurdering.KunneIkkeBeregneRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden -> KunneIkkeBeregneOgSimulereRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden
                                         is Revurdering.KunneIkkeBeregneRevurdering.UfullstendigBehandlingsinformasjon -> KunneIkkeBeregneOgSimulereRevurdering.UfullstendigBehandlingsinformasjon
+                                        is Revurdering.KunneIkkeBeregneRevurdering.UgyldigBeregningsgrunnlag -> KunneIkkeBeregneOgSimulereRevurdering.UgyldigBeregningsgrunnlag(it.reason)
                                     }.left()
                                 }
                         ) {

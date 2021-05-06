@@ -14,6 +14,8 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategyName
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import org.junit.jupiter.api.Test
 
 internal class RevurdertBeregningTest {
@@ -35,7 +37,13 @@ internal class RevurdertBeregningTest {
                 ),
                 beregningsgrunnlag = Beregningsgrunnlag.create(
                     beregningsperiode = januar,
-                    forventetInntektPerÅr = 0.0,
+                    uføregrunnlag = listOf(
+                        Grunnlag.Uføregrunnlag(
+                            periode = januar,
+                            uføregrad = Uføregrad.parse(100),
+                            forventetInntekt = 0,
+                        ),
+                    ),
                     fradragFraSaksbehandler = emptyList()
                 ),
                 beregningsstrategi = BeregningStrategy.BorAlene,
@@ -71,7 +79,13 @@ internal class RevurdertBeregningTest {
                 ),
                 beregningsgrunnlag = Beregningsgrunnlag.create(
                     beregningsperiode = januar,
-                    forventetInntektPerÅr = 0.0,
+                    uføregrunnlag = listOf(
+                        Grunnlag.Uføregrunnlag(
+                            periode = januar,
+                            uføregrad = Uføregrad.parse(100),
+                            forventetInntekt = 0,
+                        ),
+                    ),
                     fradragFraSaksbehandler = emptyList()
                 ),
                 beregningsstrategi = BeregningStrategy.BorAlene,
@@ -105,7 +119,13 @@ internal class RevurdertBeregningTest {
                 vedtattBeregning = mock { on { getMånedsberegninger() } doReturn månedsberegninger },
                 beregningsgrunnlag = Beregningsgrunnlag.create(
                     beregningsperiode = periode,
-                    forventetInntektPerÅr = 0.0,
+                    uføregrunnlag = listOf(
+                        Grunnlag.Uføregrunnlag(
+                            periode = periode,
+                            uføregrad = Uføregrad.parse(100),
+                            forventetInntekt = 0,
+                        ),
+                    ),
                     fradragFraSaksbehandler = emptyList()
                 ),
                 beregningsstrategi = BeregningStrategy.BorAlene,
@@ -147,7 +167,13 @@ internal class RevurdertBeregningTest {
             ),
             beregningsgrunnlag = Beregningsgrunnlag.create(
                 beregningsperiode = januar,
-                forventetInntektPerÅr = 12.0,
+                uføregrunnlag = listOf(
+                    Grunnlag.Uføregrunnlag(
+                        periode = januar,
+                        uføregrad = Uføregrad.parse(99),
+                        forventetInntekt = 12,
+                    ),
+                ),
                 fradragFraSaksbehandler = emptyList()
             ),
             beregningsstrategi = BeregningStrategy.BorAlene,
@@ -187,7 +213,13 @@ internal class RevurdertBeregningTest {
             ),
             beregningsgrunnlag = Beregningsgrunnlag.create(
                 beregningsperiode = januar,
-                forventetInntektPerÅr = 12.0,
+                uføregrunnlag = listOf(
+                    Grunnlag.Uføregrunnlag(
+                        periode = januar,
+                        uføregrad = Uføregrad.parse(99),
+                        forventetInntekt = 12,
+                    ),
+                ),
                 fradragFraSaksbehandler = emptyList()
             ),
             beregningsstrategi = BeregningStrategy.BorAlene,
@@ -199,18 +231,25 @@ internal class RevurdertBeregningTest {
 
     @Test
     fun `to måneder stønaden blir satt ned hopper over den første måneden`() {
+        val periode = Periode.create(1.januar(2021), 28.februar(2021))
         val actual = RevurdertBeregning.fraSøknadsbehandling(
             vedtattBeregning = BeregningFactory.ny(
-                periode = Periode.create(1.januar(2021), 28.februar(2021)),
+                periode = periode,
                 sats = Sats.HØY,
                 fradrag = listOf(
-                    fradrag(Periode.create(1.januar(2021), 28.februar(2021)), 0.0)
+                    fradrag(periode, 0.0)
                 ),
                 fradragStrategy = FradragStrategy.fromName(FradragStrategyName.Enslig),
             ),
             beregningsgrunnlag = Beregningsgrunnlag.create(
-                beregningsperiode = Periode.create(1.januar(2021), 28.februar(2021)),
-                forventetInntektPerÅr = 12000.0,
+                beregningsperiode = periode,
+                uføregrunnlag = listOf(
+                    Grunnlag.Uføregrunnlag(
+                        periode = periode,
+                        uføregrad = Uføregrad.parse(80),
+                        forventetInntekt = 12000,
+                    ),
+                ),
                 fradragFraSaksbehandler = listOf(
                     fradrag(januar, 10.0, Fradragstype.Arbeidsinntekt),
                     fradrag(februar, 20.0, Fradragstype.Kapitalinntekt)

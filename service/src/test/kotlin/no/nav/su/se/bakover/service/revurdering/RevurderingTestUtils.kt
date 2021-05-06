@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.service.revurdering
 
+import arrow.core.Nel
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
@@ -12,7 +13,6 @@ import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
-import no.nav.su.se.bakover.domain.ValgtStønadsperiode
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -26,6 +26,7 @@ import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
+import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vilkår.Resultat
@@ -36,7 +37,6 @@ import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.fixedTidspunkt
-import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -73,11 +73,15 @@ object RevurderingTestUtils {
             )
         },
     )
-    internal val stønadsperiode = ValgtStønadsperiode(
+    internal val stønadsperiode = Stønadsperiode.create(
         periode = periode,
         begrunnelse = "begrunnelsen for perioden",
     )
-    internal val attesteringUnderkjent = Attestering.Underkjent(NavIdentBruker.Attestant("Attes T. Ant"), Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL, "kommentar")
+    internal val attesteringUnderkjent = Attestering.Underkjent(
+        NavIdentBruker.Attestant("Attes T. Ant"),
+        Attestering.Underkjent.Grunn.BEREGNINGEN_ER_FEIL,
+        "kommentar",
+    )
     internal val saksbehandler = NavIdentBruker.Saksbehandler("Sak S. behandler")
     internal val saksnummer = Saksnummer(nummer = 12345676)
     internal val fnr = FnrGenerator.random()
@@ -159,7 +163,6 @@ object RevurderingTestUtils {
         clock: Clock = fixedClock,
         vedtakRepo: VedtakRepo = mock(),
         ferdigstillVedtakService: FerdigstillVedtakService = mock(),
-        grunnlagService: GrunnlagService = mock(),
         vilkårsvurderingService: VilkårsvurderingService = mock(),
     ) =
         RevurderingServiceImpl(
@@ -173,7 +176,6 @@ object RevurderingTestUtils {
             clock = clock,
             vedtakRepo = vedtakRepo,
             ferdigstillVedtakService = ferdigstillVedtakService,
-            grunnlagService = grunnlagService,
             vilkårsvurderingService = vilkårsvurderingService,
         )
 
@@ -183,7 +185,7 @@ object RevurderingTestUtils {
         forventetInntekt = 10,
     )
 
-    internal val vurderingsperiodeUføre = Vurderingsperiode.Manuell(
+    internal val vurderingsperiodeUføre = Vurderingsperiode.Manuell.create(
         id = UUID.randomUUID(),
         opprettet = fixedTidspunkt,
         resultat = Resultat.Avslag,
@@ -193,8 +195,8 @@ object RevurderingTestUtils {
     )
 
     internal val vilkårsvurderinger = Vilkårsvurderinger(
-        uføre = Vilkår.Vurdert.Uførhet(
-            vurderingsperioder = listOf(
+        uføre = Vilkår.Vurdert.Uførhet.create(
+            vurderingsperioder = Nel.of(
                 vurderingsperiodeUføre,
             ),
         ),

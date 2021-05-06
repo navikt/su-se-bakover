@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.vilkår
 
+import arrow.core.Nel
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
@@ -21,9 +22,9 @@ internal class VilkårsvurderingerTest {
     @Test
     fun `alle vurderingsperioder innvilget gir innvilget vilkår`() {
         Vilkårsvurderinger(
-            uføre = Vilkår.Vurdert.Uførhet(
-                vurderingsperioder = listOf(
-                    Vurderingsperiode.Manuell(
+            uføre = Vilkår.Vurdert.Uførhet.create(
+                vurderingsperioder = Nel.of(
+                    Vurderingsperiode.Manuell.create(
                         resultat = Resultat.Innvilget,
                         grunnlag = uføregrunnlag,
                         periode = Periode.create(1.januar(2021), 31.desember(2021)),
@@ -37,9 +38,9 @@ internal class VilkårsvurderingerTest {
     @Test
     fun `ingen vurderingsperioder innvilget gir avslått vilkår`() {
         Vilkårsvurderinger(
-            uføre = Vilkår.Vurdert.Uførhet(
-                vurderingsperioder = listOf(
-                    Vurderingsperiode.Manuell(
+            uføre = Vilkår.Vurdert.Uførhet.create(
+                vurderingsperioder = Nel.of(
+                    Vurderingsperiode.Manuell.create(
                         resultat = Resultat.Avslag,
                         grunnlag = uføregrunnlag,
                         periode = Periode.create(1.januar(2021), 31.desember(2021)),
@@ -58,19 +59,27 @@ internal class VilkårsvurderingerTest {
     }
 
     @Test
-    fun `kombinasjon av vurderingsperioder med avlsag og innvilgelse gir avslag`() {
+    fun `kombinasjon av vurderingsperioder med avslag og innvilgelse gir avslag`() {
         Vilkårsvurderinger(
-            uføre = Vilkår.Vurdert.Uførhet(
-                vurderingsperioder = listOf(
-                    Vurderingsperiode.Manuell(
+            uføre = Vilkår.Vurdert.Uførhet.create(
+                vurderingsperioder = Nel.of(
+                    Vurderingsperiode.Manuell.create(
                         resultat = Resultat.Innvilget,
-                        grunnlag = uføregrunnlag,
+                        grunnlag = Grunnlag.Uføregrunnlag(
+                            periode = Periode.create(1.januar(2021), 30.april(2021)),
+                            uføregrad = Uføregrad.parse(20),
+                            forventetInntekt = 10_000,
+                        ),
                         periode = Periode.create(1.januar(2021), 30.april(2021)),
                         begrunnelse = "",
                     ),
-                    Vurderingsperiode.Manuell(
+                    Vurderingsperiode.Manuell.create(
                         resultat = Resultat.Avslag,
-                        grunnlag = uføregrunnlag,
+                        grunnlag = Grunnlag.Uføregrunnlag(
+                            periode = Periode.create(1.mai(2021), 31.desember(2021)),
+                            uføregrad = Uføregrad.parse(20),
+                            forventetInntekt = 10_000,
+                        ),
                         periode = Periode.create(1.mai(2021), 31.desember(2021)),
                         begrunnelse = "",
                     ),

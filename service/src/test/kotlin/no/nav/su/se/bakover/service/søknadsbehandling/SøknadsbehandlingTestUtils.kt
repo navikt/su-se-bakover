@@ -3,14 +3,18 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.mock
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
+import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.database.søknad.SøknadRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.fnr
 import no.nav.su.se.bakover.service.beregning.BeregningService
+import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.doNothing
-import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
+import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -20,6 +24,16 @@ import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
 import java.time.Clock
+
+internal val beregning = TestBeregning
+
+internal val simulering = Simulering(
+    gjelderId = fnr,
+    gjelderNavn = "NAVN",
+    datoBeregnet = idag(fixedClock),
+    nettoBeløp = 191500,
+    periodeList = listOf(),
+)
 
 internal fun createSøknadsbehandlingService(
     søknadsbehandlingRepo: SøknadsbehandlingRepo = mock(),
@@ -37,7 +51,6 @@ internal fun createSøknadsbehandlingService(
     clock: Clock = Clock.systemUTC(),
     vedtakRepo: VedtakRepo = mock(),
     ferdigstillVedtakService: FerdigstillVedtakService = mock(),
-    grunnlagService: GrunnlagService = mock(),
     vilkårsvurderingService: VilkårsvurderingService = mock(),
 ) = SøknadsbehandlingServiceImpl(
     søknadService,
@@ -54,6 +67,5 @@ internal fun createSøknadsbehandlingService(
     clock,
     vedtakRepo,
     ferdigstillVedtakService,
-    grunnlagService,
     vilkårsvurderingService,
 ).apply { addObserver(observer) }

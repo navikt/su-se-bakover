@@ -17,13 +17,14 @@ import no.nav.su.se.bakover.service.søknad.lukk.LukketSøknad
 import no.nav.su.se.bakover.web.Resultat
 import org.junit.jupiter.api.Test
 import java.util.UUID
+import kotlin.random.Random
 
 internal class LukkSøknadErrorHandlerTest {
 
     @Test
     fun `mapping av lukket søknad til resultat`() {
         val sakId = UUID.randomUUID()
-        val saksnummer = Math.random().toLong()
+        val saksnummer = Random.nextLong(2021, Long.MAX_VALUE)
         val lukketSøknad: Søknad.Lukket = mock()
         val sak = Sak(
             id = sakId,
