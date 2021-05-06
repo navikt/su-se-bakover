@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory
 import java.util.UUID
 
 internal class SakServiceImpl(
-    private val sakRepo: SakRepo
+    private val sakRepo: SakRepo,
 ) : SakService {
     private val log = LoggerFactory.getLogger(this::class.java)
     val observers: MutableList<EventObserver> = mutableListOf()
@@ -37,7 +37,7 @@ internal class SakServiceImpl(
                 ifLeft = { log.error("Opprettet sak men feilet ved henting av den.") },
                 ifRight = {
                     observers.forEach { observer -> observer.handle(Event.Statistikk.SakOpprettet(it)) }
-                }
+                },
             )
         }
     }

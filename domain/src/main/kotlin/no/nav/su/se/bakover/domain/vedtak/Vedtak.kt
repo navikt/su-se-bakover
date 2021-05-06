@@ -5,6 +5,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.AvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.Behandling
@@ -15,12 +16,18 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.KunneIkkeJournalføreOgDistribuereBrev
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknadsbehandling.ErAvslag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
+import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
+import no.nav.su.se.bakover.domain.vilkår.Vilkår
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.time.Clock
 import java.util.UUID
@@ -49,7 +56,8 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
 
     abstract fun journalfør(journalfør: () -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre, Vedtak>
     abstract fun distribuerBrev(distribuerBrev: (journalpostId: JournalpostId) -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev.FeilVedDistribueringAvBrev, BrevbestillingId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeDistribuereBrev, Vedtak>
-    fun skalSendeBrev() = (this.behandling as? IverksattRevurdering.Innvilget)?.revurderingsårsak?.årsak != Revurderingsårsak.Årsak.REGULER_GRUNNBELØP
+    fun skalSendeBrev() =
+        (this.behandling as? IverksattRevurdering.Innvilget)?.revurderingsårsak?.årsak != Revurderingsårsak.Årsak.REGULER_GRUNNBELØP
 
     companion object {
         fun fromSøknadsbehandling(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget, utbetalingId: UUID30) =
@@ -92,7 +100,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
             attestant = revurdering.attestering.attestant,
             utbetalingId = utbetalingId,
             journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
-            vedtakType = VedtakType.ENDRING
+            vedtakType = VedtakType.ENDRING,
         )
 
         fun from(revurdering: IverksattRevurdering.Opphørt, utbetalingId: UUID30) = EndringIYtelse(
@@ -278,4 +286,74 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
             }
         }
     }
+
+    data class VedtakPåTidslinje(
+        val vedtakId: UUID,
+        override val opprettet: Tidspunkt,
+        override val periode: Periode,
+        val grunnlagsdata: Grunnlagsdata,
+        val vilkårsvurderinger: Vilkårsvurderinger,
+    ) : KanPlasseresPåTidslinje<VedtakPåTidslinje> {
+        override fun copy(args: CopyArgs.Tidslinje): VedtakPåTidslinje =
+            when (args) {
+                CopyArgs.Tidslinje.Full -> copy(
+                    periode = periode,
+                    vedtakId = vedtakId,
+                    grunnlagsdata = Grunnlagsdata(
+                        uføregrunnlag = Tidslinje<Grunnlag.Uføregrunnlag>(
+                            periode = periode,
+                            objekter = grunnlagsdata.uføregrunnlag,
+                        ).tidslinje,
+                    ),
+                    vilkårsvurderinger = Vilkårsvurderinger(
+                        uføre = when (vilkårsvurderinger.uføre) {
+                            Vilkår.IkkeVurdert.Uførhet -> Vilkår.IkkeVurdert.Uførhet
+                            is Vilkår.Vurdert.Uførhet -> vilkårsvurderinger.uføre.copy(
+                                vurderingsperioder = Tidslinje(
+                                    periode = periode,
+                                    objekter = vilkårsvurderinger.uføre.vurderingsperioder,
+                                ).tidslinje,
+                            )
+                        },
+                    ),
+                )
+                is CopyArgs.Tidslinje.NyPeriode -> copy(
+                    periode = args.periode,
+                    vedtakId = vedtakId,
+                    grunnlagsdata = Grunnlagsdata(
+                        uføregrunnlag = Tidslinje<Grunnlag.Uføregrunnlag>(
+                            periode = args.periode,
+                            objekter = grunnlagsdata.uføregrunnlag,
+                        ).tidslinje,
+                    ),
+                    vilkårsvurderinger = Vilkårsvurderinger(
+                        uføre = when (vilkårsvurderinger.uføre) {
+                            Vilkår.IkkeVurdert.Uførhet -> Vilkår.IkkeVurdert.Uførhet
+                            is Vilkår.Vurdert.Uførhet -> vilkårsvurderinger.uføre.copy(
+                                vurderingsperioder = Tidslinje(
+                                    periode = args.periode,
+                                    objekter = vilkårsvurderinger.uføre.vurderingsperioder,
+                                ).tidslinje,
+                            )
+                        },
+                    ),
+                )
+            }
+    }
 }
+
+fun List<Vedtak>.lagTidslinje(periode: Periode): List<Vedtak.VedtakPåTidslinje> =
+    map {
+        Vedtak.VedtakPåTidslinje(
+            vedtakId = it.id,
+            opprettet = it.opprettet,
+            periode = it.periode,
+            grunnlagsdata = it.behandling.grunnlagsdata,
+            vilkårsvurderinger = it.behandling.vilkårsvurderinger,
+        )
+    }.let {
+        Tidslinje(
+            periode = periode,
+            objekter = it,
+        ).tidslinje
+    }
