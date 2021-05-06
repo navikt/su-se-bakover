@@ -22,6 +22,10 @@ class Grunnbeløp private constructor(private val multiplier: Double) {
         .sortedByDescending { it.key }
         .first { dato.isAfter(it.key) || dato.isEqual(it.key) }.value * multiplier
 
+    fun datoForSisteEndringAvGrunnbeløp(forDato: LocalDate): LocalDate = datoToBeløp.entries
+        .sortedByDescending { it.key }
+        .first { forDato.isAfter(it.key) || forDato.isEqual(it.key) }.key
+
     companion object {
         val `2,28G` = Grunnbeløp(2.28)
         val `2,48G` = Grunnbeløp(2.48)

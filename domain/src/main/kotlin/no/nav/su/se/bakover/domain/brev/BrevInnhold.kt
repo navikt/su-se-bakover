@@ -14,6 +14,7 @@ abstract class BrevInnhold {
 
     @get:JsonIgnore
     abstract val brevTemplate: BrevTemplate
+    // TODO CHM 05.05.2021: Se på å samle mer av det som er felles for brevinnholdene, f.eks. personalia
 
     data class AvslagsBrevInnhold(
         val personalia: Personalia,
@@ -24,6 +25,7 @@ abstract class BrevInnhold {
         val saksbehandlerNavn: String,
         val attestantNavn: String,
         val sats: String?,
+        val satsGjeldendeFraDato: String?,
         val fritekst: String,
     ) : BrevInnhold() {
         @Suppress("unused")
@@ -47,6 +49,7 @@ abstract class BrevInnhold {
         val sats: String,
         val satsGrunn: Satsgrunn,
         val satsBeløp: Int,
+        val satsGjeldendeFraDato: String,
         val harEktefelle: Boolean,
         val beregningsperioder: List<Beregningsperiode>,
         val saksbehandlerNavn: String,
@@ -66,6 +69,7 @@ abstract class BrevInnhold {
         val avslagsparagrafer: List<Int>,
         val sats: String,
         val satsBeløp: Int,
+        val satsGjeldendeFraDato: String,
         val harEktefelle: Boolean,
         val beregningsperioder: List<Beregningsperiode>,
         val saksbehandlerNavn: String,
@@ -93,6 +97,7 @@ abstract class BrevInnhold {
         val beregningsperioder: List<Beregningsperiode>,
         val fritekst: String,
         val sats: Sats,
+        val satsGjeldendeFraDato: String,
         val harEktefelle: Boolean,
     ) : BrevInnhold() {
         override val brevTemplate = BrevTemplate.Revurdering.Inntekt
@@ -113,6 +118,7 @@ abstract class BrevInnhold {
         val beregningsperioder: List<Beregningsperiode>,
         val fritekst: String,
         val sats: Sats,
+        val satsGjeldendeFraDato: String,
         val harEktefelle: Boolean,
     ) : BrevInnhold() {
         override val brevTemplate = BrevTemplate.VedtakIngenEndring

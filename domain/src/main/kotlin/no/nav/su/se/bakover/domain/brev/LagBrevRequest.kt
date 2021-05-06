@@ -1,9 +1,11 @@
 package no.nav.su.se.bakover.domain.brev
 
+import no.nav.su.se.bakover.common.ddMMyyyy
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.behandling.AvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
+import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.beregning.LagBrevinnholdForBeregning
 import java.time.LocalDate
@@ -28,15 +30,40 @@ interface LagBrevRequest {
                 personalia = personalia,
                 fradato = beregning.periode.fraOgMed.formatMonthYear(),
                 tildato = beregning.periode.tilOgMed.formatMonthYear(),
+                // TODO CHM 05.05.2021: Wrap sats-tingene i et eget objekt, hent fra beregning?
                 sats = beregning.getSats().toString().toLowerCase(),
-                // TODO jah: Vi burde sannsynligvis ikke ta inn BehandlingsInformasjon direkte her. Da kan vi heller validere ting lenger ut.
                 satsGrunn = behandlingsinformasjon.getSatsgrunn().orNull()!!,
                 satsBeløp = beregning.getSats().månedsbeløpSomHeltall(beregning.periode.tilOgMed),
+                satsGjeldendeFraDato = beregning.getSats().datoForSisteEndringAvSats(beregning.periode.tilOgMed).ddMMyyyy(),
                 harEktefelle = behandlingsinformasjon.harEktefelle(),
                 beregningsperioder = LagBrevinnholdForBeregning(beregning).brevInnhold,
                 saksbehandlerNavn = saksbehandlerNavn,
                 attestantNavn = attestantNavn,
                 fritekst = fritekst,
+            )
+        }
+    }
+
+    data class AvslagBrevRequest(
+        private val person: Person,
+        private val avslag: Avslag,
+        private val saksbehandlerNavn: String,
+        private val attestantNavn: String,
+        private val fritekst: String
+    ) : LagBrevRequest {
+        override fun getPerson(): Person = person
+        override fun lagBrevInnhold(personalia: BrevInnhold.Personalia): BrevInnhold.AvslagsBrevInnhold {
+            return BrevInnhold.AvslagsBrevInnhold(
+                personalia = personalia,
+                avslagsgrunner = avslag.avslagsgrunner,
+                harEktefelle = avslag.harEktefelle,
+                halvGrunnbeløp = avslag.halvGrunnbeløp.toInt(),
+                beregningsperioder = avslag.beregning?.let { LagBrevinnholdForBeregning(it).brevInnhold } ?: emptyList(),
+                saksbehandlerNavn = saksbehandlerNavn,
+                attestantNavn = attestantNavn,
+                sats = avslag.beregning?.getSats()?.name?.toLowerCase(),
+                satsGjeldendeFraDato = avslag.beregning?.getSats()?.datoForSisteEndringAvSats(avslag.beregning.periode.tilOgMed)?.ddMMyyyy(),
+                fritekst = fritekst
             )
         }
     }
@@ -62,6 +89,7 @@ interface LagBrevRequest {
                 personalia = personalia,
                 sats = beregning.getSats().toString().toLowerCase(),
                 satsBeløp = beregning.getSats().månedsbeløpSomHeltall(beregning.periode.tilOgMed),
+                satsGjeldendeFraDato = beregning.getSats().datoForSisteEndringAvSats(beregning.periode.tilOgMed).ddMMyyyy(),
                 harEktefelle = behandlingsinformasjon.harEktefelle(),
                 beregningsperioder = LagBrevinnholdForBeregning(beregning).brevInnhold,
                 saksbehandlerNavn = saksbehandlerNavn,
@@ -91,6 +119,7 @@ interface LagBrevRequest {
                 beregningsperioder = LagBrevinnholdForBeregning(beregning).brevInnhold,
                 fritekst = fritekst,
                 sats = beregning.getSats(),
+                satsGjeldendeFraDato = beregning.getSats().datoForSisteEndringAvSats(beregning.periode.tilOgMed).ddMMyyyy(),
                 harEktefelle = harEktefelle,
             )
         }
@@ -129,6 +158,7 @@ interface LagBrevRequest {
                     beregningsperioder = LagBrevinnholdForBeregning(revurdertBeregning).brevInnhold,
                     fritekst = fritekst,
                     sats = revurdertBeregning.getSats(),
+                    satsGjeldendeFraDato = revurdertBeregning.getSats().datoForSisteEndringAvSats(revurdertBeregning.periode.tilOgMed).ddMMyyyy(),
                     harEktefelle = harEktefelle,
                 )
             }
