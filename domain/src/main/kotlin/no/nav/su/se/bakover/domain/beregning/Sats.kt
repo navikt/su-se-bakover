@@ -15,6 +15,8 @@ enum class Sats(val grunnbeløp: Grunnbeløp) {
 
     fun månedsbeløpSomHeltall(dato: LocalDate): Int = satsSomMånedsbeløp(dato).roundToInt()
 
+    fun datoForSisteEndringAvSats(dato: LocalDate): LocalDate = grunnbeløp.datoForSisteEndringAvGrunnbeløp(dato)
+
     fun periodiser(periode: Periode): Map<Periode, Double> {
         return periode.tilMånedsperioder().associateWith { satsSomMånedsbeløp(it.fraOgMed) }
     }

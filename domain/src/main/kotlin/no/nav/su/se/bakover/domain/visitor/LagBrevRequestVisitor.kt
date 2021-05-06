@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
-import no.nav.su.se.bakover.domain.behandling.avslag.AvslagBrevRequest
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
@@ -376,7 +375,7 @@ class LagBrevRequestVisitor(
         behandlingsinformasjon: Behandlingsinformasjon,
         beregning: Beregning?,
         fritekst: String,
-    ): AvslagBrevRequest = AvslagBrevRequest(
+    ) = LagBrevRequest.AvslagBrevRequest(
         person = personOgNavn.person,
         avslag = Avslag(
             opprettet = Tidspunkt.now(clock),

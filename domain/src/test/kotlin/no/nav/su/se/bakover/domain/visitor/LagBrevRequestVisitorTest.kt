@@ -24,7 +24,6 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
-import no.nav.su.se.bakover.domain.behandling.avslag.AvslagBrevRequest
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
@@ -36,6 +35,8 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.brev.LagBrevRequest.AvslagBrevRequest
+import no.nav.su.se.bakover.domain.brev.LagBrevRequest.InnvilgetVedtak
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -144,7 +145,7 @@ internal class LagBrevRequestVisitorTest {
                     hentNavn = { hentNavn(it) },
                     clock = clock,
                 ).apply { søknadsbehandling.accept(this) }.let {
-                    it.brevRequest shouldBe LagBrevRequest.InnvilgetVedtak(
+                    it.brevRequest shouldBe InnvilgetVedtak(
                         person = person,
                         beregning = innvilgetBeregning,
                         behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
@@ -193,7 +194,7 @@ internal class LagBrevRequestVisitorTest {
                     hentNavn = { hentNavn(it) },
                     clock = clock,
                 ).apply { søknadsbehandling.accept(this) }.let {
-                    it.brevRequest shouldBe LagBrevRequest.InnvilgetVedtak(
+                    it.brevRequest shouldBe InnvilgetVedtak(
                         person = person,
                         beregning = innvilgetBeregning,
                         behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
@@ -276,7 +277,7 @@ internal class LagBrevRequestVisitorTest {
                     hentNavn = { hentNavn(it) },
                     clock = clock,
                 ).apply { søknadsbehandling.accept(this) }.let {
-                    it.brevRequest shouldBe LagBrevRequest.InnvilgetVedtak(
+                    it.brevRequest shouldBe InnvilgetVedtak(
                         person = person,
                         beregning = innvilgetBeregning,
                         behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
@@ -380,7 +381,7 @@ internal class LagBrevRequestVisitorTest {
                     hentNavn = { hentNavn(it) },
                     clock = clock,
                 ).apply { søknadsbehandling.accept(this) }.let {
-                    it.brevRequest shouldBe LagBrevRequest.InnvilgetVedtak(
+                    it.brevRequest shouldBe InnvilgetVedtak(
                         person = person,
                         beregning = innvilgetBeregning,
                         behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
@@ -470,7 +471,7 @@ internal class LagBrevRequestVisitorTest {
                     hentNavn = { hentNavn(it) },
                     clock = clock,
                 ).apply { søknadsbehandling.accept(this) }.let {
-                    it.brevRequest shouldBe LagBrevRequest.InnvilgetVedtak(
+                    it.brevRequest shouldBe InnvilgetVedtak(
                         person = person,
                         beregning = innvilgetBeregning,
                         behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
@@ -507,7 +508,7 @@ internal class LagBrevRequestVisitorTest {
         ).apply { innvilgetVedtak.accept(this) }
 
         brevSøknadsbehandling.brevRequest shouldBe brevVedtak.brevRequest
-        brevSøknadsbehandling.brevRequest shouldBe LagBrevRequest.InnvilgetVedtak(
+        brevSøknadsbehandling.brevRequest shouldBe InnvilgetVedtak(
             person = person,
             beregning = innvilgetBeregning,
             behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,

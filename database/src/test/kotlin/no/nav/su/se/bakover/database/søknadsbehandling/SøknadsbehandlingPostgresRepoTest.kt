@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.TestDataHelper
+import no.nav.su.se.bakover.database.antall
 import no.nav.su.se.bakover.database.avslåttBeregning
 import no.nav.su.se.bakover.database.behandlingsinformasjonMedAlleVilkårOppfylt
 import no.nav.su.se.bakover.database.beregning
@@ -29,6 +30,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
@@ -78,6 +80,21 @@ internal class SøknadsbehandlingPostgresRepoTest {
             repo.hent(vilkårsvurdert.id).also {
                 it shouldBe vilkårsvurdert
                 it.shouldBeTypeOf<Søknadsbehandling.Vilkårsvurdert.Uavklart>()
+            }
+        }
+    }
+
+    @Test
+    fun `lagring av vilkårsvurdert behandling påvirker ikke andre behandlinger`() {
+        withMigratedDb {
+            testDataHelper.nyIverksattAvslagMedBeregning()
+            testDataHelper.nyInnvilgetVilkårsvurdering()
+
+            dataSource.withSession { session ->
+                "select count(1) from behandling where status = :status ".let {
+                    it.antall(mapOf("status" to BehandlingsStatus.VILKÅRSVURDERT_INNVILGET.toString()), session) shouldBe 1
+                    it.antall(mapOf("status" to BehandlingsStatus.IVERKSATT_AVSLAG.toString()), session) shouldBe 1
+                }
             }
         }
     }
