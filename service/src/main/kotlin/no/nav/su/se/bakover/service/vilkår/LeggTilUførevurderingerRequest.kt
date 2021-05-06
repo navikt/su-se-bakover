@@ -18,11 +18,12 @@ data class LeggTilUførevurderingerRequest(
         object PeriodeForGrunnlagOgVurderingErForskjellig : UgyldigUførevurdering()
         object OverlappendeVurderingsperioder : UgyldigUførevurdering()
         object VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden : UgyldigUførevurdering()
+        object AlleVurderingeneMåHaSammeResultat : UgyldigUførevurdering()
     }
 
     fun toVilkår(behandlingsperiode: Periode): Either<UgyldigUførevurdering, Vilkår.Vurdert.Uførhet> {
-        return vurderinger.map { request ->
-            request.toVurderingsperiode(behandlingsperiode).getOrHandle {
+        return vurderinger.map { vurdering ->
+            vurdering.toVurderingsperiode(behandlingsperiode).getOrHandle {
                 return when (it) {
                     LeggTilUførevurderingRequest.UgyldigUførevurdering.UføregradOgForventetInntektMangler -> UgyldigUførevurdering.UføregradOgForventetInntektMangler.left()
                     LeggTilUførevurderingRequest.UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig -> UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig.left()
@@ -37,6 +38,10 @@ data class LeggTilUførevurderingerRequest(
                         Vilkår.Vurdert.Uførhet.UgyldigUførevilkår.OverlappendeVurderingsperioder -> UgyldigUførevurdering.OverlappendeVurderingsperioder
                     }
                 }
+        }.also {
+            if (vurderinger.any { it.oppfylt != vurderinger.first().oppfylt }) {
+                return UgyldigUførevurdering.AlleVurderingeneMåHaSammeResultat.left()
+            }
         }
     }
 }

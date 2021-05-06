@@ -28,4 +28,8 @@ internal object Feilresponser {
         "Vurderingsperioden(e) kan ikke være utenfor behandlingsperioden",
         "vurderingsperiode_utenfor_behandlingsperiode",
     )
+    val alleVurderingeneMåHaSammeResultat = HttpStatusCode.BadRequest.errorJson(
+        "Alle vurderingsperiodene må ha samme vurdering (ja/nei)",
+        "vurderingene_må_ha_samme_resultat",
+    )
 }

@@ -106,6 +106,7 @@ internal fun Route.leggTilGrunnlagRevurderingRoutes(
                                             KunneIkkeLeggeTilGrunnlag.PeriodeForGrunnlagOgVurderingErForskjellig -> Feilresponser.periodeForGrunnlagOgVurderingErForskjellig
                                             KunneIkkeLeggeTilGrunnlag.OverlappendeVurderingsperioder -> Feilresponser.overlappendeVurderingsperioder
                                             KunneIkkeLeggeTilGrunnlag.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden -> Feilresponser.utenforBehandlingsperioden
+                                            KunneIkkeLeggeTilGrunnlag.AlleVurderingeneMåHaSammeResultat -> Feilresponser.alleVurderingeneMåHaSammeResultat
                                         }
                                     }.map {
                                         Resultat.json(HttpStatusCode.Created, serialize(it.toJson()))
