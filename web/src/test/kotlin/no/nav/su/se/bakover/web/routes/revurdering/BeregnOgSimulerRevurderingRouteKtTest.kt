@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
+import arrow.core.Nel
 import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -31,7 +32,10 @@ import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
+import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.argThat
@@ -107,6 +111,11 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
             on { periode } doReturn TestBeregning.periode
         }
 
+        val uføregrunnlag = Grunnlag.Uføregrunnlag(
+            periode = TestBeregning.periode,
+            uføregrad = Uføregrad.parse(20),
+            forventetInntekt = 12000,
+        )
         val beregnetRevurdering = OpprettetRevurdering(
             id = UUID.randomUUID(),
             periode = TestBeregning.periode,
@@ -122,15 +131,21 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
             forhåndsvarsel = null,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata(
-                uføregrunnlag = listOf(
-                    Grunnlag.Uføregrunnlag(
-                        periode = TestBeregning.periode,
-                        uføregrad = Uføregrad.parse(20),
-                        forventetInntekt = 12000,
-                    ),
-                ),
+                uføregrunnlag = listOf(uføregrunnlag),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger(
+                uføre = Vilkår.Vurdert.Uførhet.create(
+                    vurderingsperioder = Nel.of(
+                        Vurderingsperiode.Manuell.create(
+                            resultat = Resultat.Innvilget,
+                            grunnlag = uføregrunnlag,
+                            periode = TestBeregning.periode,
+                            begrunnelse = null,
+
+                        )
+                    )
+                )
+            ),
         ).beregn(
             listOf(
                 FradragFactory.ny(
