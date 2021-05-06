@@ -386,6 +386,7 @@ internal class VedtakssnapshotJsonTest {
                         sumFradrag = 1.2,
                         benyttetGrunnbeløp = 66,
                         satsbeløp = 4.1,
+                        fribeløpForEps = 0.0,
                     ),
                 ),
                 fradrag = fradrag,
