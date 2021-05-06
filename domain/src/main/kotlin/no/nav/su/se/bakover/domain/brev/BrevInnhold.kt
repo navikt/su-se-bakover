@@ -134,6 +134,7 @@ abstract class BrevInnhold {
 
     data class Forhåndsvarsel(
         val personalia: Personalia,
+        val saksbehandlerNavn: String,
         val fritekst: String,
     ) : BrevInnhold() {
         override val brevTemplate = BrevTemplate.Forhåndsvarsel

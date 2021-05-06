@@ -1268,11 +1268,16 @@ internal class RevurderingServiceImplTest {
             on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
         }
 
+        val microsoftGraphApiClientMock = mock<MicrosoftGraphApiClient> {
+            on { hentNavnForNavIdent(any()) } doReturn saksbehandler.navIdent.right()
+        }
+
         val revurdering = createRevurderingService(
             revurderingRepo = revurderingRepoMock,
             personService = personServiceMock,
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
+            microsoftGraphApiClient = microsoftGraphApiClientMock,
         ).forhåndsvarsleEllerSendTilAttestering(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
@@ -1290,6 +1295,7 @@ internal class RevurderingServiceImplTest {
                 argThat {
                     it shouldBe LagBrevRequest.Forhåndsvarsel(
                         person = person,
+                        saksbehandlerNavn = "Sak S. behandler",
                         fritekst = "",
                     )
                 },
@@ -1460,10 +1466,15 @@ internal class RevurderingServiceImplTest {
             on { journalførBrev(any(), any()) } doReturn KunneIkkeJournalføreBrev.KunneIkkeOppretteJournalpost.left()
         }
 
+        val microsoftGraphApiClientMock = mock<MicrosoftGraphApiClient> {
+            on { hentNavnForNavIdent(any()) } doReturn saksbehandler.navIdent.right()
+        }
+
         createRevurderingService(
             revurderingRepo = revurderingRepoMock,
             personService = personServiceMock,
             brevService = brevServiceMock,
+            microsoftGraphApiClient = microsoftGraphApiClientMock,
         ).forhåndsvarsleEllerSendTilAttestering(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
@@ -1492,10 +1503,15 @@ internal class RevurderingServiceImplTest {
             on { distribuerBrev(any()) } doReturn KunneIkkeDistribuereBrev.left()
         }
 
+        val microsoftGraphApiClientMock = mock<MicrosoftGraphApiClient> {
+            on { hentNavnForNavIdent(any()) } doReturn saksbehandler.navIdent.right()
+        }
+
         createRevurderingService(
             revurderingRepo = revurderingRepoMock,
             personService = personServiceMock,
             brevService = brevServiceMock,
+            microsoftGraphApiClient = microsoftGraphApiClientMock,
         ).forhåndsvarsleEllerSendTilAttestering(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
@@ -1527,11 +1543,16 @@ internal class RevurderingServiceImplTest {
             on { opprettOppgave(any()) } doReturn KunneIkkeOppretteOppgave.left()
         }
 
+        val microsoftGraphApiClientMock = mock<MicrosoftGraphApiClient> {
+            on { hentNavnForNavIdent(any()) } doReturn saksbehandler.navIdent.right()
+        }
+
         createRevurderingService(
             revurderingRepo = revurderingRepoMock,
             personService = personServiceMock,
             brevService = brevServiceMock,
             oppgaveService = oppgaveServiceMock,
+            microsoftGraphApiClient = microsoftGraphApiClientMock,
         ).forhåndsvarsleEllerSendTilAttestering(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
@@ -1750,10 +1771,15 @@ internal class RevurderingServiceImplTest {
             on { lagBrev(any()) } doReturn KunneIkkeLageBrev.KunneIkkeGenererePDF.left()
         }
 
+        val microsoftGraphApiClientMock = mock<MicrosoftGraphApiClient> {
+            on { hentNavnForNavIdent(any()) } doReturn saksbehandler.navIdent.right()
+        }
+
         createRevurderingService(
             revurderingRepo = revurderingRepoMock,
             personService = personServiceMock,
             brevService = brevServiceMock,
+            microsoftGraphApiClient = microsoftGraphApiClientMock,
         ).lagBrevutkastForForhåndsvarsling(
             UUID.randomUUID(),
             "fritekst til forhåndsvarsling",

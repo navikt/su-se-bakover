@@ -153,8 +153,7 @@ internal class LukkSøknadServiceImpl(
     }
 
     private fun hentNavnForNavIdent(navIdent: NavIdentBruker): Either<MicrosoftGraphApiOppslagFeil, String> {
-        return microsoftGraphApiClient.hentBrukerinformasjonForNavIdent(navIdent)
-            .map { it.displayName }
+        return microsoftGraphApiClient.hentNavnForNavIdent(navIdent)
     }
 
     private fun hentSøknad(søknadId: UUID): Either<KunneIkkeLukkeSøknad.FantIkkeSøknad, Søknad> {
