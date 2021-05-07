@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.util.UUID
@@ -109,8 +110,6 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
             vedtattBeregning = tilRevurdering.beregning,
         ).getOrHandle { return it.left() }
 
-        val erAvslagGrunnetBeregning = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(revurdertBeregning)
-
         fun opphør(revurdertBeregning: Beregning): BeregnetRevurdering.Opphørt = BeregnetRevurdering.Opphørt(
             tilRevurdering = tilRevurdering,
             id = id,
@@ -160,48 +159,57 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
                 vilkårsvurderinger = vilkårsvurderinger,
             )
 
-        return when (this.revurderingsårsak.årsak) {
-            Revurderingsårsak.Årsak.MIGRERT,
-            Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
-            Revurderingsårsak.Årsak.INFORMASJON_FRA_KONTROLLSAMTALE,
-            Revurderingsårsak.Årsak.DØDSFALL,
-            Revurderingsårsak.Årsak.ANDRE_KILDER,
-            -> {
-                when (endringerAvUtbetalingerErStørreEllerLik10Prosent(tilRevurdering.beregning, revurdertBeregning)) {
-                    true -> {
+        return when (this.vilkårsvurderinger.resultat) {
+            Resultat.Avslag -> {
+                opphør(revurdertBeregning).right()
+            }
+            Resultat.Innvilget -> {
+                val erAvslagGrunnetBeregning = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(revurdertBeregning)
+                when (this.revurderingsårsak.årsak) {
+                    Revurderingsårsak.Årsak.MIGRERT,
+                    Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
+                    Revurderingsårsak.Årsak.INFORMASJON_FRA_KONTROLLSAMTALE,
+                    Revurderingsårsak.Årsak.DØDSFALL,
+                    Revurderingsårsak.Årsak.ANDRE_KILDER,
+                    -> {
+                        when (endringerAvUtbetalingerErStørreEllerLik10Prosent(tilRevurdering.beregning, revurdertBeregning)) {
+                            true -> {
+                                when (erAvslagGrunnetBeregning) {
+                                    is AvslagGrunnetBeregning.Ja -> {
+                                        opphør(revurdertBeregning)
+                                    }
+                                    AvslagGrunnetBeregning.Nei -> {
+                                        innvilget(revurdertBeregning)
+                                    }
+                                }
+                            }
+                            false -> {
+                                ingenEndring(revurdertBeregning)
+                            }
+                        }.right()
+                    }
+                    Revurderingsårsak.Årsak.REGULER_GRUNNBELØP -> {
                         when (erAvslagGrunnetBeregning) {
                             is AvslagGrunnetBeregning.Ja -> {
                                 opphør(revurdertBeregning)
                             }
                             AvslagGrunnetBeregning.Nei -> {
-                                innvilget(revurdertBeregning)
-                            }
-                        }
-                    }
-                    false -> {
-                        ingenEndring(revurdertBeregning)
-                    }
-                }.right()
-            }
-            Revurderingsårsak.Årsak.REGULER_GRUNNBELØP -> {
-                when (erAvslagGrunnetBeregning) {
-                    is AvslagGrunnetBeregning.Ja -> {
-                        opphør(revurdertBeregning)
-                    }
-                    AvslagGrunnetBeregning.Nei -> {
-                        val harEndringerIYtelse = VurderOmBeregningHarEndringerIYtelse(
-                            tilRevurdering.beregning,
-                            revurdertBeregning,
-                        ).resultat
+                                val harEndringerIYtelse = VurderOmBeregningHarEndringerIYtelse(
+                                    tilRevurdering.beregning,
+                                    revurdertBeregning,
+                                ).resultat
 
-                        if (!harEndringerIYtelse) {
-                            ingenEndring(revurdertBeregning)
-                        } else {
-                            innvilget(revurdertBeregning)
-                        }
+                                if (!harEndringerIYtelse) {
+                                    ingenEndring(revurdertBeregning)
+                                } else {
+                                    innvilget(revurdertBeregning)
+                                }
+                            }
+                        }.right()
                     }
-                }.right()
+                }
             }
+            Resultat.Uavklart -> KunneIkkeBeregneRevurdering.UfullstendigVilkårsvurdering.left()
         }
     }
 
@@ -241,8 +249,10 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
         ) : KunneIkkeBeregneRevurdering()
 
         data class UgyldigBeregningsgrunnlag(
-            val reason: no.nav.su.se.bakover.domain.beregning.UgyldigBeregningsgrunnlag
+            val reason: no.nav.su.se.bakover.domain.beregning.UgyldigBeregningsgrunnlag,
         ) : KunneIkkeBeregneRevurdering()
+
+        object UfullstendigVilkårsvurdering : KunneIkkeBeregneRevurdering()
     }
 }
 

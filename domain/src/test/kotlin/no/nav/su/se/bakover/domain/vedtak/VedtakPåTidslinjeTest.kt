@@ -37,7 +37,7 @@ internal class VedtakPåTidslinjeTest {
             forventetInntekt = 100,
         )
 
-        val vurderingsperiode = Vurderingsperiode.Manuell.create(
+        val vurderingsperiode = Vurderingsperiode.Uføre.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             resultat = Resultat.Innvilget,
@@ -97,7 +97,7 @@ internal class VedtakPåTidslinjeTest {
             forventetInntekt = 100,
         )
 
-        val vurderingsperiode = Vurderingsperiode.Manuell.create(
+        val vurderingsperiode = Vurderingsperiode.Uføre.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             resultat = Resultat.Innvilget,

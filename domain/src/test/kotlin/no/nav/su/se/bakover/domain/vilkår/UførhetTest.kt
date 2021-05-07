@@ -12,13 +12,13 @@ internal class UførhetTest {
     fun `validerer at vurderingsperioder ikke overlapper`() {
         Vilkår.Vurdert.Uførhet.tryCreate(
             vurderingsperioder = Nel.of(
-                Vurderingsperiode.Manuell.create(
+                Vurderingsperiode.Uføre.create(
                     resultat = Resultat.Innvilget,
                     grunnlag = null,
                     periode = Periode.create(1.januar(2021), 31.desember(2021)),
                     begrunnelse = "",
                 ),
-                Vurderingsperiode.Manuell.create(
+                Vurderingsperiode.Uføre.create(
                     resultat = Resultat.Avslag,
                     grunnlag = null,
                     periode = Periode.create(1.januar(2021), 31.desember(2021)),

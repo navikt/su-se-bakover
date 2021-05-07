@@ -76,7 +76,7 @@ private data class Body(val vurderinger: List<Vurdering>) {
                 periode = periode,
                 uføregrad = validUføregrad,
                 forventetInntekt = forventetInntekt,
-                oppfylt = Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
+                oppfylt = resultat,
                 begrunnelse = begrunnelse,
             ).right()
         }
