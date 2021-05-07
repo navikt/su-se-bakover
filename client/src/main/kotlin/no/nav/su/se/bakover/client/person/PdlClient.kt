@@ -104,7 +104,7 @@ internal class PdlClient(
         ).right()
     }
 
-    private fun folkeregisteretAsMaster(metadata: Metadata) = metadata.master.toLowerCase() == "freg"
+    private fun folkeregisteretAsMaster(metadata: Metadata) = metadata.master.lowercase() == "freg"
 
     fun aktørId(fnr: Fnr): Either<KunneIkkeHentePerson, AktørId> {
         return when (brukKunOnBehalfOfToken()) {
@@ -223,7 +223,7 @@ data class PdlResponse<T>(
         }
     }
 
-    private fun resolveError(code: String) = when (code.toLowerCase()) {
+    private fun resolveError(code: String) = when (code.lowercase()) {
         "not_found" -> FantIkkePerson
         "unauthorized" -> IkkeTilgangTilPerson
         else -> Ukjent

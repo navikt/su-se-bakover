@@ -27,6 +27,6 @@ enum class Sats(val grunnbeløp: Grunnbeløp) {
 
     companion object {
         fun toProsentAvHøy(periode: Periode): Double = periode.tilMånedsperioder()
-            .sumByDouble { HØY.månedsbeløp(it.fraOgMed) * 0.02 }
+            .sumOf { HØY.månedsbeløp(it.fraOgMed) * 0.02 }
     }
 }

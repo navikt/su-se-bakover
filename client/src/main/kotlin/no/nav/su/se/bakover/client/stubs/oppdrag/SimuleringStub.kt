@@ -62,11 +62,11 @@ object SimuleringStub : SimuleringClient {
     }
 
     private fun List<SimulertPeriode>.calculateNetto() =
-        this.sumBy { it.bruttoYtelse() } + this.sumBy { simulertPeriode ->
+        this.sumOf { it.bruttoYtelse() } + this.sumOf { simulertPeriode ->
             simulertPeriode.utbetaling
                 .flatMap { it.detaljer }
                 .filter { !it.isYtelse() }
-                .sumBy { it.belop }
+                .sumOf { it.belop }
         }
 
     private fun simulerIngenUtbetaling(utbetaling: Utbetaling): Simulering {

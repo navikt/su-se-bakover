@@ -5,7 +5,7 @@ buildscript {
 }
 
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "1.4.32"
+    kotlin("jvm") version "1.5.0"
     // Støtter unicode filer (i motsetning til https://github.com/JLLeitschuh/ktlint-gradle 10.0.0) og har nyere dependencies som gradle. Virker som den oppdateres hyppigere.
     id("org.jmailen.kotlinter") version "3.4.4"
     id("com.github.ben-manes.versions") version "0.36.0" // Finds latest versions
@@ -29,11 +29,15 @@ allprojects {
     val kotestVersion = "4.4.1"
     val jacksonVersion = "2.12.1"
     val bouncycastleVersion = "1.68"
+    val kotlinVersion = "1.5.0"
     dependencies {
         api(kotlin("stdlib-jdk8"))
 
-        implementation("org.jetbrains.kotlin:kotlin-reflect:1.4.32")
-        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.3")
+        implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
+        implementation("org.jetbrains.kotlin:kotlin-script-runtime:$kotlinVersion")
+        implementation("org.jetbrains.kotlin:kotlin-compiler-embeddable:$kotlinVersion")
+        // TODO jah: (sic) Jetbrains recommends the RC version https://kotlinlang.org/docs/releases.html#release-details
+        implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinVersion-RC")
         implementation("io.arrow-kt:arrow-core:$arrowVersion")
         implementation("io.arrow-kt:arrow-syntax:$arrowVersion")
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")

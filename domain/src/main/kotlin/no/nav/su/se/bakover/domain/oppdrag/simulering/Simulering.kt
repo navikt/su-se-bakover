@@ -13,7 +13,7 @@ data class Simulering(
     val periodeList: List<SimulertPeriode>,
 ) {
     fun bruttoYtelse() = periodeList
-        .sumBy { it.bruttoYtelse() }
+        .sumOf { it.bruttoYtelse() }
 
     override fun equals(other: Any?) = other is Simulering &&
         other.gjelderId == this.gjelderId &&
@@ -32,7 +32,7 @@ data class SimulertPeriode(
 ) {
 
     fun bruttoYtelse() = utbetaling
-        .sumBy { it.bruttoYtelse() }
+        .sumOf { it.bruttoYtelse() }
 }
 
 data class SimulertUtbetaling(
@@ -45,7 +45,7 @@ data class SimulertUtbetaling(
 ) {
     fun bruttoYtelse() = detaljer
         .filter { it.isYtelse() }
-        .sumBy { it.belop }
+        .sumOf { it.belop }
 
     override fun equals(other: Any?) = other is SimulertUtbetaling &&
         other.fagSystemId == this.fagSystemId &&

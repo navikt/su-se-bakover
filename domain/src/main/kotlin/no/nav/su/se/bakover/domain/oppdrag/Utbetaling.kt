@@ -25,7 +25,7 @@ sealed class Utbetaling {
 
     fun tidligsteDato() = utbetalingslinjer.minByOrNull { it.fraOgMed }!!.fraOgMed
     fun senesteDato() = utbetalingslinjer.maxByOrNull { it.tilOgMed }!!.tilOgMed
-    fun bruttoBeløp() = utbetalingslinjer.sumBy { it.beløp }
+    fun bruttoBeløp() = utbetalingslinjer.sumOf { it.beløp }
 
     data class UtbetalingForSimulering(
         override val id: UUID30 = UUID30.randomUUID(),
