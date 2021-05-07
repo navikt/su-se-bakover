@@ -11,7 +11,7 @@ internal data class UtenlandskInntektJson(
     val valuta: String,
     val kurs: Double
 ) {
-    fun toUtlandskInntekt(): Either<Resultat, UtenlandskInntekt> {
+    fun toUtenlandskInntekt(): Either<Resultat, UtenlandskInntekt> {
         return UtenlandskInntekt.tryCreate(
             beløpIUtenlandskValuta = beløpIUtenlandskValuta,
             valuta = valuta,

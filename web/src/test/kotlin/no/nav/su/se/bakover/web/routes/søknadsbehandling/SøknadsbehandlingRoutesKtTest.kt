@@ -6,6 +6,7 @@ import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.nhaarman.mockitokotlin2.mock
 import io.kotest.assertions.assertSoftly
+import io.kotest.matchers.collections.shouldContainAll
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
@@ -55,6 +56,8 @@ import no.nav.su.se.bakover.web.jwtStub
 import no.nav.su.se.bakover.web.requestSomAttestant
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.stønadsperiode
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson
 import no.nav.su.se.bakover.web.stubs.asBearerToken
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Nested
@@ -280,6 +283,78 @@ internal class SøknadsbehandlingRoutesKtTest {
                 listOf(Brukerrolle.Saksbehandler),
             ).apply {
                 response.status() shouldBe HttpStatusCode.OK
+            }
+        }
+    }
+
+    @Test
+    fun `beregn skal returnere både brukers og EPSs fradrag`() {
+        withTestApplication(
+            {
+                testSusebakover(services = services)
+            },
+        ) {
+            val objects = setup()
+            services.søknadsbehandling.vilkårsvurder(
+                VilkårsvurderRequest(
+                    objects.søknadsbehandling.id,
+                    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
+                ),
+            )
+            services.søknadsbehandling.beregn(
+                BeregnRequest(
+                    behandlingId = objects.søknadsbehandling.id,
+                    fradrag = emptyList(),
+                    begrunnelse = null,
+                ),
+            )
+            defaultRequest(
+                HttpMethod.Post,
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/beregn",
+                listOf(Brukerrolle.Saksbehandler),
+            ) {
+                setBody(
+                    """
+                    {
+                        "begrunnelse": "Begrunnelse!",
+                        "fradrag":
+                            [
+                                {
+                                    "periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31"},
+                                    "beløp":9879,
+                                    "type":"Arbeidsinntekt",
+                                    "utenlandskInntekt":null,
+                                    "tilhører":"EPS"
+                                },
+                                {
+                                    "periode":{"fraOgMed":"2021-06-01","tilOgMed":"2021-12-31"},
+                                    "beløp":10000,
+                                    "type":"Kontantstøtte",
+                                    "utenlandskInntekt":null,
+                                    "tilhører":"BRUKER"
+                                }
+                            ]
+                    }
+                    """.trimIndent(),
+                )
+            }.apply {
+                response.status() shouldBe HttpStatusCode.Created
+                val behandlingJson = deserialize<BehandlingJson>(response.content!!)
+                val epsFradrag = FradragJson(
+                    periode = PeriodeJson("2021-05-01", "2021-12-31"),
+                    type = "Arbeidsinntekt",
+                    beløp = 9879.0,
+                    utenlandskInntekt = null,
+                    tilhører = "EPS",
+                )
+                val brukerFradrag = FradragJson(
+                    periode = PeriodeJson("2021-06-01", "2021-12-31"),
+                    type = "Kontantstøtte",
+                    beløp = 10000.0,
+                    utenlandskInntekt = null,
+                    tilhører = "BRUKER",
+                )
+                behandlingJson.beregning!!.fradrag shouldContainAll listOf(epsFradrag, brukerFradrag)
             }
         }
     }
