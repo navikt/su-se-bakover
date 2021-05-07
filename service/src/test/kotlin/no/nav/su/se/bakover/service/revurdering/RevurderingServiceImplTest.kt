@@ -273,7 +273,7 @@ internal class RevurderingServiceImplTest {
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Vurdert.Uførhet.create(
                     vurderingsperioder = Nel.of(
-                        Vurderingsperiode.Manuell.create(
+                        Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
                             resultat = Resultat.Innvilget,
@@ -390,7 +390,7 @@ internal class RevurderingServiceImplTest {
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Vurdert.Uførhet.create(
                     vurderingsperioder = Nel.of(
-                        Vurderingsperiode.Manuell.create(
+                        Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
                             resultat = Resultat.Innvilget,
@@ -880,7 +880,7 @@ internal class RevurderingServiceImplTest {
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Vurdert.Uførhet.create(
                     vurderingsperioder = Nel.of(
-                        Vurderingsperiode.Manuell.create(
+                        Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
                             resultat = Resultat.Innvilget,

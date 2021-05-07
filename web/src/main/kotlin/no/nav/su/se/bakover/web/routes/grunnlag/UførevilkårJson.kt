@@ -15,7 +15,7 @@ internal data class UføreVilkårJson(
     val resultat: Behandlingsinformasjon.Uførhet.Status,
 )
 
-internal fun Vurderingsperiode<Grunnlag.Uføregrunnlag>.toJson() = VurderingsperiodeUføreJson(
+internal fun Vurderingsperiode<Grunnlag.Uføregrunnlag?>.toJson() = VurderingsperiodeUføreJson(
     id = id.toString(),
     opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
     resultat = resultat.toStatusString(),

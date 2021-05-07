@@ -246,7 +246,7 @@ internal class FinnAttestantVisitorTest {
         vilkårsvurderinger = Vilkårsvurderinger(
             uføre = Vilkår.Vurdert.Uførhet.create(
                 vurderingsperioder = Nel.of(
-                    Vurderingsperiode.Manuell.create(
+                    Vurderingsperiode.Uføre.create(
                         resultat = Resultat.Innvilget,
                         grunnlag = uføregrunnlag,
                         periode = Periode.create(1.januar(2021), 31.januar(2021)),

@@ -37,7 +37,7 @@ internal class VilkårsvurderingServiceImpl(
                 Tidslinje(
                     periode = periode,
                     objekter = vilkår.map { it.uføre }
-                        .filterIsInstance<Vilkår.Vurdert<Grunnlag.Uføregrunnlag>>()
+                        .filterIsInstance<Vilkår.Vurdert<Grunnlag.Uføregrunnlag?>>()
                         .flatMap { it.vurderingsperioder },
                     clock = clock,
                 )

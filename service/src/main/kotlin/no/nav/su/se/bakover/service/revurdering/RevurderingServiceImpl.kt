@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -36,6 +37,7 @@ import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.erKlarForAttestering
 import no.nav.su.se.bakover.domain.revurdering.medFritekst
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
@@ -185,10 +187,18 @@ internal class RevurderingServiceImpl(
         // TODO jah: Vi trenger fremdeles behandlingsinformasjon for å utlede sats, så den må ligge inntil vi har flyttet den modellen/logikken til Vilkår
         val oppdatertBehandlingsinformasjon = revurdering.oppdaterBehandlingsinformasjon(
             revurdering.behandlingsinformasjon.copy(
-                uførhet = revurdering.behandlingsinformasjon.uførhet!!.copy(
-                    forventetInntekt = uførevilkår.grunnlag.first().forventetInntekt,
-                    uføregrad = uførevilkår.grunnlag.first().uføregrad.value,
-                ),
+                uførhet = uførevilkår.vurderingsperioder.firstOrNull()?.let {
+                    Behandlingsinformasjon.Uførhet(
+                        status = when (it.resultat) {
+                            Resultat.Avslag -> Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt
+                            Resultat.Innvilget -> Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt
+                            Resultat.Uavklart -> Behandlingsinformasjon.Uførhet.Status.HarUføresakTilBehandling
+                        },
+                        uføregrad = it.grunnlag?.uføregrad?.value,
+                        forventetInntekt = it.grunnlag?.forventetInntekt,
+                        begrunnelse = it.begrunnelse,
+                    )
+                },
             ),
         ).also {
             revurderingRepo.lagre(it)

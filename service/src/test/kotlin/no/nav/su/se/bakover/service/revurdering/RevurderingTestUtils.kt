@@ -185,7 +185,7 @@ object RevurderingTestUtils {
         forventetInntekt = 10,
     )
 
-    internal val vurderingsperiodeUføre = Vurderingsperiode.Manuell.create(
+    internal val vurderingsperiodeUføre = Vurderingsperiode.Uføre.create(
         id = UUID.randomUUID(),
         opprettet = fixedTidspunkt,
         resultat = Resultat.Avslag,

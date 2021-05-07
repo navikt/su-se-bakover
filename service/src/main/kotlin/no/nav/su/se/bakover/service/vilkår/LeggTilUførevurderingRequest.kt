@@ -31,12 +31,12 @@ data class LeggTilUførevurderingRequest(
     /**
      * @param behandlingsperiode Ved en søknadsbehandling kan det være støndadsperiode. Ved en revurdering kan det være revurderingsperioden.
      */
-    fun toVurderingsperiode(behandlingsperiode: Periode): Either<UgyldigUførevurdering, Vurderingsperiode<Grunnlag.Uføregrunnlag>> {
+    fun toVurderingsperiode(behandlingsperiode: Periode): Either<UgyldigUførevurdering, Vurderingsperiode<Grunnlag.Uføregrunnlag?>> {
         if (!(behandlingsperiode inneholder periode)) return UgyldigUførevurdering.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden.left()
         return when (oppfylt) {
             Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt -> {
                 if (uføregrad == null || forventetInntekt == null) return UgyldigUførevurdering.UføregradOgForventetInntektMangler.left()
-                Vurderingsperiode.Manuell.tryCreate(
+                Vurderingsperiode.Uføre.tryCreate(
                     resultat = Resultat.Innvilget,
                     grunnlag = Grunnlag.Uføregrunnlag(
                         periode = periode,
@@ -47,33 +47,21 @@ data class LeggTilUførevurderingRequest(
                     begrunnelse = begrunnelse,
                 )
             }
-            Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt -> Vurderingsperiode.Manuell.tryCreate(
+            Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt -> Vurderingsperiode.Uføre.tryCreate(
                 resultat = Resultat.Avslag,
-                grunnlag = if (uføregrad == null || forventetInntekt == null) null else {
-                    Grunnlag.Uføregrunnlag(
-                        periode = periode,
-                        uføregrad = uføregrad,
-                        forventetInntekt = forventetInntekt,
-                    )
-                },
+                grunnlag = null,
                 vurderingsperiode = periode,
                 begrunnelse = begrunnelse,
             )
-            Behandlingsinformasjon.Uførhet.Status.HarUføresakTilBehandling -> Vurderingsperiode.Manuell.tryCreate(
+            Behandlingsinformasjon.Uførhet.Status.HarUføresakTilBehandling -> Vurderingsperiode.Uføre.tryCreate(
                 resultat = Resultat.Uavklart,
-                grunnlag = if (uføregrad == null || forventetInntekt == null) null else {
-                    Grunnlag.Uføregrunnlag(
-                        periode = periode,
-                        uføregrad = uføregrad,
-                        forventetInntekt = forventetInntekt,
-                    )
-                },
+                grunnlag = null,
                 vurderingsperiode = periode,
                 begrunnelse = begrunnelse,
             )
         }.mapLeft {
             when (it) {
-                Vurderingsperiode.Manuell.UgyldigVurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig -> UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig
+                Vurderingsperiode.Uføre.UgyldigVurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig -> UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig
             }
         }
     }

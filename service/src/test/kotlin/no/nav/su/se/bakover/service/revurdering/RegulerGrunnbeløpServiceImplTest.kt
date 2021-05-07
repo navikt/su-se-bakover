@@ -100,7 +100,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Vurdert.Uførhet.create(
                     vurderingsperioder = Nel.of(
-                        Vurderingsperiode.Manuell.create(
+                        Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
                             resultat = Resultat.Innvilget,
@@ -131,9 +131,11 @@ internal class RegulerGrunnbeløpServiceImplTest {
             fritekstTilBrev = "",
             revurderingsårsak = revurderingsårsakRegulerGrunnbeløp,
             behandlingsinformasjon = opprettetRevurdering.behandlingsinformasjon.copy(
-                uførhet = opprettetRevurdering.behandlingsinformasjon.uførhet!!.copy(
-                    forventetInntekt = nyttUføregrunnlag.forventetInntekt,
+                uførhet = Behandlingsinformasjon.Uførhet(
+                    status = Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
                     uføregrad = nyttUføregrunnlag.uføregrad.value,
+                    forventetInntekt = nyttUføregrunnlag.forventetInntekt,
+                    begrunnelse = "grunnbeløpet er høyere",
                 ),
             ),
             forhåndsvarsel = null,
@@ -166,7 +168,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                         uføregrad = nyttUføregrunnlag.uføregrad,
                         forventetInntekt = nyttUføregrunnlag.forventetInntekt,
                         oppfylt = Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
-                        begrunnelse = "",
+                        begrunnelse = "grunnbeløpet er høyere",
                     ),
                 ),
             ),
@@ -265,7 +267,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Vurdert.Uførhet.create(
                     vurderingsperioder = Nel.of(
-                        Vurderingsperiode.Manuell.create(
+                        Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
                             resultat = Resultat.Innvilget,

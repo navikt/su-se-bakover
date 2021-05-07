@@ -46,7 +46,7 @@ internal class RevurderingTest {
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Vurdert.Uførhet.create(
                     vurderingsperioder = Nel.of(
-                        Vurderingsperiode.Manuell.create(
+                        Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
                             opprettet = Tidspunkt.now(),
                             resultat = Resultat.Avslag,
@@ -66,7 +66,7 @@ internal class RevurderingTest {
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Vurdert.Uførhet.create(
                     vurderingsperioder = Nel.of(
-                        Vurderingsperiode.Manuell.create(
+                        Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
                             opprettet = Tidspunkt.now(),
                             resultat = Resultat.Innvilget,
