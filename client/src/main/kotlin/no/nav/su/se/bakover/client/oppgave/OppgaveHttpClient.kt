@@ -8,7 +8,17 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.kittinunf.fuel.core.extensions.authentication
 import com.github.kittinunf.fuel.httpGet
 import com.github.kittinunf.fuel.httpPatch
-import com.github.kittinunf.fuel.httpPost
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.java.Java
+import io.ktor.client.request.headers
+import io.ktor.client.request.post
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.readText
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.contentType
+import io.ktor.http.isSuccess
+import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.ApplicationConfig
@@ -41,6 +51,10 @@ internal class OppgaveHttpClient(
 ) : OppgaveClient {
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
+
+    val client = HttpClient(Java) {
+        expectSuccess = false
+    }
 
     override fun opprettOppgaveMedSystembruker(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, OppgaveId> {
         return opprettOppgave(config, tokenoppslagForSystembruker.token())
@@ -88,46 +102,51 @@ internal class OppgaveHttpClient(
                 } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}"
         }
 
-        val (_, response, result) = "${connectionConfig.url}$oppgavePath".httpPost()
-            .authentication().bearer(token)
-            .header("Accept", "application/json")
-            .header("Content-Type", "application/json")
-            .header("X-Correlation-ID", getOrCreateCorrelationId())
-            .body(
-                objectMapper.writeValueAsString(
-                    OppgaveRequest(
-                        journalpostId = config.journalpostId?.toString(),
-                        saksreferanse = config.saksreferanse,
-                        aktoerId = config.aktørId.toString(),
-                        tema = Tema.SUPPLERENDE_STØNAD.value,
-                        behandlesAvApplikasjon = "SUPSTONAD",
-                        beskrivelse = beskrivelse,
-                        oppgavetype = config.oppgavetype.toString(),
-                        behandlingstema = config.behandlingstema?.toString(),
-                        behandlingstype = config.behandlingstype.toString(),
-                        aktivDato = aktivDato,
-                        fristFerdigstillelse = aktivDato.plusDays(30),
-                        prioritet = "NORM",
-                        tilordnetRessurs = config.tilordnetRessurs?.toString()
+        return runBlocking {
+            Either.catch {
+                client.post<HttpResponse>("${connectionConfig.url}$oppgavePath") {
+                    headers {
+                        append(HttpHeaders.Authorization, "Bearer $token")
+                        append(HttpHeaders.Accept, "application/json")
+                        append("X-Correlation-ID", getOrCreateCorrelationId())
+                    }
+                    contentType(ContentType.Application.Json)
+                    body = objectMapper.writeValueAsString(
+                        OppgaveRequest(
+                            journalpostId = config.journalpostId?.toString(),
+                            saksreferanse = config.saksreferanse,
+                            aktoerId = config.aktørId.toString(),
+                            tema = Tema.SUPPLERENDE_STØNAD.value,
+                            behandlesAvApplikasjon = "SUPSTONAD",
+                            beskrivelse = beskrivelse,
+                            oppgavetype = config.oppgavetype.toString(),
+                            behandlingstema = config.behandlingstema?.toString(),
+                            behandlingstype = config.behandlingstype.toString(),
+                            aktivDato = aktivDato,
+                            fristFerdigstillelse = aktivDato.plusDays(30),
+                            prioritet = "NORM",
+                            tilordnetRessurs = config.tilordnetRessurs?.toString(),
+                        ),
                     )
-                )
-            ).responseString()
-
-        return result.fold(
-            { json ->
-                log.info("Lagret oppgave i oppgave. status=${response.statusCode} se sikkerlogg for detaljer")
-                sikkerLogg.info("Lagret oppgave i oppgave. status=${response.statusCode} body=$json")
-                objectMapper.readValue(json, OppgaveResponse::class.java).getOppgaveId().right()
-            },
-            {
-                log.error("Feil i kallet mot oppgave. status=${response.statusCode} se sikkerlogg for detaljer", it)
-                sikkerLogg.error(
-                    "Feil i kallet mot oppgave. status=${response.statusCode} body=${String(response.data)}",
-                    it
-                )
-                KunneIkkeOppretteOppgave.left()
+                }
+            }.mapLeft { throwable ->
+                log.error("Feil i kallet mot oppgave.", throwable)
+                KunneIkkeOppretteOppgave
+            }.flatMap { response ->
+                val body = response.readText()
+                if (response.status.isSuccess()) {
+                    log.info("Lagret oppgave i oppgave. status=${response.status} se sikkerlogg for detaljer")
+                    sikkerLogg.info("Lagret oppgave i oppgave. status=${response.status} body=$body")
+                    objectMapper.readValue(body, OppgaveResponse::class.java).getOppgaveId().right()
+                } else {
+                    log.error("Feil i kallet mot oppgave. status=${response.status} se sikkerlogg for detaljer  body=$body")
+                    sikkerLogg.error(
+                        "Feil i kallet mot oppgave. status=${response.status} body=$body",
+                    )
+                    KunneIkkeOppretteOppgave.left()
+                }
             }
-        )
+        }
     }
 
     private fun lukkOppgave(oppgaveId: OppgaveId, token: String): Either<KunneIkkeLukkeOppgave, Unit> {
@@ -143,7 +162,10 @@ internal class OppgaveHttpClient(
         }
     }
 
-    private fun hentOppgave(oppgaveId: OppgaveId, token: String): Either<KunneIkkeSøkeEtterOppgave, OppgaveResponse> {
+    private fun hentOppgave(
+        oppgaveId: OppgaveId,
+        token: String,
+    ): Either<KunneIkkeSøkeEtterOppgave, OppgaveResponse> {
         val (_, _, result) = "${connectionConfig.url}$oppgavePath/$oppgaveId".httpGet()
             .authentication().bearer(token)
             .header("Accept", "application/json")
@@ -156,18 +178,23 @@ internal class OppgaveHttpClient(
                 oppgave.right()
             },
             {
-                log.error("Feil ved hent av oppgave $oppgaveId. status=${it.response.statusCode} body=${String(it.response.data)}", it)
+                log.error(
+                    "Feil ved hent av oppgave $oppgaveId. status=${it.response.statusCode} body=${String(it.response.data)}",
+                    it,
+                )
                 KunneIkkeSøkeEtterOppgave.left()
-            }
+            },
         )
     }
 
     private fun lukkOppgave(
         oppgave: OppgaveResponse,
-        token: String
+        token: String,
     ): Either<KunneIkkeLukkeOppgave, LukkOppgaveResponse> {
         val beskrivelse =
-            "--- ${Tidspunkt.now(clock).toOppgaveFormat()} - Lukket av Supplerende Stønad ---\nSøknadId : ${oppgave.saksreferanse}"
+            "--- ${
+            Tidspunkt.now(clock).toOppgaveFormat()
+            } - Lukket av Supplerende Stønad ---\nSøknadId : ${oppgave.saksreferanse}"
         val (_, response, result) = "${connectionConfig.url}$oppgavePath/${oppgave.id}".httpPatch()
             .authentication().bearer(token)
             .header("Accept", "application/json")
