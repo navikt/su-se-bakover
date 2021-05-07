@@ -35,7 +35,7 @@ private fun BeregningsPeriode.toSimulertPeriode() =
         fraOgMed = LocalDate.parse(periodeFom),
         tilOgMed = LocalDate.parse(periodeTom),
         utbetaling = beregningStoppnivaa
-            .filter { utbetaling -> utbetaling.beregningStoppnivaaDetaljer.any { it.klassekode == KlasseKode.SUUFORE.name } }
+            .filter { utbetaling -> utbetaling.beregningStoppnivaaDetaljer.any { it.klassekode.trim() == KlasseKode.SUUFORE.name } }
             .map { it.toSimulertUtbetaling() },
     )
 
@@ -47,7 +47,7 @@ private fun BeregningStoppnivaa.toSimulertUtbetaling() =
         forfall = LocalDate.parse(forfall),
         feilkonto = isFeilkonto,
         detaljer = beregningStoppnivaaDetaljer
-            .filter { it.typeKlasse == KlasseType.YTEL.name || it.typeKlasse == KlasseType.FEIL.name }
+            .filter { it.typeKlasse.trim() == KlasseType.YTEL.name || it.typeKlasse.trim() == KlasseType.FEIL.name }
             .map { it.toSimulertDetalj() },
     )
 
