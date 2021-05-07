@@ -160,7 +160,6 @@ internal class SøknadsbehandlingPostgresRepo(
                 fnr = fnr,
                 fritekstTilBrev = fritekstTilBrev,
                 stønadsperiode = stønadsperiode,
-                grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
             )
             BehandlingsStatus.VILKÅRSVURDERT_INNVILGET -> Søknadsbehandling.Vilkårsvurdert.Innvilget(
@@ -174,7 +173,6 @@ internal class SøknadsbehandlingPostgresRepo(
                 fnr = fnr,
                 fritekstTilBrev = fritekstTilBrev,
                 stønadsperiode = stønadsperiode!!,
-                grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
             )
             BehandlingsStatus.VILKÅRSVURDERT_AVSLAG -> Søknadsbehandling.Vilkårsvurdert.Avslag(
@@ -188,7 +186,6 @@ internal class SøknadsbehandlingPostgresRepo(
                 fnr = fnr,
                 fritekstTilBrev = fritekstTilBrev,
                 stønadsperiode = stønadsperiode!!,
-                grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
             )
             BehandlingsStatus.BEREGNET_INNVILGET -> Søknadsbehandling.Beregnet.Innvilget(
@@ -416,6 +413,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 defaultParams(søknadsbehandling), session,
             )
         }
+        vilkårsvurderingRepo.lagre(søknadsbehandling.id, søknadsbehandling.vilkårsvurderinger.uføre)
     }
 
     private fun lagre(søknadsbehandling: Søknadsbehandling.Beregnet) {

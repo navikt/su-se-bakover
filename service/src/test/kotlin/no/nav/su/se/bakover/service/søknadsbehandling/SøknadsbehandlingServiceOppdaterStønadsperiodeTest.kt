@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.StatusovergangVisitor
@@ -62,7 +61,8 @@ internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
         val tilAttestering = Søknadsbehandling.Vilkårsvurdert.Avslag(
             id = behandlingId,
             opprettet = Tidspunkt.now(),
-            behandlingsinformasjon = behandlingsinformasjon,
+            sakId = sakId,
+            saksnummer = Saksnummer(2021),
             søknad = Søknad.Journalført.MedOppgave(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.EPOCH,
@@ -71,13 +71,11 @@ internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
                 oppgaveId = oppgaveId,
                 journalpostId = JournalpostId("j"),
             ),
-            sakId = sakId,
-            saksnummer = Saksnummer(2021),
-            fnr = FnrGenerator.random(),
             oppgaveId = oppgaveId,
+            behandlingsinformasjon = behandlingsinformasjon,
+            fnr = FnrGenerator.random(),
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         ).tilAttestering(Saksbehandler("saksa"), "")
 
@@ -99,7 +97,8 @@ internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
         val uavklart = Søknadsbehandling.Vilkårsvurdert.Uavklart(
             id = behandlingId,
             opprettet = Tidspunkt.now(),
-            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
+            sakId = sakId,
+            saksnummer = Saksnummer(2021),
             søknad = Søknad.Journalført.MedOppgave(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.EPOCH,
@@ -108,13 +107,11 @@ internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
                 oppgaveId = oppgaveId,
                 journalpostId = JournalpostId("j"),
             ),
-            sakId = sakId,
-            saksnummer = Saksnummer(2021),
-            fnr = FnrGenerator.random(),
             oppgaveId = oppgaveId,
+            behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
+            fnr = FnrGenerator.random(),
             fritekstTilBrev = "",
             stønadsperiode = null,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
