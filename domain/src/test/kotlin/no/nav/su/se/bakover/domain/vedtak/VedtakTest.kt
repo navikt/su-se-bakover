@@ -112,7 +112,7 @@ internal class VedtakTest {
             fraDato = p1.fraOgMed,
             tilDato = p1.tilOgMed,
         )
-        val v1 = Vurderingsperiode.Manuell.create(
+        val v1 = Vurderingsperiode.Uføre.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             resultat = Resultat.Innvilget,
@@ -136,7 +136,7 @@ internal class VedtakTest {
             fraDato = p2.fraOgMed,
             tilDato = p2.tilOgMed,
         )
-        val v2 = Vurderingsperiode.Manuell.create(
+        val v2 = Vurderingsperiode.Uføre.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             resultat = Resultat.Avslag,
@@ -223,7 +223,7 @@ internal class VedtakTest {
             fraDato = p1.fraOgMed,
             tilDato = p1.tilOgMed,
         )
-        val v1 = Vurderingsperiode.Manuell.create(
+        val v1 = Vurderingsperiode.Uføre.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             resultat = Resultat.Innvilget,

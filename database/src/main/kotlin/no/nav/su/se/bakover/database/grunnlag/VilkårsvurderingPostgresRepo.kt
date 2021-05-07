@@ -23,7 +23,7 @@ internal class VilkårsvurderingPostgresRepo(
     private val uføregrunnlagPostgresRepo: UføregrunnlagPostgresRepo,
 ) : VilkårsvurderingRepo {
 
-    override fun lagre(behandlingId: UUID, vilkår: Vilkår<Grunnlag.Uføregrunnlag>) {
+    override fun lagre(behandlingId: UUID, vilkår: Vilkår<Grunnlag.Uføregrunnlag?>) {
         dataSource.withTransaction { tx ->
             slettForBehandlingId(behandlingId, tx)
             when (vilkår) {
@@ -38,7 +38,7 @@ internal class VilkårsvurderingPostgresRepo(
         }
     }
 
-    private fun lagre(behandlingId: UUID, vurderingsperiode: Vurderingsperiode<Grunnlag.Uføregrunnlag>, session: Session) {
+    private fun lagre(behandlingId: UUID, vurderingsperiode: Vurderingsperiode<Grunnlag.Uføregrunnlag?>, session: Session) {
         """
                 insert into vilkårsvurdering_uføre
                 (
@@ -92,7 +92,7 @@ internal class VilkårsvurderingPostgresRepo(
             )
     }
 
-    override fun hent(behandlingId: UUID): Vilkår<Grunnlag.Uføregrunnlag> {
+    override fun hent(behandlingId: UUID): Vilkår<Grunnlag.Uføregrunnlag?> {
         val vurderingsperioder = dataSource.withSession { session ->
             """
                 select * from vilkårsvurdering_uføre where behandlingId = :behandlingId
@@ -112,8 +112,8 @@ internal class VilkårsvurderingPostgresRepo(
         }
     }
 
-    private fun Row.toVurderingsperioder(): Vurderingsperiode<Grunnlag.Uføregrunnlag> {
-        return Vurderingsperiode.Manuell.create(
+    private fun Row.toVurderingsperioder(): Vurderingsperiode<Grunnlag.Uføregrunnlag?> {
+        return Vurderingsperiode.Uføre.create(
             id = uuid("id"),
             opprettet = tidspunkt("opprettet"),
             resultat = ResultatDto.valueOf(string("resultat")).toDomain(),

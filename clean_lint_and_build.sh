@@ -1,2 +1,2 @@
 #!/bin/bash
-./gradlew clean ktlintFormat build
+./gradlew clean formatKotlin build

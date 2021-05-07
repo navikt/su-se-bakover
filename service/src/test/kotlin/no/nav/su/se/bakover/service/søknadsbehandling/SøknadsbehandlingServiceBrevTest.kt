@@ -108,7 +108,7 @@ internal class SøknadsbehandlingServiceBrevTest {
         }
 
         val microsoftGraphApiOppslagMock = mock<MicrosoftGraphApiOppslag> {
-            on { hentBrukerinformasjonForNavIdent(any()) } doReturn MicrosoftGraphApiOppslagFeil.FantIkkeBrukerForNavIdent.left()
+            on { hentNavnForNavIdent(any()) } doReturn MicrosoftGraphApiOppslagFeil.FantIkkeBrukerForNavIdent.left()
         }
 
         createSøknadsbehandlingService(
@@ -131,7 +131,7 @@ internal class SøknadsbehandlingServiceBrevTest {
         }
 
         val microsoftGraphApiOppslagMock = mock<MicrosoftGraphApiOppslag> {
-            on { hentBrukerinformasjonForNavIdent(any()) } doReturn BehandlingTestUtils.microsoftGraphMock.response.right()
+            on { hentNavnForNavIdent(any()) } doReturn BehandlingTestUtils.microsoftGraphMock.response.displayName.right()
         }
 
         val brevServiceMock = mock<BrevService> {
@@ -159,7 +159,7 @@ internal class SøknadsbehandlingServiceBrevTest {
         }
 
         val microsoftGraphApiOppslagMock = mock<MicrosoftGraphApiOppslag> {
-            on { hentBrukerinformasjonForNavIdent(any()) } doReturn BehandlingTestUtils.microsoftGraphMock.response.right()
+            on { hentNavnForNavIdent(any()) } doReturn BehandlingTestUtils.microsoftGraphMock.response.displayName.right()
         }
 
         val pdf = "".toByteArray()

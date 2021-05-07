@@ -108,7 +108,7 @@ internal class OpprettRevurderingServiceTest {
             .map { MånedsberegningFactory.ny(it, Sats.HØY, listOf()) }
         on { getFradrag() } doReturn listOf()
         on { getSumYtelse() } doReturn periode.tilMånedsperioder()
-            .sumBy { MånedsberegningFactory.ny(it, Sats.HØY, listOf()).getSumYtelse() }
+            .sumOf { MånedsberegningFactory.ny(it, Sats.HØY, listOf()).getSumYtelse() }
     }
 
     private fun createInnvilgetBehandling() = Søknadsbehandling.Iverksatt.Innvilget(

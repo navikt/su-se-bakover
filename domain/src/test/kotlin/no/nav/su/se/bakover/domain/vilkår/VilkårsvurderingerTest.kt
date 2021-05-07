@@ -24,7 +24,7 @@ internal class VilkårsvurderingerTest {
         Vilkårsvurderinger(
             uføre = Vilkår.Vurdert.Uførhet.create(
                 vurderingsperioder = Nel.of(
-                    Vurderingsperiode.Manuell.create(
+                    Vurderingsperiode.Uføre.create(
                         resultat = Resultat.Innvilget,
                         grunnlag = uføregrunnlag,
                         periode = Periode.create(1.januar(2021), 31.desember(2021)),
@@ -40,7 +40,7 @@ internal class VilkårsvurderingerTest {
         Vilkårsvurderinger(
             uføre = Vilkår.Vurdert.Uførhet.create(
                 vurderingsperioder = Nel.of(
-                    Vurderingsperiode.Manuell.create(
+                    Vurderingsperiode.Uføre.create(
                         resultat = Resultat.Avslag,
                         grunnlag = uføregrunnlag,
                         periode = Periode.create(1.januar(2021), 31.desember(2021)),
@@ -63,7 +63,7 @@ internal class VilkårsvurderingerTest {
         Vilkårsvurderinger(
             uføre = Vilkår.Vurdert.Uførhet.create(
                 vurderingsperioder = Nel.of(
-                    Vurderingsperiode.Manuell.create(
+                    Vurderingsperiode.Uføre.create(
                         resultat = Resultat.Innvilget,
                         grunnlag = Grunnlag.Uføregrunnlag(
                             periode = Periode.create(1.januar(2021), 30.april(2021)),
@@ -73,7 +73,7 @@ internal class VilkårsvurderingerTest {
                         periode = Periode.create(1.januar(2021), 30.april(2021)),
                         begrunnelse = "",
                     ),
-                    Vurderingsperiode.Manuell.create(
+                    Vurderingsperiode.Uføre.create(
                         resultat = Resultat.Avslag,
                         grunnlag = Grunnlag.Uføregrunnlag(
                             periode = Periode.create(1.mai(2021), 31.desember(2021)),

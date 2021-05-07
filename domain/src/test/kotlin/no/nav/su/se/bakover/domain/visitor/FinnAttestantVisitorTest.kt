@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.visitor
 
+import arrow.core.Nel
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
@@ -31,7 +32,10 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -212,6 +216,11 @@ internal class FinnAttestantVisitorTest {
             ),
         )
     }
+    private val uføregrunnlag = Grunnlag.Uføregrunnlag(
+        periode = Periode.create(1.januar(2021), 31.januar(2021)),
+        uføregrad = Uføregrad.parse(20),
+        forventetInntekt = 10,
+    )
     private val revurdering = OpprettetRevurdering(
         id = UUID.randomUUID(),
         periode = Periode.create(1.januar(2021), 31.januar(2021)),
@@ -231,15 +240,20 @@ internal class FinnAttestantVisitorTest {
         forhåndsvarsel = null,
         behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt,
         grunnlagsdata = Grunnlagsdata(
-            uføregrunnlag = listOf(
-                Grunnlag.Uføregrunnlag(
-                    periode = Periode.create(1.januar(2021), 31.januar(2021)),
-                    uføregrad = Uføregrad.parse(20),
-                    forventetInntekt = 10,
+            uføregrunnlag = listOf(uføregrunnlag),
+        ),
+        vilkårsvurderinger = Vilkårsvurderinger(
+            uføre = Vilkår.Vurdert.Uførhet.create(
+                vurderingsperioder = Nel.of(
+                    Vurderingsperiode.Uføre.create(
+                        resultat = Resultat.Innvilget,
+                        grunnlag = uføregrunnlag,
+                        periode = Periode.create(1.januar(2021), 31.januar(2021)),
+                        begrunnelse = null,
+                    ),
                 ),
             ),
         ),
-        vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
     )
 
     private val beregnetRevurdering = when (val a = revurdering.beregn(emptyList()).orNull()!!) {

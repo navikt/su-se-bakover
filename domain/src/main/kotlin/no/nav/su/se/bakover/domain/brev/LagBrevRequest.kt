@@ -31,7 +31,7 @@ interface LagBrevRequest {
                 fradato = beregning.periode.fraOgMed.formatMonthYear(),
                 tildato = beregning.periode.tilOgMed.formatMonthYear(),
                 // TODO CHM 05.05.2021: Wrap sats-tingene i et eget objekt, hent fra beregning?
-                sats = beregning.getSats().toString().toLowerCase(),
+                sats = beregning.getSats().toString().lowercase(),
                 satsGrunn = behandlingsinformasjon.getSatsgrunn().orNull()!!,
                 satsBeløp = beregning.getSats().månedsbeløpSomHeltall(beregning.periode.tilOgMed),
                 satsGjeldendeFraDato = beregning.getSats().datoForSisteEndringAvSats(beregning.periode.tilOgMed).ddMMyyyy(),
@@ -61,7 +61,7 @@ interface LagBrevRequest {
                 beregningsperioder = avslag.beregning?.let { LagBrevinnholdForBeregning(it).brevInnhold } ?: emptyList(),
                 saksbehandlerNavn = saksbehandlerNavn,
                 attestantNavn = attestantNavn,
-                sats = avslag.beregning?.getSats()?.name?.toLowerCase(),
+                sats = avslag.beregning?.getSats()?.name?.lowercase(),
                 satsGjeldendeFraDato = avslag.beregning?.getSats()?.datoForSisteEndringAvSats(avslag.beregning.periode.tilOgMed)?.ddMMyyyy(),
                 fritekst = fritekst
             )
@@ -87,7 +87,7 @@ interface LagBrevRequest {
 
             return BrevInnhold.Opphørsvedtak(
                 personalia = personalia,
-                sats = beregning.getSats().toString().toLowerCase(),
+                sats = beregning.getSats().toString().lowercase(),
                 satsBeløp = beregning.getSats().månedsbeløpSomHeltall(beregning.periode.tilOgMed),
                 satsGjeldendeFraDato = beregning.getSats().datoForSisteEndringAvSats(beregning.periode.tilOgMed).ddMMyyyy(),
                 harEktefelle = behandlingsinformasjon.harEktefelle(),
@@ -127,6 +127,7 @@ interface LagBrevRequest {
 
     data class Forhåndsvarsel(
         private val person: Person,
+        private val saksbehandlerNavn: String,
         private val fritekst: String,
     ) : LagBrevRequest {
         override fun getPerson(): Person = person
@@ -134,6 +135,7 @@ interface LagBrevRequest {
         override fun lagBrevInnhold(personalia: BrevInnhold.Personalia): BrevInnhold {
             return BrevInnhold.Forhåndsvarsel(
                 personalia = personalia,
+                saksbehandlerNavn = saksbehandlerNavn,
                 fritekst = fritekst,
             )
         }

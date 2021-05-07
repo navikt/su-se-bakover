@@ -38,9 +38,9 @@ internal data class SimuleringJson(
             SimuleringJson(
                 perioder = it.simulertePerioder.map { sp -> sp.toJson() },
                 totalBruttoYtelse = it.simulertePerioder
-                    .sumBy { sp ->
+                    .sumOf { sp ->
                         sp.utbetalinger
-                            .sumBy { u -> u.bruttobeløp() }
+                            .sumOf { u -> u.bruttobeløp() }
                     },
             )
         }
