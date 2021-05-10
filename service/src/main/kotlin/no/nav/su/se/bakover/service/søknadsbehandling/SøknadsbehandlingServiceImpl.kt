@@ -452,6 +452,12 @@ internal class SøknadsbehandlingServiceImpl(
             statusovergang = Statusovergang.OppdaterStønadsperiode(request.stønadsperiode),
         ).let {
             søknadsbehandlingRepo.lagre(it)
+            vilkårsvurderingService.lagre(
+                søknadsbehandling.id,
+                søknadsbehandling.vilkårsvurderinger.copy(
+                    uføre = it.vilkårsvurderinger.uføre,
+                ),
+            )
             it.right()
         }
     }

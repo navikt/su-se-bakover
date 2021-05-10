@@ -44,7 +44,8 @@ class SøknadsbehandlingServiceBeregningTest {
     private val vilkårsvurdertBehandling = Søknadsbehandling.Vilkårsvurdert.Innvilget(
         id = UUID.randomUUID(),
         opprettet = tidspunkt,
-        behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
+        sakId = sakId,
+        saksnummer = Saksnummer(2021),
         søknad = Søknad.Journalført.MedOppgave(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.EPOCH,
@@ -53,13 +54,11 @@ class SøknadsbehandlingServiceBeregningTest {
             oppgaveId = OppgaveId("o"),
             journalpostId = JournalpostId("j"),
         ),
-        sakId = sakId,
-        saksnummer = Saksnummer(2021),
-        fnr = FnrGenerator.random(),
         oppgaveId = OppgaveId("o"),
+        behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
+        fnr = FnrGenerator.random(),
         fritekstTilBrev = "",
         stønadsperiode = stønadsperiode,
-        grunnlagsdata = Grunnlagsdata.EMPTY,
         vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
     )
 

@@ -25,6 +25,8 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
     abstract val behandlingsinformasjon: Behandlingsinformasjon
     abstract val status: BehandlingsStatus
     abstract val stønadsperiode: Stønadsperiode?
+    override val grunnlagsdata
+        get() = vilkårsvurderinger.grunnlagsdata
 
     // TODO ia: fritekst bør flyttes ut av denne klassen og til et eget konsept (som også omfatter fritekst på revurderinger)
     abstract val fritekstTilBrev: String
@@ -42,7 +44,6 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 fnr,
                 fritekstTilBrev,
                 stønadsperiode,
-                grunnlagsdata,
                 vilkårsvurderinger,
             )
 
@@ -75,7 +76,6 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 fnr: Fnr,
                 fritekstTilBrev: String,
                 stønadsperiode: Stønadsperiode?,
-                grunnlagsdata: Grunnlagsdata,
                 vilkårsvurderinger: Vilkårsvurderinger,
             ): Vilkårsvurdert {
                 return when {
@@ -91,7 +91,6 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                             fnr,
                             fritekstTilBrev,
                             stønadsperiode!!,
-                            grunnlagsdata,
                             vilkårsvurderinger,
                         )
                     }
@@ -107,7 +106,6 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                             fnr,
                             fritekstTilBrev,
                             stønadsperiode!!,
-                            grunnlagsdata,
                             vilkårsvurderinger,
                         )
                     }
@@ -123,7 +121,6 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                             fnr,
                             fritekstTilBrev,
                             stønadsperiode,
-                            grunnlagsdata,
                             vilkårsvurderinger,
                         )
                     }
@@ -142,7 +139,6 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
             override val fnr: Fnr,
             override val fritekstTilBrev: String,
             override val stønadsperiode: Stønadsperiode,
-            override val grunnlagsdata: Grunnlagsdata,
             override val vilkårsvurderinger: Vilkårsvurderinger,
         ) : Vilkårsvurdert() {
 
@@ -165,7 +161,6 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
             override val fnr: Fnr,
             override val fritekstTilBrev: String,
             override val stønadsperiode: Stønadsperiode,
-            override val grunnlagsdata: Grunnlagsdata,
             override val vilkårsvurderinger: Vilkårsvurderinger,
         ) : Vilkårsvurdert(), ErAvslag {
 
@@ -207,7 +202,6 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
             override val fnr: Fnr,
             override val fritekstTilBrev: String,
             override val stønadsperiode: Stønadsperiode?,
-            override val grunnlagsdata: Grunnlagsdata,
             override val vilkårsvurderinger: Vilkårsvurderinger,
         ) : Vilkårsvurdert() {
 
@@ -242,7 +236,6 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 fnr,
                 fritekstTilBrev,
                 stønadsperiode,
-                grunnlagsdata,
                 vilkårsvurderinger,
             )
 
@@ -440,7 +433,6 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 fnr,
                 fritekstTilBrev,
                 stønadsperiode,
-                grunnlagsdata,
                 vilkårsvurderinger,
             )
 
@@ -754,7 +746,6 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 fnr,
                 fritekstTilBrev,
                 stønadsperiode,
-                grunnlagsdata,
                 vilkårsvurderinger,
             )
 
