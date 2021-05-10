@@ -499,10 +499,8 @@ internal class SøknadsbehandlingServiceImpl(
             SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling
         }.map {
             vilkårsvurderingService.lagre(
-                søknadsbehandling.id,
-                søknadsbehandling.vilkårsvurderinger.copy(
-                    uføre = vilkår,
-                ),
+                it.id,
+                it.vilkårsvurderinger,
             )
             søknadsbehandlingRepo.hent(søknadsbehandling.id)!!
         }
