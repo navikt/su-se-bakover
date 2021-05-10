@@ -37,6 +37,13 @@ internal class DatabaseExKtTest {
     }
 
     @Test
+    fun `kaster exception med hjelpende feilmelding hvis man forsøker å gjøre en update uten where`() {
+        assertThrows<IllegalArgumentException> {
+            "en update sql uten w h e r e".oppdatering(emptyMap(), mock())
+        }
+    }
+
+    @Test
     fun `klarer å mappe andre ting enn særnorske tegn`() {
         assertDoesNotThrow {
             "min flotte sql".insert(mapOf("a" to 1), mock())

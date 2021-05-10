@@ -15,7 +15,6 @@ private fun sjekkUgyldigParameternavn(params: Map<String, Any?>) {
 
 private fun sjekkAtOppdaterInneholderWhere(sql: String) {
     require(sql.lowercase().contains("where")) { "Ikke lov med update uten where" }
-    require(!sql.lowercase().contains("insert")) { "Ikke lov med insert i en update" }
 }
 
 internal fun String.oppdatering(
