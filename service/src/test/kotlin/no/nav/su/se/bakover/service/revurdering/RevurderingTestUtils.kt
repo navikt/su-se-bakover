@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
+import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
@@ -217,7 +218,7 @@ object RevurderingTestUtils {
             uføregrunnlag = listOf(uføregrunnlag),
         ),
         vilkårsvurderinger = vilkårsvurderinger,
-        informasjonSomRevurderes = emptyMap(),
+        informasjonSomRevurderes = InformasjonSomRevurderes(emptyMap()),
     )
 
     internal val simulertRevurderingInnvilget = SimulertRevurdering.Innvilget(
@@ -237,6 +238,6 @@ object RevurderingTestUtils {
             uføregrunnlag = listOf(uføregrunnlag),
         ),
         vilkårsvurderinger = vilkårsvurderinger,
-        informasjonSomRevurderes = emptyMap(),
+        informasjonSomRevurderes = InformasjonSomRevurderes(emptyMap()),
     )
 }

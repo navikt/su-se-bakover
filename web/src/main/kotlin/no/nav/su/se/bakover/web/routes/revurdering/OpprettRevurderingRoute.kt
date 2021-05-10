@@ -32,6 +32,7 @@ import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeAktørId
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeSak
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.kunneIkkeOppretteOppgave
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.måVelgeInformasjonSomRevurderes
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.periodeOgÅrsakKombinasjonErUgyldig
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.ugyldigPeriode
 import no.nav.su.se.bakover.web.sikkerlogg
@@ -48,7 +49,7 @@ internal fun Route.opprettRevurderingRoute(
         val fraOgMed: LocalDate,
         val årsak: String,
         val begrunnelse: String,
-        val informasjonSomSkalRevuderes: Map<Revurderingsteg, Vurderingstatus>
+        val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>
     )
     authorize(Brukerrolle.Saksbehandler) {
         post(revurderingPath) {
@@ -63,7 +64,7 @@ internal fun Route.opprettRevurderingRoute(
                             årsak = body.årsak,
                             begrunnelse = body.begrunnelse,
                             saksbehandler = NavIdentBruker.Saksbehandler(navIdent),
-                            informasjonSomRevurderes = body.informasjonSomSkalRevuderes
+                            informasjonSomRevurderes = body.informasjonSomRevurderes
                         ),
                     ).fold(
                         ifLeft = { call.svar(it.tilResultat()) },
@@ -98,5 +99,6 @@ private fun KunneIkkeOppretteRevurdering.tilResultat(): Resultat {
             "ugyldig_årsak",
         )
         KunneIkkeOppretteRevurdering.PeriodeOgÅrsakKombinasjonErUgyldig -> periodeOgÅrsakKombinasjonErUgyldig
+        KunneIkkeOppretteRevurdering.MåVelgeInformasjonSomSkalRevurderes -> måVelgeInformasjonSomRevurderes
     }
 }

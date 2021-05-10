@@ -26,14 +26,17 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeslutningEtterForhåndsvarsling
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
+import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak.Årsak.REGULER_GRUNNBELØP
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.domain.revurdering.erKlarForAttestering
 import no.nav.su.se.bakover.domain.revurdering.medFritekst
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
@@ -118,6 +121,10 @@ internal class RevurderingServiceImpl(
             return KunneIkkeOppretteRevurdering.FantIkkeAktørId.left()
         }
 
+        if (opprettRevurderingRequest.informasjonSomRevurderes.isEmpty()) {
+            return KunneIkkeOppretteRevurdering.MåVelgeInformasjonSomSkalRevurderes.left()
+        }
+
         val vilkårsvurderinger = vilkårsvurderingService.opprettVilkårsvurderinger(sak.id, periode)
         val grunnlag = when (val vilkårsvurderingUføre = vilkårsvurderinger.uføre) {
             Vilkår.IkkeVurdert.Uførhet -> Grunnlagsdata(uføregrunnlag = emptyList())
@@ -146,7 +153,7 @@ internal class RevurderingServiceImpl(
                 behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
                 grunnlagsdata = grunnlag,
                 vilkårsvurderinger = vilkårsvurderinger,
-                informasjonSomRevurderes = opprettRevurderingRequest.informasjonSomRevurderes
+                informasjonSomRevurderes = InformasjonSomRevurderes(opprettRevurderingRequest.informasjonSomRevurderes),
             ).also {
                 revurderingRepo.lagre(it)
 
@@ -202,7 +209,11 @@ internal class RevurderingServiceImpl(
                 },
             ),
         ).also {
-            revurderingRepo.lagre(it)
+            revurderingRepo.lagre(
+                it.copy(
+                    informasjonSomRevurderes = it.informasjonSomRevurderes.vurdert(Revurderingsteg.Uførhet),
+                ),
+            )
         }
         vilkårsvurderingService.lagre(
             behandlingId = oppdatertBehandlingsinformasjon.id,
@@ -256,11 +267,18 @@ internal class RevurderingServiceImpl(
                 return KunneIkkeOppdatereRevurdering.UgyldigPeriode(it).left()
             }
 
+        if (oppdaterRevurderingRequest.informasjonSomRevurderes.isEmpty()) {
+            return KunneIkkeOppdatereRevurdering.MåVelgeInformasjonSomSkalRevurderes.left()
+        }
+
+        val informasjonSomRevurderes = InformasjonSomRevurderes(oppdaterRevurderingRequest.informasjonSomRevurderes.mapValues { Vurderingstatus.IkkeVurdert })
+
+        // TODO jm: utled nytt grunnlag ved oppdatering av revrurdering av periode, endring av informasjon som revurderes etc.
         return when (revurdering) {
-            is OpprettetRevurdering -> revurdering.oppdater(nyPeriode, revurderingsårsak).right()
-            is BeregnetRevurdering -> revurdering.oppdater(nyPeriode, revurderingsårsak).right()
-            is SimulertRevurdering -> revurdering.oppdater(nyPeriode, revurderingsårsak).right()
-            is UnderkjentRevurdering -> revurdering.oppdater(nyPeriode, revurderingsårsak).right()
+            is OpprettetRevurdering -> revurdering.oppdater(nyPeriode, revurderingsårsak, informasjonSomRevurderes).right()
+            is BeregnetRevurdering -> revurdering.oppdater(nyPeriode, revurderingsårsak, informasjonSomRevurderes).right()
+            is SimulertRevurdering -> revurdering.oppdater(nyPeriode, revurderingsårsak, informasjonSomRevurderes).right()
+            is UnderkjentRevurdering -> revurdering.oppdater(nyPeriode, revurderingsårsak, informasjonSomRevurderes).right()
             else -> KunneIkkeOppdatereRevurdering.UgyldigTilstand(
                 revurdering::class,
                 OpprettetRevurdering::class,

@@ -1,6 +1,6 @@
 ALTER TABLE revurdering
     ADD COLUMN IF NOT EXISTS
-        informasjonSomRevurderes jsonb not null default '{ "Uførhet": "Vurdert", "Inntekt": "Vurdert" }'::jsonb;
+        informasjonSomRevurderes jsonb not null default '{}'::jsonb;
 
 ALTER TABLE revurdering
     ALTER COLUMN informasjonSomRevurderes

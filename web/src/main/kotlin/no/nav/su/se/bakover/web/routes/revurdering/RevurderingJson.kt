@@ -85,7 +85,7 @@ internal data class BeregnetRevurderingJson(
     val forhåndsvarsel: ForhåndsvarselJson?,
     val behandlingsinformasjon: BehandlingsinformasjonJson,
     val vilkårsvurderinger: VilkårsvurderingerJson,
-    val tingSomSkalRevurderes: Map<Revurderingsteg, Vurderingstatus>,
+    val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
 ) : RevurderingJson()
 
 internal data class SimulertRevurderingJson(
@@ -103,7 +103,7 @@ internal data class SimulertRevurderingJson(
     val behandlingsinformasjon: BehandlingsinformasjonJson,
     val simulering: SimuleringJson,
     val vilkårsvurderinger: VilkårsvurderingerJson,
-    val tingSomSkalRevurderes: Map<Revurderingsteg, Vurderingstatus>,
+    val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
 ) : RevurderingJson()
 
 internal data class TilAttesteringJson(
@@ -122,7 +122,7 @@ internal data class TilAttesteringJson(
     val behandlingsinformasjon: BehandlingsinformasjonJson,
     val simulering: SimuleringJson?,
     val vilkårsvurderinger: VilkårsvurderingerJson,
-    val tingSomSkalRevurderes: Map<Revurderingsteg, Vurderingstatus>,
+    val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
 ) : RevurderingJson()
 
 internal data class IverksattRevurderingJson(
@@ -142,7 +142,7 @@ internal data class IverksattRevurderingJson(
     val behandlingsinformasjon: BehandlingsinformasjonJson,
     val simulering: SimuleringJson?,
     val vilkårsvurderinger: VilkårsvurderingerJson,
-    val tingSomSkalRevurderes: Map<Revurderingsteg, Vurderingstatus>,
+    val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
 ) : RevurderingJson()
 
 internal data class UnderkjentRevurderingJson(
@@ -162,7 +162,7 @@ internal data class UnderkjentRevurderingJson(
     val behandlingsinformasjon: BehandlingsinformasjonJson,
     val simulering: SimuleringJson?,
     val vilkårsvurderinger: VilkårsvurderingerJson,
-    val tingSomSkalRevurderes: Map<Revurderingsteg, Vurderingstatus>,
+    val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
 ) : RevurderingJson()
 
 internal fun Forhåndsvarsel.toJson() = when (this) {
@@ -232,7 +232,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         behandlingsinformasjon = behandlingsinformasjon.toJson(),
         simulering = simulering.toJson(),
         vilkårsvurderinger = vilkårsvurderinger.toJson(),
-        tingSomSkalRevurderes = informasjonSomRevurderes,
+        informasjonSomRevurderes = informasjonSomRevurderes,
     )
     is RevurderingTilAttestering -> TilAttesteringJson(
         id = id.toString(),
@@ -261,7 +261,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
             is RevurderingTilAttestering.Opphørt -> simulering.toJson()
         },
         vilkårsvurderinger = vilkårsvurderinger.toJson(),
-        tingSomSkalRevurderes = informasjonSomRevurderes,
+        informasjonSomRevurderes = informasjonSomRevurderes,
     )
     is IverksattRevurdering -> IverksattRevurderingJson(
         id = id.toString(),
@@ -291,7 +291,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
             is IverksattRevurdering.Opphørt -> simulering.toJson()
         },
         vilkårsvurderinger = vilkårsvurderinger.toJson(),
-        tingSomSkalRevurderes = informasjonSomRevurderes,
+        informasjonSomRevurderes = informasjonSomRevurderes,
     )
     is UnderkjentRevurdering -> UnderkjentRevurderingJson(
         id = id.toString(),
@@ -327,7 +327,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
             is UnderkjentRevurdering.Opphørt -> simulering.toJson()
         },
         vilkårsvurderinger = vilkårsvurderinger.toJson(),
-        tingSomSkalRevurderes = informasjonSomRevurderes,
+        informasjonSomRevurderes = informasjonSomRevurderes,
     )
     is BeregnetRevurdering -> BeregnetRevurderingJson(
         id = id.toString(),
@@ -346,7 +346,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         forhåndsvarsel = forhåndsvarsel?.toJson(),
         behandlingsinformasjon = behandlingsinformasjon.toJson(),
         vilkårsvurderinger = vilkårsvurderinger.toJson(),
-        tingSomSkalRevurderes = informasjonSomRevurderes,
+        informasjonSomRevurderes = informasjonSomRevurderes,
     )
 }
 

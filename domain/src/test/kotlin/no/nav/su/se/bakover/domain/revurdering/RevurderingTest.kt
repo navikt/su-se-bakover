@@ -57,7 +57,10 @@ internal class RevurderingTest {
                     ),
                 ),
             ),
-        ).beregn(emptyList()).orNull()!! shouldBe beOfType<BeregnetRevurdering.Opphørt>()
+        ).beregn(emptyList()).orNull()!!.let {
+            it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
+            it.informasjonSomRevurderes[Revurderingsteg.Inntekt] shouldBe Vurderingstatus.Vurdert
+        }
     }
 
     @Test
@@ -77,7 +80,10 @@ internal class RevurderingTest {
                     ),
                 ),
             ),
-        ).beregn(emptyList()).orNull()!! shouldNotBe beOfType<BeregnetRevurdering.Opphørt>()
+        ).beregn(emptyList()).orNull()!!.let {
+            it shouldNotBe beOfType<BeregnetRevurdering.Opphørt>()
+            it.informasjonSomRevurderes[Revurderingsteg.Inntekt] shouldBe Vurderingstatus.Vurdert
+        }
     }
 
     private fun lagRevurdering(
@@ -98,7 +104,7 @@ internal class RevurderingTest {
         },
         grunnlagsdata = Grunnlagsdata(uføregrunnlag = listOf()),
         vilkårsvurderinger = vilkårsvurderinger,
-        informasjonSomRevurderes = emptyMap(),
+        informasjonSomRevurderes = InformasjonSomRevurderes(emptyMap()),
     )
 
     private val tilRevurderingMock: Vedtak.EndringIYtelse = mock() {

@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
+import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
@@ -93,7 +94,7 @@ internal class VedtakPosgresRepoTest {
                 forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
                 behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
                 vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-                informasjonSomRevurderes = emptyMap(),
+                informasjonSomRevurderes = InformasjonSomRevurderes(emptyMap()),
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 
@@ -241,7 +242,7 @@ internal class VedtakPosgresRepoTest {
                 behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
                 grunnlagsdata = søknadsbehandlingVedtak.behandling.grunnlagsdata,
                 vilkårsvurderinger = søknadsbehandlingVedtak.behandling.vilkårsvurderinger,
-                informasjonSomRevurderes = emptyMap(),
+                informasjonSomRevurderes = InformasjonSomRevurderes(emptyMap()),
             )
             testDataHelper.revurderingRepo.lagre(atteststertRevurdering)
             val iverksattRevurdering = IverksattRevurdering.IngenEndring(
@@ -263,7 +264,7 @@ internal class VedtakPosgresRepoTest {
                 behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
                 grunnlagsdata = søknadsbehandlingVedtak.behandling.grunnlagsdata,
                 vilkårsvurderinger = søknadsbehandlingVedtak.behandling.vilkårsvurderinger,
-                informasjonSomRevurderes = emptyMap(),
+                informasjonSomRevurderes = InformasjonSomRevurderes(emptyMap()),
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 

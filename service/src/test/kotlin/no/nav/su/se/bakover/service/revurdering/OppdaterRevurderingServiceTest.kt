@@ -23,9 +23,12 @@ import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeslutningEtterForhåndsvarsling
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
+import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
+import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.fixedLocalDate
@@ -74,6 +77,12 @@ internal class OppdaterRevurderingServiceTest {
         Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
     )
 
+    private val informasjonSomRevurderes = InformasjonSomRevurderes(
+        mapOf(
+            Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
+        ),
+    )
+
     private val tilRevurdering = søknadsbehandlingVedtak.copy(periode = periode)
     private val opprettetRevurdering = OpprettetRevurdering(
         id = revurderingId,
@@ -88,7 +97,7 @@ internal class OppdaterRevurderingServiceTest {
         behandlingsinformasjon = behandlingsinformasjon,
         grunnlagsdata = Grunnlagsdata.EMPTY,
         vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-        informasjonSomRevurderes = emptyMap(),
+        informasjonSomRevurderes = informasjonSomRevurderes,
     )
 
     @Test
@@ -101,6 +110,7 @@ internal class OppdaterRevurderingServiceTest {
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "",
                 saksbehandler = saksbehandler,
+                informasjonSomRevurderes = informasjonSomRevurderes,
             ),
         )
         actual shouldBe KunneIkkeOppdatereRevurdering.UgyldigBegrunnelse.left()
@@ -117,6 +127,7 @@ internal class OppdaterRevurderingServiceTest {
                 årsak = "UGYLDIG_ÅRSAK",
                 begrunnelse = "gyldig begrunnelse",
                 saksbehandler = saksbehandler,
+                informasjonSomRevurderes = informasjonSomRevurderes,
             ),
         )
         actual shouldBe KunneIkkeOppdatereRevurdering.UgyldigÅrsak.left()
@@ -136,6 +147,7 @@ internal class OppdaterRevurderingServiceTest {
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "gyldig begrunnelse",
                 saksbehandler = saksbehandler,
+                informasjonSomRevurderes = informasjonSomRevurderes,
             ),
         )
         actual shouldBe KunneIkkeOppdatereRevurdering.FantIkkeRevurdering.left()
@@ -161,6 +173,7 @@ internal class OppdaterRevurderingServiceTest {
                 årsak = "REGULER_GRUNNBELØP",
                 begrunnelse = "gyldig begrunnelse",
                 saksbehandler = saksbehandler,
+                informasjonSomRevurderes = informasjonSomRevurderes,
             ),
         )
         actual shouldBe KunneIkkeOppdatereRevurdering.KanIkkeOppdatereRevurderingSomErForhåndsvarslet.left()
@@ -188,6 +201,7 @@ internal class OppdaterRevurderingServiceTest {
                 årsak = "REGULER_GRUNNBELØP",
                 begrunnelse = "gyldig begrunnelse",
                 saksbehandler = saksbehandler,
+                informasjonSomRevurderes = informasjonSomRevurderes,
             ),
         )
         actual shouldBe KunneIkkeOppdatereRevurdering.KanIkkeOppdatereRevurderingSomErForhåndsvarslet.left()
@@ -208,6 +222,7 @@ internal class OppdaterRevurderingServiceTest {
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "gyldig begrunnelse",
                 saksbehandler = saksbehandler,
+                informasjonSomRevurderes = informasjonSomRevurderes,
             ),
         )
         actual shouldBe KunneIkkeOppdatereRevurdering.PeriodeOgÅrsakKombinasjonErUgyldig.left()
@@ -228,6 +243,7 @@ internal class OppdaterRevurderingServiceTest {
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "gyldig begrunnelse",
                 saksbehandler = saksbehandler,
+                informasjonSomRevurderes = informasjonSomRevurderes,
             ),
         )
         actual shouldBe KunneIkkeOppdatereRevurdering.UgyldigPeriode(Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden)
@@ -258,7 +274,7 @@ internal class OppdaterRevurderingServiceTest {
                     forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
                     grunnlagsdata = Grunnlagsdata.EMPTY,
                     vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-                    informasjonSomRevurderes = emptyMap(),
+                    informasjonSomRevurderes = it.informasjonSomRevurderes,
                 )
             }
         }
@@ -270,6 +286,7 @@ internal class OppdaterRevurderingServiceTest {
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "gyldig begrunnelse",
                 saksbehandler = saksbehandler,
+                informasjonSomRevurderes = informasjonSomRevurderes,
             ),
         )
         actual shouldBe KunneIkkeOppdatereRevurdering.UgyldigTilstand(
@@ -294,6 +311,7 @@ internal class OppdaterRevurderingServiceTest {
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "Ny informasjon",
                 saksbehandler = saksbehandler,
+                informasjonSomRevurderes = informasjonSomRevurderes,
             ),
         ).getOrHandle {
             throw RuntimeException("$it")
@@ -312,7 +330,7 @@ internal class OppdaterRevurderingServiceTest {
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-            informasjonSomRevurderes = emptyMap(),
+            informasjonSomRevurderes = informasjonSomRevurderes,
         )
         inOrder(revurderingRepoMock) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
@@ -334,6 +352,7 @@ internal class OppdaterRevurderingServiceTest {
                 årsak = "REGULER_GRUNNBELØP",
                 begrunnelse = "g-regulering",
                 saksbehandler = saksbehandler,
+                informasjonSomRevurderes = informasjonSomRevurderes,
             ),
         ).getOrHandle { throw RuntimeException("$it") }
 
@@ -361,6 +380,7 @@ internal class OppdaterRevurderingServiceTest {
                 årsak = "REGULER_GRUNNBELØP",
                 begrunnelse = "g-regulering",
                 saksbehandler = saksbehandler,
+                informasjonSomRevurderes = informasjonSomRevurderes,
             ),
         ).getOrHandle { throw RuntimeException("$it") }
 
@@ -373,5 +393,24 @@ internal class OppdaterRevurderingServiceTest {
             verify(revurderingRepoMock).lagre(argThat { it.right() shouldBe actual.right() })
         }
         verifyNoMoreInteractions(revurderingRepoMock)
+    }
+
+    @Test
+    fun `må velge minst ting som skal revurderes`() {
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn opprettetRevurdering
+        }
+
+        val mocks = RevurderingServiceMocks(revurderingRepo = revurderingRepoMock)
+        mocks.revurderingService.oppdaterRevurdering(
+            OppdaterRevurderingRequest(
+                revurderingId = revurderingId,
+                fraOgMed = periode.fraOgMed,
+                årsak = "MELDING_FRA_BRUKER",
+                begrunnelse = "Ny informasjon",
+                saksbehandler = saksbehandler,
+                informasjonSomRevurderes = emptyMap(),
+            ),
+        ) shouldBe KunneIkkeOppdatereRevurdering.MåVelgeInformasjonSomSkalRevurderes.left()
     }
 }

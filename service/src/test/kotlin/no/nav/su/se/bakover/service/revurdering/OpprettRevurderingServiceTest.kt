@@ -38,9 +38,12 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
+import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
+import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
@@ -100,6 +103,10 @@ internal class OpprettRevurderingServiceTest {
     private val revurderingsårsak = Revurderingsårsak(
         Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
         Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
+    )
+
+    private val informasjonSomRevurderes = mapOf(
+        Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
     )
 
     private fun createBeregningMock() = mock<Beregning> {
@@ -189,7 +196,7 @@ internal class OpprettRevurderingServiceTest {
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "Ny informasjon",
                 saksbehandler = saksbehandler,
-                informasjonSomRevurderes = emptyMap(),
+                informasjonSomRevurderes = informasjonSomRevurderes,
             ),
         ).orNull()!!
 
@@ -207,7 +214,7 @@ internal class OpprettRevurderingServiceTest {
             behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-            informasjonSomRevurderes = emptyMap(),
+            informasjonSomRevurderes = InformasjonSomRevurderes(informasjonSomRevurderes),
         )
         inOrder(
             sakServiceMock,
@@ -286,7 +293,7 @@ internal class OpprettRevurderingServiceTest {
                 årsak = "REGULER_GRUNNBELØP",
                 begrunnelse = "g-regulering",
                 saksbehandler = saksbehandler,
-                informasjonSomRevurderes = emptyMap(),
+                informasjonSomRevurderes = informasjonSomRevurderes,
             ),
         ).getOrHandle {
             throw RuntimeException("$it")
@@ -309,14 +316,14 @@ internal class OpprettRevurderingServiceTest {
             behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-            informasjonSomRevurderes = emptyMap(),
+            informasjonSomRevurderes = InformasjonSomRevurderes(informasjonSomRevurderes),
         )
         inOrder(
             sakServiceMock,
             personServiceMock,
             oppgaveServiceMock,
             revurderingRepoMock,
-            vilkårsvurderingServiceMock
+            vilkårsvurderingServiceMock,
         ) {
             verify(sakServiceMock).hentSak(sakId)
             verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
@@ -369,7 +376,7 @@ internal class OpprettRevurderingServiceTest {
                 årsak = "REGULER_GRUNNBELØP",
                 begrunnelse = "g-regulering",
                 saksbehandler = saksbehandler,
-                informasjonSomRevurderes = emptyMap(),
+                informasjonSomRevurderes = informasjonSomRevurderes,
             ),
         ).getOrHandle {
             throw RuntimeException("$it")
@@ -391,7 +398,7 @@ internal class OpprettRevurderingServiceTest {
             behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-            informasjonSomRevurderes = emptyMap(),
+            informasjonSomRevurderes = InformasjonSomRevurderes(informasjonSomRevurderes),
         )
         inOrder(
             sakServiceMock,
@@ -581,7 +588,7 @@ internal class OpprettRevurderingServiceTest {
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "Ny informasjon",
                 saksbehandler = saksbehandler,
-                informasjonSomRevurderes = emptyMap(),
+                informasjonSomRevurderes = informasjonSomRevurderes,
             ),
         )
 
@@ -596,7 +603,7 @@ internal class OpprettRevurderingServiceTest {
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "Ny informasjon",
                 saksbehandler = saksbehandler,
-                informasjonSomRevurderes = emptyMap(),
+                InformasjonSomRevurderes(informasjonSomRevurderes),
             ),
         )
 
@@ -625,7 +632,7 @@ internal class OpprettRevurderingServiceTest {
                 behandlingsinformasjon = opprinneligVedtak.behandlingsinformasjon,
                 grunnlagsdata = Grunnlagsdata.EMPTY,
                 vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-                informasjonSomRevurderes = emptyMap(),
+                informasjonSomRevurderes = InformasjonSomRevurderes(emptyMap()),
             )
             it.copy(
                 revurderinger = listOf(
@@ -665,7 +672,7 @@ internal class OpprettRevurderingServiceTest {
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "Ny informasjon",
                 saksbehandler = saksbehandler,
-                informasjonSomRevurderes = emptyMap(),
+                informasjonSomRevurderes = informasjonSomRevurderes,
             ),
         )
 
@@ -786,7 +793,7 @@ internal class OpprettRevurderingServiceTest {
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "Ny informasjon",
                 saksbehandler = saksbehandler,
-                informasjonSomRevurderes = emptyMap(),
+                informasjonSomRevurderes = informasjonSomRevurderes,
             ),
         )
         actual shouldBe KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave.left()
@@ -802,6 +809,39 @@ internal class OpprettRevurderingServiceTest {
                 )
             },
         )
+        mocks.verifyNoMoreInteractions()
+    }
+
+    @Test
+    fun `må velge minst ting som skal revurderes`() {
+        val sak = createSak()
+
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(sakId) } doReturn sak.right()
+        }
+
+        val personServiceMock = mock<PersonService> {
+            on { hentAktørId(any()) } doReturn aktørId.right()
+        }
+
+        val mocks = RevurderingServiceMocks(
+            sakService = sakServiceMock,
+            personService = personServiceMock,
+        )
+        val actual = mocks.revurderingService.opprettRevurdering(
+            OpprettRevurderingRequest(
+                sakId = sakId,
+                fraOgMed = periode.fraOgMed,
+                årsak = "MELDING_FRA_BRUKER",
+                begrunnelse = "Ny informasjon",
+                saksbehandler = saksbehandler,
+                informasjonSomRevurderes = emptyMap(),
+            ),
+        )
+
+        actual shouldBe KunneIkkeOppretteRevurdering.MåVelgeInformasjonSomSkalRevurderes.left()
+        verify(sakServiceMock).hentSak(sakId)
+        verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
         mocks.verifyNoMoreInteractions()
     }
 }

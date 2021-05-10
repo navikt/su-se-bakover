@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -39,7 +40,10 @@ internal class OpprettRevurderingRouteKtTest {
         {
          "fraOgMed": "${periode.fraOgMed}",
          "årsak": "ANDRE_KILDER",
-         "begrunnelse": "begrunnelse"
+         "begrunnelse": "begrunnelse",
+         "informasjonSomRevurderes" : {
+          "Uførhet": "IkkeVurdert"
+         }
         }
     """.trimIndent()
 
@@ -89,7 +93,7 @@ internal class OpprettRevurderingRouteKtTest {
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-            informasjonSomRevurderes = emptyMap(),
+            informasjonSomRevurderes = InformasjonSomRevurderes(emptyMap()),
         )
         val revurderingServiceMock = mock<RevurderingService> {
             on { opprettRevurdering(any()) } doReturn opprettetRevurdering.right()
@@ -110,7 +114,10 @@ internal class OpprettRevurderingRouteKtTest {
                     {
                         "fraOgMed": "${periode.fraOgMed}",
                         "årsak":"DØDSFALL",
-                        "begrunnelse":"begrunnelse"
+                        "begrunnelse":"begrunnelse",
+                        "informasjonSomRevurderes": {
+                            "Uførhet": "IkkeVurdert"
+                        }
                     }
                 """.trimMargin(),
                 )
@@ -205,6 +212,21 @@ internal class OpprettRevurderingRouteKtTest {
                 {
                     "message":"FraOgMedDatoMåVæreFørsteDagIMåneden",
                     "code":"ugyldig_periode"
+                }
+            """.trimIndent(),
+
+        )
+    }
+
+    @Test
+    fun `må velge minst en ting å revurdere`() {
+        shouldMapErrorCorrectly(
+            error = KunneIkkeOppretteRevurdering.MåVelgeInformasjonSomSkalRevurderes,
+            expectedStatusCode = HttpStatusCode.BadRequest,
+            expectedJsonResponse = """
+                {
+                    "message":"Må velge minst en ting som skal revurderes",
+                    "code":"må_velge_informasjon_som_revurderes"
                 }
             """.trimIndent(),
 
