@@ -4,11 +4,11 @@ val orgJsonVersion = "20201115"
 val tjenestespesifikasjonVersion = "2558.a410ffd"
 val cxfVersion = "3.4.2"
 val jettyVersion = "9.4.36.v20210114"
+
 dependencies {
     implementation(project(":common"))
     implementation(project(":domain"))
 
-    implementation("io.ktor:ktor-client-java:1.5.4")
     implementation("com.github.kittinunf.fuel:fuel:$fuelVersion")
     implementation("com.github.kittinunf.fuel:fuel-gson:$fuelVersion")
     implementation("javax.xml.bind:jaxb-api:2.3.1")

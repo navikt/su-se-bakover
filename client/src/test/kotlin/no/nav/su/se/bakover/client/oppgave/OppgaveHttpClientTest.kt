@@ -1,12 +1,14 @@
 package no.nav.su.se.bakover.client.oppgave
 
 import com.github.tomakehurst.wiremock.client.WireMock
+import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
 import com.github.tomakehurst.wiremock.client.WireMock.forbidden
 import com.github.tomakehurst.wiremock.client.WireMock.get
 import com.github.tomakehurst.wiremock.client.WireMock.patch
 import com.github.tomakehurst.wiremock.client.WireMock.patchRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
+import com.github.tomakehurst.wiremock.http.Fault
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
@@ -780,9 +782,40 @@ internal class OppgaveHttpClientTest : WiremockBase {
             OppgaveConfig.AttesterRevurdering(
                 saksnummer = saksnummer,
                 aktørId = AktørId(aktørId),
-                tilordnetRessurs = null
-            )
+                tilordnetRessurs = null,
+            ),
         ) shouldBeRight OppgaveId("111")
+    }
+
+    @Test
+    fun `opprett oppgave feiler med connection reset by peer`() {
+        wireMockServer.stubFor(
+            WireMock.post(
+                urlPathEqualTo(oppgavePath),
+            ).willReturn(
+                aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER),
+            ),
+        )
+
+        val oathMock = mock<OAuth> {
+            on { onBehalfOfToken(any(), any()) } doReturn "token"
+        }
+        val client = OppgaveHttpClient(
+            connectionConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
+                clientId = "oppgaveClientId",
+                url = wireMockServer.baseUrl(),
+            ),
+            exchange = oathMock,
+            tokenoppslagForSystembruker = mock(),
+            clock = fixedEpochClock,
+        )
+        client.opprettOppgave(
+            OppgaveConfig.AttesterRevurdering(
+                saksnummer = saksnummer,
+                aktørId = AktørId(aktørId),
+                tilordnetRessurs = null,
+            ),
+        ) shouldBeLeft KunneIkkeOppretteOppgave
     }
 
     private val stubMapping = WireMock.post(urlPathEqualTo(oppgavePath))

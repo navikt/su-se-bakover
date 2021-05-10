@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.client
 
-import com.github.kittinunf.fuel.core.FuelManager
 import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.client.dkif.DigitalKontaktinformasjon
 import no.nav.su.se.bakover.client.dokarkiv.DokArkiv
@@ -37,10 +36,5 @@ data class Clients(
     val microsoftGraphApiClient: MicrosoftGraphApiOppslag,
     val digitalKontaktinformasjon: DigitalKontaktinformasjon,
     val leaderPodLookup: LeaderPodLookup,
-    val kafkaPublisher: KafkaPublisher
-) {
-    init {
-        // https://fuel.gitbook.io/documentation/core/fuel
-        FuelManager.instance.forceMethods = true
-    }
-}
+    val kafkaPublisher: KafkaPublisher,
+)
