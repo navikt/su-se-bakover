@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
-import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.service.revurdering.OppdaterRevurderingRequest
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
@@ -38,7 +37,7 @@ internal fun Route.oppdaterRevurderingRoute(
         val fraOgMed: LocalDate,
         val årsak: String,
         val begrunnelse: String,
-        val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
+        val informasjonSomRevurderes: List<Revurderingsteg>,
     )
 
     authorize(Brukerrolle.Saksbehandler) {

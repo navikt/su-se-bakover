@@ -55,6 +55,7 @@ import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
+import org.jetbrains.kotlin.utils.keysToMap
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -153,7 +154,7 @@ internal class RevurderingServiceImpl(
                 behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
                 grunnlagsdata = grunnlag,
                 vilkårsvurderinger = vilkårsvurderinger,
-                informasjonSomRevurderes = InformasjonSomRevurderes(opprettRevurderingRequest.informasjonSomRevurderes),
+                informasjonSomRevurderes = InformasjonSomRevurderes(opprettRevurderingRequest.informasjonSomRevurderes.keysToMap { Vurderingstatus.IkkeVurdert }),
             ).also {
                 revurderingRepo.lagre(it)
 
@@ -271,7 +272,7 @@ internal class RevurderingServiceImpl(
             return KunneIkkeOppdatereRevurdering.MåVelgeInformasjonSomSkalRevurderes.left()
         }
 
-        val informasjonSomRevurderes = InformasjonSomRevurderes(oppdaterRevurderingRequest.informasjonSomRevurderes.mapValues { Vurderingstatus.IkkeVurdert })
+        val informasjonSomRevurderes = InformasjonSomRevurderes(oppdaterRevurderingRequest.informasjonSomRevurderes.keysToMap { Vurderingstatus.IkkeVurdert })
 
         // TODO jm: utled nytt grunnlag ved oppdatering av revrurdering av periode, endring av informasjon som revurderes etc.
         return when (revurdering) {

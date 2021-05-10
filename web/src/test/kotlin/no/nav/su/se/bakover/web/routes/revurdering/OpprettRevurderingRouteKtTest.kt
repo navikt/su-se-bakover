@@ -41,9 +41,7 @@ internal class OpprettRevurderingRouteKtTest {
          "fraOgMed": "${periode.fraOgMed}",
          "årsak": "ANDRE_KILDER",
          "begrunnelse": "begrunnelse",
-         "informasjonSomRevurderes" : {
-          "Uførhet": "IkkeVurdert"
-         }
+         "informasjonSomRevurderes" : ["Uførhet"]
         }
     """.trimIndent()
 
@@ -115,9 +113,7 @@ internal class OpprettRevurderingRouteKtTest {
                         "fraOgMed": "${periode.fraOgMed}",
                         "årsak":"DØDSFALL",
                         "begrunnelse":"begrunnelse",
-                        "informasjonSomRevurderes": {
-                            "Uførhet": "IkkeVurdert"
-                        }
+                        "informasjonSomRevurderes": ["Uførhet"]
                     }
                 """.trimMargin(),
                 )

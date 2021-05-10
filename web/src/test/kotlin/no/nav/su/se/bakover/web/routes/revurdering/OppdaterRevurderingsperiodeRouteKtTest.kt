@@ -41,9 +41,7 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
          "fraOgMed": "${periode.fraOgMed}",
          "årsak":"INFORMASJON_FRA_KONTROLLSAMTALE",
          "begrunnelse":"begrunnelse",
-         "informasjonSomRevurderes": {
-            "Inntekt": "IkkeVurdert"
-         }
+         "informasjonSomRevurderes": ["Uførhet"]
         }
     """.trimMargin()
 
@@ -117,9 +115,7 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
                         "fraOgMed": "${periode.fraOgMed}",
                         "årsak":"DØDSFALL",
                         "begrunnelse":"begrunnelse",
-                        "informasjonSomRevurderes": {
-                            "Inntekt": "IkkeVurdert"
-                        }
+                        "informasjonSomRevurderes": ["Inntekt"]
                     }
 
                 """.trimMargin(),

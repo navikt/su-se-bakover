@@ -61,7 +61,6 @@ import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
-import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakType
@@ -144,7 +143,7 @@ internal class RevurderingServiceImplTest {
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "Ny informasjon",
                 saksbehandler = saksbehandler,
-                informasjonSomRevurderes = mapOf(Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert),
+                informasjonSomRevurderes = listOf(Revurderingsteg.Uførhet),
             ),
         ).getOrHandle { throw RuntimeException("Skal ikke kunne skje") }
 
@@ -190,7 +189,7 @@ internal class RevurderingServiceImplTest {
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "Ny informasjon",
                 saksbehandler = saksbehandler,
-                informasjonSomRevurderes = emptyMap(),
+                informasjonSomRevurderes = emptyList(),
             ),
         )
 
@@ -231,7 +230,7 @@ internal class RevurderingServiceImplTest {
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "Ny informasjon",
                 saksbehandler = saksbehandler,
-                informasjonSomRevurderes = emptyMap(),
+                informasjonSomRevurderes = emptyList(),
             ),
         )
 
@@ -249,7 +248,7 @@ internal class RevurderingServiceImplTest {
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "Ny informasjon",
                 saksbehandler = saksbehandler,
-                informasjonSomRevurderes = emptyMap(),
+                informasjonSomRevurderes = emptyList(),
             ),
         )
 

@@ -77,10 +77,8 @@ internal class OppdaterRevurderingServiceTest {
         Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
     )
 
-    private val informasjonSomRevurderes = InformasjonSomRevurderes(
-        mapOf(
-            Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
-        ),
+    private val informasjonSomRevurderes = listOf(
+        Revurderingsteg.Uførhet
     )
 
     private val tilRevurdering = søknadsbehandlingVedtak.copy(periode = periode)
@@ -97,7 +95,7 @@ internal class OppdaterRevurderingServiceTest {
         behandlingsinformasjon = behandlingsinformasjon,
         grunnlagsdata = Grunnlagsdata.EMPTY,
         vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-        informasjonSomRevurderes = informasjonSomRevurderes,
+        informasjonSomRevurderes = InformasjonSomRevurderes(mapOf(Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert)),
     )
 
     @Test
@@ -330,7 +328,7 @@ internal class OppdaterRevurderingServiceTest {
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-            informasjonSomRevurderes = informasjonSomRevurderes,
+            informasjonSomRevurderes = InformasjonSomRevurderes(mapOf(Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert)),
         )
         inOrder(revurderingRepoMock) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
@@ -409,7 +407,7 @@ internal class OppdaterRevurderingServiceTest {
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "Ny informasjon",
                 saksbehandler = saksbehandler,
-                informasjonSomRevurderes = emptyMap(),
+                informasjonSomRevurderes = emptyList(),
             ),
         ) shouldBe KunneIkkeOppdatereRevurdering.MåVelgeInformasjonSomSkalRevurderes.left()
     }
