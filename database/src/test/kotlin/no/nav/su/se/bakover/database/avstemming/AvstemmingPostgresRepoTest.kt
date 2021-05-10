@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.antall
 import no.nav.su.se.bakover.database.fixedTidspunkt
-import no.nav.su.se.bakover.database.oppdatering
+import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
@@ -70,7 +70,7 @@ internal class AvstemmingPostgresRepoTest {
                 """
                     insert into utbetaling (id, opprettet, sakId, fnr, type, behandler, avstemmingsnøkkel, simulering, utbetalingsrequest)
                     values (:id, :opprettet, :sakId, :fnr, :type, :behandler, to_json(:avstemmingsnokkel::json), to_json(:simulering::json), to_json(:utbetalingsrequest::json))
-                 """.oppdatering(
+                 """.insert(
                     mapOf(
                         "id" to UUID30.randomUUID(),
                         "opprettet" to fixedTidspunkt,
