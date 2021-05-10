@@ -28,8 +28,8 @@ import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -314,9 +314,9 @@ internal class OppgaveHttpClientTest : WiremockBase {
             OppgaveConfig.Saksbehandling(
                 journalpostId,
                 søknadId,
-                AktørId(aktørId)
-            )
-        ) shouldBeLeft KunneIkkeOppretteOppgave
+                AktørId(aktørId),
+            ),
+        ) shouldBeLeft OppgaveFeil.KunneIkkeOppretteOppgave
     }
 
     @Test

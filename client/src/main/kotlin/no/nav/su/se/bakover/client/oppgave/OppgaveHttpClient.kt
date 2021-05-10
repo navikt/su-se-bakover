@@ -18,10 +18,9 @@ import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.common.unsafeCatch
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.Tema
-import no.nav.su.se.bakover.domain.oppgave.KunneIkkeLukkeOppgave
-import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -51,27 +50,36 @@ internal class OppgaveHttpClient(
         .followRedirects(HttpClient.Redirect.NEVER)
         .build()
 
-    override fun opprettOppgaveMedSystembruker(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, OppgaveId> {
+    override fun opprettOppgaveMedSystembruker(config: OppgaveConfig): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveId> {
         return opprettOppgave(config, tokenoppslagForSystembruker.token())
     }
 
-    override fun opprettOppgave(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, OppgaveId> {
+    override fun opprettOppgave(config: OppgaveConfig): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveId> {
         return onBehalfOfToken()
-            .mapLeft { KunneIkkeOppretteOppgave }
+            .mapLeft { OppgaveFeil.KunneIkkeOppretteOppgave }
             .flatMap { opprettOppgave(config, it) }
     }
 
-    override fun lukkOppgaveMedSystembruker(oppgaveId: OppgaveId): Either<KunneIkkeLukkeOppgave, Unit> {
+    override fun lukkOppgaveMedSystembruker(oppgaveId: OppgaveId): Either<OppgaveFeil.KunneIkkeLukkeOppgave, Unit> {
         return lukkOppgave(oppgaveId, tokenoppslagForSystembruker.token())
     }
 
-    override fun lukkOppgave(oppgaveId: OppgaveId): Either<KunneIkkeLukkeOppgave, Unit> {
+    override fun lukkOppgave(oppgaveId: OppgaveId): Either<OppgaveFeil.KunneIkkeLukkeOppgave, Unit> {
         return onBehalfOfToken()
-            .mapLeft { KunneIkkeLukkeOppgave }
+            .mapLeft { OppgaveFeil.KunneIkkeLukkeOppgave }
             .flatMap { lukkOppgave(oppgaveId, it) }
     }
 
-    private fun onBehalfOfToken(): Either<KunneIkkeLageToken, String> {
+    override fun oppdaterOppgave(
+        oppgaveId: OppgaveId,
+        beskrivelse: String,
+    ): Either<OppgaveFeil.KunneIkkeOppdatereOppgave, Unit> {
+        return onBehalfOfToken()
+            .mapLeft { OppgaveFeil.KunneIkkeOppdatereOppgave }
+            .flatMap { oppdaterOppgave(oppgaveId, it, beskrivelse) }
+    }
+
+    private fun onBehalfOfToken(): Either<OppgaveFeil.KunneIkkeLageToken, String> {
         return Either.unsafeCatch {
             exchange.onBehalfOfToken(MDC.get("Authorization"), connectionConfig.clientId)
         }.mapLeft { throwable ->
@@ -79,24 +87,27 @@ internal class OppgaveHttpClient(
                 "Kunne ikke lage onBehalfOfToken for oppgave med klient id ${connectionConfig.clientId}",
                 throwable,
             )
-            KunneIkkeLageToken
+            OppgaveFeil.KunneIkkeLageToken
         }.map {
             it
         }
     }
 
-    private fun opprettOppgave(config: OppgaveConfig, token: String): Either<KunneIkkeOppretteOppgave, OppgaveId> {
+    private fun opprettOppgave(
+        config: OppgaveConfig,
+        token: String,
+    ): Either<OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveId> {
         val aktivDato = LocalDate.now(clock)
 
         val beskrivelse = when (config) {
             is OppgaveConfig.Attestering, is OppgaveConfig.Saksbehandling ->
                 "--- ${
-                Tidspunkt.now(clock).toOppgaveFormat()
+                    Tidspunkt.now(clock).toOppgaveFormat()
                 } - Opprettet av Supplerende Stønad ---\nSøknadId : ${config.saksreferanse}"
 
-            is OppgaveConfig.Revurderingsbehandling, is OppgaveConfig.AttesterRevurdering, is OppgaveConfig.Forhåndsvarsling ->
+            is OppgaveConfig.Revurderingsbehandling, is OppgaveConfig.AttesterRevurdering ->
                 "--- ${
-                Tidspunkt.now(clock).toOppgaveFormat()
+                    Tidspunkt.now(clock).toOppgaveFormat()
                 } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}"
         }
 
@@ -137,24 +148,24 @@ internal class OppgaveHttpClient(
                     objectMapper.readValue(body, OppgaveResponse::class.java).getOppgaveId().right()
                 } else {
                     log.error("Feil i kallet mot oppgave. status=${it.statusCode()}, body=$body")
-                    KunneIkkeOppretteOppgave.left()
+                    OppgaveFeil.KunneIkkeOppretteOppgave.left()
                 }
             }
         }.mapLeft { throwable ->
             log.error("Feil i kallet mot oppgave.", throwable)
-            KunneIkkeOppretteOppgave
+            OppgaveFeil.KunneIkkeOppretteOppgave
         }.flatten()
     }
 
-    private fun lukkOppgave(oppgaveId: OppgaveId, token: String): Either<KunneIkkeLukkeOppgave, Unit> {
+    private fun lukkOppgave(oppgaveId: OppgaveId, token: String): Either<OppgaveFeil.KunneIkkeLukkeOppgave, Unit> {
         return hentOppgave(oppgaveId, token).mapLeft {
-            KunneIkkeLukkeOppgave
+            OppgaveFeil.KunneIkkeLukkeOppgave
         }.flatMap {
             if (it.erFerdigstilt()) {
                 log.info("Oppgave $oppgaveId er allerede lukket")
                 Unit.right()
             } else {
-                lukkOppgave(it, token).map { }
+                lukkOppgave(it.getOppgaveId(), token).map { }
             }
         }
     }
@@ -162,7 +173,7 @@ internal class OppgaveHttpClient(
     private fun hentOppgave(
         oppgaveId: OppgaveId,
         token: String,
-    ): Either<KunneIkkeSøkeEtterOppgave, OppgaveResponse> {
+    ): Either<OppgaveFeil.KunneIkkeSøkeEtterOppgave, OppgaveResponse> {
         return Either.unsafeCatch {
             val request = HttpRequest.newBuilder()
                 .uri(URI.create("${connectionConfig.url}$oppgavePath/$oppgaveId"))
@@ -179,23 +190,54 @@ internal class OppgaveHttpClient(
                     oppgave.right()
                 } else {
                     log.error("Feil ved hent av oppgave $oppgaveId. status=${it.statusCode()} body=${it.body()}")
-                    KunneIkkeSøkeEtterOppgave.left()
+                    OppgaveFeil.KunneIkkeSøkeEtterOppgave.left()
                 }
             }
         }.mapLeft { throwable ->
             log.error("Feil i kallet mot oppgave.", throwable)
-            KunneIkkeSøkeEtterOppgave
+            OppgaveFeil.KunneIkkeSøkeEtterOppgave
         }.flatten()
+    }
+
+    private fun oppdaterOppgave(
+        oppgaveId: OppgaveId,
+        token: String,
+        beskrivelse: String,
+    ): Either<OppgaveFeil.KunneIkkeOppdatereOppgave, Unit> {
+        return hentOppgave(oppgaveId, token).mapLeft {
+            OppgaveFeil.KunneIkkeOppdatereOppgave
+        }.flatMap {
+            if (it.erFerdigstilt()) {
+                log.info("Oppgave $oppgaveId kunne ikke oppdateres fordi den allerede er ferdigstilt")
+                OppgaveFeil.KunneIkkeOppdatereOppgave.left()
+            } else {
+                oppdaterOppgave(it, token, beskrivelse).map { }.mapLeft {
+                    OppgaveFeil.KunneIkkeOppdatereOppgave
+                }
+            }
+        }
+    }
+
+    private fun oppdaterOppgave(
+        oppgave: OppgaveResponse,
+        token: String,
+        beskrivelse: String,
+    ): Either<OppgaveFeil.KunneIkkeOppdatereOppgave, OppdatertOppgaveResponse> {
+        return lukkOppgave(oppgave, token, oppgave.status, beskrivelse).mapLeft {
+            OppgaveFeil.KunneIkkeOppdatereOppgave
+        }
     }
 
     private fun lukkOppgave(
         oppgave: OppgaveResponse,
         token: String,
-    ): Either<KunneIkkeLukkeOppgave, LukkOppgaveResponse> {
-        val beskrivelse =
+        status: String,
+        beskrivelse: String,
+    ): Either<OppgaveFeil.KunneIkkeLukkeOppgave, OppdatertOppgaveResponse> {
+        val internalBeskrivelse =
             "--- ${
-            Tidspunkt.now(clock).toOppgaveFormat()
-            } - Lukket av Supplerende Stønad ---\nSøknadId : ${oppgave.saksreferanse}"
+                Tidspunkt.now(clock).toOppgaveFormat()
+            } - $beskrivelse ---\nSøknadId : ${oppgave.saksreferanse}"
 
         return Either.unsafeCatch {
             val request = HttpRequest.newBuilder()
@@ -211,10 +253,10 @@ internal class OppgaveHttpClient(
                                 id = oppgave.id,
                                 versjon = oppgave.versjon,
                                 beskrivelse = oppgave.beskrivelse?.let {
-                                    beskrivelse.plus("\n\n").plus(oppgave.beskrivelse)
+                                    internalBeskrivelse.plus("\n\n").plus(oppgave.beskrivelse)
                                 }
-                                    ?: beskrivelse,
-                                status = "FERDIGSTILT",
+                                    ?: internalBeskrivelse,
+                                status = status,
                             ),
                         ),
                     ),
@@ -227,15 +269,15 @@ internal class OppgaveHttpClient(
                         "Endret oppgave ${oppgave.id} med versjon ${oppgave.versjon} sin status til FERDIGSTILT"
                     log.info("$loggmelding. Response-json finnes i sikkerlogg.")
                     sikkerLogg.info("$loggmelding. Response-json: $it")
-                    objectMapper.readValue(it.body(), LukkOppgaveResponse::class.java).right()
+                    objectMapper.readValue(it.body(), OppdatertOppgaveResponse::class.java).right()
                 } else {
                     log.error("Kunne ikke endre oppgave ${oppgave.id} med status=${it.statusCode()} og body=${it.body()}")
-                    KunneIkkeLukkeOppgave.left()
+                    OppgaveFeil.KunneIkkeLukkeOppgave.left()
                 }
             }
         }.mapLeft { throwable ->
             log.error("Kunne ikke endre oppgave ${oppgave.id}.", throwable)
-            KunneIkkeLukkeOppgave
+            OppgaveFeil.KunneIkkeLukkeOppgave
         }.flatten()
     }
 
@@ -243,7 +285,4 @@ internal class OppgaveHttpClient(
         private fun Tidspunkt.toOppgaveFormat() = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm")
             .withZone(zoneIdOslo).format(this)
     }
-
-    private object KunneIkkeSøkeEtterOppgave
-    private object KunneIkkeLageToken
 }
