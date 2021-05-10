@@ -24,6 +24,10 @@ sealed class Grunnlag : KanPlasseresPåTidslinje<Grunnlag> {
             if (forventetInntekt < 0) throw IllegalArgumentException("forventetInntekt kan ikke være mindre enn 0")
         }
 
+        fun oppdaterPeriode(periode: Periode): Uføregrunnlag {
+            return this.copy(periode = periode)
+        }
+
         override fun copy(args: CopyArgs.Tidslinje): Uføregrunnlag = when (args) {
             CopyArgs.Tidslinje.Full -> {
                 this.copy(id = UUID.randomUUID())
@@ -39,6 +43,10 @@ sealed class Grunnlag : KanPlasseresPåTidslinje<Grunnlag> {
         override val opprettet: Tidspunkt = Tidspunkt.now(),
         override val periode: Periode,
     ) : Grunnlag() {
+
+        fun oppdaterPeriode(periode: Periode): Flyktninggrunnlag {
+            return this.copy(periode = periode)
+        }
 
         override fun copy(args: CopyArgs.Tidslinje): Flyktninggrunnlag = when (args) {
             CopyArgs.Tidslinje.Full -> {

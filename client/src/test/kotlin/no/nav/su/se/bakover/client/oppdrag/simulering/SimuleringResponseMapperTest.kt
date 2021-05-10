@@ -766,4 +766,159 @@ internal class SimuleringResponseMapperTest {
          </response>
       </simulerBeregningResponse>
     """.trimIndent()
+
+    @Test
+    fun `filtrerer vekk detaljer som er ukjent eller uinteressant`() {
+        val responseMedFremtidigUtbetaling = XmlMapper.readValue(xmlResponseMedUinteressanteKoder, GrensesnittResponse::class.java).response
+        SimuleringResponseMapper(responseMedFremtidigUtbetaling).simulering shouldBe Simulering(
+            gjelderId = fnr,
+            gjelderNavn = navn,
+            datoBeregnet = 14.april(2021),
+            nettoBeløp = 10390,
+            periodeList = listOf(
+                SimulertPeriode(
+                    fraOgMed = 1.april(2021),
+                    tilOgMed = 30.april(2021),
+                    utbetaling = listOf(
+                        SimulertUtbetaling(
+                            fagSystemId = fagsystemId,
+                            utbetalesTilId = fnr,
+                            utbetalesTilNavn = navn,
+                            forfall = 19.april(2021),
+                            feilkonto = false,
+                            detaljer = listOf(
+                                SimulertDetaljer(
+                                    faktiskFraOgMed = 1.april(2021),
+                                    faktiskTilOgMed = 30.april(2021),
+                                    konto = konto,
+                                    belop = 20779,
+                                    tilbakeforing = false,
+                                    sats = 20779,
+                                    typeSats = typeSats,
+                                    antallSats = 1,
+                                    uforegrad = 0,
+                                    klassekode = KlasseKode.SUUFORE,
+                                    klassekodeBeskrivelse = suBeskrivelse,
+                                    klasseType = KlasseType.YTEL,
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+    }
+
+    //language=xml
+    private val xmlResponseMedUinteressanteKoder = """
+    <simulerBeregningResponse xmlns="http://nav.no/system/os/tjenester/simulerFpService/simulerFpServiceGrensesnitt">
+             <response xmlns="">
+                <simulering>
+                   <gjelderId>$fnr</gjelderId>
+                   <gjelderNavn>$navn</gjelderNavn>
+                   <datoBeregnet>2521-04-07</datoBeregnet>
+                   <kodeFaggruppe>INNT</kodeFaggruppe>
+                   <belop>10390.00</belop>
+                   <beregningsPeriode xmlns="http://nav.no/system/os/entiteter/beregningSkjema">
+                      <periodeFom xmlns="">2021-04-01</periodeFom>
+                      <periodeTom xmlns="">2021-04-30</periodeTom>
+                      <beregningStoppnivaa>
+                         <kodeFagomraade xmlns="">SUUFORE</kodeFagomraade>
+                         <stoppNivaaId xmlns="">1</stoppNivaaId>
+                         <behandlendeEnhet xmlns="">8020</behandlendeEnhet>
+                         <oppdragsId xmlns="">53387554</oppdragsId>
+                         <fagsystemId xmlns="">$fagsystemId</fagsystemId>
+                         <kid xmlns=""/>
+                         <utbetalesTilId xmlns="">$fnr</utbetalesTilId>
+                         <utbetalesTilNavn xmlns="">$navn</utbetalesTilNavn>
+                         <bilagsType xmlns="">U</bilagsType>
+                         <forfall xmlns="">2021-04-19</forfall>
+                         <feilkonto xmlns="">false</feilkonto>
+                         <beregningStoppnivaaDetaljer>
+                            <faktiskFom xmlns="">2021-04-01</faktiskFom>
+                            <faktiskTom xmlns="">2021-04-30</faktiskTom>
+                            <kontoStreng xmlns="">$konto</kontoStreng>
+                            <behandlingskode xmlns="">2</behandlingskode>
+                            <belop xmlns="">20779.00</belop>
+                            <trekkVedtakId xmlns="">0</trekkVedtakId>
+                            <stonadId xmlns=""></stonadId>
+                            <korrigering xmlns=""></korrigering>
+                            <tilbakeforing xmlns="">false</tilbakeforing>
+                            <linjeId xmlns="">3</linjeId>
+                            <sats xmlns="">20779.00</sats>
+                            <typeSats xmlns="">MND</typeSats>
+                            <antallSats xmlns="">1.00</antallSats>
+                            <saksbehId xmlns="">Z123</saksbehId>
+                            <uforeGrad xmlns="">0</uforeGrad>
+                            <kravhaverId xmlns=""></kravhaverId>
+                            <delytelseId xmlns="">0adee7fd-f21b-4fcb-9dc0-e2234a</delytelseId>
+                            <bostedsenhet xmlns="">8020</bostedsenhet>
+                            <skykldnerId xmlns=""></skykldnerId>
+                            <klassekode xmlns="">SUUFORE</klassekode>
+                            <klasseKodeBeskrivelse xmlns="">Supplerende stønad Uføre</klasseKodeBeskrivelse>
+                            <typeKlasse xmlns="">YTEL</typeKlasse>
+                            <typeKlasseBeskrivelse xmlns="">Klassetype for ytelseskonti</typeKlasseBeskrivelse>
+                            <refunderesOrgNr xmlns=""></refunderesOrgNr>
+                         </beregningStoppnivaaDetaljer>
+                         <beregningStoppnivaaDetaljer>
+                            <faktiskFom xmlns="">2021-04-01</faktiskFom>
+                            <faktiskTom xmlns="">2021-04-30</faktiskTom>
+                            <kontoStreng xmlns="">0510000</kontoStreng>
+                            <behandlingskode xmlns="">0</behandlingskode>
+                            <belop xmlns="">-10389.00</belop>
+                            <trekkVedtakId xmlns="">11845513</trekkVedtakId>
+                            <stonadId xmlns=""></stonadId>
+                            <korrigering xmlns=""></korrigering>
+                            <tilbakeforing xmlns="">false</tilbakeforing>
+                            <linjeId xmlns="">0</linjeId>
+                            <sats xmlns="">0.00</sats>
+                            <typeSats xmlns="">MND</typeSats>
+                            <antallSats xmlns="">30.00</antallSats>
+                            <saksbehId xmlns="">Z123</saksbehId>
+                            <uforeGrad xmlns="">0</uforeGrad>
+                            <kravhaverId xmlns=""></kravhaverId>
+                            <delytelseId xmlns=""></delytelseId>
+                            <bostedsenhet xmlns="">8020</bostedsenhet>
+                            <skykldnerId xmlns=""></skykldnerId>
+                            <klassekode xmlns="">FSKTSKAT</klassekode>
+                            <klasseKodeBeskrivelse xmlns="">Forskuddskatt</klasseKodeBeskrivelse>
+                            <typeKlasse xmlns="">SKAT</typeKlasse>
+                            <typeKlasseBeskrivelse xmlns="">Klassetype for skatt</typeKlasseBeskrivelse>
+                            <refunderesOrgNr xmlns=""></refunderesOrgNr>
+                         </beregningStoppnivaaDetaljer>
+                         <beregningStoppnivaaDetaljer>
+                            <faktiskFom xmlns="">2021-04-01</faktiskFom>
+                            <faktiskTom xmlns="">2021-04-30</faktiskTom>
+                            <kontoStreng xmlns="">0510000</kontoStreng>
+                            <behandlingskode xmlns="">0</behandlingskode>
+                            <belop xmlns="">-10389.00</belop>
+                            <trekkVedtakId xmlns="">11845513</trekkVedtakId>
+                            <stonadId xmlns=""></stonadId>
+                            <korrigering xmlns=""></korrigering>
+                            <tilbakeforing xmlns="">false</tilbakeforing>
+                            <linjeId xmlns="">0</linjeId>
+                            <sats xmlns="">0.00</sats>
+                            <typeSats xmlns="">MND</typeSats>
+                            <antallSats xmlns="">30.00</antallSats>
+                            <saksbehId xmlns="">Z123</saksbehId>
+                            <uforeGrad xmlns="">0</uforeGrad>
+                            <kravhaverId xmlns=""></kravhaverId>
+                            <delytelseId xmlns=""></delytelseId>
+                            <bostedsenhet xmlns="">8020</bostedsenhet>
+                            <skykldnerId xmlns=""></skykldnerId>
+                            <klassekode xmlns="">TULL</klassekode>
+                            <klasseKodeBeskrivelse xmlns="">Tull</klasseKodeBeskrivelse>
+                            <typeKlasse xmlns="">TØYS</typeKlasse>
+                            <typeKlasseBeskrivelse xmlns="">Tøys</typeKlasseBeskrivelse>
+                            <refunderesOrgNr xmlns=""></refunderesOrgNr>
+                         </beregningStoppnivaaDetaljer>
+                      </beregningStoppnivaa>
+                   </beregningsPeriode>
+                </simulering>
+                <infomelding>
+                   <beskrMelding>Simulering er utført uten skattevedtak. Nominell sats benyttet.</beskrMelding>
+                </infomelding>
+             </response>
+          </simulerBeregningResponse>
+    """.trimIndent()
 }

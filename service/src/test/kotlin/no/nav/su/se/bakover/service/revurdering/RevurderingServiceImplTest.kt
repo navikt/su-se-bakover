@@ -273,7 +273,7 @@ internal class RevurderingServiceImplTest {
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Vurdert.Uførhet.create(
                     vurderingsperioder = Nel.of(
-                        Vurderingsperiode.Manuell.create(
+                        Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
                             resultat = Resultat.Innvilget,
@@ -390,7 +390,7 @@ internal class RevurderingServiceImplTest {
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Vurdert.Uførhet.create(
                     vurderingsperioder = Nel.of(
-                        Vurderingsperiode.Manuell.create(
+                        Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
                             resultat = Resultat.Innvilget,
@@ -880,7 +880,7 @@ internal class RevurderingServiceImplTest {
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Vurdert.Uførhet.create(
                     vurderingsperioder = Nel.of(
-                        Vurderingsperiode.Manuell.create(
+                        Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
                             resultat = Resultat.Innvilget,
@@ -1399,7 +1399,7 @@ internal class RevurderingServiceImplTest {
     @Test
     fun `forhåndsvarsler men hentAktørId failer`() {
         val simulertRevurdering = simulertRevurderingInnvilget.copy(
-            forhåndsvarsel = null
+            forhåndsvarsel = null,
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -1424,7 +1424,7 @@ internal class RevurderingServiceImplTest {
     @Test
     fun `forhåndsvarsler men hentPerson failer`() {
         val simulertRevurdering = simulertRevurderingInnvilget.copy(
-            forhåndsvarsel = null
+            forhåndsvarsel = null,
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -1450,7 +1450,7 @@ internal class RevurderingServiceImplTest {
     @Test
     fun `forhåndsvarsler men journalføring failer`() {
         val simulertRevurdering = simulertRevurderingInnvilget.copy(
-            forhåndsvarsel = null
+            forhåndsvarsel = null,
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -1486,7 +1486,7 @@ internal class RevurderingServiceImplTest {
     @Test
     fun `forhåndsvarsler men distribuering failer`() {
         val simulertRevurdering = simulertRevurderingInnvilget.copy(
-            forhåndsvarsel = null
+            forhåndsvarsel = null,
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -1523,7 +1523,7 @@ internal class RevurderingServiceImplTest {
     @Test
     fun `forhåndsvarsler men oppgave failer`() {
         val simulertRevurdering = simulertRevurderingInnvilget.copy(
-            forhåndsvarsel = null
+            forhåndsvarsel = null,
         )
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn simulertRevurdering
@@ -1820,22 +1820,7 @@ internal class RevurderingServiceImplTest {
             fradrag = emptyList(),
         ).orNull()!!
 
-        actual shouldBe SimulertRevurdering.Opphørt(
-            tilRevurdering = opprettetRevurdering.tilRevurdering,
-            id = opprettetRevurdering.id,
-            periode = opprettetRevurdering.periode,
-            opprettet = opprettetRevurdering.opprettet,
-            beregning = opprettetRevurdering.tilRevurdering.beregning,
-            simulering = simulertUtbetalingMock.simulering,
-            saksbehandler = NavIdentBruker.Saksbehandler("s1"),
-            oppgaveId = opprettetRevurdering.oppgaveId,
-            fritekstTilBrev = opprettetRevurdering.fritekstTilBrev,
-            revurderingsårsak = opprettetRevurdering.revurderingsårsak,
-            forhåndsvarsel = opprettetRevurdering.forhåndsvarsel,
-            behandlingsinformasjon = opprettetRevurdering.behandlingsinformasjon,
-            grunnlagsdata = opprettetRevurdering.grunnlagsdata,
-            vilkårsvurderinger = vilkårsvurderinger,
-        )
+        actual shouldBe beOfType<SimulertRevurdering.Opphørt>()
 
         inOrder(
             revurderingRepoMock,

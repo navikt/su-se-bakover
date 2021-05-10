@@ -437,15 +437,14 @@ internal class SøknadsbehandlingServiceIverksettTest {
             Søknadsbehandling.Vilkårsvurdert.Innvilget(
                 id = it.id,
                 opprettet = it.opprettet,
-                søknad = it.søknad,
-                behandlingsinformasjon = it.behandlingsinformasjon,
                 sakId = it.sakId,
                 saksnummer = it.saksnummer,
-                fnr = it.fnr,
+                søknad = it.søknad,
                 oppgaveId = søknadOppgaveId,
+                behandlingsinformasjon = it.behandlingsinformasjon,
+                fnr = it.fnr,
                 fritekstTilBrev = "",
                 stønadsperiode = it.stønadsperiode,
-                grunnlagsdata = Grunnlagsdata.EMPTY,
                 vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
             )
         }

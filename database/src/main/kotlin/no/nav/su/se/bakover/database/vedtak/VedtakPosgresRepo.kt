@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.beregning.toSnapshot
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
-import no.nav.su.se.bakover.database.oppdatering
+import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.database.tidspunkt
@@ -264,7 +264,7 @@ internal class VedtakPosgresRepo(
                     iverksattjournalpostid = :iverksattjournalpostId,
                     iverksattbrevbestillingid = :iverksattbrevbestillingId
             """.trimIndent()
-                .oppdatering(
+                .insert(
                     mapOf(
                         "id" to vedtak.id,
                         "opprettet" to vedtak.opprettet,
@@ -329,7 +329,7 @@ internal class VedtakPosgresRepo(
                     iverksattjournalpostid = :iverksattjournalpostId,
                     iverksattbrevbestillingid = :iverksattbrevbestillingId
             """.trimIndent()
-                .oppdatering(
+                .insert(
                     mapOf(
                         "id" to vedtak.id,
                         "opprettet" to vedtak.opprettet,
@@ -388,7 +388,7 @@ internal class VedtakPosgresRepo(
                     iverksattjournalpostid = :iverksattjournalpostId,
                     iverksattbrevbestillingid = :iverksattbrevbestillingId
             """.trimIndent()
-                .oppdatering(
+                .insert(
                     mapOf(
                         "id" to vedtak.id,
                         "opprettet" to vedtak.opprettet,
@@ -466,7 +466,7 @@ internal class VedtakPosgresRepo(
                     :revurderingId
                 ) ON CONFLICT ON CONSTRAINT unique_vedtakid DO NOTHING
         """.trimIndent()
-            .oppdatering(
+            .insert(
                 map,
                 session,
             )

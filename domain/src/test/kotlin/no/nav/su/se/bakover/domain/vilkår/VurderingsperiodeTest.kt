@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
+import no.nav.su.se.bakover.common.november
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfDay
 import no.nav.su.se.bakover.domain.CopyArgs
@@ -25,7 +26,7 @@ internal class VurderingsperiodeTest {
 
     @Test
     fun `bevarer korrekte verdier ved kopiering for plassering på tidslinje - full kopi`() {
-        val original = Vurderingsperiode.Manuell.create(
+        val original = Vurderingsperiode.Uføre.create(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(fixedClock),
             resultat = Resultat.Innvilget,
@@ -59,7 +60,7 @@ internal class VurderingsperiodeTest {
 
     @Test
     fun `bevarer korrekte verdier ved kopiering for plassering på tidslinje - ny periode`() {
-        val original = Vurderingsperiode.Manuell.create(
+        val original = Vurderingsperiode.Uføre.create(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(fixedClock),
             resultat = Resultat.Innvilget,
@@ -92,7 +93,7 @@ internal class VurderingsperiodeTest {
 
     @Test
     fun `kan lage tidslinje for vurderingsperioder`() {
-        val a = Vurderingsperiode.Manuell.create(
+        val a = Vurderingsperiode.Uføre.create(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(fixedClock),
             resultat = Resultat.Innvilget,
@@ -107,7 +108,7 @@ internal class VurderingsperiodeTest {
             begrunnelse = "begrunnelsen a",
         )
 
-        val b = Vurderingsperiode.Manuell.create(
+        val b = Vurderingsperiode.Uføre.create(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(fixedClock).plus(1, ChronoUnit.DAYS),
             resultat = Resultat.Innvilget,
@@ -122,9 +123,18 @@ internal class VurderingsperiodeTest {
             begrunnelse = "begrunnelsen b",
         )
 
+        val c = Vurderingsperiode.Uføre.create(
+            id = UUID.randomUUID(),
+            opprettet = Tidspunkt.now(fixedClock).plus(2, ChronoUnit.DAYS),
+            resultat = Resultat.Innvilget,
+            grunnlag = null,
+            periode = Periode.create(1.desember(2021), 31.desember(2021)),
+            begrunnelse = "begrunnelsen b",
+        )
+
         Tidslinje(
             periode = Periode.create(1.januar(2021), 31.desember(2021)),
-            objekter = listOf(a, b),
+            objekter = listOf(a, b, c),
             clock = fixedClock,
         ).tidslinje.let {
             it[0].let { copy ->
@@ -142,7 +152,7 @@ internal class VurderingsperiodeTest {
             it[1].let { copy ->
                 copy.id shouldNotBe a.id
                 copy.id shouldNotBe b.id
-                copy.periode shouldBe Periode.create(1.mai(2021), 31.desember(2021))
+                copy.periode shouldBe Periode.create(1.mai(2021), 30.november(2021))
                 copy.begrunnelse shouldBe b.begrunnelse
                 copy.grunnlag!!.let { grunnlagCopy ->
                     grunnlagCopy.id shouldNotBe b.grunnlag!!.id
@@ -151,12 +161,20 @@ internal class VurderingsperiodeTest {
                     grunnlagCopy.forventetInntekt shouldBe b.grunnlag!!.forventetInntekt
                 }
             }
+            it[2].let { copy ->
+                copy.id shouldNotBe a.id
+                copy.id shouldNotBe b.id
+                copy.id shouldNotBe c.id
+                copy.periode shouldBe Periode.create(1.desember(2021), 31.desember(2021))
+                copy.begrunnelse shouldBe b.begrunnelse
+                copy.grunnlag shouldBe null
+            }
         }
     }
 
     @Test
     fun `krever samsvar med periode for grunnlag dersom det eksisterer`() {
-        Vurderingsperiode.Manuell.tryCreate(
+        Vurderingsperiode.Uføre.tryCreate(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(fixedClock),
             resultat = Resultat.Innvilget,
@@ -169,12 +187,12 @@ internal class VurderingsperiodeTest {
             ),
             vurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021)),
             begrunnelse = "begrunnelsen",
-        ) shouldBeLeft Vurderingsperiode.Manuell.UgyldigVurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig
+        ) shouldBeLeft Vurderingsperiode.Uføre.UgyldigVurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig
     }
 
     @Test
     fun `kan opprettes selv om grunnlag ikke eksisterer`() {
-        Vurderingsperiode.Manuell.tryCreate(
+        Vurderingsperiode.Uføre.tryCreate(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(fixedClock),
             resultat = Resultat.Innvilget,

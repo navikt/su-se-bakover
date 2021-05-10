@@ -60,15 +60,14 @@ internal class SøknadsbehandlingServiceBrevTest {
     private val vilkårsvurdertUavklartSøknadsbehandling = Søknadsbehandling.Vilkårsvurdert.Uavklart(
         id = UUID.randomUUID(),
         opprettet = Tidspunkt.now(),
-        behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
-        søknad = mock(),
         sakId = UUID.randomUUID(),
         saksnummer = Saksnummer(2021),
-        fnr = FnrGenerator.random(),
+        søknad = mock(),
         oppgaveId = OppgaveId("0"),
+        behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
+        fnr = FnrGenerator.random(),
         fritekstTilBrev = "",
         stønadsperiode = stønadsperiode,
-        grunnlagsdata = Grunnlagsdata.EMPTY,
         vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
     )
 

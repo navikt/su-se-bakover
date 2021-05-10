@@ -197,7 +197,7 @@ internal class LeggTilUførevurderingerRequestTest {
         ).orNull()!!
         actual shouldBe Vilkår.Vurdert.Uførhet.create(
             vurderingsperioder = Nel.of(
-                Vurderingsperiode.Manuell.create(
+                Vurderingsperiode.Uføre.create(
                     id = actual.vurderingsperioder[0].id,
                     opprettet = actual.vurderingsperioder[0].opprettet,
                     resultat = Resultat.Innvilget,
@@ -211,7 +211,7 @@ internal class LeggTilUførevurderingerRequestTest {
                     periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
                     begrunnelse = null,
                 ),
-                Vurderingsperiode.Manuell.create(
+                Vurderingsperiode.Uføre.create(
                     id = actual.vurderingsperioder[1].id,
                     opprettet = actual.vurderingsperioder[1].opprettet,
                     resultat = Resultat.Innvilget,
@@ -240,7 +240,7 @@ internal class LeggTilUførevurderingerRequestTest {
                     periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 12000,
-                    oppfylt = Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt,
+                    oppfylt = Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
                     begrunnelse = null,
                 ),
                 LeggTilUførevurderingRequest(
@@ -248,7 +248,7 @@ internal class LeggTilUførevurderingerRequestTest {
                     periode = Periode.create(fraOgMed = 1.februar(2021), tilOgMed = 28.februar(2021)),
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 12000,
-                    oppfylt = Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt,
+                    oppfylt = Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
                     begrunnelse = null,
                 ),
             ),
@@ -260,10 +260,10 @@ internal class LeggTilUførevurderingerRequestTest {
         ).orNull()!!
         actual shouldBe Vilkår.Vurdert.Uførhet.create(
             vurderingsperioder = Nel.of(
-                Vurderingsperiode.Manuell.create(
+                Vurderingsperiode.Uføre.create(
                     id = actual.vurderingsperioder[0].id,
                     opprettet = actual.vurderingsperioder[0].opprettet,
-                    resultat = Resultat.Avslag,
+                    resultat = Resultat.Innvilget,
                     grunnlag = Grunnlag.Uføregrunnlag(
                         id = actual.vurderingsperioder[0].grunnlag!!.id,
                         opprettet = actual.vurderingsperioder[0].grunnlag!!.opprettet,
@@ -274,10 +274,10 @@ internal class LeggTilUførevurderingerRequestTest {
                     periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
                     begrunnelse = null,
                 ),
-                Vurderingsperiode.Manuell.create(
+                Vurderingsperiode.Uføre.create(
                     id = actual.vurderingsperioder[1].id,
                     opprettet = actual.vurderingsperioder[1].opprettet,
-                    resultat = Resultat.Avslag,
+                    resultat = Resultat.Innvilget,
                     grunnlag = Grunnlag.Uføregrunnlag(
                         id = actual.vurderingsperioder[1].grunnlag!!.id,
                         opprettet = actual.vurderingsperioder[1].grunnlag!!.opprettet,
@@ -290,5 +290,63 @@ internal class LeggTilUførevurderingerRequestTest {
                 ),
             ),
         )
+    }
+
+    @Test
+    fun `setter grunnlag til null dersom vilkår ikke er oppfylt`() {
+        val behandlingId = UUID.randomUUID()
+        LeggTilUførevurderingerRequest(
+            behandlingId = behandlingId,
+            vurderinger = Nel.of(
+                LeggTilUførevurderingRequest(
+                    behandlingId = behandlingId,
+                    periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
+                    uføregrad = Uføregrad.parse(100),
+                    forventetInntekt = 12000,
+                    oppfylt = Behandlingsinformasjon.Uførhet.Status.VilkårIkkeOppfylt,
+                    begrunnelse = "blah",
+                ),
+            ),
+        ).toVilkår(Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021))).orNull()!!.let { request ->
+            Vilkår.Vurdert.Uførhet.create(
+                vurderingsperioder = Nel.of(
+                    Vurderingsperiode.Uføre.create(
+                        id = request.vurderingsperioder[0].id,
+                        opprettet = request.vurderingsperioder[0].opprettet,
+                        resultat = Resultat.Innvilget,
+                        grunnlag = null,
+                        periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
+                        begrunnelse = "blah",
+                    ),
+                ),
+            )
+        }
+
+        LeggTilUførevurderingerRequest(
+            behandlingId = behandlingId,
+            vurderinger = Nel.of(
+                LeggTilUførevurderingRequest(
+                    behandlingId = behandlingId,
+                    periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
+                    uføregrad = Uføregrad.parse(100),
+                    forventetInntekt = 12000,
+                    oppfylt = Behandlingsinformasjon.Uførhet.Status.HarUføresakTilBehandling,
+                    begrunnelse = "blah",
+                ),
+            ),
+        ).toVilkår(Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021))).orNull()!!.let { request ->
+            Vilkår.Vurdert.Uførhet.create(
+                vurderingsperioder = Nel.of(
+                    Vurderingsperiode.Uføre.create(
+                        id = request.vurderingsperioder[0].id,
+                        opprettet = request.vurderingsperioder[0].opprettet,
+                        resultat = Resultat.Uavklart,
+                        grunnlag = null,
+                        periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
+                        begrunnelse = "blah",
+                    ),
+                ),
+            )
+        }
     }
 }

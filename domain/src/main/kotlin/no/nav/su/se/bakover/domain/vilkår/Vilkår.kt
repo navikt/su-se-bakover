@@ -10,6 +10,8 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import java.util.UUID
 
@@ -30,11 +32,17 @@ sealed class Inngangsvilkår {
 }
 
 data class Vilkårsvurderinger(
-    val uføre: Vilkår<Grunnlag.Uføregrunnlag> = Vilkår.IkkeVurdert.Uførhet,
+    val uføre: Vilkår<Grunnlag.Uføregrunnlag?> = Vilkår.IkkeVurdert.Uførhet,
 ) {
+    fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Vilkårsvurderinger =
+        this.copy(uføre = this.uføre.oppdaterStønadsperiode(stønadsperiode))
+
     companion object {
         val EMPTY = Vilkårsvurderinger()
     }
+
+    val grunnlagsdata: Grunnlagsdata =
+        Grunnlagsdata(uføregrunnlag = (uføre as? Vilkår.Vurdert.Uførhet)?.grunnlag ?: emptyList())
 
     val resultat: Resultat by lazy {
         setOf(uføre).map { it.resultat }.let { alleVurderingsresultat ->
@@ -71,17 +79,19 @@ sealed class Vilkårsvurderingsresultat {
 /**
  * Vurderingen av et vilkår mot en eller flere grunnlagsdata
  */
-sealed class Vilkår<T : Grunnlag> {
+sealed class Vilkår<T : Grunnlag?> {
+    abstract fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Vilkår<T>
 
-    sealed class IkkeVurdert<T : Grunnlag> : Vilkår<T>() {
-        object Uførhet : Vilkår<Grunnlag.Uføregrunnlag>() {
+    sealed class IkkeVurdert<T : Grunnlag?> : Vilkår<T>() {
+        object Uførhet : Vilkår<Grunnlag.Uføregrunnlag?>() {
             override val resultat: Resultat = Resultat.Uavklart
+            override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode) = this
         }
     }
 
     abstract val resultat: Resultat
 
-    sealed class Vurdert<T : Grunnlag> : Vilkår<T>() {
+    sealed class Vurdert<T : Grunnlag?> : Vilkår<T>() {
         abstract val vilkår: Inngangsvilkår
         abstract val grunnlag: List<T>
         abstract val vurderingsperioder: List<Vurderingsperiode<T>>
@@ -99,8 +109,8 @@ sealed class Vilkår<T : Grunnlag> {
         }
 
         data class Uførhet private constructor(
-            override val vurderingsperioder: Nel<Vurderingsperiode<Grunnlag.Uføregrunnlag>>,
-        ) : Vurdert<Grunnlag.Uføregrunnlag>() {
+            override val vurderingsperioder: Nel<Vurderingsperiode<Grunnlag.Uføregrunnlag?>>,
+        ) : Vurdert<Grunnlag.Uføregrunnlag?>() {
             override val vilkår = Inngangsvilkår.Uførhet
             override val grunnlag: List<Grunnlag.Uføregrunnlag> = vurderingsperioder.mapNotNull {
                 it.grunnlag
@@ -108,11 +118,11 @@ sealed class Vilkår<T : Grunnlag> {
 
             companion object {
                 fun create(
-                    vurderingsperioder: Nel<Vurderingsperiode<Grunnlag.Uføregrunnlag>>,
+                    vurderingsperioder: Nel<Vurderingsperiode<Grunnlag.Uføregrunnlag?>>,
                 ): Uførhet = tryCreate(vurderingsperioder).getOrHandle { throw IllegalArgumentException(it.toString()) }
 
                 fun tryCreate(
-                    vurderingsperioder: Nel<Vurderingsperiode<Grunnlag.Uføregrunnlag>>,
+                    vurderingsperioder: Nel<Vurderingsperiode<Grunnlag.Uføregrunnlag?>>,
                 ): Either<UgyldigUførevilkår, Uførhet> {
                     if (vurderingsperioder.forAll { v1 ->
                         vurderingsperioder.minus(v1).any { v2 -> v1.periode overlapper v2.periode }
@@ -127,11 +137,19 @@ sealed class Vilkår<T : Grunnlag> {
             sealed class UgyldigUførevilkår {
                 object OverlappendeVurderingsperioder : UgyldigUførevilkår()
             }
+
+            override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Vilkår<Grunnlag.Uføregrunnlag?> =
+                this.copy(
+                    vurderingsperioder = this.vurderingsperioder.map {
+                        it.oppdaterStønadsperiode(stønadsperiode)
+                    },
+                )
         }
     }
 }
 
-sealed class Vurderingsperiode<T : Grunnlag> : KanPlasseresPåTidslinje<Vurderingsperiode<T>> {
+sealed class Vurderingsperiode<T : Grunnlag?> : KanPlasseresPåTidslinje<Vurderingsperiode<T>> {
+    abstract fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Vurderingsperiode<T>
     abstract val id: UUID
     abstract override val opprettet: Tidspunkt
     abstract val resultat: Resultat
@@ -139,60 +157,66 @@ sealed class Vurderingsperiode<T : Grunnlag> : KanPlasseresPåTidslinje<Vurderin
     abstract override val periode: Periode
     abstract val begrunnelse: String?
 
-    data class Manuell<T : Grunnlag> private constructor(
+    data class Uføre private constructor(
         override val id: UUID = UUID.randomUUID(),
         override val opprettet: Tidspunkt = Tidspunkt.now(),
         override val resultat: Resultat,
-        override val grunnlag: T?,
+        override val grunnlag: Grunnlag.Uføregrunnlag?,
         override val periode: Periode,
         override val begrunnelse: String?,
-    ) : Vurderingsperiode<T>() {
+    ) : Vurderingsperiode<Grunnlag.Uføregrunnlag?>() {
 
-        @Suppress("UNCHECKED_CAST")
-        override fun copy(args: CopyArgs.Tidslinje): Manuell<T> = when (args) {
+        override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Uføre {
+            return this.copy(
+                periode = stønadsperiode.periode,
+                grunnlag = this.grunnlag?.oppdaterPeriode(stønadsperiode.periode),
+            )
+        }
+
+        override fun copy(args: CopyArgs.Tidslinje): Uføre = when (args) {
             CopyArgs.Tidslinje.Full -> {
                 copy(
                     id = UUID.randomUUID(),
-                    grunnlag = grunnlag?.copy(args) as T,
+                    grunnlag = grunnlag?.copy(args),
                 )
             }
             is CopyArgs.Tidslinje.NyPeriode -> {
                 copy(
                     id = UUID.randomUUID(),
                     periode = args.periode,
-                    grunnlag = grunnlag?.copy(args) as T,
+                    grunnlag = grunnlag?.copy(args),
                 )
             }
         }
 
         companion object {
-            fun <T : Grunnlag> create(
+            fun create(
                 id: UUID = UUID.randomUUID(),
                 opprettet: Tidspunkt = Tidspunkt.now(),
                 resultat: Resultat,
-                grunnlag: T?,
+                grunnlag: Grunnlag.Uføregrunnlag?,
                 periode: Periode,
                 begrunnelse: String?,
-            ): Manuell<T> {
+            ): Uføre {
                 return tryCreate(id, opprettet, resultat, grunnlag, periode, begrunnelse).getOrHandle {
                     throw IllegalArgumentException(it.toString())
                 }
             }
 
-            fun <T : Grunnlag> tryCreate(
+            fun tryCreate(
                 id: UUID = UUID.randomUUID(),
                 opprettet: Tidspunkt = Tidspunkt.now(),
                 resultat: Resultat,
-                grunnlag: T?,
+                grunnlag: Grunnlag.Uføregrunnlag?,
                 vurderingsperiode: Periode,
                 begrunnelse: String?,
-            ): Either<UgyldigVurderingsperiode, Manuell<T>> {
+            ): Either<UgyldigVurderingsperiode, Uføre> {
 
                 grunnlag?.let {
                     if (vurderingsperiode != it.periode) return UgyldigVurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig.left()
                 }
 
-                return Manuell(
+                return Uføre(
                     id = id,
                     opprettet = opprettet,
                     resultat = resultat,

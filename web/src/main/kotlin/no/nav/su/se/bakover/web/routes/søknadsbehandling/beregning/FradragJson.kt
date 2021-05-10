@@ -26,7 +26,7 @@ internal data class FradragJson(
     val tilhører: String
 ) {
     internal fun toFradrag(beregningsperiode: Periode): Either<Resultat, Fradrag> {
-        val utenlandskInntekt: UtenlandskInntekt? = this.utenlandskInntekt?.toUtlandskInntekt()?.getOrHandle {
+        val utenlandskInntekt: UtenlandskInntekt? = this.utenlandskInntekt?.toUtenlandskInntekt()?.getOrHandle {
             return it.left()
         }
         val periode: Periode = this.periode?.toPeriode()?.getOrHandle {

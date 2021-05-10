@@ -5,6 +5,7 @@ import kotliquery.Row
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.hentListe
+import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid
@@ -23,7 +24,7 @@ internal class VilkårsvurderingPostgresRepo(
     private val uføregrunnlagPostgresRepo: UføregrunnlagPostgresRepo,
 ) : VilkårsvurderingRepo {
 
-    override fun lagre(behandlingId: UUID, vilkår: Vilkår<Grunnlag.Uføregrunnlag>) {
+    override fun lagre(behandlingId: UUID, vilkår: Vilkår<Grunnlag.Uføregrunnlag?>) {
         dataSource.withTransaction { tx ->
             slettForBehandlingId(behandlingId, tx)
             when (vilkår) {
@@ -38,7 +39,7 @@ internal class VilkårsvurderingPostgresRepo(
         }
     }
 
-    private fun lagre(behandlingId: UUID, vurderingsperiode: Vurderingsperiode<Grunnlag.Uføregrunnlag>, session: Session) {
+    private fun lagre(behandlingId: UUID, vurderingsperiode: Vurderingsperiode<Grunnlag.Uføregrunnlag?>, session: Session) {
         """
                 insert into vilkårsvurdering_uføre
                 (
@@ -64,7 +65,7 @@ internal class VilkårsvurderingPostgresRepo(
                     :tilOgMed
                 )
         """.trimIndent()
-            .oppdatering(
+            .insert(
                 mapOf(
                     "id" to vurderingsperiode.id,
                     "opprettet" to vurderingsperiode.opprettet,
@@ -92,7 +93,7 @@ internal class VilkårsvurderingPostgresRepo(
             )
     }
 
-    override fun hent(behandlingId: UUID): Vilkår<Grunnlag.Uføregrunnlag> {
+    override fun hent(behandlingId: UUID): Vilkår<Grunnlag.Uføregrunnlag?> {
         val vurderingsperioder = dataSource.withSession { session ->
             """
                 select * from vilkårsvurdering_uføre where behandlingId = :behandlingId
@@ -112,8 +113,8 @@ internal class VilkårsvurderingPostgresRepo(
         }
     }
 
-    private fun Row.toVurderingsperioder(): Vurderingsperiode<Grunnlag.Uføregrunnlag> {
-        return Vurderingsperiode.Manuell.create(
+    private fun Row.toVurderingsperioder(): Vurderingsperiode<Grunnlag.Uføregrunnlag?> {
+        return Vurderingsperiode.Uføre.create(
             id = uuid("id"),
             opprettet = tidspunkt("opprettet"),
             resultat = ResultatDto.valueOf(string("resultat")).toDomain(),

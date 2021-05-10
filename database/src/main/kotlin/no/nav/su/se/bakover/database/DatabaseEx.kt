@@ -13,7 +13,20 @@ private fun sjekkUgyldigParameternavn(params: Map<String, Any?>) {
     require(params.keys.none { it.contains(Regex("[æÆøØåÅ]")) }) { "Parameter-mapping forstår ikke særnorske tegn" }
 }
 
+private fun sjekkAtOppdaterInneholderWhere(sql: String) {
+    require(sql.lowercase().contains("where")) { "Ikke lov med update uten where" }
+}
+
 internal fun String.oppdatering(
+    params: Map<String, Any?>,
+    session: Session
+) {
+    sjekkUgyldigParameternavn(params)
+    sjekkAtOppdaterInneholderWhere(this)
+    session.run(queryOf(statement = this, paramMap = params).asUpdate)
+}
+
+internal fun String.insert(
     params: Map<String, Any?>,
     session: Session
 ) {
