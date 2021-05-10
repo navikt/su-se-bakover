@@ -5,6 +5,7 @@ import kotliquery.Row
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.hentListe
+import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid
@@ -64,7 +65,7 @@ internal class VilkårsvurderingPostgresRepo(
                     :tilOgMed
                 )
         """.trimIndent()
-            .oppdatering(
+            .insert(
                 mapOf(
                     "id" to vurderingsperiode.id,
                     "opprettet" to vurderingsperiode.opprettet,

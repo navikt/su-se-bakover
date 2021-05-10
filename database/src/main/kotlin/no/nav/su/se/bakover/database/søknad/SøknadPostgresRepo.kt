@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.database.søknad
 
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.hentListe
+import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.søknad.LukketJson.Companion.toLukketJson
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal.hentSøknadInternal
@@ -17,7 +18,7 @@ internal class SøknadPostgresRepo(
 
     override fun opprettSøknad(søknad: Søknad.Ny) {
         dataSource.withSession { session ->
-            "insert into søknad (id, sakId, søknadInnhold, opprettet) values (:id, :sakId, to_json(:soknad::json), :opprettet)".oppdatering(
+            "insert into søknad (id, sakId, søknadInnhold, opprettet) values (:id, :sakId, to_json(:soknad::json), :opprettet)".insert(
                 mapOf(
                     "id" to søknad.id,
                     "sakId" to søknad.sakId,

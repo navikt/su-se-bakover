@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.database.grunnlag.GrunnlagRepo
 import no.nav.su.se.bakover.database.grunnlag.VilkårsvurderingRepo
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
+import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal
 import no.nav.su.se.bakover.database.tidspunkt
@@ -70,7 +71,7 @@ internal class SøknadsbehandlingPostgresRepo(
                         :oppgaveId
                     )
                 """.trimIndent()
-                ).oppdatering(
+                ).insert(
                 params = mapOf(
                     "id" to søknadsbehandling.id,
                     "sakId" to søknadsbehandling.sakId,

@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.database.vedtak.snapshot
 
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.database.oppdatering
+import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.vedtak.snapshot.VedtakssnapshotJson.Companion.toJson
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
@@ -13,7 +13,7 @@ class VedtakssnapshotPostgresRepo(val dataSource: DataSource) : VedtakssnapshotR
         dataSource.withSession { session ->
             """
             insert into vedtakssnapshot(id, opprettet, behandlingId, vedtakstype, json) values (:id, :opprettet, :behandlingId, :vedtakstype, to_json(:vedtak::json))
-        """.oppdatering(
+        """.insert(
                 mapOf(
                     "id" to vedtakssnapshot.id,
                     "opprettet" to vedtakssnapshot.opprettet,

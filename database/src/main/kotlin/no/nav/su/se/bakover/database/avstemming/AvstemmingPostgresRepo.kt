@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.inClauseWith
+import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingInternalRepo
@@ -26,7 +27,7 @@ internal class AvstemmingPostgresRepo(
             """
             insert into avstemming (id, opprettet, fom, tom, utbetalinger, avstemmingXmlRequest)
             values (:id, :opprettet, :fom, :tom, to_json(:utbetalinger::json), :avstemmingXmlRequest)
-        """.oppdatering(
+        """.insert(
                 mapOf(
                     "id" to avstemming.id,
                     "opprettet" to avstemming.opprettet,
