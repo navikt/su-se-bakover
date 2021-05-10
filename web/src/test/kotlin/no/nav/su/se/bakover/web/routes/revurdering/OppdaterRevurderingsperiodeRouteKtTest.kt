@@ -91,6 +91,7 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = emptyMap(),
         )
         val revurderingServiceMock = mock<RevurderingService> {
             on { oppdaterRevurdering(any()) } doReturn opprettetRevurdering.right()

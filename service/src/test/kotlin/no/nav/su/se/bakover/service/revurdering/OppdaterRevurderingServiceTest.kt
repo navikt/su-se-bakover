@@ -88,6 +88,7 @@ internal class OppdaterRevurderingServiceTest {
         behandlingsinformasjon = behandlingsinformasjon,
         grunnlagsdata = Grunnlagsdata.EMPTY,
         vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+        informasjonSomRevurderes = emptyMap(),
     )
 
     @Test
@@ -257,6 +258,7 @@ internal class OppdaterRevurderingServiceTest {
                     forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
                     grunnlagsdata = Grunnlagsdata.EMPTY,
                     vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+                    informasjonSomRevurderes = emptyMap(),
                 )
             }
         }
@@ -310,6 +312,7 @@ internal class OppdaterRevurderingServiceTest {
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = emptyMap(),
         )
         inOrder(revurderingRepoMock) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })

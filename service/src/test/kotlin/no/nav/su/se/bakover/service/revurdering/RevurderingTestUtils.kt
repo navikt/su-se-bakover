@@ -217,6 +217,7 @@ object RevurderingTestUtils {
             uføregrunnlag = listOf(uføregrunnlag),
         ),
         vilkårsvurderinger = vilkårsvurderinger,
+        informasjonSomRevurderes = emptyMap(),
     )
 
     internal val simulertRevurderingInnvilget = SimulertRevurdering.Innvilget(
@@ -236,5 +237,6 @@ object RevurderingTestUtils {
             uføregrunnlag = listOf(uføregrunnlag),
         ),
         vilkårsvurderinger = vilkårsvurderinger,
+        informasjonSomRevurderes = emptyMap(),
     )
 }

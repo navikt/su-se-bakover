@@ -624,6 +624,7 @@ internal class LagBrevRequestVisitorTest {
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = emptyMap(),
         )
 
         val avslåttVedtak = Vedtak.from(revurdering, utbetalingId)
@@ -680,6 +681,7 @@ internal class LagBrevRequestVisitorTest {
             behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = emptyMap(),
         )
 
         val opphørsvedtak = Vedtak.from(revurdering, utbetalingId)
@@ -736,6 +738,7 @@ internal class LagBrevRequestVisitorTest {
             behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = emptyMap(),
         )
 
         val vedtakIngenEndring = Vedtak.from(revurdering, clock)

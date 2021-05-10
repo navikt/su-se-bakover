@@ -588,6 +588,7 @@ internal class FerdigstillVedtakServiceImplTest {
                     forhåndsvarsel = null,
                     grunnlagsdata = Grunnlagsdata.EMPTY,
                     vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+                    informasjonSomRevurderes = emptyMap(),
                 ),
             )
         }
@@ -1348,6 +1349,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
                 grunnlagsdata = Grunnlagsdata.EMPTY,
                 vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+                informasjonSomRevurderes = emptyMap(),
             ),
             utbetalingId = UUID30.randomUUID(),
         )

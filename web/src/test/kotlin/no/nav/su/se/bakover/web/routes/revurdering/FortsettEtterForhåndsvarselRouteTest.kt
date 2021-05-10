@@ -96,6 +96,7 @@ internal class FortsettEtterForhåndsvarselRouteTest {
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = emptyMap(),
         )
 
         val revurderingServiceMock = mock<RevurderingService> {
@@ -115,9 +116,9 @@ internal class FortsettEtterForhåndsvarselRouteTest {
                 setBody(
                     //language=json
                     """
-                        { 
-                          "fritekstTilBrev": "Friteksten", 
-                          "valg": "FORTSETT_MED_ANDRE_OPPLYSNINGER", 
+                        {
+                          "fritekstTilBrev": "Friteksten",
+                          "valg": "FORTSETT_MED_ANDRE_OPPLYSNINGER",
                           "begrunnelse": "begrunnelse"
                         }
                     """.trimIndent(),
@@ -167,6 +168,7 @@ internal class FortsettEtterForhåndsvarselRouteTest {
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = emptyMap(),
         )
 
         val revurderingServiceMock = mock<RevurderingService> {
@@ -186,9 +188,9 @@ internal class FortsettEtterForhåndsvarselRouteTest {
                 setBody(
                     //language=json
                     """
-                        { 
-                          "fritekstTilBrev": "Friteksten", 
-                          "valg": "FORTSETT_MED_SAMME_OPPLYSNINGER", 
+                        {
+                          "fritekstTilBrev": "Friteksten",
+                          "valg": "FORTSETT_MED_SAMME_OPPLYSNINGER",
                           "begrunnelse": "begrunnelse"
                         }
                     """.trimIndent(),
@@ -238,6 +240,7 @@ internal class FortsettEtterForhåndsvarselRouteTest {
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = emptyMap(),
         )
 
         val revurderingServiceMock = mock<RevurderingService> {
@@ -257,9 +260,9 @@ internal class FortsettEtterForhåndsvarselRouteTest {
                 setBody(
                     //language=json
                     """
-                        { 
-                          "fritekstTilBrev": "Friteksten", 
-                          "valg": "AVSLUTT_UTEN_ENDRINGER", 
+                        {
+                          "fritekstTilBrev": "Friteksten",
+                          "valg": "AVSLUTT_UTEN_ENDRINGER",
                           "begrunnelse": "begrunnelse"
                         }
                     """.trimIndent(),

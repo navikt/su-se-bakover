@@ -297,6 +297,7 @@ internal class TestDataHelper(
             behandlingsinformasjon = innvilget.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = emptyMap(),
         ).also {
             revurderingRepo.lagre(it)
         }

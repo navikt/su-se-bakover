@@ -111,6 +111,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                     ),
                 ),
             ),
+            informasjonSomRevurderes = emptyMap(),
         )
 
         val nyttUføregrunnlag = Grunnlag.Uføregrunnlag(
@@ -141,6 +142,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             forhåndsvarsel = null,
             grunnlagsdata = opprettetRevurdering.grunnlagsdata,
             vilkårsvurderinger = opprettetRevurdering.vilkårsvurderinger,
+            informasjonSomRevurderes = emptyMap(),
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -279,6 +281,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                     ),
                 ),
             ),
+            informasjonSomRevurderes = emptyMap(),
         )
         val expectedBeregnetRevurdering = BeregnetRevurdering.IngenEndring(
             id = opprettetRevurdering.id,
@@ -294,6 +297,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             forhåndsvarsel = null,
             grunnlagsdata = opprettetRevurdering.grunnlagsdata,
             vilkårsvurderinger = opprettetRevurdering.vilkårsvurderinger,
+            informasjonSomRevurderes = emptyMap(),
         )
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn opprettetRevurdering
@@ -337,6 +341,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = emptyMap(),
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -394,6 +399,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = emptyMap(),
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -449,6 +455,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = emptyMap(),
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -491,6 +498,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = emptyMap(),
         )
 
         inOrder(revurderingRepoMock, personServiceMock, oppgaveServiceMock) {
@@ -525,6 +533,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = emptyMap(),
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -567,6 +576,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = emptyMap(),
         )
 
         inOrder(revurderingRepoMock, personServiceMock, oppgaveServiceMock) {
@@ -603,6 +613,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = emptyMap(),
         )
         val revurderingTilAttestering = RevurderingTilAttestering.IngenEndring(
             id = revurderingId,
@@ -619,6 +630,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = emptyMap(),
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {

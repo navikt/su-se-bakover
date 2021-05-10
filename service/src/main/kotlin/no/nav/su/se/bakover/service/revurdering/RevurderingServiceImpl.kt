@@ -146,6 +146,7 @@ internal class RevurderingServiceImpl(
                 behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
                 grunnlagsdata = grunnlag,
                 vilkårsvurderinger = vilkårsvurderinger,
+                informasjonSomRevurderes = opprettRevurderingRequest.informasjonSomRevurderes
             ).also {
                 revurderingRepo.lagre(it)
 

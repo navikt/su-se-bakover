@@ -18,9 +18,11 @@ import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.web.routes.grunnlag.expectedVurderingUføreJson
@@ -63,6 +65,10 @@ internal class RevurderingJsonTest {
                 uføre = Vilkår.Vurdert.Uførhet.create(
                     vurderingsperioder = Nel.of(vurderingsperiodeUføre)
                 )
+            ),
+            informasjonSomRevurderes = mapOf(
+                Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
+                Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
             ),
         )
 
@@ -114,6 +120,10 @@ internal class RevurderingJsonTest {
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = mapOf(
+                Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
+                Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
+            ),
         )
 
         val revurderingJson =
@@ -169,6 +179,10 @@ internal class RevurderingJsonTest {
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = mapOf(
+                Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
+                Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
+            ),
         )
 
         val revurderingJson =
@@ -224,6 +238,10 @@ internal class RevurderingJsonTest {
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = mapOf(
+                Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
+                Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
+            ),
         )
 
         val revurderingJson =
@@ -280,6 +298,10 @@ internal class RevurderingJsonTest {
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = mapOf(
+                Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
+                Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
+            ),
         )
 
         val revurderingJson =
@@ -340,6 +362,10 @@ internal class RevurderingJsonTest {
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = mapOf(
+                Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
+                Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
+            ),
         )
 
         val revurderingJson =
@@ -400,6 +426,10 @@ internal class RevurderingJsonTest {
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = mapOf(
+                Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
+                Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
+            ),
         )
 
         val revurderingJson =
@@ -461,6 +491,10 @@ internal class RevurderingJsonTest {
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = mapOf(
+                Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
+                Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
+            ),
         )
 
         val revurderingJson =
@@ -522,6 +556,10 @@ internal class RevurderingJsonTest {
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = mapOf(
+                Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
+                Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
+            ),
         )
 
         val revurderingJson =
@@ -585,6 +623,10 @@ internal class RevurderingJsonTest {
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = mapOf(
+                Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
+                Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
+            ),
         )
 
         val expected =
@@ -658,6 +700,10 @@ internal class RevurderingJsonTest {
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = mapOf(
+                Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
+                Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
+            ),
         )
 
         val expected =
@@ -731,6 +777,10 @@ internal class RevurderingJsonTest {
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = mapOf(
+                Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
+                Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
+            ),
         )
 
         val expected =
@@ -797,6 +847,10 @@ internal class RevurderingJsonTest {
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = mapOf(
+                Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
+                Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
+            ),
         )
 
         val revurderingJson =
@@ -860,6 +914,10 @@ internal class RevurderingJsonTest {
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = mapOf(
+                Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
+                Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
+            ),
         )
 
         val revurderingJson =
@@ -923,6 +981,10 @@ internal class RevurderingJsonTest {
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = mapOf(
+                Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
+                Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
+            ),
         )
 
         val revurderingJson =

@@ -146,6 +146,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                     )
                 )
             ),
+            informasjonSomRevurderes = emptyMap(),
         ).beregn(
             listOf(
                 FradragFactory.ny(

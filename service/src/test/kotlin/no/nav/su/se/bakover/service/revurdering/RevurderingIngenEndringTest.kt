@@ -90,6 +90,7 @@ class RevurderingIngenEndringTest {
                     ),
                 ),
             ),
+            informasjonSomRevurderes = emptyMap(),
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -118,6 +119,7 @@ class RevurderingIngenEndringTest {
                 forhåndsvarsel = null,
                 grunnlagsdata = opprettetRevurdering.grunnlagsdata,
                 vilkårsvurderinger = opprettetRevurdering.vilkårsvurderinger,
+                informasjonSomRevurderes = emptyMap(),
             ),
             // beregningstypen er internal i domene modulen
             BeregnetRevurdering.IngenEndring::beregning,
@@ -151,6 +153,7 @@ class RevurderingIngenEndringTest {
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = emptyMap(),
         )
         val endretSaksbehandler = NavIdentBruker.Saksbehandler("endretSaksbehandler")
         val revurderingTilAttestering = RevurderingTilAttestering.IngenEndring(
@@ -168,6 +171,7 @@ class RevurderingIngenEndringTest {
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = emptyMap(),
         )
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn beregnetRevurdering
@@ -248,6 +252,7 @@ class RevurderingIngenEndringTest {
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = emptyMap(),
         )
         val underkjentRevurdering = UnderkjentRevurdering.IngenEndring(
             id = revurderingId,
@@ -265,6 +270,7 @@ class RevurderingIngenEndringTest {
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = emptyMap(),
         )
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn revurderingTilAttestering
@@ -340,6 +346,7 @@ class RevurderingIngenEndringTest {
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = emptyMap(),
         )
         val attestant = NavIdentBruker.Attestant("ATTT")
         val iverksattRevurdering = revurderingTilAttestering.tilIverksatt(attestant).orNull()!!
@@ -402,6 +409,7 @@ class RevurderingIngenEndringTest {
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = emptyMap(),
         )
         val attestant = NavIdentBruker.Attestant("ATTT")
         val iverksattRevurdering = revurderingTilAttestering.tilIverksatt(attestant).orNull()!!

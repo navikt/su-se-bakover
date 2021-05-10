@@ -69,7 +69,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
     }
 
     @Test
-    fun `innvilget`() {
+    fun innvilget() {
         val revurderingTilAttestering = RevurderingTilAttestering.Innvilget(
             id = UUID.randomUUID(),
             periode = periode,
@@ -94,6 +94,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = emptyMap(),
         )
 
         val revurderingServiceMock = mock<RevurderingService> {
@@ -140,6 +141,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = emptyMap(),
         )
 
         val revurderingServiceMock = mock<RevurderingService> {
@@ -188,6 +190,7 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = emptyMap(),
         )
 
         val revurderingServiceMock = mock<RevurderingService> {

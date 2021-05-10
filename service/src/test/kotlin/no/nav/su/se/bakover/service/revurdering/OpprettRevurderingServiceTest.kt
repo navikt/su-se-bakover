@@ -189,6 +189,7 @@ internal class OpprettRevurderingServiceTest {
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "Ny informasjon",
                 saksbehandler = saksbehandler,
+                informasjonSomRevurderes = emptyMap(),
             ),
         ).orNull()!!
 
@@ -206,6 +207,7 @@ internal class OpprettRevurderingServiceTest {
             behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = emptyMap(),
         )
         inOrder(
             sakServiceMock,
@@ -243,6 +245,7 @@ internal class OpprettRevurderingServiceTest {
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "Ny informasjon",
                 saksbehandler = saksbehandler,
+                informasjonSomRevurderes = emptyMap(),
             ),
         )
 
@@ -283,6 +286,7 @@ internal class OpprettRevurderingServiceTest {
                 årsak = "REGULER_GRUNNBELØP",
                 begrunnelse = "g-regulering",
                 saksbehandler = saksbehandler,
+                informasjonSomRevurderes = emptyMap(),
             ),
         ).getOrHandle {
             throw RuntimeException("$it")
@@ -305,6 +309,7 @@ internal class OpprettRevurderingServiceTest {
             behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = emptyMap(),
         )
         inOrder(
             sakServiceMock,
@@ -364,6 +369,7 @@ internal class OpprettRevurderingServiceTest {
                 årsak = "REGULER_GRUNNBELØP",
                 begrunnelse = "g-regulering",
                 saksbehandler = saksbehandler,
+                informasjonSomRevurderes = emptyMap(),
             ),
         ).getOrHandle {
             throw RuntimeException("$it")
@@ -385,6 +391,7 @@ internal class OpprettRevurderingServiceTest {
             behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = emptyMap(),
         )
         inOrder(
             sakServiceMock,
@@ -427,6 +434,7 @@ internal class OpprettRevurderingServiceTest {
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "Ny informasjon",
                 saksbehandler = saksbehandler,
+                informasjonSomRevurderes = emptyMap(),
             ),
         )
         actual shouldBe KunneIkkeOppretteRevurdering.FantIkkeSak.left()
@@ -453,6 +461,7 @@ internal class OpprettRevurderingServiceTest {
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "Ny informasjon",
                 saksbehandler = saksbehandler,
+                informasjonSomRevurderes = emptyMap(),
             ),
         )
 
@@ -494,6 +503,7 @@ internal class OpprettRevurderingServiceTest {
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "Ny informasjon",
                 saksbehandler = saksbehandler,
+                informasjonSomRevurderes = emptyMap(),
             ),
         )
 
@@ -571,6 +581,7 @@ internal class OpprettRevurderingServiceTest {
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "Ny informasjon",
                 saksbehandler = saksbehandler,
+                informasjonSomRevurderes = emptyMap(),
             ),
         )
 
@@ -585,6 +596,7 @@ internal class OpprettRevurderingServiceTest {
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "Ny informasjon",
                 saksbehandler = saksbehandler,
+                informasjonSomRevurderes = emptyMap(),
             ),
         )
 
@@ -613,6 +625,7 @@ internal class OpprettRevurderingServiceTest {
                 behandlingsinformasjon = opprinneligVedtak.behandlingsinformasjon,
                 grunnlagsdata = Grunnlagsdata.EMPTY,
                 vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+                informasjonSomRevurderes = emptyMap(),
             )
             it.copy(
                 revurderinger = listOf(
@@ -652,6 +665,7 @@ internal class OpprettRevurderingServiceTest {
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "Ny informasjon",
                 saksbehandler = saksbehandler,
+                informasjonSomRevurderes = emptyMap(),
             ),
         )
 
@@ -696,6 +710,7 @@ internal class OpprettRevurderingServiceTest {
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "Ny informasjon",
                 saksbehandler = saksbehandler,
+                informasjonSomRevurderes = emptyMap(),
             ),
         )
 
@@ -728,6 +743,7 @@ internal class OpprettRevurderingServiceTest {
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "Ny informasjon",
                 saksbehandler = saksbehandler,
+                informasjonSomRevurderes = emptyMap(),
             ),
         )
 
@@ -770,6 +786,7 @@ internal class OpprettRevurderingServiceTest {
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "Ny informasjon",
                 saksbehandler = saksbehandler,
+                informasjonSomRevurderes = emptyMap(),
             ),
         )
         actual shouldBe KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave.left()

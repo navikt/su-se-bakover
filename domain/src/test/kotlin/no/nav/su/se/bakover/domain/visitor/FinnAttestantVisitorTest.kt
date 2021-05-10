@@ -255,6 +255,7 @@ internal class FinnAttestantVisitorTest {
                 ),
             ),
         ),
+        informasjonSomRevurderes = emptyMap(),
     )
 
     private val beregnetRevurdering = when (val a = revurdering.beregn(emptyList()).orNull()!!) {

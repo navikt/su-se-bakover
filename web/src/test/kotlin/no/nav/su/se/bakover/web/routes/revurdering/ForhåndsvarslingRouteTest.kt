@@ -92,6 +92,7 @@ internal class ForhåndsvarslingRouteTest {
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = emptyMap(),
         )
 
         val revurderingServiceMock = mock<RevurderingService> {
@@ -111,8 +112,8 @@ internal class ForhåndsvarslingRouteTest {
                 setBody(
                     //language=json
                     """
-                        { 
-                          "revurderingshandling": "FORHÅNDSVARSLE", 
+                        {
+                          "revurderingshandling": "FORHÅNDSVARSLE",
                           "fritekst": "Friteksten"
                         }
                     """.trimIndent(),
@@ -154,6 +155,7 @@ internal class ForhåndsvarslingRouteTest {
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = emptyMap(),
         )
 
         val revurderingServiceMock = mock<RevurderingService> {
@@ -173,8 +175,8 @@ internal class ForhåndsvarslingRouteTest {
                 setBody(
                     //language=json
                     """
-                        { 
-                          "revurderingshandling": "SEND_TIL_ATTESTERING", 
+                        {
+                          "revurderingshandling": "SEND_TIL_ATTESTERING",
                           "fritekst": "Friteksten"
                         }
                     """.trimIndent(),

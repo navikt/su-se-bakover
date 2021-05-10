@@ -98,6 +98,7 @@ internal class RevurderingTest {
         },
         grunnlagsdata = Grunnlagsdata(uføregrunnlag = listOf()),
         vilkårsvurderinger = vilkårsvurderinger,
+        informasjonSomRevurderes = emptyMap(),
     )
 
     private val tilRevurderingMock: Vedtak.EndringIYtelse = mock() {
