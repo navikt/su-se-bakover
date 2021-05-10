@@ -413,7 +413,6 @@ internal class SøknadsbehandlingPostgresRepo(
                 defaultParams(søknadsbehandling), session,
             )
         }
-        vilkårsvurderingRepo.lagre(søknadsbehandling.id, søknadsbehandling.vilkårsvurderinger.uføre)
     }
 
     private fun lagre(søknadsbehandling: Søknadsbehandling.Beregnet) {

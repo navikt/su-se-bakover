@@ -4,11 +4,14 @@ import arrow.core.Nel
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
+import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import org.junit.jupiter.api.Test
 
 internal class VilkårsvurderingerTest {
@@ -86,5 +89,39 @@ internal class VilkårsvurderingerTest {
                 ),
             ),
         ).resultat shouldBe Resultat.Avslag
+    }
+
+    @Test
+    fun `oppdaterer perioden på grunnlagen riktig`() {
+        val nyPeriode = Periode.create(1.februar(2021), 31.mars(2021))
+        val vilkårsvurdering = Vilkårsvurderinger(
+            uføre = Vilkår.Vurdert.Uførhet.create(
+                vurderingsperioder = Nel.of(
+                    Vurderingsperiode.Uføre.create(
+                        resultat = Resultat.Innvilget,
+                        grunnlag = Grunnlag.Uføregrunnlag(
+                            periode = Periode.create(1.januar(2021), 30.april(2021)),
+                            uføregrad = Uføregrad.parse(20),
+                            forventetInntekt = 10_000,
+                        ),
+                        periode = Periode.create(1.januar(2021), 30.april(2021)),
+                        begrunnelse = "",
+                    ),
+                    Vurderingsperiode.Uføre.create(
+                        resultat = Resultat.Avslag,
+                        grunnlag = Grunnlag.Uføregrunnlag(
+                            periode = Periode.create(1.mai(2021), 31.desember(2021)),
+                            uføregrad = Uføregrad.parse(20),
+                            forventetInntekt = 10_000,
+                        ),
+                        periode = Periode.create(1.mai(2021), 31.desember(2021)),
+                        begrunnelse = "",
+                    ),
+                ),
+            ),
+        )
+
+        val actual = vilkårsvurdering.oppdaterStønadsperiode(Stønadsperiode.create(nyPeriode, "test"))
+        actual.grunnlagsdata.uføregrunnlag.first().periode shouldBe nyPeriode
     }
 }

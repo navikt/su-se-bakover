@@ -1,12 +1,15 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
+import arrow.core.Nel
 import arrow.core.left
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.FnrGenerator
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -26,10 +29,15 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
@@ -842,6 +850,44 @@ internal class StatusovergangTest {
                     )
                 }
             }
+        }
+
+        @Test
+        fun `oppdaterer perioden riktig`() {
+            val opprettetMedGrunnlag = opprettet.copy(
+                vilkårsvurderinger = Vilkårsvurderinger(
+                    uføre = Vilkår.Vurdert.Uførhet.create(
+                        vurderingsperioder = Nel.of(
+                            Vurderingsperiode.Uføre.create(
+                                id = UUID.randomUUID(),
+                                opprettet = opprettet.opprettet,
+                                resultat = Resultat.Innvilget,
+                                grunnlag = Grunnlag.Uføregrunnlag(
+                                    periode = stønadsperiode.periode,
+                                    uføregrad = Uføregrad.parse(20),
+                                    forventetInntekt = 10,
+                                ),
+                                periode = stønadsperiode.periode,
+                                begrunnelse = "ok2k",
+                            ),
+                        ),
+                    ),
+                ),
+            )
+
+            val nyPeriode = Periode.create(1.februar(2021), 31.mars(2021))
+            val actual = statusovergang(
+                søknadsbehandling = opprettetMedGrunnlag,
+                statusovergang = Statusovergang.OppdaterStønadsperiode(
+                    Stønadsperiode.create(
+                        nyPeriode,
+                        "tester å oppdatere perioden",
+                    ),
+                ),
+            )
+
+            actual.periode shouldBe nyPeriode
+            actual.vilkårsvurderinger.grunnlagsdata.uføregrunnlag.first().periode shouldBe nyPeriode
         }
     }
 }
