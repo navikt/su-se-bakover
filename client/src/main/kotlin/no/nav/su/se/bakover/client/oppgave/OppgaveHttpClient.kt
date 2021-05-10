@@ -1,15 +1,14 @@
 package no.nav.su.se.bakover.client.oppgave
 
 import arrow.core.Either
+import arrow.core.extensions.either.monad.flatten
 import arrow.core.flatMap
 import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.github.kittinunf.fuel.core.extensions.authentication
-import com.github.kittinunf.fuel.httpGet
-import com.github.kittinunf.fuel.httpPatch
-import com.github.kittinunf.fuel.httpPost
+import no.nav.su.se.bakover.client.PATCH
 import no.nav.su.se.bakover.client.azure.OAuth
+import no.nav.su.se.bakover.client.isSuccess
 import no.nav.su.se.bakover.client.sts.TokenOppslag
 import no.nav.su.se.bakover.common.ApplicationConfig
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -27,7 +26,12 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
+import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
 import java.time.Clock
+import java.time.Duration
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -41,6 +45,11 @@ internal class OppgaveHttpClient(
 ) : OppgaveClient {
 
     private val log: Logger = LoggerFactory.getLogger(this::class.java)
+
+    var client: HttpClient = HttpClient.newBuilder()
+        .connectTimeout(Duration.ofSeconds(20))
+        .followRedirects(HttpClient.Redirect.NEVER)
+        .build()
 
     override fun opprettOppgaveMedSystembruker(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, OppgaveId> {
         return opprettOppgave(config, tokenoppslagForSystembruker.token())
@@ -65,8 +74,11 @@ internal class OppgaveHttpClient(
     private fun onBehalfOfToken(): Either<KunneIkkeLageToken, String> {
         return Either.unsafeCatch {
             exchange.onBehalfOfToken(MDC.get("Authorization"), connectionConfig.clientId)
-        }.mapLeft {
-            log.error("Kunne ikke lage onBehalfOfToken for oppgave med klient id ${connectionConfig.clientId}, $it")
+        }.mapLeft { throwable ->
+            log.error(
+                "Kunne ikke lage onBehalfOfToken for oppgave med klient id ${connectionConfig.clientId}",
+                throwable,
+            )
             KunneIkkeLageToken
         }.map {
             it
@@ -88,46 +100,50 @@ internal class OppgaveHttpClient(
                 } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}"
         }
 
-        val (_, response, result) = "${connectionConfig.url}$oppgavePath".httpPost()
-            .authentication().bearer(token)
-            .header("Accept", "application/json")
-            .header("Content-Type", "application/json")
-            .header("X-Correlation-ID", getOrCreateCorrelationId())
-            .body(
-                objectMapper.writeValueAsString(
-                    OppgaveRequest(
-                        journalpostId = config.journalpostId?.toString(),
-                        saksreferanse = config.saksreferanse,
-                        aktoerId = config.aktørId.toString(),
-                        tema = Tema.SUPPLERENDE_STØNAD.value,
-                        behandlesAvApplikasjon = "SUPSTONAD",
-                        beskrivelse = beskrivelse,
-                        oppgavetype = config.oppgavetype.toString(),
-                        behandlingstema = config.behandlingstema?.toString(),
-                        behandlingstype = config.behandlingstype.toString(),
-                        aktivDato = aktivDato,
-                        fristFerdigstillelse = aktivDato.plusDays(30),
-                        prioritet = "NORM",
-                        tilordnetRessurs = config.tilordnetRessurs?.toString()
-                    )
-                )
-            ).responseString()
+        return Either.unsafeCatch {
+            val request = HttpRequest.newBuilder()
+                .uri(URI.create("${connectionConfig.url}$oppgavePath"))
+                .header("Authorization", "Bearer $token")
+                .header("Accept", "application/json")
+                .header("X-Correlation-ID", getOrCreateCorrelationId())
+                .header("Content-Type", "application/json")
+                .POST(
+                    HttpRequest.BodyPublishers.ofString(
+                        objectMapper.writeValueAsString(
+                            OppgaveRequest(
+                                journalpostId = config.journalpostId?.toString(),
+                                saksreferanse = config.saksreferanse,
+                                aktoerId = config.aktørId.toString(),
+                                tema = Tema.SUPPLERENDE_STØNAD.value,
+                                behandlesAvApplikasjon = "SUPSTONAD",
+                                beskrivelse = beskrivelse,
+                                oppgavetype = config.oppgavetype.toString(),
+                                behandlingstema = config.behandlingstema?.toString(),
+                                behandlingstype = config.behandlingstype.toString(),
+                                aktivDato = aktivDato,
+                                fristFerdigstillelse = aktivDato.plusDays(30),
+                                prioritet = "NORM",
+                                tilordnetRessurs = config.tilordnetRessurs?.toString(),
+                            ),
+                        ),
+                    ),
+                ).build()
 
-        return result.fold(
-            { json ->
-                log.info("Lagret oppgave i oppgave. status=${response.statusCode} se sikkerlogg for detaljer")
-                sikkerLogg.info("Lagret oppgave i oppgave. status=${response.statusCode} body=$json")
-                objectMapper.readValue(json, OppgaveResponse::class.java).getOppgaveId().right()
-            },
-            {
-                log.error("Feil i kallet mot oppgave. status=${response.statusCode} se sikkerlogg for detaljer", it)
-                sikkerLogg.error(
-                    "Feil i kallet mot oppgave. status=${response.statusCode} body=${String(response.data)}",
-                    it
-                )
-                KunneIkkeOppretteOppgave.left()
+            client.send(request, HttpResponse.BodyHandlers.ofString()).let {
+                val body = it.body()
+                if (it.isSuccess()) {
+                    log.info("Lagret oppgave i oppgave. status=${it.statusCode()} se sikkerlogg for detaljer")
+                    sikkerLogg.info("Lagret oppgave i oppgave. status=${it.statusCode()} body=$body")
+                    objectMapper.readValue(body, OppgaveResponse::class.java).getOppgaveId().right()
+                } else {
+                    log.error("Feil i kallet mot oppgave. status=${it.statusCode()}, body=$body")
+                    KunneIkkeOppretteOppgave.left()
+                }
             }
-        )
+        }.mapLeft { throwable ->
+            log.error("Feil i kallet mot oppgave.", throwable)
+            KunneIkkeOppretteOppgave
+        }.flatten()
     }
 
     private fun lukkOppgave(oppgaveId: OppgaveId, token: String): Either<KunneIkkeLukkeOppgave, Unit> {
@@ -143,67 +159,84 @@ internal class OppgaveHttpClient(
         }
     }
 
-    private fun hentOppgave(oppgaveId: OppgaveId, token: String): Either<KunneIkkeSøkeEtterOppgave, OppgaveResponse> {
-        val (_, _, result) = "${connectionConfig.url}$oppgavePath/$oppgaveId".httpGet()
-            .authentication().bearer(token)
-            .header("Accept", "application/json")
-            .header("Content-Type", "application/json")
-            .header("X-Correlation-ID", getOrCreateCorrelationId())
-            .responseString()
-        return result.fold(
-            { responseJson ->
-                val oppgave = objectMapper.readValue<OppgaveResponse>(responseJson)
-                oppgave.right()
-            },
-            {
-                log.error("Feil ved hent av oppgave $oppgaveId. status=${it.response.statusCode} body=${String(it.response.data)}", it)
-                KunneIkkeSøkeEtterOppgave.left()
+    private fun hentOppgave(
+        oppgaveId: OppgaveId,
+        token: String,
+    ): Either<KunneIkkeSøkeEtterOppgave, OppgaveResponse> {
+        return Either.unsafeCatch {
+            val request = HttpRequest.newBuilder()
+                .uri(URI.create("${connectionConfig.url}$oppgavePath/$oppgaveId"))
+                .header("Authorization", "Bearer $token")
+                .header("Accept", "application/json")
+                .header("X-Correlation-ID", getOrCreateCorrelationId())
+                .header("Content-Type", "application/json")
+                .GET()
+                .build()
+
+            client.send(request, HttpResponse.BodyHandlers.ofString()).let {
+                if (it.isSuccess()) {
+                    val oppgave = objectMapper.readValue<OppgaveResponse>(it.body())
+                    oppgave.right()
+                } else {
+                    log.error("Feil ved hent av oppgave $oppgaveId. status=${it.statusCode()} body=${it.body()}")
+                    KunneIkkeSøkeEtterOppgave.left()
+                }
             }
-        )
+        }.mapLeft { throwable ->
+            log.error("Feil i kallet mot oppgave.", throwable)
+            KunneIkkeSøkeEtterOppgave
+        }.flatten()
     }
 
     private fun lukkOppgave(
         oppgave: OppgaveResponse,
-        token: String
+        token: String,
     ): Either<KunneIkkeLukkeOppgave, LukkOppgaveResponse> {
         val beskrivelse =
-            "--- ${Tidspunkt.now(clock).toOppgaveFormat()} - Lukket av Supplerende Stønad ---\nSøknadId : ${oppgave.saksreferanse}"
-        val (_, response, result) = "${connectionConfig.url}$oppgavePath/${oppgave.id}".httpPatch()
-            .authentication().bearer(token)
-            .header("Accept", "application/json")
-            .header("Content-Type", "application/json")
-            .header("X-Correlation-ID", getOrCreateCorrelationId())
-            .body(
-                objectMapper.writeValueAsString(
-                    EndreOppgaveRequest(
-                        id = oppgave.id,
-                        versjon = oppgave.versjon,
-                        beskrivelse = oppgave.beskrivelse?.let { beskrivelse.plus("\n\n").plus(oppgave.beskrivelse) } ?: beskrivelse,
-                        status = "FERDIGSTILT"
-                    )
-                )
-            ).responseString()
+            "--- ${
+            Tidspunkt.now(clock).toOppgaveFormat()
+            } - Lukket av Supplerende Stønad ---\nSøknadId : ${oppgave.saksreferanse}"
 
-        return result.fold(
-            { json ->
-                val loggmelding =
-                    "Endret oppgave ${oppgave.id} med versjon ${oppgave.versjon} sin status til FERDIGSTILT"
-                log.info("$loggmelding. Response-json finnes i sikkerlogg.")
-                sikkerLogg.info("$loggmelding. Response-json: $json")
-                objectMapper.readValue(json, LukkOppgaveResponse::class.java).right()
-            },
-            {
-                log.error(
-                    "Feil i kallet for å endre oppgave. status=${response.statusCode} se sikkerlogg for detaljer",
-                    it
+        return Either.unsafeCatch {
+            val request = HttpRequest.newBuilder()
+                .uri(URI.create("${connectionConfig.url}$oppgavePath/${oppgave.id}"))
+                .header("Authorization", "Bearer $token")
+                .header("Accept", "application/json")
+                .header("X-Correlation-ID", getOrCreateCorrelationId())
+                .header("Content-Type", "application/json")
+                .PATCH(
+                    HttpRequest.BodyPublishers.ofString(
+                        objectMapper.writeValueAsString(
+                            EndreOppgaveRequest(
+                                id = oppgave.id,
+                                versjon = oppgave.versjon,
+                                beskrivelse = oppgave.beskrivelse?.let {
+                                    beskrivelse.plus("\n\n").plus(oppgave.beskrivelse)
+                                }
+                                    ?: beskrivelse,
+                                status = "FERDIGSTILT",
+                            ),
+                        ),
+                    ),
                 )
-                sikkerLogg.error(
-                    "Feil i kallet for å endre oppgave. status=${response.statusCode} body=${String(response.data)}",
-                    it
-                )
-                KunneIkkeLukkeOppgave.left()
+                .build()
+
+            client.send(request, HttpResponse.BodyHandlers.ofString()).let {
+                if (it.isSuccess()) {
+                    val loggmelding =
+                        "Endret oppgave ${oppgave.id} med versjon ${oppgave.versjon} sin status til FERDIGSTILT"
+                    log.info("$loggmelding. Response-json finnes i sikkerlogg.")
+                    sikkerLogg.info("$loggmelding. Response-json: $it")
+                    objectMapper.readValue(it.body(), LukkOppgaveResponse::class.java).right()
+                } else {
+                    log.error("Kunne ikke endre oppgave ${oppgave.id} med status=${it.statusCode()} og body=${it.body()}")
+                    KunneIkkeLukkeOppgave.left()
+                }
             }
-        )
+        }.mapLeft { throwable ->
+            log.error("Kunne ikke endre oppgave ${oppgave.id}.", throwable)
+            KunneIkkeLukkeOppgave
+        }.flatten()
     }
 
     companion object {
