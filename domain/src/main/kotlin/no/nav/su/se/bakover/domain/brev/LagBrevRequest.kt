@@ -35,6 +35,8 @@ interface LagBrevRequest {
                 satsGrunn = behandlingsinformasjon.getSatsgrunn().orNull()!!,
                 satsBeløp = beregning.getSats().månedsbeløpSomHeltall(beregning.periode.tilOgMed),
                 satsGjeldendeFraDato = beregning.getSats().datoForSisteEndringAvSats(beregning.periode.tilOgMed).ddMMyyyy(),
+                // Innvilgede vedtaker har alltid forventet inntekt
+                forventetInntektStørreEnn0 = behandlingsinformasjon.uførhet!!.forventetInntekt!! > 0,
                 harEktefelle = behandlingsinformasjon.harEktefelle(),
                 beregningsperioder = LagBrevinnholdForBeregning(beregning).brevInnhold,
                 saksbehandlerNavn = saksbehandlerNavn,

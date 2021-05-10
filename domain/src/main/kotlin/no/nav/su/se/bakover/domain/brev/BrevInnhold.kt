@@ -50,6 +50,7 @@ abstract class BrevInnhold {
         val satsGrunn: Satsgrunn,
         val satsBeløp: Int,
         val satsGjeldendeFraDato: String,
+        val forventetInntektStørreEnn0: Boolean,
         val harEktefelle: Boolean,
         val beregningsperioder: List<Beregningsperiode>,
         val saksbehandlerNavn: String,
