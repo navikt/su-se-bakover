@@ -5,7 +5,6 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.web.FnrGenerator
@@ -153,16 +152,15 @@ internal class SøknadsbehandlingJsonTest {
     fun nullables() {
         val behandlingWithNulls = Søknadsbehandling.Vilkårsvurdert.Uavklart(
             id = behandlingId,
-            behandlingsinformasjon = Behandlingsinformasjon(),
-            søknad = journalførtSøknadMedOppgave,
+            opprettet = Tidspunkt.EPOCH,
             sakId = sakId,
             saksnummer = saksnummer,
-            fnr = FnrGenerator.random(),
+            søknad = journalførtSøknadMedOppgave,
             oppgaveId = oppgaveId,
-            opprettet = Tidspunkt.EPOCH,
+            behandlingsinformasjon = Behandlingsinformasjon(),
+            fnr = FnrGenerator.random(),
             fritekstTilBrev = "",
             stønadsperiode = null,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
         val opprettetTidspunkt = DateTimeFormatter.ISO_INSTANT.format(behandlingWithNulls.opprettet)

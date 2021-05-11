@@ -37,7 +37,7 @@ abstract class BrevInnhold {
         val avslagsparagrafer: List<Int> = avslagsgrunner.getDistinkteParagrafer()
 
         @JsonInclude
-        val satsBeløp = beregningsperioder.firstOrNull()?.satsbeløpPerMåned
+        val satsBeløp = beregningsperioder.lastOrNull()?.satsbeløpPerMåned
 
         override val brevTemplate: BrevTemplate = BrevTemplate.AvslagsVedtak
     }
@@ -104,7 +104,7 @@ abstract class BrevInnhold {
 
         @Suppress("unused")
         @JsonInclude
-        val satsBeløp = beregningsperioder.firstOrNull()?.satsbeløpPerMåned
+        val satsBeløp = beregningsperioder.lastOrNull()?.satsbeløpPerMåned
 
         @Suppress("unused")
         @JsonInclude
@@ -125,7 +125,7 @@ abstract class BrevInnhold {
 
         @Suppress("unused")
         @JsonInclude
-        val satsBeløp = beregningsperioder.firstOrNull()?.satsbeløpPerMåned
+        val satsBeløp = beregningsperioder.lastOrNull()?.satsbeløpPerMåned
 
         @Suppress("unused")
         @JsonInclude

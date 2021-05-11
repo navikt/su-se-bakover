@@ -42,6 +42,15 @@ internal class GarantipensjonsnivåTest {
     }
 
     @Test
+    fun `fiktivt garantipensjonsnivå etter mai 2021 skal være 179 123 kr`() {
+        Garantipensjonsnivå.Ordinær
+            .forDato(1.mai(2021)) shouldBe 179123
+
+        Garantipensjonsnivå.Ordinær
+            .forDato(1.juli(2021)) shouldBe 179123
+    }
+
+    @Test
     fun `periodiserer garantipensjonsnivå`() {
         val januar = Periode.create(1.januar(2020), 31.januar(2020))
         Garantipensjonsnivå.Ordinær.periodiser(januar) shouldBe mapOf(januar to 14674.916666666666667)

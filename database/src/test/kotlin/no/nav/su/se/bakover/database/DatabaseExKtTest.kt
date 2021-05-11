@@ -14,10 +14,10 @@ internal class DatabaseExKtTest {
     @Test
     fun `kaster exception med hjelpende feilmelding hvis man forsøker å bruke særnorske tegn i parameter mapping`() {
         assertThrows<IllegalArgumentException> {
-            "min flotte sql".oppdatering(mapOf("æ" to 1), mock())
+            "min flotte sql".insert(mapOf("æ" to 1), mock())
         }
         assertThrows<IllegalArgumentException> {
-            "min flotte sql".oppdatering(mapOf("Æ" to 1), mock())
+            "min flotte sql".insert(mapOf("Æ" to 1), mock())
         }
         assertThrows<IllegalArgumentException> {
             "min flotte sql".hent(mapOf("ø" to 1), mock()) {}
@@ -32,17 +32,24 @@ internal class DatabaseExKtTest {
             "min flotte sql".hentListe(mapOf("Å" to 1), mock()) {}
         }
         assertThrows<IllegalArgumentException> {
-            "min flotte sql".oppdatering(mapOf("abcdefghijklmnopqrstuvwxyzæøå" to 1), mock())
+            "min flotte sql".insert(mapOf("abcdefghijklmnopqrstuvwxyzæøå" to 1), mock())
+        }
+    }
+
+    @Test
+    fun `kaster exception med hjelpende feilmelding hvis man forsøker å gjøre en update uten where`() {
+        assertThrows<IllegalArgumentException> {
+            "en update sql uten w h e r e".oppdatering(emptyMap(), mock())
         }
     }
 
     @Test
     fun `klarer å mappe andre ting enn særnorske tegn`() {
         assertDoesNotThrow {
-            "min flotte sql".oppdatering(mapOf("a" to 1), mock())
+            "min flotte sql".insert(mapOf("a" to 1), mock())
         }
         assertDoesNotThrow {
-            "min flotte sql".oppdatering(mapOf("abcdefghijklmnopqrstuvwxyz" to 1), mock())
+            "min flotte sql".insert(mapOf("abcdefghijklmnopqrstuvwxyz" to 1), mock())
         }
     }
 
@@ -53,11 +60,11 @@ internal class DatabaseExKtTest {
                 """
                     CREATE TABLE IF NOT EXISTS test (id int not null)
                 """.trimIndent()
-                    .oppdatering(emptyMap(), it)
+                    .insert(emptyMap(), it)
                 """
                     INSERT INTO test (id) VALUES (1)
                 """.trimIndent()
-                    .oppdatering(emptyMap(), it)
+                    .insert(emptyMap(), it)
             }
             datasource.withSession {
                 """
@@ -75,11 +82,11 @@ internal class DatabaseExKtTest {
                     """
                         CREATE TABLE IF NOT EXISTS test (id int not null)
                     """.trimIndent()
-                        .oppdatering(emptyMap(), it)
+                        .insert(emptyMap(), it)
                     """
                         INSERT INTO test (id) VALUES ('dette funker vel ikke')
                     """.trimIndent()
-                        .oppdatering(emptyMap(), it)
+                        .insert(emptyMap(), it)
                 }
             } catch (ex: Exception) {
             }

@@ -207,23 +207,23 @@ internal fun Route.søknadsbehandlingRoutes(
                 fun toDomain(behandlingId: UUID): Either<Resultat, BeregnRequest> {
                     return BeregnRequest(
                         behandlingId = behandlingId,
-                        fradrag = fradrag.map {
+                        fradrag = fradrag.map { fradrag ->
                             BeregnRequest.FradragRequest(
-                                periode = it.periode?.toPeriode()?.getOrHandle { feilResultat ->
+                                periode = fradrag.periode?.toPeriode()?.getOrHandle { feilResultat ->
                                     return feilResultat.left()
                                 },
-                                type = it.type.let {
+                                type = fradrag.type.let {
                                     Fradragstype.tryParse(it).getOrHandle {
                                         return BadRequest.errorJson("Ugyldig fradragstype", "ugyldig_fradragstype")
                                             .left()
                                     }
                                 },
-                                månedsbeløp = it.beløp,
-                                utenlandskInntekt = it.utenlandskInntekt?.toUtlandskInntekt()
+                                månedsbeløp = fradrag.beløp,
+                                utenlandskInntekt = fradrag.utenlandskInntekt?.toUtenlandskInntekt()
                                     ?.getOrHandle { feilResultat ->
                                         return feilResultat.left()
                                     },
-                                tilhører = it.tilhører.let { FradragTilhører.BRUKER },
+                                tilhører = fradrag.tilhører.let { FradragTilhører.valueOf(it) },
 
                             )
                         },

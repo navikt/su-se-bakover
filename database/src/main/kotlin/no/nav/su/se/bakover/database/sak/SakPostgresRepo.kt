@@ -4,7 +4,7 @@ import kotliquery.Row
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.hent
-import no.nav.su.se.bakover.database.oppdatering
+import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
@@ -34,7 +34,7 @@ internal class SakPostgresRepo(
             """
             with inserted_sak as (insert into sak (id, fnr, opprettet) values (:sakId, :fnr, :opprettet))
             insert into søknad (id, sakId, søknadInnhold, opprettet) values (:soknadId, :sakId, to_json(:soknad::json), :opprettet)
-        """.oppdatering(
+        """.insert(
                 mapOf(
                     "sakId" to sak.id,
                     "fnr" to sak.fnr,

@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
+import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.database.withTransaction
@@ -55,7 +56,7 @@ internal class UtbetalingPostgresRepo(
             """
             insert into utbetaling (id, opprettet, sakId, fnr, type, avstemmingsnøkkel, simulering, utbetalingsrequest, behandler)
             values (:id, :opprettet, :sakId, :fnr, :type, to_json(:avstemmingsnokkel::json), to_json(:simulering::json), to_json(:utbetalingsrequest::json), :behandler)
-         """.oppdatering(
+         """.insert(
                 mapOf(
                     "id" to utbetaling.id,
                     "opprettet" to utbetaling.opprettet,
@@ -98,7 +99,7 @@ internal class UtbetalingPostgresRepo(
         """
             insert into utbetalingslinje (id, opprettet, fom, tom, utbetalingId, forrigeUtbetalingslinjeId, beløp, status, statusFraOgMed)
             values (:id, :opprettet, :fom, :tom, :utbetalingId, :forrigeUtbetalingslinjeId, :belop, :status, :statusFraOgMed)
-        """.oppdatering(params, session)
+        """.insert(params, session)
 
         return utbetalingslinje
     }

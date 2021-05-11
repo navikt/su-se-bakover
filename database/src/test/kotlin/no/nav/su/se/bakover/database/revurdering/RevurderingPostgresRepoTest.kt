@@ -229,6 +229,8 @@ internal class RevurderingPostgresRepoTest {
                     årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
                     begrunnelse = Revurderingsårsak.Begrunnelse.create("begrunnelse"),
                 ),
+                grunnlagsdata = opprettetRevurdering.grunnlagsdata,
+                vilkårsvurderinger = opprettetRevurdering.vilkårsvurderinger,
                 InformasjonSomRevurderes(emptyMap())
             )
 

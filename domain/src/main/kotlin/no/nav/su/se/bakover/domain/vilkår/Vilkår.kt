@@ -10,6 +10,8 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import java.util.UUID
 
@@ -32,9 +34,15 @@ sealed class Inngangsvilkår {
 data class Vilkårsvurderinger(
     val uføre: Vilkår<Grunnlag.Uføregrunnlag?> = Vilkår.IkkeVurdert.Uførhet,
 ) {
+    fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Vilkårsvurderinger =
+        this.copy(uføre = this.uføre.oppdaterStønadsperiode(stønadsperiode))
+
     companion object {
         val EMPTY = Vilkårsvurderinger()
     }
+
+    val grunnlagsdata: Grunnlagsdata =
+        Grunnlagsdata(uføregrunnlag = (uføre as? Vilkår.Vurdert.Uførhet)?.grunnlag ?: emptyList())
 
     val resultat: Resultat by lazy {
         setOf(uføre).map { it.resultat }.let { alleVurderingsresultat ->
@@ -72,10 +80,12 @@ sealed class Vilkårsvurderingsresultat {
  * Vurderingen av et vilkår mot en eller flere grunnlagsdata
  */
 sealed class Vilkår<T : Grunnlag?> {
+    abstract fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Vilkår<T>
 
     sealed class IkkeVurdert<T : Grunnlag?> : Vilkår<T>() {
         object Uførhet : Vilkår<Grunnlag.Uføregrunnlag?>() {
             override val resultat: Resultat = Resultat.Uavklart
+            override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode) = this
         }
     }
 
@@ -127,11 +137,19 @@ sealed class Vilkår<T : Grunnlag?> {
             sealed class UgyldigUførevilkår {
                 object OverlappendeVurderingsperioder : UgyldigUførevilkår()
             }
+
+            override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Vilkår<Grunnlag.Uføregrunnlag?> =
+                this.copy(
+                    vurderingsperioder = this.vurderingsperioder.map {
+                        it.oppdaterStønadsperiode(stønadsperiode)
+                    },
+                )
         }
     }
 }
 
 sealed class Vurderingsperiode<T : Grunnlag?> : KanPlasseresPåTidslinje<Vurderingsperiode<T>> {
+    abstract fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Vurderingsperiode<T>
     abstract val id: UUID
     abstract override val opprettet: Tidspunkt
     abstract val resultat: Resultat
@@ -147,6 +165,13 @@ sealed class Vurderingsperiode<T : Grunnlag?> : KanPlasseresPåTidslinje<Vurderi
         override val periode: Periode,
         override val begrunnelse: String?,
     ) : Vurderingsperiode<Grunnlag.Uføregrunnlag?>() {
+
+        override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Uføre {
+            return this.copy(
+                periode = stønadsperiode.periode,
+                grunnlag = this.grunnlag?.oppdaterPeriode(stønadsperiode.periode),
+            )
+        }
 
         override fun copy(args: CopyArgs.Tidslinje): Uføre = when (args) {
             CopyArgs.Tidslinje.Full -> {

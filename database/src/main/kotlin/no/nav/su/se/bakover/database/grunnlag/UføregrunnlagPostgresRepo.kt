@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
+import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid
@@ -99,7 +100,7 @@ internal class UføregrunnlagPostgresRepo(
                 :forventetInntekt
             )
         """.trimIndent()
-            .oppdatering(
+            .insert(
                 mapOf(
                     "id" to uføregrunnlag.id,
                     "opprettet" to uføregrunnlag.opprettet,

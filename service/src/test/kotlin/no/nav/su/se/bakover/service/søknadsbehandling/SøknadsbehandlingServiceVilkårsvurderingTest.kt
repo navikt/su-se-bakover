@@ -49,7 +49,8 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
     private val opprettetBehandling = Søknadsbehandling.Vilkårsvurdert.Uavklart(
         id = behandlingId,
         opprettet = Tidspunkt.now(),
-        behandlingsinformasjon = behandlingsinformasjon,
+        sakId = sakId,
+        saksnummer = Saksnummer(2021),
         søknad = Søknad.Journalført.MedOppgave(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.EPOCH,
@@ -58,13 +59,11 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
             oppgaveId = oppgaveId,
             journalpostId = JournalpostId("j"),
         ),
-        sakId = sakId,
-        saksnummer = Saksnummer(2021),
-        fnr = FnrGenerator.random(),
         oppgaveId = oppgaveId,
+        behandlingsinformasjon = behandlingsinformasjon,
+        fnr = FnrGenerator.random(),
         fritekstTilBrev = "",
         stønadsperiode = stønadsperiode,
-        grunnlagsdata = Grunnlagsdata.EMPTY,
         vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
     )
 
@@ -96,15 +95,14 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
         val expected = Søknadsbehandling.Vilkårsvurdert.Innvilget(
             id = opprettetBehandling.id,
             opprettet = opprettetBehandling.opprettet,
-            behandlingsinformasjon = behandlingsinformasjon,
-            søknad = opprettetBehandling.søknad,
             sakId = opprettetBehandling.sakId,
             saksnummer = opprettetBehandling.saksnummer,
-            fnr = opprettetBehandling.fnr,
+            søknad = opprettetBehandling.søknad,
             oppgaveId = opprettetBehandling.oppgaveId,
+            behandlingsinformasjon = behandlingsinformasjon,
+            fnr = opprettetBehandling.fnr,
             fritekstTilBrev = "",
             stønadsperiode = opprettetBehandling.stønadsperiode!!,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
@@ -137,15 +135,14 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
         val expected = Søknadsbehandling.Vilkårsvurdert.Avslag(
             id = opprettetBehandling.id,
             opprettet = opprettetBehandling.opprettet,
-            behandlingsinformasjon = behandlingsinformasjon,
-            søknad = opprettetBehandling.søknad,
             sakId = opprettetBehandling.sakId,
             saksnummer = opprettetBehandling.saksnummer,
-            fnr = opprettetBehandling.fnr,
+            søknad = opprettetBehandling.søknad,
             oppgaveId = opprettetBehandling.oppgaveId,
+            behandlingsinformasjon = behandlingsinformasjon,
+            fnr = opprettetBehandling.fnr,
             fritekstTilBrev = "",
             stønadsperiode = opprettetBehandling.stønadsperiode!!,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 

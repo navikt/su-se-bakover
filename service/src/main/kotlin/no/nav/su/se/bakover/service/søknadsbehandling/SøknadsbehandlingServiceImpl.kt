@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.service.beregning.BeregningService
 import no.nav.su.se.bakover.service.brev.BrevService
@@ -452,6 +453,12 @@ internal class SøknadsbehandlingServiceImpl(
             statusovergang = Statusovergang.OppdaterStønadsperiode(request.stønadsperiode),
         ).let {
             søknadsbehandlingRepo.lagre(it)
+            vilkårsvurderingService.lagre(
+                søknadsbehandling.id,
+                søknadsbehandling.vilkårsvurderinger.copy(
+                    uføre = it.vilkårsvurderinger.uføre,
+                ),
+            )
             it.right()
         }
     }
@@ -493,10 +500,8 @@ internal class SøknadsbehandlingServiceImpl(
             SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling
         }.map {
             vilkårsvurderingService.lagre(
-                søknadsbehandling.id,
-                søknadsbehandling.vilkårsvurderinger.copy(
-                    uføre = vilkår,
-                ),
+                it.id,
+                Vilkårsvurderinger(uføre = vilkår),
             )
             søknadsbehandlingRepo.hent(søknadsbehandling.id)!!
         }
