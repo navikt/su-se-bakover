@@ -52,7 +52,8 @@ interface LagBrevRequest {
         private val avslag: Avslag,
         private val saksbehandlerNavn: String,
         private val attestantNavn: String,
-        private val fritekst: String
+        private val fritekst: String,
+        private val forventetInntektStørreEnn0: Boolean,
     ) : LagBrevRequest {
         override fun getPerson(): Person = person
         override fun lagBrevInnhold(personalia: BrevInnhold.Personalia): BrevInnhold.AvslagsBrevInnhold {
@@ -66,7 +67,8 @@ interface LagBrevRequest {
                 attestantNavn = attestantNavn,
                 sats = avslag.beregning?.getSats()?.name?.lowercase(),
                 satsGjeldendeFraDato = avslag.beregning?.getSats()?.datoForSisteEndringAvSats(avslag.beregning.periode.tilOgMed)?.ddMMyyyy(),
-                fritekst = fritekst
+                fritekst = fritekst,
+                forventetInntektStørreEnn0 = forventetInntektStørreEnn0
             )
         }
     }
@@ -74,6 +76,7 @@ interface LagBrevRequest {
     data class Opphørsvedtak(
         private val person: Person,
         private val beregning: Beregning,
+        private val forventetInntektStørreEnn0: Boolean,
         private val behandlingsinformasjon: Behandlingsinformasjon,
         private val saksbehandlerNavn: String,
         private val attestantNavn: String,
@@ -100,6 +103,7 @@ interface LagBrevRequest {
                 fritekst = fritekst,
                 avslagsgrunner = avslagsgrunn,
                 avslagsparagrafer = avslagsgrunn.getDistinkteParagrafer(),
+                forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
             )
         }
     }
@@ -111,6 +115,7 @@ interface LagBrevRequest {
         private val beregning: Beregning,
         private val fritekst: String,
         private val harEktefelle: Boolean,
+        private val forventetInntektStørreEnn0: Boolean,
     ) : LagBrevRequest {
         override fun getPerson(): Person = person
 
@@ -124,6 +129,7 @@ interface LagBrevRequest {
                 sats = beregning.getSats(),
                 satsGjeldendeFraDato = beregning.getSats().datoForSisteEndringAvSats(beregning.periode.tilOgMed).ddMMyyyy(),
                 harEktefelle = harEktefelle,
+                forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
             )
         }
     }
@@ -152,6 +158,7 @@ interface LagBrevRequest {
             private val revurdertBeregning: Beregning,
             private val fritekst: String,
             private val harEktefelle: Boolean,
+            private val forventetInntektStørreEnn0: Boolean,
         ) : Revurdering() {
             override fun getPerson(): Person = person
 
@@ -165,6 +172,7 @@ interface LagBrevRequest {
                     sats = revurdertBeregning.getSats(),
                     satsGjeldendeFraDato = revurdertBeregning.getSats().datoForSisteEndringAvSats(revurdertBeregning.periode.tilOgMed).ddMMyyyy(),
                     harEktefelle = harEktefelle,
+                    forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
                 )
             }
         }

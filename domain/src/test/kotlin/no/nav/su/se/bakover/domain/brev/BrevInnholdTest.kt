@@ -153,6 +153,7 @@ internal class BrevInnholdTest {
             avslagsgrunner = listOf(Avslagsgrunn.FOR_HØY_INNTEKT),
             avslagsparagrafer = listOf(1),
             satsGjeldendeFraDato = "01.01.2020",
+            forventetInntektStørreEnn0 = false,
         )
 
         //language=JSON
@@ -189,7 +190,8 @@ internal class BrevInnholdTest {
                 "attestantNavn": "Hopp",
                 "fritekst": "",
                 "avslagsgrunner" : ["FOR_HØY_INNTEKT"],
-                "avslagsparagrafer" : [1]
+                "avslagsparagrafer" : [1],
+                "forventetInntektStørreEnn0" : false
             }
         """.trimIndent()
 

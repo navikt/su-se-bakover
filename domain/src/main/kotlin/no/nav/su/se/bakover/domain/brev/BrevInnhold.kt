@@ -27,6 +27,7 @@ abstract class BrevInnhold {
         val sats: String?,
         val satsGjeldendeFraDato: String?,
         val fritekst: String,
+        val forventetInntektStørreEnn0: Boolean,
     ) : BrevInnhold() {
         @Suppress("unused")
         @JsonInclude
@@ -76,6 +77,7 @@ abstract class BrevInnhold {
         val saksbehandlerNavn: String,
         val attestantNavn: String,
         val fritekst: String,
+        val forventetInntektStørreEnn0: Boolean,
     ) : BrevInnhold() {
         override val brevTemplate: BrevTemplate = BrevTemplate.Opphørsvedtak
 
@@ -100,6 +102,7 @@ abstract class BrevInnhold {
         val sats: Sats,
         val satsGjeldendeFraDato: String,
         val harEktefelle: Boolean,
+        val forventetInntektStørreEnn0: Boolean,
     ) : BrevInnhold() {
         override val brevTemplate = BrevTemplate.Revurdering.Inntekt
 
@@ -121,6 +124,7 @@ abstract class BrevInnhold {
         val sats: Sats,
         val satsGjeldendeFraDato: String,
         val harEktefelle: Boolean,
+        val forventetInntektStørreEnn0: Boolean,
     ) : BrevInnhold() {
         override val brevTemplate = BrevTemplate.VedtakIngenEndring
 

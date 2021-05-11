@@ -278,6 +278,7 @@ class LagBrevRequestVisitor(
                 behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
                 beregning = beregning,
                 fritekst = fritekst,
+                uføregrunnlag = søknadsbehandling.grunnlagsdata.uføregrunnlag
             )
         }
 
@@ -316,12 +317,14 @@ class LagBrevRequestVisitor(
                 beregning = beregning,
                 fritekst = revurdering.fritekstTilBrev,
                 harEktefelle = revurdering.behandlingsinformasjon.harEktefelle(),
+                uføregrunnlag = revurdering.grunnlagsdata.uføregrunnlag
             )
         }
 
     private fun requestIngenEndring(
         personOgNavn: PersonOgNavn,
         beregning: Beregning,
+        uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
         fritekst: String,
         harEktefelle: Boolean,
     ) = LagBrevRequest.VedtakIngenEndring(
@@ -331,6 +334,7 @@ class LagBrevRequestVisitor(
         beregning = beregning,
         fritekst = fritekst,
         harEktefelle = harEktefelle,
+        forventetInntektStørreEnn0 = uføregrunnlag.sumOf { it.forventetInntekt } > 0,
     )
 
     private fun innvilgetRevurdering(revurdering: Revurdering, beregning: Beregning) =
@@ -341,7 +345,7 @@ class LagBrevRequestVisitor(
                 revurdering.accept(it)
                 it.attestant
             },
-        ).map {
+        ).map { it ->
             LagBrevRequest.Revurdering.Inntekt(
                 person = it.person,
                 saksbehandlerNavn = it.saksbehandlerNavn,
@@ -349,6 +353,7 @@ class LagBrevRequestVisitor(
                 revurdertBeregning = beregning,
                 fritekst = revurdering.fritekstTilBrev,
                 harEktefelle = revurdering.behandlingsinformasjon.harEktefelle(),
+                forventetInntektStørreEnn0 = revurdering.grunnlagsdata.uføregrunnlag.sumOf { it.forventetInntekt } > 0,
             )
         }
 
@@ -368,6 +373,7 @@ class LagBrevRequestVisitor(
                 fritekst = revurdering.fritekstTilBrev,
                 saksbehandlerNavn = it.saksbehandlerNavn,
                 attestantNavn = it.attestantNavn,
+                forventetInntektStørreEnn0 = revurdering.grunnlagsdata.uføregrunnlag.sumOf { it.forventetInntekt } > 0
             )
         }
 
@@ -377,6 +383,7 @@ class LagBrevRequestVisitor(
         behandlingsinformasjon: Behandlingsinformasjon,
         beregning: Beregning?,
         fritekst: String,
+        uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
     ) = LagBrevRequest.AvslagBrevRequest(
         person = personOgNavn.person,
         avslag = Avslag(
@@ -388,6 +395,7 @@ class LagBrevRequestVisitor(
         saksbehandlerNavn = personOgNavn.saksbehandlerNavn,
         attestantNavn = personOgNavn.attestantNavn,
         fritekst = fritekst,
+        forventetInntektStørreEnn0 = uføregrunnlag.sumOf { it.forventetInntekt } > 0
     )
 
     private fun requestForInnvilgelse(
@@ -465,6 +473,7 @@ class LagBrevRequestVisitor(
                     else -> ""
                 },
                 harEktefelle = vedtak.behandlingsinformasjon.harEktefelle(),
+                forventetInntektStørreEnn0 = vedtak.behandling.grunnlagsdata.uføregrunnlag.sumOf { it.forventetInntekt } > 0
             )
         }
 
@@ -484,6 +493,7 @@ class LagBrevRequestVisitor(
                     else -> ""
                 },
                 behandlingsinformasjon = vedtak.behandlingsinformasjon,
+                forventetInntektStørreEnn0 = vedtak.behandling.grunnlagsdata.uføregrunnlag.sumOf { it.forventetInntekt } > 0
             )
         }
 
@@ -507,6 +517,7 @@ class LagBrevRequestVisitor(
                     is Søknadsbehandling -> b.fritekstTilBrev // TODO ia: kommer vi oss unna denne?
                     else -> ""
                 },
+                uføregrunnlag = vedtak.behandling.grunnlagsdata.uføregrunnlag
             )
         }
 
@@ -523,6 +534,7 @@ class LagBrevRequestVisitor(
                 else -> ""
             },
             harEktefelle = vedtak.behandlingsinformasjon.harEktefelle(),
+            uføregrunnlag = vedtak.behandling.grunnlagsdata.uføregrunnlag
         )
     }
 }
