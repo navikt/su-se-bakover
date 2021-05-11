@@ -278,11 +278,15 @@ data class OpprettetRevurdering(
     fun oppdater(
         periode: Periode,
         revurderingsårsak: Revurderingsårsak,
+        grunnlagsdata: Grunnlagsdata,
+        vilkårsvurderinger: Vilkårsvurderinger,
     ): OpprettetRevurdering = this.copy(
         periode = periode,
         revurderingsårsak = revurderingsårsak,
         behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
         forhåndsvarsel = if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) Forhåndsvarsel.IngenForhåndsvarsel else null,
+        grunnlagsdata = grunnlagsdata,
+        vilkårsvurderinger = vilkårsvurderinger,
     )
 }
 
@@ -294,6 +298,8 @@ sealed class BeregnetRevurdering : Revurdering() {
     fun oppdater(
         periode: Periode,
         revurderingsårsak: Revurderingsårsak,
+        grunnlagsdata: Grunnlagsdata,
+        vilkårsvurderinger: Vilkårsvurderinger,
     ) = OpprettetRevurdering(
         id = id,
         periode = periode,
@@ -536,6 +542,8 @@ sealed class SimulertRevurdering : Revurdering() {
     fun oppdater(
         periode: Periode,
         revurderingsårsak: Revurderingsårsak,
+        grunnlagsdata: Grunnlagsdata,
+        vilkårsvurderinger: Vilkårsvurderinger,
     ) = OpprettetRevurdering(
         id = id,
         periode = periode,
@@ -1024,6 +1032,8 @@ sealed class UnderkjentRevurdering : Revurdering() {
     fun oppdater(
         periode: Periode,
         revurderingsårsak: Revurderingsårsak,
+        grunnlagsdata: Grunnlagsdata,
+        vilkårsvurderinger: Vilkårsvurderinger,
     ) = OpprettetRevurdering(
         id = id,
         periode = periode,

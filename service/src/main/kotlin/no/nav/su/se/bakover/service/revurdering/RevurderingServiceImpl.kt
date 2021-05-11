@@ -118,11 +118,7 @@ internal class RevurderingServiceImpl(
             return KunneIkkeOppretteRevurdering.FantIkkeAktørId.left()
         }
 
-        val vilkårsvurderinger = vilkårsvurderingService.opprettVilkårsvurderinger(sak.id, periode)
-        val grunnlag = when (val vilkårsvurderingUføre = vilkårsvurderinger.uføre) {
-            Vilkår.IkkeVurdert.Uførhet -> Grunnlagsdata(uføregrunnlag = emptyList())
-            is Vilkår.Vurdert.Uførhet -> Grunnlagsdata(uføregrunnlag = vilkårsvurderingUføre.grunnlag)
-        }
+        val (vilkårsvurderinger, grunnlag) = opprettVilkårsvurderinger(sak.id, periode)
 
         // TODO ai 25.02.2021 - Oppgaven skal egentligen ikke opprettes her. Den burde egentligen komma utifra melding av endring, som skal føres til revurdering.
         return oppgaveService.opprettOppgave(
@@ -163,6 +159,15 @@ internal class RevurderingServiceImpl(
                 }
             }
         }
+    }
+
+    private fun opprettVilkårsvurderinger(sakId: UUID, periode: Periode): Pair<Vilkårsvurderinger, Grunnlagsdata> {
+        val vilkårsvurderinger = vilkårsvurderingService.opprettVilkårsvurderinger(sakId, periode)
+        val grunnlag = when (val vilkårsvurderingUføre = vilkårsvurderinger.uføre) {
+            Vilkår.IkkeVurdert.Uførhet -> Grunnlagsdata(uføregrunnlag = emptyList())
+            is Vilkår.Vurdert.Uførhet -> Grunnlagsdata(uføregrunnlag = vilkårsvurderingUføre.grunnlag)
+        }
+        return Pair(vilkårsvurderinger, grunnlag)
     }
 
     override fun leggTilUføregrunnlag(
@@ -214,7 +219,10 @@ internal class RevurderingServiceImpl(
 
         return LeggTilUføregrunnlagResponse(
             revurdering = updated,
-            gjeldendeVilkårsvurderinger = vilkårsvurderingService.opprettVilkårsvurderinger(updated.sakId, updated.periode),
+            gjeldendeVilkårsvurderinger = vilkårsvurderingService.opprettVilkårsvurderinger(
+                updated.sakId,
+                updated.periode,
+            ),
         ).right()
     }
 
@@ -255,17 +263,40 @@ internal class RevurderingServiceImpl(
                 return KunneIkkeOppdatereRevurdering.UgyldigPeriode(it).left()
             }
 
+        val (vilkårsvurderinger, grunnlagsdata) = opprettVilkårsvurderinger(revurdering.sakId, nyPeriode)
+
         return when (revurdering) {
-            is OpprettetRevurdering -> revurdering.oppdater(nyPeriode, revurderingsårsak).right()
-            is BeregnetRevurdering -> revurdering.oppdater(nyPeriode, revurderingsårsak).right()
-            is SimulertRevurdering -> revurdering.oppdater(nyPeriode, revurderingsårsak).right()
-            is UnderkjentRevurdering -> revurdering.oppdater(nyPeriode, revurderingsårsak).right()
+            is OpprettetRevurdering -> revurdering.oppdater(
+                nyPeriode,
+                revurderingsårsak,
+                grunnlagsdata,
+                vilkårsvurderinger,
+            ).right()
+            is BeregnetRevurdering -> revurdering.oppdater(
+                nyPeriode,
+                revurderingsårsak,
+                grunnlagsdata,
+                vilkårsvurderinger,
+            ).right()
+            is SimulertRevurdering -> revurdering.oppdater(
+                nyPeriode,
+                revurderingsårsak,
+                grunnlagsdata,
+                vilkårsvurderinger,
+            ).right()
+            is UnderkjentRevurdering -> revurdering.oppdater(
+                nyPeriode,
+                revurderingsårsak,
+                grunnlagsdata,
+                vilkårsvurderinger,
+            ).right()
             else -> KunneIkkeOppdatereRevurdering.UgyldigTilstand(
                 revurdering::class,
                 OpprettetRevurdering::class,
             ).left()
         }.map {
             revurderingRepo.lagre(it)
+            vilkårsvurderingService.lagre(it.id, it.vilkårsvurderinger)
             it
         }
     }
@@ -283,7 +314,9 @@ internal class RevurderingServiceImpl(
                             return when (it) {
                                 is Revurdering.KunneIkkeBeregneRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden -> KunneIkkeBeregneOgSimulereRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden
                                 is Revurdering.KunneIkkeBeregneRevurdering.UfullstendigBehandlingsinformasjon -> KunneIkkeBeregneOgSimulereRevurdering.UfullstendigBehandlingsinformasjon
-                                is Revurdering.KunneIkkeBeregneRevurdering.UgyldigBeregningsgrunnlag -> KunneIkkeBeregneOgSimulereRevurdering.UgyldigBeregningsgrunnlag(it.reason)
+                                is Revurdering.KunneIkkeBeregneRevurdering.UgyldigBeregningsgrunnlag -> KunneIkkeBeregneOgSimulereRevurdering.UgyldigBeregningsgrunnlag(
+                                    it.reason,
+                                )
                                 is Revurdering.KunneIkkeBeregneRevurdering.UfullstendigVilkårsvurdering -> KunneIkkeBeregneOgSimulereRevurdering.UfullstendigVilkårsvurdering
                             }.left()
                         }

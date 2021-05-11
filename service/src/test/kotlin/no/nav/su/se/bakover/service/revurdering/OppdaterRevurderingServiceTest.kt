@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.fixedLocalDate
 import no.nav.su.se.bakover.service.fixedTidspunkt
+import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.søknadsbehandlingVedtak
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
@@ -260,7 +261,13 @@ internal class OppdaterRevurderingServiceTest {
                 )
             }
         }
-        val mocks = RevurderingServiceMocks(revurderingRepo = revurderingRepoMock)
+        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService> {
+            on { opprettVilkårsvurderinger(any(), any()) } doReturn Vilkårsvurderinger.EMPTY
+        }
+        val mocks = RevurderingServiceMocks(
+            revurderingRepo = revurderingRepoMock,
+            vilkårsvurderingService = vilkårsvurderingServiceMock,
+        )
         val actual = mocks.revurderingService.oppdaterRevurdering(
             OppdaterRevurderingRequest(
                 revurderingId = revurderingId,
@@ -275,6 +282,7 @@ internal class OppdaterRevurderingServiceTest {
             OpprettetRevurdering::class,
         ).left()
         verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
+        verify(vilkårsvurderingServiceMock).opprettVilkårsvurderinger(opprettetRevurdering.sakId, opprettetRevurdering.periode)
         mocks.verifyNoMoreInteractions()
     }
 
@@ -283,8 +291,14 @@ internal class OppdaterRevurderingServiceTest {
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn opprettetRevurdering
         }
+        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService> {
+            on { opprettVilkårsvurderinger(any(), any()) } doReturn Vilkårsvurderinger.EMPTY
+        }
 
-        val mocks = RevurderingServiceMocks(revurderingRepo = revurderingRepoMock)
+        val mocks = RevurderingServiceMocks(
+            revurderingRepo = revurderingRepoMock,
+            vilkårsvurderingService = vilkårsvurderingServiceMock,
+        )
         val actual = mocks.revurderingService.oppdaterRevurdering(
             OppdaterRevurderingRequest(
                 revurderingId = revurderingId,
@@ -323,7 +337,13 @@ internal class OppdaterRevurderingServiceTest {
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn opprettetRevurdering
         }
-        val mocks = RevurderingServiceMocks(revurderingRepo = revurderingRepoMock)
+        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService> {
+            on { opprettVilkårsvurderinger(any(), any()) } doReturn Vilkårsvurderinger.EMPTY
+        }
+        val mocks = RevurderingServiceMocks(
+            revurderingRepo = revurderingRepoMock,
+            vilkårsvurderingService = vilkårsvurderingServiceMock,
+        )
         val actual = mocks.revurderingService.oppdaterRevurdering(
             OppdaterRevurderingRequest(
                 revurderingId = revurderingId,
@@ -350,7 +370,13 @@ internal class OppdaterRevurderingServiceTest {
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn opprettetRevurdering
         }
-        val mocks = RevurderingServiceMocks(revurderingRepo = revurderingRepoMock)
+        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService> {
+            on { opprettVilkårsvurderinger(any(), any()) } doReturn Vilkårsvurderinger.EMPTY
+        }
+        val mocks = RevurderingServiceMocks(
+            revurderingRepo = revurderingRepoMock,
+            vilkårsvurderingService = vilkårsvurderingServiceMock,
+        )
         val actual = mocks.revurderingService.oppdaterRevurdering(
             OppdaterRevurderingRequest(
                 revurderingId = revurderingId,

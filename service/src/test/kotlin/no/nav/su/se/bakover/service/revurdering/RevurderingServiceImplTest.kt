@@ -7,6 +7,7 @@ import arrow.core.left
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
+import com.nhaarman.mockitokotlin2.doReturnConsecutively
 import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.times
@@ -1593,26 +1594,18 @@ internal class RevurderingServiceImplTest {
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
-        var harKaltForhåndsvarsel = false
         val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(any()) }.then {
-                if (harKaltForhåndsvarsel) {
-                    simulertRevurdering.copy(
-                        forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Besluttet(
-                            journalpostId = journalpostId,
-                            brevbestillingId = brevbestillingId,
-                            valg = BeslutningEtterForhåndsvarsling.FortsettSammeOpplysninger,
-                            begrunnelse = "",
-                        ),
-                    )
-                } else {
-                    simulertRevurdering
-                }
-            }
-            on { oppdaterForhåndsvarsel(any(), any()) }.then {
-                harKaltForhåndsvarsel = true
-                Unit
-            }
+            on { hent(any()) } doReturnConsecutively listOf(
+                simulertRevurdering,
+                simulertRevurdering.copy(
+                    forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Besluttet(
+                        journalpostId = journalpostId,
+                        brevbestillingId = brevbestillingId,
+                        valg = BeslutningEtterForhåndsvarsling.FortsettSammeOpplysninger,
+                        begrunnelse = "",
+                    ),
+                ),
+            )
             on { hentEventuellTidligereAttestering(any()) } doReturn null
             on { lagre(any()) }.doNothing()
         }
@@ -1642,6 +1635,8 @@ internal class RevurderingServiceImplTest {
                 fritekstTilBrev = "",
             ),
         )
+
+        verify(revurderingRepoMock).oppdaterForhåndsvarsel(any(), any())
 
         revurdering.map { it.forhåndsvarsel } shouldBeRight Forhåndsvarsel.SkalForhåndsvarsles.Besluttet(
             journalpostId = journalpostId,
@@ -1864,5 +1859,44 @@ internal class RevurderingServiceImplTest {
         ) {
             verify(revurderingRepoMock).hent(revurderingId)
         }
+    }
+
+    @Test
+    fun `grunnlag resettes dersom man oppdaterer revurderingen`() {
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(sakId) } doReturn sak.copy(
+                id = opprettetRevurdering.sakId,
+                vedtakListe = emptyList(),
+            ).right()
+        }
+
+        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService> {
+            on { opprettVilkårsvurderinger(any(), any()) } doReturn opprettetRevurdering.vilkårsvurderinger
+        }
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn opprettetRevurdering
+        }
+
+        val revurderingService = createRevurderingService(
+            sakService = sakServiceMock,
+            vilkårsvurderingService = vilkårsvurderingServiceMock,
+            revurderingRepo = revurderingRepoMock,
+        )
+
+        revurderingService.oppdaterRevurdering(
+            OppdaterRevurderingRequest(
+                revurderingId = opprettetRevurdering.id,
+                fraOgMed = opprettetRevurdering.periode.fraOgMed,
+                årsak = "MELDING_FRA_BRUKER",
+                begrunnelse = "Test",
+                saksbehandler = opprettetRevurdering.saksbehandler,
+            ),
+        ).getOrHandle { throw Exception("k") }
+
+        verify(vilkårsvurderingServiceMock).opprettVilkårsvurderinger(
+            opprettetRevurdering.sakId,
+            opprettetRevurdering.periode,
+        )
+        verify(vilkårsvurderingServiceMock).lagre(opprettetRevurdering.id, opprettetRevurdering.vilkårsvurderinger)
     }
 }
