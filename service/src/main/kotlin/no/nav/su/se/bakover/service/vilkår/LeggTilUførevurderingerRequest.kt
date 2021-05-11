@@ -19,6 +19,7 @@ data class LeggTilUførevurderingerRequest(
         object OverlappendeVurderingsperioder : UgyldigUførevurdering()
         object VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden : UgyldigUførevurdering()
         object AlleVurderingeneMåHaSammeResultat : UgyldigUførevurdering()
+        object HeleBehandlingsperiodenMåHaVurderinger : UgyldigUførevurdering()
     }
 
     fun toVilkår(behandlingsperiode: Periode): Either<UgyldigUførevurdering, Vilkår.Vurdert.Uførhet> {
@@ -37,6 +38,12 @@ data class LeggTilUførevurderingerRequest(
                     when (it) {
                         Vilkår.Vurdert.Uførhet.UgyldigUførevilkår.OverlappendeVurderingsperioder -> UgyldigUførevurdering.OverlappendeVurderingsperioder
                     }
+                }.map {
+                    // Denne sjekken vil og fange opp: VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden, derfor kjører vi den etterpå.
+                    if (!(behandlingsperiode fullstendigOverlapp vurderinger.map { it.periode })) {
+                        return UgyldigUførevurdering.HeleBehandlingsperiodenMåHaVurderinger.left()
+                    }
+                    it
                 }
         }.also {
             if (vurderinger.any { it.oppfylt != vurderinger.first().oppfylt }) {

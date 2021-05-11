@@ -11,10 +11,13 @@ import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
+import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.november
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.common.oktober
+import no.nav.su.se.bakover.common.september
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
@@ -114,7 +117,7 @@ internal class PeriodeTest {
     }
 
     @Test
-    fun `overlappende perioder`() {
+    fun `overlapper enkelt periode`() {
         Periode.create(1.januar(2021), 31.desember(2021)) overlapper
             Periode.create(1.januar(2021), 31.desember(2021)) shouldBe true
 
@@ -153,6 +156,88 @@ internal class PeriodeTest {
 
         Periode.create(1.januar(2020), 31.desember(2020)) overlapper
             Periode.create(1.januar(2021), 31.desember(2021)) shouldBe false
+    }
+
+    @Test
+    fun `overlapper fler perioder`() {
+
+        Periode.create(1.januar(2021), 31.desember(2021)) fullstendigOverlapp
+            listOf(Periode.create(1.januar(2021), 31.desember(2021))) shouldBe true
+
+        Periode.create(1.januar(2021), 31.desember(2021)) fullstendigOverlapp
+            listOf(
+                Periode.create(1.januar(2021), 31.januar(2021)),
+                Periode.create(1.februar(2021), 28.februar(2021)),
+                Periode.create(1.mars(2021), 31.mars(2021)),
+                Periode.create(1.april(2021), 30.april(2021)),
+                Periode.create(1.mai(2021), 31.mai(2021)),
+                Periode.create(1.juni(2021), 30.juni(2021)),
+                Periode.create(1.juli(2021), 31.juli(2021)),
+                Periode.create(1.august(2021), 31.august(2021)),
+                Periode.create(1.september(2021), 30.september(2021)),
+                Periode.create(1.oktober(2021), 31.oktober(2021)),
+                Periode.create(1.november(2021), 30.november(2021)),
+                Periode.create(1.desember(2021), 31.desember(2021)),
+            ) shouldBe true
+
+        Periode.create(1.januar(2021), 31.desember(2021)) fullstendigOverlapp
+            listOf(
+                Periode.create(1.januar(2021), 30.juni(2021)),
+                Periode.create(1.juli(2021), 31.desember(2021)),
+            ) shouldBe true
+
+        Periode.create(1.januar(2021), 31.desember(2021)) fullstendigOverlapp
+            listOf(
+                Periode.create(1.januar(2021), 30.juni(2021)),
+                Periode.create(1.januar(2021), 30.juni(2021)),
+                Periode.create(1.juli(2021), 31.desember(2021)),
+                Periode.create(1.juli(2021), 31.desember(2021)),
+            ) shouldBe true
+
+        Periode.create(1.januar(2021), 31.desember(2021)) fullstendigOverlapp
+            listOf(
+                Periode.create(1.februar(2021), 30.juni(2021)),
+                Periode.create(1.juli(2021), 31.desember(2021)),
+            ) shouldBe false
+
+        Periode.create(1.januar(2021), 31.desember(2021)) fullstendigOverlapp
+            listOf(
+                Periode.create(1.januar(2021), 30.juni(2021)),
+                Periode.create(1.juli(2021), 30.november(2021)),
+            ) shouldBe false
+
+        Periode.create(1.januar(2021), 31.desember(2021)) fullstendigOverlapp
+            listOf(
+                Periode.create(1.januar(2021), 31.mai(2021)),
+                Periode.create(1.juli(2021), 31.desember(2021)),
+            ) shouldBe false
+
+        Periode.create(1.februar(2021), 31.desember(2021)) fullstendigOverlapp
+            listOf(
+                Periode.create(1.januar(2021), 30.juni(2021)),
+                Periode.create(1.juli(2021), 31.desember(2021)),
+            ) shouldBe false
+
+        Periode.create(1.januar(2021), 30.november(2021)) fullstendigOverlapp
+            listOf(
+                Periode.create(1.januar(2021), 30.juni(2021)),
+                Periode.create(1.juli(2021), 31.desember(2021)),
+            ) shouldBe false
+
+        Periode.create(1.januar(2021), 30.november(2021)) fullstendigOverlapp
+            listOf(
+                Periode.create(1.januar(2021), 30.juni(2021)),
+                Periode.create(1.januar(2021), 30.juni(2021)),
+                Periode.create(1.juli(2021), 31.desember(2021)),
+                Periode.create(1.juli(2021), 31.desember(2021)),
+            ) shouldBe false
+
+        Periode.create(1.januar(2021), 31.desember(2021)) fullstendigOverlapp
+            listOf(
+                Periode.create(1.januar(2021), 31.desember(2021)),
+                Periode.create(1.januar(2021), 31.desember(2021)),
+                Periode.create(1.januar(2021), 31.desember(2021)),
+            ) shouldBe true
     }
 
     @Test

@@ -107,6 +107,10 @@ internal fun Route.leggTilGrunnlagRevurderingRoutes(
                                             KunneIkkeLeggeTilGrunnlag.OverlappendeVurderingsperioder -> Feilresponser.overlappendeVurderingsperioder
                                             KunneIkkeLeggeTilGrunnlag.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden -> Feilresponser.utenforBehandlingsperioden
                                             KunneIkkeLeggeTilGrunnlag.AlleVurderingeneMåHaSammeResultat -> Feilresponser.alleVurderingeneMåHaSammeResultat
+                                            KunneIkkeLeggeTilGrunnlag.HeleBehandlingsperiodenMåHaVurderinger -> HttpStatusCode.BadRequest.errorJson(
+                                                "Hele behandlingsperioden må ha vurderinger",
+                                                "hele_behandlingsperioden_må_ha_vurderinger",
+                                            )
                                         }
                                     }.map {
                                         Resultat.json(HttpStatusCode.Created, serialize(it.toJson()))
