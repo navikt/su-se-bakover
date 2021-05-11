@@ -152,6 +152,7 @@ internal class LagBrevRequestVisitorTest {
                         saksbehandlerNavn = "-",
                         attestantNavn = "-",
                         fritekst = "",
+                        forventetInntektStørreEnn0 = false
                     ).right()
                 }
             }
@@ -201,6 +202,7 @@ internal class LagBrevRequestVisitorTest {
                         saksbehandlerNavn = "-",
                         attestantNavn = "-",
                         fritekst = "",
+                        forventetInntektStørreEnn0 = false,
                     ).right()
                 }
             }
@@ -284,6 +286,7 @@ internal class LagBrevRequestVisitorTest {
                         saksbehandlerNavn = saksbehandlerNavn,
                         attestantNavn = "-",
                         fritekst = "Fritekst!",
+                        forventetInntektStørreEnn0 = false,
                     ).right()
                 }
             }
@@ -388,6 +391,7 @@ internal class LagBrevRequestVisitorTest {
                         saksbehandlerNavn = saksbehandlerNavn,
                         attestantNavn = attestantNavn,
                         fritekst = "Fritekst!",
+                        forventetInntektStørreEnn0 = false,
                     ).right()
                 }
             }
@@ -478,6 +482,7 @@ internal class LagBrevRequestVisitorTest {
                         saksbehandlerNavn = saksbehandlerNavn,
                         attestantNavn = attestantNavn,
                         fritekst = "Fritekst!",
+                        forventetInntektStørreEnn0 = false,
                     ).right()
                 }
             }
@@ -515,6 +520,7 @@ internal class LagBrevRequestVisitorTest {
             saksbehandlerNavn = saksbehandlerNavn,
             attestantNavn = attestantNavn,
             fritekst = "Fritekst!",
+            forventetInntektStørreEnn0 = false,
         ).right()
     }
 

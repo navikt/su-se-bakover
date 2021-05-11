@@ -20,6 +20,7 @@ interface LagBrevRequest {
         private val person: Person,
         private val beregning: Beregning,
         private val behandlingsinformasjon: Behandlingsinformasjon,
+        private val forventetInntektStørreEnn0: Boolean,
         private val saksbehandlerNavn: String,
         private val attestantNavn: String,
         private val fritekst: String,
@@ -36,7 +37,7 @@ interface LagBrevRequest {
                 satsBeløp = beregning.getSats().månedsbeløpSomHeltall(beregning.periode.tilOgMed),
                 satsGjeldendeFraDato = beregning.getSats().datoForSisteEndringAvSats(beregning.periode.tilOgMed).ddMMyyyy(),
                 // Innvilgede vedtaker har alltid forventet inntekt
-                forventetInntektStørreEnn0 = behandlingsinformasjon.uførhet!!.forventetInntekt!! > 0,
+                forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
                 harEktefelle = behandlingsinformasjon.harEktefelle(),
                 beregningsperioder = LagBrevinnholdForBeregning(beregning).brevInnhold,
                 saksbehandlerNavn = saksbehandlerNavn,
