@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.harForventetInntektStørreEnn0
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
@@ -334,7 +335,7 @@ class LagBrevRequestVisitor(
         beregning = beregning,
         fritekst = fritekst,
         harEktefelle = harEktefelle,
-        forventetInntektStørreEnn0 = uføregrunnlag.sumOf { it.forventetInntekt } > 0,
+        forventetInntektStørreEnn0 = uføregrunnlag.harForventetInntektStørreEnn0(),
     )
 
     private fun innvilgetRevurdering(revurdering: Revurdering, beregning: Beregning) =
@@ -353,7 +354,7 @@ class LagBrevRequestVisitor(
                 revurdertBeregning = beregning,
                 fritekst = revurdering.fritekstTilBrev,
                 harEktefelle = revurdering.behandlingsinformasjon.harEktefelle(),
-                forventetInntektStørreEnn0 = revurdering.grunnlagsdata.uføregrunnlag.sumOf { it.forventetInntekt } > 0,
+                forventetInntektStørreEnn0 = revurdering.grunnlagsdata.uføregrunnlag.harForventetInntektStørreEnn0(),
             )
         }
 
@@ -373,7 +374,7 @@ class LagBrevRequestVisitor(
                 fritekst = revurdering.fritekstTilBrev,
                 saksbehandlerNavn = it.saksbehandlerNavn,
                 attestantNavn = it.attestantNavn,
-                forventetInntektStørreEnn0 = revurdering.grunnlagsdata.uføregrunnlag.sumOf { it.forventetInntekt } > 0
+                forventetInntektStørreEnn0 = revurdering.grunnlagsdata.uføregrunnlag.harForventetInntektStørreEnn0()
             )
         }
 
@@ -395,7 +396,7 @@ class LagBrevRequestVisitor(
         saksbehandlerNavn = personOgNavn.saksbehandlerNavn,
         attestantNavn = personOgNavn.attestantNavn,
         fritekst = fritekst,
-        forventetInntektStørreEnn0 = uføregrunnlag.sumOf { it.forventetInntekt } > 0
+        forventetInntektStørreEnn0 = uføregrunnlag.harForventetInntektStørreEnn0()
     )
 
     private fun requestForInnvilgelse(
@@ -411,7 +412,7 @@ class LagBrevRequestVisitor(
         saksbehandlerNavn = personOgNavn.saksbehandlerNavn,
         attestantNavn = personOgNavn.attestantNavn,
         fritekst = fritekst,
-        forventetInntektStørreEnn0 = uføregrunnlag.sumOf { it.forventetInntekt } > 0
+        forventetInntektStørreEnn0 = uføregrunnlag.harForventetInntektStørreEnn0()
     )
 
     private data class PersonOgNavn(
@@ -473,7 +474,7 @@ class LagBrevRequestVisitor(
                     else -> ""
                 },
                 harEktefelle = vedtak.behandlingsinformasjon.harEktefelle(),
-                forventetInntektStørreEnn0 = vedtak.behandling.grunnlagsdata.uføregrunnlag.sumOf { it.forventetInntekt } > 0
+                forventetInntektStørreEnn0 = vedtak.behandling.grunnlagsdata.uføregrunnlag.harForventetInntektStørreEnn0()
             )
         }
 
@@ -493,7 +494,7 @@ class LagBrevRequestVisitor(
                     else -> ""
                 },
                 behandlingsinformasjon = vedtak.behandlingsinformasjon,
-                forventetInntektStørreEnn0 = vedtak.behandling.grunnlagsdata.uføregrunnlag.sumOf { it.forventetInntekt } > 0
+                forventetInntektStørreEnn0 = vedtak.behandling.grunnlagsdata.uføregrunnlag.harForventetInntektStørreEnn0()
             )
         }
 
