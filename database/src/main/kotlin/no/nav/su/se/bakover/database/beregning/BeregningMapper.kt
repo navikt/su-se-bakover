@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.database.beregning
 
-import com.fasterxml.jackson.annotation.JsonAlias
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.Beregning
@@ -83,18 +82,12 @@ internal data class PersistertMånedsberegning(
 }
 
 internal data class PersistertFradrag(
-    private val fradragstype: Fradragstype,
-    private val månedsbeløp: Double,
-    private val utenlandskInntekt: UtenlandskInntekt?,
+    override val fradragstype: Fradragstype,
+    override val månedsbeløp: Double,
+    override val utenlandskInntekt: UtenlandskInntekt?,
     override val periode: Periode,
-    private val tilhører: FradragTilhører
+    override val tilhører: FradragTilhører,
 ) : Fradrag {
-    override fun getFradragstype(): Fradragstype = fradragstype
-
-    @JsonAlias("totaltFradrag")
-    override fun getMånedsbeløp(): Double = månedsbeløp
-    override fun getUtenlandskInntekt(): UtenlandskInntekt? = utenlandskInntekt
-    override fun getTilhører(): FradragTilhører = tilhører
 
     override fun equals(other: Any?) = (other as? Fradrag)?.let { this.equals(other) } ?: false
 
@@ -133,9 +126,9 @@ internal fun Månedsberegning.toSnapshot() = PersistertMånedsberegning(
 )
 
 internal fun Fradrag.toSnapshot() = PersistertFradrag(
-    fradragstype = getFradragstype(),
-    månedsbeløp = getMånedsbeløp(),
-    utenlandskInntekt = getUtenlandskInntekt(),
+    fradragstype = fradragstype,
+    månedsbeløp = månedsbeløp,
+    utenlandskInntekt = utenlandskInntekt,
     periode = periode,
-    tilhører = getTilhører()
+    tilhører = tilhører,
 )

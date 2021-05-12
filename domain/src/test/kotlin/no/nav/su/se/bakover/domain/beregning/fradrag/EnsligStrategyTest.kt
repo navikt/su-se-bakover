@@ -34,7 +34,7 @@ internal class EnsligStrategyTest {
                 expectedArbeidsinntekt,
                 expectedKontantstøtte
             )
-            it.values.forEach { it.none { it.getFradragstype() == ForventetInntekt } }
+            it.values.forEach { it.none { it.fradragstype == ForventetInntekt } }
         }
     }
 
@@ -59,7 +59,7 @@ internal class EnsligStrategyTest {
                 expectedForventetInntekt,
                 expectedKontantstøtte
             )
-            it.values.forEach { it.none { it.getFradragstype() == Arbeidsinntekt } }
+            it.values.forEach { it.none { it.fradragstype == Arbeidsinntekt } }
         }
     }
 
@@ -74,7 +74,7 @@ internal class EnsligStrategyTest {
             fradrag = listOf(arbeidsinntekt, kontantstøtte, forventetInntekt),
             beregningsperiode = periode
         ).let {
-            it.values.forEach { it.none { it.getTilhører() == FradragTilhører.EPS } }
+            it.values.forEach { it.none { it.tilhører == FradragTilhører.EPS } }
         }
     }
 

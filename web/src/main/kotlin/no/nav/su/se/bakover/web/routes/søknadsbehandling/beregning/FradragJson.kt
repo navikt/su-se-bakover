@@ -53,11 +53,11 @@ internal data class FradragJson(
         fun List<Fradrag>.toJson(): List<FradragJson> {
             return this.map {
                 FradragJson(
-                    type = it.getFradragstype().toString(),
-                    beløp = it.getMånedsbeløp(),
-                    utenlandskInntekt = it.getUtenlandskInntekt()?.toJson(),
+                    type = it.fradragstype.toString(),
+                    beløp = it.månedsbeløp,
+                    utenlandskInntekt = it.utenlandskInntekt?.toJson(),
                     periode = it.periode.toJson(),
-                    tilhører = it.getTilhører().toString()
+                    tilhører = it.tilhører.toString()
                 )
             }
         }
