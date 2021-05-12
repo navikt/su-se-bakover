@@ -22,11 +22,11 @@ object FradragFactory {
     fun periodiser(fradrag: Fradrag): List<Fradrag> =
         fradrag.periode.tilMånedsperioder().map {
             PeriodisertFradrag(
-                type = fradrag.getFradragstype(),
-                månedsbeløp = fradrag.getMånedsbeløp(),
+                type = fradrag.fradragstype,
+                månedsbeløp = fradrag.månedsbeløp,
                 periode = it,
-                utenlandskInntekt = fradrag.getUtenlandskInntekt(),
-                tilhører = fradrag.getTilhører()
+                utenlandskInntekt = fradrag.utenlandskInntekt,
+                tilhører = fradrag.tilhører
             )
         }
 }

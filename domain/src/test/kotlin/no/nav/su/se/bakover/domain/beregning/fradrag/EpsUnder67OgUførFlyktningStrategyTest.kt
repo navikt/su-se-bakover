@@ -120,8 +120,8 @@ internal class EpsUnder67OgUførFlyktningStrategyTest {
         ).let {
             it shouldHaveSize 4
             it.values.forEach {
-                it.filter { it.getTilhører() == EPS }
-                    .all { it.getFradragstype() == BeregnetFradragEPS }
+                it.filter { it.tilhører == EPS }
+                    .all { it.fradragstype == BeregnetFradragEPS }
             }
         }
     }
@@ -135,7 +135,7 @@ internal class EpsUnder67OgUførFlyktningStrategyTest {
 
         val expectedBeregnetEpsFradrag = lagPeriodisertFradrag(
             type = BeregnetFradragEPS,
-            beløp = (epsKapitalinntekt.getMånedsbeløp() + epsPrivatPensjon.getMånedsbeløp() - 18973.02),
+            beløp = (epsKapitalinntekt.månedsbeløp + epsPrivatPensjon.månedsbeløp - 18973.02),
             periode,
             tilhører = EPS
         )
@@ -162,8 +162,8 @@ internal class EpsUnder67OgUførFlyktningStrategyTest {
             beregningsperiode = periode
         ).let {
             it shouldHaveSize 12
-            it.values.forEach { it.sumOf { it.getMånedsbeløp() } shouldBe arbeidsinntekt.getMånedsbeløp() }
-            it.values.forEach { it.none { it.getTilhører() == EPS } shouldBe true }
+            it.values.forEach { it.sumOf { it.månedsbeløp } shouldBe arbeidsinntekt.månedsbeløp }
+            it.values.forEach { it.none { it.tilhører == EPS } shouldBe true }
         }
     }
 }

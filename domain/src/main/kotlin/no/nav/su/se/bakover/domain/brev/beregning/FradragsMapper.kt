@@ -10,8 +10,8 @@ internal data class BrukerFradragBenyttetIBeregningsperiode(
     private val fradragForBeregningsperiode: List<Fradrag>
 ) {
     val fradrag: List<Månedsfradrag> = fradragForBeregningsperiode
-        .filter { it.getTilhører() == FradragTilhører.BRUKER }
-        .filter { it.getMånedsbeløp() > 0 }
+        .filter { it.tilhører == FradragTilhører.BRUKER }
+        .filter { it.månedsbeløp > 0 }
         .toMånedsfradragPerType()
 }
 
@@ -20,20 +20,20 @@ internal data class EpsFradragFraSaksbehandlerIBeregningsperiode(
     private val beregningsperiode: Periode
 ) {
     val fradrag: List<Månedsfradrag> = fradragFraSaksbehandler
-        .filter { it.getTilhører() == FradragTilhører.EPS }
+        .filter { it.tilhører == FradragTilhører.EPS }
         .fradragStørreEnn0IPeriode(beregningsperiode)
 }
 
 internal fun List<Fradrag>.fradragStørreEnn0IPeriode(periode: Periode) =
     this.filter { it.periode inneholder periode }
-        .filter { it.getMånedsbeløp() > 0 }
+        .filter { it.månedsbeløp > 0 }
         .toMånedsfradragPerType()
 
 internal fun List<Fradrag>.toMånedsfradragPerType(): List<Månedsfradrag> =
     this
         .groupBy {
-            "${it.getFradragstype()}${
-            it.getUtenlandskInntekt()
+            "${it.fradragstype}${
+            it.utenlandskInntekt
                 ?.let { u ->
                     "${u.valuta}${u.beløpIUtenlandskValuta}"
                 }
@@ -42,14 +42,14 @@ internal fun List<Fradrag>.toMånedsfradragPerType(): List<Månedsfradrag> =
         .map { (_, fradrag) ->
             Månedsfradrag(
                 type = fradrag[0]
-                    .getFradragstype()
+                    .fradragstype
                     .toReadableTypeName(
-                        utenlandsk = fradrag[0].getUtenlandskInntekt() != null
+                        utenlandsk = fradrag[0].utenlandskInntekt != null
                     ),
                 beløp = fradrag
-                    .sumOf { it.getMånedsbeløp() }
+                    .sumOf { it.månedsbeløp }
                     .roundToInt(),
-                utenlandskInntekt = fradrag[0].getUtenlandskInntekt()
+                utenlandskInntekt = fradrag[0].utenlandskInntekt
             )
         }
         .sortedBy { it.type }

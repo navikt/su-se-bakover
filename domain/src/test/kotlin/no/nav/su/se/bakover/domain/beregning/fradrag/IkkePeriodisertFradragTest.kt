@@ -29,7 +29,7 @@ internal class IkkePeriodisertFradragTest {
             periode = Periode.create(1.januar(2020), 31.januar(2020)),
             tilhører = FradragTilhører.BRUKER
         )
-        f1.getMånedsbeløp() shouldBe 12000.0
+        f1.månedsbeløp shouldBe 12000.0
 
         val f2 = FradragFactory.ny(
             type = Fradragstype.Arbeidsinntekt,
@@ -37,7 +37,7 @@ internal class IkkePeriodisertFradragTest {
             periode = Periode.create(1.januar(2020), 31.desember(2020)),
             tilhører = FradragTilhører.BRUKER
         )
-        f2.getMånedsbeløp() shouldBe 12000.0
+        f2.månedsbeløp shouldBe 12000.0
     }
 
     @Test

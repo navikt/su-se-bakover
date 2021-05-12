@@ -14,10 +14,10 @@ interface Månedsberegning : PeriodisertInformasjon {
     fun getFribeløpForEps(): Double
 
     fun erFradragForEpsBenyttetIBeregning() =
-        getFradrag().any { it.getFradragstype() == Fradragstype.BeregnetFradragEPS }
+        getFradrag().any { it.fradragstype == Fradragstype.BeregnetFradragEPS }
 
     fun erSumYtelseUnderMinstebeløp() =
-        getSumYtelse() == 0 && getFradrag().any { it.getFradragstype() == Fradragstype.UnderMinstenivå }
+        getSumYtelse() == 0 && getFradrag().any { it.fradragstype == Fradragstype.UnderMinstenivå }
 
     /**
      * Sammenligner alle metodene.
