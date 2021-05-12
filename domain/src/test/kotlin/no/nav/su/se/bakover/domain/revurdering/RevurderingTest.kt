@@ -57,7 +57,8 @@ internal class RevurderingTest {
                     ),
                 ),
             ),
-        ).beregn(emptyList()).orNull()!!.let {
+        ).copy(informasjonSomRevurderes = InformasjonSomRevurderes(mapOf(Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert)))
+            .beregn(emptyList()).orNull()!!.let {
             it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
             it.informasjonSomRevurderes[Revurderingsteg.Inntekt] shouldBe Vurderingstatus.Vurdert
         }
@@ -80,7 +81,8 @@ internal class RevurderingTest {
                     ),
                 ),
             ),
-        ).beregn(emptyList()).orNull()!!.let {
+        ).copy(informasjonSomRevurderes = InformasjonSomRevurderes(mapOf(Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert)))
+            .beregn(emptyList()).orNull()!!.let {
             it shouldNotBe beOfType<BeregnetRevurdering.Opphørt>()
             it.informasjonSomRevurderes[Revurderingsteg.Inntekt] shouldBe Vurderingstatus.Vurdert
         }
@@ -97,7 +99,10 @@ internal class RevurderingTest {
         saksbehandler = NavIdentBruker.Saksbehandler(navIdent = ""),
         oppgaveId = OppgaveId(value = ""),
         fritekstTilBrev = "",
-        revurderingsårsak = Revurderingsårsak(årsak = Revurderingsårsak.Årsak.INFORMASJON_FRA_KONTROLLSAMTALE, begrunnelse = Revurderingsårsak.Begrunnelse.create(value = "b")),
+        revurderingsårsak = Revurderingsårsak(
+            årsak = Revurderingsårsak.Årsak.INFORMASJON_FRA_KONTROLLSAMTALE,
+            begrunnelse = Revurderingsårsak.Begrunnelse.create(value = "b"),
+        ),
         forhåndsvarsel = null,
         behandlingsinformasjon = mock() {
             on { getBeregningStrategy() } doReturn BeregningStrategy.BorAlene.right()

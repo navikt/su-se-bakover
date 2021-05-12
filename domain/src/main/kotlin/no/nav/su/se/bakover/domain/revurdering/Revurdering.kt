@@ -127,7 +127,9 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
             behandlingsinformasjon = behandlingsinformasjon,
             grunnlagsdata = grunnlagsdata,
             vilkårsvurderinger = vilkårsvurderinger,
-            informasjonSomRevurderes = informasjonSomRevurderes.vurdert(Revurderingsteg.Inntekt),
+            informasjonSomRevurderes = if (informasjonSomRevurderes.containsKey(Revurderingsteg.Inntekt)) {
+                informasjonSomRevurderes.vurdert(Revurderingsteg.Inntekt)
+            } else informasjonSomRevurderes,
         )
 
         fun innvilget(revurdertBeregning: Beregning): BeregnetRevurdering.Innvilget = BeregnetRevurdering.Innvilget(
@@ -144,7 +146,9 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
             behandlingsinformasjon = behandlingsinformasjon,
             grunnlagsdata = grunnlagsdata,
             vilkårsvurderinger = vilkårsvurderinger,
-            informasjonSomRevurderes = informasjonSomRevurderes.vurdert(Revurderingsteg.Inntekt),
+            informasjonSomRevurderes = if (informasjonSomRevurderes.containsKey(Revurderingsteg.Inntekt)) {
+                informasjonSomRevurderes.vurdert(Revurderingsteg.Inntekt)
+            } else informasjonSomRevurderes,
         )
 
         fun ingenEndring(revurdertBeregning: Beregning): BeregnetRevurdering.IngenEndring =
@@ -162,7 +166,9 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
                 behandlingsinformasjon = behandlingsinformasjon,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
-                informasjonSomRevurderes = informasjonSomRevurderes.vurdert(Revurderingsteg.Inntekt),
+                informasjonSomRevurderes = if (informasjonSomRevurderes.containsKey(Revurderingsteg.Inntekt)) {
+                    informasjonSomRevurderes.vurdert(Revurderingsteg.Inntekt)
+                } else informasjonSomRevurderes,
             )
 
         return when (this.vilkårsvurderinger.resultat) {
@@ -293,7 +299,7 @@ data class OpprettetRevurdering(
         revurderingsårsak: Revurderingsårsak,
         grunnlagsdata: Grunnlagsdata,
         vilkårsvurderinger: Vilkårsvurderinger,
-        informasjonSomRevurderes: InformasjonSomRevurderes
+        informasjonSomRevurderes: InformasjonSomRevurderes,
     ): OpprettetRevurdering = this.copy(
         periode = periode,
         revurderingsårsak = revurderingsårsak,
@@ -301,7 +307,7 @@ data class OpprettetRevurdering(
         forhåndsvarsel = if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) Forhåndsvarsel.IngenForhåndsvarsel else null,
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
-        informasjonSomRevurderes = informasjonSomRevurderes
+        informasjonSomRevurderes = informasjonSomRevurderes,
     )
 }
 
@@ -315,7 +321,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         revurderingsårsak: Revurderingsårsak,
         grunnlagsdata: Grunnlagsdata,
         vilkårsvurderinger: Vilkårsvurderinger,
-        informasjonSomRevurderes: InformasjonSomRevurderes
+        informasjonSomRevurderes: InformasjonSomRevurderes,
     ) = OpprettetRevurdering(
         id = id,
         periode = periode,
@@ -571,7 +577,7 @@ sealed class SimulertRevurdering : Revurdering() {
         revurderingsårsak: Revurderingsårsak,
         grunnlagsdata: Grunnlagsdata,
         vilkårsvurderinger: Vilkårsvurderinger,
-        informasjonSomRevurderes: InformasjonSomRevurderes
+        informasjonSomRevurderes: InformasjonSomRevurderes,
     ) = OpprettetRevurdering(
         id = id,
         periode = periode,
@@ -1081,7 +1087,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         revurderingsårsak: Revurderingsårsak,
         grunnlagsdata: Grunnlagsdata,
         vilkårsvurderinger: Vilkårsvurderinger,
-        informasjonSomRevurderes: InformasjonSomRevurderes
+        informasjonSomRevurderes: InformasjonSomRevurderes,
     ) = OpprettetRevurdering(
         id = id,
         periode = periode,
