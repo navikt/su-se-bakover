@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
+import no.nav.su.se.bakover.domain.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 
@@ -27,14 +28,15 @@ internal class LagBrevinnholdForBeregningTest {
             sats = Sats.HØY,
             fradrag = listOf(
                 FradragFactory.ny(
+                    opprettet = fixedTidspunkt,
                     type = Fradragstype.ForventetInntekt,
                     månedsbeløp = 1000.0,
                     periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
-                )
+                    tilhører = FradragTilhører.BRUKER,
+                ),
             ),
-            fradragStrategy = FradragStrategy.Enslig
+            fradragStrategy = FradragStrategy.Enslig,
         )
 
         LagBrevinnholdForBeregning(beregning).brevInnhold shouldBe listOf(
@@ -66,28 +68,31 @@ internal class LagBrevinnholdForBeregningTest {
             sats = Sats.HØY,
             fradrag = listOf(
                 FradragFactory.ny(
+                    opprettet = fixedTidspunkt,
                     type = Fradragstype.ForventetInntekt,
                     månedsbeløp = 1000.0,
                     periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
+                    tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
+                    opprettet = fixedTidspunkt,
                     type = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = 9999.0,
                     periode = Periode.create(fraOgMed = 1.juni(2020), tilOgMed = 31.august(2020)),
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
+                    tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
+                    opprettet = fixedTidspunkt,
                     type = Fradragstype.Sosialstønad,
                     månedsbeløp = 2000.0,
                     periode = Periode.create(fraOgMed = 1.juni(2020), tilOgMed = 31.august(2020)),
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
-                )
+                    tilhører = FradragTilhører.BRUKER,
+                ),
             ),
-            fradragStrategy = FradragStrategy.Enslig
+            fradragStrategy = FradragStrategy.Enslig,
         )
 
         LagBrevinnholdForBeregning(beregning).brevInnhold shouldBe listOf(
@@ -162,28 +167,31 @@ internal class LagBrevinnholdForBeregningTest {
             sats = Sats.HØY,
             fradrag = listOf(
                 FradragFactory.ny(
+                    opprettet = fixedTidspunkt,
                     type = Fradragstype.ForventetInntekt,
                     månedsbeløp = 1000.0,
                     periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
+                    tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
+                    opprettet = fixedTidspunkt,
                     type = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = 20000.0,
                     periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.EPS
+                    tilhører = FradragTilhører.EPS,
                 ),
                 FradragFactory.ny(
+                    opprettet = fixedTidspunkt,
                     type = Fradragstype.Kapitalinntekt,
                     månedsbeløp = 1000.0,
                     periode = Periode.create(fraOgMed = 1.desember(2020), tilOgMed = 31.desember(2020)),
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.EPS
+                    tilhører = FradragTilhører.EPS,
                 ),
             ),
-            fradragStrategy = FradragStrategy.EpsOver67År
+            fradragStrategy = FradragStrategy.EpsOver67År,
         )
 
         LagBrevinnholdForBeregning(beregning).brevInnhold shouldBe listOf(
@@ -392,21 +400,23 @@ internal class LagBrevinnholdForBeregningTest {
             sats = Sats.HØY,
             fradrag = listOf(
                 FradragFactory.ny(
+                    opprettet = fixedTidspunkt,
                     type = Fradragstype.ForventetInntekt,
                     månedsbeløp = 1000.0,
                     periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
+                    tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
+                    opprettet = fixedTidspunkt,
                     type = Fradragstype.Introduksjonsstønad,
                     månedsbeløp = 3000.0,
                     periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.EPS
-                )
+                    tilhører = FradragTilhører.EPS,
+                ),
             ),
-            fradragStrategy = FradragStrategy.EpsOver67År
+            fradragStrategy = FradragStrategy.EpsOver67År,
         )
 
         LagBrevinnholdForBeregning(beregning).brevInnhold shouldBe listOf(
@@ -441,35 +451,39 @@ internal class LagBrevinnholdForBeregningTest {
             sats = Sats.HØY,
             fradrag = listOf(
                 FradragFactory.ny(
+                    opprettet = fixedTidspunkt,
                     type = Fradragstype.ForventetInntekt,
                     månedsbeløp = 1000.0,
                     periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
+                    tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
+                    opprettet = fixedTidspunkt,
                     type = Fradragstype.Kontantstøtte,
                     månedsbeløp = 6000.0,
                     periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.EPS
+                    tilhører = FradragTilhører.EPS,
                 ),
                 FradragFactory.ny(
+                    opprettet = fixedTidspunkt,
                     type = Fradragstype.Introduksjonsstønad,
                     månedsbeløp = 6000.0,
                     periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.EPS
+                    tilhører = FradragTilhører.EPS,
                 ),
                 FradragFactory.ny(
+                    opprettet = fixedTidspunkt,
                     type = Fradragstype.BidragEtterEkteskapsloven,
                     månedsbeløp = 6000.0,
                     periode = Periode.create(fraOgMed = 1.mai(2020), tilOgMed = 30.april(2021)),
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.EPS
-                )
+                    tilhører = FradragTilhører.EPS,
+                ),
             ),
-            fradragStrategy = FradragStrategy.EpsOver67År
+            fradragStrategy = FradragStrategy.EpsOver67År,
         )
 
         LagBrevinnholdForBeregning(beregning).brevInnhold shouldBe listOf(

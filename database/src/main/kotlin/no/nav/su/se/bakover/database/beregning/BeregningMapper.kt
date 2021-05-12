@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.database.beregning
 
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.Sats
@@ -82,6 +83,7 @@ internal data class PersistertMånedsberegning(
 }
 
 internal data class PersistertFradrag(
+    override val opprettet: Tidspunkt,
     override val fradragstype: Fradragstype,
     override val månedsbeløp: Double,
     override val utenlandskInntekt: UtenlandskInntekt?,
@@ -89,15 +91,13 @@ internal data class PersistertFradrag(
     override val tilhører: FradragTilhører,
 ) : Fradrag {
 
-    override fun equals(other: Any?) = (other as? Fradrag)?.let { this.equals(other) } ?: false
-
-    override fun hashCode(): Int {
-        var result = fradragstype.hashCode()
-        result = 31 * result + månedsbeløp.hashCode()
-        result = 31 * result + (utenlandskInntekt?.hashCode() ?: 0)
-        result = 31 * result + periode.hashCode()
-        result = 31 * result + tilhører.hashCode()
-        return result
+    override fun copy(args: CopyArgs.Tidslinje) = when (args) {
+        CopyArgs.Tidslinje.Full -> {
+            this.copy()
+        }
+        is CopyArgs.Tidslinje.NyPeriode -> {
+            this.copy(periode = args.periode)
+        }
     }
 }
 
@@ -126,6 +126,7 @@ internal fun Månedsberegning.toSnapshot() = PersistertMånedsberegning(
 )
 
 internal fun Fradrag.toSnapshot() = PersistertFradrag(
+    opprettet = opprettet,
     fradragstype = fradragstype,
     månedsbeløp = månedsbeløp,
     utenlandskInntekt = utenlandskInntekt,

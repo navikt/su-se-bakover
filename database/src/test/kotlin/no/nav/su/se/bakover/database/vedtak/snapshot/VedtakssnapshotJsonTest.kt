@@ -343,6 +343,7 @@ internal class VedtakssnapshotJsonTest {
     fun `kan serialisere innvilgelse`() {
         val fradrag = listOf(
             PersistertFradrag(
+                opprettet = fixedTidspunkt,
                 fradragstype = Arbeidsinntekt,
                 månedsbeløp = 155.9,
                 utenlandskInntekt = UtenlandskInntekt.create(
@@ -483,6 +484,7 @@ internal class VedtakssnapshotJsonTest {
                             "satsbeløp":4.1,
                             "fradrag":[
                                 {
+                                    "opprettet": "2021-01-01T01:02:03.456789Z",
                                     "fradragstype":"Arbeidsinntekt",
                                     "månedsbeløp":155.9,
                                     "utenlandskInntekt": {
@@ -506,6 +508,7 @@ internal class VedtakssnapshotJsonTest {
                     ],
                     "fradrag":[
                       {
+                        "opprettet": "2021-01-01T01:02:03.456789Z",
                         "fradragstype":"Arbeidsinntekt",
                         "månedsbeløp":155.9,
                         "utenlandskInntekt":{

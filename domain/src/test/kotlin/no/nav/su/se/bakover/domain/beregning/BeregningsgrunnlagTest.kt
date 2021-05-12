@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import org.junit.jupiter.api.Test
@@ -26,6 +27,7 @@ internal class BeregningsgrunnlagTest {
             beregningsperiode = beregningsperiode,
             uføregrunnlag = listOf(
                 Grunnlag.Uføregrunnlag(
+                    opprettet = fixedTidspunkt,
                     periode = beregningsperiode,
                     uføregrad = Uføregrad.parse(20),
                     forventetInntekt = 120_000,
@@ -33,6 +35,7 @@ internal class BeregningsgrunnlagTest {
             ),
             fradragFraSaksbehandler = listOf(
                 FradragFactory.ny(
+                    opprettet = fixedTidspunkt,
                     type = Fradragstype.Kapitalinntekt,
                     månedsbeløp = 2000.0,
                     periode = beregningsperiode,
@@ -42,6 +45,7 @@ internal class BeregningsgrunnlagTest {
             ),
         ).fradrag shouldBe listOf(
             FradragFactory.ny(
+                opprettet = fixedTidspunkt,
                 type = Fradragstype.Kapitalinntekt,
                 månedsbeløp = 2000.0,
                 periode = beregningsperiode,
@@ -49,6 +53,7 @@ internal class BeregningsgrunnlagTest {
                 tilhører = FradragTilhører.BRUKER,
             ),
             FradragFactory.ny(
+                opprettet = fixedTidspunkt,
                 type = Fradragstype.ForventetInntekt,
                 månedsbeløp = 10_000.0,
                 periode = beregningsperiode,
@@ -65,6 +70,7 @@ internal class BeregningsgrunnlagTest {
             beregningsperiode = beregningsperiode,
             uføregrunnlag = listOf(
                 Grunnlag.Uføregrunnlag(
+                    opprettet = fixedTidspunkt,
                     periode = beregningsperiode,
                     uføregrad = Uføregrad.parse(20),
                     forventetInntekt = 120_000,
@@ -72,6 +78,7 @@ internal class BeregningsgrunnlagTest {
             ),
             fradragFraSaksbehandler = listOf(
                 FradragFactory.ny(
+                    opprettet = fixedTidspunkt,
                     type = Fradragstype.Kapitalinntekt,
                     månedsbeløp = 2000.0,
                     periode = beregningsperiode,
@@ -81,6 +88,7 @@ internal class BeregningsgrunnlagTest {
             ),
         ).fradrag shouldBe listOf(
             FradragFactory.ny(
+                opprettet = fixedTidspunkt,
                 type = Fradragstype.Kapitalinntekt,
                 månedsbeløp = 2000.0,
                 periode = beregningsperiode,
@@ -88,6 +96,7 @@ internal class BeregningsgrunnlagTest {
                 tilhører = FradragTilhører.BRUKER,
             ),
             FradragFactory.ny(
+                opprettet = fixedTidspunkt,
                 type = Fradragstype.ForventetInntekt,
                 månedsbeløp = 10_000.0,
                 periode = beregningsperiode,
@@ -104,6 +113,7 @@ internal class BeregningsgrunnlagTest {
             beregningsperiode = beregningsperiode,
             uføregrunnlag = listOf(
                 Grunnlag.Uføregrunnlag(
+                    opprettet = fixedTidspunkt,
                     periode = beregningsperiode,
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 0,
@@ -112,6 +122,7 @@ internal class BeregningsgrunnlagTest {
             fradragFraSaksbehandler = emptyList(),
         ).fradrag shouldBe listOf(
             FradragFactory.ny(
+                opprettet = fixedTidspunkt,
                 type = Fradragstype.ForventetInntekt,
                 månedsbeløp = 0.0,
                 periode = beregningsperiode,
@@ -147,6 +158,7 @@ internal class BeregningsgrunnlagTest {
             ),
             fradragFraSaksbehandler = listOf(
                 FradragFactory.ny(
+                    opprettet = fixedTidspunkt,
                     type = Fradragstype.ForventetInntekt,
                     månedsbeløp = 0.0,
                     periode = Periode.create(1.januar(2019), 31.desember(2019)),
@@ -216,11 +228,13 @@ internal class BeregningsgrunnlagTest {
             beregningsperiode = beregningsperiode,
             uføregrunnlag = listOf(
                 Grunnlag.Uføregrunnlag(
+                    opprettet = fixedTidspunkt,
                     periode = Periode.create(1.januar(2021), 30.april(2021)),
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 12_000,
                 ),
                 Grunnlag.Uføregrunnlag(
+                    opprettet = fixedTidspunkt,
                     periode = Periode.create(1.mai(2021), 31.desember(2021)),
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 24_000,
@@ -229,6 +243,7 @@ internal class BeregningsgrunnlagTest {
             fradragFraSaksbehandler = emptyList(),
         ).fradrag shouldBe listOf(
             FradragFactory.ny(
+                opprettet = fixedTidspunkt,
                 type = Fradragstype.ForventetInntekt,
                 månedsbeløp = 1_000.0,
                 periode = Periode.create(1.januar(2021), 30.april(2021)),
@@ -236,6 +251,7 @@ internal class BeregningsgrunnlagTest {
                 tilhører = FradragTilhører.BRUKER,
             ),
             FradragFactory.ny(
+                opprettet = fixedTidspunkt,
                 type = Fradragstype.ForventetInntekt,
                 månedsbeløp = 2_000.0,
                 periode = Periode.create(1.mai(2021), 31.desember(2021)),
@@ -294,16 +310,19 @@ internal class BeregningsgrunnlagTest {
             beregningsperiode = beregningsperiode,
             uføregrunnlag = listOf(
                 Grunnlag.Uføregrunnlag(
+                    opprettet = fixedTidspunkt,
                     periode = Periode.create(1.januar(2021), 31.januar(2021)),
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 12_000,
                 ),
                 Grunnlag.Uføregrunnlag(
+                    opprettet = fixedTidspunkt,
                     periode = Periode.create(1.februar(2021), 31.juli(2021)),
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 24_000,
                 ),
                 Grunnlag.Uføregrunnlag(
+                    opprettet = fixedTidspunkt,
                     periode = Periode.create(1.august(2021), 31.desember(2021)),
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 48_000,
@@ -312,6 +331,7 @@ internal class BeregningsgrunnlagTest {
             fradragFraSaksbehandler = emptyList(),
         ).fradrag shouldBe listOf(
             FradragFactory.ny(
+                opprettet = fixedTidspunkt,
                 type = Fradragstype.ForventetInntekt,
                 månedsbeløp = 1_000.0,
                 periode = Periode.create(1.januar(2021), 31.januar(2021)),
@@ -319,6 +339,7 @@ internal class BeregningsgrunnlagTest {
                 tilhører = FradragTilhører.BRUKER,
             ),
             FradragFactory.ny(
+                opprettet = fixedTidspunkt,
                 type = Fradragstype.ForventetInntekt,
                 månedsbeløp = 2_000.0,
                 periode = Periode.create(1.februar(2021), 31.juli(2021)),
@@ -326,6 +347,7 @@ internal class BeregningsgrunnlagTest {
                 tilhører = FradragTilhører.BRUKER,
             ),
             FradragFactory.ny(
+                opprettet = fixedTidspunkt,
                 type = Fradragstype.ForventetInntekt,
                 månedsbeløp = 4_000.0,
                 periode = Periode.create(1.august(2021), 31.desember(2021)),

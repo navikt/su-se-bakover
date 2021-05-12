@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategyName
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import org.junit.jupiter.api.Test
@@ -39,12 +40,13 @@ internal class RevurdertBeregningTest {
                     beregningsperiode = januar,
                     uføregrunnlag = listOf(
                         Grunnlag.Uføregrunnlag(
+                            opprettet = fixedTidspunkt,
                             periode = januar,
                             uføregrad = Uføregrad.parse(100),
                             forventetInntekt = 0,
                         ),
                     ),
-                    fradragFraSaksbehandler = emptyList()
+                    fradragFraSaksbehandler = emptyList(),
                 ),
                 beregningsstrategi = BeregningStrategy.BorAlene,
                 beregnMedVirkningNesteMånedDersomStønadenGårNed = it,
@@ -81,12 +83,13 @@ internal class RevurdertBeregningTest {
                     beregningsperiode = januar,
                     uføregrunnlag = listOf(
                         Grunnlag.Uføregrunnlag(
+                            opprettet = fixedTidspunkt,
                             periode = januar,
                             uføregrad = Uføregrad.parse(100),
                             forventetInntekt = 0,
                         ),
                     ),
-                    fradragFraSaksbehandler = emptyList()
+                    fradragFraSaksbehandler = emptyList(),
                 ),
                 beregningsstrategi = BeregningStrategy.BorAlene,
                 beregnMedVirkningNesteMånedDersomStønadenGårNed = it,
@@ -121,12 +124,13 @@ internal class RevurdertBeregningTest {
                     beregningsperiode = periode,
                     uføregrunnlag = listOf(
                         Grunnlag.Uføregrunnlag(
+                            opprettet = fixedTidspunkt,
                             periode = periode,
                             uføregrad = Uføregrad.parse(100),
                             forventetInntekt = 0,
                         ),
                     ),
-                    fradragFraSaksbehandler = emptyList()
+                    fradragFraSaksbehandler = emptyList(),
                 ),
                 beregningsstrategi = BeregningStrategy.BorAlene,
                 beregnMedVirkningNesteMånedDersomStønadenGårNed = it,
@@ -140,12 +144,13 @@ internal class RevurdertBeregningTest {
                 )
                 actual.getFradrag() shouldBe listOf(
                     FradragFactory.ny(
+                        opprettet = fixedTidspunkt,
                         type = Fradragstype.ForventetInntekt,
                         månedsbeløp = 0.0,
                         periode = periode,
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
-                    )
+                    ),
                 )
                 actual.getSumYtelse() shouldBe (forventetMånedsbeløp + forventetMånedsbeløp + 0.5).toInt()
                 actual.getSumFradrag() shouldBe 0.0
@@ -169,12 +174,13 @@ internal class RevurdertBeregningTest {
                 beregningsperiode = januar,
                 uføregrunnlag = listOf(
                     Grunnlag.Uføregrunnlag(
+                        opprettet = fixedTidspunkt,
                         periode = januar,
                         uføregrad = Uføregrad.parse(99),
                         forventetInntekt = 12,
                     ),
                 ),
-                fradragFraSaksbehandler = emptyList()
+                fradragFraSaksbehandler = emptyList(),
             ),
             beregningsstrategi = BeregningStrategy.BorAlene,
             beregnMedVirkningNesteMånedDersomStønadenGårNed = false,
@@ -187,12 +193,13 @@ internal class RevurdertBeregningTest {
             )
             actual.getFradrag() shouldBe listOf(
                 FradragFactory.ny(
+                    opprettet = fixedTidspunkt,
                     type = Fradragstype.ForventetInntekt,
                     månedsbeløp = 1.0,
                     periode = januar,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
-                )
+                ),
             )
             actual.getSumYtelse() shouldBe (forventetMånedsbeløp - 0.5).toInt()
             actual.getSumFradrag() shouldBe 1.0
@@ -215,12 +222,13 @@ internal class RevurdertBeregningTest {
                 beregningsperiode = januar,
                 uføregrunnlag = listOf(
                     Grunnlag.Uføregrunnlag(
+                        opprettet = fixedTidspunkt,
                         periode = januar,
                         uføregrad = Uføregrad.parse(99),
                         forventetInntekt = 12,
                     ),
                 ),
-                fradragFraSaksbehandler = emptyList()
+                fradragFraSaksbehandler = emptyList(),
             ),
             beregningsstrategi = BeregningStrategy.BorAlene,
             beregnMedVirkningNesteMånedDersomStønadenGårNed = true,
@@ -245,6 +253,7 @@ internal class RevurdertBeregningTest {
                 beregningsperiode = periode,
                 uføregrunnlag = listOf(
                     Grunnlag.Uføregrunnlag(
+                        opprettet = fixedTidspunkt,
                         periode = periode,
                         uføregrad = Uføregrad.parse(80),
                         forventetInntekt = 12000,
@@ -253,7 +262,7 @@ internal class RevurdertBeregningTest {
                 fradragFraSaksbehandler = listOf(
                     fradrag(januar, 10.0, Fradragstype.Arbeidsinntekt),
                     fradrag(februar, 20.0, Fradragstype.Kapitalinntekt)
-                )
+                ),
             ),
             beregningsstrategi = BeregningStrategy.BorAlene,
             beregnMedVirkningNesteMånedDersomStønadenGårNed = true,
@@ -283,6 +292,7 @@ internal class RevurdertBeregningTest {
         månedsbeløp: Double,
         fradragstype: Fradragstype = Fradragstype.ForventetInntekt
     ) = FradragFactory.ny(
+        opprettet = fixedTidspunkt,
         type = fradragstype,
         månedsbeløp = månedsbeløp,
         periode = periode,
@@ -299,13 +309,14 @@ internal class RevurdertBeregningTest {
         sats = Sats.HØY,
         fradrag = FradragFactory.periodiser(
             FradragFactory.ny(
+                opprettet = fixedTidspunkt,
                 type = fradragstype,
                 månedsbeløp = forventetInntektPerMåned,
                 periode = periode,
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.BRUKER,
-            )
-        )
+            ),
+        ),
     )
 
     private fun periodisertBeregningListe(periode: Periode, liste: List<Fradrag>) = PeriodisertBeregning(
@@ -321,12 +332,13 @@ internal class RevurdertBeregningTest {
     ): List<Fradrag> {
         return FradragFactory.periodiser(
             FradragFactory.ny(
+                opprettet = fixedTidspunkt,
                 type = fradragstype,
                 månedsbeløp = forventetInntektPerMåned,
                 periode = periode,
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.BRUKER,
-            )
+            ),
         )
     }
 }

@@ -5,6 +5,7 @@ import arrow.core.extensions.list.foldable.forAll
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
@@ -40,6 +41,7 @@ internal data class Beregningsgrunnlag private constructor(
             val fradrag: List<Fradrag> = fradragFraSaksbehandler.plus(
                 uføregrunnlag.map {
                     FradragFactory.ny(
+                        opprettet = it.opprettet,
                         type = Fradragstype.ForventetInntekt,
                         månedsbeløp = it.forventetInntekt / 12.0,
                         periode = it.periode,
@@ -51,6 +53,7 @@ internal data class Beregningsgrunnlag private constructor(
                     //  Vurder å bytt fra List<Grunnlag.Uføregrunnlag> til NonEmptyList<Grunnlag.Uføregrunnlag>
                     listOf(
                         FradragFactory.ny(
+                            opprettet = Tidspunkt.now(),
                             type = Fradragstype.ForventetInntekt,
                             månedsbeløp = 0.0,
                             periode = beregningsperiode,

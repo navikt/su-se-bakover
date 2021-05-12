@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.web.fixedTidspunkt
 import org.junit.jupiter.api.Test
 
 internal class FradragJsonTest {
@@ -71,6 +72,7 @@ internal class FradragJsonTest {
 
         val expectedPeriode = Periode.create(1.januar(2020), 31.januar(2020))
         val expected = FradragFactory.ny(
+            opprettet = fixedTidspunkt,
             type = Fradragstype.Arbeidsinntekt,
             månedsbeløp = 10.0,
             periode = expectedPeriode,
@@ -78,7 +80,7 @@ internal class FradragJsonTest {
             tilhører = FradragTilhører.BRUKER,
         )
 
-        jsonUtenPeriode.toFradrag(expectedPeriode) shouldBe expected.right()
+        jsonUtenPeriode.toFradrag(expectedPeriode, fixedTidspunkt) shouldBe expected.right()
     }
 
     @Test
@@ -92,6 +94,7 @@ internal class FradragJsonTest {
         )
 
         val expected = FradragFactory.ny(
+            opprettet = fixedTidspunkt,
             type = Fradragstype.Arbeidsinntekt,
             månedsbeløp = 10.0,
             periode = Periode.create(1.januar(2021), 31.januar(2021)),
@@ -99,6 +102,9 @@ internal class FradragJsonTest {
             tilhører = FradragTilhører.BRUKER,
         )
 
-        jsonUtenPeriode.toFradrag(Periode.create(1.januar(2021), 31.desember(2021))) shouldBe expected.right()
+        jsonUtenPeriode.toFradrag(
+            Periode.create(1.januar(2021), 31.desember(2021)),
+            fixedTidspunkt,
+        ) shouldBe expected.right()
     }
 }

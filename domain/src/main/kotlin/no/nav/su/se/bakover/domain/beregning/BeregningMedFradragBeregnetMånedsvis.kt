@@ -64,11 +64,12 @@ internal data class BeregningMedFradragBeregnetMånedsvis(
 
     private fun Månedsberegning.lagFradragForBeløpUnderMinstegrense() = FradragFactory.periodiser(
         FradragFactory.ny(
+            opprettet = opprettet,
             type = Fradragstype.UnderMinstenivå,
             månedsbeløp = getSumYtelse().toDouble(),
             periode = periode,
             utenlandskInntekt = null,
-            tilhører = FradragTilhører.BRUKER
+            tilhører = FradragTilhører.BRUKER,
         ),
     )
 

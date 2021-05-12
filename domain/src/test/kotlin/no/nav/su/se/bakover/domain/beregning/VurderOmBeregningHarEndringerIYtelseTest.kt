@@ -13,17 +13,19 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.IkkePeriodisertFradrag
+import no.nav.su.se.bakover.domain.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
 internal class VurderOmBeregningHarEndringerIYtelseTest {
-    val tidligerePeriode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020))
-    val tidligereBeregning = (
+    private val tidligerePeriode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020))
+    private val tidligereBeregning = (
         BeregningFactory.ny(
             periode = tidligerePeriode,
             sats = Sats.HØY,
             fradrag = listOf(
                 FradragFactory.ny(
+                    opprettet = fixedTidspunkt,
                     type = Fradragstype.ForventetInntekt,
                     månedsbeløp = 0.0,
                     periode = tidligerePeriode,
@@ -36,13 +38,14 @@ internal class VurderOmBeregningHarEndringerIYtelseTest {
         )
         ) as BeregningMedFradragBeregnetMånedsvis
 
-    val nyPeriode = Periode.create(1.juni(2020), 31.desember(2020))
-    val nyBeregning = (
+    private val nyPeriode = Periode.create(1.juni(2020), 31.desember(2020))
+    private val nyBeregning = (
         BeregningFactory.ny(
             periode = nyPeriode,
             sats = Sats.HØY,
             fradrag = listOf(
                 FradragFactory.ny(
+                    opprettet = fixedTidspunkt,
                     type = Fradragstype.ForventetInntekt,
                     månedsbeløp = 0.0,
                     periode = nyPeriode,
@@ -99,6 +102,7 @@ internal class VurderOmBeregningHarEndringerIYtelseTest {
             sats = Sats.HØY,
             fradrag = listOf(
                 FradragFactory.ny(
+                    opprettet = fixedTidspunkt,
                     type = Fradragstype.ForventetInntekt,
                     månedsbeløp = 1000.0,
                     periode = periode1,
@@ -106,12 +110,13 @@ internal class VurderOmBeregningHarEndringerIYtelseTest {
                     tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
+                    opprettet = fixedTidspunkt,
                     type = Fradragstype.ForventetInntekt,
                     månedsbeløp = 0.0,
                     periode = periode2,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
-                )
+                ),
             ),
             fradragStrategy = FradragStrategy.Enslig,
             begrunnelse = null,
@@ -122,6 +127,7 @@ internal class VurderOmBeregningHarEndringerIYtelseTest {
             sats = Sats.HØY,
             fradrag = listOf(
                 FradragFactory.ny(
+                    opprettet = fixedTidspunkt,
                     type = Fradragstype.ForventetInntekt,
                     månedsbeløp = 0.0,
                     periode = periode1,
@@ -129,12 +135,13 @@ internal class VurderOmBeregningHarEndringerIYtelseTest {
                     tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
+                    opprettet = fixedTidspunkt,
                     type = Fradragstype.ForventetInntekt,
                     månedsbeløp = 1000.0,
                     periode = periode2,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.BRUKER,
-                )
+                ),
             ),
             fradragStrategy = FradragStrategy.Enslig,
             begrunnelse = null,

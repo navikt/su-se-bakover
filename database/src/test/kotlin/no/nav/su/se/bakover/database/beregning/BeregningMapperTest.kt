@@ -25,17 +25,17 @@ internal class BeregningMapperTest {
 
     @Test
     fun `mapper fradrag til snapshot`() {
-        TestFradrag.toSnapshot().let { assertFradragMapping(it, TestFradrag) }
+        assertFradragMapping(TestFradrag.toSnapshot(), TestFradrag)
     }
 
     @Test
     fun `mapper månedsberegning til snapshot`() {
-        TestMånedsberegning.toSnapshot().let { assertMånedsberegningMapping(it, TestMånedsberegning) }
+        assertMånedsberegningMapping(TestMånedsberegning.toSnapshot(), TestMånedsberegning)
     }
 
     @Test
     fun `mapper beregning til snapshot`() {
-        TestBeregning.toSnapshot().let { assertBeregningMapping(it, TestBeregning) }
+        assertBeregningMapping(TestBeregning.toSnapshot(), TestBeregning)
     }
 
     @Test
@@ -55,6 +55,7 @@ internal class BeregningMapperTest {
                   "satsbeløp": 20637.32,
                   "fradrag": [
                     {
+                      "opprettet": "2021-01-01T01:02:03.456789Z",
                       "fradragstype": "ForventetInntekt",
                       "månedsbeløp": 12000.0,
                       "utenlandskInntekt": null,
@@ -74,6 +75,7 @@ internal class BeregningMapperTest {
               ],
               "fradrag": [
                 {
+                  "opprettet": "2021-01-01T01:02:03.456789Z",
                   "fradragstype": "ForventetInntekt",
                   "månedsbeløp": 12000.0,
                   "utenlandskInntekt": null,
@@ -116,6 +118,7 @@ internal class BeregningMapperTest {
             månedsberegninger = listOf(persistertMånedsberegning),
             fradrag = listOf(
                 PersistertFradrag(
+                    opprettet = fixedTidspunkt,
                     fradragstype = Fradragstype.ForventetInntekt,
                     månedsbeløp = 12000.0,
                     utenlandskInntekt = null,

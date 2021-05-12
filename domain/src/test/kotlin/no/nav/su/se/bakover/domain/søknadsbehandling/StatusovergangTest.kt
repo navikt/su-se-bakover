@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
+import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -54,6 +55,7 @@ internal class StatusovergangTest {
         sats = Sats.HØY,
         fradrag = listOf(
             FradragFactory.ny(
+                opprettet = fixedTidspunkt,
                 type = Fradragstype.ForventetInntekt,
                 månedsbeløp = 1000.0,
                 periode = Periode.create(1.januar(2021), 31.desember(2021)),
@@ -71,6 +73,7 @@ internal class StatusovergangTest {
         sats = Sats.HØY,
         fradrag = listOf(
             FradragFactory.ny(
+                opprettet = fixedTidspunkt,
                 type = Fradragstype.ForventetInntekt,
                 månedsbeløp = 1000000.0,
                 periode = Periode.create(1.januar(2021), 31.desember(2021)),

@@ -6,6 +6,7 @@ import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.fixedTidspunkt
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -194,6 +195,7 @@ internal fun lagFradrag(
     periode: Periode,
     tilhører: FradragTilhører = FradragTilhører.BRUKER,
 ) = FradragFactory.ny(
+    opprettet = fixedTidspunkt,
     type = type,
     månedsbeløp = beløp,
     periode = periode,
@@ -207,11 +209,10 @@ internal fun lagPeriodisertFradrag(
     periode: Periode,
     tilhører: FradragTilhører = FradragTilhører.BRUKER,
 ) = PeriodisertFradrag(
-    type = type,
+    opprettet = fixedTidspunkt,
+    fradragstype = type,
     månedsbeløp = beløp,
     periode = periode,
     utenlandskInntekt = null,
     tilhører = tilhører,
 )
-
-internal fun Fradrag.toPeriodisertFradrag() = FradragFactory.periodiser(this)

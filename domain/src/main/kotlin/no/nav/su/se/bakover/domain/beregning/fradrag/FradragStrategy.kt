@@ -108,12 +108,13 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
             if (epsFradrag.isEmpty()) return søkersFradrag
             val sammenslått = FradragFactory.periodiser(
                 FradragFactory.ny(
+                    opprettet = fradrag.map { it.opprettet }.first(),
                     type = Fradragstype.BeregnetFradragEPS,
                     månedsbeløp = epsFradrag.sumOf { it.månedsbeløp },
                     periode = periode,
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.EPS
-                )
+                    tilhører = FradragTilhører.EPS,
+                ),
             )
             return søkersFradrag.plus(sammenslått)
         }
@@ -154,6 +155,7 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
         return søkersFradrag.plus(
             FradragFactory.periodiser(
                 FradragFactory.ny(
+                    opprettet = fradrag.map { it.opprettet }.first(),
                     type = Fradragstype.BeregnetFradragEPS,
                     månedsbeløp = beregnetFradragEps,
                     periode = periode,

@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.beregning
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.Sats
@@ -11,6 +12,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategyName
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
+import no.nav.su.se.bakover.service.fixedTidspunkt
 import java.util.UUID
 
 internal object TestBeregning : Beregning {
@@ -70,10 +72,11 @@ internal object TestMånedsberegningSomGirOpphør : Månedsberegning {
 }
 
 internal object TestFradrag : Fradrag {
+    override val opprettet: Tidspunkt = fixedTidspunkt
     override val fradragstype: Fradragstype = Fradragstype.ForventetInntekt
     override val månedsbeløp: Double = 12000.0
     override val utenlandskInntekt: UtenlandskInntekt? = null
     override val tilhører: FradragTilhører = FradragTilhører.BRUKER
     override val periode: Periode = Periode.create(1.januar(2020), 31.januar(2020))
-    override fun equals(other: Any?) = (other as? Fradrag)?.let { this.equals(other) } ?: false
+    override fun copy(args: CopyArgs.Tidslinje) = throw NotImplementedError()
 }

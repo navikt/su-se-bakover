@@ -33,6 +33,8 @@ import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.tidspunkt
 import no.nav.su.se.bakover.service.beregning.BeregningService
 import no.nav.su.se.bakover.service.beregning.TestBeregning
+import no.nav.su.se.bakover.service.fixedClock
+import no.nav.su.se.bakover.service.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import java.time.temporal.ChronoUnit
 import java.util.UUID
@@ -89,6 +91,7 @@ class SøknadsbehandlingServiceBeregningTest {
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
             beregningService = beregningServiceMock,
+            clock = fixedClock,
         ).beregn(
             request,
         )
@@ -118,6 +121,7 @@ class SøknadsbehandlingServiceBeregningTest {
                 fradrag = argThat {
                     it shouldBe listOf(
                         FradragFactory.ny(
+                            opprettet = fixedTidspunkt,
                             type = fradragRequest.type,
                             månedsbeløp = fradragRequest.månedsbeløp,
                             periode = fradragRequest.periode!!,

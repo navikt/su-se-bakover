@@ -40,11 +40,12 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurd
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.defaultRequest
+import no.nav.su.se.bakover.web.fixedTidspunkt
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.periode
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.requestPath
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.testServices
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.vedtak
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.TestBeregning
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.TestBeregning
 import no.nav.su.se.bakover.web.testSusebakover
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
@@ -149,6 +150,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
         ).beregn(
             listOf(
                 FradragFactory.ny(
+                    opprettet = fixedTidspunkt,
                     type = Fradragstype.BidragEtterEkteskapsloven,
                     månedsbeløp = 12.0,
                     periode = TestBeregning.getMånedsberegninger()[0].periode,

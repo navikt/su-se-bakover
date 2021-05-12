@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
@@ -206,6 +207,7 @@ internal class FinnAttestantVisitorTest {
                 sats = Sats.HØY,
                 fradrag = listOf(
                     FradragFactory.ny(
+                        opprettet = fixedTidspunkt,
                         type = Fradragstype.Arbeidsinntekt,
                         månedsbeløp = 5000.0,
                         periode = Periode.create(1.januar(2021), 31.januar(2021)),
@@ -225,7 +227,7 @@ internal class FinnAttestantVisitorTest {
         id = UUID.randomUUID(),
         periode = Periode.create(1.januar(2021), 31.januar(2021)),
         opprettet = Tidspunkt.now(),
-        tilRevurdering = mock() {
+        tilRevurdering = mock {
 
             on { behandlingsinformasjon } doReturn behandlingsinformasjonMedAlleVilkårOppfylt
             on { beregning } doReturn beregningMock

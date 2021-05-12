@@ -37,6 +37,7 @@ import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest.AvslagBrevRequest
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest.InnvilgetVedtak
+import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -801,6 +802,7 @@ internal class LagBrevRequestVisitorTest {
         sats = Sats.HØY,
         fradrag = listOf(
             FradragFactory.ny(
+                opprettet = fixedTidspunkt,
                 type = Fradragstype.ForventetInntekt,
                 månedsbeløp = 5000.0,
                 periode = Periode.create(1.januar(2021), 31.desember(2021)),
@@ -818,6 +820,7 @@ internal class LagBrevRequestVisitorTest {
         sats = Sats.HØY,
         fradrag = listOf(
             FradragFactory.ny(
+                opprettet = fixedTidspunkt,
                 type = Fradragstype.ForventetInntekt,
                 månedsbeløp = 50000.0,
                 periode = Periode.create(1.januar(2021), 31.desember(2021)),

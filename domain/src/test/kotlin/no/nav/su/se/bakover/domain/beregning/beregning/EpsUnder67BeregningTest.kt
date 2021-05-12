@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import org.junit.jupiter.api.Test
@@ -49,20 +50,22 @@ internal class EpsUnder67BeregningTest {
             ),
             fradragFraSaksbehandler = listOf(
                 FradragFactory.ny(
+                    opprettet = fixedTidspunkt,
                     type = Fradragstype.OffentligPensjon,
                     månedsbeløp = folketrygdPrMnd,
                     periode = periode,
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
+                    tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
+                    opprettet = fixedTidspunkt,
                     type = Fradragstype.OffentligPensjon,
                     månedsbeløp = folketrygdEpsPrMnd,
                     periode = periode,
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.EPS
-                )
-            )
+                    tilhører = FradragTilhører.EPS,
+                ),
+            ),
         )
 
         BeregningStrategy.EpsUnder67År.beregn(beregningsgrunnlag).let {

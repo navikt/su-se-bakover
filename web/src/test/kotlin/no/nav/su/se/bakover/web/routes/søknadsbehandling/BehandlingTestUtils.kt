@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.routes.grunnlag.uføregrunnlag
 import no.nav.su.se.bakover.web.routes.grunnlag.vurderingsperiodeUføre
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.TestBeregning
 import java.time.LocalDate
 import java.util.UUID
 

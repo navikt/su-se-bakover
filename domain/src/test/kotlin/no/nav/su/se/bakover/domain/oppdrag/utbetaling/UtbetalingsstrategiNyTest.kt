@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling.Companion.hentOversendteUtbetalingerUtenFeil
@@ -289,23 +290,25 @@ internal class UtbetalingsstrategiNyTest {
                 sats = Sats.HØY,
                 fradrag = listOf(
                     FradragFactory.ny(
+                        opprettet = fixedTidspunkt,
                         type = Fradragstype.ForventetInntekt,
                         månedsbeløp = 1000.0,
                         periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 30.april(2020)),
                         utenlandskInntekt = null,
-                        tilhører = FradragTilhører.BRUKER
+                        tilhører = FradragTilhører.BRUKER,
                     ),
                     FradragFactory.ny(
+                        opprettet = fixedTidspunkt,
                         type = Fradragstype.Arbeidsinntekt,
                         månedsbeløp = 4000.0,
                         periode = Periode.create(fraOgMed = 1.februar(2020), tilOgMed = 29.februar(2020)),
                         utenlandskInntekt = null,
-                        tilhører = FradragTilhører.BRUKER
-                    )
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
                 ),
-                fradragStrategy = FradragStrategy.Enslig
+                fradragStrategy = FradragStrategy.Enslig,
             ),
-            clock = fixedClock
+            clock = fixedClock,
         ).generate()
         actualUtbetaling shouldBe Utbetaling.UtbetalingForSimulering(
             id = actualUtbetaling.id,
@@ -385,13 +388,14 @@ internal class UtbetalingsstrategiNyTest {
         sats = Sats.HØY,
         fradrag = listOf(
             FradragFactory.ny(
+                opprettet = fixedTidspunkt,
                 type = Fradragstype.ForventetInntekt,
                 månedsbeløp = 0.0,
                 periode = Periode.create(fraOgMed = fraOgMed, tilOgMed = tilOgMed),
                 utenlandskInntekt = null,
-                tilhører = FradragTilhører.BRUKER
-            )
+                tilhører = FradragTilhører.BRUKER,
+            ),
         ),
-        fradragStrategy = FradragStrategy.Enslig
+        fradragStrategy = FradragStrategy.Enslig,
     )
 }

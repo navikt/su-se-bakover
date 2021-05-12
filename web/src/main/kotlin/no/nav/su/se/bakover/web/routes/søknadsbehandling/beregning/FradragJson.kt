@@ -8,6 +8,7 @@ import arrow.core.getOrHandle
 import arrow.core.identity
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
@@ -25,26 +26,31 @@ internal data class FradragJson(
     val utenlandskInntekt: UtenlandskInntektJson?,
     val tilhører: String
 ) {
-    internal fun toFradrag(beregningsperiode: Periode): Either<Resultat, Fradrag> {
+    internal fun toFradrag(beregningsperiode: Periode, opprettet: Tidspunkt): Either<Resultat, Fradrag> {
         val utenlandskInntekt: UtenlandskInntekt? = this.utenlandskInntekt?.toUtenlandskInntekt()?.getOrHandle {
             return it.left()
         }
         val periode: Periode = this.periode?.toPeriode()?.getOrHandle {
             return it.left()
         } ?: beregningsperiode
+        // TODO jah: Bytt til FradragRequest som for LeggTilUførevurderingerRequest
         return FradragFactory.ny(
+            opprettet = opprettet,
             type = Fradragstype.valueOf(type),
             månedsbeløp = beløp,
             periode = periode,
             utenlandskInntekt = utenlandskInntekt,
-            tilhører = FradragTilhører.valueOf(tilhører)
+            tilhører = FradragTilhører.valueOf(tilhører),
         ).right()
     }
 
     companion object {
-        fun List<FradragJson>.toFradrag(beregningsperiode: Periode): Either<Resultat, List<Fradrag>> {
+        fun List<FradragJson>.toFradrag(
+            beregningsperiode: Periode,
+            opprettet: Tidspunkt,
+        ): Either<Resultat, List<Fradrag>> {
             return this.map {
-                it.toFradrag(beregningsperiode)
+                it.toFradrag(beregningsperiode, opprettet)
             }.traverse(Either.applicative(), ::identity).fix().map {
                 it.fix()
             }

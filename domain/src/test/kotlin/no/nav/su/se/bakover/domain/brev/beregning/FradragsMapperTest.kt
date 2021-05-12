@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.fixedTidspunkt
 import org.junit.jupiter.api.Test
 
 internal class FradragsMapperTest {
@@ -17,21 +18,23 @@ internal class FradragsMapperTest {
     fun `Inneholder bare fradrag for aktuell bruker`() {
         val periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020))
         val fradragForEps = FradragFactory.ny(
+            opprettet = fixedTidspunkt,
             type = Fradragstype.BidragEtterEkteskapsloven,
             månedsbeløp = 3000.0,
             periode = periode,
             utenlandskInntekt = null,
-            tilhører = FradragTilhører.EPS
+            tilhører = FradragTilhører.EPS,
         )
         val fradrag = listOf(
             FradragFactory.ny(
+                opprettet = fixedTidspunkt,
                 type = Fradragstype.Kapitalinntekt,
                 månedsbeløp = 5000.0,
                 periode = periode,
                 utenlandskInntekt = null,
-                tilhører = FradragTilhører.BRUKER
+                tilhører = FradragTilhører.BRUKER,
             ),
-            fradragForEps
+            fradragForEps,
         )
 
         BrukerFradragBenyttetIBeregningsperiode(fradrag).fradrag shouldBe listOf(
@@ -59,19 +62,21 @@ internal class FradragsMapperTest {
         val periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020))
         val fradrag = listOf(
             FradragFactory.ny(
+                opprettet = fixedTidspunkt,
                 type = Fradragstype.Kapitalinntekt,
                 månedsbeløp = 3337.0,
                 periode = periode,
                 utenlandskInntekt = null,
-                tilhører = FradragTilhører.BRUKER
+                tilhører = FradragTilhører.BRUKER,
             ),
             FradragFactory.ny(
+                opprettet = fixedTidspunkt,
                 type = Fradragstype.ForventetInntekt,
                 månedsbeløp = 0.0,
                 periode = periode,
                 utenlandskInntekt = null,
-                tilhører = FradragTilhører.BRUKER
-            )
+                tilhører = FradragTilhører.BRUKER,
+            ),
         )
 
         BrukerFradragBenyttetIBeregningsperiode(fradrag).fradrag shouldBe listOf(
@@ -88,26 +93,29 @@ internal class FradragsMapperTest {
         val periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020))
         val fradrag = listOf(
             FradragFactory.ny(
+                opprettet = fixedTidspunkt,
                 type = Fradragstype.Kapitalinntekt,
                 månedsbeløp = 3337.0,
                 periode = periode,
                 utenlandskInntekt = null,
-                tilhører = FradragTilhører.EPS
+                tilhører = FradragTilhører.EPS,
             ),
             FradragFactory.ny(
+                opprettet = fixedTidspunkt,
                 type = Fradragstype.ForventetInntekt,
                 månedsbeløp = 10000.0,
                 periode = Periode.create(fraOgMed = 1.juni(2020), tilOgMed = 31.august(2020)),
                 utenlandskInntekt = null,
-                tilhører = FradragTilhører.EPS
+                tilhører = FradragTilhører.EPS,
             ),
             FradragFactory.ny(
+                opprettet = fixedTidspunkt,
                 type = Fradragstype.Arbeidsinntekt,
                 månedsbeløp = 10000.0,
                 periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.januar(2020)),
                 utenlandskInntekt = null,
-                tilhører = FradragTilhører.EPS
-            )
+                tilhører = FradragTilhører.EPS,
+            ),
         )
 
         EpsFradragFraSaksbehandlerIBeregningsperiode(

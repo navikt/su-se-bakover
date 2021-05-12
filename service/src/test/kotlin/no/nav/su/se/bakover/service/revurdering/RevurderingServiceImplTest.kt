@@ -305,6 +305,7 @@ internal class RevurderingServiceImplTest {
             saksbehandler = saksbehandler,
             fradrag = listOf(
                 FradragFactory.ny(
+                    opprettet = fixedTidspunkt,
                     type = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = 10000.0,
                     periode = søknadsbehandlingVedtak.periode,
@@ -421,6 +422,7 @@ internal class RevurderingServiceImplTest {
             saksbehandler = saksbehandler,
             fradrag = listOf(
                 FradragFactory.ny(
+                    opprettet = fixedTidspunkt,
                     type = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = 10000.0,
                     periode = søknadsbehandlingVedtak.periode,
@@ -915,6 +917,7 @@ internal class RevurderingServiceImplTest {
             saksbehandler,
             listOf(
                 FradragFactory.ny(
+                    opprettet = fixedTidspunkt,
                     type = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = 4000.0,
                     periode = periode,
@@ -1783,7 +1786,7 @@ internal class RevurderingServiceImplTest {
 
     @Test
     fun `hvis vilkår ikke er oppfylt, fører revurderingen til et opphør`() {
-        val simulertUtbetalingMock = mock<Utbetaling.SimulertUtbetaling>() {
+        val simulertUtbetalingMock = mock<Utbetaling.SimulertUtbetaling> {
             on { simulering } doReturn mock()
         }
         val vilkårMedAvslag = vilkårsvurderinger.copy(

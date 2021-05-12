@@ -135,7 +135,7 @@ internal class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return SøknadsbehandlingService.KunneIkkeBeregne.FantIkkeBehandling.left()
 
-        val fradrag = request.toFradrag(søknadsbehandling.stønadsperiode!!).getOrHandle {
+        val fradrag = request.toFradrag(søknadsbehandling.stønadsperiode!!, Tidspunkt.now(clock)).getOrHandle {
             return SøknadsbehandlingService.KunneIkkeBeregne.IkkeLovMedFradragUtenforPerioden.left()
         }
         return statusovergang(

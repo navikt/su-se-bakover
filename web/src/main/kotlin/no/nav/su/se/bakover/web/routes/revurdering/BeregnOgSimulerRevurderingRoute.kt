@@ -10,6 +10,7 @@ import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.routing.Route
 import io.ktor.routing.post
 import io.ktor.util.KtorExperimentalAPI
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -36,10 +37,12 @@ import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withRevurderingId
 import no.nav.su.se.bakover.web.withSakId
+import java.time.Clock
 
 @KtorExperimentalAPI
 internal fun Route.beregnOgSimulerRevurdering(
     revurderingService: RevurderingService,
+    clock: Clock,
 ) {
     data class BeregningForRevurderingBody(
         val periode: PeriodeJson,
@@ -47,7 +50,7 @@ internal fun Route.beregnOgSimulerRevurdering(
     ) {
         fun toDomain(): Either<Resultat, List<Fradrag>> =
             periode.toPeriode()
-                .flatMap { fradrag.toFradrag(it) }
+                .flatMap { fradrag.toFradrag(it, Tidspunkt.now(clock)) }
     }
     authorize(Brukerrolle.Saksbehandler) {
         post("$revurderingPath/{revurderingId}/beregnOgSimuler") {

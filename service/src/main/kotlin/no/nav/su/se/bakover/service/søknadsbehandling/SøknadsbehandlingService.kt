@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.søknadsbehandling
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -67,12 +68,16 @@ interface SøknadsbehandlingService {
 
         object IkkeLovMedFradragUtenforPerioden
 
-        fun toFradrag(stønadsperiode: Stønadsperiode): Either<IkkeLovMedFradragUtenforPerioden, List<Fradrag>> =
-            fradrag.map {
+        fun toFradrag(
+            stønadsperiode: Stønadsperiode,
+            opprettet: Tidspunkt,
+        ): Either<IkkeLovMedFradragUtenforPerioden, List<Fradrag>> {
+            return fradrag.map {
                 if (it.periode != null && !(stønadsperiode.periode inneholder it.periode)) {
                     return IkkeLovMedFradragUtenforPerioden.left()
                 }
                 FradragFactory.ny(
+                    opprettet = opprettet,
                     type = it.type,
                     månedsbeløp = it.månedsbeløp,
                     periode = it.periode ?: stønadsperiode.periode,
@@ -80,6 +85,7 @@ interface SøknadsbehandlingService {
                     tilhører = it.tilhører,
                 )
             }.right()
+        }
     }
 
     sealed class KunneIkkeBeregne {

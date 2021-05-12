@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
+import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import org.junit.jupiter.api.Test
@@ -54,31 +55,34 @@ internal class EnsligBorMedVoksneBeregningTest {
             ),
             fradragFraSaksbehandler = listOf(
                 FradragFactory.ny(
+                    opprettet = fixedTidspunkt,
                     type = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = arbeidsinntektPrMnd,
                     periode = periode,
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
+                    tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
+                    opprettet = fixedTidspunkt,
                     type = Fradragstype.OffentligPensjon,
                     månedsbeløp = folketrygdPrMnd,
                     periode = periode,
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
+                    tilhører = FradragTilhører.BRUKER,
                 ),
                 FradragFactory.ny(
+                    opprettet = fixedTidspunkt,
                     type = Fradragstype.OffentligPensjon,
                     månedsbeløp = utenlandskInntektPrMnd,
                     periode = periode,
                     utenlandskInntekt = UtenlandskInntekt.create(
                         beløpIUtenlandskValuta = 10,
                         valuta = "Andebydollars",
-                        kurs = 3.0
+                        kurs = 3.0,
                     ),
-                    tilhører = FradragTilhører.BRUKER
-                )
-            )
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
         )
 
         BeregningStrategy.BorMedVoksne.beregn(beregningsgrunnlag, "bor med voksen").let {
