@@ -1,48 +1,60 @@
 package no.nav.su.se.bakover.domain.revurdering
 
-import com.fasterxml.jackson.module.kotlin.readValue
+import arrow.core.left
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.objectMapper
 import org.junit.jupiter.api.Test
-import org.skyscreamer.jsonassert.JSONAssert
+import org.junit.jupiter.api.assertThrows
 
 internal class InformasjonSomRevurderesTest {
     @Test
-    fun `seriailisering og deserialisering`() {
-        val informasjonSomRevurderes = InformasjonSomRevurderes(
-            mapOf(
-                Revurderingsteg.Inntekt to Vurderingstatus.Vurdert,
-                Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
+    fun `oppretter fra liste med revurderingssteg`() {
+        InformasjonSomRevurderes.create(
+            listOf(
+                Revurderingsteg.Inntekt,
+                Revurderingsteg.Uførhet,
             ),
-        )
-        val serialized = objectMapper.writeValueAsString(informasjonSomRevurderes).also {
-            JSONAssert.assertEquals(
-                """
-                    {
-                        "Inntekt": "Vurdert",
-                        "Uførhet": "IkkeVurdert"
-                    }
-                """.trimIndent(),
-                it,
-                true,
+        ).let {
+            it[Revurderingsteg.Inntekt] shouldBe Vurderingstatus.IkkeVurdert
+            it[Revurderingsteg.Uførhet] shouldBe Vurderingstatus.IkkeVurdert
+        }
+    }
+
+    @Test
+    fun `må minst velge en ting som revurderes - liste`() {
+        assertThrows<IllegalArgumentException> {
+            InformasjonSomRevurderes.create(
+                emptyList(),
             )
         }
-
-        objectMapper.readValue<InformasjonSomRevurderes>(serialized) shouldBe informasjonSomRevurderes
+        InformasjonSomRevurderes.tryCreate(
+            emptyList(),
+        ) shouldBe InformasjonSomRevurderes.MåRevurdereMinstEnTing.left()
     }
 
     @Test
     fun `setter revurderingssteg til vurdert`() {
-        InformasjonSomRevurderes(
+        InformasjonSomRevurderes.create(
             mapOf(
                 Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
                 Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
             ),
-        ).vurdert(Revurderingsteg.Inntekt) shouldBe InformasjonSomRevurderes(
+        ).markerSomVurdert(Revurderingsteg.Inntekt) shouldBe InformasjonSomRevurderes.create(
             mapOf(
                 Revurderingsteg.Inntekt to Vurderingstatus.Vurdert,
                 Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
             ),
         )
+    }
+
+    @Test
+    fun `må minst velge en ting som revurderes - map`() {
+        assertThrows<IllegalArgumentException> {
+            InformasjonSomRevurderes.create(
+                emptyMap(),
+            )
+        }
+        InformasjonSomRevurderes.tryCreate(
+            emptyMap(),
+        ) shouldBe InformasjonSomRevurderes.MåRevurdereMinstEnTing.left()
     }
 }

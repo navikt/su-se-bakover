@@ -1,7 +1,13 @@
-ALTER TABLE revurdering
-    ADD COLUMN IF NOT EXISTS
-        informasjonSomRevurderes jsonb not null default '{}'::jsonb;
+alter table revurdering
+    add COLUMN informasjonSomRevurderes jsonb;
 
-ALTER TABLE revurdering
-    ALTER COLUMN informasjonSomRevurderes
-        DROP DEFAULT;
+update revurdering set informasjonsomrevurderes =
+    case
+        when revurderingstype = 'OPPRETTET' and årsak = 'REGULER_GRUNNBELØP' then '{"Inntekt":"IkkeVurdert","Uførhet":"IkkeVurdert"}'::json
+        when revurderingstype = 'OPPRETTET' and årsak != 'REGULER_GRUNNBELØP' then '{"Inntekt":"IkkeVurdert"}'::json
+        when revurderingstype != 'OPPRETTET' and årsak = 'REGULER_GRUNNBELØP' then '{"Inntekt":"Vurdert", "Uførhet":"Vurdert"}'::json
+        when revurderingstype != 'OPPRETTET' and årsak != 'REGULER_GRUNNBELØP' then '{"Inntekt":"Vurdert"}'::json
+    end;
+
+alter table revurdering
+    alter COLUMN informasjonSomRevurderes SET NOT NULL;

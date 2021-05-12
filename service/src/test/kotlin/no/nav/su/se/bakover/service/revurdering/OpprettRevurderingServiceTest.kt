@@ -214,7 +214,7 @@ internal class OpprettRevurderingServiceTest {
             behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-            informasjonSomRevurderes = InformasjonSomRevurderes(mapOf(Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert)),
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert)),
         )
         inOrder(
             sakServiceMock,
@@ -316,7 +316,7 @@ internal class OpprettRevurderingServiceTest {
             behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-            informasjonSomRevurderes = InformasjonSomRevurderes(mapOf(Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert)),
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert)),
         )
         inOrder(
             sakServiceMock,
@@ -398,7 +398,7 @@ internal class OpprettRevurderingServiceTest {
             behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-            informasjonSomRevurderes = InformasjonSomRevurderes(mapOf(Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert)),
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert)),
         )
         inOrder(
             sakServiceMock,
@@ -632,7 +632,7 @@ internal class OpprettRevurderingServiceTest {
                 behandlingsinformasjon = opprinneligVedtak.behandlingsinformasjon,
                 grunnlagsdata = Grunnlagsdata.EMPTY,
                 vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-                informasjonSomRevurderes = InformasjonSomRevurderes(emptyMap()),
+                informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             )
             it.copy(
                 revurderinger = listOf(

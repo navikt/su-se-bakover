@@ -93,7 +93,7 @@ class RevurderingIngenEndringTest {
                     ),
                 ),
             ),
-            informasjonSomRevurderes = InformasjonSomRevurderes(
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert
                 )
@@ -126,7 +126,7 @@ class RevurderingIngenEndringTest {
                 forhåndsvarsel = null,
                 grunnlagsdata = opprettetRevurdering.grunnlagsdata,
                 vilkårsvurderinger = opprettetRevurdering.vilkårsvurderinger,
-                informasjonSomRevurderes = InformasjonSomRevurderes(
+                informasjonSomRevurderes = InformasjonSomRevurderes.create(
                     mapOf(
                         Revurderingsteg.Inntekt to Vurderingstatus.Vurdert
                     )
@@ -164,7 +164,7 @@ class RevurderingIngenEndringTest {
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-            informasjonSomRevurderes = InformasjonSomRevurderes(emptyMap()),
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
         val endretSaksbehandler = NavIdentBruker.Saksbehandler("endretSaksbehandler")
         val revurderingTilAttestering = RevurderingTilAttestering.IngenEndring(
@@ -182,7 +182,7 @@ class RevurderingIngenEndringTest {
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-            informasjonSomRevurderes = InformasjonSomRevurderes(emptyMap()),
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn beregnetRevurdering
@@ -263,7 +263,7 @@ class RevurderingIngenEndringTest {
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-            informasjonSomRevurderes = InformasjonSomRevurderes(emptyMap()),
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
         val underkjentRevurdering = UnderkjentRevurdering.IngenEndring(
             id = revurderingId,
@@ -281,7 +281,7 @@ class RevurderingIngenEndringTest {
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-            informasjonSomRevurderes = InformasjonSomRevurderes(emptyMap()),
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn revurderingTilAttestering
@@ -357,7 +357,7 @@ class RevurderingIngenEndringTest {
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-            informasjonSomRevurderes = InformasjonSomRevurderes(emptyMap()),
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
         val attestant = NavIdentBruker.Attestant("ATTT")
         val iverksattRevurdering = revurderingTilAttestering.tilIverksatt(attestant).orNull()!!
@@ -420,7 +420,7 @@ class RevurderingIngenEndringTest {
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-            informasjonSomRevurderes = InformasjonSomRevurderes(emptyMap()),
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
         val attestant = NavIdentBruker.Attestant("ATTT")
         val iverksattRevurdering = revurderingTilAttestering.tilIverksatt(attestant).orNull()!!

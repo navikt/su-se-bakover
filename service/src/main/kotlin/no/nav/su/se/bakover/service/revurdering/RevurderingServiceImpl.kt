@@ -36,7 +36,6 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak.Årsak.REGULER_GRUNNBELØP
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
-import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.domain.revurdering.erKlarForAttestering
 import no.nav.su.se.bakover.domain.revurdering.medFritekst
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
@@ -55,7 +54,6 @@ import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
-import org.jetbrains.kotlin.utils.keysToMap
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -122,9 +120,8 @@ internal class RevurderingServiceImpl(
             return KunneIkkeOppretteRevurdering.FantIkkeAktørId.left()
         }
 
-        if (opprettRevurderingRequest.informasjonSomRevurderes.isEmpty()) {
-            return KunneIkkeOppretteRevurdering.MåVelgeInformasjonSomSkalRevurderes.left()
-        }
+        val informasjonSomRevurderes = InformasjonSomRevurderes.tryCreate(opprettRevurderingRequest.informasjonSomRevurderes)
+            .getOrHandle { return KunneIkkeOppretteRevurdering.MåVelgeInformasjonSomSkalRevurderes.left() }
 
         val (vilkårsvurderinger, grunnlag) = opprettVilkårsvurderinger(sak.id, periode)
 
@@ -150,7 +147,7 @@ internal class RevurderingServiceImpl(
                 behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
                 grunnlagsdata = grunnlag,
                 vilkårsvurderinger = vilkårsvurderinger,
-                informasjonSomRevurderes = InformasjonSomRevurderes(opprettRevurderingRequest.informasjonSomRevurderes.keysToMap { Vurderingstatus.IkkeVurdert }),
+                informasjonSomRevurderes = informasjonSomRevurderes,
             ).also {
                 revurderingRepo.lagre(it)
 
@@ -217,7 +214,7 @@ internal class RevurderingServiceImpl(
         ).also {
             revurderingRepo.lagre(
                 it.copy(
-                    informasjonSomRevurderes = it.informasjonSomRevurderes.vurdert(Revurderingsteg.Uførhet),
+                    informasjonSomRevurderes = it.informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Uførhet),
                 ),
             )
         }
@@ -282,7 +279,8 @@ internal class RevurderingServiceImpl(
 
         val (vilkårsvurderinger, grunnlagsdata) = opprettVilkårsvurderinger(revurdering.sakId, nyPeriode)
 
-        val informasjonSomRevurderes = InformasjonSomRevurderes(oppdaterRevurderingRequest.informasjonSomRevurderes.keysToMap { Vurderingstatus.IkkeVurdert })
+        val informasjonSomRevurderes = InformasjonSomRevurderes.tryCreate(oppdaterRevurderingRequest.informasjonSomRevurderes)
+            .getOrHandle { return KunneIkkeOppdatereRevurdering.MåVelgeInformasjonSomSkalRevurderes.left() }
 
         return when (revurdering) {
             is OpprettetRevurdering -> revurdering.oppdater(

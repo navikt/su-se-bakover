@@ -4,7 +4,6 @@ import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
-import com.fasterxml.jackson.annotation.JsonValue
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
@@ -128,7 +127,7 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
             grunnlagsdata = grunnlagsdata,
             vilkårsvurderinger = vilkårsvurderinger,
             informasjonSomRevurderes = if (informasjonSomRevurderes.containsKey(Revurderingsteg.Inntekt)) {
-                informasjonSomRevurderes.vurdert(Revurderingsteg.Inntekt)
+                informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Inntekt)
             } else informasjonSomRevurderes,
         )
 
@@ -147,7 +146,7 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
             grunnlagsdata = grunnlagsdata,
             vilkårsvurderinger = vilkårsvurderinger,
             informasjonSomRevurderes = if (informasjonSomRevurderes.containsKey(Revurderingsteg.Inntekt)) {
-                informasjonSomRevurderes.vurdert(Revurderingsteg.Inntekt)
+                informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Inntekt)
             } else informasjonSomRevurderes,
         )
 
@@ -167,7 +166,7 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = if (informasjonSomRevurderes.containsKey(Revurderingsteg.Inntekt)) {
-                    informasjonSomRevurderes.vurdert(Revurderingsteg.Inntekt)
+                    informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Inntekt)
                 } else informasjonSomRevurderes,
             )
 
@@ -1148,12 +1147,12 @@ fun Revurdering.medFritekst(fritekstTilBrev: String) =
         is UnderkjentRevurdering.IngenEndring -> copy(fritekstTilBrev = fritekstTilBrev)
     }
 
-enum class Vurderingstatus(@JsonValue val status: String) {
+enum class Vurderingstatus(val status: String) {
     Vurdert("Vurdert"),
     IkkeVurdert("IkkeVurdert")
 }
 
-enum class Revurderingsteg(@JsonValue val vilkår: String) {
+enum class Revurderingsteg(val vilkår: String) {
     // BorOgOppholderSegINorge("BorOgOppholderSegINorge"),
     // Flyktning("Flyktning"),
     // Formue("Formue"),

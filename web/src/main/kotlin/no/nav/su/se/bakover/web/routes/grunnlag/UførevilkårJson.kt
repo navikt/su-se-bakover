@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.web.routes.grunnlag
 
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.vilkår.Inngangsvilkår
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
@@ -11,7 +10,7 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson.
 import java.time.format.DateTimeFormatter
 
 internal data class UføreVilkårJson(
-    val vilkår: Revurderingsteg,
+    val vilkår: String,
     val vurderinger: List<VurderingsperiodeUføreJson>,
     val resultat: Behandlingsinformasjon.Uførhet.Status,
 )
@@ -37,7 +36,7 @@ internal fun Inngangsvilkår.toJson() = when (this) {
     Inngangsvilkår.Formue -> TODO()
     Inngangsvilkår.Oppholdstillatelse -> TODO()
     Inngangsvilkår.PersonligOppmøte -> TODO()
-    Inngangsvilkår.Uførhet -> Revurderingsteg.Uførhet
+    Inngangsvilkår.Uførhet -> "Uførhet"
     Inngangsvilkår.InnlagtPåInstitusjon -> TODO()
     Inngangsvilkår.UtenlandsoppholdOver90Dager -> TODO()
 }

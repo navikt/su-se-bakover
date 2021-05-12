@@ -114,7 +114,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                     ),
                 ),
             ),
-            informasjonSomRevurderes = InformasjonSomRevurderes(
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
                     Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert
@@ -150,7 +150,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             forhåndsvarsel = null,
             grunnlagsdata = opprettetRevurdering.grunnlagsdata,
             vilkårsvurderinger = opprettetRevurdering.vilkårsvurderinger,
-            informasjonSomRevurderes = InformasjonSomRevurderes(
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.Vurdert,
                     Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert
@@ -294,7 +294,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                     ),
                 ),
             ),
-            informasjonSomRevurderes = InformasjonSomRevurderes(
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
                     Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert
@@ -315,7 +315,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             forhåndsvarsel = null,
             grunnlagsdata = opprettetRevurdering.grunnlagsdata,
             vilkårsvurderinger = opprettetRevurdering.vilkårsvurderinger,
-            informasjonSomRevurderes = InformasjonSomRevurderes(
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
                     Revurderingsteg.Inntekt to Vurderingstatus.Vurdert
@@ -364,7 +364,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-            informasjonSomRevurderes = InformasjonSomRevurderes(emptyMap()),
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -422,7 +422,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-            informasjonSomRevurderes = InformasjonSomRevurderes(emptyMap()),
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -478,7 +478,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-            informasjonSomRevurderes = InformasjonSomRevurderes(emptyMap()),
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -521,7 +521,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-            informasjonSomRevurderes = InformasjonSomRevurderes(emptyMap()),
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
 
         inOrder(revurderingRepoMock, personServiceMock, oppgaveServiceMock) {
@@ -556,7 +556,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-            informasjonSomRevurderes = InformasjonSomRevurderes(emptyMap()),
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -599,7 +599,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-            informasjonSomRevurderes = InformasjonSomRevurderes(emptyMap()),
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
 
         inOrder(revurderingRepoMock, personServiceMock, oppgaveServiceMock) {
@@ -636,7 +636,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-            informasjonSomRevurderes = InformasjonSomRevurderes(emptyMap()),
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
         val revurderingTilAttestering = RevurderingTilAttestering.IngenEndring(
             id = revurderingId,
@@ -653,7 +653,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-            informasjonSomRevurderes = InformasjonSomRevurderes(emptyMap()),
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
 
         val revurderingRepoMock = mock<RevurderingRepo> {

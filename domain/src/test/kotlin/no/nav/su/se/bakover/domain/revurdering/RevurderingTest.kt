@@ -57,7 +57,7 @@ internal class RevurderingTest {
                     ),
                 ),
             ),
-        ).copy(informasjonSomRevurderes = InformasjonSomRevurderes(mapOf(Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert)))
+        ).copy(informasjonSomRevurderes = InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert)))
             .beregn(emptyList()).orNull()!!.let {
             it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
             it.informasjonSomRevurderes[Revurderingsteg.Inntekt] shouldBe Vurderingstatus.Vurdert
@@ -81,7 +81,7 @@ internal class RevurderingTest {
                     ),
                 ),
             ),
-        ).copy(informasjonSomRevurderes = InformasjonSomRevurderes(mapOf(Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert)))
+        ).copy(informasjonSomRevurderes = InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert)))
             .beregn(emptyList()).orNull()!!.let {
             it shouldNotBe beOfType<BeregnetRevurdering.Opphørt>()
             it.informasjonSomRevurderes[Revurderingsteg.Inntekt] shouldBe Vurderingstatus.Vurdert
@@ -109,7 +109,7 @@ internal class RevurderingTest {
         },
         grunnlagsdata = Grunnlagsdata(uføregrunnlag = listOf()),
         vilkårsvurderinger = vilkårsvurderinger,
-        informasjonSomRevurderes = InformasjonSomRevurderes(emptyMap()),
+        informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
     )
 
     private val tilRevurderingMock: Vedtak.EndringIYtelse = mock() {

@@ -76,7 +76,7 @@ internal class RevurderingPostgresRepoTest {
         nettoBeløp = 200,
         periodeList = listOf(),
     )
-    private val informasjonSomRevurderes = InformasjonSomRevurderes(
+    private val informasjonSomRevurderes = InformasjonSomRevurderes.create(
         mapOf(
             Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
             Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
@@ -231,7 +231,7 @@ internal class RevurderingPostgresRepoTest {
                 ),
                 grunnlagsdata = opprettetRevurdering.grunnlagsdata,
                 vilkårsvurderinger = opprettetRevurdering.vilkårsvurderinger,
-                InformasjonSomRevurderes(emptyMap())
+                informasjonSomRevurderes = opprettetRevurdering.informasjonSomRevurderes
             )
 
             repo.lagre(oppdatertRevurdering)
