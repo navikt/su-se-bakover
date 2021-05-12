@@ -221,6 +221,7 @@ sealed class KunneIkkeLeggeTilGrunnlag {
     object OverlappendeVurderingsperioder : KunneIkkeLeggeTilGrunnlag()
     object VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden : KunneIkkeLeggeTilGrunnlag()
     object AlleVurderingeneMåHaSammeResultat : KunneIkkeLeggeTilGrunnlag()
+    object HeleBehandlingsperiodenMåHaVurderinger : KunneIkkeLeggeTilGrunnlag()
 }
 
 sealed class KunneIkkeHenteGrunnlag {

@@ -36,6 +36,19 @@ data class Periode private constructor(
         return sluttStart == plussEnDag || sluttStart == minusEnDag || startSlutt == plussEnDag || startSlutt == minusEnDag
     }
 
+    /**
+     * Alle månedene i denne perioden overlapper fullstendig med settet av alle månedene i lista.
+     * Dvs. at de må inneholde de nøyaktige samme månedsperioder.
+     */
+    infix fun fullstendigOverlapp(other: List<Periode>): Boolean =
+        this.tilMånedsperioder().toSet() == other.flatMap { it.tilMånedsperioder() }.toSet()
+
+    /**
+     * true: Det finnes minst en måned som overlapper
+     * true: Fullstendig overlapp
+     * true: equals
+     * false: Det finnes ingen måneder som overlapper
+     */
     infix fun overlapper(other: Periode): Boolean =
         starterSamtidigEllerTidligere(other) && slutterInni(other) ||
             other.starterSamtidigEllerTidligere(this) && other.slutterInni(this) ||

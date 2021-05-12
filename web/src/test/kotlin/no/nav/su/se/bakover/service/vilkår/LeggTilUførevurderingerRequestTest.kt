@@ -6,9 +6,12 @@ import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juli
+import no.nav.su.se.bakover.common.juni
+import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -71,6 +74,37 @@ internal class LeggTilUførevurderingerRequestTest {
                 tilOgMed = 31.juli(2021),
             ),
         ) shouldBe LeggTilUførevurderingerRequest.UgyldigUførevurdering.OverlappendeVurderingsperioder.left()
+    }
+
+    @Test
+    fun `Hele behandlingsperioden må ha vurderinger`() {
+        val behandlingId = UUID.randomUUID()
+        LeggTilUførevurderingerRequest(
+            behandlingId = behandlingId,
+            vurderinger = Nel.of(
+                LeggTilUførevurderingRequest(
+                    behandlingId = behandlingId,
+                    periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.mars(2021)),
+                    uføregrad = Uføregrad.parse(100),
+                    forventetInntekt = 12000,
+                    oppfylt = Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
+                    begrunnelse = null,
+                ),
+                LeggTilUførevurderingRequest(
+                    behandlingId = behandlingId,
+                    periode = Periode.create(fraOgMed = 1.april(2021), tilOgMed = 30.juni(2021)),
+                    uføregrad = Uføregrad.parse(100),
+                    forventetInntekt = 12000,
+                    oppfylt = Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt,
+                    begrunnelse = null,
+                ),
+            ),
+        ).toVilkår(
+            Periode.create(
+                fraOgMed = 1.januar(2021),
+                tilOgMed = 31.juli(2021),
+            ),
+        ) shouldBe LeggTilUførevurderingerRequest.UgyldigUførevurdering.HeleBehandlingsperiodenMåHaVurderinger.left()
     }
 
     @Test
