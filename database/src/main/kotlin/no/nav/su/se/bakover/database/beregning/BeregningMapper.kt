@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.database.beregning
 
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.Sats
@@ -87,7 +88,11 @@ internal data class PersistertFradrag(
     override val utenlandskInntekt: UtenlandskInntekt?,
     override val periode: Periode,
     override val tilhører: FradragTilhører,
-) : Fradrag
+) : Fradrag {
+    override fun copy(args: CopyArgs.MaksPeriode): Fradrag? {
+        return args.forOriginal(periode)?.let { copy(periode = it) }
+    }
+}
 
 internal fun Beregning.toSnapshot() = PersistertBeregning(
     id = getId(),

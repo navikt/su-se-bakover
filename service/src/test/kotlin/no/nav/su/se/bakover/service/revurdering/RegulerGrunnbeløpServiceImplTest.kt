@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
+import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -212,6 +213,9 @@ internal class RegulerGrunnbeløpServiceImplTest {
             override val utenlandskInntekt: UtenlandskInntekt? = null
             override val tilhører = FradragTilhører.BRUKER
             override val periode = Periode.create(1.januar(2020), 31.januar(2020))
+            override fun copy(args: CopyArgs.MaksPeriode): Fradrag? {
+                throw NotImplementedError()
+            }
         }
         val uføregrunnlag = Grunnlag.Uføregrunnlag(
             periode = periode,

@@ -14,6 +14,8 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.KunneIkkeJournalføreOgDistribuereBrev
@@ -294,6 +296,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
         override val periode: Periode,
         val grunnlagsdata: Grunnlagsdata,
         val vilkårsvurderinger: Vilkårsvurderinger,
+        val fradrag: List<Fradrag>,
     ) : KanPlasseresPåTidslinje<VedtakPåTidslinje> {
         override fun copy(args: CopyArgs.Tidslinje): VedtakPåTidslinje =
             when (args) {
@@ -319,6 +322,9 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                             )
                         },
                     ),
+                    fradrag = fradrag.filterNot { it.fradragstype == Fradragstype.ForventetInntekt }.mapNotNull {
+                        it.copy(CopyArgs.MaksPeriode(periode))
+                    },
                 )
                 is CopyArgs.Tidslinje.NyPeriode -> copy(
                     periode = args.periode,
@@ -342,6 +348,9 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                             )
                         },
                     ),
+                    fradrag = fradrag.filterNot { it.fradragstype == Fradragstype.ForventetInntekt }.mapNotNull {
+                        it.copy(CopyArgs.MaksPeriode(args.periode))
+                    },
                 )
             }
     }
@@ -355,6 +364,12 @@ fun List<Vedtak>.lagTidslinje(periode: Periode): List<Vedtak.VedtakPåTidslinje>
             periode = it.periode,
             grunnlagsdata = it.behandling.grunnlagsdata,
             vilkårsvurderinger = it.behandling.vilkårsvurderinger,
+            fradrag = when (it) {
+                is Vedtak.Avslag.AvslagBeregning -> TODO()
+                is Vedtak.Avslag.AvslagVilkår -> TODO()
+                is Vedtak.EndringIYtelse -> it.beregning.getFradrag()
+                is Vedtak.IngenEndringIYtelse -> TODO()
+            },
         )
     }.let {
         Tidslinje(

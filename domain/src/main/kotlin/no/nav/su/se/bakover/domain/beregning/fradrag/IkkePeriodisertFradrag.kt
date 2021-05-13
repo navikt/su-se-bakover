@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.beregning.fradrag
 
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.CopyArgs
 
 internal data class IkkePeriodisertFradrag(
     private val type: Fradragstype,
@@ -14,4 +15,8 @@ internal data class IkkePeriodisertFradrag(
     }
 
     override val fradragstype: Fradragstype = type
+
+    override fun copy(args: CopyArgs.MaksPeriode): Fradrag? {
+        return args.forOriginal(periode)?.let { copy(periode = it) }
+    }
 }

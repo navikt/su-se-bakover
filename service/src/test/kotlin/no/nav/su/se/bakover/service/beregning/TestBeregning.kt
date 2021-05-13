@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.service.beregning
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.Sats
@@ -75,4 +76,7 @@ internal object TestFradrag : Fradrag {
     override val utenlandskInntekt: UtenlandskInntekt? = null
     override val tilhører: FradragTilhører = FradragTilhører.BRUKER
     override val periode: Periode = Periode.create(1.januar(2020), 31.januar(2020))
+    override fun copy(args: CopyArgs.MaksPeriode): Fradrag? {
+        throw NotImplementedError()
+    }
 }
