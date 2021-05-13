@@ -48,7 +48,7 @@ internal fun Route.beregnOgSimulerRevurdering(
         val periode: PeriodeJson,
         val fradrag: List<FradragJson>,
     ) {
-        fun toDomain(): Either<Resultat, List<Fradrag>> =
+        fun toDomain(clock: Clock): Either<Resultat, List<Fradrag>> =
             periode.toPeriode()
                 .flatMap { fradrag.toFradrag(it, Tidspunkt.now(clock)) }
     }
@@ -57,7 +57,7 @@ internal fun Route.beregnOgSimulerRevurdering(
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->
                     call.withBody<BeregningForRevurderingBody> { body ->
-                        val resultat = body.toDomain()
+                        val resultat = body.toDomain(clock)
                             .flatMap { fradrag ->
                                 revurderingService.beregnOgSimuler(
                                     revurderingId = revurderingId,
@@ -108,7 +108,7 @@ private fun KunneIkkeBeregneOgSimulereRevurdering.tilResultat(): Resultat {
         )
         KunneIkkeBeregneOgSimulereRevurdering.UfullstendigVilkårsvurdering -> InternalServerError.errorJson(
             "Vurdering av vilkår er ufullstendig",
-            "ufullstendig_vilkårsvurdering"
+            "ufullstendig_vilkårsvurdering",
         )
     }
 }
