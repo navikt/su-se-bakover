@@ -175,7 +175,7 @@ internal class RevurderingPostgresRepo(
 
         val behandlingsinformasjon: Behandlingsinformasjon = deserialize(string("behandlingsinformasjon"))
 
-        val uføregrunnlag = grunnlagRepo.hent(id)
+        val uføregrunnlag = grunnlagRepo.hentUføregrunnlag(id)
         val grunnlagsdata = Grunnlagsdata(uføregrunnlag)
 
         val vilkårsvurderinger = Vilkårsvurderinger(

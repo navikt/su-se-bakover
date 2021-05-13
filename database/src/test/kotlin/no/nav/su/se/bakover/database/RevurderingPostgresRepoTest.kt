@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.serialize
+import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.VilkårsvurderingPostgresRepo
@@ -43,8 +44,10 @@ import java.util.UUID
 internal class RevurderingPostgresRepoTest {
     private val ds = EmbeddedDatabase.instance()
     private val uføregrunnlagPostgresRepo = UføregrunnlagPostgresRepo(ds)
+    private val fradragsgrunnlagPostgresRepo = FradragsgrunnlagPostgresRepo(ds)
     private val grunnlagRepo = GrunnlagPostgresRepo(
-        uføregrunnlagRepo = uføregrunnlagPostgresRepo
+        uføregrunnlagRepo = uføregrunnlagPostgresRepo,
+        fradragsgrunnlagRepo = fradragsgrunnlagPostgresRepo,
     )
     private val vilkårsvurderingRepo = VilkårsvurderingPostgresRepo(ds, uføregrunnlagPostgresRepo)
     private val søknadsbehandlingRepo: SøknadsbehandlingRepo = SøknadsbehandlingPostgresRepo(ds, grunnlagRepo, vilkårsvurderingRepo)
@@ -210,7 +213,7 @@ internal class RevurderingPostgresRepoTest {
                     begrunnelse = Revurderingsårsak.Begrunnelse.create("begrunnelse"),
                 ),
                 grunnlagsdata = opprettetRevurdering.grunnlagsdata,
-                vilkårsvurderinger = opprettetRevurdering.vilkårsvurderinger
+                vilkårsvurderinger = opprettetRevurdering.vilkårsvurderinger,
             )
 
             repo.lagre(oppdatertRevurdering)
@@ -855,7 +858,7 @@ internal class RevurderingPostgresRepoTest {
                         JournalpostId("1"),
                         BrevbestillingId("2"),
                         BeslutningEtterForhåndsvarsling.FortsettSammeOpplysninger,
-                        "begrunnelse"
+                        "begrunnelse",
                     ),
                 ),
             ),

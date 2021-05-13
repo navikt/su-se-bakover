@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
@@ -67,8 +68,26 @@ interface RevurderingService {
         request: LeggTilUførevurderingerRequest,
     ): Either<KunneIkkeLeggeTilGrunnlag, LeggTilUføregrunnlagResponse>
 
+    fun leggTilFradragsgrunnlag(
+        request: LeggTilFradragsgrunnlagRequest,
+    ): Either<KunneIkkeLeggeTilFradragsgrunnlag, LeggTilFradragsgrunnlagResponse>
+
     fun hentGjeldendeVilkårsvurderinger(revurderingId: UUID): Either<KunneIkkeHenteGrunnlag, Vilkårsvurderinger>
 }
+
+sealed class KunneIkkeLeggeTilFradragsgrunnlag {
+    // TODO fyll ut
+}
+
+data class LeggTilFradragsgrunnlagRequest(
+    val behandlingId: UUID,
+    val fradragsrunnlag: List<Grunnlag.Fradragsgrunnlag>,
+)
+
+data class LeggTilFradragsgrunnlagResponse(
+    val fradrag: List<Grunnlag.Fradragsgrunnlag>,
+    val gjeldendeFradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
+)
 
 sealed class FortsettEtterForhåndsvarslingRequest {
     abstract val revurderingId: UUID
@@ -153,6 +172,7 @@ sealed class KunneIkkeBeregneOgSimulereRevurdering {
     data class UgyldigBeregningsgrunnlag(
         val reason: no.nav.su.se.bakover.domain.beregning.UgyldigBeregningsgrunnlag,
     ) : KunneIkkeBeregneOgSimulereRevurdering()
+
     object UfullstendigVilkårsvurdering : KunneIkkeBeregneOgSimulereRevurdering()
 }
 

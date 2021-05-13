@@ -1,3 +1,3 @@
 package no.nav.su.se.bakover.database.grunnlag
 
-interface GrunnlagRepo : UføregrunnlagRepo
+interface GrunnlagRepo : UføregrunnlagRepo, FradragsgrunnlagRepo

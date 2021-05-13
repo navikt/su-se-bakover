@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.ApplicationConfig.DatabaseConfig.RotatingCred
 import no.nav.su.se.bakover.common.ApplicationConfig.DatabaseConfig.StaticCredentials
 import no.nav.su.se.bakover.database.avstemming.AvstemmingPostgresRepo
 import no.nav.su.se.bakover.database.avstemming.AvstemmingRepo
+import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagRepo
 import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
@@ -59,14 +60,16 @@ object DatabaseBuilder {
 
     private fun buildInternal(dataSource: DataSource): DatabaseRepos {
         val uføregrunnlagRepo = UføregrunnlagPostgresRepo(dataSource)
+        val fradragsgrunnlag = FradragsgrunnlagPostgresRepo(dataSource)
 
         val grunnlagRepo = GrunnlagPostgresRepo(
             uføregrunnlagRepo = uføregrunnlagRepo,
+            fradragsgrunnlagRepo = fradragsgrunnlag,
         )
 
         val vilkårsvurderingRepo = VilkårsvurderingPostgresRepo(
             dataSource = dataSource,
-            uføregrunnlagPostgresRepo = uføregrunnlagRepo
+            uføregrunnlagPostgresRepo = uføregrunnlagRepo,
         )
 
         val saksbehandlingRepo = SøknadsbehandlingPostgresRepo(dataSource, grunnlagRepo, vilkårsvurderingRepo)

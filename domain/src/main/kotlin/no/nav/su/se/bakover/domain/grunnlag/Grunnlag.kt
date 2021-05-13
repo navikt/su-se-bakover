@@ -3,10 +3,11 @@ package no.nav.su.se.bakover.domain.grunnlag
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import java.util.UUID
 
-sealed class Grunnlag : KanPlasseresPåTidslinje<Grunnlag> {
+sealed class Grunnlag {
     abstract val id: UUID
 
     /**
@@ -19,7 +20,7 @@ sealed class Grunnlag : KanPlasseresPåTidslinje<Grunnlag> {
         val uføregrad: Uføregrad,
         /** Kan ikke være negativ. */
         val forventetInntekt: Int,
-    ) : Grunnlag() {
+    ) : Grunnlag(), KanPlasseresPåTidslinje<Uføregrunnlag> {
         init {
             if (forventetInntekt < 0) throw IllegalArgumentException("forventetInntekt kan ikke være mindre enn 0")
         }
@@ -42,7 +43,7 @@ sealed class Grunnlag : KanPlasseresPåTidslinje<Grunnlag> {
         override val id: UUID = UUID.randomUUID(),
         override val opprettet: Tidspunkt = Tidspunkt.now(),
         override val periode: Periode,
-    ) : Grunnlag() {
+    ) : Grunnlag(), KanPlasseresPåTidslinje<Flyktninggrunnlag> {
 
         fun oppdaterPeriode(periode: Periode): Flyktninggrunnlag {
             return this.copy(periode = periode)
@@ -57,4 +58,10 @@ sealed class Grunnlag : KanPlasseresPåTidslinje<Grunnlag> {
             }
         }
     }
+
+    data class Fradragsgrunnlag(
+        override val id: UUID = UUID.randomUUID(),
+        val opprettet: Tidspunkt = Tidspunkt.now(),
+        val fradrag: Fradrag
+    ) : Grunnlag()
 }
