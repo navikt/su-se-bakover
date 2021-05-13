@@ -87,19 +87,7 @@ internal data class PersistertFradrag(
     override val utenlandskInntekt: UtenlandskInntekt?,
     override val periode: Periode,
     override val tilhører: FradragTilhører,
-) : Fradrag {
-
-    override fun equals(other: Any?) = (other as? Fradrag)?.let { this.equals(other) } ?: false
-
-    override fun hashCode(): Int {
-        var result = fradragstype.hashCode()
-        result = 31 * result + månedsbeløp.hashCode()
-        result = 31 * result + (utenlandskInntekt?.hashCode() ?: 0)
-        result = 31 * result + periode.hashCode()
-        result = 31 * result + tilhører.hashCode()
-        return result
-    }
-}
+) : Fradrag
 
 internal fun Beregning.toSnapshot() = PersistertBeregning(
     id = getId(),

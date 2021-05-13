@@ -9,6 +9,7 @@ import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.assertions.arrow.either.shouldBeLeft
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
@@ -211,8 +212,6 @@ internal class RegulerGrunnbeløpServiceImplTest {
             override val utenlandskInntekt: UtenlandskInntekt? = null
             override val tilhører = FradragTilhører.BRUKER
             override val periode = Periode.create(1.januar(2020), 31.januar(2020))
-            override fun equals(other: Any?) =
-                throw IllegalStateException("Skal ikke kalles fra testen")
         }
         val uføregrunnlag = Grunnlag.Uføregrunnlag(
             periode = periode,
@@ -307,7 +306,8 @@ internal class RegulerGrunnbeløpServiceImplTest {
             fradrag = emptyList(),
         ).orNull()!! as BeregnetRevurdering.IngenEndring
 
-        actual shouldBe expectedBeregnetRevurdering
+        // TODO jah: BeregningMedFradragBeregnetMånedsvis er internal, skal vi heller gjøre den public? Dette ble løst av å ha en felles equal funksjon for alle Fradrag
+        actual.shouldBeEqualToIgnoringFields(expectedBeregnetRevurdering, BeregnetRevurdering.IngenEndring::beregning)
 
         inOrder(
             revurderingRepoMock,

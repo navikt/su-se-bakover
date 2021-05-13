@@ -50,7 +50,6 @@ internal object TestFradrag : Fradrag {
     override val utenlandskInntekt: UtenlandskInntekt? = null
     override val tilhører: FradragTilhører = FradragTilhører.BRUKER
     override val periode: Periode = Periode.create(1.august(2020), 31.august(2020))
-    override fun equals(other: Any?) = (other as? Fradrag)?.let { this.equals(other) } ?: false
 }
 
 internal object TestFradragEps : Fradrag {
@@ -59,5 +58,4 @@ internal object TestFradragEps : Fradrag {
     override val utenlandskInntekt: UtenlandskInntekt? = null
     override val tilhører: FradragTilhører = FradragTilhører.EPS
     override val periode: Periode = Periode.create(1.august(2020), 31.august(2020))
-    override fun equals(other: Any?) = (other as? Fradrag)?.let { this.equals(other) } ?: false
 }

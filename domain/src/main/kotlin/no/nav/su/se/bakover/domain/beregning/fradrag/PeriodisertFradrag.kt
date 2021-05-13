@@ -15,6 +15,4 @@ internal data class PeriodisertFradrag(
     }
 
     override val fradragstype: Fradragstype = type
-
-    override fun equals(other: Any?) = (other as? Fradrag)?.let { this.equals(other) } ?: false
 }
