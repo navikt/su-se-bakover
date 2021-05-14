@@ -102,12 +102,12 @@ internal class OppgaveHttpClient(
         val beskrivelse = when (config) {
             is OppgaveConfig.Attestering, is OppgaveConfig.Saksbehandling ->
                 "--- ${
-                    Tidspunkt.now(clock).toOppgaveFormat()
+                Tidspunkt.now(clock).toOppgaveFormat()
                 } - Opprettet av Supplerende Stønad ---\nSøknadId : ${config.saksreferanse}"
 
             is OppgaveConfig.Revurderingsbehandling, is OppgaveConfig.AttesterRevurdering ->
                 "--- ${
-                    Tidspunkt.now(clock).toOppgaveFormat()
+                Tidspunkt.now(clock).toOppgaveFormat()
                 } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}"
         }
 
@@ -165,7 +165,7 @@ internal class OppgaveHttpClient(
                 log.info("Oppgave $oppgaveId er allerede lukket")
                 Unit.right()
             } else {
-                lukkOppgave(it.getOppgaveId(), token).map { }
+                lukkOppgave(it, token).map { }
             }
         }
     }
@@ -218,25 +218,34 @@ internal class OppgaveHttpClient(
         }
     }
 
+    private fun lukkOppgave(
+        oppgave: OppgaveResponse,
+        token: String,
+    ): Either<OppgaveFeil.KunneIkkeLukkeOppgave, OppdatertOppgaveResponse> {
+        return endreOppgave(oppgave, token, "FERDIGSTILT", "Lukket av Supplerende Stønad").mapLeft {
+            OppgaveFeil.KunneIkkeLukkeOppgave
+        }
+    }
+
     private fun oppdaterOppgave(
         oppgave: OppgaveResponse,
         token: String,
         beskrivelse: String,
     ): Either<OppgaveFeil.KunneIkkeOppdatereOppgave, OppdatertOppgaveResponse> {
-        return lukkOppgave(oppgave, token, oppgave.status, beskrivelse).mapLeft {
+        return endreOppgave(oppgave, token, oppgave.status, beskrivelse).mapLeft {
             OppgaveFeil.KunneIkkeOppdatereOppgave
         }
     }
 
-    private fun lukkOppgave(
+    private fun endreOppgave(
         oppgave: OppgaveResponse,
         token: String,
         status: String,
         beskrivelse: String,
-    ): Either<OppgaveFeil.KunneIkkeLukkeOppgave, OppdatertOppgaveResponse> {
+    ): Either<OppgaveFeil.KunneIkkeEndreOppgave, OppdatertOppgaveResponse> {
         val internalBeskrivelse =
             "--- ${
-                Tidspunkt.now(clock).toOppgaveFormat()
+            Tidspunkt.now(clock).toOppgaveFormat()
             } - $beskrivelse ---\nSøknadId : ${oppgave.saksreferanse}"
 
         return Either.unsafeCatch {
@@ -272,12 +281,12 @@ internal class OppgaveHttpClient(
                     objectMapper.readValue(it.body(), OppdatertOppgaveResponse::class.java).right()
                 } else {
                     log.error("Kunne ikke endre oppgave ${oppgave.id} med status=${it.statusCode()} og body=${it.body()}")
-                    OppgaveFeil.KunneIkkeLukkeOppgave.left()
+                    OppgaveFeil.KunneIkkeEndreOppgave.left()
                 }
             }
         }.mapLeft { throwable ->
             log.error("Kunne ikke endre oppgave ${oppgave.id}.", throwable)
-            OppgaveFeil.KunneIkkeLukkeOppgave
+            OppgaveFeil.KunneIkkeEndreOppgave
         }.flatten()
     }
 
