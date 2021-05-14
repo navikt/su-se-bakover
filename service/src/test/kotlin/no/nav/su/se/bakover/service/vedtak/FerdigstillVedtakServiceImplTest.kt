@@ -418,6 +418,7 @@ internal class FerdigstillVedtakServiceImplTest {
                         saksbehandlerNavn = vedtak.saksbehandler.navIdent,
                         attestantNavn = vedtak.saksbehandler.navIdent,
                         fritekst = "",
+                        forventetInntektStørreEnn0 = false,
                     )
                 },
                 argThat { vedtak.behandling.saksnummer },
@@ -730,6 +731,7 @@ internal class FerdigstillVedtakServiceImplTest {
                         saksbehandlerNavn = vedtak.saksbehandler.navIdent,
                         attestantNavn = vedtak.attestant.navIdent,
                         fritekst = "",
+                        forventetInntektStørreEnn0 = false
                     )
                 },
                 argThat { it shouldBe vedtak.behandling.saksnummer },
@@ -969,6 +971,7 @@ internal class FerdigstillVedtakServiceImplTest {
                         saksbehandlerNavn = "saksa",
                         attestantNavn = "atta",
                         fritekst = "",
+                        forventetInntektStørreEnn0 = false
                     )
                 },
                 argThat { it shouldBe vedtak.behandling.saksnummer },

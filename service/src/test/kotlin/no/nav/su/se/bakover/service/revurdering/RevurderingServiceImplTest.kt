@@ -1022,6 +1022,7 @@ internal class RevurderingServiceImplTest {
                             revurdertBeregning = simulertRevurdering.beregning,
                             fritekst = "",
                             harEktefelle = false,
+                            forventetInntektStørreEnn0 = false
                         )
                 },
             )
