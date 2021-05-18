@@ -57,7 +57,7 @@ data class Boforhold(
     }
 
     data class EktefellePartnerSamboer(
-        val erUførFlyktning: Boolean,
+        val erUførFlyktning: Boolean?,
         val fnr: Fnr
     )
 
