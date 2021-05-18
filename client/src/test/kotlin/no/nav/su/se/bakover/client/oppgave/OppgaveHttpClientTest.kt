@@ -820,7 +820,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
     }
 
     @Test
-    fun `oppdaterer eksiterende oppgave med ny beskrivelse`() {
+    fun `oppdaterer eksisterende oppgave med ny beskrivelse`() {
         val oppgaveId = 12345L
         val versjon = 2
 
