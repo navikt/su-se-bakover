@@ -10,6 +10,8 @@ import com.github.tomakehurst.wiremock.client.WireMock.patch
 import com.github.tomakehurst.wiremock.client.WireMock.patchRequestedFor
 import com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo
 import com.github.tomakehurst.wiremock.http.Fault
+import com.github.tomakehurst.wiremock.matching.ContentPattern
+import com.github.tomakehurst.wiremock.matching.MatchResult
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
@@ -34,6 +36,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.skyscreamer.jsonassert.JSONAssert
 import org.slf4j.MDC
 import java.time.Clock
 import java.time.Instant
@@ -847,6 +850,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                                       "oppgavetype": "BEH_SAK",
                                       "behandlingstype": "ae0245",
                                       "versjon": $versjon,
+                                      "beskrivelse": "Dette er den orginale beskrivelsen",
                                       "opprettetAv": "supstonad",
                                       "endretAv": "supstonad",
                                       "prioritet": "NORM",
@@ -865,10 +869,6 @@ internal class OppgaveHttpClientTest : WiremockBase {
 
         wireMockServer.stubFor(
             patch((urlPathEqualTo("$oppgavePath/$oppgaveId")))
-                .withHeader("Authorization", WireMock.equalTo("Bearer token"))
-                .withHeader("Content-Type", WireMock.equalTo("application/json"))
-                .withHeader("Accept", WireMock.equalTo("application/json"))
-                .withHeader("X-Correlation-ID", WireMock.equalTo("correlationId"))
                 .willReturn(
                     aResponse()
                         .withBody(
@@ -895,12 +895,33 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 clientId = "oppgaveClientId",
                 url = wireMockServer.baseUrl(),
             ),
-            exchange = oathMock,
+            exchange = oauthMock,
             tokenoppslagForSystembruker = mock(),
             clock = fixedEpochClock,
         )
 
         client.oppdaterOppgave(oppgaveId = OppgaveId(oppgaveId.toString()), beskrivelse = "en beskrivelse") shouldBe Unit.right()
+
+        val expectedBody =
+            """
+            {
+            "id" : $oppgaveId,
+            "versjon" : ${versjon},
+            "beskrivelse" : "--- 01.01.1970 01:00 - en beskrivelse ---\nSøknadId : $søknadId\n\nDette er den orginale beskrivelsen",
+            "status" : "AAPNET"
+            }
+            """.trimIndent()
+        wireMockServer.verify(
+            1,
+            patchRequestedFor(urlPathEqualTo("$oppgavePath/$oppgaveId"))
+                .withHeader("Authorization", WireMock.equalTo("Bearer token"))
+                .withHeader("Content-Type", WireMock.equalTo("application/json"))
+                .withHeader("Accept", WireMock.equalTo("application/json"))
+                .withHeader("X-Correlation-ID", WireMock.equalTo("correlationId"))
+                .withRequestBody(
+                    equalToJson(expectedBody)
+                )
+        )
     }
 
     private val stubMapping = WireMock.post(urlPathEqualTo(oppgavePath))
