@@ -41,7 +41,9 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
+import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -640,6 +642,7 @@ internal class LagBrevRequestVisitorTest {
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
 
         val avslåttVedtak = Vedtak.from(revurdering, utbetalingId)
@@ -697,6 +700,7 @@ internal class LagBrevRequestVisitorTest {
             behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
 
         val opphørsvedtak = Vedtak.from(revurdering, utbetalingId)
@@ -754,6 +758,7 @@ internal class LagBrevRequestVisitorTest {
             behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
 
         val vedtakIngenEndring = Vedtak.from(revurdering, clock)

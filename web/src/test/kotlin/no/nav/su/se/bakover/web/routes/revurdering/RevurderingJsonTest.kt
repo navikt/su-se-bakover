@@ -15,12 +15,15 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
+import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.web.routes.grunnlag.expectedVurderingUføreJson
@@ -57,12 +60,18 @@ internal class RevurderingJsonTest {
             forhåndsvarsel = null,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata(
-                uføregrunnlag = listOf(uføregrunnlag)
+                uføregrunnlag = listOf(uføregrunnlag),
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Vurdert.Uførhet.create(
-                    vurderingsperioder = Nel.of(vurderingsperiodeUføre)
-                )
+                    vurderingsperioder = Nel.of(vurderingsperiodeUføre),
+                ),
+            ),
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(
+                mapOf(
+                    Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
+                    Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
+                ),
             ),
         )
 
@@ -86,6 +95,10 @@ internal class RevurderingJsonTest {
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "vilkårsvurderinger": {
                   "uføre": $expectedVurderingUføreJson
+                },
+                "informasjonSomRevurderes": {
+                  "Uførhet": "IkkeVurdert",
+                  "Inntekt": "IkkeVurdert"
                 }
             }
             """.trimIndent()
@@ -114,6 +127,12 @@ internal class RevurderingJsonTest {
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(
+                mapOf(
+                    Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
+                    Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
+                ),
+            ),
         )
 
         val revurderingJson =
@@ -141,6 +160,10 @@ internal class RevurderingJsonTest {
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "vilkårsvurderinger": {
                   "uføre": null
+                },
+                "informasjonSomRevurderes": {
+                  "Uførhet": "IkkeVurdert",
+                  "Inntekt": "IkkeVurdert"
                 }
             }
             """.trimIndent()
@@ -169,6 +192,12 @@ internal class RevurderingJsonTest {
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(
+                mapOf(
+                    Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
+                    Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
+                ),
+            ),
         )
 
         val revurderingJson =
@@ -196,6 +225,10 @@ internal class RevurderingJsonTest {
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "vilkårsvurderinger": {
                   "uføre": null
+                },
+                "informasjonSomRevurderes": {
+                  "Uførhet": "IkkeVurdert",
+                  "Inntekt": "IkkeVurdert"
                 }
             }
             """.trimIndent()
@@ -224,6 +257,12 @@ internal class RevurderingJsonTest {
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(
+                mapOf(
+                    Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
+                    Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
+                ),
+            ),
         )
 
         val revurderingJson =
@@ -251,6 +290,10 @@ internal class RevurderingJsonTest {
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "vilkårsvurderinger": {
                   "uføre": null
+                },
+                "informasjonSomRevurderes": {
+                  "Uførhet": "IkkeVurdert",
+                  "Inntekt": "IkkeVurdert"
                 }
             }
             """.trimIndent()
@@ -280,6 +323,12 @@ internal class RevurderingJsonTest {
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(
+                mapOf(
+                    Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
+                    Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
+                ),
+            ),
         )
 
         val revurderingJson =
@@ -311,6 +360,10 @@ internal class RevurderingJsonTest {
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "vilkårsvurderinger": {
                   "uføre": null
+                },
+                "informasjonSomRevurderes": {
+                  "Uførhet": "IkkeVurdert",
+                  "Inntekt": "IkkeVurdert"
                 }
             }
             """.trimIndent()
@@ -340,6 +393,12 @@ internal class RevurderingJsonTest {
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(
+                mapOf(
+                    Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
+                    Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
+                ),
+            ),
         )
 
         val revurderingJson =
@@ -371,6 +430,10 @@ internal class RevurderingJsonTest {
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "vilkårsvurderinger": {
                   "uføre": null
+                },
+                "informasjonSomRevurderes": {
+                  "Uførhet": "IkkeVurdert",
+                  "Inntekt": "IkkeVurdert"
                 }
             }
             """.trimIndent()
@@ -400,6 +463,12 @@ internal class RevurderingJsonTest {
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(
+                mapOf(
+                    Revurderingsteg.Uførhet to Vurderingstatus.Vurdert,
+                    Revurderingsteg.Inntekt to Vurderingstatus.Vurdert,
+                ),
+            ),
         )
 
         val revurderingJson =
@@ -432,6 +501,10 @@ internal class RevurderingJsonTest {
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "vilkårsvurderinger": {
                   "uføre": null
+                },
+                "informasjonSomRevurderes": {
+                  "Uførhet": "Vurdert",
+                  "Inntekt": "Vurdert"
                 }
             }
             """.trimIndent()
@@ -461,6 +534,12 @@ internal class RevurderingJsonTest {
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(
+                mapOf(
+                    Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
+                    Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
+                ),
+            ),
         )
 
         val revurderingJson =
@@ -493,6 +572,10 @@ internal class RevurderingJsonTest {
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "vilkårsvurderinger": {
                   "uføre": null
+                },
+                "informasjonSomRevurderes": {
+                  "Uførhet": "IkkeVurdert",
+                  "Inntekt": "IkkeVurdert"
                 }
             }
             """.trimIndent()
@@ -522,6 +605,12 @@ internal class RevurderingJsonTest {
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(
+                mapOf(
+                    Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
+                    Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
+                ),
+            ),
         )
 
         val revurderingJson =
@@ -551,6 +640,10 @@ internal class RevurderingJsonTest {
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "vilkårsvurderinger": {
                   "uføre": null
+                },
+                "informasjonSomRevurderes": {
+                  "Uførhet": "IkkeVurdert",
+                  "Inntekt": "IkkeVurdert"
                 }
             }
             """.trimIndent()
@@ -585,6 +678,12 @@ internal class RevurderingJsonTest {
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(
+                mapOf(
+                    Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
+                    Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
+                ),
+            ),
         )
 
         val expected =
@@ -624,6 +723,10 @@ internal class RevurderingJsonTest {
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "vilkårsvurderinger": {
                   "uføre": null
+                },
+                "informasjonSomRevurderes": {
+                  "Uførhet": "IkkeVurdert",
+                  "Inntekt": "IkkeVurdert"
                 }
             }
             """.trimIndent()
@@ -658,6 +761,12 @@ internal class RevurderingJsonTest {
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(
+                mapOf(
+                    Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
+                    Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
+                ),
+            ),
         )
 
         val expected =
@@ -697,6 +806,10 @@ internal class RevurderingJsonTest {
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "vilkårsvurderinger": {
                   "uføre": null
+                },
+                "informasjonSomRevurderes": {
+                  "Uførhet": "IkkeVurdert",
+                  "Inntekt": "IkkeVurdert"
                 }
             }
             """.trimIndent()
@@ -731,6 +844,12 @@ internal class RevurderingJsonTest {
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(
+                mapOf(
+                    Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
+                    Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
+                ),
+            ),
         )
 
         val expected =
@@ -767,6 +886,10 @@ internal class RevurderingJsonTest {
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "vilkårsvurderinger": {
                   "uføre": null
+                },
+                "informasjonSomRevurderes": {
+                  "Uførhet": "IkkeVurdert",
+                  "Inntekt": "IkkeVurdert"
                 }
             }
             """.trimIndent()
@@ -797,6 +920,12 @@ internal class RevurderingJsonTest {
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(
+                mapOf(
+                    Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
+                    Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
+                ),
+            ),
         )
 
         val revurderingJson =
@@ -830,6 +959,10 @@ internal class RevurderingJsonTest {
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "vilkårsvurderinger": {
                   "uføre": null
+                },
+                "informasjonSomRevurderes": {
+                  "Uførhet": "IkkeVurdert",
+                  "Inntekt": "IkkeVurdert"
                 }
             }
             """.trimIndent()
@@ -860,6 +993,12 @@ internal class RevurderingJsonTest {
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(
+                mapOf(
+                    Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
+                    Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
+                ),
+            ),
         )
 
         val revurderingJson =
@@ -893,6 +1032,10 @@ internal class RevurderingJsonTest {
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "vilkårsvurderinger": {
                   "uføre": null
+                },
+                "informasjonSomRevurderes": {
+                  "Uførhet": "IkkeVurdert",
+                  "Inntekt": "IkkeVurdert"
                 }
             }
             """.trimIndent()
@@ -923,6 +1066,12 @@ internal class RevurderingJsonTest {
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(
+                mapOf(
+                    Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
+                    Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
+                ),
+            ),
         )
 
         val revurderingJson =
@@ -953,6 +1102,10 @@ internal class RevurderingJsonTest {
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "vilkårsvurderinger": {
                   "uføre": null
+                },
+                "informasjonSomRevurderes": {
+                  "Uførhet": "IkkeVurdert",
+                  "Inntekt": "IkkeVurdert"
                 }
             }
             """.trimIndent()

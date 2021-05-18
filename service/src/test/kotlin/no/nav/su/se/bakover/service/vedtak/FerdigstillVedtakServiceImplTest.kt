@@ -47,7 +47,9 @@ import no.nav.su.se.bakover.domain.oppgave.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
+import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -589,6 +591,7 @@ internal class FerdigstillVedtakServiceImplTest {
                     forhåndsvarsel = null,
                     grunnlagsdata = Grunnlagsdata.EMPTY,
                     vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+                    informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
                 ),
             )
         }
@@ -1351,6 +1354,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
                 grunnlagsdata = Grunnlagsdata.EMPTY,
                 vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+                informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             ),
             utbetalingId = UUID30.randomUUID(),
         )
