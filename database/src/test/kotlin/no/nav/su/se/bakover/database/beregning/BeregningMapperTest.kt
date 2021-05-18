@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.database.beregning
 
-import com.fasterxml.jackson.module.kotlin.readValue
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -99,32 +98,6 @@ internal class BeregningMapperTest {
     }
 
     @Test
-    fun `kan deserialisere fradrag ved hjelp av alias for månedsbeløp`() {
-        //language=json
-        val json = """
-            {
-                  "fradragstype": "ForventetInntekt",
-                  "totaltFradrag": 12000.0,
-                  "utenlandskInntekt": null,
-                  "periode": {
-                    "fraOgMed": "2021-01-01",
-                    "tilOgMed": "2021-01-31"
-                  },
-                  "tilhører": "BRUKER",
-                  "begrunnelse": null
-                }
-        """.trimIndent()
-
-        objectMapper.readValue<PersistertFradrag>(json) shouldBe PersistertFradrag(
-            fradragstype = Fradragstype.ForventetInntekt,
-            månedsbeløp = 12000.0,
-            utenlandskInntekt = null,
-            periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
-            tilhører = FradragTilhører.BRUKER,
-        )
-    }
-
-    @Test
     fun `should be equal to PersistertBeregning ignoring id, opprettet and begrunnelse`() {
         val a: Beregning = createBeregning(fixedTidspunkt, "a")
         val b: Beregning = createBeregning(fixedTidspunkt.plus(1, ChronoUnit.SECONDS), "b")
@@ -160,8 +133,8 @@ internal class BeregningMapperTest {
 
 internal fun assertFradragMapping(mapped: Fradrag, original: Fradrag) {
     mapped.periode shouldBe original.periode
-    mapped.getUtenlandskInntekt() shouldBe original.getUtenlandskInntekt()
-    mapped.getMånedsbeløp() shouldBe original.getMånedsbeløp()
+    mapped.utenlandskInntekt shouldBe original.utenlandskInntekt
+    mapped.månedsbeløp shouldBe original.månedsbeløp
 }
 
 internal fun assertMånedsberegningMapping(mapped: Månedsberegning, original: Månedsberegning) {

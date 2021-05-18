@@ -11,3 +11,5 @@ data class Grunnlagsdata(
     /** TODO: Legg i Utleda klassen med NEL */
     fun hentNyesteUføreGrunnlag(): Grunnlag.Uføregrunnlag = uføregrunnlag.maxByOrNull { it.opprettet.instant }!!
 }
+
+fun List<Grunnlag.Uføregrunnlag>.harForventetInntektStørreEnn0() = this.sumOf { it.forventetInntekt } > 0

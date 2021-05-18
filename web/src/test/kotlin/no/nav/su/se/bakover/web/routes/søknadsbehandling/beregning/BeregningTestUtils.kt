@@ -45,19 +45,19 @@ internal object TestMånedsberegning : Månedsberegning {
 }
 
 internal object TestFradrag : Fradrag {
-    override fun getFradragstype(): Fradragstype = Fradragstype.Arbeidsinntekt
-    override fun getMånedsbeløp(): Double = 1000.0
-    override fun getUtenlandskInntekt(): UtenlandskInntekt? = null
-    override fun getTilhører(): FradragTilhører = FradragTilhører.BRUKER
+    override val fradragstype: Fradragstype = Fradragstype.Arbeidsinntekt
+    override val månedsbeløp: Double = 1000.0
+    override val utenlandskInntekt: UtenlandskInntekt? = null
+    override val tilhører: FradragTilhører = FradragTilhører.BRUKER
     override val periode: Periode = Periode.create(1.august(2020), 31.august(2020))
     override fun equals(other: Any?) = (other as? Fradrag)?.let { this.equals(other) } ?: false
 }
 
 internal object TestFradragEps : Fradrag {
-    override fun getFradragstype(): Fradragstype = Fradragstype.Arbeidsinntekt
-    override fun getMånedsbeløp(): Double = 20000.0
-    override fun getUtenlandskInntekt(): UtenlandskInntekt? = null
-    override fun getTilhører(): FradragTilhører = FradragTilhører.EPS
+    override val fradragstype: Fradragstype = Fradragstype.Arbeidsinntekt
+    override val månedsbeløp: Double = 20000.0
+    override val utenlandskInntekt: UtenlandskInntekt? = null
+    override val tilhører: FradragTilhører = FradragTilhører.EPS
     override val periode: Periode = Periode.create(1.august(2020), 31.august(2020))
     override fun equals(other: Any?) = (other as? Fradrag)?.let { this.equals(other) } ?: false
 }

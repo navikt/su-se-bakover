@@ -6,10 +6,10 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.periode.PeriodisertInformasjon
 
 interface Fradrag : PeriodisertInformasjon {
-    fun getFradragstype(): Fradragstype
-    fun getMånedsbeløp(): Double
-    fun getUtenlandskInntekt(): UtenlandskInntekt? // TODO can we pls do something about this one?
-    fun getTilhører(): FradragTilhører
+    val fradragstype: Fradragstype
+    val månedsbeløp: Double
+    val utenlandskInntekt: UtenlandskInntekt? // TODO can we pls do something about this one?
+    val tilhører: FradragTilhører
 
     /**
      * Sammenligner alle metodene.
@@ -19,10 +19,10 @@ interface Fradrag : PeriodisertInformasjon {
         if (this === other) return true
         if (other == null) return false
 
-        if (getFradragstype() != other.getFradragstype()) return false
-        if (getMånedsbeløp() != other.getMånedsbeløp()) return false
-        if (getUtenlandskInntekt() != other.getUtenlandskInntekt()) return false
-        if (getTilhører() != other.getTilhører()) return false
+        if (fradragstype != other.fradragstype) return false
+        if (månedsbeløp != other.månedsbeløp) return false
+        if (utenlandskInntekt != other.utenlandskInntekt) return false
+        if (tilhører != other.tilhører) return false
         return true
     }
 

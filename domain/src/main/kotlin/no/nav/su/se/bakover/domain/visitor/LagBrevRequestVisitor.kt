@@ -12,6 +12,8 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.harForventetInntektStørreEnn0
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
@@ -277,6 +279,7 @@ class LagBrevRequestVisitor(
                 behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
                 beregning = beregning,
                 fritekst = fritekst,
+                uføregrunnlag = søknadsbehandling.grunnlagsdata.uføregrunnlag
             )
         }
 
@@ -297,6 +300,7 @@ class LagBrevRequestVisitor(
                 behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
                 beregning = beregning,
                 fritekst = søknadsbehandling.fritekstTilBrev,
+                uføregrunnlag = søknadsbehandling.grunnlagsdata.uføregrunnlag
             )
         }
 
@@ -314,12 +318,14 @@ class LagBrevRequestVisitor(
                 beregning = beregning,
                 fritekst = revurdering.fritekstTilBrev,
                 harEktefelle = revurdering.behandlingsinformasjon.harEktefelle(),
+                uføregrunnlag = revurdering.grunnlagsdata.uføregrunnlag
             )
         }
 
     private fun requestIngenEndring(
         personOgNavn: PersonOgNavn,
         beregning: Beregning,
+        uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
         fritekst: String,
         harEktefelle: Boolean,
     ) = LagBrevRequest.VedtakIngenEndring(
@@ -329,6 +335,7 @@ class LagBrevRequestVisitor(
         beregning = beregning,
         fritekst = fritekst,
         harEktefelle = harEktefelle,
+        forventetInntektStørreEnn0 = uføregrunnlag.harForventetInntektStørreEnn0(),
     )
 
     private fun innvilgetRevurdering(revurdering: Revurdering, beregning: Beregning) =
@@ -339,7 +346,7 @@ class LagBrevRequestVisitor(
                 revurdering.accept(it)
                 it.attestant
             },
-        ).map {
+        ).map { it ->
             LagBrevRequest.Revurdering.Inntekt(
                 person = it.person,
                 saksbehandlerNavn = it.saksbehandlerNavn,
@@ -347,6 +354,7 @@ class LagBrevRequestVisitor(
                 revurdertBeregning = beregning,
                 fritekst = revurdering.fritekstTilBrev,
                 harEktefelle = revurdering.behandlingsinformasjon.harEktefelle(),
+                forventetInntektStørreEnn0 = revurdering.grunnlagsdata.uføregrunnlag.harForventetInntektStørreEnn0(),
             )
         }
 
@@ -366,6 +374,7 @@ class LagBrevRequestVisitor(
                 fritekst = revurdering.fritekstTilBrev,
                 saksbehandlerNavn = it.saksbehandlerNavn,
                 attestantNavn = it.attestantNavn,
+                forventetInntektStørreEnn0 = revurdering.grunnlagsdata.uføregrunnlag.harForventetInntektStørreEnn0()
             )
         }
 
@@ -375,6 +384,7 @@ class LagBrevRequestVisitor(
         behandlingsinformasjon: Behandlingsinformasjon,
         beregning: Beregning?,
         fritekst: String,
+        uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
     ) = LagBrevRequest.AvslagBrevRequest(
         person = personOgNavn.person,
         avslag = Avslag(
@@ -386,11 +396,13 @@ class LagBrevRequestVisitor(
         saksbehandlerNavn = personOgNavn.saksbehandlerNavn,
         attestantNavn = personOgNavn.attestantNavn,
         fritekst = fritekst,
+        forventetInntektStørreEnn0 = uføregrunnlag.harForventetInntektStørreEnn0()
     )
 
     private fun requestForInnvilgelse(
         personOgNavn: PersonOgNavn,
         behandlingsinformasjon: Behandlingsinformasjon,
+        uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
         beregning: Beregning,
         fritekst: String,
     ): LagBrevRequest.InnvilgetVedtak = LagBrevRequest.InnvilgetVedtak(
@@ -400,6 +412,7 @@ class LagBrevRequestVisitor(
         saksbehandlerNavn = personOgNavn.saksbehandlerNavn,
         attestantNavn = personOgNavn.attestantNavn,
         fritekst = fritekst,
+        forventetInntektStørreEnn0 = uføregrunnlag.harForventetInntektStørreEnn0()
     )
 
     private data class PersonOgNavn(
@@ -441,6 +454,7 @@ class LagBrevRequestVisitor(
                     is Søknadsbehandling -> b.fritekstTilBrev
                     else -> ""
                 },
+                uføregrunnlag = vedtak.behandling.grunnlagsdata.uføregrunnlag
             )
         }
 
@@ -460,6 +474,7 @@ class LagBrevRequestVisitor(
                     else -> ""
                 },
                 harEktefelle = vedtak.behandlingsinformasjon.harEktefelle(),
+                forventetInntektStørreEnn0 = vedtak.behandling.grunnlagsdata.uføregrunnlag.harForventetInntektStørreEnn0()
             )
         }
 
@@ -479,6 +494,7 @@ class LagBrevRequestVisitor(
                     else -> ""
                 },
                 behandlingsinformasjon = vedtak.behandlingsinformasjon,
+                forventetInntektStørreEnn0 = vedtak.behandling.grunnlagsdata.uføregrunnlag.harForventetInntektStørreEnn0()
             )
         }
 
@@ -502,6 +518,7 @@ class LagBrevRequestVisitor(
                     is Søknadsbehandling -> b.fritekstTilBrev // TODO ia: kommer vi oss unna denne?
                     else -> ""
                 },
+                uføregrunnlag = vedtak.behandling.grunnlagsdata.uføregrunnlag
             )
         }
 
@@ -518,6 +535,7 @@ class LagBrevRequestVisitor(
                 else -> ""
             },
             harEktefelle = vedtak.behandlingsinformasjon.harEktefelle(),
+            uføregrunnlag = vedtak.behandling.grunnlagsdata.uføregrunnlag
         )
     }
 }

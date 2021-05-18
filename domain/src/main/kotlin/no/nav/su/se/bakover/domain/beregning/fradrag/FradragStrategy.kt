@@ -35,7 +35,7 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
 
     object Enslig : FradragStrategy(FradragStrategyName.Enslig) {
         override fun beregnFradrag(fradrag: Map<Periode, List<Fradrag>>): Map<Periode, List<Fradrag>> {
-            return fradrag.mapValues { it.value.filter { fradrag -> fradrag.getTilhører() == FradragTilhører.BRUKER } }
+            return fradrag.mapValues { it.value.filter { fradrag -> fradrag.tilhører == FradragTilhører.BRUKER } }
                 .`filtrer ut den laveste av brukers arbeidsinntekt og forventet inntekt`()
         }
 
@@ -104,12 +104,12 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
             periode: Periode,
             fradrag: List<Fradrag>
         ): List<Fradrag> {
-            val (epsFradrag, søkersFradrag) = fradrag.partition { it.getTilhører() == FradragTilhører.EPS }
+            val (epsFradrag, søkersFradrag) = fradrag.partition { it.tilhører == FradragTilhører.EPS }
             if (epsFradrag.isEmpty()) return søkersFradrag
             val sammenslått = FradragFactory.periodiser(
                 FradragFactory.ny(
                     type = Fradragstype.BeregnetFradragEPS,
-                    månedsbeløp = epsFradrag.sumOf { it.getMånedsbeløp() },
+                    månedsbeløp = epsFradrag.sumOf { it.månedsbeløp },
                     periode = periode,
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.EPS
@@ -127,11 +127,11 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
         fradrag: List<Fradrag>
     ): List<Fradrag> {
         val arbeidsinntekter =
-            fradrag.filter { it.getTilhører() == FradragTilhører.BRUKER && it.getFradragstype() == Fradragstype.Arbeidsinntekt }
+            fradrag.filter { it.tilhører == FradragTilhører.BRUKER && it.fradragstype == Fradragstype.Arbeidsinntekt }
         val forventetInntekt =
-            fradrag.filter { it.getTilhører() == FradragTilhører.BRUKER && it.getFradragstype() == Fradragstype.ForventetInntekt }
+            fradrag.filter { it.tilhører == FradragTilhører.BRUKER && it.fradragstype == Fradragstype.ForventetInntekt }
 
-        return if (arbeidsinntekter.sumOf { it.getMånedsbeløp() } > forventetInntekt.sumOf { it.getMånedsbeløp() })
+        return if (arbeidsinntekter.sumOf { it.månedsbeløp } > forventetInntekt.sumOf { it.månedsbeløp })
             fradrag.minus(forventetInntekt)
         else
             fradrag.minus(arbeidsinntekter)
@@ -142,8 +142,8 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
         beløpsgrense: Double,
         fradrag: List<Fradrag>
     ): List<Fradrag> {
-        val (epsFradrag, søkersFradrag) = fradrag.partition { it.getTilhører() == FradragTilhører.EPS }
-        val epsFradragSum = epsFradrag.sumOf { it.getMånedsbeløp() }
+        val (epsFradrag, søkersFradrag) = fradrag.partition { it.tilhører == FradragTilhører.EPS }
+        val epsFradragSum = epsFradrag.sumOf { it.månedsbeløp }
 
         val beregnetFradragEps = epsFradragSum - beløpsgrense
 
@@ -165,7 +165,7 @@ sealed class FradragStrategy(private val name: FradragStrategyName) {
     }
 
     private fun List<Fradrag>.`har nøyaktig en forventet inntekt for bruker`() =
-        singleOrNull { it.getTilhører() == FradragTilhører.BRUKER && it.getFradragstype() == Fradragstype.ForventetInntekt } != null
+        singleOrNull { it.tilhører == FradragTilhører.BRUKER && it.fradragstype == Fradragstype.ForventetInntekt } != null
 
     companion object {
         fun fromName(name: FradragStrategyName) =

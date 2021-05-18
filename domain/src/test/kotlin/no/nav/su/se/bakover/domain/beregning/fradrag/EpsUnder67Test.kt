@@ -39,7 +39,7 @@ internal class EpsUnder67Test {
                 expectedArbeidsinntekt,
                 expectedKontantstøtte
             )
-            it.values.forEach { it.none { it.getFradragstype() == ForventetInntekt } }
+            it.values.forEach { it.none { it.fradragstype == ForventetInntekt } }
         }
     }
 
@@ -64,7 +64,7 @@ internal class EpsUnder67Test {
                 expectedForventetInntekt,
                 expectedKontantstøtte
             )
-            it.values.forEach { it.none { it.getFradragstype() == Arbeidsinntekt } }
+            it.values.forEach { it.none { it.fradragstype == Arbeidsinntekt } }
         }
     }
 
@@ -89,8 +89,8 @@ internal class EpsUnder67Test {
                 expectedBrukerInntekt,
                 expectedEpsInntekt
             )
-            it.values.forEach { it.any { it.getTilhører() == BRUKER } shouldBe true }
-            it.values.forEach { it.any { it.getTilhører() == EPS } shouldBe true }
+            it.values.forEach { it.any { it.tilhører == BRUKER } shouldBe true }
+            it.values.forEach { it.any { it.tilhører == EPS } shouldBe true }
         }
     }
 
@@ -117,9 +117,9 @@ internal class EpsUnder67Test {
         ).let { fradrag ->
             fradrag.size shouldBe 12
             fradrag.values.forEach { alleFradrag ->
-                alleFradrag.filter { it.getTilhører() == EPS }.let { epsFradrag ->
+                alleFradrag.filter { it.tilhører == EPS }.let { epsFradrag ->
                     epsFradrag shouldHaveSize 1
-                    epsFradrag.all { it.getFradragstype() == BeregnetFradragEPS } shouldBe true
+                    epsFradrag.all { it.fradragstype == BeregnetFradragEPS } shouldBe true
                 }
             }
         }

@@ -83,7 +83,7 @@ internal class VurderOmBeregningHarEndringerIYtelseTest {
     fun `skal bli true for en nyBeregning som ikke er ett subset av en tidlegereBeregning`() {
         val nyOgEndretBeregning = nyBeregning.copy(
             fradrag = nyBeregning.getFradrag()
-                .map { (it as IkkePeriodisertFradrag).copy(månedsbeløp = it.getMånedsbeløp() + 1) },
+                .map { (it as IkkePeriodisertFradrag).copy(månedsbeløp = it.månedsbeløp + 1) },
         )
 
         VurderOmBeregningHarEndringerIYtelse(tidligereBeregning, nyOgEndretBeregning).resultat shouldBe true

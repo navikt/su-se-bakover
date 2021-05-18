@@ -66,8 +66,8 @@ private fun beregnMedVirkningFraOgMedMånedenEtter(
             }
             .map {
                 FradragFactory.ny(
-                    type = it.getFradragstype(),
-                    månedsbeløp = it.getMånedsbeløp(),
+                    type = it.fradragstype,
+                    månedsbeløp = it.månedsbeløp,
                     periode = Periode.create(
                         fraOgMed = it.periode.fraOgMed.let { fraOgMed ->
                             if (fraOgMed == revurdertBeregning.periode.fraOgMed) {
@@ -78,8 +78,8 @@ private fun beregnMedVirkningFraOgMedMånedenEtter(
                         },
                         tilOgMed = it.periode.tilOgMed
                     ),
-                    utenlandskInntekt = it.getUtenlandskInntekt(),
-                    tilhører = it.getTilhører(),
+                    utenlandskInntekt = it.utenlandskInntekt,
+                    tilhører = it.tilhører,
                 )
             },
         fradragStrategy = FradragStrategy.fromName(revurdertBeregning.getFradragStrategyName()),

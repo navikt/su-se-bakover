@@ -206,10 +206,10 @@ internal class RegulerGrunnbeløpServiceImplTest {
             ),
         )
         val fradrag = object : Fradrag {
-            override fun getFradragstype() = Fradragstype.ForventetInntekt
-            override fun getMånedsbeløp() = 1000.0
-            override fun getUtenlandskInntekt(): UtenlandskInntekt? = null
-            override fun getTilhører() = FradragTilhører.BRUKER
+            override val fradragstype = Fradragstype.ForventetInntekt
+            override val månedsbeløp = 1000.0
+            override val utenlandskInntekt: UtenlandskInntekt? = null
+            override val tilhører = FradragTilhører.BRUKER
             override val periode = Periode.create(1.januar(2020), 31.januar(2020))
             override fun equals(other: Any?) =
                 throw IllegalStateException("Skal ikke kalles fra testen")

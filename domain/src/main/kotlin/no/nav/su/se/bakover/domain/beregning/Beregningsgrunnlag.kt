@@ -64,7 +64,7 @@ internal data class Beregningsgrunnlag private constructor(
                 return UgyldigBeregningsgrunnlag.IkkeLovMedFradragUtenforPerioden.left()
             }
 
-            fradrag.filter { it.getFradragstype() == Fradragstype.ForventetInntekt && it.getTilhører() == FradragTilhører.BRUKER }.let { forventedeInntekter ->
+            fradrag.filter { it.fradragstype == Fradragstype.ForventetInntekt && it.tilhører == FradragTilhører.BRUKER }.let { forventedeInntekter ->
                 if (forventedeInntekter.count() < 1) {
                     // TODO jah: Denne kan ikke slå til så lenge vi har ifEmpty-blokka
                     return UgyldigBeregningsgrunnlag.BrukerMåHaMinst1ForventetInntekt.left()

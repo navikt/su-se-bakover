@@ -26,6 +26,7 @@ class AvslagsBrevInnholdTest {
         sats = "lav",
         fritekst = "Fritekst til brevet",
         satsGjeldendeFraDato = "01.01.2020",
+        forventetInntektStørreEnn0 = false
     )
 
     @Test
@@ -51,7 +52,8 @@ class AvslagsBrevInnholdTest {
               "sats": "lav",
               "satsBeløp": null,
               "satsGjeldendeFraDato": "01.01.2020",
-              "fritekst": "Fritekst til brevet"
+              "fritekst": "Fritekst til brevet",
+              "forventetInntektStørreEnn0": false
             }
         """.trimIndent()
         JSONAssert.assertEquals(expectedJson, actualJson, true)

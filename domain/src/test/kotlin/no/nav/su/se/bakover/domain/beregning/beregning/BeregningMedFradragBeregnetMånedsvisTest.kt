@@ -168,7 +168,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
         val (janAprUnderMinstenivå, janAprAndre) = beregning.getMånedsberegninger()
             .flatMap { it.getFradrag() }
             .filter { Periode.create(1.januar(2020), 30.april(2020)) inneholder it.periode }
-            .partition { it.getFradragstype() == Fradragstype.UnderMinstenivå }
+            .partition { it.fradragstype == Fradragstype.UnderMinstenivå }
 
         janAprUnderMinstenivå shouldHaveSize 4
         janAprUnderMinstenivå.forEach {
@@ -194,7 +194,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
         val (maiDesUnderMinstenivå, maiDesAndre) = beregning.getMånedsberegninger()
             .flatMap { it.getFradrag() }
             .filter { Periode.create(1.mai(2020), 31.desember(2020)) inneholder it.periode }
-            .partition { it.getFradragstype() == Fradragstype.UnderMinstenivå }
+            .partition { it.fradragstype == Fradragstype.UnderMinstenivå }
 
         maiDesUnderMinstenivå shouldHaveSize 0
         maiDesAndre shouldHaveSize 8

@@ -56,10 +56,10 @@ internal data class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder
             this.getFradrag().likeFradrag(other.getFradrag())
 
     private infix fun Fradrag.likhetUtenDato(other: Fradrag): Boolean =
-        this.getFradragstype() == other.getFradragstype() &&
-            this.getMånedsbeløp() == other.getMånedsbeløp() &&
-            this.getUtenlandskInntekt() == other.getUtenlandskInntekt() &&
-            this.getTilhører() == other.getTilhører()
+        this.fradragstype == other.fradragstype &&
+            this.månedsbeløp == other.månedsbeløp &&
+            this.utenlandskInntekt == other.utenlandskInntekt &&
+            this.tilhører == other.tilhører
 
     private infix fun List<Fradrag>.likeFradrag(other: List<Fradrag>): Boolean {
         if (this.size != other.size) return false
@@ -72,9 +72,9 @@ internal data class SlåSammenEkvivalenteMånedsberegningerTilBeregningsperioder
         .sortedBy { it.periode.fraOgMed }
 
     private fun List<Fradrag>.sorterFradrag() = this
-        .sortedBy { it.getMånedsbeløp() }
-        .sortedBy { it.getFradragstype() }
-        .sortedBy { it.getTilhører() }
+        .sortedBy { it.månedsbeløp }
+        .sortedBy { it.fradragstype }
+        .sortedBy { it.tilhører }
 }
 
 /**

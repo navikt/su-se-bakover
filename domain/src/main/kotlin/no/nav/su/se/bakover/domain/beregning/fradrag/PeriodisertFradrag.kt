@@ -4,20 +4,17 @@ import no.nav.su.se.bakover.common.periode.Periode
 
 internal data class PeriodisertFradrag(
     private val type: Fradragstype,
-    private val månedsbeløp: Double,
+    override val månedsbeløp: Double,
     override val periode: Periode,
-    private val utenlandskInntekt: UtenlandskInntekt? = null,
-    private val tilhører: FradragTilhører
+    override val utenlandskInntekt: UtenlandskInntekt? = null,
+    override val tilhører: FradragTilhører
 ) : Fradrag {
     init {
         require(månedsbeløp >= 0) { "Fradrag kan ikke være negative" }
         require(periode.getAntallMåneder() == 1) { "Periodiserte fradrag kan bare gjelde for en enkelt måned" }
     }
 
-    override fun getTilhører(): FradragTilhører = tilhører
-    override fun getFradragstype(): Fradragstype = type
-    override fun getMånedsbeløp(): Double = månedsbeløp
-    override fun getUtenlandskInntekt(): UtenlandskInntekt? = utenlandskInntekt
+    override val fradragstype: Fradragstype = type
 
     override fun equals(other: Any?) = (other as? Fradrag)?.let { this.equals(other) } ?: false
 }
