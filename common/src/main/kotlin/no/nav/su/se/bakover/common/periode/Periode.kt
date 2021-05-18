@@ -55,6 +55,16 @@ data class Periode private constructor(
             starterSamtidigEllerTidligere(other) && slutterEtter(other) ||
             other.starterSamtidigEllerTidligere(this) && other.slutterEtter(this)
 
+    /**
+     * Perioden som overlapper begge perioder eller ingenting hvis periodene ikke overlapper i det heletatt. (se mengdelære).
+     */
+    infix fun snitt(other: Periode): Periode? {
+        return if (this overlapper other) create(
+            fraOgMed = maxOf(this.fraOgMed, other.fraOgMed),
+            tilOgMed = minOf(this.tilOgMed, other.tilOgMed),
+        ) else null
+    }
+
     infix fun starterSamtidigEllerTidligere(other: Periode) = starterSamtidig(other) || starterTidligere(other)
     infix fun starterSamtidigEllerSenere(other: Periode) = starterSamtidig(other) || starterEtter(other)
     infix fun starterSamtidig(other: Periode) = fraOgMed.isEqual(other.fraOgMed)

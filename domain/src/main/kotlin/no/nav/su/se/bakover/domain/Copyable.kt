@@ -12,15 +12,12 @@ sealed class CopyArgs {
         object Full : Tidslinje()
     }
 
-    data class BegrensetTil(val periode: Periode) : CopyArgs() {
-        fun begrensTil(original: Periode): Periode? {
-            return when {
-                original overlapper periode -> Periode.create(
-                    fraOgMed = maxOf(periode.fraOgMed, original.fraOgMed),
-                    tilOgMed = minOf(periode.tilOgMed, original.tilOgMed),
-                )
-                else -> null
-            }
+    /**
+     * Lager kopi hvor perioden settes til snittet av periodene.
+     */
+    data class Snitt(val periode: Periode) : CopyArgs() {
+        fun snittFor(original: Periode): Periode? {
+            return original.snitt(periode)
         }
     }
 }

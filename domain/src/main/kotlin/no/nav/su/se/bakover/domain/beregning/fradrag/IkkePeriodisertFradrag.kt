@@ -16,7 +16,7 @@ internal data class IkkePeriodisertFradrag(
 
     override val fradragstype: Fradragstype = type
 
-    override fun copy(args: CopyArgs.BegrensetTil): Fradrag? {
-        return args.begrensTil(periode)?.let { copy(periode = it) }
+    override fun copy(args: CopyArgs.Snitt): Fradrag? {
+        return args.snittFor(periode)?.let { copy(periode = it) }
     }
 }

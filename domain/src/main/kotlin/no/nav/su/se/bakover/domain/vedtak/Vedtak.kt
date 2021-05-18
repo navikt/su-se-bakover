@@ -323,7 +323,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                         },
                     ),
                     fradrag = fradrag.filterNot { it.fradragstype == Fradragstype.ForventetInntekt }.mapNotNull {
-                        it.copy(CopyArgs.BegrensetTil(periode))
+                        it.copy(CopyArgs.Snitt(periode))
                     },
                 )
                 is CopyArgs.Tidslinje.NyPeriode -> copy(
@@ -349,14 +349,15 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                         },
                     ),
                     fradrag = fradrag.filterNot { it.fradragstype == Fradragstype.ForventetInntekt }.mapNotNull {
-                        it.copy(CopyArgs.BegrensetTil(args.periode))
+                        it.copy(CopyArgs.Snitt(args.periode))
                     },
                 )
             }
     }
 }
 
-fun List<Vedtak>.lagTidslinje(periode: Periode): List<Vedtak.VedtakPåTidslinje> =
+// TODO: ("Må sees i sammenheng med evt endringer knyttet til hvilke vedtakstyper som legges til grunn for revurdering")
+fun List<Vedtak.EndringIYtelse>.lagTidslinje(periode: Periode): List<Vedtak.VedtakPåTidslinje> =
     map {
         Vedtak.VedtakPåTidslinje(
             vedtakId = it.id,
@@ -364,10 +365,7 @@ fun List<Vedtak>.lagTidslinje(periode: Periode): List<Vedtak.VedtakPåTidslinje>
             periode = it.periode,
             grunnlagsdata = it.behandling.grunnlagsdata,
             vilkårsvurderinger = it.behandling.vilkårsvurderinger,
-            fradrag = when (it) {
-                is Vedtak.EndringIYtelse -> it.beregning.getFradrag()
-                else -> TODO("Må sees i sammenheng med evt endringer knyttet til hvilke vedtakstyper som legges til grunn for revurdering")
-            },
+            fradrag = it.beregning.getFradrag(),
         )
     }.let {
         Tidslinje(
