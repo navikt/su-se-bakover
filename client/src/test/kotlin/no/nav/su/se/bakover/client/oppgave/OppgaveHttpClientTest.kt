@@ -886,7 +886,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 )
         )
 
-        val oathMock = mock<OAuth> {
+        val oauthMock = mock<OAuth> {
             on { onBehalfOfToken(any(), any()) } doReturn "token"
         }
 
