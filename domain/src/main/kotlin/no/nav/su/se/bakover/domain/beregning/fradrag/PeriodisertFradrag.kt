@@ -17,7 +17,7 @@ internal data class PeriodisertFradrag(
 
     override val fradragstype: Fradragstype = type
 
-    override fun copy(args: CopyArgs.MaksPeriode): Fradrag? {
-        return args.forOriginal(periode)?.let { copy(periode = it) }
+    override fun copy(args: CopyArgs.BegrensetTil): Fradrag? {
+        return args.begrensTil(periode)?.let { copy(periode = it) }
     }
 }

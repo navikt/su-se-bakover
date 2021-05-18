@@ -323,7 +323,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                         },
                     ),
                     fradrag = fradrag.filterNot { it.fradragstype == Fradragstype.ForventetInntekt }.mapNotNull {
-                        it.copy(CopyArgs.MaksPeriode(periode))
+                        it.copy(CopyArgs.BegrensetTil(periode))
                     },
                 )
                 is CopyArgs.Tidslinje.NyPeriode -> copy(
@@ -349,7 +349,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                         },
                     ),
                     fradrag = fradrag.filterNot { it.fradragstype == Fradragstype.ForventetInntekt }.mapNotNull {
-                        it.copy(CopyArgs.MaksPeriode(args.periode))
+                        it.copy(CopyArgs.BegrensetTil(args.periode))
                     },
                 )
             }
@@ -365,10 +365,8 @@ fun List<Vedtak>.lagTidslinje(periode: Periode): List<Vedtak.VedtakPåTidslinje>
             grunnlagsdata = it.behandling.grunnlagsdata,
             vilkårsvurderinger = it.behandling.vilkårsvurderinger,
             fradrag = when (it) {
-                is Vedtak.Avslag.AvslagBeregning -> TODO()
-                is Vedtak.Avslag.AvslagVilkår -> TODO()
                 is Vedtak.EndringIYtelse -> it.beregning.getFradrag()
-                is Vedtak.IngenEndringIYtelse -> TODO()
+                else -> TODO("Må sees i sammenheng med evt endringer knyttet til hvilke vedtakstyper som legges til grunn for revurdering")
             },
         )
     }.let {

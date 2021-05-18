@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.common.periode.PeriodisertInformasjon
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.Copyable
 
-interface Fradrag : PeriodisertInformasjon, Copyable<CopyArgs.MaksPeriode, Fradrag?> {
+interface Fradrag : PeriodisertInformasjon, Copyable<CopyArgs.BegrensetTil, Fradrag?> {
     val fradragstype: Fradragstype
     val månedsbeløp: Double
     val utenlandskInntekt: UtenlandskInntekt? // TODO can we pls do something about this one?

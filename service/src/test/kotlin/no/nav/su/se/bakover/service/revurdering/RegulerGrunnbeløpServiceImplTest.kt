@@ -213,7 +213,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             override val utenlandskInntekt: UtenlandskInntekt? = null
             override val tilhører = FradragTilhører.BRUKER
             override val periode = Periode.create(1.januar(2020), 31.januar(2020))
-            override fun copy(args: CopyArgs.MaksPeriode): Fradrag? {
+            override fun copy(args: CopyArgs.BegrensetTil): Fradrag? {
                 throw NotImplementedError()
             }
         }

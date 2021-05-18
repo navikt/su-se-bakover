@@ -12,43 +12,43 @@ import org.junit.jupiter.api.Test
 internal class CopyArgsTest {
     @Test
     fun `bevarer original periode dersom maks inneholder original`() {
-        CopyArgs.MaksPeriode(Periode.create(1.januar(2021), 31.desember(2021)))
-            .forOriginal(Periode.create(1.juli(2021), 31.juli(2021))) shouldBe Periode.create(1.juli(2021), 31.juli(2021))
+        CopyArgs.BegrensetTil(Periode.create(1.januar(2021), 31.desember(2021)))
+            .begrensTil(Periode.create(1.juli(2021), 31.juli(2021))) shouldBe Periode.create(1.juli(2021), 31.juli(2021))
     }
 
     @Test
     fun `justerer original periode dersom original inneholder maks`() {
-        CopyArgs.MaksPeriode(Periode.create(1.juli(2021), 31.juli(2021)))
-            .forOriginal(Periode.create(1.januar(2021), 31.desember(2021))) shouldBe Periode.create(1.juli(2021), 31.juli(2021))
+        CopyArgs.BegrensetTil(Periode.create(1.juli(2021), 31.juli(2021)))
+            .begrensTil(Periode.create(1.januar(2021), 31.desember(2021))) shouldBe Periode.create(1.juli(2021), 31.juli(2021))
     }
 
     @Test
     fun `returnerer ingenting hvis det ikke er overlapp mellom maks og original`() {
-        CopyArgs.MaksPeriode(Periode.create(1.juli(2021), 31.juli(2021)))
-            .forOriginal(Periode.create(1.desember(2021), 31.desember(2021))) shouldBe null
+        CopyArgs.BegrensetTil(Periode.create(1.juli(2021), 31.juli(2021)))
+            .begrensTil(Periode.create(1.desember(2021), 31.desember(2021))) shouldBe null
     }
 
     @Test
     fun `justerer fraOgMed hvis original starter før maks`() {
-        CopyArgs.MaksPeriode(Periode.create(1.juli(2021), 31.desember(2021)))
-            .forOriginal(Periode.create(1.januar(2021), 31.desember(2021))) shouldBe Periode.create(1.juli(2021), 31.desember(2021))
+        CopyArgs.BegrensetTil(Periode.create(1.juli(2021), 31.desember(2021)))
+            .begrensTil(Periode.create(1.januar(2021), 31.desember(2021))) shouldBe Periode.create(1.juli(2021), 31.desember(2021))
     }
 
     @Test
     fun `justerer tilOgMed hvis original slutter etter maks`() {
-        CopyArgs.MaksPeriode(Periode.create(1.januar(2021), 31.juli(2021)))
-            .forOriginal(Periode.create(1.januar(2021), 31.desember(2021))) shouldBe Periode.create(1.januar(2021), 31.juli(2021))
+        CopyArgs.BegrensetTil(Periode.create(1.januar(2021), 31.juli(2021)))
+            .begrensTil(Periode.create(1.januar(2021), 31.desember(2021))) shouldBe Periode.create(1.januar(2021), 31.juli(2021))
     }
 
     @Test
     fun `justerer fraOgMed hvis original starter før og slutter før maks`() {
-        CopyArgs.MaksPeriode(Periode.create(1.juli(2021), 31.desember(2021)))
-            .forOriginal(Periode.create(1.januar(2021), 31.oktober(2021))) shouldBe Periode.create(1.juli(2021), 31.oktober(2021))
+        CopyArgs.BegrensetTil(Periode.create(1.juli(2021), 31.desember(2021)))
+            .begrensTil(Periode.create(1.januar(2021), 31.oktober(2021))) shouldBe Periode.create(1.juli(2021), 31.oktober(2021))
     }
 
     @Test
     fun `justerer tilOgMed hvis original starter seneere enn og slutter etter maks`() {
-        CopyArgs.MaksPeriode(Periode.create(1.januar(2021), 31.juli(2021)))
-            .forOriginal(Periode.create(1.mars(2021), 31.desember(2021))) shouldBe Periode.create(1.mars(2021), 31.juli(2021))
+        CopyArgs.BegrensetTil(Periode.create(1.januar(2021), 31.juli(2021)))
+            .begrensTil(Periode.create(1.mars(2021), 31.desember(2021))) shouldBe Periode.create(1.mars(2021), 31.juli(2021))
     }
 }

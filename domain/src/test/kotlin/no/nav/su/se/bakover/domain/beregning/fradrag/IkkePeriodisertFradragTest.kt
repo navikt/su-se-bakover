@@ -71,7 +71,7 @@ internal class IkkePeriodisertFradragTest {
             tilhører = FradragTilhører.BRUKER,
         )
 
-        fradrag.copy(CopyArgs.MaksPeriode(Periode.create(1.januar(2021), 31.desember(2021)))) shouldBe fradrag
+        fradrag.copy(CopyArgs.BegrensetTil(Periode.create(1.januar(2021), 31.desember(2021)))) shouldBe fradrag
     }
 
     @Test
@@ -82,7 +82,7 @@ internal class IkkePeriodisertFradragTest {
             periode = Periode.create(1.januar(2021), 31.desember(2021)),
             tilhører = FradragTilhører.BRUKER,
         )
-        fradrag.copy(CopyArgs.MaksPeriode(Periode.create(1.mars(2021), 31.juli(2021)))) shouldBe fradrag.copy(
+        fradrag.copy(CopyArgs.BegrensetTil(Periode.create(1.mars(2021), 31.juli(2021)))) shouldBe fradrag.copy(
             periode = Periode.create(1.mars(2021), 31.juli(2021)),
         )
     }
@@ -95,7 +95,7 @@ internal class IkkePeriodisertFradragTest {
             periode = Periode.create(1.januar(2021), 31.januar(2021)),
             tilhører = FradragTilhører.BRUKER,
         )
-        fradrag.copy(CopyArgs.MaksPeriode(Periode.create(1.februar(2021), 31.desember(2021)))) shouldBe null
+        fradrag.copy(CopyArgs.BegrensetTil(Periode.create(1.februar(2021), 31.desember(2021)))) shouldBe null
     }
 
     @Test
@@ -106,7 +106,7 @@ internal class IkkePeriodisertFradragTest {
             periode = Periode.create(1.januar(2021), 31.juli(2021)),
             tilhører = FradragTilhører.BRUKER,
         )
-        fradrag.copy(CopyArgs.MaksPeriode(Periode.create(1.februar(2021), 31.desember(2021)))) shouldBe fradrag.copy(
+        fradrag.copy(CopyArgs.BegrensetTil(Periode.create(1.februar(2021), 31.desember(2021)))) shouldBe fradrag.copy(
             periode = Periode.create(1.februar(2021), 31.juli(2021)),
         )
     }
@@ -119,7 +119,7 @@ internal class IkkePeriodisertFradragTest {
             periode = Periode.create(1.juli(2021), 31.desember(2021)),
             tilhører = FradragTilhører.BRUKER,
         )
-        fradrag.copy(CopyArgs.MaksPeriode(Periode.create(1.januar(2021), 30.november(2021)))) shouldBe fradrag.copy(
+        fradrag.copy(CopyArgs.BegrensetTil(Periode.create(1.januar(2021), 30.november(2021)))) shouldBe fradrag.copy(
             periode = Periode.create(1.juli(2021), 30.november(2021)),
         )
     }

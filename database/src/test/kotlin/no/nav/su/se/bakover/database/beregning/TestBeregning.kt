@@ -49,7 +49,7 @@ internal object TestFradrag : Fradrag {
     override val utenlandskInntekt: UtenlandskInntekt? = null
     override val tilhører: FradragTilhører = FradragTilhører.BRUKER
     override val periode: Periode = Periode.create(1.januar(2021), 31.januar(2021))
-    override fun copy(args: CopyArgs.MaksPeriode): Fradrag? {
+    override fun copy(args: CopyArgs.BegrensetTil): Fradrag? {
         throw NotImplementedError()
     }
 }

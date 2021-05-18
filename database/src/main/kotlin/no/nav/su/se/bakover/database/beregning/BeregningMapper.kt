@@ -89,8 +89,8 @@ internal data class PersistertFradrag(
     override val periode: Periode,
     override val tilhører: FradragTilhører,
 ) : Fradrag {
-    override fun copy(args: CopyArgs.MaksPeriode): Fradrag? {
-        return args.forOriginal(periode)?.let { copy(periode = it) }
+    override fun copy(args: CopyArgs.BegrensetTil): Fradrag? {
+        return args.begrensTil(periode)?.let { copy(periode = it) }
     }
 }
 
