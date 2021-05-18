@@ -1,6 +1,5 @@
-name: Build non-master/main branches. And deploy specific ones only.
-# If you want to deploy your branch to master, replace with your branch name: if: github.ref == 'refs/heads/BRANCH_NAME'
-# TODO: Have to replace two places. Github actions does not support env vars in conditions
+name: Build non-master/main branches on push.
+# If you want to deploy your branch see branch-deploy.yml
 on:
   push:
     branches:
@@ -14,50 +13,28 @@ env:
   IMAGE: docker.pkg.github.com/${{ github.repository }}/su-se-bakover:${{ github.sha }}
 
 jobs:
-   build:
-      name: Gradle test build and conditional docker build push
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v2
-        - uses: actions/cache@v1
-          with:
-            path: ~/.gradle/caches
-            key: ${{ runner.os }}-gradle-cache-${{ hashFiles('build.gradle.kts') }}
-            restore-keys: |
-              ${{ runner.os }}-gradle-cache-
-        - uses: actions/cache@v1
-          with:
-            path: ~/.gradle/wrapper
-            key: ${{ runner.os }}-gradle-wrapper-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
-            restore-keys: |
-              ${{ runner.os }}-gradle-wrapper-
-        - uses: actions/setup-java@v1
-          with:
-            java-version: '15.x'
-        - name: test and build
-          run: ./gradlew test build
-          env:
-            ORG_GRADLE_PROJECT_githubUser: x-access-token
-            ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
-        - name: Build and publish Docker image
-          if: github.ref == 'refs/heads/BRANCH_NAME'
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          run: |
-            docker build --pull --tag ${IMAGE} .
-            docker login docker.pkg.github.com -u ${GITHUB_REPOSITORY} -p ${GITHUB_TOKEN}
-            docker push ${IMAGE}
-
-   deploy_to_dev:
-      name: Deploy specific branch-name to dev
-      needs: build
-      runs-on: ubuntu-latest
-      if: github.ref == 'refs/heads/BRANCH_NAME'
-      steps:
-        - uses: actions/checkout@v2
-        - uses: nais/deploy/actions/deploy@v1
-          env:
-             APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
-             CLUSTER: dev-fss
-             RESOURCE: nais.yml
-             VARS: nais-dev.json
+  build:
+    name: Run Gradle test and build steps
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/cache@v1
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-cache-${{ hashFiles('build.gradle.kts') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-cache-
+      - uses: actions/cache@v1
+        with:
+          path: ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-wrapper-${{ hashFiles('gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-wrapper-
+      - uses: actions/setup-java@v1
+        with:
+          java-version: '15.x'
+      - name: test and build
+        run: ./gradlew test build
+        env:
+          ORG_GRADLE_PROJECT_githubUser: x-access-token
+          ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
