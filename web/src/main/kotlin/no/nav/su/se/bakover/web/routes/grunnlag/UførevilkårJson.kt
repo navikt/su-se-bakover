@@ -25,12 +25,12 @@ internal fun Vurderingsperiode<Grunnlag.Uføregrunnlag?>.toJson() = Vurderingspe
 )
 
 internal fun Vilkår.Vurdert.Uførhet.toJson() = UføreVilkårJson(
-    vilkår = vilkår.stringValue(),
+    vilkår = vilkår.toJson(),
     vurderinger = vurderingsperioder.map { it.toJson() },
     resultat = resultat.toStatusString(),
 )
 
-internal fun Inngangsvilkår.stringValue() = when (this) {
+internal fun Inngangsvilkår.toJson() = when (this) {
     Inngangsvilkår.BorOgOppholderSegINorge -> TODO()
     Inngangsvilkår.Flyktning -> TODO()
     Inngangsvilkår.Formue -> TODO()

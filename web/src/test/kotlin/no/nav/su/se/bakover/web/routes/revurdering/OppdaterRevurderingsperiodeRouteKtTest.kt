@@ -18,8 +18,10 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppdatereRevurdering
@@ -39,7 +41,8 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
         {
          "fraOgMed": "${periode.fraOgMed}",
          "årsak":"INFORMASJON_FRA_KONTROLLSAMTALE",
-         "begrunnelse":"begrunnelse"
+         "begrunnelse":"begrunnelse",
+         "informasjonSomRevurderes": ["Uførhet"]
         }
     """.trimMargin()
 
@@ -91,6 +94,7 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt))
         )
         val revurderingServiceMock = mock<RevurderingService> {
             on { oppdaterRevurdering(any()) } doReturn opprettetRevurdering.right()
@@ -111,7 +115,8 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
                     {
                         "fraOgMed": "${periode.fraOgMed}",
                         "årsak":"DØDSFALL",
-                        "begrunnelse":"begrunnelse"
+                        "begrunnelse":"begrunnelse",
+                        "informasjonSomRevurderes": ["Inntekt"]
                     }
 
                 """.trimMargin(),
@@ -187,6 +192,20 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
                 }
             """.trimIndent(),
 
+        )
+    }
+
+    @Test
+    fun `må velge minst en ting å revurdere`() {
+        shouldMapErrorCorrectly(
+            error = KunneIkkeOppdatereRevurdering.MåVelgeInformasjonSomSkalRevurderes,
+            expectedStatusCode = HttpStatusCode.BadRequest,
+            expectedJsonResponse = """
+                {
+                    "message":"Må velge minst en ting som skal revurderes",
+                    "code":"må_velge_informasjon_som_revurderes"
+                }
+            """.trimIndent(),
         )
     }
 
