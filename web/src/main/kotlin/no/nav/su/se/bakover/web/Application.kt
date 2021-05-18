@@ -58,6 +58,7 @@ import no.nav.su.se.bakover.web.metrics.BehandlingMicrometerMetrics
 import no.nav.su.se.bakover.web.metrics.SuMetrics
 import no.nav.su.se.bakover.web.metrics.SøknadMicrometerMetrics
 import no.nav.su.se.bakover.web.routes.avstemming.avstemmingRoutes
+import no.nav.su.se.bakover.web.routes.brevRoutes
 import no.nav.su.se.bakover.web.routes.drift.driftRoutes
 import no.nav.su.se.bakover.web.routes.installMetrics
 import no.nav.su.se.bakover.web.routes.me.meRoutes
@@ -173,6 +174,7 @@ internal fun Application.susebakover(
     val (collectorRegistry, prometheusMeterRegistry) = SuMetrics.setup()
     installMetrics(prometheusMeterRegistry)
     naisRoutes(collectorRegistry)
+    brevRoutes(brevService = services.brev, clients.pdfGenerator)
 
     configureAuthentication(clients.oauth, applicationConfig, clients.tokenOppslag)
     val azureGroupMapper = AzureGroupMapper(applicationConfig.azure.groups)
