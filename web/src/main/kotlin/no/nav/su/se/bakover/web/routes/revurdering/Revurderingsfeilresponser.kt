@@ -41,6 +41,11 @@ internal object Revurderingsfeilresponser {
         "periode_og_årsak_kombinasjon_er_ugyldig",
     )
 
+    val måVelgeInformasjonSomRevurderes = BadRequest.errorJson(
+        "Må velge minst en ting som skal revurderes",
+        "må_velge_informasjon_som_revurderes",
+    )
+
     fun ugyldigPeriode(ugyldigPeriode: UgyldigPeriode): Resultat {
         return BadRequest.errorJson(
             ugyldigPeriode.toString(),

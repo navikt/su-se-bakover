@@ -10,6 +10,7 @@ import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering.FantIkkeAktørId
@@ -30,6 +31,7 @@ import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeAktørId
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeSak
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.kunneIkkeOppretteOppgave
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.måVelgeInformasjonSomRevurderes
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.periodeOgÅrsakKombinasjonErUgyldig
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.ugyldigPeriode
 import no.nav.su.se.bakover.web.sikkerlogg
@@ -46,6 +48,7 @@ internal fun Route.opprettRevurderingRoute(
         val fraOgMed: LocalDate,
         val årsak: String,
         val begrunnelse: String,
+        val informasjonSomRevurderes: List<Revurderingsteg>
     )
     authorize(Brukerrolle.Saksbehandler) {
         post(revurderingPath) {
@@ -60,6 +63,7 @@ internal fun Route.opprettRevurderingRoute(
                             årsak = body.årsak,
                             begrunnelse = body.begrunnelse,
                             saksbehandler = NavIdentBruker.Saksbehandler(navIdent),
+                            informasjonSomRevurderes = body.informasjonSomRevurderes
                         ),
                     ).fold(
                         ifLeft = { call.svar(it.tilResultat()) },
@@ -94,5 +98,6 @@ private fun KunneIkkeOppretteRevurdering.tilResultat(): Resultat {
             "ugyldig_årsak",
         )
         KunneIkkeOppretteRevurdering.PeriodeOgÅrsakKombinasjonErUgyldig -> periodeOgÅrsakKombinasjonErUgyldig
+        KunneIkkeOppretteRevurdering.MåVelgeInformasjonSomSkalRevurderes -> måVelgeInformasjonSomRevurderes
     }
 }

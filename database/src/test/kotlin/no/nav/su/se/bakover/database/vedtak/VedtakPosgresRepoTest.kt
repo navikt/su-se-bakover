@@ -18,8 +18,10 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
+import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -93,6 +95,7 @@ internal class VedtakPosgresRepoTest {
                 forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
                 behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
                 vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+                informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt))
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 
@@ -240,6 +243,7 @@ internal class VedtakPosgresRepoTest {
                 behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
                 grunnlagsdata = søknadsbehandlingVedtak.behandling.grunnlagsdata,
                 vilkårsvurderinger = søknadsbehandlingVedtak.behandling.vilkårsvurderinger,
+                informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt))
             )
             testDataHelper.revurderingRepo.lagre(atteststertRevurdering)
             val iverksattRevurdering = IverksattRevurdering.IngenEndring(
@@ -261,6 +265,7 @@ internal class VedtakPosgresRepoTest {
                 behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
                 grunnlagsdata = søknadsbehandlingVedtak.behandling.grunnlagsdata,
                 vilkårsvurderinger = søknadsbehandlingVedtak.behandling.vilkårsvurderinger,
+                informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt))
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 
