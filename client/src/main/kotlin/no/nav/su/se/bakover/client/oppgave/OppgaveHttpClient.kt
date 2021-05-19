@@ -246,7 +246,7 @@ internal class OppgaveHttpClient(
         val internalBeskrivelse =
             "--- ${
             Tidspunkt.now(clock).toOppgaveFormat()
-            } - $beskrivelse ---\nSøknadId : ${oppgave.saksreferanse}"
+            } - $beskrivelse ---"
 
         return Either.unsafeCatch {
             val request = HttpRequest.newBuilder()
