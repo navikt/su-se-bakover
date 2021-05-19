@@ -8,6 +8,7 @@ import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.beregning.LagBrevinnholdForBeregning
+import no.nav.su.se.bakover.domain.vilkår.Inngangsvilkår
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -81,21 +82,26 @@ interface LagBrevRequest {
         private val saksbehandlerNavn: String,
         private val attestantNavn: String,
         private val fritekst: String,
+        private val opphørtGrunner: List<Inngangsvilkår>,
     ) : LagBrevRequest {
         override fun getPerson(): Person = person
         override fun lagBrevInnhold(personalia: BrevInnhold.Personalia): BrevInnhold.Opphørsvedtak {
-            val avslagsgrunn = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning).let {
-                when (it) {
-                    is AvslagGrunnetBeregning.Ja -> listOf(it.avslagsgrunn)
-                    is AvslagGrunnetBeregning.Nei -> throw IllegalStateException("Skal aldri havne på nei her")
+            val avslagsgrunn =
+                VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning).let { avslagGrunnetBeregning ->
+                    when (avslagGrunnetBeregning) {
+                        is AvslagGrunnetBeregning.Ja -> opphørtGrunner.map { it.tilAvslagsgrunn() } + listOf(
+                            avslagGrunnetBeregning.avslagsgrunn,
+                        )
+                        is AvslagGrunnetBeregning.Nei -> opphørtGrunner.map { it.tilAvslagsgrunn() }
+                    }
                 }
-            }
 
             return BrevInnhold.Opphørsvedtak(
                 personalia = personalia,
                 sats = beregning.getSats().toString().lowercase(),
                 satsBeløp = beregning.getSats().månedsbeløpSomHeltall(beregning.periode.tilOgMed),
-                satsGjeldendeFraDato = beregning.getSats().datoForSisteEndringAvSats(beregning.periode.tilOgMed).ddMMyyyy(),
+                satsGjeldendeFraDato = beregning.getSats().datoForSisteEndringAvSats(beregning.periode.tilOgMed)
+                    .ddMMyyyy(),
                 harEktefelle = behandlingsinformasjon.harEktefelle(),
                 beregningsperioder = LagBrevinnholdForBeregning(beregning).brevInnhold,
                 saksbehandlerNavn = saksbehandlerNavn,

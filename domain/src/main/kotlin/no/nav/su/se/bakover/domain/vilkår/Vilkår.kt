@@ -9,6 +9,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
+import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
@@ -29,11 +30,24 @@ sealed class Inngangsvilkår {
     object BorOgOppholderSegINorge : Inngangsvilkår()
     object UtenlandsoppholdOver90Dager : Inngangsvilkår()
     object InnlagtPåInstitusjon : Inngangsvilkår()
+
+    fun tilAvslagsgrunn() = when (this) {
+        BorOgOppholderSegINorge -> Avslagsgrunn.BOR_OG_OPPHOLDER_SEG_I_NORGE
+        Flyktning -> Avslagsgrunn.FLYKTNING
+        Formue -> Avslagsgrunn.FORMUE
+        InnlagtPåInstitusjon -> Avslagsgrunn.INNLAGT_PÅ_INSTITUSJON
+        Oppholdstillatelse -> Avslagsgrunn.OPPHOLDSTILLATELSE
+        PersonligOppmøte -> Avslagsgrunn.PERSONLIG_OPPMØTE
+        Uførhet -> Avslagsgrunn.UFØRHET
+        UtenlandsoppholdOver90Dager -> Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER
+    }
 }
 
 data class Vilkårsvurderinger(
     val uføre: Vilkår<Grunnlag.Uføregrunnlag?> = Vilkår.IkkeVurdert.Uførhet,
 ) {
+    private val vilkår = setOf(uføre)
+
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Vilkårsvurderinger =
         this.copy(uføre = this.uføre.oppdaterStønadsperiode(stønadsperiode))
 
@@ -45,11 +59,20 @@ data class Vilkårsvurderinger(
         Grunnlagsdata(uføregrunnlag = (uføre as? Vilkår.Vurdert.Uførhet)?.grunnlag ?: emptyList())
 
     val resultat: Resultat by lazy {
-        setOf(uføre).map { it.resultat }.let { alleVurderingsresultat ->
+        vilkår.map { it.resultat }.let { alleVurderingsresultat ->
             when {
                 alleVurderingsresultat.all { it is Resultat.Innvilget } -> Resultat.Innvilget
                 alleVurderingsresultat.any { it is Resultat.Avslag } -> Resultat.Avslag
                 else -> Resultat.Uavklart
+            }
+        }
+    }
+
+    fun utledOpphørsgrunner(): List<Inngangsvilkår> {
+        return vilkår.mapNotNull {
+            when (it) {
+                is Vilkår.IkkeVurdert.Uførhet -> null
+                is Vilkår.Vurdert.Uførhet -> it.vilkår
             }
         }
     }

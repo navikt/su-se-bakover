@@ -374,7 +374,8 @@ class LagBrevRequestVisitor(
                 fritekst = revurdering.fritekstTilBrev,
                 saksbehandlerNavn = it.saksbehandlerNavn,
                 attestantNavn = it.attestantNavn,
-                forventetInntektStørreEnn0 = revurdering.grunnlagsdata.uføregrunnlag.harForventetInntektStørreEnn0()
+                forventetInntektStørreEnn0 = revurdering.grunnlagsdata.uføregrunnlag.harForventetInntektStørreEnn0(),
+                opphørtGrunner = revurdering.vilkårsvurderinger.utledOpphørsgrunner()
             )
         }
 
@@ -494,7 +495,8 @@ class LagBrevRequestVisitor(
                     else -> ""
                 },
                 behandlingsinformasjon = vedtak.behandlingsinformasjon,
-                forventetInntektStørreEnn0 = vedtak.behandling.grunnlagsdata.uføregrunnlag.harForventetInntektStørreEnn0()
+                forventetInntektStørreEnn0 = vedtak.behandling.grunnlagsdata.uføregrunnlag.harForventetInntektStørreEnn0(),
+                opphørtGrunner = vedtak.behandling.vilkårsvurderinger.utledOpphørsgrunner()
             )
         }
 

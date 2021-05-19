@@ -726,6 +726,7 @@ internal class LagBrevRequestVisitorTest {
             attestantNavn = attestantNavn,
             fritekst = "FRITEKST REVURDERING",
             forventetInntektStørreEnn0 = false,
+            opphørtGrunner = emptyList()
         ).right()
     }
 
