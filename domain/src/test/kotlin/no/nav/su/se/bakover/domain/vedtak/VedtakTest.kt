@@ -53,6 +53,7 @@ internal class VedtakTest {
                 periode = vedtak.periode,
                 grunnlagsdata = vedtak.behandling.grunnlagsdata,
                 vilkårsvurderinger = vedtak.behandling.vilkårsvurderinger,
+                fradrag = vedtak.beregning.getFradrag(),
             ),
         )
     }
@@ -85,6 +86,7 @@ internal class VedtakTest {
                 periode = Periode.create(1.januar(2021), 30.april(2021)),
                 grunnlagsdata = a.behandling.grunnlagsdata,
                 vilkårsvurderinger = a.behandling.vilkårsvurderinger,
+                fradrag = a.beregning.getFradrag(),
             ),
             Vedtak.VedtakPåTidslinje(
                 vedtakId = b.id,
@@ -92,6 +94,7 @@ internal class VedtakTest {
                 periode = b.periode,
                 grunnlagsdata = b.behandling.grunnlagsdata,
                 vilkårsvurderinger = b.behandling.vilkårsvurderinger,
+                fradrag = b.beregning.getFradrag(),
             ),
         )
     }
@@ -263,6 +266,7 @@ internal class VedtakTest {
                 periode = b.periode,
                 grunnlagsdata = b.behandling.grunnlagsdata,
                 vilkårsvurderinger = b.behandling.vilkårsvurderinger,
+                fradrag = b.beregning.getFradrag(),
             ),
         )
     }

@@ -11,4 +11,13 @@ sealed class CopyArgs {
         data class NyPeriode(val periode: Periode) : Tidslinje()
         object Full : Tidslinje()
     }
+
+    /**
+     * Lager kopi hvor perioden settes til snittet av periodene.
+     */
+    data class Snitt(val periode: Periode) : CopyArgs() {
+        fun snittFor(original: Periode): Periode? {
+            return original.snitt(periode)
+        }
+    }
 }

@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.database.beregning
 
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.Sats
@@ -88,16 +89,8 @@ internal data class PersistertFradrag(
     override val periode: Periode,
     override val tilhører: FradragTilhører,
 ) : Fradrag {
-
-    override fun equals(other: Any?) = (other as? Fradrag)?.let { this.equals(other) } ?: false
-
-    override fun hashCode(): Int {
-        var result = fradragstype.hashCode()
-        result = 31 * result + månedsbeløp.hashCode()
-        result = 31 * result + (utenlandskInntekt?.hashCode() ?: 0)
-        result = 31 * result + periode.hashCode()
-        result = 31 * result + tilhører.hashCode()
-        return result
+    override fun copy(args: CopyArgs.Snitt): Fradrag? {
+        return args.snittFor(periode)?.let { copy(periode = it) }
     }
 }
 

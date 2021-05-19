@@ -59,7 +59,7 @@ internal class PeriodeTest {
             Periode.create(1.januar(2021), 31.januar(2021)),
             Periode.create(1.februar(2021), 28.februar(2021)),
             Periode.create(1.mars(2021), 31.mars(2021)),
-            Periode.create(1.april(2021), 30.april(2021))
+            Periode.create(1.april(2021), 30.april(2021)),
         )
         periodisert shouldHaveSize periode.getAntallMåneder()
     }
@@ -238,6 +238,48 @@ internal class PeriodeTest {
                 Periode.create(1.januar(2021), 31.desember(2021)),
                 Periode.create(1.januar(2021), 31.desember(2021)),
             ) shouldBe true
+    }
+
+    @Test
+    fun `bevarer original periode dersom maks inneholder original`() {
+        Periode.create(1.januar(2021), 31.desember(2021)) snitt Periode.create(1.juli(2021), 31.juli(2021)) shouldBe Periode.create(1.juli(2021), 31.juli(2021))
+        Periode.create(1.juli(2021), 31.juli(2021)) snitt Periode.create(1.januar(2021), 31.desember(2021)) shouldBe Periode.create(1.juli(2021), 31.juli(2021))
+    }
+
+    @Test
+    fun `justerer original periode dersom original inneholder maks`() {
+        Periode.create(1.juli(2021), 31.juli(2021)) snitt Periode.create(1.januar(2021), 31.desember(2021)) shouldBe Periode.create(1.juli(2021), 31.juli(2021))
+        Periode.create(1.januar(2021), 31.desember(2021)) snitt Periode.create(1.juli(2021), 31.juli(2021)) shouldBe Periode.create(1.juli(2021), 31.juli(2021))
+    }
+
+    @Test
+    fun `returnerer ingenting hvis det ikke er overlapp mellom maks og original`() {
+        Periode.create(1.juli(2021), 31.juli(2021)) snitt Periode.create(1.desember(2021), 31.desember(2021)) shouldBe null
+        Periode.create(1.desember(2021), 31.desember(2021)) snitt Periode.create(1.juli(2021), 31.juli(2021)) shouldBe null
+    }
+
+    @Test
+    fun `justerer fraOgMed hvis original starter før maks`() {
+        Periode.create(1.juli(2021), 31.desember(2021)) snitt Periode.create(1.januar(2021), 31.desember(2021)) shouldBe Periode.create(1.juli(2021), 31.desember(2021))
+        Periode.create(1.januar(2021), 31.desember(2021)) snitt Periode.create(1.juli(2021), 31.desember(2021)) shouldBe Periode.create(1.juli(2021), 31.desember(2021))
+    }
+
+    @Test
+    fun `justerer tilOgMed hvis original slutter etter maks`() {
+        Periode.create(1.januar(2021), 31.juli(2021)) snitt Periode.create(1.januar(2021), 31.desember(2021)) shouldBe Periode.create(1.januar(2021), 31.juli(2021))
+        Periode.create(1.januar(2021), 31.desember(2021)) snitt Periode.create(1.januar(2021), 31.juli(2021)) shouldBe Periode.create(1.januar(2021), 31.juli(2021))
+    }
+
+    @Test
+    fun `justerer fraOgMed hvis original starter før og slutter før maks`() {
+        Periode.create(1.juli(2021), 31.desember(2021)) snitt Periode.create(1.januar(2021), 31.oktober(2021)) shouldBe Periode.create(1.juli(2021), 31.oktober(2021))
+        Periode.create(1.januar(2021), 31.oktober(2021)) snitt Periode.create(1.juli(2021), 31.desember(2021)) shouldBe Periode.create(1.juli(2021), 31.oktober(2021))
+    }
+
+    @Test
+    fun `justerer tilOgMed hvis original starter seneere enn og slutter etter maks`() {
+        Periode.create(1.januar(2021), 31.juli(2021)) snitt Periode.create(1.mars(2021), 31.desember(2021)) shouldBe Periode.create(1.mars(2021), 31.juli(2021))
+        Periode.create(1.mars(2021), 31.desember(2021)) snitt Periode.create(1.januar(2021), 31.juli(2021)) shouldBe Periode.create(1.mars(2021), 31.juli(2021))
     }
 
     @Test
