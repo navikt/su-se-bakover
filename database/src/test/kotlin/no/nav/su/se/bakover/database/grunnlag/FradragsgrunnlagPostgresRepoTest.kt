@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.TestDataHelper
+import no.nav.su.se.bakover.database.beregning.PersistertFradrag
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
@@ -55,8 +56,26 @@ internal class FradragsgrunnlagPostgresRepoTest {
             )
 
             grunnlagRepo.hentFradragsgrunnlag(behandling.id) shouldBe listOf(
-                fradragsgrunnlag1,
-                fradragsgrunnlag2,
+                fradragsgrunnlag1.copy(
+                    fradrag = PersistertFradrag(
+                        fradragstype = Fradragstype.Arbeidsinntekt,
+                        månedsbeløp = 5000.0,
+                        periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+                        utenlandskInntekt = UtenlandskInntekt.create(
+                            beløpIUtenlandskValuta = 5, valuta = "DKK", kurs = 10.5,
+                        ),
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                ),
+                fradragsgrunnlag2.copy(
+                    fradrag = PersistertFradrag(
+                        fradragstype = Fradragstype.Kontantstøtte,
+                        månedsbeløp = 15000.0,
+                        periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.EPS,
+                    ),
+                ),
             )
 
             grunnlagRepo.lagreFradragsgrunnlag(
