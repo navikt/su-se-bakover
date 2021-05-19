@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
@@ -123,5 +124,39 @@ internal class VilkårsvurderingerTest {
 
         val actual = vilkårsvurdering.oppdaterStønadsperiode(Stønadsperiode.create(nyPeriode, "test"))
         actual.grunnlagsdata.uføregrunnlag.first().periode shouldBe nyPeriode
+    }
+
+    @Test
+    fun `uførhet som er avslag blir utledet`() {
+        val vilkårsvurdering = Vilkårsvurderinger(
+            uføre = Vilkår.Vurdert.Uførhet.create(
+                vurderingsperioder = Nel.of(
+                    Vurderingsperiode.Uføre.create(
+                        resultat = Resultat.Avslag,
+                        grunnlag = Grunnlag.Uføregrunnlag(
+                            periode = Periode.create(1.januar(2021), 30.april(2021)),
+                            uføregrad = Uføregrad.parse(20),
+                            forventetInntekt = 10_000,
+                        ),
+                        periode = Periode.create(1.januar(2021), 30.april(2021)),
+                        begrunnelse = "",
+                    ),
+                ),
+            ),
+        )
+        vilkårsvurdering.utledOpphørsgrunner() shouldBe listOf(Inngangsvilkår.Uførhet)
+    }
+
+    @Test
+    fun `ikke vurderte vilkår gir ikke opphørtsgrunn`() {
+        val vilkårsvurdering = Vilkårsvurderinger(
+            uføre = Vilkår.IkkeVurdert.Uførhet
+        )
+        vilkårsvurdering.utledOpphørsgrunner() shouldBe emptyList()
+    }
+
+    @Test
+    fun `uførhet inngangsvilkår blir mappet til riktig avslagsgrunn`() {
+        Inngangsvilkår.Uførhet.tilAvslagsgrunn() shouldBe Avslagsgrunn.UFØRHET
     }
 }
