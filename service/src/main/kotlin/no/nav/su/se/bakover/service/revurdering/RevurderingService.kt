@@ -127,6 +127,7 @@ sealed class KunneIkkeOppretteRevurdering {
     object UgyldigÅrsak : KunneIkkeOppretteRevurdering()
     object UgyldigBegrunnelse : KunneIkkeOppretteRevurdering()
     object PeriodeOgÅrsakKombinasjonErUgyldig : KunneIkkeOppretteRevurdering()
+    object MåVelgeInformasjonSomSkalRevurderes : KunneIkkeOppretteRevurdering()
 }
 
 sealed class KunneIkkeOppdatereRevurdering {
@@ -139,6 +140,7 @@ sealed class KunneIkkeOppdatereRevurdering {
 
     object KanIkkeOppdatereRevurderingSomErForhåndsvarslet : KunneIkkeOppdatereRevurdering()
     object PeriodeOgÅrsakKombinasjonErUgyldig : KunneIkkeOppdatereRevurdering()
+    object MåVelgeInformasjonSomSkalRevurderes : KunneIkkeOppdatereRevurdering()
 }
 
 sealed class KunneIkkeBeregneOgSimulereRevurdering {

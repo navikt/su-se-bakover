@@ -34,9 +34,10 @@ import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.utbetaling.UtbetalingPublisher
-import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
+import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.NySøknadsbehandling
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -194,8 +195,14 @@ internal class SøknadsbehandlingRoutesKtTest {
                                 return Either.left(KunneIkkeOppretteOppgave)
                             }
 
-                            override fun lukkOppgave(oppgaveId: OppgaveId) = Unit.right()
-                            override fun lukkOppgaveMedSystembruker(oppgaveId: OppgaveId) = Unit.right()
+                            override fun lukkOppgave(oppgaveId: OppgaveId): Either<OppgaveFeil.KunneIkkeLukkeOppgave, Unit> = Unit.right()
+                            override fun lukkOppgaveMedSystembruker(oppgaveId: OppgaveId): Either<OppgaveFeil.KunneIkkeLukkeOppgave, Unit> = Unit.right()
+                            override fun oppdaterOppgave(
+                                oppgaveId: OppgaveId,
+                                beskrivelse: String,
+                            ): Either<OppgaveFeil.KunneIkkeOppdatereOppgave, Unit> {
+                                return Either.left(OppgaveFeil.KunneIkkeOppdatereOppgave)
+                            }
                         },
                     ),
                 )

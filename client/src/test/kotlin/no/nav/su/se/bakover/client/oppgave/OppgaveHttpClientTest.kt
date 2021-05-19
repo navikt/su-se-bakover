@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client.oppgave
 
+import arrow.core.right
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.equalToJson
@@ -28,8 +29,8 @@ import no.nav.su.se.bakover.domain.AktørId
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -70,7 +71,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
 
         wireMockServer.stubFor(
             stubMapping.withRequestBody(equalToJson(expectedSaksbehandlingRequest)).willReturn(
-                WireMock.aResponse()
+                aResponse()
                     .withBody(
                         //language=JSON
                         """
@@ -167,7 +168,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
 
         wireMockServer.stubFor(
             stubMapping.withRequestBody(equalToJson(expectedSaksbehandlingRequest)).willReturn(
-                WireMock.aResponse()
+                aResponse()
                     .withBody(
                         //language=JSON
                         """
@@ -244,7 +245,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
 
         wireMockServer.stubFor(
             stubMapping.withRequestBody(equalToJson(expectedAttesteringRequest)).willReturn(
-                WireMock.aResponse()
+                aResponse()
                     .withBody(
                         //language=JSON
                         """
@@ -314,9 +315,9 @@ internal class OppgaveHttpClientTest : WiremockBase {
             OppgaveConfig.Saksbehandling(
                 journalpostId,
                 søknadId,
-                AktørId(aktørId)
-            )
-        ) shouldBeLeft KunneIkkeOppretteOppgave
+                AktørId(aktørId),
+            ),
+        ) shouldBeLeft OppgaveFeil.KunneIkkeOppretteOppgave
     }
 
     @Test
@@ -330,7 +331,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 .withHeader("Accept", WireMock.equalTo("application/json"))
                 .withHeader("X-Correlation-ID", WireMock.equalTo("correlationId"))
                 .willReturn(
-                    WireMock.aResponse()
+                    aResponse()
                         .withBody(
                             //language=JSON
                             """
@@ -369,7 +370,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 .withHeader("Accept", WireMock.equalTo("application/json"))
                 .withHeader("X-Correlation-ID", WireMock.equalTo("correlationId"))
                 .willReturn(
-                    WireMock.aResponse()
+                    aResponse()
                         .withBody(
                             //language=JSON
                             """
@@ -430,7 +431,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 .withHeader("Accept", WireMock.equalTo("application/json"))
                 .withHeader("X-Correlation-ID", WireMock.equalTo("correlationId"))
                 .willReturn(
-                    WireMock.aResponse()
+                    aResponse()
                         .withBody(
                             //language=JSON
                             """
@@ -469,7 +470,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 .withHeader("Accept", WireMock.equalTo("application/json"))
                 .withHeader("X-Correlation-ID", WireMock.equalTo("correlationId"))
                 .willReturn(
-                    WireMock.aResponse()
+                    aResponse()
                         .withBody(
                             //language=JSON
                             """
@@ -531,7 +532,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 .withHeader("Accept", WireMock.equalTo("application/json"))
                 .withHeader("X-Correlation-ID", WireMock.equalTo("correlationId"))
                 .willReturn(
-                    WireMock.aResponse()
+                    aResponse()
                         .withBody(
                             //language=JSON
                             """
@@ -571,7 +572,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 .withHeader("Accept", WireMock.equalTo("application/json"))
                 .withHeader("X-Correlation-ID", WireMock.equalTo("correlationId"))
                 .willReturn(
-                    WireMock.aResponse()
+                    aResponse()
                         .withBody(
                             //language=JSON
                             """
@@ -644,7 +645,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
 
         wireMockServer.stubFor(
             stubMapping.withRequestBody(equalToJson(expectedSaksbehandlingRequest)).willReturn(
-                WireMock.aResponse()
+                aResponse()
                     .withBody(
                         //language=JSON
                         """
@@ -736,7 +737,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
 
         wireMockServer.stubFor(
             stubMapping.withRequestBody(equalToJson(expectedAttesteringRequest)).willReturn(
-                WireMock.aResponse()
+                aResponse()
                     .withBody(
                         //language=JSON
                         """
@@ -815,7 +816,109 @@ internal class OppgaveHttpClientTest : WiremockBase {
                 aktørId = AktørId(aktørId),
                 tilordnetRessurs = null,
             ),
-        ) shouldBeLeft KunneIkkeOppretteOppgave
+        ) shouldBeLeft OppgaveFeil.KunneIkkeOppretteOppgave
+    }
+
+    @Test
+    fun `oppdaterer eksisterende oppgave med ny beskrivelse`() {
+        val oppgaveId = 12345L
+        val versjon = 2
+
+        wireMockServer.stubFor(
+            get((urlPathEqualTo("$oppgavePath/$oppgaveId")))
+                .withHeader("Authorization", WireMock.equalTo("Bearer token"))
+                .withHeader("Content-Type", WireMock.equalTo("application/json"))
+                .withHeader("Accept", WireMock.equalTo("application/json"))
+                .withHeader("X-Correlation-ID", WireMock.equalTo("correlationId"))
+                .willReturn(
+                    aResponse()
+                        .withBody(
+                            //language=JSON
+                            """
+                            {
+                                      "id": $oppgaveId,
+                                      "tildeltEnhetsnr": "1234",
+                                      "endretAvEnhetsnr": "1234",
+                                      "opprettetAvEnhetsnr": "1234",
+                                      "aktoerId": "1000012345678",
+                                      "saksreferanse": "$søknadId",
+                                      "tilordnetRessurs": "Z123456",
+                                      "tema": "SUP",
+                                      "oppgavetype": "BEH_SAK",
+                                      "behandlingstype": "ae0245",
+                                      "versjon": $versjon,
+                                      "beskrivelse": "Dette er den orginale beskrivelsen",
+                                      "opprettetAv": "supstonad",
+                                      "endretAv": "supstonad",
+                                      "prioritet": "NORM",
+                                      "status": "AAPNET",
+                                      "metadata": {},
+                                      "fristFerdigstillelse": "2019-01-04",
+                                      "aktivDato": "2019-01-04",
+                                      "opprettetTidspunkt": "2019-01-04T09:53:39.329+01:00",
+                                      "endretTidspunkt": "2019-08-25T11:45:38+02:00"
+                                    }
+                            """.trimIndent()
+                        )
+                        .withStatus(200)
+                )
+        )
+
+        wireMockServer.stubFor(
+            patch((urlPathEqualTo("$oppgavePath/$oppgaveId")))
+                .willReturn(
+                    aResponse()
+                        .withBody(
+                            //language=JSON
+                            """
+                            {
+                              "id": $oppgaveId,
+                              "versjon": ${versjon + 1},
+                              "beskrivelse": "--- 01.01.1970 01:00 - en beskrivelse ---\nSøknadId : $søknadId",
+                              "status": "AAPNET"
+                            }
+                            """.trimIndent()
+                        )
+                        .withStatus(200)
+                )
+        )
+
+        val oauthMock = mock<OAuth> {
+            on { onBehalfOfToken(any(), any()) } doReturn "token"
+        }
+
+        val client = OppgaveHttpClient(
+            connectionConfig = ApplicationConfig.ClientsConfig.OppgaveConfig(
+                clientId = "oppgaveClientId",
+                url = wireMockServer.baseUrl(),
+            ),
+            exchange = oauthMock,
+            tokenoppslagForSystembruker = mock(),
+            clock = fixedEpochClock,
+        )
+
+        client.oppdaterOppgave(oppgaveId = OppgaveId(oppgaveId.toString()), beskrivelse = "en beskrivelse") shouldBe Unit.right()
+
+        val expectedBody =
+            """
+            {
+            "id" : $oppgaveId,
+            "versjon" : $versjon,
+            "beskrivelse" : "--- 01.01.1970 01:00 - en beskrivelse ---\nSøknadId : $søknadId\n\nDette er den orginale beskrivelsen",
+            "status" : "AAPNET"
+            }
+            """.trimIndent()
+        wireMockServer.verify(
+            1,
+            patchRequestedFor(urlPathEqualTo("$oppgavePath/$oppgaveId"))
+                .withHeader("Authorization", WireMock.equalTo("Bearer token"))
+                .withHeader("Content-Type", WireMock.equalTo("application/json"))
+                .withHeader("Accept", WireMock.equalTo("application/json"))
+                .withHeader("X-Correlation-ID", WireMock.equalTo("correlationId"))
+                .withRequestBody(
+                    equalToJson(expectedBody)
+                )
+        )
     }
 
     private val stubMapping = WireMock.post(urlPathEqualTo(oppgavePath))

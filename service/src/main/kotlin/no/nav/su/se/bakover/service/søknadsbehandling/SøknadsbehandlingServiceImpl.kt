@@ -454,10 +454,8 @@ internal class SøknadsbehandlingServiceImpl(
         ).let {
             søknadsbehandlingRepo.lagre(it)
             vilkårsvurderingService.lagre(
-                søknadsbehandling.id,
-                søknadsbehandling.vilkårsvurderinger.copy(
-                    uføre = it.vilkårsvurderinger.uføre,
-                ),
+                it.id,
+                it.vilkårsvurderinger,
             )
             it.right()
         }

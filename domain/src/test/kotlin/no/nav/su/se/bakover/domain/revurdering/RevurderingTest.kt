@@ -57,7 +57,11 @@ internal class RevurderingTest {
                     ),
                 ),
             ),
-        ).beregn(emptyList()).orNull()!! shouldBe beOfType<BeregnetRevurdering.Opphørt>()
+        ).copy(informasjonSomRevurderes = InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert)))
+            .beregn(emptyList()).orNull()!!.let {
+            it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
+            it.informasjonSomRevurderes[Revurderingsteg.Inntekt] shouldBe Vurderingstatus.Vurdert
+        }
     }
 
     @Test
@@ -77,7 +81,11 @@ internal class RevurderingTest {
                     ),
                 ),
             ),
-        ).beregn(emptyList()).orNull()!! shouldNotBe beOfType<BeregnetRevurdering.Opphørt>()
+        ).copy(informasjonSomRevurderes = InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert)))
+            .beregn(emptyList()).orNull()!!.let {
+            it shouldNotBe beOfType<BeregnetRevurdering.Opphørt>()
+            it.informasjonSomRevurderes[Revurderingsteg.Inntekt] shouldBe Vurderingstatus.Vurdert
+        }
     }
 
     private fun lagRevurdering(
@@ -91,13 +99,17 @@ internal class RevurderingTest {
         saksbehandler = NavIdentBruker.Saksbehandler(navIdent = ""),
         oppgaveId = OppgaveId(value = ""),
         fritekstTilBrev = "",
-        revurderingsårsak = Revurderingsårsak(årsak = Revurderingsårsak.Årsak.INFORMASJON_FRA_KONTROLLSAMTALE, begrunnelse = Revurderingsårsak.Begrunnelse.create(value = "b")),
+        revurderingsårsak = Revurderingsårsak(
+            årsak = Revurderingsårsak.Årsak.INFORMASJON_FRA_KONTROLLSAMTALE,
+            begrunnelse = Revurderingsårsak.Begrunnelse.create(value = "b"),
+        ),
         forhåndsvarsel = null,
         behandlingsinformasjon = mock() {
             on { getBeregningStrategy() } doReturn BeregningStrategy.BorAlene.right()
         },
         grunnlagsdata = Grunnlagsdata(uføregrunnlag = listOf()),
         vilkårsvurderinger = vilkårsvurderinger,
+        informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
     )
 
     private val tilRevurderingMock: Vedtak.EndringIYtelse = mock() {

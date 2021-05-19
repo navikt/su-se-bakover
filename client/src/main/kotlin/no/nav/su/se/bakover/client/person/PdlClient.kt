@@ -146,11 +146,9 @@ internal class PdlClient(
                 }
             },
             {
-                log.error(
-                    "Feil i kallet mot PDL, status:{}, body:{}",
-                    response.statusCode,
-                    response.body().asString("application/json"),
-                )
+                val statusCode = response.statusCode
+                val body = response.body().asString("application/json")
+                log.error("Feil i kallet mot PDL, status:$statusCode, body:$body", it)
                 Ukjent.left()
             },
         )
@@ -175,11 +173,9 @@ internal class PdlClient(
                 }
             },
             {
-                log.error(
-                    "Feil i kallet mot PDL, status:{}, body:{}",
-                    response.statusCode,
-                    response.body().asString("application/json"),
-                )
+                val statusCode = response.statusCode
+                val body = response.body().asString("application/json")
+                log.error("Feil i kallet mot PDL, status:$statusCode, body:$body", it)
                 Ukjent.left()
             },
         )

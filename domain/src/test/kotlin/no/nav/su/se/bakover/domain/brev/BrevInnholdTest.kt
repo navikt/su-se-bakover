@@ -50,6 +50,7 @@ internal class BrevInnholdTest {
             sats = Sats.HØY.toString(),
             satsGrunn = Satsgrunn.DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN,
             satsBeløp = 100,
+            forventetInntektStørreEnn0 = true,
             harEktefelle = true,
             beregningsperioder = listOf(
                 Beregningsperiode(
@@ -83,6 +84,7 @@ internal class BrevInnholdTest {
                 "satsGrunn": "DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN",
                 "satsBeløp": 100,
                 "satsGjeldendeFraDato": "01.01.2020",
+                "forventetInntektStørreEnn0": true,
                 "harEktefelle": true,
                 "harFradrag": false,
                 "beregningsperioder": [{
@@ -151,6 +153,7 @@ internal class BrevInnholdTest {
             avslagsgrunner = listOf(Avslagsgrunn.FOR_HØY_INNTEKT),
             avslagsparagrafer = listOf(1),
             satsGjeldendeFraDato = "01.01.2020",
+            forventetInntektStørreEnn0 = false,
         )
 
         //language=JSON
@@ -187,7 +190,8 @@ internal class BrevInnholdTest {
                 "attestantNavn": "Hopp",
                 "fritekst": "",
                 "avslagsgrunner" : ["FOR_HØY_INNTEKT"],
-                "avslagsparagrafer" : [1]
+                "avslagsparagrafer" : [1],
+                "forventetInntektStørreEnn0" : false
             }
         """.trimIndent()
 
