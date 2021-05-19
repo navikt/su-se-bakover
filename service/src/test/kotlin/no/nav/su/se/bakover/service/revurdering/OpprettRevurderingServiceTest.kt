@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.service.revurdering
 
+import arrow.core.Nel
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
@@ -9,6 +10,7 @@ import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import io.kotest.assertions.arrow.either.shouldBeRight
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
@@ -21,6 +23,7 @@ import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.common.toTidspunkt
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.AktørId
+import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
@@ -31,7 +34,9 @@ import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.MånedsberegningFactory
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave
@@ -40,15 +45,16 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
-import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.fixedLocalDate
@@ -58,6 +64,7 @@ import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
+import no.nav.su.se.bakover.service.søknadsbehandling.testBeregning
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
@@ -106,7 +113,24 @@ internal class OpprettRevurderingServiceTest {
     )
 
     private val informasjonSomRevurderes = listOf(
-        Revurderingsteg.Inntekt
+        Revurderingsteg.Inntekt,
+    )
+
+    private val uføregrunnlag = Grunnlag.Uføregrunnlag(
+        periode = stønadsperiode.periode,
+        uføregrad = Uføregrad.parse(25),
+        forventetInntekt = 12000,
+    )
+
+    private val vilkårsvurderingUføre = Vilkår.Vurdert.Uførhet.create(
+        vurderingsperioder = Nel.of(
+            Vurderingsperiode.Uføre.create(
+                resultat = Resultat.Innvilget,
+                grunnlag = uføregrunnlag,
+                periode = stønadsperiode.periode,
+                begrunnelse = "ok",
+            ),
+        ),
     )
 
     private fun createBeregningMock() = mock<Beregning> {
@@ -140,8 +164,12 @@ internal class OpprettRevurderingServiceTest {
         attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("Attes T. Ant")),
         fritekstTilBrev = "",
         stønadsperiode = stønadsperiode,
-        grunnlagsdata = Grunnlagsdata.EMPTY,
-        vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+        grunnlagsdata = Grunnlagsdata(
+            uføregrunnlag = listOf(uføregrunnlag),
+        ),
+        vilkårsvurderinger = Vilkårsvurderinger(
+            uføre = vilkårsvurderingUføre,
+        ),
     )
 
     private fun createSak() = Sak(
@@ -201,45 +229,48 @@ internal class OpprettRevurderingServiceTest {
         ).orNull()!!
 
         val tilRevurdering = sak.vedtakListe.first() as Vedtak.EndringIYtelse
-        actual shouldBe OpprettetRevurdering(
-            id = actual.id,
-            periode = periode,
-            opprettet = actual.opprettet,
-            tilRevurdering = tilRevurdering,
-            saksbehandler = saksbehandler,
-            oppgaveId = OppgaveId("oppgaveId"),
-            fritekstTilBrev = "",
-            revurderingsårsak = revurderingsårsak,
-            forhåndsvarsel = null,
-            behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert)),
-        )
-        inOrder(
-            sakServiceMock,
-            personServiceMock,
-            oppgaveServiceMock,
-            revurderingRepoMock,
-            vilkårsvurderingServiceMock,
-        ) {
-            verify(sakServiceMock).hentSak(sakId)
-            verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
-            verify(vilkårsvurderingServiceMock).opprettVilkårsvurderinger(sakId, periode)
-            verify(oppgaveServiceMock).opprettOppgave(
-                argThat {
-                    it shouldBe OppgaveConfig.Revurderingsbehandling(
-                        saksnummer = saksnummer,
-                        aktørId = aktørId,
-                        tilordnetRessurs = null,
-                    )
-                },
+        actual.let { opprettetRevurdering ->
+            opprettetRevurdering.periode shouldBe periode
+            opprettetRevurdering.tilRevurdering shouldBe tilRevurdering
+            opprettetRevurdering.saksbehandler shouldBe saksbehandler
+            opprettetRevurdering.oppgaveId shouldBe OppgaveId("oppgaveId")
+            opprettetRevurdering.fritekstTilBrev shouldBe ""
+            opprettetRevurdering.revurderingsårsak shouldBe Revurderingsårsak.create(
+                årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER.toString(), begrunnelse = "Ny informasjon",
             )
-            verify(revurderingRepoMock).lagre(argThat { it.right() shouldBe actual.right() })
-            verify(vilkårsvurderingServiceMock).lagre(argThat { it shouldBe actual.id }, argThat { it shouldBe Vilkårsvurderinger(uføre = Vilkår.IkkeVurdert.Uførhet) })
-        }
+            opprettetRevurdering.forhåndsvarsel shouldBe null
+            opprettetRevurdering.behandlingsinformasjon shouldBe tilRevurdering.behandlingsinformasjon
+            opprettetRevurdering.grunnlagsdata.uføregrunnlag.let {
+                it shouldHaveSize 1
+                it[0].ekvivalentMed(uføregrunnlag)
+            }
+            opprettetRevurdering.vilkårsvurderinger.uføre.ekvivalentMed(vilkårsvurderingUføre)
+            opprettetRevurdering.informasjonSomRevurderes shouldBe InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert))
 
-        mocks.verifyNoMoreInteractions()
+            inOrder(
+                sakServiceMock,
+                personServiceMock,
+                oppgaveServiceMock,
+                revurderingRepoMock,
+                vilkårsvurderingServiceMock,
+            ) {
+                verify(sakServiceMock).hentSak(sakId)
+                verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
+                verify(oppgaveServiceMock).opprettOppgave(
+                    argThat {
+                        it shouldBe OppgaveConfig.Revurderingsbehandling(
+                            saksnummer = saksnummer,
+                            aktørId = aktørId,
+                            tilordnetRessurs = null,
+                        )
+                    },
+                )
+                verify(revurderingRepoMock).lagre(argThat { it.right() shouldBe actual.right() })
+                verify(vilkårsvurderingServiceMock).lagre(actual.id, actual.vilkårsvurderinger)
+            }
+
+            mocks.verifyNoMoreInteractions()
+        }
     }
 
     @Test
@@ -300,24 +331,32 @@ internal class OpprettRevurderingServiceTest {
         }
 
         val tilRevurdering = sak.vedtakListe.first() as Vedtak.EndringIYtelse
-        actual shouldBe OpprettetRevurdering(
-            id = actual.id,
-            periode = Periode.create(LocalDate.now().startOfMonth(), periode.tilOgMed),
-            opprettet = actual.opprettet,
-            tilRevurdering = tilRevurdering,
-            saksbehandler = saksbehandler,
-            oppgaveId = OppgaveId("oppgaveId"),
-            fritekstTilBrev = "",
-            revurderingsårsak = Revurderingsårsak(
+        val periode = Periode.create(LocalDate.now().startOfMonth(), periode.tilOgMed)
+        actual.let { opprettetRevurdering ->
+            opprettetRevurdering.periode shouldBe periode
+            opprettetRevurdering.tilRevurdering shouldBe tilRevurdering
+            opprettetRevurdering.saksbehandler shouldBe saksbehandler
+            opprettetRevurdering.oppgaveId shouldBe OppgaveId("oppgaveId")
+            opprettetRevurdering.fritekstTilBrev shouldBe ""
+            opprettetRevurdering.revurderingsårsak shouldBe Revurderingsårsak(
                 Revurderingsårsak.Årsak.REGULER_GRUNNBELØP,
                 Revurderingsårsak.Begrunnelse.create("g-regulering"),
-            ),
-            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert)),
-        )
+            )
+            opprettetRevurdering.forhåndsvarsel shouldBe Forhåndsvarsel.IngenForhåndsvarsel
+            opprettetRevurdering.behandlingsinformasjon shouldBe tilRevurdering.behandlingsinformasjon
+            opprettetRevurdering.grunnlagsdata.uføregrunnlag.let {
+                it shouldHaveSize 1
+                it[0].ekvivalentMed(uføregrunnlag.copy(periode = periode))
+            }
+            opprettetRevurdering.vilkårsvurderinger.uføre.ekvivalentMed(
+                vilkårsvurderingUføre.copy(
+                    vurderingsperioder = vilkårsvurderingUføre.vurderingsperioder.map {
+                        it.copy(CopyArgs.Tidslinje.NyPeriode(periode))
+                    },
+                ),
+            )
+            opprettetRevurdering.informasjonSomRevurderes shouldBe InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert))
+        }
         inOrder(
             sakServiceMock,
             personServiceMock,
@@ -327,7 +366,6 @@ internal class OpprettRevurderingServiceTest {
         ) {
             verify(sakServiceMock).hentSak(sakId)
             verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
-            verify(vilkårsvurderingServiceMock).opprettVilkårsvurderinger(sakId, actual.periode)
             verify(oppgaveServiceMock).opprettOppgave(
                 argThat {
                     it shouldBe OppgaveConfig.Revurderingsbehandling(
@@ -382,24 +420,33 @@ internal class OpprettRevurderingServiceTest {
             throw RuntimeException("$it")
         }
         val tilRevurdering = sak.vedtakListe.first() as Vedtak.EndringIYtelse
-        actual shouldBe OpprettetRevurdering(
-            id = actual.id,
-            periode = Periode.create(LocalDate.now().minusMonths(1).startOfMonth(), periode.tilOgMed),
-            opprettet = actual.opprettet,
-            tilRevurdering = tilRevurdering,
-            saksbehandler = saksbehandler,
-            oppgaveId = OppgaveId("oppgaveId"),
-            fritekstTilBrev = "",
-            revurderingsårsak = Revurderingsårsak(
+        val periode = Periode.create(LocalDate.now().minusMonths(1).startOfMonth(), periode.tilOgMed)
+        actual.let { opprettetRevurdering ->
+            opprettetRevurdering.periode shouldBe periode
+            opprettetRevurdering.tilRevurdering shouldBe tilRevurdering
+            opprettetRevurdering.saksbehandler shouldBe saksbehandler
+            opprettetRevurdering.oppgaveId shouldBe OppgaveId("oppgaveId")
+            opprettetRevurdering.fritekstTilBrev shouldBe ""
+            opprettetRevurdering.revurderingsårsak shouldBe Revurderingsårsak(
                 Revurderingsårsak.Årsak.REGULER_GRUNNBELØP,
                 Revurderingsårsak.Begrunnelse.create("g-regulering"),
-            ),
-            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-            behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert)),
-        )
+            )
+            opprettetRevurdering.forhåndsvarsel shouldBe Forhåndsvarsel.IngenForhåndsvarsel
+            opprettetRevurdering.behandlingsinformasjon shouldBe tilRevurdering.behandlingsinformasjon
+            opprettetRevurdering.grunnlagsdata.uføregrunnlag.let {
+                it shouldHaveSize 1
+                it[0].ekvivalentMed(uføregrunnlag.copy(periode = periode))
+            }
+            opprettetRevurdering.vilkårsvurderinger.uføre.ekvivalentMed(
+                vilkårsvurderingUføre.copy(
+                    vurderingsperioder = vilkårsvurderingUføre.vurderingsperioder.map {
+                        it.copy(CopyArgs.Tidslinje.NyPeriode(periode))
+                    },
+                ),
+            )
+            opprettetRevurdering.informasjonSomRevurderes shouldBe InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert))
+        }
+
         inOrder(
             sakServiceMock,
             personServiceMock,
@@ -409,7 +456,6 @@ internal class OpprettRevurderingServiceTest {
         ) {
             verify(sakServiceMock).hentSak(sakId)
             verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
-            verify(vilkårsvurderingServiceMock).opprettVilkårsvurderinger(sakId, actual.periode)
             verify(oppgaveServiceMock).opprettOppgave(
                 argThat {
                     it shouldBe OppgaveConfig.Revurderingsbehandling(
@@ -524,27 +570,39 @@ internal class OpprettRevurderingServiceTest {
         val behandlingMock = mock<Behandling> {
             on { fnr } doReturn FnrGenerator.random()
             on { saksnummer } doReturn Saksnummer(2021)
+            on { grunnlagsdata } doReturn Grunnlagsdata(
+                uføregrunnlag = listOf(uføregrunnlag),
+            )
+            on { vilkårsvurderinger } doReturn Vilkårsvurderinger(
+                uføre = vilkårsvurderingUføre,
+            )
         }
         val vedtakForFørsteJanuarLagetNå = mock<Vedtak.EndringIYtelse> {
+            on { id } doReturn UUID.randomUUID()
             on { opprettet } doReturn fixedTidspunkt
             on { periode } doReturn Periode.create(1.januar(2021), 31.desember(2021))
             on { behandling } doReturn behandlingMock
             on { behandlingsinformasjon } doReturn Behandlingsinformasjon.lagTomBehandlingsinformasjon()
                 .withAlleVilkårOppfylt()
+            on { beregning } doReturn testBeregning
         }
         val vedtakForFørsteMarsLagetNå = mock<Vedtak.EndringIYtelse> {
+            on { id } doReturn UUID.randomUUID()
             on { opprettet } doReturn fixedTidspunkt.plus(1, ChronoUnit.SECONDS)
             on { periode } doReturn Periode.create(1.mars(2021), 31.desember(2021))
             on { behandling } doReturn behandlingMock
             on { behandlingsinformasjon } doReturn Behandlingsinformasjon.lagTomBehandlingsinformasjon()
                 .withAlleVilkårOppfylt()
+            on { beregning } doReturn testBeregning
         }
         val vedtakForFørsteJanuarLagetForLengeSiden = mock<Vedtak.EndringIYtelse> {
+            on { id } doReturn UUID.randomUUID()
             on { opprettet } doReturn fixedTidspunkt.instant.minus(2, ChronoUnit.HALF_DAYS).toTidspunkt()
             on { periode } doReturn Periode.create(1.januar(2021), 31.desember(2021))
             on { behandling } doReturn behandlingMock
             on { behandlingsinformasjon } doReturn Behandlingsinformasjon.lagTomBehandlingsinformasjon()
                 .withAlleVilkårOppfylt()
+            on { beregning } doReturn testBeregning
         }
 
         val sak = Sak(
@@ -630,8 +688,12 @@ internal class OpprettRevurderingServiceTest {
                 revurderingsårsak = revurderingsårsak,
                 forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
                 behandlingsinformasjon = opprinneligVedtak.behandlingsinformasjon,
-                grunnlagsdata = Grunnlagsdata.EMPTY,
-                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+                grunnlagsdata = Grunnlagsdata(
+                    uføregrunnlag = listOf(uføregrunnlag),
+                ),
+                vilkårsvurderinger = Vilkårsvurderinger(
+                    uføre = vilkårsvurderingUføre,
+                ),
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             )
             it.copy(
@@ -684,7 +746,6 @@ internal class OpprettRevurderingServiceTest {
         verify(sakServiceMock).hentSak(sakId)
         verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
         verify(revurderingRepoMock).lagre(argThat { it.right() shouldBe actual })
-        verify(vilkårsvurderingServiceMock).opprettVilkårsvurderinger(sakId, periode)
         verify(oppgaveServiceMock).opprettOppgave(
             argThat {
                 it shouldBe OppgaveConfig.Revurderingsbehandling(
@@ -799,7 +860,6 @@ internal class OpprettRevurderingServiceTest {
         actual shouldBe KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave.left()
         verify(sakServiceMock).hentSak(sakId)
         verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
-        verify(vilkårsvurderingServiceMock).opprettVilkårsvurderinger(sakId, periode)
         verify(oppgaveServiceMock).opprettOppgave(
             argThat {
                 it shouldBe OppgaveConfig.Revurderingsbehandling(

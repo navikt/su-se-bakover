@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeSak
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.måVelgeInformasjonSomRevurderes
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.periodeOgÅrsakKombinasjonErUgyldig
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.ugyldigTilstand
@@ -90,5 +91,6 @@ private fun KunneIkkeOppdatereRevurdering.tilResultat(): Resultat {
         )
         KunneIkkeOppdatereRevurdering.PeriodeOgÅrsakKombinasjonErUgyldig -> periodeOgÅrsakKombinasjonErUgyldig
         KunneIkkeOppdatereRevurdering.MåVelgeInformasjonSomSkalRevurderes -> måVelgeInformasjonSomRevurderes
+        KunneIkkeOppdatereRevurdering.FantIkkeSak -> fantIkkeSak
     }
 }

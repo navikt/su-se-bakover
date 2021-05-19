@@ -3,6 +3,10 @@ package no.nav.su.se.bakover.service.revurdering
 import arrow.core.Nel
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.should
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
@@ -38,6 +42,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.fixedClock
+import no.nav.su.se.bakover.service.fixedLocalDate
 import no.nav.su.se.bakover.service.fixedTidspunkt
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
@@ -52,7 +57,7 @@ import java.util.UUID
 
 object RevurderingTestUtils {
     internal val sakId: UUID = UUID.randomUUID()
-    internal val dagensDato = LocalDate.now().let {
+    internal val dagensDato = fixedLocalDate.let {
         LocalDate.of(
             it.year,
             it.month,
@@ -110,6 +115,29 @@ object RevurderingTestUtils {
         Revurderingsårsak.Begrunnelse.create("Nytt Grunnbeløp"),
     )
 
+    internal val uføregrunnlag = Grunnlag.Uføregrunnlag(
+        periode = periode,
+        uføregrad = Uføregrad.parse(20),
+        forventetInntekt = 10,
+    )
+
+    internal val vurderingsperiodeUføre = Vurderingsperiode.Uføre.create(
+        id = UUID.randomUUID(),
+        opprettet = fixedTidspunkt,
+        resultat = Resultat.Avslag,
+        grunnlag = uføregrunnlag,
+        periode = periode,
+        begrunnelse = "ok2k",
+    )
+
+    internal val vilkårsvurderinger = Vilkårsvurderinger(
+        uføre = Vilkår.Vurdert.Uførhet.create(
+            vurderingsperioder = Nel.of(
+                vurderingsperiodeUføre,
+            ),
+        ),
+    )
+
     internal val søknadsbehandlingVedtak = Vedtak.fromSøknadsbehandling(
         Søknadsbehandling.Iverksatt.Innvilget(
             id = mock(),
@@ -134,8 +162,12 @@ object RevurderingTestUtils {
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("Attes T. Ant")),
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            grunnlagsdata = Grunnlagsdata(
+                uføregrunnlag = listOf(uføregrunnlag),
+            ),
+            vilkårsvurderinger = Vilkårsvurderinger(
+                uføre = vilkårsvurderinger.uføre,
+            ),
         ),
         UUID30.randomUUID(),
     )
@@ -184,29 +216,6 @@ object RevurderingTestUtils {
             grunnlagService = grunnlagService,
         )
 
-    internal val uføregrunnlag = Grunnlag.Uføregrunnlag(
-        periode = periode,
-        uføregrad = Uføregrad.parse(20),
-        forventetInntekt = 10,
-    )
-
-    internal val vurderingsperiodeUføre = Vurderingsperiode.Uføre.create(
-        id = UUID.randomUUID(),
-        opprettet = fixedTidspunkt,
-        resultat = Resultat.Avslag,
-        grunnlag = uføregrunnlag,
-        periode = periode,
-        begrunnelse = "ok2k",
-    )
-
-    internal val vilkårsvurderinger = Vilkårsvurderinger(
-        uføre = Vilkår.Vurdert.Uførhet.create(
-            vurderingsperioder = Nel.of(
-                vurderingsperiodeUføre,
-            ),
-        ),
-    )
-
     internal val opprettetRevurdering = OpprettetRevurdering(
         id = revurderingId,
         periode = periode,
@@ -244,4 +253,32 @@ object RevurderingTestUtils {
         vilkårsvurderinger = vilkårsvurderinger,
         informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
     )
+}
+
+internal fun Grunnlag.Uføregrunnlag.ekvivalentMed(other: Grunnlag.Uføregrunnlag) {
+    opprettet shouldBe other.opprettet
+    forventetInntekt shouldBe other.forventetInntekt
+    periode shouldBe other.periode
+    uføregrad shouldBe other.uføregrad
+}
+
+@Suppress("UNCHECKED_CAST")
+internal fun Vilkår<Grunnlag.Uføregrunnlag?>.ekvivalentMed(other: Vilkår.Vurdert.Uførhet) {
+    this should beOfType<Vilkår.Vurdert.Uførhet>()
+    (this as Vilkår.Vurdert.Uførhet).let {
+        (vurderingsperioder as Nel<Vurderingsperiode.Uføre>).let {
+            it shouldHaveSize other.vurderingsperioder.size
+            it.forEachIndexed { index, vurderingsperiode ->
+                vurderingsperiode.ekvivalentMed((other.vurderingsperioder as Nel<Vurderingsperiode.Uføre>)[index])
+            }
+        }
+    }
+}
+
+internal fun Vurderingsperiode.Uføre.ekvivalentMed(other: Vurderingsperiode.Uføre) {
+    opprettet shouldBe other.opprettet
+    resultat shouldBe other.resultat
+    grunnlag!!.ekvivalentMed(other.grunnlag!!)
+    periode shouldBe other.periode
+    begrunnelse shouldBe other.begrunnelse
 }

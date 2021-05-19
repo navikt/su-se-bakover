@@ -25,7 +25,7 @@ import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
 import java.time.Clock
 
-internal val beregning = TestBeregning
+internal val testBeregning = TestBeregning
 
 internal val simulering = Simulering(
     gjelderId = fnr,

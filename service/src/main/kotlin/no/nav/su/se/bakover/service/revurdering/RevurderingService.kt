@@ -160,6 +160,7 @@ sealed class KunneIkkeOppdatereRevurdering {
     object KanIkkeOppdatereRevurderingSomErForhåndsvarslet : KunneIkkeOppdatereRevurdering()
     object PeriodeOgÅrsakKombinasjonErUgyldig : KunneIkkeOppdatereRevurdering()
     object MåVelgeInformasjonSomSkalRevurderes : KunneIkkeOppdatereRevurdering()
+    object FantIkkeSak : KunneIkkeOppdatereRevurdering()
 }
 
 sealed class KunneIkkeBeregneOgSimulereRevurdering {
