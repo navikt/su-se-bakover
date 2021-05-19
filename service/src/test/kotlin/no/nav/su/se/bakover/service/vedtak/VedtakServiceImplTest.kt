@@ -1,9 +1,7 @@
 package no.nav.su.se.bakover.service.vedtak
 
 import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.anyOrNull
 import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.eq
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
@@ -45,7 +43,7 @@ internal class VedtakServiceImplTest {
         val vedtak = innvilgetVedtak(fnr)
 
         val vedtakRepoMock = mock<VedtakRepo>() {
-            on { hentAktive(any(), eq(null)) } doReturn listOf(vedtak)
+            on { hentAktive(any()) } doReturn listOf(vedtak)
         }
 
         val actual = createService(
@@ -54,7 +52,7 @@ internal class VedtakServiceImplTest {
 
         actual shouldBe listOf(fnr)
 
-        verify(vedtakRepoMock).hentAktive(argThat { it shouldBe dato }, anyOrNull())
+        verify(vedtakRepoMock).hentAktive(argThat { it shouldBe dato })
         verifyNoMoreInteractions(vedtakRepoMock)
     }
 
@@ -65,7 +63,7 @@ internal class VedtakServiceImplTest {
         val vedtak = innvilgetVedtak(fnr)
 
         val vedtakRepoMock = mock<VedtakRepo>() {
-            on { hentAktive(any(), eq(null)) } doReturn listOf(vedtak, vedtak)
+            on { hentAktive(any()) } doReturn listOf(vedtak, vedtak)
         }
 
         val actual = createService(
@@ -74,7 +72,7 @@ internal class VedtakServiceImplTest {
 
         actual shouldBe listOf(fnr)
 
-        verify(vedtakRepoMock).hentAktive(argThat { it shouldBe dato }, anyOrNull())
+        verify(vedtakRepoMock).hentAktive(argThat { it shouldBe dato })
         verifyNoMoreInteractions(vedtakRepoMock)
     }
 
@@ -87,7 +85,7 @@ internal class VedtakServiceImplTest {
         val vedtakSist = innvilgetVedtak(fnrFørst)
 
         val vedtakRepoMock = mock<VedtakRepo>() {
-            on { hentAktive(any(), eq(null)) } doReturn listOf(vedtakFørst, vedtakSist)
+            on { hentAktive(any()) } doReturn listOf(vedtakFørst, vedtakSist)
         }
 
         val actual = createService(
@@ -96,7 +94,7 @@ internal class VedtakServiceImplTest {
 
         actual shouldBe listOf(fnrFørst, fnrSist)
 
-        verify(vedtakRepoMock).hentAktive(argThat { it shouldBe dato }, anyOrNull())
+        verify(vedtakRepoMock).hentAktive(argThat { it shouldBe dato })
         verifyNoMoreInteractions(vedtakRepoMock)
     }
 

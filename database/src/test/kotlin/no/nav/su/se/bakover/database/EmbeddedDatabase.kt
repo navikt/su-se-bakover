@@ -6,7 +6,7 @@ import org.flywaydb.core.Flyway
 import javax.sql.DataSource
 
 object EmbeddedDatabase {
-    internal val DB_NAME = "postgres"
+    internal const val DB_NAME = "postgres"
     private val instance = EmbeddedPostgres.builder()
         // Don't explicit set locale here, because it will auto-detect differently on mac osx, windows and linux.
         // See PR: https://github.com/opentable/otj-pg-embedded/pull/89/files

@@ -11,8 +11,8 @@ import no.nav.su.se.bakover.database.beregning.toSnapshot
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
-import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
-import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
+import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
+import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.database.uuid30OrNull
@@ -33,9 +33,8 @@ import java.util.UUID
 import javax.sql.DataSource
 
 interface VedtakRepo {
-    fun hentForSakId(sakId: UUID, session: Session? = null): List<Vedtak>
-    fun hent(id: UUID, session: Session? = null): Vedtak?
-    fun hentAktive(dato: LocalDate, session: Session? = null): List<Vedtak.EndringIYtelse>
+    fun hentForSakId(sakId: UUID): List<Vedtak>
+    fun hentAktive(dato: LocalDate): List<Vedtak.EndringIYtelse>
     fun lagre(vedtak: Vedtak)
     fun hentForUtbetaling(utbetalingId: UUID30): Vedtak.EndringIYtelse
     fun hentUtenJournalpost(): List<Vedtak>
@@ -44,21 +43,23 @@ interface VedtakRepo {
 
 internal class VedtakPosgresRepo(
     private val dataSource: DataSource,
-    private val søknadsbehandlingRepo: SøknadsbehandlingRepo,
-    private val revurderingRepo: RevurderingRepo,
+    private val søknadsbehandlingRepo: SøknadsbehandlingPostgresRepo,
+    private val revurderingRepo: RevurderingPostgresRepo,
 ) : VedtakRepo {
-    override fun hentForSakId(sakId: UUID, session: Session?): List<Vedtak> =
-        dataSource.withSession(session) { s ->
-            """
+
+    override fun hentForSakId(sakId: UUID): List<Vedtak> =
+        dataSource.withSession { session -> hentForSakId(sakId, session) }
+
+    internal fun hentForSakId(sakId: UUID, session: Session): List<Vedtak> =
+        """
             SELECT v.*
             FROM vedtak v
             JOIN behandling_vedtak bv ON bv.vedtakid = v.id
             WHERE bv.sakId = :sakId
-            """.trimIndent()
-                .hentListe(mapOf("sakId" to sakId), s) {
-                    it.toVedtak(s)
-                }
-        }
+        """.trimIndent()
+            .hentListe(mapOf("sakId" to sakId), session) {
+                it.toVedtak(session)
+            }
 
     override fun lagre(vedtak: Vedtak) =
         when (vedtak) {
@@ -106,18 +107,16 @@ internal class VedtakPosgresRepo(
         }
     }
 
-    override fun hent(id: UUID, session: Session?) =
-        dataSource.withSession(session) { s ->
-            """
+    internal fun hent(id: UUID, session: Session) =
+        """
             select * from vedtak where id = :id
-            """.trimIndent()
-                .hent(mapOf("id" to id), s) {
-                    it.toVedtak(s)
-                }
-        }
+        """.trimIndent()
+            .hent(mapOf("id" to id), session) {
+                it.toVedtak(session)
+            }
 
-    override fun hentAktive(dato: LocalDate, session: Session?): List<Vedtak.EndringIYtelse> =
-        dataSource.withSession(session) { s ->
+    override fun hentAktive(dato: LocalDate): List<Vedtak.EndringIYtelse> =
+        dataSource.withSession { session ->
             """
             select * from vedtak 
             where fraogmed <= :dato
@@ -125,8 +124,8 @@ internal class VedtakPosgresRepo(
             order by fraogmed, tilogmed, opprettet
 
             """.trimIndent()
-                .hentListe(mapOf("dato" to dato), s) {
-                    it.toVedtak(s)
+                .hentListe(mapOf("dato" to dato), session) {
+                    it.toVedtak(session)
                 }.filterIsInstance<Vedtak.EndringIYtelse>()
         }
 
@@ -155,9 +154,8 @@ internal class VedtakPosgresRepo(
         val simulering = stringOrNull("simulering")?.let { objectMapper.readValue<Simulering>(it) }
         val iverksattJournalpostId = stringOrNull("iverksattJournalpostId")?.let { JournalpostId(it) }
         val iverksattBrevbestillingId = stringOrNull("iverksattBrevbestillingId")?.let { BrevbestillingId(it) }
-        val vedtakType = VedtakType.valueOf(string("vedtaktype"))
 
-        return when (vedtakType) {
+        return when (val vedtakType = VedtakType.valueOf(string("vedtaktype"))) {
             VedtakType.SØKNAD,
             VedtakType.ENDRING,
             VedtakType.OPPHØR,

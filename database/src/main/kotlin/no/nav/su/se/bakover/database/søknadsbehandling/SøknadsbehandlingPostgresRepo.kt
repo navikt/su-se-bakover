@@ -6,8 +6,8 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.beregning.toSnapshot
-import no.nav.su.se.bakover.database.grunnlag.GrunnlagRepo
-import no.nav.su.se.bakover.database.grunnlag.VilkårsvurderingRepo
+import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.VilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
@@ -35,17 +35,19 @@ import javax.sql.DataSource
 
 internal class SøknadsbehandlingPostgresRepo(
     private val dataSource: DataSource,
-    private val grunnlagRepo: GrunnlagRepo,
-    private val vilkårsvurderingRepo: VilkårsvurderingRepo,
+    private val uføregrunnlagRepo: UføregrunnlagPostgresRepo,
+    private val vilkårsvurderingRepo: VilkårsvurderingPostgresRepo,
 ) : SøknadsbehandlingRepo {
     override fun lagre(søknadsbehandling: Søknadsbehandling) {
-        when (søknadsbehandling) {
-            is Søknadsbehandling.Vilkårsvurdert -> lagre(søknadsbehandling)
-            is Søknadsbehandling.Beregnet -> lagre(søknadsbehandling)
-            is Søknadsbehandling.Simulert -> lagre(søknadsbehandling)
-            is Søknadsbehandling.TilAttestering -> lagre(søknadsbehandling)
-            is Søknadsbehandling.Underkjent -> lagre(søknadsbehandling)
-            is Søknadsbehandling.Iverksatt -> lagre(søknadsbehandling)
+        dataSource.withSession { session ->
+            when (søknadsbehandling) {
+                is Søknadsbehandling.Vilkårsvurdert -> lagre(søknadsbehandling, session)
+                is Søknadsbehandling.Beregnet -> lagre(søknadsbehandling, session)
+                is Søknadsbehandling.Simulert -> lagre(søknadsbehandling, session)
+                is Søknadsbehandling.TilAttestering -> lagre(søknadsbehandling, session)
+                is Søknadsbehandling.Underkjent -> lagre(søknadsbehandling, session)
+                is Søknadsbehandling.Iverksatt -> lagre(søknadsbehandling, session)
+            }
         }
     }
 
@@ -106,16 +108,14 @@ internal class SøknadsbehandlingPostgresRepo(
         }
     }
 
-    override fun hent(id: UUID, session: Session): Søknadsbehandling? {
-        return dataSource.withSession(session) { s ->
-            "select b.*, s.fnr, s.saksnummer from behandling b inner join sak s on s.id = b.sakId where b.id=:id"
-                .hent(mapOf("id" to id), s) { row ->
-                    row.toSaksbehandling(s)
-                }
-        }
+    internal fun hent(id: UUID, session: Session): Søknadsbehandling? {
+        return "select b.*, s.fnr, s.saksnummer from behandling b inner join sak s on s.id = b.sakId where b.id=:id"
+            .hent(mapOf("id" to id), session) { row ->
+                row.toSaksbehandling(session)
+            }
     }
 
-    override fun hentForSak(sakId: UUID, session: Session): List<Søknadsbehandling> {
+    internal fun hentForSak(sakId: UUID, session: Session): List<Søknadsbehandling> {
         return "select b.*, s.fnr, s.saksnummer from behandling b inner join sak s on s.id = b.sakId where b.sakId=:sakId"
             .hentListe(mapOf("sakId" to sakId), session) {
                 it.toSaksbehandling(session)
@@ -143,10 +143,10 @@ internal class SøknadsbehandlingPostgresRepo(
 
         val fnr = Fnr(string("fnr"))
         val grunnlagsdata = Grunnlagsdata(
-            uføregrunnlag = grunnlagRepo.hentUføregrunnlag(behandlingId),
+            uføregrunnlag = uføregrunnlagRepo.hentUføregrunnlag(behandlingId, session),
         )
         val vilkårsvurderinger = Vilkårsvurderinger(
-            uføre = vilkårsvurderingRepo.hent(behandlingId),
+            uføre = vilkårsvurderingRepo.hent(behandlingId, session),
         )
 
         return when (status) {
@@ -398,10 +398,8 @@ internal class SøknadsbehandlingPostgresRepo(
         }
     }
 
-    private fun lagre(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert) {
-        dataSource.withSession { session ->
-            (
-                """
+    private fun lagre(søknadsbehandling: Søknadsbehandling.Vilkårsvurdert, session: Session) {
+        """
                     update behandling set
                         status = :status,
                         behandlingsinformasjon = to_json(:behandlingsinformasjon::json),
@@ -409,35 +407,29 @@ internal class SøknadsbehandlingPostgresRepo(
                         simulering = null,
                         stønadsperiode = to_json(:stonadsperiode::json)
                     where id = :id    
-                """.trimIndent()
-                ).oppdatering(
+        """.trimIndent()
+            .oppdatering(
                 defaultParams(søknadsbehandling), session,
             )
-        }
     }
 
-    private fun lagre(søknadsbehandling: Søknadsbehandling.Beregnet) {
-        dataSource.withSession { session ->
-            (
-                """
+    private fun lagre(søknadsbehandling: Søknadsbehandling.Beregnet, session: Session) {
+        """
                    update behandling set status = :status, beregning = to_json(:beregning::json), simulering = null where id = :id
-                """.trimIndent()
-                ).oppdatering(
+        """.trimIndent()
+            .oppdatering(
                 params = defaultParams(søknadsbehandling).plus(
                     "beregning" to objectMapper.writeValueAsString(søknadsbehandling.beregning.toSnapshot()),
                 ),
                 session = session,
             )
-        }
     }
 
-    private fun lagre(søknadsbehandling: Søknadsbehandling.Simulert) {
-        dataSource.withSession { session ->
-            (
-                """
+    private fun lagre(søknadsbehandling: Søknadsbehandling.Simulert, session: Session) {
+        """
                    update behandling set status = :status, beregning = to_json(:beregning::json), simulering = to_json(:simulering::json)  where id = :id
-                """.trimIndent()
-                ).oppdatering(
+        """.trimIndent()
+            .oppdatering(
                 defaultParams(søknadsbehandling).plus(
                     listOf(
                         "beregning" to objectMapper.writeValueAsString(søknadsbehandling.beregning.toSnapshot()),
@@ -446,21 +438,18 @@ internal class SøknadsbehandlingPostgresRepo(
                 ),
                 session,
             )
-        }
     }
 
-    private fun lagre(søknadsbehandling: Søknadsbehandling.TilAttestering) {
-        dataSource.withSession { session ->
-            (
-                """
+    private fun lagre(søknadsbehandling: Søknadsbehandling.TilAttestering, session: Session) {
+        """
                     update behandling set
                         status = :status,
                         saksbehandler = :saksbehandler,
                         oppgaveId = :oppgaveId,
                         fritekstTilBrev = :fritekstTilBrev
                     where id = :id
-                """.trimIndent()
-                ).oppdatering(
+        """.trimIndent()
+            .oppdatering(
                 defaultParams(søknadsbehandling).plus(
                     listOf(
                         "saksbehandler" to søknadsbehandling.saksbehandler.navIdent,
@@ -469,33 +458,27 @@ internal class SøknadsbehandlingPostgresRepo(
                 ),
                 session,
             )
-        }
     }
 
-    private fun lagre(søknadsbehandling: Søknadsbehandling.Underkjent) {
-        dataSource.withSession { session ->
-            (
-                """
+    private fun lagre(søknadsbehandling: Søknadsbehandling.Underkjent, session: Session) {
+        """
                     update behandling set status = :status, attestering = to_json(:attestering::json), oppgaveId = :oppgaveId  where id = :id
-                """.trimIndent()
-                ).oppdatering(
+        """.trimIndent()
+            .oppdatering(
                 params = defaultParams(søknadsbehandling).plus(
                     "attestering" to objectMapper.writeValueAsString(søknadsbehandling.attestering),
                 ),
                 session = session,
             )
-        }
     }
 
-    private fun lagre(søknadsbehandling: Søknadsbehandling.Iverksatt) {
+    private fun lagre(søknadsbehandling: Søknadsbehandling.Iverksatt, session: Session) {
         when (søknadsbehandling) {
             is Søknadsbehandling.Iverksatt.Innvilget -> {
-                dataSource.withSession { session ->
-                    (
-                        """
+                """
                        update behandling set status = :status, attestering = to_json(:attestering::json)  where id = :id
-                        """.trimIndent()
-                        ).oppdatering(
+                """.trimIndent()
+                    .oppdatering(
                         params = defaultParams(søknadsbehandling).plus(
                             listOf(
                                 "attestering" to objectMapper.writeValueAsString(søknadsbehandling.attestering),
@@ -503,15 +486,12 @@ internal class SøknadsbehandlingPostgresRepo(
                         ),
                         session = session,
                     )
-                }
             }
             is Søknadsbehandling.Iverksatt.Avslag -> {
-                dataSource.withSession { session ->
-                    (
-                        """
+                """
                        update behandling set status = :status, attestering = to_json(:attestering::json) where id = :id
-                        """.trimIndent()
-                        ).oppdatering(
+                """.trimIndent()
+                    .oppdatering(
                         params = defaultParams(søknadsbehandling).plus(
                             listOf(
                                 "attestering" to objectMapper.writeValueAsString(søknadsbehandling.attestering),
@@ -519,7 +499,6 @@ internal class SøknadsbehandlingPostgresRepo(
                         ),
                         session = session,
                     )
-                }
             }
         }
     }
