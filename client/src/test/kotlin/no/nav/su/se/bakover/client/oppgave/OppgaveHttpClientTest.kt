@@ -411,7 +411,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                             {
                               "id": $oppgaveId,
                               "versjon": $versjon,
-                              "beskrivelse": "--- 01.01.1970 01:00 - Lukket av Supplerende Stønad ---\nSøknadId : $søknadId",
+                              "beskrivelse": "--- 01.01.1970 01:00 - Lukket av Supplerende Stønad ---",
                               "status": "FERDIGSTILT"
                             }
                         """.trimIndent()
@@ -512,7 +512,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                             {
                               "id": $oppgaveId,
                               "versjon": $versjon,
-                              "beskrivelse": "--- 01.01.1970 01:00 - Lukket av Supplerende Stønad ---\nSøknadId : $søknadId",
+                              "beskrivelse": "--- 01.01.1970 01:00 - Lukket av Supplerende Stønad ---",
                               "status": "FERDIGSTILT"
                             }
                         """.trimIndent()
@@ -613,7 +613,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                             {
                               "id": $oppgaveId,
                               "versjon": $versjon,
-                              "beskrivelse": "--- 01.01.1970 01:00 - Lukket av Supplerende Stønad ---\nSøknadId : $søknadId\n\n--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\nforrige melding",
+                              "beskrivelse": "--- 01.01.1970 01:00 - Lukket av Supplerende Stønad ---\n\n--- 01.01.0001 01:01 Fornavn Etternavn (Z12345, 4815) ---\nforrige melding",
                               "status": "FERDIGSTILT"
                             }
                         """.trimIndent()
@@ -874,7 +874,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
                             {
                               "id": $oppgaveId,
                               "versjon": ${versjon + 1},
-                              "beskrivelse": "--- 01.01.1970 01:00 - en beskrivelse ---\nSøknadId : $søknadId",
+                              "beskrivelse": "--- 01.01.1970 01:00 - en beskrivelse ---",
                               "status": "AAPNET"
                             }
                             """.trimIndent()
@@ -904,7 +904,7 @@ internal class OppgaveHttpClientTest : WiremockBase {
             {
             "id" : $oppgaveId,
             "versjon" : $versjon,
-            "beskrivelse" : "--- 01.01.1970 01:00 - en beskrivelse ---\nSøknadId : $søknadId\n\nDette er den orginale beskrivelsen",
+            "beskrivelse" : "--- 01.01.1970 01:00 - en beskrivelse ---\n\nDette er den orginale beskrivelsen",
             "status" : "AAPNET"
             }
             """.trimIndent()
