@@ -19,6 +19,7 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
@@ -52,11 +53,14 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeForhåndsvarsle
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeHenteGrunnlag
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLageBrevutkastForRevurdering
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilFradragsgrunnlag
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilGrunnlag
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeSendeRevurderingTilAttestering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeUnderkjenneRevurdering
+import no.nav.su.se.bakover.service.revurdering.LeggTilFradragsgrunnlagRequest
+import no.nav.su.se.bakover.service.revurdering.LeggTilFradragsgrunnlagResponse
 import no.nav.su.se.bakover.service.revurdering.LeggTilUføregrunnlagResponse
 import no.nav.su.se.bakover.service.revurdering.OppdaterRevurderingRequest
 import no.nav.su.se.bakover.service.revurdering.OpprettRevurderingRequest
@@ -473,6 +477,11 @@ open class AccessCheckProxy(
                     return services.revurdering.leggTilUføregrunnlag(request)
                 }
 
+                override fun leggTilFradragsgrunnlag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradragsgrunnlag, LeggTilFradragsgrunnlagResponse> {
+                    assertHarTilgangTilRevurdering(request.behandlingId)
+                    return services.revurdering.leggTilFradragsgrunnlag(request)
+                }
+
                 override fun hentGjeldendeVilkårsvurderinger(revurderingId: UUID): Either<KunneIkkeHenteGrunnlag, Vilkårsvurderinger> {
                     assertHarTilgangTilRevurdering(revurderingId)
                     return services.revurdering.hentGjeldendeVilkårsvurderinger(revurderingId)
@@ -486,6 +495,14 @@ open class AccessCheckProxy(
             grunnlagService = object : GrunnlagService {
                 override fun opprettGrunnlagsdata(sakId: UUID, periode: Periode): Grunnlagsdata =
                     kastKanKunKallesFraAnnenService()
+
+                override fun lagreFradragsgrunnlag(behandlingId: UUID, fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>) {
+                    kastKanKunKallesFraAnnenService()
+                }
+
+                override fun hentFradragsgrunnlag(behandlingId: UUID): List<Grunnlag.Fradragsgrunnlag> {
+                    kastKanKunKallesFraAnnenService()
+                }
             },
         )
     }

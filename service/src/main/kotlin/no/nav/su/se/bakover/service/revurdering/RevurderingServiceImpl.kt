@@ -44,6 +44,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.service.brev.BrevService
+import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -70,6 +71,7 @@ internal class RevurderingServiceImpl(
     internal val vedtakRepo: VedtakRepo,
     internal val ferdigstillVedtakService: FerdigstillVedtakService,
     private val vilkårsvurderingService: VilkårsvurderingService,
+    private val grunnlagService: GrunnlagService,
 ) : RevurderingService {
 
     private val observers: MutableList<EventObserver> = mutableListOf()
@@ -123,6 +125,7 @@ internal class RevurderingServiceImpl(
         val informasjonSomRevurderes = InformasjonSomRevurderes.tryCreate(opprettRevurderingRequest.informasjonSomRevurderes)
             .getOrHandle { return KunneIkkeOppretteRevurdering.MåVelgeInformasjonSomSkalRevurderes.left() }
 
+        // TODO sy sammen med endringer i tidslinje for vedtak (annen branch) og ta i bruk grunnlag derfra
         val (vilkårsvurderinger, grunnlag) = opprettVilkårsvurderinger(sak.id, periode)
 
         // TODO ai 25.02.2021 - Oppgaven skal egentligen ikke opprettes her. Den burde egentligen komma utifra melding av endring, som skal føres til revurdering.
@@ -156,6 +159,8 @@ internal class RevurderingServiceImpl(
                     vilkårsvurderinger = it.vilkårsvurderinger,
                 )
 
+                // TODO lagre grunnlag for fradrag
+
                 observers.forEach { observer ->
                     observer.handle(
                         Event.Statistikk.RevurderingStatistikk.RevurderingOpprettet(
@@ -167,6 +172,7 @@ internal class RevurderingServiceImpl(
         }
     }
 
+    // TODO denne funksjonen og tilhørende funksjonalitet kan fjernes -> erstattes med å utlede tilsvarende fra tidslinje for vedtak
     private fun opprettVilkårsvurderinger(sakId: UUID, periode: Periode): Pair<Vilkårsvurderinger, Grunnlagsdata> {
         val vilkårsvurderinger = vilkårsvurderingService.opprettVilkårsvurderinger(sakId, periode)
         val grunnlag = when (val vilkårsvurderingUføre = vilkårsvurderinger.uføre) {
@@ -237,6 +243,14 @@ internal class RevurderingServiceImpl(
         ).right()
     }
 
+    override fun leggTilFradragsgrunnlag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradragsgrunnlag, LeggTilFradragsgrunnlagResponse> {
+        // TODO hent, lagre grunnlag, oppdater revurdering, utled gjeldende, feil etc.
+        return LeggTilFradragsgrunnlagResponse(
+            fradrag = listOf(),
+            gjeldendeFradragsgrunnlag = listOf(),
+        ).right()
+    }
+
     override fun hentGjeldendeVilkårsvurderinger(revurderingId: UUID): Either<KunneIkkeHenteGrunnlag, Vilkårsvurderinger> {
         val revurdering = revurderingRepo.hent(revurderingId)
             ?: return KunneIkkeHenteGrunnlag.FantIkkeBehandling.left()
@@ -278,6 +292,7 @@ internal class RevurderingServiceImpl(
             return KunneIkkeOppdatereRevurdering.MåVelgeInformasjonSomSkalRevurderes.left()
         }
 
+        // TODO tilsvarende endringer som ved opprettelse
         val (vilkårsvurderinger, grunnlagsdata) = opprettVilkårsvurderinger(revurdering.sakId, nyPeriode)
 
         val informasjonSomRevurderes = InformasjonSomRevurderes.tryCreate(oppdaterRevurderingRequest.informasjonSomRevurderes)
@@ -319,6 +334,7 @@ internal class RevurderingServiceImpl(
         }.map {
             revurderingRepo.lagre(it)
             vilkårsvurderingService.lagre(it.id, it.vilkårsvurderinger)
+            // TODO lagre grunnlag for fradrag
             it
         }
     }
@@ -326,7 +342,7 @@ internal class RevurderingServiceImpl(
     override fun beregnOgSimuler(
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
-        fradrag: List<Fradrag>,
+        fradrag: List<Fradrag>, // TODO ikke ta i mot fradrag her etter at fradragsgrunnlag er på plass
     ): Either<KunneIkkeBeregneOgSimulereRevurdering, Revurdering> {
         return when (val originalRevurdering = revurderingRepo.hent(revurderingId)) {
             is BeregnetRevurdering, is OpprettetRevurdering, is SimulertRevurdering, is UnderkjentRevurdering -> {

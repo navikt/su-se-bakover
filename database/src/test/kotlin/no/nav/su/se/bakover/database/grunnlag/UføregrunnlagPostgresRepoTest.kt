@@ -41,7 +41,7 @@ internal class UføregrunnlagPostgresRepoTest {
                 grunnlagRepo.lagre(behandling.id, listOf(uføregrunnlag1, uføregrunnlag2), session)
             }
 
-            grunnlagRepo.hent(behandling.id) shouldBe listOf(
+            grunnlagRepo.hentUføregrunnlag(behandling.id) shouldBe listOf(
                 uføregrunnlag1,
                 uføregrunnlag2,
             )

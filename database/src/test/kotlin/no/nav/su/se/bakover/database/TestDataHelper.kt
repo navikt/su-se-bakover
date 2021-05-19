@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.beregning.PersistertMånedsberegning
 import no.nav.su.se.bakover.database.beregning.TestBeregning
 import no.nav.su.se.bakover.database.beregning.toSnapshot
+import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.VilkårsvurderingPostgresRepo
@@ -83,7 +84,7 @@ internal val persistertMånedsberegning = PersistertMånedsberegning(
     satsbeløp = 0.0,
     fradrag = listOf(),
     periode = Periode.create(1.januar(2020), 31.desember(2020)),
-    fribeløpForEps = 0.0
+    fribeløpForEps = 0.0,
 )
 internal val avslåttBeregning: PersistertBeregning = beregning().copy(
     månedsberegninger = listOf(
@@ -171,8 +172,9 @@ internal class TestDataHelper(
     private val utbetalingRepo = UtbetalingPostgresRepo(dataSource)
     private val hendelsesloggRepo = HendelsesloggPostgresRepo(dataSource)
     private val søknadRepo = SøknadPostgresRepo(dataSource)
-    private val uføregrunnlagPostgresRepo = UføregrunnlagPostgresRepo(dataSource)
-    val grunnlagRepo = GrunnlagPostgresRepo(uføregrunnlagPostgresRepo)
+    val uføregrunnlagPostgresRepo = UføregrunnlagPostgresRepo(dataSource)
+    val inntektgrunnlagPostgresRepo = FradragsgrunnlagPostgresRepo(dataSource)
+    val grunnlagRepo = GrunnlagPostgresRepo(uføregrunnlagPostgresRepo, inntektgrunnlagPostgresRepo)
     val vilkårsvurderingRepo = VilkårsvurderingPostgresRepo(dataSource, uføregrunnlagPostgresRepo)
     private val søknadsbehandlingRepo = SøknadsbehandlingPostgresRepo(dataSource, grunnlagRepo, vilkårsvurderingRepo)
     val revurderingRepo = RevurderingPostgresRepo(dataSource, søknadsbehandlingRepo, grunnlagRepo, vilkårsvurderingRepo)

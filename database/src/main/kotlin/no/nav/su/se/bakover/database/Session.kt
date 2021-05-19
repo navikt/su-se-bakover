@@ -39,6 +39,8 @@ import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.revurdering.RevurderingsType
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -129,6 +131,8 @@ open class Session(
                 is VedtakType -> this.setString(idx, v.toString())
                 is Utbetalingslinje.LinjeStatus -> this.setString(idx, v.toString())
                 is RevurderingsType -> this.setString(idx, v.toString())
+                is Fradragstype -> this.setString(idx, v.toString())
+                is FradragTilhører -> this.setString(idx, v.toString())
                 else -> this.setObject(idx, v)
             }
         }

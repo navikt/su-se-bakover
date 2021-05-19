@@ -143,7 +143,7 @@ internal class SøknadsbehandlingPostgresRepo(
 
         val fnr = Fnr(string("fnr"))
         val grunnlagsdata = Grunnlagsdata(
-            uføregrunnlag = grunnlagRepo.hent(behandlingId),
+            uføregrunnlag = grunnlagRepo.hentUføregrunnlag(behandlingId),
         )
         val vilkårsvurderinger = Vilkårsvurderinger(
             uføre = vilkårsvurderingRepo.hent(behandlingId),

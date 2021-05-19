@@ -39,6 +39,7 @@ import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.fixedTidspunkt
+import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -166,6 +167,7 @@ object RevurderingTestUtils {
         vedtakRepo: VedtakRepo = mock(),
         ferdigstillVedtakService: FerdigstillVedtakService = mock(),
         vilkårsvurderingService: VilkårsvurderingService = mock(),
+        grunnlagService: GrunnlagService = mock(),
     ) =
         RevurderingServiceImpl(
             sakService = sakService,
@@ -179,6 +181,7 @@ object RevurderingTestUtils {
             vedtakRepo = vedtakRepo,
             ferdigstillVedtakService = ferdigstillVedtakService,
             vilkårsvurderingService = vilkårsvurderingService,
+            grunnlagService = grunnlagService,
         )
 
     internal val uføregrunnlag = Grunnlag.Uføregrunnlag(

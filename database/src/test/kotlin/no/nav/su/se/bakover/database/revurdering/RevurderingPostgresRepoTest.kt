@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.fixedTidspunkt
+import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.VilkårsvurderingPostgresRepo
@@ -51,8 +52,10 @@ import java.util.UUID
 internal class RevurderingPostgresRepoTest {
     private val ds = EmbeddedDatabase.instance()
     private val uføregrunnlagPostgresRepo = UføregrunnlagPostgresRepo(ds)
+    private val fradragsgrunnlagPostgresRepo = FradragsgrunnlagPostgresRepo(ds)
     private val grunnlagRepo = GrunnlagPostgresRepo(
         uføregrunnlagRepo = uføregrunnlagPostgresRepo,
+        fradragsgrunnlagRepo = fradragsgrunnlagPostgresRepo,
     )
     private val vilkårsvurderingRepo = VilkårsvurderingPostgresRepo(ds, uføregrunnlagPostgresRepo)
     private val søknadsbehandlingRepo: SøknadsbehandlingRepo = SøknadsbehandlingPostgresRepo(ds, grunnlagRepo, vilkårsvurderingRepo)
@@ -231,7 +234,7 @@ internal class RevurderingPostgresRepoTest {
                 ),
                 grunnlagsdata = opprettetRevurdering.grunnlagsdata,
                 vilkårsvurderinger = opprettetRevurdering.vilkårsvurderinger,
-                informasjonSomRevurderes = opprettetRevurdering.informasjonSomRevurderes
+                informasjonSomRevurderes = opprettetRevurdering.informasjonSomRevurderes,
             )
 
             repo.lagre(oppdatertRevurdering)

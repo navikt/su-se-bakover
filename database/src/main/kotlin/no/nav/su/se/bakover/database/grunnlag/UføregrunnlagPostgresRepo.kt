@@ -26,7 +26,7 @@ internal class UføregrunnlagPostgresRepo(
         }
     }
 
-    override fun hent(behandlingId: UUID): List<Grunnlag.Uføregrunnlag> {
+    override fun hentUføregrunnlag(behandlingId: UUID): List<Grunnlag.Uføregrunnlag> {
         return dataSource.withSession { session ->
             """
                 select * from grunnlag_uføre where behandlingId = :behandlingId
