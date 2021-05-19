@@ -263,7 +263,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
         }
 
         val oppgaveServiceMock = mock<OppgaveService> {
-            on { opprettOppgaveMedSystembruker(any()) } doReturn no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave.left()
+            on { opprettOppgaveMedSystembruker(any()) } doReturn no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave.left()
         }
 
         val søknadService = SøknadServiceImpl(

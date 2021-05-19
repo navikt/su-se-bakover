@@ -799,11 +799,6 @@ internal class RevurderingServiceImpl(
         revurdering: SimulertRevurdering,
         fritekst: String,
     ): Either<KunneIkkeForhåndsvarsle, Revurdering> {
-        val aktørId = personService.hentAktørId(revurdering.fnr).getOrElse {
-            log.error("Fant ikke aktør-id for revurdering: ${revurdering.id}")
-            return KunneIkkeForhåndsvarsle.FantIkkeAktørId.left()
-        }
-
         val person = personService.hentPerson(revurdering.fnr).getOrElse {
             log.error("Fant ikke person for revurdering: ${revurdering.id}")
             return KunneIkkeForhåndsvarsle.FantIkkePerson.left()
@@ -844,12 +839,10 @@ internal class RevurderingServiceImpl(
                     revurdering
                 }
         }
-        oppgaveService.opprettOppgave(
-            OppgaveConfig.Forhåndsvarsling(
-                saksnummer = revurdering.saksnummer,
-                aktørId = aktørId,
-                tilordnetRessurs = null,
-            ),
+
+        oppgaveService.oppdaterOppgave(
+            oppgaveId = revurdering.oppgaveId,
+            beskrivelse = "Forhåndsvarsel er sendt.",
         ).mapLeft {
             return KunneIkkeForhåndsvarsle.KunneIkkeOppretteOppgave.left()
         }

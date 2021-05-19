@@ -31,7 +31,7 @@ import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.AvvistSøknadBrevRequest
 import no.nav.su.se.bakover.domain.brev.søknad.lukk.TrukketSøknadBrevRequest
 import no.nav.su.se.bakover.domain.journal.JournalpostId
-import no.nav.su.se.bakover.domain.oppgave.KunneIkkeLukkeOppgave
+import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeLukkeOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
