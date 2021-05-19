@@ -82,17 +82,17 @@ interface LagBrevRequest {
         private val saksbehandlerNavn: String,
         private val attestantNavn: String,
         private val fritekst: String,
-        private val opphørtGrunner: List<Inngangsvilkår>,
+        private val opphørsGrunner: List<Inngangsvilkår>,
     ) : LagBrevRequest {
         override fun getPerson(): Person = person
         override fun lagBrevInnhold(personalia: BrevInnhold.Personalia): BrevInnhold.Opphørsvedtak {
             val avslagsgrunn =
                 VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning).let { avslagGrunnetBeregning ->
                     when (avslagGrunnetBeregning) {
-                        is AvslagGrunnetBeregning.Ja -> opphørtGrunner.map { it.tilAvslagsgrunn() } + listOf(
+                        is AvslagGrunnetBeregning.Ja -> opphørsGrunner.map { it.tilAvslagsgrunn() } + listOf(
                             avslagGrunnetBeregning.avslagsgrunn,
                         )
-                        is AvslagGrunnetBeregning.Nei -> opphørtGrunner.map { it.tilAvslagsgrunn() }
+                        is AvslagGrunnetBeregning.Nei -> opphørsGrunner.map { it.tilAvslagsgrunn() }
                     }
                 }
 

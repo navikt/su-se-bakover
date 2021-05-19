@@ -734,7 +734,7 @@ internal class LagBrevRequestVisitorTest {
             attestantNavn = attestantNavn,
             fritekst = "FRITEKST REVURDERING",
             forventetInntektStørreEnn0 = false,
-            opphørtGrunner = emptyList()
+            opphørsGrunner = emptyList()
         ).right()
     }
 
@@ -808,7 +808,7 @@ internal class LagBrevRequestVisitorTest {
             attestantNavn = attestantNavn,
             fritekst = "FRITEKST REVURDERING",
             forventetInntektStørreEnn0 = false,
-            opphørtGrunner = listOf(Inngangsvilkår.Uførhet)
+            opphørsGrunner = listOf(Inngangsvilkår.Uførhet)
         ).right()
     }
 
