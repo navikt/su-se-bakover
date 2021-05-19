@@ -7,7 +7,7 @@ import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
 import no.nav.su.se.bakover.database.søknad.SøknadRepoInternal
-import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
+import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingInternalRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakPosgresRepo
@@ -21,9 +21,9 @@ import javax.sql.DataSource
 
 internal class SakPostgresRepo(
     private val dataSource: DataSource,
-    private val søknadsbehandlingRepo: SøknadsbehandlingRepo,
+    private val søknadsbehandlingRepo: SøknadsbehandlingPostgresRepo,
     private val revurderingRepo: RevurderingPostgresRepo,
-    private val vedtakPosgresRepo: VedtakPosgresRepo
+    private val vedtakPosgresRepo: VedtakPosgresRepo,
 ) : SakRepo {
     override fun hentSak(sakId: UUID) = dataSource.withSession { hentSakInternal(sakId, it) }
     override fun hentSak(fnr: Fnr) = dataSource.withSession { hentSakInternal(fnr, it) }
@@ -40,23 +40,24 @@ internal class SakPostgresRepo(
                     "fnr" to sak.fnr,
                     "opprettet" to sak.opprettet,
                     "soknadId" to sak.søknad.id,
-                    "soknad" to objectMapper.writeValueAsString(sak.søknad.søknadInnhold)
+                    "soknad" to objectMapper.writeValueAsString(sak.søknad.søknadInnhold),
                 ),
-                session
+                session,
             )
         }
     }
 
-    internal fun hentSakInternal(fnr: Fnr, session: Session): Sak? = "select * from sak where fnr=:fnr"
+    private fun hentSakInternal(fnr: Fnr, session: Session): Sak? = "select * from sak where fnr=:fnr"
         .hent(mapOf("fnr" to fnr.toString()), session) { it.toSak(session) }
 
-    internal fun hentSakInternal(sakId: UUID, session: Session): Sak? = "select * from sak where id=:sakId"
+    private fun hentSakInternal(sakId: UUID, session: Session): Sak? = "select * from sak where id=:sakId"
         .hent(mapOf("sakId" to sakId), session) { it.toSak(session) }
 
-    internal fun hentSakInternal(saksnummer: Saksnummer, session: Session): Sak? = "select * from sak where saksnummer=:saksnummer"
-        .hent(mapOf("saksnummer" to saksnummer.nummer), session) { it.toSak(session) }
+    private fun hentSakInternal(saksnummer: Saksnummer, session: Session): Sak? =
+        "select * from sak where saksnummer=:saksnummer"
+            .hent(mapOf("saksnummer" to saksnummer.nummer), session) { it.toSak(session) }
 
-    internal fun Row.toSak(session: Session): Sak {
+    private fun Row.toSak(session: Session): Sak {
         val sakId = UUID.fromString(string("id"))
         return Sak(
             id = sakId,
@@ -67,7 +68,7 @@ internal class SakPostgresRepo(
             behandlinger = søknadsbehandlingRepo.hentForSak(sakId, session),
             utbetalinger = UtbetalingInternalRepo.hentUtbetalinger(sakId, session),
             revurderinger = revurderingRepo.hentRevurderingerForSak(sakId, session),
-            vedtakListe = vedtakPosgresRepo.hentForSakId(sakId, session)
+            vedtakListe = vedtakPosgresRepo.hentForSakId(sakId, session),
         )
     }
 }

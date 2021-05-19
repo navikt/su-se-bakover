@@ -7,7 +7,9 @@ import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.vedtak.snapshot.Vedtakssnapshot
 import javax.sql.DataSource
 
-class VedtakssnapshotPostgresRepo(val dataSource: DataSource) : VedtakssnapshotRepo {
+class VedtakssnapshotPostgresRepo(
+    private val dataSource: DataSource,
+) : VedtakssnapshotRepo {
     override fun opprettVedtakssnapshot(vedtakssnapshot: Vedtakssnapshot) {
         val json = vedtakssnapshot.toJson()
         dataSource.withSession { session ->
@@ -19,9 +21,9 @@ class VedtakssnapshotPostgresRepo(val dataSource: DataSource) : VedtakssnapshotR
                     "opprettet" to vedtakssnapshot.opprettet,
                     "behandlingId" to vedtakssnapshot.søknadsbehandling.id,
                     "vedtakstype" to json.type,
-                    "vedtak" to objectMapper.writeValueAsString(json)
+                    "vedtak" to objectMapper.writeValueAsString(json),
                 ),
-                session
+                session,
             )
         }
     }

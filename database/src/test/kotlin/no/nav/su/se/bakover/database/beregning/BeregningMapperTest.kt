@@ -25,17 +25,17 @@ internal class BeregningMapperTest {
 
     @Test
     fun `mapper fradrag til snapshot`() {
-        TestFradrag.toSnapshot().let { assertFradragMapping(it, TestFradrag) }
+        assertFradragMapping(TestFradrag.toSnapshot(), TestFradrag)
     }
 
     @Test
     fun `mapper månedsberegning til snapshot`() {
-        TestMånedsberegning.toSnapshot().let { assertMånedsberegningMapping(it, TestMånedsberegning) }
+        assertMånedsberegningMapping(TestMånedsberegning.toSnapshot(), TestMånedsberegning)
     }
 
     @Test
     fun `mapper beregning til snapshot`() {
-        TestBeregning.toSnapshot().let { assertBeregningMapping(it, TestBeregning) }
+        assertBeregningMapping(TestBeregning.toSnapshot(), TestBeregning)
     }
 
     @Test

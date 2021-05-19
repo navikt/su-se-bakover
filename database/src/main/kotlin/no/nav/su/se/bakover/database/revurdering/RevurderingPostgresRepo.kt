@@ -10,17 +10,16 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
-import no.nav.su.se.bakover.database.grunnlag.GrunnlagRepo
-import no.nav.su.se.bakover.database.grunnlag.VilkårsvurderingRepo
+import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.VilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
-import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
+import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.database.vedtak.VedtakPosgresRepo
-import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -50,7 +49,6 @@ import javax.sql.DataSource
 
 interface RevurderingRepo {
     fun hent(id: UUID): Revurdering?
-    fun hent(id: UUID, session: Session): Revurdering?
     fun hentEventuellTidligereAttestering(id: UUID): Attestering?
     fun lagre(revurdering: Revurdering)
     fun oppdaterForhåndsvarsel(id: UUID, forhåndsvarsel: Forhåndsvarsel)
@@ -76,28 +74,26 @@ enum class RevurderingsType {
 
 internal class RevurderingPostgresRepo(
     private val dataSource: DataSource,
-    internal val søknadsbehandlingRepo: SøknadsbehandlingRepo,
-    private val grunnlagRepo: GrunnlagRepo,
-    private val vilkårsvurderingRepo: VilkårsvurderingRepo,
+    private val uføregrunnlagRepo: UføregrunnlagPostgresRepo,
+    private val vilkårsvurderingRepo: VilkårsvurderingPostgresRepo,
+    søknadsbehandlingRepo: SøknadsbehandlingPostgresRepo,
 ) : RevurderingRepo {
-    private val vedtakRepo: VedtakRepo = VedtakPosgresRepo(dataSource, søknadsbehandlingRepo, this)
+    private val vedtakRepo = VedtakPosgresRepo(dataSource, søknadsbehandlingRepo, this)
 
     override fun hent(id: UUID): Revurdering? =
         dataSource.withSession { session ->
             hent(id, session)
         }
 
-    override fun hent(id: UUID, session: Session): Revurdering? =
-        dataSource.withSession(session) { s ->
-            """
+    internal fun hent(id: UUID, session: Session): Revurdering? =
+        """
                 SELECT *
                 FROM revurdering
                 WHERE id = :id
-            """.trimIndent()
-                .hent(mapOf("id" to id), s) { row ->
-                    row.toRevurdering(s)
-                }
-        }
+        """.trimIndent()
+            .hent(mapOf("id" to id), session) { row ->
+                row.toRevurdering(session)
+            }
 
     override fun hentEventuellTidligereAttestering(id: UUID): Attestering? =
         dataSource.withSession { session ->
@@ -110,13 +106,19 @@ internal class RevurderingPostgresRepo(
         }
 
     override fun lagre(revurdering: Revurdering) {
+        dataSource.withSession { session ->
+            lagre(revurdering, session)
+        }
+    }
+
+    internal fun lagre(revurdering: Revurdering, session: Session) {
         when (revurdering) {
-            is OpprettetRevurdering -> lagre(revurdering)
-            is BeregnetRevurdering -> lagre(revurdering)
-            is SimulertRevurdering -> lagre(revurdering)
-            is RevurderingTilAttestering -> lagre(revurdering)
-            is IverksattRevurdering -> lagre(revurdering)
-            is UnderkjentRevurdering -> lagre(revurdering)
+            is OpprettetRevurdering -> lagre(revurdering, session)
+            is BeregnetRevurdering -> lagre(revurdering, session)
+            is SimulertRevurdering -> lagre(revurdering, session)
+            is RevurderingTilAttestering -> lagre(revurdering, session)
+            is IverksattRevurdering -> lagre(revurdering, session)
+            is UnderkjentRevurdering -> lagre(revurdering, session)
         }
     }
 
@@ -180,11 +182,11 @@ internal class RevurderingPostgresRepo(
 
         val behandlingsinformasjon: Behandlingsinformasjon = deserialize(string("behandlingsinformasjon"))
 
-        val uføregrunnlag = grunnlagRepo.hentUføregrunnlag(id)
+        val uføregrunnlag = uføregrunnlagRepo.hentUføregrunnlag(id, session)
         val grunnlagsdata = Grunnlagsdata(uføregrunnlag)
 
         val vilkårsvurderinger = Vilkårsvurderinger(
-            uføre = vilkårsvurderingRepo.hent(id),
+            uføre = vilkårsvurderingRepo.hent(id, session),
         )
 
         return when (RevurderingsType.valueOf(string("revurderingsType"))) {
@@ -447,10 +449,8 @@ internal class RevurderingPostgresRepo(
         }
     }
 
-    private fun lagre(revurdering: OpprettetRevurdering) =
-        dataSource.withSession { session ->
-            (
-                """
+    private fun lagre(revurdering: OpprettetRevurdering, session: Session) =
+        """
                     insert into revurdering (
                         id,
                         opprettet,
@@ -503,8 +503,8 @@ internal class RevurderingPostgresRepo(
                         forhåndsvarsel=to_json(:forhandsvarsel::json),
                         behandlingsinformasjon=to_json(:behandlingsinformasjon::json),
                         informasjonSomRevurderes=to_json(:informasjonSomRevurderes::json)
-                """.trimIndent()
-                ).insert(
+        """.trimIndent()
+            .insert(
                 mapOf(
                     "id" to revurdering.id,
                     "periode" to objectMapper.writeValueAsString(revurdering.periode),
@@ -515,18 +515,17 @@ internal class RevurderingPostgresRepo(
                     "fritekstTilBrev" to revurdering.fritekstTilBrev,
                     "arsak" to revurdering.revurderingsårsak.årsak.toString(),
                     "begrunnelse" to revurdering.revurderingsårsak.begrunnelse.toString(),
-                    "forhandsvarsel" to revurdering.forhåndsvarsel?.let { objectMapper.writeValueAsString(ForhåndsvarselDto.from(it)) },
+                    "forhandsvarsel" to revurdering.forhåndsvarsel?.let {
+                        objectMapper.writeValueAsString(ForhåndsvarselDto.from(it))
+                    },
                     "behandlingsinformasjon" to objectMapper.writeValueAsString(revurdering.behandlingsinformasjon),
                     "informasjonSomRevurderes" to objectMapper.writeValueAsString(revurdering.informasjonSomRevurderes),
                 ),
                 session,
             )
-        }
 
-    private fun lagre(revurdering: BeregnetRevurdering) =
-        dataSource.withSession { session ->
-            (
-                """
+    private fun lagre(revurdering: BeregnetRevurdering, session: Session) =
+        """
                     update
                         revurdering
                     set
@@ -540,8 +539,8 @@ internal class RevurderingPostgresRepo(
                         informasjonSomRevurderes = to_json(:informasjonSomRevurderes::json)
                     where
                         id = :id
-                """.trimIndent()
-                ).oppdatering(
+        """.trimIndent()
+            .oppdatering(
                 mapOf(
                     "id" to revurdering.id,
                     "saksbehandler" to revurdering.saksbehandler.navIdent,
@@ -558,12 +557,9 @@ internal class RevurderingPostgresRepo(
                 ),
                 session,
             )
-        }
 
-    private fun lagre(revurdering: SimulertRevurdering) =
-        dataSource.withSession { session ->
-            (
-                """
+    private fun lagre(revurdering: SimulertRevurdering, session: Session) =
+        """
                     update
                         revurdering
                     set
@@ -577,8 +573,8 @@ internal class RevurderingPostgresRepo(
                         behandlingsinformasjon = to_json(:behandlingsinformasjon::json)
                     where
                         id = :id
-                """.trimIndent()
-                ).oppdatering(
+        """.trimIndent()
+            .oppdatering(
                 mapOf(
                     "id" to revurdering.id,
                     "saksbehandler" to revurdering.saksbehandler.navIdent,
@@ -590,17 +586,16 @@ internal class RevurderingPostgresRepo(
                         is SimulertRevurdering.Innvilget -> RevurderingsType.SIMULERT_INNVILGET
                         is SimulertRevurdering.Opphørt -> RevurderingsType.SIMULERT_OPPHØRT
                     },
-                    "forhandsvarsel" to revurdering.forhåndsvarsel?.let { objectMapper.writeValueAsString(ForhåndsvarselDto.from(it)) },
+                    "forhandsvarsel" to revurdering.forhåndsvarsel?.let {
+                        objectMapper.writeValueAsString(ForhåndsvarselDto.from(it))
+                    },
                     "behandlingsinformasjon" to objectMapper.writeValueAsString(revurdering.behandlingsinformasjon),
                 ),
                 session,
             )
-        }
 
-    private fun lagre(revurdering: RevurderingTilAttestering) =
-        dataSource.withSession { session ->
-            (
-                """
+    private fun lagre(revurdering: RevurderingTilAttestering, session: Session) =
+        """
                     update
                         revurdering
                     set
@@ -616,8 +611,8 @@ internal class RevurderingPostgresRepo(
                         behandlingsinformasjon = to_json(:behandlingsinformasjon::json)
                     where
                         id = :id
-                """.trimIndent()
-                ).oppdatering(
+        """.trimIndent()
+            .oppdatering(
                 mapOf(
                     "id" to revurdering.id,
                     "saksbehandler" to revurdering.saksbehandler.navIdent,
@@ -645,12 +640,9 @@ internal class RevurderingPostgresRepo(
                 ),
                 session,
             )
-        }
 
-    private fun lagre(revurdering: IverksattRevurdering) =
-        dataSource.withSession { session ->
-            (
-                """
+    private fun lagre(revurdering: IverksattRevurdering, session: Session) =
+        """
                     update
                         revurdering
                     set
@@ -665,8 +657,8 @@ internal class RevurderingPostgresRepo(
                         behandlingsinformasjon = to_json(:behandlingsinformasjon::json)
                     where
                         id = :id
-                """.trimIndent()
-                ).oppdatering(
+        """.trimIndent()
+            .oppdatering(
                 mapOf(
                     "id" to revurdering.id,
                     "saksbehandler" to revurdering.saksbehandler.navIdent,
@@ -689,12 +681,9 @@ internal class RevurderingPostgresRepo(
                 ),
                 session,
             )
-        }
 
-    private fun lagre(revurdering: UnderkjentRevurdering) =
-        dataSource.withSession { session ->
-            (
-                """
+    private fun lagre(revurdering: UnderkjentRevurdering, session: Session) =
+        """
                     update
                         revurdering
                     set
@@ -706,8 +695,8 @@ internal class RevurderingPostgresRepo(
                         behandlingsinformasjon = to_json(:behandlingsinformasjon::json)
                     where
                         id = :id
-                """.trimIndent()
-                ).oppdatering(
+        """.trimIndent()
+            .oppdatering(
                 mapOf(
                     "id" to revurdering.id,
                     "oppgaveId" to revurdering.oppgaveId.toString(),
@@ -723,7 +712,6 @@ internal class RevurderingPostgresRepo(
                 ),
                 session,
             )
-        }
 
     @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,

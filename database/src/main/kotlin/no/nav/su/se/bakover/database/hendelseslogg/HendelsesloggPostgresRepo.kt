@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.hendelseslogg.Hendelseslogg
 import no.nav.su.se.bakover.domain.hendelseslogg.hendelse.HendelseListWriter
 import javax.sql.DataSource
 
+// TODO jah: Disse brukes ikke lenger. Slette i egen PR?
 internal class HendelsesloggPostgresRepo(
     private val dataSource: DataSource
 ) : HendelsesloggRepo {

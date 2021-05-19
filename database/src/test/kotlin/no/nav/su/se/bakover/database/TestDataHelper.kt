@@ -172,12 +172,18 @@ internal class TestDataHelper(
     private val utbetalingRepo = UtbetalingPostgresRepo(dataSource)
     private val hendelsesloggRepo = HendelsesloggPostgresRepo(dataSource)
     private val søknadRepo = SøknadPostgresRepo(dataSource)
-    val uføregrunnlagPostgresRepo = UføregrunnlagPostgresRepo(dataSource)
-    val inntektgrunnlagPostgresRepo = FradragsgrunnlagPostgresRepo(dataSource)
-    val grunnlagRepo = GrunnlagPostgresRepo(uføregrunnlagPostgresRepo, inntektgrunnlagPostgresRepo)
+    private val uføregrunnlagPostgresRepo = UføregrunnlagPostgresRepo()
+    private val inntektgrunnlagPostgresRepo = FradragsgrunnlagPostgresRepo(dataSource)
+    val grunnlagRepo = GrunnlagPostgresRepo(inntektgrunnlagPostgresRepo)
     val vilkårsvurderingRepo = VilkårsvurderingPostgresRepo(dataSource, uføregrunnlagPostgresRepo)
-    private val søknadsbehandlingRepo = SøknadsbehandlingPostgresRepo(dataSource, grunnlagRepo, vilkårsvurderingRepo)
-    val revurderingRepo = RevurderingPostgresRepo(dataSource, søknadsbehandlingRepo, grunnlagRepo, vilkårsvurderingRepo)
+    private val søknadsbehandlingRepo =
+        SøknadsbehandlingPostgresRepo(dataSource, uføregrunnlagPostgresRepo, vilkårsvurderingRepo)
+    val revurderingRepo = RevurderingPostgresRepo(
+        dataSource,
+        uføregrunnlagPostgresRepo,
+        vilkårsvurderingRepo,
+        søknadsbehandlingRepo,
+    )
     val vedtakRepo = VedtakPosgresRepo(dataSource, søknadsbehandlingRepo, revurderingRepo)
     private val sakRepo = SakPostgresRepo(dataSource, søknadsbehandlingRepo, revurderingRepo, vedtakRepo)
 
@@ -350,7 +356,7 @@ internal class TestDataHelper(
         } as Søknadsbehandling.Vilkårsvurdert.Avslag
     }
 
-    internal fun nyInnvilgetBeregning(
+    private fun nyInnvilgetBeregning(
         behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt,
     ): Søknadsbehandling.Beregnet.Innvilget {
         return nyInnvilgetVilkårsvurdering(behandlingsinformasjon).tilBeregnet(
@@ -368,7 +374,7 @@ internal class TestDataHelper(
         } as Søknadsbehandling.Beregnet.Avslag
     }
 
-    internal fun nySimulering(
+    private fun nySimulering(
         behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt,
     ): Søknadsbehandling.Simulert {
         return nyInnvilgetBeregning(behandlingsinformasjon).let {

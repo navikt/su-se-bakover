@@ -23,7 +23,7 @@ internal class AvstemmingPostgresRepo(
     private val dataSource: DataSource
 ) : AvstemmingRepo {
     override fun opprettAvstemming(avstemming: Avstemming): Avstemming {
-        dataSource.withSession { session ->
+        return dataSource.withSession { session ->
             """
             insert into avstemming (id, opprettet, fom, tom, utbetalinger, avstemmingXmlRequest)
             values (:id, :opprettet, :fom, :tom, to_json(:utbetalinger::json), :avstemmingXmlRequest)
@@ -34,19 +34,18 @@ internal class AvstemmingPostgresRepo(
                     "fom" to avstemming.fraOgMed,
                     "tom" to avstemming.tilOgMed,
                     "utbetalinger" to objectMapper.writeValueAsString(avstemming.utbetalinger.map { it.id.toString() }),
-                    "avstemmingXmlRequest" to avstemming.avstemmingXmlRequest
+                    "avstemmingXmlRequest" to avstemming.avstemmingXmlRequest,
                 ),
-                session
-            )
+                session,
+            ).let {
+                hentAvstemming(avstemming.id, session)!!
+            }
         }
-        return hentAvstemming(avstemming.id)!!
     }
 
-    override fun hentAvstemming(id: UUID30): Avstemming? =
-        dataSource.withSession { session ->
-            "select * from avstemming where id=:id".hent(mapOf("id" to id), session) {
-                it.toAvstemming(session)
-            }
+    private fun hentAvstemming(id: UUID30, session: Session): Avstemming? =
+        "select * from avstemming where id=:id".hent(mapOf("id" to id), session) {
+            it.toAvstemming(session)
         }
 
     override fun oppdaterAvstemteUtbetalinger(avstemming: Avstemming) {
@@ -56,9 +55,9 @@ internal class AvstemmingPostgresRepo(
             """.oppdatering(
                 mapOf(
                     "avstemmingId" to avstemming.id,
-                    "in" to session.inClauseWith(avstemming.utbetalinger.map { it.id.toString() })
+                    "in" to session.inClauseWith(avstemming.utbetalinger.map { it.id.toString() }),
                 ),
-                session
+                session,
             )
         }
     }

@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.database.uuidOrNull
-import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.database.withTransaction
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.vilkår.Resultat
@@ -21,7 +20,7 @@ import javax.sql.DataSource
 
 internal class VilkårsvurderingPostgresRepo(
     private val dataSource: DataSource,
-    private val uføregrunnlagPostgresRepo: UføregrunnlagPostgresRepo,
+    private val uføregrunnlagRepo: UføregrunnlagPostgresRepo,
 ) : VilkårsvurderingRepo {
 
     override fun lagre(behandlingId: UUID, vilkår: Vilkår<Grunnlag.Uføregrunnlag?>) {
@@ -30,7 +29,7 @@ internal class VilkårsvurderingPostgresRepo(
             when (vilkår) {
                 Vilkår.IkkeVurdert.Uførhet -> Unit
                 is Vilkår.Vurdert.Uførhet -> {
-                    uføregrunnlagPostgresRepo.lagre(behandlingId, vilkår.grunnlag, tx)
+                    uføregrunnlagRepo.lagre(behandlingId, vilkår.grunnlag, tx)
                     vilkår.vurderingsperioder.forEach {
                         lagre(behandlingId, it, tx)
                     }
@@ -93,33 +92,32 @@ internal class VilkårsvurderingPostgresRepo(
             )
     }
 
-    override fun hent(behandlingId: UUID): Vilkår<Grunnlag.Uføregrunnlag?> {
-        val vurderingsperioder = dataSource.withSession { session ->
-            """
+    internal fun hent(behandlingId: UUID, session: Session): Vilkår<Grunnlag.Uføregrunnlag?> {
+        return """
                 select * from vilkårsvurdering_uføre where behandlingId = :behandlingId
-            """.trimIndent()
-                .hentListe(
-                    mapOf(
-                        "behandlingId" to behandlingId,
-                    ),
-                    session,
-                ) {
-                    it.toVurderingsperioder()
+        """.trimIndent()
+            .hentListe(
+                mapOf(
+                    "behandlingId" to behandlingId,
+                ),
+                session,
+            ) {
+                it.toVurderingsperioder(session)
+            }.let {
+                when (it.isNotEmpty()) {
+                    true -> Vilkår.Vurdert.Uførhet.create(vurderingsperioder = Nel.fromListUnsafe(it))
+                    false -> Vilkår.IkkeVurdert.Uførhet
                 }
-        }
-        return when (vurderingsperioder.isNotEmpty()) {
-            true -> Vilkår.Vurdert.Uførhet.create(vurderingsperioder = Nel.fromListUnsafe(vurderingsperioder))
-            false -> Vilkår.IkkeVurdert.Uførhet
-        }
+            }
     }
 
-    private fun Row.toVurderingsperioder(): Vurderingsperiode<Grunnlag.Uføregrunnlag?> {
+    private fun Row.toVurderingsperioder(session: Session): Vurderingsperiode<Grunnlag.Uføregrunnlag?> {
         return Vurderingsperiode.Uføre.create(
             id = uuid("id"),
             opprettet = tidspunkt("opprettet"),
             resultat = ResultatDto.valueOf(string("resultat")).toDomain(),
             grunnlag = uuidOrNull("uføre_grunnlag_id")?.let {
-                uføregrunnlagPostgresRepo.hentForUføregrunnlagId(it)
+                uføregrunnlagRepo.hentForUføregrunnlagId(it, session)
             },
             begrunnelse = stringOrNull("begrunnelse"),
             periode = Periode.create(

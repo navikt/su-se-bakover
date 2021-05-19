@@ -9,15 +9,11 @@ import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid
-import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import java.util.UUID
-import javax.sql.DataSource
 
-internal class UføregrunnlagPostgresRepo(
-    private val dataSource: DataSource,
-) : UføregrunnlagRepo {
+internal class UføregrunnlagPostgresRepo {
 
     internal fun lagre(behandlingId: UUID, uføregrunnlag: List<Grunnlag.Uføregrunnlag>, session: Session) {
         slettForBehandlingId(behandlingId, session)
@@ -26,34 +22,30 @@ internal class UføregrunnlagPostgresRepo(
         }
     }
 
-    override fun hentUføregrunnlag(behandlingId: UUID): List<Grunnlag.Uføregrunnlag> {
-        return dataSource.withSession { session ->
-            """
+    internal fun hentUføregrunnlag(behandlingId: UUID, session: Session): List<Grunnlag.Uføregrunnlag> {
+        return """
                 select * from grunnlag_uføre where behandlingId = :behandlingId
-            """.trimIndent()
-                .hentListe(
-                    mapOf(
-                        "behandlingId" to behandlingId,
-                    ),
-                    session,
-                ) {
-                    it.toUføregrunnlag()
-                }
-        }
+        """.trimIndent()
+            .hentListe(
+                mapOf(
+                    "behandlingId" to behandlingId,
+                ),
+                session,
+            ) {
+                it.toUføregrunnlag()
+            }
     }
 
-    override fun hentForUføregrunnlagId(uføregrunnlagId: UUID): Grunnlag.Uføregrunnlag? {
-        return dataSource.withSession { session ->
-            """ select * from grunnlag_uføre where id=:id""".trimIndent()
-                .hent(
-                    mapOf(
-                        "id" to uføregrunnlagId,
-                    ),
-                    session,
-                ) {
-                    it.toUføregrunnlag()
-                }
-        }
+    internal fun hentForUføregrunnlagId(uføregrunnlagId: UUID, session: Session): Grunnlag.Uføregrunnlag? {
+        return """ select * from grunnlag_uføre where id=:id""".trimIndent()
+            .hent(
+                mapOf(
+                    "id" to uføregrunnlagId,
+                ),
+                session,
+            ) {
+                it.toUføregrunnlag()
+            }
     }
 
     private fun slettForBehandlingId(behandlingId: UUID, session: Session) {

@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.fixedClock
 import no.nav.su.se.bakover.database.withMigratedDb
+import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.vilkår.Resultat
@@ -41,7 +42,9 @@ internal class VilkårsvurderingPostgresRepoTest {
 
             testDataHelper.vilkårsvurderingRepo.lagre(søknadsbehandling.id, vurderingUførhet)
 
-            testDataHelper.vilkårsvurderingRepo.hent(søknadsbehandling.id) shouldBe vurderingUførhet
+            datasource.withSession { session ->
+                testDataHelper.vilkårsvurderingRepo.hent(søknadsbehandling.id, session) shouldBe vurderingUførhet
+            }
         }
     }
 
@@ -72,7 +75,9 @@ internal class VilkårsvurderingPostgresRepoTest {
 
             testDataHelper.vilkårsvurderingRepo.lagre(søknadsbehandling.id, vurderingUførhet)
 
-            testDataHelper.vilkårsvurderingRepo.hent(søknadsbehandling.id) shouldBe vurderingUførhet
+            datasource.withSession { session ->
+                testDataHelper.vilkårsvurderingRepo.hent(søknadsbehandling.id, session) shouldBe vurderingUførhet
+            }
         }
     }
 
@@ -103,11 +108,15 @@ internal class VilkårsvurderingPostgresRepoTest {
 
             testDataHelper.vilkårsvurderingRepo.lagre(søknadsbehandling.id, vurderingUførhet)
 
-            testDataHelper.vilkårsvurderingRepo.hent(søknadsbehandling.id) shouldBe vurderingUførhet
+            datasource.withSession { session ->
+                testDataHelper.vilkårsvurderingRepo.hent(søknadsbehandling.id, session) shouldBe vurderingUførhet
+            }
 
             testDataHelper.vilkårsvurderingRepo.lagre(søknadsbehandling.id, vurderingUførhet)
 
-            testDataHelper.vilkårsvurderingRepo.hent(søknadsbehandling.id) shouldBe vurderingUførhet
+            datasource.withSession { session ->
+                testDataHelper.vilkårsvurderingRepo.hent(søknadsbehandling.id, session) shouldBe vurderingUførhet
+            }
         }
     }
 }

@@ -13,13 +13,10 @@ import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
 import no.nav.su.se.bakover.database.fixedTidspunkt
-import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
-import no.nav.su.se.bakover.database.grunnlag.GrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.VilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo.ForhåndsvarselDto
 import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
-import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingRepo
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -51,15 +48,12 @@ import java.util.UUID
 
 internal class RevurderingPostgresRepoTest {
     private val ds = EmbeddedDatabase.instance()
-    private val uføregrunnlagPostgresRepo = UføregrunnlagPostgresRepo(ds)
-    private val fradragsgrunnlagPostgresRepo = FradragsgrunnlagPostgresRepo(ds)
-    private val grunnlagRepo = GrunnlagPostgresRepo(
-        uføregrunnlagRepo = uføregrunnlagPostgresRepo,
-        fradragsgrunnlagRepo = fradragsgrunnlagPostgresRepo,
-    )
+    private val uføregrunnlagPostgresRepo = UføregrunnlagPostgresRepo()
     private val vilkårsvurderingRepo = VilkårsvurderingPostgresRepo(ds, uføregrunnlagPostgresRepo)
-    private val søknadsbehandlingRepo: SøknadsbehandlingRepo = SøknadsbehandlingPostgresRepo(ds, grunnlagRepo, vilkårsvurderingRepo)
-    private val repo: RevurderingPostgresRepo = RevurderingPostgresRepo(ds, søknadsbehandlingRepo, grunnlagRepo, vilkårsvurderingRepo)
+    private val søknadsbehandlingRepo: SøknadsbehandlingPostgresRepo =
+        SøknadsbehandlingPostgresRepo(ds, uføregrunnlagPostgresRepo, vilkårsvurderingRepo)
+    private val repo: RevurderingPostgresRepo =
+        RevurderingPostgresRepo(ds, uføregrunnlagPostgresRepo, vilkårsvurderingRepo, søknadsbehandlingRepo)
     private val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())
     private val saksbehandler = Saksbehandler("Sak S. Behandler")
     private val periode = Periode.create(

@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test
 internal class UføregrunnlagPostgresRepoTest {
     private val datasource = EmbeddedDatabase.instance()
     private val testDataHelper = TestDataHelper(datasource)
-    private val grunnlagRepo = UføregrunnlagPostgresRepo(datasource)
+    private val grunnlagRepo = UføregrunnlagPostgresRepo()
 
     @Test
     fun `lagrer uføregrunnlag, kobler til behandling og sletter`() {
@@ -39,17 +39,13 @@ internal class UføregrunnlagPostgresRepoTest {
 
             datasource.withSession { session ->
                 grunnlagRepo.lagre(behandling.id, listOf(uføregrunnlag1, uføregrunnlag2), session)
-            }
-
-            grunnlagRepo.hentUføregrunnlag(behandling.id) shouldBe listOf(
-                uføregrunnlag1,
-                uføregrunnlag2,
-            )
-
-            datasource.withSession {
+                grunnlagRepo.hentUføregrunnlag(behandling.id, session) shouldBe listOf(
+                    uføregrunnlag1,
+                    uføregrunnlag2,
+                )
                 """
                     select count(*) from grunnlag_uføre
-                """.antall(emptyMap(), it) shouldBe 2
+                """.antall(emptyMap(), session) shouldBe 2
             }
         }
     }

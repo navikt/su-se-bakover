@@ -37,7 +37,9 @@ internal class VedtakPosgresRepoTest {
         withMigratedDb {
             val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
 
-            vedtakRepo.hent(vedtak.id) shouldBe vedtak
+            datasource.withSession {
+                vedtakRepo.hent(vedtak.id, it) shouldBe vedtak
+            }
         }
     }
 
@@ -49,7 +51,9 @@ internal class VedtakPosgresRepoTest {
 
             vedtakRepo.lagre(vedtak)
 
-            vedtakRepo.hent(vedtak.id) shouldBe vedtak
+            datasource.withSession {
+                vedtakRepo.hent(vedtak.id, it) shouldBe vedtak
+            }
         }
     }
 
@@ -166,12 +170,14 @@ internal class VedtakPosgresRepoTest {
                     ),
                 ),
             )
-            vedtakRepo.hent(vedtak.id)!! shouldBe vedtak.copy(
-                journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
-                    journalpostId = JournalpostId("jp"),
-                    brevbestillingId = BrevbestillingId(("bi")),
-                ),
-            )
+            datasource.withSession {
+                vedtakRepo.hent(vedtak.id, it)!! shouldBe vedtak.copy(
+                    journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
+                        journalpostId = JournalpostId("jp"),
+                        brevbestillingId = BrevbestillingId(("bi")),
+                    ),
+                )
+            }
         }
 
         withMigratedDb {
@@ -185,12 +191,14 @@ internal class VedtakPosgresRepoTest {
                     ),
                 ),
             )
-            vedtakRepo.hent(vedtak.id)!! shouldBe vedtak.copy(
-                journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
-                    journalpostId = JournalpostId("jp"),
-                    brevbestillingId = BrevbestillingId(("bi")),
-                ),
-            )
+            datasource.withSession {
+                vedtakRepo.hent(vedtak.id, it)!! shouldBe vedtak.copy(
+                    journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
+                        journalpostId = JournalpostId("jp"),
+                        brevbestillingId = BrevbestillingId(("bi")),
+                    ),
+                )
+            }
         }
     }
 
@@ -265,14 +273,16 @@ internal class VedtakPosgresRepoTest {
                 behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
                 grunnlagsdata = søknadsbehandlingVedtak.behandling.grunnlagsdata,
                 vilkårsvurderinger = søknadsbehandlingVedtak.behandling.vilkårsvurderinger,
-                informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt))
+                informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 
             val revurderingVedtak = Vedtak.from(iverksattRevurdering, fixedClock)
 
             vedtakRepo.lagre(revurderingVedtak)
-            vedtakRepo.hent(revurderingVedtak.id) shouldBe revurderingVedtak
+            datasource.withSession {
+                vedtakRepo.hent(revurderingVedtak.id, it) shouldBe revurderingVedtak
+            }
 
             datasource.withSession { session ->
                 """
