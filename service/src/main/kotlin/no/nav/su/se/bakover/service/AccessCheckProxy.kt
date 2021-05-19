@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
@@ -265,6 +266,11 @@ open class AccessCheckProxy(
                 override fun opprettOppgaveMedSystembruker(config: OppgaveConfig) = kastKanKunKallesFraAnnenService()
                 override fun lukkOppgave(oppgaveId: OppgaveId) = kastKanKunKallesFraAnnenService()
                 override fun lukkOppgaveMedSystembruker(oppgaveId: OppgaveId) = kastKanKunKallesFraAnnenService()
+                override fun oppdaterOppgave(
+                    oppgaveId: OppgaveId,
+                    beskrivelse: String,
+                ): Either<OppgaveFeil.KunneIkkeOppdatereOppgave, Unit> =
+                    kastKanKunKallesFraAnnenService()
             },
             person = object : PersonService {
                 override fun hentPerson(fnr: Fnr): Either<KunneIkkeHentePerson, Person> {

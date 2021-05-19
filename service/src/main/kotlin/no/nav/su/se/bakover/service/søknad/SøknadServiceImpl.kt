@@ -194,7 +194,7 @@ internal class SøknadServiceImpl(
     private fun opprettOppgave(
         søknad: Søknad.Journalført.UtenOppgave,
         person: Person,
-        opprettOppgave: (oppgaveConfig: OppgaveConfig.Saksbehandling) -> Either<no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave, OppgaveId> = oppgaveService::opprettOppgave
+        opprettOppgave: (oppgaveConfig: OppgaveConfig.Saksbehandling) -> Either<no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave, OppgaveId> = oppgaveService::opprettOppgave
     ): Either<KunneIkkeOppretteOppgave, Søknad.Journalført.MedOppgave> {
 
         return opprettOppgave(

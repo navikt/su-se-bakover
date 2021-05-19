@@ -47,8 +47,9 @@ import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
-import no.nav.su.se.bakover.domain.oppgave.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
+import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
+import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -1272,7 +1273,6 @@ internal class RevurderingServiceImplTest {
         }
 
         val personServiceMock = mock<PersonService> {
-            on { hentAktørId(any()) } doReturn aktørId.right()
             on { hentPerson(any()) } doReturn person.right()
         }
 
@@ -1284,7 +1284,7 @@ internal class RevurderingServiceImplTest {
         }
 
         val oppgaveServiceMock = mock<OppgaveService> {
-            on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
+            on { oppdaterOppgave(any(), any()) } doReturn Unit.right()
         }
 
         val microsoftGraphApiClientMock = mock<MicrosoftGraphApiClient> {
@@ -1308,7 +1308,6 @@ internal class RevurderingServiceImplTest {
 
         inOrder(revurderingRepoMock, personServiceMock, brevServiceMock, oppgaveServiceMock) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
-            verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
             verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
             verify(brevServiceMock).journalførBrev(
                 argThat {
@@ -1324,13 +1323,12 @@ internal class RevurderingServiceImplTest {
             verify(revurderingRepoMock).lagre(
                 argThat { it shouldBe simulertRevurdering },
             )
-            verify(oppgaveServiceMock).opprettOppgave(
+            verify(oppgaveServiceMock).oppdaterOppgave(
                 argThat {
-                    it shouldBe OppgaveConfig.Forhåndsvarsling(
-                        saksnummer = saksnummer,
-                        aktørId = aktørId,
-                        tilordnetRessurs = null,
-                    )
+                    it shouldBe OppgaveId("oppgaveid")
+                },
+                argThat {
+                    it shouldBe "Forhåndsvarsel er sendt."
                 },
             )
         }
@@ -1415,31 +1413,6 @@ internal class RevurderingServiceImplTest {
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
         testForhåndsvarslerIkkeGittRevurdering(beregnet)
-    }
-
-    @Test
-    fun `forhåndsvarsler men hentAktørId failer`() {
-        val simulertRevurdering = simulertRevurderingInnvilget.copy(
-            forhåndsvarsel = null,
-        )
-
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(any()) } doReturn simulertRevurdering
-        }
-
-        val personServiceMock = mock<PersonService> {
-            on { hentAktørId(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
-        }
-
-        createRevurderingService(
-            revurderingRepo = revurderingRepoMock,
-            personService = personServiceMock,
-        ).forhåndsvarsleEllerSendTilAttestering(
-            revurderingId = revurderingId,
-            saksbehandler = saksbehandler,
-            revurderingshandling = Revurderingshandling.FORHÅNDSVARSLE,
-            fritekst = "",
-        ) shouldBe KunneIkkeForhåndsvarsle.FantIkkeAktørId.left()
     }
 
     @Test
@@ -1561,7 +1534,7 @@ internal class RevurderingServiceImplTest {
         }
 
         val oppgaveServiceMock = mock<OppgaveService> {
-            on { opprettOppgave(any()) } doReturn KunneIkkeOppretteOppgave.left()
+            on { oppdaterOppgave(any(), any()) } doReturn OppgaveFeil.KunneIkkeOppdatereOppgave.left()
         }
 
         val microsoftGraphApiClientMock = mock<MicrosoftGraphApiClient> {
