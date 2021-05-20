@@ -1,5 +1,6 @@
-name: Build and deploy branches manually. See https://github.com/navikt/su-se-bakover/actions
+name: Deploy branch to dev-fss [manual deploy]
 # If you want to deploy a branch (feature branch or even redeploy master/main) to dev-fss (preprod) we use github actions workflow_dispatch
+# Goto https://github.com/navikt/su-se-bakover/actions/workflows/branch-deploy.yml chose a branch and deploy it
 # See: https://docs.github.com/en/actions/reference/events-that-trigger-workflows#workflow_dispatch
 on: workflow_dispatch
 
@@ -7,8 +8,14 @@ env:
   IMAGE: docker.pkg.github.com/${{ github.repository }}/su-se-bakover:${{ github.sha }}
 
 jobs:
+   verify-master-is-ancestor:
+      if: !(git merge-base --is-ancestor (git rev-parse origin/master) HEAD)
+      runs-on: ubuntu-latest
+      steps:
+        - run: echo "You have to merge origin/master before you can deploy a branch."
    build:
       name: Gradle test build and conditional docker build push
+      if: git merge-base --is-ancestor (git rev-parse origin/master) HEAD
       runs-on: ubuntu-latest
       steps:
         - uses: actions/checkout@v2
@@ -42,6 +49,7 @@ jobs:
 
    deploy_to_dev:
       name: Deploy branch to dev-fss
+      if: git merge-base --is-ancestor (git rev-parse origin/master) HEAD
       needs: build
       runs-on: ubuntu-latest
       steps:
