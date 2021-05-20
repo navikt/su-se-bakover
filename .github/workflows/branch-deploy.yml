@@ -11,6 +11,7 @@ jobs:
    verify-master-is-ancestor:
       runs-on: ubuntu-latest
       steps:
+        - uses: actions/checkout@v2
         - run: |
             if ! git merge-base --is-ancestor "$(git rev-parse origin/master)" HEAD; then
               echo "You have to merge origin/master before you can deploy a branch."; exit 1
