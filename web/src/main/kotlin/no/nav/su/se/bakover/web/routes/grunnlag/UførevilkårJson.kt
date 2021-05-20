@@ -31,14 +31,7 @@ internal fun Vilkår.Vurdert.Uførhet.toJson() = UføreVilkårJson(
 )
 
 internal fun Inngangsvilkår.toJson() = when (this) {
-    Inngangsvilkår.BorOgOppholderSegINorge -> TODO()
-    Inngangsvilkår.Flyktning -> TODO()
-    Inngangsvilkår.Formue -> TODO()
-    Inngangsvilkår.Oppholdstillatelse -> TODO()
-    Inngangsvilkår.PersonligOppmøte -> TODO()
     Inngangsvilkår.Uførhet -> "Uførhet"
-    Inngangsvilkår.InnlagtPåInstitusjon -> TODO()
-    Inngangsvilkår.UtenlandsoppholdOver90Dager -> TODO()
 }
 
 internal fun Resultat.toStatusString() = when (this) {

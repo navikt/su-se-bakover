@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.visitor
 
 import arrow.core.Either
+import arrow.core.Nel
 import arrow.core.left
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.mock
@@ -9,6 +10,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
+import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
@@ -25,6 +27,7 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
+import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
@@ -37,7 +40,9 @@ import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest.AvslagBrevRequest
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest.InnvilgetVedtak
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
@@ -48,7 +53,10 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.Clock
@@ -726,6 +734,81 @@ internal class LagBrevRequestVisitorTest {
             attestantNavn = attestantNavn,
             fritekst = "FRITEKST REVURDERING",
             forventetInntektStørreEnn0 = false,
+            opphørsgrunner = emptyList()
+        ).right()
+    }
+
+    @Test
+    fun `lager opphørsvedtak med opphørsgrunn for uførhet`() {
+        val utbetalingId = UUID30.randomUUID()
+        val søknadsbehandling =
+            uavklart.tilVilkårsvurdert(Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt())
+                .tilBeregnet(innvilgetBeregning)
+                .tilSimulert(simulering)
+                .tilAttestering(saksbehandler, "Fritekst!")
+                .tilIverksatt(Attestering.Iverksatt(attestant))
+
+        val revurdering = IverksattRevurdering.Opphørt(
+            id = UUID.randomUUID(),
+            periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+            opprettet = Tidspunkt.now(clock),
+            tilRevurdering = Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetalingId),
+            saksbehandler = saksbehandler,
+            oppgaveId = OppgaveId("15"),
+            beregning = innvilgetBeregning,
+            simulering = simulering,
+            attestering = Attestering.Iverksatt(attestant),
+            fritekstTilBrev = "FRITEKST REVURDERING",
+            revurderingsårsak = Revurderingsårsak(
+                Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
+                Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
+            ),
+            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+            behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger(
+                uføre = Vilkår.Vurdert.Uførhet.create(
+                    vurderingsperioder = Nel.of(
+                        Vurderingsperiode.Uføre.create(
+                            resultat = Resultat.Avslag,
+                            grunnlag = Grunnlag.Uføregrunnlag(
+                                periode = Periode.create(1.januar(2021), 30.april(2021)),
+                                uføregrad = Uføregrad.parse(20),
+                                forventetInntekt = 10_000,
+                            ),
+                            periode = Periode.create(1.januar(2021), 30.april(2021)),
+                            begrunnelse = "",
+                        ),
+                    ),
+                )
+            ),
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+        )
+
+        val opphørsvedtak = Vedtak.from(revurdering, utbetalingId)
+
+        val brevRevurdering = LagBrevRequestVisitor(
+            hentPerson = { person.right() },
+            hentNavn = { hentNavn(it) },
+            clock = clock,
+        ).apply { revurdering.accept(this) }
+
+        val brevVedtak = LagBrevRequestVisitor(
+            hentPerson = { person.right() },
+            hentNavn = { hentNavn(it) },
+            clock = clock,
+        ).apply { opphørsvedtak.accept(this) }
+
+        brevRevurdering.brevRequest shouldBe brevVedtak.brevRequest
+        brevRevurdering.brevRequest shouldBe LagBrevRequest.Opphørsvedtak(
+            person = person,
+            beregning = revurdering.beregning,
+            behandlingsinformasjon = revurdering.behandlingsinformasjon,
+            saksbehandlerNavn = saksbehandlerNavn,
+            attestantNavn = attestantNavn,
+            fritekst = "FRITEKST REVURDERING",
+            forventetInntektStørreEnn0 = false,
+            opphørsgrunner = listOf(Opphørsgrunn.UFØRHET)
         ).right()
     }
 

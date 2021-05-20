@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
+import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -163,7 +164,7 @@ class LagBrevRequestVisitor(
     }
 
     override fun visit(revurdering: SimulertRevurdering.Opphørt) {
-        brevRequest = opphørtRevurdering(revurdering, revurdering.beregning)
+        brevRequest = opphørtRevurdering(revurdering, revurdering.beregning, revurdering.utledOpphørsgrunner())
     }
 
     override fun visit(revurdering: RevurderingTilAttestering.Innvilget) {
@@ -171,7 +172,7 @@ class LagBrevRequestVisitor(
     }
 
     override fun visit(revurdering: RevurderingTilAttestering.Opphørt) {
-        brevRequest = opphørtRevurdering(revurdering, revurdering.beregning)
+        brevRequest = opphørtRevurdering(revurdering, revurdering.beregning, revurdering.utledOpphørsgrunner())
     }
 
     override fun visit(revurdering: RevurderingTilAttestering.IngenEndring) {
@@ -183,7 +184,7 @@ class LagBrevRequestVisitor(
     }
 
     override fun visit(revurdering: IverksattRevurdering.Opphørt) {
-        brevRequest = opphørtRevurdering(revurdering, revurdering.beregning)
+        brevRequest = opphørtRevurdering(revurdering, revurdering.beregning, revurdering.utledOpphørsgrunner())
     }
 
     override fun visit(revurdering: IverksattRevurdering.IngenEndring) {
@@ -195,7 +196,7 @@ class LagBrevRequestVisitor(
     }
 
     override fun visit(revurdering: UnderkjentRevurdering.Opphørt) {
-        brevRequest = opphørtRevurdering(revurdering, revurdering.beregning)
+        brevRequest = opphørtRevurdering(revurdering, revurdering.beregning, revurdering.utledOpphørsgrunner())
     }
 
     override fun visit(revurdering: UnderkjentRevurdering.IngenEndring) {
@@ -358,7 +359,7 @@ class LagBrevRequestVisitor(
             )
         }
 
-    private fun opphørtRevurdering(revurdering: Revurdering, beregning: Beregning) =
+    private fun opphørtRevurdering(revurdering: Revurdering, beregning: Beregning, opphørsgrunner: List<Opphørsgrunn>) =
         hentPersonOgNavn(
             fnr = revurdering.fnr,
             saksbehandler = revurdering.saksbehandler,
@@ -374,7 +375,8 @@ class LagBrevRequestVisitor(
                 fritekst = revurdering.fritekstTilBrev,
                 saksbehandlerNavn = it.saksbehandlerNavn,
                 attestantNavn = it.attestantNavn,
-                forventetInntektStørreEnn0 = revurdering.grunnlagsdata.uføregrunnlag.harForventetInntektStørreEnn0()
+                forventetInntektStørreEnn0 = revurdering.grunnlagsdata.uføregrunnlag.harForventetInntektStørreEnn0(),
+                opphørsgrunner = opphørsgrunner,
             )
         }
 
@@ -494,7 +496,8 @@ class LagBrevRequestVisitor(
                     else -> ""
                 },
                 behandlingsinformasjon = vedtak.behandlingsinformasjon,
-                forventetInntektStørreEnn0 = vedtak.behandling.grunnlagsdata.uføregrunnlag.harForventetInntektStørreEnn0()
+                forventetInntektStørreEnn0 = vedtak.behandling.grunnlagsdata.uføregrunnlag.harForventetInntektStørreEnn0(),
+                opphørsgrunner = vedtak.behandling.vilkårsvurderinger.utledOpphørsgrunner(),
             )
         }
 

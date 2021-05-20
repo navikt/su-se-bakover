@@ -16,6 +16,8 @@ import no.nav.su.se.bakover.domain.behandling.AvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
+import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
+import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn.Companion.toOpphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
@@ -541,6 +543,9 @@ sealed class SimulertRevurdering : Revurdering() {
             visitor.visit(this)
         }
 
+        fun utledOpphørsgrunner(): List<Opphørsgrunn> = vilkårsvurderinger.utledOpphørsgrunner() +
+            listOfNotNull(VurderAvslagGrunnetBeregning.hentAvslagsgrunnForBeregning(beregning).toOpphørsgrunn())
+
         fun tilAttestering(
             attesteringsoppgaveId: OppgaveId,
             saksbehandler: Saksbehandler,
@@ -676,6 +681,9 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
         }
+
+        fun utledOpphørsgrunner(): List<Opphørsgrunn> = vilkårsvurderinger.utledOpphørsgrunner() +
+            listOfNotNull(VurderAvslagGrunnetBeregning.hentAvslagsgrunnForBeregning(beregning).toOpphørsgrunn())
 
         // TODO: sjekk om vi skal utbetale 0 utbetalinger, eller ny status
         fun tilIverksatt(
@@ -900,6 +908,9 @@ sealed class IverksattRevurdering : Revurdering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
         }
+
+        fun utledOpphørsgrunner(): List<Opphørsgrunn> = vilkårsvurderinger.utledOpphørsgrunner() +
+            listOfNotNull(VurderAvslagGrunnetBeregning.hentAvslagsgrunnForBeregning(beregning).toOpphørsgrunn())
     }
 
     data class IngenEndring(
@@ -1004,6 +1015,9 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
         }
+
+        fun utledOpphørsgrunner(): List<Opphørsgrunn> = vilkårsvurderinger.utledOpphørsgrunner() +
+            listOfNotNull(VurderAvslagGrunnetBeregning.hentAvslagsgrunnForBeregning(beregning).toOpphørsgrunn())
 
         fun tilAttestering(
             oppgaveId: OppgaveId,

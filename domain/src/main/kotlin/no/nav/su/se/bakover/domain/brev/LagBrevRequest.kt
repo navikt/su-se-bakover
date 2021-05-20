@@ -2,10 +2,10 @@ package no.nav.su.se.bakover.domain.brev
 
 import no.nav.su.se.bakover.common.ddMMyyyy
 import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.behandling.AvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
+import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
+import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn.Companion.getDistinkteParagrafer
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.beregning.LagBrevinnholdForBeregning
 import java.time.LocalDate
@@ -62,13 +62,14 @@ interface LagBrevRequest {
                 avslagsgrunner = avslag.avslagsgrunner,
                 harEktefelle = avslag.harEktefelle,
                 halvGrunnbeløp = avslag.halvGrunnbeløp.toInt(),
-                beregningsperioder = avslag.beregning?.let { LagBrevinnholdForBeregning(it).brevInnhold } ?: emptyList(),
+                beregningsperioder = avslag.beregning?.let { LagBrevinnholdForBeregning(it).brevInnhold }
+                    ?: emptyList(),
                 saksbehandlerNavn = saksbehandlerNavn,
                 attestantNavn = attestantNavn,
                 sats = avslag.beregning?.getSats()?.name?.lowercase(),
                 satsGjeldendeFraDato = avslag.beregning?.getSats()?.datoForSisteEndringAvSats(avslag.beregning.periode.tilOgMed)?.ddMMyyyy(),
                 fritekst = fritekst,
-                forventetInntektStørreEnn0 = forventetInntektStørreEnn0
+                forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
             )
         }
     }
@@ -81,16 +82,10 @@ interface LagBrevRequest {
         private val saksbehandlerNavn: String,
         private val attestantNavn: String,
         private val fritekst: String,
+        private val opphørsgrunner: List<Opphørsgrunn>,
     ) : LagBrevRequest {
         override fun getPerson(): Person = person
         override fun lagBrevInnhold(personalia: BrevInnhold.Personalia): BrevInnhold.Opphørsvedtak {
-            val avslagsgrunn = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning).let {
-                when (it) {
-                    is AvslagGrunnetBeregning.Ja -> listOf(it.avslagsgrunn)
-                    is AvslagGrunnetBeregning.Nei -> throw IllegalStateException("Skal aldri havne på nei her")
-                }
-            }
-
             return BrevInnhold.Opphørsvedtak(
                 personalia = personalia,
                 sats = beregning.getSats().toString().lowercase(),
@@ -101,8 +96,8 @@ interface LagBrevRequest {
                 saksbehandlerNavn = saksbehandlerNavn,
                 attestantNavn = attestantNavn,
                 fritekst = fritekst,
-                avslagsgrunner = avslagsgrunn,
-                avslagsparagrafer = avslagsgrunn.getDistinkteParagrafer(),
+                opphørsgrunner = opphørsgrunner,
+                avslagsparagrafer = opphørsgrunner.getDistinkteParagrafer(),
                 forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
             )
         }

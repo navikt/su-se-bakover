@@ -6,6 +6,8 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.behandling.Satsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
+import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn.Companion.getDistinkteParagrafer
+import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
 
@@ -67,7 +69,7 @@ abstract class BrevInnhold {
 
     data class Opphørsvedtak(
         val personalia: Personalia,
-        val avslagsgrunner: List<Avslagsgrunn>,
+        val opphørsgrunner: List<Opphørsgrunn>,
         val avslagsparagrafer: List<Int>,
         val sats: String,
         val satsBeløp: Int,
@@ -147,16 +149,3 @@ abstract class BrevInnhold {
 }
 
 fun List<Beregningsperiode>.harFradrag() = this.any { it.fradrag.bruker.isNotEmpty() || it.fradrag.eps.fradrag.isNotEmpty() }
-fun List<Avslagsgrunn>.getDistinkteParagrafer() = this.map { it.getParagrafer() }.flatten().distinct().sorted()
-fun Avslagsgrunn.getParagrafer() = when (this) {
-    Avslagsgrunn.UFØRHET -> listOf(1, 2)
-    Avslagsgrunn.FLYKTNING -> listOf(1, 2)
-    Avslagsgrunn.OPPHOLDSTILLATELSE -> listOf(1, 2)
-    Avslagsgrunn.PERSONLIG_OPPMØTE -> listOf(17)
-    Avslagsgrunn.FORMUE -> listOf(8)
-    Avslagsgrunn.BOR_OG_OPPHOLDER_SEG_I_NORGE -> listOf(1, 2, 3, 4)
-    Avslagsgrunn.FOR_HØY_INNTEKT -> listOf(5, 6, 7)
-    Avslagsgrunn.SU_UNDER_MINSTEGRENSE -> listOf(5, 6, 9)
-    Avslagsgrunn.UTENLANDSOPPHOLD_OVER_90_DAGER -> listOf(1, 2, 4)
-    Avslagsgrunn.INNLAGT_PÅ_INSTITUSJON -> listOf(12)
-}

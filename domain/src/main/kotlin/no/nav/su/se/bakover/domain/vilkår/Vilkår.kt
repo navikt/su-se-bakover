@@ -9,6 +9,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
+import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
@@ -22,6 +23,7 @@ Her har vi utelatt for høy inntekt (SU<0) og su under minstegrense (SU<2%)
  */
 sealed class Inngangsvilkår {
     object Uførhet : Inngangsvilkår()
+   /*
     object Flyktning : Inngangsvilkår()
     object Oppholdstillatelse : Inngangsvilkår()
     object PersonligOppmøte : Inngangsvilkår()
@@ -29,11 +31,18 @@ sealed class Inngangsvilkår {
     object BorOgOppholderSegINorge : Inngangsvilkår()
     object UtenlandsoppholdOver90Dager : Inngangsvilkår()
     object InnlagtPåInstitusjon : Inngangsvilkår()
+    */
+
+    fun tilOpphørsgrunn() = when (this) {
+        Uførhet -> Opphørsgrunn.UFØRHET
+    }
 }
 
 data class Vilkårsvurderinger(
     val uføre: Vilkår<Grunnlag.Uføregrunnlag?> = Vilkår.IkkeVurdert.Uførhet,
 ) {
+    private val vilkår = setOf(uføre)
+
     fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Vilkårsvurderinger =
         this.copy(uføre = this.uføre.oppdaterStønadsperiode(stønadsperiode))
 
@@ -45,11 +54,20 @@ data class Vilkårsvurderinger(
         Grunnlagsdata(uføregrunnlag = (uføre as? Vilkår.Vurdert.Uførhet)?.grunnlag ?: emptyList())
 
     val resultat: Resultat by lazy {
-        setOf(uføre).map { it.resultat }.let { alleVurderingsresultat ->
+        vilkår.map { it.resultat }.let { alleVurderingsresultat ->
             when {
                 alleVurderingsresultat.all { it is Resultat.Innvilget } -> Resultat.Innvilget
                 alleVurderingsresultat.any { it is Resultat.Avslag } -> Resultat.Avslag
                 else -> Resultat.Uavklart
+            }
+        }
+    }
+
+    fun utledOpphørsgrunner(): List<Opphørsgrunn> {
+        return vilkår.mapNotNull {
+            when (it) {
+                is Vilkår.IkkeVurdert.Uførhet -> null
+                is Vilkår.Vurdert.Uførhet -> if (it.erAvslag) it.vilkår.tilOpphørsgrunn() else null
             }
         }
     }
@@ -100,11 +118,11 @@ sealed class Vilkår<T : Grunnlag?> {
             if (erInnvilget) Resultat.Innvilget else if (erAvslag) Resultat.Avslag else Resultat.Uavklart
         }
 
-        private val erInnvilget: Boolean by lazy {
+        val erInnvilget: Boolean by lazy {
             vurderingsperioder.all { it.resultat == Resultat.Innvilget }
         }
 
-        private val erAvslag: Boolean by lazy {
+        val erAvslag: Boolean by lazy {
             vurderingsperioder.any { it.resultat == Resultat.Avslag }
         }
 
