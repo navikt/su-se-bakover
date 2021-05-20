@@ -9,13 +9,14 @@ env:
 
 jobs:
    verify-master-is-ancestor:
-      if: "! git merge-base --is-ancestor $(git rev-parse origin/master) HEAD"
       runs-on: ubuntu-latest
       steps:
-        - run: echo "You have to merge origin/master before you can deploy a branch."
+        - run: |
+            if ! git merge-base --is-ancestor "$(git rev-parse origin/master)" HEAD; then
+              echo "You have to merge origin/master before you can deploy a branch."; exit 1
+            fi
    build:
       name: Gradle test build and conditional docker build push
-      if: git merge-base --is-ancestor $(git rev-parse origin/master) HEAD
       runs-on: ubuntu-latest
       steps:
         - uses: actions/checkout@v2
@@ -49,7 +50,6 @@ jobs:
 
    deploy_to_dev:
       name: Deploy branch to dev-fss
-      if: git merge-base --is-ancestor $(git rev-parse origin/master) HEAD
       needs: build
       runs-on: ubuntu-latest
       steps:
