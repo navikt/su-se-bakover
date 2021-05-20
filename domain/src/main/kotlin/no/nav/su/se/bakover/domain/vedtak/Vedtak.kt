@@ -267,7 +267,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
         ) : Avslag() {
             private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
                 when (val vurdering = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
-                    is AvslagGrunnetBeregning.Ja -> listOf(vurdering.avslagsgrunn.toAvslagsgrunn())
+                    is AvslagGrunnetBeregning.Ja -> listOf(vurdering.grunn.toAvslagsgrunn())
                     is AvslagGrunnetBeregning.Nei -> emptyList()
                 }
 

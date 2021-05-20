@@ -29,7 +29,7 @@ internal class VurderAvslagGrunnetBeregningKtTest {
             on { getMånedsberegninger() } doReturn listOf(månedsberegning)
         }
         vurderAvslagGrunnetBeregning(beregning) shouldBe AvslagGrunnetBeregning.Ja(
-            avslagsgrunn = AvslagGrunnetBeregning.Grunn.FOR_HØY_INNTEKT
+            grunn = AvslagGrunnetBeregning.Grunn.FOR_HØY_INNTEKT
         )
     }
 
@@ -43,7 +43,7 @@ internal class VurderAvslagGrunnetBeregningKtTest {
             on { getMånedsberegninger() } doReturn listOf(månedsberegning)
         }
         vurderAvslagGrunnetBeregning(beregning) shouldBe AvslagGrunnetBeregning.Ja(
-            avslagsgrunn = AvslagGrunnetBeregning.Grunn.FOR_HØY_INNTEKT
+            grunn = AvslagGrunnetBeregning.Grunn.FOR_HØY_INNTEKT
         )
     }
 
@@ -61,7 +61,7 @@ internal class VurderAvslagGrunnetBeregningKtTest {
             on { getMånedsberegninger() } doReturn listOf(januar, desember)
         }
         vurderAvslagGrunnetBeregning(beregning) shouldBe AvslagGrunnetBeregning.Ja(
-            avslagsgrunn = AvslagGrunnetBeregning.Grunn.SU_UNDER_MINSTEGRENSE
+            grunn = AvslagGrunnetBeregning.Grunn.SU_UNDER_MINSTEGRENSE
         )
     }
 
@@ -81,7 +81,7 @@ internal class VurderAvslagGrunnetBeregningKtTest {
             on { getMånedsberegninger() } doReturn listOf(januar, desember)
         }
         vurderAvslagGrunnetBeregning(beregning) shouldBe AvslagGrunnetBeregning.Ja(
-            avslagsgrunn = AvslagGrunnetBeregning.Grunn.SU_UNDER_MINSTEGRENSE
+            grunn = AvslagGrunnetBeregning.Grunn.SU_UNDER_MINSTEGRENSE
         )
     }
 
@@ -118,7 +118,7 @@ internal class VurderAvslagGrunnetBeregningKtTest {
             on { getMånedsberegninger() } doReturn listOf(januar, desember)
         }
         vurderAvslagGrunnetBeregning(beregning) shouldBe AvslagGrunnetBeregning.Ja(
-            avslagsgrunn = AvslagGrunnetBeregning.Grunn.SU_UNDER_MINSTEGRENSE
+            grunn = AvslagGrunnetBeregning.Grunn.SU_UNDER_MINSTEGRENSE
         )
     }
 
@@ -138,7 +138,7 @@ internal class VurderAvslagGrunnetBeregningKtTest {
             on { getMånedsberegninger() } doReturn listOf(januar, desember)
         }
         vurderAvslagGrunnetBeregning(beregning) shouldBe AvslagGrunnetBeregning.Ja(
-            avslagsgrunn = AvslagGrunnetBeregning.Grunn.SU_UNDER_MINSTEGRENSE
+            grunn = AvslagGrunnetBeregning.Grunn.SU_UNDER_MINSTEGRENSE
         )
     }
 

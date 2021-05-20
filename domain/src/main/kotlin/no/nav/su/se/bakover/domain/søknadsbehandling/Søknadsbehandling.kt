@@ -368,7 +368,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
 
             private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
                 when (val vurdering = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
-                    is AvslagGrunnetBeregning.Ja -> listOf(vurdering.avslagsgrunn.toAvslagsgrunn())
+                    is AvslagGrunnetBeregning.Ja -> listOf(vurdering.grunn.toAvslagsgrunn())
                     is AvslagGrunnetBeregning.Nei -> emptyList()
                 }
 
@@ -660,7 +660,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
 
                 private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
                     when (val vurdering = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
-                        is AvslagGrunnetBeregning.Ja -> listOf(vurdering.avslagsgrunn.toAvslagsgrunn())
+                        is AvslagGrunnetBeregning.Ja -> listOf(vurdering.grunn.toAvslagsgrunn())
                         is AvslagGrunnetBeregning.Nei -> emptyList()
                     }
 
@@ -858,7 +858,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
 
                 private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
                     when (val vurdering = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
-                        is AvslagGrunnetBeregning.Ja -> listOf(vurdering.avslagsgrunn.toAvslagsgrunn())
+                        is AvslagGrunnetBeregning.Ja -> listOf(vurdering.grunn.toAvslagsgrunn())
                         is AvslagGrunnetBeregning.Nei -> emptyList()
                     }
 
@@ -1024,7 +1024,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
 
                 private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
                     when (val vurdering = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
-                        is AvslagGrunnetBeregning.Ja -> listOf(vurdering.avslagsgrunn.toAvslagsgrunn())
+                        is AvslagGrunnetBeregning.Ja -> listOf(vurdering.grunn.toAvslagsgrunn())
                         is AvslagGrunnetBeregning.Nei -> emptyList()
                     }
 

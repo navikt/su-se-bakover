@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.domain.behandling.avslag
 import no.nav.su.se.bakover.domain.behandling.AvslagGrunnetBeregning
 
 /**
- * Brukes også som opphørsgrunner. Bruker samme enum så lenge dem er 1 til 1
  * https://confluence.adeo.no/pages/viewpage.action?pageId=414002852
  */
 enum class Avslagsgrunn {
@@ -30,6 +29,7 @@ enum class Avslagsgrunn {
         }
     }
 
+    // TODO: bør lage en paragraf-type/enum
     fun getParagrafer() = when (this) {
         UFØRHET -> listOf(1, 2)
         FLYKTNING -> listOf(1, 2)
@@ -66,6 +66,7 @@ enum class Opphørsgrunn {
             this.map { it.getParagrafer() }.flatten().distinct().sorted()
     }
 
+    // TODO: bør lage en paragraf-type/enum
     fun getParagrafer() = when (this) {
         UFØRHET -> listOf(1, 2)
         FOR_HØY_INNTEKT -> listOf(5, 6, 7)

@@ -19,7 +19,7 @@ object VurderAvslagGrunnetBeregning {
 
     fun hentAvslagsgrunnForBeregning(beregning: Beregning?): AvslagGrunnetBeregning.Grunn? {
         return when (val v = vurderAvslagGrunnetBeregning(beregning)) {
-            is AvslagGrunnetBeregning.Ja -> v.avslagsgrunn
+            is AvslagGrunnetBeregning.Ja -> v.grunn
             is AvslagGrunnetBeregning.Nei -> null
         }
     }
@@ -29,7 +29,7 @@ object VurderAvslagGrunnetBeregning {
 }
 
 sealed class AvslagGrunnetBeregning {
-    data class Ja(val avslagsgrunn: Grunn) : AvslagGrunnetBeregning()
+    data class Ja(val grunn: Grunn) : AvslagGrunnetBeregning()
     object Nei : AvslagGrunnetBeregning()
 
     enum class Grunn {

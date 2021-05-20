@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.revurdering
 
 import arrow.core.Nel
+import arrow.core.getOrElse
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
@@ -12,7 +13,9 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.FnrGenerator
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.Sats
@@ -21,6 +24,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vilkår.Resultat
@@ -28,6 +32,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 import java.util.UUID
 
 internal class RevurderingTest {
@@ -86,6 +91,129 @@ internal class RevurderingTest {
             it shouldNotBe beOfType<BeregnetRevurdering.Opphørt>()
             it.informasjonSomRevurderes[Revurderingsteg.Inntekt] shouldBe Vurderingstatus.Vurdert
         }
+    }
+
+    @Test
+    fun `revurdering som er opphørt pga uførhet, blir utledet`() {
+        val simulertRevurdering = SimulertRevurdering.Opphørt(
+            id = mock(), periode = mock(), opprettet = mock(),
+            tilRevurdering = tilRevurderingMock,
+            saksbehandler = mock(),
+            revurderingsårsak = mock(),
+            fritekstTilBrev = "", beregning = tilRevurderingMock.beregning,
+            simulering = mock(),
+            forhåndsvarsel = null,
+            behandlingsinformasjon = mock(),
+            grunnlagsdata = mock(),
+            vilkårsvurderinger = Vilkårsvurderinger(
+                uføre = Vilkår.Vurdert.Uførhet.create(
+                    vurderingsperioder = Nel.of(
+                        Vurderingsperiode.Uføre.create(
+                            id = UUID.randomUUID(),
+                            opprettet = Tidspunkt.now(),
+                            resultat = Resultat.Avslag,
+                            grunnlag = null,
+                            periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                            begrunnelse = null,
+                        ),
+                    ),
+                ),
+            ),
+            informasjonSomRevurderes = mock(),
+            oppgaveId = mock(),
+        )
+
+        simulertRevurdering.utledOpphørsgrunner() shouldBe listOf(Opphørsgrunn.UFØRHET)
+    }
+
+    @Test
+    fun `revurdering som er opphørt pga for høy inntekt, blir utledet`() {
+        val revurdering = lagRevurdering(
+            vilkårsvurderinger = Vilkårsvurderinger(
+                uføre = Vilkår.Vurdert.Uførhet.create(
+                    vurderingsperioder = Nel.of(
+                        Vurderingsperiode.Uføre.create(
+                            id = UUID.randomUUID(),
+                            opprettet = Tidspunkt.now(),
+                            resultat = Resultat.Innvilget,
+                            grunnlag = null,
+                            periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                            begrunnelse = null,
+                        ),
+                    ),
+                ),
+            ),
+        )
+        val beregnet = revurdering.beregn(
+            listOf(
+                FradragFactory.ny(
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 2000000000.0,
+                    periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
+        ).getOrElse { throw RuntimeException("Her skal det være en beregnet revurdering") }
+
+        beregnet shouldBe beOfType<BeregnetRevurdering.Opphørt>()
+
+        val simulert = beregnet.toSimulert(
+            Simulering(
+                gjelderId = FnrGenerator.random(),
+                gjelderNavn = "",
+                datoBeregnet = LocalDate.now(),
+                nettoBeløp = 0,
+                periodeList = listOf(),
+            ),
+        )
+
+        simulert shouldBe beOfType<SimulertRevurdering.Opphørt>()
+        (simulert as SimulertRevurdering.Opphørt).utledOpphørsgrunner() shouldBe listOf(Opphørsgrunn.FOR_HØY_INNTEKT)
+    }
+
+    @Test
+    fun `revurdering som er opphørt pga under minstegrense, blir utledet`() {
+        val revurdering = lagRevurdering(
+            vilkårsvurderinger = Vilkårsvurderinger(
+                uføre = Vilkår.Vurdert.Uførhet.create(
+                    vurderingsperioder = Nel.of(
+                        Vurderingsperiode.Uføre.create(
+                            id = UUID.randomUUID(),
+                            opprettet = Tidspunkt.now(),
+                            resultat = Resultat.Innvilget,
+                            grunnlag = null,
+                            periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                            begrunnelse = null,
+                        ),
+                    ),
+                ),
+            ),
+        )
+        val beregnet = revurdering.beregn(
+            listOf(
+                FradragFactory.ny(
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 20900.0,
+                    periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
+        ).getOrElse { throw RuntimeException("Her skal det være en beregnet revurdering") }
+
+        beregnet shouldBe beOfType<BeregnetRevurdering.Opphørt>()
+
+        val simulert = beregnet.toSimulert(
+            Simulering(
+                gjelderId = FnrGenerator.random(),
+                gjelderNavn = "",
+                datoBeregnet = LocalDate.now(),
+                nettoBeløp = 0,
+                periodeList = listOf(),
+            ),
+        )
+
+        simulert shouldBe beOfType<SimulertRevurdering.Opphørt>()
+        (simulert as SimulertRevurdering.Opphørt).utledOpphørsgrunner() shouldBe listOf(Opphørsgrunn.SU_UNDER_MINSTEGRENSE)
     }
 
     private fun lagRevurdering(
