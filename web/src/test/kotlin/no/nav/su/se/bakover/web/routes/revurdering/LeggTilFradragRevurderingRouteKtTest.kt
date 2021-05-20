@@ -37,7 +37,7 @@ import java.util.UUID
 internal class LeggTilFradragRevurderingRouteKtTest {
     //language=json
     val validBody =
-    """
+        """
         {
             "fradrag":
                 [
@@ -57,7 +57,7 @@ internal class LeggTilFradragRevurderingRouteKtTest {
                     }
                 ]
         }
-    """.trimIndent()
+        """.trimIndent()
 
     private val revurderingId = UUID.randomUUID()
 
