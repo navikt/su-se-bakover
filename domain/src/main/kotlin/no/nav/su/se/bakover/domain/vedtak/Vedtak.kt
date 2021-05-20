@@ -374,11 +374,6 @@ fun List<Vedtak.EndringIYtelse>.lagTidslinje(periode: Periode): List<Vedtak.Vedt
         ).tidslinje
     }
 
-fun List<Vedtak.VedtakPåTidslinje>.grunnlagsdata() =
-    Grunnlagsdata(
-        uføregrunnlag = flatMap { it.grunnlagsdata.uføregrunnlag },
-    )
-
 fun List<Vedtak.VedtakPåTidslinje>.vilkårsvurderinger(): Vilkårsvurderinger {
     return Vilkårsvurderinger(
         uføre = Vilkår.Vurdert.Uførhet.create(
