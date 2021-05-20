@@ -387,6 +387,86 @@ internal class TidslinjeTest {
     }
 
     /**
+     * |---|           a
+     *     |-------|   b
+     *     |-----|     c
+     *       |---|     d
+     * |-a-|c|-d-|b|  resultat
+     */
+    @Test
+    fun `takler at kombinasjonen b, c, d fungerer uavhengig av rekkefølgen`() {
+        val a = Tidslinjeobjekt(
+            opprettet = Tidspunkt.now(fixedClock),
+            periode = Periode.create(
+                fraOgMed = 1.januar(2021),
+                tilOgMed = 30.april(2021)
+            )
+        )
+
+        val b = Tidslinjeobjekt(
+            opprettet = Tidspunkt.now(fixedClock).plus(1, DAYS),
+            periode = Periode.create(
+                fraOgMed = 1.mai(2021),
+                tilOgMed = 31.januar(2022)
+            )
+        )
+
+        val c = Tidslinjeobjekt(
+            opprettet = Tidspunkt.now(fixedClock).plus(2, DAYS),
+            periode = Periode.create(
+                fraOgMed = 1.mai(2021),
+                tilOgMed = 31.desember(2021)
+            )
+        )
+
+        val d = Tidslinjeobjekt(
+            opprettet = Tidspunkt.now(fixedClock).plus(3, DAYS),
+            periode = Periode.create(
+                fraOgMed = 1.juni(2021),
+                tilOgMed = 31.desember(2021)
+            )
+        )
+
+        Tidslinje(
+            periode = Periode.create(
+                fraOgMed = 1.januar(2021),
+                tilOgMed = 31.desember(2022)
+            ),
+            objekter = listOf(a, b, c, d),
+            clock = fixedClock
+        ).tidslinje shouldBe listOf(
+            Tidslinjeobjekt(
+                opprettet = a.opprettet,
+                periode = Periode.create(
+                    fraOgMed = 1.januar(2021),
+                    tilOgMed = 30.april(2021)
+                )
+            ),
+            Tidslinjeobjekt(
+                opprettet = c.opprettet,
+                periode = Periode.create(
+                    fraOgMed = 1.mai(2021),
+                    tilOgMed = 31.mai(2021)
+                )
+            ),
+            Tidslinjeobjekt(
+                opprettet = d.opprettet,
+                periode = Periode.create(
+                    fraOgMed = 1.juni(2021),
+                    tilOgMed = 31.desember(2021)
+                )
+            ),
+            Tidslinjeobjekt(
+                opprettet = b.opprettet,
+                periode = Periode.create(
+                    fraOgMed = 1.januar(2022),
+                    tilOgMed = 31.januar(2022)
+                )
+            )
+        )
+    }
+
+    /**
      *  |-----| a
      *    |-|   b
      *  |-|-|-| resultat

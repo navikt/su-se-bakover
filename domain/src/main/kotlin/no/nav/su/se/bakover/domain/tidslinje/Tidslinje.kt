@@ -3,13 +3,14 @@ package no.nav.su.se.bakover.domain.tidslinje
 import arrow.core.extensions.list.foldable.exists
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
+import java.lang.RuntimeException
 import java.time.Clock
 import java.util.LinkedList
 
 data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
     private val periode: Periode,
     private val objekter: List<T>,
-    private val clock: Clock = Clock.systemUTC()
+    private val clock: Clock = Clock.systemUTC(),
 ) {
 
     private val stigendeFraOgMed = Comparator<T> { o1, o2 ->
@@ -35,14 +36,11 @@ data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
         val delvisOverlappende = innenforPeriode
             .filtrerVekkAlleSomOverskivesFullstendigAvNyere()
 
-        val sortert = delvisOverlappende
-            .sortedWith(stigendeFraOgMed.then(nyesteFørst))
-
-        return periodiser(sortert)
+        return periodiser(delvisOverlappende)
     }
 
     private fun periodiser(tempResult: List<T>): List<T> {
-        val queue = LinkedList(tempResult)
+        val queue = LinkedList(tempResult.sortedWith(stigendeFraOgMed.then(nyesteFørst)))
         val result = mutableListOf<T>()
 
         while (queue.isNotEmpty()) {
@@ -61,11 +59,11 @@ data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
                                                 fraOgMed = first.periode.fraOgMed,
                                                 tilOgMed = minOf(
                                                     first.periode.tilOgMed,
-                                                    second.periode.fraOgMed.minusDays(1)
-                                                )
-                                            )
-                                        )
-                                    )
+                                                    second.periode.fraOgMed.minusDays(1),
+                                                ),
+                                            ),
+                                        ),
+                                    ),
                                 )
                                 result.add(
                                     second.copy(
@@ -73,12 +71,12 @@ data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
                                             periode = Periode.create(
                                                 fraOgMed = minOf(
                                                     first.periode.tilOgMed.plusDays(1),
-                                                    second.periode.fraOgMed
+                                                    second.periode.fraOgMed,
                                                 ),
-                                                tilOgMed = second.periode.tilOgMed
-                                            )
-                                        )
-                                    )
+                                                tilOgMed = second.periode.tilOgMed,
+                                            ),
+                                        ),
+                                    ),
                                 )
                             }
                             first.opprettet.instant > second.opprettet.instant -> {
@@ -89,11 +87,11 @@ data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
                                                 fraOgMed = first.periode.fraOgMed,
                                                 tilOgMed = maxOf(
                                                     first.periode.tilOgMed,
-                                                    second.periode.fraOgMed.minusDays(1)
-                                                )
-                                            )
-                                        )
-                                    )
+                                                    second.periode.fraOgMed.minusDays(1),
+                                                ),
+                                            ),
+                                        ),
+                                    ),
                                 )
                                 result.add(
                                     second.copy(
@@ -101,12 +99,12 @@ data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
                                             periode = Periode.create(
                                                 fraOgMed = maxOf(
                                                     first.periode.tilOgMed.plusDays(1),
-                                                    second.periode.fraOgMed
+                                                    second.periode.fraOgMed,
                                                 ),
-                                                tilOgMed = second.periode.tilOgMed
-                                            )
-                                        )
-                                    )
+                                                tilOgMed = second.periode.tilOgMed,
+                                            ),
+                                        ),
+                                    ),
                                 )
                             }
                         }
@@ -122,10 +120,10 @@ data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
                                                 CopyArgs.Tidslinje.NyPeriode(
                                                     periode = Periode.create(
                                                         fraOgMed = first.periode.fraOgMed,
-                                                        tilOgMed = second.periode.fraOgMed.minusDays(1)
-                                                    )
-                                                )
-                                            )
+                                                        tilOgMed = second.periode.fraOgMed.minusDays(1),
+                                                    ),
+                                                ),
+                                            ),
                                         )
                                         result.add(second.copy(CopyArgs.Tidslinje.Full))
 
@@ -135,10 +133,10 @@ data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
                                                     CopyArgs.Tidslinje.NyPeriode(
                                                         periode = Periode.create(
                                                             fraOgMed = second.periode.tilOgMed.plusDays(1),
-                                                            tilOgMed = first.periode.tilOgMed
-                                                        )
-                                                    )
-                                                )
+                                                            tilOgMed = first.periode.tilOgMed,
+                                                        ),
+                                                    ),
+                                                ),
                                             )
                                         }
                                     }
@@ -146,45 +144,30 @@ data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
                             }
                             first.periode starterSamtidig second.periode -> {
                                 when {
-                                    // TODO is this case impossible or not?
-//                                    first.opprettet.instant > second.opprettet.instant -> {
-//                                        result.add(
-//                                            first.copy(
-//                                                periode = Periode.create(
-//                                                    fraOgMed = first.periode.getFraOgMed(),
-//                                                    tilOgMed = second.periode.getTilOgMed()
-//                                                )
-//                                            )
-//                                        )
-//                                        result.add(
-//                                            second.copy(
-//                                                periode = Periode.create(
-//                                                    fraOgMed = second.periode.getTilOgMed().plusDays(1),
-//                                                    tilOgMed = first.periode.getTilOgMed()
-//                                                )
-//                                            )
-//                                        )
-//                                    }
+                                    first.opprettet.instant > second.opprettet.instant ||
+                                        first.opprettet.instant == second.opprettet.instant -> {
+                                        throw RuntimeException("Feil ved periodisering i Tidslinje. Objekter er i ugyldig rekkefølge.")
+                                    }
                                     first.opprettet.instant < second.opprettet.instant -> {
                                         result.add(
                                             second.copy(
                                                 CopyArgs.Tidslinje.NyPeriode(
                                                     periode = Periode.create(
                                                         fraOgMed = second.periode.fraOgMed,
-                                                        tilOgMed = second.periode.tilOgMed
-                                                    )
-                                                )
-                                            )
+                                                        tilOgMed = second.periode.tilOgMed,
+                                                    ),
+                                                ),
+                                            ),
                                         )
                                         result.add(
                                             first.copy(
                                                 CopyArgs.Tidslinje.NyPeriode(
                                                     periode = Periode.create(
                                                         fraOgMed = second.periode.tilOgMed.plusDays(1),
-                                                        tilOgMed = first.periode.tilOgMed
-                                                    )
-                                                )
-                                            )
+                                                        tilOgMed = first.periode.tilOgMed,
+                                                    ),
+                                                ),
+                                            ),
                                         )
                                     }
                                 }
@@ -212,9 +195,9 @@ data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
                     CopyArgs.Tidslinje.NyPeriode(
                         periode = Periode.create(
                             fraOgMed = periode.fraOgMed,
-                            tilOgMed = it.periode.tilOgMed
-                        )
-                    )
+                            tilOgMed = it.periode.tilOgMed,
+                        ),
+                    ),
                 )
             } else {
                 it.copy(CopyArgs.Tidslinje.Full)
@@ -229,9 +212,9 @@ data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
                     CopyArgs.Tidslinje.NyPeriode(
                         periode = Periode.create(
                             fraOgMed = it.periode.fraOgMed,
-                            tilOgMed = periode.tilOgMed
-                        )
-                    )
+                            tilOgMed = periode.tilOgMed,
+                        ),
+                    ),
                 )
             } else {
                 it.copy(CopyArgs.Tidslinje.Full)
