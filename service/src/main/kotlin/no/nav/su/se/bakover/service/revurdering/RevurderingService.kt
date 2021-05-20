@@ -76,7 +76,8 @@ interface RevurderingService {
 }
 
 sealed class KunneIkkeLeggeTilFradragsgrunnlag {
-    // TODO fyll ut
+    object FantIkkeBehandling : KunneIkkeLeggeTilFradragsgrunnlag()
+    object UgyldigStatus : KunneIkkeLeggeTilFradragsgrunnlag()
 }
 
 data class LeggTilFradragsgrunnlagRequest(
@@ -85,8 +86,7 @@ data class LeggTilFradragsgrunnlagRequest(
 )
 
 data class LeggTilFradragsgrunnlagResponse(
-    val fradrag: List<Grunnlag.Fradragsgrunnlag>,
-    val gjeldendeFradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
+    val revurdering: Revurdering
 )
 
 sealed class FortsettEtterForhåndsvarslingRequest {

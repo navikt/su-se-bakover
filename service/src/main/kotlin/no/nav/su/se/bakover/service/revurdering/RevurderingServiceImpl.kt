@@ -243,11 +243,22 @@ internal class RevurderingServiceImpl(
         ).right()
     }
 
+    private fun Revurdering.ugyldigTilstandForåLeggeTilGrunnlag() = this is RevurderingTilAttestering || this is IverksattRevurdering
+
     override fun leggTilFradragsgrunnlag(request: LeggTilFradragsgrunnlagRequest): Either<KunneIkkeLeggeTilFradragsgrunnlag, LeggTilFradragsgrunnlagResponse> {
-        // TODO hent, lagre grunnlag, oppdater revurdering, utled gjeldende, feil etc.
+        val revurdering = revurderingRepo.hent(request.behandlingId)
+            ?: return KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling.left()
+
+        if (revurdering.ugyldigTilstandForåLeggeTilGrunnlag())
+            return KunneIkkeLeggeTilFradragsgrunnlag.UgyldigStatus.left()
+
+        grunnlagService.lagreFradragsgrunnlag(
+            behandlingId = revurdering.id,
+            fradragsgrunnlag = request.fradragsrunnlag,
+        )
+
         return LeggTilFradragsgrunnlagResponse(
-            fradrag = listOf(),
-            gjeldendeFradragsgrunnlag = listOf(),
+            revurdering = revurderingRepo.hent(revurdering.id)!!
         ).right()
     }
 
