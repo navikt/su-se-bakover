@@ -42,12 +42,12 @@ internal class GarantipensjonsnivåTest {
     }
 
     @Test
-    fun `fiktivt garantipensjonsnivå etter mai 2021 skal være 179 123 kr`() {
+    fun `garantipensjonsnivå etter mai 2021 skal være 179 123 kr`() {
         Garantipensjonsnivå.Ordinær
-            .forDato(1.mai(2021)) shouldBe 179123
+            .forDato(1.mai(2021)) shouldBe 186263
 
         Garantipensjonsnivå.Ordinær
-            .forDato(1.juli(2021)) shouldBe 179123
+            .forDato(1.juli(2021)) shouldBe 186263
     }
 
     @Test
