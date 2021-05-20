@@ -17,6 +17,7 @@ jobs:
             fi
    build:
       name: Gradle test build and conditional docker build push
+      needs: verify-master-is-ancestor
       runs-on: ubuntu-latest
       steps:
         - uses: actions/checkout@v2
