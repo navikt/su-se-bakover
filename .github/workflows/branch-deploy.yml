@@ -9,7 +9,7 @@ env:
 
 jobs:
    verify-master-is-ancestor:
-      if: !(git merge-base --is-ancestor (git rev-parse origin/master) HEAD)
+      if: ${{ !(git merge-base --is-ancestor (git rev-parse origin/master) HEAD) }}
       runs-on: ubuntu-latest
       steps:
         - run: echo "You have to merge origin/master before you can deploy a branch."
