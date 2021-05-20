@@ -98,6 +98,7 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.saksbehandl
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.saksnummer
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.simulertRevurderingInnvilget
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.søknadsbehandlingVedtak
+import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.uføregrunnlag
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.vilkårsvurderinger
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.vurderingsperiodeUføre
 import no.nav.su.se.bakover.service.sak.SakService
@@ -158,7 +159,6 @@ internal class RevurderingServiceImplTest {
         ) {
             verify(sakServiceMock).hentSak(sakId)
             verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
-            verify(vilkårsvurderingServiceMock).opprettVilkårsvurderinger(sakId, periode)
             verify(oppgaveServiceMock).opprettOppgave(
                 argThat {
                     it shouldBe OppgaveConfig.Revurderingsbehandling(
@@ -1037,7 +1037,7 @@ internal class RevurderingServiceImplTest {
                             revurdertBeregning = simulertRevurdering.beregning,
                             fritekst = "",
                             harEktefelle = false,
-                            forventetInntektStørreEnn0 = false
+                            forventetInntektStørreEnn0 = false,
                         )
                 },
             )
@@ -1861,7 +1861,6 @@ internal class RevurderingServiceImplTest {
         val sakServiceMock = mock<SakService> {
             on { hentSak(sakId) } doReturn sak.copy(
                 id = opprettetRevurdering.sakId,
-                vedtakListe = emptyList(),
             ).right()
         }
 
@@ -1869,7 +1868,15 @@ internal class RevurderingServiceImplTest {
             on { opprettVilkårsvurderinger(any(), any()) } doReturn opprettetRevurdering.vilkårsvurderinger
         }
         val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(any()) } doReturn opprettetRevurdering
+            on { hent(any()) } doReturn opprettetRevurdering.copy(
+                // simuler at det er gjort endringer før oppdatering
+                grunnlagsdata = Grunnlagsdata(
+                    uføregrunnlag = listOf(uføregrunnlag.copy(uføregrad = Uføregrad.parse(73), forventetInntekt = 7312)),
+                ),
+                vilkårsvurderinger = Vilkårsvurderinger(
+                    uføre = Vilkår.IkkeVurdert.Uførhet,
+                ),
+            )
         }
 
         val revurderingService = createRevurderingService(
@@ -1885,14 +1892,17 @@ internal class RevurderingServiceImplTest {
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "Test",
                 saksbehandler = opprettetRevurdering.saksbehandler,
-                informasjonSomRevurderes = listOf(Revurderingsteg.Uførhet)
+                informasjonSomRevurderes = listOf(Revurderingsteg.Uførhet),
             ),
         ).getOrHandle { throw Exception("k") }
 
-        verify(vilkårsvurderingServiceMock).opprettVilkårsvurderinger(
-            opprettetRevurdering.sakId,
-            opprettetRevurdering.periode,
+        verify(vilkårsvurderingServiceMock).lagre(
+            argThat { it shouldBe opprettetRevurdering.id },
+            argThat { vilkårsvurdering ->
+                vilkårsvurdering.uføre.let {
+                    it.ekvivalentMed(opprettetRevurdering.vilkårsvurderinger.uføre as Vilkår.Vurdert.Uførhet)
+                }
+            },
         )
-        verify(vilkårsvurderingServiceMock).lagre(opprettetRevurdering.id, opprettetRevurdering.vilkårsvurderinger)
     }
 }

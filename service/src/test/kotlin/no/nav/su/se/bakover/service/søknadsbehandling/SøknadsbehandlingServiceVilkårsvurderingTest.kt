@@ -181,7 +181,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
             oppgaveId = opprettetBehandling.oppgaveId,
             behandlingsinformasjon = opprettetBehandling.behandlingsinformasjon,
             fnr = opprettetBehandling.fnr,
-            beregning = beregning,
+            beregning = testBeregning,
             simulering = simulering,
             saksbehandler = saksbehandler,
             attestering = Attestering.Iverksatt(attestant),

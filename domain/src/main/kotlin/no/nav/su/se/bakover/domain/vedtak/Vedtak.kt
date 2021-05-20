@@ -373,3 +373,14 @@ fun List<Vedtak.EndringIYtelse>.lagTidslinje(periode: Periode): List<Vedtak.Vedt
             objekter = it,
         ).tidslinje
     }
+
+fun List<Vedtak.VedtakPåTidslinje>.vilkårsvurderinger(): Vilkårsvurderinger {
+    return Vilkårsvurderinger(
+        uføre = Vilkår.Vurdert.Uførhet.create(
+            map { it.vilkårsvurderinger.uføre }
+                .filterIsInstance<Vilkår.Vurdert.Uførhet>()
+                .flatMap { it.vurderingsperioder }
+                .let { Nel.fromListUnsafe(it) },
+        ),
+    )
+}
