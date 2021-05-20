@@ -2,13 +2,12 @@ package no.nav.su.se.bakover.domain.brev
 
 import no.nav.su.se.bakover.common.ddMMyyyy
 import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.behandling.AvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
+import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
+import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn.Companion.getDistinkteParagrafer
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.beregning.LagBrevinnholdForBeregning
-import no.nav.su.se.bakover.domain.vilkår.Inngangsvilkår
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -63,13 +62,14 @@ interface LagBrevRequest {
                 avslagsgrunner = avslag.avslagsgrunner,
                 harEktefelle = avslag.harEktefelle,
                 halvGrunnbeløp = avslag.halvGrunnbeløp.toInt(),
-                beregningsperioder = avslag.beregning?.let { LagBrevinnholdForBeregning(it).brevInnhold } ?: emptyList(),
+                beregningsperioder = avslag.beregning?.let { LagBrevinnholdForBeregning(it).brevInnhold }
+                    ?: emptyList(),
                 saksbehandlerNavn = saksbehandlerNavn,
                 attestantNavn = attestantNavn,
                 sats = avslag.beregning?.getSats()?.name?.lowercase(),
                 satsGjeldendeFraDato = avslag.beregning?.getSats()?.datoForSisteEndringAvSats(avslag.beregning.periode.tilOgMed)?.ddMMyyyy(),
                 fritekst = fritekst,
-                forventetInntektStørreEnn0 = forventetInntektStørreEnn0
+                forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
             )
         }
     }
@@ -82,33 +82,22 @@ interface LagBrevRequest {
         private val saksbehandlerNavn: String,
         private val attestantNavn: String,
         private val fritekst: String,
-        private val opphørsGrunner: List<Inngangsvilkår>,
+        private val opphørsgrunner: List<Opphørsgrunn>,
     ) : LagBrevRequest {
         override fun getPerson(): Person = person
         override fun lagBrevInnhold(personalia: BrevInnhold.Personalia): BrevInnhold.Opphørsvedtak {
-            val avslagsgrunn =
-                VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning).let { avslagGrunnetBeregning ->
-                    when (avslagGrunnetBeregning) {
-                        is AvslagGrunnetBeregning.Ja -> opphørsGrunner.map { it.tilAvslagsgrunn() } + listOf(
-                            avslagGrunnetBeregning.avslagsgrunn,
-                        )
-                        is AvslagGrunnetBeregning.Nei -> opphørsGrunner.map { it.tilAvslagsgrunn() }
-                    }
-                }
-
             return BrevInnhold.Opphørsvedtak(
                 personalia = personalia,
                 sats = beregning.getSats().toString().lowercase(),
                 satsBeløp = beregning.getSats().månedsbeløpSomHeltall(beregning.periode.tilOgMed),
-                satsGjeldendeFraDato = beregning.getSats().datoForSisteEndringAvSats(beregning.periode.tilOgMed)
-                    .ddMMyyyy(),
+                satsGjeldendeFraDato = beregning.getSats().datoForSisteEndringAvSats(beregning.periode.tilOgMed).ddMMyyyy(),
                 harEktefelle = behandlingsinformasjon.harEktefelle(),
                 beregningsperioder = LagBrevinnholdForBeregning(beregning).brevInnhold,
                 saksbehandlerNavn = saksbehandlerNavn,
                 attestantNavn = attestantNavn,
                 fritekst = fritekst,
-                avslagsgrunner = avslagsgrunn,
-                avslagsparagrafer = avslagsgrunn.getDistinkteParagrafer(),
+                opphørsgrunner = opphørsgrunner,
+                avslagsparagrafer = opphørsgrunner.getDistinkteParagrafer(),
                 forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
             )
         }

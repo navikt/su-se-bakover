@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
+import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
@@ -144,7 +144,7 @@ internal class VilkårsvurderingerTest {
                 ),
             ),
         )
-        vilkårsvurdering.utledOpphørsgrunner() shouldBe listOf(Inngangsvilkår.Uførhet)
+        vilkårsvurdering.utledOpphørsgrunner() shouldBe listOf(Opphørsgrunn.UFØRHET)
     }
 
     @Test
@@ -157,6 +157,6 @@ internal class VilkårsvurderingerTest {
 
     @Test
     fun `uførhet inngangsvilkår blir mappet til riktig avslagsgrunn`() {
-        Inngangsvilkår.Uførhet.tilAvslagsgrunn() shouldBe Avslagsgrunn.UFØRHET
+        Inngangsvilkår.Uførhet.tilOpphørsgrunn() shouldBe Opphørsgrunn.UFØRHET
     }
 }

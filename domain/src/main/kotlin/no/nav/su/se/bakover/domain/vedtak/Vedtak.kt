@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
+import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn.Companion.toAvslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -266,7 +267,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
         ) : Avslag() {
             private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
                 when (val vurdering = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
-                    is AvslagGrunnetBeregning.Ja -> listOf(vurdering.avslagsgrunn)
+                    is AvslagGrunnetBeregning.Ja -> listOf(vurdering.avslagsgrunn.toAvslagsgrunn())
                     is AvslagGrunnetBeregning.Nei -> emptyList()
                 }
 

@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
+import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn.Companion.toAvslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
@@ -367,7 +368,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
 
             private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
                 when (val vurdering = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
-                    is AvslagGrunnetBeregning.Ja -> listOf(vurdering.avslagsgrunn)
+                    is AvslagGrunnetBeregning.Ja -> listOf(vurdering.avslagsgrunn.toAvslagsgrunn())
                     is AvslagGrunnetBeregning.Nei -> emptyList()
                 }
 
@@ -659,7 +660,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
 
                 private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
                     when (val vurdering = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
-                        is AvslagGrunnetBeregning.Ja -> listOf(vurdering.avslagsgrunn)
+                        is AvslagGrunnetBeregning.Ja -> listOf(vurdering.avslagsgrunn.toAvslagsgrunn())
                         is AvslagGrunnetBeregning.Nei -> emptyList()
                     }
 
@@ -857,7 +858,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
 
                 private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
                     when (val vurdering = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
-                        is AvslagGrunnetBeregning.Ja -> listOf(vurdering.avslagsgrunn)
+                        is AvslagGrunnetBeregning.Ja -> listOf(vurdering.avslagsgrunn.toAvslagsgrunn())
                         is AvslagGrunnetBeregning.Nei -> emptyList()
                     }
 
@@ -1023,7 +1024,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
 
                 private val avslagsgrunnForBeregning: List<Avslagsgrunn> =
                     when (val vurdering = VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(beregning)) {
-                        is AvslagGrunnetBeregning.Ja -> listOf(vurdering.avslagsgrunn)
+                        is AvslagGrunnetBeregning.Ja -> listOf(vurdering.avslagsgrunn.toAvslagsgrunn())
                         is AvslagGrunnetBeregning.Nei -> emptyList()
                     }
 

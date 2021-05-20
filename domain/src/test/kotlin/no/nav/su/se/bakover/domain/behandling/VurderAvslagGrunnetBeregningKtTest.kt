@@ -8,7 +8,6 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning
-import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import org.junit.jupiter.api.Test
@@ -30,7 +29,7 @@ internal class VurderAvslagGrunnetBeregningKtTest {
             on { getMånedsberegninger() } doReturn listOf(månedsberegning)
         }
         vurderAvslagGrunnetBeregning(beregning) shouldBe AvslagGrunnetBeregning.Ja(
-            avslagsgrunn = Avslagsgrunn.FOR_HØY_INNTEKT
+            avslagsgrunn = AvslagGrunnetBeregning.Grunn.FOR_HØY_INNTEKT
         )
     }
 
@@ -44,7 +43,7 @@ internal class VurderAvslagGrunnetBeregningKtTest {
             on { getMånedsberegninger() } doReturn listOf(månedsberegning)
         }
         vurderAvslagGrunnetBeregning(beregning) shouldBe AvslagGrunnetBeregning.Ja(
-            avslagsgrunn = Avslagsgrunn.FOR_HØY_INNTEKT
+            avslagsgrunn = AvslagGrunnetBeregning.Grunn.FOR_HØY_INNTEKT
         )
     }
 
@@ -62,7 +61,7 @@ internal class VurderAvslagGrunnetBeregningKtTest {
             on { getMånedsberegninger() } doReturn listOf(januar, desember)
         }
         vurderAvslagGrunnetBeregning(beregning) shouldBe AvslagGrunnetBeregning.Ja(
-            avslagsgrunn = Avslagsgrunn.SU_UNDER_MINSTEGRENSE
+            avslagsgrunn = AvslagGrunnetBeregning.Grunn.SU_UNDER_MINSTEGRENSE
         )
     }
 
@@ -82,7 +81,7 @@ internal class VurderAvslagGrunnetBeregningKtTest {
             on { getMånedsberegninger() } doReturn listOf(januar, desember)
         }
         vurderAvslagGrunnetBeregning(beregning) shouldBe AvslagGrunnetBeregning.Ja(
-            avslagsgrunn = Avslagsgrunn.SU_UNDER_MINSTEGRENSE
+            avslagsgrunn = AvslagGrunnetBeregning.Grunn.SU_UNDER_MINSTEGRENSE
         )
     }
 
@@ -119,7 +118,7 @@ internal class VurderAvslagGrunnetBeregningKtTest {
             on { getMånedsberegninger() } doReturn listOf(januar, desember)
         }
         vurderAvslagGrunnetBeregning(beregning) shouldBe AvslagGrunnetBeregning.Ja(
-            avslagsgrunn = Avslagsgrunn.SU_UNDER_MINSTEGRENSE
+            avslagsgrunn = AvslagGrunnetBeregning.Grunn.SU_UNDER_MINSTEGRENSE
         )
     }
 
@@ -139,7 +138,7 @@ internal class VurderAvslagGrunnetBeregningKtTest {
             on { getMånedsberegninger() } doReturn listOf(januar, desember)
         }
         vurderAvslagGrunnetBeregning(beregning) shouldBe AvslagGrunnetBeregning.Ja(
-            avslagsgrunn = Avslagsgrunn.SU_UNDER_MINSTEGRENSE
+            avslagsgrunn = AvslagGrunnetBeregning.Grunn.SU_UNDER_MINSTEGRENSE
         )
     }
 

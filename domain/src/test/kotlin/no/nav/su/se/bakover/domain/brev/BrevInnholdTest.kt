@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.behandling.Satsgrunn
-import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
+import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.brev.beregning.Beregningsperiode
 import no.nav.su.se.bakover.domain.brev.beregning.BrevPeriode
@@ -150,7 +150,7 @@ internal class BrevInnholdTest {
             saksbehandlerNavn = "Hei",
             attestantNavn = "Hopp",
             fritekst = "",
-            avslagsgrunner = listOf(Avslagsgrunn.FOR_HØY_INNTEKT),
+            opphørsgrunner = listOf(Opphørsgrunn.FOR_HØY_INNTEKT),
             avslagsparagrafer = listOf(1),
             satsGjeldendeFraDato = "01.01.2020",
             forventetInntektStørreEnn0 = false,
@@ -189,7 +189,7 @@ internal class BrevInnholdTest {
                 "saksbehandlerNavn": "Hei",
                 "attestantNavn": "Hopp",
                 "fritekst": "",
-                "avslagsgrunner" : ["FOR_HØY_INNTEKT"],
+                "opphørsgrunner" : ["FOR_HØY_INNTEKT"],
                 "avslagsparagrafer" : [1],
                 "forventetInntektStørreEnn0" : false
             }
