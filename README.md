@@ -3,40 +3,19 @@
 ## Applikasjon for saksbehandling av supplerende stønad
 
 ### Lokalt oppsett
-#### Gradle
-For å få tilgang til å hente ut packages fra https://github.com/navikt/ kreves det autentisering mot Github package registry.
-Det gjør du ved å lage en ny fil i .gradle-mappa i hjemmemappa:
-
-`$ vim ~/.gradle/gradle.properties`
-
-I denne filen skriver du:
-```
-githubUser=x-access-token
-githubPassword={et access token som du lager på GitHub}
-```
-Access tokens lager du på: https://github.com/settings/tokens. Tokenet skal kun ha  `repo + read packages access`.
-Husk å kopiere tokenet før du går videre.
-
-Deretter må tokenet autentiseres med SSO-tilgang. Det gjør du i listen over tokens.
 
 #### Database (Postgres)
 Lokal database startes med `./docker-compose up`
 
-Hvis man ønsker å resette hele databasen og starte fra scratch er det enkleste å slette volumet.
-
-```sh
-docker-compose down
-docker volume rm su-se-bakover_supstonad-db-local
-docker-compose up
-```
+Hvis man ønsker å resette hele databasen og starte fra scratch er det enkleste å slette volumet ved å kjøre `./resetdb.sh`
 
 #### Starte applikasjon lokalt
 Kan startes lokalt fra web/src/main/kotlin/.../Application.kt sin `fun main(...)`
 
 #### Autentisering
-su-se-framover tar seg av autentisering og kaller oss med on-behalf-of tokens.
+su-se-framover tar seg av autentisering (backend for frontend (BFF)) og kaller su-se-bakover med on-behalf-of tokens (per bruker).
 
-Lokalt kjøres det opp en mock oauth2-server på http://localhost:4321.
+Lokalt kjøres det opp en mock oauth2-server på http://localhost:4321 .
 Se https://github.com/navikt/su-se-framover#mock-oauth-server for mer informasjon.
 
 ##### For testing mot Azure
@@ -45,10 +24,11 @@ Legg inn følgende variabler i [.env]():
 - AZURE_APP_WELL_KNOWN_URL
 - AZURE_APP_CLIENT_SECRET
 
+Kan kopiere `AZURE_APP_WELL_KNOWN_URL` fra .env.azure.template
 Disse hentes fra kjørende pod i det miljøet du vil teste mot.
 Merk: `AZURE_APP_CLIENT_SECRET` roteres automatisk.
 
-For å da bruke gruppe-claimet som kommer fra Azure må man også endre implementasjonen av `getGroupsFromJWT` i [./web/src/main/kotlin/no/nav/su/se/bakover/web/Extensions.kt]().
+For da å bruke gruppe-claimet som kommer fra Azure må man også endre implementasjonen av `getGroupsFromJWT` i [./web/src/main/kotlin/no/nav/su/se/bakover/web/Extensions.kt]().
 
 ##### For testing mot Sts lokalt
 Bytt dette i AuthenticationConfig.kt
@@ -101,7 +81,7 @@ Hvordan kjøre Ktlint:
 * Fra terminal:
    * Kun formater: `./gradlew formatKotlin`
    * Formater og bygg: `./gradlew formatKotlin build` eller kjør `./lint_and_build.sh`
-   * Hvis IntelliJ begynner å hikke, kan en kjøre `./gradlew clean formatKotlin build`
+   * Hvis IntelliJ begynner å hikke, kan en kjøre `./gradlew clean formatKotlin build` eller `./clean_lint_and_build.sh`
 
 Endre IntelliJ autoformateringskonfigurasjon for dette prosjektet:
 * Installer ktlint https://github.com/pinterest/ktlint/releases/ (inntil plugin støtter dette. Kan vurdere legge binæren i prosjektet)
@@ -143,3 +123,5 @@ prod: https://alertmanager.prod-fss.nais.io
 
 ## Upgrade java version
 1. In `build.gradle.kts` and search for `jvmTarget = `
+1. In `.github/workflows/*.yml` and search for `java-version`
+1. In `Dockerfile` replace `FROM navikt/java:<version>`
