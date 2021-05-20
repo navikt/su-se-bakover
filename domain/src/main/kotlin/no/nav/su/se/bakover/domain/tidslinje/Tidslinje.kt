@@ -35,14 +35,11 @@ data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
         val delvisOverlappende = innenforPeriode
             .filtrerVekkAlleSomOverskivesFullstendigAvNyere()
 
-        val sortert = delvisOverlappende
-            .sortedWith(stigendeFraOgMed.then(nyesteFørst))
-
-        return periodiser(sortert)
+        return periodiser(delvisOverlappende)
     }
 
     private fun periodiser(tempResult: List<T>): List<T> {
-        val queue = LinkedList(tempResult)
+        val queue = LinkedList(tempResult.sortedWith(stigendeFraOgMed.then(nyesteFørst)))
         val result = mutableListOf<T>()
 
         while (queue.isNotEmpty()) {
