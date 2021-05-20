@@ -111,6 +111,7 @@ internal fun Route.leggTilGrunnlagRevurderingRoutes(
                                                 "Hele behandlingsperioden må ha vurderinger",
                                                 "hele_behandlingsperioden_må_ha_vurderinger",
                                             )
+                                            is KunneIkkeLeggeTilGrunnlag.KunneIkkeHenteVilkårsvurderinger -> TODO("Her må vi finne et bedre navn og en bedre beskrivelse på feilen")
                                         }
                                     }.map {
                                         Resultat.json(HttpStatusCode.Created, serialize(it.toJson()))

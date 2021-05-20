@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.web.routes.grunnlag.VilkårsvurderingerJson
-import no.nav.su.se.bakover.web.routes.grunnlag.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.AttesteringJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingsinformasjonJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingsinformasjonJson.Companion.toJson
@@ -211,7 +210,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
         forhåndsvarsel = forhåndsvarsel?.toJson(),
         behandlingsinformasjon = behandlingsinformasjon.toJson(),
-        vilkårsvurderinger = vilkårsvurderinger.toJson(),
+        vilkårsvurderinger = VilkårsvurderingerJson.create(grunnlagsdata,vilkårsvurderinger),
         informasjonSomRevurderes = informasjonSomRevurderes,
     )
     is SimulertRevurdering -> SimulertRevurderingJson(
@@ -231,7 +230,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         forhåndsvarsel = forhåndsvarsel?.toJson(),
         behandlingsinformasjon = behandlingsinformasjon.toJson(),
         simulering = simulering.toJson(),
-        vilkårsvurderinger = vilkårsvurderinger.toJson(),
+        vilkårsvurderinger = VilkårsvurderingerJson.create(grunnlagsdata,vilkårsvurderinger),
         informasjonSomRevurderes = informasjonSomRevurderes,
     )
     is RevurderingTilAttestering -> TilAttesteringJson(
@@ -260,7 +259,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
             is RevurderingTilAttestering.Innvilget -> simulering.toJson()
             is RevurderingTilAttestering.Opphørt -> simulering.toJson()
         },
-        vilkårsvurderinger = vilkårsvurderinger.toJson(),
+        vilkårsvurderinger = VilkårsvurderingerJson.create(grunnlagsdata,vilkårsvurderinger),
         informasjonSomRevurderes = informasjonSomRevurderes,
     )
     is IverksattRevurdering -> IverksattRevurderingJson(
@@ -290,7 +289,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
             is IverksattRevurdering.Innvilget -> simulering.toJson()
             is IverksattRevurdering.Opphørt -> simulering.toJson()
         },
-        vilkårsvurderinger = vilkårsvurderinger.toJson(),
+        vilkårsvurderinger = VilkårsvurderingerJson.create(grunnlagsdata,vilkårsvurderinger),
         informasjonSomRevurderes = informasjonSomRevurderes,
     )
     is UnderkjentRevurdering -> UnderkjentRevurderingJson(
@@ -326,7 +325,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
             is UnderkjentRevurdering.Innvilget -> simulering.toJson()
             is UnderkjentRevurdering.Opphørt -> simulering.toJson()
         },
-        vilkårsvurderinger = vilkårsvurderinger.toJson(),
+        vilkårsvurderinger = VilkårsvurderingerJson.create(grunnlagsdata,vilkårsvurderinger),
         informasjonSomRevurderes = informasjonSomRevurderes,
     )
     is BeregnetRevurdering -> BeregnetRevurderingJson(
@@ -345,7 +344,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         status = InstansTilStatusMapper(this).status,
         forhåndsvarsel = forhåndsvarsel?.toJson(),
         behandlingsinformasjon = behandlingsinformasjon.toJson(),
-        vilkårsvurderinger = vilkårsvurderinger.toJson(),
+        vilkårsvurderinger = VilkårsvurderingerJson.create(grunnlagsdata,vilkårsvurderinger),
         informasjonSomRevurderes = informasjonSomRevurderes,
     )
 }

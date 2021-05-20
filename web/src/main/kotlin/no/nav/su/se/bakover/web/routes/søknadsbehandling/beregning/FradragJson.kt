@@ -23,7 +23,7 @@ internal data class FradragJson(
     val type: String,
     val beløp: Double,
     val utenlandskInntekt: UtenlandskInntektJson?,
-    val tilhører: String
+    val tilhører: String,
 ) {
     internal fun toFradrag(beregningsperiode: Periode): Either<Resultat, Fradrag> {
         val utenlandskInntekt: UtenlandskInntekt? = this.utenlandskInntekt?.toUtenlandskInntekt()?.getOrHandle {
@@ -37,7 +37,7 @@ internal data class FradragJson(
             månedsbeløp = beløp,
             periode = periode,
             utenlandskInntekt = utenlandskInntekt,
-            tilhører = FradragTilhører.valueOf(tilhører)
+            tilhører = FradragTilhører.valueOf(tilhører),
         ).right()
     }
 
@@ -50,16 +50,16 @@ internal data class FradragJson(
             }
         }
 
-        fun List<Fradrag>.toJson(): List<FradragJson> {
-            return this.map {
-                FradragJson(
-                    type = it.fradragstype.toString(),
-                    beløp = it.månedsbeløp,
-                    utenlandskInntekt = it.utenlandskInntekt?.toJson(),
-                    periode = it.periode.toJson(),
-                    tilhører = it.tilhører.toString()
-                )
-            }
-        }
+        fun List<Fradrag>.toJson() =
+            this.map { it.toJson() }
+
+        fun Fradrag.toJson() =
+            FradragJson(
+                type = fradragstype.toString(),
+                beløp = månedsbeløp,
+                utenlandskInntekt = utenlandskInntekt?.toJson(),
+                periode = periode.toJson(),
+                tilhører = tilhører.toString(),
+            )
     }
 }

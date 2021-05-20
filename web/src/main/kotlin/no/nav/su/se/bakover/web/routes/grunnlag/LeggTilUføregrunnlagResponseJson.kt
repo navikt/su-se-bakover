@@ -11,5 +11,5 @@ internal data class LeggTilUføregrunnlagResponseJson(
 
 internal fun LeggTilUføregrunnlagResponse.toJson() = LeggTilUføregrunnlagResponseJson(
     revurdering = revurdering.toJson(),
-    gjeldendeVilkårsvurderinger = gjeldendeVilkårsvurderinger.toJson(),
+    gjeldendeVilkårsvurderinger = VilkårsvurderingerJson.create(gjeldendeVilkårsvurderinger.grunnlagsdata, gjeldendeVilkårsvurderinger.vilkårsvurderinger),
 )

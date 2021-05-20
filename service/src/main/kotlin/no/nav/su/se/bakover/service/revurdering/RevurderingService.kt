@@ -7,10 +7,10 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
+import no.nav.su.se.bakover.domain.revurdering.KopierEksisterendeGrunnlagOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import java.util.UUID
 import kotlin.reflect.KClass
@@ -72,7 +72,7 @@ interface RevurderingService {
         request: LeggTilFradragsgrunnlagRequest,
     ): Either<KunneIkkeLeggeTilFradragsgrunnlag, LeggTilFradragsgrunnlagResponse>
 
-    fun hentGjeldendeVilkårsvurderinger(revurderingId: UUID): Either<KunneIkkeHenteGrunnlag, Vilkårsvurderinger>
+    fun hentGjeldendeVilkårsvurderinger(revurderingId: UUID): Either<KunneIkkeHenteGrunnlag, KopierEksisterendeGrunnlagOgVilkårsvurderinger>
 }
 
 sealed class KunneIkkeLeggeTilFradragsgrunnlag {
@@ -245,13 +245,15 @@ sealed class KunneIkkeLeggeTilGrunnlag {
     object VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden : KunneIkkeLeggeTilGrunnlag()
     object AlleVurderingeneMåHaSammeResultat : KunneIkkeLeggeTilGrunnlag()
     object HeleBehandlingsperiodenMåHaVurderinger : KunneIkkeLeggeTilGrunnlag()
+    data class KunneIkkeHenteVilkårsvurderinger(val inner: KunneIkkeHenteGrunnlag) : KunneIkkeLeggeTilGrunnlag()
 }
 
 sealed class KunneIkkeHenteGrunnlag {
     object FantIkkeBehandling : KunneIkkeHenteGrunnlag()
+    object FantIkkeSak : KunneIkkeHenteGrunnlag()
 }
 
 data class LeggTilUføregrunnlagResponse(
     val revurdering: Revurdering,
-    val gjeldendeVilkårsvurderinger: Vilkårsvurderinger,
+    val gjeldendeVilkårsvurderinger: KopierEksisterendeGrunnlagOgVilkårsvurderinger,
 )
