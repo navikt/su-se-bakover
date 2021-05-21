@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -353,12 +352,11 @@ internal class RevurderingServiceImpl(
     override fun beregnOgSimuler(
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
-        fradrag: List<Fradrag>, // TODO ikke ta i mot fradrag her etter at fradragsgrunnlag er på plass
     ): Either<KunneIkkeBeregneOgSimulereRevurdering, Revurdering> {
         return when (val originalRevurdering = revurderingRepo.hent(revurderingId)) {
             is BeregnetRevurdering, is OpprettetRevurdering, is SimulertRevurdering, is UnderkjentRevurdering -> {
                 when (
-                    val beregnetRevurdering = originalRevurdering.beregn(fradrag)
+                    val beregnetRevurdering = originalRevurdering.beregn()
                         .getOrHandle {
                             return when (it) {
                                 is Revurdering.KunneIkkeBeregneRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden -> KunneIkkeBeregneOgSimulereRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden

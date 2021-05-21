@@ -332,7 +332,6 @@ internal class RegulerGrunnbeløpServiceImplTest {
         ).beregnOgSimuler(
             revurderingId = revurderingId,
             saksbehandler = BehandlingTestUtils.saksbehandler,
-            fradrag = emptyList(),
         ).orNull()!! as BeregnetRevurdering.IngenEndring
 
         // TODO jah: BeregningMedFradragBeregnetMånedsvis er internal, skal vi heller gjøre den public? Dette ble løst av å ha en felles equal funksjon for alle Fradrag

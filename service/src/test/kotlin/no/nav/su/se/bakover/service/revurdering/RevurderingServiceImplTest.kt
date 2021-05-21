@@ -287,6 +287,17 @@ internal class RevurderingServiceImplTest {
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata(
                 uføregrunnlag = listOf(uføregrunnlag),
+                fradragsgrunnlag = listOf(
+                    Grunnlag.Fradragsgrunnlag(
+                        fradrag = FradragFactory.ny(
+                            type = Fradragstype.Arbeidsinntekt,
+                            månedsbeløp = 10000.0,
+                            periode = søknadsbehandlingVedtak.periode,
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.BRUKER,
+                        )
+                    )
+                )
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Vurdert.Uførhet.create(
@@ -321,15 +332,6 @@ internal class RevurderingServiceImplTest {
         ).beregnOgSimuler(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
-            fradrag = listOf(
-                FradragFactory.ny(
-                    type = Fradragstype.Arbeidsinntekt,
-                    månedsbeløp = 10000.0,
-                    periode = søknadsbehandlingVedtak.periode,
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER,
-                ),
-            ),
         ).getOrHandle { throw Exception("Vi skal få tilbake en revurdering") }
         if (actual !is SimulertRevurdering) throw RuntimeException("Skal returnere en simulert revurdering")
 
@@ -374,7 +376,6 @@ internal class RevurderingServiceImplTest {
         ).beregnOgSimuler(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
-            fradrag = listOf(),
         )
         result shouldBe KunneIkkeBeregneOgSimulereRevurdering.UgyldigTilstand(
             RevurderingTilAttestering.Innvilget::class,
@@ -406,6 +407,17 @@ internal class RevurderingServiceImplTest {
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata(
                 uføregrunnlag = listOf(uføregrunnlag),
+                fradragsgrunnlag = listOf(
+                    Grunnlag.Fradragsgrunnlag(
+                        fradrag = FradragFactory.ny(
+                            type = Fradragstype.Arbeidsinntekt,
+                            månedsbeløp = 10000.0,
+                            periode = søknadsbehandlingVedtak.periode,
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.BRUKER,
+                        )
+                    )
+                )
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Vurdert.Uførhet.create(
@@ -438,15 +450,6 @@ internal class RevurderingServiceImplTest {
         ).beregnOgSimuler(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
-            fradrag = listOf(
-                FradragFactory.ny(
-                    type = Fradragstype.Arbeidsinntekt,
-                    månedsbeløp = 10000.0,
-                    periode = søknadsbehandlingVedtak.periode,
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER,
-                ),
-            ),
         )
 
         actual shouldBe KunneIkkeBeregneOgSimulereRevurdering.SimuleringFeilet.left()
@@ -900,6 +903,17 @@ internal class RevurderingServiceImplTest {
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata(
                 uføregrunnlag = listOf(uføregrunnlag),
+                fradragsgrunnlag = listOf(
+                    Grunnlag.Fradragsgrunnlag(
+                        fradrag = FradragFactory.ny(
+                            type = Fradragstype.Arbeidsinntekt,
+                            månedsbeløp = 4000.0,
+                            periode = periode,
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.BRUKER,
+                        ),
+                    ),
+                ),
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Vurdert.Uførhet.create(
@@ -937,15 +951,6 @@ internal class RevurderingServiceImplTest {
         val actual = revurderingService.beregnOgSimuler(
             underkjentRevurdering.id,
             saksbehandler,
-            listOf(
-                FradragFactory.ny(
-                    type = Fradragstype.Arbeidsinntekt,
-                    månedsbeløp = 4000.0,
-                    periode = periode,
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER,
-                ),
-            ),
         ).getOrElse { throw RuntimeException("Noe gikk galt") }
         if (actual !is SimulertRevurdering.Innvilget) throw RuntimeException("Skal returnere en simulert revurdering")
 
@@ -1817,7 +1822,6 @@ internal class RevurderingServiceImplTest {
         ).beregnOgSimuler(
             revurderingId = revurderingId,
             saksbehandler = NavIdentBruker.Saksbehandler("s1"),
-            fradrag = emptyList(),
         ).orNull()!!
 
         actual shouldBe beOfType<SimulertRevurdering.Opphørt>()
@@ -1854,7 +1858,6 @@ internal class RevurderingServiceImplTest {
         ).beregnOgSimuler(
             revurderingId = revurderingId,
             saksbehandler = NavIdentBruker.Saksbehandler("s1"),
-            fradrag = emptyList(),
         )
 
         actual shouldBe KunneIkkeBeregneOgSimulereRevurdering.UfullstendigVilkårsvurdering.left()
@@ -1881,7 +1884,12 @@ internal class RevurderingServiceImplTest {
             on { hent(any()) } doReturn opprettetRevurdering.copy(
                 // simuler at det er gjort endringer før oppdatering
                 grunnlagsdata = Grunnlagsdata(
-                    uføregrunnlag = listOf(uføregrunnlag.copy(uføregrad = Uføregrad.parse(73), forventetInntekt = 7312)),
+                    uføregrunnlag = listOf(
+                        uføregrunnlag.copy(
+                            uføregrad = Uføregrad.parse(73),
+                            forventetInntekt = 7312,
+                        ),
+                    ),
                 ),
                 vilkårsvurderinger = Vilkårsvurderinger(
                     uføre = Vilkår.IkkeVurdert.Uførhet,
@@ -1963,7 +1971,10 @@ internal class RevurderingServiceImplTest {
             grunnlagServiceMock,
         ) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
-            verify(grunnlagServiceMock).lagreFradragsgrunnlag(argThat { it shouldBe revurderingId }, argThat { it shouldBe request.fradragsrunnlag })
+            verify(grunnlagServiceMock).lagreFradragsgrunnlag(
+                argThat { it shouldBe revurderingId },
+                argThat { it shouldBe request.fradragsrunnlag },
+            )
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
         }
 

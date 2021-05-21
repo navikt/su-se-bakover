@@ -109,7 +109,6 @@ class RevurderingIngenEndringTest {
         ).beregnOgSimuler(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
-            fradrag = listOf(),
         ).orNull()!! as BeregnetRevurdering.IngenEndring
         actual.shouldBeEqualToIgnoringFields(
             BeregnetRevurdering.IngenEndring(
