@@ -80,15 +80,11 @@ object ServiceBuilder {
         )
 
         val grunnlagService = GrunnlagServiceImpl(
-            vedtakRepo = databaseRepos.vedtakRepo,
             grunnlagRepo = databaseRepos.grunnlagRepo,
-            clock = clock,
         )
 
         val vilkårsvurderingService = VilkårsvurderingServiceImpl(
             vilkårsvurderingRepo = databaseRepos.vilkårsvurderingRepo,
-            vedtakRepo = databaseRepos.vedtakRepo,
-            clock = clock,
         )
 
         val revurderingService = RevurderingServiceImpl(

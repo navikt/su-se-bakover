@@ -288,12 +288,9 @@ internal class OppdaterRevurderingServiceTest {
                 )
             }
         }
-        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService> {
-            on { opprettVilkårsvurderinger(any(), any()) } doReturn Vilkårsvurderinger.EMPTY
-        }
+
         val mocks = RevurderingServiceMocks(
             revurderingRepo = revurderingRepoMock,
-            vilkårsvurderingService = vilkårsvurderingServiceMock,
             sakService = sakServiceMock,
         )
         val actual = mocks.revurderingService.oppdaterRevurdering(
@@ -323,9 +320,7 @@ internal class OppdaterRevurderingServiceTest {
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn opprettetRevurdering
         }
-        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService> {
-            on { opprettVilkårsvurderinger(any(), any()) } doReturn Vilkårsvurderinger.EMPTY
-        }
+        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService>()
         val grunnlagServiceMock = mock<GrunnlagService>()
 
         val mocks = RevurderingServiceMocks(
@@ -388,9 +383,7 @@ internal class OppdaterRevurderingServiceTest {
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn opprettetRevurdering
         }
-        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService> {
-            on { opprettVilkårsvurderinger(any(), any()) } doReturn Vilkårsvurderinger.EMPTY
-        }
+        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService>()
         val grunnlagServiceMock = mock<GrunnlagService>()
 
         val mocks = RevurderingServiceMocks(
@@ -437,9 +430,7 @@ internal class OppdaterRevurderingServiceTest {
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn opprettetRevurdering
         }
-        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService> {
-            on { opprettVilkårsvurderinger(any(), any()) } doReturn Vilkårsvurderinger.EMPTY
-        }
+        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService>()
         val grunnlagServiceMock = mock<GrunnlagService>()
 
         val mocks = RevurderingServiceMocks(

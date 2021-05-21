@@ -130,9 +130,8 @@ internal class RevurderingServiceImplTest {
             on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
         }
 
-        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService> {
-            on { opprettVilkårsvurderinger(any(), any()) } doReturn Vilkårsvurderinger.EMPTY
-        }
+        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService>()
+        val grunnlagServiceMock = mock<GrunnlagService>()
 
         val actual = createRevurderingService(
             sakService = sakServiceMock,
@@ -140,6 +139,7 @@ internal class RevurderingServiceImplTest {
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
             vilkårsvurderingService = vilkårsvurderingServiceMock,
+            grunnlagService = grunnlagServiceMock,
         ).opprettRevurdering(
             OpprettRevurderingRequest(
                 sakId = sakId,
@@ -157,6 +157,7 @@ internal class RevurderingServiceImplTest {
             oppgaveServiceMock,
             revurderingRepoMock,
             vilkårsvurderingServiceMock,
+            grunnlagServiceMock,
         ) {
             verify(sakServiceMock).hentSak(sakId)
             verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
@@ -170,9 +171,17 @@ internal class RevurderingServiceImplTest {
                 },
             )
             verify(revurderingRepoMock).lagre(argThat { it.right() shouldBe actual.right() })
+            verify(vilkårsvurderingServiceMock).lagre(actual.id, actual.vilkårsvurderinger)
+            verify(grunnlagServiceMock).lagreFradragsgrunnlag(actual.id, actual.grunnlagsdata.fradragsgrunnlag)
         }
-
-        verifyNoMoreInteractions(sakServiceMock, personServiceMock, oppgaveServiceMock, revurderingRepoMock)
+        verifyNoMoreInteractions(
+            sakServiceMock,
+            personServiceMock,
+            oppgaveServiceMock,
+            revurderingRepoMock,
+            vilkårsvurderingServiceMock,
+            grunnlagServiceMock,
+        )
     }
 
     @Test
@@ -1865,9 +1874,9 @@ internal class RevurderingServiceImplTest {
             ).right()
         }
 
-        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService> {
-            on { opprettVilkårsvurderinger(any(), any()) } doReturn opprettetRevurdering.vilkårsvurderinger
-        }
+        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService>()
+        val grunnlagServiceMock = mock<GrunnlagService>()
+
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn opprettetRevurdering.copy(
                 // simuler at det er gjort endringer før oppdatering
@@ -1884,6 +1893,7 @@ internal class RevurderingServiceImplTest {
             sakService = sakServiceMock,
             vilkårsvurderingService = vilkårsvurderingServiceMock,
             revurderingRepo = revurderingRepoMock,
+            grunnlagService = grunnlagServiceMock,
         )
 
         revurderingService.oppdaterRevurdering(
@@ -1905,6 +1915,7 @@ internal class RevurderingServiceImplTest {
                 }
             },
         )
+        verify(grunnlagServiceMock).lagreFradragsgrunnlag(opprettetRevurdering.id, opprettetRevurdering.grunnlagsdata.fradragsgrunnlag)
     }
 
     @Test
@@ -1925,7 +1936,7 @@ internal class RevurderingServiceImplTest {
 
         val revurderingService = createRevurderingService(
             revurderingRepo = revurderingRepoMock,
-            grunnlagService = grunnlagServiceMock
+            grunnlagService = grunnlagServiceMock,
         )
 
         val request = LeggTilFradragsgrunnlagRequest(
@@ -1937,8 +1948,8 @@ internal class RevurderingServiceImplTest {
                         månedsbeløp = 0.0,
                         periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
                         utenlandskInntekt = null,
-                        tilhører = FradragTilhører.BRUKER
-                    )
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
                 ),
             ),
         )
@@ -1965,11 +1976,11 @@ internal class RevurderingServiceImplTest {
             on { hent(any()) } doReturn null
         }
 
-        val grunnlagServiceMock = mock<GrunnlagService> ()
+        val grunnlagServiceMock = mock<GrunnlagService>()
 
         val revurderingService = createRevurderingService(
             revurderingRepo = revurderingRepoMock,
-            grunnlagService = grunnlagServiceMock
+            grunnlagService = grunnlagServiceMock,
         )
 
         val request = LeggTilFradragsgrunnlagRequest(
@@ -1981,8 +1992,8 @@ internal class RevurderingServiceImplTest {
                         månedsbeløp = 0.0,
                         periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
                         utenlandskInntekt = null,
-                        tilhører = FradragTilhører.BRUKER
-                    )
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
                 ),
             ),
         )
@@ -2013,11 +2024,11 @@ internal class RevurderingServiceImplTest {
             on { hent(any()) } doReturn revuderingMock
         }
 
-        val grunnlagServiceMock = mock<GrunnlagService> ()
+        val grunnlagServiceMock = mock<GrunnlagService>()
 
         val revurderingService = createRevurderingService(
             revurderingRepo = revurderingRepoMock,
-            grunnlagService = grunnlagServiceMock
+            grunnlagService = grunnlagServiceMock,
         )
 
         val request = LeggTilFradragsgrunnlagRequest(
@@ -2029,8 +2040,8 @@ internal class RevurderingServiceImplTest {
                         månedsbeløp = 0.0,
                         periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
                         utenlandskInntekt = null,
-                        tilhører = FradragTilhører.BRUKER
-                    )
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
                 ),
             ),
         )

@@ -167,9 +167,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                 forventetLagretRevurdering.copy(grunnlagsdata = Grunnlagsdata(uføregrunnlag = listOf(nyttUføregrunnlag))),
             )
         }
-        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService> {
-            on { opprettVilkårsvurderinger(any(), any()) } doReturn opprettetRevurdering.vilkårsvurderinger
-        }
+        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService>()
 
         val sakServiceMock = mock<SakService>() {
             on { hentSak(any<UUID>()) } doReturn sak.right()

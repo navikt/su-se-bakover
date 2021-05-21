@@ -207,9 +207,7 @@ internal class OpprettRevurderingServiceTest {
             on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
         }
 
-        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService> {
-            on { opprettVilkårsvurderinger(any(), any()) } doReturn Vilkårsvurderinger.EMPTY
-        }
+        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService>()
 
         val grunnlagServiceMock = mock<GrunnlagService>()
 
@@ -313,9 +311,7 @@ internal class OpprettRevurderingServiceTest {
             on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
         }
 
-        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService> {
-            on { opprettVilkårsvurderinger(any(), any()) } doReturn Vilkårsvurderinger.EMPTY
-        }
+        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService>()
         val grunnlagServiceMock = mock<GrunnlagService>()
         val mocks = RevurderingServiceMocks(
             sakService = sakServiceMock,
@@ -407,9 +403,7 @@ internal class OpprettRevurderingServiceTest {
         val oppgaveServiceMock = mock<OppgaveService> {
             on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
         }
-        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService> {
-            on { opprettVilkårsvurderinger(any(), any()) } doReturn Vilkårsvurderinger.EMPTY
-        }
+        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService>()
         val grunnlagServiceMock = mock<GrunnlagService>()
         val mocks = RevurderingServiceMocks(
             sakService = sakServiceMock,
@@ -638,10 +632,6 @@ internal class OpprettRevurderingServiceTest {
             on { hentSak(sakId) } doReturn sak.right()
         }
 
-        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService> {
-            on { opprettVilkårsvurderinger(any(), any()) } doReturn Vilkårsvurderinger.EMPTY
-        }
-
         val mocks = RevurderingServiceMocks(
             // clock = Clock.fixed(1.januar(2020).startOfDay(zoneIdOslo).instant, zoneIdOslo),
             sakService = sakServiceMock,
@@ -650,8 +640,7 @@ internal class OpprettRevurderingServiceTest {
             },
             personService = mock {
                 on { hentAktørId(any()) } doReturn aktørId.right()
-            },
-            vilkårsvurderingService = vilkårsvurderingServiceMock,
+            }
         )
         val revurderingForFebruar = mocks.revurderingService.opprettRevurdering(
             OpprettRevurderingRequest(
@@ -731,9 +720,7 @@ internal class OpprettRevurderingServiceTest {
         val personServiceMock = mock<PersonService> {
             on { hentAktørId(any()) } doReturn aktørId.right()
         }
-        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService> {
-            on { opprettVilkårsvurderinger(any(), any()) } doReturn Vilkårsvurderinger.EMPTY
-        }
+        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService>()
         val grunnlagServiceMock = mock<GrunnlagService>()
         val mocks = RevurderingServiceMocks(
             sakService = sakServiceMock,
@@ -854,9 +841,7 @@ internal class OpprettRevurderingServiceTest {
             on { opprettOppgave(any()) } doReturn KunneIkkeOppretteOppgave.left()
         }
 
-        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService> {
-            on { opprettVilkårsvurderinger(any(), any()) } doReturn Vilkårsvurderinger.EMPTY
-        }
+        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService>()
 
         val mocks = RevurderingServiceMocks(
             sakService = sakServiceMock,
