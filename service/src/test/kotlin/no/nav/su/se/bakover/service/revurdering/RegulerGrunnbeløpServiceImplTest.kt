@@ -56,7 +56,6 @@ import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.fixedTidspunkt
-import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -65,8 +64,10 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.periode
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.revurderingId
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.revurderingsårsak
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.revurderingsårsakRegulerGrunnbeløp
+import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.sak
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.saksbehandler
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.søknadsbehandlingVedtak
+import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
@@ -119,8 +120,8 @@ internal class RegulerGrunnbeløpServiceImplTest {
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
-                    Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert
-                )
+                    Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
+                ),
             ),
         )
 
@@ -155,8 +156,8 @@ internal class RegulerGrunnbeløpServiceImplTest {
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.Vurdert,
-                    Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert
-                )
+                    Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
+                ),
             ),
         )
 
@@ -170,11 +171,14 @@ internal class RegulerGrunnbeløpServiceImplTest {
             on { opprettVilkårsvurderinger(any(), any()) } doReturn opprettetRevurdering.vilkårsvurderinger
         }
 
-        val grunnlagServiceMock = mock<GrunnlagService>()
+        val sakServiceMock = mock<SakService>() {
+            on { hentSak(any<UUID>()) } doReturn sak.right()
+        }
 
         createRevurderingService(
             revurderingRepo = revurderingRepoMock,
             vilkårsvurderingService = vilkårsvurderingServiceMock,
+            sakService = sakServiceMock,
         ).leggTilUføregrunnlag(
             LeggTilUførevurderingerRequest(
                 behandlingId = revurderingId,
@@ -194,7 +198,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
         inOrder(
             revurderingRepoMock,
             vilkårsvurderingServiceMock,
-            vilkårsvurderingServiceMock,
+            sakServiceMock,
         ) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
             verify(revurderingRepoMock).lagre(argThat { it shouldBe forventetLagretRevurdering })
@@ -202,13 +206,9 @@ internal class RegulerGrunnbeløpServiceImplTest {
                 argThat { it shouldBe opprettetRevurdering.id },
                 any(),
             )
-            verify(revurderingRepoMock).hent(forventetLagretRevurdering.id)
-            verify(vilkårsvurderingServiceMock).opprettVilkårsvurderinger(
-                sakId = forventetLagretRevurdering.sakId,
-                periode = forventetLagretRevurdering.periode,
-            )
+            verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
         }
-        verifyNoMoreInteractions(revurderingRepoMock, grunnlagServiceMock)
+        verifyNoMoreInteractions(revurderingRepoMock, vilkårsvurderingServiceMock, sakServiceMock)
     }
 
     @Test
@@ -300,8 +300,8 @@ internal class RegulerGrunnbeløpServiceImplTest {
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
-                    Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert
-                )
+                    Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
+                ),
             ),
         )
         val expectedBeregnetRevurdering = BeregnetRevurdering.IngenEndring(
@@ -321,8 +321,8 @@ internal class RegulerGrunnbeløpServiceImplTest {
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
-                    Revurderingsteg.Inntekt to Vurderingstatus.Vurdert
-                )
+                    Revurderingsteg.Inntekt to Vurderingstatus.Vurdert,
+                ),
             ),
         )
         val revurderingRepoMock = mock<RevurderingRepo> {

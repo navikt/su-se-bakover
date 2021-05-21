@@ -27,7 +27,7 @@ import no.nav.su.se.bakover.domain.revurdering.BeslutningEtterForhåndsvarsling
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
-import no.nav.su.se.bakover.domain.revurdering.KopierEksisterendeGrunnlagOgVilkårsvurderinger
+import no.nav.su.se.bakover.domain.revurdering.KopierGjeldendeGrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
@@ -121,7 +121,7 @@ internal class RevurderingServiceImpl(
             return KunneIkkeOppretteRevurdering.FantIkkeAktørId.left()
         }
 
-        val eksisterendeGrunnlagOgVilkårsvurderinger = KopierEksisterendeGrunnlagOgVilkårsvurderinger(periode, sak.vedtakListe)
+        val gjeldendeGrunnlagsdataOgVilkårsvurderinger = KopierGjeldendeGrunnlagsdataOgVilkårsvurderinger(periode, sak.vedtakListe)
 
         val informasjonSomRevurderes = InformasjonSomRevurderes.tryCreate(opprettRevurderingRequest.informasjonSomRevurderes)
             .getOrHandle { return KunneIkkeOppretteRevurdering.MåVelgeInformasjonSomSkalRevurderes.left() }
@@ -146,8 +146,8 @@ internal class RevurderingServiceImpl(
                 opprettet = Tidspunkt.now(clock),
                 forhåndsvarsel = if (revurderingsårsak.årsak == REGULER_GRUNNBELØP) Forhåndsvarsel.IngenForhåndsvarsel else null,
                 behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
-                grunnlagsdata = eksisterendeGrunnlagOgVilkårsvurderinger.grunnlagsdata,
-                vilkårsvurderinger = eksisterendeGrunnlagOgVilkårsvurderinger.vilkårsvurderinger,
+                grunnlagsdata = gjeldendeGrunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
+                vilkårsvurderinger = gjeldendeGrunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
             ).also {
                 revurderingRepo.lagre(it)
@@ -157,7 +157,10 @@ internal class RevurderingServiceImpl(
                     vilkårsvurderinger = it.vilkårsvurderinger,
                 )
 
-                // TODO lagre grunnlag for fradrag
+                grunnlagService.lagreFradragsgrunnlag(
+                    behandlingId = it.id,
+                    fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
+                )
 
                 observers.forEach { observer ->
                     observer.handle(
@@ -284,7 +287,7 @@ internal class RevurderingServiceImpl(
             return KunneIkkeOppdatereRevurdering.FantIkkeSak.left()
         }
 
-        val eksisterendeGrunnlagOgVilkårsvurderinger = KopierEksisterendeGrunnlagOgVilkårsvurderinger(nyPeriode, sak.vedtakListe)
+        val gjeldendeGrunnlagsdataOgVilkårsvurderinger = KopierGjeldendeGrunnlagsdataOgVilkårsvurderinger(nyPeriode, sak.vedtakListe)
 
         val informasjonSomRevurderes = InformasjonSomRevurderes.tryCreate(oppdaterRevurderingRequest.informasjonSomRevurderes)
             .getOrHandle { return KunneIkkeOppdatereRevurdering.MåVelgeInformasjonSomSkalRevurderes.left() }
@@ -293,29 +296,29 @@ internal class RevurderingServiceImpl(
             is OpprettetRevurdering -> revurdering.oppdater(
                 nyPeriode,
                 revurderingsårsak,
-                eksisterendeGrunnlagOgVilkårsvurderinger.grunnlagsdata,
-                eksisterendeGrunnlagOgVilkårsvurderinger.vilkårsvurderinger,
+                gjeldendeGrunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
+                gjeldendeGrunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                 informasjonSomRevurderes,
             ).right()
             is BeregnetRevurdering -> revurdering.oppdater(
                 nyPeriode,
                 revurderingsårsak,
-                eksisterendeGrunnlagOgVilkårsvurderinger.grunnlagsdata,
-                eksisterendeGrunnlagOgVilkårsvurderinger.vilkårsvurderinger,
+                gjeldendeGrunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
+                gjeldendeGrunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                 informasjonSomRevurderes,
             ).right()
             is SimulertRevurdering -> revurdering.oppdater(
                 nyPeriode,
                 revurderingsårsak,
-                eksisterendeGrunnlagOgVilkårsvurderinger.grunnlagsdata,
-                eksisterendeGrunnlagOgVilkårsvurderinger.vilkårsvurderinger,
+                gjeldendeGrunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
+                gjeldendeGrunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                 informasjonSomRevurderes,
             ).right()
             is UnderkjentRevurdering -> revurdering.oppdater(
                 nyPeriode,
                 revurderingsårsak,
-                eksisterendeGrunnlagOgVilkårsvurderinger.grunnlagsdata,
-                eksisterendeGrunnlagOgVilkårsvurderinger.vilkårsvurderinger,
+                gjeldendeGrunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
+                gjeldendeGrunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                 informasjonSomRevurderes,
             ).right()
             else -> KunneIkkeOppdatereRevurdering.UgyldigTilstand(
@@ -325,7 +328,7 @@ internal class RevurderingServiceImpl(
         }.map {
             revurderingRepo.lagre(it)
             vilkårsvurderingService.lagre(it.id, it.vilkårsvurderinger)
-            // TODO lagre grunnlag for fradrag
+            grunnlagService.lagreFradragsgrunnlag(it.id, it.grunnlagsdata.fradragsgrunnlag)
             it
         }
     }
