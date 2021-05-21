@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
@@ -72,7 +73,9 @@ interface RevurderingService {
         request: LeggTilFradragsgrunnlagRequest,
     ): Either<KunneIkkeLeggeTilFradragsgrunnlag, LeggTilFradragsgrunnlagResponse>
 
-    fun hentGjeldendeVilkårsvurderinger(revurderingId: UUID): Either<KunneIkkeHenteGrunnlag, Vilkårsvurderinger>
+    fun hentGjeldendeGrunnlagsdataOgVilkårsvurderinger(
+        revurderingId: UUID,
+    ): Either<KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger, HentGjeldendeGrunnlagsdataOgVilkårsvurderingerResponse>
 }
 
 sealed class KunneIkkeLeggeTilFradragsgrunnlag {
@@ -247,9 +250,15 @@ sealed class KunneIkkeLeggeTilGrunnlag {
     object HeleBehandlingsperiodenMåHaVurderinger : KunneIkkeLeggeTilGrunnlag()
 }
 
-sealed class KunneIkkeHenteGrunnlag {
-    object FantIkkeBehandling : KunneIkkeHenteGrunnlag()
+sealed class KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger {
+    object FantIkkeBehandling : KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger()
+    object FantIkkeSak : KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger()
 }
+
+data class HentGjeldendeGrunnlagsdataOgVilkårsvurderingerResponse(
+    val grunnlagsdata: Grunnlagsdata,
+    val vilkårsvurderinger: Vilkårsvurderinger
+)
 
 data class LeggTilUføregrunnlagResponse(
     val revurdering: Revurdering,

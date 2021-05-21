@@ -48,9 +48,10 @@ import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarselFeil
 import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarslingRequest
+import no.nav.su.se.bakover.service.revurdering.HentGjeldendeGrunnlagsdataOgVilkårsvurderingerResponse
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeForhåndsvarsle
-import no.nav.su.se.bakover.service.revurdering.KunneIkkeHenteGrunnlag
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLageBrevutkastForRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilFradragsgrunnlag
@@ -482,9 +483,9 @@ open class AccessCheckProxy(
                     return services.revurdering.leggTilFradragsgrunnlag(request)
                 }
 
-                override fun hentGjeldendeVilkårsvurderinger(revurderingId: UUID): Either<KunneIkkeHenteGrunnlag, Vilkårsvurderinger> {
+                override fun hentGjeldendeGrunnlagsdataOgVilkårsvurderinger(revurderingId: UUID): Either<KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger, HentGjeldendeGrunnlagsdataOgVilkårsvurderingerResponse> {
                     assertHarTilgangTilRevurdering(revurderingId)
-                    return services.revurdering.hentGjeldendeVilkårsvurderinger(revurderingId)
+                    return services.revurdering.hentGjeldendeGrunnlagsdataOgVilkårsvurderinger(revurderingId)
                 }
             },
             vedtakService = object : VedtakService {

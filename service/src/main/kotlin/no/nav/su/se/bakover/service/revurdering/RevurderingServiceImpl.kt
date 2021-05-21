@@ -242,10 +242,23 @@ internal class RevurderingServiceImpl(
         ).right()
     }
 
-    override fun hentGjeldendeVilkårsvurderinger(revurderingId: UUID): Either<KunneIkkeHenteGrunnlag, Vilkårsvurderinger> {
+    override fun hentGjeldendeGrunnlagsdataOgVilkårsvurderinger(revurderingId: UUID): Either<KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger, HentGjeldendeGrunnlagsdataOgVilkårsvurderingerResponse> {
         val revurdering = revurderingRepo.hent(revurderingId)
-            ?: return KunneIkkeHenteGrunnlag.FantIkkeBehandling.left()
-        return vilkårsvurderingService.opprettVilkårsvurderinger(revurdering.sakId, revurdering.periode).right()
+            ?: return KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger.FantIkkeBehandling.left()
+
+        val sak = sakService.hentSak(revurdering.sakId).getOrHandle {
+            return KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger.FantIkkeSak.left()
+        }
+
+        return KopierGjeldendeGrunnlagsdataOgVilkårsvurderinger(
+            periode = revurdering.periode,
+            vedtakListe = sak.vedtakListe,
+        ).let {
+            HentGjeldendeGrunnlagsdataOgVilkårsvurderingerResponse(
+                it.grunnlagsdata,
+                it.vilkårsvurderinger,
+            )
+        }.right()
     }
 
     override fun oppdaterRevurdering(
