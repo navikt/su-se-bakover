@@ -262,5 +262,4 @@ data class HentGjeldendeGrunnlagsdataOgVilkårsvurderingerResponse(
 
 data class LeggTilUføregrunnlagResponse(
     val revurdering: Revurdering,
-    val gjeldendeVilkårsvurderinger: Vilkårsvurderinger,
 )

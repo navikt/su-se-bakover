@@ -17,15 +17,16 @@ import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withRevurderingId
 
 /**
- * Mulighet for å hente grunnlagene som stod til grunn for revurderingen (før), nåværende grunnlag (endring) og grunnlagsresultatet (etter).
- * I.e. "før + endring = resultat"
+ * Mulighet for å hente grunnlagene som stod til grunn for revurderingen (før). Dvs, ikke nye grunnlag som er lagt til
+ * som en del av revurderingen.
+ * //TODO vurder om dette endepunktet burde tilhøre sak
  */
 @KtorExperimentalAPI
 internal fun Route.hentGrunnlagRevurderingRoutes(
     revurderingService: RevurderingService,
 ) {
     authorize(Brukerrolle.Saksbehandler) {
-        get("$revurderingPath/{revurderingId}/uføregrunnlag") {
+        get("$revurderingPath/{revurderingId}/grunnlagsdataOgVilkårsvurderinger") {
             call.withRevurderingId { revurderingId ->
 
                 call.svar(

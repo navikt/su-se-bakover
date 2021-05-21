@@ -40,7 +40,6 @@ import no.nav.su.se.bakover.domain.revurdering.erKlarForAttestering
 import no.nav.su.se.bakover.domain.revurdering.medFritekst
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vilkår.Resultat
-import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
@@ -223,14 +222,8 @@ internal class RevurderingServiceImpl(
             ),
         )
 
-        val updated = revurderingRepo.hent(oppdatertBehandlingsinformasjon.id)!!
-
         return LeggTilUføregrunnlagResponse(
-            revurdering = updated,
-            gjeldendeVilkårsvurderinger = vilkårsvurderingService.opprettVilkårsvurderinger(
-                updated.sakId,
-                updated.periode,
-            ),
+            revurdering = revurderingRepo.hent(oppdatertBehandlingsinformasjon.id)!!,
         ).right()
     }
 

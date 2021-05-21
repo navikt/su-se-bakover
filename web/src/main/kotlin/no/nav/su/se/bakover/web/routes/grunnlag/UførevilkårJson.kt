@@ -6,6 +6,7 @@ import no.nav.su.se.bakover.domain.vilkår.Inngangsvilkår
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson.Companion.toJson
 import java.time.format.DateTimeFormatter
 
@@ -39,3 +40,12 @@ internal fun Resultat.toStatusString() = when (this) {
     Resultat.Innvilget -> Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt
     Resultat.Uavklart -> Behandlingsinformasjon.Uførhet.Status.HarUføresakTilBehandling
 }
+
+internal data class VurderingsperiodeUføreJson(
+    val id: String,
+    val opprettet: String,
+    val resultat: Behandlingsinformasjon.Uførhet.Status,
+    val grunnlag: UføregrunnlagJson?,
+    val periode: PeriodeJson,
+    val begrunnelse: String?,
+)
