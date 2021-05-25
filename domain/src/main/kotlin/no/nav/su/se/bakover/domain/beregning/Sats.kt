@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.beregning
 
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.Grunnbeløp
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import java.time.LocalDate
 import kotlin.math.roundToInt
 
@@ -28,5 +29,16 @@ enum class Sats(val grunnbeløp: Grunnbeløp) {
     companion object {
         fun toProsentAvHøy(periode: Periode): Double = periode.tilMånedsperioder()
             .sumOf { HØY.månedsbeløp(it.fraOgMed) * 0.02 }
+
+        fun Grunnlag.BoforholdOgSivilstatus.utledSats(): Sats {
+            return when (this) {
+                is Grunnlag.BoforholdOgSivilstatus.DelerBoligMedVoksneBarnEllerAnnenVoksen -> ORDINÆR
+                is Grunnlag.BoforholdOgSivilstatus.EktefellePartnerSamboer.SektiSyvEllerEldre -> ORDINÆR
+                is Grunnlag.BoforholdOgSivilstatus.EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> HØY
+                is Grunnlag.BoforholdOgSivilstatus.EktefellePartnerSamboer.Under67.UførFlyktning -> ORDINÆR
+                is Grunnlag.BoforholdOgSivilstatus.Enslig -> HØY
+                is Grunnlag.BoforholdOgSivilstatus.IkkeValgtEktefelle -> throw IllegalStateException("Kan ikke utlede sats når man ikke har valgt bor alene eller med voksne")
+            }
+        }
     }
 }

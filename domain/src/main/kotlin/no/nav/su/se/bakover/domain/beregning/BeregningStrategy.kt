@@ -4,10 +4,18 @@ import arrow.core.getOrHandle
 import no.nav.su.se.bakover.domain.behandling.Satsgrunn
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 
 class BeregningStrategyFactory {
-    fun beregn(søknadsbehandling: Søknadsbehandling, fradrag: List<Fradrag>, begrunnelse: String?): Beregning {
+    fun beregn(
+        søknadsbehandling: Søknadsbehandling,
+        fradrag: List<Fradrag>,
+        begrunnelse: String?,
+    ): Beregning {
+        if (søknadsbehandling.grunnlagsdata.bosituasjon.size != 1) throw IllegalStateException("Støtter ikke beregning av ingen eller flere bosituasjonsperioder")
+        val bosituasjon = søknadsbehandling.grunnlagsdata.bosituasjon.first()
+
         val beregningsgrunnlag = Beregningsgrunnlag.tryCreate(
             beregningsperiode = søknadsbehandling.periode,
             uføregrunnlag = søknadsbehandling.grunnlagsdata.uføregrunnlag,
@@ -16,9 +24,17 @@ class BeregningStrategyFactory {
             // TODO jah: Kan vurdere å legge på en left her (KanIkkeBeregne.UgyldigBeregningsgrunnlag
             throw IllegalArgumentException(it.toString())
         }
-        val strategy = søknadsbehandling.behandlingsinformasjon.getBeregningStrategy()
+        val strategy =
+            when (bosituasjon) {
+                is Grunnlag.BoforholdOgSivilstatus.DelerBoligMedVoksneBarnEllerAnnenVoksen -> BeregningStrategy.BorMedVoksne
+                is Grunnlag.BoforholdOgSivilstatus.EktefellePartnerSamboer.SektiSyvEllerEldre -> BeregningStrategy.Eps67EllerEldre
+                is Grunnlag.BoforholdOgSivilstatus.EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> BeregningStrategy.EpsUnder67År
+                is Grunnlag.BoforholdOgSivilstatus.EktefellePartnerSamboer.Under67.UførFlyktning -> BeregningStrategy.EpsUnder67ÅrOgUførFlyktning
+                is Grunnlag.BoforholdOgSivilstatus.Enslig -> BeregningStrategy.BorAlene
+                is Grunnlag.BoforholdOgSivilstatus.IkkeValgtEktefelle -> throw IllegalStateException("Kan ikke beregne når man ikke har valgt om man bor alene eller med andre voksne")
+            }
         // TODO jah: Kan vurdere å legge på en left her (KanIkkeBeregne.UfullstendigBehandlingsinformasjon
-        return strategy.orNull()!!.beregn(beregningsgrunnlag, begrunnelse)
+        return strategy.beregn(beregningsgrunnlag, begrunnelse)
     }
 }
 
@@ -32,7 +48,7 @@ internal sealed class BeregningStrategy {
             sats = sats(),
             fradrag = beregningsgrunnlag.fradrag,
             fradragStrategy = fradragStrategy(),
-            begrunnelse = begrunnelse
+            begrunnelse = begrunnelse,
         )
     }
 
