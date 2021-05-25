@@ -79,6 +79,8 @@ interface RevurderingService {
 sealed class KunneIkkeLeggeTilFradragsgrunnlag {
     object FantIkkeBehandling : KunneIkkeLeggeTilFradragsgrunnlag()
     object UgyldigStatus : KunneIkkeLeggeTilFradragsgrunnlag()
+    object FradragsgrunnlagUtenforRevurderingsperiode : KunneIkkeLeggeTilFradragsgrunnlag()
+    object UgyldigFradragstypeForGrunnlag : KunneIkkeLeggeTilFradragsgrunnlag()
 }
 
 data class LeggTilFradragsgrunnlagRequest(

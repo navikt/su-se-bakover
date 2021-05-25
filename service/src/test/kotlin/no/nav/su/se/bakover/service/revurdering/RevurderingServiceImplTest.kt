@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
@@ -295,9 +296,9 @@ internal class RevurderingServiceImplTest {
                             periode = søknadsbehandlingVedtak.periode,
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
-                        )
-                    )
-                )
+                        ),
+                    ),
+                ),
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Vurdert.Uførhet.create(
@@ -415,9 +416,9 @@ internal class RevurderingServiceImplTest {
                             periode = søknadsbehandlingVedtak.periode,
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
-                        )
-                    )
-                )
+                        ),
+                    ),
+                ),
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Vurdert.Uførhet.create(
@@ -1932,6 +1933,7 @@ internal class RevurderingServiceImplTest {
 
         val revuderingMock = mock<OpprettetRevurdering> {
             on { id } doReturn revurderingId
+            on { periode } doReturn Periode.create(1.januar(2021), 31.desember(2021))
         }
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -2069,5 +2071,48 @@ internal class RevurderingServiceImplTest {
         }
 
         verifyNoMoreInteractions(revurderingRepoMock, grunnlagServiceMock)
+    }
+
+    @Test
+    fun `validerer fradragsgrunnlag`() {
+        val revurderingMock = mock<OpprettetRevurdering>() {
+            on { periode } doReturn Periode.create(1.mai(2021), 31.desember(2021))
+        }
+
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn revurderingMock
+        }
+
+        val revurderingService = createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+        )
+
+        val request = LeggTilFradragsgrunnlagRequest(
+            behandlingId = revurderingId,
+            fradragsrunnlag = listOf(
+                Grunnlag.Fradragsgrunnlag(
+                    fradrag = FradragFactory.ny(
+                        type = Fradragstype.Arbeidsinntekt,
+                        månedsbeløp = 0.0,
+                        periode = Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.desember(2021)),
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                ),
+                Grunnlag.Fradragsgrunnlag(
+                    fradrag = FradragFactory.ny(
+                        type = Fradragstype.Kontantstøtte,
+                        månedsbeløp = 0.0,
+                        periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.juli(2021)),
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                ),
+            ),
+        )
+
+        revurderingService.leggTilFradragsgrunnlag(
+            request,
+        ).shouldBeLeft(KunneIkkeLeggeTilFradragsgrunnlag.FradragsgrunnlagUtenforRevurderingsperiode)
     }
 }

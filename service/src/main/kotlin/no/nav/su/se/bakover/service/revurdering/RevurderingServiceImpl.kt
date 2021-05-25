@@ -19,6 +19,8 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Validator.valider
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -235,13 +237,20 @@ internal class RevurderingServiceImpl(
         if (revurdering.ugyldigTilstandForåLeggeTilGrunnlag())
             return KunneIkkeLeggeTilFradragsgrunnlag.UgyldigStatus.left()
 
+        request.fradragsrunnlag.valider(revurdering.periode).getOrHandle {
+            return when (it) {
+                Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag -> KunneIkkeLeggeTilFradragsgrunnlag.UgyldigFradragstypeForGrunnlag
+                Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.UtenforBehandlingsperiode -> KunneIkkeLeggeTilFradragsgrunnlag.FradragsgrunnlagUtenforRevurderingsperiode
+            }.left()
+        }
+
         grunnlagService.lagreFradragsgrunnlag(
             behandlingId = revurdering.id,
             fradragsgrunnlag = request.fradragsrunnlag,
         )
 
         return LeggTilFradragsgrunnlagResponse(
-            revurdering = revurderingRepo.hent(revurdering.id)!!
+            revurdering = revurderingRepo.hent(revurdering.id)!!,
         ).right()
     }
 

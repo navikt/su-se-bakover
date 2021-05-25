@@ -5,6 +5,7 @@ import arrow.core.flatMap
 import arrow.core.getOrHandle
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.routing.Route
 import io.ktor.routing.post
@@ -56,6 +57,14 @@ internal fun Route.leggTilFradragRevurdering(
                                         KunneIkkeLeggeTilFradragsgrunnlag.UgyldigStatus -> InternalServerError.errorJson(
                                             "ugyldig status for å legge til",
                                             "ugyldig_status_for_å_legge_til",
+                                        )
+                                        KunneIkkeLeggeTilFradragsgrunnlag.FradragsgrunnlagUtenforRevurderingsperiode -> BadRequest.errorJson(
+                                            "kan ikke legge til fradrag utenfor revurderingsperioden",
+                                            "fradrag_utenfor_revurderingsperiode"
+                                        )
+                                        KunneIkkeLeggeTilFradragsgrunnlag.UgyldigFradragstypeForGrunnlag -> BadRequest.errorJson(
+                                            "ugyldig fradragstype",
+                                            "fradrag_ugyldig_fradragstype"
                                         )
                                     }
                                 }.map {
