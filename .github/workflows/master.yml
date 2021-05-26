@@ -30,7 +30,7 @@ jobs:
             ${{ runner.os }}-gradle-wrapper-
       - uses: actions/setup-java@v1
         with:
-          java-version: '15.x'
+          java-version: '16.x'
       - name: test and build
         run: ./gradlew test build
         env:
