@@ -166,26 +166,27 @@ internal val kvitteringOk = Kvittering(
 )
 
 internal class TestDataHelper(
-    dataSource: DataSource = EmbeddedDatabase.instance(),
+    internal val dataSource: DataSource = EmbeddedDatabase.instance(),
     private val clock: Clock = fixedClock,
 ) {
-    private val utbetalingRepo = UtbetalingPostgresRepo(dataSource)
-    private val hendelsesloggRepo = HendelsesloggPostgresRepo(dataSource)
-    private val søknadRepo = SøknadPostgresRepo(dataSource)
-    private val uføregrunnlagPostgresRepo = UføregrunnlagPostgresRepo()
-    private val inntektgrunnlagPostgresRepo = FradragsgrunnlagPostgresRepo(dataSource)
-    val grunnlagRepo = GrunnlagPostgresRepo(inntektgrunnlagPostgresRepo)
-    val vilkårsvurderingRepo = VilkårsvurderingPostgresRepo(dataSource, uføregrunnlagPostgresRepo)
-    private val søknadsbehandlingRepo =
+    internal val utbetalingRepo = UtbetalingPostgresRepo(dataSource)
+    internal val hendelsesloggRepo = HendelsesloggPostgresRepo(dataSource)
+    internal val søknadRepo = SøknadPostgresRepo(dataSource)
+    internal val uføregrunnlagPostgresRepo = UføregrunnlagPostgresRepo()
+    private val fradragsgrunnlagPostgresRepo = FradragsgrunnlagPostgresRepo(dataSource)
+    internal val grunnlagRepo = GrunnlagPostgresRepo(fradragsgrunnlagPostgresRepo)
+    internal val vilkårsvurderingRepo = VilkårsvurderingPostgresRepo(dataSource, uføregrunnlagPostgresRepo)
+    internal val søknadsbehandlingRepo =
         SøknadsbehandlingPostgresRepo(dataSource, uføregrunnlagPostgresRepo, vilkårsvurderingRepo)
-    val revurderingRepo = RevurderingPostgresRepo(
+    internal val revurderingRepo = RevurderingPostgresRepo(
         dataSource,
         uføregrunnlagPostgresRepo,
+        fradragsgrunnlagPostgresRepo,
         vilkårsvurderingRepo,
         søknadsbehandlingRepo,
     )
-    val vedtakRepo = VedtakPosgresRepo(dataSource, søknadsbehandlingRepo, revurderingRepo)
-    private val sakRepo = SakPostgresRepo(dataSource, søknadsbehandlingRepo, revurderingRepo, vedtakRepo)
+    internal val vedtakRepo = VedtakPosgresRepo(dataSource, søknadsbehandlingRepo, revurderingRepo)
+    internal val sakRepo = SakPostgresRepo(dataSource, søknadsbehandlingRepo, revurderingRepo, vedtakRepo)
 
     fun nySakMedNySøknad(fnr: Fnr = FnrGenerator.random()): NySak {
         return SakFactory(clock = clock).nySak(fnr, SøknadInnholdTestdataBuilder.build()).also {
