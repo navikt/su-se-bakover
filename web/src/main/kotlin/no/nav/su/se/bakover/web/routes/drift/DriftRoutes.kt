@@ -4,6 +4,7 @@ import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.response.respond
 import io.ktor.routing.Route
+import io.ktor.routing.get
 import io.ktor.routing.patch
 import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.serialize
@@ -40,6 +41,12 @@ internal fun Route.driftRoutes(
                     serialize(it.toJson())
                 )
             }
+        }
+    }
+
+    authorize(Brukerrolle.Drift) {
+        get("$DRIFT_PATH/isalive") {
+            call.respond(HttpStatusCode.OK, """{ "Status" : "OK"}""")
         }
     }
 }
