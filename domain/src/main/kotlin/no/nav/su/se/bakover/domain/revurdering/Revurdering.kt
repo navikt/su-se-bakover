@@ -103,11 +103,9 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
         informasjonSomRevurderes = informasjonSomRevurderes,
     )
 
-    open fun beregn(
-        fradrag: List<Fradrag>,
-    ): Either<KunneIkkeBeregneRevurdering, BeregnetRevurdering> {
+    open fun beregn(): Either<KunneIkkeBeregneRevurdering, BeregnetRevurdering> {
         val revurdertBeregning: Beregning = beregnInternt(
-            fradrag = fradrag,
+            fradrag = grunnlagsdata.fradragsgrunnlag.map { it.fradrag },
             behandlingsinformasjon = behandlingsinformasjon,
             uføregrunnlag = grunnlagsdata.uføregrunnlag,
             periode = periode,
@@ -767,9 +765,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         }
     }
 
-    override fun beregn(
-        fradrag: List<Fradrag>,
-    ): Either<KunneIkkeBeregneRevurdering, BeregnetRevurdering> {
+    override fun beregn(): Either<KunneIkkeBeregneRevurdering, BeregnetRevurdering> {
         throw RuntimeException("Skal ikke kunne beregne når revurderingen er til attestering")
     }
 
@@ -937,9 +933,7 @@ sealed class IverksattRevurdering : Revurdering() {
         }
     }
 
-    override fun beregn(
-        fradrag: List<Fradrag>,
-    ) = throw RuntimeException("Skal ikke kunne beregne når revurderingen er iverksatt")
+    override fun beregn() = throw RuntimeException("Skal ikke kunne beregne når revurderingen er iverksatt")
 }
 
 sealed class UnderkjentRevurdering : Revurdering() {

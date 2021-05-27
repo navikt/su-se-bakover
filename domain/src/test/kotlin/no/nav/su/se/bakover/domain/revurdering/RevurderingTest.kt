@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -42,7 +43,7 @@ internal class RevurderingTest {
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.IkkeVurdert.Uførhet,
             ),
-        ).beregn(emptyList()) shouldBeLeft Revurdering.KunneIkkeBeregneRevurdering.UfullstendigVilkårsvurdering
+        ).beregn() shouldBeLeft Revurdering.KunneIkkeBeregneRevurdering.UfullstendigVilkårsvurdering
     }
 
     @Test
@@ -63,7 +64,7 @@ internal class RevurderingTest {
                 ),
             ),
         ).copy(informasjonSomRevurderes = InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert)))
-            .beregn(emptyList()).orNull()!!.let {
+            .beregn().orNull()!!.let {
             it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
             it.informasjonSomRevurderes[Revurderingsteg.Inntekt] shouldBe Vurderingstatus.Vurdert
         }
@@ -87,7 +88,7 @@ internal class RevurderingTest {
                 ),
             ),
         ).copy(informasjonSomRevurderes = InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert)))
-            .beregn(emptyList()).orNull()!!.let {
+            .beregn().orNull()!!.let {
             it shouldNotBe beOfType<BeregnetRevurdering.Opphørt>()
             it.informasjonSomRevurderes[Revurderingsteg.Inntekt] shouldBe Vurderingstatus.Vurdert
         }
@@ -143,17 +144,19 @@ internal class RevurderingTest {
                     ),
                 ),
             ),
-        )
-        val beregnet = revurdering.beregn(
-            listOf(
-                FradragFactory.ny(
-                    type = Fradragstype.Arbeidsinntekt,
-                    månedsbeløp = 2000000000.0,
-                    periode = Periode.create(1.januar(2021), 31.desember(2021)),
-                    tilhører = FradragTilhører.BRUKER,
+            fradrag = listOf(
+                Grunnlag.Fradragsgrunnlag(
+                    fradrag = FradragFactory.ny(
+                        type = Fradragstype.Arbeidsinntekt,
+                        månedsbeløp = 2000000000.0,
+                        periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
                 ),
             ),
-        ).getOrElse { throw RuntimeException("Her skal det være en beregnet revurdering") }
+        )
+        val beregnet =
+            revurdering.beregn().getOrElse { throw RuntimeException("Her skal det være en beregnet revurdering") }
 
         beregnet shouldBe beOfType<BeregnetRevurdering.Opphørt>()
 
@@ -188,17 +191,19 @@ internal class RevurderingTest {
                     ),
                 ),
             ),
-        )
-        val beregnet = revurdering.beregn(
-            listOf(
-                FradragFactory.ny(
-                    type = Fradragstype.Arbeidsinntekt,
-                    månedsbeløp = 20900.0,
-                    periode = Periode.create(1.januar(2021), 31.desember(2021)),
-                    tilhører = FradragTilhører.BRUKER,
+            fradrag = listOf(
+                Grunnlag.Fradragsgrunnlag(
+                    fradrag = FradragFactory.ny(
+                        type = Fradragstype.Arbeidsinntekt,
+                        månedsbeløp = 20900.0,
+                        periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
                 ),
             ),
-        ).getOrElse { throw RuntimeException("Her skal det være en beregnet revurdering") }
+        )
+        val beregnet =
+            revurdering.beregn().getOrElse { throw RuntimeException("Her skal det være en beregnet revurdering") }
 
         beregnet shouldBe beOfType<BeregnetRevurdering.Opphørt>()
 
@@ -219,6 +224,7 @@ internal class RevurderingTest {
     private fun lagRevurdering(
         tilRevurdering: Vedtak.EndringIYtelse = tilRevurderingMock,
         vilkårsvurderinger: Vilkårsvurderinger,
+        fradrag: List<Grunnlag.Fradragsgrunnlag> = emptyList(),
     ) = OpprettetRevurdering(
         id = UUID.randomUUID(),
         periode = Periode.create(1.januar(2021), 31.desember(2021)),
@@ -235,7 +241,7 @@ internal class RevurderingTest {
         behandlingsinformasjon = mock() {
             on { getBeregningStrategy() } doReturn BeregningStrategy.BorAlene.right()
         },
-        grunnlagsdata = Grunnlagsdata(uføregrunnlag = listOf()),
+        grunnlagsdata = Grunnlagsdata(uføregrunnlag = listOf(), fradragsgrunnlag = fradrag),
         vilkårsvurderinger = vilkårsvurderinger,
         informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
     )

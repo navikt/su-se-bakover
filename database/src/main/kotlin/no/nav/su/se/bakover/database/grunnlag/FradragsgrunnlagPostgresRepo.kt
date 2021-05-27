@@ -34,18 +34,22 @@ internal class FradragsgrunnlagPostgresRepo(
 
     override fun hentFradragsgrunnlag(behandlingId: UUID): List<Grunnlag.Fradragsgrunnlag> {
         return dataSource.withSession { session ->
-            """
-                select * from grunnlag_fradrag where behandlingId = :behandlingId
-            """.trimIndent()
-                .hentListe(
-                    mapOf(
-                        "behandlingId" to behandlingId,
-                    ),
-                    session,
-                ) {
-                    it.toFradragsgrunnlag()
-                }
+            hentFradragsgrunnlag(behandlingId, session)
         }
+    }
+
+    internal fun hentFradragsgrunnlag(behandlingId: UUID, session: Session): List<Grunnlag.Fradragsgrunnlag> {
+        return """
+                select * from grunnlag_fradrag where behandlingId = :behandlingId
+        """.trimIndent()
+            .hentListe(
+                mapOf(
+                    "behandlingId" to behandlingId,
+                ),
+                session,
+            ) {
+                it.toFradragsgrunnlag()
+            }
     }
 
     private fun slettForBehandlingId(behandlingId: UUID, session: Session) {
@@ -87,7 +91,7 @@ internal class FradragsgrunnlagPostgresRepo(
                 månedsbeløp,
                 utenlandskInntekt,
                 tilhører
-            ) values 
+            ) values
             (
                 :id,
                 :opprettet,

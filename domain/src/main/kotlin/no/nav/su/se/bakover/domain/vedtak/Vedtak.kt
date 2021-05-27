@@ -297,6 +297,11 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
         override val periode: Periode,
         val grunnlagsdata: Grunnlagsdata,
         val vilkårsvurderinger: Vilkårsvurderinger,
+        /**
+         * Burde ideelt sett utledet fradrag direkte fra aktuell grunnlagsdata, men pt. er modell for fradragsgrunnlag
+         * kun innført for revurdering. For å sørge for at vi kan utlede fradragsgrunnlag fra både tidligere
+         * søknadsbehandlinger og revurderinger, må vi inntil videre utlede fradragsgrunnlag fra tidligere beregninger.
+         */
         val fradrag: List<Fradrag>,
     ) : KanPlasseresPåTidslinje<VedtakPåTidslinje> {
         override fun copy(args: CopyArgs.Tidslinje): VedtakPåTidslinje =

@@ -76,6 +76,7 @@ object DatabaseBuilder {
         val revurderingRepo = RevurderingPostgresRepo(
             dataSource,
             uføregrunnlagRepo,
+            fradragsgrunnlag,
             vilkårsvurderingRepo,
             saksbehandlingRepo,
         )

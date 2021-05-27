@@ -12,18 +12,20 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
+import no.nav.su.se.bakover.database.beregning.PersistertFradrag
 import no.nav.su.se.bakover.database.fixedTidspunkt
-import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
-import no.nav.su.se.bakover.database.grunnlag.VilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo.ForhåndsvarselDto
-import no.nav.su.se.bakover.database.søknadsbehandling.SøknadsbehandlingPostgresRepo
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -47,14 +49,11 @@ import java.time.LocalDate
 import java.util.UUID
 
 internal class RevurderingPostgresRepoTest {
-    private val ds = EmbeddedDatabase.instance()
-    private val uføregrunnlagPostgresRepo = UføregrunnlagPostgresRepo()
-    private val vilkårsvurderingRepo = VilkårsvurderingPostgresRepo(ds, uføregrunnlagPostgresRepo)
-    private val søknadsbehandlingRepo: SøknadsbehandlingPostgresRepo =
-        SøknadsbehandlingPostgresRepo(ds, uføregrunnlagPostgresRepo, vilkårsvurderingRepo)
-    private val repo: RevurderingPostgresRepo =
-        RevurderingPostgresRepo(ds, uføregrunnlagPostgresRepo, vilkårsvurderingRepo, søknadsbehandlingRepo)
     private val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())
+    private val uføregrunnlagPostgresRepo = testDataHelper.uføregrunnlagPostgresRepo
+    private val fradragsgrunnlagPostgresRepo = testDataHelper.grunnlagRepo
+    private val repo = testDataHelper.revurderingRepo
+
     private val saksbehandler = Saksbehandler("Sak S. Behandler")
     private val periode = Periode.create(
         fraOgMed = 1.januar(2020),
@@ -394,10 +393,46 @@ internal class RevurderingPostgresRepoTest {
                 revurderingsårsak = revurderingsårsak,
                 forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
                 behandlingsinformasjon = vedtak.behandlingsinformasjon,
-                grunnlagsdata = Grunnlagsdata.EMPTY,
+                grunnlagsdata = Grunnlagsdata(
+                    uføregrunnlag = listOf(
+                        Grunnlag.Uføregrunnlag(
+                            id = UUID.randomUUID(),
+                            opprettet = fixedTidspunkt,
+                            periode = periode,
+                            uføregrad = Uføregrad.parse(20),
+                            forventetInntekt = 0,
+                        ),
+                    ),
+                    fradragsgrunnlag = listOf(
+                        Grunnlag.Fradragsgrunnlag(
+                            id = UUID.randomUUID(),
+                            opprettet = fixedTidspunkt,
+                            fradrag =
+                            PersistertFradrag(
+                                fradragstype = Fradragstype.Introduksjonsstønad,
+                                månedsbeløp = 200.0,
+                                periode = periode,
+                                utenlandskInntekt = null,
+                                tilhører = FradragTilhører.BRUKER,
+                            ),
+                        ),
+                    ),
+                ),
                 vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
             )
+
+            fradragsgrunnlagPostgresRepo.lagreFradragsgrunnlag(
+                tilAttestering.id,
+                tilAttestering.grunnlagsdata.fradragsgrunnlag,
+            )
+            testDataHelper.dataSource.withSession {
+                uføregrunnlagPostgresRepo.lagre(
+                    tilAttestering.id,
+                    tilAttestering.grunnlagsdata.uføregrunnlag,
+                    it,
+                )
+            }
 
             repo.lagre(tilAttestering)
 
@@ -412,7 +447,7 @@ internal class RevurderingPostgresRepoTest {
 
             repo.lagre(iverksatt)
             repo.hent(iverksatt.id) shouldBe iverksatt
-            ds.withSession {
+            testDataHelper.dataSource.withSession {
                 repo.hentRevurderingerForSak(iverksatt.sakId, it) shouldBe listOf(iverksatt)
             }
         }
@@ -814,7 +849,8 @@ internal class RevurderingPostgresRepoTest {
             repo.lagre(nyBeregnetRevurdering)
             repo.hent(nyBeregnetRevurdering.id)!!.forhåndsvarsel shouldBe null
 
-            val nySimulertRevurdering = simulertInnvilget(nyBeregnetRevurdering.copy(forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel))
+            val nySimulertRevurdering =
+                simulertInnvilget(nyBeregnetRevurdering.copy(forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel))
             repo.lagre(nySimulertRevurdering)
             repo.hent(nySimulertRevurdering.id)!!.forhåndsvarsel shouldBe Forhåndsvarsel.IngenForhåndsvarsel
         }

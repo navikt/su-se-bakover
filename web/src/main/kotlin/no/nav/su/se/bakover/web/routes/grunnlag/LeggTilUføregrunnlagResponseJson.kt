@@ -6,10 +6,8 @@ import no.nav.su.se.bakover.web.routes.revurdering.toJson
 
 internal data class LeggTilUføregrunnlagResponseJson(
     val revurdering: RevurderingJson,
-    val gjeldendeVilkårsvurderinger: VilkårsvurderingerJson,
 )
 
 internal fun LeggTilUføregrunnlagResponse.toJson() = LeggTilUføregrunnlagResponseJson(
     revurdering = revurdering.toJson(),
-    gjeldendeVilkårsvurderinger = gjeldendeVilkårsvurderinger.toJson(),
 )

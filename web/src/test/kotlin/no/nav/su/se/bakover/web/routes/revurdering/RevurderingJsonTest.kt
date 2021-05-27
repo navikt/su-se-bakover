@@ -26,9 +26,11 @@ import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
-import no.nav.su.se.bakover.web.routes.grunnlag.expectedVurderingUføreJson
-import no.nav.su.se.bakover.web.routes.grunnlag.uføregrunnlag
-import no.nav.su.se.bakover.web.routes.grunnlag.vurderingsperiodeUføre
+import no.nav.su.se.bakover.web.routes.grunnlag.FradragsgrunnlagJsonTest.Companion.expectedFradragsgrunnlagJson
+import no.nav.su.se.bakover.web.routes.grunnlag.FradragsgrunnlagJsonTest.Companion.fradragsgrunnlag
+import no.nav.su.se.bakover.web.routes.grunnlag.UføreVilkårJsonTest.Companion.expectedVurderingUføreJson
+import no.nav.su.se.bakover.web.routes.grunnlag.UføreVilkårJsonTest.Companion.vurderingsperiodeUføre
+import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagJsonTest.Companion.uføregrunnlag
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.vedtak
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingsinformasjonJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.TestBeregning
@@ -61,6 +63,7 @@ internal class RevurderingJsonTest {
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata(
                 uføregrunnlag = listOf(uføregrunnlag),
+                fradragsgrunnlag = listOf(fradragsgrunnlag),
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Vurdert.Uførhet.create(
@@ -93,8 +96,9 @@ internal class RevurderingJsonTest {
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": null,
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
-                "vilkårsvurderinger": {
-                  "uføre": $expectedVurderingUføreJson
+                "grunnlagsdataOgVilkårsvurderinger": {
+                  "uføre": $expectedVurderingUføreJson,
+                  "fradrag": [$expectedFradragsgrunnlagJson]
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -158,8 +162,9 @@ internal class RevurderingJsonTest {
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": null,
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
-                "vilkårsvurderinger": {
-                  "uføre": null
+                "grunnlagsdataOgVilkårsvurderinger": {
+                  "uføre": null,
+                  "fradrag": []
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -223,8 +228,9 @@ internal class RevurderingJsonTest {
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": null,
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
-                "vilkårsvurderinger": {
-                  "uføre": null
+                "grunnlagsdataOgVilkårsvurderinger": {
+                  "uføre": null,
+                  "fradrag": []
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -288,8 +294,9 @@ internal class RevurderingJsonTest {
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": null,
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
-                "vilkårsvurderinger": {
-                  "uføre": null
+                "grunnlagsdataOgVilkårsvurderinger": {
+                  "uføre": null,
+                  "fradrag": []
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -358,8 +365,9 @@ internal class RevurderingJsonTest {
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": null,
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
-                "vilkårsvurderinger": {
-                  "uføre": null
+                "grunnlagsdataOgVilkårsvurderinger": {
+                  "uføre": null,
+                  "fradrag": []
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -428,8 +436,9 @@ internal class RevurderingJsonTest {
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": null,
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
-                "vilkårsvurderinger": {
-                  "uføre": null
+                "grunnlagsdataOgVilkårsvurderinger": {
+                  "uføre": null,
+                  "fradrag": []
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -499,8 +508,9 @@ internal class RevurderingJsonTest {
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": { "type": "INGEN_FORHÅNDSVARSEL" },
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
-                "vilkårsvurderinger": {
-                  "uføre": null
+                "grunnlagsdataOgVilkårsvurderinger": {
+                  "uføre": null,
+                  "fradrag": []
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "Vurdert",
@@ -570,8 +580,9 @@ internal class RevurderingJsonTest {
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": { "type": "INGEN_FORHÅNDSVARSEL" },
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
-                "vilkårsvurderinger": {
-                  "uføre": null
+                "grunnlagsdataOgVilkårsvurderinger": {
+                  "uføre": null,
+                  "fradrag": []
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -638,8 +649,9 @@ internal class RevurderingJsonTest {
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": null,
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
-                "vilkårsvurderinger": {
-                  "uføre": null
+                "grunnlagsdataOgVilkårsvurderinger": {
+                  "uføre": null,
+                  "fradrag": []
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -721,8 +733,9 @@ internal class RevurderingJsonTest {
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": { "type": "INGEN_FORHÅNDSVARSEL"},
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
-                "vilkårsvurderinger": {
-                  "uføre": null
+                "grunnlagsdataOgVilkårsvurderinger": {
+                  "uføre": null,
+                  "fradrag": []
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -804,8 +817,9 @@ internal class RevurderingJsonTest {
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": { "type": "INGEN_FORHÅNDSVARSEL"},
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
-                "vilkårsvurderinger": {
-                  "uføre": null
+                "grunnlagsdataOgVilkårsvurderinger": {
+                  "uføre": null,
+                  "fradrag": []
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -884,8 +898,9 @@ internal class RevurderingJsonTest {
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": null,
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
-                "vilkårsvurderinger": {
-                  "uføre": null
+                "grunnlagsdataOgVilkårsvurderinger": {
+                  "uføre": null,
+                  "fradrag": []
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -957,8 +972,9 @@ internal class RevurderingJsonTest {
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": { "type":  "INGEN_FORHÅNDSVARSEL" },
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
-                "vilkårsvurderinger": {
-                  "uføre": null
+                "grunnlagsdataOgVilkårsvurderinger": {
+                  "uføre": null,
+                  "fradrag": []
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -1030,8 +1046,9 @@ internal class RevurderingJsonTest {
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": { "type":  "INGEN_FORHÅNDSVARSEL" },
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
-                "vilkårsvurderinger": {
-                  "uføre": null
+                "grunnlagsdataOgVilkårsvurderinger": {
+                  "uføre": null,
+                  "fradrag": []
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -1100,8 +1117,9 @@ internal class RevurderingJsonTest {
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": null,
                 "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
-                "vilkårsvurderinger": {
-                  "uføre": null
+                "grunnlagsdataOgVilkårsvurderinger": {
+                  "uføre": null,
+                  "fradrag": []
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",

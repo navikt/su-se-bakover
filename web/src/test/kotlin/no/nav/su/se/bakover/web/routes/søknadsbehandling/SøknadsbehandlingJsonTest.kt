@@ -8,8 +8,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.web.FnrGenerator
-import no.nav.su.se.bakover.web.routes.grunnlag.expectedUføregrunnlagJson
-import no.nav.su.se.bakover.web.routes.grunnlag.expectedVurderingUføreJson
+import no.nav.su.se.bakover.web.routes.grunnlag.UføreVilkårJsonTest.Companion.expectedVurderingUføreJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadJsonTest.Companion.søknadJsonString
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.behandlingId
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.innvilgetSøknadsbehandling
@@ -128,11 +127,9 @@ internal class SøknadsbehandlingJsonTest {
             },
             "begrunnelse": "begrunnelsen"
           },
-          "grunnlag": {
-            "uføre": $expectedUføregrunnlagJson
-          },
           "vilkårsvurderinger": {
-            "uføre": $expectedVurderingUføreJson
+            "uføre": $expectedVurderingUføreJson,
+            "fradrag": []
           }
         }
             """.trimIndent()
@@ -193,11 +190,9 @@ internal class SøknadsbehandlingJsonTest {
           "sakId": "$sakId",
           "hendelser": [],
           "stønadsperiode": null,
-          "grunnlag": {
-            "uføre": null
-          },
           "vilkårsvurderinger": {
-            "uføre": null
+            "uføre": null,
+            "fradrag": []
           }
         }
         """
