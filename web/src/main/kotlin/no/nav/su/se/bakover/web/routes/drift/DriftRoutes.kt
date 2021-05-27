@@ -45,7 +45,7 @@ internal fun Route.driftRoutes(
     }
 
     authorize(Brukerrolle.Drift) {
-        get ("$DRIFT_PATH/isalive") {
+        get("$DRIFT_PATH/isalive") {
             call.respond(HttpStatusCode.OK, """{ "Status" : "OK"}""")
         }
     }
