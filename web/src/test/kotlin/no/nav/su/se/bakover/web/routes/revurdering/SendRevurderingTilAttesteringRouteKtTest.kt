@@ -280,6 +280,20 @@ internal class SendRevurderingTilAttesteringRouteKtTest {
         )
     }
 
+    @Test
+    fun `feilutbetaling støttes ikke`() {
+        shouldMapErrorCorrectly(
+            error = KunneIkkeSendeRevurderingTilAttestering.FeilutbetalingStøttesIkke,
+            expectedStatusCode = HttpStatusCode.InternalServerError,
+            expectedJsonResponse = """
+                {
+                    "message":"Feilutbetalinger støttes ikke",
+                    "code":"feilutbetalinger_støttes_ikke"
+                }
+            """.trimIndent(),
+        )
+    }
+
     private fun shouldMapErrorCorrectly(
         error: KunneIkkeSendeRevurderingTilAttestering,
         expectedStatusCode: HttpStatusCode,

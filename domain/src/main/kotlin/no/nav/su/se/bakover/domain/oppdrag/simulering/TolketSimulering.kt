@@ -33,7 +33,9 @@ data class TolketPeriode(
     val fraOgMed: LocalDate,
     val tilOgMed: LocalDate,
     val utbetalinger: List<TolketUtbetaling>,
-)
+) {
+    fun harFeilutbetalinger() = utbetalinger.any { it is TolketUtbetaling.Feilutbetaling }
+}
 
 sealed class TolketUtbetaling {
     abstract val tolketDetalj: List<TolketDetalj>

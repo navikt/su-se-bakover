@@ -46,6 +46,11 @@ internal object Revurderingsfeilresponser {
         "må_velge_informasjon_som_revurderes",
     )
 
+    val feilutbetalingStøttesIkke = InternalServerError.errorJson(
+        "Feilutbetalinger støttes ikke",
+        "feilutbetalinger_støttes_ikke"
+    )
+
     fun ugyldigPeriode(ugyldigPeriode: UgyldigPeriode): Resultat {
         return BadRequest.errorJson(
             ugyldigPeriode.toString(),

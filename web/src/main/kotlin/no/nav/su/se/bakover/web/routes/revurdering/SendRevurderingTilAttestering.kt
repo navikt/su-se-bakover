@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeAktørId
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.feilutbetalingStøttesIkke
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.kunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.manglerBeslutningPåForhåndsvarsel
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.ugyldigTilstand
@@ -74,5 +75,6 @@ internal fun KunneIkkeSendeRevurderingTilAttestering.tilResultat(): Resultat {
             "g_regulering_kan_ikke_føre_til_opphør",
         )
         is KunneIkkeSendeRevurderingTilAttestering.ManglerBeslutningPåForhåndsvarsel -> manglerBeslutningPåForhåndsvarsel
+        KunneIkkeSendeRevurderingTilAttestering.FeilutbetalingStøttesIkke -> feilutbetalingStøttesIkke
     }
 }
