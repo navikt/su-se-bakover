@@ -1,8 +1,6 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.Either
-import arrow.core.left
-import arrow.core.right
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -12,6 +10,8 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Validator.valider
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -65,26 +65,39 @@ interface SøknadsbehandlingService {
             val tilhører: FradragTilhører,
         )
 
-        object IkkeLovMedFradragUtenforPerioden
+        sealed class UgyldigFradrag {
+            object IkkeLovMedFradragUtenforPerioden : UgyldigFradrag()
+            object UgyldigFradragstype : UgyldigFradrag()
+        }
 
-        fun toFradrag(stønadsperiode: Stønadsperiode): Either<IkkeLovMedFradragUtenforPerioden, List<Fradrag>> =
+        fun toFradrag(stønadsperiode: Stønadsperiode): Either<UgyldigFradrag, List<Fradrag>> =
             fradrag.map {
-                if (it.periode != null && !(stønadsperiode.periode inneholder it.periode)) {
-                    return IkkeLovMedFradragUtenforPerioden.left()
-                }
-                FradragFactory.ny(
-                    type = it.type,
-                    månedsbeløp = it.månedsbeløp,
-                    periode = it.periode ?: stønadsperiode.periode,
-                    utenlandskInntekt = it.utenlandskInntekt,
-                    tilhører = it.tilhører,
+                // map til grunnlag for å låne valideringer
+                Grunnlag.Fradragsgrunnlag(
+                    fradrag = FradragFactory.ny(
+                        type = it.type,
+                        månedsbeløp = it.månedsbeløp,
+                        periode = it.periode ?: stønadsperiode.periode,
+                        utenlandskInntekt = it.utenlandskInntekt,
+                        tilhører = it.tilhører,
+                    ),
                 )
-            }.right()
+            }.valider(stønadsperiode.periode)
+                .mapLeft { valideringsfeil ->
+                    when (valideringsfeil) {
+                        Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag -> UgyldigFradrag.UgyldigFradragstype
+                        Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.UtenforBehandlingsperiode -> UgyldigFradrag.IkkeLovMedFradragUtenforPerioden
+                    }
+                }
+                .map { fradragsgrunnlag ->
+                    fradragsgrunnlag.map { it.fradrag }
+                }
     }
 
     sealed class KunneIkkeBeregne {
         object FantIkkeBehandling : KunneIkkeBeregne()
         object IkkeLovMedFradragUtenforPerioden : KunneIkkeBeregne()
+        object UgyldigFradragstype : KunneIkkeBeregne()
     }
 
     data class SimulerRequest(

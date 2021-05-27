@@ -74,7 +74,7 @@ sealed class Grunnlag {
     ) : Grunnlag() {
 
         companion object Validator {
-            fun List<Fradragsgrunnlag>.valider(behandlingsperiode: Periode): Either<UgyldigFradragsgrunnlag, Unit> {
+            fun List<Fradragsgrunnlag>.valider(behandlingsperiode: Periode): Either<UgyldigFradragsgrunnlag, List<Fradragsgrunnlag>> {
                 return map {
                     it.valider(behandlingsperiode)
                 }.traverse(Either.applicative(), ::identity).fix().map {
@@ -82,12 +82,12 @@ sealed class Grunnlag {
                 }
             }
 
-            fun Fradragsgrunnlag.valider(behandlingsperiode: Periode): Either<UgyldigFradragsgrunnlag, Unit> {
+            fun Fradragsgrunnlag.valider(behandlingsperiode: Periode): Either<UgyldigFradragsgrunnlag, Fradragsgrunnlag> {
                 if (!(behandlingsperiode inneholder fradrag.periode))
                     return UgyldigFradragsgrunnlag.UtenforBehandlingsperiode.left()
                 if (setOf(Fradragstype.ForventetInntekt, Fradragstype.BeregnetFradragEPS, Fradragstype.UnderMinstenivå).contains(fradrag.fradragstype))
                     return UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag.left()
-                return Unit.right()
+                return this.right()
             }
 
             sealed class UgyldigFradragsgrunnlag {

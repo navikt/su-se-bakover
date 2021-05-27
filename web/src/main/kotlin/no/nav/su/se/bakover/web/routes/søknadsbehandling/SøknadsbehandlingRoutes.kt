@@ -247,6 +247,10 @@ internal fun Route.søknadsbehandlingRoutes(
                                             "Ikke lov med fradrag utenfor perioden",
                                             "ikke_lov_med_fradrag_utenfor_perioden",
                                         )
+                                        KunneIkkeBeregne.UgyldigFradragstype -> BadRequest.errorJson(
+                                            "Ugyldig fradragstype",
+                                            "ugyldig_fradragstype",
+                                        )
                                     }
                                     call.svar(resultat)
                                 }.map { behandling ->

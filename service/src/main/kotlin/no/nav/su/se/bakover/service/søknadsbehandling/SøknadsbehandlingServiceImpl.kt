@@ -103,7 +103,7 @@ internal class SøknadsbehandlingServiceImpl(
                 oppgaveId = søknad.oppgaveId,
                 fnr = søknad.søknadInnhold.personopplysninger.fnr,
                 behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
-            )
+            ),
         )
 
         // Må hente fra db for å få joinet med saksnummer.
@@ -136,7 +136,10 @@ internal class SøknadsbehandlingServiceImpl(
             ?: return SøknadsbehandlingService.KunneIkkeBeregne.FantIkkeBehandling.left()
 
         val fradrag = request.toFradrag(søknadsbehandling.stønadsperiode!!).getOrHandle {
-            return SøknadsbehandlingService.KunneIkkeBeregne.IkkeLovMedFradragUtenforPerioden.left()
+            return when (it) {
+                SøknadsbehandlingService.BeregnRequest.UgyldigFradrag.IkkeLovMedFradragUtenforPerioden -> SøknadsbehandlingService.KunneIkkeBeregne.IkkeLovMedFradragUtenforPerioden.left()
+                SøknadsbehandlingService.BeregnRequest.UgyldigFradrag.UgyldigFradragstype -> SøknadsbehandlingService.KunneIkkeBeregne.UgyldigFradragstype.left()
+            }
         }
         return statusovergang(
             søknadsbehandling = søknadsbehandling,
