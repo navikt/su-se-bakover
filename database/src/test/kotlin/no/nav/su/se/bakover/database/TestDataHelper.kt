@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.beregning.PersistertMånedsberegning
 import no.nav.su.se.bakover.database.beregning.TestBeregning
 import no.nav.su.se.bakover.database.beregning.toSnapshot
+import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlangPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
@@ -174,7 +175,8 @@ internal class TestDataHelper(
     internal val søknadRepo = SøknadPostgresRepo(dataSource)
     internal val uføregrunnlagPostgresRepo = UføregrunnlagPostgresRepo()
     private val fradragsgrunnlagPostgresRepo = FradragsgrunnlagPostgresRepo(dataSource)
-    internal val grunnlagRepo = GrunnlagPostgresRepo(fradragsgrunnlagPostgresRepo)
+    private val bosituasjongrunnlagPostgresRepo = BosituasjongrunnlangPostgresRepo(dataSource)
+    internal val grunnlagRepo = GrunnlagPostgresRepo(fradragsgrunnlagPostgresRepo, bosituasjongrunnlagPostgresRepo)
     internal val vilkårsvurderingRepo = VilkårsvurderingPostgresRepo(dataSource, uføregrunnlagPostgresRepo)
     internal val søknadsbehandlingRepo =
         SøknadsbehandlingPostgresRepo(dataSource, uføregrunnlagPostgresRepo, vilkårsvurderingRepo)

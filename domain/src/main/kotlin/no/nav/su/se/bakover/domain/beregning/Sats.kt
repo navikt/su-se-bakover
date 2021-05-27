@@ -30,14 +30,14 @@ enum class Sats(val grunnbeløp: Grunnbeløp) {
         fun toProsentAvHøy(periode: Periode): Double = periode.tilMånedsperioder()
             .sumOf { HØY.månedsbeløp(it.fraOgMed) * 0.02 }
 
-        fun Grunnlag.BoforholdOgSivilstatus.utledSats(): Sats {
+        fun Grunnlag.Bosituasjon.utledSats(): Sats {
             return when (this) {
-                is Grunnlag.BoforholdOgSivilstatus.DelerBoligMedVoksneBarnEllerAnnenVoksen -> ORDINÆR
-                is Grunnlag.BoforholdOgSivilstatus.EktefellePartnerSamboer.SektiSyvEllerEldre -> ORDINÆR
-                is Grunnlag.BoforholdOgSivilstatus.EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> HØY
-                is Grunnlag.BoforholdOgSivilstatus.EktefellePartnerSamboer.Under67.UførFlyktning -> ORDINÆR
-                is Grunnlag.BoforholdOgSivilstatus.Enslig -> HØY
-                is Grunnlag.BoforholdOgSivilstatus.IkkeValgtEktefelle -> throw IllegalStateException("Kan ikke utlede sats når man ikke har valgt bor alene eller med voksne")
+                is Grunnlag.Bosituasjon.DelerBoligMedVoksneBarnEllerAnnenVoksen -> ORDINÆR
+                is Grunnlag.Bosituasjon.EktefellePartnerSamboer.SektiSyvEllerEldre -> ORDINÆR
+                is Grunnlag.Bosituasjon.EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> HØY
+                is Grunnlag.Bosituasjon.EktefellePartnerSamboer.Under67.UførFlyktning -> ORDINÆR
+                is Grunnlag.Bosituasjon.Enslig -> HØY
+                is Grunnlag.Bosituasjon.HarIkkeEPS -> throw IllegalStateException("Kan ikke utlede sats når man ikke har valgt bor alene eller med voksne")
             }
         }
     }

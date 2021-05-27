@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.Copyable
-import no.nav.su.se.bakover.domain.Ektefelle
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
@@ -121,27 +121,27 @@ sealed class Grunnlag {
     /**
      * Domain model (create a flat model in addition to this in database-layer)
      */
-    sealed class BoforholdOgSivilstatus : Grunnlag(), Copyable<CopyArgs.Snitt, BoforholdOgSivilstatus?> {
+    sealed class Bosituasjon : Grunnlag(), Copyable<CopyArgs.Snitt, Bosituasjon?> {
         abstract override val id: UUID
         abstract val opprettet: Tidspunkt
         abstract val periode: Periode
 
-        sealed class EktefellePartnerSamboer : BoforholdOgSivilstatus() {
+        sealed class EktefellePartnerSamboer : Bosituasjon() {
 
-            abstract val fnr: String
+            abstract val fnr: Fnr
 
             sealed class Under67(
                 override val id: UUID,
                 override val opprettet: Tidspunkt,
                 override val periode: Periode,
-                override val fnr: String,
+                override val fnr: Fnr,
             ) : EktefellePartnerSamboer() {
 
                 data class UførFlyktning(
                     override val id: UUID,
                     override val opprettet: Tidspunkt,
                     override val periode: Periode,
-                    override val fnr: String,
+                    override val fnr: Fnr,
                 ) : EktefellePartnerSamboer() {
                     override fun copy(args: CopyArgs.Snitt): UførFlyktning? {
                         return args.snittFor(periode)?.let { copy(periode = it) }
@@ -152,7 +152,7 @@ sealed class Grunnlag {
                     override val id: UUID,
                     override val opprettet: Tidspunkt,
                     override val periode: Periode,
-                    override val fnr: String,
+                    override val fnr: Fnr,
                 ) : EktefellePartnerSamboer() {
                     override fun copy(args: CopyArgs.Snitt): IkkeUførFlyktning? {
                         return args.snittFor(periode)?.let { copy(periode = it) }
@@ -164,7 +164,7 @@ sealed class Grunnlag {
                 override val id: UUID,
                 override val opprettet: Tidspunkt,
                 override val periode: Periode,
-                override val fnr: String,
+                override val fnr: Fnr,
             ) : EktefellePartnerSamboer() {
                 override fun copy(args: CopyArgs.Snitt): SektiSyvEllerEldre? {
                     return args.snittFor(periode)?.let { copy(periode = it) }
@@ -173,12 +173,12 @@ sealed class Grunnlag {
         }
 
         /** Denne er kun for å støtte at man har valgt ikkeEktefelle, før man har valgt enslig/bor med andre voksne */
-        data class IkkeValgtEktefelle(
+        data class HarIkkeEPS(
             override val id: UUID,
             override val opprettet: Tidspunkt,
             override val periode: Periode,
-        ) : BoforholdOgSivilstatus() {
-            override fun copy(args: CopyArgs.Snitt): IkkeValgtEktefelle? {
+        ) : Bosituasjon() {
+            override fun copy(args: CopyArgs.Snitt): HarIkkeEPS? {
                 return args.snittFor(periode)?.let { copy(periode = it) }
             }
         }
@@ -188,7 +188,7 @@ sealed class Grunnlag {
             override val id: UUID,
             override val opprettet: Tidspunkt,
             override val periode: Periode,
-        ) : BoforholdOgSivilstatus() {
+        ) : Bosituasjon() {
             override fun copy(args: CopyArgs.Snitt): Enslig? {
                 return args.snittFor(periode)?.let { copy(periode = it) }
             }
@@ -198,7 +198,7 @@ sealed class Grunnlag {
             override val id: UUID,
             override val opprettet: Tidspunkt,
             override val periode: Periode,
-        ) : BoforholdOgSivilstatus() {
+        ) : Bosituasjon() {
             override fun copy(args: CopyArgs.Snitt): DelerBoligMedVoksneBarnEllerAnnenVoksen? {
                 return args.snittFor(periode)?.let { copy(periode = it) }
             }

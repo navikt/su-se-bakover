@@ -26,12 +26,12 @@ class BeregningStrategyFactory {
         }
         val strategy =
             when (bosituasjon) {
-                is Grunnlag.BoforholdOgSivilstatus.DelerBoligMedVoksneBarnEllerAnnenVoksen -> BeregningStrategy.BorMedVoksne
-                is Grunnlag.BoforholdOgSivilstatus.EktefellePartnerSamboer.SektiSyvEllerEldre -> BeregningStrategy.Eps67EllerEldre
-                is Grunnlag.BoforholdOgSivilstatus.EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> BeregningStrategy.EpsUnder67År
-                is Grunnlag.BoforholdOgSivilstatus.EktefellePartnerSamboer.Under67.UførFlyktning -> BeregningStrategy.EpsUnder67ÅrOgUførFlyktning
-                is Grunnlag.BoforholdOgSivilstatus.Enslig -> BeregningStrategy.BorAlene
-                is Grunnlag.BoforholdOgSivilstatus.IkkeValgtEktefelle -> throw IllegalStateException("Kan ikke beregne når man ikke har valgt om man bor alene eller med andre voksne")
+                is Grunnlag.Bosituasjon.DelerBoligMedVoksneBarnEllerAnnenVoksen -> BeregningStrategy.BorMedVoksne
+                is Grunnlag.Bosituasjon.EktefellePartnerSamboer.SektiSyvEllerEldre -> BeregningStrategy.Eps67EllerEldre
+                is Grunnlag.Bosituasjon.EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> BeregningStrategy.EpsUnder67År
+                is Grunnlag.Bosituasjon.EktefellePartnerSamboer.Under67.UførFlyktning -> BeregningStrategy.EpsUnder67ÅrOgUførFlyktning
+                is Grunnlag.Bosituasjon.Enslig -> BeregningStrategy.BorAlene
+                is Grunnlag.Bosituasjon.HarIkkeEPS -> throw IllegalStateException("Kan ikke beregne når man ikke har valgt om man bor alene eller med andre voksne")
             }
         // TODO jah: Kan vurdere å legge på en left her (KanIkkeBeregne.UfullstendigBehandlingsinformasjon
         return strategy.beregn(beregningsgrunnlag, begrunnelse)

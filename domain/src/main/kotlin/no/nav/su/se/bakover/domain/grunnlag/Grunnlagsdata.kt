@@ -8,7 +8,7 @@ data class Grunnlagsdata(
      * Under vilkårsvurdering/opprettet: Kan være null/tom/en/fler. (fler kun ved revurdering)
      * Etter vilkårsvurdering: Skal være en. Senere kan den være fler hvis vi støtter sats per måned.
      * */
-    val bosituasjon: List<Grunnlag.BoforholdOgSivilstatus> = emptyList(),
+    val bosituasjon: List<Grunnlag.Bosituasjon> = emptyList(),
 ) {
     companion object {
         val EMPTY = Grunnlagsdata()
