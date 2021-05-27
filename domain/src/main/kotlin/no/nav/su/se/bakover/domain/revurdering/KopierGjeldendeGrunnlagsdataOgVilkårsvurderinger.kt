@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.grunnlagsdata
 import no.nav.su.se.bakover.domain.vedtak.lagTidslinje
 import no.nav.su.se.bakover.domain.vedtak.vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
@@ -30,6 +31,7 @@ data class KopierGjeldendeGrunnlagsdataOgVilkårsvurderinger(
         is Vilkår.Vurdert.Uførhet -> Pair(uførevilkår.grunnlag, uførevilkår)
     }
 
+    // TODO er denne riktig, eller skal vi bruke den fra vedtakstidslinje.grunnlagsdata() ?
     private val fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag> = vedtakstidslinje.flatMap { it.fradrag }.map {
         Grunnlag.Fradragsgrunnlag(id = UUID.randomUUID(), opprettet = Tidspunkt.now(), fradrag = it)
     }
@@ -38,6 +40,7 @@ data class KopierGjeldendeGrunnlagsdataOgVilkårsvurderinger(
         grunnlagsdata = Grunnlagsdata(
             uføregrunnlag = uføreGrunnlagOgVilkår.first,
             fradragsgrunnlag = fradragsgrunnlag,
+            bosituasjon = vedtakstidslinje.grunnlagsdata().bosituasjon
         )
         vilkårsvurderinger = Vilkårsvurderinger(
             uføre = uføreGrunnlagOgVilkår.second,

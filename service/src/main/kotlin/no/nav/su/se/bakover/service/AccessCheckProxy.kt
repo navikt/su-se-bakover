@@ -378,7 +378,7 @@ open class AccessCheckProxy(
 
                 override fun opprettRevurdering(
                     opprettRevurderingRequest: OpprettRevurderingRequest,
-                ): Either<KunneIkkeOppretteRevurdering, Revurdering> {
+                ): Either<KunneIkkeOppretteRevurdering, OpprettetRevurdering> {
                     assertHarTilgangTilSak(opprettRevurderingRequest.sakId)
                     return services.revurdering.opprettRevurdering(opprettRevurderingRequest)
                 }

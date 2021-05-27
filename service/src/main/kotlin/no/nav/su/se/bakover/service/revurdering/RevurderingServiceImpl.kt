@@ -86,7 +86,7 @@ internal class RevurderingServiceImpl(
 
     override fun opprettRevurdering(
         opprettRevurderingRequest: OpprettRevurderingRequest,
-    ): Either<KunneIkkeOppretteRevurdering, Revurdering> {
+    ): Either<KunneIkkeOppretteRevurdering, OpprettetRevurdering> {
         val revurderingsårsak = opprettRevurderingRequest.revurderingsårsak.getOrHandle {
             return when (it) {
                 Revurderingsårsak.UgyldigRevurderingsårsak.UgyldigBegrunnelse -> KunneIkkeOppretteRevurdering.UgyldigBegrunnelse
@@ -122,6 +122,9 @@ internal class RevurderingServiceImpl(
         }
 
         val gjeldendeGrunnlagsdataOgVilkårsvurderinger = KopierGjeldendeGrunnlagsdataOgVilkårsvurderinger(periode, sak.vedtakListe)
+        val grunnlagsdata = gjeldendeGrunnlagsdataOgVilkårsvurderinger.grunnlagsdata.copy(
+            bosituasjon = gjeldendeGrunnlagsdataOgVilkårsvurderinger.grunnlagsdata.bosituasjon.singleOrNull() ?.let { listOf(it) } ?: emptyList()
+        )
 
         val informasjonSomRevurderes = InformasjonSomRevurderes.tryCreate(opprettRevurderingRequest.informasjonSomRevurderes)
             .getOrHandle { return KunneIkkeOppretteRevurdering.MåVelgeInformasjonSomSkalRevurderes.left() }
@@ -146,7 +149,7 @@ internal class RevurderingServiceImpl(
                 opprettet = Tidspunkt.now(clock),
                 forhåndsvarsel = if (revurderingsårsak.årsak == REGULER_GRUNNBELØP) Forhåndsvarsel.IngenForhåndsvarsel else null,
                 behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
-                grunnlagsdata = gjeldendeGrunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
+                grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = gjeldendeGrunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
             ).also {
@@ -313,38 +316,41 @@ internal class RevurderingServiceImpl(
         }
 
         val gjeldendeGrunnlagsdataOgVilkårsvurderinger = KopierGjeldendeGrunnlagsdataOgVilkårsvurderinger(nyPeriode, sak.vedtakListe)
+        val grunnlagsdata = gjeldendeGrunnlagsdataOgVilkårsvurderinger.grunnlagsdata.copy(
+            bosituasjon = gjeldendeGrunnlagsdataOgVilkårsvurderinger.grunnlagsdata.bosituasjon.singleOrNull() ?.let { listOf(it) } ?: emptyList()
+        )
 
         val informasjonSomRevurderes = InformasjonSomRevurderes.tryCreate(oppdaterRevurderingRequest.informasjonSomRevurderes)
             .getOrHandle { return KunneIkkeOppdatereRevurdering.MåVelgeInformasjonSomSkalRevurderes.left() }
 
         return when (revurdering) {
             is OpprettetRevurdering -> revurdering.oppdater(
-                nyPeriode,
-                revurderingsårsak,
-                gjeldendeGrunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
-                gjeldendeGrunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
-                informasjonSomRevurderes,
+                periode = nyPeriode,
+                revurderingsårsak = revurderingsårsak,
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = gjeldendeGrunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
+                informasjonSomRevurderes = informasjonSomRevurderes,
             ).right()
             is BeregnetRevurdering -> revurdering.oppdater(
-                nyPeriode,
-                revurderingsårsak,
-                gjeldendeGrunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
-                gjeldendeGrunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
-                informasjonSomRevurderes,
+                periode = nyPeriode,
+                revurderingsårsak = revurderingsårsak,
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = gjeldendeGrunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
+                informasjonSomRevurderes = informasjonSomRevurderes,
             ).right()
             is SimulertRevurdering -> revurdering.oppdater(
-                nyPeriode,
-                revurderingsårsak,
-                gjeldendeGrunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
-                gjeldendeGrunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
-                informasjonSomRevurderes,
+                periode = nyPeriode,
+                revurderingsårsak = revurderingsårsak,
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = gjeldendeGrunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
+                informasjonSomRevurderes = informasjonSomRevurderes,
             ).right()
             is UnderkjentRevurdering -> revurdering.oppdater(
-                nyPeriode,
-                revurderingsårsak,
-                gjeldendeGrunnlagsdataOgVilkårsvurderinger.grunnlagsdata,
-                gjeldendeGrunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
-                informasjonSomRevurderes,
+                periode = nyPeriode,
+                revurderingsårsak = revurderingsårsak,
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = gjeldendeGrunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
+                informasjonSomRevurderes = informasjonSomRevurderes,
             ).right()
             else -> KunneIkkeOppdatereRevurdering.UgyldigTilstand(
                 revurdering::class,

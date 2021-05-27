@@ -20,7 +20,7 @@ interface RevurderingService {
 
     fun opprettRevurdering(
         opprettRevurderingRequest: OpprettRevurderingRequest,
-    ): Either<KunneIkkeOppretteRevurdering, Revurdering>
+    ): Either<KunneIkkeOppretteRevurdering, OpprettetRevurdering>
 
     fun oppdaterRevurdering(
         oppdaterRevurderingRequest: OppdaterRevurderingRequest,

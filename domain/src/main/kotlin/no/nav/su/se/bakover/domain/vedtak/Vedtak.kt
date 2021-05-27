@@ -390,3 +390,18 @@ fun List<Vedtak.VedtakPåTidslinje>.vilkårsvurderinger(): Vilkårsvurderinger {
         ),
     )
 }
+
+fun List<Vedtak.VedtakPåTidslinje>.grunnlagsdata(): Grunnlagsdata {
+    return Grunnlagsdata(
+        uføregrunnlag = this.flatMap {
+            it.grunnlagsdata.uføregrunnlag
+        },
+        // TODO er denne riktig utfylt?
+        fradragsgrunnlag = this.flatMap {
+            it.grunnlagsdata.fradragsgrunnlag
+        },
+        bosituasjon = this.flatMap {
+            it.grunnlagsdata.bosituasjon
+        }
+    )
+}
