@@ -259,7 +259,7 @@ internal class FinnAttestantVisitorTest {
         informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
     )
 
-    private val beregnetRevurdering = when (val a = revurdering.beregn(emptyList()).orNull()!!) {
+    private val beregnetRevurdering = when (val a = revurdering.beregn().orNull()!!) {
         is BeregnetRevurdering.Innvilget -> {
             a
         }

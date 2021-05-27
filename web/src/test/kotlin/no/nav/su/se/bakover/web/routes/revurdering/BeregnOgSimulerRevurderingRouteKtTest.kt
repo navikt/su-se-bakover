@@ -20,9 +20,6 @@ import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
@@ -149,17 +146,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                 )
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt))
-        ).beregn(
-            listOf(
-                FradragFactory.ny(
-                    type = Fradragstype.BidragEtterEkteskapsloven,
-                    månedsbeløp = 12.0,
-                    periode = TestBeregning.getMånedsberegninger()[0].periode,
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER,
-                ),
-            ),
-        ).orNull()!!
+        ).beregn().orNull()!!
 
         val simulertRevurdering = when (beregnetRevurdering) {
             is BeregnetRevurdering.Innvilget -> {
@@ -178,7 +165,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
         }
 
         val revurderingServiceMock = mock<RevurderingService> {
-            on { beregnOgSimuler(any(), any(), any()) } doReturn simulertRevurdering.right()
+            on { beregnOgSimuler(any(), any()) } doReturn simulertRevurdering.right()
         }
 
         withTestApplication(
@@ -198,7 +185,6 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                 verify(revurderingServiceMock).beregnOgSimuler(
                     argThat { it shouldBe simulertRevurdering.id },
                     argThat { it shouldBe NavIdentBruker.Saksbehandler("Z990Lokal") },
-                    argThat { it shouldBe emptyList() },
                 )
                 verifyNoMoreInteractions(revurderingServiceMock)
                 actualResponse.id shouldBe simulertRevurdering.id.toString()
@@ -275,7 +261,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
         expectedJsonResponse: String,
     ) {
         val revurderingServiceMock = mock<RevurderingService> {
-            on { beregnOgSimuler(any(), any(), any()) } doReturn error.left()
+            on { beregnOgSimuler(any(), any()) } doReturn error.left()
         }
 
         withTestApplication(

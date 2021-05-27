@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
+import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.VilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.hent
@@ -75,6 +76,7 @@ enum class RevurderingsType {
 internal class RevurderingPostgresRepo(
     private val dataSource: DataSource,
     private val uføregrunnlagRepo: UføregrunnlagPostgresRepo,
+    private val fradragsgrunnlagPostgresRepo: FradragsgrunnlagPostgresRepo,
     private val vilkårsvurderingRepo: VilkårsvurderingPostgresRepo,
     søknadsbehandlingRepo: SøknadsbehandlingPostgresRepo,
 ) : RevurderingRepo {
@@ -183,7 +185,11 @@ internal class RevurderingPostgresRepo(
         val behandlingsinformasjon: Behandlingsinformasjon = deserialize(string("behandlingsinformasjon"))
 
         val uføregrunnlag = uføregrunnlagRepo.hentUføregrunnlag(id, session)
-        val grunnlagsdata = Grunnlagsdata(uføregrunnlag)
+        val fradragsgrunnlag = fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(id, session)
+        val grunnlagsdata = Grunnlagsdata(
+            uføregrunnlag = uføregrunnlag,
+            fradragsgrunnlag = fradragsgrunnlag
+        )
 
         val vilkårsvurderinger = Vilkårsvurderinger(
             uføre = vilkårsvurderingRepo.hent(id, session),

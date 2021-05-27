@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.juli
 import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
@@ -81,6 +82,7 @@ import no.nav.su.se.bakover.service.brev.KunneIkkeJournalføreBrev
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.fixedTidspunkt
+import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -129,9 +131,8 @@ internal class RevurderingServiceImplTest {
             on { opprettOppgave(any()) } doReturn OppgaveId("oppgaveId").right()
         }
 
-        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService> {
-            on { opprettVilkårsvurderinger(any(), any()) } doReturn Vilkårsvurderinger.EMPTY
-        }
+        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService>()
+        val grunnlagServiceMock = mock<GrunnlagService>()
 
         val actual = createRevurderingService(
             sakService = sakServiceMock,
@@ -139,6 +140,7 @@ internal class RevurderingServiceImplTest {
             oppgaveService = oppgaveServiceMock,
             personService = personServiceMock,
             vilkårsvurderingService = vilkårsvurderingServiceMock,
+            grunnlagService = grunnlagServiceMock,
         ).opprettRevurdering(
             OpprettRevurderingRequest(
                 sakId = sakId,
@@ -156,6 +158,7 @@ internal class RevurderingServiceImplTest {
             oppgaveServiceMock,
             revurderingRepoMock,
             vilkårsvurderingServiceMock,
+            grunnlagServiceMock,
         ) {
             verify(sakServiceMock).hentSak(sakId)
             verify(personServiceMock).hentAktørId(argThat { it shouldBe fnr })
@@ -169,9 +172,17 @@ internal class RevurderingServiceImplTest {
                 },
             )
             verify(revurderingRepoMock).lagre(argThat { it.right() shouldBe actual.right() })
+            verify(vilkårsvurderingServiceMock).lagre(actual.id, actual.vilkårsvurderinger)
+            verify(grunnlagServiceMock).lagreFradragsgrunnlag(actual.id, actual.grunnlagsdata.fradragsgrunnlag)
         }
-
-        verifyNoMoreInteractions(sakServiceMock, personServiceMock, oppgaveServiceMock, revurderingRepoMock)
+        verifyNoMoreInteractions(
+            sakServiceMock,
+            personServiceMock,
+            oppgaveServiceMock,
+            revurderingRepoMock,
+            vilkårsvurderingServiceMock,
+            grunnlagServiceMock,
+        )
     }
 
     @Test
@@ -277,6 +288,17 @@ internal class RevurderingServiceImplTest {
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata(
                 uføregrunnlag = listOf(uføregrunnlag),
+                fradragsgrunnlag = listOf(
+                    Grunnlag.Fradragsgrunnlag(
+                        fradrag = FradragFactory.ny(
+                            type = Fradragstype.Arbeidsinntekt,
+                            månedsbeløp = 10000.0,
+                            periode = søknadsbehandlingVedtak.periode,
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.BRUKER,
+                        ),
+                    ),
+                ),
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Vurdert.Uførhet.create(
@@ -311,15 +333,6 @@ internal class RevurderingServiceImplTest {
         ).beregnOgSimuler(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
-            fradrag = listOf(
-                FradragFactory.ny(
-                    type = Fradragstype.Arbeidsinntekt,
-                    månedsbeløp = 10000.0,
-                    periode = søknadsbehandlingVedtak.periode,
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER,
-                ),
-            ),
         ).getOrHandle { throw Exception("Vi skal få tilbake en revurdering") }
         if (actual !is SimulertRevurdering) throw RuntimeException("Skal returnere en simulert revurdering")
 
@@ -364,7 +377,6 @@ internal class RevurderingServiceImplTest {
         ).beregnOgSimuler(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
-            fradrag = listOf(),
         )
         result shouldBe KunneIkkeBeregneOgSimulereRevurdering.UgyldigTilstand(
             RevurderingTilAttestering.Innvilget::class,
@@ -396,6 +408,17 @@ internal class RevurderingServiceImplTest {
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata(
                 uføregrunnlag = listOf(uføregrunnlag),
+                fradragsgrunnlag = listOf(
+                    Grunnlag.Fradragsgrunnlag(
+                        fradrag = FradragFactory.ny(
+                            type = Fradragstype.Arbeidsinntekt,
+                            månedsbeløp = 10000.0,
+                            periode = søknadsbehandlingVedtak.periode,
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.BRUKER,
+                        ),
+                    ),
+                ),
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Vurdert.Uførhet.create(
@@ -428,15 +451,6 @@ internal class RevurderingServiceImplTest {
         ).beregnOgSimuler(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
-            fradrag = listOf(
-                FradragFactory.ny(
-                    type = Fradragstype.Arbeidsinntekt,
-                    månedsbeløp = 10000.0,
-                    periode = søknadsbehandlingVedtak.periode,
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER,
-                ),
-            ),
         )
 
         actual shouldBe KunneIkkeBeregneOgSimulereRevurdering.SimuleringFeilet.left()
@@ -890,6 +904,17 @@ internal class RevurderingServiceImplTest {
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata(
                 uføregrunnlag = listOf(uføregrunnlag),
+                fradragsgrunnlag = listOf(
+                    Grunnlag.Fradragsgrunnlag(
+                        fradrag = FradragFactory.ny(
+                            type = Fradragstype.Arbeidsinntekt,
+                            månedsbeløp = 4000.0,
+                            periode = periode,
+                            utenlandskInntekt = null,
+                            tilhører = FradragTilhører.BRUKER,
+                        ),
+                    ),
+                ),
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Vurdert.Uførhet.create(
@@ -927,15 +952,6 @@ internal class RevurderingServiceImplTest {
         val actual = revurderingService.beregnOgSimuler(
             underkjentRevurdering.id,
             saksbehandler,
-            listOf(
-                FradragFactory.ny(
-                    type = Fradragstype.Arbeidsinntekt,
-                    månedsbeløp = 4000.0,
-                    periode = periode,
-                    utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER,
-                ),
-            ),
         ).getOrElse { throw RuntimeException("Noe gikk galt") }
         if (actual !is SimulertRevurdering.Innvilget) throw RuntimeException("Skal returnere en simulert revurdering")
 
@@ -1807,7 +1823,6 @@ internal class RevurderingServiceImplTest {
         ).beregnOgSimuler(
             revurderingId = revurderingId,
             saksbehandler = NavIdentBruker.Saksbehandler("s1"),
-            fradrag = emptyList(),
         ).orNull()!!
 
         actual shouldBe beOfType<SimulertRevurdering.Opphørt>()
@@ -1844,7 +1859,6 @@ internal class RevurderingServiceImplTest {
         ).beregnOgSimuler(
             revurderingId = revurderingId,
             saksbehandler = NavIdentBruker.Saksbehandler("s1"),
-            fradrag = emptyList(),
         )
 
         actual shouldBe KunneIkkeBeregneOgSimulereRevurdering.UfullstendigVilkårsvurdering.left()
@@ -1864,14 +1878,19 @@ internal class RevurderingServiceImplTest {
             ).right()
         }
 
-        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService> {
-            on { opprettVilkårsvurderinger(any(), any()) } doReturn opprettetRevurdering.vilkårsvurderinger
-        }
+        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService>()
+        val grunnlagServiceMock = mock<GrunnlagService>()
+
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn opprettetRevurdering.copy(
                 // simuler at det er gjort endringer før oppdatering
                 grunnlagsdata = Grunnlagsdata(
-                    uføregrunnlag = listOf(uføregrunnlag.copy(uføregrad = Uføregrad.parse(73), forventetInntekt = 7312)),
+                    uføregrunnlag = listOf(
+                        uføregrunnlag.copy(
+                            uføregrad = Uføregrad.parse(73),
+                            forventetInntekt = 7312,
+                        ),
+                    ),
                 ),
                 vilkårsvurderinger = Vilkårsvurderinger(
                     uføre = Vilkår.IkkeVurdert.Uførhet,
@@ -1883,6 +1902,7 @@ internal class RevurderingServiceImplTest {
             sakService = sakServiceMock,
             vilkårsvurderingService = vilkårsvurderingServiceMock,
             revurderingRepo = revurderingRepoMock,
+            grunnlagService = grunnlagServiceMock,
         )
 
         revurderingService.oppdaterRevurdering(
@@ -1904,5 +1924,195 @@ internal class RevurderingServiceImplTest {
                 }
             },
         )
+        verify(grunnlagServiceMock).lagreFradragsgrunnlag(opprettetRevurdering.id, opprettetRevurdering.grunnlagsdata.fradragsgrunnlag)
+    }
+
+    @Test
+    fun `lagreFradrag happy case`() {
+        val revurderingId = UUID.randomUUID()
+
+        val revuderingMock = mock<OpprettetRevurdering> {
+            on { id } doReturn revurderingId
+            on { periode } doReturn Periode.create(1.januar(2021), 31.desember(2021))
+        }
+
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn revuderingMock
+        }
+
+        val grunnlagServiceMock = mock<GrunnlagService> {
+            on { lagreFradragsgrunnlag(any(), any()) }.doNothing()
+        }
+
+        val revurderingService = createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+            grunnlagService = grunnlagServiceMock,
+        )
+
+        val request = LeggTilFradragsgrunnlagRequest(
+            behandlingId = revurderingId,
+            fradragsrunnlag = listOf(
+                Grunnlag.Fradragsgrunnlag(
+                    fradrag = FradragFactory.ny(
+                        type = Fradragstype.Arbeidsinntekt,
+                        månedsbeløp = 0.0,
+                        periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                ),
+            ),
+        )
+
+        revurderingService.leggTilFradragsgrunnlag(
+            request,
+        ).getOrHandle { throw Exception("k") }
+
+        inOrder(
+            revurderingRepoMock,
+            grunnlagServiceMock,
+        ) {
+            verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
+            verify(grunnlagServiceMock).lagreFradragsgrunnlag(
+                argThat { it shouldBe revurderingId },
+                argThat { it shouldBe request.fradragsrunnlag },
+            )
+            verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
+        }
+
+        verifyNoMoreInteractions(revurderingRepoMock, grunnlagServiceMock)
+    }
+
+    @Test
+    fun `lagreFradrag finner ikke revurdering`() {
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn null
+        }
+
+        val grunnlagServiceMock = mock<GrunnlagService>()
+
+        val revurderingService = createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+            grunnlagService = grunnlagServiceMock,
+        )
+
+        val request = LeggTilFradragsgrunnlagRequest(
+            behandlingId = revurderingId,
+            fradragsrunnlag = listOf(
+                Grunnlag.Fradragsgrunnlag(
+                    fradrag = FradragFactory.ny(
+                        type = Fradragstype.Arbeidsinntekt,
+                        månedsbeløp = 0.0,
+                        periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                ),
+            ),
+        )
+
+        revurderingService.leggTilFradragsgrunnlag(
+            request,
+        ).shouldBeLeft(KunneIkkeLeggeTilFradragsgrunnlag.FantIkkeBehandling)
+
+        inOrder(
+            revurderingRepoMock,
+            grunnlagServiceMock,
+        ) {
+            verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
+        }
+
+        verifyNoMoreInteractions(revurderingRepoMock, grunnlagServiceMock)
+    }
+
+    @Test
+    fun `lagreFradrag har en status som gjør at man ikke kan legge til fradrag`() {
+        val revurderingId = UUID.randomUUID()
+
+        val revuderingMock = mock<RevurderingTilAttestering> {
+            on { id } doReturn revurderingId
+        }
+
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn revuderingMock
+        }
+
+        val grunnlagServiceMock = mock<GrunnlagService>()
+
+        val revurderingService = createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+            grunnlagService = grunnlagServiceMock,
+        )
+
+        val request = LeggTilFradragsgrunnlagRequest(
+            behandlingId = revurderingId,
+            fradragsrunnlag = listOf(
+                Grunnlag.Fradragsgrunnlag(
+                    fradrag = FradragFactory.ny(
+                        type = Fradragstype.Arbeidsinntekt,
+                        månedsbeløp = 0.0,
+                        periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                ),
+            ),
+        )
+
+        revurderingService.leggTilFradragsgrunnlag(
+            request,
+        ).shouldBeLeft(KunneIkkeLeggeTilFradragsgrunnlag.UgyldigStatus)
+
+        inOrder(
+            revurderingRepoMock,
+            grunnlagServiceMock,
+        ) {
+            verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
+        }
+
+        verifyNoMoreInteractions(revurderingRepoMock, grunnlagServiceMock)
+    }
+
+    @Test
+    fun `validerer fradragsgrunnlag`() {
+        val revurderingMock = mock<OpprettetRevurdering>() {
+            on { periode } doReturn Periode.create(1.mai(2021), 31.desember(2021))
+        }
+
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn revurderingMock
+        }
+
+        val revurderingService = createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+        )
+
+        val request = LeggTilFradragsgrunnlagRequest(
+            behandlingId = revurderingId,
+            fradragsrunnlag = listOf(
+                Grunnlag.Fradragsgrunnlag(
+                    fradrag = FradragFactory.ny(
+                        type = Fradragstype.Arbeidsinntekt,
+                        månedsbeløp = 0.0,
+                        periode = Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.desember(2021)),
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                ),
+                Grunnlag.Fradragsgrunnlag(
+                    fradrag = FradragFactory.ny(
+                        type = Fradragstype.Kontantstøtte,
+                        månedsbeløp = 0.0,
+                        periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.juli(2021)),
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                ),
+            ),
+        )
+
+        revurderingService.leggTilFradragsgrunnlag(
+            request,
+        ).shouldBeLeft(KunneIkkeLeggeTilFradragsgrunnlag.FradragsgrunnlagUtenforRevurderingsperiode)
     }
 }
