@@ -29,7 +29,7 @@ internal class VurderAvslagGrunnetBeregningKtTest {
             on { getMånedsberegninger() } doReturn listOf(månedsberegning)
         }
         vurderAvslagGrunnetBeregning(beregning) shouldBe AvslagGrunnetBeregning.Ja(
-            grunn = AvslagGrunnetBeregning.Grunn.FOR_HØY_INNTEKT
+            grunn = AvslagGrunnetBeregning.Grunn.FOR_HØY_INNTEKT,
         )
     }
 
@@ -43,7 +43,7 @@ internal class VurderAvslagGrunnetBeregningKtTest {
             on { getMånedsberegninger() } doReturn listOf(månedsberegning)
         }
         vurderAvslagGrunnetBeregning(beregning) shouldBe AvslagGrunnetBeregning.Ja(
-            grunn = AvslagGrunnetBeregning.Grunn.FOR_HØY_INNTEKT
+            grunn = AvslagGrunnetBeregning.Grunn.FOR_HØY_INNTEKT,
         )
     }
 
@@ -61,12 +61,12 @@ internal class VurderAvslagGrunnetBeregningKtTest {
             on { getMånedsberegninger() } doReturn listOf(januar, desember)
         }
         vurderAvslagGrunnetBeregning(beregning) shouldBe AvslagGrunnetBeregning.Ja(
-            grunn = AvslagGrunnetBeregning.Grunn.SU_UNDER_MINSTEGRENSE
+            grunn = AvslagGrunnetBeregning.Grunn.SU_UNDER_MINSTEGRENSE,
         )
     }
 
     @Test
-    fun `bruker den første avslagsgrunnen fra første og siste måned`() {
+    fun `sjekker avslag for beløp under minstegrense før beløp lik 0`() {
         val januar = mock<Månedsberegning> {
             on { periode } doReturn Periode.create(1.januar(2021), 31.januar(2021))
             on { getSumYtelse() } doReturn 0
@@ -81,7 +81,7 @@ internal class VurderAvslagGrunnetBeregningKtTest {
             on { getMånedsberegninger() } doReturn listOf(januar, desember)
         }
         vurderAvslagGrunnetBeregning(beregning) shouldBe AvslagGrunnetBeregning.Ja(
-            grunn = AvslagGrunnetBeregning.Grunn.SU_UNDER_MINSTEGRENSE
+            grunn = AvslagGrunnetBeregning.Grunn.SU_UNDER_MINSTEGRENSE,
         )
     }
 
@@ -104,63 +104,47 @@ internal class VurderAvslagGrunnetBeregningKtTest {
     }
 
     @Test
-    fun `beregning med første måned under minstebeløp skal gi avslag`() {
+    fun `avslag dersom det eksisterer 1 måned med beløp lik 0`() {
         val januar = mock<Månedsberegning> {
             on { periode } doReturn Periode.create(1.januar(2021), 31.januar(2021))
-            on { erSumYtelseUnderMinstebeløp() } doReturn true
-        }
-        val desember = mock<Månedsberegning> {
-            on { periode } doReturn Periode.create(1.desember(2021), 31.desember(2021))
-            on { getSumYtelse() } doReturn 2500
-        }
-
-        val beregning = mock<Beregning> {
-            on { getMånedsberegninger() } doReturn listOf(januar, desember)
-        }
-        vurderAvslagGrunnetBeregning(beregning) shouldBe AvslagGrunnetBeregning.Ja(
-            grunn = AvslagGrunnetBeregning.Grunn.SU_UNDER_MINSTEGRENSE
-        )
-    }
-
-    @Test
-    fun `beregning med siste måned under minstebeløp skal gi avslag`() {
-        val januar = mock<Månedsberegning> {
-            on { periode } doReturn Periode.create(1.januar(2021), 31.januar(2021))
-            on { getSumYtelse() } doReturn 2500
+            on { getSumYtelse() } doReturn 0
             on { erSumYtelseUnderMinstebeløp() } doReturn false
         }
         val desember = mock<Månedsberegning> {
             on { periode } doReturn Periode.create(1.desember(2021), 31.desember(2021))
-            on { erSumYtelseUnderMinstebeløp() } doReturn true
+            on { getSumYtelse() } doReturn 2500
         }
 
         val beregning = mock<Beregning> {
             on { getMånedsberegninger() } doReturn listOf(januar, desember)
         }
         vurderAvslagGrunnetBeregning(beregning) shouldBe AvslagGrunnetBeregning.Ja(
-            grunn = AvslagGrunnetBeregning.Grunn.SU_UNDER_MINSTEGRENSE
+            grunn = AvslagGrunnetBeregning.Grunn.FOR_HØY_INNTEKT,
         )
     }
 
     @Test
-    fun `en måned som ikke er første eller siste i en beregning kan ikke gi avslag`() {
+    fun `avslag dersom det eksisterer 1 måned med beløp under minstegrense`() {
         val januar = mock<Månedsberegning> {
             on { periode } doReturn Periode.create(1.januar(2021), 31.januar(2021))
+            on { erSumYtelseUnderMinstebeløp() } doReturn false
             on { getSumYtelse() } doReturn 2500
         }
         val juni = mock<Månedsberegning> {
             on { periode } doReturn Periode.create(1.juni(2021), 30.juni(2021))
-            on { getSumYtelse() } doReturn 0
             on { erSumYtelseUnderMinstebeløp() } doReturn true
         }
         val desember = mock<Månedsberegning> {
             on { periode } doReturn Periode.create(1.desember(2021), 31.desember(2021))
+            on { erSumYtelseUnderMinstebeløp() } doReturn false
             on { getSumYtelse() } doReturn 2500
         }
 
         val beregning = mock<Beregning> {
             on { getMånedsberegninger() } doReturn listOf(januar, juni, desember)
         }
-        vurderAvslagGrunnetBeregning(beregning) shouldBe AvslagGrunnetBeregning.Nei
+        vurderAvslagGrunnetBeregning(beregning) shouldBe AvslagGrunnetBeregning.Ja(
+            grunn = AvslagGrunnetBeregning.Grunn.SU_UNDER_MINSTEGRENSE,
+        )
     }
 }

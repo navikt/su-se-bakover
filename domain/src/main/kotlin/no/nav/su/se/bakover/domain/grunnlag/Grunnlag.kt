@@ -1,9 +1,17 @@
 package no.nav.su.se.bakover.domain.grunnlag
 
+import arrow.core.Either
+import arrow.core.extensions.either.applicative.applicative
+import arrow.core.extensions.list.traverse.traverse
+import arrow.core.fix
+import arrow.core.identity
+import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import java.util.UUID
 
@@ -62,6 +70,30 @@ sealed class Grunnlag {
     data class Fradragsgrunnlag(
         override val id: UUID = UUID.randomUUID(),
         val opprettet: Tidspunkt = Tidspunkt.now(),
-        val fradrag: Fradrag
-    ) : Grunnlag()
+        val fradrag: Fradrag,
+    ) : Grunnlag() {
+
+        companion object Validator {
+            fun List<Fradragsgrunnlag>.valider(behandlingsperiode: Periode): Either<UgyldigFradragsgrunnlag, List<Fradragsgrunnlag>> {
+                return map {
+                    it.valider(behandlingsperiode)
+                }.traverse(Either.applicative(), ::identity).fix().map {
+                    it.fix()
+                }
+            }
+
+            fun Fradragsgrunnlag.valider(behandlingsperiode: Periode): Either<UgyldigFradragsgrunnlag, Fradragsgrunnlag> {
+                if (!(behandlingsperiode inneholder fradrag.periode))
+                    return UgyldigFradragsgrunnlag.UtenforBehandlingsperiode.left()
+                if (setOf(Fradragstype.ForventetInntekt, Fradragstype.BeregnetFradragEPS, Fradragstype.UnderMinstenivå).contains(fradrag.fradragstype))
+                    return UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag.left()
+                return this.right()
+            }
+
+            sealed class UgyldigFradragsgrunnlag {
+                object UtenforBehandlingsperiode : UgyldigFradragsgrunnlag()
+                object UgyldigFradragstypeForGrunnlag : UgyldigFradragsgrunnlag()
+            }
+        }
+    }
 }
