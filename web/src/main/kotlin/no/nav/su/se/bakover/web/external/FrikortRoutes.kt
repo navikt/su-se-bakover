@@ -8,7 +8,6 @@ import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.util.KtorExperimentalAPI
-import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.service.vedtak.VedtakService
@@ -28,13 +27,14 @@ internal fun Route.frikortVedtakRoutes(
     vedtakService: VedtakService,
     clock: Clock
 ) {
-    fun hentDato(dato: String): Either<Resultat, LocalDate> {
-        return runBlocking {
-            Either.catch { YearMonth.parse(dato, formatter).atDay(1) }
-                .mapLeft {
-                    HttpStatusCode.BadRequest.errorJson("Ugyldig dato - dato må være på format YYYY-MM", "ugyldig_datoformat")
-                }
-        }
+    suspend fun hentDato(dato: String): Either<Resultat, LocalDate> {
+        return Either.catch { YearMonth.parse(dato, formatter).atDay(1) }
+            .mapLeft {
+                HttpStatusCode.BadRequest.errorJson(
+                    "Ugyldig dato - dato må være på format YYYY-MM",
+                    "ugyldig_datoformat",
+                )
+            }
     }
 
     // Her kan man få kode 6 og kode 7...

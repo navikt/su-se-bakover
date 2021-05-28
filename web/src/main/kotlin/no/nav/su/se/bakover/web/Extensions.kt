@@ -11,9 +11,9 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.request.header
 import io.ktor.request.receiveStream
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import no.nav.su.se.bakover.common.ApplicationConfig
-import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.sikkerLogg
@@ -77,19 +77,11 @@ internal fun getNavnFromJwt(applicationConfig: ApplicationConfig, principal: Pri
         (principal as JWTPrincipal).payload.getClaim("name").asString()
     }
 
-internal fun String.toUUID() =
-    runBlocking {
-        Either.catch { UUID.fromString(this@toUUID) }
-            .mapLeft { "${this@toUUID} er ikke en gyldig UUID" }
-    }
+internal suspend fun String.toUUID() =
+    Either.catch { UUID.fromString(this@toUUID) }
+        .mapLeft { "${this@toUUID} er ikke en gyldig UUID" }
 
-internal fun String.toUUID30() =
-    runBlocking {
-        Either.catch { UUID30.fromString(this@toUUID30) }
-            .mapLeft { "${this@toUUID30} er ikke en gyldig UUID" }
-    }
-
-internal fun ApplicationCall.lesUUID(param: String) =
+internal suspend fun ApplicationCall.lesUUID(param: String) =
     this.parameters[param]?.let {
         it.toUUID().mapLeft { "$param er ikke en gyldig UUID" }
     } ?: Either.Left("$param er ikke et parameter")
@@ -107,16 +99,20 @@ fun ApplicationCall.authHeader() = this.request.header(HttpHeaders.Authorization
 internal suspend inline fun <reified T> deserialize(call: ApplicationCall): T =
     deserialize(call.receiveTextUTF8())
 
-suspend inline fun ApplicationCall.receiveTextUTF8(): String = String(receiveStream().readBytes())
+internal suspend inline fun ApplicationCall.receiveTextUTF8(): String {
+    return withContext(Dispatchers.IO) {
+        String(receiveStream().readBytes())
+    }
+}
 
-suspend fun ApplicationCall.withSakId(ifRight: suspend (UUID) -> Unit) {
+internal suspend fun ApplicationCall.withSakId(ifRight: suspend (UUID) -> Unit) {
     this.lesUUID("sakId").fold(
         ifLeft = { this.svar(HttpStatusCode.BadRequest.message(it)) },
-        ifRight = { ifRight(it) }
+        ifRight = { ifRight(it) },
     )
 }
 
-suspend fun ApplicationCall.withSaksnummer(ifRight: suspend (Saksnummer) -> Unit) {
+internal suspend fun ApplicationCall.withSaksnummer(ifRight: suspend (Saksnummer) -> Unit) {
     this.parameter("saksnummer").fold(
         ifLeft = { this.svar(HttpStatusCode.BadRequest.message(it)) },
         ifRight = {
@@ -127,28 +123,28 @@ suspend fun ApplicationCall.withSaksnummer(ifRight: suspend (Saksnummer) -> Unit
                 .map { saksnummer ->
                     ifRight(saksnummer)
                 }
-        }
+        },
     )
 }
 
-suspend fun ApplicationCall.withRevurderingId(ifRight: suspend (UUID) -> Unit) {
+internal suspend fun ApplicationCall.withRevurderingId(ifRight: suspend (UUID) -> Unit) {
     this.lesUUID("revurderingId").fold(
         ifLeft = { this.svar(HttpStatusCode.BadRequest.message(it)) },
-        ifRight = { ifRight(it) }
+        ifRight = { ifRight(it) },
     )
 }
 
-suspend fun ApplicationCall.withSøknadId(ifRight: suspend (UUID) -> Unit) {
+internal suspend fun ApplicationCall.withSøknadId(ifRight: suspend (UUID) -> Unit) {
     this.lesUUID("søknadId").fold(
         ifLeft = { this.svar(HttpStatusCode.BadRequest.message(it)) },
-        ifRight = { ifRight(it) }
+        ifRight = { ifRight(it) },
     )
 }
 
-suspend fun ApplicationCall.withBehandlingId(ifRight: suspend (UUID) -> Unit) {
+internal suspend fun ApplicationCall.withBehandlingId(ifRight: suspend (UUID) -> Unit) {
     this.lesUUID("behandlingId").fold(
         ifLeft = { this.svar(HttpStatusCode.BadRequest.message(it)) },
-        ifRight = { ifRight(it) }
+        ifRight = { ifRight(it) },
     )
 }
 
