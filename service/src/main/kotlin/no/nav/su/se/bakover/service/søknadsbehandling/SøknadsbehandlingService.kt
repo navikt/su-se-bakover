@@ -31,6 +31,7 @@ interface SøknadsbehandlingService {
     fun hent(request: HentRequest): Either<FantIkkeBehandling, Søknadsbehandling>
     fun oppdaterStønadsperiode(request: OppdaterStønadsperiodeRequest): Either<KunneIkkeOppdatereStønadsperiode, Søknadsbehandling>
     fun leggTilUføregrunnlag(request: LeggTilUførevurderingRequest): Either<KunneIkkeLeggeTilGrunnlag, Søknadsbehandling>
+    fun leggTilBosituasjon(request: LeggTilBosituasjonRequest): Either<KunneIkkeLeggeTilGrunnlag, Søknadsbehandling>
 
     data class OpprettRequest(
         val søknadId: UUID,

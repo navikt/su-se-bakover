@@ -39,6 +39,7 @@ import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.søknad.SøknadService
+import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
@@ -464,19 +465,19 @@ internal class SøknadsbehandlingServiceImpl(
         }
     }
 
-    override fun leggTilUføregrunnlag(request: LeggTilUførevurderingRequest): Either<SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag, Søknadsbehandling> {
+    override fun leggTilUføregrunnlag(request: LeggTilUførevurderingRequest): Either<KunneIkkeLeggeTilGrunnlag, Søknadsbehandling> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
-            ?: return SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling.left()
+            ?: return KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling.left()
 
         if (søknadsbehandling is Søknadsbehandling.Iverksatt || søknadsbehandling is Søknadsbehandling.TilAttestering)
-            return SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.UgyldigTilstand(søknadsbehandling::class, Søknadsbehandling.Vilkårsvurdert::class).left()
+            return KunneIkkeLeggeTilGrunnlag.UgyldigTilstand(søknadsbehandling::class, Søknadsbehandling.Vilkårsvurdert::class).left()
 
         val vilkår = request.toVilkår(søknadsbehandling.periode).getOrHandle {
             return when (it) {
-                LeggTilUførevurderingRequest.UgyldigUførevurdering.UføregradOgForventetInntektMangler -> SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.UføregradOgForventetInntektMangler.left()
-                LeggTilUførevurderingRequest.UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig -> SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.PeriodeForGrunnlagOgVurderingErForskjellig.left()
-                LeggTilUførevurderingRequest.UgyldigUførevurdering.OverlappendeVurderingsperioder -> SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.OverlappendeVurderingsperioder.left()
-                LeggTilUførevurderingRequest.UgyldigUførevurdering.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden -> SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden.left()
+                LeggTilUførevurderingRequest.UgyldigUførevurdering.UføregradOgForventetInntektMangler -> KunneIkkeLeggeTilGrunnlag.UføregradOgForventetInntektMangler.left()
+                LeggTilUførevurderingRequest.UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig -> KunneIkkeLeggeTilGrunnlag.PeriodeForGrunnlagOgVurderingErForskjellig.left()
+                LeggTilUførevurderingRequest.UgyldigUførevurdering.OverlappendeVurderingsperioder -> KunneIkkeLeggeTilGrunnlag.OverlappendeVurderingsperioder.left()
+                LeggTilUførevurderingRequest.UgyldigUførevurdering.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden -> KunneIkkeLeggeTilGrunnlag.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden.left()
             }
         }
         // TODO midliertidig til behandlingsinformasjon er borte
@@ -498,7 +499,7 @@ internal class SøknadsbehandlingServiceImpl(
                 ),
             ),
         ).mapLeft {
-            SøknadsbehandlingService.KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling
+            KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling
         }.map {
             vilkårsvurderingService.lagre(
                 it.id,
@@ -506,5 +507,18 @@ internal class SøknadsbehandlingServiceImpl(
             )
             søknadsbehandlingRepo.hent(søknadsbehandling.id)!!
         }
+    }
+
+    override fun leggTilBosituasjon(
+        // TODO - riktig type
+        request: UUID,
+    ): Either<KunneIkkeLeggeTilGrunnlag, Søknadsbehandling> {
+        val søknadsbehandling = søknadsbehandlingRepo.hent(request)
+            ?: return KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling.left()
+
+        if (søknadsbehandling is Søknadsbehandling.Iverksatt || søknadsbehandling is Søknadsbehandling.TilAttestering)
+            return KunneIkkeLeggeTilGrunnlag.UgyldigTilstand(søknadsbehandling::class, Søknadsbehandling.Vilkårsvurdert::class).left()
+
+        return søknadsbehandling.right()
     }
 }
