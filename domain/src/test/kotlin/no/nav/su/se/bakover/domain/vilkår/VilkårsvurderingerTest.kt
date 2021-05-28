@@ -59,7 +59,10 @@ internal class VilkårsvurderingerTest {
     fun `ingen vurderingsperioder gir uavklart vilkår`() {
         Vilkårsvurderinger(
             uføre = Vilkår.IkkeVurdert.Uførhet,
-        ).resultat shouldBe Resultat.Uavklart
+        ).let {
+            it.resultat shouldBe Resultat.Uavklart
+            it.tidligsteDatoFrorAvslag() shouldBe null
+        }
     }
 
     @Test
@@ -89,7 +92,10 @@ internal class VilkårsvurderingerTest {
                     ),
                 ),
             ),
-        ).resultat shouldBe Resultat.Avslag
+        ).let {
+            it.resultat shouldBe Resultat.Avslag
+            it.tidligsteDatoFrorAvslag() shouldBe 1.mai(2021)
+        }
     }
 
     @Test
@@ -124,6 +130,7 @@ internal class VilkårsvurderingerTest {
 
         val actual = vilkårsvurdering.oppdaterStønadsperiode(Stønadsperiode.create(nyPeriode, "test"))
         actual.grunnlagsdata.uføregrunnlag.first().periode shouldBe nyPeriode
+        actual.tidligsteDatoFrorAvslag() shouldBe 1.februar(2021)
     }
 
     @Test
@@ -145,12 +152,13 @@ internal class VilkårsvurderingerTest {
             ),
         )
         vilkårsvurdering.utledOpphørsgrunner() shouldBe listOf(Opphørsgrunn.UFØRHET)
+        vilkårsvurdering.tidligsteDatoFrorAvslag() shouldBe 1.januar(2021)
     }
 
     @Test
     fun `ikke vurderte vilkår gir ikke opphørtsgrunn`() {
         val vilkårsvurdering = Vilkårsvurderinger(
-            uføre = Vilkår.IkkeVurdert.Uførhet
+            uføre = Vilkår.IkkeVurdert.Uførhet,
         )
         vilkårsvurdering.utledOpphørsgrunner() shouldBe emptyList()
     }
