@@ -2,9 +2,9 @@ repositories {
     maven("https://dl.bintray.com/kotlin/ktor")
 }
 
-val ktorVersion = "1.5.4"
-val orgJsonVersion = "20201115"
-val micrometerRegistryPrometheusVersion = "1.6.4"
+val ktorVersion = "1.6.0"
+val orgJsonVersion = "20210307"
+val micrometerRegistryPrometheusVersion = "1.7.0"
 
 dependencies {
     implementation(project(":common"))
@@ -23,7 +23,7 @@ dependencies {
     implementation("io.micrometer:micrometer-registry-prometheus:$micrometerRegistryPrometheusVersion")
     implementation("io.ktor:ktor-locations:$ktorVersion")
     implementation("io.ktor:ktor-jackson:$ktorVersion")
-    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.12.1")
+    implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.12.3")
     implementation("com.papertrailapp", "logback-syslog4j", "1.0.0")
 
     testImplementation("io.ktor:ktor-server-test-host:$ktorVersion") {

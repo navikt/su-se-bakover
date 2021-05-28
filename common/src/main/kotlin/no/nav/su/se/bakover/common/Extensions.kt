@@ -1,18 +1,11 @@
 package no.nav.su.se.bakover.common
 
-import arrow.core.Either
-import kotlinx.coroutines.runBlocking
 import org.slf4j.MDC
 import java.lang.Double.max
 import java.lang.Double.min
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.util.UUID
-
-fun <A> Either.Companion.unsafeCatch(f: () -> A) =
-    runBlocking {
-        catch { f() }
-    }
 
 fun Double.positiveOrZero() = max(0.0, this)
 fun Double.limitedUpwardsTo(limit: Double) = min(limit, this)

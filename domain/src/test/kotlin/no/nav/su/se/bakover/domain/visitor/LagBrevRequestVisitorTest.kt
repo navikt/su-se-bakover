@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.domain.visitor
 
 import arrow.core.Either
-import arrow.core.Nel
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.should
@@ -768,7 +768,7 @@ internal class LagBrevRequestVisitorTest {
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Vurdert.Uførhet.create(
-                    vurderingsperioder = Nel.of(
+                    vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             resultat = Resultat.Avslag,
                             grunnlag = Grunnlag.Uføregrunnlag(
@@ -780,7 +780,7 @@ internal class LagBrevRequestVisitorTest {
                             begrunnelse = "",
                         ),
                     ),
-                )
+                ),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )

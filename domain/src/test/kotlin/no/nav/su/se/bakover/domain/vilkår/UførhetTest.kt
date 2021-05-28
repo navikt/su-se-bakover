@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.vilkår
 
-import arrow.core.Nel
+import arrow.core.nonEmptyListOf
 import io.kotest.assertions.arrow.either.shouldBeLeft
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
@@ -11,7 +11,7 @@ internal class UførhetTest {
     @Test
     fun `validerer at vurderingsperioder ikke overlapper`() {
         Vilkår.Vurdert.Uførhet.tryCreate(
-            vurderingsperioder = Nel.of(
+            vurderingsperioder = nonEmptyListOf(
                 Vurderingsperiode.Uføre.create(
                     resultat = Resultat.Innvilget,
                     grunnlag = null,

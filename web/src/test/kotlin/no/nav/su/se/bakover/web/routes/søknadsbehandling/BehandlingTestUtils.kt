@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
-import arrow.core.Nel
+import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
@@ -143,7 +143,7 @@ object BehandlingTestUtils {
         ),
         vilkårsvurderinger = Vilkårsvurderinger(
             uføre = Vilkår.Vurdert.Uførhet.create(
-                vurderingsperioder = Nel.of(vurderingsperiodeUføre),
+                vurderingsperioder = nonEmptyListOf(vurderingsperiodeUføre),
             ),
         ),
     )

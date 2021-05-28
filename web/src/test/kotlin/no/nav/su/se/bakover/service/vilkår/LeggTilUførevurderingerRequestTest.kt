@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.service.vilkår
 
-import arrow.core.Nel
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
@@ -38,7 +38,7 @@ internal class LeggTilUførevurderingerRequestTest {
             }
             LeggTilUførevurderingerRequest(
                 behandlingId = behandlingId,
-                vurderinger = Nel.of(leggTilUførevurderingRequest),
+                vurderinger = nonEmptyListOf(leggTilUførevurderingRequest),
             ).toVilkår(
                 Periode.create(1.januar(2021), 31.januar(2021)),
             ) shouldBe testArg.second.left()
@@ -50,7 +50,7 @@ internal class LeggTilUførevurderingerRequestTest {
         val behandlingId = UUID.randomUUID()
         LeggTilUførevurderingerRequest(
             behandlingId = behandlingId,
-            vurderinger = Nel.of(
+            vurderinger = nonEmptyListOf(
                 LeggTilUførevurderingRequest(
                     behandlingId = behandlingId,
                     periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.juli(2021)),
@@ -81,7 +81,7 @@ internal class LeggTilUførevurderingerRequestTest {
         val behandlingId = UUID.randomUUID()
         LeggTilUførevurderingerRequest(
             behandlingId = behandlingId,
-            vurderinger = Nel.of(
+            vurderinger = nonEmptyListOf(
                 LeggTilUførevurderingRequest(
                     behandlingId = behandlingId,
                     periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.mars(2021)),
@@ -112,7 +112,7 @@ internal class LeggTilUførevurderingerRequestTest {
         val behandlingId = UUID.randomUUID()
         LeggTilUførevurderingerRequest(
             behandlingId = behandlingId,
-            vurderinger = Nel.of(
+            vurderinger = nonEmptyListOf(
                 LeggTilUførevurderingRequest(
                     behandlingId = behandlingId,
                     periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
@@ -143,7 +143,7 @@ internal class LeggTilUførevurderingerRequestTest {
         val behandlingId = UUID.randomUUID()
         LeggTilUførevurderingerRequest(
             behandlingId = behandlingId,
-            vurderinger = Nel.of(
+            vurderinger = nonEmptyListOf(
                 LeggTilUførevurderingRequest(
                     behandlingId = behandlingId,
                     periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
@@ -174,7 +174,7 @@ internal class LeggTilUførevurderingerRequestTest {
         val behandlingId = UUID.randomUUID()
         LeggTilUførevurderingerRequest(
             behandlingId = behandlingId,
-            vurderinger = Nel.of(
+            vurderinger = nonEmptyListOf(
                 LeggTilUførevurderingRequest(
                     behandlingId = behandlingId,
                     periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
@@ -205,7 +205,7 @@ internal class LeggTilUførevurderingerRequestTest {
         val behandlingId = UUID.randomUUID()
         val actual = LeggTilUførevurderingerRequest(
             behandlingId = behandlingId,
-            vurderinger = Nel.of(
+            vurderinger = nonEmptyListOf(
                 LeggTilUførevurderingRequest(
                     behandlingId = behandlingId,
                     periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
@@ -230,7 +230,7 @@ internal class LeggTilUførevurderingerRequestTest {
             ),
         ).orNull()!!
         actual shouldBe Vilkår.Vurdert.Uførhet.create(
-            vurderingsperioder = Nel.of(
+            vurderingsperioder = nonEmptyListOf(
                 Vurderingsperiode.Uføre.create(
                     id = actual.vurderingsperioder[0].id,
                     opprettet = actual.vurderingsperioder[0].opprettet,
@@ -268,7 +268,7 @@ internal class LeggTilUførevurderingerRequestTest {
         val behandlingId = UUID.randomUUID()
         val actual = LeggTilUførevurderingerRequest(
             behandlingId = behandlingId,
-            vurderinger = Nel.of(
+            vurderinger = nonEmptyListOf(
                 LeggTilUførevurderingRequest(
                     behandlingId = behandlingId,
                     periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
@@ -293,7 +293,7 @@ internal class LeggTilUførevurderingerRequestTest {
             ),
         ).orNull()!!
         actual shouldBe Vilkår.Vurdert.Uførhet.create(
-            vurderingsperioder = Nel.of(
+            vurderingsperioder = nonEmptyListOf(
                 Vurderingsperiode.Uføre.create(
                     id = actual.vurderingsperioder[0].id,
                     opprettet = actual.vurderingsperioder[0].opprettet,
@@ -331,7 +331,7 @@ internal class LeggTilUførevurderingerRequestTest {
         val behandlingId = UUID.randomUUID()
         LeggTilUførevurderingerRequest(
             behandlingId = behandlingId,
-            vurderinger = Nel.of(
+            vurderinger = nonEmptyListOf(
                 LeggTilUførevurderingRequest(
                     behandlingId = behandlingId,
                     periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
@@ -343,7 +343,7 @@ internal class LeggTilUførevurderingerRequestTest {
             ),
         ).toVilkår(Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021))).orNull()!!.let { request ->
             Vilkår.Vurdert.Uførhet.create(
-                vurderingsperioder = Nel.of(
+                vurderingsperioder = nonEmptyListOf(
                     Vurderingsperiode.Uføre.create(
                         id = request.vurderingsperioder[0].id,
                         opprettet = request.vurderingsperioder[0].opprettet,
@@ -358,7 +358,7 @@ internal class LeggTilUførevurderingerRequestTest {
 
         LeggTilUførevurderingerRequest(
             behandlingId = behandlingId,
-            vurderinger = Nel.of(
+            vurderinger = nonEmptyListOf(
                 LeggTilUførevurderingRequest(
                     behandlingId = behandlingId,
                     periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
@@ -370,7 +370,7 @@ internal class LeggTilUførevurderingerRequestTest {
             ),
         ).toVilkår(Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021))).orNull()!!.let { request ->
             Vilkår.Vurdert.Uførhet.create(
-                vurderingsperioder = Nel.of(
+                vurderingsperioder = nonEmptyListOf(
                     Vurderingsperiode.Uføre.create(
                         id = request.vurderingsperioder[0].id,
                         opprettet = request.vurderingsperioder[0].opprettet,

@@ -9,7 +9,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
 import com.fasterxml.jackson.module.kotlin.readValue
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.OppdragRequest
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.unsafeCatch
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering.Utbetalingsstatus
 import no.nav.su.se.bakover.web.services.utbetaling.kvittering.UtbetalingKvitteringResponse.Alvorlighetsgrad.ALVORLIG_FEIL
@@ -66,7 +65,7 @@ data class UtbetalingKvitteringResponse(
         internal fun String.toKvitteringResponse(xmlMapper: XmlMapper): UtbetalingKvitteringResponse = this
             .replace("<oppdrag xmlns", "<Oppdrag xmlns")
             .let {
-                Either.unsafeCatch {
+                Either.catch {
                     xmlMapper.readValue<UtbetalingKvitteringResponse>(it)
                 }.getOrHandle {
                     // TODO metric og sikkerlogg

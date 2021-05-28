@@ -55,13 +55,13 @@ internal class AccessCheckProxyTest {
                     sak = mock {
                         on {
                             hentSak(fnr)
-                        } doReturn Either.right(
+                        } doReturn Either.Right(
                             Sak(
                                 id = sakId,
                                 saksnummer = Saksnummer(2021),
                                 fnr = fnr,
-                                utbetalinger = emptyList()
-                            )
+                                utbetalinger = emptyList(),
+                            ),
                         )
                     },
                     person = object : PersonService {
@@ -70,9 +70,10 @@ internal class AccessCheckProxyTest {
                             Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
 
                         override fun hentAktørId(fnr: Fnr) = throw NotImplementedError()
-                        override fun sjekkTilgangTilPerson(fnr: Fnr) = Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
-                    }
-                )
+                        override fun sjekkTilgangTilPerson(fnr: Fnr) =
+                            Either.Left(KunneIkkeHentePerson.IkkeTilgangTilPerson)
+                    },
+                ),
             ).proxy()
 
             shouldThrow<Tilgangssjekkfeil> { proxied.sak.hentSak(fnr) }
@@ -175,15 +176,15 @@ internal class AccessCheckProxyTest {
             sak = mock {
                 on {
                     hentSak(fnr)
-                } doReturn Either.right(
+                } doReturn Either.Right(
                     Sak(
                         id = UUID.randomUUID(),
                         saksnummer = Saksnummer(2021),
                         fnr = fnr,
-                        utbetalinger = emptyList()
-                    )
+                        utbetalinger = emptyList(),
+                    ),
                 )
-            }
+            },
         )
         private val proxied = AccessCheckProxy(
             personRepo = object : PersonRepo {

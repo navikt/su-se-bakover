@@ -8,8 +8,8 @@ plugins {
     kotlin("jvm") version "1.5.10"
     // Støtter unicode filer (i motsetning til https://github.com/JLLeitschuh/ktlint-gradle 10.0.0) og har nyere dependencies som gradle. Virker som den oppdateres hyppigere.
     id("org.jmailen.kotlinter") version "3.4.4"
-    id("com.github.ben-manes.versions") version "0.36.0" // Finds latest versions
-    id("se.patrikerdes.use-latest-versions") version "0.2.15"
+    id("com.github.ben-manes.versions") version "0.39.0" // Finds latest versions
+    id("se.patrikerdes.use-latest-versions") version "0.2.16"
 }
 
 version = "0.0.1"
@@ -23,11 +23,12 @@ allprojects {
         mavenCentral()
         maven("https://packages.confluent.io/maven/")
         maven("https://jitpack.io")
+        maven("https://oss.sonatype.org/content/repositories/releases/")
     }
-    val junitJupiterVersion = "5.7.1"
-    val arrowVersion = "0.11.0"
-    val kotestVersion = "4.4.1"
-    val jacksonVersion = "2.12.1"
+    val junitJupiterVersion = "5.7.2"
+    val arrowVersion = "0.13.2"
+    val kotestVersion = "4.6.0"
+    val jacksonVersion = "2.12.3"
     val bouncycastleVersion = "1.68"
     val kotlinVersion = "1.5.10"
     dependencies {
@@ -38,16 +39,15 @@ allprojects {
         implementation("org.jetbrains.kotlin:kotlin-compiler-embeddable:$kotlinVersion")
         implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0")
         implementation("io.arrow-kt:arrow-core:$arrowVersion")
-        implementation("io.arrow-kt:arrow-syntax:$arrowVersion")
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:$jacksonVersion")
         implementation("com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
         implementation("ch.qos.logback:logback-classic:1.2.3")
         implementation("net.logstash.logback:logstash-logback-encoder:6.6")
         implementation("io.github.cdimascio:dotenv-kotlin:6.2.2")
-        implementation("org.apache.kafka:kafka-clients:2.7.0")
-        implementation("com.networknt:json-schema-validator:1.0.49")
-        implementation("no.finn.unleash:unleash-client-java:4.1.0")
+        implementation("org.apache.kafka:kafka-clients:2.8.0")
+        implementation("com.networknt:json-schema-validator:1.0.53")
+        implementation("no.finn.unleash:unleash-client-java:4.3.0")
 
         // The 9.2.1.0 version fails to connect to the MQ server (hostname becomes null?)
         implementation("com.ibm.mq:com.ibm.mq.allclient:9.2.0.1")
@@ -56,13 +56,13 @@ allprojects {
 
         testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
         testImplementation("org.junit.jupiter:junit-jupiter-params:$junitJupiterVersion")
-        testImplementation("io.kotest:kotest-assertions-core-jvm:$kotestVersion")
-        testImplementation("io.kotest:kotest-assertions-json-jvm:$kotestVersion")
-        testImplementation("io.kotest:kotest-assertions-arrow-jvm:$kotestVersion")
-        testImplementation("io.kotest:kotest-extensions-jvm:$kotestVersion")
+        testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
+        testImplementation("io.kotest:kotest-assertions-json:$kotestVersion")
+        testImplementation("io.kotest.extensions:kotest-assertions-arrow:1.0.2")
+        testImplementation("io.kotest:kotest-extensions:$kotestVersion")
         testImplementation("org.skyscreamer:jsonassert:1.5.0")
         testImplementation("com.nhaarman.mockitokotlin2:mockito-kotlin:2.2.0")
-        testImplementation("org.mockito:mockito-core:3.7.7")
+        testImplementation("org.mockito:mockito-core:3.10.0")
 
         constraints {
             implementation("io.netty:netty-codec-http2:4.1.53.Final") {
@@ -83,7 +83,7 @@ allprojects {
             implementation("org.postgresql:postgresql:42.2.13") {
                 because("https://app.snyk.io/vuln/SNYK-JAVA-ORGPOSTGRESQL-571481")
             }
-            implementation("org.apache.cxf:cxf-rt-transports-http:3.4.2") {
+            implementation("org.apache.cxf:cxf-rt-transports-http:3.4.3") {
                 because("https://app.snyk.io/vuln/SNYK-JAVA-ORGAPACHECXF-1039798")
             }
             implementation("junit:junit:4.13.1") {
@@ -116,18 +116,26 @@ allprojects {
     }
 
     tasks.withType<Wrapper> {
-        gradleVersion = "7.0"
+        gradleVersion = "7.0.2"
     }
-
-    tasks.named("dependencyUpdates", com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask::class.java)
-        .configure {
-            checkForGradleUpdate = true
-            gradleReleaseChannel = "current"
-            outputFormatter = "json"
-            outputDir = "build/dependencyUpdates"
-            reportfileName = "report"
-            revision = "release" // Not waterproof
+    // https://github.com/ben-manes/gradle-versions-plugin
+    tasks.withType<com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask> {
+        fun isNonStable(version: String): Boolean {
+            val stableKeyword = listOf("RELEASE", "FINAL", "GA").any { version.toUpperCase().contains(it) }
+            val regex = "^[0-9,.v-]+(-r)?$".toRegex()
+            val isStable = stableKeyword || regex.matches(version)
+            return isStable.not()
         }
+        rejectVersionIf {
+            isNonStable(candidate.version) && !isNonStable(currentVersion)
+        }
+        checkForGradleUpdate = true
+        gradleReleaseChannel = "current"
+        outputFormatter = "json"
+        outputDir = "build/dependencyUpdates"
+        reportfileName = "report"
+        revision = "release" // Not waterproof
+    }
 }
 
 tasks.check {

@@ -6,7 +6,6 @@ import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.routing.Route
 import io.ktor.routing.get
-import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.web.AuditLogEvent
@@ -21,7 +20,6 @@ import no.nav.su.se.bakover.web.withSaksnummer
 
 internal const val sakPath = "/saker"
 
-@KtorExperimentalAPI
 internal fun Route.sakRoutes(
     sakService: SakService,
 ) {

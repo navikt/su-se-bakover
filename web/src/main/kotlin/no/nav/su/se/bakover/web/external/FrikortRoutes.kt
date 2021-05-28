@@ -7,7 +7,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.get
-import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.service.vedtak.VedtakService
@@ -22,12 +21,11 @@ import java.time.format.DateTimeFormatter
 internal const val frikortPath = "/frikort"
 internal val formatter = DateTimeFormatter.ofPattern("yyyy-MM")
 
-@KtorExperimentalAPI
 internal fun Route.frikortVedtakRoutes(
     vedtakService: VedtakService,
     clock: Clock
 ) {
-    suspend fun hentDato(dato: String): Either<Resultat, LocalDate> {
+    fun hentDato(dato: String): Either<Resultat, LocalDate> {
         return Either.catch { YearMonth.parse(dato, formatter).atDay(1) }
             .mapLeft {
                 HttpStatusCode.BadRequest.errorJson(
