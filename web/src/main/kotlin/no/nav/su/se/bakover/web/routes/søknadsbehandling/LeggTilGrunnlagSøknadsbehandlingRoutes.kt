@@ -61,7 +61,7 @@ internal fun Route.leggTilGrunnlagSøknadsbehandlingRoutes(
     }
 
     authorize(Brukerrolle.Saksbehandler) {
-        post("$behandlingPath/{behandlingId}/uføregrunnlag") {
+        post("$behandlingPath/{behandlingId}/grunnlag/uføre") {
             call.withBehandlingId { behandlingId ->
                 call.withBody<UføregrunnlagBody> { body ->
                     call.svar(

@@ -158,6 +158,17 @@ sealed class Grunnlag {
                         return args.snittFor(periode)?.let { copy(periode = it) }
                     }
                 }
+
+                data class IkkeBestemt(
+                    override val id: UUID,
+                    override val opprettet: Tidspunkt,
+                    override val periode: Periode,
+                    override val fnr: Fnr,
+                ) : EktefellePartnerSamboer() {
+                    override fun copy(args: CopyArgs.Snitt): IkkeBestemt? {
+                        return args.snittFor(periode)?.let { copy(periode = it) }
+                    }
+                }
             }
 
             data class SektiSyvEllerEldre(

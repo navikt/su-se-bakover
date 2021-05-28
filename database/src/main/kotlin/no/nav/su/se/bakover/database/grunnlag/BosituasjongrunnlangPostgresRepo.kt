@@ -25,7 +25,8 @@ class BosituasjongrunnlangPostgresRepo(
         EPS_67_ELLER_ELDRE,
         EPS_UNDER_67,
         EPS_UNDER_67_UFØR_FLYKTNING,
-        HAR_IKKE_EPS
+        HAR_IKKE_VALGT_EPS,
+        HAR_IKKE_VALGT_UFØR_FLYKTNING,
     }
 
     private fun Row.toBosituasjongrunnlag(): Grunnlag.Bosituasjon {
@@ -58,10 +59,16 @@ class BosituasjongrunnlangPostgresRepo(
                 periode = periode,
                 fnr = epsFnr!!,
             )
-            Bosituasjonstype.HAR_IKKE_EPS -> Grunnlag.Bosituasjon.HarIkkeEPS(
+            Bosituasjonstype.HAR_IKKE_VALGT_EPS -> Grunnlag.Bosituasjon.HarIkkeEPS(
                 id = id,
                 opprettet = opprettet,
                 periode = periode,
+            )
+            Bosituasjonstype.HAR_IKKE_VALGT_UFØR_FLYKTNING -> Grunnlag.Bosituasjon.EktefellePartnerSamboer.Under67.IkkeBestemt(
+                id = id,
+                opprettet = opprettet,
+                periode = periode,
+                fnr = epsFnr!!,
             )
         }
     }
@@ -124,7 +131,8 @@ class BosituasjongrunnlangPostgresRepo(
                         is Grunnlag.Bosituasjon.EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> Bosituasjonstype.EPS_UNDER_67
                         is Grunnlag.Bosituasjon.EktefellePartnerSamboer.Under67.UførFlyktning -> Bosituasjonstype.EPS_UNDER_67_UFØR_FLYKTNING
                         is Grunnlag.Bosituasjon.Enslig -> Bosituasjonstype.ALENE
-                        is Grunnlag.Bosituasjon.HarIkkeEPS -> Bosituasjonstype.HAR_IKKE_EPS
+                        is Grunnlag.Bosituasjon.HarIkkeEPS -> Bosituasjonstype.HAR_IKKE_VALGT_EPS
+                        is Grunnlag.Bosituasjon.EktefellePartnerSamboer.Under67.IkkeBestemt -> Bosituasjonstype.HAR_IKKE_VALGT_UFØR_FLYKTNING
                     }.toString(),
                     "eps_fnr" to when (grunnlag) {
                         is Grunnlag.Bosituasjon.DelerBoligMedVoksneBarnEllerAnnenVoksen -> null
@@ -133,6 +141,7 @@ class BosituasjongrunnlangPostgresRepo(
                         is Grunnlag.Bosituasjon.EktefellePartnerSamboer.Under67.UførFlyktning -> grunnlag.fnr
                         is Grunnlag.Bosituasjon.Enslig -> null
                         is Grunnlag.Bosituasjon.HarIkkeEPS -> null
+                        is Grunnlag.Bosituasjon.EktefellePartnerSamboer.Under67.IkkeBestemt -> grunnlag.fnr
                     },
                 ),
                 session,

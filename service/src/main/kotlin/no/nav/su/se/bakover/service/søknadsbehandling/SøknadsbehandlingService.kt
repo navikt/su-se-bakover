@@ -15,6 +15,8 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Validator.
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
 import java.util.UUID
 import kotlin.reflect.KClass
@@ -31,7 +33,8 @@ interface SøknadsbehandlingService {
     fun hent(request: HentRequest): Either<FantIkkeBehandling, Søknadsbehandling>
     fun oppdaterStønadsperiode(request: OppdaterStønadsperiodeRequest): Either<KunneIkkeOppdatereStønadsperiode, Søknadsbehandling>
     fun leggTilUføregrunnlag(request: LeggTilUførevurderingRequest): Either<KunneIkkeLeggeTilGrunnlag, Søknadsbehandling>
-    fun leggTilBosituasjon(request: LeggTilBosituasjonRequest): Either<KunneIkkeLeggeTilGrunnlag, Søknadsbehandling>
+    fun leggTilBosituasjonEpsgrunnlag(request: LeggTilBosituasjonEpsRequest): Either<KunneIkkeLeggeTilBosituasjonEpsGrunnlag, Søknadsbehandling>
+    fun fullførBosituasjongrunnlag(request: FullførBosituasjonRequest): Either<KunneIkkeFullføreBosituasjonGrunnlag, Søknadsbehandling>
 
     data class OpprettRequest(
         val søknadId: UUID,
@@ -196,5 +199,13 @@ interface SøknadsbehandlingService {
         object PeriodeForGrunnlagOgVurderingErForskjellig : KunneIkkeLeggeTilGrunnlag()
         object OverlappendeVurderingsperioder : KunneIkkeLeggeTilGrunnlag()
         object VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden : KunneIkkeLeggeTilGrunnlag()
+    }
+
+    sealed class KunneIkkeLeggeTilBosituasjonEpsGrunnlag {
+        object FantIkkeBehandling : KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
+    }
+
+    sealed class KunneIkkeFullføreBosituasjonGrunnlag {
+        object FantIkkeBehandling : KunneIkkeFullføreBosituasjonGrunnlag()
     }
 }

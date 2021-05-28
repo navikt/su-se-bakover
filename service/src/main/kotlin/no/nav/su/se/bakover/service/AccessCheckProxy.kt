@@ -84,6 +84,8 @@ import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
+import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import java.time.LocalDate
@@ -351,6 +353,16 @@ open class AccessCheckProxy(
                     assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.leggTilUføregrunnlag(request)
                 }
+
+                override fun leggTilBosituasjonEpsgrunnlag(request: LeggTilBosituasjonEpsRequest): Either<SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag, Søknadsbehandling> {
+                    assertHarTilgangTilBehandling(request.behandlingId)
+                    return services.søknadsbehandling.leggTilBosituasjonEpsgrunnlag(request)
+                }
+
+                override fun fullførBosituasjongrunnlag(request: FullførBosituasjonRequest): Either<SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag, Søknadsbehandling> {
+                    assertHarTilgangTilBehandling(request.behandlingId)
+                    return services.søknadsbehandling.fullførBosituasjongrunnlag(request)
+                }
             },
             ferdigstillVedtak = object : FerdigstillVedtakService {
                 override fun ferdigstillVedtakEtterUtbetaling(utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering): Unit =
@@ -493,6 +505,17 @@ open class AccessCheckProxy(
                 }
 
                 override fun hentFradragsgrunnlag(behandlingId: UUID): List<Grunnlag.Fradragsgrunnlag> {
+                    kastKanKunKallesFraAnnenService()
+                }
+
+                override fun lagreBosituasjongrunnlag(
+                    behandlingId: UUID,
+                    bosituasjongrunnlag: List<Grunnlag.Bosituasjon>,
+                ) {
+                    kastKanKunKallesFraAnnenService()
+                }
+
+                override fun hentBosituasjongrunnlang(behandlingId: UUID): List<Grunnlag.Bosituasjon> {
                     kastKanKunKallesFraAnnenService()
                 }
             },

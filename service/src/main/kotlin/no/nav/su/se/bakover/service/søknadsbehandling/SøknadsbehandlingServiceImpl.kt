@@ -44,6 +44,8 @@ import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.snapshot.OpprettVedtakssnapshotService
+import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
 import org.slf4j.LoggerFactory
 import java.time.Clock
@@ -509,16 +511,24 @@ internal class SøknadsbehandlingServiceImpl(
         }
     }
 
-    override fun leggTilBosituasjon(
-        // TODO - riktig type
-        request: UUID,
-    ): Either<KunneIkkeLeggeTilGrunnlag, Søknadsbehandling> {
-        val søknadsbehandling = søknadsbehandlingRepo.hent(request)
-            ?: return KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling.left()
-
-        if (søknadsbehandling is Søknadsbehandling.Iverksatt || søknadsbehandling is Søknadsbehandling.TilAttestering)
-            return KunneIkkeLeggeTilGrunnlag.UgyldigTilstand(søknadsbehandling::class, Søknadsbehandling.Vilkårsvurdert::class).left()
-
-        return søknadsbehandling.right()
+    override fun leggTilBosituasjonEpsgrunnlag(request: LeggTilBosituasjonEpsRequest): Either<SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag, Søknadsbehandling> {
+        TODO("Not yet implemented")
     }
+
+    override fun fullførBosituasjongrunnlag(request: FullførBosituasjonRequest): Either<SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag, Søknadsbehandling> {
+        TODO("Not yet implemented")
+    }
+
+    // override fun leggTilBosituasjon(
+    //     // TODO - riktig type
+    //     request: UUID,
+    // ): Either<KunneIkkeLeggeTilGrunnlag, Søknadsbehandling> {
+    //     val søknadsbehandling = søknadsbehandlingRepo.hent(request)
+    //         ?: return KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling.left()
+    //
+    //     if (søknadsbehandling is Søknadsbehandling.Iverksatt || søknadsbehandling is Søknadsbehandling.TilAttestering)
+    //         return KunneIkkeLeggeTilGrunnlag.UgyldigTilstand(søknadsbehandling::class, Søknadsbehandling.Vilkårsvurdert::class).left()
+    //
+    //     return søknadsbehandling.right()
+    // }
 }
