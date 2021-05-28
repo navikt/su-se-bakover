@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.fixedClock
+import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -52,6 +53,7 @@ internal fun createSøknadsbehandlingService(
     vedtakRepo: VedtakRepo = mock(),
     ferdigstillVedtakService: FerdigstillVedtakService = mock(),
     vilkårsvurderingService: VilkårsvurderingService = mock(),
+    grunnlagService: GrunnlagService = mock(),
 ) = SøknadsbehandlingServiceImpl(
     søknadService,
     søknadRepo,
@@ -68,4 +70,5 @@ internal fun createSøknadsbehandlingService(
     vedtakRepo,
     ferdigstillVedtakService,
     vilkårsvurderingService,
+    grunnlagService,
 ).apply { addObserver(observer) }

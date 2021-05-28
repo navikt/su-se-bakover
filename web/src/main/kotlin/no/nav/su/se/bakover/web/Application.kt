@@ -63,12 +63,12 @@ import no.nav.su.se.bakover.web.routes.installMetrics
 import no.nav.su.se.bakover.web.routes.me.meRoutes
 import no.nav.su.se.bakover.web.routes.naisPaths
 import no.nav.su.se.bakover.web.routes.naisRoutes
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.overordnetSøknadsbehandligRoutes
 import no.nav.su.se.bakover.web.routes.person.personPath
 import no.nav.su.se.bakover.web.routes.person.personRoutes
 import no.nav.su.se.bakover.web.routes.revurdering.revurderingRoutes
 import no.nav.su.se.bakover.web.routes.sak.sakRoutes
 import no.nav.su.se.bakover.web.routes.søknad.søknadRoutes
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.overordnetSøknadsbehandligRoutes
 import no.nav.su.se.bakover.web.routes.togglePaths
 import no.nav.su.se.bakover.web.routes.toggleRoutes
 import no.nav.su.se.bakover.web.routes.utbetaling.gjenoppta.gjenopptaUtbetalingRoutes

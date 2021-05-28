@@ -38,33 +38,33 @@ class BosituasjongrunnlangPostgresRepo(
         }
 
         return when (Bosituasjonstype.valueOf(string("bosituasjontype"))) {
-            Bosituasjonstype.ALENE -> Grunnlag.Bosituasjon.Enslig(
+            Bosituasjonstype.ALENE -> Grunnlag.Bosituasjon.Fullstendig.Enslig(
                 id = id, opprettet = opprettet, periode = periode,
             )
-            Bosituasjonstype.MED_VOKSNE -> Grunnlag.Bosituasjon.DelerBoligMedVoksneBarnEllerAnnenVoksen(
+            Bosituasjonstype.MED_VOKSNE -> Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen(
                 id = id, opprettet = opprettet, periode = periode,
             )
-            Bosituasjonstype.EPS_67_ELLER_ELDRE -> Grunnlag.Bosituasjon.EktefellePartnerSamboer.SektiSyvEllerEldre(
+            Bosituasjonstype.EPS_67_ELLER_ELDRE -> Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre(
                 id = id, opprettet = opprettet, periode = periode, fnr = epsFnr!!,
             )
-            Bosituasjonstype.EPS_UNDER_67 -> Grunnlag.Bosituasjon.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
+            Bosituasjonstype.EPS_UNDER_67 -> Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
                 id = id,
                 opprettet = opprettet,
                 periode = periode,
                 fnr = epsFnr!!,
             )
-            Bosituasjonstype.EPS_UNDER_67_UFØR_FLYKTNING -> Grunnlag.Bosituasjon.EktefellePartnerSamboer.Under67.UførFlyktning(
+            Bosituasjonstype.EPS_UNDER_67_UFØR_FLYKTNING -> Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
                 id = id,
                 opprettet = opprettet,
                 periode = periode,
                 fnr = epsFnr!!,
             )
-            Bosituasjonstype.HAR_IKKE_VALGT_EPS -> Grunnlag.Bosituasjon.HarIkkeEPS(
+            Bosituasjonstype.HAR_IKKE_VALGT_EPS -> Grunnlag.Bosituasjon.Ufullstendig.HarValgtEPSIkkeValgtEnsligVoksne(
                 id = id,
                 opprettet = opprettet,
                 periode = periode,
             )
-            Bosituasjonstype.HAR_IKKE_VALGT_UFØR_FLYKTNING -> Grunnlag.Bosituasjon.EktefellePartnerSamboer.Under67.IkkeBestemt(
+            Bosituasjonstype.HAR_IKKE_VALGT_UFØR_FLYKTNING -> Grunnlag.Bosituasjon.Ufullstendig.HarEpsIkkeValgtUførFlyktning(
                 id = id,
                 opprettet = opprettet,
                 periode = periode,
@@ -126,22 +126,22 @@ class BosituasjongrunnlangPostgresRepo(
                     "fraOgMed" to grunnlag.periode.fraOgMed,
                     "tilOgMed" to grunnlag.periode.tilOgMed,
                     "bosituasjontype" to when (grunnlag) {
-                        is Grunnlag.Bosituasjon.DelerBoligMedVoksneBarnEllerAnnenVoksen -> Bosituasjonstype.MED_VOKSNE
-                        is Grunnlag.Bosituasjon.EktefellePartnerSamboer.SektiSyvEllerEldre -> Bosituasjonstype.EPS_67_ELLER_ELDRE
-                        is Grunnlag.Bosituasjon.EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> Bosituasjonstype.EPS_UNDER_67
-                        is Grunnlag.Bosituasjon.EktefellePartnerSamboer.Under67.UførFlyktning -> Bosituasjonstype.EPS_UNDER_67_UFØR_FLYKTNING
-                        is Grunnlag.Bosituasjon.Enslig -> Bosituasjonstype.ALENE
-                        is Grunnlag.Bosituasjon.HarIkkeEPS -> Bosituasjonstype.HAR_IKKE_VALGT_EPS
-                        is Grunnlag.Bosituasjon.EktefellePartnerSamboer.Under67.IkkeBestemt -> Bosituasjonstype.HAR_IKKE_VALGT_UFØR_FLYKTNING
+                        is Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen -> Bosituasjonstype.MED_VOKSNE
+                        is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre -> Bosituasjonstype.EPS_67_ELLER_ELDRE
+                        is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> Bosituasjonstype.EPS_UNDER_67
+                        is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning -> Bosituasjonstype.EPS_UNDER_67_UFØR_FLYKTNING
+                        is Grunnlag.Bosituasjon.Fullstendig.Enslig -> Bosituasjonstype.ALENE
+                        is Grunnlag.Bosituasjon.Ufullstendig.HarValgtEPSIkkeValgtEnsligVoksne -> Bosituasjonstype.HAR_IKKE_VALGT_EPS
+                        is Grunnlag.Bosituasjon.Ufullstendig.HarEpsIkkeValgtUførFlyktning -> Bosituasjonstype.HAR_IKKE_VALGT_UFØR_FLYKTNING
                     }.toString(),
                     "eps_fnr" to when (grunnlag) {
-                        is Grunnlag.Bosituasjon.DelerBoligMedVoksneBarnEllerAnnenVoksen -> null
-                        is Grunnlag.Bosituasjon.EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> grunnlag.fnr
-                        is Grunnlag.Bosituasjon.EktefellePartnerSamboer.SektiSyvEllerEldre -> grunnlag.fnr
-                        is Grunnlag.Bosituasjon.EktefellePartnerSamboer.Under67.UførFlyktning -> grunnlag.fnr
-                        is Grunnlag.Bosituasjon.Enslig -> null
-                        is Grunnlag.Bosituasjon.HarIkkeEPS -> null
-                        is Grunnlag.Bosituasjon.EktefellePartnerSamboer.Under67.IkkeBestemt -> grunnlag.fnr
+                        is Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen -> null
+                        is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> grunnlag.fnr
+                        is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre -> grunnlag.fnr
+                        is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning -> grunnlag.fnr
+                        is Grunnlag.Bosituasjon.Fullstendig.Enslig -> null
+                        is Grunnlag.Bosituasjon.Ufullstendig.HarValgtEPSIkkeValgtEnsligVoksne -> null
+                        is Grunnlag.Bosituasjon.Ufullstendig.HarEpsIkkeValgtUførFlyktning -> grunnlag.fnr
                     },
                 ),
                 session,

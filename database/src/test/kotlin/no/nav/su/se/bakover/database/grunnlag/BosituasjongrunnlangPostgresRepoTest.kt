@@ -23,7 +23,7 @@ internal class BosituasjongrunnlangPostgresRepoTest {
         withMigratedDb {
             val id = UUID.randomUUID()
             val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021))
-            val bosituasjon = Grunnlag.Bosituasjon.Enslig(
+            val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
                 id = id,
                 opprettet = Tidspunkt.EPOCH,
                 periode = periode,
@@ -38,7 +38,7 @@ internal class BosituasjongrunnlangPostgresRepoTest {
         withMigratedDb {
             val id = UUID.randomUUID()
             val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021))
-            val bosituasjon = Grunnlag.Bosituasjon.DelerBoligMedVoksneBarnEllerAnnenVoksen(
+            val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen(
                 id = id,
                 opprettet = Tidspunkt.EPOCH,
                 periode = periode,
@@ -53,10 +53,26 @@ internal class BosituasjongrunnlangPostgresRepoTest {
         withMigratedDb {
             val id = UUID.randomUUID()
             val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021))
-            val bosituasjon = Grunnlag.Bosituasjon.HarIkkeEPS(
+            val bosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarValgtEPSIkkeValgtEnsligVoksne(
                 id = id,
                 opprettet = Tidspunkt.EPOCH,
                 periode = periode,
+            )
+            grunnlagRepo.lagreBosituasjongrunnlag(behandlingId = id, grunnlag = listOf(bosituasjon))
+            grunnlagRepo.hentBosituasjongrunnlag(id).shouldBe(listOf(bosituasjon))
+        }
+    }
+
+    @Test
+    fun `lagrer og henter har eps ikke valgt uføre flykting`() {
+        withMigratedDb {
+            val id = UUID.randomUUID()
+            val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021))
+            val bosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarEpsIkkeValgtUførFlyktning(
+                id = id,
+                opprettet = Tidspunkt.EPOCH,
+                periode = periode,
+                fnr = FnrGenerator.random(),
             )
             grunnlagRepo.lagreBosituasjongrunnlag(behandlingId = id, grunnlag = listOf(bosituasjon))
             grunnlagRepo.hentBosituasjongrunnlag(id).shouldBe(listOf(bosituasjon))
@@ -68,7 +84,7 @@ internal class BosituasjongrunnlangPostgresRepoTest {
         withMigratedDb {
             val id = UUID.randomUUID()
             val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021))
-            val bosituasjon = Grunnlag.Bosituasjon.EktefellePartnerSamboer.SektiSyvEllerEldre(
+            val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre(
                 id = id,
                 opprettet = Tidspunkt.EPOCH,
                 periode = periode,
@@ -84,7 +100,7 @@ internal class BosituasjongrunnlangPostgresRepoTest {
         withMigratedDb {
             val id = UUID.randomUUID()
             val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021))
-            val bosituasjon = Grunnlag.Bosituasjon.EktefellePartnerSamboer.Under67.UførFlyktning(
+            val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
                 id = id,
                 opprettet = Tidspunkt.EPOCH,
                 periode = periode,
@@ -100,7 +116,7 @@ internal class BosituasjongrunnlangPostgresRepoTest {
         withMigratedDb {
             val id = UUID.randomUUID()
             val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021))
-            val bosituasjon = Grunnlag.Bosituasjon.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
+            val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
                 id = id,
                 opprettet = Tidspunkt.EPOCH,
                 periode = periode,

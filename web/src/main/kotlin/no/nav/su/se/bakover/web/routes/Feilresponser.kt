@@ -32,4 +32,9 @@ internal object Feilresponser {
         "Alle vurderingsperiodene må ha samme vurdering (ja/nei)",
         "vurderingene_må_ha_samme_resultat",
     )
+
+    val kunneIkkeLageBosituasjon = HttpStatusCode.NotFound.errorJson(
+        "Klarte ikke lage bosituasjon",
+        "klarte_ikke_lage_bosituasjon",
+    )
 }

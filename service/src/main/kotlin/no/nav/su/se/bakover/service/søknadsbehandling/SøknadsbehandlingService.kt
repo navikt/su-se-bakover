@@ -203,9 +203,12 @@ interface SøknadsbehandlingService {
 
     sealed class KunneIkkeLeggeTilBosituasjonEpsGrunnlag {
         object FantIkkeBehandling : KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
+        data class UgyldigTilstand(val fra: KClass<out Søknadsbehandling>, val til: KClass<out Søknadsbehandling>) : KunneIkkeLeggeTilBosituasjonEpsGrunnlag()
     }
 
     sealed class KunneIkkeFullføreBosituasjonGrunnlag {
         object FantIkkeBehandling : KunneIkkeFullføreBosituasjonGrunnlag()
+        data class UgyldigTilstand(val fra: KClass<out Søknadsbehandling>, val til: KClass<out Søknadsbehandling>) : KunneIkkeFullføreBosituasjonGrunnlag()
+        object KlarteIkkeLageBosituasjon : KunneIkkeFullføreBosituasjonGrunnlag()
     }
 }

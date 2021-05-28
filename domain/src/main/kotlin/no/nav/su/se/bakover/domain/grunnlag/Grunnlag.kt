@@ -121,98 +121,96 @@ sealed class Grunnlag {
     /**
      * Domain model (create a flat model in addition to this in database-layer)
      */
-    sealed class Bosituasjon : Grunnlag(), Copyable<CopyArgs.Snitt, Bosituasjon?> {
+    sealed class Bosituasjon : Grunnlag() {
         abstract override val id: UUID
         abstract val opprettet: Tidspunkt
         abstract val periode: Periode
 
-        sealed class EktefellePartnerSamboer : Bosituasjon() {
+        sealed class Fullstendig : Bosituasjon(), Copyable<CopyArgs.Snitt, Fullstendig?> {
+            sealed class EktefellePartnerSamboer : Fullstendig() {
+                abstract val fnr: Fnr
 
-            abstract val fnr: Fnr
-
-            sealed class Under67(
-                override val id: UUID,
-                override val opprettet: Tidspunkt,
-                override val periode: Periode,
-                override val fnr: Fnr,
-            ) : EktefellePartnerSamboer() {
-
-                data class UførFlyktning(
+                sealed class Under67 (
                     override val id: UUID,
                     override val opprettet: Tidspunkt,
                     override val periode: Periode,
                     override val fnr: Fnr,
                 ) : EktefellePartnerSamboer() {
-                    override fun copy(args: CopyArgs.Snitt): UførFlyktning? {
-                        return args.snittFor(periode)?.let { copy(periode = it) }
+
+                    data class UførFlyktning(
+                        override val id: UUID,
+                        override val opprettet: Tidspunkt,
+                        override val periode: Periode,
+                        override val fnr: Fnr,
+                    ) : EktefellePartnerSamboer() {
+                        override fun copy(args: CopyArgs.Snitt): UførFlyktning? {
+                            return args.snittFor(periode)?.let { copy(periode = it) }
+                        }
+                    }
+
+                    data class IkkeUførFlyktning(
+                        override val id: UUID,
+                        override val opprettet: Tidspunkt,
+                        override val periode: Periode,
+                        override val fnr: Fnr,
+                    ) : EktefellePartnerSamboer() {
+                        override fun copy(args: CopyArgs.Snitt): IkkeUførFlyktning? {
+                            return args.snittFor(periode)?.let { copy(periode = it) }
+                        }
                     }
                 }
 
-                data class IkkeUførFlyktning(
+                data class SektiSyvEllerEldre(
                     override val id: UUID,
                     override val opprettet: Tidspunkt,
                     override val periode: Periode,
                     override val fnr: Fnr,
                 ) : EktefellePartnerSamboer() {
-                    override fun copy(args: CopyArgs.Snitt): IkkeUførFlyktning? {
-                        return args.snittFor(periode)?.let { copy(periode = it) }
-                    }
-                }
-
-                data class IkkeBestemt(
-                    override val id: UUID,
-                    override val opprettet: Tidspunkt,
-                    override val periode: Periode,
-                    override val fnr: Fnr,
-                ) : EktefellePartnerSamboer() {
-                    override fun copy(args: CopyArgs.Snitt): IkkeBestemt? {
+                    override fun copy(args: CopyArgs.Snitt): SektiSyvEllerEldre? {
                         return args.snittFor(periode)?.let { copy(periode = it) }
                     }
                 }
             }
 
-            data class SektiSyvEllerEldre(
+            /** Bor ikke med noen over 18 år */
+            data class Enslig(
                 override val id: UUID,
                 override val opprettet: Tidspunkt,
                 override val periode: Periode,
-                override val fnr: Fnr,
-            ) : EktefellePartnerSamboer() {
-                override fun copy(args: CopyArgs.Snitt): SektiSyvEllerEldre? {
+            ) : Fullstendig() {
+                override fun copy(args: CopyArgs.Snitt): Enslig? {
+                    return args.snittFor(periode)?.let { copy(periode = it) }
+                }
+            }
+
+            data class DelerBoligMedVoksneBarnEllerAnnenVoksen(
+                override val id: UUID,
+                override val opprettet: Tidspunkt,
+                override val periode: Periode,
+            ) : Fullstendig() {
+                override fun copy(args: CopyArgs.Snitt): DelerBoligMedVoksneBarnEllerAnnenVoksen? {
                     return args.snittFor(periode)?.let { copy(periode = it) }
                 }
             }
         }
 
-        /** Denne er kun for å støtte at man har valgt ikkeEktefelle, før man har valgt enslig/bor med andre voksne */
-        data class HarIkkeEPS(
-            override val id: UUID,
-            override val opprettet: Tidspunkt,
-            override val periode: Periode,
-        ) : Bosituasjon() {
-            override fun copy(args: CopyArgs.Snitt): HarIkkeEPS? {
-                return args.snittFor(periode)?.let { copy(periode = it) }
-            }
-        }
+        sealed class Ufullstendig : Bosituasjon() {
+            /** Dette er en midlertid tilstand hvor det er valgt Ikke Eps, men ikke tatt stilling til bosituasjon Enslig eller med voksne
+                Data klassen kan godt få et bedre navn... */
+            data class HarValgtEPSIkkeValgtEnsligVoksne(
+                override val id: UUID,
+                override val opprettet: Tidspunkt,
+                override val periode: Periode,
+            ) : Ufullstendig()
 
-        /** Bor ikke med noen over 18 år */
-        data class Enslig(
-            override val id: UUID,
-            override val opprettet: Tidspunkt,
-            override val periode: Periode,
-        ) : Bosituasjon() {
-            override fun copy(args: CopyArgs.Snitt): Enslig? {
-                return args.snittFor(periode)?.let { copy(periode = it) }
-            }
-        }
-
-        data class DelerBoligMedVoksneBarnEllerAnnenVoksen(
-            override val id: UUID,
-            override val opprettet: Tidspunkt,
-            override val periode: Periode,
-        ) : Bosituasjon() {
-            override fun copy(args: CopyArgs.Snitt): DelerBoligMedVoksneBarnEllerAnnenVoksen? {
-                return args.snittFor(periode)?.let { copy(periode = it) }
-            }
+            /** Dette er en midlertid tilstand hvor det er valgt Eps, men ikke tatt stilling til om eps er ufør flyktning eller ikke
+                Data klassen kan godt få et bedre navn... */
+            data class HarEpsIkkeValgtUførFlyktning(
+                override val id: UUID,
+                override val opprettet: Tidspunkt,
+                override val periode: Periode,
+                val fnr: Fnr,
+            ) : Ufullstendig()
         }
     }
 }
