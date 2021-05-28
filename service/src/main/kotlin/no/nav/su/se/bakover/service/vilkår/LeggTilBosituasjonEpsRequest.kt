@@ -12,7 +12,7 @@ data class LeggTilBosituasjonEpsRequest(
     val epsFnr: Fnr?,
 ) {
     fun toBosituasjon(periode: Periode, clock: Clock): Grunnlag.Bosituasjon.Ufullstendig {
-        return if (epsFnr == null ) {
+        return if (epsFnr == null) {
             Grunnlag.Bosituasjon.Ufullstendig.HarValgtEPSIkkeValgtEnsligVoksne(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(clock),

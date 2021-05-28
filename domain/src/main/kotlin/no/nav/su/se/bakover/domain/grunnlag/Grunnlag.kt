@@ -130,7 +130,7 @@ sealed class Grunnlag {
             sealed class EktefellePartnerSamboer : Fullstendig() {
                 abstract val fnr: Fnr
 
-                sealed class Under67 (
+                sealed class Under67(
                     override val id: UUID,
                     override val opprettet: Tidspunkt,
                     override val periode: Periode,
@@ -196,7 +196,7 @@ sealed class Grunnlag {
 
         sealed class Ufullstendig : Bosituasjon() {
             /** Dette er en midlertid tilstand hvor det er valgt Ikke Eps, men ikke tatt stilling til bosituasjon Enslig eller med voksne
-                Data klassen kan godt få et bedre navn... */
+             Data klassen kan godt få et bedre navn... */
             data class HarValgtEPSIkkeValgtEnsligVoksne(
                 override val id: UUID,
                 override val opprettet: Tidspunkt,
@@ -204,7 +204,7 @@ sealed class Grunnlag {
             ) : Ufullstendig()
 
             /** Dette er en midlertid tilstand hvor det er valgt Eps, men ikke tatt stilling til om eps er ufør flyktning eller ikke
-                Data klassen kan godt få et bedre navn... */
+             Data klassen kan godt få et bedre navn... */
             data class HarEpsIkkeValgtUførFlyktning(
                 override val id: UUID,
                 override val opprettet: Tidspunkt,
