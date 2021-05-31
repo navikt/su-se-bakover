@@ -179,7 +179,13 @@ internal class TestDataHelper(
     internal val grunnlagRepo = GrunnlagPostgresRepo(fradragsgrunnlagPostgresRepo, bosituasjongrunnlagPostgresRepo)
     internal val vilkårsvurderingRepo = VilkårsvurderingPostgresRepo(dataSource, uføregrunnlagPostgresRepo)
     internal val søknadsbehandlingRepo =
-        SøknadsbehandlingPostgresRepo(dataSource, uføregrunnlagPostgresRepo, vilkårsvurderingRepo)
+        SøknadsbehandlingPostgresRepo(
+            dataSource,
+            uføregrunnlagPostgresRepo,
+            fradragsgrunnlagPostgresRepo,
+            bosituasjongrunnlagPostgresRepo,
+            vilkårsvurderingRepo,
+        )
     internal val revurderingRepo = RevurderingPostgresRepo(
         dataSource,
         uføregrunnlagPostgresRepo,

@@ -74,7 +74,7 @@ object DatabaseBuilder {
             uføregrunnlagRepo = uføregrunnlagRepo,
         )
 
-        val saksbehandlingRepo = SøknadsbehandlingPostgresRepo(dataSource, uføregrunnlagRepo, vilkårsvurderingRepo)
+        val saksbehandlingRepo = SøknadsbehandlingPostgresRepo(dataSource, uføregrunnlagRepo, fradragsgrunnlag, bosituasjongrunnlag, vilkårsvurderingRepo)
 
         val revurderingRepo = RevurderingPostgresRepo(
             dataSource,
