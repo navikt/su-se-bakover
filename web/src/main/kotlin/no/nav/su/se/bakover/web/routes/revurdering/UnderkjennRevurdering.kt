@@ -7,7 +7,6 @@ import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.routing.Route
 import io.ktor.routing.patch
-import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
@@ -53,7 +52,6 @@ data class UnderkjennBody(
     }
 }
 
-@KtorExperimentalAPI
 internal fun Route.underkjennRevurdering(
     revurderingService: RevurderingService
 ) {

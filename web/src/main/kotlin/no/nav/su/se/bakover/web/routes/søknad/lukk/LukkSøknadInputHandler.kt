@@ -106,7 +106,7 @@ internal object LukkSøknadInputHandler {
     }
 }
 
-internal suspend fun deserializeBody(body: String): Either<UgyldigLukkSøknadRequest, LukketJson> {
+internal fun deserializeBody(body: String): Either<UgyldigLukkSøknadRequest, LukketJson> {
     val trukketJson = deserializeLukketSøknadRequest<LukketJson.TrukketJson>(body)
     val bortfalt = deserializeLukketSøknadRequest<LukketJson.BortfaltJson>(body)
     val avvist = deserializeLukketSøknadRequest<LukketJson.AvvistJson>(body)
@@ -117,7 +117,7 @@ internal suspend fun deserializeBody(body: String): Either<UgyldigLukkSøknadReq
     }
 }
 
-internal suspend inline fun <reified T> deserializeLukketSøknadRequest(body: String): Either<UgyldigLukkSøknadRequest, T> =
+internal inline fun <reified T> deserializeLukketSøknadRequest(body: String): Either<UgyldigLukkSøknadRequest, T> =
     Either.catch { deserialize<T>(body) }
         .mapLeft { UgyldigLukkSøknadRequest }
 

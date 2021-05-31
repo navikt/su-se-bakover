@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.søknadsbehandling
 
-import arrow.core.Nel
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -27,8 +27,6 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.brev.BrevbestillingId
-import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
@@ -119,13 +117,7 @@ internal class StatusovergangTest {
         Attestering.Underkjent(NavIdentBruker.Attestant("attestant"), Attestering.Underkjent.Grunn.ANDRE_FORHOLD, "")
     private val attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("attestant"))
     private val utbetalingId = UUID30.randomUUID()
-    private val journalførtIverksettingsteg =
-        JournalføringOgBrevdistribusjon.Journalført(JournalpostId("journalpostId"))
-    private val distribuertIverksettingssteg =
-        JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
-            journalpostId = JournalpostId("journalpostId"),
-            brevbestillingId = BrevbestillingId("brevbesttilingId"),
-        )
+
     private val fritekstTilBrev: String = "Fritekst til brev"
 
     private val vilkårsvurdertInnvilget: Søknadsbehandling.Vilkårsvurdert.Innvilget =
@@ -859,7 +851,7 @@ internal class StatusovergangTest {
             val opprettetMedGrunnlag = opprettet.copy(
                 vilkårsvurderinger = Vilkårsvurderinger(
                     uføre = Vilkår.Vurdert.Uførhet.create(
-                        vurderingsperioder = Nel.of(
+                        vurderingsperioder = nonEmptyListOf(
                             Vurderingsperiode.Uføre.create(
                                 id = UUID.randomUUID(),
                                 opprettet = opprettet.opprettet,

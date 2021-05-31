@@ -1,9 +1,7 @@
 package no.nav.su.se.bakover.domain.tidslinje
 
-import arrow.core.extensions.list.foldable.exists
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
-import java.lang.RuntimeException
 import java.time.Clock
 import java.util.LinkedList
 
@@ -224,13 +222,13 @@ data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
 
     private fun List<T>.overlappMedAndreEksisterer(): Boolean {
         return filter { t1 ->
-            exists { t2 -> t1 != t2 && t1.periode overlapper t2.periode }
+            any { t2 -> t1 != t2 && t1.periode overlapper t2.periode }
         }.count() > 0
     }
 
     private fun List<T>.filtrerVekkAlleSomOverskivesFullstendigAvNyere(): List<T> {
         return filterNot { t1 ->
-            exists { t2 -> t1.opprettet.instant < t2.opprettet.instant && t2.periode.inneholder(t1.periode) }
+            any { t2 -> t1.opprettet.instant < t2.opprettet.instant && t2.periode.inneholder(t1.periode) }
         }
     }
 }

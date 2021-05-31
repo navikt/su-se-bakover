@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
+import no.nav.su.se.bakover.domain.oppdrag.simulering.TolketSimulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vilkår.Resultat
@@ -474,6 +475,7 @@ sealed class SimulertRevurdering : Revurdering() {
     abstract override val grunnlagsdata: Grunnlagsdata
 
     abstract override fun accept(visitor: RevurderingVisitor)
+    fun harSimuleringFeilutbetaling() = TolketSimulering(simulering).simulertePerioder.any { it.harFeilutbetalinger() }
 
     data class Innvilget(
         override val id: UUID,

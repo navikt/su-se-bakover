@@ -14,14 +14,12 @@ import io.ktor.routing.RouteSelectorEvaluation
 import io.ktor.routing.RoutingResolveContext
 import io.ktor.routing.application
 import io.ktor.util.AttributeKey
-import io.ktor.util.KtorExperimentalAPI
 import io.ktor.util.pipeline.PipelinePhase
 import no.nav.su.se.bakover.domain.Brukerrolle
 import org.slf4j.LoggerFactory
 
 class AuthorizationException(override val message: String) : RuntimeException(message)
 
-@KtorExperimentalAPI
 class Authorization(config: Configuration) {
     private val logger = LoggerFactory.getLogger(this::class.java)
 
@@ -67,13 +65,12 @@ class Authorization(config: Configuration) {
     }
 }
 
-class AuthorizedRouteSelector(private val description: String) : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
+class AuthorizedRouteSelector(private val description: String) : RouteSelector() {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int) = RouteSelectorEvaluation.Constant
 
     override fun toString() = "(authorize $description)"
 }
 
-@KtorExperimentalAPI
 fun Route.authorize(vararg roller: Brukerrolle, build: Route.() -> Unit): Route {
     val authorizedRoute = createChild(AuthorizedRouteSelector(roller.joinToString(",")))
     application.feature(Authorization).interceptPipeline(authorizedRoute, roller.toSet())

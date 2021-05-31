@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.visitor
 
-import arrow.core.Nel
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
@@ -247,7 +247,7 @@ internal class FinnAttestantVisitorTest {
         ),
         vilkårsvurderinger = Vilkårsvurderinger(
             uføre = Vilkår.Vurdert.Uførhet.create(
-                vurderingsperioder = Nel.of(
+                vurderingsperioder = nonEmptyListOf(
                     Vurderingsperiode.Uføre.create(
                         resultat = Resultat.Innvilget,
                         grunnlag = uføregrunnlag,

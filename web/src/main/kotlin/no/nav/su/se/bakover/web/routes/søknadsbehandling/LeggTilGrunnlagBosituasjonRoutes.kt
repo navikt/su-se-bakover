@@ -8,7 +8,6 @@ import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.routing.Route
 import io.ktor.routing.post
-import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
@@ -25,7 +24,6 @@ import no.nav.su.se.bakover.web.withBehandlingId
 import no.nav.su.se.bakover.web.withBody
 import java.util.UUID
 
-@KtorExperimentalAPI
 internal fun Route.leggTilGrunnlagBosituasjonRoutes(
     søknadsbehandlingService: SøknadsbehandlingService,
 ) {

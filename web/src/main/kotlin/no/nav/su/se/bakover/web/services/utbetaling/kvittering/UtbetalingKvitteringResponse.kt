@@ -7,7 +7,6 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement
 import com.fasterxml.jackson.module.kotlin.readValue
-import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest.OppdragRequest
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
@@ -66,13 +65,11 @@ data class UtbetalingKvitteringResponse(
         internal fun String.toKvitteringResponse(xmlMapper: XmlMapper): UtbetalingKvitteringResponse = this
             .replace("<oppdrag xmlns", "<Oppdrag xmlns")
             .let {
-                runBlocking {
-                    Either.catch {
-                        xmlMapper.readValue<UtbetalingKvitteringResponse>(it)
-                    }.getOrHandle {
-                        // TODO metric og sikkerlogg
-                        throw it
-                    }
+                Either.catch {
+                    xmlMapper.readValue<UtbetalingKvitteringResponse>(it)
+                }.getOrHandle {
+                    // TODO metric og sikkerlogg
+                    throw it
                 }
             }
     }

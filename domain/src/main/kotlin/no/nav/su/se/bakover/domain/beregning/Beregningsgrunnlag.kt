@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.domain.beregning
 
 import arrow.core.Either
-import arrow.core.extensions.list.foldable.forAll
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
@@ -69,13 +68,13 @@ internal data class Beregningsgrunnlag private constructor(
                     // TODO jah: Denne kan ikke slå til så lenge vi har ifEmpty-blokka
                     return UgyldigBeregningsgrunnlag.BrukerMåHaMinst1ForventetInntekt.left()
                 }
-                if (forventedeInntekter.forAll { f1 ->
+                if (forventedeInntekter.all { f1 ->
                     forventedeInntekter.minus(f1).any { f2 -> f1.periode overlapper f2.periode }
                 }
                 ) {
                     return UgyldigBeregningsgrunnlag.OverlappendePerioderMedForventetInntekt.left()
                 }
-                if (!beregningsperiode.tilMånedsperioder().forAll { it ->
+                if (!beregningsperiode.tilMånedsperioder().all { it ->
                     forventedeInntekter.flatMap { it.periode.tilMånedsperioder() }.contains(it)
                 }
                 ) {

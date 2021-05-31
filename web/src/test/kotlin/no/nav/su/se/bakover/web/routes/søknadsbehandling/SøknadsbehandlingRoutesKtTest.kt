@@ -188,11 +188,11 @@ internal class SøknadsbehandlingRoutesKtTest {
                     clients = testClients.copy(
                         oppgaveClient = object : OppgaveClient {
                             override fun opprettOppgave(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, OppgaveId> {
-                                return Either.left(KunneIkkeOppretteOppgave)
+                                return Either.Left(KunneIkkeOppretteOppgave)
                             }
 
                             override fun opprettOppgaveMedSystembruker(config: OppgaveConfig): Either<KunneIkkeOppretteOppgave, OppgaveId> {
-                                return Either.left(KunneIkkeOppretteOppgave)
+                                return Either.Left(KunneIkkeOppretteOppgave)
                             }
 
                             override fun lukkOppgave(oppgaveId: OppgaveId): Either<OppgaveFeil.KunneIkkeLukkeOppgave, Unit> = Unit.right()
@@ -201,7 +201,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                                 oppgaveId: OppgaveId,
                                 beskrivelse: String,
                             ): Either<OppgaveFeil.KunneIkkeOppdatereOppgave, Unit> {
-                                return Either.left(OppgaveFeil.KunneIkkeOppdatereOppgave)
+                                return Either.Left(OppgaveFeil.KunneIkkeOppdatereOppgave)
                             }
                         },
                     ),

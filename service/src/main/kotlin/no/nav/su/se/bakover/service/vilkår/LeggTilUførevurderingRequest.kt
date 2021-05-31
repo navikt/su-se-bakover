@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.service.vilkår
 
 import arrow.core.Either
-import arrow.core.Nel
 import arrow.core.flatMap
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -69,7 +69,7 @@ data class LeggTilUførevurderingRequest(
     fun toVilkår(behandlingsperiode: Periode): Either<UgyldigUførevurdering, Vilkår.Vurdert.Uførhet> {
         return toVurderingsperiode(behandlingsperiode)
             .flatMap { vurderingsperiode ->
-                Vilkår.Vurdert.Uførhet.tryCreate(Nel.of(vurderingsperiode))
+                Vilkår.Vurdert.Uførhet.tryCreate(nonEmptyListOf(vurderingsperiode))
                     .mapLeft {
                         when (it) {
                             Vilkår.Vurdert.Uførhet.UgyldigUførevilkår.OverlappendeVurderingsperioder -> UgyldigUførevurdering.OverlappendeVurderingsperioder

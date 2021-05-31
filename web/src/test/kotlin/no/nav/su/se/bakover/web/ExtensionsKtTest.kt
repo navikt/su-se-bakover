@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web
 import io.kotest.assertions.arrow.either.shouldBeLeft
 import io.kotest.assertions.arrow.either.shouldBeRight
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.common.limitedUpwardsTo
 import no.nav.su.se.bakover.common.positiveOrZero
 import no.nav.su.se.bakover.common.roundToDecimals
@@ -13,13 +14,17 @@ internal class ExtensionsKtTest {
 
     @Test
     fun `String toUUID gir fin feilmelding`() {
-        "heisann".toUUID() shouldBeLeft "heisann er ikke en gyldig UUID"
+        runBlocking {
+            "heisann".toUUID() shouldBeLeft "heisann er ikke en gyldig UUID"
+        }
     }
 
     @Test
     fun `String toUUID funker på gyldig UUID`() {
-        UUID.randomUUID().let {
-            it.toString().toUUID() shouldBeRight it
+        runBlocking {
+            UUID.randomUUID().let {
+                it.toString().toUUID() shouldBeRight it
+            }
         }
     }
 

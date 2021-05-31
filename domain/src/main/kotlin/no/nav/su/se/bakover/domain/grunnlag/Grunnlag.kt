@@ -1,12 +1,9 @@
 package no.nav.su.se.bakover.domain.grunnlag
 
 import arrow.core.Either
-import arrow.core.extensions.either.applicative.applicative
-import arrow.core.extensions.list.traverse.traverse
-import arrow.core.fix
-import arrow.core.identity
 import arrow.core.left
 import arrow.core.right
+import arrow.core.sequenceEither
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
@@ -79,9 +76,7 @@ sealed class Grunnlag {
             fun List<Fradragsgrunnlag>.valider(behandlingsperiode: Periode): Either<UgyldigFradragsgrunnlag, List<Fradragsgrunnlag>> {
                 return map {
                     it.valider(behandlingsperiode)
-                }.traverse(Either.applicative(), ::identity).fix().map {
-                    it.fix()
-                }
+                }.sequenceEither()
             }
 
             fun Fradragsgrunnlag.valider(behandlingsperiode: Periode): Either<UgyldigFradragsgrunnlag, Fradragsgrunnlag> {

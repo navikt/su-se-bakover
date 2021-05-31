@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.client.oppgave
 
 import arrow.core.Either
-import arrow.core.extensions.either.monad.flatten
 import arrow.core.flatMap
+import arrow.core.flatten
 import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.getOrCreateCorrelationId
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.sikkerLogg
-import no.nav.su.se.bakover.common.unsafeCatch
 import no.nav.su.se.bakover.common.zoneIdOslo
 import no.nav.su.se.bakover.domain.Tema
 import no.nav.su.se.bakover.domain.oppgave.OppgaveClient
@@ -80,7 +79,7 @@ internal class OppgaveHttpClient(
     }
 
     private fun onBehalfOfToken(): Either<OppgaveFeil.KunneIkkeLageToken, String> {
-        return Either.unsafeCatch {
+        return Either.catch {
             exchange.onBehalfOfToken(MDC.get("Authorization"), connectionConfig.clientId)
         }.mapLeft { throwable ->
             log.error(
@@ -111,7 +110,7 @@ internal class OppgaveHttpClient(
                 } - Opprettet av Supplerende Stønad ---\nSaksnummer : ${config.saksreferanse}"
         }
 
-        return Either.unsafeCatch {
+        return Either.catch {
             val request = HttpRequest.newBuilder()
                 .uri(URI.create("${connectionConfig.url}$oppgavePath"))
                 .header("Authorization", "Bearer $token")
@@ -174,7 +173,7 @@ internal class OppgaveHttpClient(
         oppgaveId: OppgaveId,
         token: String,
     ): Either<OppgaveFeil.KunneIkkeSøkeEtterOppgave, OppgaveResponse> {
-        return Either.unsafeCatch {
+        return Either.catch {
             val request = HttpRequest.newBuilder()
                 .uri(URI.create("${connectionConfig.url}$oppgavePath/$oppgaveId"))
                 .header("Authorization", "Bearer $token")
@@ -248,7 +247,7 @@ internal class OppgaveHttpClient(
             Tidspunkt.now(clock).toOppgaveFormat()
             } - $beskrivelse ---"
 
-        return Either.unsafeCatch {
+        return Either.catch {
             val request = HttpRequest.newBuilder()
                 .uri(URI.create("${connectionConfig.url}$oppgavePath/${oppgave.id}"))
                 .header("Authorization", "Bearer $token")

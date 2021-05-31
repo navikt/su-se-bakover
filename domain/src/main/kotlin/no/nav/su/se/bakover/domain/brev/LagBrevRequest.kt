@@ -92,7 +92,10 @@ interface LagBrevRequest {
                 satsBeløp = beregning.getSats().månedsbeløpSomHeltall(beregning.periode.tilOgMed),
                 satsGjeldendeFraDato = beregning.getSats().datoForSisteEndringAvSats(beregning.periode.tilOgMed).ddMMyyyy(),
                 harEktefelle = behandlingsinformasjon.harEktefelle(),
-                beregningsperioder = LagBrevinnholdForBeregning(beregning).brevInnhold,
+                beregningsperioder = if (
+                    opphørsgrunner.contains(Opphørsgrunn.FOR_HØY_INNTEKT) ||
+                    opphørsgrunner.contains(Opphørsgrunn.SU_UNDER_MINSTEGRENSE)
+                ) LagBrevinnholdForBeregning(beregning).brevInnhold else emptyList(),
                 saksbehandlerNavn = saksbehandlerNavn,
                 attestantNavn = attestantNavn,
                 fritekst = fritekst,

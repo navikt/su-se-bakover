@@ -206,6 +206,7 @@ sealed class KunneIkkeSendeRevurderingTilAttestering {
         KunneIkkeSendeRevurderingTilAttestering()
 
     object ManglerBeslutningPåForhåndsvarsel : KunneIkkeSendeRevurderingTilAttestering()
+    object FeilutbetalingStøttesIkke : KunneIkkeSendeRevurderingTilAttestering()
 }
 
 sealed class KunneIkkeIverksetteRevurdering {
