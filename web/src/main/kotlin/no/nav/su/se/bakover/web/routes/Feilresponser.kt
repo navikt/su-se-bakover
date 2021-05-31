@@ -10,6 +10,11 @@ internal object Feilresponser {
         "fant_ikke_behandling",
     )
 
+    val klarteIkkeHentePerson = HttpStatusCode.NotFound.errorJson(
+        "fant ikke person",
+        "fant_ikke_person",
+    )
+
     val overlappendeVurderingsperioder = HttpStatusCode.BadRequest.errorJson(
         "Vurderingperioder kan ikke overlappe",
         "overlappende_vurderingsperioder",

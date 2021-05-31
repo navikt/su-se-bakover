@@ -69,6 +69,7 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
                                             it.fra,
                                             it.til,
                                         )
+                                        SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KlarteIkkeHentePersonIPdl -> Feilresponser.klarteIkkeHentePerson
                                     }
                                 }.map {
                                     Resultat.json(HttpStatusCode.Created, serialize(it.toJson()))

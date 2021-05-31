@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -538,9 +539,40 @@ internal class SøknadsbehandlingServiceImpl(
             ).left()
 
         val bosituasjon = request.toBosituasjon(søknadsbehandling.periode, clock)
-        grunnlagService.lagreBosituasjongrunnlag(behandlingId = request.behandlingId, listOf(bosituasjon))
 
-        return søknadsbehandlingRepo.hent(request.behandlingId)!!.right()
+        return vilkårsvurder(
+            SøknadsbehandlingService.VilkårsvurderRequest(
+                behandlingId = søknadsbehandling.id,
+                behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon.copy(
+                    bosituasjon = Behandlingsinformasjon.Bosituasjon(
+                        ektefelle = when (bosituasjon) {
+                            is Grunnlag.Bosituasjon.Ufullstendig.HarEpsIkkeValgtUførFlyktning -> {
+                                val person = personService.hentPerson(bosituasjon.fnr).getOrHandle {
+                                    return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KlarteIkkeHentePersonIPdl.left()
+                                }
+                                Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle(
+                                    fnr = bosituasjon.fnr,
+                                    navn = person.navn,
+                                    kjønn = person.kjønn,
+                                    fødselsdato = person.fødselsdato,
+                                    adressebeskyttelse = person.adressebeskyttelse,
+                                    skjermet = person.skjermet,
+                                )
+                            }
+                            is Grunnlag.Bosituasjon.Ufullstendig.HarValgtEPSIkkeValgtEnsligVoksne -> Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle
+                        },
+                        delerBolig = null,
+                        ektemakeEllerSamboerUførFlyktning = null,
+                        begrunnelse = null,
+                    ),
+                ),
+            ),
+        ).mapLeft {
+            return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FantIkkeBehandling.left()
+        }.map {
+            grunnlagService.lagreBosituasjongrunnlag(behandlingId = request.behandlingId, listOf(bosituasjon))
+            return søknadsbehandlingRepo.hent(request.behandlingId)!!.right()
+        }
     }
 
     override fun fullførBosituasjongrunnlag(request: FullførBosituasjonRequest): Either<KunneIkkeFullføreBosituasjonGrunnlag, Søknadsbehandling> {
@@ -561,8 +593,49 @@ internal class SøknadsbehandlingServiceImpl(
                 return KunneIkkeFullføreBosituasjonGrunnlag.KlarteIkkeLageBosituasjon.left()
             }
 
-        grunnlagService.lagreBosituasjongrunnlag(behandlingId = request.behandlingId, listOf(bosituasjon))
-
-        return søknadsbehandlingRepo.hent(request.behandlingId)!!.right()
+        return vilkårsvurder(
+            SøknadsbehandlingService.VilkårsvurderRequest(
+                behandlingId = søknadsbehandling.id,
+                behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon.copy(
+                    bosituasjon = when (bosituasjon) {
+                        is Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen -> Behandlingsinformasjon.Bosituasjon(
+                            ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
+                            delerBolig = true,
+                            ektemakeEllerSamboerUførFlyktning = null,
+                            begrunnelse = request.begrunnelse
+                        )
+                        is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> Behandlingsinformasjon.Bosituasjon(
+                            ektefelle = søknadsbehandling.behandlingsinformasjon.ektefelle as Behandlingsinformasjon.EktefellePartnerSamboer,
+                            delerBolig = null,
+                            ektemakeEllerSamboerUførFlyktning = false,
+                            begrunnelse = request.begrunnelse
+                        )
+                        is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre -> Behandlingsinformasjon.Bosituasjon(
+                            ektefelle = søknadsbehandling.behandlingsinformasjon.ektefelle as Behandlingsinformasjon.EktefellePartnerSamboer,
+                            delerBolig = null,
+                            ektemakeEllerSamboerUførFlyktning = null,
+                            begrunnelse = request.begrunnelse
+                        )
+                        is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning -> Behandlingsinformasjon.Bosituasjon(
+                            ektefelle = søknadsbehandling.behandlingsinformasjon.ektefelle as Behandlingsinformasjon.EktefellePartnerSamboer,
+                            delerBolig = null,
+                            ektemakeEllerSamboerUførFlyktning = true,
+                            begrunnelse = request.begrunnelse
+                        )
+                        is Grunnlag.Bosituasjon.Fullstendig.Enslig -> Behandlingsinformasjon.Bosituasjon(
+                            ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
+                            delerBolig = false,
+                            ektemakeEllerSamboerUførFlyktning = null,
+                            begrunnelse = request.begrunnelse
+                        )
+                    }
+                ),
+            ),
+        ).mapLeft {
+            return KunneIkkeFullføreBosituasjonGrunnlag.FantIkkeBehandling.left()
+        }.map {
+            grunnlagService.lagreBosituasjongrunnlag(behandlingId = request.behandlingId, listOf(bosituasjon))
+            return søknadsbehandlingRepo.hent(request.behandlingId)!!.right()
+        }
     }
 }
