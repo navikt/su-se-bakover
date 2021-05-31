@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -254,6 +255,39 @@ internal class RevurderingServiceImpl(
 
         return LeggTilFradragsgrunnlagResponse(
             revurdering = revurderingRepo.hent(revurdering.id)!!,
+        ).right()
+    }
+
+    override fun leggTilBosituasjongrunnlag(request: LeggTilBosituasjongrunnlagRequest): Either<KunneIkkeLeggeTilBosituasjongrunnlag, LeggTilBosituasjongrunnlagResponse> {
+        val revurdering = revurderingRepo.hent(request.revurderingId)
+            ?: return KunneIkkeLeggeTilBosituasjongrunnlag.FantIkkeBehandling.left()
+
+        if (request.epsFnr == null && request.delerBolig == null) {
+            return KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigData.left()
+        }
+
+        val eps = if (request.epsFnr != null) personService.hentPerson(Fnr(request.epsFnr)).fold(
+            ifLeft = {
+                return KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeSlåOppEPS.left()
+            },
+            ifRight = {
+                it
+            },
+        ) else null
+
+        val bosituasjongrunnlag =
+            request.toDomain(periode = revurdering.periode, eps = eps, clock = clock).fold(
+                ifLeft = {
+                    return it.left()
+                },
+                ifRight = {
+                    it
+                },
+            )
+
+        grunnlagService.lagreBosituasjongrunnlag(revurdering.id, listOf(bosituasjongrunnlag))
+        return LeggTilBosituasjongrunnlagResponse(
+            revurdering = revurderingRepo.hent(request.revurderingId)!!,
         ).right()
     }
 

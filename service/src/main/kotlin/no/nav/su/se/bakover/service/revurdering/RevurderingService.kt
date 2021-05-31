@@ -1,8 +1,12 @@
 package no.nav.su.se.bakover.service.revurdering
 
 import arrow.core.Either
+import arrow.core.left
+import arrow.core.right
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -12,6 +16,9 @@ import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
+import org.slf4j.LoggerFactory
+import java.time.Clock
+import java.time.LocalDate
 import java.util.UUID
 import kotlin.reflect.KClass
 
@@ -71,26 +78,14 @@ interface RevurderingService {
         request: LeggTilFradragsgrunnlagRequest,
     ): Either<KunneIkkeLeggeTilFradragsgrunnlag, LeggTilFradragsgrunnlagResponse>
 
+    fun leggTilBosituasjongrunnlag(
+        request: LeggTilBosituasjongrunnlagRequest,
+    ): Either<KunneIkkeLeggeTilBosituasjongrunnlag, LeggTilBosituasjongrunnlagResponse>
+
     fun hentGjeldendeGrunnlagsdataOgVilkårsvurderinger(
         revurderingId: UUID,
     ): Either<KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger, HentGjeldendeGrunnlagsdataOgVilkårsvurderingerResponse>
 }
-
-sealed class KunneIkkeLeggeTilFradragsgrunnlag {
-    object FantIkkeBehandling : KunneIkkeLeggeTilFradragsgrunnlag()
-    object UgyldigStatus : KunneIkkeLeggeTilFradragsgrunnlag()
-    object FradragsgrunnlagUtenforRevurderingsperiode : KunneIkkeLeggeTilFradragsgrunnlag()
-    object UgyldigFradragstypeForGrunnlag : KunneIkkeLeggeTilFradragsgrunnlag()
-}
-
-data class LeggTilFradragsgrunnlagRequest(
-    val behandlingId: UUID,
-    val fradragsrunnlag: List<Grunnlag.Fradragsgrunnlag>,
-)
-
-data class LeggTilFradragsgrunnlagResponse(
-    val revurdering: Revurdering
-)
 
 sealed class FortsettEtterForhåndsvarslingRequest {
     abstract val revurderingId: UUID
@@ -251,6 +246,20 @@ sealed class KunneIkkeLeggeTilGrunnlag {
     object HeleBehandlingsperiodenMåHaVurderinger : KunneIkkeLeggeTilGrunnlag()
 }
 
+sealed class KunneIkkeLeggeTilFradragsgrunnlag {
+    object FantIkkeBehandling : KunneIkkeLeggeTilFradragsgrunnlag()
+    object UgyldigStatus : KunneIkkeLeggeTilFradragsgrunnlag()
+    object FradragsgrunnlagUtenforRevurderingsperiode : KunneIkkeLeggeTilFradragsgrunnlag()
+    object UgyldigFradragstypeForGrunnlag : KunneIkkeLeggeTilFradragsgrunnlag()
+}
+
+sealed class KunneIkkeLeggeTilBosituasjongrunnlag {
+    object FantIkkeBehandling : KunneIkkeLeggeTilBosituasjongrunnlag()
+    object UgyldigData : KunneIkkeLeggeTilBosituasjongrunnlag()
+    object KunneIkkeSlåOppEPS : KunneIkkeLeggeTilBosituasjongrunnlag()
+    object EpsAlderErNull : KunneIkkeLeggeTilBosituasjongrunnlag()
+}
+
 sealed class KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger {
     object FantIkkeBehandling : KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger()
     object FantIkkeSak : KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger()
@@ -258,9 +267,82 @@ sealed class KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger {
 
 data class HentGjeldendeGrunnlagsdataOgVilkårsvurderingerResponse(
     val grunnlagsdata: Grunnlagsdata,
-    val vilkårsvurderinger: Vilkårsvurderinger
+    val vilkårsvurderinger: Vilkårsvurderinger,
 )
 
 data class LeggTilUføregrunnlagResponse(
     val revurdering: Revurdering,
 )
+
+data class LeggTilFradragsgrunnlagResponse(
+    val revurdering: Revurdering,
+)
+
+data class LeggTilBosituasjongrunnlagResponse(
+    val revurdering: Revurdering,
+)
+
+data class LeggTilFradragsgrunnlagRequest(
+    val behandlingId: UUID,
+    val fradragsrunnlag: List<Grunnlag.Fradragsgrunnlag>,
+)
+
+data class LeggTilBosituasjongrunnlagRequest(
+    val revurderingId: UUID,
+    val epsFnr: String?,
+    val delerBolig: Boolean?,
+    val ektemakeEllerSamboerUførFlyktning: Boolean?,
+) {
+    fun toDomain(
+        periode: Periode,
+        eps: Person?,
+        clock: Clock,
+    ): Either<KunneIkkeLeggeTilBosituasjongrunnlag, Grunnlag.Bosituasjon.Fullstendig> {
+        val log = LoggerFactory.getLogger(this::class.java)
+
+        if (eps != null) {
+            val epsAlder = if (eps.getAlder(LocalDate.now()) == null) {
+                log.error("Alder på EPS er null. Denne har i tidligere PDL kall hatt en verdi")
+                return KunneIkkeLeggeTilBosituasjongrunnlag.EpsAlderErNull.left()
+            } else eps.getAlder(LocalDate.now())!!
+
+            eps.getAlder(LocalDate.now()) ?: return KunneIkkeLeggeTilBosituasjongrunnlag.EpsAlderErNull.left()
+            return when {
+                epsAlder >= 67 -> Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre(
+                    id = UUID.randomUUID(),
+                    opprettet = Tidspunkt.now(clock),
+                    periode = periode,
+                    fnr = eps.ident.fnr,
+                ).right()
+                else -> when (ektemakeEllerSamboerUførFlyktning) {
+                    true -> Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
+                        id = UUID.randomUUID(),
+                        opprettet = Tidspunkt.now(clock),
+                        periode = periode,
+                        fnr = eps.ident.fnr,
+                    ).right()
+                    false -> Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
+                        id = UUID.randomUUID(),
+                        opprettet = Tidspunkt.now(clock),
+                        periode = periode,
+                        fnr = eps.ident.fnr,
+                    ).right()
+                    null -> return KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigData.left()
+                }
+            }
+        }
+
+        if (delerBolig != null) {
+            return when (delerBolig) {
+                true -> Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen(
+                    id = UUID.randomUUID(), opprettet = Tidspunkt.now(clock), periode = periode,
+                ).right()
+                false -> Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                    id = UUID.randomUUID(), opprettet = Tidspunkt.now(clock), periode = periode,
+                ).right()
+            }
+        }
+
+        return KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigData.left()
+    }
+}

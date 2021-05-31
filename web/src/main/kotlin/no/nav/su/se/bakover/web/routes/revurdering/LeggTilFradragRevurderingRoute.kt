@@ -28,7 +28,6 @@ import no.nav.su.se.bakover.web.withSakId
 
 internal fun Route.leggTilFradragRevurdering(
     revurderingService: RevurderingService,
-
 ) {
     data class BeregningForRevurderingBody(
         val fradrag: List<FradragJson>,
