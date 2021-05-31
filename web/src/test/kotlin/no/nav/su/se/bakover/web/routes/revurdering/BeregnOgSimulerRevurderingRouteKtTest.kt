@@ -142,11 +142,11 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                             periode = TestBeregning.periode,
                             begrunnelse = null,
 
-                        )
-                    )
-                )
+                        ),
+                    ),
+                ),
             ),
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt))
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         ).beregn().orNull()!!
 
         val simulertRevurdering = when (beregnetRevurdering) {
@@ -182,14 +182,15 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                 setBody(validBody)
             }.apply {
                 response.status() shouldBe HttpStatusCode.Created
-                val actualResponse = objectMapper.readValue<SimulertRevurderingJson>(response.content!!)
+                val actualResponse = objectMapper.readValue<Map<String, Any>>(response.content!!)
+                val revurdering = objectMapper.readValue<SimulertRevurderingJson>(objectMapper.writeValueAsString(actualResponse["revurdering"]))
                 verify(revurderingServiceMock).beregnOgSimuler(
                     argThat { it shouldBe simulertRevurdering.id },
                     argThat { it shouldBe NavIdentBruker.Saksbehandler("Z990Lokal") },
                 )
                 verifyNoMoreInteractions(revurderingServiceMock)
-                actualResponse.id shouldBe simulertRevurdering.id.toString()
-                actualResponse.status shouldBe RevurderingsStatus.SIMULERT_INNVILGET
+                revurdering.id shouldBe simulertRevurdering.id.toString()
+                revurdering.status shouldBe RevurderingsStatus.SIMULERT_INNVILGET
             }
         }
     }

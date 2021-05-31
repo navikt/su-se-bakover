@@ -10,6 +10,7 @@ import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.revurdering.SaksbehandlingsutfallSomIkkeStøttes
 import no.nav.su.se.bakover.service.revurdering.BeregnOgSimulerResponse
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering.FantIkkeRevurdering
@@ -18,6 +19,7 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurd
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering.UgyldigTilstand
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.AuditLogEvent
+import no.nav.su.se.bakover.web.ErrorJson
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.errorJson
@@ -59,8 +61,33 @@ internal fun Route.beregnOgSimulerRevurdering(
     }
 }
 
-internal fun BeregnOgSimulerResponse.toJson(): RevurderingJson {
-    return this.revurdering.toJson()
+data class BeregnOgSimulerResponseJson(
+    val revurdering: RevurderingJson,
+    val feilmeldinger: List<ErrorJson>,
+)
+
+internal fun BeregnOgSimulerResponse.toJson() = BeregnOgSimulerResponseJson(
+    revurdering = revurdering.toJson(),
+    feilmeldinger = feilmeldinger.map { it.toJson() },
+)
+
+internal fun SaksbehandlingsutfallSomIkkeStøttes.toJson(): ErrorJson = when (this) {
+    SaksbehandlingsutfallSomIkkeStøttes.DelvisOpphør -> ErrorJson(
+        message = "Delvis opphør støttes ikke. Revurderingen må gjennomføres i flere steg.",
+        code = "delvis_opphør",
+    )
+    SaksbehandlingsutfallSomIkkeStøttes.OpphørAvFlereVilkår -> ErrorJson(
+        message = "Opphør av flere vilkår i kombinasjon støttes ikke",
+        code = "opphør_av_flere_vilkår",
+    )
+    SaksbehandlingsutfallSomIkkeStøttes.OpphørErIkkeFraFørsteMåned -> ErrorJson(
+        message = "Opphørsdato er ikke lik fra-dato for revurderingsperioden. Revurdering må gjennomføres i flere steg.",
+        code = "opphør_ikke_tidligste_dato",
+    )
+    SaksbehandlingsutfallSomIkkeStøttes.OpphørOgAndreEndringerIKombinasjon -> ErrorJson(
+        message = "Opphør i kombinasjon med andre endringer støttes ikke. Revurdering må gjennomføres i flere steg.",
+        code = "opphør_og_andre_endringer_i_kombinasjon",
+    )
 }
 
 private fun KunneIkkeBeregneOgSimulereRevurdering.tilResultat(): Resultat {

@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
+import no.nav.su.se.bakover.domain.revurdering.SaksbehandlingsutfallSomIkkeStøttes
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
@@ -94,6 +95,7 @@ data class LeggTilFradragsgrunnlagResponse(
 
 data class BeregnOgSimulerResponse(
     val revurdering: Revurdering,
+    val feilmeldinger: List<SaksbehandlingsutfallSomIkkeStøttes> = emptyList()
 )
 
 sealed class FortsettEtterForhåndsvarslingRequest {

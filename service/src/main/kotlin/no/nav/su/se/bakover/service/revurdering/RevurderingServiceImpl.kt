@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Validator.valider
@@ -26,6 +27,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeslutningEtterForhåndsvarsling
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
+import no.nav.su.se.bakover.domain.revurdering.IdentifiserSaksbehandlingsutfallSomIkkeStøttes
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.KopierGjeldendeGrunnlagsdataOgVilkårsvurderinger
@@ -41,6 +43,7 @@ import no.nav.su.se.bakover.domain.revurdering.erKlarForAttestering
 import no.nav.su.se.bakover.domain.revurdering.medFritekst
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vilkår.Resultat
+import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.visitor.LagBrevRequestVisitor
 import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
@@ -364,21 +367,26 @@ internal class RevurderingServiceImpl(
     ): Either<KunneIkkeBeregneOgSimulereRevurdering, BeregnOgSimulerResponse> {
         return when (val originalRevurdering = revurderingRepo.hent(revurderingId)) {
             is BeregnetRevurdering, is OpprettetRevurdering, is SimulertRevurdering, is UnderkjentRevurdering -> {
-                when (
-                    val beregnetRevurdering = originalRevurdering.beregn()
-                        .getOrHandle {
-                            return when (it) {
-                                is Revurdering.KunneIkkeBeregneRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden -> KunneIkkeBeregneOgSimulereRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden
-                                is Revurdering.KunneIkkeBeregneRevurdering.UfullstendigBehandlingsinformasjon -> KunneIkkeBeregneOgSimulereRevurdering.UfullstendigBehandlingsinformasjon
-                                is Revurdering.KunneIkkeBeregneRevurdering.UgyldigBeregningsgrunnlag -> KunneIkkeBeregneOgSimulereRevurdering.UgyldigBeregningsgrunnlag(
-                                    it.reason,
-                                )
-                            }.left()
-                        }
-                ) {
+                val beregnetRevurdering = originalRevurdering.beregn()
+                    .getOrHandle {
+                        return when (it) {
+                            is Revurdering.KunneIkkeBeregneRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden -> KunneIkkeBeregneOgSimulereRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden
+                            is Revurdering.KunneIkkeBeregneRevurdering.UfullstendigBehandlingsinformasjon -> KunneIkkeBeregneOgSimulereRevurdering.UfullstendigBehandlingsinformasjon
+                            is Revurdering.KunneIkkeBeregneRevurdering.UgyldigBeregningsgrunnlag -> KunneIkkeBeregneOgSimulereRevurdering.UgyldigBeregningsgrunnlag(
+                                it.reason,
+                            )
+                        }.left()
+                    }
+                val feilmeldinger = identifiserUtfallSomIkkeSøttes(
+                    vilkårsvurderinger = beregnetRevurdering.vilkårsvurderinger,
+                    tidligereBeregning = beregnetRevurdering.tilRevurdering.beregning,
+                    nyBeregning = beregnetRevurdering.beregning,
+                )
+
+                when (beregnetRevurdering) {
                     is BeregnetRevurdering.IngenEndring -> {
                         revurderingRepo.lagre(beregnetRevurdering)
-                        BeregnOgSimulerResponse(beregnetRevurdering).right()
+                        BeregnOgSimulerResponse(beregnetRevurdering, feilmeldinger).right()
                     }
                     is BeregnetRevurdering.Innvilget -> {
                         utbetalingService.simulerUtbetaling(
@@ -390,7 +398,7 @@ internal class RevurderingServiceImpl(
                         }.map {
                             val simulert = beregnetRevurdering.toSimulert(it.simulering)
                             revurderingRepo.lagre(simulert)
-                            BeregnOgSimulerResponse(simulert)
+                            BeregnOgSimulerResponse(simulert, feilmeldinger)
                         }
                     }
 
@@ -404,7 +412,7 @@ internal class RevurderingServiceImpl(
                         }.map {
                             val simulert = beregnetRevurdering.toSimulert(it.simulering)
                             revurderingRepo.lagre(simulert)
-                            BeregnOgSimulerResponse(simulert)
+                            BeregnOgSimulerResponse(simulert, feilmeldinger)
                         }
                     }
                 }
@@ -416,6 +424,19 @@ internal class RevurderingServiceImpl(
             ).left()
         }
     }
+
+    private fun identifiserUtfallSomIkkeSøttes(
+        vilkårsvurderinger: Vilkårsvurderinger,
+        tidligereBeregning: Beregning,
+        nyBeregning: Beregning,
+    ) = IdentifiserSaksbehandlingsutfallSomIkkeStøttes(
+        vilkårsvurderinger = vilkårsvurderinger,
+        tidligereBeregning = tidligereBeregning,
+        nyBeregning = nyBeregning,
+    ).resultat.fold(
+        ifLeft = { it },
+        ifRight = { emptySet() },
+    ).toList()
 
     override fun forhåndsvarsleEllerSendTilAttestering(
         revurderingId: UUID,
