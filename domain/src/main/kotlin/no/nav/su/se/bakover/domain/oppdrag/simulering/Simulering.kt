@@ -15,6 +15,8 @@ data class Simulering(
     fun bruttoYtelse() = periodeList
         .sumOf { it.bruttoYtelse() }
 
+    fun harFeilutbetalinger() = TolketSimulering(this).simulertePerioder.any { it.harFeilutbetalinger() }
+
     override fun equals(other: Any?) = other is Simulering &&
         other.gjelderId == this.gjelderId &&
         other.gjelderNavn == this.gjelderNavn &&

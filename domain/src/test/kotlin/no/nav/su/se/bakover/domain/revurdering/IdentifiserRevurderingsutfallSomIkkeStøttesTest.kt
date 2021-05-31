@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import org.junit.jupiter.api.Test
 
-internal class IdentifiserSaksbehandlingsutfallSomIkkeStøttesTest {
+internal class IdentifiserRevurderingsutfallSomIkkeStøttesTest {
 
     @Test
     fun `identifiserer at opphør ikke skjer fra samme dato som den første i beregningen`() {
@@ -41,7 +41,7 @@ internal class IdentifiserSaksbehandlingsutfallSomIkkeStøttesTest {
             tidligereBeregning = tidligereBeregningMock,
             nyBeregning = nyBeregningMock,
         ).resultat shouldBeLeft setOf(
-            SaksbehandlingsutfallSomIkkeStøttes.OpphørErIkkeFraFørsteMåned,
+            RevurderingsutfallSomIkkeStøttes.OpphørErIkkeFraFørsteMåned,
         )
     }
 
@@ -69,7 +69,7 @@ internal class IdentifiserSaksbehandlingsutfallSomIkkeStøttesTest {
             tidligereBeregning = tidligereBeregningMock,
             nyBeregning = nyBeregningMock,
         ).resultat shouldBeLeft setOf(
-            SaksbehandlingsutfallSomIkkeStøttes.OpphørAvFlereVilkår,
+            RevurderingsutfallSomIkkeStøttes.OpphørAvFlereVilkår,
         )
     }
 
@@ -102,8 +102,8 @@ internal class IdentifiserSaksbehandlingsutfallSomIkkeStøttesTest {
             tidligereBeregning = tidligereBeregningMock,
             nyBeregning = nyBeregningMock,
         ).resultat shouldBeLeft setOf(
-            SaksbehandlingsutfallSomIkkeStøttes.OpphørErIkkeFraFørsteMåned,
-            SaksbehandlingsutfallSomIkkeStøttes.OpphørOgAndreEndringerIKombinasjon,
+            RevurderingsutfallSomIkkeStøttes.OpphørErIkkeFraFørsteMåned,
+            RevurderingsutfallSomIkkeStøttes.OpphørOgAndreEndringerIKombinasjon,
         )
     }
 
@@ -146,8 +146,8 @@ internal class IdentifiserSaksbehandlingsutfallSomIkkeStøttesTest {
             tidligereBeregning = tidligereBeregningMock,
             nyBeregning = nyBeregningMock,
         ).resultat shouldBeLeft setOf(
-            SaksbehandlingsutfallSomIkkeStøttes.OpphørOgAndreEndringerIKombinasjon,
-            SaksbehandlingsutfallSomIkkeStøttes.DelvisOpphør,
+            RevurderingsutfallSomIkkeStøttes.OpphørOgAndreEndringerIKombinasjon,
+            RevurderingsutfallSomIkkeStøttes.DelvisOpphør,
         )
     }
 
@@ -190,8 +190,8 @@ internal class IdentifiserSaksbehandlingsutfallSomIkkeStøttesTest {
             tidligereBeregning = tidligereBeregningMock,
             nyBeregning = nyBeregningMock,
         ).resultat shouldBeLeft setOf(
-            SaksbehandlingsutfallSomIkkeStøttes.OpphørOgAndreEndringerIKombinasjon,
-            SaksbehandlingsutfallSomIkkeStøttes.DelvisOpphør,
+            RevurderingsutfallSomIkkeStøttes.OpphørOgAndreEndringerIKombinasjon,
+            RevurderingsutfallSomIkkeStøttes.DelvisOpphør,
         )
     }
 
@@ -275,7 +275,7 @@ internal class IdentifiserSaksbehandlingsutfallSomIkkeStøttesTest {
             tidligereBeregning = tidligereBeregningMock,
             nyBeregning = nyBeregningMock,
         ).resultat shouldBeLeft setOf(
-            SaksbehandlingsutfallSomIkkeStøttes.DelvisOpphør,
+            RevurderingsutfallSomIkkeStøttes.DelvisOpphør,
         )
     }
 
@@ -318,7 +318,7 @@ internal class IdentifiserSaksbehandlingsutfallSomIkkeStøttesTest {
             tidligereBeregning = tidligereBeregningMock,
             nyBeregning = nyBeregningMock,
         ).resultat shouldBeLeft setOf(
-            SaksbehandlingsutfallSomIkkeStøttes.DelvisOpphør,
+            RevurderingsutfallSomIkkeStøttes.DelvisOpphør,
         )
     }
 

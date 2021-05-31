@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
-import no.nav.su.se.bakover.domain.revurdering.SaksbehandlingsutfallSomIkkeStøttes
+import no.nav.su.se.bakover.domain.revurdering.RevurderingsutfallSomIkkeStøttes
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
@@ -95,7 +95,7 @@ data class LeggTilFradragsgrunnlagResponse(
 
 data class BeregnOgSimulerResponse(
     val revurdering: Revurdering,
-    val feilmeldinger: List<SaksbehandlingsutfallSomIkkeStøttes> = emptyList()
+    val feilmeldinger: List<RevurderingsutfallSomIkkeStøttes> = emptyList()
 )
 
 sealed class FortsettEtterForhåndsvarslingRequest {
@@ -213,6 +213,7 @@ sealed class KunneIkkeSendeRevurderingTilAttestering {
 
     object ManglerBeslutningPåForhåndsvarsel : KunneIkkeSendeRevurderingTilAttestering()
     object FeilutbetalingStøttesIkke : KunneIkkeSendeRevurderingTilAttestering()
+    data class RevurderingsutfallStøttesIkke(val feilmeldinger: List<RevurderingsutfallSomIkkeStøttes>) : KunneIkkeSendeRevurderingTilAttestering()
 }
 
 sealed class KunneIkkeIverksetteRevurdering {

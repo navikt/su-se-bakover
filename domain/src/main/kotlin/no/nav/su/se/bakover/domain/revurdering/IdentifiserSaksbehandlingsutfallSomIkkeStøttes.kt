@@ -13,34 +13,34 @@ data class IdentifiserSaksbehandlingsutfallSomIkkeStøttes(
     val tidligereBeregning: Beregning,
     val nyBeregning: Beregning,
 ) {
-    val resultat: Either<Set<SaksbehandlingsutfallSomIkkeStøttes>, Unit> = VurderOpphørVedRevurdering(vilkårsvurderinger, nyBeregning).resultat.let { opphørVedRevurdering ->
-        val utfall = mutableSetOf<SaksbehandlingsutfallSomIkkeStøttes>()
+    val resultat: Either<Set<RevurderingsutfallSomIkkeStøttes>, Unit> = VurderOpphørVedRevurdering(vilkårsvurderinger, nyBeregning).resultat.let { opphørVedRevurdering ->
+        val utfall = mutableSetOf<RevurderingsutfallSomIkkeStøttes>()
         when (opphørVedRevurdering) {
             is OpphørVedRevurdering.Ja -> {
                 if (opphørVedRevurdering.grunn.count() > 1) {
-                    utfall.add(SaksbehandlingsutfallSomIkkeStøttes.OpphørAvFlereVilkår)
+                    utfall.add(RevurderingsutfallSomIkkeStøttes.OpphørAvFlereVilkår)
                 }
                 if (!opphørVedRevurdering.opphørsdatoErTidligesteDatoIRevurdering()) {
-                    utfall.add(SaksbehandlingsutfallSomIkkeStøttes.OpphørErIkkeFraFørsteMåned)
+                    utfall.add(RevurderingsutfallSomIkkeStøttes.OpphørErIkkeFraFørsteMåned)
                 }
                 if (setOf(Opphørsgrunn.SU_UNDER_MINSTEGRENSE).containsAll(opphørVedRevurdering.grunn)) {
                     if (harAndreBeløpsendringerEnnMånederUnderMinstegrense()) {
-                        utfall.add(SaksbehandlingsutfallSomIkkeStøttes.OpphørOgAndreEndringerIKombinasjon)
+                        utfall.add(RevurderingsutfallSomIkkeStøttes.OpphørOgAndreEndringerIKombinasjon)
                     }
                     if (!fullstendigOpphør()) {
-                        utfall.add(SaksbehandlingsutfallSomIkkeStøttes.DelvisOpphør)
+                        utfall.add(RevurderingsutfallSomIkkeStøttes.DelvisOpphør)
                     }
                 }
                 if (setOf(Opphørsgrunn.FOR_HØY_INNTEKT).containsAll(opphørVedRevurdering.grunn)) {
                     if (harAndreBeløpsendringerEnnMånederMedBeløp0()) {
-                        utfall.add(SaksbehandlingsutfallSomIkkeStøttes.OpphørOgAndreEndringerIKombinasjon)
+                        utfall.add(RevurderingsutfallSomIkkeStøttes.OpphørOgAndreEndringerIKombinasjon)
                     }
                     if (!fullstendigOpphør()) {
-                        utfall.add(SaksbehandlingsutfallSomIkkeStøttes.DelvisOpphør)
+                        utfall.add(RevurderingsutfallSomIkkeStøttes.DelvisOpphør)
                     }
                 }
                 if (setOf(Opphørsgrunn.UFØRHET).containsAll(opphørVedRevurdering.grunn) && harBeløpsendringer(nyBeregning.getMånedsberegninger())) {
-                    utfall.add(SaksbehandlingsutfallSomIkkeStøttes.OpphørOgAndreEndringerIKombinasjon)
+                    utfall.add(RevurderingsutfallSomIkkeStøttes.OpphørOgAndreEndringerIKombinasjon)
                 }
                 if (utfall.isEmpty()) Unit.right() else utfall.left()
             }
@@ -71,9 +71,9 @@ data class IdentifiserSaksbehandlingsutfallSomIkkeStøttes(
     }
 }
 
-sealed class SaksbehandlingsutfallSomIkkeStøttes {
-    object OpphørOgAndreEndringerIKombinasjon : SaksbehandlingsutfallSomIkkeStøttes()
-    object OpphørErIkkeFraFørsteMåned : SaksbehandlingsutfallSomIkkeStøttes()
-    object DelvisOpphør : SaksbehandlingsutfallSomIkkeStøttes()
-    object OpphørAvFlereVilkår : SaksbehandlingsutfallSomIkkeStøttes()
+sealed class RevurderingsutfallSomIkkeStøttes {
+    object OpphørOgAndreEndringerIKombinasjon : RevurderingsutfallSomIkkeStøttes()
+    object OpphørErIkkeFraFørsteMåned : RevurderingsutfallSomIkkeStøttes()
+    object DelvisOpphør : RevurderingsutfallSomIkkeStøttes()
+    object OpphørAvFlereVilkår : RevurderingsutfallSomIkkeStøttes()
 }

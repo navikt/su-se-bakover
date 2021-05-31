@@ -12,15 +12,16 @@ import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
+import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
-import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
-import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
+import no.nav.su.se.bakover.domain.revurdering.RevurderingsutfallSomIkkeStøttes
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.beregning.TestBeregningSomGirOpphør
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.Event
@@ -28,6 +29,7 @@ import no.nav.su.se.bakover.service.statistikk.EventObserver
 import org.junit.jupiter.api.Test
 
 class RevurderingSendTilAttesteringTest {
+
     @Test
     fun `sender til attestering`() {
         val simulertRevurdering = RevurderingTestUtils.simulertRevurderingInnvilget
@@ -117,12 +119,8 @@ class RevurderingSendTilAttesteringTest {
 
     @Test
     fun `sender ikke til attestering hvis henting av aktørId feiler`() {
-        val simulertRevurdering = mock<SimulertRevurdering> {
-            on { fnr } doReturn RevurderingTestUtils.fnr
-            on { forhåndsvarsel } doReturn Forhåndsvarsel.IngenForhåndsvarsel
-        }
         val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(RevurderingTestUtils.revurderingId) } doReturn simulertRevurdering
+            on { hent(RevurderingTestUtils.revurderingId) } doReturn RevurderingTestUtils.simulertRevurderingInnvilget
         }
         val personServiceMock = mock<PersonService> {
             on { hentAktørId(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
@@ -150,14 +148,8 @@ class RevurderingSendTilAttesteringTest {
 
     @Test
     fun `sender ikke til attestering hvis oppretting av oppgave feiler`() {
-        val simulertRevurdering = mock<SimulertRevurdering> {
-            on { fnr } doReturn RevurderingTestUtils.fnr
-            on { saksnummer } doReturn RevurderingTestUtils.saksnummer
-            on { forhåndsvarsel } doReturn Forhåndsvarsel.IngenForhåndsvarsel
-        }
         val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(RevurderingTestUtils.revurderingId) } doReturn simulertRevurdering
-            on { hentEventuellTidligereAttestering(any()) } doReturn mock()
+            on { hent(RevurderingTestUtils.revurderingId) } doReturn RevurderingTestUtils.simulertRevurderingInnvilget
         }
         val personServiceMock = mock<PersonService> {
             on { hentAktørId(any()) } doReturn RevurderingTestUtils.aktørId.right()
@@ -192,11 +184,13 @@ class RevurderingSendTilAttesteringTest {
 
     @Test
     fun `kan ikke sende revurdering med simulert feilutbetaling til attestering`() {
-        val simulertRevurdering = mock<SimulertRevurdering> {
-            on { harSimuleringFeilutbetaling() } doReturn true
+        val simuleringMock = mock<Simulering> {
+            on { harFeilutbetalinger() } doReturn true
         }
         val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(RevurderingTestUtils.revurderingId) } doReturn simulertRevurdering
+            on { hent(RevurderingTestUtils.revurderingId) } doReturn RevurderingTestUtils.simulertRevurderingInnvilget.copy(
+                simulering = simuleringMock,
+            )
         }
 
         val actual = RevurderingTestUtils.createRevurderingService(
@@ -211,6 +205,35 @@ class RevurderingSendTilAttesteringTest {
         )
 
         actual shouldBe KunneIkkeSendeRevurderingTilAttestering.FeilutbetalingStøttesIkke.left()
+
+        verify(revurderingRepoMock, never()).lagre(any())
+    }
+
+    @Test
+    fun `kan ikke sende revurdering med utfall som ikke støttes til attestering`() {
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(RevurderingTestUtils.revurderingId) } doReturn RevurderingTestUtils.simulertRevurderingInnvilget.copy(
+                beregning = TestBeregningSomGirOpphør,
+            )
+        }
+
+        val actual = RevurderingTestUtils.createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+        ).sendTilAttestering(
+            SendTilAttesteringRequest(
+                revurderingId = RevurderingTestUtils.revurderingId,
+                saksbehandler = RevurderingTestUtils.saksbehandler,
+                fritekstTilBrev = "Fritekst",
+                skalFøreTilBrevutsending = true,
+            ),
+        )
+
+        actual shouldBe KunneIkkeSendeRevurderingTilAttestering.RevurderingsutfallStøttesIkke(
+            listOf(
+                RevurderingsutfallSomIkkeStøttes.OpphørErIkkeFraFørsteMåned,
+                RevurderingsutfallSomIkkeStøttes.OpphørOgAndreEndringerIKombinasjon,
+            ),
+        ).left()
 
         verify(revurderingRepoMock, never()).lagre(any())
     }

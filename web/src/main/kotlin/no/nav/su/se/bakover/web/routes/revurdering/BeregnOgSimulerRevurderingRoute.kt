@@ -10,7 +10,7 @@ import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
-import no.nav.su.se.bakover.domain.revurdering.SaksbehandlingsutfallSomIkkeStøttes
+import no.nav.su.se.bakover.domain.revurdering.RevurderingsutfallSomIkkeStøttes
 import no.nav.su.se.bakover.service.revurdering.BeregnOgSimulerResponse
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering.FantIkkeRevurdering
@@ -71,20 +71,20 @@ internal fun BeregnOgSimulerResponse.toJson() = BeregnOgSimulerResponseJson(
     feilmeldinger = feilmeldinger.map { it.toJson() },
 )
 
-internal fun SaksbehandlingsutfallSomIkkeStøttes.toJson(): ErrorJson = when (this) {
-    SaksbehandlingsutfallSomIkkeStøttes.DelvisOpphør -> ErrorJson(
+internal fun RevurderingsutfallSomIkkeStøttes.toJson(): ErrorJson = when (this) {
+    RevurderingsutfallSomIkkeStøttes.DelvisOpphør -> ErrorJson(
         message = "Delvis opphør støttes ikke. Revurderingen må gjennomføres i flere steg.",
         code = "delvis_opphør",
     )
-    SaksbehandlingsutfallSomIkkeStøttes.OpphørAvFlereVilkår -> ErrorJson(
+    RevurderingsutfallSomIkkeStøttes.OpphørAvFlereVilkår -> ErrorJson(
         message = "Opphør av flere vilkår i kombinasjon støttes ikke",
         code = "opphør_av_flere_vilkår",
     )
-    SaksbehandlingsutfallSomIkkeStøttes.OpphørErIkkeFraFørsteMåned -> ErrorJson(
+    RevurderingsutfallSomIkkeStøttes.OpphørErIkkeFraFørsteMåned -> ErrorJson(
         message = "Opphørsdato er ikke lik fra-dato for revurderingsperioden. Revurdering må gjennomføres i flere steg.",
         code = "opphør_ikke_tidligste_dato",
     )
-    SaksbehandlingsutfallSomIkkeStøttes.OpphørOgAndreEndringerIKombinasjon -> ErrorJson(
+    RevurderingsutfallSomIkkeStøttes.OpphørOgAndreEndringerIKombinasjon -> ErrorJson(
         message = "Opphør i kombinasjon med andre endringer støttes ikke. Revurdering må gjennomføres i flere steg.",
         code = "opphør_og_andre_endringer_i_kombinasjon",
     )

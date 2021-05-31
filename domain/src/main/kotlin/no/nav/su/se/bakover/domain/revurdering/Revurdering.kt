@@ -456,7 +456,7 @@ sealed class SimulertRevurdering : Revurdering() {
     abstract override val grunnlagsdata: Grunnlagsdata
 
     abstract override fun accept(visitor: RevurderingVisitor)
-    fun harSimuleringFeilutbetaling() = TolketSimulering(simulering).simulertePerioder.any { it.harFeilutbetalinger() }
+    fun harSimuleringFeilutbetaling() = simulering.harFeilutbetalinger()
 
     data class Innvilget(
         override val id: UUID,
