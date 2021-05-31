@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
-import arrow.core.Nel
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
@@ -201,7 +201,7 @@ internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
 
     private fun createVilkårsvurdering(periode: Periode, vilkårsvurderingId: UUID, grunnlagId: UUID) = Vilkårsvurderinger(
         uføre = Vilkår.Vurdert.Uførhet.create(
-            vurderingsperioder = Nel.of(
+            vurderingsperioder = nonEmptyListOf(
                 Vurderingsperiode.Uføre.create(
                     id = vilkårsvurderingId,
                     opprettet = fixedTidspunkt,

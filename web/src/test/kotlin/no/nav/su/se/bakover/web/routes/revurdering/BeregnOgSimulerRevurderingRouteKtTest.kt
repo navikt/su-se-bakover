@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
-import arrow.core.Nel
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.nhaarman.mockitokotlin2.any
@@ -134,18 +134,17 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Vurdert.Uførhet.create(
-                    vurderingsperioder = Nel.of(
+                    vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             resultat = Resultat.Innvilget,
                             grunnlag = uføregrunnlag,
                             periode = TestBeregning.periode,
                             begrunnelse = null,
-
-                        )
-                    )
-                )
+                        ),
+                    ),
+                ),
             ),
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt))
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         ).beregn().orNull()!!
 
         val simulertRevurdering = when (beregnetRevurdering) {

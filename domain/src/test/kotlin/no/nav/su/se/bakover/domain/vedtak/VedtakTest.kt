@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.vedtak
 
-import arrow.core.Nel
+import arrow.core.nonEmptyListOf
 import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -130,7 +130,7 @@ internal class VedtakTest {
             grunnlagsdata = Grunnlagsdata(
                 listOf(u1),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger(uføre = Vilkår.Vurdert.Uførhet.create(Nel.of(v1))),
+            vilkårsvurderinger = Vilkårsvurderinger(uføre = Vilkår.Vurdert.Uførhet.create(nonEmptyListOf(v1))),
         )
 
         val p2 = Periode.create(1.mai(2021), 31.desember(2021))
@@ -154,7 +154,7 @@ internal class VedtakTest {
             grunnlagsdata = Grunnlagsdata(
                 listOf(u2),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger(uføre = Vilkår.Vurdert.Uførhet.create(Nel.of(v2))),
+            vilkårsvurderinger = Vilkårsvurderinger(uføre = Vilkår.Vurdert.Uførhet.create(nonEmptyListOf(v2))),
         )
         listOf(a, b).lagTidslinje(Periode.create(1.januar(2021), 31.desember(2021))).let { tidslinje ->
             tidslinje[0].let { vedtakPåTidslinje ->
@@ -247,7 +247,7 @@ internal class VedtakTest {
                     ),
                 ),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger(uføre = Vilkår.Vurdert.Uførhet.create(Nel.of(v1))),
+            vilkårsvurderinger = Vilkårsvurderinger(uføre = Vilkår.Vurdert.Uførhet.create(nonEmptyListOf(v1))),
         )
         val b = lagVedtak(
             rekkefølge = 2,

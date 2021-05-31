@@ -23,7 +23,6 @@ import io.ktor.request.path
 import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.routing
-import io.ktor.util.KtorExperimentalAPI
 import no.finn.unleash.Unleash
 import no.nav.su.se.bakover.client.Clients
 import no.nav.su.se.bakover.client.ProdClientsBuilder
@@ -63,12 +62,12 @@ import no.nav.su.se.bakover.web.routes.installMetrics
 import no.nav.su.se.bakover.web.routes.me.meRoutes
 import no.nav.su.se.bakover.web.routes.naisPaths
 import no.nav.su.se.bakover.web.routes.naisRoutes
-import no.nav.su.se.bakover.web.routes.overordnetSøknadsbehandligRoutes
 import no.nav.su.se.bakover.web.routes.person.personPath
 import no.nav.su.se.bakover.web.routes.person.personRoutes
 import no.nav.su.se.bakover.web.routes.revurdering.revurderingRoutes
 import no.nav.su.se.bakover.web.routes.sak.sakRoutes
 import no.nav.su.se.bakover.web.routes.søknad.søknadRoutes
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.overordnetSøknadsbehandligRoutes
 import no.nav.su.se.bakover.web.routes.togglePaths
 import no.nav.su.se.bakover.web.routes.toggleRoutes
 import no.nav.su.se.bakover.web.routes.utbetaling.gjenoppta.gjenopptaUtbetalingRoutes
@@ -88,7 +87,7 @@ fun main(args: Array<String>) {
     io.ktor.server.netty.EngineMain.main(args)
 }
 
-@OptIn(io.ktor.locations.KtorExperimentalLocationsAPI::class, KtorExperimentalAPI::class)
+@OptIn(io.ktor.locations.KtorExperimentalLocationsAPI::class)
 internal fun Application.susebakover(
     clock: Clock = Clock.systemUTC(),
     behandlingMetrics: BehandlingMetrics = BehandlingMicrometerMetrics(),

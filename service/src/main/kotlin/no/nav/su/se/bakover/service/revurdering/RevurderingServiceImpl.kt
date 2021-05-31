@@ -782,17 +782,17 @@ internal class RevurderingServiceImpl(
             .mapLeft { FortsettEtterForhåndsvarselFeil.FantIkkeRevurdering }
             .flatMap {
                 if (it !is SimulertRevurdering) {
-                    Either.left(FortsettEtterForhåndsvarselFeil.RevurderingErIkkeIRiktigTilstand)
+                    Either.Left(FortsettEtterForhåndsvarselFeil.RevurderingErIkkeIRiktigTilstand)
                 } else {
                     when (val forhåndsvarsel = it.forhåndsvarsel) {
                         null ->
-                            Either.left(FortsettEtterForhåndsvarselFeil.RevurderingErIkkeForhåndsvarslet)
+                            Either.Left(FortsettEtterForhåndsvarselFeil.RevurderingErIkkeForhåndsvarslet)
                         is Forhåndsvarsel.SkalForhåndsvarsles.Besluttet ->
-                            Either.left(FortsettEtterForhåndsvarselFeil.AlleredeBesluttet)
+                            Either.Left(FortsettEtterForhåndsvarselFeil.AlleredeBesluttet)
                         is Forhåndsvarsel.IngenForhåndsvarsel ->
-                            Either.left(FortsettEtterForhåndsvarselFeil.AlleredeBesluttet)
+                            Either.Left(FortsettEtterForhåndsvarselFeil.AlleredeBesluttet)
                         is Forhåndsvarsel.SkalForhåndsvarsles.Sendt ->
-                            Either.right(Pair(it, forhåndsvarsel))
+                            Either.Right(Pair(it, forhåndsvarsel))
                     }
                 }
             }
@@ -824,7 +824,7 @@ internal class RevurderingServiceImpl(
                     }
                     is FortsettEtterForhåndsvarslingRequest.FortsettMedAndreOpplysninger -> {
                         // Her er allerede revurderingen i riktig tilstand
-                        Either.right(revurdering)
+                        Either.Right(revurdering)
                     }
                     is FortsettEtterForhåndsvarslingRequest.AvsluttUtenEndringer -> {
                         TODO("Not yet implemented")

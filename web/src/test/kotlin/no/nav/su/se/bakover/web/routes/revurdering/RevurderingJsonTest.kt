@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.routes.revurdering
 
-import arrow.core.Nel
+import arrow.core.nonEmptyListOf
 import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -67,7 +67,7 @@ internal class RevurderingJsonTest {
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Vurdert.Uførhet.create(
-                    vurderingsperioder = Nel.of(vurderingsperiodeUføre),
+                    vurderingsperioder = nonEmptyListOf(vurderingsperiodeUføre),
                 ),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(

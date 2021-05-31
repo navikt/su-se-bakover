@@ -6,7 +6,6 @@ import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.post
-import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
@@ -22,7 +21,6 @@ import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.withSakId
 
-@KtorExperimentalAPI
 internal fun Route.stansutbetalingRoutes(
     utbetalingService: UtbetalingService
 ) {

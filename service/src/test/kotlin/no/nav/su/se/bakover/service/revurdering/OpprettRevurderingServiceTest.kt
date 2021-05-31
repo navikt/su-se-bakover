@@ -1,8 +1,8 @@
 package no.nav.su.se.bakover.service.revurdering
 
-import arrow.core.Nel
 import arrow.core.getOrHandle
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
@@ -124,7 +124,7 @@ internal class OpprettRevurderingServiceTest {
     )
 
     private val vilkårsvurderingUføre = Vilkår.Vurdert.Uførhet.create(
-        vurderingsperioder = Nel.of(
+        vurderingsperioder = nonEmptyListOf(
             Vurderingsperiode.Uføre.create(
                 resultat = Resultat.Innvilget,
                 grunnlag = uføregrunnlag,

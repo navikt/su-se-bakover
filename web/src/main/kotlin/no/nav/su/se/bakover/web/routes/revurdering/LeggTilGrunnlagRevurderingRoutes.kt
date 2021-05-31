@@ -12,7 +12,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.routing.Route
 import io.ktor.routing.post
-import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -83,7 +82,6 @@ private data class Body(val vurderinger: List<Vurdering>) {
     }
 }
 
-@KtorExperimentalAPI
 internal fun Route.leggTilGrunnlagRevurderingRoutes(
     revurderingService: RevurderingService,
 ) {

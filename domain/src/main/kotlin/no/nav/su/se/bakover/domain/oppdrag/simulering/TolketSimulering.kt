@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.domain.oppdrag.simulering
 
-import arrow.core.extensions.list.foldable.exists
 import java.time.LocalDate
 
 data class TolketSimulering(
@@ -10,9 +9,9 @@ data class TolketSimulering(
         val utbetalinger = when (it.utbetaling.isNotEmpty()) {
             true -> {
                 it.utbetaling.map { simulertUtbetaling ->
-                    val detaljer = simulertUtbetaling.detaljer.map { simulertDetalj ->
+                    val detaljer = simulertUtbetaling.detaljer.mapNotNull { simulertDetalj ->
                         TolketDetalj.from(simulertDetalj, simulertUtbetaling.forfall)
-                    }.filterNotNull()
+                    }
                     TolketUtbetaling.from(detaljer)
                 }
             }
@@ -68,13 +67,13 @@ sealed class TolketUtbetaling {
 
         private fun List<TolketDetalj>.erFeilutbetaling() =
             any { it is TolketDetalj.Feilutbetaling } &&
-                exists { it is TolketDetalj.TidligereUtbetalt } &&
-                exists { it is TolketDetalj.Ordinær }
+                any { it is TolketDetalj.TidligereUtbetalt } &&
+                any { it is TolketDetalj.Ordinær }
 
         private fun List<TolketDetalj>.erTidligereUtbetalt() =
             count() == 2 &&
-                exists { it is TolketDetalj.Ordinær } &&
-                exists { it is TolketDetalj.TidligereUtbetalt }
+                any { it is TolketDetalj.Ordinær } &&
+                any { it is TolketDetalj.TidligereUtbetalt }
 
         private fun List<TolketDetalj>.erOrdinær() =
             count() == 1 &&

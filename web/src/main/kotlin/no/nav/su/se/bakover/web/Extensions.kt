@@ -77,22 +77,22 @@ internal fun getNavnFromJwt(applicationConfig: ApplicationConfig, principal: Pri
         (principal as JWTPrincipal).payload.getClaim("name").asString()
     }
 
-internal suspend fun String.toUUID() =
+internal fun String.toUUID() =
     Either.catch { UUID.fromString(this@toUUID) }
         .mapLeft { "${this@toUUID} er ikke en gyldig UUID" }
 
-internal suspend fun ApplicationCall.lesUUID(param: String) =
+internal fun ApplicationCall.lesUUID(param: String) =
     this.parameters[param]?.let {
         it.toUUID().mapLeft { "$param er ikke en gyldig UUID" }
     } ?: Either.Left("$param er ikke et parameter")
 
-internal suspend fun ApplicationCall.lesFnr(param: String) =
+internal fun ApplicationCall.lesFnr(param: String) =
     this.parameters[param]?.let {
         Either.catch { Fnr(it) }.mapLeft { "$param er ikke et gyldig fødselsnummer" }
     } ?: Either.Left("$param er ikke et parameter")
 
 internal fun ApplicationCall.parameter(parameterName: String) =
-    this.parameters[parameterName]?.let { Either.right(it) } ?: Either.Left("$parameterName er ikke et parameter")
+    this.parameters[parameterName]?.let { Either.Right(it) } ?: Either.Left("$parameterName er ikke et parameter")
 
 fun ApplicationCall.authHeader() = this.request.header(HttpHeaders.Authorization).toString()
 

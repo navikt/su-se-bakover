@@ -6,7 +6,6 @@ import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.get
 import io.ktor.routing.patch
-import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.service.søknad.SøknadService
@@ -17,7 +16,6 @@ import no.nav.su.se.bakover.web.routes.drift.FixSøknaderResponseJson.Companion.
 
 internal const val DRIFT_PATH = "/drift"
 
-@KtorExperimentalAPI
 internal fun Route.driftRoutes(
     søknadService: SøknadService,
     ferdigstillVedtakService: FerdigstillVedtakService,

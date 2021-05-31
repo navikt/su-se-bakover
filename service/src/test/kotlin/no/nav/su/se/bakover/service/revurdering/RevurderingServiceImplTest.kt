@@ -1,9 +1,9 @@
 package no.nav.su.se.bakover.service.revurdering
 
-import arrow.core.Nel
 import arrow.core.getOrElse
 import arrow.core.getOrHandle
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
@@ -50,7 +50,6 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
-import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -302,7 +301,7 @@ internal class RevurderingServiceImplTest {
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Vurdert.Uførhet.create(
-                    vurderingsperioder = Nel.of(
+                    vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
@@ -422,7 +421,7 @@ internal class RevurderingServiceImplTest {
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Vurdert.Uførhet.create(
-                    vurderingsperioder = Nel.of(
+                    vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
@@ -756,7 +755,7 @@ internal class RevurderingServiceImplTest {
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Vurdert.Uførhet.create(
-                    vurderingsperioder = Nel.of(
+                    vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
@@ -1637,7 +1636,7 @@ internal class RevurderingServiceImplTest {
         }
         val vilkårMedAvslag = vilkårsvurderinger.copy(
             uføre = Vilkår.Vurdert.Uførhet.create(
-                vurderingsperioder = Nel.of(
+                vurderingsperioder = nonEmptyListOf(
                     vurderingsperiodeUføre.copy(
                         resultat = Resultat.Avslag,
                     ),

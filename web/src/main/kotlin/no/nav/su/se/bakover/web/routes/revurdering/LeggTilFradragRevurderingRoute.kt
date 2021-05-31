@@ -9,7 +9,6 @@ import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.routing.Route
 import io.ktor.routing.post
-import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -27,7 +26,6 @@ import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withRevurderingId
 import no.nav.su.se.bakover.web.withSakId
 
-@KtorExperimentalAPI
 internal fun Route.leggTilFradragRevurdering(
     revurderingService: RevurderingService,
 

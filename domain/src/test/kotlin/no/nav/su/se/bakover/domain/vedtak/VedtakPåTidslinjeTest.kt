@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.vedtak
 
-import arrow.core.Nel
+import arrow.core.nonEmptyListOf
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -84,7 +84,7 @@ internal class VedtakPåTidslinjeTest {
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Vurdert.Uførhet.create(
-                    vurderingsperioder = Nel.of(
+                    vurderingsperioder = nonEmptyListOf(
                         vurderingsperiode,
                     ),
                 ),
@@ -170,7 +170,7 @@ internal class VedtakPåTidslinjeTest {
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Vurdert.Uførhet.create(
-                    vurderingsperioder = Nel.of(
+                    vurderingsperioder = nonEmptyListOf(
                         vurderingsperiode,
                     ),
                 ),

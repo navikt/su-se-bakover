@@ -5,7 +5,6 @@ import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.routing.Route
 import io.ktor.routing.get
-import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger
@@ -21,7 +20,6 @@ import no.nav.su.se.bakover.web.withRevurderingId
  * som en del av revurderingen.
  * //TODO vurder om dette endepunktet burde tilhøre sak
  */
-@KtorExperimentalAPI
 internal fun Route.hentGrunnlagRevurderingRoutes(
     revurderingService: RevurderingService,
 ) {
