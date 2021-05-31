@@ -5,13 +5,14 @@ import arrow.core.getOrElse
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
-import io.kotest.assertions.arrow.either.shouldBeLeft
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.FnrGenerator
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -37,14 +38,6 @@ import java.time.LocalDate
 import java.util.UUID
 
 internal class RevurderingTest {
-    @Test
-    fun `beregning gir feilmelding hvis vilkår er uavklart`() {
-        lagRevurdering(
-            vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.IkkeVurdert.Uførhet,
-            ),
-        ).beregn() shouldBeLeft Revurdering.KunneIkkeBeregneRevurdering.UfullstendigVilkårsvurdering
-    }
 
     @Test
     fun `beregning gir opphør hvis vilkår ikke er oppfylt`() {
@@ -196,7 +189,15 @@ internal class RevurderingTest {
                     fradrag = FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
                         månedsbeløp = 20900.0,
-                        periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                        periode = Periode.create(1.januar(2021), 30.april(2021)),
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                ),
+                Grunnlag.Fradragsgrunnlag(
+                    fradrag = FradragFactory.ny(
+                        type = Fradragstype.Arbeidsinntekt,
+                        månedsbeløp = 21900.0,
+                        periode = Periode.create(1.mai(2021), 31.desember(2021)),
                         tilhører = FradragTilhører.BRUKER,
                     ),
                 ),

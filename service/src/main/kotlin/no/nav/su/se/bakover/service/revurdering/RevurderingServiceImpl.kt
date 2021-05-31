@@ -373,7 +373,6 @@ internal class RevurderingServiceImpl(
                                 is Revurdering.KunneIkkeBeregneRevurdering.UgyldigBeregningsgrunnlag -> KunneIkkeBeregneOgSimulereRevurdering.UgyldigBeregningsgrunnlag(
                                     it.reason,
                                 )
-                                is Revurdering.KunneIkkeBeregneRevurdering.UfullstendigVilkårsvurdering -> KunneIkkeBeregneOgSimulereRevurdering.UfullstendigVilkårsvurdering
                             }.left()
                         }
                 ) {

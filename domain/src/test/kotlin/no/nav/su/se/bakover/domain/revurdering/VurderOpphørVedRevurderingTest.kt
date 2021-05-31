@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import java.time.Clock
 import java.time.LocalDate
 import java.time.ZoneOffset
@@ -228,5 +229,19 @@ internal class VurderOpphørVedRevurderingTest {
             beregning = beregningMock,
             clock = fixedClock,
         ).resultat shouldBe OpphørVedRevurdering.Ja(listOf(Opphørsgrunn.SU_UNDER_MINSTEGRENSE), 1.januar(2021))
+    }
+
+    @Test
+    fun `kaster exception hvis vilkårsvurderinger svarer med uavklart`() {
+        val vilkårsvurderingerMock = mock<Vilkårsvurderinger> {
+            on { resultat } doReturn Resultat.Uavklart
+        }
+        assertThrows<IllegalStateException> {
+            VurderOpphørVedRevurdering(
+                vilkårsvurderinger = vilkårsvurderingerMock,
+                beregning = mock(),
+                clock = fixedClock,
+            )
+        }
     }
 }

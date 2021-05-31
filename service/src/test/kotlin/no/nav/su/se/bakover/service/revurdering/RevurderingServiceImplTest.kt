@@ -50,7 +50,6 @@ import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
-import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -1681,7 +1680,7 @@ internal class RevurderingServiceImplTest {
     }
 
     @Test
-    fun `uavklarte vilkår gir feilmelding`() {
+    fun `uavklarte vilkår kaster exception`() {
         val uavklarteVilkår = vilkårsvurderinger.copy(
             uføre = Vilkår.IkkeVurdert.Uførhet,
         )
@@ -1692,19 +1691,13 @@ internal class RevurderingServiceImplTest {
             on { hent(revurderingId) } doReturn revurdering
         }
 
-        val actual = createRevurderingService(
-            revurderingRepo = revurderingRepoMock,
-        ).beregnOgSimuler(
-            revurderingId = revurderingId,
-            saksbehandler = NavIdentBruker.Saksbehandler("s1"),
-        )
-
-        actual shouldBe KunneIkkeBeregneOgSimulereRevurdering.UfullstendigVilkårsvurdering.left()
-
-        inOrder(
-            revurderingRepoMock,
-        ) {
-            verify(revurderingRepoMock).hent(revurderingId)
+        assertThrows<IllegalStateException> {
+            createRevurderingService(
+                revurderingRepo = revurderingRepoMock,
+            ).beregnOgSimuler(
+                revurderingId = revurderingId,
+                saksbehandler = NavIdentBruker.Saksbehandler("s1"),
+            )
         }
     }
 

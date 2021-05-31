@@ -71,7 +71,6 @@ data class Vilkårsvurderinger(
             .minByOrNull { it.periode.fraOgMed }?.periode?.fraOgMed
     }
 
-
     fun utledOpphørsgrunner(): List<Opphørsgrunn> {
         return vilkår.mapNotNull {
             when (it) {
@@ -152,8 +151,8 @@ sealed class Vilkår<T : Grunnlag?> {
                     vurderingsperioder: Nel<Vurderingsperiode<Grunnlag.Uføregrunnlag?>>,
                 ): Either<UgyldigUførevilkår, Uførhet> {
                     if (vurderingsperioder.forAll { v1 ->
-                            vurderingsperioder.minus(v1).any { v2 -> v1.periode overlapper v2.periode }
-                        }
+                        vurderingsperioder.minus(v1).any { v2 -> v1.periode overlapper v2.periode }
+                    }
                     ) {
                         return UgyldigUførevilkår.OverlappendeVurderingsperioder.left()
                     }

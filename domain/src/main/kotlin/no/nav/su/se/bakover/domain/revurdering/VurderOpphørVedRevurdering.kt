@@ -22,10 +22,10 @@ data class VurderOpphørVedRevurdering(
     }
 
     private fun vilkårGirOpphør(): OpphørVedRevurdering {
-        return if (vilkårsvurderinger.resultat == Resultat.Avslag) {
-            OpphørVedRevurdering.Ja(vilkårsvurderinger.utledOpphørsgrunner(), vilkårsvurderinger.tidligsteDatoFrorAvslag()!!)
-        } else {
-            OpphørVedRevurdering.Nei
+        return when (vilkårsvurderinger.resultat) {
+            Resultat.Avslag -> OpphørVedRevurdering.Ja(vilkårsvurderinger.utledOpphørsgrunner(), vilkårsvurderinger.tidligsteDatoFrorAvslag()!!)
+            Resultat.Innvilget -> OpphørVedRevurdering.Nei
+            Resultat.Uavklart -> throw IllegalStateException("Alle vilkår må vurders før opphør kan vurderes.")
         }
     }
 
