@@ -30,6 +30,7 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
@@ -47,6 +48,10 @@ import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.SendTilAttesteringRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.SimulerRequest
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.VilkårsvurderRequest
+import no.nav.su.se.bakover.service.vilkår.BosituasjonValg
+import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.TestClientsBuilder.testClients
@@ -115,7 +120,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                     objectMapper.readValue<BehandlingJson>(response.content!!).let {
                         it.id shouldBe objects.søknadsbehandling.id.toString()
                         it.behandlingsinformasjon shouldNotBe null
-                        it.søknad.id shouldBe objects.søknad.id.toString()
+                        it.søknad.id shouldBe objects.søknadsbehandling.søknad.id.toString()
                     }
                 }
             }
@@ -137,7 +142,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                     objectMapper.readValue<BehandlingJson>(response.content!!).let {
                         it.id shouldBe objects.søknadsbehandling.id.toString()
                         it.behandlingsinformasjon shouldNotBe null
-                        it.søknad.id shouldBe objects.søknad.id.toString()
+                        it.søknad.id shouldBe objects.søknadsbehandling.søknad.id.toString()
                     }
                 }
             }
@@ -151,13 +156,8 @@ internal class SøknadsbehandlingRoutesKtTest {
                 testSusebakover(services = services)
             },
         ) {
-            val objects = setup()
-            services.søknadsbehandling.vilkårsvurder(
-                VilkårsvurderRequest(
-                    objects.søknadsbehandling.id,
-                    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-                ),
-            )
+            val objects = setupMedAlleVilkårOppfylt()
+
             services.søknadsbehandling.beregn(
                 BeregnRequest(
                     behandlingId = objects.søknadsbehandling.id,
@@ -208,13 +208,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                 )
             },
         ) {
-            val objects = setup()
-            services.søknadsbehandling.vilkårsvurder(
-                VilkårsvurderRequest(
-                    objects.søknadsbehandling.id,
-                    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-                ),
-            )
+            val objects = setupMedAlleVilkårOppfylt()
             services.søknadsbehandling.beregn(
                 BeregnRequest(
                     behandlingId = objects.søknadsbehandling.id,
@@ -247,11 +241,11 @@ internal class SøknadsbehandlingRoutesKtTest {
                 testSusebakover()
             },
         ) {
-            val objects = setup()
+            val uavklartVilkårsvurdertSøknadsbehandling = setup()
 
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/blabla/simuler",
+                "$sakPath/${uavklartVilkårsvurdertSøknadsbehandling.sak.id}/behandlinger/blabla/simuler",
                 listOf(Brukerrolle.Saksbehandler),
             ).apply {
                 assertSoftly {
@@ -261,7 +255,7 @@ internal class SøknadsbehandlingRoutesKtTest {
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${UUID.randomUUID()}/simuler",
+                "$sakPath/${uavklartVilkårsvurdertSøknadsbehandling.sak.id}/behandlinger/${UUID.randomUUID()}/simuler",
                 listOf(Brukerrolle.Saksbehandler),
             ).apply {
                 assertSoftly {
@@ -270,15 +264,17 @@ internal class SøknadsbehandlingRoutesKtTest {
                 }
             }
 
+            val innvilgetVilkårsvurdertSøknadsbehandling = setupMedAlleVilkårOppfylt(uavklartVilkårsvurdertSøknadsbehandling)
+
             services.søknadsbehandling.vilkårsvurder(
                 VilkårsvurderRequest(
-                    objects.søknadsbehandling.id,
+                    innvilgetVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
                     Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
                 ),
             )
             services.søknadsbehandling.beregn(
                 BeregnRequest(
-                    behandlingId = objects.søknadsbehandling.id,
+                    behandlingId = innvilgetVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
                     fradrag = emptyList(),
                     begrunnelse = null,
                 ),
@@ -286,7 +282,7 @@ internal class SøknadsbehandlingRoutesKtTest {
 
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/simuler",
+                "$sakPath/${innvilgetVilkårsvurdertSøknadsbehandling.sak.id}/behandlinger/${innvilgetVilkårsvurdertSøknadsbehandling.søknadsbehandling.id}/simuler",
                 listOf(Brukerrolle.Saksbehandler),
             ).apply {
                 response.status() shouldBe HttpStatusCode.OK
@@ -301,13 +297,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                 testSusebakover(services = services)
             },
         ) {
-            val objects = setup()
-            services.søknadsbehandling.vilkårsvurder(
-                VilkårsvurderRequest(
-                    objects.søknadsbehandling.id,
-                    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-                ),
-            )
+            val objects = setupMedAlleVilkårOppfylt()
             services.søknadsbehandling.beregn(
                 BeregnRequest(
                     behandlingId = objects.søknadsbehandling.id,
@@ -369,16 +359,10 @@ internal class SøknadsbehandlingRoutesKtTest {
     @Nested
     inner class `Iverksetting av behandling` {
         private fun <R> withFerdigbehandletSakForBruker(
-            test: TestApplicationEngine.(objects: Objects) -> R,
+            test: TestApplicationEngine.(objects: InnvilgetVilkårsvurdertSøknadsbehandling) -> R,
         ) =
-            withSetupForBruker(
+            withInnvilgetVilkårsvurdertForBruker(
                 {
-                    services.søknadsbehandling.vilkårsvurder(
-                        VilkårsvurderRequest(
-                            søknadsbehandling.id,
-                            søknadsbehandling.behandlingsinformasjon.withAlleVilkårOppfylt(),
-                        ),
-                    )
                     services.søknadsbehandling.beregn(
                         BeregnRequest(
                             behandlingId = søknadsbehandling.id,
@@ -504,16 +488,10 @@ internal class SøknadsbehandlingRoutesKtTest {
     @Nested
     inner class `Underkjenning av behandling` {
         private fun <R> withFerdigbehandletSakForBruker(
-            test: TestApplicationEngine.(objects: Objects) -> R,
+            test: TestApplicationEngine.(objects: InnvilgetVilkårsvurdertSøknadsbehandling) -> R,
         ) =
-            withSetupForBruker(
+            withInnvilgetVilkårsvurdertForBruker(
                 {
-                    services.søknadsbehandling.vilkårsvurder(
-                        VilkårsvurderRequest(
-                            søknadsbehandling.id,
-                            søknadsbehandling.behandlingsinformasjon.withAlleVilkårOppfylt(),
-                        ),
-                    )
                     services.søknadsbehandling.beregn(
                         BeregnRequest(
                             behandlingId = søknadsbehandling.id,
@@ -694,13 +672,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                     )
                 },
             ) {
-                val objects = setup()
-                services.søknadsbehandling.vilkårsvurder(
-                    VilkårsvurderRequest(
-                        objects.søknadsbehandling.id,
-                        Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-                    ),
-                )
+                val objects = setupMedAlleVilkårOppfylt()
                 services.søknadsbehandling.beregn(
                     BeregnRequest(
                         behandlingId = objects.søknadsbehandling.id,
@@ -734,13 +706,12 @@ internal class SøknadsbehandlingRoutesKtTest {
         }
     }
 
-    data class Objects(
+    data class UavklartVilkårsvurdertSøknadsbehandling(
         val sak: Sak,
-        val søknad: Søknad,
         val søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Uavklart,
     )
 
-    private fun setup(): Objects {
+    private fun setup(): UavklartVilkårsvurdertSøknadsbehandling {
         val søknadInnhold = SøknadInnholdTestdataBuilder.build()
         val fnr: Fnr = FnrGenerator.random()
         SakFactory(clock = fixedClock).nySak(fnr, søknadInnhold).also {
@@ -773,19 +744,63 @@ internal class SøknadsbehandlingRoutesKtTest {
             ),
         )
 
-        return Objects(
+        return UavklartVilkårsvurdertSøknadsbehandling(
             repos.sak.hentSak(sak.id)!!,
-            repos.søknad.hentSøknad(søknadMedOppgave.id)!!,
             repos.søknadsbehandling.hent(nySøknadsbehandling.id) as Søknadsbehandling.Vilkårsvurdert.Uavklart,
+        )
+    }
+
+    data class InnvilgetVilkårsvurdertSøknadsbehandling(
+        val sak: Sak,
+        val søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Innvilget,
+    )
+
+    private fun setupMedAlleVilkårOppfylt(nullableUavklartVilkårsvurdertSøknadsbehandling: UavklartVilkårsvurdertSøknadsbehandling? = null): InnvilgetVilkårsvurdertSøknadsbehandling {
+        val uavklartVilkårsvurdertSøknadsbehandling = nullableUavklartVilkårsvurdertSøknadsbehandling ?: setup()
+
+        val behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
+        services.søknadsbehandling.leggTilUføregrunnlag(
+            LeggTilUførevurderingRequest(
+                behandlingId = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
+                periode = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.periode,
+                uføregrad = Uføregrad.parse(behandlingsinformasjon.uførhet!!.uføregrad!!),
+                forventetInntekt = behandlingsinformasjon.uførhet!!.forventetInntekt,
+                oppfylt = behandlingsinformasjon.uførhet!!.status,
+                begrunnelse = behandlingsinformasjon.uførhet!!.begrunnelse,
+            ),
+        )
+        services.søknadsbehandling.leggTilBosituasjonEpsgrunnlag(
+            LeggTilBosituasjonEpsRequest(
+                behandlingId = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
+                epsFnr = null,
+            ),
+        )
+        services.søknadsbehandling.fullførBosituasjongrunnlag(
+            FullførBosituasjonRequest(
+                behandlingId = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
+                bosituasjon = BosituasjonValg.BOR_ALENE,
+                begrunnelse = behandlingsinformasjon.bosituasjon?.begrunnelse,
+            ),
+        )
+        services.søknadsbehandling.vilkårsvurder(
+            VilkårsvurderRequest(
+                uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
+                behandlingsinformasjon,
+            ),
+        )
+
+        return InnvilgetVilkårsvurdertSøknadsbehandling(
+            repos.sak.hentSak(uavklartVilkårsvurdertSøknadsbehandling.sak.id)!!,
+            repos.søknadsbehandling.hent(uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id) as Søknadsbehandling.Vilkårsvurdert.Innvilget,
         )
     }
 
     val navIdentSaksbehandler = "random-saksbehandler-id"
     val navIdentAttestant = "random-attestant-id"
 
-    fun <R> withSetupForBruker(
-        s: Objects.() -> Unit,
-        test: TestApplicationEngine.(objects: Objects) -> R,
+    fun <R> withInnvilgetVilkårsvurdertForBruker(
+        s: InnvilgetVilkårsvurdertSøknadsbehandling.() -> Unit,
+        test: TestApplicationEngine.(objects: InnvilgetVilkårsvurdertSøknadsbehandling) -> R,
     ) =
         withTestApplication(
             {
@@ -794,7 +809,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                 )
             },
         ) {
-            val objects = setup()
+            val objects = setupMedAlleVilkårOppfylt()
             s(objects)
             test(objects)
         }

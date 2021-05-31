@@ -78,7 +78,7 @@ internal class BeregnRoutesKtTest {
 
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn",
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/beregn",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
@@ -113,14 +113,14 @@ internal class BeregnRoutesKtTest {
 
             services.søknadsbehandling.vilkårsvurder(
                 VilkårsvurderRequest(
-                    objects.behandling.id,
+                    objects.søknadsbehandling.id,
                     Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
                 ),
             )
 
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn",
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/beregn",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
@@ -162,7 +162,7 @@ internal class BeregnRoutesKtTest {
 
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn",
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/beregn",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
@@ -218,7 +218,7 @@ internal class BeregnRoutesKtTest {
 
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn",
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/beregn",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
@@ -294,7 +294,7 @@ internal class BeregnRoutesKtTest {
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn",
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/beregn",
                 listOf(Brukerrolle.Saksbehandler),
             ).apply {
                 assertSoftly {
@@ -304,14 +304,14 @@ internal class BeregnRoutesKtTest {
             }
             services.søknadsbehandling.vilkårsvurder(
                 VilkårsvurderRequest(
-                    objects.behandling.id,
+                    objects.søknadsbehandling.id,
                     Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
                 ),
             )
 
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn",
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/beregn",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
@@ -344,11 +344,11 @@ internal class BeregnRoutesKtTest {
             },
         ) {
             val objects = setup()
-            objects.behandling.status shouldBe BehandlingsStatus.OPPRETTET
+            objects.søknadsbehandling.status shouldBe BehandlingsStatus.OPPRETTET
 
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn",
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/beregn",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
@@ -374,12 +374,7 @@ internal class BeregnRoutesKtTest {
 
     data class UavklartVilkårsvurdertSøknadsbehandling(
         val sak: Sak,
-        val behandling: Søknadsbehandling.Vilkårsvurdert.Uavklart,
-    )
-
-    data class InnvilgetVilkårsvurdertSøknadsbehandling(
-        val sak: Sak,
-        val behandling: Søknadsbehandling.Vilkårsvurdert.Innvilget,
+        val søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Uavklart,
     )
 
     private fun setup(): UavklartVilkårsvurdertSøknadsbehandling {
@@ -421,14 +416,19 @@ internal class BeregnRoutesKtTest {
         )
     }
 
+    data class InnvilgetVilkårsvurdertSøknadsbehandling(
+        val sak: Sak,
+        val søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Innvilget,
+    )
+
     private fun setupMedAlleVilkårOppfylt(): InnvilgetVilkårsvurdertSøknadsbehandling {
         val objects = setup()
 
         val behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
         services.søknadsbehandling.leggTilUføregrunnlag(
             LeggTilUførevurderingRequest(
-                behandlingId = objects.behandling.id,
-                periode = objects.behandling.periode,
+                behandlingId = objects.søknadsbehandling.id,
+                periode = objects.søknadsbehandling.periode,
                 uføregrad = Uføregrad.parse(behandlingsinformasjon.uførhet!!.uføregrad!!),
                 forventetInntekt = behandlingsinformasjon.uførhet!!.forventetInntekt,
                 oppfylt = behandlingsinformasjon.uførhet!!.status,
@@ -437,27 +437,27 @@ internal class BeregnRoutesKtTest {
         )
         services.søknadsbehandling.leggTilBosituasjonEpsgrunnlag(
             LeggTilBosituasjonEpsRequest(
-                behandlingId = objects.behandling.id,
+                behandlingId = objects.søknadsbehandling.id,
                 epsFnr = null,
             ),
         )
         services.søknadsbehandling.fullførBosituasjongrunnlag(
             FullførBosituasjonRequest(
-                behandlingId = objects.behandling.id,
+                behandlingId = objects.søknadsbehandling.id,
                 bosituasjon = BosituasjonValg.BOR_ALENE,
                 begrunnelse = behandlingsinformasjon.bosituasjon?.begrunnelse,
             ),
         )
         services.søknadsbehandling.vilkårsvurder(
             VilkårsvurderRequest(
-                objects.behandling.id,
+                objects.søknadsbehandling.id,
                 behandlingsinformasjon,
             ),
         )
 
         return InnvilgetVilkårsvurdertSøknadsbehandling(
             repos.sak.hentSak(objects.sak.id)!!,
-            repos.søknadsbehandling.hent(objects.behandling.id) as Søknadsbehandling.Vilkårsvurdert.Innvilget,
+            repos.søknadsbehandling.hent(objects.søknadsbehandling.id) as Søknadsbehandling.Vilkårsvurdert.Innvilget,
         )
     }
 }
