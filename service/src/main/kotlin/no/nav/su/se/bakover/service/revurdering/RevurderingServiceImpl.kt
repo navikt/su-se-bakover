@@ -361,7 +361,7 @@ internal class RevurderingServiceImpl(
     override fun beregnOgSimuler(
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeBeregneOgSimulereRevurdering, Revurdering> {
+    ): Either<KunneIkkeBeregneOgSimulereRevurdering, BeregnOgSimulerResponse> {
         return when (val originalRevurdering = revurderingRepo.hent(revurderingId)) {
             is BeregnetRevurdering, is OpprettetRevurdering, is SimulertRevurdering, is UnderkjentRevurdering -> {
                 when (
@@ -378,7 +378,7 @@ internal class RevurderingServiceImpl(
                 ) {
                     is BeregnetRevurdering.IngenEndring -> {
                         revurderingRepo.lagre(beregnetRevurdering)
-                        beregnetRevurdering.right()
+                        BeregnOgSimulerResponse(beregnetRevurdering).right()
                     }
                     is BeregnetRevurdering.Innvilget -> {
                         utbetalingService.simulerUtbetaling(
@@ -390,7 +390,7 @@ internal class RevurderingServiceImpl(
                         }.map {
                             val simulert = beregnetRevurdering.toSimulert(it.simulering)
                             revurderingRepo.lagre(simulert)
-                            simulert
+                            BeregnOgSimulerResponse(simulert)
                         }
                     }
 
@@ -404,7 +404,7 @@ internal class RevurderingServiceImpl(
                         }.map {
                             val simulert = beregnetRevurdering.toSimulert(it.simulering)
                             revurderingRepo.lagre(simulert)
-                            simulert
+                            BeregnOgSimulerResponse(simulert)
                         }
                     }
                 }

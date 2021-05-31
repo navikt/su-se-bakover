@@ -332,7 +332,7 @@ internal class RevurderingServiceImplTest {
         ).beregnOgSimuler(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
-        ).getOrHandle { throw Exception("Vi skal få tilbake en revurdering") }
+        ).getOrHandle { throw Exception("Vi skal få tilbake en revurdering") }.revurdering
         if (actual !is SimulertRevurdering) throw RuntimeException("Skal returnere en simulert revurdering")
 
         inOrder(revurderingRepoMock, utbetalingServiceMock) {
@@ -789,7 +789,7 @@ internal class RevurderingServiceImplTest {
         val actual = revurderingService.beregnOgSimuler(
             underkjentRevurdering.id,
             saksbehandler,
-        ).getOrElse { throw RuntimeException("Noe gikk galt") }
+        ).getOrElse { throw RuntimeException("Noe gikk galt") }.revurdering
         if (actual !is SimulertRevurdering.Innvilget) throw RuntimeException("Skal returnere en simulert revurdering")
 
         inOrder(revurderingRepoMock, utbetalingServiceMock) {
@@ -1660,7 +1660,7 @@ internal class RevurderingServiceImplTest {
         ).beregnOgSimuler(
             revurderingId = revurderingId,
             saksbehandler = NavIdentBruker.Saksbehandler("s1"),
-        ).orNull()!!
+        ).orNull()!!.revurdering
 
         actual shouldBe beOfType<SimulertRevurdering.Opphørt>()
 

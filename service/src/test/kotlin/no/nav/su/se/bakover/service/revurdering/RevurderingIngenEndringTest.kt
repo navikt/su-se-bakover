@@ -109,7 +109,7 @@ class RevurderingIngenEndringTest {
         ).beregnOgSimuler(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
-        ).orNull()!! as BeregnetRevurdering.IngenEndring
+        ).orNull()!!.revurdering as BeregnetRevurdering.IngenEndring
         actual.shouldBeEqualToIgnoringFields(
             BeregnetRevurdering.IngenEndring(
                 id = revurderingId,

@@ -29,7 +29,7 @@ interface RevurderingService {
     fun beregnOgSimuler(
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeBeregneOgSimulereRevurdering, Revurdering>
+    ): Either<KunneIkkeBeregneOgSimulereRevurdering, BeregnOgSimulerResponse>
 
     fun forhåndsvarsleEllerSendTilAttestering(
         revurderingId: UUID,
@@ -90,6 +90,10 @@ data class LeggTilFradragsgrunnlagRequest(
 
 data class LeggTilFradragsgrunnlagResponse(
     val revurdering: Revurdering
+)
+
+data class BeregnOgSimulerResponse(
+    val revurdering: Revurdering,
 )
 
 sealed class FortsettEtterForhåndsvarslingRequest {

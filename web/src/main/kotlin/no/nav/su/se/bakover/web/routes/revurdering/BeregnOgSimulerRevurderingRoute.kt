@@ -10,6 +10,7 @@ import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.service.revurdering.BeregnOgSimulerResponse
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering.FantIkkeRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden
@@ -42,20 +43,24 @@ internal fun Route.beregnOgSimulerRevurdering(
                         saksbehandler = NavIdentBruker.Saksbehandler(call.suUserContext.navIdent),
                     ).mapLeft {
                         call.svar(it.tilResultat())
-                    }.map { revurdering ->
-                        call.sikkerlogg("Beregnet og simulert revurdering ${revurdering.id} på sak med id $sakId")
-                        call.audit(revurdering.fnr, AuditLogEvent.Action.UPDATE, revurdering.id)
+                    }.map { response ->
+                        call.sikkerlogg("Beregnet og simulert revurdering ${response.revurdering.id} på sak med id $sakId")
+                        call.audit(response.revurdering.fnr, AuditLogEvent.Action.UPDATE, response.revurdering.id)
                         call.svar(
                             Resultat.json(
                                 HttpStatusCode.Created,
-                                serialize(revurdering.toJson()),
-                            )
+                                serialize(response.toJson()),
+                            ),
                         )
                     }
                 }
             }
         }
     }
+}
+
+internal fun BeregnOgSimulerResponse.toJson(): RevurderingJson {
+    return this.revurdering.toJson()
 }
 
 private fun KunneIkkeBeregneOgSimulereRevurdering.tilResultat(): Resultat {
