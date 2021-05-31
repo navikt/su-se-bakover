@@ -150,10 +150,10 @@ class BosituasjongrunnlangPostgresRepo(
 
     override fun hentBosituasjongrunnlag(behandlingId: UUID): List<Grunnlag.Bosituasjon> {
         return dataSource.withSession { session ->
-            """ select * from grunnlag_bosituasjon where id=:id""".trimIndent()
+            """ select * from grunnlag_bosituasjon where behandlingid=:behandlingid""".trimIndent()
                 .hentListe(
                     mapOf(
-                        "id" to behandlingId,
+                        "behandlingid" to behandlingId,
                     ),
                     session,
                 ) {
