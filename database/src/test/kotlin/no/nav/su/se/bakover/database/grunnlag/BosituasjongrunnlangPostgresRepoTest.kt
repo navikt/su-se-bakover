@@ -27,6 +27,7 @@ internal class BosituasjongrunnlangPostgresRepoTest {
                 id = id,
                 opprettet = Tidspunkt.EPOCH,
                 periode = periode,
+                begrunnelse = null,
             )
             grunnlagRepo.lagreBosituasjongrunnlag(behandlingId = id, grunnlag = listOf(bosituasjon))
             grunnlagRepo.hentBosituasjongrunnlag(id).shouldBe(listOf(bosituasjon))
@@ -42,6 +43,7 @@ internal class BosituasjongrunnlangPostgresRepoTest {
                 id = id,
                 opprettet = Tidspunkt.EPOCH,
                 periode = periode,
+                begrunnelse = null,
             )
             grunnlagRepo.lagreBosituasjongrunnlag(behandlingId = id, grunnlag = listOf(bosituasjon))
             grunnlagRepo.hentBosituasjongrunnlag(id).shouldBe(listOf(bosituasjon))
@@ -89,6 +91,7 @@ internal class BosituasjongrunnlangPostgresRepoTest {
                 opprettet = Tidspunkt.EPOCH,
                 periode = periode,
                 fnr = FnrGenerator.random(),
+                begrunnelse = null,
             )
             grunnlagRepo.lagreBosituasjongrunnlag(behandlingId = id, grunnlag = listOf(bosituasjon))
             grunnlagRepo.hentBosituasjongrunnlag(id).shouldBe(listOf(bosituasjon))
@@ -105,6 +108,7 @@ internal class BosituasjongrunnlangPostgresRepoTest {
                 opprettet = Tidspunkt.EPOCH,
                 periode = periode,
                 fnr = FnrGenerator.random(),
+                begrunnelse = null,
             )
             grunnlagRepo.lagreBosituasjongrunnlag(behandlingId = id, grunnlag = listOf(bosituasjon))
             grunnlagRepo.hentBosituasjongrunnlag(id).shouldBe(listOf(bosituasjon))
@@ -121,6 +125,7 @@ internal class BosituasjongrunnlangPostgresRepoTest {
                 opprettet = Tidspunkt.EPOCH,
                 periode = periode,
                 fnr = FnrGenerator.random(),
+                begrunnelse = null,
             )
             grunnlagRepo.lagreBosituasjongrunnlag(behandlingId = id, grunnlag = listOf(bosituasjon))
             grunnlagRepo.hentBosituasjongrunnlag(id).shouldBe(listOf(bosituasjon))

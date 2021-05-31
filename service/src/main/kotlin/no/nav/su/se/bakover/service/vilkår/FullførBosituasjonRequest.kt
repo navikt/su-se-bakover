@@ -30,28 +30,33 @@ data class FullførBosituasjonRequest(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(clock),
                 periode = ufullstendigBosituasjon.periode,
+                begrunnelse = begrunnelse,
             )
             BosituasjonValg.BOR_ALENE -> Grunnlag.Bosituasjon.Fullstendig.Enslig(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(clock),
                 periode = ufullstendigBosituasjon.periode,
+                begrunnelse = begrunnelse,
             )
             BosituasjonValg.EPS_UFØR_FLYKTNING -> Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(clock),
                 periode = ufullstendigBosituasjon.periode,
+                begrunnelse = begrunnelse,
                 fnr = (ufullstendigBosituasjon as? Grunnlag.Bosituasjon.Ufullstendig.HarEpsIkkeValgtUførFlyktning)?.fnr ?: return KunneIkkeFullføreBosituasjon.HarIkkeValgtEps.left()
             )
             BosituasjonValg.EPS_IKKE_UFØR_FLYKTNING -> Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(clock),
                 periode = ufullstendigBosituasjon.periode,
+                begrunnelse = begrunnelse,
                 fnr = (ufullstendigBosituasjon as? Grunnlag.Bosituasjon.Ufullstendig.HarEpsIkkeValgtUførFlyktning)?.fnr ?: return KunneIkkeFullføreBosituasjon.HarIkkeValgtEps.left()
             )
             BosituasjonValg.EPS_67_ELLER_OVER -> Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(clock),
                 periode = ufullstendigBosituasjon.periode,
+                begrunnelse = begrunnelse,
                 fnr = (ufullstendigBosituasjon as? Grunnlag.Bosituasjon.Ufullstendig.HarEpsIkkeValgtUførFlyktning)?.fnr ?: return KunneIkkeFullføreBosituasjon.HarIkkeValgtEps.left()
             )
         }.right()

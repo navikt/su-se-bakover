@@ -94,25 +94,6 @@ sealed class Grunnlag {
         }
     }
 
-    /** Json body used in Route */
-    data class BoforholdOgSivilstatusBody(
-        val ektefelle: Ektefelle?,
-        val delerBoligMedBarnOver18EllerAndreVoksne: Bosituasjon,
-    ) {
-        data class Ektefelle(
-            val fnr: String,
-            val erUførFlykning: Boolean,
-        )
-
-        enum class Bosituasjon {
-            ENSLIG,
-            DELER_BOLIG_MED_VOKSNE_BARN_ELLER_ANNEN_VOKSEN,
-
-            /** Service-laget/modellen finner ut dette baser på Ektefelle->fnr */
-            DELER_BOLIG_MED_EKTEMAKE_SAMBOER
-        }
-    }
-
     /**
      * Domain model (create a flat model in addition to this in database-layer)
      */
@@ -122,21 +103,18 @@ sealed class Grunnlag {
         abstract val periode: Periode
 
         sealed class Fullstendig : Bosituasjon(), Copyable<CopyArgs.Snitt, Fullstendig?> {
+            abstract val begrunnelse: String?
+
             sealed class EktefellePartnerSamboer : Fullstendig() {
                 abstract val fnr: Fnr
 
-                sealed class Under67(
-                    override val id: UUID,
-                    override val opprettet: Tidspunkt,
-                    override val periode: Periode,
-                    override val fnr: Fnr,
-                ) : EktefellePartnerSamboer() {
-
+                sealed class Under67 : EktefellePartnerSamboer() {
                     data class UførFlyktning(
                         override val id: UUID,
                         override val opprettet: Tidspunkt,
                         override val periode: Periode,
                         override val fnr: Fnr,
+                        override val begrunnelse: String?,
                     ) : EktefellePartnerSamboer() {
                         override fun copy(args: CopyArgs.Snitt): UførFlyktning? {
                             return args.snittFor(periode)?.let { copy(periode = it) }
@@ -148,6 +126,7 @@ sealed class Grunnlag {
                         override val opprettet: Tidspunkt,
                         override val periode: Periode,
                         override val fnr: Fnr,
+                        override val begrunnelse: String?,
                     ) : EktefellePartnerSamboer() {
                         override fun copy(args: CopyArgs.Snitt): IkkeUførFlyktning? {
                             return args.snittFor(periode)?.let { copy(periode = it) }
@@ -160,6 +139,7 @@ sealed class Grunnlag {
                     override val opprettet: Tidspunkt,
                     override val periode: Periode,
                     override val fnr: Fnr,
+                    override val begrunnelse: String?,
                 ) : EktefellePartnerSamboer() {
                     override fun copy(args: CopyArgs.Snitt): SektiSyvEllerEldre? {
                         return args.snittFor(periode)?.let { copy(periode = it) }
@@ -172,6 +152,7 @@ sealed class Grunnlag {
                 override val id: UUID,
                 override val opprettet: Tidspunkt,
                 override val periode: Periode,
+                override val begrunnelse: String?,
             ) : Fullstendig() {
                 override fun copy(args: CopyArgs.Snitt): Enslig? {
                     return args.snittFor(periode)?.let { copy(periode = it) }
@@ -182,6 +163,7 @@ sealed class Grunnlag {
                 override val id: UUID,
                 override val opprettet: Tidspunkt,
                 override val periode: Periode,
+                override val begrunnelse: String?,
             ) : Fullstendig() {
                 override fun copy(args: CopyArgs.Snitt): DelerBoligMedVoksneBarnEllerAnnenVoksen? {
                     return args.snittFor(periode)?.let { copy(periode = it) }

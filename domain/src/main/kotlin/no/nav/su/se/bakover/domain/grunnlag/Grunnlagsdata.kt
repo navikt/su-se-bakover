@@ -16,6 +16,11 @@ data class Grunnlagsdata(
 
     /** TODO: Legg i Utleda klassen med NEL */
     fun hentNyesteUføreGrunnlag(): Grunnlag.Uføregrunnlag = uføregrunnlag.maxByOrNull { it.opprettet.instant }!!
+    // fun containsAll(subset: Grunnlagsdata): Boolean {
+    //     return uføregrunnlag.containsAll(subset.uføregrunnlag) &&
+    //         fradragsgrunnlag.containsAll(subset.fradragsgrunnlag) &&
+    //         bosituasjon.containsAll(subset.bosituasjon)
+    // }
 }
 
 fun List<Grunnlag.Uføregrunnlag>.harForventetInntektStørreEnn0() = this.sumOf { it.forventetInntekt } > 0

@@ -27,9 +27,14 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
     abstract val status: BehandlingsStatus
     abstract val stønadsperiode: Stønadsperiode?
     abstract override val grunnlagsdata: Grunnlagsdata
+    abstract override val vilkårsvurderinger: Vilkårsvurderinger
 
     // TODO ia: fritekst bør flyttes ut av denne klassen og til et eget konsept (som også omfatter fritekst på revurderinger)
     abstract val fritekstTilBrev: String
+
+    // init {
+    //     require(grunnlagsdata.containsAll(vilkårsvurderinger.grunnlagsdata)) { "Grunnlagene i vilkårsvurderinger må være et subset av grunnlag" }
+    // }
 
     sealed class Vilkårsvurdert : Søknadsbehandling() {
         fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon): Vilkårsvurdert =

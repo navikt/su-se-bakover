@@ -7,5 +7,6 @@ create table if not exists grunnlag_bosituasjon
     fraOgMed date not null,
     tilOgMed date not null,
     bosituasjontype text not null,
-    eps_fnr text
+    eps_fnr text,
+    begrunnelse text
 );
