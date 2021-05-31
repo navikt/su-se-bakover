@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.web.routes.søknadsbehandling
 
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson
 import no.nav.su.se.bakover.web.routes.hendelse.HendelseJson
 import no.nav.su.se.bakover.web.routes.søknad.SøknadJson
