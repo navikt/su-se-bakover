@@ -13,7 +13,7 @@ class BeregningStrategyFactory {
         fradrag: List<Fradrag>,
         begrunnelse: String?,
     ): Beregning {
-        if (søknadsbehandling.grunnlagsdata.bosituasjon.size != 1) throw IllegalStateException("Støtter ikke beregning av ingen eller flere bosituasjonsperioder")
+        if (søknadsbehandling.grunnlagsdata.bosituasjon.size != 1) throw IllegalStateException("Støtter ikke beregning av ingen eller flere bosituasjonsperioder. Antall perioder: ${søknadsbehandling.grunnlagsdata.bosituasjon.size}")
         val bosituasjon = søknadsbehandling.grunnlagsdata.bosituasjon.first()
 
         val beregningsgrunnlag = Beregningsgrunnlag.tryCreate(
