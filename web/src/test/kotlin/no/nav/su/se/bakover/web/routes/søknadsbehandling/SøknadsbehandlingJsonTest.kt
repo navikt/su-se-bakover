@@ -197,12 +197,13 @@ internal class SøknadsbehandlingJsonTest {
           "grunnlagsdataOgVilkårsvurderinger": {
             "uføre": null,
             "fradrag": [],
-            "bosituasjon": null
+            "bosituasjon": []
           }
         }
         """
 
-        JSONAssert.assertEquals(expectedNullsJson, serialize(behandlingWithNulls.toJson()), true)
+        val serialize = serialize(behandlingWithNulls.toJson())
+        JSONAssert.assertEquals(expectedNullsJson, serialize, true)
         deserialize<BehandlingJson>(expectedNullsJson) shouldBe behandlingWithNulls.toJson()
     }
 }

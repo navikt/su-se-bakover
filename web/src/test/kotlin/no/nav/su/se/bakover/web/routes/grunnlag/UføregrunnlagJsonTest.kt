@@ -46,7 +46,7 @@ internal class UføregrunnlagJsonTest {
         """.trimIndent()
 
         //language=JSON
-        internal val expectedBosituasjonJson = """
+        internal val expectedBosituasjonJson = """[
         {
           "type": "EPS_UFØR_FLYKTNING",
           "fnr" : "$fnrBosituasjon",
@@ -54,6 +54,7 @@ internal class UføregrunnlagJsonTest {
           "ektemakeEllerSamboerUførFlyktning": true,
           "begrunnelse": null
         }
+        ]
         """.trimIndent()
 
         internal val uføregrunnlag = Grunnlag.Uføregrunnlag(

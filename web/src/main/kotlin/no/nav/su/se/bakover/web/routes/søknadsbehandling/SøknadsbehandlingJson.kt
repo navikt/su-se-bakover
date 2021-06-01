@@ -289,6 +289,12 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
             )
         }
+    }.also {
+        // TODO jah: Vi skal ikke pre-utfylle Bosituasjon for revurdering med mer enn ett element.
+        //  vi ønsker å gjøre denne sjekken backend for å ha bedre kontroll + oversikt (logger)
+        if (grunnlagsdata.bosituasjon.size > 1) {
+            throw IllegalStateException("Det er ikke støtte for flere bosituasjoner")
+        }
     }
 }
 

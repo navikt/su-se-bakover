@@ -10,20 +10,17 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson.
 internal data class GrunnlagsdataOgVilkårsvurderingerJson(
     val uføre: UføreVilkårJson?,
     val fradrag: List<FradragJson>,
-    val bosituasjon: BosituasjonJson?,
+    val bosituasjon: List<BosituasjonJson>,
 ) {
     companion object {
         fun create(grunnlagsdata: Grunnlagsdata, vilkårsvurderinger: Vilkårsvurderinger): GrunnlagsdataOgVilkårsvurderingerJson {
-            if (grunnlagsdata.bosituasjon.size > 1) {
-                throw IllegalStateException("Det er ikke støtte for flere bosituasjoner")
-            }
             return GrunnlagsdataOgVilkårsvurderingerJson(
                 uføre = when (val uføre = vilkårsvurderinger.uføre) {
                     Vilkår.IkkeVurdert.Uførhet -> null
                     is Vilkår.Vurdert.Uførhet -> uføre.toJson()
                 },
                 fradrag = grunnlagsdata.fradragsgrunnlag.map { it.fradrag.toJson() },
-                bosituasjon = grunnlagsdata.bosituasjon.singleOrNull()?.let {
+                bosituasjon = grunnlagsdata.bosituasjon.map {
                     when (it) {
                         is Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen ->
                             BosituasjonJson(
