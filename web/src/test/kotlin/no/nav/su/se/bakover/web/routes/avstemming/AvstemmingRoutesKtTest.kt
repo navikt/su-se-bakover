@@ -46,23 +46,13 @@ internal class AvstemmingRoutesKtTest {
 
     private val happyAvstemmingService = object : AvstemmingService {
         override fun avstemming(): Either<AvstemmingFeilet, Avstemming> =
-            Either.right(dummyAvstemming)
+            Either.Right(dummyAvstemming)
 
         override fun avstemming(
             fraOgMed: Tidspunkt,
             tilOgMed: Tidspunkt
         ): Either<AvstemmingFeilet, Avstemming> =
-            Either.right(dummyAvstemming)
-    }
-    private val failingAvstemmingService = object : AvstemmingService {
-        override fun avstemming(): Either<AvstemmingFeilet, Avstemming> =
-            Either.left(AvstemmingFeilet)
-
-        override fun avstemming(
-            fraOgMed: Tidspunkt,
-            tilOgMed: Tidspunkt
-        ): Either<AvstemmingFeilet, Avstemming> =
-            Either.left(AvstemmingFeilet)
+            Either.Right(dummyAvstemming)
     }
 
     @Test

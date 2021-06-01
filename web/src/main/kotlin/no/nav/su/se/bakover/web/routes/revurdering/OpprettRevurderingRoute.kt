@@ -6,7 +6,6 @@ import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.routing.Route
 import io.ktor.routing.post
-import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -40,7 +39,6 @@ import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withSakId
 import java.time.LocalDate
 
-@KtorExperimentalAPI
 internal fun Route.opprettRevurderingRoute(
     revurderingService: RevurderingService,
 ) {

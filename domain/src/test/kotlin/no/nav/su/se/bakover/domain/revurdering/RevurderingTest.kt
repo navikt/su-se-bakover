@@ -1,7 +1,7 @@
 package no.nav.su.se.bakover.domain.revurdering
 
-import arrow.core.Nel
 import arrow.core.getOrElse
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
@@ -44,7 +44,7 @@ internal class RevurderingTest {
         lagRevurdering(
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Vurdert.Uførhet.create(
-                    vurderingsperioder = Nel.of(
+                    vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
                             opprettet = Tidspunkt.now(),
@@ -68,7 +68,7 @@ internal class RevurderingTest {
         lagRevurdering(
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Vurdert.Uførhet.create(
-                    vurderingsperioder = Nel.of(
+                    vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
                             opprettet = Tidspunkt.now(),
@@ -101,7 +101,7 @@ internal class RevurderingTest {
             grunnlagsdata = mock(),
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Vurdert.Uførhet.create(
-                    vurderingsperioder = Nel.of(
+                    vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
                             opprettet = Tidspunkt.now(),
@@ -125,7 +125,7 @@ internal class RevurderingTest {
         val revurdering = lagRevurdering(
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Vurdert.Uførhet.create(
-                    vurderingsperioder = Nel.of(
+                    vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
                             opprettet = Tidspunkt.now(),
@@ -172,7 +172,7 @@ internal class RevurderingTest {
         val revurdering = lagRevurdering(
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Vurdert.Uførhet.create(
-                    vurderingsperioder = Nel.of(
+                    vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
                             opprettet = Tidspunkt.now(),

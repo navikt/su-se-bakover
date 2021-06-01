@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.client.person
 
 import arrow.core.Either
 import arrow.core.flatMap
+import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.module.kotlin.readValue
@@ -11,7 +12,6 @@ import com.github.kittinunf.fuel.httpGet
 import no.nav.su.se.bakover.client.azure.OAuth
 import no.nav.su.se.bakover.client.fromResult
 import no.nav.su.se.bakover.common.objectMapper
-import no.nav.su.se.bakover.common.unsafeCatch
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -56,13 +56,10 @@ class MicrosoftGraphApiClient(
     private val baseUrl = "https://graph.microsoft.com/v1.0"
 
     override fun hentBrukerinformasjon(userToken: String): Either<MicrosoftGraphApiOppslagFeil, MicrosoftGraphResponse> {
-        val onBehalfOfToken = Either.unsafeCatch {
+        val onBehalfOfToken = Either.catch {
             exchange.onBehalfOfToken(userToken, graphApiAppId)
-        }.let {
-            when (it) {
-                is Either.Left -> return MicrosoftGraphApiOppslagFeil.FeilVedHentingAvOnBehalfOfToken.left()
-                is Either.Right -> it.b
-            }
+        }.getOrHandle {
+            return MicrosoftGraphApiOppslagFeil.FeilVedHentingAvOnBehalfOfToken.left()
         }
 
         return doReq(
@@ -107,7 +104,7 @@ class MicrosoftGraphApiClient(
                 MicrosoftGraphApiOppslagFeil.KallTilMicrosoftGraphApiFeilet
             }
             .flatMap { res ->
-                Either.unsafeCatch {
+                Either.catch {
                     objectMapper.readValue<T>(res)
                 }.mapLeft {
                     log.info("Deserialisering av respons fra Microsoft Graph API feilet: $it")

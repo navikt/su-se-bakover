@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.domain.vilkår
 
 import arrow.core.Either
 import arrow.core.Nel
-import arrow.core.extensions.list.foldable.forAll
 import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
@@ -150,7 +149,7 @@ sealed class Vilkår<T : Grunnlag?> {
                 fun tryCreate(
                     vurderingsperioder: Nel<Vurderingsperiode<Grunnlag.Uføregrunnlag?>>,
                 ): Either<UgyldigUførevilkår, Uførhet> {
-                    if (vurderingsperioder.forAll { v1 ->
+                    if (vurderingsperioder.all { v1 ->
                         vurderingsperioder.minus(v1).any { v2 -> v1.periode overlapper v2.periode }
                     }
                     ) {

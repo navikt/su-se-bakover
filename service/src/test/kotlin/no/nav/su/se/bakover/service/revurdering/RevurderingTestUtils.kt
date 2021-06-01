@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.revurdering
 
 import arrow.core.Nel
+import arrow.core.nonEmptyListOf
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.collections.shouldHaveSize
@@ -8,7 +9,6 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
@@ -132,7 +132,7 @@ object RevurderingTestUtils {
 
     internal val vilkårsvurderinger = Vilkårsvurderinger(
         uføre = Vilkår.Vurdert.Uførhet.create(
-            vurderingsperioder = Nel.of(
+            vurderingsperioder = nonEmptyListOf(
                 vurderingsperiodeUføre,
             ),
         ),
@@ -175,7 +175,7 @@ object RevurderingTestUtils {
     internal val sak = Sak(
         id = sakId,
         saksnummer = saksnummer,
-        opprettet = Tidspunkt.now(),
+        opprettet = fixedTidspunkt,
         fnr = fnr,
         søknader = listOf(),
         utbetalinger = listOf(

@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.client.oppdrag
 
 import arrow.core.Either
 import com.ibm.mq.jms.MQQueue
-import kotlinx.coroutines.runBlocking
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher.CouldNotPublish
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher.MqPublisherConfig
 import org.slf4j.Logger
@@ -24,25 +23,23 @@ class IbmMqPublisher(
             log.info("Publiserer ${messages.size} melding(er) på køen  ${publisherConfig.sendQueue} uten reply-kø")
         }
         return jmsContext.createContext(Session.SESSION_TRANSACTED).use { context ->
-            runBlocking {
-                Either.catch {
-                    val producer = context.createProducer()
-                    messages.forEach {
-                        producer.send(
-                            MQQueue(publisherConfig.sendQueue),
-                            context.createTextMessage(it).apply {
-                                if (publisherConfig.replyTo != null) {
-                                    jmsReplyTo = MQQueue(publisherConfig.replyTo)
-                                }
+            Either.catch {
+                val producer = context.createProducer()
+                messages.forEach {
+                    producer.send(
+                        MQQueue(publisherConfig.sendQueue),
+                        context.createTextMessage(it).apply {
+                            if (publisherConfig.replyTo != null) {
+                                jmsReplyTo = MQQueue(publisherConfig.replyTo)
                             }
-                        )
-                    }
-                    context.commit()
-                }.mapLeft {
-                    log.error("Kunne ikke sende meldinger med config $publisherConfig, kaller rollback()", it)
-                    context.rollback()
-                    CouldNotPublish
+                        }
+                    )
                 }
+                context.commit()
+            }.mapLeft {
+                log.error("Kunne ikke sende meldinger med config $publisherConfig, kaller rollback()", it)
+                context.rollback()
+                CouldNotPublish
             }
         }
     }

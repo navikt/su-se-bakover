@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.web.routes.grunnlag
 
-import arrow.core.Nel
+import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.desember
@@ -29,8 +29,8 @@ class UføreVilkårJsonTest {
     }
 
     companion object {
-        internal val vilkårsvurderingUføreId = UUID.randomUUID()
-        internal val vilkårsvurderingUføreOpprettet = Tidspunkt.now(fixedClock)
+        private val vilkårsvurderingUføreId = UUID.randomUUID()
+        private val vilkårsvurderingUføreOpprettet = Tidspunkt.now(fixedClock)
 
         //language=JSON
         internal val expectedVurderingUføreJson = """
@@ -61,7 +61,7 @@ class UføreVilkårJsonTest {
         )
 
         internal val uførevurdering = Vilkår.Vurdert.Uførhet.create(
-            vurderingsperioder = Nel.of(vurderingsperiodeUføre),
+            vurderingsperioder = nonEmptyListOf(vurderingsperiodeUføre),
         )
 
         internal val vilkårsvurderinger = Vilkårsvurderinger(

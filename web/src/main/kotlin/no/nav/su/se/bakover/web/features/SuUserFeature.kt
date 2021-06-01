@@ -13,7 +13,6 @@ import io.ktor.routing.RouteSelectorEvaluation
 import io.ktor.routing.RoutingResolveContext
 import io.ktor.routing.application
 import io.ktor.util.AttributeKey
-import io.ktor.util.KtorExperimentalAPI
 import io.ktor.util.pipeline.PipelinePhase
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.common.ApplicationConfig
@@ -25,7 +24,6 @@ import no.nav.su.se.bakover.web.getNavnFromJwt
  * Dette er basert løst på denne bloggposten: https://www.ximedes.com/2020-09-17/role-based-authorization-in-ktor/
  */
 
-@KtorExperimentalAPI
 class SuUserFeature(private val configuration: Configuration) {
 
     class Configuration {
@@ -59,6 +57,7 @@ internal object ManglerAuthHeader : SuUserFeaturefeil("Mangler auth header")
 internal object IkkeInitialisert : SuUserFeaturefeil("Ikke initialisert")
 internal data class KallMotMicrosoftGraphApiFeilet(val feil: MicrosoftGraphApiOppslagFeil) :
     SuUserFeaturefeil("Kall mot Microsoft Graph Api feilet")
+
 internal object FantBrukerMenManglerNAVIdent : SuUserFeaturefeil("Bruker mangler NAVIdent")
 
 class SuUserContext(val call: ApplicationCall, applicationConfig: ApplicationConfig) {
@@ -81,13 +80,12 @@ val ApplicationCall.suUserContext: SuUserContext
     get() = SuUserContext.from(this)
 
 class SuUserRouteSelector :
-    RouteSelector(RouteSelectorEvaluation.qualityConstant) {
+    RouteSelector() {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int) = RouteSelectorEvaluation.Constant
 
     override fun toString(): String = "(with user)"
 }
 
-@KtorExperimentalAPI
 fun Route.withUser(build: Route.() -> Unit): Route {
     val routeWithUser = createChild(SuUserRouteSelector())
     application.feature(SuUserFeature).interceptPipeline(routeWithUser)

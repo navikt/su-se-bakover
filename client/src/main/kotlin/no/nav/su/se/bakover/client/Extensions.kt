@@ -6,13 +6,13 @@ import com.github.kittinunf.result.Result
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 
-fun <A : Any, B : FuelError> Either.Companion.fromResult(r: Result<A, B>) =
+fun <A : Any, B : FuelError> Either.Companion.fromResult(r: Result<A, B>): Either<B, A> =
     r.fold(
-        { right(it) },
-        { left(it) },
+        { Either.Right(it) },
+        { Either.Left(it) },
     )
 
-fun <T> HttpResponse<T>.isSuccess() = this.statusCode() in 200..299
+fun <T> HttpResponse<T>.isSuccess(): Boolean = this.statusCode() in 200..299
 
 /** Just delete this if Java adds this to its API */
 fun HttpRequest.Builder.PATCH(bodyPublisher: HttpRequest.BodyPublisher): HttpRequest.Builder {

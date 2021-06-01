@@ -6,7 +6,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.response.respond
 import io.ktor.routing.Route
 import io.ktor.routing.post
-import io.ktor.util.KtorExperimentalAPI
 import no.nav.su.se.bakover.common.endOfDay
 import no.nav.su.se.bakover.common.mapBoth
 import no.nav.su.se.bakover.common.startOfDay
@@ -19,7 +18,6 @@ import java.time.format.DateTimeFormatter
 private const val AVSTEMMING_PATH = "/avstem"
 
 // TODO jah Jacob: Consider if this is still needed.
-@KtorExperimentalAPI
 internal fun Route.avstemmingRoutes(
     service: AvstemmingService
 ) {
@@ -31,7 +29,7 @@ internal fun Route.avstemmingRoutes(
             val periode: Either<Unit, Pair<LocalDate, LocalDate>> =
                 when {
                     erBeggeNullOrEmpty(fraOgMed, tilOgMed) ->
-                        Either.left(Unit)
+                        Either.Left(Unit)
                     erIngenNullOrEmpty(fraOgMed, tilOgMed) ->
                         Either.catch {
                             Pair(

@@ -395,7 +395,7 @@ internal class OppdaterRevurderingServiceTest {
         val actual = mocks.revurderingService.oppdaterRevurdering(
             OppdaterRevurderingRequest(
                 revurderingId = revurderingId,
-                fraOgMed = LocalDate.now().startOfMonth(),
+                fraOgMed = fixedLocalDate.startOfMonth(),
                 årsak = "REGULER_GRUNNBELØP",
                 begrunnelse = "g-regulering",
                 saksbehandler = saksbehandler,
@@ -403,7 +403,7 @@ internal class OppdaterRevurderingServiceTest {
             ),
         ).getOrHandle { throw RuntimeException("$it") }
 
-        actual.periode.fraOgMed shouldBe LocalDate.now().startOfMonth()
+        actual.periode.fraOgMed shouldBe fixedLocalDate.startOfMonth()
         actual.revurderingsårsak.årsak shouldBe Revurderingsårsak.Årsak.REGULER_GRUNNBELØP
         actual.revurderingsårsak.begrunnelse.toString() shouldBe "g-regulering"
 
@@ -442,7 +442,7 @@ internal class OppdaterRevurderingServiceTest {
         val actual = mocks.revurderingService.oppdaterRevurdering(
             OppdaterRevurderingRequest(
                 revurderingId = revurderingId,
-                fraOgMed = LocalDate.now().minusMonths(1).startOfMonth(),
+                fraOgMed = fixedLocalDate.minusMonths(1).startOfMonth(),
                 årsak = "REGULER_GRUNNBELØP",
                 begrunnelse = "g-regulering",
                 saksbehandler = saksbehandler,
@@ -450,7 +450,7 @@ internal class OppdaterRevurderingServiceTest {
             ),
         ).getOrHandle { throw RuntimeException("$it") }
 
-        actual.periode.fraOgMed shouldBe LocalDate.now().minusMonths(1).startOfMonth()
+        actual.periode.fraOgMed shouldBe fixedLocalDate.minusMonths(1).startOfMonth()
         actual.revurderingsårsak.årsak shouldBe Revurderingsårsak.Årsak.REGULER_GRUNNBELØP
         actual.revurderingsårsak.begrunnelse.toString() shouldBe "g-regulering"
 

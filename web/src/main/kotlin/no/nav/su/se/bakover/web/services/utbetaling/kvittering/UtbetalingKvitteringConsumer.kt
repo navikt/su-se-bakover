@@ -45,24 +45,24 @@ class UtbetalingKvitteringConsumer(
         utbetalingService.oppdaterMedKvittering(avstemmingsnøkkel, kvittering)
             .map { ferdigstillInnvilgelse(it) }
             .mapLeft {
+                /**
+                 * //TODO finn en bedre løsning på dette?
+                 * Prøver på nytt etter litt delay dersom utbetalingen ikke finnes. Opplever en del tilfeller
+                 * hvor dette skjer, selv om utbetalingen i ettertid finnes i databasen.
+                 */
+                val delayMs = 1000L
+                log.info("Fant ikke utbetaling for avstemmingsnøkkel $avstemmingsnøkkel, venter $delayMs før retry")
                 runBlocking {
-                    /**
-                     * //TODO finn en bedre løsning på dette?
-                     * Prøver på nytt etter litt delay dersom utbetalingen ikke finnes. Opplever en del tilfeller
-                     * hvor dette skjer, selv om utbetalingen i ettertid finnes i databasen.
-                     */
-                    val delayMs = 1000L
-                    log.info("Fant ikke utbetaling for avstemmingsnøkkel $avstemmingsnøkkel, venter $delayMs før retry")
                     delay(delayMs)
-                    utbetalingService.oppdaterMedKvittering(
-                        avstemmingsnøkkel,
-                        kvittering
-                    )
-                        .map { ferdigstillInnvilgelse(it) }
-                        .mapLeft {
-                            throw RuntimeException("Kunne ikke lagre kvittering. Fant ikke utbetaling med avstemmingsnøkkel $avstemmingsnøkkel")
-                        }
                 }
+                utbetalingService.oppdaterMedKvittering(
+                    avstemmingsnøkkel,
+                    kvittering,
+                )
+                    .map { ferdigstillInnvilgelse(it) }
+                    .mapLeft {
+                        throw RuntimeException("Kunne ikke lagre kvittering. Fant ikke utbetaling med avstemmingsnøkkel $avstemmingsnøkkel")
+                    }
             }
     }
 

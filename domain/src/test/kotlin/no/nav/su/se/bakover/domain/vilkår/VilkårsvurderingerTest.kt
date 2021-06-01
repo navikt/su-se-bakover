@@ -1,6 +1,6 @@
 package no.nav.su.se.bakover.domain.vilkår
 
-import arrow.core.Nel
+import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
@@ -27,7 +27,7 @@ internal class VilkårsvurderingerTest {
     fun `alle vurderingsperioder innvilget gir innvilget vilkår`() {
         Vilkårsvurderinger(
             uføre = Vilkår.Vurdert.Uførhet.create(
-                vurderingsperioder = Nel.of(
+                vurderingsperioder = nonEmptyListOf(
                     Vurderingsperiode.Uføre.create(
                         resultat = Resultat.Innvilget,
                         grunnlag = uføregrunnlag,
@@ -43,7 +43,7 @@ internal class VilkårsvurderingerTest {
     fun `ingen vurderingsperioder innvilget gir avslått vilkår`() {
         Vilkårsvurderinger(
             uføre = Vilkår.Vurdert.Uførhet.create(
-                vurderingsperioder = Nel.of(
+                vurderingsperioder = nonEmptyListOf(
                     Vurderingsperiode.Uføre.create(
                         resultat = Resultat.Avslag,
                         grunnlag = uføregrunnlag,
@@ -69,7 +69,7 @@ internal class VilkårsvurderingerTest {
     fun `kombinasjon av vurderingsperioder med avslag og innvilgelse gir avslag`() {
         Vilkårsvurderinger(
             uføre = Vilkår.Vurdert.Uførhet.create(
-                vurderingsperioder = Nel.of(
+                vurderingsperioder = nonEmptyListOf(
                     Vurderingsperiode.Uføre.create(
                         resultat = Resultat.Innvilget,
                         grunnlag = Grunnlag.Uføregrunnlag(
@@ -103,7 +103,7 @@ internal class VilkårsvurderingerTest {
         val nyPeriode = Periode.create(1.februar(2021), 31.mars(2021))
         val vilkårsvurdering = Vilkårsvurderinger(
             uføre = Vilkår.Vurdert.Uførhet.create(
-                vurderingsperioder = Nel.of(
+                vurderingsperioder = nonEmptyListOf(
                     Vurderingsperiode.Uføre.create(
                         resultat = Resultat.Innvilget,
                         grunnlag = Grunnlag.Uføregrunnlag(
@@ -137,7 +137,7 @@ internal class VilkårsvurderingerTest {
     fun `uførhet som er avslag blir utledet`() {
         val vilkårsvurdering = Vilkårsvurderinger(
             uføre = Vilkår.Vurdert.Uførhet.create(
-                vurderingsperioder = Nel.of(
+                vurderingsperioder = nonEmptyListOf(
                     Vurderingsperiode.Uføre.create(
                         resultat = Resultat.Avslag,
                         grunnlag = Grunnlag.Uføregrunnlag(
