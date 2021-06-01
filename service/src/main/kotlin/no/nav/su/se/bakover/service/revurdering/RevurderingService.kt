@@ -313,6 +313,7 @@ data class LeggTilBosituasjongrunnlagRequest(
                     opprettet = Tidspunkt.now(clock),
                     periode = periode,
                     fnr = eps.ident.fnr,
+                    begrunnelse = null,
                 ).right()
                 else -> when (ektemakeEllerSamboerUførFlyktning) {
                     true -> Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
@@ -320,12 +321,14 @@ data class LeggTilBosituasjongrunnlagRequest(
                         opprettet = Tidspunkt.now(clock),
                         periode = periode,
                         fnr = eps.ident.fnr,
+                        begrunnelse = null,
                     ).right()
                     false -> Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(clock),
                         periode = periode,
                         fnr = eps.ident.fnr,
+                        begrunnelse = null,
                     ).right()
                     null -> return KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigData.left()
                 }
@@ -335,10 +338,10 @@ data class LeggTilBosituasjongrunnlagRequest(
         if (delerBolig != null) {
             return when (delerBolig) {
                 true -> Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen(
-                    id = UUID.randomUUID(), opprettet = Tidspunkt.now(clock), periode = periode,
+                    id = UUID.randomUUID(), opprettet = Tidspunkt.now(clock), periode = periode, begrunnelse = null,
                 ).right()
                 false -> Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                    id = UUID.randomUUID(), opprettet = Tidspunkt.now(clock), periode = periode,
+                    id = UUID.randomUUID(), opprettet = Tidspunkt.now(clock), periode = periode, begrunnelse = null,
                 ).right()
             }
         }
