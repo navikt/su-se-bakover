@@ -20,7 +20,7 @@ import no.nav.su.se.bakover.web.withSakId
 internal fun Route.LeggTilBosituasjonRevurderingRoute(
     revurderingService: RevurderingService,
 ) {
-    data class bosituasjonBody(
+    data class BosituasjonBody(
         val epsFnr: String?,
         val delerBolig: Boolean?,
         val ektemakeEllerSamboerUførFlyktning: Boolean?,
@@ -30,7 +30,7 @@ internal fun Route.LeggTilBosituasjonRevurderingRoute(
         post("$revurderingPath/{revurderingId}/bosituasjongrunnlag") {
             call.withSakId { sakId ->
                 call.withRevurderingId { revurderingId ->
-                    call.withBody<bosituasjonBody> { body ->
+                    call.withBody<BosituasjonBody> { body ->
                         revurderingService.leggTilBosituasjongrunnlag(
                             LeggTilBosituasjongrunnlagRequest(
                                 revurderingId,

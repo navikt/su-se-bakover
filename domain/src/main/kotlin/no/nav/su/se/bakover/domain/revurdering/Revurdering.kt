@@ -1169,6 +1169,7 @@ enum class Revurderingsteg(val vilkår: String) {
     // Oppholdstillatelse("Oppholdstillatelse"),
     // PersonligOppmøte("PersonligOppmøte"),
     Uførhet("Uførhet"),
+    Bosituasjon("Bosituasjon"),
 
     // InnlagtPåInstitusjon("InnlagtPåInstitusjon"),
     // UtenlandsoppholdOver90Dager("UtenlandsoppholdOver90Dager"),
