@@ -314,6 +314,11 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                             periode = periode,
                             objekter = grunnlagsdata.uføregrunnlag,
                         ).tidslinje,
+                        bosituasjon = grunnlagsdata.bosituasjon.mapNotNull {
+                            (it as Grunnlag.Bosituasjon.Fullstendig).copy(
+                                CopyArgs.Snitt(periode)
+                            )
+                        }
                     ),
                     vilkårsvurderinger = Vilkårsvurderinger(
                         uføre = when (vilkårsvurderinger.uføre) {
@@ -340,6 +345,11 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                             periode = args.periode,
                             objekter = grunnlagsdata.uføregrunnlag,
                         ).tidslinje,
+                        bosituasjon = grunnlagsdata.bosituasjon.mapNotNull {
+                            (it as Grunnlag.Bosituasjon.Fullstendig).copy(
+                                CopyArgs.Snitt(args.periode)
+                            )
+                        },
                     ),
                     vilkårsvurderinger = Vilkårsvurderinger(
                         uføre = when (vilkårsvurderinger.uføre) {

@@ -82,7 +82,12 @@ sealed class Grunnlag {
             fun Fradragsgrunnlag.valider(behandlingsperiode: Periode): Either<UgyldigFradragsgrunnlag, Fradragsgrunnlag> {
                 if (!(behandlingsperiode inneholder fradrag.periode))
                     return UgyldigFradragsgrunnlag.UtenforBehandlingsperiode.left()
-                if (setOf(Fradragstype.ForventetInntekt, Fradragstype.BeregnetFradragEPS, Fradragstype.UnderMinstenivå).contains(fradrag.fradragstype))
+                if (setOf(
+                        Fradragstype.ForventetInntekt,
+                        Fradragstype.BeregnetFradragEPS,
+                        Fradragstype.UnderMinstenivå,
+                    ).contains(fradrag.fradragstype)
+                )
                     return UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag.left()
                 return this.right()
             }
@@ -117,7 +122,7 @@ sealed class Grunnlag {
                         override val begrunnelse: String?,
                     ) : EktefellePartnerSamboer() {
                         override fun copy(args: CopyArgs.Snitt): UførFlyktning? {
-                            return args.snittFor(periode)?.let { copy(periode = it) }
+                            return args.snittFor(periode)?.let { copy(id = UUID.randomUUID(), periode = it) }
                         }
                     }
 
@@ -129,7 +134,7 @@ sealed class Grunnlag {
                         override val begrunnelse: String?,
                     ) : EktefellePartnerSamboer() {
                         override fun copy(args: CopyArgs.Snitt): IkkeUførFlyktning? {
-                            return args.snittFor(periode)?.let { copy(periode = it) }
+                            return args.snittFor(periode)?.let { copy(id = UUID.randomUUID(), periode = it) }
                         }
                     }
                 }
@@ -142,7 +147,7 @@ sealed class Grunnlag {
                     override val begrunnelse: String?,
                 ) : EktefellePartnerSamboer() {
                     override fun copy(args: CopyArgs.Snitt): SektiSyvEllerEldre? {
-                        return args.snittFor(periode)?.let { copy(periode = it) }
+                        return args.snittFor(periode)?.let { copy(id = UUID.randomUUID(), periode = it) }
                     }
                 }
             }
@@ -155,7 +160,7 @@ sealed class Grunnlag {
                 override val begrunnelse: String?,
             ) : Fullstendig() {
                 override fun copy(args: CopyArgs.Snitt): Enslig? {
-                    return args.snittFor(periode)?.let { copy(periode = it) }
+                    return args.snittFor(periode)?.let { copy(id = UUID.randomUUID(), periode = it) }
                 }
             }
 
@@ -166,7 +171,7 @@ sealed class Grunnlag {
                 override val begrunnelse: String?,
             ) : Fullstendig() {
                 override fun copy(args: CopyArgs.Snitt): DelerBoligMedVoksneBarnEllerAnnenVoksen? {
-                    return args.snittFor(periode)?.let { copy(periode = it) }
+                    return args.snittFor(periode)?.let { copy(id = UUID.randomUUID(), periode = it) }
                 }
             }
         }

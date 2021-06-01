@@ -129,6 +129,13 @@ internal class VedtakPåTidslinjeTest {
             forventetInntekt = 100,
         )
 
+        val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen(
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
+            periode = Periode.create(1.januar(2021), 31.desember(2021)),
+            begrunnelse = "Begrunnelse"
+        )
+
         val vurderingsperiode = Vurderingsperiode.Uføre.create(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
@@ -167,6 +174,7 @@ internal class VedtakPåTidslinjeTest {
             periode = Periode.create(1.januar(2021), 31.desember(2021)),
             grunnlagsdata = Grunnlagsdata(
                 uføregrunnlag = listOf(uføregrunnlag),
+                bosituasjon = listOf(bosituasjon),
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Vurdert.Uførhet.create(
@@ -187,6 +195,12 @@ internal class VedtakPåTidslinjeTest {
                 it.periode shouldBe Periode.create(1.mai(2021), 31.juli(2021))
                 it.uføregrad shouldBe uføregrunnlag.uføregrad
                 it.forventetInntekt shouldBe uføregrunnlag.forventetInntekt
+            }
+            vedtakPåTidslinje.grunnlagsdata.bosituasjon[0].let {
+                (it as Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen)
+                it.id shouldNotBe bosituasjon.id
+                it.periode shouldBe Periode.create(1.mai(2021), 31.juli(2021))
+                it.begrunnelse shouldBe "Begrunnelse"
             }
             (vedtakPåTidslinje.vilkårsvurderinger.uføre as Vilkår.Vurdert.Uførhet).let { vilkårcopy ->
                 vilkårcopy.vurderingsperioder[0].let { vurderingsperiodecopy ->
