@@ -185,7 +185,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
         )
 
         verify(søknadsbehandlingRepoMock, Times(2)).hent(argThat { it shouldBe behandlingId })
-        verify(søknadsbehandlingRepoMock).lagre((any())) //Testene til søknadsbehandling vilkårsvurder dekker dette
+        verify(søknadsbehandlingRepoMock).lagre((any())) // Testene til søknadsbehandling vilkårsvurder dekker dette
         verify(grunnlagServiceMock).lagreBosituasjongrunnlag(
             argThat { it shouldBe behandlingId },
             argThat { it shouldBe listOf(bosituasjon.copy(id = it.first().id, opprettet = it.first().opprettet)) },
