@@ -39,7 +39,7 @@ internal object Feilresponser {
     )
 
     val kunneIkkeLageBosituasjon = HttpStatusCode.NotFound.errorJson(
-        "Klarte ikke lage bosituasjon",
-        "klarte_ikke_lage_bosituasjon",
+        "Klarte ikke lagre bosituasjon",
+        "klarte_ikke_lagre_bosituasjon",
     )
 }

@@ -571,7 +571,11 @@ internal class SøknadsbehandlingServiceImpl(
             return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.FantIkkeBehandling.left()
         }.map {
             grunnlagService.lagreBosituasjongrunnlag(behandlingId = request.behandlingId, listOf(bosituasjon))
-            return søknadsbehandlingRepo.hent(request.behandlingId)!!.right()
+            return when (it) {
+                is Søknadsbehandling.Vilkårsvurdert.Avslag -> it.copy(grunnlagsdata = it.grunnlagsdata.copy(bosituasjon = listOf(bosituasjon)))
+                is Søknadsbehandling.Vilkårsvurdert.Innvilget -> it.copy(grunnlagsdata = it.grunnlagsdata.copy(bosituasjon = listOf(bosituasjon)))
+                is Søknadsbehandling.Vilkårsvurdert.Uavklart -> it.copy(grunnlagsdata = it.grunnlagsdata.copy(bosituasjon = listOf(bosituasjon)))
+            }.right()
         }
     }
 
@@ -635,7 +639,11 @@ internal class SøknadsbehandlingServiceImpl(
             return KunneIkkeFullføreBosituasjonGrunnlag.FantIkkeBehandling.left()
         }.map {
             grunnlagService.lagreBosituasjongrunnlag(behandlingId = request.behandlingId, listOf(bosituasjon))
-            return søknadsbehandlingRepo.hent(request.behandlingId)!!.right()
+            return when (it) {
+                is Søknadsbehandling.Vilkårsvurdert.Avslag -> it.copy(grunnlagsdata = it.grunnlagsdata.copy(bosituasjon = listOf(bosituasjon)))
+                is Søknadsbehandling.Vilkårsvurdert.Innvilget -> it.copy(grunnlagsdata = it.grunnlagsdata.copy(bosituasjon = listOf(bosituasjon)))
+                is Søknadsbehandling.Vilkårsvurdert.Uavklart -> it.copy(grunnlagsdata = it.grunnlagsdata.copy(bosituasjon = listOf(bosituasjon)))
+            }.right()
         }
     }
 }
