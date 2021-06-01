@@ -38,7 +38,7 @@ enum class Sats(val grunnbeløp: Grunnbeløp) {
                 is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning -> ORDINÆR
                 is Grunnlag.Bosituasjon.Fullstendig.Enslig -> HØY
                 is Grunnlag.Bosituasjon.Ufullstendig.HarEpsIkkeValgtUførFlyktning -> throw IllegalStateException("Kan ikke utlede sats når man ikke har valgt om eps er ufør flyktning eller ikke")
-                is Grunnlag.Bosituasjon.Ufullstendig.HarValgtEPSIkkeValgtEnsligVoksne -> throw IllegalStateException("Kan ikke utlede sats når man ikke har valgt bor alene eller med voksne")
+                is Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEPS -> throw IllegalStateException("Kan ikke utlede sats når man ikke har valgt bor alene eller med voksne")
             }
         }
     }

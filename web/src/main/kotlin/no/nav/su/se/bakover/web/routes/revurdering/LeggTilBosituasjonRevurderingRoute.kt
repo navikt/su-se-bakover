@@ -23,7 +23,8 @@ internal fun Route.LeggTilBosituasjonRevurderingRoute(
     data class BosituasjonBody(
         val epsFnr: String?,
         val delerBolig: Boolean?,
-        val ektemakeEllerSamboerUførFlyktning: Boolean?,
+        val erEPSUførFlyktning: Boolean?,
+        val begrunnelse: String?
     )
 
     authorize(Brukerrolle.Saksbehandler) {
@@ -36,7 +37,7 @@ internal fun Route.LeggTilBosituasjonRevurderingRoute(
                                 revurderingId,
                                 body.epsFnr,
                                 body.delerBolig,
-                                body.ektemakeEllerSamboerUførFlyktning,
+                                body.erEPSUførFlyktning,
                             ),
                         ).map {
                             call.sikkerlogg("Lagret bosituasjon for revudering $revurderingId på $sakId")

@@ -70,7 +70,7 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
                                 ektemakeEllerSamboerUførFlyktning = null,
                                 begrunnelse = null,
                             )
-                        is Grunnlag.Bosituasjon.Ufullstendig.HarValgtEPSIkkeValgtEnsligVoksne ->
+                        is Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEPS ->
                             BosituasjonJson(
                                 type = "UFULLSTENDIG_HAR_IKKE_EPS",
                                 fnr = null,

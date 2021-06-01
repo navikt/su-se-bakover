@@ -97,7 +97,7 @@ internal fun Route.leggTilGrunnlagBosituasjonRoutes(
                                             it.fra,
                                             it.til,
                                         )
-                                        SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag.KlarteIkkeLageBosituasjon -> Feilresponser.kunneIkkeLageBosituasjon
+                                        SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag.KlarteIkkeLagreBosituasjon -> Feilresponser.kunneIkkeLageBosituasjon
                                     }
                                 }.map {
                                     Resultat.json(HttpStatusCode.Created, serialize(it.toJson()))

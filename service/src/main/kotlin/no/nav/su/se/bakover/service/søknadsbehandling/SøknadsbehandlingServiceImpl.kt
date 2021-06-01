@@ -559,7 +559,7 @@ internal class SøknadsbehandlingServiceImpl(
                                     skjermet = person.skjermet,
                                 )
                             }
-                            is Grunnlag.Bosituasjon.Ufullstendig.HarValgtEPSIkkeValgtEnsligVoksne -> Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle
+                            is Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEPS -> Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle
                         },
                         delerBolig = null,
                         ektemakeEllerSamboerUførFlyktning = null,
@@ -594,7 +594,7 @@ internal class SøknadsbehandlingServiceImpl(
 
         val bosituasjon =
             request.toBosituasjon(søknadsbehandling.grunnlagsdata.bosituasjon.first(), clock).getOrHandle {
-                return KunneIkkeFullføreBosituasjonGrunnlag.KlarteIkkeLageBosituasjon.left()
+                return KunneIkkeFullføreBosituasjonGrunnlag.KlarteIkkeLagreBosituasjon.left()
             }
 
         return vilkårsvurder(

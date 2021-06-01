@@ -13,7 +13,7 @@ data class LeggTilBosituasjonEpsRequest(
 ) {
     fun toBosituasjon(periode: Periode, clock: Clock): Grunnlag.Bosituasjon.Ufullstendig {
         return if (epsFnr == null) {
-            Grunnlag.Bosituasjon.Ufullstendig.HarValgtEPSIkkeValgtEnsligVoksne(
+            Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEPS(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(clock),
                 periode = periode,
