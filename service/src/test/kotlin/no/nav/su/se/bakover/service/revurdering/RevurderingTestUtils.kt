@@ -9,7 +9,6 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
@@ -176,7 +175,7 @@ object RevurderingTestUtils {
     internal val sak = Sak(
         id = sakId,
         saksnummer = saksnummer,
-        opprettet = Tidspunkt.now(),
+        opprettet = fixedTidspunkt,
         fnr = fnr,
         søknader = listOf(),
         utbetalinger = listOf(
