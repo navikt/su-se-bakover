@@ -324,7 +324,7 @@ internal class OpprettRevurderingServiceTest {
         val actual = mocks.revurderingService.opprettRevurdering(
             OpprettRevurderingRequest(
                 sakId = sakId,
-                fraOgMed = LocalDate.now().startOfMonth(),
+                fraOgMed = periode.fraOgMed,
                 årsak = "REGULER_GRUNNBELØP",
                 begrunnelse = "g-regulering",
                 saksbehandler = saksbehandler,
@@ -335,7 +335,7 @@ internal class OpprettRevurderingServiceTest {
         }
 
         val tilRevurdering = sak.vedtakListe.first() as Vedtak.EndringIYtelse
-        val periode = Periode.create(LocalDate.now().startOfMonth(), periode.tilOgMed)
+        val periode = Periode.create(periode.fraOgMed, periode.tilOgMed)
         actual.let { opprettetRevurdering ->
             opprettetRevurdering.periode shouldBe periode
             opprettetRevurdering.tilRevurdering shouldBe tilRevurdering
@@ -416,7 +416,7 @@ internal class OpprettRevurderingServiceTest {
         val actual = mocks.revurderingService.opprettRevurdering(
             OpprettRevurderingRequest(
                 sakId = sakId,
-                fraOgMed = LocalDate.now().minusMonths(1).startOfMonth(),
+                fraOgMed = periode.tilOgMed.minusMonths(1).startOfMonth(),
                 årsak = "REGULER_GRUNNBELØP",
                 begrunnelse = "g-regulering",
                 saksbehandler = saksbehandler,
@@ -426,7 +426,7 @@ internal class OpprettRevurderingServiceTest {
             throw RuntimeException("$it")
         }
         val tilRevurdering = sak.vedtakListe.first() as Vedtak.EndringIYtelse
-        val periode = Periode.create(LocalDate.now().minusMonths(1).startOfMonth(), periode.tilOgMed)
+        val periode = Periode.create(periode.tilOgMed.minusMonths(1).startOfMonth(), periode.tilOgMed)
         actual.let { opprettetRevurdering ->
             opprettetRevurdering.periode shouldBe periode
             opprettetRevurdering.tilRevurdering shouldBe tilRevurdering
