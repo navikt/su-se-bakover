@@ -216,27 +216,6 @@ internal class OppdaterRevurderingServiceTest {
     }
 
     @Test
-    fun `oppdatert periode må være fra neste kalendermåned`() {
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(any()) } doReturn opprettetRevurdering
-        }
-        val mocks = RevurderingServiceMocks(revurderingRepo = revurderingRepoMock)
-        val actual = mocks.revurderingService.oppdaterRevurdering(
-            OppdaterRevurderingRequest(
-                revurderingId = revurderingId,
-                fraOgMed = periode.fraOgMed.minus(1, ChronoUnit.MONTHS),
-                årsak = "MELDING_FRA_BRUKER",
-                begrunnelse = "gyldig begrunnelse",
-                saksbehandler = saksbehandler,
-                informasjonSomRevurderes = informasjonSomRevurderes,
-            ),
-        )
-        actual shouldBe KunneIkkeOppdatereRevurdering.PeriodeOgÅrsakKombinasjonErUgyldig.left()
-        verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
-        mocks.verifyNoMoreInteractions()
-    }
-
-    @Test
     fun `Ugyldig periode - fra og med dato må være første dag i måneden`() {
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn opprettetRevurdering
