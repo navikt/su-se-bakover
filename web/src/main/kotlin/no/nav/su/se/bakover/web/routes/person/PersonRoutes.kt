@@ -1,12 +1,14 @@
 package no.nav.su.se.bakover.web.routes.person
 
+import arrow.core.Either
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.routing.Route
-import io.ktor.routing.get
+import io.ktor.routing.post
 import no.nav.su.se.bakover.common.objectMapper
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.FantIkkePerson
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson.IkkeTilgangTilPerson
@@ -15,10 +17,10 @@ import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
-import no.nav.su.se.bakover.web.lesFnr
 import no.nav.su.se.bakover.web.message
 import no.nav.su.se.bakover.web.routes.person.PersonResponseJson.Companion.toJson
 import no.nav.su.se.bakover.web.svar
+import no.nav.su.se.bakover.web.withBody
 import java.time.Clock
 import java.time.LocalDate
 
@@ -28,33 +30,39 @@ internal fun Route.personRoutes(
     personService: PersonService,
     clock: Clock
 ) {
-    get("$personPath/{fnr}") {
-        call.lesFnr("fnr").fold(
-            ifLeft = { call.svar(BadRequest.message(it)) },
-            ifRight = { fnr ->
-                call.svar(
-                    personService.hentPerson(fnr).fold(
-                        {
-                            when (it) {
-                                FantIkkePerson -> Resultat.message(NotFound, "Fant ikke person")
-                                IkkeTilgangTilPerson -> Resultat.message(
-                                    HttpStatusCode.Forbidden,
-                                    "Ikke tilgang til å se person"
-                                )
-                                Ukjent -> Resultat.message(
-                                    HttpStatusCode.InternalServerError,
-                                    "Feil ved oppslag på person"
-                                )
-                            }
-                        },
-                        {
-                            call.audit(fnr, AuditLogEvent.Action.ACCESS, null)
-                            Resultat.json(HttpStatusCode.OK, objectMapper.writeValueAsString(it.toJson(clock)))
-                        }
-                    )
-                )
-            }
+    post("$personPath/søk") {
+        data class Body(
+            val fnr: String
         )
+
+        call.withBody<Body> { body ->
+            Either.catch { Fnr(body.fnr) }.fold(
+                ifLeft = { call.svar(BadRequest.message("${body.fnr} er ikke et gyldig fødselsnummer")) },
+                ifRight = { fnr ->
+                    call.svar(
+                        personService.hentPerson(fnr).fold(
+                            {
+                                when (it) {
+                                    FantIkkePerson -> Resultat.message(NotFound, "Fant ikke person")
+                                    IkkeTilgangTilPerson -> Resultat.message(
+                                        HttpStatusCode.Forbidden,
+                                        "Ikke tilgang til å se person"
+                                    )
+                                    Ukjent -> Resultat.message(
+                                        HttpStatusCode.InternalServerError,
+                                        "Feil ved oppslag på person"
+                                    )
+                                }
+                            },
+                            {
+                                call.audit(fnr, AuditLogEvent.Action.ACCESS, null)
+                                Resultat.json(HttpStatusCode.OK, objectMapper.writeValueAsString(it.toJson(clock)))
+                            }
+                        )
+                    )
+                }
+            )
+        }
     }
 }
 
