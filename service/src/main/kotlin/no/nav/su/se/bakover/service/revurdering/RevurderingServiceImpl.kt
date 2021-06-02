@@ -278,6 +278,19 @@ internal class RevurderingServiceImpl(
             }
 
         grunnlagService.lagreBosituasjongrunnlag(revurdering.id, listOf(bosituasjongrunnlag))
+        // TODO jah: Vi trenger fremdeles behandlingsinformasjon for å utlede sats, så den må ligge inntil vi har flyttet den modellen/logikken til Vilkår
+        revurdering.oppdaterBehandlingsinformasjon(
+            revurdering.behandlingsinformasjon.copy(
+                bosituasjon = bosituasjongrunnlag.tilBosituasjon { personService.hentPerson(it) },
+            ),
+        ).also {
+            revurderingRepo.lagre(
+                it.copy(
+                    informasjonSomRevurderes = it.informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Bosituasjon),
+                ),
+            )
+        }
+
         return LeggTilBosituasjongrunnlagResponse(
             revurdering = revurderingRepo.hent(request.revurderingId)!!,
         ).right()
