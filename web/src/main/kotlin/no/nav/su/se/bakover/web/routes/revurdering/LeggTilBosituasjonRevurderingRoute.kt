@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.sikkerlogg
+import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withRevurderingId
 import no.nav.su.se.bakover.web.withSakId
@@ -41,9 +42,11 @@ internal fun Route.LeggTilBosituasjonRevurderingRoute(
                             ),
                         ).map {
                             call.sikkerlogg("Lagret bosituasjon for revudering $revurderingId på $sakId")
-                            Resultat.json(
-                                HttpStatusCode.OK,
-                                serialize(it.revurdering.toJson()),
+                            call.svar(
+                                Resultat.json(
+                                    HttpStatusCode.OK,
+                                    serialize(it.revurdering.toJson()),
+                                ),
                             )
                         }.mapLeft {
                             when (it) {
@@ -58,7 +61,7 @@ internal fun Route.LeggTilBosituasjonRevurderingRoute(
                                 )
                                 KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigData -> HttpStatusCode.BadRequest.errorJson(
                                     "ugyldig data",
-                                    "ugyldig_Data",
+                                    "ugyldig_data",
                                 )
                             }
                         }
