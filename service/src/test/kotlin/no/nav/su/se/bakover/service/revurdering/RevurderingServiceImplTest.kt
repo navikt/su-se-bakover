@@ -333,16 +333,23 @@ internal class RevurderingServiceImplTest {
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
         ).getOrHandle { throw Exception("Vi skal få tilbake en revurdering") }
-        if (actual !is SimulertRevurdering) throw RuntimeException("Skal returnere en simulert revurdering")
 
-        inOrder(revurderingRepoMock, utbetalingServiceMock) {
+        actual.let {
+            it.revurdering shouldBe beOfType<SimulertRevurdering.Innvilget>()
+            it.feilmeldinger shouldBe emptyList()
+        }
+
+        inOrder(
+            revurderingRepoMock,
+            utbetalingServiceMock,
+        ) {
             verify(revurderingRepoMock).hent(revurderingId)
             verify(utbetalingServiceMock).simulerUtbetaling(
                 sakId = argThat { it shouldBe sakId },
                 saksbehandler = argThat { it shouldBe saksbehandler },
-                beregning = argThat { it shouldBe actual.beregning },
+                beregning = argThat { it shouldBe (actual.revurdering as SimulertRevurdering).beregning },
             )
-            verify(revurderingRepoMock).lagre(argThat { it shouldBe actual })
+            verify(revurderingRepoMock).lagre(argThat { it shouldBe actual.revurdering })
         }
         verifyNoMoreInteractions(revurderingRepoMock, utbetalingServiceMock)
     }
@@ -790,16 +797,20 @@ internal class RevurderingServiceImplTest {
             underkjentRevurdering.id,
             saksbehandler,
         ).getOrElse { throw RuntimeException("Noe gikk galt") }
-        if (actual !is SimulertRevurdering.Innvilget) throw RuntimeException("Skal returnere en simulert revurdering")
+
+        actual.let {
+            it.revurdering shouldBe beOfType<SimulertRevurdering.Innvilget>()
+            it.feilmeldinger shouldBe emptyList()
+        }
 
         inOrder(revurderingRepoMock, utbetalingServiceMock) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
             verify(utbetalingServiceMock).simulerUtbetaling(
                 sakId = argThat { it shouldBe sakId },
                 saksbehandler = argThat { it shouldBe saksbehandler },
-                beregning = argThat { it shouldBe actual.beregning },
+                beregning = argThat { it shouldBe (actual.revurdering as SimulertRevurdering).beregning },
             )
-            verify(revurderingRepoMock).lagre(argThat { it shouldBe actual })
+            verify(revurderingRepoMock).lagre(argThat { it shouldBe actual.revurdering })
         }
 
         verifyNoMoreInteractions(revurderingRepoMock, utbetalingServiceMock)
@@ -1437,7 +1448,9 @@ internal class RevurderingServiceImplTest {
             ),
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = mock {
+                on { resultat } doReturn Resultat.Innvilget
+            },
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
 
@@ -1660,7 +1673,7 @@ internal class RevurderingServiceImplTest {
         ).beregnOgSimuler(
             revurderingId = revurderingId,
             saksbehandler = NavIdentBruker.Saksbehandler("s1"),
-        ).orNull()!!
+        ).orNull()!!.revurdering
 
         actual shouldBe beOfType<SimulertRevurdering.Opphørt>()
 
@@ -1680,7 +1693,7 @@ internal class RevurderingServiceImplTest {
     }
 
     @Test
-    fun `uavklarte vilkår gir feilmelding`() {
+    fun `uavklarte vilkår kaster exception`() {
         val uavklarteVilkår = vilkårsvurderinger.copy(
             uføre = Vilkår.IkkeVurdert.Uførhet,
         )
@@ -1691,19 +1704,13 @@ internal class RevurderingServiceImplTest {
             on { hent(revurderingId) } doReturn revurdering
         }
 
-        val actual = createRevurderingService(
-            revurderingRepo = revurderingRepoMock,
-        ).beregnOgSimuler(
-            revurderingId = revurderingId,
-            saksbehandler = NavIdentBruker.Saksbehandler("s1"),
-        )
-
-        actual shouldBe KunneIkkeBeregneOgSimulereRevurdering.UfullstendigVilkårsvurdering.left()
-
-        inOrder(
-            revurderingRepoMock,
-        ) {
-            verify(revurderingRepoMock).hent(revurderingId)
+        assertThrows<IllegalStateException> {
+            createRevurderingService(
+                revurderingRepo = revurderingRepoMock,
+            ).beregnOgSimuler(
+                revurderingId = revurderingId,
+                saksbehandler = NavIdentBruker.Saksbehandler("s1"),
+            )
         }
     }
 

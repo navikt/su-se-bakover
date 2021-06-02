@@ -74,5 +74,6 @@ internal fun KunneIkkeSendeRevurderingTilAttestering.tilResultat(): Resultat {
         )
         is KunneIkkeSendeRevurderingTilAttestering.ManglerBeslutningPåForhåndsvarsel -> manglerBeslutningPåForhåndsvarsel
         KunneIkkeSendeRevurderingTilAttestering.FeilutbetalingStøttesIkke -> feilutbetalingStøttesIkke
+        is KunneIkkeSendeRevurderingTilAttestering.RevurderingsutfallStøttesIkke -> BadRequest.errorJson(feilmeldinger.map { it.toJson() })
     }
 }

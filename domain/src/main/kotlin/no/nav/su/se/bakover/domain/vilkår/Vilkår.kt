@@ -13,6 +13,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
+import java.time.LocalDate
 import java.util.UUID
 
 /**
@@ -22,15 +23,15 @@ Her har vi utelatt for høy inntekt (SU<0) og su under minstegrense (SU<2%)
  */
 sealed class Inngangsvilkår {
     object Uførhet : Inngangsvilkår()
-   /*
-    object Flyktning : Inngangsvilkår()
-    object Oppholdstillatelse : Inngangsvilkår()
-    object PersonligOppmøte : Inngangsvilkår()
-    object Formue : Inngangsvilkår()
-    object BorOgOppholderSegINorge : Inngangsvilkår()
-    object UtenlandsoppholdOver90Dager : Inngangsvilkår()
-    object InnlagtPåInstitusjon : Inngangsvilkår()
-    */
+    /*
+     object Flyktning : Inngangsvilkår()
+     object Oppholdstillatelse : Inngangsvilkår()
+     object PersonligOppmøte : Inngangsvilkår()
+     object Formue : Inngangsvilkår()
+     object BorOgOppholderSegINorge : Inngangsvilkår()
+     object UtenlandsoppholdOver90Dager : Inngangsvilkår()
+     object InnlagtPåInstitusjon : Inngangsvilkår()
+     */
 
     fun tilOpphørsgrunn() = when (this) {
         Uførhet -> Opphørsgrunn.UFØRHET
@@ -60,6 +61,13 @@ data class Vilkårsvurderinger(
                 else -> Resultat.Uavklart
             }
         }
+    }
+
+    fun tidligsteDatoForAvslag(): LocalDate? {
+        return vilkår.filterIsInstance<Vilkår.Vurdert<*>>()
+            .flatMap { it.vurderingsperioder }
+            .filter { it.resultat == Resultat.Avslag }
+            .minByOrNull { it.periode.fraOgMed }?.periode?.fraOgMed
     }
 
     fun utledOpphørsgrunner(): List<Opphørsgrunn> {

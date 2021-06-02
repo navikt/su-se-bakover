@@ -39,4 +39,7 @@ interface Beregning : PeriodisertInformasjon {
      * Denne vil tvinge sub-klassene til å override.
      */
     override fun equals(other: Any?): Boolean
+
+    fun alleMånederErUnderMinstebeløp(): Boolean = getMånedsberegninger().all { it.erSumYtelseUnderMinstebeløp() }
+    fun alleMånederHarBeløpLik0(): Boolean = getMånedsberegninger().all { it.getSumYtelse() == 0 }
 }
