@@ -31,8 +31,8 @@ class BeregningStrategyFactory {
                 is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> BeregningStrategy.EpsUnder67År
                 is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning -> BeregningStrategy.EpsUnder67ÅrOgUførFlyktning
                 is Grunnlag.Bosituasjon.Fullstendig.Enslig -> BeregningStrategy.BorAlene
-                is Grunnlag.Bosituasjon.Ufullstendig.HarEpsIkkeValgtUførFlyktning -> throw IllegalStateException("Kan ikke beregne når man ikke har valgt om eps er ufør flyktning eller ikke")
-                is Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEPS -> throw IllegalStateException("Kan ikke beregne når man ikke har valgt om man bor alene eller med andre voksne")
+                is Grunnlag.Bosituasjon.Ufullstendig.HarEps -> throw IllegalStateException("Kan ikke beregne når man ikke har valgt om eps er ufør flyktning eller ikke")
+                is Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps -> throw IllegalStateException("Kan ikke beregne når man ikke har valgt om man bor alene eller med andre voksne")
             }
         // TODO jah: Kan vurdere å legge på en left her (KanIkkeBeregne.UfullstendigBehandlingsinformasjon
         return strategy.beregn(beregningsgrunnlag, begrunnelse)

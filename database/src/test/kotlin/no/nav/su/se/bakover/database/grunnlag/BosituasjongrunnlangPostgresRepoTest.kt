@@ -55,7 +55,7 @@ internal class BosituasjongrunnlangPostgresRepoTest {
         withMigratedDb {
             val id = UUID.randomUUID()
             val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021))
-            val bosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEPS(
+            val bosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
                 id = id,
                 opprettet = Tidspunkt.EPOCH,
                 periode = periode,
@@ -70,7 +70,7 @@ internal class BosituasjongrunnlangPostgresRepoTest {
         withMigratedDb {
             val id = UUID.randomUUID()
             val periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021))
-            val bosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarEpsIkkeValgtUførFlyktning(
+            val bosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarEps(
                 id = id,
                 opprettet = Tidspunkt.EPOCH,
                 periode = periode,

@@ -132,7 +132,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
-        val bosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEPS(
+        val bosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
             periode = stønadsperiode.periode,
@@ -279,7 +279,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata(
                 bosituasjon = listOf(
-                    Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEPS(
+                    Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
                         periode = stønadsperiode.periode,

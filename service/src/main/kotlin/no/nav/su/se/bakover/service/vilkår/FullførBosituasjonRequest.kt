@@ -30,12 +30,12 @@ data class FullførBosituasjonRequest(
     private fun hentFnrForUnder67(ufullstendigBosituasjon: Grunnlag.Bosituasjon): Either<KunneIkkeFullføreBosituasjon, Fnr> =
         when (ufullstendigBosituasjon) {
             is Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen,
-            is Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEPS,
+            is Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps,
             is Grunnlag.Bosituasjon.Fullstendig.Enslig,
             is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre,
             -> KunneIkkeFullføreBosituasjon.HarIkkeValgtEps.left()
 
-            is Grunnlag.Bosituasjon.Ufullstendig.HarEpsIkkeValgtUførFlyktning -> ufullstendigBosituasjon.fnr.right()
+            is Grunnlag.Bosituasjon.Ufullstendig.HarEps -> ufullstendigBosituasjon.fnr.right()
             is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> ufullstendigBosituasjon.fnr.right()
             is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning -> ufullstendigBosituasjon.fnr.right()
         }
@@ -80,11 +80,11 @@ data class FullførBosituasjonRequest(
                     is Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen,
                     is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning,
                     is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning,
-                    is Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEPS,
+                    is Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps,
                     is Grunnlag.Bosituasjon.Fullstendig.Enslig,
                     -> return KunneIkkeFullføreBosituasjon.HarIkkeValgtEps.left()
 
-                    is Grunnlag.Bosituasjon.Ufullstendig.HarEpsIkkeValgtUførFlyktning -> ufullstendigBosituasjon.fnr
+                    is Grunnlag.Bosituasjon.Ufullstendig.HarEps -> ufullstendigBosituasjon.fnr
                     is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre -> ufullstendigBosituasjon.fnr
                 },
             )

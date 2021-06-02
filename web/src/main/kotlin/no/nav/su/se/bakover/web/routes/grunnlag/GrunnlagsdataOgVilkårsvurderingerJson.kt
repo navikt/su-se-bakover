@@ -62,7 +62,7 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
                                 ektemakeEllerSamboerUførFlyktning = null,
                                 begrunnelse = it.begrunnelse,
                             )
-                        is Grunnlag.Bosituasjon.Ufullstendig.HarEpsIkkeValgtUførFlyktning ->
+                        is Grunnlag.Bosituasjon.Ufullstendig.HarEps ->
                             BosituasjonJson(
                                 type = "UFULLSTENDIG_HAR_EPS",
                                 fnr = it.fnr.toString(),
@@ -70,7 +70,7 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
                                 ektemakeEllerSamboerUførFlyktning = null,
                                 begrunnelse = null,
                             )
-                        is Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEPS ->
+                        is Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps ->
                             BosituasjonJson(
                                 type = "UFULLSTENDIG_HAR_IKKE_EPS",
                                 fnr = null,

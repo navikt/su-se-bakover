@@ -190,6 +190,7 @@ internal class TestDataHelper(
         dataSource,
         uføregrunnlagPostgresRepo,
         fradragsgrunnlagPostgresRepo,
+        bosituasjongrunnlagPostgresRepo,
         vilkårsvurderingRepo,
         søknadsbehandlingRepo,
     )

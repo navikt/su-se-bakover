@@ -538,7 +538,9 @@ internal class SøknadsbehandlingServiceImpl(
                 Søknadsbehandling.Vilkårsvurdert::class,
             ).left()
 
-        val bosituasjon = request.toBosituasjon(søknadsbehandling.periode, clock)
+        val bosituasjon = request.toBosituasjon(søknadsbehandling.periode, clock) {
+            personService.hentPerson(it)
+        }.getOrHandle { return it.left() }
 
         return vilkårsvurder(
             SøknadsbehandlingService.VilkårsvurderRequest(
@@ -546,7 +548,7 @@ internal class SøknadsbehandlingServiceImpl(
                 behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon.copy(
                     bosituasjon = Behandlingsinformasjon.Bosituasjon(
                         ektefelle = when (bosituasjon) {
-                            is Grunnlag.Bosituasjon.Ufullstendig.HarEpsIkkeValgtUførFlyktning -> {
+                            is Grunnlag.Bosituasjon.Ufullstendig.HarEps -> {
                                 val person = personService.hentPerson(bosituasjon.fnr).getOrHandle {
                                     return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KlarteIkkeHentePersonIPdl.left()
                                 }
@@ -559,7 +561,7 @@ internal class SøknadsbehandlingServiceImpl(
                                     skjermet = person.skjermet,
                                 )
                             }
-                            is Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEPS -> Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle
+                            is Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps -> Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle
                         },
                         delerBolig = null,
                         ektemakeEllerSamboerUførFlyktning = null,
