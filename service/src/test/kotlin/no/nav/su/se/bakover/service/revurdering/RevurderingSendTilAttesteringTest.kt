@@ -237,4 +237,31 @@ class RevurderingSendTilAttesteringTest {
 
         verify(revurderingRepoMock, never()).lagre(any())
     }
+
+    @Test
+    fun `kan ikke sende revurdering med utfall som ikke støttes til attestering - simulering har feilubtbetaling`() {
+        val simuleringMock = mock<Simulering> {
+            on { harFeilutbetalinger() } doReturn true
+        }
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(RevurderingTestUtils.revurderingId) } doReturn RevurderingTestUtils.simulertRevurderingInnvilget.copy(
+                simulering = simuleringMock,
+            )
+        }
+
+        val actual = RevurderingTestUtils.createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+        ).sendTilAttestering(
+            SendTilAttesteringRequest(
+                revurderingId = RevurderingTestUtils.revurderingId,
+                saksbehandler = RevurderingTestUtils.saksbehandler,
+                fritekstTilBrev = "Fritekst",
+                skalFøreTilBrevutsending = true,
+            ),
+        )
+
+        actual shouldBe KunneIkkeSendeRevurderingTilAttestering.FeilutbetalingStøttesIkke.left()
+
+        verify(revurderingRepoMock, never()).lagre(any())
+    }
 }

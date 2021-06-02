@@ -6,6 +6,7 @@ import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
+import io.kotest.assertions.fail
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
@@ -97,7 +98,7 @@ class RevurderingBeregnOgSimulerTest {
         ).beregnOgSimuler(
             revurderingId = RevurderingTestUtils.revurderingId,
             saksbehandler = RevurderingTestUtils.saksbehandler,
-        ).getOrHandle { throw RuntimeException() }
+        ).getOrHandle { fail("Skulle returnert en instans av ${BeregnOgSimulerResponse::class}") }
 
         response.feilmeldinger shouldBe listOf(
             RevurderingsutfallSomIkkeStøttes.OpphørOgAndreEndringerIKombinasjon,
