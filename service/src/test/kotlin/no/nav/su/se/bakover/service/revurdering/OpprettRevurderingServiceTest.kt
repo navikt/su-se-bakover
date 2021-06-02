@@ -271,6 +271,7 @@ internal class OpprettRevurderingServiceTest {
                 verify(revurderingRepoMock).lagre(argThat { it.right() shouldBe actual.right() })
                 verify(vilkårsvurderingServiceMock).lagre(actual.id, actual.vilkårsvurderinger)
                 verify(grunnlagServiceMock).lagreFradragsgrunnlag(actual.id, actual.grunnlagsdata.fradragsgrunnlag)
+                verify(grunnlagServiceMock).lagreBosituasjongrunnlag(actual.id, actual.grunnlagsdata.bosituasjon)
             }
 
             mocks.verifyNoMoreInteractions()
@@ -383,6 +384,7 @@ internal class OpprettRevurderingServiceTest {
             verify(revurderingRepoMock).lagre(argThat { it.right() shouldBe actual.right() })
             verify(vilkårsvurderingServiceMock).lagre(any(), any())
             verify(grunnlagServiceMock).lagreFradragsgrunnlag(any(), any())
+            verify(grunnlagServiceMock).lagreBosituasjongrunnlag(actual.id, actual.grunnlagsdata.bosituasjon)
         }
 
         mocks.verifyNoMoreInteractions()
@@ -475,6 +477,7 @@ internal class OpprettRevurderingServiceTest {
             verify(revurderingRepoMock).lagre(argThat { it.right() shouldBe actual.right() })
             verify(vilkårsvurderingServiceMock).lagre(any(), any())
             verify(grunnlagServiceMock).lagreFradragsgrunnlag(any(), any())
+            verify(grunnlagServiceMock).lagreBosituasjongrunnlag(actual.id, actual.grunnlagsdata.bosituasjon)
         }
 
         mocks.verifyNoMoreInteractions()
@@ -760,6 +763,7 @@ internal class OpprettRevurderingServiceTest {
         )
         verify(vilkårsvurderingServiceMock).lagre(any(), any())
         verify(grunnlagServiceMock).lagreFradragsgrunnlag(any(), any())
+        verify(grunnlagServiceMock).lagreBosituasjongrunnlag(any(), any())
         mocks.verifyNoMoreInteractions()
     }
 

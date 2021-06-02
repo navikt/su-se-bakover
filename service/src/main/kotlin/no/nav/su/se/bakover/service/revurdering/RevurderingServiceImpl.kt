@@ -166,6 +166,8 @@ internal class RevurderingServiceImpl(
                     fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
                 )
 
+                grunnlagService.lagreBosituasjongrunnlag(it.id, it.grunnlagsdata.bosituasjon)
+
                 observers.forEach { observer ->
                     observer.handle(
                         Event.Statistikk.RevurderingStatistikk.RevurderingOpprettet(
@@ -394,6 +396,7 @@ internal class RevurderingServiceImpl(
             revurderingRepo.lagre(it)
             vilkårsvurderingService.lagre(it.id, it.vilkårsvurderinger)
             grunnlagService.lagreFradragsgrunnlag(it.id, it.grunnlagsdata.fradragsgrunnlag)
+            grunnlagService.lagreBosituasjongrunnlag(it.id, it.grunnlagsdata.bosituasjon)
             it
         }
     }

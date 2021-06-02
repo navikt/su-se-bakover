@@ -173,6 +173,7 @@ internal class RevurderingServiceImplTest {
             verify(revurderingRepoMock).lagre(argThat { it.right() shouldBe actual.right() })
             verify(vilkårsvurderingServiceMock).lagre(actual.id, actual.vilkårsvurderinger)
             verify(grunnlagServiceMock).lagreFradragsgrunnlag(actual.id, actual.grunnlagsdata.fradragsgrunnlag)
+            verify(grunnlagServiceMock).lagreBosituasjongrunnlag(actual.id, actual.grunnlagsdata.bosituasjon)
         }
         verifyNoMoreInteractions(
             sakServiceMock,
