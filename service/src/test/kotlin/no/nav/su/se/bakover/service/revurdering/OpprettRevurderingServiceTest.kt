@@ -279,24 +279,6 @@ internal class OpprettRevurderingServiceTest {
     }
 
     @Test
-    fun `oppretter ikke en revurdering hvis perioden er i samme måned for årsaker som ikke er g-regulering`() {
-        val mocks = RevurderingServiceMocks()
-        val actual = mocks.revurderingService.opprettRevurdering(
-            OpprettRevurderingRequest(
-                sakId = sakId,
-                fraOgMed = 1.januar(2021),
-                årsak = "MELDING_FRA_BRUKER",
-                begrunnelse = "Ny informasjon",
-                saksbehandler = saksbehandler,
-                informasjonSomRevurderes = emptyList(),
-            ),
-        )
-
-        actual shouldBe KunneIkkeOppretteRevurdering.PeriodeOgÅrsakKombinasjonErUgyldig.left()
-        mocks.verifyNoMoreInteractions()
-    }
-
-    @Test
     fun `kan opprette revurdering med årsak g-regulering i samme måned`() {
         val sak = createSak()
         val sakServiceMock = mock<SakService> {

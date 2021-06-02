@@ -11,7 +11,7 @@ import no.nav.su.se.bakover.web.Resultat.Companion.json
 internal data class Resultat private constructor(
     val httpCode: HttpStatusCode,
     private val json: String,
-    private val contentType: ContentType
+    private val contentType: ContentType,
 ) {
     init {
         require(httpCode in HttpStatusCode.allStatusCodes) { "Unknown http status code:$httpCode" }
@@ -31,6 +31,10 @@ internal data class Resultat private constructor(
 internal fun HttpStatusCode.message(nonJsonMessage: String): Resultat = Resultat.message(this, nonJsonMessage)
 internal fun HttpStatusCode.errorJson(message: String, code: String): Resultat {
     return json(this, serialize(ErrorJson(message, code)))
+}
+
+internal fun HttpStatusCode.errorJson(errors: List<ErrorJson>): Resultat {
+    return json(this, serialize(errors))
 }
 
 internal suspend fun ApplicationCall.svar(resultat: Resultat) = resultat.svar(this)

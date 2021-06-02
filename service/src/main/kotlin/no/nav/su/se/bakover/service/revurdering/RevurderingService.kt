@@ -16,6 +16,7 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
+import no.nav.su.se.bakover.domain.revurdering.RevurderingsutfallSomIkkeStøttes
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
@@ -39,7 +40,7 @@ interface RevurderingService {
     fun beregnOgSimuler(
         revurderingId: UUID,
         saksbehandler: NavIdentBruker.Saksbehandler,
-    ): Either<KunneIkkeBeregneOgSimulereRevurdering, Revurdering>
+    ): Either<KunneIkkeBeregneOgSimulereRevurdering, BeregnOgSimulerResponse>
 
     fun forhåndsvarsleEllerSendTilAttestering(
         revurderingId: UUID,
@@ -89,6 +90,11 @@ interface RevurderingService {
         revurderingId: UUID,
     ): Either<KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger, HentGjeldendeGrunnlagsdataOgVilkårsvurderingerResponse>
 }
+
+data class BeregnOgSimulerResponse(
+    val revurdering: Revurdering,
+    val feilmeldinger: List<RevurderingsutfallSomIkkeStøttes> = emptyList()
+)
 
 sealed class FortsettEtterForhåndsvarslingRequest {
     abstract val revurderingId: UUID
@@ -146,7 +152,6 @@ sealed class KunneIkkeOppretteRevurdering {
     data class UgyldigPeriode(val subError: Periode.UgyldigPeriode) : KunneIkkeOppretteRevurdering()
     object UgyldigÅrsak : KunneIkkeOppretteRevurdering()
     object UgyldigBegrunnelse : KunneIkkeOppretteRevurdering()
-    object PeriodeOgÅrsakKombinasjonErUgyldig : KunneIkkeOppretteRevurdering()
     object MåVelgeInformasjonSomSkalRevurderes : KunneIkkeOppretteRevurdering()
 }
 
@@ -159,7 +164,6 @@ sealed class KunneIkkeOppdatereRevurdering {
         KunneIkkeOppdatereRevurdering()
 
     object KanIkkeOppdatereRevurderingSomErForhåndsvarslet : KunneIkkeOppdatereRevurdering()
-    object PeriodeOgÅrsakKombinasjonErUgyldig : KunneIkkeOppdatereRevurdering()
     object MåVelgeInformasjonSomSkalRevurderes : KunneIkkeOppdatereRevurdering()
     object FantIkkeSak : KunneIkkeOppdatereRevurdering()
 }
@@ -205,6 +209,7 @@ sealed class KunneIkkeSendeRevurderingTilAttestering {
 
     object ManglerBeslutningPåForhåndsvarsel : KunneIkkeSendeRevurderingTilAttestering()
     object FeilutbetalingStøttesIkke : KunneIkkeSendeRevurderingTilAttestering()
+    data class RevurderingsutfallStøttesIkke(val feilmeldinger: List<RevurderingsutfallSomIkkeStøttes>) : KunneIkkeSendeRevurderingTilAttestering()
 }
 
 sealed class KunneIkkeIverksetteRevurdering {

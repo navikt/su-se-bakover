@@ -36,10 +36,6 @@ internal object Revurderingsfeilresponser {
         "Mangler beslutning på forhåndsvarsel",
         "mangler_beslutning_på_forhåndsvarsel",
     )
-    val periodeOgÅrsakKombinasjonErUgyldig = BadRequest.errorJson(
-        "periode og årsak kombinasjon er ugyldig",
-        "periode_og_årsak_kombinasjon_er_ugyldig",
-    )
 
     val måVelgeInformasjonSomRevurderes = BadRequest.errorJson(
         "Må velge minst en ting som skal revurderes",

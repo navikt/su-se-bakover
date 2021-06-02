@@ -163,21 +163,6 @@ internal class OppdaterRevurderingsperiodeRouteKtTest {
     }
 
     @Test
-    fun `perioden må være innenfor allerede valgt stønadsperiode`() {
-        shouldMapErrorCorrectly(
-            error = KunneIkkeOppdatereRevurdering.PeriodeOgÅrsakKombinasjonErUgyldig,
-            expectedStatusCode = HttpStatusCode.BadRequest,
-            expectedJsonResponse = """
-                {
-                    "message":"periode og årsak kombinasjon er ugyldig",
-                    "code":"periode_og_årsak_kombinasjon_er_ugyldig"
-                }
-            """.trimIndent(),
-
-        )
-    }
-
-    @Test
     fun `ugyldig tilstand`() {
         shouldMapErrorCorrectly(
             error = KunneIkkeOppdatereRevurdering.UgyldigTilstand(

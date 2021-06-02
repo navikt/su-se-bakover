@@ -42,6 +42,7 @@ import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.service.revurdering.BeregnOgSimulerResponse
 import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarselFeil
 import no.nav.su.se.bakover.service.revurdering.FortsettEtterForhåndsvarslingRequest
 import no.nav.su.se.bakover.service.revurdering.HentGjeldendeGrunnlagsdataOgVilkårsvurderingerResponse
@@ -408,7 +409,7 @@ open class AccessCheckProxy(
                 override fun beregnOgSimuler(
                     revurderingId: UUID,
                     saksbehandler: NavIdentBruker.Saksbehandler,
-                ): Either<KunneIkkeBeregneOgSimulereRevurdering, Revurdering> {
+                ): Either<KunneIkkeBeregneOgSimulereRevurdering, BeregnOgSimulerResponse> {
                     assertHarTilgangTilRevurdering(revurderingId)
                     return services.revurdering.beregnOgSimuler(
                         revurderingId = revurderingId,

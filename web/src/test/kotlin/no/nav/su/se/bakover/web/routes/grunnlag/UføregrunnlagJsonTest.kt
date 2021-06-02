@@ -50,7 +50,7 @@ internal class UføregrunnlagJsonTest {
         {
           "type": "EPS_UFØR_FLYKTNING",
           "fnr" : "$fnrBosituasjon",
-          "delerBolig": true,
+          "delerBolig": null,
           "ektemakeEllerSamboerUførFlyktning": true,
           "begrunnelse": null
         }

@@ -95,8 +95,8 @@ class RevurderingIngenEndringTest {
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
-                    Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert
-                )
+                    Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
+                ),
             ),
         )
 
@@ -109,7 +109,7 @@ class RevurderingIngenEndringTest {
         ).beregnOgSimuler(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,
-        ).orNull()!! as BeregnetRevurdering.IngenEndring
+        ).orNull()!!.revurdering as BeregnetRevurdering.IngenEndring
         actual.shouldBeEqualToIgnoringFields(
             BeregnetRevurdering.IngenEndring(
                 id = revurderingId,
@@ -127,8 +127,8 @@ class RevurderingIngenEndringTest {
                 vilkårsvurderinger = opprettetRevurdering.vilkårsvurderinger,
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(
                     mapOf(
-                        Revurderingsteg.Inntekt to Vurderingstatus.Vurdert
-                    )
+                        Revurderingsteg.Inntekt to Vurderingstatus.Vurdert,
+                    ),
                 ),
             ),
             // beregningstypen er internal i domene modulen
@@ -149,6 +149,9 @@ class RevurderingIngenEndringTest {
 
     @Test
     fun `attesterer revurdering som ikke fører til endring i ytelse`() {
+        val vilkårsvurderingerMock = mock<Vilkårsvurderinger> {
+            on { resultat } doReturn Resultat.Innvilget
+        }
         val beregnetRevurdering = BeregnetRevurdering.IngenEndring(
             id = revurderingId,
             periode = periode,
@@ -162,7 +165,7 @@ class RevurderingIngenEndringTest {
             forhåndsvarsel = null,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = vilkårsvurderingerMock,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
         val endretSaksbehandler = NavIdentBruker.Saksbehandler("endretSaksbehandler")
@@ -180,7 +183,7 @@ class RevurderingIngenEndringTest {
             skalFøreTilBrevutsending = true,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = vilkårsvurderingerMock,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
         val revurderingRepoMock = mock<RevurderingRepo> {

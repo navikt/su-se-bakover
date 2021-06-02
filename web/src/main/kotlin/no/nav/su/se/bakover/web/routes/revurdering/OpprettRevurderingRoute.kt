@@ -31,7 +31,6 @@ import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fan
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeSak
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.kunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.måVelgeInformasjonSomRevurderes
-import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.periodeOgÅrsakKombinasjonErUgyldig
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.ugyldigPeriode
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
@@ -95,7 +94,6 @@ private fun KunneIkkeOppretteRevurdering.tilResultat(): Resultat {
             "Ugyldig årsak, må være en av: ${Revurderingsårsak.Årsak.values()}",
             "ugyldig_årsak",
         )
-        KunneIkkeOppretteRevurdering.PeriodeOgÅrsakKombinasjonErUgyldig -> periodeOgÅrsakKombinasjonErUgyldig
         KunneIkkeOppretteRevurdering.MåVelgeInformasjonSomSkalRevurderes -> måVelgeInformasjonSomRevurderes
     }
 }

@@ -117,7 +117,6 @@ sealed class Utbetalingsstrategi {
             val sisteUtbetalingslinje = sisteOversendteUtbetaling()?.sisteUtbetalingslinje().let {
                 validate(it is Utbetalingslinje) { "Sak: $sakId har ingen utbetalinger som kan opphøres" }
                 it!!.let { sisteUtbetalingslinje ->
-                    validate(opphørsDato.isAfter(LocalDate.now(clock))) { "Støtter kun opphør framover i tid" }
                     validate(opphørsDato.isBefore(sisteUtbetalingslinje.tilOgMed)) { "Dato for opphør må være tidligere enn tilOgMed for siste utbetalingslinje" }
                     validate(opphørsDato.erFørsteDagIMåned() || opphørsDato.erSisteDagIMåned()) { "Ytelse kan kun opphøres fra første eller siste dag i en måned." }
                 }

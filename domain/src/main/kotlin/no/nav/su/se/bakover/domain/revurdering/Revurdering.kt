@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.AvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
@@ -29,12 +28,11 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.oppdrag.simulering.TolketSimulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
-import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.visitor.Visitable
+import java.time.Clock
 import java.util.UUID
 import kotlin.math.abs
 
@@ -171,13 +169,17 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
                 } else informasjonSomRevurderes,
             )
 
-        return when (this.vilkårsvurderinger.resultat) {
-            Resultat.Avslag -> {
-                opphør(revurdertBeregning).right()
+        return when (
+            VurderOpphørVedRevurdering(
+                vilkårsvurderinger = vilkårsvurderinger,
+                beregning = revurdertBeregning,
+                clock = Clock.systemUTC(),
+            ).resultat
+        ) {
+            is OpphørVedRevurdering.Ja -> {
+                opphør(revurdertBeregning)
             }
-            Resultat.Innvilget -> {
-                val erAvslagGrunnetBeregning =
-                    VurderAvslagGrunnetBeregning.vurderAvslagGrunnetBeregning(revurdertBeregning)
+            OpphørVedRevurdering.Nei -> {
                 when (this.revurderingsårsak.årsak) {
                     Revurderingsårsak.Årsak.MIGRERT,
                     Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
@@ -187,48 +189,28 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
                     -> {
                         when (
                             endringerAvUtbetalingerErStørreEllerLik10Prosent(
-                                tilRevurdering.beregning,
-                                revurdertBeregning,
+                                vedtattBeregning = tilRevurdering.beregning,
+                                revurdertBeregning = revurdertBeregning,
                             )
                         ) {
-                            true -> {
-                                when (erAvslagGrunnetBeregning) {
-                                    is AvslagGrunnetBeregning.Ja -> {
-                                        opphør(revurdertBeregning)
-                                    }
-                                    AvslagGrunnetBeregning.Nei -> {
-                                        innvilget(revurdertBeregning)
-                                    }
-                                }
-                            }
-                            false -> {
-                                ingenEndring(revurdertBeregning)
-                            }
-                        }.right()
+                            true -> innvilget(revurdertBeregning)
+                            false -> ingenEndring(revurdertBeregning)
+                        }
                     }
                     Revurderingsårsak.Årsak.REGULER_GRUNNBELØP -> {
-                        when (erAvslagGrunnetBeregning) {
-                            is AvslagGrunnetBeregning.Ja -> {
-                                opphør(revurdertBeregning)
-                            }
-                            AvslagGrunnetBeregning.Nei -> {
-                                val harEndringerIYtelse = VurderOmBeregningHarEndringerIYtelse(
-                                    tilRevurdering.beregning,
-                                    revurdertBeregning,
-                                ).resultat
-
-                                if (!harEndringerIYtelse) {
-                                    ingenEndring(revurdertBeregning)
-                                } else {
-                                    innvilget(revurdertBeregning)
-                                }
-                            }
-                        }.right()
+                        when (
+                            VurderOmBeregningHarEndringerIYtelse(
+                                tidligereBeregning = tilRevurdering.beregning,
+                                nyBeregning = revurdertBeregning,
+                            ).resultat
+                        ) {
+                            true -> innvilget(revurdertBeregning)
+                            false -> ingenEndring(revurdertBeregning)
+                        }
                     }
                 }
             }
-            Resultat.Uavklart -> KunneIkkeBeregneRevurdering.UfullstendigVilkårsvurdering.left()
-        }
+        }.right()
     }
 
     companion object {
@@ -269,8 +251,6 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
         data class UgyldigBeregningsgrunnlag(
             val reason: no.nav.su.se.bakover.domain.beregning.UgyldigBeregningsgrunnlag,
         ) : KunneIkkeBeregneRevurdering()
-
-        object UfullstendigVilkårsvurdering : KunneIkkeBeregneRevurdering()
     }
 }
 
@@ -475,7 +455,7 @@ sealed class SimulertRevurdering : Revurdering() {
     abstract override val grunnlagsdata: Grunnlagsdata
 
     abstract override fun accept(visitor: RevurderingVisitor)
-    fun harSimuleringFeilutbetaling() = TolketSimulering(simulering).simulertePerioder.any { it.harFeilutbetalinger() }
+    fun harSimuleringFeilutbetaling() = simulering.harFeilutbetalinger()
 
     data class Innvilget(
         override val id: UUID,
@@ -967,6 +947,8 @@ sealed class UnderkjentRevurdering : Revurdering() {
             visitor.visit(this)
         }
 
+        fun harSimuleringFeilutbetaling() = simulering.harFeilutbetalinger()
+
         fun tilAttestering(
             oppgaveId: OppgaveId,
             saksbehandler: Saksbehandler,
@@ -1014,6 +996,8 @@ sealed class UnderkjentRevurdering : Revurdering() {
 
         fun utledOpphørsgrunner(): List<Opphørsgrunn> = vilkårsvurderinger.utledOpphørsgrunner() +
             listOfNotNull(VurderAvslagGrunnetBeregning.hentAvslagsgrunnForBeregning(beregning).toOpphørsgrunn())
+
+        fun harSimuleringFeilutbetaling() = simulering.harFeilutbetalinger()
 
         fun tilAttestering(
             oppgaveId: OppgaveId,
