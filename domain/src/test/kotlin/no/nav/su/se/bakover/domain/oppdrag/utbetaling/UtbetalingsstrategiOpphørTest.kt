@@ -76,23 +76,6 @@ internal class UtbetalingsstrategiOpphørTest {
     }
 
     @Test
-    fun `kaster exception dersom man forsøker å opphøre utbetalinger bakover i tid`() {
-        assertThrows<Utbetalingsstrategi.UtbetalingStrategyException> {
-            Utbetalingsstrategi.Opphør(
-                sakId = sakId,
-                saksnummer = saksnummer,
-                fnr = fnr,
-                utbetalinger = listOf(enUtbetaling),
-                behandler = NavIdentBruker.Saksbehandler("Z123"),
-                clock = fixedClock,
-                opphørsDato = 1.januar(2020),
-            ).generate()
-        }.also {
-            it.message shouldBe "Støtter kun opphør framover i tid"
-        }
-    }
-
-    @Test
     fun `kaster exception dersom man forsøker å opphøre utbetalinger senere enn siste utbetalingslinje sin sluttdato`() {
         assertThrows<Utbetalingsstrategi.UtbetalingStrategyException> {
             Utbetalingsstrategi.Opphør(

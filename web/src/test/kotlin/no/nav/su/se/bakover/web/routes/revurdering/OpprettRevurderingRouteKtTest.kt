@@ -184,21 +184,6 @@ internal class OpprettRevurderingRouteKtTest {
     }
 
     @Test
-    fun `årsak og periode kombinasjon er ugyldig`() {
-        shouldMapErrorCorrectly(
-            error = KunneIkkeOppretteRevurdering.PeriodeOgÅrsakKombinasjonErUgyldig,
-            expectedStatusCode = HttpStatusCode.BadRequest,
-            expectedJsonResponse = """
-                {
-                    "message":"periode og årsak kombinasjon er ugyldig",
-                    "code":"periode_og_årsak_kombinasjon_er_ugyldig"
-                }
-            """.trimIndent(),
-
-        )
-    }
-
-    @Test
     fun `ugyldig fraOgMed dato`() {
         shouldMapErrorCorrectly(
             error = KunneIkkeOppretteRevurdering.UgyldigPeriode(

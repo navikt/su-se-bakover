@@ -9,10 +9,8 @@ import arrow.core.right
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.between
-import no.nav.su.se.bakover.common.endOfMonth
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.periode.Periode
-import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -58,7 +56,6 @@ import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import java.time.Clock
-import java.time.LocalDate
 import java.util.UUID
 
 internal class RevurderingServiceImpl(
@@ -97,13 +94,6 @@ internal class RevurderingServiceImpl(
             }.left()
         }
 
-        if (!kanOppretteEllerOppdatereRevurderingsPeriodeOgEllerÅrsak(
-                revurderingsårsak,
-                opprettRevurderingRequest.fraOgMed,
-            )
-        ) {
-            return KunneIkkeOppretteRevurdering.PeriodeOgÅrsakKombinasjonErUgyldig.left()
-        }
         val sak = sakService.hentSak(opprettRevurderingRequest.sakId).getOrElse {
             return KunneIkkeOppretteRevurdering.FantIkkeSak.left()
         }
@@ -291,14 +281,6 @@ internal class RevurderingServiceImpl(
 
         if (revurdering.forhåndsvarsel is Forhåndsvarsel.SkalForhåndsvarsles) {
             return KunneIkkeOppdatereRevurdering.KanIkkeOppdatereRevurderingSomErForhåndsvarslet.left()
-        }
-
-        if (!kanOppretteEllerOppdatereRevurderingsPeriodeOgEllerÅrsak(
-                revurderingsårsak,
-                oppdaterRevurderingRequest.fraOgMed,
-            )
-        ) {
-            return KunneIkkeOppdatereRevurdering.PeriodeOgÅrsakKombinasjonErUgyldig.left()
         }
 
         val stønadsperiode = revurdering.tilRevurdering.periode
@@ -943,24 +925,6 @@ internal class RevurderingServiceImpl(
         }
 
         return revurdering.right()
-    }
-
-    private fun kanOppretteEllerOppdatereRevurderingsPeriodeOgEllerÅrsak(
-        revurderingsårsak: Revurderingsårsak,
-        fraOgMed: LocalDate,
-    ): Boolean {
-        val dagensDato = LocalDate.now(clock)
-        val startenAvForrigeKalenderMåned = dagensDato.minusMonths(1).startOfMonth()
-
-        val regulererGVerdiTilbakeITid =
-            revurderingsårsak.årsak == REGULER_GRUNNBELØP && !fraOgMed.isBefore(
-                startenAvForrigeKalenderMåned,
-            )
-
-        if (regulererGVerdiTilbakeITid || fraOgMed.isAfter(dagensDato.endOfMonth())) {
-            return true
-        }
-        return false
     }
 
     private fun lagreForhåndsvarsling(

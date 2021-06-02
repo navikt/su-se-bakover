@@ -154,7 +154,6 @@ sealed class KunneIkkeOppretteRevurdering {
     data class UgyldigPeriode(val subError: Periode.UgyldigPeriode) : KunneIkkeOppretteRevurdering()
     object UgyldigÅrsak : KunneIkkeOppretteRevurdering()
     object UgyldigBegrunnelse : KunneIkkeOppretteRevurdering()
-    object PeriodeOgÅrsakKombinasjonErUgyldig : KunneIkkeOppretteRevurdering()
     object MåVelgeInformasjonSomSkalRevurderes : KunneIkkeOppretteRevurdering()
 }
 
@@ -167,7 +166,6 @@ sealed class KunneIkkeOppdatereRevurdering {
         KunneIkkeOppdatereRevurdering()
 
     object KanIkkeOppdatereRevurderingSomErForhåndsvarslet : KunneIkkeOppdatereRevurdering()
-    object PeriodeOgÅrsakKombinasjonErUgyldig : KunneIkkeOppdatereRevurdering()
     object MåVelgeInformasjonSomSkalRevurderes : KunneIkkeOppdatereRevurdering()
     object FantIkkeSak : KunneIkkeOppdatereRevurdering()
 }

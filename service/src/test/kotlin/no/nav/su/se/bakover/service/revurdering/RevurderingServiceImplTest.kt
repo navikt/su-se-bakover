@@ -252,22 +252,6 @@ internal class RevurderingServiceImplTest {
     }
 
     @Test
-    fun `oppretter ikke en revurdering hvis perioden er i samme måned`() {
-        val actual = createRevurderingService().opprettRevurdering(
-            OpprettRevurderingRequest(
-                sakId = sakId,
-                fraOgMed = 1.januar(2021),
-                årsak = "MELDING_FRA_BRUKER",
-                begrunnelse = "Ny informasjon",
-                saksbehandler = saksbehandler,
-                informasjonSomRevurderes = emptyList(),
-            ),
-        )
-
-        actual shouldBe KunneIkkeOppretteRevurdering.PeriodeOgÅrsakKombinasjonErUgyldig.left()
-    }
-
-    @Test
     fun `kan beregne og simulere`() {
         val uføregrunnlag = Grunnlag.Uføregrunnlag(
             periode = periode,
