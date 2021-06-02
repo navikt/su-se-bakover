@@ -49,25 +49,27 @@ internal fun Route.LeggTilBosituasjonRevurderingRoute(
                                 ),
                             )
                         }.mapLeft {
-                            when (it) {
-                                KunneIkkeLeggeTilBosituasjongrunnlag.FantIkkeBehandling -> Revurderingsfeilresponser.fantIkkeRevurdering
-                                KunneIkkeLeggeTilBosituasjongrunnlag.EpsAlderErNull -> HttpStatusCode.InternalServerError.errorJson(
-                                    "eps alder er null",
-                                    "eps_alder_er_null",
-                                )
-                                KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeSlåOppEPS -> HttpStatusCode.InternalServerError.errorJson(
-                                    "kunne ikke slå opp EPS",
-                                    "kunne_ikke_slå_opp_eps",
-                                )
-                                KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigData -> HttpStatusCode.BadRequest.errorJson(
-                                    "ugyldig data",
-                                    "ugyldig_data",
-                                )
-                            }
+                            call.svar(it.tilResultat())
                         }
                     }
                 }
             }
         }
     }
+}
+
+private fun KunneIkkeLeggeTilBosituasjongrunnlag.tilResultat() = when (this) {
+    KunneIkkeLeggeTilBosituasjongrunnlag.FantIkkeBehandling -> Revurderingsfeilresponser.fantIkkeRevurdering
+    KunneIkkeLeggeTilBosituasjongrunnlag.EpsAlderErNull -> HttpStatusCode.InternalServerError.errorJson(
+        "eps alder er null",
+        "eps_alder_er_null",
+    )
+    KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeSlåOppEPS -> HttpStatusCode.InternalServerError.errorJson(
+        "kunne ikke slå opp EPS",
+        "kunne_ikke_slå_opp_eps",
+    )
+    KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigData -> HttpStatusCode.BadRequest.errorJson(
+        "ugyldig data",
+        "ugyldig_data",
+    )
 }

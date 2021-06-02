@@ -264,7 +264,7 @@ internal class RevurderingServiceImpl(
         val revurdering = revurderingRepo.hent(request.revurderingId)
             ?: return KunneIkkeLeggeTilBosituasjongrunnlag.FantIkkeBehandling.left()
 
-        if (request.epsFnr == null && request.delerBolig == null) {
+        if ((request.epsFnr == null && request.delerBolig == null) || (request.epsFnr != null && request.delerBolig != null)) {
             return KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigData.left()
         }
 
