@@ -1,15 +1,18 @@
 package no.nav.su.se.bakover.service.revurdering
 
 import arrow.core.Either
+import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
@@ -292,28 +295,32 @@ data class LeggTilBosituasjongrunnlagRequest(
     val epsFnr: String?,
     val delerBolig: Boolean?,
     val ektemakeEllerSamboerUførFlyktning: Boolean?,
+    val begrunnelse: String?,
 ) {
     fun toDomain(
         periode: Periode,
-        eps: Person?,
         clock: Clock,
+        hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
     ): Either<KunneIkkeLeggeTilBosituasjongrunnlag, Grunnlag.Bosituasjon.Fullstendig> {
         val log = LoggerFactory.getLogger(this::class.java)
 
-        if (eps != null) {
+        if (epsFnr != null) {
+            val eps = hentPerson(Fnr(epsFnr)).getOrHandle {
+                return KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeSlåOppEPS.left()
+            }
+
             val epsAlder = if (eps.getAlder(LocalDate.now()) == null) {
                 log.error("Alder på EPS er null. Denne har i tidligere PDL kall hatt en verdi")
                 return KunneIkkeLeggeTilBosituasjongrunnlag.EpsAlderErNull.left()
             } else eps.getAlder(LocalDate.now())!!
 
-            eps.getAlder(LocalDate.now()) ?: return KunneIkkeLeggeTilBosituasjongrunnlag.EpsAlderErNull.left()
             return when {
                 epsAlder >= 67 -> Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre(
                     id = UUID.randomUUID(),
                     opprettet = Tidspunkt.now(clock),
                     periode = periode,
                     fnr = eps.ident.fnr,
-                    begrunnelse = null,
+                    begrunnelse = begrunnelse,
                 ).right()
                 else -> when (ektemakeEllerSamboerUførFlyktning) {
                     true -> Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
@@ -321,14 +328,14 @@ data class LeggTilBosituasjongrunnlagRequest(
                         opprettet = Tidspunkt.now(clock),
                         periode = periode,
                         fnr = eps.ident.fnr,
-                        begrunnelse = null,
+                        begrunnelse = begrunnelse,
                     ).right()
                     false -> Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(clock),
                         periode = periode,
                         fnr = eps.ident.fnr,
-                        begrunnelse = null,
+                        begrunnelse = begrunnelse,
                     ).right()
                     null -> return KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigData.left()
                 }
@@ -338,10 +345,16 @@ data class LeggTilBosituasjongrunnlagRequest(
         if (delerBolig != null) {
             return when (delerBolig) {
                 true -> Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen(
-                    id = UUID.randomUUID(), opprettet = Tidspunkt.now(clock), periode = periode, begrunnelse = null,
+                    id = UUID.randomUUID(),
+                    opprettet = Tidspunkt.now(clock),
+                    periode = periode,
+                    begrunnelse = begrunnelse,
                 ).right()
                 false -> Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                    id = UUID.randomUUID(), opprettet = Tidspunkt.now(clock), periode = periode, begrunnelse = null,
+                    id = UUID.randomUUID(),
+                    opprettet = Tidspunkt.now(clock),
+                    periode = periode,
+                    begrunnelse = begrunnelse,
                 ).right()
             }
         }

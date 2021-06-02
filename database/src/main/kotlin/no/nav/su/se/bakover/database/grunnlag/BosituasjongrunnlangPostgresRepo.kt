@@ -109,7 +109,8 @@ class BosituasjongrunnlangPostgresRepo(
                 fraOgMed,
                 tilOgMed,
                 bosituasjontype,
-                eps_fnr
+                eps_fnr,
+                begrunnelse
             ) values 
             (
                 :id,
@@ -118,7 +119,8 @@ class BosituasjongrunnlangPostgresRepo(
                 :fraOgMed,
                 :tilOgMed,
                 :bosituasjontype, 
-                :eps_fnr
+                :eps_fnr,
+                :begrunnelse
             )
         """.trimIndent()
             .insert(
@@ -146,6 +148,15 @@ class BosituasjongrunnlangPostgresRepo(
                         is Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEPS -> null
                         is Grunnlag.Bosituasjon.Ufullstendig.HarEpsIkkeValgtUførFlyktning -> grunnlag.fnr
                     },
+                    "begrunnelse" to when (grunnlag) {
+                        is Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen -> grunnlag.begrunnelse
+                        is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> grunnlag.begrunnelse
+                        is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre -> grunnlag.begrunnelse
+                        is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning -> grunnlag.begrunnelse
+                        is Grunnlag.Bosituasjon.Fullstendig.Enslig -> grunnlag.begrunnelse
+                        is Grunnlag.Bosituasjon.Ufullstendig.HarEpsIkkeValgtUførFlyktning -> null
+                        is Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEPS -> null
+                    }
                 ),
                 session,
             )

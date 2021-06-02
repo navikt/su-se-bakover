@@ -28,7 +28,7 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
                                 fnr = null,
                                 delerBolig = true,
                                 ektemakeEllerSamboerUførFlyktning = null,
-                                begrunnelse = null,
+                                begrunnelse = it.begrunnelse,
                             )
                         is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning ->
                             BosituasjonJson(
@@ -36,7 +36,7 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
                                 fnr = it.fnr.toString(),
                                 delerBolig = true,
                                 ektemakeEllerSamboerUførFlyktning = false,
-                                begrunnelse = null,
+                                begrunnelse = it.begrunnelse,
                             )
                         is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre ->
                             BosituasjonJson(
@@ -44,7 +44,7 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
                                 fnr = it.fnr.toString(),
                                 delerBolig = true,
                                 ektemakeEllerSamboerUførFlyktning = null,
-                                begrunnelse = null,
+                                begrunnelse = it.begrunnelse,
                             )
                         is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning ->
                             BosituasjonJson(
@@ -52,7 +52,7 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
                                 fnr = it.fnr.toString(),
                                 delerBolig = true,
                                 ektemakeEllerSamboerUførFlyktning = true,
-                                begrunnelse = null,
+                                begrunnelse = it.begrunnelse,
                             )
                         is Grunnlag.Bosituasjon.Fullstendig.Enslig ->
                             BosituasjonJson(
@@ -60,7 +60,7 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
                                 fnr = null,
                                 delerBolig = false,
                                 ektemakeEllerSamboerUførFlyktning = null,
-                                begrunnelse = null,
+                                begrunnelse = it.begrunnelse,
                             )
                         is Grunnlag.Bosituasjon.Ufullstendig.HarEpsIkkeValgtUførFlyktning ->
                             BosituasjonJson(

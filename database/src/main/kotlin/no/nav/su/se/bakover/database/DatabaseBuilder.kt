@@ -80,6 +80,7 @@ object DatabaseBuilder {
             dataSource,
             uføregrunnlagRepo,
             fradragsgrunnlag,
+            bosituasjongrunnlag,
             vilkårsvurderingRepo,
             saksbehandlingRepo,
         )

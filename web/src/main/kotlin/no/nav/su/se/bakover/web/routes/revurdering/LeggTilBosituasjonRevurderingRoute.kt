@@ -39,6 +39,7 @@ internal fun Route.LeggTilBosituasjonRevurderingRoute(
                                 body.epsFnr,
                                 body.delerBolig,
                                 body.erEPSUførFlyktning,
+                                body.begrunnelse,
                             ),
                         ).map {
                             call.sikkerlogg("Lagret bosituasjon for revudering $revurderingId på $sakId")

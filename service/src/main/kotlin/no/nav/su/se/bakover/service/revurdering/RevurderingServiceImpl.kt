@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.common.startOfMonth
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
-import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
@@ -268,24 +267,15 @@ internal class RevurderingServiceImpl(
             return KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigData.left()
         }
 
-        val eps = if (request.epsFnr != null) personService.hentPerson(Fnr(request.epsFnr)).fold(
-            ifLeft = {
-                return KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeSlåOppEPS.left()
-            },
-            ifRight = {
-                it
-            },
-        ) else null
-
         val bosituasjongrunnlag =
-            request.toDomain(periode = revurdering.periode, eps = eps, clock = clock).fold(
-                ifLeft = {
-                    return it.left()
-                },
-                ifRight = {
-                    it
-                },
-            )
+            request.toDomain(
+                periode = revurdering.periode,
+                clock = clock,
+            ) {
+                personService.hentPerson(it)
+            }.getOrHandle {
+                return it.left()
+            }
 
         grunnlagService.lagreBosituasjongrunnlag(revurdering.id, listOf(bosituasjongrunnlag))
         return LeggTilBosituasjongrunnlagResponse(
