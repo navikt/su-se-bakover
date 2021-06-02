@@ -127,7 +127,7 @@ internal class FixSøknaderTest {
                 listOf(Brukerrolle.Drift)
             ) {
             }.apply {
-                response.status() shouldBe HttpStatusCode.InternalServerError
+                response.status() shouldBe HttpStatusCode.OK
                 //language=JSON
                 JSONAssert.assertEquals(
                     """

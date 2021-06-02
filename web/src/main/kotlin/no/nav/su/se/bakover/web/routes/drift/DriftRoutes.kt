@@ -24,7 +24,7 @@ internal fun Route.driftRoutes(
         patch("$DRIFT_PATH/søknader/fix") {
             søknadService.opprettManglendeJournalpostOgOppgave().let {
                 call.respond(
-                    if (it.harFeil()) HttpStatusCode.InternalServerError else HttpStatusCode.OK,
+                    HttpStatusCode.OK,
                     serialize(it.toJson())
                 )
             }
@@ -35,7 +35,7 @@ internal fun Route.driftRoutes(
         patch("$DRIFT_PATH/iverksettinger/fix") {
             ferdigstillVedtakService.opprettManglendeJournalposterOgBrevbestillinger().let {
                 call.respond(
-                    if (it.harFeil()) HttpStatusCode.InternalServerError else HttpStatusCode.OK,
+                    HttpStatusCode.OK,
                     serialize(it.toJson())
                 )
             }
