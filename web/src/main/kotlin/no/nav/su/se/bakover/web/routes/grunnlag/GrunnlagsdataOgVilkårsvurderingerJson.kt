@@ -34,7 +34,7 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
                             BosituasjonJson(
                                 type = "EPS_IKKE_UFØR_FLYKTNING",
                                 fnr = it.fnr.toString(),
-                                delerBolig = true,
+                                delerBolig = null,
                                 ektemakeEllerSamboerUførFlyktning = false,
                                 begrunnelse = it.begrunnelse,
                             )
@@ -42,7 +42,7 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
                             BosituasjonJson(
                                 type = "EPS_OVER_67",
                                 fnr = it.fnr.toString(),
-                                delerBolig = true,
+                                delerBolig = null,
                                 ektemakeEllerSamboerUførFlyktning = null,
                                 begrunnelse = it.begrunnelse,
                             )
@@ -50,7 +50,7 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
                             BosituasjonJson(
                                 type = "EPS_UFØR_FLYKTNING",
                                 fnr = it.fnr.toString(),
-                                delerBolig = true,
+                                delerBolig = null,
                                 ektemakeEllerSamboerUførFlyktning = true,
                                 begrunnelse = it.begrunnelse,
                             )
