@@ -28,11 +28,11 @@ internal class VurderOpphørVedRevurderingTest {
     private val fixedClock: Clock = Clock.fixed(1.juni(2021).startOfDay().instant, ZoneOffset.UTC)
 
     @Test
-    fun `vilkår ikke er oppfylt gir opphør`() {
+    fun `vilkår som ikke er oppfylt gir opphør`() {
         val vilkårsvurderingerMock = mock<Vilkårsvurderinger> {
             on { resultat } doReturn Resultat.Avslag
             on { utledOpphørsgrunner() } doReturn listOf(Opphørsgrunn.UFØRHET)
-            on { tidligsteDatoFrorAvslag() } doReturn 1.juni(2021)
+            on { tidligsteDatoForAvslag() } doReturn 1.juni(2021)
         }
         val beregningMock = mock<Beregning>()
 
@@ -196,6 +196,8 @@ internal class VurderOpphørVedRevurderingTest {
         }
         val beregningMock = mock<Beregning> {
             on { getMånedsberegninger() } doReturn listOf(månedsberegningMock1, månedsberegningMock2)
+            on { alleMånederErUnderMinstebeløp() } doReturn false
+            on { alleMånederHarBeløpLik0() } doReturn true
         }
 
         VurderOpphørVedRevurdering(
@@ -222,6 +224,8 @@ internal class VurderOpphørVedRevurderingTest {
         }
         val beregningMock = mock<Beregning> {
             on { getMånedsberegninger() } doReturn listOf(månedsberegningMock1, månedsberegningMock2)
+            on { alleMånederErUnderMinstebeløp() } doReturn true
+            on { alleMånederHarBeløpLik0() } doReturn true
         }
 
         VurderOpphørVedRevurdering(
@@ -243,5 +247,35 @@ internal class VurderOpphørVedRevurderingTest {
                 clock = fixedClock,
             )
         }
+    }
+
+    @Test
+    fun `vilkår har prioritet over beregning når det kommer til hva som fører til opphør`() {
+        val vilkårsvurderingerMock = mock<Vilkårsvurderinger> {
+            on { resultat } doReturn Resultat.Avslag
+            on { utledOpphørsgrunner() } doReturn listOf(Opphørsgrunn.UFØRHET)
+            on { tidligsteDatoForAvslag() } doReturn LocalDate.EPOCH
+        }
+        val månedsberegningMock1 = mock<Månedsberegning> {
+            on { periode } doReturn Periode.create(1.januar(2021), 31.januar(2021))
+            on { erSumYtelseUnderMinstebeløp() } doReturn true
+            on { getSumYtelse() } doReturn 0
+        }
+        val månedsberegningMock2 = mock<Månedsberegning> {
+            on { periode } doReturn Periode.create(1.februar(2021), 28.februar(2021))
+            on { erSumYtelseUnderMinstebeløp() } doReturn true
+            on { getSumYtelse() } doReturn 0
+        }
+        val beregningMock = mock<Beregning> {
+            on { getMånedsberegninger() } doReturn listOf(månedsberegningMock1, månedsberegningMock2)
+            on { alleMånederErUnderMinstebeløp() } doReturn true
+            on { alleMånederHarBeløpLik0() } doReturn true
+        }
+
+        VurderOpphørVedRevurdering(
+            vilkårsvurderinger = vilkårsvurderingerMock,
+            beregning = beregningMock,
+            clock = fixedClock,
+        ).resultat shouldBe OpphørVedRevurdering.Ja(listOf(Opphørsgrunn.UFØRHET), LocalDate.EPOCH)
     }
 }

@@ -63,7 +63,7 @@ data class Vilkårsvurderinger(
         }
     }
 
-    fun tidligsteDatoFrorAvslag(): LocalDate? {
+    fun tidligsteDatoForAvslag(): LocalDate? {
         return vilkår.filterIsInstance<Vilkår.Vurdert<*>>()
             .flatMap { it.vurderingsperioder }
             .filter { it.resultat == Resultat.Avslag }

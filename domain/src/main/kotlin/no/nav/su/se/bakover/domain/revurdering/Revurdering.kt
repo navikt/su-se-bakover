@@ -28,7 +28,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
-import no.nav.su.se.bakover.domain.oppdrag.simulering.TolketSimulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -948,7 +947,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
             visitor.visit(this)
         }
 
-        fun harSimuleringFeilutbetaling() = TolketSimulering(simulering).simulertePerioder.any { it.harFeilutbetalinger() }
+        fun harSimuleringFeilutbetaling() = simulering.harFeilutbetalinger()
 
         fun tilAttestering(
             oppgaveId: OppgaveId,
@@ -998,7 +997,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         fun utledOpphørsgrunner(): List<Opphørsgrunn> = vilkårsvurderinger.utledOpphørsgrunner() +
             listOfNotNull(VurderAvslagGrunnetBeregning.hentAvslagsgrunnForBeregning(beregning).toOpphørsgrunn())
 
-        fun harSimuleringFeilutbetaling() = TolketSimulering(simulering).simulertePerioder.any { it.harFeilutbetalinger() }
+        fun harSimuleringFeilutbetaling() = simulering.harFeilutbetalinger()
 
         fun tilAttestering(
             oppgaveId: OppgaveId,

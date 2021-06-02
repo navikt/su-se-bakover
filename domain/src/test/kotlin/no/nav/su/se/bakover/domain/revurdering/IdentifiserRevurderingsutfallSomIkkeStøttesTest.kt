@@ -22,7 +22,7 @@ internal class IdentifiserRevurderingsutfallSomIkkeStøttesTest {
         val vilkårsvurderingerMock = mock<Vilkårsvurderinger> {
             on { resultat } doReturn Resultat.Avslag
             on { utledOpphørsgrunner() } doReturn listOf(Opphørsgrunn.UFØRHET)
-            on { tidligsteDatoFrorAvslag() } doReturn 1.juni(2021)
+            on { tidligsteDatoForAvslag() } doReturn 1.juni(2021)
         }
         val månedsberegningMock = mock<Månedsberegning> {
             on { periode } doReturn Periode.create(1.desember(2021), 31.desember(2021))
@@ -50,7 +50,7 @@ internal class IdentifiserRevurderingsutfallSomIkkeStøttesTest {
         val vilkårsvurderingerMock = mock<Vilkårsvurderinger> {
             on { resultat } doReturn Resultat.Avslag
             on { utledOpphørsgrunner() } doReturn listOf(mock(), mock())
-            on { tidligsteDatoFrorAvslag() } doReturn 1.desember(2021)
+            on { tidligsteDatoForAvslag() } doReturn 1.desember(2021)
         }
         val månedsberegningMock = mock<Månedsberegning> {
             on { periode } doReturn Periode.create(1.desember(2021), 31.desember(2021))
@@ -78,7 +78,7 @@ internal class IdentifiserRevurderingsutfallSomIkkeStøttesTest {
         val vilkårsvurderingerMock = mock<Vilkårsvurderinger> {
             on { resultat } doReturn Resultat.Avslag
             on { utledOpphørsgrunner() } doReturn listOf(Opphørsgrunn.UFØRHET)
-            on { tidligsteDatoFrorAvslag() } doReturn 1.juni(2021)
+            on { tidligsteDatoForAvslag() } doReturn 1.juni(2021)
         }
         val tidligereMånedsberegningMock = mock<Månedsberegning> {
             on { periode } doReturn Periode.create(1.desember(2021), 31.desember(2021))
@@ -112,7 +112,7 @@ internal class IdentifiserRevurderingsutfallSomIkkeStøttesTest {
         val vilkårsvurderingerMock = mock<Vilkårsvurderinger> {
             on { resultat } doReturn Resultat.Innvilget
             on { utledOpphørsgrunner() } doReturn listOf(Opphørsgrunn.SU_UNDER_MINSTEGRENSE)
-            on { tidligsteDatoFrorAvslag() } doReturn null
+            on { tidligsteDatoForAvslag() } doReturn null
         }
         val tidligereMånedsberegningMock1 = mock<Månedsberegning> {
             on { periode } doReturn Periode.create(1.november(2021), 30.november(2021))
@@ -156,7 +156,7 @@ internal class IdentifiserRevurderingsutfallSomIkkeStøttesTest {
         val vilkårsvurderingerMock = mock<Vilkårsvurderinger> {
             on { resultat } doReturn Resultat.Innvilget
             on { utledOpphørsgrunner() } doReturn listOf(Opphørsgrunn.FOR_HØY_INNTEKT)
-            on { tidligsteDatoFrorAvslag() } doReturn null
+            on { tidligsteDatoForAvslag() } doReturn null
         }
         val tidligereMånedsberegningMock1 = mock<Månedsberegning> {
             on { periode } doReturn Periode.create(1.november(2021), 30.november(2021))
@@ -200,7 +200,7 @@ internal class IdentifiserRevurderingsutfallSomIkkeStøttesTest {
         val vilkårsvurderingerMock = mock<Vilkårsvurderinger> {
             on { resultat } doReturn Resultat.Innvilget
             on { utledOpphørsgrunner() } doReturn listOf(Opphørsgrunn.FOR_HØY_INNTEKT)
-            on { tidligsteDatoFrorAvslag() } doReturn null
+            on { tidligsteDatoForAvslag() } doReturn null
         }
         val tidligereMånedsberegningMock1 = mock<Månedsberegning> {
             on { periode } doReturn Periode.create(1.november(2021), 30.november(2021))
@@ -227,6 +227,8 @@ internal class IdentifiserRevurderingsutfallSomIkkeStøttesTest {
         }
         val nyBeregningMock = mock<Beregning> {
             on { getMånedsberegninger() } doReturn listOf(nyMånedsberegningMock1, nyMånedsberegningMock2)
+            on { alleMånederErUnderMinstebeløp() } doReturn false
+            on { alleMånederHarBeløpLik0() } doReturn true
         }
 
         IdentifiserSaksbehandlingsutfallSomIkkeStøttes(
@@ -241,7 +243,7 @@ internal class IdentifiserRevurderingsutfallSomIkkeStøttesTest {
         val vilkårsvurderingerMock = mock<Vilkårsvurderinger> {
             on { resultat } doReturn Resultat.Innvilget
             on { utledOpphørsgrunner() } doReturn listOf(Opphørsgrunn.SU_UNDER_MINSTEGRENSE)
-            on { tidligsteDatoFrorAvslag() } doReturn null
+            on { tidligsteDatoForAvslag() } doReturn null
         }
         val tidligereMånedsberegningMock1 = mock<Månedsberegning> {
             on { periode } doReturn Periode.create(1.november(2021), 30.november(2021))
@@ -284,7 +286,7 @@ internal class IdentifiserRevurderingsutfallSomIkkeStøttesTest {
         val vilkårsvurderingerMock = mock<Vilkårsvurderinger> {
             on { resultat } doReturn Resultat.Innvilget
             on { utledOpphørsgrunner() } doReturn listOf(Opphørsgrunn.FOR_HØY_INNTEKT)
-            on { tidligsteDatoFrorAvslag() } doReturn null
+            on { tidligsteDatoForAvslag() } doReturn null
         }
         val tidligereMånedsberegningMock1 = mock<Månedsberegning> {
             on { periode } doReturn Periode.create(1.november(2021), 30.november(2021))

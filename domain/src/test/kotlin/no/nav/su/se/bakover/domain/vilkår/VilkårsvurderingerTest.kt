@@ -61,7 +61,7 @@ internal class VilkårsvurderingerTest {
             uføre = Vilkår.IkkeVurdert.Uførhet,
         ).let {
             it.resultat shouldBe Resultat.Uavklart
-            it.tidligsteDatoFrorAvslag() shouldBe null
+            it.tidligsteDatoForAvslag() shouldBe null
         }
     }
 
@@ -94,7 +94,7 @@ internal class VilkårsvurderingerTest {
             ),
         ).let {
             it.resultat shouldBe Resultat.Avslag
-            it.tidligsteDatoFrorAvslag() shouldBe 1.mai(2021)
+            it.tidligsteDatoForAvslag() shouldBe 1.mai(2021)
         }
     }
 
@@ -130,7 +130,7 @@ internal class VilkårsvurderingerTest {
 
         val actual = vilkårsvurdering.oppdaterStønadsperiode(Stønadsperiode.create(nyPeriode, "test"))
         actual.grunnlagsdata.uføregrunnlag.first().periode shouldBe nyPeriode
-        actual.tidligsteDatoFrorAvslag() shouldBe 1.februar(2021)
+        actual.tidligsteDatoForAvslag() shouldBe 1.februar(2021)
     }
 
     @Test
@@ -152,7 +152,7 @@ internal class VilkårsvurderingerTest {
             ),
         )
         vilkårsvurdering.utledOpphørsgrunner() shouldBe listOf(Opphørsgrunn.UFØRHET)
-        vilkårsvurdering.tidligsteDatoFrorAvslag() shouldBe 1.januar(2021)
+        vilkårsvurdering.tidligsteDatoForAvslag() shouldBe 1.januar(2021)
     }
 
     @Test

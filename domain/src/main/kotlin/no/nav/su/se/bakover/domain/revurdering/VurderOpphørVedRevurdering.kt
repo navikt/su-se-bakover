@@ -11,33 +11,32 @@ import java.time.Clock
 import java.time.LocalDate
 
 data class VurderOpphørVedRevurdering(
-    val vilkårsvurderinger: Vilkårsvurderinger,
-    val beregning: Beregning,
-    val clock: Clock = Clock.systemUTC(),
+    private val vilkårsvurderinger: Vilkårsvurderinger,
+    private val beregning: Beregning,
+    private val clock: Clock = Clock.systemUTC(),
 ) {
-    val resultat = when {
-        vilkårGirOpphør() is OpphørVedRevurdering.Ja -> vilkårGirOpphør()
-        beregningGirOpphør() is OpphørVedRevurdering.Ja -> beregningGirOpphør()
+    val resultat = when (
+        val opphør = setOf(vilkårGirOpphør(), beregningGirOpphør())
+            .filterIsInstance<OpphørVedRevurdering.Ja>()
+            .firstOrNull()
+    ) {
+        is OpphørVedRevurdering.Ja -> opphør
         else -> OpphørVedRevurdering.Nei
     }
 
     private fun vilkårGirOpphør(): OpphørVedRevurdering {
         return when (vilkårsvurderinger.resultat) {
-            Resultat.Avslag -> OpphørVedRevurdering.Ja(vilkårsvurderinger.utledOpphørsgrunner(), vilkårsvurderinger.tidligsteDatoFrorAvslag()!!)
+            Resultat.Avslag -> OpphørVedRevurdering.Ja(vilkårsvurderinger.utledOpphørsgrunner(), vilkårsvurderinger.tidligsteDatoForAvslag()!!)
             Resultat.Innvilget -> OpphørVedRevurdering.Nei
-            Resultat.Uavklart -> throw IllegalStateException("Alle vilkår må vurders før opphør kan vurderes.")
+            Resultat.Uavklart -> throw IllegalStateException("Alle vilkår må vurderes før opphør kan vurderes.")
         }
     }
 
     private fun beregningGirOpphør(): OpphørVedRevurdering {
-        fun fullstendigOpphør(): Boolean {
-            return beregning.getMånedsberegninger().all { it.erSumYtelseUnderMinstebeløp() } || beregning.getMånedsberegninger().all { it.getSumYtelse() == 0 }
-        }
-
         if (fullstendigOpphør()) {
             when {
-                beregning.getMånedsberegninger().all { it.erSumYtelseUnderMinstebeløp() } -> return OpphørVedRevurdering.Ja(listOf(Opphørsgrunn.SU_UNDER_MINSTEGRENSE), beregning.getMånedsberegninger().first().periode.fraOgMed)
-                beregning.getMånedsberegninger().all { !it.erSumYtelseUnderMinstebeløp() && it.getSumYtelse() == 0 } -> return OpphørVedRevurdering.Ja(listOf(Opphørsgrunn.FOR_HØY_INNTEKT), beregning.getMånedsberegninger().first().periode.fraOgMed)
+                beregning.alleMånederErUnderMinstebeløp() -> return OpphørVedRevurdering.Ja(listOf(Opphørsgrunn.SU_UNDER_MINSTEGRENSE), beregning.getMånedsberegninger().first().periode.fraOgMed)
+                beregning.alleMånederHarBeløpLik0() -> return OpphørVedRevurdering.Ja(listOf(Opphørsgrunn.FOR_HØY_INNTEKT), beregning.getMånedsberegninger().first().periode.fraOgMed)
             }
         }
 
@@ -49,6 +48,8 @@ data class VurderOpphørVedRevurdering(
         }
         return OpphørVedRevurdering.Nei
     }
+
+    private fun fullstendigOpphør(): Boolean = beregning.alleMånederErUnderMinstebeløp() || beregning.alleMånederHarBeløpLik0()
 
     private fun førsteFremtidigeMånedUnderMinstebeløp(): Månedsberegning? {
         val førsteDagInneværendeMåned = LocalDate.now(clock).startOfMonth()
@@ -67,6 +68,6 @@ data class VurderOpphørVedRevurdering(
 }
 
 sealed class OpphørVedRevurdering {
-    data class Ja(val grunn: List<Opphørsgrunn>, val opphørsdato: LocalDate) : OpphørVedRevurdering()
+    data class Ja(val opphørsgrunner: List<Opphørsgrunn>, val opphørsdato: LocalDate) : OpphørVedRevurdering()
     object Nei : OpphørVedRevurdering()
 }

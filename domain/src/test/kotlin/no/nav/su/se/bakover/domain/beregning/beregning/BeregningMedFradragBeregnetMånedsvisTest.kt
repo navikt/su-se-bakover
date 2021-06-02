@@ -62,14 +62,59 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                 IkkePeriodisertFradrag(
                     type = Fradragstype.ForventetInntekt, månedsbeløp = 1000.0,
                     periode = periode,
-                    tilhører = FradragTilhører.BRUKER
-                )
+                    tilhører = FradragTilhører.BRUKER,
+                ),
             ),
-            fradragStrategy = FradragStrategy.Enslig
+            fradragStrategy = FradragStrategy.Enslig,
         )
 
         beregning.getSumYtelse() shouldBe 238116
         beregning.getSumFradrag() shouldBe 12000
+    }
+
+    @Test
+    fun `fradrag som gjør at alle perioder får beløp under minstenivå`() {
+        val periode = Periode.create(1.januar(2020), 31.desember(2020))
+        val beregning = BeregningFactory.ny(
+            periode = periode,
+            sats = Sats.HØY,
+            fradrag = listOf(
+                IkkePeriodisertFradrag(
+                    type = Fradragstype.ForventetInntekt, månedsbeløp = 20500.0,
+                    periode = Periode.create(1.januar(2020), 30.april(2020)),
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+                IkkePeriodisertFradrag(
+                    type = Fradragstype.ForventetInntekt, månedsbeløp = 20800.0,
+                    periode = Periode.create(1.mai(2020), 31.desember(2020)),
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
+            fradragStrategy = FradragStrategy.Enslig,
+        )
+
+        beregning.alleMånederErUnderMinstebeløp() shouldBe true
+        beregning.alleMånederHarBeløpLik0() shouldBe true
+    }
+
+    @Test
+    fun `fradrag som gjør at alle perioder får beløp lik 0`() {
+        val periode = Periode.create(1.januar(2020), 31.desember(2020))
+        val beregning = BeregningFactory.ny(
+            periode = periode,
+            sats = Sats.HØY,
+            fradrag = listOf(
+                IkkePeriodisertFradrag(
+                    type = Fradragstype.ForventetInntekt, månedsbeløp = 150000.0,
+                    periode = periode,
+                    tilhører = FradragTilhører.BRUKER,
+                ),
+            ),
+            fradragStrategy = FradragStrategy.Enslig,
+        )
+
+        beregning.alleMånederErUnderMinstebeløp() shouldBe false
+        beregning.alleMånederHarBeløpLik0() shouldBe true
     }
 
     @Test
@@ -83,16 +128,16 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                     type = Fradragstype.ForventetInntekt,
                     månedsbeløp = 500.0,
                     periode = periode,
-                    tilhører = FradragTilhører.BRUKER
+                    tilhører = FradragTilhører.BRUKER,
                 ),
                 IkkePeriodisertFradrag(
                     type = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = 6000.0,
                     periode = Periode.create(1.juni(2020), 30.juni(2020)),
-                    tilhører = FradragTilhører.BRUKER
+                    tilhører = FradragTilhører.BRUKER,
                 ),
             ),
-            fradragStrategy = FradragStrategy.Enslig
+            fradragStrategy = FradragStrategy.Enslig,
         )
 
         beregning.getSumYtelse() shouldBe 238616
@@ -110,16 +155,16 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                     type = Fradragstype.ForventetInntekt,
                     månedsbeløp = 500.0,
                     periode = periode,
-                    tilhører = FradragTilhører.BRUKER
+                    tilhører = FradragTilhører.BRUKER,
                 ),
                 IkkePeriodisertFradrag(
                     type = Fradragstype.Kontantstøtte,
                     månedsbeløp = 6000.0,
                     periode = Periode.create(1.januar(2020), 31.januar(2020)),
-                    tilhører = FradragTilhører.BRUKER
-                )
+                    tilhører = FradragTilhører.BRUKER,
+                ),
             ),
-            fradragStrategy = FradragStrategy.Enslig
+            fradragStrategy = FradragStrategy.Enslig,
         )
 
         beregning.getSumYtelse() shouldBe 238116
@@ -159,10 +204,10 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                     type = Fradragstype.ForventetInntekt,
                     månedsbeløp = 20426.42,
                     periode = periode,
-                    tilhører = FradragTilhører.BRUKER
-                )
+                    tilhører = FradragTilhører.BRUKER,
+                ),
             ),
-            fradragStrategy = FradragStrategy.Enslig
+            fradragStrategy = FradragStrategy.Enslig,
         )
 
         val (janAprUnderMinstenivå, janAprAndre) = beregning.getMånedsberegninger()
@@ -177,7 +222,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                 månedsbeløp = 211.0,
                 periode = it.periode,
                 utenlandskInntekt = null,
-                tilhører = FradragTilhører.BRUKER
+                tilhører = FradragTilhører.BRUKER,
             )
         }
         janAprAndre shouldHaveSize 4
@@ -187,7 +232,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                 månedsbeløp = 20426.42,
                 periode = it.periode,
                 utenlandskInntekt = null,
-                tilhører = FradragTilhører.BRUKER
+                tilhører = FradragTilhører.BRUKER,
             )
         }
 
@@ -204,7 +249,7 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                 månedsbeløp = 20426.42,
                 periode = it.periode,
                 utenlandskInntekt = null,
-                tilhører = FradragTilhører.BRUKER
+                tilhører = FradragTilhører.BRUKER,
             )
         }
 
@@ -223,10 +268,10 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                     månedsbeløp = 0.0,
                     periode = Periode.create(1.januar(2020), 31.mars(2020)),
                     utenlandskInntekt = null,
-                    tilhører = FradragTilhører.BRUKER
-                )
+                    tilhører = FradragTilhører.BRUKER,
+                ),
             ),
-            fradragStrategy = FradragStrategy.Enslig
+            fradragStrategy = FradragStrategy.Enslig,
         )
         beregning.getId() shouldBe beregning.getId()
         beregning.getOpprettet() shouldBe beregning.getOpprettet()
@@ -246,16 +291,16 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                     type = Fradragstype.ForventetInntekt,
                     månedsbeløp = 0.0,
                     periode = periode,
-                    tilhører = FradragTilhører.BRUKER
+                    tilhører = FradragTilhører.BRUKER,
                 ),
                 IkkePeriodisertFradrag(
                     type = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = totaltFradrag,
                     periode = Periode.create(1.januar(2020), 31.januar(2020)),
-                    tilhører = FradragTilhører.BRUKER
-                )
+                    tilhører = FradragTilhører.BRUKER,
+                ),
             ),
-            fradragStrategy = FradragStrategy.Enslig
+            fradragStrategy = FradragStrategy.Enslig,
         )
 
         beregning.getSumYtelse() shouldBe 41274
@@ -283,16 +328,16 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                     type = Fradragstype.ForventetInntekt,
                     månedsbeløp = 0.0,
                     periode = periode,
-                    tilhører = FradragTilhører.BRUKER
+                    tilhører = FradragTilhører.BRUKER,
                 ),
                 IkkePeriodisertFradrag(
                     type = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = totaltFradrag,
                     periode = Periode.create(1.januar(2020), 31.januar(2020)),
-                    tilhører = FradragTilhører.BRUKER
-                )
+                    tilhører = FradragTilhører.BRUKER,
+                ),
             ),
-            fradragStrategy = FradragStrategy.Enslig
+            fradragStrategy = FradragStrategy.Enslig,
         )
 
         val beregning2 = BeregningFactory.ny(
@@ -303,16 +348,16 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                     type = Fradragstype.ForventetInntekt,
                     månedsbeløp = 0.0,
                     periode = periode,
-                    tilhører = FradragTilhører.BRUKER
+                    tilhører = FradragTilhører.BRUKER,
                 ),
                 IkkePeriodisertFradrag(
                     type = Fradragstype.Arbeidsinntekt,
                     månedsbeløp = totaltFradrag,
                     periode = periode,
-                    tilhører = FradragTilhører.BRUKER
-                )
+                    tilhører = FradragTilhører.BRUKER,
+                ),
             ),
-            fradragStrategy = FradragStrategy.Enslig
+            fradragStrategy = FradragStrategy.Enslig,
         )
 
         beregning.getMånedsberegninger() shouldNotBe beregning2.getMånedsberegninger()
@@ -333,10 +378,10 @@ internal class BeregningMedFradragBeregnetMånedsvisTest {
                         månedsbeløp = 12000.0,
                         periode = Periode.create(fraOgMed = 1.februar(2020), tilOgMed = 31.januar(2022)),
                         utenlandskInntekt = null,
-                        tilhører = FradragTilhører.BRUKER
-                    )
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
                 ),
-                fradragStrategy = FradragStrategy.Enslig
+                fradragStrategy = FradragStrategy.Enslig,
             )
         }
 
