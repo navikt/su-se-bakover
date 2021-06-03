@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes.grunnlag
 
+import no.nav.su.se.bakover.domain.beregning.Sats.Companion.utledSats
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
@@ -29,6 +30,7 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
                                 delerBolig = true,
                                 ektemakeEllerSamboerUførFlyktning = null,
                                 begrunnelse = it.begrunnelse,
+                                sats = it.utledSats().toString(),
                             )
                         is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning ->
                             BosituasjonJson(
@@ -37,6 +39,7 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
                                 delerBolig = null,
                                 ektemakeEllerSamboerUførFlyktning = false,
                                 begrunnelse = it.begrunnelse,
+                                sats = it.utledSats().toString(),
                             )
                         is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre ->
                             BosituasjonJson(
@@ -45,6 +48,7 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
                                 delerBolig = null,
                                 ektemakeEllerSamboerUførFlyktning = null,
                                 begrunnelse = it.begrunnelse,
+                                sats = it.utledSats().toString(),
                             )
                         is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning ->
                             BosituasjonJson(
@@ -53,6 +57,7 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
                                 delerBolig = null,
                                 ektemakeEllerSamboerUførFlyktning = true,
                                 begrunnelse = it.begrunnelse,
+                                sats = it.utledSats().toString(),
                             )
                         is Grunnlag.Bosituasjon.Fullstendig.Enslig ->
                             BosituasjonJson(
@@ -61,6 +66,7 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
                                 delerBolig = false,
                                 ektemakeEllerSamboerUførFlyktning = null,
                                 begrunnelse = it.begrunnelse,
+                                sats = it.utledSats().toString(),
                             )
                         is Grunnlag.Bosituasjon.Ufullstendig.HarEps ->
                             BosituasjonJson(
@@ -69,6 +75,7 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
                                 delerBolig = true,
                                 ektemakeEllerSamboerUførFlyktning = null,
                                 begrunnelse = null,
+                                sats = null
                             )
                         is Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps ->
                             BosituasjonJson(
@@ -77,6 +84,7 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
                                 delerBolig = null,
                                 ektemakeEllerSamboerUførFlyktning = null,
                                 begrunnelse = null,
+                                sats = null
                             )
                     }
                 },

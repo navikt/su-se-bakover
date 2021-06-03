@@ -5,5 +5,6 @@ internal data class BosituasjonJson(
     val fnr: String?,
     val delerBolig: Boolean?,
     val ektemakeEllerSamboerUførFlyktning: Boolean?,
-    val begrunnelse: String?
+    val begrunnelse: String?,
+    val sats: String?
 )

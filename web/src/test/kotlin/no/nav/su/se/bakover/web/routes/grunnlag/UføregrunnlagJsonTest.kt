@@ -52,7 +52,8 @@ internal class UføregrunnlagJsonTest {
           "fnr" : "$fnrBosituasjon",
           "delerBolig": null,
           "ektemakeEllerSamboerUførFlyktning": true,
-          "begrunnelse": null
+          "begrunnelse": null,
+          "sats": "ORDINÆR"
         }
         ]
         """.trimIndent()
