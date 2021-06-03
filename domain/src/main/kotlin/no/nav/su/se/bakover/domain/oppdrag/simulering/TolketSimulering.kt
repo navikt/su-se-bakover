@@ -67,8 +67,7 @@ sealed class TolketUtbetaling {
 
         private fun List<TolketDetalj>.erFeilutbetaling() =
             any { it is TolketDetalj.Feilutbetaling } &&
-                any { it is TolketDetalj.TidligereUtbetalt } &&
-                any { it is TolketDetalj.Ordinær }
+                any { it is TolketDetalj.TidligereUtbetalt }
 
         private fun List<TolketDetalj>.erTidligereUtbetalt() =
             count() == 2 &&
@@ -130,11 +129,11 @@ sealed class TolketDetalj {
 
     companion object {
         fun from(simulertDetaljer: SimulertDetaljer, forfall: LocalDate) = when {
-            simulertDetaljer.erTidligereUtbetalt() -> {
-                TidligereUtbetalt(beløp = simulertDetaljer.belop)
-            }
             simulertDetaljer.erFeilutbetaling() -> {
                 Feilutbetaling(beløp = simulertDetaljer.belop)
+            }
+            simulertDetaljer.erTidligereUtbetalt() -> {
+                TidligereUtbetalt(beløp = simulertDetaljer.belop)
             }
             simulertDetaljer.erØnsketUtbetalt() -> {
                 Ordinær(beløp = simulertDetaljer.belop, forfall, simulertDetaljer.faktiskFraOgMed)
