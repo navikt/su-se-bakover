@@ -229,6 +229,14 @@ object RevurderingTestUtils {
         behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
         grunnlagsdata = Grunnlagsdata(
             uføregrunnlag = listOf(uføregrunnlag),
+            bosituasjon = listOf(
+                Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                    id = UUID.randomUUID(),
+                    opprettet = fixedTidspunkt,
+                    periode = periode,
+                    begrunnelse = null,
+                ),
+            )
         ),
         vilkårsvurderinger = vilkårsvurderinger,
         informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),

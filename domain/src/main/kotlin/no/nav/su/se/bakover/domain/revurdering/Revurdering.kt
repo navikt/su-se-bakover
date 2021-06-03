@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.RevurdertBeregning
 import no.nav.su.se.bakover.domain.beregning.VurderOmBeregningHarEndringerIYtelse
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.beregning.utledBeregningsstrategi
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -103,9 +104,20 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
     )
 
     open fun beregn(): Either<KunneIkkeBeregneRevurdering, BeregnetRevurdering> {
+        val bosituasjon = grunnlagsdata.bosituasjon.let {
+            require(it.size == 1) {
+                "Vi kan foreløpig kun beregne en revurdering som har 1 bosituasjonsperiode. Antall bosituasjoner i dette tilfellet: ${it.size}"
+            }
+            it.first().let {
+                require(it is Grunnlag.Bosituasjon.Fullstendig) {
+                    "I beregningssteget under revurdering må bosituasjonen være fullstendig, men typene våre representere ikke det. bosituasjon var av typen: ${it::class.simpleName}"
+                }
+                it
+            }
+        }
         val revurdertBeregning: Beregning = beregnInternt(
             fradrag = grunnlagsdata.fradragsgrunnlag.map { it.fradrag },
-            behandlingsinformasjon = behandlingsinformasjon,
+            bosituasjon = bosituasjon,
             uføregrunnlag = grunnlagsdata.uføregrunnlag,
             periode = periode,
             vedtattBeregning = tilRevurdering.beregning,
@@ -216,7 +228,7 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
     companion object {
         private fun beregnInternt(
             fradrag: List<Fradrag>,
-            behandlingsinformasjon: Behandlingsinformasjon,
+            bosituasjon: Grunnlag.Bosituasjon.Fullstendig,
             uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
             periode: Periode,
             vedtattBeregning: Beregning,
@@ -228,14 +240,10 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
             ).getOrHandle {
                 return KunneIkkeBeregneRevurdering.UgyldigBeregningsgrunnlag(it).left()
             }
-            // TODO jah: Også mulig å ta inn beregningsstrategi slik at man kan validere dette på service-nivå
-            val beregningStrategy = behandlingsinformasjon.getBeregningStrategy().getOrHandle {
-                return KunneIkkeBeregneRevurdering.UfullstendigBehandlingsinformasjon(it).left()
-            }
             return RevurdertBeregning.fraSøknadsbehandling(
                 vedtattBeregning = vedtattBeregning,
                 beregningsgrunnlag = beregningsgrunnlag,
-                beregningsstrategi = beregningStrategy,
+                beregningsstrategi = bosituasjon.utledBeregningsstrategi(),
             ).mapLeft {
                 KunneIkkeBeregneRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden
             }

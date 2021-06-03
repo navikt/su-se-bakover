@@ -283,6 +283,14 @@ internal class RevurderingServiceImplTest {
                         ),
                     ),
                 ),
+                bosituasjon = listOf(
+                    Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                        id = UUID.randomUUID(),
+                        opprettet = fixedTidspunkt,
+                        periode = periode,
+                        begrunnelse = null,
+                    ),
+                ),
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Vurdert.Uførhet.create(
@@ -408,6 +416,14 @@ internal class RevurderingServiceImplTest {
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
                         ),
+                    ),
+                ),
+                bosituasjon = listOf(
+                    Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                        id = UUID.randomUUID(),
+                        opprettet = fixedTidspunkt,
+                        periode = periode,
+                        begrunnelse = null,
                     ),
                 ),
             ),
@@ -742,6 +758,14 @@ internal class RevurderingServiceImplTest {
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
                         ),
+                    ),
+                ),
+                bosituasjon = listOf(
+                    Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                        id = UUID.randomUUID(),
+                        opprettet = fixedTidspunkt,
+                        periode = periode,
+                        begrunnelse = null,
                     ),
                 ),
             ),

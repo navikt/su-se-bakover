@@ -4,6 +4,7 @@ import arrow.core.nonEmptyListOf
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
+import io.kotest.assertions.fail
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
@@ -23,6 +24,7 @@ import no.nav.su.se.bakover.domain.beregning.Sats
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
@@ -40,6 +42,8 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import org.junit.jupiter.api.Test
 import java.util.UUID
+
+val periode = Periode.create(1.januar(2021), 31.januar(2021))
 
 internal class FinnAttestantVisitorTest {
 
@@ -205,13 +209,13 @@ internal class FinnAttestantVisitorTest {
     private val beregningMock = mock<Beregning> {
         on { getMånedsberegninger() } doReturn listOf(
             MånedsberegningFactory.ny(
-                periode = Periode.create(1.januar(2021), 31.januar(2021)),
+                periode = periode,
                 sats = Sats.HØY,
                 fradrag = listOf(
                     FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
                         månedsbeløp = 5000.0,
-                        periode = Periode.create(1.januar(2021), 31.januar(2021)),
+                        periode = periode,
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
@@ -220,13 +224,13 @@ internal class FinnAttestantVisitorTest {
         )
     }
     private val uføregrunnlag = Grunnlag.Uføregrunnlag(
-        periode = Periode.create(1.januar(2021), 31.januar(2021)),
+        periode = periode,
         uføregrad = Uføregrad.parse(20),
         forventetInntekt = 10,
     )
     private val revurdering = OpprettetRevurdering(
         id = UUID.randomUUID(),
-        periode = Periode.create(1.januar(2021), 31.januar(2021)),
+        periode = periode,
         opprettet = Tidspunkt.now(),
         tilRevurdering = mock() {
 
@@ -244,6 +248,14 @@ internal class FinnAttestantVisitorTest {
         behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt,
         grunnlagsdata = Grunnlagsdata(
             uføregrunnlag = listOf(uføregrunnlag),
+            bosituasjon = listOf(
+                Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                    id = UUID.randomUUID(),
+                    opprettet = fixedTidspunkt,
+                    periode = periode,
+                    begrunnelse = null,
+                ),
+            ),
         ),
         vilkårsvurderinger = Vilkårsvurderinger(
             uføre = Vilkår.Vurdert.Uførhet.create(
@@ -251,7 +263,7 @@ internal class FinnAttestantVisitorTest {
                     Vurderingsperiode.Uføre.create(
                         resultat = Resultat.Innvilget,
                         grunnlag = uføregrunnlag,
-                        periode = Periode.create(1.januar(2021), 31.januar(2021)),
+                        periode = periode,
                         begrunnelse = null,
                     ),
                 ),
@@ -264,7 +276,7 @@ internal class FinnAttestantVisitorTest {
         is BeregnetRevurdering.Innvilget -> {
             a
         }
-        else -> throw RuntimeException("Skal ikke skje")
+        else -> fail("Skulle vært typen BeregnetRevurdering.Innvilget, men var ${a::class.simpleName}")
     }
     private val simulertRevurdering = beregnetRevurdering.toSimulert(mock())
     private val tilAttesteringRevurdering =
