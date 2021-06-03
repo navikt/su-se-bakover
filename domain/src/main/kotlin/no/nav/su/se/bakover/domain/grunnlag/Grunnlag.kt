@@ -52,10 +52,6 @@ sealed class Grunnlag {
         override val periode: Periode,
     ) : Grunnlag(), KanPlasseresPåTidslinje<Flyktninggrunnlag> {
 
-        fun oppdaterPeriode(periode: Periode): Flyktninggrunnlag {
-            return this.copy(periode = periode)
-        }
-
         override fun copy(args: CopyArgs.Tidslinje): Flyktninggrunnlag = when (args) {
             CopyArgs.Tidslinje.Full -> {
                 this.copy(id = UUID.randomUUID())
@@ -194,5 +190,59 @@ sealed class Grunnlag {
                 val fnr: Fnr,
             ) : Ufullstendig()
         }
+
+        fun harEktefelle(): Boolean {
+            return this is Fullstendig.EktefellePartnerSamboer || this is Ufullstendig.HarEps
+        }
     }
+}
+
+// Generell kommentar til extension-funksjonene: Disse er lagt til slik at vi enklere skal få kontroll over migreringen fra 1 bosituasjon til fler.
+
+/**
+ * Kan være tom under vilkårsvurdering/datainnsamlings-tilstanden.
+ * Kan være maks 1 i alle andre tilstander.
+ * @throws IllegalStateException hvis size > 1
+ * */
+fun List<Grunnlag.Bosituasjon>.harEktefelle(): Boolean {
+    return singleOrThrow().harEktefelle()
+}
+
+fun List<Grunnlag.Bosituasjon>.singleFullstendigOrEmpty(): List<Grunnlag.Bosituasjon.Fullstendig> {
+    return this.singleOrNull()?.let {
+        listOf(it.fullstendigOrThrow())
+    } ?: emptyList()
+}
+
+/**
+ * Kan være tom under vilkårsvurdering/datainnsamlings-tilstanden.
+ * Kan være maks 1 i alle andre tilstander.
+ * @throws IllegalStateException hvis size != 1
+ * */
+fun List<Grunnlag.Bosituasjon>.singleOrThrow(): Grunnlag.Bosituasjon {
+    if (size != 1) {
+        throw IllegalStateException("Forventet 1 Grunnlag.Bosituasjon, men var: ${this.size}")
+    }
+    return this.first()
+}
+
+/**
+ * Kan være tom under vilkårsvurdering/datainnsamlings-tilstanden.
+ * Kan være maks 1 i alle andre tilstander.
+ *  * @throws IllegalStateException hvis size != 1
+ * */
+fun List<Grunnlag.Bosituasjon>.singleFullstendigOrThrow(): Grunnlag.Bosituasjon.Fullstendig {
+    return singleOrThrow().fullstendigOrThrow()
+}
+
+fun List<Grunnlag.Bosituasjon>.throwIfMultiple(): Grunnlag.Bosituasjon? {
+    if (this.size > 1) {
+        throw IllegalStateException("Det er ikke støtte for flere bosituasjoner")
+    }
+    return this.firstOrNull()
+}
+
+private fun Grunnlag.Bosituasjon.fullstendigOrThrow(): Grunnlag.Bosituasjon.Fullstendig {
+    return (this as? Grunnlag.Bosituasjon.Fullstendig)
+        ?: throw IllegalStateException("Forventet Grunnlag.Bosituasjon type Fullstendig, men var ${this::class.simpleName}")
 }

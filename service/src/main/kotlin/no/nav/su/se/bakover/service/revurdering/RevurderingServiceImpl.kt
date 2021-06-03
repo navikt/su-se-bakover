@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Validator.valider
+import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrEmpty
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -116,7 +117,8 @@ internal class RevurderingServiceImpl(
 
         val gjeldendeGrunnlagsdataOgVilkårsvurderinger = KopierGjeldendeGrunnlagsdataOgVilkårsvurderinger(periode, sak.vedtakListe)
         val grunnlagsdata = gjeldendeGrunnlagsdataOgVilkårsvurderinger.grunnlagsdata.copy(
-            bosituasjon = gjeldendeGrunnlagsdataOgVilkårsvurderinger.grunnlagsdata.bosituasjon.singleOrNull() ?.let { listOf(it) } ?: emptyList()
+            // Foreløpig støtter vi kun en aktiv bosituasjon, dersom det er fler, preutfyller vi ikke.
+            bosituasjon = gjeldendeGrunnlagsdataOgVilkårsvurderinger.grunnlagsdata.bosituasjon.singleFullstendigOrEmpty(),
         )
 
         val informasjonSomRevurderes = InformasjonSomRevurderes.tryCreate(opprettRevurderingRequest.informasjonSomRevurderes)
@@ -343,7 +345,9 @@ internal class RevurderingServiceImpl(
 
         val gjeldendeGrunnlagsdataOgVilkårsvurderinger = KopierGjeldendeGrunnlagsdataOgVilkårsvurderinger(nyPeriode, sak.vedtakListe)
         val grunnlagsdata = gjeldendeGrunnlagsdataOgVilkårsvurderinger.grunnlagsdata.copy(
-            bosituasjon = gjeldendeGrunnlagsdataOgVilkårsvurderinger.grunnlagsdata.bosituasjon.singleOrNull() ?.let { listOf(it) } ?: emptyList()
+
+            // Foreløpig støtter vi kun en aktiv bosituasjon, dersom det er fler, preutfyller vi ikke.
+            bosituasjon = gjeldendeGrunnlagsdataOgVilkårsvurderinger.grunnlagsdata.bosituasjon.singleFullstendigOrEmpty(),
         )
 
         val informasjonSomRevurderes = InformasjonSomRevurderes.tryCreate(oppdaterRevurderingRequest.informasjonSomRevurderes)

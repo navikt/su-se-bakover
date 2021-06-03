@@ -96,11 +96,11 @@ object RevurderingTestUtils {
     internal val revurderingId = UUID.randomUUID()
     internal val aktørId = AktørId("aktørId")
 
-    internal val beregningMock = mock<Beregning> {
+    internal fun beregningMock() = mock<Beregning> {
         on { periode } doReturn periode
         on { getMånedsberegninger() } doReturn periode.tilMånedsperioder()
             .map { MånedsberegningFactory.ny(it, Sats.HØY, listOf()) }
-        on { getFradrag() } doReturn listOf()
+        on { getFradrag() } doReturn emptyList()
         on { getSumYtelse() } doReturn periode.tilMånedsperioder()
             .sumOf { MånedsberegningFactory.ny(it, Sats.HØY, listOf()).getSumYtelse() }
     }
@@ -156,7 +156,7 @@ object RevurderingTestUtils {
                 ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
             ),
             fnr = fnr,
-            beregning = beregningMock,
+            beregning = beregningMock(),
             simulering = mock(),
             saksbehandler = saksbehandler,
             attestering = Attestering.Iverksatt(NavIdentBruker.Attestant("Attes T. Ant")),
@@ -253,10 +253,18 @@ object RevurderingTestUtils {
         revurderingsårsak = revurderingsårsak,
         behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
         simulering = mock(),
-        beregning = beregningMock,
+        beregning = beregningMock(),
         forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
         grunnlagsdata = Grunnlagsdata(
             uføregrunnlag = listOf(uføregrunnlag),
+            bosituasjon = listOf(
+                Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                    id = UUID.randomUUID(),
+                    opprettet = fixedTidspunkt,
+                    periode = periode,
+                    begrunnelse = null,
+                ),
+            ),
         ),
         vilkårsvurderinger = vilkårsvurderinger,
         informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),

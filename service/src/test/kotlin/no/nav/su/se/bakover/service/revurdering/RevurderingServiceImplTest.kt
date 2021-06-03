@@ -33,7 +33,6 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
@@ -111,6 +110,7 @@ import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
 import java.util.UUID
 
+@Suppress("UNUSED_VARIABLE")
 internal class RevurderingServiceImplTest {
 
     @Test
@@ -648,7 +648,7 @@ internal class RevurderingServiceImplTest {
             opprettet = Tidspunkt.EPOCH,
             tilRevurdering = søknadsbehandlingVedtak,
             saksbehandler = saksbehandler,
-            beregning = beregningMock,
+            beregning = beregningMock(),
             simulering = mock(),
             oppgaveId = OppgaveId("oppgaveId"),
             fritekstTilBrev = "",
@@ -739,7 +739,7 @@ internal class RevurderingServiceImplTest {
             opprettet = Tidspunkt.EPOCH,
             tilRevurdering = søknadsbehandlingVedtak,
             saksbehandler = saksbehandler,
-            beregning = beregningMock,
+            beregning = beregningMock(),
             simulering = mock(),
             oppgaveId = OppgaveId("oppgaveId"),
             fritekstTilBrev = "",
@@ -834,15 +834,7 @@ internal class RevurderingServiceImplTest {
             on { harEktefelle() } doReturn false
         }
 
-        val behandlingMock = mock<Behandling> {
-            on { fnr } doReturn fnr
-        }
-
-        val vedtakMock = mock<Vedtak.EndringIYtelse> {
-            on { behandling } doReturn behandlingMock
-            on { beregning } doReturn mock()
-            on { behandlingsinformasjon } doReturn behandlingsinformasjonMock
-        }
+        val vedtakMock = søknadsbehandlingVedtak
 
         val simulertRevurdering = SimulertRevurdering.Innvilget(
             id = revurderingId,
@@ -863,7 +855,16 @@ internal class RevurderingServiceImplTest {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata(
+                bosituasjon = listOf(
+                    Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                        id = UUID.randomUUID(),
+                        opprettet = fixedTidspunkt,
+                        periode = periode,
+                        begrunnelse = null,
+                    ),
+                ),
+            ),
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
@@ -1772,9 +1773,7 @@ internal class RevurderingServiceImplTest {
         verify(vilkårsvurderingServiceMock).lagre(
             argThat { it shouldBe opprettetRevurdering.id },
             argThat { vilkårsvurdering ->
-                vilkårsvurdering.uføre.let {
-                    it.ekvivalentMed(opprettetRevurdering.vilkårsvurderinger.uføre as Vilkår.Vurdert.Uførhet)
-                }
+                vilkårsvurdering.uføre.ekvivalentMed(opprettetRevurdering.vilkårsvurderinger.uføre as Vilkår.Vurdert.Uførhet)
             },
         )
         verify(grunnlagServiceMock).lagreFradragsgrunnlag(opprettetRevurdering.id, opprettetRevurdering.grunnlagsdata.fradragsgrunnlag)

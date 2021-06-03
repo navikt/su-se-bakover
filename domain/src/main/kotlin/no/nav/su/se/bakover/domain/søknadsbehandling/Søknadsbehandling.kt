@@ -32,10 +32,6 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
     // TODO ia: fritekst bør flyttes ut av denne klassen og til et eget konsept (som også omfatter fritekst på revurderinger)
     abstract val fritekstTilBrev: String
 
-    // init {
-    //     require(grunnlagsdata.containsAll(vilkårsvurderinger.grunnlagsdata)) { "Grunnlagene i vilkårsvurderinger må være et subset av grunnlag" }
-    // }
-
     sealed class Vilkårsvurdert : Søknadsbehandling() {
         fun tilVilkårsvurdert(behandlingsinformasjon: Behandlingsinformasjon): Vilkårsvurdert =
             opprett(
@@ -86,6 +82,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                 vilkårsvurderinger: Vilkårsvurderinger,
             ): Vilkårsvurdert {
                 return when {
+                    // TODO jah: Burde vi ikke sjekke Vilkår.Grunnlag også?
                     behandlingsinformasjon.erInnvilget() -> {
                         Innvilget(
                             id,
@@ -102,6 +99,7 @@ sealed class Søknadsbehandling : Behandling, Visitable<SøknadsbehandlingVisito
                             vilkårsvurderinger,
                         )
                     }
+                    // TODO jah: Burde vi ikke sjekke Vilkår.Grunnlag også?
                     behandlingsinformasjon.erAvslag() -> {
                         Avslag(
                             id,

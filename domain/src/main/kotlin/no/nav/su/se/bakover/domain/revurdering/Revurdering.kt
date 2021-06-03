@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.domain.beregning.utledBeregningsstrategi
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -82,6 +83,8 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
     // TODO ia: fritekst bør flyttes ut av denne klassen og til et eget konsept (som også omfatter fritekst på søknadsbehandlinger)
     abstract val fritekstTilBrev: String
     abstract val revurderingsårsak: Revurderingsårsak
+
+    // TODO jah: Denne bør kunne slettes etter Grunnlagsdata innholder Bosituasjon, men tenker den fortjener egen PR?
     abstract val behandlingsinformasjon: Behandlingsinformasjon
     abstract val informasjonSomRevurderes: InformasjonSomRevurderes
 
@@ -104,20 +107,9 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
     )
 
     open fun beregn(): Either<KunneIkkeBeregneRevurdering, BeregnetRevurdering> {
-        val bosituasjon = grunnlagsdata.bosituasjon.let {
-            require(it.size == 1) {
-                "Vi kan foreløpig kun beregne en revurdering som har 1 bosituasjonsperiode. Antall bosituasjoner i dette tilfellet: ${it.size}"
-            }
-            it.first().let {
-                require(it is Grunnlag.Bosituasjon.Fullstendig) {
-                    "I beregningssteget under revurdering må bosituasjonen være fullstendig, men typene våre representere ikke det. bosituasjon var av typen: ${it::class.simpleName}"
-                }
-                it
-            }
-        }
         val revurdertBeregning: Beregning = beregnInternt(
             fradrag = grunnlagsdata.fradragsgrunnlag.map { it.fradrag },
-            bosituasjon = bosituasjon,
+            bosituasjon = grunnlagsdata.bosituasjon.singleFullstendigOrThrow(),
             uføregrunnlag = grunnlagsdata.uføregrunnlag,
             periode = periode,
             vedtattBeregning = tilRevurdering.beregning,

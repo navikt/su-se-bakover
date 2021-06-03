@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -572,11 +573,8 @@ internal class SøknadsbehandlingServiceImpl(
                 Søknadsbehandling.Vilkårsvurdert::class,
             ).left()
 
-        if (søknadsbehandling.grunnlagsdata.bosituasjon.size != 1)
-            throw IllegalStateException("Vi støtter ikke å fullføre bosituasjon hvis det er noe annet enn 1 fra før")
-
         val bosituasjon =
-            request.toBosituasjon(søknadsbehandling.grunnlagsdata.bosituasjon.first(), clock).getOrHandle {
+            request.toBosituasjon(søknadsbehandling.grunnlagsdata.bosituasjon.singleOrThrow(), clock).getOrHandle {
                 return KunneIkkeFullføreBosituasjonGrunnlag.KlarteIkkeLagreBosituasjon.left()
             }
 

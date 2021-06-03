@@ -2,7 +2,7 @@ package no.nav.su.se.bakover.domain.brev
 
 import no.nav.su.se.bakover.common.ddMMyyyy
 import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.behandling.Satsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn.Companion.getDistinkteParagrafer
@@ -19,7 +19,8 @@ interface LagBrevRequest {
     data class InnvilgetVedtak(
         private val person: Person,
         private val beregning: Beregning,
-        private val behandlingsinformasjon: Behandlingsinformasjon,
+        private val satsgrunn: Satsgrunn,
+        private val harEktefelle: Boolean,
         private val forventetInntektStørreEnn0: Boolean,
         private val saksbehandlerNavn: String,
         private val attestantNavn: String,
@@ -33,12 +34,13 @@ interface LagBrevRequest {
                 tildato = beregning.periode.tilOgMed.formatMonthYear(),
                 // TODO CHM 05.05.2021: Wrap sats-tingene i et eget objekt, hent fra beregning?
                 sats = beregning.getSats().toString().lowercase(),
-                satsGrunn = behandlingsinformasjon.getSatsgrunn().orNull()!!,
+                satsGrunn = satsgrunn,
                 satsBeløp = beregning.getSats().månedsbeløpSomHeltall(beregning.periode.tilOgMed),
-                satsGjeldendeFraDato = beregning.getSats().datoForSisteEndringAvSats(beregning.periode.tilOgMed).ddMMyyyy(),
+                satsGjeldendeFraDato = beregning.getSats().datoForSisteEndringAvSats(beregning.periode.tilOgMed)
+                    .ddMMyyyy(),
                 // Innvilgede vedtaker har alltid forventet inntekt
                 forventetInntektStørreEnn0 = forventetInntektStørreEnn0,
-                harEktefelle = behandlingsinformasjon.harEktefelle(),
+                harEktefelle = harEktefelle,
                 beregningsperioder = LagBrevinnholdForBeregning(beregning).brevInnhold,
                 saksbehandlerNavn = saksbehandlerNavn,
                 attestantNavn = attestantNavn,
@@ -78,7 +80,7 @@ interface LagBrevRequest {
         private val person: Person,
         private val beregning: Beregning,
         private val forventetInntektStørreEnn0: Boolean,
-        private val behandlingsinformasjon: Behandlingsinformasjon,
+        private val harEktefelle: Boolean,
         private val saksbehandlerNavn: String,
         private val attestantNavn: String,
         private val fritekst: String,
@@ -91,7 +93,7 @@ interface LagBrevRequest {
                 sats = beregning.getSats().toString().lowercase(),
                 satsBeløp = beregning.getSats().månedsbeløpSomHeltall(beregning.periode.tilOgMed),
                 satsGjeldendeFraDato = beregning.getSats().datoForSisteEndringAvSats(beregning.periode.tilOgMed).ddMMyyyy(),
-                harEktefelle = behandlingsinformasjon.harEktefelle(),
+                harEktefelle = harEktefelle,
                 beregningsperioder = if (
                     opphørsgrunner.contains(Opphørsgrunn.FOR_HØY_INNTEKT) ||
                     opphørsgrunner.contains(Opphørsgrunn.SU_UNDER_MINSTEGRENSE)

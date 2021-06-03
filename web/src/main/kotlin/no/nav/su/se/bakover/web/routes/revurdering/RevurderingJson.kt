@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.routes.revurdering
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import no.nav.su.se.bakover.domain.grunnlag.throwIfMultiple
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeslutningEtterForhåndsvarsling
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
@@ -353,9 +354,7 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
 }.also {
     // TODO jah: Vi skal ikke pre-utfylle Bosituasjon for revurdering med mer enn ett element.
     //  vi ønsker å gjøre denne sjekken backend for å ha bedre kontroll + oversikt (logger)
-    if (grunnlagsdata.bosituasjon.size > 1) {
-        throw IllegalStateException("Det er ikke støtte for flere bosituasjoner")
-    }
+    grunnlagsdata.bosituasjon.throwIfMultiple()
 }
 
 internal class InstansTilStatusMapper(revurdering: Revurdering) {
