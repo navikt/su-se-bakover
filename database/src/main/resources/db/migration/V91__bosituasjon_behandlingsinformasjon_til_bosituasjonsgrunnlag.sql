@@ -23,7 +23,7 @@ with søknadsbehandling_behandlingsinformasjon as ( select
                                                              behandlingsinformasjon -> 'ektefelle' ektefelle,
                                                              behandlingsinformasjon -> 'bosituasjon' bosituasjon,
                                                              behandlingsinformasjon #>> '{ektefelle, fnr}' epsFnr
-                                                         from behandling) b )
+                                                         from behandling where stønadsperiode is not null) b )
 
 insert into grunnlag_bosituasjon (id, opprettet, behandlingid, fraogmed, tilogmed, bosituasjontype, eps_fnr, begrunnelse) (
     select uuid_generate_v4(),
