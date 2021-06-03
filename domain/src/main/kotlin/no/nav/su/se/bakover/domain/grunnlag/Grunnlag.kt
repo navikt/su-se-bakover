@@ -181,75 +181,101 @@ sealed class Grunnlag {
 
             // Fjernes når vi kan fjerne behandlingsinformasjon
             // se johns kommentar i revurderingServiceImpl
-            fun tilBosituasjon(
-                hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
-            ): Behandlingsinformasjon.Bosituasjon {
+            fun oppdaterBosituasjonOgEktefelle(behandlingsinformasjon: Behandlingsinformasjon, hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>): Behandlingsinformasjon {
+                val oppdatertBosituasjonOgEktefelle = oppdaterBosituasjonOgEktefelle { hentPerson(it) }
+                return behandlingsinformasjon.copy(
+                    bosituasjon = oppdatertBosituasjonOgEktefelle.first,
+                    ektefelle = oppdatertBosituasjonOgEktefelle.second,
+                )
+            }
+
+            private fun oppdaterBosituasjonOgEktefelle(hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>):
+                Pair<Behandlingsinformasjon.Bosituasjon, Behandlingsinformasjon.EktefellePartnerSamboer> {
                 return when (this) {
-                    is DelerBoligMedVoksneBarnEllerAnnenVoksen -> Behandlingsinformasjon.Bosituasjon(
-                        ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
-                        delerBolig = true,
-                        ektemakeEllerSamboerUførFlyktning = null,
-                        begrunnelse = this.begrunnelse,
-                    )
-                    is Enslig -> Behandlingsinformasjon.Bosituasjon(
-                        ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
-                        delerBolig = false,
-                        ektemakeEllerSamboerUførFlyktning = null,
-                        begrunnelse = this.begrunnelse,
-                    )
-                    is EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> {
-                        val eps = hentPerson(this.fnr).getOrHandle {
-                            throw Exception("Fikk feil fra person kall. Vurder å kunne fjerne denne funksjonen")
-                        }
-                        Behandlingsinformasjon.Bosituasjon(
-                            ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle(
-                                fnr = this.fnr,
-                                navn = eps.navn,
-                                kjønn = eps.kjønn,
-                                fødselsdato = eps.fødselsdato,
-                                adressebeskyttelse = eps.adressebeskyttelse,
-                                skjermet = eps.skjermet,
-                            ),
-                            delerBolig = null,
-                            ektemakeEllerSamboerUførFlyktning = false,
-                            begrunnelse = this.begrunnelse,
-                        )
-                    }
-                    is EktefellePartnerSamboer.SektiSyvEllerEldre -> {
-                        val eps = hentPerson(this.fnr).getOrHandle {
-                            throw Exception("Fikk feil fra person kall. Vurder å kunne fjerne denne funksjonen")
-                        }
-                        Behandlingsinformasjon.Bosituasjon(
-                            ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle(
-                                fnr = this.fnr,
-                                navn = eps.navn,
-                                kjønn = eps.kjønn,
-                                fødselsdato = eps.fødselsdato,
-                                adressebeskyttelse = eps.adressebeskyttelse,
-                                skjermet = eps.skjermet,
-                            ),
-                            delerBolig = null,
+                    is DelerBoligMedVoksneBarnEllerAnnenVoksen -> {
+                        val ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle
+                        val bosituasjon = Behandlingsinformasjon.Bosituasjon(
+                            ektefelle = ektefelle,
+                            delerBolig = true,
                             ektemakeEllerSamboerUførFlyktning = null,
                             begrunnelse = this.begrunnelse,
                         )
+                        Pair(bosituasjon, ektefelle)
                     }
-                    is EktefellePartnerSamboer.Under67.UførFlyktning -> {
-                        val eps = hentPerson(this.fnr).getOrHandle {
-                            throw Exception("Fikk feil fra person kall. Vurder å kunne fjerne denne funksjonen")
-                        }
-                        Behandlingsinformasjon.Bosituasjon(
-                            ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle(
-                                fnr = this.fnr,
-                                navn = eps.navn,
-                                kjønn = eps.kjønn,
-                                fødselsdato = eps.fødselsdato,
-                                adressebeskyttelse = eps.adressebeskyttelse,
-                                skjermet = eps.skjermet,
-                            ),
-                            delerBolig = null,
-                            ektemakeEllerSamboerUførFlyktning = true,
+                    is Enslig -> {
+                        val ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle
+                        val bosituasjon = Behandlingsinformasjon.Bosituasjon(
+                            ektefelle = ektefelle,
+                            delerBolig = false,
+                            ektemakeEllerSamboerUførFlyktning = null,
                             begrunnelse = this.begrunnelse,
                         )
+                        Pair(bosituasjon, ektefelle)
+                    }
+                    else -> {
+                        when (this) {
+                            is EktefellePartnerSamboer.SektiSyvEllerEldre -> {
+                                val eps = hentPerson(this.fnr).getOrHandle {
+                                    throw Exception("Fikk feil fra person kall. Vurder å kunne fjerne denne funksjonen")
+                                }
+                                val ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle(
+                                    fnr = this.fnr,
+                                    navn = eps.navn,
+                                    kjønn = eps.kjønn,
+                                    fødselsdato = eps.fødselsdato,
+                                    adressebeskyttelse = eps.adressebeskyttelse,
+                                    skjermet = eps.skjermet,
+                                )
+                                val bosituasjon = Behandlingsinformasjon.Bosituasjon(
+                                    ektefelle = ektefelle,
+                                    delerBolig = null,
+                                    ektemakeEllerSamboerUførFlyktning = null,
+                                    begrunnelse = this.begrunnelse,
+                                )
+                                Pair(bosituasjon, ektefelle)
+                            }
+                            is EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> {
+                                val eps = hentPerson(this.fnr).getOrHandle {
+                                    throw Exception("Fikk feil fra person kall. Vurder å kunne fjerne denne funksjonen")
+                                }
+                                val ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle(
+                                    fnr = this.fnr,
+                                    navn = eps.navn,
+                                    kjønn = eps.kjønn,
+                                    fødselsdato = eps.fødselsdato,
+                                    adressebeskyttelse = eps.adressebeskyttelse,
+                                    skjermet = eps.skjermet,
+                                )
+                                val bosituasjon = Behandlingsinformasjon.Bosituasjon(
+                                    ektefelle = ektefelle,
+                                    delerBolig = null,
+                                    ektemakeEllerSamboerUførFlyktning = false,
+                                    begrunnelse = this.begrunnelse,
+                                )
+                                Pair(bosituasjon, ektefelle)
+                            }
+                            is EktefellePartnerSamboer.Under67.UførFlyktning -> {
+                                val eps = hentPerson(this.fnr).getOrHandle {
+                                    throw Exception("Fikk feil fra person kall. Vurder å kunne fjerne denne funksjonen")
+                                }
+                                val ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle(
+                                    fnr = this.fnr,
+                                    navn = eps.navn,
+                                    kjønn = eps.kjønn,
+                                    fødselsdato = eps.fødselsdato,
+                                    adressebeskyttelse = eps.adressebeskyttelse,
+                                    skjermet = eps.skjermet,
+                                )
+                                val bosituasjon = Behandlingsinformasjon.Bosituasjon(
+                                    ektefelle = ektefelle,
+                                    delerBolig = null,
+                                    ektemakeEllerSamboerUførFlyktning = true,
+                                    begrunnelse = this.begrunnelse,
+                                )
+                                Pair(bosituasjon, ektefelle)
+                            }
+                            else -> throw RuntimeException("Kunne ikke matche grunnlag til en oppdatert behandlingsinformasjon")
+                        }
                     }
                 }
             }
