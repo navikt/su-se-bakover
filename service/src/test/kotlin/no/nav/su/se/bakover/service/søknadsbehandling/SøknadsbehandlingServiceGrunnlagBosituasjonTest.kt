@@ -151,6 +151,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
                     ektemakeEllerSamboerUførFlyktning = null,
                     begrunnelse = null,
                 ),
+                ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
             ),
         )
 
@@ -309,6 +310,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
                     ektemakeEllerSamboerUførFlyktning = null,
                     begrunnelse = "begrunnelse",
                 ),
+                ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
             ),
         )
 
