@@ -1,9 +1,11 @@
 package no.nav.su.se.bakover.web.routes.sak
 
+import io.ktor.http.HttpMethod
 import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
+import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
@@ -12,6 +14,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
+import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.defaultRequest
 import no.nav.su.se.bakover.web.fixedClock
 import no.nav.su.se.bakover.web.testSusebakover
@@ -62,11 +65,9 @@ internal class SakRoutesKtTest {
         ) {
             repos.sak.opprettSak(SakFactory(clock = fixedClock).nySak(Fnr(sakFnr01), søknadInnhold))
 
-            defaultRequest(
-                Get,
-                "$sakPath?fnr=$sakFnr01",
-                listOf(Brukerrolle.Saksbehandler)
-            ).apply {
+            defaultRequest(HttpMethod.Post, "$sakPath/søk", listOf(Brukerrolle.Saksbehandler)) {
+                setBody("""{"fnr":"$sakFnr01"}""")
+            }.apply {
                 assertEquals(OK, response.status())
                 assertEquals(sakFnr01, JSONObject(response.content).getString("fnr"))
             }
@@ -83,19 +84,27 @@ internal class SakRoutesKtTest {
                 )
         ) {
             defaultRequest(
-                Get,
-                sakPath,
-                listOf(Brukerrolle.Saksbehandler)
+                HttpMethod.Post, "$sakPath/søk", listOf(Brukerrolle.Veileder)
             ).apply {
-                assertEquals(BadRequest, response.status(), "$sakPath gir 400 ved manglende fnr")
+                assertEquals(BadRequest, response.status(), "Søk på fnr gir 400 ved manglende fnr")
             }
 
-            defaultRequest(
-                Get,
-                "$sakPath?fnr=12341234123",
-                listOf(Brukerrolle.Saksbehandler)
-            ).apply {
-                assertEquals(NotFound, response.status(), "$sakPath?fnr= gir 404 ved ukjent fnr")
+            defaultRequest(HttpMethod.Post, "$sakPath/søk", listOf(Brukerrolle.Veileder)) {
+                setBody("""{"fnr":"${FnrGenerator.random()}"}""")
+            }.apply {
+                assertEquals(NotFound, response.status(), "Søk på fnr gir 404 ved ukjent fnr")
+            }
+
+            defaultRequest(HttpMethod.Post, "$sakPath/søk", listOf(Brukerrolle.Saksbehandler)) {
+                setBody("""{"saksnummer":"696969"}""")
+            }.apply {
+                assertEquals(NotFound, response.status(), "Søk på saksnummer gir 404 ved ikke-eksisterende sak")
+            }
+
+            defaultRequest(HttpMethod.Post, "$sakPath/søk", listOf(Brukerrolle.Saksbehandler)) {
+                setBody("""{"saksnummer":"asdf"}""")
+            }.apply {
+                assertEquals(BadRequest, response.status(), "Søk på saksnummer gir 400 ved ugyldig saksnummer")
             }
 
             defaultRequest(
