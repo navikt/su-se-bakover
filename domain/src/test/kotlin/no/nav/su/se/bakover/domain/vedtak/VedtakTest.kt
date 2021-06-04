@@ -48,12 +48,12 @@ internal class VedtakTest {
         )
         listOf(vedtak).lagTidslinje(Periode.create(1.januar(2021), 31.desember(2021))) shouldBe listOf(
             Vedtak.VedtakPåTidslinje(
-                vedtakId = vedtak.id,
                 opprettet = vedtak.opprettet,
                 periode = vedtak.periode,
                 grunnlagsdata = vedtak.behandling.grunnlagsdata,
                 vilkårsvurderinger = vedtak.behandling.vilkårsvurderinger,
                 fradrag = vedtak.beregning.getFradrag(),
+                originaltVedtak = vedtak,
             ),
         )
     }
@@ -81,20 +81,20 @@ internal class VedtakTest {
         )
         listOf(a, b).lagTidslinje(Periode.create(1.januar(2021), 31.desember(2021))) shouldBe listOf(
             Vedtak.VedtakPåTidslinje(
-                vedtakId = a.id,
                 opprettet = a.opprettet,
                 periode = Periode.create(1.januar(2021), 30.april(2021)),
                 grunnlagsdata = a.behandling.grunnlagsdata,
                 vilkårsvurderinger = a.behandling.vilkårsvurderinger,
                 fradrag = a.beregning.getFradrag(),
+                originaltVedtak = a,
             ),
             Vedtak.VedtakPåTidslinje(
-                vedtakId = b.id,
                 opprettet = b.opprettet,
                 periode = b.periode,
                 grunnlagsdata = b.behandling.grunnlagsdata,
                 vilkårsvurderinger = b.behandling.vilkårsvurderinger,
                 fradrag = b.beregning.getFradrag(),
+                originaltVedtak = b,
             ),
         )
     }
@@ -121,7 +121,7 @@ internal class VedtakTest {
             resultat = Resultat.Innvilget,
             grunnlag = u1,
             periode = p1,
-            begrunnelse = "hei"
+            begrunnelse = "hei",
         )
         val a = lagVedtak(
             rekkefølge = 1,
@@ -145,7 +145,7 @@ internal class VedtakTest {
             resultat = Resultat.Avslag,
             grunnlag = u2,
             periode = p2,
-            begrunnelse = "hei"
+            begrunnelse = "hei",
         )
         val b = lagVedtak(
             rekkefølge = 2,
@@ -158,7 +158,7 @@ internal class VedtakTest {
         )
         listOf(a, b).lagTidslinje(Periode.create(1.januar(2021), 31.desember(2021))).let { tidslinje ->
             tidslinje[0].let { vedtakPåTidslinje ->
-                vedtakPåTidslinje.vedtakId shouldBe a.id
+                vedtakPåTidslinje.originaltVedtak shouldBe a
                 vedtakPåTidslinje.opprettet shouldBe a.opprettet
                 vedtakPåTidslinje.periode shouldBe Periode.create(1.januar(2021), 30.april(2021))
                 vedtakPåTidslinje.grunnlagsdata.uføregrunnlag[0].let {
@@ -183,7 +183,7 @@ internal class VedtakTest {
                 }
             }
             tidslinje[1].let { vedtakPåTidslinje ->
-                vedtakPåTidslinje.vedtakId shouldBe b.id
+                vedtakPåTidslinje.originaltVedtak shouldBe b
                 vedtakPåTidslinje.opprettet shouldBe b.opprettet
                 vedtakPåTidslinje.periode shouldBe b.periode
                 vedtakPåTidslinje.grunnlagsdata.uføregrunnlag[0].let {
@@ -232,7 +232,7 @@ internal class VedtakTest {
             resultat = Resultat.Innvilget,
             grunnlag = u1,
             periode = p1,
-            begrunnelse = "hei"
+            begrunnelse = "hei",
         )
         val a = lagVedtak(
             rekkefølge = 1,
@@ -261,12 +261,12 @@ internal class VedtakTest {
 
         listOf(a, b).lagTidslinje(periode = Periode.create(1.januar(2021), 31.desember(2021))) shouldBe listOf(
             Vedtak.VedtakPåTidslinje(
-                vedtakId = b.id,
                 opprettet = b.opprettet,
                 periode = b.periode,
                 grunnlagsdata = b.behandling.grunnlagsdata,
                 vilkårsvurderinger = b.behandling.vilkårsvurderinger,
                 fradrag = b.beregning.getFradrag(),
+                originaltVedtak = b
             ),
         )
     }

@@ -292,7 +292,6 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
     }
 
     data class VedtakPåTidslinje(
-        val vedtakId: UUID,
         override val opprettet: Tidspunkt,
         override val periode: Periode,
         val grunnlagsdata: Grunnlagsdata,
@@ -303,12 +302,16 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
          * søknadsbehandlinger og revurderinger, må vi inntil videre utlede fradragsgrunnlag fra tidligere beregninger.
          */
         val fradrag: List<Fradrag>,
+        /**
+         * Referanse til det originale vedtaket dette tidslinje-elementet er basert på. Må ikke endres eller benyttes
+         * til uthenting av grunnlagsdata.
+         */
+        val originaltVedtak: Vedtak.EndringIYtelse,
     ) : KanPlasseresPåTidslinje<VedtakPåTidslinje> {
         override fun copy(args: CopyArgs.Tidslinje): VedtakPåTidslinje =
             when (args) {
                 CopyArgs.Tidslinje.Full -> copy(
                     periode = periode,
-                    vedtakId = vedtakId,
                     grunnlagsdata = Grunnlagsdata(
                         uføregrunnlag = Tidslinje<Grunnlag.Uføregrunnlag>(
                             periode = periode,
@@ -331,10 +334,10 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                     fradrag = fradrag.filterNot { it.fradragstype == Fradragstype.ForventetInntekt }.mapNotNull {
                         it.copy(CopyArgs.Snitt(periode))
                     },
+                    originaltVedtak = originaltVedtak,
                 )
                 is CopyArgs.Tidslinje.NyPeriode -> copy(
                     periode = args.periode,
-                    vedtakId = vedtakId,
                     grunnlagsdata = Grunnlagsdata(
                         uføregrunnlag = Tidslinje<Grunnlag.Uføregrunnlag>(
                             periode = args.periode,
@@ -357,6 +360,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                     fradrag = fradrag.filterNot { it.fradragstype == Fradragstype.ForventetInntekt }.mapNotNull {
                         it.copy(CopyArgs.Snitt(args.periode))
                     },
+                    originaltVedtak = originaltVedtak,
                 )
             }
     }
@@ -366,12 +370,12 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
 fun List<Vedtak.EndringIYtelse>.lagTidslinje(periode: Periode): List<Vedtak.VedtakPåTidslinje> =
     map {
         Vedtak.VedtakPåTidslinje(
-            vedtakId = it.id,
             opprettet = it.opprettet,
             periode = it.periode,
             grunnlagsdata = it.behandling.grunnlagsdata,
             vilkårsvurderinger = it.behandling.vilkårsvurderinger,
             fradrag = it.beregning.getFradrag(),
+            originaltVedtak = it,
         )
     }.let {
         Tidslinje(
