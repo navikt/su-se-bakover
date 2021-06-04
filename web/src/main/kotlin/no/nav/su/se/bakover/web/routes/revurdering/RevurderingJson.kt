@@ -25,6 +25,8 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.BeregningJso
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.toJson
+import no.nav.su.se.bakover.web.routes.vedtak.VedtakJson
+import no.nav.su.se.bakover.web.routes.vedtak.toJson
 import java.time.format.DateTimeFormatter
 
 sealed class RevurderingJson

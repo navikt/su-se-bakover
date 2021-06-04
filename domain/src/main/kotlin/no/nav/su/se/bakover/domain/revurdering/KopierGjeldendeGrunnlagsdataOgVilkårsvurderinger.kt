@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.lagTidslinje
 import no.nav.su.se.bakover.domain.vedtak.vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
@@ -19,7 +20,7 @@ data class KopierGjeldendeGrunnlagsdataOgVilkårsvurderinger(
     val vilkårsvurderinger: Vilkårsvurderinger
 
     private val vedtakstidslinje = vedtakListe
-        .filterIsInstance<Vedtak.EndringIYtelse>()
+        .filterIsInstance<VedtakSomKanRevurderes>()
         .lagTidslinje(periode)
 
     private val vilkårsvurderingerFraTidslinje = vedtakstidslinje.vilkårsvurderinger()

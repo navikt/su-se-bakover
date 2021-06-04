@@ -29,7 +29,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.time.Clock
@@ -69,7 +69,7 @@ fun Forhåndsvarsel?.erKlarForAttestering() =
     }
 
 sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
-    abstract val tilRevurdering: Vedtak.EndringIYtelse
+    abstract val tilRevurdering: VedtakSomKanRevurderes
     abstract val saksbehandler: Saksbehandler
     override val sakId: UUID
         get() = tilRevurdering.behandling.sakId
@@ -258,7 +258,7 @@ data class OpprettetRevurdering(
     override val id: UUID = UUID.randomUUID(),
     override val periode: Periode,
     override val opprettet: Tidspunkt,
-    override val tilRevurdering: Vedtak.EndringIYtelse,
+    override val tilRevurdering: VedtakSomKanRevurderes,
     override val saksbehandler: Saksbehandler,
     override val oppgaveId: OppgaveId,
     override val fritekstTilBrev: String,
@@ -322,7 +322,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val id: UUID,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
-        override val tilRevurdering: Vedtak.EndringIYtelse,
+        override val tilRevurdering: VedtakSomKanRevurderes,
         override val saksbehandler: Saksbehandler,
         override val beregning: Beregning,
         override val oppgaveId: OppgaveId,
@@ -361,7 +361,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val id: UUID,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
-        override val tilRevurdering: Vedtak.EndringIYtelse,
+        override val tilRevurdering: VedtakSomKanRevurderes,
         override val saksbehandler: Saksbehandler,
         override val beregning: Beregning,
         override val oppgaveId: OppgaveId,
@@ -410,7 +410,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         override val id: UUID,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
-        override val tilRevurdering: Vedtak.EndringIYtelse,
+        override val tilRevurdering: VedtakSomKanRevurderes,
         override val saksbehandler: Saksbehandler,
         override val beregning: Beregning,
         override val oppgaveId: OppgaveId,
@@ -461,7 +461,7 @@ sealed class SimulertRevurdering : Revurdering() {
         override val id: UUID,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
-        override val tilRevurdering: Vedtak.EndringIYtelse,
+        override val tilRevurdering: VedtakSomKanRevurderes,
         override val saksbehandler: Saksbehandler,
         override val oppgaveId: OppgaveId,
         override val revurderingsårsak: Revurderingsårsak,
@@ -506,7 +506,7 @@ sealed class SimulertRevurdering : Revurdering() {
         override val id: UUID,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
-        override val tilRevurdering: Vedtak.EndringIYtelse,
+        override val tilRevurdering: VedtakSomKanRevurderes,
         override val saksbehandler: Saksbehandler,
         override val oppgaveId: OppgaveId,
         override val revurderingsårsak: Revurderingsårsak,
@@ -592,7 +592,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val id: UUID,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
-        override val tilRevurdering: Vedtak.EndringIYtelse,
+        override val tilRevurdering: VedtakSomKanRevurderes,
         override val saksbehandler: Saksbehandler,
         override val oppgaveId: OppgaveId,
         override val fritekstTilBrev: String,
@@ -645,7 +645,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val id: UUID,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
-        override val tilRevurdering: Vedtak.EndringIYtelse,
+        override val tilRevurdering: VedtakSomKanRevurderes,
         override val saksbehandler: Saksbehandler,
         override val oppgaveId: OppgaveId,
         override val fritekstTilBrev: String,
@@ -701,7 +701,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         override val id: UUID,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
-        override val tilRevurdering: Vedtak.EndringIYtelse,
+        override val tilRevurdering: VedtakSomKanRevurderes,
         override val saksbehandler: Saksbehandler,
         override val beregning: Beregning,
         override val oppgaveId: OppgaveId,
@@ -827,7 +827,7 @@ sealed class IverksattRevurdering : Revurdering() {
     abstract override val id: UUID
     abstract override val periode: Periode
     abstract override val opprettet: Tidspunkt
-    abstract override val tilRevurdering: Vedtak.EndringIYtelse
+    abstract override val tilRevurdering: VedtakSomKanRevurderes
     abstract override val saksbehandler: Saksbehandler
     abstract override val oppgaveId: OppgaveId
     abstract override val fritekstTilBrev: String
@@ -844,7 +844,7 @@ sealed class IverksattRevurdering : Revurdering() {
         override val id: UUID,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
-        override val tilRevurdering: Vedtak.EndringIYtelse,
+        override val tilRevurdering: VedtakSomKanRevurderes,
         override val saksbehandler: Saksbehandler,
         override val oppgaveId: OppgaveId,
         override val fritekstTilBrev: String,
@@ -868,7 +868,7 @@ sealed class IverksattRevurdering : Revurdering() {
         override val id: UUID,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
-        override val tilRevurdering: Vedtak.EndringIYtelse,
+        override val tilRevurdering: VedtakSomKanRevurderes,
         override val saksbehandler: Saksbehandler,
         override val oppgaveId: OppgaveId,
         override val fritekstTilBrev: String,
@@ -895,7 +895,7 @@ sealed class IverksattRevurdering : Revurdering() {
         override val id: UUID,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
-        override val tilRevurdering: Vedtak.EndringIYtelse,
+        override val tilRevurdering: VedtakSomKanRevurderes,
         override val saksbehandler: Saksbehandler,
         override val beregning: Beregning,
         override val oppgaveId: OppgaveId,
@@ -929,7 +929,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val id: UUID,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
-        override val tilRevurdering: Vedtak.EndringIYtelse,
+        override val tilRevurdering: VedtakSomKanRevurderes,
         override val saksbehandler: Saksbehandler,
         override val oppgaveId: OppgaveId,
         override val fritekstTilBrev: String,
@@ -976,7 +976,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val id: UUID,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
-        override val tilRevurdering: Vedtak.EndringIYtelse,
+        override val tilRevurdering: VedtakSomKanRevurderes,
         override val saksbehandler: Saksbehandler,
         override val oppgaveId: OppgaveId,
         override val fritekstTilBrev: String,
@@ -1032,7 +1032,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         override val id: UUID,
         override val periode: Periode,
         override val opprettet: Tidspunkt,
-        override val tilRevurdering: Vedtak.EndringIYtelse,
+        override val tilRevurdering: VedtakSomKanRevurderes,
         override val saksbehandler: Saksbehandler,
         override val beregning: Beregning,
         override val oppgaveId: OppgaveId,
