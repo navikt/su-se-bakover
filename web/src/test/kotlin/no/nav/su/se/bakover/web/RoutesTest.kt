@@ -9,10 +9,12 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpHeaders.XCorrelationId
 import io.ktor.http.HttpMethod.Companion.Get
+import io.ktor.http.HttpMethod.Companion.Post
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.server.testing.contentType
 import io.ktor.server.testing.handleRequest
+import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
@@ -101,7 +103,9 @@ class RoutesTest {
                 )
             )
         }) {
-            defaultRequest(Get, "$personPath/${FnrGenerator.random()}", listOf(Brukerrolle.Veileder))
+            defaultRequest(Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
+                setBody("""{"fnr":"${FnrGenerator.random()}"}""")
+            }
         }.apply {
             assertEquals(InternalServerError, response.status())
             JSONAssert.assertEquals("""{"message":"Ukjent feil"}""", response.content, true)
@@ -113,7 +117,9 @@ class RoutesTest {
         withTestApplication({
             testSusebakover()
         }) {
-            defaultRequest(Get, "$personPath/${FnrGenerator.random()}", listOf(Brukerrolle.Veileder))
+            defaultRequest(Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
+                setBody("""{"fnr":"${FnrGenerator.random()}"}""")
+            }
         }.apply {
             assertEquals(
                 "${ContentType.Application.Json}; charset=${Charsets.UTF_8}",

@@ -5,6 +5,7 @@ import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
 import no.nav.su.se.bakover.common.januar
+import no.nav.su.se.bakover.common.juni
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.domain.Fnr
 import org.junit.jupiter.api.Test
@@ -74,7 +75,7 @@ internal class TolketSimuleringTest {
                             ),
                             TolketDetalj.Etterbetaling(
                                 beløp = 20779,
-                            )
+                            ),
                         ),
                     ),
                 ),
@@ -142,7 +143,7 @@ internal class TolketSimuleringTest {
     }
 
     @Test
-    fun `tolker simulerte feilutbetalinger`() {
+    fun `tolker simulerte feilutbetalinger med restbeløp til utbetaling`() {
         TolketSimulering(
             Simulering(
                 gjelderId = fnr,
@@ -284,6 +285,94 @@ internal class TolketSimuleringTest {
                                 beløp = 10000,
                                 forfall = 10.mars(2021),
                                 fraOgMed = 1.mars(2021),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        )
+    }
+
+    @Test
+    fun `tolker simulerte feilutbetalinger uten restbeløp til utbetaling (full tilbakekreving for måned)`() {
+        TolketSimulering(
+            Simulering(
+                gjelderId = fnr,
+                gjelderNavn = navn,
+                datoBeregnet = 2.juni(2021),
+                nettoBeløp = 51924,
+                periodeList = listOf(
+                    SimulertPeriode(
+                        fraOgMed = 1.januar(2021),
+                        tilOgMed = 31.januar(2021),
+                        utbetaling = listOf(
+                            SimulertUtbetaling(
+                                fagSystemId = fagsystemId,
+                                utbetalesTilId = fnr,
+                                utbetalesTilNavn = navn,
+                                forfall = 2.juni(2021),
+                                feilkonto = false,
+                                detaljer = listOf(
+                                    SimulertDetaljer(
+                                        faktiskFraOgMed = 1.januar(2021),
+                                        faktiskTilOgMed = 31.januar(2021),
+                                        konto = konto,
+                                        belop = 8946,
+                                        tilbakeforing = false,
+                                        sats = 0,
+                                        typeSats = "",
+                                        antallSats = 0,
+                                        uforegrad = 0,
+                                        klassekode = KlasseKode.SUUFORE,
+                                        klassekodeBeskrivelse = suBeskrivelse,
+                                        klasseType = KlasseType.YTEL,
+                                    ),
+                                    SimulertDetaljer(
+                                        faktiskFraOgMed = 1.januar(2021),
+                                        faktiskTilOgMed = 31.januar(2021),
+                                        konto = konto,
+                                        belop = 8949,
+                                        tilbakeforing = false,
+                                        sats = 0,
+                                        typeSats = "",
+                                        antallSats = 0,
+                                        uforegrad = 0,
+                                        klassekode = KlasseKode.KL_KODE_FEIL_INNT,
+                                        klassekodeBeskrivelse = "Feilutbetaling Inntektsytelser",
+                                        klasseType = KlasseType.FEIL,
+                                    ),
+                                    SimulertDetaljer(
+                                        faktiskFraOgMed = 1.januar(2021),
+                                        faktiskTilOgMed = 31.januar(2021),
+                                        konto = konto,
+                                        belop = -8949,
+                                        tilbakeforing = true,
+                                        sats = 0,
+                                        typeSats = "",
+                                        antallSats = 0,
+                                        uforegrad = 0,
+                                        klassekode = KlasseKode.SUUFORE,
+                                        klassekodeBeskrivelse = suBeskrivelse,
+                                        klasseType = KlasseType.YTEL,
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        ).simulertePerioder shouldBe listOf(
+            TolketPeriode(
+                fraOgMed = 1.januar(2021),
+                tilOgMed = 31.januar(2021),
+                utbetalinger = listOf(
+                    TolketUtbetaling.Feilutbetaling(
+                        tolketDetalj = listOf(
+                            TolketDetalj.Feilutbetaling(
+                                beløp = 8949,
+                            ),
+                            TolketDetalj.TidligereUtbetalt(
+                                beløp = -8949,
                             ),
                         ),
                     ),
@@ -758,7 +847,7 @@ internal class TolketSimuleringTest {
                         utbetaling = emptyList(),
                     ),
                 ),
-            )
+            ),
         ).simulertePerioder shouldBe listOf(
             TolketPeriode(
                 fraOgMed = 1.januar(2021),

@@ -62,7 +62,6 @@ import no.nav.su.se.bakover.web.routes.installMetrics
 import no.nav.su.se.bakover.web.routes.me.meRoutes
 import no.nav.su.se.bakover.web.routes.naisPaths
 import no.nav.su.se.bakover.web.routes.naisRoutes
-import no.nav.su.se.bakover.web.routes.person.personPath
 import no.nav.su.se.bakover.web.routes.person.personRoutes
 import no.nav.su.se.bakover.web.routes.revurdering.revurderingRoutes
 import no.nav.su.se.bakover.web.routes.sak.sakRoutes
@@ -201,7 +200,6 @@ internal fun Application.susebakover(
             if (call.request.httpMethod.value == "OPTIONS") return@filter false
             if (call.pathShouldBeExcluded(naisPaths)) return@filter false
             if (call.pathShouldBeExcluded(togglePaths)) return@filter false
-            if (call.pathShouldBeExcluded(personPath)) return@filter false
 
             return@filter true
         }
@@ -276,5 +274,3 @@ fun ApplicationCall.pathShouldBeExcluded(paths: List<String>): Boolean {
         this.request.path().startsWith(it)
     }
 }
-
-fun ApplicationCall.pathShouldBeExcluded(path: String) = pathShouldBeExcluded(listOf(path))

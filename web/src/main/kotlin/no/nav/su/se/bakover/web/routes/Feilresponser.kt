@@ -42,4 +42,9 @@ internal object Feilresponser {
         "Klarte ikke lagre bosituasjon",
         "klarte_ikke_lagre_bosituasjon",
     )
+
+    val ikkeGyldigFødselsnummer = HttpStatusCode.BadRequest.errorJson(
+        "Inneholder ikke et gyldig fødselsnummer",
+        "ikke_gyldig_fødselsnummer",
+    )
 }
