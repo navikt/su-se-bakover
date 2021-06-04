@@ -34,7 +34,6 @@ import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagJsonTest.Companion
 import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagJsonTest.Companion.expectedBosituasjonJson
 import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagJsonTest.Companion.uføregrunnlag
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.vedtak
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingsinformasjonJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.TestBeregning
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.toJson
 import org.junit.jupiter.api.Test
@@ -98,7 +97,6 @@ internal class RevurderingJsonTest {
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": null,
-                "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": $expectedVurderingUføreJson,
                   "fradrag": [$expectedFradragsgrunnlagJson],
@@ -165,7 +163,6 @@ internal class RevurderingJsonTest {
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": null,
-                "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": null,
                   "fradrag": [],
@@ -232,7 +229,6 @@ internal class RevurderingJsonTest {
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": null,
-                "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": null,
                   "fradrag": [],
@@ -299,7 +295,6 @@ internal class RevurderingJsonTest {
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": null,
-                "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": null,
                   "fradrag": [],
@@ -371,7 +366,6 @@ internal class RevurderingJsonTest {
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": null,
-                "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": null,
                   "fradrag": [],
@@ -443,7 +437,6 @@ internal class RevurderingJsonTest {
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": null,
-                "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": null,
                   "fradrag": [],
@@ -516,7 +509,6 @@ internal class RevurderingJsonTest {
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": { "type": "INGEN_FORHÅNDSVARSEL" },
-                "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": null,
                   "fradrag": [],
@@ -589,7 +581,6 @@ internal class RevurderingJsonTest {
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": { "type": "INGEN_FORHÅNDSVARSEL" },
-                "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": null,
                   "fradrag": [],
@@ -659,7 +650,6 @@ internal class RevurderingJsonTest {
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": null,
-                "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": null,
                   "fradrag": [],
@@ -744,7 +734,6 @@ internal class RevurderingJsonTest {
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": { "type": "INGEN_FORHÅNDSVARSEL"},
-                "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": null,
                   "fradrag": [],
@@ -829,7 +818,6 @@ internal class RevurderingJsonTest {
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": { "type": "INGEN_FORHÅNDSVARSEL"},
-                "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": null,
                   "fradrag": [],
@@ -911,7 +899,6 @@ internal class RevurderingJsonTest {
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": null,
-                "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": null,
                   "fradrag": [],
@@ -986,7 +973,6 @@ internal class RevurderingJsonTest {
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": { "type":  "INGEN_FORHÅNDSVARSEL" },
-                "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": null,
                   "fradrag": [],
@@ -1061,7 +1047,6 @@ internal class RevurderingJsonTest {
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": { "type":  "INGEN_FORHÅNDSVARSEL" },
-                "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": null,
                   "fradrag": [],
@@ -1133,7 +1118,6 @@ internal class RevurderingJsonTest {
                 "årsak": "MELDING_FRA_BRUKER",
                 "begrunnelse": "Ny informasjon",
                 "forhåndsvarsel": null,
-                "behandlingsinformasjon": ${serialize(vedtak.behandlingsinformasjon.toJson())},
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": null,
                   "fradrag": [],
