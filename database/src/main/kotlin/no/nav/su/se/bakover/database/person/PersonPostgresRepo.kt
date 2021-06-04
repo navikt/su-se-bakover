@@ -15,9 +15,10 @@ internal class PersonPostgresRepo(
             """
                SELECT
                    sak.fnr søkersFnr,
-                   behandling.behandlingsinformasjon->'ektefelle'->>'fnr' epsFnr
+                   eps_fnr epsFnr
                FROM sak
                LEFT JOIN behandling ON behandling.sakid = sak.id
+               LEFT JOIN grunnlag_bosituasjon ON grunnlag_bosituasjon.behandlingId = behandling.id
                WHERE sak.id=:sakId
 |           """
                 .trimMargin()
@@ -38,10 +39,11 @@ internal class PersonPostgresRepo(
             """
                 SELECT
                     sak.fnr søkersFnr,
-                    behandling.behandlingsinformasjon->'ektefelle'->>'fnr' epsFnr
+                    eps_fnr epsFnr
                 FROM søknad
                 INNER JOIN sak ON søknad.sakid = sak.id
                 LEFT JOIN behandling ON behandling.sakid = sak.id
+                LEFT JOIN grunnlag_bosituasjon ON grunnlag_bosituasjon.behandlingId = behandling.id
                 WHERE søknad.id=:soknadId
             """
                 .trimMargin()
@@ -62,9 +64,10 @@ internal class PersonPostgresRepo(
             """
                SELECT
                     sak.fnr søkersFnr,
-                    behandling.behandlingsinformasjon->'ektefelle'->>'fnr' epsFnr
+                    eps_fnr epsFnr
                FROM behandling
                INNER JOIN sak ON behandling.sakid = sak.id
+               LEFT JOIN grunnlag_bosituasjon ON grunnlag_bosituasjon.behandlingId = behandling.id
                WHERE behandling.id=:behandlingId
             """
                 .trimMargin()
@@ -85,10 +88,11 @@ internal class PersonPostgresRepo(
             """
                SELECT
                     sak.fnr søkersFnr,
-                    behandling.behandlingsinformasjon->'ektefelle'->>'fnr' epsFnr
+                    eps_fnr epsFnr
                FROM utbetaling
                INNER JOIN sak on sak.id = utbetaling.sakId
                LEFT JOIN behandling ON behandling.sakid = utbetaling.sakId
+               LEFT JOIN grunnlag_bosituasjon ON grunnlag_bosituasjon.behandlingId = behandling.id
                WHERE utbetaling.id=:utbetalingId
             """
                 .trimMargin()
@@ -109,11 +113,12 @@ internal class PersonPostgresRepo(
             """
                SELECT
                     s.fnr søkersFnr,
-                    v.behandlingsinformasjon->'ektefelle'->>'fnr' epsFnr
+                    eps_fnr epsFnr
                FROM revurdering r
                INNER JOIN behandling_vedtak bv on bv.vedtakId = r.vedtakSomRevurderesId
                INNER JOIN vedtak v on v.id = bv.vedtakId
                INNER JOIN sak s ON s.id = bv.sakId
+               LEFT JOIN grunnlag_bosituasjon ON grunnlag_bosituasjon.behandlingId = r.id
                WHERE r.id=:revurderingId
             """
                 .trimMargin()

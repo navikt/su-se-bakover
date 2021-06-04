@@ -4,10 +4,8 @@ import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.database.FnrGenerator
 import no.nav.su.se.bakover.database.TestDataHelper
-import no.nav.su.se.bakover.database.behandlingsinformasjonMedAlleVilkårOppfylt
 import no.nav.su.se.bakover.database.withMigratedDb
-import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
@@ -16,15 +14,6 @@ import org.junit.jupiter.api.Test
 internal class PersonPostgresRepoTest {
     private val ektefellePartnerSamboerFnr = FnrGenerator.random()
     private val repo = PersonPostgresRepo(EmbeddedDatabase.instance())
-
-    private val eps = Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle(
-        fnr = ektefellePartnerSamboerFnr,
-        navn = Person.Navn(fornavn = "", mellomnavn = null, etternavn = ""),
-        kjønn = null,
-        fødselsdato = null,
-        adressebeskyttelse = null,
-        skjermet = null
-    )
 
     @Test
     fun `hent fnr for sak gir søkers fnr`() {
@@ -36,7 +25,7 @@ internal class PersonPostgresRepoTest {
 
     @Test
     fun `hent fnr for sak gir også EPSs fnr`() {
-        withDbWithDataAndEps(eps) {
+        withDbWithDataAndEps(ektefellePartnerSamboerFnr) {
             val fnrs = repo.hentFnrForSak(innvilgetSøknadsbehandling.sakId)
             fnrs shouldContainExactlyInAnyOrder listOf(innvilgetSøknadsbehandling.fnr, ektefellePartnerSamboerFnr)
         }
@@ -52,7 +41,7 @@ internal class PersonPostgresRepoTest {
 
     @Test
     fun `hent fnr for søknad gir også EPSs fnr`() {
-        withDbWithDataAndEps(eps) {
+        withDbWithDataAndEps(ektefellePartnerSamboerFnr) {
             val fnrs = repo.hentFnrForSøknad(innvilgetSøknadsbehandling.søknad.id)
             fnrs shouldContainExactlyInAnyOrder listOf(innvilgetSøknadsbehandling.fnr, ektefellePartnerSamboerFnr)
         }
@@ -68,7 +57,7 @@ internal class PersonPostgresRepoTest {
 
     @Test
     fun `hent fnr for behandling gir også EPSs fnr`() {
-        withDbWithDataAndEps(eps) {
+        withDbWithDataAndEps(ektefellePartnerSamboerFnr) {
             val fnrs = repo.hentFnrForBehandling(innvilgetSøknadsbehandling.id)
             fnrs shouldContainExactlyInAnyOrder listOf(innvilgetSøknadsbehandling.fnr, ektefellePartnerSamboerFnr)
         }
@@ -84,7 +73,7 @@ internal class PersonPostgresRepoTest {
 
     @Test
     fun `hent fnr for utbetaling gir også EPSs fnr`() {
-        withDbWithDataAndEps(eps) {
+        withDbWithDataAndEps(ektefellePartnerSamboerFnr) {
             val fnrs = repo.hentFnrForUtbetaling(utbetaling.id)
             fnrs shouldContainExactlyInAnyOrder listOf(innvilgetSøknadsbehandling.fnr, ektefellePartnerSamboerFnr)
         }
@@ -100,7 +89,7 @@ internal class PersonPostgresRepoTest {
 
     @Test
     fun `hent fnr for revurdering gir også EPSs fnr`() {
-        withDbWithDataAndEps(eps) {
+        withDbWithDataAndEps(ektefellePartnerSamboerFnr) {
             val fnrs = repo.hentFnrForRevurdering(revurderingId = revurdering.id)
             fnrs shouldContainExactlyInAnyOrder listOf(innvilgetSøknadsbehandling.fnr, ektefellePartnerSamboerFnr)
         }
@@ -111,18 +100,14 @@ internal class PersonPostgresRepoTest {
     }
 
     private fun withDbWithDataAndEps(
-        eps: Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle?,
+        epsFnr: Fnr?,
         test: Ctx.() -> Unit
     ) {
         val testDataHelper = TestDataHelper(EmbeddedDatabase.instance())
         withMigratedDb {
-            val (innvilget, utbetaling) = testDataHelper.nyIverksattInnvilget(
-                behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt.copy(
-                    ektefelle = eps ?: Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle
-                )
-            )
+            val (innvilget, utbetaling) = testDataHelper.nyIverksattInnvilget(epsFnr = epsFnr)
             val vedtak = testDataHelper.vedtakForSøknadsbehandlingOgUtbetalingId(innvilget, utbetaling.id)
-            val revurdering = testDataHelper.nyRevurdering(vedtak, vedtak.periode)
+            val revurdering = testDataHelper.nyRevurdering(vedtak, vedtak.periode, epsFnr)
 
             Ctx(innvilget, utbetaling, revurdering).test()
         }

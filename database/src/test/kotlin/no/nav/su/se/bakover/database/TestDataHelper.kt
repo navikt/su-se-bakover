@@ -291,7 +291,10 @@ internal class TestDataHelper(
 
     fun oppdaterHendelseslogg(hendelseslogg: Hendelseslogg) = hendelsesloggRepo.oppdaterHendelseslogg(hendelseslogg)
 
-    fun vedtakForSøknadsbehandlingOgUtbetalingId(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget, utbetalingId: UUID30) =
+    fun vedtakForSøknadsbehandlingOgUtbetalingId(
+        søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget,
+        utbetalingId: UUID30,
+    ) =
         Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetalingId).also {
             vedtakRepo.lagre(it)
         }
@@ -306,9 +309,22 @@ internal class TestDataHelper(
         )
     }
 
-    fun nyRevurdering(innvilget: Vedtak.EndringIYtelse, periode: Periode) =
-        OpprettetRevurdering(
-            id = UUID.randomUUID(),
+    fun nyRevurdering(innvilget: Vedtak.EndringIYtelse, periode: Periode, epsFnr: Fnr? = null): OpprettetRevurdering {
+        val revurderingId = UUID.randomUUID()
+        val grunnlagsdata = if (epsFnr == null) Grunnlagsdata.EMPTY else Grunnlagsdata(
+            bosituasjon = listOf(
+                Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
+                    id = UUID.randomUUID(),
+                    fnr = epsFnr,
+                    opprettet = fixedTidspunkt,
+                    periode = stønadsperiode.periode,
+                    begrunnelse = null,
+                )
+            ),
+        )
+
+        return OpprettetRevurdering(
+            id = revurderingId,
             periode = periode,
             tilRevurdering = innvilget,
             opprettet = fixedTidspunkt,
@@ -321,12 +337,14 @@ internal class TestDataHelper(
             ),
             forhåndsvarsel = null,
             behandlingsinformasjon = innvilget.behandlingsinformasjon,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = grunnlagsdata,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         ).also {
             revurderingRepo.lagre(it)
+            grunnlagRepo.lagreBosituasjongrunnlag(revurderingId, grunnlagsdata.bosituasjon)
         }
+    }
 
     /* Kaller lagreNySøknadsbehandling (insert) */
     fun nySøknadsbehandling(
@@ -375,14 +393,21 @@ internal class TestDataHelper(
         ),
     )
 
-    private fun innvilgetGrunnlagsdata(vilkårsvurderinger: Vilkårsvurderinger) = Grunnlagsdata(
+    private fun innvilgetGrunnlagsdata(vilkårsvurderinger: Vilkårsvurderinger, epsFnr: Fnr? = null) = Grunnlagsdata(
         bosituasjon = listOf(
-            Grunnlag.Bosituasjon.Fullstendig.Enslig(
+            if (epsFnr != null) Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
                 id = UUID.randomUUID(),
+                fnr = epsFnr,
                 opprettet = fixedTidspunkt,
                 periode = stønadsperiode.periode,
                 begrunnelse = null,
-            ),
+            ) else
+                Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                    id = UUID.randomUUID(),
+                    opprettet = fixedTidspunkt,
+                    periode = stønadsperiode.periode,
+                    begrunnelse = null,
+                ),
         ),
         uføregrunnlag = vilkårsvurderinger.grunnlagsdata.uføregrunnlag,
         fradragsgrunnlag = emptyList(),
@@ -518,7 +543,8 @@ internal class TestDataHelper(
     internal fun nyIverksattInnvilget(
         behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt,
         vilkårsvurderinger: Vilkårsvurderinger = innvilgetVilkårsvurderinger(),
-        grunnlagsdata: Grunnlagsdata = innvilgetGrunnlagsdata(vilkårsvurderinger),
+        epsFnr: Fnr? = null,
+        grunnlagsdata: Grunnlagsdata = innvilgetGrunnlagsdata(vilkårsvurderinger, epsFnr),
         avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.database.avstemmingsnøkkel,
         utbetalingslinjer: List<Utbetalingslinje> = listOf(utbetalingslinje()),
     ): Pair<Søknadsbehandling.Iverksatt.Innvilget, Utbetaling.OversendtUtbetaling.UtenKvittering> {
