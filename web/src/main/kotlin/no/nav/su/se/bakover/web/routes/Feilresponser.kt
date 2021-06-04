@@ -32,4 +32,9 @@ internal object Feilresponser {
         "Alle vurderingsperiodene må ha samme vurdering (ja/nei)",
         "vurderingene_må_ha_samme_resultat",
     )
+
+    val ikkeGyldigFødselsnummer = HttpStatusCode.BadRequest.errorJson(
+        "Inneholder ikke et gyldig fødselsnummer",
+        "ikke_gyldig_fødselsnummer",
+    )
 }

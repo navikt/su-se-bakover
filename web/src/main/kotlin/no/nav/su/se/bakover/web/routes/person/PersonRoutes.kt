@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.web.routes.person
 import arrow.core.Either
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.routing.Route
 import io.ktor.routing.post
@@ -17,7 +16,7 @@ import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.web.AuditLogEvent
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.audit
-import no.nav.su.se.bakover.web.message
+import no.nav.su.se.bakover.web.routes.Feilresponser
 import no.nav.su.se.bakover.web.routes.person.PersonResponseJson.Companion.toJson
 import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
@@ -37,11 +36,12 @@ internal fun Route.personRoutes(
 
         call.withBody<Body> { body ->
             Either.catch { Fnr(body.fnr) }.fold(
-                ifLeft = { call.svar(BadRequest.message("${body.fnr} er ikke et gyldig fødselsnummer")) },
+                ifLeft = { call.svar(Feilresponser.ikkeGyldigFødselsnummer) },
                 ifRight = { fnr ->
                     call.svar(
                         personService.hentPerson(fnr).fold(
                             {
+                                call.audit(fnr, AuditLogEvent.Action.SEARCH, null)
                                 when (it) {
                                     FantIkkePerson -> Resultat.message(NotFound, "Fant ikke person")
                                     IkkeTilgangTilPerson -> Resultat.message(
