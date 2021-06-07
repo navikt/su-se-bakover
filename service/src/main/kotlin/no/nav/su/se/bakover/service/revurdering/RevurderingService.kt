@@ -315,10 +315,10 @@ data class LeggTilBosituasjongrunnlagRequest(
                 return KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeSlåOppEPS.left()
             }
 
-            val epsAlder = if (eps.getAlder(LocalDate.now()) == null) {
+            val epsAlder = if (eps.getAlder(LocalDate.now(clock)) == null) {
                 log.error("Alder på EPS er null. Denne har i tidligere PDL kall hatt en verdi")
                 return KunneIkkeLeggeTilBosituasjongrunnlag.EpsAlderErNull.left()
-            } else eps.getAlder(LocalDate.now())!!
+            } else eps.getAlder(LocalDate.now(clock))!!
 
             return when {
                 epsAlder >= 67 -> Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre(

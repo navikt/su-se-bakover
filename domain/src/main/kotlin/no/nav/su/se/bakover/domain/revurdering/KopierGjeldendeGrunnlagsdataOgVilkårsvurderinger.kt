@@ -19,7 +19,7 @@ data class KopierGjeldendeGrunnlagsdataOgVilkårsvurderinger(
     val grunnlagsdata: Grunnlagsdata
     val vilkårsvurderinger: Vilkårsvurderinger
 
-    private val vedtakstidslinje = vedtakListe
+    private val vedtakstidslinje: List<Vedtak.VedtakPåTidslinje> = vedtakListe
         .filterIsInstance<Vedtak.EndringIYtelse>()
         .lagTidslinje(periode)
 
@@ -31,7 +31,6 @@ data class KopierGjeldendeGrunnlagsdataOgVilkårsvurderinger(
         is Vilkår.Vurdert.Uførhet -> Pair(uførevilkår.grunnlag, uførevilkår)
     }
 
-    // TODO er denne riktig, eller skal vi bruke den fra vedtakstidslinje.grunnlagsdata() ?
     private val fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag> = vedtakstidslinje.flatMap { it.fradrag }.map {
         Grunnlag.Fradragsgrunnlag(id = UUID.randomUUID(), opprettet = Tidspunkt.now(), fradrag = it)
     }

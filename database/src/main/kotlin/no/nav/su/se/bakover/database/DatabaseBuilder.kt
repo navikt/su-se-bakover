@@ -5,7 +5,7 @@ import no.nav.su.se.bakover.common.ApplicationConfig.DatabaseConfig.RotatingCred
 import no.nav.su.se.bakover.common.ApplicationConfig.DatabaseConfig.StaticCredentials
 import no.nav.su.se.bakover.database.avstemming.AvstemmingPostgresRepo
 import no.nav.su.se.bakover.database.avstemming.AvstemmingRepo
-import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlangPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagRepo
@@ -62,7 +62,7 @@ object DatabaseBuilder {
     private fun buildInternal(dataSource: DataSource): DatabaseRepos {
         val uføregrunnlagRepo = UføregrunnlagPostgresRepo()
         val fradragsgrunnlag = FradragsgrunnlagPostgresRepo(dataSource)
-        val bosituasjongrunnlag = BosituasjongrunnlangPostgresRepo(dataSource)
+        val bosituasjongrunnlag = BosituasjongrunnlagPostgresRepo(dataSource)
 
         val grunnlagRepo = GrunnlagPostgresRepo(
             fradragsgrunnlagRepo = fradragsgrunnlag,

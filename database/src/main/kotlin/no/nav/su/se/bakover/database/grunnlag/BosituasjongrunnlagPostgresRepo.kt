@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import java.util.UUID
 import javax.sql.DataSource
 
-class BosituasjongrunnlangPostgresRepo(
+class BosituasjongrunnlagPostgresRepo(
     private val dataSource: DataSource,
 ) : BosituasjongrunnlagRepo {
 
@@ -79,10 +79,8 @@ class BosituasjongrunnlangPostgresRepo(
     override fun lagreBosituasjongrunnlag(behandlingId: UUID, grunnlag: List<Grunnlag.Bosituasjon>) {
         dataSource.withTransaction { tx ->
             slettForBehandlingId(behandlingId, tx)
-            dataSource.withSession { session ->
-                grunnlag.forEach { bosituasjon ->
-                    lagre(behandlingId, bosituasjon, session)
-                }
+            grunnlag.forEach { bosituasjon ->
+                lagre(behandlingId, bosituasjon, tx)
             }
         }
     }
@@ -156,7 +154,7 @@ class BosituasjongrunnlangPostgresRepo(
                         is Grunnlag.Bosituasjon.Fullstendig.Enslig -> grunnlag.begrunnelse
                         is Grunnlag.Bosituasjon.Ufullstendig.HarEps -> null
                         is Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps -> null
-                    }
+                    },
                 ),
                 session,
             )
@@ -164,15 +162,19 @@ class BosituasjongrunnlangPostgresRepo(
 
     override fun hentBosituasjongrunnlag(behandlingId: UUID): List<Grunnlag.Bosituasjon> {
         return dataSource.withSession { session ->
-            """ select * from grunnlag_bosituasjon where behandlingid=:behandlingid""".trimIndent()
-                .hentListe(
-                    mapOf(
-                        "behandlingid" to behandlingId,
-                    ),
-                    session,
-                ) {
-                    it.toBosituasjongrunnlag()
-                }
+            hentBosituasjongrunnlag(behandlingId, session)
         }
+    }
+
+    internal fun hentBosituasjongrunnlag(behandlingId: UUID, session: Session): List<Grunnlag.Bosituasjon> {
+        return """ select * from grunnlag_bosituasjon where behandlingid=:behandlingid""".trimIndent()
+            .hentListe(
+                mapOf(
+                    "behandlingid" to behandlingId,
+                ),
+                session,
+            ) {
+                it.toBosituasjongrunnlag()
+            }
     }
 }

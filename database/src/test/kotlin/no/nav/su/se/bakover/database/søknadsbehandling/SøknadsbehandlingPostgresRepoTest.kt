@@ -15,7 +15,7 @@ import no.nav.su.se.bakover.database.avslåttBeregning
 import no.nav.su.se.bakover.database.behandlingsinformasjonMedAlleVilkårOppfylt
 import no.nav.su.se.bakover.database.beregning
 import no.nav.su.se.bakover.database.fixedClock
-import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlangPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.VilkårsvurderingPostgresRepo
@@ -47,7 +47,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
     private val testDataHelper = TestDataHelper(dataSource)
     private val uføregrunnlagPostgresRepo = UføregrunnlagPostgresRepo()
     private val fradragsgrunnlagPostgresRepo = FradragsgrunnlagPostgresRepo(dataSource)
-    private val bosituasjongrunnlagRepo = BosituasjongrunnlangPostgresRepo(dataSource)
+    private val bosituasjongrunnlagRepo = BosituasjongrunnlagPostgresRepo(dataSource)
     private val vilkårsvurderingRepo = VilkårsvurderingPostgresRepo(dataSource, uføregrunnlagPostgresRepo)
     private val repo = SøknadsbehandlingPostgresRepo(
         dataSource,

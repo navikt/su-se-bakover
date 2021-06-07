@@ -26,12 +26,12 @@ import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.web.routes.grunnlag.BosituasjonJsonTest.Companion.bosituasjon
+import no.nav.su.se.bakover.web.routes.grunnlag.BosituasjonJsonTest.Companion.expectedBosituasjonJson
 import no.nav.su.se.bakover.web.routes.grunnlag.FradragsgrunnlagJsonTest.Companion.expectedFradragsgrunnlagJson
 import no.nav.su.se.bakover.web.routes.grunnlag.FradragsgrunnlagJsonTest.Companion.fradragsgrunnlag
 import no.nav.su.se.bakover.web.routes.grunnlag.UføreVilkårJsonTest.Companion.expectedVurderingUføreJson
 import no.nav.su.se.bakover.web.routes.grunnlag.UføreVilkårJsonTest.Companion.vurderingsperiodeUføre
-import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagJsonTest.Companion.bosituasjon
-import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagJsonTest.Companion.expectedBosituasjonJson
 import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagJsonTest.Companion.uføregrunnlag
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.vedtak
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.TestBeregning

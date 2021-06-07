@@ -11,10 +11,10 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-internal class BosituasjongrunnlangPostgresRepoTest {
+internal class BosituasjongrunnlagPostgresRepoTest {
 
     private val datasource = EmbeddedDatabase.instance()
-    private val grunnlagRepo = BosituasjongrunnlangPostgresRepo(
+    private val grunnlagRepo = BosituasjongrunnlagPostgresRepo(
         datasource,
     )
 

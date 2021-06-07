@@ -406,7 +406,6 @@ fun List<Vedtak.VedtakPåTidslinje>.grunnlagsdata(): Grunnlagsdata {
         uføregrunnlag = this.flatMap {
             it.grunnlagsdata.uføregrunnlag
         },
-        // TODO er denne riktig utfylt?
         fradragsgrunnlag = this.flatMap {
             it.grunnlagsdata.fradragsgrunnlag
         },
