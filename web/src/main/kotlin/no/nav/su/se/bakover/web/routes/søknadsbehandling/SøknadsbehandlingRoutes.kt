@@ -184,6 +184,7 @@ internal fun Route.søknadsbehandlingRoutes(
                                     KunneIkkeVilkårsvurdere.FantIkkeBehandling -> {
                                         NotFound.message("Fant ikke behandling")
                                     }
+                                    KunneIkkeVilkårsvurdere.HarIkkeEktefelle -> { BadRequest.message("Kan ikke ha formue for eps når søker ikke har eps") }
                                 },
                             )
                         },

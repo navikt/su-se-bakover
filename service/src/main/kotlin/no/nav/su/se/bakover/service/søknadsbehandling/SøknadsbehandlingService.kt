@@ -54,6 +54,7 @@ interface SøknadsbehandlingService {
 
     sealed class KunneIkkeVilkårsvurdere {
         object FantIkkeBehandling : KunneIkkeVilkårsvurdere()
+        object HarIkkeEktefelle : KunneIkkeVilkårsvurdere()
     }
 
     data class BeregnRequest(

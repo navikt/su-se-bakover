@@ -101,16 +101,16 @@ internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
                     kontanter = f.verdier?.kontanter,
                     depositumskonto = f.verdier?.depositumskonto
                 ),
-                epsVerdier = b.ektefelle?.fnr?.let {
+                epsVerdier = f.epsVerdier?.let {
                     Behandlingsinformasjon.Formue.Verdier(
-                        verdiIkkePrimærbolig = f.epsVerdier?.verdiIkkePrimærbolig,
-                        verdiEiendommer = f.epsVerdier?.verdiEiendommer,
-                        verdiKjøretøy = f.epsVerdier?.verdiKjøretøy,
-                        innskudd = f.epsVerdier?.innskudd,
-                        verdipapir = f.epsVerdier?.verdipapir,
-                        pengerSkyldt = f.epsVerdier?.pengerSkyldt,
-                        kontanter = f.epsVerdier?.kontanter,
-                        depositumskonto = f.epsVerdier?.depositumskonto
+                        verdiIkkePrimærbolig = it.verdiIkkePrimærbolig,
+                        verdiEiendommer = it.verdiEiendommer,
+                        verdiKjøretøy = it.verdiKjøretøy,
+                        innskudd = it.innskudd,
+                        verdipapir = it.verdipapir,
+                        pengerSkyldt = it.pengerSkyldt,
+                        kontanter = it.kontanter,
+                        depositumskonto = it.depositumskonto
                     )
                 },
                 begrunnelse = f.begrunnelse

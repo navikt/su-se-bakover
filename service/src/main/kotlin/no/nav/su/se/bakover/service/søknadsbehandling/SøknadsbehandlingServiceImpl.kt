@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.harEktefelle
 import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
 import no.nav.su.se.bakover.domain.journal.JournalpostId
@@ -129,10 +130,23 @@ internal class SøknadsbehandlingServiceImpl(
     }
 
     override fun vilkårsvurder(request: SøknadsbehandlingService.VilkårsvurderRequest): Either<SøknadsbehandlingService.KunneIkkeVilkårsvurdere, Søknadsbehandling.Vilkårsvurdert> {
-        val saksbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
+        val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return SøknadsbehandlingService.KunneIkkeVilkårsvurdere.FantIkkeBehandling.left()
+
+        request.behandlingsinformasjon.formue?.epsVerdier?.let {
+            val grunnlag = grunnlagService.hentBosituasjongrunnlang(søknadsbehandling.id).firstOrNull()
+
+            when (grunnlag) {
+                is Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen,
+                is Grunnlag.Bosituasjon.Fullstendig.Enslig,
+                is Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps,
+                null -> { return SøknadsbehandlingService.KunneIkkeVilkårsvurdere.HarIkkeEktefelle.left() }
+                else -> {}
+            }
+        }
+
         return statusovergang(
-            søknadsbehandling = saksbehandling,
+            søknadsbehandling = søknadsbehandling,
             statusovergang = Statusovergang.TilVilkårsvurdert(request.behandlingsinformasjon),
         ).let { vilkårsvurdert ->
             søknadsbehandlingRepo.lagre(vilkårsvurdert)
