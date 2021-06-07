@@ -17,11 +17,14 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Validator.valider
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.harEktefelle
-import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrEmpty
+import no.nav.su.se.bakover.domain.grunnlag.harFlerEnnEnBosituasjonsperiode
+import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -116,14 +119,11 @@ internal class RevurderingServiceImpl(
             return KunneIkkeOppretteRevurdering.FantIkkeAktørId.left()
         }
 
-        val gjeldendeGrunnlagsdataOgVilkårsvurderinger = KopierGjeldendeGrunnlagsdataOgVilkårsvurderinger(periode, sak.vedtakListe)
-        val grunnlagsdata = gjeldendeGrunnlagsdataOgVilkårsvurderinger.grunnlagsdata.copy(
-            // Foreløpig støtter vi kun en aktiv bosituasjon, dersom det er fler, preutfyller vi ikke.
-            bosituasjon = gjeldendeGrunnlagsdataOgVilkårsvurderinger.grunnlagsdata.bosituasjon.singleFullstendigOrEmpty(),
-        )
+        val preutfylteGrunnlagsOgVilkårsverdier = hentPreutfylteGrunnlagsOgVilkårsverdier(periode, sak.vedtakListe)
 
-        val informasjonSomRevurderes = InformasjonSomRevurderes.tryCreate(opprettRevurderingRequest.informasjonSomRevurderes)
-            .getOrHandle { return KunneIkkeOppretteRevurdering.MåVelgeInformasjonSomSkalRevurderes.left() }
+        val informasjonSomRevurderes =
+            InformasjonSomRevurderes.tryCreate(opprettRevurderingRequest.informasjonSomRevurderes)
+                .getOrHandle { return KunneIkkeOppretteRevurdering.MåVelgeInformasjonSomSkalRevurderes.left() }
 
         // TODO ai 25.02.2021 - Oppgaven skal egentligen ikke opprettes her. Den burde egentligen komma utifra melding av endring, som skal føres til revurdering.
         return oppgaveService.opprettOppgave(
@@ -145,8 +145,8 @@ internal class RevurderingServiceImpl(
                 opprettet = Tidspunkt.now(clock),
                 forhåndsvarsel = if (revurderingsårsak.årsak == REGULER_GRUNNBELØP) Forhåndsvarsel.IngenForhåndsvarsel else null,
                 behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = gjeldendeGrunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
+                grunnlagsdata = preutfylteGrunnlagsOgVilkårsverdier.first,
+                vilkårsvurderinger = preutfylteGrunnlagsOgVilkårsverdier.second,
                 informasjonSomRevurderes = informasjonSomRevurderes,
             ).also {
                 revurderingRepo.lagre(it)
@@ -172,6 +172,30 @@ internal class RevurderingServiceImpl(
                 }
             }
         }
+    }
+
+    private fun hentPreutfylteGrunnlagsOgVilkårsverdier(
+        periode: Periode,
+        vedtakListe: List<Vedtak>,
+    ): Pair<Grunnlagsdata, Vilkårsvurderinger> {
+        val gjeldendeGrunnlagsdataOgVilkårsvurderinger =
+            KopierGjeldendeGrunnlagsdataOgVilkårsvurderinger(periode, vedtakListe)
+
+        val gjeldendeBosituasjon = gjeldendeGrunnlagsdataOgVilkårsvurderinger.grunnlagsdata.bosituasjon
+
+        // Dette kan oppstå når vi revurderer en revurdering. Da må vi vise eksisterende, men skal ikke preutfylle.
+        val harFlerEnnEnBosituasjon = gjeldendeBosituasjon.harFlerEnnEnBosituasjonsperiode()
+
+        return gjeldendeGrunnlagsdataOgVilkårsvurderinger.grunnlagsdata.copy(
+            // Foreløpig støtter vi kun en aktiv bosituasjon, dersom det er fler, preutfyller vi ikke.
+            bosituasjon = if (harFlerEnnEnBosituasjon) emptyList() else listOf(
+                gjeldendeBosituasjon.singleFullstendigOrThrow(),
+            ),
+            // Fjerner fradrag som er knyttet til Bosituasjon (ektefelle) dersom vi ikke kan preutfylle Bosituasjon
+            fradragsgrunnlag = gjeldendeGrunnlagsdataOgVilkårsvurderinger.grunnlagsdata.fradragsgrunnlag.filterNot {
+                it.fradrag.tilhører == FradragTilhører.EPS && harFlerEnnEnBosituasjon
+            },
+        ) to gjeldendeGrunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger
     }
 
     override fun leggTilUføregrunnlag(
@@ -345,12 +369,7 @@ internal class RevurderingServiceImpl(
             return KunneIkkeOppdatereRevurdering.FantIkkeSak.left()
         }
 
-        val gjeldendeGrunnlagsdataOgVilkårsvurderinger = KopierGjeldendeGrunnlagsdataOgVilkårsvurderinger(nyPeriode, sak.vedtakListe)
-        val grunnlagsdata = gjeldendeGrunnlagsdataOgVilkårsvurderinger.grunnlagsdata.copy(
-
-            // Foreløpig støtter vi kun en aktiv bosituasjon, dersom det er fler, preutfyller vi ikke.
-            bosituasjon = gjeldendeGrunnlagsdataOgVilkårsvurderinger.grunnlagsdata.bosituasjon.singleFullstendigOrEmpty(),
-        )
+        val preutfylteGrunnlagsOgVilkårsverdier = hentPreutfylteGrunnlagsOgVilkårsverdier(nyPeriode, sak.vedtakListe)
 
         val informasjonSomRevurderes = InformasjonSomRevurderes.tryCreate(oppdaterRevurderingRequest.informasjonSomRevurderes)
             .getOrHandle { return KunneIkkeOppdatereRevurdering.MåVelgeInformasjonSomSkalRevurderes.left() }
@@ -359,29 +378,29 @@ internal class RevurderingServiceImpl(
             is OpprettetRevurdering -> revurdering.oppdater(
                 periode = nyPeriode,
                 revurderingsårsak = revurderingsårsak,
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = gjeldendeGrunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
+                grunnlagsdata = preutfylteGrunnlagsOgVilkårsverdier.first,
+                vilkårsvurderinger = preutfylteGrunnlagsOgVilkårsverdier.second,
                 informasjonSomRevurderes = informasjonSomRevurderes,
             ).right()
             is BeregnetRevurdering -> revurdering.oppdater(
                 periode = nyPeriode,
                 revurderingsårsak = revurderingsårsak,
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = gjeldendeGrunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
+                grunnlagsdata = preutfylteGrunnlagsOgVilkårsverdier.first,
+                vilkårsvurderinger = preutfylteGrunnlagsOgVilkårsverdier.second,
                 informasjonSomRevurderes = informasjonSomRevurderes,
             ).right()
             is SimulertRevurdering -> revurdering.oppdater(
                 periode = nyPeriode,
                 revurderingsårsak = revurderingsårsak,
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = gjeldendeGrunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
+                grunnlagsdata = preutfylteGrunnlagsOgVilkårsverdier.first,
+                vilkårsvurderinger = preutfylteGrunnlagsOgVilkårsverdier.second,
                 informasjonSomRevurderes = informasjonSomRevurderes,
             ).right()
             is UnderkjentRevurdering -> revurdering.oppdater(
                 periode = nyPeriode,
                 revurderingsårsak = revurderingsårsak,
-                grunnlagsdata = grunnlagsdata,
-                vilkårsvurderinger = gjeldendeGrunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger,
+                grunnlagsdata = preutfylteGrunnlagsOgVilkårsverdier.first,
+                vilkårsvurderinger = preutfylteGrunnlagsOgVilkårsverdier.second,
                 informasjonSomRevurderes = informasjonSomRevurderes,
             ).right()
             else -> KunneIkkeOppdatereRevurdering.UgyldigTilstand(

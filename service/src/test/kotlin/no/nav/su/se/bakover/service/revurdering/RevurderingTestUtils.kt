@@ -164,6 +164,14 @@ object RevurderingTestUtils {
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata(
                 uføregrunnlag = listOf(uføregrunnlag),
+                bosituasjon = listOf(
+                    Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                        id = UUID.randomUUID(),
+                        opprettet = fixedTidspunkt,
+                        periode = stønadsperiode.periode,
+                        begrunnelse = null,
+                    ),
+                ),
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = vilkårsvurderinger.uføre,

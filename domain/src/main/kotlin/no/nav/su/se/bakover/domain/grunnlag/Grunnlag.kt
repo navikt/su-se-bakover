@@ -205,6 +205,8 @@ sealed class Grunnlag {
 
 // Generell kommentar til extension-funksjonene: Disse er lagt til slik at vi enklere skal få kontroll over migreringen fra 1 bosituasjon til fler.
 
+fun List<Grunnlag.Bosituasjon>.harFlerEnnEnBosituasjonsperiode(): Boolean = size > 1
+
 /**
  * Kan være tom under vilkårsvurdering/datainnsamlings-tilstanden.
  * Kan være maks 1 i alle andre tilstander.
@@ -212,12 +214,6 @@ sealed class Grunnlag {
  * */
 fun List<Grunnlag.Bosituasjon>.harEktefelle(): Boolean {
     return singleOrThrow().harEktefelle()
-}
-
-fun List<Grunnlag.Bosituasjon>.singleFullstendigOrEmpty(): List<Grunnlag.Bosituasjon.Fullstendig> {
-    return this.singleOrNull()?.let {
-        listOf(it.fullstendigOrThrow())
-    } ?: emptyList()
 }
 
 /**
