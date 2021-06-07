@@ -6,11 +6,13 @@ import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
+import io.ktor.http.HttpMethod
 import io.ktor.http.HttpMethod.Companion.Get
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.http.HttpStatusCode.Companion.OK
 import io.ktor.server.testing.handleRequest
+import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.client.stubs.person.PersonOppslagStub
 import no.nav.su.se.bakover.common.endOfDay
@@ -42,7 +44,9 @@ internal class PersonRoutesKtTest {
         withTestApplication({
             testSusebakover()
         }) {
-            handleRequest(Get, "$personPath/$testIdent")
+            handleRequest(HttpMethod.Post, "$personPath/søk") {
+                setBody("""{"fnr":"$testIdent"}""")
+            }
         }.apply {
             assertEquals(HttpStatusCode.Unauthorized, response.status())
         }
@@ -53,7 +57,9 @@ internal class PersonRoutesKtTest {
         withTestApplication({
             testSusebakover()
         }) {
-            defaultRequest(Get, "$personPath/qwertyuiopå", listOf(Brukerrolle.Veileder))
+            defaultRequest(HttpMethod.Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
+                setBody("""{"fnr":"qwertyuiopå"}""")
+            }
         }.apply {
             assertEquals(HttpStatusCode.BadRequest, response.status())
         }
@@ -110,7 +116,9 @@ internal class PersonRoutesKtTest {
         withTestApplication({
             testSusebakover(accessCheckProxy = accessCheckProxyMock, clock = fixedClock)
         }) {
-            defaultRequest(Get, "$personPath/$testIdent", listOf(Brukerrolle.Veileder))
+            defaultRequest(HttpMethod.Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
+                setBody("""{"fnr":"$testIdent"}""")
+            }
         }.apply {
             assertEquals(OK, response.status())
             JSONAssert.assertEquals(expectedResponseJson, response.content!!, true)
@@ -125,7 +133,9 @@ internal class PersonRoutesKtTest {
         withTestApplication({
             testSusebakover(accessCheckProxy = accessCheckProxyMock)
         }) {
-            defaultRequest(Get, "$personPath/$testIdent", listOf(Brukerrolle.Veileder))
+            defaultRequest(HttpMethod.Post, "$personPath/søk", listOf(Brukerrolle.Veileder)) {
+                setBody("""{"fnr":"$testIdent"}""")
+            }
         }.apply {
             response.status() shouldBe HttpStatusCode.InternalServerError
         }

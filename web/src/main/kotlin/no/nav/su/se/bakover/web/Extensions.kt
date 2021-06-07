@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.log
 import no.nav.su.se.bakover.common.sikkerLogg
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.web.features.suUserContext
 import java.util.UUID
 
@@ -86,11 +85,6 @@ internal fun ApplicationCall.lesUUID(param: String) =
         it.toUUID().mapLeft { "$param er ikke en gyldig UUID" }
     } ?: Either.Left("$param er ikke et parameter")
 
-internal fun ApplicationCall.lesFnr(param: String) =
-    this.parameters[param]?.let {
-        Either.catch { Fnr(it) }.mapLeft { "$param er ikke et gyldig fødselsnummer" }
-    } ?: Either.Left("$param er ikke et parameter")
-
 internal fun ApplicationCall.parameter(parameterName: String) =
     this.parameters[parameterName]?.let { Either.Right(it) } ?: Either.Left("$parameterName er ikke et parameter")
 
@@ -109,21 +103,6 @@ internal suspend fun ApplicationCall.withSakId(ifRight: suspend (UUID) -> Unit) 
     this.lesUUID("sakId").fold(
         ifLeft = { this.svar(HttpStatusCode.BadRequest.message(it)) },
         ifRight = { ifRight(it) },
-    )
-}
-
-internal suspend fun ApplicationCall.withSaksnummer(ifRight: suspend (Saksnummer) -> Unit) {
-    this.parameter("saksnummer").fold(
-        ifLeft = { this.svar(HttpStatusCode.BadRequest.message(it)) },
-        ifRight = {
-            Saksnummer.tryParse(it)
-                .mapLeft {
-                    this.svar(HttpStatusCode.BadRequest.message("Er ikke ett gyldigt tall"))
-                }
-                .map { saksnummer ->
-                    ifRight(saksnummer)
-                }
-        },
     )
 }
 

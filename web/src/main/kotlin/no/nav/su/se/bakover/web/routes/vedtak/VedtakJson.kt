@@ -27,7 +27,7 @@ internal data class VedtakJson(
     val sakId: UUID,
     val saksnummer: String,
     val fnr: String,
-    val periode: PeriodeJson?,
+    val periode: PeriodeJson,
     val type: VedtakType,
 )
 
