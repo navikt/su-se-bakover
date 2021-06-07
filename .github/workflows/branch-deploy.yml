@@ -15,8 +15,8 @@ jobs:
           with:
             ref: master
         - uses: actions/checkout@v2
-        - run: |
-            if ! git merge-base --is-ancestor "$(git rev-parse origin/master)" HEAD; then
+        - run: | # Command returns 0 when master is ancestor, 1 if it is not (other positive numbers on error)
+            if git merge-base --is-ancestor "$(git rev-parse origin/master)" HEAD; then
               echo "You have to merge origin/master before you can deploy a branch."; exit 1
             fi
    build:
