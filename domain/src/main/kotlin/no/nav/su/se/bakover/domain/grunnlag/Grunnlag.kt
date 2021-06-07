@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.Copyable
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import java.util.UUID
@@ -69,13 +70,13 @@ sealed class Grunnlag {
     ) : Grunnlag() {
 
         companion object Validator {
-            fun List<Fradragsgrunnlag>.valider(behandlingsperiode: Periode): Either<UgyldigFradragsgrunnlag, List<Fradragsgrunnlag>> {
+            fun List<Fradragsgrunnlag>.valider(behandlingsperiode: Periode, harEktefelle: Boolean): Either<UgyldigFradragsgrunnlag, List<Fradragsgrunnlag>> {
                 return map {
-                    it.valider(behandlingsperiode)
+                    it.valider(behandlingsperiode, harEktefelle)
                 }.sequenceEither()
             }
 
-            fun Fradragsgrunnlag.valider(behandlingsperiode: Periode): Either<UgyldigFradragsgrunnlag, Fradragsgrunnlag> {
+            fun Fradragsgrunnlag.valider(behandlingsperiode: Periode, harEktefelle: Boolean): Either<UgyldigFradragsgrunnlag, Fradragsgrunnlag> {
                 if (!(behandlingsperiode inneholder fradrag.periode))
                     return UgyldigFradragsgrunnlag.UtenforBehandlingsperiode.left()
                 if (setOf(
@@ -83,14 +84,19 @@ sealed class Grunnlag {
                         Fradragstype.BeregnetFradragEPS,
                         Fradragstype.UnderMinstenivå,
                     ).contains(fradrag.fradragstype)
-                )
+                ) {
                     return UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag.left()
+                }
+                if (this.fradrag.tilhører == FradragTilhører.EPS && !harEktefelle) {
+                    return UgyldigFradragsgrunnlag.HarIkkeEktelle.left()
+                }
                 return this.right()
             }
 
             sealed class UgyldigFradragsgrunnlag {
                 object UtenforBehandlingsperiode : UgyldigFradragsgrunnlag()
                 object UgyldigFradragstypeForGrunnlag : UgyldigFradragsgrunnlag()
+                object HarIkkeEktelle : UgyldigFradragsgrunnlag()
             }
         }
     }

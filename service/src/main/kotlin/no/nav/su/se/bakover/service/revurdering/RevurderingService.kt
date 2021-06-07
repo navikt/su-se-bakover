@@ -259,6 +259,7 @@ sealed class KunneIkkeLeggeTilFradragsgrunnlag {
     object UgyldigStatus : KunneIkkeLeggeTilFradragsgrunnlag()
     object FradragsgrunnlagUtenforRevurderingsperiode : KunneIkkeLeggeTilFradragsgrunnlag()
     object UgyldigFradragstypeForGrunnlag : KunneIkkeLeggeTilFradragsgrunnlag()
+    object HarIkkeEktelle : KunneIkkeLeggeTilFradragsgrunnlag()
 }
 
 sealed class KunneIkkeLeggeTilBosituasjongrunnlag {

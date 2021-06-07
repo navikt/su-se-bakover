@@ -1783,9 +1783,20 @@ internal class RevurderingServiceImplTest {
     fun `lagreFradrag happy case`() {
         val revurderingId = UUID.randomUUID()
 
+        val revurderingsperiode = Periode.create(1.januar(2021), 31.desember(2021))
         val revuderingMock = mock<OpprettetRevurdering> {
             on { id } doReturn revurderingId
-            on { periode } doReturn Periode.create(1.januar(2021), 31.desember(2021))
+            on { periode } doReturn revurderingsperiode
+            on { grunnlagsdata } doReturn Grunnlagsdata(
+                bosituasjon = listOf(
+                    Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                        id = UUID.randomUUID(),
+                        opprettet = fixedTidspunkt,
+                        periode = revurderingsperiode,
+                        begrunnelse = null,
+                    ),
+                ),
+            )
         }
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -1808,7 +1819,7 @@ internal class RevurderingServiceImplTest {
                     fradrag = FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
                         månedsbeløp = 0.0,
-                        periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+                        periode = revurderingsperiode,
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
@@ -1927,8 +1938,20 @@ internal class RevurderingServiceImplTest {
 
     @Test
     fun `validerer fradragsgrunnlag`() {
+        val revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021))
         val revurderingMock = mock<OpprettetRevurdering>() {
-            on { periode } doReturn Periode.create(1.mai(2021), 31.desember(2021))
+
+            on { periode } doReturn revurderingsperiode
+            on { grunnlagsdata } doReturn Grunnlagsdata(
+                bosituasjon = listOf(
+                    Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                        id = UUID.randomUUID(),
+                        opprettet = fixedTidspunkt,
+                        periode = revurderingsperiode,
+                        begrunnelse = null,
+                    ),
+                ),
+            )
         }
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -1946,7 +1969,7 @@ internal class RevurderingServiceImplTest {
                     fradrag = FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
                         månedsbeløp = 0.0,
-                        periode = Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.desember(2021)),
+                        periode = revurderingsperiode,
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),

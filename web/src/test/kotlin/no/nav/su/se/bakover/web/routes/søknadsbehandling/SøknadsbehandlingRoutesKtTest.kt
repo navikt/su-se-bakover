@@ -297,7 +297,7 @@ internal class SøknadsbehandlingRoutesKtTest {
                 testSusebakover(services = services)
             },
         ) {
-            val objects = setupMedAlleVilkårOppfylt()
+            val objects = setupMedAlleVilkårOppfylt(epsFnr = Fnr("12345678910"))
             services.søknadsbehandling.beregn(
                 BeregnRequest(
                     behandlingId = objects.søknadsbehandling.id,
@@ -755,7 +755,10 @@ internal class SøknadsbehandlingRoutesKtTest {
         val søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Innvilget,
     )
 
-    private fun setupMedAlleVilkårOppfylt(nullableUavklartVilkårsvurdertSøknadsbehandling: UavklartVilkårsvurdertSøknadsbehandling? = null): InnvilgetVilkårsvurdertSøknadsbehandling {
+    private fun setupMedAlleVilkårOppfylt(
+        nullableUavklartVilkårsvurdertSøknadsbehandling: UavklartVilkårsvurdertSøknadsbehandling? = null,
+        epsFnr: Fnr? = null,
+    ): InnvilgetVilkårsvurdertSøknadsbehandling {
         val uavklartVilkårsvurdertSøknadsbehandling = nullableUavklartVilkårsvurdertSøknadsbehandling ?: setup()
 
         val behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
@@ -772,13 +775,13 @@ internal class SøknadsbehandlingRoutesKtTest {
         services.søknadsbehandling.leggTilBosituasjonEpsgrunnlag(
             LeggTilBosituasjonEpsRequest(
                 behandlingId = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
-                epsFnr = null,
+                epsFnr = epsFnr,
             ),
         )
         services.søknadsbehandling.fullførBosituasjongrunnlag(
             FullførBosituasjonRequest(
                 behandlingId = uavklartVilkårsvurdertSøknadsbehandling.søknadsbehandling.id,
-                bosituasjon = BosituasjonValg.BOR_ALENE,
+                bosituasjon = if (epsFnr == null) BosituasjonValg.BOR_ALENE else BosituasjonValg.EPS_IKKE_UFØR_FLYKTNING,
                 begrunnelse = behandlingsinformasjon.bosituasjon?.begrunnelse,
             ),
         )

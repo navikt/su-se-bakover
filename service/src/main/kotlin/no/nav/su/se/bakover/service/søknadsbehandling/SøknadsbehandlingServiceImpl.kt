@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
+import no.nav.su.se.bakover.domain.grunnlag.harEktefelle
 import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -143,10 +144,14 @@ internal class SøknadsbehandlingServiceImpl(
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return SøknadsbehandlingService.KunneIkkeBeregne.FantIkkeBehandling.left()
 
-        val fradrag = request.toFradrag(søknadsbehandling.stønadsperiode!!).getOrHandle {
+        val fradrag = request.toFradrag(
+            søknadsbehandling.stønadsperiode!!,
+            søknadsbehandling.grunnlagsdata.bosituasjon.harEktefelle(),
+        ).getOrHandle {
             return when (it) {
                 SøknadsbehandlingService.BeregnRequest.UgyldigFradrag.IkkeLovMedFradragUtenforPerioden -> SøknadsbehandlingService.KunneIkkeBeregne.IkkeLovMedFradragUtenforPerioden.left()
                 SøknadsbehandlingService.BeregnRequest.UgyldigFradrag.UgyldigFradragstype -> SøknadsbehandlingService.KunneIkkeBeregne.UgyldigFradragstype.left()
+                SøknadsbehandlingService.BeregnRequest.UgyldigFradrag.HarIkkeEktelle -> SøknadsbehandlingService.KunneIkkeBeregne.HarIkkeEktefelle.left()
             }
         }
         return statusovergang(

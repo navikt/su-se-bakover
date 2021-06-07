@@ -72,9 +72,10 @@ interface SøknadsbehandlingService {
         sealed class UgyldigFradrag {
             object IkkeLovMedFradragUtenforPerioden : UgyldigFradrag()
             object UgyldigFradragstype : UgyldigFradrag()
+            object HarIkkeEktelle : UgyldigFradrag()
         }
 
-        fun toFradrag(stønadsperiode: Stønadsperiode): Either<UgyldigFradrag, List<Fradrag>> =
+        fun toFradrag(stønadsperiode: Stønadsperiode, harEktefelle: Boolean): Either<UgyldigFradrag, List<Fradrag>> =
             fradrag.map {
                 // map til grunnlag for å låne valideringer
                 Grunnlag.Fradragsgrunnlag(
@@ -86,11 +87,12 @@ interface SøknadsbehandlingService {
                         tilhører = it.tilhører,
                     ),
                 )
-            }.valider(stønadsperiode.periode)
+            }.valider(stønadsperiode.periode, harEktefelle)
                 .mapLeft { valideringsfeil ->
                     when (valideringsfeil) {
                         Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag -> UgyldigFradrag.UgyldigFradragstype
                         Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.UtenforBehandlingsperiode -> UgyldigFradrag.IkkeLovMedFradragUtenforPerioden
+                        Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.HarIkkeEktelle -> UgyldigFradrag.HarIkkeEktelle
                     }
                 }
                 .map { fradragsgrunnlag ->
@@ -102,6 +104,7 @@ interface SøknadsbehandlingService {
         object FantIkkeBehandling : KunneIkkeBeregne()
         object IkkeLovMedFradragUtenforPerioden : KunneIkkeBeregne()
         object UgyldigFradragstype : KunneIkkeBeregne()
+        object HarIkkeEktefelle : KunneIkkeBeregne()
     }
 
     data class SimulerRequest(

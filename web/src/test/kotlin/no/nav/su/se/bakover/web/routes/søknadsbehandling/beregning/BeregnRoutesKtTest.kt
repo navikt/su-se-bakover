@@ -107,16 +107,9 @@ internal class BeregnRoutesKtTest {
                 testSusebakover()
             },
         ) {
-            val objects = setup()
+            val objects = setupMedAlleVilkårOppfylt()
             val fradragFraOgMed = LocalDate.of(2020, Month.JANUARY, 1)
             val fradragTilOgMed = LocalDate.of(2021, Month.DECEMBER, 31)
-
-            services.søknadsbehandling.vilkårsvurder(
-                VilkårsvurderRequest(
-                    objects.søknadsbehandling.id,
-                    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-                ),
-            )
 
             defaultRequest(
                 HttpMethod.Post,
@@ -344,6 +337,12 @@ internal class BeregnRoutesKtTest {
             },
         ) {
             val objects = setup()
+            services.søknadsbehandling.leggTilBosituasjonEpsgrunnlag(
+                LeggTilBosituasjonEpsRequest(
+                    behandlingId = objects.søknadsbehandling.id,
+                    epsFnr = null,
+                ),
+            )
             objects.søknadsbehandling.status shouldBe BehandlingsStatus.OPPRETTET
 
             defaultRequest(

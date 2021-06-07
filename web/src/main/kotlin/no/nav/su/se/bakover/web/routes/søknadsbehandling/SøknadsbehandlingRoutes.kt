@@ -51,6 +51,8 @@ import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.message
+import no.nav.su.se.bakover.web.routes.Feilresponser.fantIkkeBehandling
+import no.nav.su.se.bakover.web.routes.Feilresponser.harIkkeEktefelle
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.StønadsperiodeJson
@@ -238,9 +240,7 @@ internal fun Route.søknadsbehandlingRoutes(
                             søknadsbehandlingService.beregn(serviceCommand)
                                 .mapLeft { kunneIkkeBeregne ->
                                     val resultat = when (kunneIkkeBeregne) {
-                                        KunneIkkeBeregne.FantIkkeBehandling -> {
-                                            NotFound.errorJson("Fant ikke behandling", "fant_ikke_behandling")
-                                        }
+                                        KunneIkkeBeregne.FantIkkeBehandling -> fantIkkeBehandling
                                         KunneIkkeBeregne.IkkeLovMedFradragUtenforPerioden -> BadRequest.errorJson(
                                             "Ikke lov med fradrag utenfor perioden",
                                             "ikke_lov_med_fradrag_utenfor_perioden",
@@ -249,6 +249,7 @@ internal fun Route.søknadsbehandlingRoutes(
                                             "Ugyldig fradragstype",
                                             "ugyldig_fradragstype",
                                         )
+                                        KunneIkkeBeregne.HarIkkeEktefelle -> harIkkeEktefelle
                                     }
                                     call.svar(resultat)
                                 }.map { behandling ->

@@ -6,12 +6,12 @@ import no.nav.su.se.bakover.web.errorJson
 internal object Feilresponser {
 
     val fantIkkeBehandling = HttpStatusCode.NotFound.errorJson(
-        "fant ikke behandling",
+        "Fant ikke behandling",
         "fant_ikke_behandling",
     )
 
     val klarteIkkeHentePerson = HttpStatusCode.NotFound.errorJson(
-        "fant ikke person",
+        "Fant ikke person",
         "fant_ikke_person",
     )
 
@@ -46,5 +46,9 @@ internal object Feilresponser {
     val ikkeGyldigFødselsnummer = HttpStatusCode.BadRequest.errorJson(
         "Inneholder ikke et gyldig fødselsnummer",
         "ikke_gyldig_fødselsnummer",
+    )
+    val harIkkeEktefelle = HttpStatusCode.BadRequest.errorJson(
+        "Kan ikke legge til fradrag på ektefelle når bruker ikke har ektefelle.",
+        "har_ikke_ektefelle"
     )
 }
