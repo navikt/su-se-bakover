@@ -280,14 +280,16 @@ data class OpprettetRevurdering(
         grunnlagsdata: Grunnlagsdata,
         vilkårsvurderinger: Vilkårsvurderinger,
         informasjonSomRevurderes: InformasjonSomRevurderes,
+        tilRevurdering: VedtakSomKanRevurderes,
     ): OpprettetRevurdering = this.copy(
         periode = periode,
         revurderingsårsak = revurderingsårsak,
-        behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
+        behandlingsinformasjon = this.tilRevurdering.behandlingsinformasjon,
         forhåndsvarsel = if (revurderingsårsak.årsak == Revurderingsårsak.Årsak.REGULER_GRUNNBELØP) Forhåndsvarsel.IngenForhåndsvarsel else null,
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
         informasjonSomRevurderes = informasjonSomRevurderes,
+        tilRevurdering = tilRevurdering
     )
 }
 
@@ -302,6 +304,7 @@ sealed class BeregnetRevurdering : Revurdering() {
         grunnlagsdata: Grunnlagsdata,
         vilkårsvurderinger: Vilkårsvurderinger,
         informasjonSomRevurderes: InformasjonSomRevurderes,
+        tilRevurdering: VedtakSomKanRevurderes,
     ) = OpprettetRevurdering(
         id = id,
         periode = periode,
@@ -562,6 +565,7 @@ sealed class SimulertRevurdering : Revurdering() {
         grunnlagsdata: Grunnlagsdata,
         vilkårsvurderinger: Vilkårsvurderinger,
         informasjonSomRevurderes: InformasjonSomRevurderes,
+        tilRevurdering: VedtakSomKanRevurderes,
     ) = OpprettetRevurdering(
         id = id,
         periode = periode,
@@ -1081,6 +1085,7 @@ sealed class UnderkjentRevurdering : Revurdering() {
         grunnlagsdata: Grunnlagsdata,
         vilkårsvurderinger: Vilkårsvurderinger,
         informasjonSomRevurderes: InformasjonSomRevurderes,
+        tilRevurdering: VedtakSomKanRevurderes,
     ) = OpprettetRevurdering(
         id = id,
         periode = periode,

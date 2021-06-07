@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.web.routes.revurdering
 import io.ktor.application.call
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.BadRequest
-import io.ktor.http.HttpStatusCode.Companion.NotFound
 import io.ktor.routing.Route
 import io.ktor.routing.post
 import no.nav.su.se.bakover.common.serialize
@@ -29,8 +28,10 @@ import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeAktørId
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeSak
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIngenVedtakSomKanRevurderes
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.kunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.måVelgeInformasjonSomRevurderes
+import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.tidslinjeForVedtakErIkkeKontinuerlig
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.ugyldigPeriode
 import no.nav.su.se.bakover.web.sikkerlogg
 import no.nav.su.se.bakover.web.svar
@@ -82,10 +83,7 @@ private fun KunneIkkeOppretteRevurdering.tilResultat(): Resultat {
         is FantIkkeAktørId -> fantIkkeAktørId
         is KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
         is UgyldigPeriode -> ugyldigPeriode(this.subError)
-        is FantIngentingSomKanRevurderes -> NotFound.errorJson(
-            "Ingen behandlinger som kan revurderes for angitt periode",
-            "ingenting_å_revurdere_i_perioden",
-        )
+        is FantIngentingSomKanRevurderes -> fantIngenVedtakSomKanRevurderes
         is UgyldigBegrunnelse -> BadRequest.errorJson(
             "Begrunnelse kan ikke være tom",
             "begrunnelse_kan_ikke_være_tom",
@@ -95,5 +93,6 @@ private fun KunneIkkeOppretteRevurdering.tilResultat(): Resultat {
             "ugyldig_årsak",
         )
         KunneIkkeOppretteRevurdering.MåVelgeInformasjonSomSkalRevurderes -> måVelgeInformasjonSomRevurderes
+        KunneIkkeOppretteRevurdering.TidslinjeForVedtakErIkkeKontinuerlig -> tidslinjeForVedtakErIkkeKontinuerlig
     }
 }

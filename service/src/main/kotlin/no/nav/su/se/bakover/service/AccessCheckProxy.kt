@@ -29,6 +29,7 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.revurdering.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
@@ -66,6 +67,7 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.revurdering.Revurderingshandling
 import no.nav.su.se.bakover.service.revurdering.SendTilAttesteringRequest
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
+import no.nav.su.se.bakover.service.sak.KunneIkkeKopiereGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.Statistikk
 import no.nav.su.se.bakover.service.statistikk.StatistikkService
@@ -207,6 +209,10 @@ open class AccessCheckProxy(
                     assertHarTilgangTilPerson(sak.fnr)
 
                     return services.sak.opprettSak(sak)
+                }
+
+                override fun kopierGjeldendeVedtaksdata(sakId: UUID, fraOgMed: LocalDate): Either<KunneIkkeKopiereGjeldendeVedtaksdata, GjeldendeVedtaksdata> {
+                    kastKanKunKallesFraAnnenService()
                 }
             },
             søknad = object : SøknadService {
@@ -398,7 +404,7 @@ open class AccessCheckProxy(
                     assertHarTilgangTilRevurdering(revurderingId)
                     return services.revurdering.beregnOgSimuler(
                         revurderingId = revurderingId,
-                        saksbehandler = saksbehandler
+                        saksbehandler = saksbehandler,
                     )
                 }
 

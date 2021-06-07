@@ -33,6 +33,8 @@ internal fun Route.hentGrunnlagRevurderingRoutes(
                             when (it) {
                                 KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger.FantIkkeBehandling -> Revurderingsfeilresponser.fantIkkeRevurdering
                                 KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger.FantIkkeSak -> Revurderingsfeilresponser.fantIkkeSak
+                                KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger.FantIngentingSomKanRevurderes -> Revurderingsfeilresponser.fantIngenVedtakSomKanRevurderes
+                                is KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger.UgyldigPeriode -> Revurderingsfeilresponser.ugyldigPeriode(it.subError)
                             }
                         }.map {
                             Resultat.json(

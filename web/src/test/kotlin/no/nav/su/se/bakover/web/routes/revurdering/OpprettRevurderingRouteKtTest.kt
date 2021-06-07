@@ -148,7 +148,7 @@ internal class OpprettRevurderingRouteKtTest {
             expectedStatusCode = HttpStatusCode.NotFound,
             expectedJsonResponse = """
                 {
-                    "message":"Ingen behandlinger som kan revurderes for angitt periode",
+                    "message":"Fant ingen vedtak som kan revurderes for angitt periode",
                     "code":"ingenting_å_revurdere_i_perioden"
                 }
             """.trimIndent(),

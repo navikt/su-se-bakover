@@ -155,6 +155,7 @@ sealed class KunneIkkeOppretteRevurdering {
     object UgyldigÅrsak : KunneIkkeOppretteRevurdering()
     object UgyldigBegrunnelse : KunneIkkeOppretteRevurdering()
     object MåVelgeInformasjonSomSkalRevurderes : KunneIkkeOppretteRevurdering()
+    object TidslinjeForVedtakErIkkeKontinuerlig : KunneIkkeOppretteRevurdering()
 }
 
 sealed class KunneIkkeOppdatereRevurdering {
@@ -168,6 +169,8 @@ sealed class KunneIkkeOppdatereRevurdering {
     object KanIkkeOppdatereRevurderingSomErForhåndsvarslet : KunneIkkeOppdatereRevurdering()
     object MåVelgeInformasjonSomSkalRevurderes : KunneIkkeOppdatereRevurdering()
     object FantIkkeSak : KunneIkkeOppdatereRevurdering()
+    object FantIngentingSomKanRevurderes : KunneIkkeOppdatereRevurdering()
+    object TidslinjeForVedtakErIkkeKontinuerlig : KunneIkkeOppdatereRevurdering()
 }
 
 sealed class KunneIkkeBeregneOgSimulereRevurdering {
@@ -259,6 +262,8 @@ sealed class KunneIkkeLeggeTilGrunnlag {
 sealed class KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger {
     object FantIkkeBehandling : KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger()
     object FantIkkeSak : KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger()
+    object FantIngentingSomKanRevurderes : KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger()
+    data class UgyldigPeriode(val subError: Periode.UgyldigPeriode) : KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger()
 }
 
 data class HentGjeldendeGrunnlagsdataOgVilkårsvurderingerResponse(
