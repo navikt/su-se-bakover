@@ -53,7 +53,11 @@ internal class UføregrunnlagJsonTest {
           "delerBolig": null,
           "ektemakeEllerSamboerUførFlyktning": true,
           "begrunnelse": null,
-          "sats": "ORDINÆR"
+          "sats": "ORDINÆR",
+          "periode": {
+            "fraOgMed": "2021-01-01",
+            "tilOgMed": "2021-12-31"
+          }
         }
         ]
         """.trimIndent()

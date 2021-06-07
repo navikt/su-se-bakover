@@ -7,6 +7,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson.Companion.toJson
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson.Companion.toJson
 
 internal data class GrunnlagsdataOgVilkårsvurderingerJson(
     val uføre: UføreVilkårJson?,
@@ -31,6 +32,7 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
                                 ektemakeEllerSamboerUførFlyktning = null,
                                 begrunnelse = it.begrunnelse,
                                 sats = it.utledSats().toString(),
+                                periode = it.periode.toJson(),
                             )
                         is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning ->
                             BosituasjonJson(
@@ -40,6 +42,7 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
                                 ektemakeEllerSamboerUførFlyktning = false,
                                 begrunnelse = it.begrunnelse,
                                 sats = it.utledSats().toString(),
+                                periode = it.periode.toJson(),
                             )
                         is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre ->
                             BosituasjonJson(
@@ -49,6 +52,7 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
                                 ektemakeEllerSamboerUførFlyktning = null,
                                 begrunnelse = it.begrunnelse,
                                 sats = it.utledSats().toString(),
+                                periode = it.periode.toJson(),
                             )
                         is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning ->
                             BosituasjonJson(
@@ -58,6 +62,7 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
                                 ektemakeEllerSamboerUførFlyktning = true,
                                 begrunnelse = it.begrunnelse,
                                 sats = it.utledSats().toString(),
+                                periode = it.periode.toJson(),
                             )
                         is Grunnlag.Bosituasjon.Fullstendig.Enslig ->
                             BosituasjonJson(
@@ -67,6 +72,7 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
                                 ektemakeEllerSamboerUførFlyktning = null,
                                 begrunnelse = it.begrunnelse,
                                 sats = it.utledSats().toString(),
+                                periode = it.periode.toJson(),
                             )
                         is Grunnlag.Bosituasjon.Ufullstendig.HarEps ->
                             BosituasjonJson(
@@ -75,7 +81,8 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
                                 delerBolig = true,
                                 ektemakeEllerSamboerUførFlyktning = null,
                                 begrunnelse = null,
-                                sats = null
+                                sats = null,
+                                periode = it.periode.toJson(),
                             )
                         is Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps ->
                             BosituasjonJson(
@@ -84,7 +91,8 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
                                 delerBolig = null,
                                 ektemakeEllerSamboerUførFlyktning = null,
                                 begrunnelse = null,
-                                sats = null
+                                sats = null,
+                                periode = it.periode.toJson(),
                             )
                     }
                 },
