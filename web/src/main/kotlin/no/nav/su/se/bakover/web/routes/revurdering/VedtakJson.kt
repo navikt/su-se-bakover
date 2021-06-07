@@ -26,7 +26,7 @@ internal data class VedtakJson(
     val sakId: UUID,
     val saksnummer: String,
     val fnr: String,
-    val periode: PeriodeJson?,
+    val periode: PeriodeJson,
     val type: VedtakType,
 )
 
@@ -52,8 +52,7 @@ internal fun Vedtak.Avslag.AvslagVilkår.toJson(): VedtakJson = VedtakJson(
     sakId = behandling.sakId,
     saksnummer = behandling.saksnummer.toString(),
     fnr = behandling.fnr.toString(),
-    // TODO jah: Sett denne til perioden hvis vi legger på dette senere
-    periode = null,
+    periode = periode.toJson(),
     type = vedtakType,
 )
 
@@ -70,7 +69,7 @@ internal fun Vedtak.Avslag.AvslagBeregning.toJson(): VedtakJson = VedtakJson(
     sakId = behandling.sakId,
     saksnummer = behandling.saksnummer.toString(),
     fnr = behandling.fnr.toString(),
-    periode = beregning.periode.toJson(),
+    periode = periode.toJson(),
     type = vedtakType,
 )
 
