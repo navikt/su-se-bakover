@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.harEktefelle
 import no.nav.su.se.bakover.domain.grunnlag.harFlerEnnEnBosituasjonsperiode
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
+import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -300,7 +301,10 @@ internal class RevurderingServiceImpl(
 
         // TODO jah: Vi bør se på å fjerne behandlingsinformasjon fra revurdering, og muligens vedtaket.
         revurdering.oppdaterBehandlingsinformasjon(
-            revurdering.behandlingsinformasjon.oppdaterBosituasjonOgEktefelle(bosituasjongrunnlag) {
+            revurdering.behandlingsinformasjon.oppdaterBosituasjonOgEktefelle(
+                gjeldendeBosituasjon = revurdering.grunnlagsdata.bosituasjon.singleOrThrow(),
+                nyBosituasjon = bosituasjongrunnlag,
+            ) {
                 personService.hentPerson(it)
             }.getOrHandle {
                 return KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeSlåOppEPS.left()

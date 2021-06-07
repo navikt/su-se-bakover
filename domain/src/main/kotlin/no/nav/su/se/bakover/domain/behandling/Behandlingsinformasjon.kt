@@ -365,14 +365,21 @@ data class Behandlingsinformasjon(
         )
     }
 
-    /** Midlertidig migreringsfunksjon fra Behandlingsinformasjon + Grunnlag.Bosituasjon -> Behandlingsinformasjon */
+    /**
+     * Midlertidig migreringsfunksjon fra Behandlingsinformasjon + Grunnlag.Bosituasjon -> Behandlingsinformasjon
+     * Behandlingsinformasjonen ligger blant annet i Vedtaket inntil videre.
+     *
+     * Dersom fnr har endret seg, fjernes EPS sin formue.
+     * @param gjeldendeBosituasjon denne kan være null for søknadsbehandling, men ikke for revurdering.
+     * */
     fun oppdaterBosituasjonOgEktefelle(
-        bosituasjon: Grunnlag.Bosituasjon,
+        gjeldendeBosituasjon: Grunnlag.Bosituasjon?,
+        nyBosituasjon: Grunnlag.Bosituasjon,
         hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
     ): Either<KunneIkkeHentePerson, Behandlingsinformasjon> {
-        val behandlingsinformasjonBosituasjon = when (bosituasjon) {
+        val behandlingsinformasjonBosituasjon = when (nyBosituasjon) {
             is Grunnlag.Bosituasjon.Ufullstendig.HarEps -> Bosituasjon(
-                ektefelle = hentEktefelle(bosituasjon.fnr, hentPerson).getOrHandle { return it.left() },
+                ektefelle = hentEktefelle(nyBosituasjon.fnr, hentPerson).getOrHandle { return it.left() },
                 delerBolig = null,
                 ektemakeEllerSamboerUførFlyktning = null,
                 begrunnelse = null,
@@ -390,7 +397,7 @@ data class Behandlingsinformasjon(
                     ektefelle = EktefellePartnerSamboer.IngenEktefelle,
                     delerBolig = true,
                     ektemakeEllerSamboerUførFlyktning = null,
-                    begrunnelse = bosituasjon.begrunnelse,
+                    begrunnelse = nyBosituasjon.begrunnelse,
                 )
             }
             is Grunnlag.Bosituasjon.Fullstendig.Enslig -> {
@@ -398,38 +405,55 @@ data class Behandlingsinformasjon(
                     ektefelle = EktefellePartnerSamboer.IngenEktefelle,
                     delerBolig = false,
                     ektemakeEllerSamboerUførFlyktning = null,
-                    begrunnelse = bosituasjon.begrunnelse,
+                    begrunnelse = nyBosituasjon.begrunnelse,
                 )
             }
             is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre -> {
                 Bosituasjon(
-                    ektefelle = hentEktefelle(bosituasjon.fnr, hentPerson).getOrHandle { return it.left() },
+                    ektefelle = hentEktefelle(nyBosituasjon.fnr, hentPerson).getOrHandle { return it.left() },
                     delerBolig = null,
                     ektemakeEllerSamboerUførFlyktning = null,
-                    begrunnelse = bosituasjon.begrunnelse,
+                    begrunnelse = nyBosituasjon.begrunnelse,
                 )
             }
             is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> {
                 Bosituasjon(
-                    ektefelle = hentEktefelle(bosituasjon.fnr, hentPerson).getOrHandle { return it.left() },
+                    ektefelle = hentEktefelle(nyBosituasjon.fnr, hentPerson).getOrHandle { return it.left() },
                     delerBolig = null,
                     ektemakeEllerSamboerUførFlyktning = false,
-                    begrunnelse = bosituasjon.begrunnelse,
+                    begrunnelse = nyBosituasjon.begrunnelse,
                 )
             }
             is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning -> {
                 Bosituasjon(
-                    ektefelle = hentEktefelle(bosituasjon.fnr, hentPerson).getOrHandle { return it.left() },
+                    ektefelle = hentEktefelle(nyBosituasjon.fnr, hentPerson).getOrHandle { return it.left() },
                     delerBolig = null,
                     ektemakeEllerSamboerUførFlyktning = true,
-                    begrunnelse = bosituasjon.begrunnelse,
+                    begrunnelse = nyBosituasjon.begrunnelse,
                 )
             }
         }
         return this.copy(
             bosituasjon = behandlingsinformasjonBosituasjon,
             ektefelle = behandlingsinformasjonBosituasjon.ektefelle,
+            formue = fjernEpsFormueHvisEpsHarEndretSeg(gjeldendeBosituasjon, nyBosituasjon),
         ).right()
+    }
+
+    private fun fjernEpsFormueHvisEpsHarEndretSeg(
+        gjeldendeBosituasjon: Grunnlag.Bosituasjon?,
+        nyBosituasjon: Grunnlag.Bosituasjon,
+    ): Formue? {
+        val gjeldendeEpsFnr: Fnr? =
+            (gjeldendeBosituasjon as? Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer)?.fnr
+                ?: (gjeldendeBosituasjon as? Grunnlag.Bosituasjon.Ufullstendig.HarEps)?.fnr
+        val nyEpsFnr: Fnr? = (nyBosituasjon as? Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer)?.fnr
+            ?: (nyBosituasjon as? Grunnlag.Bosituasjon.Ufullstendig.HarEps)?.fnr
+        return if (gjeldendeEpsFnr != nyEpsFnr) {
+            this.formue?.copy(
+                epsVerdier = null,
+            )
+        } else this.formue
     }
 
     private fun hentEktefelle(
