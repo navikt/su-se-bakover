@@ -25,7 +25,7 @@ class BosituasjongrunnlagPostgresRepo(
         EPS_67_ELLER_ELDRE,
         EPS_UNDER_67,
         EPS_UNDER_67_UFØR_FLYKTNING,
-        HAR_IKKE_VALGT_EPS,
+        HAR_IKKE_EPS,
         HAR_IKKE_VALGT_UFØR_FLYKTNING,
     }
 
@@ -62,7 +62,7 @@ class BosituasjongrunnlagPostgresRepo(
                 fnr = epsFnr!!,
                 begrunnelse = begrunnelse,
             )
-            Bosituasjonstype.HAR_IKKE_VALGT_EPS -> Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
+            Bosituasjonstype.HAR_IKKE_EPS -> Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
                 id = id,
                 opprettet = opprettet,
                 periode = periode,
@@ -134,7 +134,7 @@ class BosituasjongrunnlagPostgresRepo(
                         is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> Bosituasjonstype.EPS_UNDER_67
                         is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning -> Bosituasjonstype.EPS_UNDER_67_UFØR_FLYKTNING
                         is Grunnlag.Bosituasjon.Fullstendig.Enslig -> Bosituasjonstype.ALENE
-                        is Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps -> Bosituasjonstype.HAR_IKKE_VALGT_EPS
+                        is Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps -> Bosituasjonstype.HAR_IKKE_EPS
                         is Grunnlag.Bosituasjon.Ufullstendig.HarEps -> Bosituasjonstype.HAR_IKKE_VALGT_UFØR_FLYKTNING
                     }.toString(),
                     "eps_fnr" to when (grunnlag) {
