@@ -18,7 +18,6 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.harEktefelle
 import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
-import no.nav.su.se.bakover.domain.grunnlag.throwIfMultiple
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -566,7 +565,6 @@ internal class SøknadsbehandlingServiceImpl(
             SøknadsbehandlingService.VilkårsvurderRequest(
                 behandlingId = søknadsbehandling.id,
                 behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon.oppdaterBosituasjonOgEktefelle(
-                    gjeldendeBosituasjon = søknadsbehandling.grunnlagsdata.bosituasjon.throwIfMultiple(),
                     nyBosituasjon = bosituasjon,
                 ) {
                     personService.hentPerson(it)
@@ -603,7 +601,6 @@ internal class SøknadsbehandlingServiceImpl(
             SøknadsbehandlingService.VilkårsvurderRequest(
                 behandlingId = søknadsbehandling.id,
                 behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon.oppdaterBosituasjonOgEktefelle(
-                    gjeldendeBosituasjon = søknadsbehandling.grunnlagsdata.bosituasjon.throwIfMultiple(),
                     nyBosituasjon = bosituasjon,
                 ) {
                     personService.hentPerson(it)

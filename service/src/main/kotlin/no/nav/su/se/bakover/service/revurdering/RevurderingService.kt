@@ -182,6 +182,7 @@ sealed class KunneIkkeBeregneOgSimulereRevurdering {
     ) : KunneIkkeBeregneOgSimulereRevurdering()
 
     object UfullstendigVilkårsvurdering : KunneIkkeBeregneOgSimulereRevurdering()
+    object KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps : KunneIkkeBeregneOgSimulereRevurdering()
 }
 
 sealed class KunneIkkeForhåndsvarsle {

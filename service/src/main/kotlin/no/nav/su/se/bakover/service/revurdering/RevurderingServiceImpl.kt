@@ -306,7 +306,6 @@ internal class RevurderingServiceImpl(
         // TODO jah: Vi bør se på å fjerne behandlingsinformasjon fra revurdering, og muligens vedtaket.
         revurdering.oppdaterBehandlingsinformasjon(
             revurdering.behandlingsinformasjon.oppdaterBosituasjonOgEktefelle(
-                gjeldendeBosituasjon = revurdering.grunnlagsdata.bosituasjon.singleOrThrow(),
                 nyBosituasjon = bosituasjongrunnlag,
             ) {
                 personService.hentPerson(it)
@@ -445,6 +444,7 @@ internal class RevurderingServiceImpl(
                             is Revurdering.KunneIkkeBeregneRevurdering.UgyldigBeregningsgrunnlag -> KunneIkkeBeregneOgSimulereRevurdering.UgyldigBeregningsgrunnlag(
                                 it.reason,
                             )
+                            Revurdering.KunneIkkeBeregneRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps -> KunneIkkeBeregneOgSimulereRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps
                         }.left()
                     }
                 val feilmeldinger = identifiserUtfallSomIkkeStøttes(

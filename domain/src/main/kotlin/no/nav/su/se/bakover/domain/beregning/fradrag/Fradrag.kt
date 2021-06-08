@@ -12,6 +12,10 @@ interface Fradrag : PeriodisertInformasjon, Copyable<CopyArgs.Snitt, Fradrag?> {
     val månedsbeløp: Double
     val utenlandskInntekt: UtenlandskInntekt? // TODO can we pls do something about this one?
     val tilhører: FradragTilhører
+
+    fun tilhørerEps(): Boolean {
+        return tilhører == FradragTilhører.EPS
+    }
 }
 
 enum class FradragTilhører {
@@ -25,4 +29,8 @@ enum class FradragTilhører {
     }
 
     object UgyldigFradragTilhører
+}
+
+fun List<Fradrag>.harFradragSomTilhørerEps(): Boolean {
+    return this.any { it.tilhørerEps() }
 }

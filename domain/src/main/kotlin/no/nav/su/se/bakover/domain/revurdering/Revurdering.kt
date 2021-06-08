@@ -23,6 +23,7 @@ import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.RevurdertBeregning
 import no.nav.su.se.bakover.domain.beregning.VurderOmBeregningHarEndringerIYtelse
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.beregning.fradrag.harFradragSomTilhørerEps
 import no.nav.su.se.bakover.domain.beregning.utledBeregningsstrategi
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -225,6 +226,9 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
             periode: Periode,
             vedtattBeregning: Beregning,
         ): Either<KunneIkkeBeregneRevurdering, Beregning> {
+            if (!bosituasjon.harEktefelle() && (fradrag.harFradragSomTilhørerEps())) {
+                return KunneIkkeBeregneRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps.left()
+            }
             val beregningsgrunnlag = Beregningsgrunnlag.tryCreate(
                 beregningsperiode = periode,
                 uføregrunnlag = uføregrunnlag,
@@ -251,6 +255,8 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
         data class UgyldigBeregningsgrunnlag(
             val reason: no.nav.su.se.bakover.domain.beregning.UgyldigBeregningsgrunnlag,
         ) : KunneIkkeBeregneRevurdering()
+
+        object KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps : KunneIkkeBeregneRevurdering()
     }
 }
 

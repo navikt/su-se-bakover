@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.web.audit
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.features.suUserContext
+import no.nav.su.se.bakover.web.routes.Feilresponser.kanIkkeHaEpsFradragUtenEps
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.fantIkkeRevurdering
 import no.nav.su.se.bakover.web.routes.revurdering.Revurderingsfeilresponser.ugyldigTilstand
 import no.nav.su.se.bakover.web.sikkerlogg
@@ -116,5 +117,6 @@ private fun KunneIkkeBeregneOgSimulereRevurdering.tilResultat(): Resultat {
             "Vurdering av vilkår er ufullstendig",
             "ufullstendig_vilkårsvurdering",
         )
+        KunneIkkeBeregneOgSimulereRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps -> kanIkkeHaEpsFradragUtenEps
     }
 }

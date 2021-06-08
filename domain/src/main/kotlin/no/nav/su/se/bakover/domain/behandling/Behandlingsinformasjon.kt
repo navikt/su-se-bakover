@@ -373,7 +373,6 @@ data class Behandlingsinformasjon(
      * @param gjeldendeBosituasjon denne kan være null for søknadsbehandling, men ikke for revurdering.
      * */
     fun oppdaterBosituasjonOgEktefelle(
-        gjeldendeBosituasjon: Grunnlag.Bosituasjon?,
         nyBosituasjon: Grunnlag.Bosituasjon,
         hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
     ): Either<KunneIkkeHentePerson, Behandlingsinformasjon> {
@@ -436,24 +435,7 @@ data class Behandlingsinformasjon(
         return this.copy(
             bosituasjon = behandlingsinformasjonBosituasjon,
             ektefelle = behandlingsinformasjonBosituasjon.ektefelle,
-            formue = fjernEpsFormueHvisEpsHarEndretSeg(gjeldendeBosituasjon, nyBosituasjon),
         ).right()
-    }
-
-    private fun fjernEpsFormueHvisEpsHarEndretSeg(
-        gjeldendeBosituasjon: Grunnlag.Bosituasjon?,
-        nyBosituasjon: Grunnlag.Bosituasjon,
-    ): Formue? {
-        val gjeldendeEpsFnr: Fnr? =
-            (gjeldendeBosituasjon as? Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer)?.fnr
-                ?: (gjeldendeBosituasjon as? Grunnlag.Bosituasjon.Ufullstendig.HarEps)?.fnr
-        val nyEpsFnr: Fnr? = (nyBosituasjon as? Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer)?.fnr
-            ?: (nyBosituasjon as? Grunnlag.Bosituasjon.Ufullstendig.HarEps)?.fnr
-        return if (gjeldendeEpsFnr != nyEpsFnr) {
-            this.formue?.copy(
-                epsVerdier = null,
-            )
-        } else this.formue
     }
 
     private fun hentEktefelle(
