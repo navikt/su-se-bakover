@@ -472,4 +472,8 @@ data class Behandlingsinformasjon(
             skjermet = eps.skjermet,
         ).right()
     }
+
+    fun harEpsFormue(): Boolean {
+        return formue?.epsVerdier != null
+    }
 }
