@@ -1,6 +1,6 @@
 name: Deploy branch to dev-fss [manual deploy]
 # If you want to deploy a branch (feature branch or even redeploy master/main) to dev-fss (preprod) we use github actions workflow_dispatch
-# Goto https://github.com/navikt/su-se-bakover/actions/workflows/branch-deploy.yml chose a branch and deploy it
+# Goto https://github.com/navikt/su-se-bakover/actions/workflows/branch-deploy.yml choose a branch and deploy it
 # See: https://docs.github.com/en/actions/reference/events-that-trigger-workflows#workflow_dispatch
 on: workflow_dispatch
 

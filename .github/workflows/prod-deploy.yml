@@ -1,4 +1,4 @@
-name: Manuell deploy til prod
+name: Deploy to prod automatically on published release
 
 on:
   release:
