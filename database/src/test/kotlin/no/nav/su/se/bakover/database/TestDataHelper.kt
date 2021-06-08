@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database
 
 import arrow.core.nonEmptyListOf
+import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.desember
@@ -309,6 +310,30 @@ internal class TestDataHelper(
         )
     }
 
+    fun vedtakForRevurdering(revurdering: RevurderingTilAttestering.Innvilget): Pair<Vedtak.EndringIYtelse, Utbetaling> {
+        val utbetalingId = UUID30.randomUUID()
+
+        val utbetaling = oversendtUtbetalingUtenKvittering(
+            revurdering = revurdering,
+            avstemmingsnøkkel = avstemmingsnøkkel,
+            utbetalingslinjer = listOf(utbetalingslinje()),
+        ).copy(id = utbetalingId)
+
+        utbetalingRepo.opprettUtbetaling(utbetaling)
+
+        return Pair(
+            Vedtak.from(
+                revurdering = revurdering.tilIverksatt(
+                    attestant = attestant,
+                ) { utbetaling.id.right() }.orNull()!!,
+                utbetalingId = utbetaling.id,
+            ).also {
+                vedtakRepo.lagre(it)
+            },
+            utbetaling,
+        )
+    }
+
     fun nyRevurdering(innvilget: Vedtak.EndringIYtelse, periode: Periode, epsFnr: Fnr? = null): OpprettetRevurdering {
         val revurderingId = UUID.randomUUID()
         val grunnlagsdata = if (epsFnr == null) Grunnlagsdata.EMPTY else Grunnlagsdata(
@@ -319,7 +344,7 @@ internal class TestDataHelper(
                     opprettet = fixedTidspunkt,
                     periode = stønadsperiode.periode,
                     begrunnelse = null,
-                )
+                ),
             ),
         )
 

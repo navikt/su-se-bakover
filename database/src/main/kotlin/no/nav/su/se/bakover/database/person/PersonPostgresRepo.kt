@@ -13,13 +13,15 @@ internal class PersonPostgresRepo(
     override fun hentFnrForSak(sakId: UUID): List<Fnr> {
         return dataSource.withSession { session ->
             """
-               SELECT
-                   sak.fnr søkersFnr,
-                   eps_fnr epsFnr
-               FROM sak
-               LEFT JOIN behandling ON behandling.sakid = sak.id
-               LEFT JOIN grunnlag_bosituasjon ON grunnlag_bosituasjon.behandlingId = behandling.id
-               WHERE sak.id=:sakId
+                SELECT
+                    s.fnr søkersFnr,
+                    eps_fnr epsFnr
+                FROM sak s
+                 LEFT JOIN behandling b ON b.sakid = s.id
+                 LEFT JOIN behandling_vedtak bv on bv.sakId = s.id
+                 LEFT JOIN revurdering r ON r.vedtaksomrevurderesid = bv.vedtakid
+                 LEFT JOIN grunnlag_bosituasjon gb ON gb.behandlingId IN (b.id, r.id)
+               WHERE s.id=:sakId
 |           """
                 .trimMargin()
                 .hentListe(mapOf("sakId" to sakId), session) {
