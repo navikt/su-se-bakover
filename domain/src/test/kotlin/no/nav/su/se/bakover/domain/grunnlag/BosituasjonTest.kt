@@ -9,7 +9,7 @@ import no.nav.su.se.bakover.domain.FnrGenerator
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-class BosituasjonTest {
+internal class BosituasjonTest {
 
     @Test
     fun `viser om søker har ektefelle eller ikke`() {
