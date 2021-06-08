@@ -219,7 +219,6 @@ internal class RevurderingServiceImpl(
             }
         }
 
-        // TODO jah: Vi trenger fremdeles behandlingsinformasjon for å utlede sats, så den må ligge inntil vi har flyttet den modellen/logikken til Vilkår
         val oppdatertBehandlingsinformasjon = revurdering.oppdaterBehandlingsinformasjon(
             revurdering.behandlingsinformasjon.copy(
                 uførhet = uførevilkår.vurderingsperioder.firstOrNull()?.let {
@@ -313,7 +312,14 @@ internal class RevurderingServiceImpl(
             grunnlagService.lagreBosituasjongrunnlag(revurdering.id, listOf(bosituasjongrunnlag))
             revurderingRepo.lagre(
                 it.copy(
-                    informasjonSomRevurderes = it.informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Bosituasjon),
+                    informasjonSomRevurderes = it.informasjonSomRevurderes
+                        .markerSomVurdert(Revurderingsteg.Bosituasjon).let {
+                            if (bosituasjongrunnlag.harEndretEllerFjernetEktefelle(revurdering.tilRevurdering.behandling.grunnlagsdata.bosituasjon.singleOrThrow())) {
+                                it.markerSomIkkeVurdert(Revurderingsteg.Inntekt)
+                            } else {
+                                it
+                            }
+                        },
                 ),
             )
         }

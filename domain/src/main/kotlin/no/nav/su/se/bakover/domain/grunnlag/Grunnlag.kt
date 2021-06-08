@@ -200,6 +200,24 @@ sealed class Grunnlag {
         fun harEktefelle(): Boolean {
             return this is Fullstendig.EktefellePartnerSamboer || this is Ufullstendig.HarEps
         }
+
+        fun harEndretEllerFjernetEktefelle(gjeldendeBosituasjon: Bosituasjon): Boolean {
+            val gjeldendeEpsFnr: Fnr? =
+                (gjeldendeBosituasjon as? Fullstendig.EktefellePartnerSamboer)?.fnr
+                    ?: (gjeldendeBosituasjon as? Ufullstendig.HarEps)?.fnr
+            val nyEpsFnr: Fnr? = (this as? Fullstendig.EktefellePartnerSamboer)?.fnr
+                ?: (this as? Ufullstendig.HarEps)?.fnr
+
+            // begge er null eller samme fnr -> ingen endring
+            if (gjeldendeEpsFnr == nyEpsFnr) {
+                return false
+            }
+            // gjeldende er null -> ingen endring
+            if (gjeldendeEpsFnr == null) {
+                return false
+            }
+            return true
+        }
     }
 }
 
