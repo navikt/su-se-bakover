@@ -247,7 +247,20 @@ data class Behandlingsinformasjon(
             val pengerSkyldt: Int?,
             val kontanter: Int?,
             val depositumskonto: Int?,
-        )
+        ) {
+            fun sumVerdierStørreEnn0(): Boolean = sumVerdier() > 0
+
+            private fun sumVerdier(): Int {
+                return (verdiIkkePrimærbolig ?: 0) +
+                    (verdiEiendommer ?: 0) +
+                    (verdiKjøretøy ?: 0) +
+                    (innskudd ?: 0) +
+                    (verdipapir ?: 0) +
+                    (pengerSkyldt ?: 0) +
+                    (kontanter ?: 0) +
+                    (depositumskonto ?: 0)
+            }
+        }
 
         enum class Status {
             VilkårOppfylt,
@@ -260,6 +273,10 @@ data class Behandlingsinformasjon(
 
         override fun avslagsgrunn(): Avslagsgrunn? =
             if (erVilkårIkkeOppfylt()) Avslagsgrunn.FORMUE else null
+
+        fun harEpsFormue(): Boolean {
+            return epsVerdier?.sumVerdierStørreEnn0() == true
+        }
     }
 
     data class PersonligOppmøte(
@@ -456,6 +473,6 @@ data class Behandlingsinformasjon(
     }
 
     fun harEpsFormue(): Boolean {
-        return formue?.epsVerdier != null
+        return formue?.harEpsFormue() == true
     }
 }
