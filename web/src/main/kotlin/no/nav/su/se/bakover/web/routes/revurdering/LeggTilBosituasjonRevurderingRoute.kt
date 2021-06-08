@@ -73,4 +73,8 @@ private fun KunneIkkeLeggeTilBosituasjongrunnlag.tilResultat() = when (this) {
         "ugyldig data",
         "ugyldig_data",
     )
+    KunneIkkeLeggeTilBosituasjongrunnlag.GjeldendeEpsHarFormue -> HttpStatusCode.BadRequest.errorJson(
+        "Gjeldende EPS har formue. Denne sperren fjernes når vi kan revurdere formue.",
+        "gjeldende_eps_har_formue",
+    )
 }

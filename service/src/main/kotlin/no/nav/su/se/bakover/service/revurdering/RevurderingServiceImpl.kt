@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.harEktefelle
 import no.nav.su.se.bakover.domain.grunnlag.harFlerEnnEnBosituasjonsperiode
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
+import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -218,7 +219,6 @@ internal class RevurderingServiceImpl(
             }
         }
 
-        // TODO jah: Vi trenger fremdeles behandlingsinformasjon for å utlede sats, så den må ligge inntil vi har flyttet den modellen/logikken til Vilkår
         val oppdatertBehandlingsinformasjon = revurdering.oppdaterBehandlingsinformasjon(
             revurdering.behandlingsinformasjon.copy(
                 uførhet = uførevilkår.vurderingsperioder.firstOrNull()?.let {
@@ -287,7 +287,7 @@ internal class RevurderingServiceImpl(
         if ((request.epsFnr == null && request.delerBolig == null) || (request.epsFnr != null && request.delerBolig != null)) {
             return KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigData.left()
         }
-
+        val gjeldendeBosituasjon = revurdering.tilRevurdering.behandling.grunnlagsdata.bosituasjon.singleOrThrow()
         val bosituasjongrunnlag =
             request.toDomain(
                 periode = revurdering.periode,
@@ -297,10 +297,17 @@ internal class RevurderingServiceImpl(
             }.getOrHandle {
                 return it.left()
             }
+        // Vi ønsker ikke endre eller fjerne EPS dersom dette påvirker EPS sin gjeldende formue.
+        // TODO jah: Fjernes når vi kan revurdere formue
+        if (bosituasjongrunnlag.harEndretEllerFjernetEktefelle(gjeldendeBosituasjon) && revurdering.behandlingsinformasjon.harEpsFormue()) {
+            return KunneIkkeLeggeTilBosituasjongrunnlag.GjeldendeEpsHarFormue.left()
+        }
 
         // TODO jah: Vi bør se på å fjerne behandlingsinformasjon fra revurdering, og muligens vedtaket.
         revurdering.oppdaterBehandlingsinformasjon(
-            revurdering.behandlingsinformasjon.oppdaterBosituasjonOgEktefelle(bosituasjongrunnlag) {
+            revurdering.behandlingsinformasjon.oppdaterBosituasjonOgEktefelle(
+                bosituasjon = bosituasjongrunnlag,
+            ) {
                 personService.hentPerson(it)
             }.getOrHandle {
                 return KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeSlåOppEPS.left()
@@ -309,7 +316,14 @@ internal class RevurderingServiceImpl(
             grunnlagService.lagreBosituasjongrunnlag(revurdering.id, listOf(bosituasjongrunnlag))
             revurderingRepo.lagre(
                 it.copy(
-                    informasjonSomRevurderes = it.informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Bosituasjon),
+                    informasjonSomRevurderes = it.informasjonSomRevurderes
+                        .markerSomVurdert(Revurderingsteg.Bosituasjon).let {
+                            if (bosituasjongrunnlag.harEndretEllerFjernetEktefelle(gjeldendeBosituasjon)) {
+                                it.markerSomIkkeVurdert(Revurderingsteg.Inntekt)
+                            } else {
+                                it
+                            }
+                        },
                 ),
             )
         }
@@ -430,6 +444,7 @@ internal class RevurderingServiceImpl(
                             is Revurdering.KunneIkkeBeregneRevurdering.UgyldigBeregningsgrunnlag -> KunneIkkeBeregneOgSimulereRevurdering.UgyldigBeregningsgrunnlag(
                                 it.reason,
                             )
+                            Revurdering.KunneIkkeBeregneRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps -> KunneIkkeBeregneOgSimulereRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps
                         }.left()
                     }
                 val feilmeldinger = identifiserUtfallSomIkkeStøttes(

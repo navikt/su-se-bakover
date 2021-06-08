@@ -182,6 +182,7 @@ sealed class KunneIkkeBeregneOgSimulereRevurdering {
     ) : KunneIkkeBeregneOgSimulereRevurdering()
 
     object UfullstendigVilkårsvurdering : KunneIkkeBeregneOgSimulereRevurdering()
+    object KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps : KunneIkkeBeregneOgSimulereRevurdering()
 }
 
 sealed class KunneIkkeForhåndsvarsle {
@@ -267,6 +268,7 @@ sealed class KunneIkkeLeggeTilBosituasjongrunnlag {
     object UgyldigData : KunneIkkeLeggeTilBosituasjongrunnlag()
     object KunneIkkeSlåOppEPS : KunneIkkeLeggeTilBosituasjongrunnlag()
     object EpsAlderErNull : KunneIkkeLeggeTilBosituasjongrunnlag()
+    object GjeldendeEpsHarFormue : KunneIkkeLeggeTilBosituasjongrunnlag()
 }
 
 sealed class KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger {

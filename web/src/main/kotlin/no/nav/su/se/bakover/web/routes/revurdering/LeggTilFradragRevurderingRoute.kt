@@ -18,7 +18,7 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.Resultat
 import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
-import no.nav.su.se.bakover.web.routes.Feilresponser.harIkkeEktefelle
+import no.nav.su.se.bakover.web.routes.Feilresponser.kanIkkeHaEpsFradragUtenEps
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson.Companion.toFradrag
 import no.nav.su.se.bakover.web.sikkerlogg
@@ -62,9 +62,9 @@ internal fun Route.leggTilFradragRevurdering(
                                         )
                                         KunneIkkeLeggeTilFradragsgrunnlag.UgyldigFradragstypeForGrunnlag -> BadRequest.errorJson(
                                             "ugyldig fradragstype",
-                                            "fradrag_ugyldig_fradragstype"
+                                            "fradrag_ugyldig_fradragstype",
                                         )
-                                        KunneIkkeLeggeTilFradragsgrunnlag.HarIkkeEktelle -> harIkkeEktefelle
+                                        KunneIkkeLeggeTilFradragsgrunnlag.HarIkkeEktelle -> kanIkkeHaEpsFradragUtenEps
                                     }
                                 }.map {
                                     call.sikkerlogg("Lagret fradrag for revudering $revurderingId på $sakId")

@@ -247,7 +247,20 @@ data class Behandlingsinformasjon(
             val pengerSkyldt: Int?,
             val kontanter: Int?,
             val depositumskonto: Int?,
-        )
+        ) {
+            fun erVerdierStørreEnn0(): Boolean = sumVerdier() > 0
+
+            private fun sumVerdier(): Int {
+                return (verdiIkkePrimærbolig ?: 0) +
+                    (verdiEiendommer ?: 0) +
+                    (verdiKjøretøy ?: 0) +
+                    (innskudd ?: 0) +
+                    (verdipapir ?: 0) +
+                    (pengerSkyldt ?: 0) +
+                    (kontanter ?: 0) +
+                    (depositumskonto ?: 0)
+            }
+        }
 
         enum class Status {
             VilkårOppfylt,
@@ -260,6 +273,10 @@ data class Behandlingsinformasjon(
 
         override fun avslagsgrunn(): Avslagsgrunn? =
             if (erVilkårIkkeOppfylt()) Avslagsgrunn.FORMUE else null
+
+        fun harEpsFormue(): Boolean {
+            return epsVerdier?.erVerdierStørreEnn0() == true
+        }
     }
 
     data class PersonligOppmøte(
@@ -365,7 +382,10 @@ data class Behandlingsinformasjon(
         )
     }
 
-    /** Midlertidig migreringsfunksjon fra Behandlingsinformasjon + Grunnlag.Bosituasjon -> Behandlingsinformasjon */
+    /**
+     * Midlertidig migreringsfunksjon fra Behandlingsinformasjon + Grunnlag.Bosituasjon -> Behandlingsinformasjon
+     * Behandlingsinformasjonen ligger blant annet i Vedtaket inntil videre.
+     * */
     fun oppdaterBosituasjonOgEktefelle(
         bosituasjon: Grunnlag.Bosituasjon,
         hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
@@ -447,5 +467,9 @@ data class Behandlingsinformasjon(
             adressebeskyttelse = eps.adressebeskyttelse,
             skjermet = eps.skjermet,
         ).right()
+    }
+
+    fun harEpsFormue(): Boolean {
+        return formue?.harEpsFormue() == true
     }
 }

@@ -47,8 +47,8 @@ internal object Feilresponser {
         "Inneholder ikke et gyldig fødselsnummer",
         "ikke_gyldig_fødselsnummer",
     )
-    val harIkkeEktefelle = HttpStatusCode.BadRequest.errorJson(
-        "Kan ikke legge til fradrag på ektefelle når bruker ikke har ektefelle.",
-        "har_ikke_ektefelle"
+    val kanIkkeHaEpsFradragUtenEps = HttpStatusCode.BadRequest.errorJson(
+        "Kan ikke ha fradrag knyttet til EPS når bruker ikke har EPS.",
+        "kan_ikke_ha_eps_fradrag_uten_eps",
     )
 }

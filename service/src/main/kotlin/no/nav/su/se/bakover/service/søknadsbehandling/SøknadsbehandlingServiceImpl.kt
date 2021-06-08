@@ -565,7 +565,7 @@ internal class SøknadsbehandlingServiceImpl(
             SøknadsbehandlingService.VilkårsvurderRequest(
                 behandlingId = søknadsbehandling.id,
                 behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon.oppdaterBosituasjonOgEktefelle(
-                    bosituasjon,
+                    bosituasjon = bosituasjon,
                 ) {
                     personService.hentPerson(it)
                 }.getOrHandle { return KunneIkkeLeggeTilBosituasjonEpsGrunnlag.KlarteIkkeHentePersonIPdl.left() },
@@ -601,7 +601,7 @@ internal class SøknadsbehandlingServiceImpl(
             SøknadsbehandlingService.VilkårsvurderRequest(
                 behandlingId = søknadsbehandling.id,
                 behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon.oppdaterBosituasjonOgEktefelle(
-                    bosituasjon,
+                    bosituasjon = bosituasjon,
                 ) {
                     personService.hentPerson(it)
                 }.getOrHandle { return KunneIkkeFullføreBosituasjonGrunnlag.KlarteIkkeHentePersonIPdl.left() },
