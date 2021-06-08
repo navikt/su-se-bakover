@@ -306,7 +306,7 @@ internal class RevurderingServiceImpl(
         // TODO jah: Vi bør se på å fjerne behandlingsinformasjon fra revurdering, og muligens vedtaket.
         revurdering.oppdaterBehandlingsinformasjon(
             revurdering.behandlingsinformasjon.oppdaterBosituasjonOgEktefelle(
-                nyBosituasjon = bosituasjongrunnlag,
+                bosituasjon = bosituasjongrunnlag,
             ) {
                 personService.hentPerson(it)
             }.getOrHandle {

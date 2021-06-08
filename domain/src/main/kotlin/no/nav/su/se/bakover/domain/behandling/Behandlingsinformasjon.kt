@@ -248,7 +248,7 @@ data class Behandlingsinformasjon(
             val kontanter: Int?,
             val depositumskonto: Int?,
         ) {
-            fun sumVerdierStørreEnn0(): Boolean = sumVerdier() > 0
+            fun erVerdierStørreEnn0(): Boolean = sumVerdier() > 0
 
             private fun sumVerdier(): Int {
                 return (verdiIkkePrimærbolig ?: 0) +
@@ -275,7 +275,7 @@ data class Behandlingsinformasjon(
             if (erVilkårIkkeOppfylt()) Avslagsgrunn.FORMUE else null
 
         fun harEpsFormue(): Boolean {
-            return epsVerdier?.sumVerdierStørreEnn0() == true
+            return epsVerdier?.erVerdierStørreEnn0() == true
         }
     }
 
@@ -385,17 +385,14 @@ data class Behandlingsinformasjon(
     /**
      * Midlertidig migreringsfunksjon fra Behandlingsinformasjon + Grunnlag.Bosituasjon -> Behandlingsinformasjon
      * Behandlingsinformasjonen ligger blant annet i Vedtaket inntil videre.
-     *
-     * Dersom fnr har endret seg, fjernes EPS sin formue.
-     * @param gjeldendeBosituasjon denne kan være null for søknadsbehandling, men ikke for revurdering.
      * */
     fun oppdaterBosituasjonOgEktefelle(
-        nyBosituasjon: Grunnlag.Bosituasjon,
+        bosituasjon: Grunnlag.Bosituasjon,
         hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
     ): Either<KunneIkkeHentePerson, Behandlingsinformasjon> {
-        val behandlingsinformasjonBosituasjon = when (nyBosituasjon) {
+        val behandlingsinformasjonBosituasjon = when (bosituasjon) {
             is Grunnlag.Bosituasjon.Ufullstendig.HarEps -> Bosituasjon(
-                ektefelle = hentEktefelle(nyBosituasjon.fnr, hentPerson).getOrHandle { return it.left() },
+                ektefelle = hentEktefelle(bosituasjon.fnr, hentPerson).getOrHandle { return it.left() },
                 delerBolig = null,
                 ektemakeEllerSamboerUførFlyktning = null,
                 begrunnelse = null,
@@ -413,7 +410,7 @@ data class Behandlingsinformasjon(
                     ektefelle = EktefellePartnerSamboer.IngenEktefelle,
                     delerBolig = true,
                     ektemakeEllerSamboerUførFlyktning = null,
-                    begrunnelse = nyBosituasjon.begrunnelse,
+                    begrunnelse = bosituasjon.begrunnelse,
                 )
             }
             is Grunnlag.Bosituasjon.Fullstendig.Enslig -> {
@@ -421,31 +418,31 @@ data class Behandlingsinformasjon(
                     ektefelle = EktefellePartnerSamboer.IngenEktefelle,
                     delerBolig = false,
                     ektemakeEllerSamboerUførFlyktning = null,
-                    begrunnelse = nyBosituasjon.begrunnelse,
+                    begrunnelse = bosituasjon.begrunnelse,
                 )
             }
             is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre -> {
                 Bosituasjon(
-                    ektefelle = hentEktefelle(nyBosituasjon.fnr, hentPerson).getOrHandle { return it.left() },
+                    ektefelle = hentEktefelle(bosituasjon.fnr, hentPerson).getOrHandle { return it.left() },
                     delerBolig = null,
                     ektemakeEllerSamboerUførFlyktning = null,
-                    begrunnelse = nyBosituasjon.begrunnelse,
+                    begrunnelse = bosituasjon.begrunnelse,
                 )
             }
             is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> {
                 Bosituasjon(
-                    ektefelle = hentEktefelle(nyBosituasjon.fnr, hentPerson).getOrHandle { return it.left() },
+                    ektefelle = hentEktefelle(bosituasjon.fnr, hentPerson).getOrHandle { return it.left() },
                     delerBolig = null,
                     ektemakeEllerSamboerUførFlyktning = false,
-                    begrunnelse = nyBosituasjon.begrunnelse,
+                    begrunnelse = bosituasjon.begrunnelse,
                 )
             }
             is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning -> {
                 Bosituasjon(
-                    ektefelle = hentEktefelle(nyBosituasjon.fnr, hentPerson).getOrHandle { return it.left() },
+                    ektefelle = hentEktefelle(bosituasjon.fnr, hentPerson).getOrHandle { return it.left() },
                     delerBolig = null,
                     ektemakeEllerSamboerUførFlyktning = true,
-                    begrunnelse = nyBosituasjon.begrunnelse,
+                    begrunnelse = bosituasjon.begrunnelse,
                 )
             }
         }
