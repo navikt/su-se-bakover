@@ -13,15 +13,22 @@ jobs:
       steps:
         - uses: actions/checkout@v2
           with:
-            ref: master
-        - uses: actions/checkout@v2
+            fetch-depth: 0
         - run: | # git merge-base returns 0 when master is ancestor, 1 if it is not (other positive numbers on error)
-            git merge-base --is-ancestor "$(git rev-parse origin/master)" HEAD
+            set +e
+            origin_master="$(git rev-parse origin/master)"
+            head="$(git rev-parse HEAD)"
+            echo "Hash for origin master: ${origin_master}. Hash for HEAD: ${head}."
+            merge_base="$(git merge-base $origin_master HEAD)"
+            echo "Merge-base: ${merge_base}"
+            git merge-base --is-ancestor $origin_master HEAD
             return_code=$?
             echo "Return code of 'git merge-base': ${return_code}"
             if [[ return_code -gt 0 ]]; then
-              echo "You have to merge origin/master before you can deploy a branch."; exit 1
+              echo "You have to merge origin/master before you can deploy a branch."
+              exit 1
             fi
+
    build:
       name: Gradle test build and conditional docker build push
       needs: verify-master-is-ancestor
