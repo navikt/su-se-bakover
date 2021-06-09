@@ -20,8 +20,8 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.KunneIkkeJournalføreOgDistribuereBrev
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.fullstendigOrThrow
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
@@ -327,7 +327,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                                 is Vilkår.Vurdert.Uførhet -> uførevilkår.grunnlag
                             },
                             bosituasjon = grunnlagsdata.bosituasjon.mapNotNull {
-                                (it as Grunnlag.Bosituasjon.Fullstendig).copy(
+                                (it.fullstendigOrThrow()).copy(
                                     CopyArgs.Snitt(periode),
                                 )
                             },
@@ -361,7 +361,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                                 objekter = grunnlagsdata.uføregrunnlag,
                             ).tidslinje,
                             bosituasjon = grunnlagsdata.bosituasjon.mapNotNull {
-                                (it as Grunnlag.Bosituasjon.Fullstendig).copy(
+                                (it.fullstendigOrThrow()).copy(
                                     CopyArgs.Snitt(args.periode),
                                 )
                             },

@@ -262,7 +262,7 @@ fun List<Grunnlag.Bosituasjon>.throwIfMultiple(): Grunnlag.Bosituasjon? {
     return this.firstOrNull()
 }
 
-private fun Grunnlag.Bosituasjon.fullstendigOrThrow(): Grunnlag.Bosituasjon.Fullstendig {
+fun Grunnlag.Bosituasjon.fullstendigOrThrow(): Grunnlag.Bosituasjon.Fullstendig {
     return (this as? Grunnlag.Bosituasjon.Fullstendig)
         ?: throw IllegalStateException("Forventet Grunnlag.Bosituasjon type Fullstendig, men var ${this::class.simpleName}")
 }
