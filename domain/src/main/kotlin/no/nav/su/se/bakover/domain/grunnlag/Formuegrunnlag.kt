@@ -8,12 +8,13 @@ import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import java.util.UUID
 
-data class Formuegrunnlag private constructor(
+data class Formuegrunnlag(
     override val id: UUID,
     override val periode: Periode,
     override val opprettet: Tidspunkt,
     val epsFormue: Verdier?,
     val søkersFormue: Verdier,
+    val begrunnelse: String?,
 ) : Grunnlag(), KanPlasseresPåTidslinje<Formuegrunnlag> {
     data class Verdier(
         val verdiIkkePrimærbolig: Int,
@@ -37,21 +38,25 @@ data class Formuegrunnlag private constructor(
         }
     }
 
-    fun tryCreate(
-        periode: Periode,
-        epsFormue: Verdier?,
-        søkersFormue: Verdier,
-    ): Either<KunneIkkeLageFormueGrunnlag, Formuegrunnlag> {
-        // kanskje sjekke at bosituasjon har eps for hele perioden hvis vi får inn epsformue her
-        // TODO Legg inn validering
+    companion object {
+        fun tryCreate(
+            periode: Periode,
+            epsFormue: Verdier?,
+            søkersFormue: Verdier,
+            begrunnelse: String?,
+        ): Either<KunneIkkeLageFormueGrunnlag, Formuegrunnlag> {
+            // kanskje sjekke at bosituasjon har eps for hele perioden hvis vi får inn epsformue her
+            // TODO Legg inn validering
 
-        return Formuegrunnlag(
-            id = UUID.randomUUID(),
-            periode = periode,
-            opprettet = Tidspunkt.now(),
-            epsFormue = epsFormue,
-            søkersFormue = søkersFormue,
-        ).right()
+            return Formuegrunnlag(
+                id = UUID.randomUUID(),
+                periode = periode,
+                opprettet = Tidspunkt.now(),
+                epsFormue = epsFormue,
+                søkersFormue = søkersFormue,
+                begrunnelse = begrunnelse,
+            ).right()
+        }
     }
 
     fun sumFormue(): Int = søkersFormue.sumVerdier() + (epsFormue?.sumVerdier() ?: 0)
