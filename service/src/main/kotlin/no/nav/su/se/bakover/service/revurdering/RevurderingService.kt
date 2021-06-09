@@ -86,6 +86,10 @@ interface RevurderingService {
         request: LeggTilBosituasjongrunnlagRequest,
     ): Either<KunneIkkeLeggeTilBosituasjongrunnlag, LeggTilBosituasjongrunnlagResponse>
 
+    fun leggTilFormuegrunnlag(
+        request: LeggTilFormuegrunnlagRequest,
+    ): Either<KunneIkkeLeggeTilFormuegrunnlag, Revurdering>
+
     fun hentGjeldendeGrunnlagsdataOgVilkårsvurderinger(
         revurderingId: UUID,
     ): Either<KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger, HentGjeldendeGrunnlagsdataOgVilkårsvurderingerResponse>
@@ -270,6 +274,10 @@ sealed class KunneIkkeLeggeTilBosituasjongrunnlag {
     object KunneIkkeSlåOppEPS : KunneIkkeLeggeTilBosituasjongrunnlag()
     object EpsAlderErNull : KunneIkkeLeggeTilBosituasjongrunnlag()
     object GjeldendeEpsHarFormue : KunneIkkeLeggeTilBosituasjongrunnlag()
+}
+
+sealed class KunneIkkeLeggeTilFormuegrunnlag {
+    object FantIkkeRevurdering : KunneIkkeLeggeTilFormuegrunnlag()
 }
 
 sealed class KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger {

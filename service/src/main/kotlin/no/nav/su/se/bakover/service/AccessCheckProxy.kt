@@ -53,6 +53,7 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeHenteGjeldendeGrunnlags
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLageBrevutkastForRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilBosituasjongrunnlag
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilFormuegrunnlag
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilFradragsgrunnlag
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilGrunnlag
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppdatereRevurdering
@@ -61,6 +62,7 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeSendeRevurderingTilAtte
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeUnderkjenneRevurdering
 import no.nav.su.se.bakover.service.revurdering.LeggTilBosituasjongrunnlagRequest
 import no.nav.su.se.bakover.service.revurdering.LeggTilBosituasjongrunnlagResponse
+import no.nav.su.se.bakover.service.revurdering.LeggTilFormuegrunnlagRequest
 import no.nav.su.se.bakover.service.revurdering.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.revurdering.LeggTilFradragsgrunnlagResponse
 import no.nav.su.se.bakover.service.revurdering.LeggTilUføregrunnlagResponse
@@ -498,6 +500,11 @@ open class AccessCheckProxy(
                 override fun leggTilBosituasjongrunnlag(request: LeggTilBosituasjongrunnlagRequest): Either<KunneIkkeLeggeTilBosituasjongrunnlag, LeggTilBosituasjongrunnlagResponse> {
                     assertHarTilgangTilRevurdering(request.revurderingId)
                     return services.revurdering.leggTilBosituasjongrunnlag(request)
+                }
+
+                override fun leggTilFormuegrunnlag(request: LeggTilFormuegrunnlagRequest): Either<KunneIkkeLeggeTilFormuegrunnlag, Revurdering> {
+                    assertHarTilgangTilRevurdering(request.revurderingId)
+                    return services.revurdering.leggTilFormuegrunnlag(request)
                 }
 
                 override fun hentGjeldendeGrunnlagsdataOgVilkårsvurderinger(revurderingId: UUID): Either<KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger, HentGjeldendeGrunnlagsdataOgVilkårsvurderingerResponse> {

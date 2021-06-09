@@ -328,6 +328,11 @@ internal class RevurderingServiceImpl(
         ).right()
     }
 
+    override fun leggTilFormuegrunnlag(request: LeggTilFormuegrunnlagRequest): Either<KunneIkkeLeggeTilFormuegrunnlag, Revurdering> {
+        log.error("TODO jah: Implement me.")
+        return KunneIkkeLeggeTilFormuegrunnlag.FantIkkeRevurdering.left()
+    }
+
     override fun hentGjeldendeGrunnlagsdataOgVilkårsvurderinger(revurderingId: UUID): Either<KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger, HentGjeldendeGrunnlagsdataOgVilkårsvurderingerResponse> {
         val revurdering = revurderingRepo.hent(revurderingId)
             ?: return KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger.FantIkkeBehandling.left()

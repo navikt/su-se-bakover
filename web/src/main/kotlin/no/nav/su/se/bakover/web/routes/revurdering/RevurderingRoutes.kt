@@ -33,5 +33,7 @@ internal fun Route.revurderingRoutes(
 
     LeggTilBosituasjonRevurderingRoute(revurderingService)
 
+    leggTilFormueRevurderingRoute(revurderingService)
+
     hentGrunnlagRevurderingRoutes(revurderingService)
 }
