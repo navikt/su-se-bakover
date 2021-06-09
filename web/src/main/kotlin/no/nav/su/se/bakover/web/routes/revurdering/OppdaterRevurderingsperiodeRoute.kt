@@ -90,7 +90,7 @@ private fun KunneIkkeOppdatereRevurdering.tilResultat(): Resultat {
         )
         KunneIkkeOppdatereRevurdering.MåVelgeInformasjonSomSkalRevurderes -> måVelgeInformasjonSomRevurderes
         KunneIkkeOppdatereRevurdering.FantIkkeSak -> fantIkkeSak
-        KunneIkkeOppdatereRevurdering.FantIngentingSomKanRevurderes -> fantIngenVedtakSomKanRevurderes
+        KunneIkkeOppdatereRevurdering.FantIngenVedtakSomKanRevurderes -> fantIngenVedtakSomKanRevurderes
         KunneIkkeOppdatereRevurdering.TidslinjeForVedtakErIkkeKontinuerlig -> tidslinjeForVedtakErIkkeKontinuerlig
     }
 }

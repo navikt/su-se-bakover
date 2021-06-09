@@ -46,7 +46,7 @@ internal class VedtakTest {
             grunnlagsdata = Grunnlagsdata(emptyList()),
             vilkårsvurderinger = Vilkårsvurderinger(uføre = Vilkår.IkkeVurdert.Uførhet),
         )
-        listOf(vedtak).lagTidslinje(Periode.create(1.januar(2021), 31.desember(2021))) shouldBe listOf(
+        listOf(vedtak).lagTidslinje(Periode.create(1.januar(2021), 31.desember(2021))).tidslinje shouldBe listOf(
             Vedtak.VedtakPåTidslinje(
                 opprettet = vedtak.opprettet,
                 periode = vedtak.periode,
@@ -79,7 +79,7 @@ internal class VedtakTest {
             grunnlagsdata = Grunnlagsdata(emptyList()),
             vilkårsvurderinger = Vilkårsvurderinger(uføre = Vilkår.IkkeVurdert.Uførhet),
         )
-        listOf(a, b).lagTidslinje(Periode.create(1.januar(2021), 31.desember(2021))) shouldBe listOf(
+        listOf(a, b).lagTidslinje(Periode.create(1.januar(2021), 31.desember(2021))).tidslinje shouldBe listOf(
             Vedtak.VedtakPåTidslinje(
                 opprettet = a.opprettet,
                 periode = Periode.create(1.januar(2021), 30.april(2021)),
@@ -156,7 +156,7 @@ internal class VedtakTest {
             ),
             vilkårsvurderinger = Vilkårsvurderinger(uføre = Vilkår.Vurdert.Uførhet.create(nonEmptyListOf(v2))),
         )
-        listOf(a, b).lagTidslinje(Periode.create(1.januar(2021), 31.desember(2021))).let { tidslinje ->
+        listOf(a, b).lagTidslinje(Periode.create(1.januar(2021), 31.desember(2021))).tidslinje.let { tidslinje ->
             tidslinje[0].let { vedtakPåTidslinje ->
                 vedtakPåTidslinje.originaltVedtak shouldBe a
                 vedtakPåTidslinje.opprettet shouldBe a.opprettet
@@ -259,7 +259,7 @@ internal class VedtakTest {
             vilkårsvurderinger = Vilkårsvurderinger(uføre = Vilkår.IkkeVurdert.Uførhet),
         )
 
-        listOf(a, b).lagTidslinje(periode = Periode.create(1.januar(2021), 31.desember(2021))) shouldBe listOf(
+        listOf(a, b).lagTidslinje(periode = Periode.create(1.januar(2021), 31.desember(2021))).tidslinje shouldBe listOf(
             Vedtak.VedtakPåTidslinje(
                 opprettet = b.opprettet,
                 periode = b.periode,

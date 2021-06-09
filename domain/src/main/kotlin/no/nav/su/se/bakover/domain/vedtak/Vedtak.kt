@@ -56,7 +56,7 @@ interface VedtakFelles {
     val periode: Periode
 }
 
-interface VedtakSomKanRevurderes : VedtakFelles {
+sealed interface VedtakSomKanRevurderes : VedtakFelles {
     val beregning: Beregning
 }
 
@@ -295,6 +295,12 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
         }
     }
 
+    /**
+     * Representerer et vedtak plassert på en tidslinje utledet fra vedtakenes temporale gyldighet.
+     * I denne sammenhen er et vedtak ansett som gyldig inntil det utløper eller overskrives (helt/delvis) av et nytt.
+     * Ved plassering på tidslinja gjennom [KanPlasseresPåTidslinje], er objektet ansvarlig for at alle periodiserbare
+     * opplysninger som ligger til grunn for vedtaket justeres i henhold til aktuell periode gitt av [CopyArgs.Tidslinje].
+     */
     data class VedtakPåTidslinje(
         override val opprettet: Tidspunkt,
         override val periode: Periode,
@@ -371,7 +377,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
 }
 
 // TODO: ("Må sees i sammenheng med evt endringer knyttet til hvilke vedtakstyper som legges til grunn for revurdering")
-fun List<VedtakSomKanRevurderes>.lagTidslinje(periode: Periode): List<Vedtak.VedtakPåTidslinje> =
+fun List<VedtakSomKanRevurderes>.lagTidslinje(periode: Periode): Tidslinje<Vedtak.VedtakPåTidslinje> =
     map {
         Vedtak.VedtakPåTidslinje(
             opprettet = it.opprettet,
@@ -385,7 +391,7 @@ fun List<VedtakSomKanRevurderes>.lagTidslinje(periode: Periode): List<Vedtak.Ved
         Tidslinje(
             periode = periode,
             objekter = it,
-        ).tidslinje
+        )
     }
 
 fun List<Vedtak.VedtakPåTidslinje>.vilkårsvurderinger(): Vilkårsvurderinger {

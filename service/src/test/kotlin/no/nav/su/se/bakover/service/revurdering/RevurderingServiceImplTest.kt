@@ -94,7 +94,6 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.saksbehandl
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.saksnummer
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.simulertRevurderingInnvilget
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.søknadsbehandlingVedtak
-import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.uføregrunnlag
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.vilkårsvurderinger
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.vurderingsperiodeUføre
 import no.nav.su.se.bakover.service.statistikk.Event

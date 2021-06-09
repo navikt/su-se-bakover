@@ -87,8 +87,12 @@ object ServiceBuilder {
             vilkårsvurderingRepo = databaseRepos.vilkårsvurderingRepo,
         )
 
-        val revurderingService = RevurderingServiceImpl(
+        val vedtakService = VedtakServiceImpl(
+            vedtakRepo = databaseRepos.vedtakRepo,
             sakService = sakService,
+        )
+
+        val revurderingService = RevurderingServiceImpl(
             utbetalingService = utbetalingService,
             revurderingRepo = databaseRepos.revurderingRepo,
             oppgaveService = oppgaveService,
@@ -100,15 +104,12 @@ object ServiceBuilder {
             ferdigstillVedtakService = ferdigstillVedtakService,
             vilkårsvurderingService = vilkårsvurderingService,
             grunnlagService = grunnlagService,
+            vedtakService = vedtakService,
         ).apply { addObserver(statistikkService) }
 
         val opprettVedtakssnapshotService = OpprettVedtakssnapshotService(databaseRepos.vedtakssnapshot)
 
         val toggleService = ToggleServiceImpl(unleash)
-
-        val vedtakService = VedtakServiceImpl(
-            vedtakRepo = databaseRepos.vedtakRepo,
-        )
 
         return Services(
             avstemming = AvstemmingServiceImpl(

@@ -1,14 +1,10 @@
-package no.nav.su.se.bakover.domain.revurdering
+package no.nav.su.se.bakover.domain.vedtak
 
 import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
-import no.nav.su.se.bakover.domain.vedtak.lagTidslinje
-import no.nav.su.se.bakover.domain.vedtak.vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.time.LocalDate
@@ -20,12 +16,13 @@ data class GjeldendeVedtaksdata(
 ) {
     val grunnlagsdata: Grunnlagsdata
     val vilkårsvurderinger: Vilkårsvurderinger
-    val gjeldendePeriodeTilOriginaltVedtak: Map<Periode, VedtakSomKanRevurderes>
 
-    private val vedtakstidslinje = vedtakListe
+    private val tidslinje = vedtakListe
         .lagTidslinje(periode)
 
-    private val vilkårsvurderingerFraTidslinje = vedtakstidslinje.vilkårsvurderinger()
+    private val vedtakPåTidslinje = tidslinje.tidslinje
+
+    private val vilkårsvurderingerFraTidslinje = vedtakPåTidslinje.vilkårsvurderinger()
 
     // Utleder grunnlagstyper som kan knyttes til vilkår via deres respektive vilkårsvurderinger
     private val uføreGrunnlagOgVilkår = when (val uførevilkår = vilkårsvurderingerFraTidslinje.uføre) {
@@ -33,7 +30,7 @@ data class GjeldendeVedtaksdata(
         is Vilkår.Vurdert.Uførhet -> Pair(uførevilkår.grunnlag, uførevilkår)
     }
 
-    private val fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag> = vedtakstidslinje.flatMap { it.fradrag }.map {
+    private val fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag> = vedtakPåTidslinje.flatMap { it.fradrag }.map {
         Grunnlag.Fradragsgrunnlag(id = UUID.randomUUID(), opprettet = Tidspunkt.now(), fradrag = it)
     }
 
@@ -45,14 +42,11 @@ data class GjeldendeVedtaksdata(
         vilkårsvurderinger = Vilkårsvurderinger(
             uføre = uføreGrunnlagOgVilkår.second,
         )
-        gjeldendePeriodeTilOriginaltVedtak = vedtakstidslinje.associate { it.periode to it.originaltVedtak }
     }
 
-    fun gjeldendeVedtakPåDato(dato: LocalDate): VedtakSomKanRevurderes? = gjeldendePeriodeTilOriginaltVedtak
-        .filter { dato.between(it.key) }
-        .minByOrNull { it.key.fraOgMed }?.value
+    fun gjeldendeVedtakPåDato(dato: LocalDate): VedtakSomKanRevurderes? = tidslinje.gjeldendeForDato(dato)?.originaltVedtak
 
-    fun tidslinjeForVedtakErSammenhengende() = gjeldendePeriodeTilOriginaltVedtak.keys
-        .zipWithNext { a, b -> a tilstøter b }
+    fun tidslinjeForVedtakErSammenhengende() = vedtakPåTidslinje
+        .zipWithNext { a, b -> a.periode tilstøter b.periode }
         .all { it }
 }

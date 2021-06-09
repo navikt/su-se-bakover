@@ -24,13 +24,15 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
+import org.junit.jupiter.api.assertThrows
 import java.time.Clock
 import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit.DAYS
 
 private data class Tidslinjeobjekt(
     override val opprettet: Tidspunkt,
-    override val periode: Periode
+    override val periode: Periode,
 ) : KanPlasseresPåTidslinje<Tidslinjeobjekt> {
     override fun copy(args: CopyArgs.Tidslinje): Tidslinjeobjekt = when (args) {
         CopyArgs.Tidslinje.Full -> this.copy()
@@ -52,34 +54,41 @@ internal class TidslinjeTest {
             opprettet = Tidspunkt.now(fixedClock),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 31.desember(2021)
-            )
+                tilOgMed = 31.desember(2021),
+            ),
         )
 
         val b = Tidslinjeobjekt(
             opprettet = Tidspunkt.now(fixedClock).plus(1, DAYS),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 31.desember(2021)
-            )
+                tilOgMed = 31.desember(2021),
+            ),
         )
 
         Tidslinje(
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 31.desember(2021)
+                tilOgMed = 31.desember(2021),
             ),
             objekter = listOf(a, b),
-            clock = fixedClock
-        ).tidslinje shouldBe listOf(
-            Tidslinjeobjekt(
+            clock = fixedClock,
+        ).let {
+            val expected = Tidslinjeobjekt(
                 opprettet = b.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.januar(2021),
-                    tilOgMed = 31.desember(2021)
-                )
+                    tilOgMed = 31.desember(2021),
+                ),
             )
-        )
+            it.tidslinje shouldBe listOf(expected)
+
+            it.gjeldendeForDato(1.januar(2021)) shouldBe expected
+            it.gjeldendeForDato(31.juli(2021)) shouldBe expected
+            it.gjeldendeForDato(31.desember(2021)) shouldBe expected
+            it.gjeldendeForDato(1.januar(2020)) shouldBe null
+            it.gjeldendeForDato(31.desember(2020)) shouldBe null
+        }
     }
 
     /**
@@ -93,40 +102,40 @@ internal class TidslinjeTest {
             opprettet = Tidspunkt.now(fixedClock),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 30.april(2021)
-            )
+                tilOgMed = 30.april(2021),
+            ),
         )
 
         val b = Tidslinjeobjekt(
             opprettet = Tidspunkt.now(fixedClock).plus(1, DAYS),
             periode = Periode.create(
                 fraOgMed = 1.mai(2021),
-                tilOgMed = 31.desember(2021)
-            )
+                tilOgMed = 31.desember(2021),
+            ),
         )
 
         Tidslinje(
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 31.desember(2021)
+                tilOgMed = 31.desember(2021),
             ),
             objekter = listOf(b, a),
-            clock = fixedClock
+            clock = fixedClock,
         ).tidslinje shouldBe listOf(
             Tidslinjeobjekt(
                 opprettet = a.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.januar(2021),
-                    tilOgMed = 30.april(2021)
-                )
+                    tilOgMed = 30.april(2021),
+                ),
             ),
             Tidslinjeobjekt(
                 opprettet = b.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.mai(2021),
-                    tilOgMed = 31.desember(2021)
-                )
-            )
+                    tilOgMed = 31.desember(2021),
+                ),
+            ),
         )
     }
 
@@ -141,40 +150,40 @@ internal class TidslinjeTest {
             opprettet = Tidspunkt.now(fixedClock),
             periode = Periode.create(
                 fraOgMed = 1.mai(2021),
-                tilOgMed = 31.desember(2021)
-            )
+                tilOgMed = 31.desember(2021),
+            ),
         )
 
         val b = Tidslinjeobjekt(
             opprettet = Tidspunkt.now(fixedClock).plus(1, DAYS),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 30.april(2021)
-            )
+                tilOgMed = 30.april(2021),
+            ),
         )
 
         Tidslinje(
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 31.desember(2021)
+                tilOgMed = 31.desember(2021),
             ),
             objekter = listOf(a, b),
-            clock = fixedClock
+            clock = fixedClock,
         ).tidslinje shouldBe listOf(
             Tidslinjeobjekt(
                 opprettet = b.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.januar(2021),
-                    tilOgMed = 30.april(2021)
-                )
+                    tilOgMed = 30.april(2021),
+                ),
             ),
             Tidslinjeobjekt(
                 opprettet = a.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.mai(2021),
-                    tilOgMed = 31.desember(2021)
-                )
-            )
+                    tilOgMed = 31.desember(2021),
+                ),
+            ),
         )
     }
 
@@ -189,40 +198,40 @@ internal class TidslinjeTest {
             opprettet = Tidspunkt.now(fixedClock),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 31.juli(2021)
-            )
+                tilOgMed = 31.juli(2021),
+            ),
         )
 
         val b = Tidslinjeobjekt(
             opprettet = Tidspunkt.now(fixedClock).plus(1, DAYS),
             periode = Periode.create(
                 fraOgMed = 1.april(2021),
-                tilOgMed = 31.desember(2021)
-            )
+                tilOgMed = 31.desember(2021),
+            ),
         )
 
         Tidslinje(
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 31.desember(2021)
+                tilOgMed = 31.desember(2021),
             ),
             objekter = listOf(a, b),
-            clock = fixedClock
+            clock = fixedClock,
         ).tidslinje shouldBe listOf(
             Tidslinjeobjekt(
                 opprettet = a.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.januar(2021),
-                    tilOgMed = 31.mars(2021)
-                )
+                    tilOgMed = 31.mars(2021),
+                ),
             ),
             Tidslinjeobjekt(
                 opprettet = b.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.april(2021),
-                    tilOgMed = 31.desember(2021)
-                )
-            )
+                    tilOgMed = 31.desember(2021),
+                ),
+            ),
         )
     }
 
@@ -237,40 +246,40 @@ internal class TidslinjeTest {
             opprettet = Tidspunkt.now(fixedClock),
             periode = Periode.create(
                 fraOgMed = 1.mars(2021),
-                tilOgMed = 31.desember(2021)
-            )
+                tilOgMed = 31.desember(2021),
+            ),
         )
 
         val b = Tidslinjeobjekt(
             opprettet = Tidspunkt.now(fixedClock).plus(1, DAYS),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 30.april(2021)
-            )
+                tilOgMed = 30.april(2021),
+            ),
         )
 
         Tidslinje(
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 31.desember(2021)
+                tilOgMed = 31.desember(2021),
             ),
             objekter = listOf(a, b),
-            clock = fixedClock
+            clock = fixedClock,
         ).tidslinje shouldBe listOf(
             Tidslinjeobjekt(
                 opprettet = b.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.januar(2021),
-                    tilOgMed = 30.april(2021)
-                )
+                    tilOgMed = 30.april(2021),
+                ),
             ),
             Tidslinjeobjekt(
                 opprettet = a.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.mai(2021),
-                    tilOgMed = 31.desember(2021)
-                )
-            )
+                    tilOgMed = 31.desember(2021),
+                ),
+            ),
         )
     }
 
@@ -285,40 +294,40 @@ internal class TidslinjeTest {
             opprettet = Tidspunkt.now(fixedClock),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 31.desember(2021)
-            )
+                tilOgMed = 31.desember(2021),
+            ),
         )
 
         val b = Tidslinjeobjekt(
             opprettet = Tidspunkt.now(fixedClock).plus(1, DAYS),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 31.mai(2021)
-            )
+                tilOgMed = 31.mai(2021),
+            ),
         )
 
         Tidslinje(
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 31.desember(2021)
+                tilOgMed = 31.desember(2021),
             ),
             objekter = listOf(b, a),
-            clock = fixedClock
+            clock = fixedClock,
         ).tidslinje shouldBe listOf(
             Tidslinjeobjekt(
                 opprettet = b.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.januar(2021),
-                    tilOgMed = 31.mai(2021)
-                )
+                    tilOgMed = 31.mai(2021),
+                ),
             ),
             Tidslinjeobjekt(
                 opprettet = a.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.juni(2021),
-                    tilOgMed = 31.desember(2021)
-                )
-            )
+                    tilOgMed = 31.desember(2021),
+                ),
+            ),
         )
     }
 
@@ -334,55 +343,55 @@ internal class TidslinjeTest {
             opprettet = Tidspunkt.now(fixedClock),
             periode = Periode.create(
                 fraOgMed = 1.februar(2021),
-                tilOgMed = 30.november(2021)
-            )
+                tilOgMed = 30.november(2021),
+            ),
         )
 
         val b = Tidslinjeobjekt(
             opprettet = Tidspunkt.now(fixedClock).plus(1, DAYS),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 28.februar(2021)
-            )
+                tilOgMed = 28.februar(2021),
+            ),
         )
 
         val c = Tidslinjeobjekt(
             opprettet = Tidspunkt.now(fixedClock).plus(2, DAYS),
             periode = Periode.create(
                 fraOgMed = 1.oktober(2021),
-                tilOgMed = 31.desember(2021)
-            )
+                tilOgMed = 31.desember(2021),
+            ),
         )
 
         Tidslinje(
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 31.desember(2021)
+                tilOgMed = 31.desember(2021),
             ),
             objekter = listOf(b, c, a),
-            clock = fixedClock
+            clock = fixedClock,
         ).tidslinje shouldBe listOf(
             Tidslinjeobjekt(
                 opprettet = b.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.januar(2021),
-                    tilOgMed = 28.februar(2021)
-                )
+                    tilOgMed = 28.februar(2021),
+                ),
             ),
             Tidslinjeobjekt(
                 opprettet = a.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.mars(2021),
-                    tilOgMed = 30.september(2021)
-                )
+                    tilOgMed = 30.september(2021),
+                ),
             ),
             Tidslinjeobjekt(
                 opprettet = c.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.oktober(2021),
-                    tilOgMed = 31.desember(2021)
-                )
-            )
+                    tilOgMed = 31.desember(2021),
+                ),
+            ),
         )
     }
 
@@ -399,71 +408,81 @@ internal class TidslinjeTest {
             opprettet = Tidspunkt.now(fixedClock),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 30.april(2021)
-            )
+                tilOgMed = 30.april(2021),
+            ),
         )
 
         val b = Tidslinjeobjekt(
             opprettet = Tidspunkt.now(fixedClock).plus(1, DAYS),
             periode = Periode.create(
                 fraOgMed = 1.mai(2021),
-                tilOgMed = 31.januar(2022)
-            )
+                tilOgMed = 31.januar(2022),
+            ),
         )
 
         val c = Tidslinjeobjekt(
             opprettet = Tidspunkt.now(fixedClock).plus(2, DAYS),
             periode = Periode.create(
                 fraOgMed = 1.mai(2021),
-                tilOgMed = 31.desember(2021)
-            )
+                tilOgMed = 31.desember(2021),
+            ),
         )
 
         val d = Tidslinjeobjekt(
             opprettet = Tidspunkt.now(fixedClock).plus(3, DAYS),
             periode = Periode.create(
                 fraOgMed = 1.juni(2021),
-                tilOgMed = 31.desember(2021)
-            )
+                tilOgMed = 31.desember(2021),
+            ),
         )
 
         Tidslinje(
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 31.desember(2022)
+                tilOgMed = 31.desember(2022),
             ),
             objekter = listOf(a, b, c, d),
-            clock = fixedClock
-        ).tidslinje shouldBe listOf(
-            Tidslinjeobjekt(
+            clock = fixedClock,
+        ).let {
+            val expecteda = Tidslinjeobjekt(
                 opprettet = a.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.januar(2021),
-                    tilOgMed = 30.april(2021)
-                )
-            ),
-            Tidslinjeobjekt(
+                    tilOgMed = 30.april(2021),
+                ),
+            )
+            val expectedc = Tidslinjeobjekt(
                 opprettet = c.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.mai(2021),
-                    tilOgMed = 31.mai(2021)
-                )
-            ),
-            Tidslinjeobjekt(
+                    tilOgMed = 31.mai(2021),
+                ),
+            )
+            val expectedd = Tidslinjeobjekt(
                 opprettet = d.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.juni(2021),
-                    tilOgMed = 31.desember(2021)
-                )
-            ),
-            Tidslinjeobjekt(
+                    tilOgMed = 31.desember(2021),
+                ),
+            )
+            val expectedb = Tidslinjeobjekt(
                 opprettet = b.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.januar(2022),
-                    tilOgMed = 31.januar(2022)
-                )
+                    tilOgMed = 31.januar(2022),
+                ),
             )
-        )
+            it.tidslinje shouldBe listOf(
+                expecteda,
+                expectedc,
+                expectedd,
+                expectedb,
+            )
+            it.gjeldendeForDato(1.januar(2021)) shouldBe expecteda
+            it.gjeldendeForDato(1.mai(2021)) shouldBe expectedc
+            it.gjeldendeForDato(1.juni(2021)) shouldBe expectedd
+            it.gjeldendeForDato(1.januar(2022)) shouldBe expectedb
+        }
     }
 
     /**
@@ -477,47 +496,47 @@ internal class TidslinjeTest {
             opprettet = Tidspunkt.now(fixedClock),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 31.desember(2021)
-            )
+                tilOgMed = 31.desember(2021),
+            ),
         )
 
         val b = Tidslinjeobjekt(
             opprettet = Tidspunkt.now(fixedClock).plus(1, DAYS),
             periode = Periode.create(
                 fraOgMed = 1.april(2021),
-                tilOgMed = 31.mai(2021)
-            )
+                tilOgMed = 31.mai(2021),
+            ),
         )
 
         Tidslinje(
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 31.desember(2021)
+                tilOgMed = 31.desember(2021),
             ),
             objekter = listOf(a, b),
-            clock = fixedClock
+            clock = fixedClock,
         ).tidslinje shouldBe listOf(
             Tidslinjeobjekt(
                 opprettet = a.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.januar(2021),
-                    tilOgMed = 31.mars(2021)
-                )
+                    tilOgMed = 31.mars(2021),
+                ),
             ),
             Tidslinjeobjekt(
                 opprettet = b.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.april(2021),
-                    tilOgMed = 31.mai(2021)
-                )
+                    tilOgMed = 31.mai(2021),
+                ),
             ),
             Tidslinjeobjekt(
                 opprettet = a.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.juni(2021),
-                    tilOgMed = 31.desember(2021)
-                )
-            )
+                    tilOgMed = 31.desember(2021),
+                ),
+            ),
         )
     }
 
@@ -532,40 +551,40 @@ internal class TidslinjeTest {
             opprettet = Tidspunkt.now(fixedClock),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 31.desember(2021)
-            )
+                tilOgMed = 31.desember(2021),
+            ),
         )
 
         val b = Tidslinjeobjekt(
             opprettet = Tidspunkt.now(fixedClock).plus(1, DAYS),
             periode = Periode.create(
                 fraOgMed = 1.april(2021),
-                tilOgMed = 31.desember(2021)
-            )
+                tilOgMed = 31.desember(2021),
+            ),
         )
 
         Tidslinje(
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 31.desember(2021)
+                tilOgMed = 31.desember(2021),
             ),
             objekter = listOf(a, b),
-            clock = fixedClock
+            clock = fixedClock,
         ).tidslinje shouldBe listOf(
             Tidslinjeobjekt(
                 opprettet = a.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.januar(2021),
-                    tilOgMed = 31.mars(2021)
-                )
+                    tilOgMed = 31.mars(2021),
+                ),
             ),
             Tidslinjeobjekt(
                 opprettet = b.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.april(2021),
-                    tilOgMed = 31.desember(2021)
-                )
-            )
+                    tilOgMed = 31.desember(2021),
+                ),
+            ),
         )
     }
 
@@ -582,63 +601,63 @@ internal class TidslinjeTest {
             opprettet = Tidspunkt.now(fixedClock),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 31.desember(2021)
-            )
+                tilOgMed = 31.desember(2021),
+            ),
         )
 
         val b = Tidslinjeobjekt(
             opprettet = Tidspunkt.now(fixedClock).plus(1, DAYS),
             periode = Periode.create(
                 fraOgMed = 1.juni(2021),
-                tilOgMed = 30.juni(2021)
-            )
+                tilOgMed = 30.juni(2021),
+            ),
         )
 
         val c = Tidslinjeobjekt(
             opprettet = Tidspunkt.now(fixedClock).plus(2, DAYS),
             periode = Periode.create(
                 fraOgMed = 1.juli(2021),
-                tilOgMed = 31.desember(2021)
-            )
+                tilOgMed = 31.desember(2021),
+            ),
         )
 
         val d = Tidslinjeobjekt(
             opprettet = Tidspunkt.now(fixedClock).plus(3, DAYS),
             periode = Periode.create(
                 fraOgMed = 1.mars(2021),
-                tilOgMed = 30.juni(2021)
-            )
+                tilOgMed = 30.juni(2021),
+            ),
         )
 
         Tidslinje(
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 31.desember(2021)
+                tilOgMed = 31.desember(2021),
             ),
             objekter = listOf(a, d, c, b),
-            clock = fixedClock
+            clock = fixedClock,
         ).tidslinje shouldBe listOf(
             Tidslinjeobjekt(
                 opprettet = a.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.januar(2021),
-                    tilOgMed = 28.februar(2021)
-                )
+                    tilOgMed = 28.februar(2021),
+                ),
             ),
             Tidslinjeobjekt(
                 opprettet = d.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.mars(2021),
-                    tilOgMed = 30.juni(2021)
-                )
+                    tilOgMed = 30.juni(2021),
+                ),
             ),
             Tidslinjeobjekt(
                 opprettet = c.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.juli(2021),
-                    tilOgMed = 31.desember(2021)
-                )
-            )
+                    tilOgMed = 31.desember(2021),
+                ),
+            ),
         )
     }
 
@@ -655,70 +674,70 @@ internal class TidslinjeTest {
             opprettet = Tidspunkt.now(fixedClock),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 31.desember(2021)
-            )
+                tilOgMed = 31.desember(2021),
+            ),
         )
 
         val b = Tidslinjeobjekt(
             opprettet = Tidspunkt.now(fixedClock).plus(1, DAYS),
             periode = Periode.create(
                 fraOgMed = 1.mars(2021),
-                tilOgMed = 30.april(2021)
-            )
+                tilOgMed = 30.april(2021),
+            ),
         )
 
         val c = Tidslinjeobjekt(
             opprettet = Tidspunkt.now(fixedClock).plus(2, DAYS),
             periode = Periode.create(
                 fraOgMed = 1.mai(2021),
-                tilOgMed = 31.juli(2021)
-            )
+                tilOgMed = 31.juli(2021),
+            ),
         )
 
         val d = Tidslinjeobjekt(
             opprettet = Tidspunkt.now(fixedClock).plus(3, DAYS),
             periode = Periode.create(
                 fraOgMed = 1.august(2021),
-                tilOgMed = 31.desember(2021)
-            )
+                tilOgMed = 31.desember(2021),
+            ),
         )
 
         Tidslinje(
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 31.desember(2021)
+                tilOgMed = 31.desember(2021),
             ),
             objekter = listOf(b, a, c, d),
-            clock = fixedClock
+            clock = fixedClock,
         ).tidslinje shouldBe listOf(
             Tidslinjeobjekt(
                 opprettet = a.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.januar(2021),
-                    tilOgMed = 28.februar(2021)
-                )
+                    tilOgMed = 28.februar(2021),
+                ),
             ),
             Tidslinjeobjekt(
                 opprettet = b.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.mars(2021),
-                    tilOgMed = 30.april(2021)
-                )
+                    tilOgMed = 30.april(2021),
+                ),
             ),
             Tidslinjeobjekt(
                 opprettet = c.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.mai(2021),
-                    tilOgMed = 31.juli(2021)
-                )
+                    tilOgMed = 31.juli(2021),
+                ),
             ),
             Tidslinjeobjekt(
                 opprettet = d.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.august(2021),
-                    tilOgMed = 31.desember(2021)
-                )
-            )
+                    tilOgMed = 31.desember(2021),
+                ),
+            ),
         )
     }
 
@@ -734,55 +753,55 @@ internal class TidslinjeTest {
             opprettet = Tidspunkt.now(fixedClock),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 31.desember(2021)
-            )
+                tilOgMed = 31.desember(2021),
+            ),
         )
 
         val b = Tidslinjeobjekt(
             opprettet = Tidspunkt.now(fixedClock).plus(1, DAYS),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 31.mars(2021)
-            )
+                tilOgMed = 31.mars(2021),
+            ),
         )
 
         val c = Tidslinjeobjekt(
             opprettet = Tidspunkt.now(fixedClock).plus(2, DAYS),
             periode = Periode.create(
                 fraOgMed = 1.juli(2021),
-                tilOgMed = 31.desember(2021)
-            )
+                tilOgMed = 31.desember(2021),
+            ),
         )
 
         Tidslinje(
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 31.desember(2021)
+                tilOgMed = 31.desember(2021),
             ),
             objekter = listOf(a, b, c),
-            clock = fixedClock
+            clock = fixedClock,
         ).tidslinje shouldBe listOf(
             Tidslinjeobjekt(
                 opprettet = b.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.januar(2021),
-                    tilOgMed = 31.mars(2021)
-                )
+                    tilOgMed = 31.mars(2021),
+                ),
             ),
             Tidslinjeobjekt(
                 opprettet = a.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.april(2021),
-                    tilOgMed = 30.juni(2021)
-                )
+                    tilOgMed = 30.juni(2021),
+                ),
             ),
             Tidslinjeobjekt(
                 opprettet = c.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.juli(2021),
-                    tilOgMed = 31.desember(2021)
-                )
-            )
+                    tilOgMed = 31.desember(2021),
+                ),
+            ),
         )
     }
 
@@ -797,40 +816,40 @@ internal class TidslinjeTest {
             opprettet = Tidspunkt.now(fixedClock),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 31.mars(2021)
-            )
+                tilOgMed = 31.mars(2021),
+            ),
         )
 
         val b = Tidslinjeobjekt(
             opprettet = Tidspunkt.now(fixedClock).plus(1, DAYS),
             periode = Periode.create(
                 fraOgMed = 1.juli(2021),
-                tilOgMed = 31.desember(2021)
-            )
+                tilOgMed = 31.desember(2021),
+            ),
         )
 
         Tidslinje(
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 31.desember(2021)
+                tilOgMed = 31.desember(2021),
             ),
             objekter = listOf(b, a),
-            clock = fixedClock
+            clock = fixedClock,
         ).tidslinje shouldBe listOf(
             Tidslinjeobjekt(
                 opprettet = a.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.januar(2021),
-                    tilOgMed = 31.mars(2021)
-                )
+                    tilOgMed = 31.mars(2021),
+                ),
             ),
             Tidslinjeobjekt(
                 opprettet = b.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.juli(2021),
-                    tilOgMed = 31.desember(2021)
-                )
-            )
+                    tilOgMed = 31.desember(2021),
+                ),
+            ),
         )
     }
 
@@ -847,49 +866,49 @@ internal class TidslinjeTest {
             opprettet = Tidspunkt.now(fixedClock),
             periode = Periode.create(
                 fraOgMed = 1.februar(2021),
-                tilOgMed = 31.desember(2021)
-            )
+                tilOgMed = 31.desember(2021),
+            ),
         )
 
         val b = Tidslinjeobjekt(
             opprettet = Tidspunkt.now(fixedClock).plus(1, DAYS),
             periode = Periode.create(
                 fraOgMed = 1.mars(2021),
-                tilOgMed = 31.desember(2021)
-            )
+                tilOgMed = 31.desember(2021),
+            ),
         )
 
         val c = Tidslinjeobjekt(
             opprettet = Tidspunkt.now(fixedClock).plus(2, DAYS),
             periode = Periode.create(
                 fraOgMed = 1.juli(2021),
-                tilOgMed = 31.desember(2021)
-            )
+                tilOgMed = 31.desember(2021),
+            ),
         )
 
         val d = Tidslinjeobjekt(
             opprettet = Tidspunkt.now(fixedClock).plus(3, DAYS),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 31.desember(2021)
-            )
+                tilOgMed = 31.desember(2021),
+            ),
         )
 
         Tidslinje(
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 31.desember(2021)
+                tilOgMed = 31.desember(2021),
             ),
             objekter = listOf(c, a, b, d),
-            clock = fixedClock
+            clock = fixedClock,
         ).tidslinje shouldBe listOf(
             Tidslinjeobjekt(
                 opprettet = d.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.januar(2021),
-                    tilOgMed = 31.desember(2021)
-                )
-            )
+                    tilOgMed = 31.desember(2021),
+                ),
+            ),
         )
     }
 
@@ -906,63 +925,63 @@ internal class TidslinjeTest {
             opprettet = Tidspunkt.now(fixedClock),
             periode = Periode.create(
                 fraOgMed = 1.februar(2021),
-                tilOgMed = 31.mai(2021)
-            )
+                tilOgMed = 31.mai(2021),
+            ),
         )
 
         val b = Tidslinjeobjekt(
             opprettet = Tidspunkt.now(fixedClock).plus(1, DAYS),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 30.juni(2021)
-            )
+                tilOgMed = 30.juni(2021),
+            ),
         )
 
         val c = Tidslinjeobjekt(
             opprettet = Tidspunkt.now(fixedClock).plus(2, DAYS),
             periode = Periode.create(
                 fraOgMed = 1.juni(2021),
-                tilOgMed = 31.desember(2021)
-            )
+                tilOgMed = 31.desember(2021),
+            ),
         )
 
         val d = Tidslinjeobjekt(
             opprettet = Tidspunkt.now(fixedClock).plus(3, DAYS),
             periode = Periode.create(
                 fraOgMed = 1.april(2021),
-                tilOgMed = 30.juni(2021)
-            )
+                tilOgMed = 30.juni(2021),
+            ),
         )
 
         Tidslinje(
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 31.desember(2021)
+                tilOgMed = 31.desember(2021),
             ),
             objekter = listOf(a, b, c, d),
-            clock = fixedClock
+            clock = fixedClock,
         ).tidslinje shouldBe listOf(
             Tidslinjeobjekt(
                 opprettet = b.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.januar(2021),
-                    tilOgMed = 31.mars(2021)
-                )
+                    tilOgMed = 31.mars(2021),
+                ),
             ),
             Tidslinjeobjekt(
                 opprettet = d.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.april(2021),
-                    tilOgMed = 30.juni(2021)
-                )
+                    tilOgMed = 30.juni(2021),
+                ),
             ),
             Tidslinjeobjekt(
                 opprettet = c.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.juli(2021),
-                    tilOgMed = 31.desember(2021)
-                )
-            )
+                    tilOgMed = 31.desember(2021),
+                ),
+            ),
         )
     }
 
@@ -978,62 +997,62 @@ internal class TidslinjeTest {
             opprettet = Tidspunkt.now(fixedClock),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 31.oktober(2021)
-            )
+                tilOgMed = 31.oktober(2021),
+            ),
         )
 
         val b = Tidslinjeobjekt(
             opprettet = Tidspunkt.now(fixedClock).plus(1, DAYS),
             periode = Periode.create(
                 fraOgMed = 1.mars(2021),
-                tilOgMed = 31.desember(2021)
-            )
+                tilOgMed = 31.desember(2021),
+            ),
         )
 
         val c = Tidslinjeobjekt(
             opprettet = Tidspunkt.now(fixedClock).plus(2, DAYS),
             periode = Periode.create(
                 fraOgMed = 1.juni(2021),
-                tilOgMed = 31.juli(2021)
-            )
+                tilOgMed = 31.juli(2021),
+            ),
         )
 
         Tidslinje(
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 31.desember(2021)
+                tilOgMed = 31.desember(2021),
             ),
             objekter = listOf(a, b, c),
-            clock = fixedClock
+            clock = fixedClock,
         ).tidslinje shouldBe listOf(
             Tidslinjeobjekt(
                 opprettet = a.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.januar(2021),
-                    tilOgMed = 28.februar(2021)
-                )
+                    tilOgMed = 28.februar(2021),
+                ),
             ),
             Tidslinjeobjekt(
                 opprettet = b.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.mars(2021),
-                    tilOgMed = 31.mai(2021)
-                )
+                    tilOgMed = 31.mai(2021),
+                ),
             ),
             Tidslinjeobjekt(
                 opprettet = c.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.juni(2021),
-                    tilOgMed = 31.juli(2021)
-                )
+                    tilOgMed = 31.juli(2021),
+                ),
             ),
             Tidslinjeobjekt(
                 opprettet = b.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.august(2021),
-                    tilOgMed = 31.desember(2021)
-                )
-            )
+                    tilOgMed = 31.desember(2021),
+                ),
+            ),
         )
     }
 
@@ -1052,7 +1071,7 @@ internal class TidslinjeTest {
             fraOgMed = 1.januar(2021),
             tilOgMed = 31.desember(2021),
             forrigeUtbetalingslinjeId = null,
-            beløp = 17000
+            beløp = 17000,
         )
 
         val b = Utbetalingslinje.Ny(
@@ -1066,10 +1085,10 @@ internal class TidslinjeTest {
         Tidslinje<Utbetalingslinje.Ny>(
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 31.desember(2021)
+                tilOgMed = 31.desember(2021),
             ),
             objekter = listOf(a, b),
-            clock = fixedClock
+            clock = fixedClock,
         ).tidslinje shouldBe listOf(
             Utbetalingslinje.Ny(
                 id = a.id,
@@ -1077,7 +1096,7 @@ internal class TidslinjeTest {
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 31.mai(2021),
                 forrigeUtbetalingslinjeId = null,
-                beløp = 17000
+                beløp = 17000,
             ),
             Utbetalingslinje.Ny(
                 id = b.id,
@@ -1085,7 +1104,7 @@ internal class TidslinjeTest {
                 fraOgMed = 1.juni(2021),
                 tilOgMed = 31.desember(2021),
                 forrigeUtbetalingslinjeId = a.id,
-                beløp = 10000
+                beløp = 10000,
             ),
         )
     }
@@ -1096,29 +1115,29 @@ internal class TidslinjeTest {
             opprettet = Tidspunkt.now(fixedClock),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 31.desember(2021)
+                tilOgMed = 31.desember(2021),
             ),
             uføregrad = Uføregrad.parse(50),
-            forventetInntekt = 15000
+            forventetInntekt = 15000,
         )
 
         val b = Grunnlag.Uføregrunnlag(
             opprettet = Tidspunkt.now(fixedClock).plus(1, DAYS),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 31.desember(2021)
+                tilOgMed = 31.desember(2021),
             ),
             uføregrad = Uføregrad.parse(100),
-            forventetInntekt = 0
+            forventetInntekt = 0,
         )
 
         Tidslinje<Grunnlag.Uføregrunnlag>(
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 31.desember(2021)
+                tilOgMed = 31.desember(2021),
             ),
             objekter = listOf(a, b),
-            clock = fixedClock
+            clock = fixedClock,
         ).tidslinje.let {
             it shouldHaveSize 1
             it[0].let { resultat ->
@@ -1126,7 +1145,7 @@ internal class TidslinjeTest {
                 resultat.id shouldNotBe b.id
                 resultat.periode shouldBe Periode.create(
                     fraOgMed = 1.januar(2021),
-                    tilOgMed = 31.desember(2021)
+                    tilOgMed = 31.desember(2021),
                 )
                 resultat.uføregrad shouldBe Uføregrad.parse(100)
                 resultat.forventetInntekt shouldBe 0
@@ -1139,11 +1158,14 @@ internal class TidslinjeTest {
         Tidslinje<Tidslinjeobjekt>(
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 31.desember(2021)
+                tilOgMed = 31.desember(2021),
             ),
             objekter = emptyList(),
-            clock = fixedClock
-        ).tidslinje shouldBe emptyList()
+            clock = fixedClock,
+        ).let {
+            it.tidslinje shouldBe emptyList()
+            it.gjeldendeForDato(13.april(2020)) shouldBe null
+        }
     }
 
     /**
@@ -1157,16 +1179,16 @@ internal class TidslinjeTest {
             opprettet = Tidspunkt.now(fixedClock),
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 31.desember(2021)
-            )
+                tilOgMed = 31.desember(2021),
+            ),
         )
 
         val b = Tidslinjeobjekt(
             opprettet = Tidspunkt.now(fixedClock).plus(1, DAYS),
             periode = Periode.create(
                 fraOgMed = 1.april(2021),
-                tilOgMed = 31.mai(2021)
-            )
+                tilOgMed = 31.mai(2021),
+            ),
         )
 
         /** |-|     periode
@@ -1177,19 +1199,22 @@ internal class TidslinjeTest {
         Tidslinje(
             periode = Periode.create(
                 fraOgMed = 1.januar(2021),
-                tilOgMed = 31.mars(2021)
+                tilOgMed = 31.mars(2021),
             ),
             objekter = listOf(a, b),
-            clock = fixedClock
-        ).tidslinje shouldBe listOf(
-            Tidslinjeobjekt(
+            clock = fixedClock,
+        ).let {
+            val expected = Tidslinjeobjekt(
                 opprettet = a.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.januar(2021),
-                    tilOgMed = 31.mars(2021)
-                )
+                    tilOgMed = 31.mars(2021),
+                ),
             )
-        )
+            it.tidslinje shouldBe listOf(expected)
+            it.gjeldendeForDato(1.januar(2021)) shouldBe expected
+            it.gjeldendeForDato(1.desember(2021)) shouldBe null
+        }
 
         /**   |-|   periode
          *  |-----| a
@@ -1199,18 +1224,18 @@ internal class TidslinjeTest {
         Tidslinje(
             periode = Periode.create(
                 fraOgMed = 1.april(2021),
-                tilOgMed = 31.mai(2021)
+                tilOgMed = 31.mai(2021),
             ),
             objekter = listOf(a, b),
-            clock = fixedClock
+            clock = fixedClock,
         ).tidslinje shouldBe listOf(
             Tidslinjeobjekt(
                 opprettet = b.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.april(2021),
-                    tilOgMed = 31.mai(2021)
-                )
-            )
+                    tilOgMed = 31.mai(2021),
+                ),
+            ),
         )
 
         /**   |---| periode
@@ -1221,25 +1246,25 @@ internal class TidslinjeTest {
         Tidslinje(
             periode = Periode.create(
                 fraOgMed = 1.april(2021),
-                tilOgMed = 31.desember(2021)
+                tilOgMed = 31.desember(2021),
             ),
             objekter = listOf(a, b),
-            clock = fixedClock
+            clock = fixedClock,
         ).tidslinje shouldBe listOf(
             Tidslinjeobjekt(
                 opprettet = b.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.april(2021),
-                    tilOgMed = 31.mai(2021)
-                )
+                    tilOgMed = 31.mai(2021),
+                ),
             ),
             Tidslinjeobjekt(
                 opprettet = a.opprettet,
                 periode = Periode.create(
                     fraOgMed = 1.juni(2021),
-                    tilOgMed = 31.desember(2021)
-                )
-            )
+                    tilOgMed = 31.desember(2021),
+                ),
+            ),
         )
 
         /**        |-| periode
@@ -1249,15 +1274,151 @@ internal class TidslinjeTest {
         Tidslinje(
             periode = Periode.create(
                 fraOgMed = 1.januar(2022),
-                tilOgMed = 31.desember(2022)
+                tilOgMed = 31.desember(2022),
             ),
             objekter = listOf(a, b),
-            clock = fixedClock
+            clock = fixedClock,
         ).tidslinje shouldBe emptyList()
     }
 
-    // TODO lag et psycho ekempel
     @Test
-    fun `potpurri of potpurris`() {
+    fun `validator kaster exception dersom tidslinja ikke har distinkte fra og med datoer`() {
+        assertDoesNotThrow {
+            Tidslinje.Validator.valider(
+                listOf(
+                    Tidslinjeobjekt(
+                        opprettet = Tidspunkt.now(fixedClock),
+                        periode = Periode.create(
+                            fraOgMed = 1.januar(2021),
+                            tilOgMed = 31.desember(2021),
+                        ),
+                    ),
+                ),
+            )
+        }
+        assertThrows<IllegalArgumentException> {
+            Tidslinje.Validator.valider(
+                listOf(
+                    Tidslinjeobjekt(
+                        opprettet = Tidspunkt.now(fixedClock),
+                        periode = Periode.create(
+                            fraOgMed = 1.januar(2021),
+                            tilOgMed = 31.desember(2021),
+                        ),
+                    ),
+                    Tidslinjeobjekt(
+                        opprettet = Tidspunkt.now(fixedClock).plus(1, DAYS),
+                        periode = Periode.create(
+                            fraOgMed = 1.januar(2021),
+                            tilOgMed = 31.desember(2021),
+                        ),
+                    ),
+                ),
+            )
+        }.message shouldBe "Tidslinje har flere elementer med samme fraOgMed dato!"
+
+        assertThrows<IllegalArgumentException> {
+            Tidslinje.Validator.valider(
+                listOf(
+                    Tidslinjeobjekt(
+                        opprettet = Tidspunkt.now(fixedClock),
+                        periode = Periode.create(
+                            fraOgMed = 1.januar(2021),
+                            tilOgMed = 30.april(2021),
+                        ),
+                    ),
+                    Tidslinjeobjekt(
+                        opprettet = Tidspunkt.now(fixedClock).plus(1, DAYS),
+                        periode = Periode.create(
+                            fraOgMed = 1.mai(2021),
+                            tilOgMed = 31.desember(2021),
+                        ),
+                    ),
+                    Tidslinjeobjekt(
+                        opprettet = Tidspunkt.now(fixedClock).plus(1, DAYS),
+                        periode = Periode.create(
+                            fraOgMed = 1.mai(2021),
+                            tilOgMed = 31.juli(2021),
+                        ),
+                    ),
+                ),
+            )
+        }.message shouldBe "Tidslinje har flere elementer med samme fraOgMed dato!"
+    }
+
+    @Test
+    fun `validator kaster exception dersom tidslinja ikke har distinkte til og med datoer`() {
+        assertThrows<IllegalArgumentException> {
+            Tidslinje.Validator.valider(
+                listOf(
+                    Tidslinjeobjekt(
+                        opprettet = Tidspunkt.now(fixedClock),
+                        periode = Periode.create(
+                            fraOgMed = 1.januar(2021),
+                            tilOgMed = 31.desember(2021),
+                        ),
+                    ),
+                    Tidslinjeobjekt(
+                        opprettet = Tidspunkt.now(fixedClock).plus(1, DAYS),
+                        periode = Periode.create(
+                            fraOgMed = 1.mai(2021),
+                            tilOgMed = 31.desember(2021),
+                        ),
+                    ),
+                ),
+            )
+        }.message shouldBe "Tidslinje har flere elementer med samme tilOgMed dato!"
+
+        assertThrows<IllegalArgumentException> {
+            Tidslinje.Validator.valider(
+                listOf(
+                    Tidslinjeobjekt(
+                        opprettet = Tidspunkt.now(fixedClock),
+                        periode = Periode.create(
+                            fraOgMed = 1.januar(2021),
+                            tilOgMed = 30.april(2021),
+                        ),
+                    ),
+                    Tidslinjeobjekt(
+                        opprettet = Tidspunkt.now(fixedClock).plus(1, DAYS),
+                        periode = Periode.create(
+                            fraOgMed = 1.mai(2021),
+                            tilOgMed = 31.desember(2021),
+                        ),
+                    ),
+                    Tidslinjeobjekt(
+                        opprettet = Tidspunkt.now(fixedClock).plus(1, DAYS),
+                        periode = Periode.create(
+                            fraOgMed = 1.august(2021),
+                            tilOgMed = 31.desember(2021),
+                        ),
+                    ),
+                ),
+            )
+        }.message shouldBe "Tidslinje har flere elementer med samme tilOgMed dato!"
+    }
+
+    @Test
+    fun `validator kaster exception dersom tidslinja har elementer med overlappende perioder`() {
+        assertThrows<IllegalArgumentException> {
+            Tidslinje.Validator.valider(
+                listOf(
+                    Tidslinjeobjekt(
+                        opprettet = Tidspunkt.now(fixedClock),
+                        periode = Periode.create(
+                            fraOgMed = 1.januar(2021),
+                            tilOgMed = 31.desember(2021),
+                        ),
+                    ),
+                    Tidslinjeobjekt(
+                        opprettet = Tidspunkt.now(fixedClock).plus(1, DAYS),
+                        periode = Periode.create(
+                            fraOgMed = 1.juni(2021),
+                            tilOgMed = 31.oktober(2021),
+                        ),
+                    ),
+                ),
+            )
+        }.message shouldBe "Tidslinje har elementer med overlappende perioder!"
     }
 }

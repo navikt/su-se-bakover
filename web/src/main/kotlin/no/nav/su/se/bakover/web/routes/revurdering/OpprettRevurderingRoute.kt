@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering.FantIkkeAktørId
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering.FantIkkeSak
-import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering.FantIngentingSomKanRevurderes
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering.FantIngenVedtakSomKanRevurderes
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering.UgyldigBegrunnelse
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering.UgyldigPeriode
@@ -83,7 +83,7 @@ private fun KunneIkkeOppretteRevurdering.tilResultat(): Resultat {
         is FantIkkeAktørId -> fantIkkeAktørId
         is KunneIkkeOppretteOppgave -> kunneIkkeOppretteOppgave
         is UgyldigPeriode -> ugyldigPeriode(this.subError)
-        is FantIngentingSomKanRevurderes -> fantIngenVedtakSomKanRevurderes
+        is FantIngenVedtakSomKanRevurderes -> fantIngenVedtakSomKanRevurderes
         is UgyldigBegrunnelse -> BadRequest.errorJson(
             "Begrunnelse kan ikke være tom",
             "begrunnelse_kan_ikke_være_tom",

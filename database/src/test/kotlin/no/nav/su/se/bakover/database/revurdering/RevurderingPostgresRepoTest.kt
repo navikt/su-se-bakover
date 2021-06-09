@@ -228,7 +228,7 @@ internal class RevurderingPostgresRepoTest {
                 ),
                 grunnlagsdata = opprettetRevurdering.grunnlagsdata,
                 vilkårsvurderinger = opprettetRevurdering.vilkårsvurderinger,
-                informasjonSomRevurderes = InformasjonSomRevurderes.Companion.create(listOf(Revurderingsteg.Inntekt)),
+                informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
                 tilRevurdering = etAnnetVedtak,
             )
 

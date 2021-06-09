@@ -45,19 +45,18 @@ import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
-import no.nav.su.se.bakover.service.sak.KunneIkkeKopiereGjeldendeVedtaksdata
-import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
+import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
+import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import java.time.Clock
 import java.util.UUID
 
 internal class RevurderingServiceImpl(
-    private val sakService: SakService,
     private val utbetalingService: UtbetalingService,
     private val revurderingRepo: RevurderingRepo,
     private val oppgaveService: OppgaveService,
@@ -69,6 +68,7 @@ internal class RevurderingServiceImpl(
     private val ferdigstillVedtakService: FerdigstillVedtakService,
     private val vilkårsvurderingService: VilkårsvurderingService,
     private val grunnlagService: GrunnlagService,
+    private val vedtakService: VedtakService,
 ) : RevurderingService {
 
     private val observers: MutableList<EventObserver> = mutableListOf()
@@ -95,13 +95,13 @@ internal class RevurderingServiceImpl(
         val informasjonSomRevurderes = InformasjonSomRevurderes.tryCreate(opprettRevurderingRequest.informasjonSomRevurderes)
             .getOrHandle { return KunneIkkeOppretteRevurdering.MåVelgeInformasjonSomSkalRevurderes.left() }
 
-        val gjeldendeVedtaksdata = sakService.kopierGjeldendeVedtaksdata(
+        val gjeldendeVedtaksdata = vedtakService.kopierGjeldendeVedtaksdata(
             sakId = opprettRevurderingRequest.sakId,
             fraOgMed = opprettRevurderingRequest.fraOgMed,
         ).getOrHandle {
             return when (it) {
                 KunneIkkeKopiereGjeldendeVedtaksdata.FantIkkeSak -> KunneIkkeOppretteRevurdering.FantIkkeSak
-                KunneIkkeKopiereGjeldendeVedtaksdata.FantIngenVedtak -> KunneIkkeOppretteRevurdering.FantIngentingSomKanRevurderes
+                KunneIkkeKopiereGjeldendeVedtaksdata.FantIngenVedtak -> KunneIkkeOppretteRevurdering.FantIngenVedtakSomKanRevurderes
                 is KunneIkkeKopiereGjeldendeVedtaksdata.UgyldigPeriode -> KunneIkkeOppretteRevurdering.UgyldigPeriode(it.cause)
             }.left()
         }.also {
@@ -109,7 +109,7 @@ internal class RevurderingServiceImpl(
         }
 
         val gjeldendeVedtakPåFraOgMedDato = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(opprettRevurderingRequest.fraOgMed)
-            ?: return KunneIkkeOppretteRevurdering.FantIngentingSomKanRevurderes.left()
+            ?: return KunneIkkeOppretteRevurdering.FantIngenVedtakSomKanRevurderes.left()
 
         val aktørId = personService.hentAktørId(gjeldendeVedtakPåFraOgMedDato.behandling.fnr).getOrElse {
             log.error("Fant ikke aktør-id")
@@ -248,7 +248,7 @@ internal class RevurderingServiceImpl(
         val revurdering = revurderingRepo.hent(revurderingId)
             ?: return KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger.FantIkkeBehandling.left()
 
-        return sakService.kopierGjeldendeVedtaksdata(revurdering.sakId, revurdering.periode.fraOgMed)
+        return vedtakService.kopierGjeldendeVedtaksdata(revurdering.sakId, revurdering.periode.fraOgMed)
             .mapLeft {
                 when (it) {
                     KunneIkkeKopiereGjeldendeVedtaksdata.FantIkkeSak -> KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger.FantIkkeSak
@@ -284,13 +284,13 @@ internal class RevurderingServiceImpl(
             return KunneIkkeOppdatereRevurdering.KanIkkeOppdatereRevurderingSomErForhåndsvarslet.left()
         }
 
-        val gjeldendeVedtaksdata = sakService.kopierGjeldendeVedtaksdata(
+        val gjeldendeVedtaksdata = vedtakService.kopierGjeldendeVedtaksdata(
             sakId = revurdering.sakId,
             fraOgMed = oppdaterRevurderingRequest.fraOgMed,
         ).getOrHandle {
             return when (it) {
                 KunneIkkeKopiereGjeldendeVedtaksdata.FantIkkeSak -> KunneIkkeOppdatereRevurdering.FantIkkeSak
-                KunneIkkeKopiereGjeldendeVedtaksdata.FantIngenVedtak -> KunneIkkeOppdatereRevurdering.FantIngentingSomKanRevurderes
+                KunneIkkeKopiereGjeldendeVedtaksdata.FantIngenVedtak -> KunneIkkeOppdatereRevurdering.FantIngenVedtakSomKanRevurderes
                 is KunneIkkeKopiereGjeldendeVedtaksdata.UgyldigPeriode -> KunneIkkeOppdatereRevurdering.UgyldigPeriode(it.cause)
             }.left()
         }.also {
@@ -298,7 +298,7 @@ internal class RevurderingServiceImpl(
         }
 
         val gjeldendeVedtakPåFraOgMedDato = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(oppdaterRevurderingRequest.fraOgMed)
-            ?: return KunneIkkeOppdatereRevurdering.FantIngentingSomKanRevurderes.left()
+            ?: return KunneIkkeOppdatereRevurdering.FantIngenVedtakSomKanRevurderes.left()
 
         return when (revurdering) {
             is OpprettetRevurdering -> revurdering.oppdater(

@@ -29,13 +29,13 @@ import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveFeil
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
-import no.nav.su.se.bakover.domain.revurdering.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.søknad.LukkSøknadRequest
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
+import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.service.avstemming.AvstemmingFeilet
 import no.nav.su.se.bakover.service.avstemming.AvstemmingService
@@ -67,7 +67,6 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.service.revurdering.Revurderingshandling
 import no.nav.su.se.bakover.service.revurdering.SendTilAttesteringRequest
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
-import no.nav.su.se.bakover.service.sak.KunneIkkeKopiereGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.Statistikk
 import no.nav.su.se.bakover.service.statistikk.StatistikkService
@@ -86,6 +85,7 @@ import no.nav.su.se.bakover.service.utbetaling.KunneIkkeStanseUtbetalinger
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
+import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
@@ -209,10 +209,6 @@ open class AccessCheckProxy(
                     assertHarTilgangTilPerson(sak.fnr)
 
                     return services.sak.opprettSak(sak)
-                }
-
-                override fun kopierGjeldendeVedtaksdata(sakId: UUID, fraOgMed: LocalDate): Either<KunneIkkeKopiereGjeldendeVedtaksdata, GjeldendeVedtaksdata> {
-                    kastKanKunKallesFraAnnenService()
                 }
             },
             søknad = object : SøknadService {
@@ -492,6 +488,9 @@ open class AccessCheckProxy(
             vedtakService = object : VedtakService {
                 override fun hentAktiveFnr(fomDato: LocalDate): List<Fnr> {
                     return services.vedtakService.hentAktiveFnr(fomDato)
+                }
+                override fun kopierGjeldendeVedtaksdata(sakId: UUID, fraOgMed: LocalDate): Either<KunneIkkeKopiereGjeldendeVedtaksdata, GjeldendeVedtaksdata> {
+                    kastKanKunKallesFraAnnenService()
                 }
             },
             grunnlagService = object : GrunnlagService {
