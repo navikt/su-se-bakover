@@ -15,6 +15,10 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
+import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
+import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -67,6 +71,25 @@ object RevurderingRoutesTestData {
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         ),
-        UUID30.randomUUID()
+        UUID30.randomUUID(),
+    )
+
+    internal val opprettetRevurdering = OpprettetRevurdering(
+        id = UUID.randomUUID(),
+        periode = periode,
+        opprettet = Tidspunkt.now(),
+        tilRevurdering = vedtak,
+        saksbehandler = NavIdentBruker.Saksbehandler("saksbehandler"),
+        oppgaveId = OppgaveId("oppgaveid"),
+        fritekstTilBrev = "",
+        revurderingsårsak = Revurderingsårsak(
+            Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
+            Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
+        ),
+        forhåndsvarsel = null,
+        behandlingsinformasjon = vedtak.behandlingsinformasjon,
+        grunnlagsdata = Grunnlagsdata.EMPTY,
+        vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+        informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
     )
 }
