@@ -20,8 +20,8 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.KunneIkkeJournalføreOgDistribuereBrev
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.fullstendigOrThrow
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
@@ -306,58 +306,74 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
     ) : KanPlasseresPåTidslinje<VedtakPåTidslinje> {
         override fun copy(args: CopyArgs.Tidslinje): VedtakPåTidslinje =
             when (args) {
-                CopyArgs.Tidslinje.Full -> copy(
-                    periode = periode,
-                    vedtakId = vedtakId,
-                    grunnlagsdata = Grunnlagsdata(
-                        uføregrunnlag = Tidslinje<Grunnlag.Uføregrunnlag>(
-                            periode = periode,
-                            objekter = grunnlagsdata.uføregrunnlag,
-                        ).tidslinje,
-                    ),
-                    vilkårsvurderinger = Vilkårsvurderinger(
-                        uføre = when (vilkårsvurderinger.uføre) {
-                            Vilkår.IkkeVurdert.Uførhet -> Vilkår.IkkeVurdert.Uførhet
-                            is Vilkår.Vurdert.Uførhet -> vilkårsvurderinger.uføre.copy(
-                                vurderingsperioder = Nel.fromListUnsafe(
-                                    Tidslinje(
-                                        periode = periode,
-                                        objekter = vilkårsvurderinger.uføre.vurderingsperioder,
-                                    ).tidslinje,
-                                ),
-                            )
+                CopyArgs.Tidslinje.Full -> {
+                    val uførevilkår = when (vilkårsvurderinger.uføre) {
+                        Vilkår.IkkeVurdert.Uførhet -> Vilkår.IkkeVurdert.Uførhet
+                        is Vilkår.Vurdert.Uførhet -> vilkårsvurderinger.uføre.copy(
+                            vurderingsperioder = Nel.fromListUnsafe(
+                                Tidslinje(
+                                    periode = periode,
+                                    objekter = vilkårsvurderinger.uføre.vurderingsperioder,
+                                ).tidslinje,
+                            ),
+                        )
+                    }
+                    copy(
+                        periode = periode,
+                        vedtakId = vedtakId,
+                        grunnlagsdata = Grunnlagsdata(
+                            uføregrunnlag = when (uførevilkår) {
+                                Vilkår.IkkeVurdert.Uførhet -> emptyList()
+                                is Vilkår.Vurdert.Uførhet -> uførevilkår.grunnlag
+                            },
+                            bosituasjon = grunnlagsdata.bosituasjon.mapNotNull {
+                                (it.fullstendigOrThrow()).copy(
+                                    CopyArgs.Snitt(periode),
+                                )
+                            },
+                        ),
+                        vilkårsvurderinger = Vilkårsvurderinger(
+                            uføre = uførevilkår,
+                        ),
+                        fradrag = fradrag.filterNot { it.fradragstype == Fradragstype.ForventetInntekt }.mapNotNull {
+                            it.copy(CopyArgs.Snitt(periode))
                         },
-                    ),
-                    fradrag = fradrag.filterNot { it.fradragstype == Fradragstype.ForventetInntekt }.mapNotNull {
-                        it.copy(CopyArgs.Snitt(periode))
-                    },
-                )
-                is CopyArgs.Tidslinje.NyPeriode -> copy(
-                    periode = args.periode,
-                    vedtakId = vedtakId,
-                    grunnlagsdata = Grunnlagsdata(
-                        uføregrunnlag = Tidslinje<Grunnlag.Uføregrunnlag>(
-                            periode = args.periode,
-                            objekter = grunnlagsdata.uføregrunnlag,
-                        ).tidslinje,
-                    ),
-                    vilkårsvurderinger = Vilkårsvurderinger(
-                        uføre = when (vilkårsvurderinger.uføre) {
-                            Vilkår.IkkeVurdert.Uførhet -> Vilkår.IkkeVurdert.Uførhet
-                            is Vilkår.Vurdert.Uførhet -> vilkårsvurderinger.uføre.copy(
-                                vurderingsperioder = Nel.fromListUnsafe(
-                                    Tidslinje(
-                                        periode = args.periode,
-                                        objekter = vilkårsvurderinger.uføre.vurderingsperioder,
-                                    ).tidslinje,
-                                ),
-                            )
+                    )
+                }
+                is CopyArgs.Tidslinje.NyPeriode -> {
+                    val uførevilkår = when (this.vilkårsvurderinger.uføre) {
+                        Vilkår.IkkeVurdert.Uførhet -> Vilkår.IkkeVurdert.Uførhet
+                        is Vilkår.Vurdert.Uførhet -> this.vilkårsvurderinger.uføre.copy(
+                            vurderingsperioder = Nel.fromListUnsafe(
+                                Tidslinje(
+                                    periode = args.periode,
+                                    objekter = this.vilkårsvurderinger.uføre.vurderingsperioder,
+                                ).tidslinje,
+                            ),
+                        )
+                    }
+                    copy(
+                        periode = args.periode,
+                        vedtakId = vedtakId,
+                        grunnlagsdata = Grunnlagsdata(
+                            uføregrunnlag = Tidslinje(
+                                periode = args.periode,
+                                objekter = grunnlagsdata.uføregrunnlag,
+                            ).tidslinje,
+                            bosituasjon = grunnlagsdata.bosituasjon.mapNotNull {
+                                (it.fullstendigOrThrow()).copy(
+                                    CopyArgs.Snitt(args.periode),
+                                )
+                            },
+                        ),
+                        vilkårsvurderinger = Vilkårsvurderinger(
+                            uføre = uførevilkår,
+                        ),
+                        fradrag = fradrag.filterNot { it.fradragstype == Fradragstype.ForventetInntekt }.mapNotNull {
+                            it.copy(CopyArgs.Snitt(args.periode))
                         },
-                    ),
-                    fradrag = fradrag.filterNot { it.fradragstype == Fradragstype.ForventetInntekt }.mapNotNull {
-                        it.copy(CopyArgs.Snitt(args.periode))
-                    },
-                )
+                    )
+                }
             }
     }
 }
@@ -379,14 +395,3 @@ fun List<Vedtak.EndringIYtelse>.lagTidslinje(periode: Periode): List<Vedtak.Vedt
             objekter = it,
         ).tidslinje
     }
-
-fun List<Vedtak.VedtakPåTidslinje>.vilkårsvurderinger(): Vilkårsvurderinger {
-    return Vilkårsvurderinger(
-        uføre = Vilkår.Vurdert.Uførhet.create(
-            map { it.vilkårsvurderinger.uføre }
-                .filterIsInstance<Vilkår.Vurdert.Uførhet>()
-                .flatMap { it.vurderingsperioder }
-                .let { Nel.fromListUnsafe(it) },
-        ),
-    )
-}

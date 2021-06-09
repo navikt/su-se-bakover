@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.web.routes.revurdering
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import no.nav.su.se.bakover.domain.grunnlag.throwIfMultiple
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.BeslutningEtterForhåndsvarsling
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
@@ -16,8 +17,6 @@ import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.AttesteringJson
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingsinformasjonJson
-import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingsinformasjonJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.UnderkjennelseJson
@@ -62,7 +61,6 @@ internal data class OpprettetRevurderingJson(
     val årsak: String,
     val begrunnelse: String,
     val forhåndsvarsel: ForhåndsvarselJson?,
-    val behandlingsinformasjon: BehandlingsinformasjonJson,
     val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
 ) : RevurderingJson() {
@@ -82,7 +80,6 @@ internal data class BeregnetRevurderingJson(
     val begrunnelse: String,
     val status: RevurderingsStatus,
     val forhåndsvarsel: ForhåndsvarselJson?,
-    val behandlingsinformasjon: BehandlingsinformasjonJson,
     val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
 ) : RevurderingJson()
@@ -99,7 +96,6 @@ internal data class SimulertRevurderingJson(
     val begrunnelse: String,
     val status: RevurderingsStatus,
     val forhåndsvarsel: ForhåndsvarselJson?,
-    val behandlingsinformasjon: BehandlingsinformasjonJson,
     val simulering: SimuleringJson,
     val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
@@ -118,7 +114,6 @@ internal data class TilAttesteringJson(
     val begrunnelse: String,
     val status: RevurderingsStatus,
     val forhåndsvarsel: ForhåndsvarselJson?,
-    val behandlingsinformasjon: BehandlingsinformasjonJson,
     val simulering: SimuleringJson?,
     val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
@@ -138,7 +133,6 @@ internal data class IverksattRevurderingJson(
     val attestant: String,
     val status: RevurderingsStatus,
     val forhåndsvarsel: ForhåndsvarselJson?,
-    val behandlingsinformasjon: BehandlingsinformasjonJson,
     val simulering: SimuleringJson?,
     val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
@@ -158,7 +152,6 @@ internal data class UnderkjentRevurderingJson(
     val attestering: AttesteringJson,
     val status: RevurderingsStatus,
     val forhåndsvarsel: ForhåndsvarselJson?,
-    val behandlingsinformasjon: BehandlingsinformasjonJson,
     val simulering: SimuleringJson?,
     val grunnlagsdataOgVilkårsvurderinger: GrunnlagsdataOgVilkårsvurderingerJson,
     val informasjonSomRevurderes: Map<Revurderingsteg, Vurderingstatus>,
@@ -209,7 +202,6 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         årsak = revurderingsårsak.årsak.toString(),
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
         forhåndsvarsel = forhåndsvarsel?.toJson(),
-        behandlingsinformasjon = behandlingsinformasjon.toJson(),
         grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerJson.create(grunnlagsdata, vilkårsvurderinger),
         informasjonSomRevurderes = informasjonSomRevurderes,
     )
@@ -228,7 +220,6 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
         status = InstansTilStatusMapper(this).status,
         forhåndsvarsel = forhåndsvarsel?.toJson(),
-        behandlingsinformasjon = behandlingsinformasjon.toJson(),
         simulering = simulering.toJson(),
         grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerJson.create(grunnlagsdata, vilkårsvurderinger),
         informasjonSomRevurderes = informasjonSomRevurderes,
@@ -253,7 +244,6 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
         status = InstansTilStatusMapper(this).status,
         forhåndsvarsel = forhåndsvarsel?.toJson(),
-        behandlingsinformasjon = behandlingsinformasjon.toJson(),
         simulering = when (this) {
             is RevurderingTilAttestering.IngenEndring -> null
             is RevurderingTilAttestering.Innvilget -> simulering.toJson()
@@ -283,7 +273,6 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         attestant = attestering.attestant.toString(),
         status = InstansTilStatusMapper(this).status,
         forhåndsvarsel = forhåndsvarsel?.toJson(),
-        behandlingsinformasjon = behandlingsinformasjon.toJson(),
         simulering = when (this) {
             is IverksattRevurdering.IngenEndring -> null
             is IverksattRevurdering.Innvilget -> simulering.toJson()
@@ -319,7 +308,6 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
         status = InstansTilStatusMapper(this).status,
         forhåndsvarsel = forhåndsvarsel?.toJson(),
-        behandlingsinformasjon = behandlingsinformasjon.toJson(),
         simulering = when (this) {
             is UnderkjentRevurdering.IngenEndring -> null
             is UnderkjentRevurdering.Innvilget -> simulering.toJson()
@@ -343,10 +331,16 @@ internal fun Revurdering.toJson(): RevurderingJson = when (this) {
         begrunnelse = revurderingsårsak.begrunnelse.toString(),
         status = InstansTilStatusMapper(this).status,
         forhåndsvarsel = forhåndsvarsel?.toJson(),
-        behandlingsinformasjon = behandlingsinformasjon.toJson(),
-        grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerJson.create(grunnlagsdata, vilkårsvurderinger),
+        grunnlagsdataOgVilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerJson.create(
+            grunnlagsdata,
+            vilkårsvurderinger,
+        ),
         informasjonSomRevurderes = informasjonSomRevurderes,
     )
+}.also {
+    // TODO jah: Vi skal ikke pre-utfylle Bosituasjon for revurdering med mer enn ett element.
+    //  vi ønsker å gjøre denne sjekken backend for å ha bedre kontroll + oversikt (logger)
+    grunnlagsdata.bosituasjon.throwIfMultiple()
 }
 
 internal class InstansTilStatusMapper(revurdering: Revurdering) {

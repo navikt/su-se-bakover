@@ -1,12 +1,12 @@
 package no.nav.su.se.bakover.domain.revurdering
 
+import arrow.core.Nel
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.lagTidslinje
-import no.nav.su.se.bakover.domain.vedtak.vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.util.UUID
@@ -18,7 +18,7 @@ data class KopierGjeldendeGrunnlagsdataOgVilkårsvurderinger(
     val grunnlagsdata: Grunnlagsdata
     val vilkårsvurderinger: Vilkårsvurderinger
 
-    private val vedtakstidslinje = vedtakListe
+    private val vedtakstidslinje: List<Vedtak.VedtakPåTidslinje> = vedtakListe
         .filterIsInstance<Vedtak.EndringIYtelse>()
         .lagTidslinje(periode)
 
@@ -38,9 +38,23 @@ data class KopierGjeldendeGrunnlagsdataOgVilkårsvurderinger(
         grunnlagsdata = Grunnlagsdata(
             uføregrunnlag = uføreGrunnlagOgVilkår.first,
             fradragsgrunnlag = fradragsgrunnlag,
+            bosituasjon = vedtakstidslinje.flatMap {
+                it.grunnlagsdata.bosituasjon
+            },
         )
         vilkårsvurderinger = Vilkårsvurderinger(
             uføre = uføreGrunnlagOgVilkår.second,
         )
     }
+}
+
+private fun List<Vedtak.VedtakPåTidslinje>.vilkårsvurderinger(): Vilkårsvurderinger {
+    return Vilkårsvurderinger(
+        uføre = Vilkår.Vurdert.Uførhet.create(
+            map { it.vilkårsvurderinger.uføre }
+                .filterIsInstance<Vilkår.Vurdert.Uførhet>()
+                .flatMap { it.vurderingsperioder }
+                .let { Nel.fromListUnsafe(it) },
+        ),
+    )
 }

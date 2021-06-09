@@ -17,12 +17,13 @@ data class Person(
     val vergemål: Boolean? = null,
     val fullmakt: Boolean? = null
 ) {
-    fun getAlder(påDato: LocalDate) = fødselsdato?.let { Period.between(it, påDato).years }
+    fun getAlder(påDato: LocalDate): Int? = fødselsdato?.let { Period.between(it, påDato).years }
+    fun er67EllerEldre(påDato: LocalDate): Boolean? = getAlder(påDato)?.let { it >= 67 }
 
     data class Navn(
         val fornavn: String,
         val mellomnavn: String?,
-        val etternavn: String
+        val etternavn: String,
     )
 
     data class Adresse(
@@ -32,7 +33,7 @@ data class Person(
         val kommune: Kommune?,
         val landkode: String? = null,
         val adressetype: String,
-        val adresseformat: String
+        val adresseformat: String,
     )
 
     data class Kommune(

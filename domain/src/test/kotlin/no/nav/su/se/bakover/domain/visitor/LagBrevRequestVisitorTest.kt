@@ -28,6 +28,7 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
+import no.nav.su.se.bakover.domain.behandling.satsgrunn
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.behandling.withVilkårAvslått
 import no.nav.su.se.bakover.domain.beregning.BeregningFactory
@@ -40,9 +41,12 @@ import no.nav.su.se.bakover.domain.brev.BrevInnhold
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest.AvslagBrevRequest
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest.InnvilgetVedtak
+import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.grunnlag.harEktefelle
+import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
@@ -159,11 +163,12 @@ internal class LagBrevRequestVisitorTest {
                     it.brevRequest shouldBe InnvilgetVedtak(
                         person = person,
                         beregning = innvilgetBeregning,
-                        behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
+                        satsgrunn = søknadsbehandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow().satsgrunn(),
+                        harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.harEktefelle(),
                         saksbehandlerNavn = "-",
                         attestantNavn = "-",
                         fritekst = "",
-                        forventetInntektStørreEnn0 = false
+                        forventetInntektStørreEnn0 = false,
                     ).right()
                 }
             }
@@ -210,7 +215,8 @@ internal class LagBrevRequestVisitorTest {
                     it.brevRequest shouldBe InnvilgetVedtak(
                         person = person,
                         beregning = innvilgetBeregning,
-                        behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
+                        satsgrunn = søknadsbehandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow().satsgrunn(),
+                        harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.harEktefelle(),
                         saksbehandlerNavn = "-",
                         attestantNavn = "-",
                         fritekst = "",
@@ -296,7 +302,8 @@ internal class LagBrevRequestVisitorTest {
                     it.brevRequest shouldBe InnvilgetVedtak(
                         person = person,
                         beregning = innvilgetBeregning,
-                        behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
+                        satsgrunn = søknadsbehandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow().satsgrunn(),
+                        harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.harEktefelle(),
                         saksbehandlerNavn = saksbehandlerNavn,
                         attestantNavn = "-",
                         fritekst = "Fritekst!",
@@ -403,7 +410,8 @@ internal class LagBrevRequestVisitorTest {
                     it.brevRequest shouldBe InnvilgetVedtak(
                         person = person,
                         beregning = innvilgetBeregning,
-                        behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
+                        satsgrunn = søknadsbehandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow().satsgrunn(),
+                        harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.harEktefelle(),
                         saksbehandlerNavn = saksbehandlerNavn,
                         attestantNavn = attestantNavn,
                         fritekst = "Fritekst!",
@@ -496,7 +504,8 @@ internal class LagBrevRequestVisitorTest {
                     it.brevRequest shouldBe InnvilgetVedtak(
                         person = person,
                         beregning = innvilgetBeregning,
-                        behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
+                        satsgrunn = søknadsbehandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow().satsgrunn(),
+                        harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.harEktefelle(),
                         saksbehandlerNavn = saksbehandlerNavn,
                         attestantNavn = attestantNavn,
                         fritekst = "Fritekst!",
@@ -534,7 +543,8 @@ internal class LagBrevRequestVisitorTest {
         brevSøknadsbehandling.brevRequest shouldBe InnvilgetVedtak(
             person = person,
             beregning = innvilgetBeregning,
-            behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
+            satsgrunn = søknadsbehandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow().satsgrunn(),
+            harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.harEktefelle(),
             saksbehandlerNavn = saksbehandlerNavn,
             attestantNavn = attestantNavn,
             fritekst = "Fritekst!",
@@ -631,14 +641,24 @@ internal class LagBrevRequestVisitorTest {
                 .tilAttestering(saksbehandler, "Fritekst!")
                 .tilIverksatt(Attestering.Iverksatt(attestant))
 
+        val revurderingsperiode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021))
         val revurdering = IverksattRevurdering.Innvilget(
             id = UUID.randomUUID(),
-            periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+            periode = revurderingsperiode,
             opprettet = Tidspunkt.now(clock),
             tilRevurdering = Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetalingId),
             saksbehandler = saksbehandler,
             oppgaveId = OppgaveId("15"),
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata(
+                bosituasjon = listOf(
+                    Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                        id = UUID.randomUUID(),
+                        opprettet = fixedTidspunkt,
+                        periode = revurderingsperiode,
+                        begrunnelse = null,
+                    ),
+                ),
+            ),
             beregning = innvilgetBeregning,
             simulering = simulering,
             attestering = Attestering.Iverksatt(attestant),
@@ -689,9 +709,10 @@ internal class LagBrevRequestVisitorTest {
                 .tilAttestering(saksbehandler, "Fritekst!")
                 .tilIverksatt(Attestering.Iverksatt(attestant))
 
+        val revurderingsperiode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021))
         val revurdering = IverksattRevurdering.Opphørt(
             id = UUID.randomUUID(),
-            periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+            periode = revurderingsperiode,
             opprettet = Tidspunkt.now(clock),
             tilRevurdering = Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetalingId),
             saksbehandler = saksbehandler,
@@ -706,7 +727,16 @@ internal class LagBrevRequestVisitorTest {
             ),
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata(
+                bosituasjon = listOf(
+                    Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                        id = UUID.randomUUID(),
+                        opprettet = fixedTidspunkt,
+                        periode = revurderingsperiode,
+                        begrunnelse = null,
+                    ),
+                ),
+            ),
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
@@ -729,12 +759,12 @@ internal class LagBrevRequestVisitorTest {
         brevRevurdering.brevRequest shouldBe LagBrevRequest.Opphørsvedtak(
             person = person,
             beregning = revurdering.beregning,
-            behandlingsinformasjon = revurdering.behandlingsinformasjon,
+            harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEktefelle(),
             saksbehandlerNavn = saksbehandlerNavn,
             attestantNavn = attestantNavn,
             fritekst = "FRITEKST REVURDERING",
             forventetInntektStørreEnn0 = false,
-            opphørsgrunner = emptyList()
+            opphørsgrunner = emptyList(),
         ).right()
     }
 
@@ -748,9 +778,10 @@ internal class LagBrevRequestVisitorTest {
                 .tilAttestering(saksbehandler, "Fritekst!")
                 .tilIverksatt(Attestering.Iverksatt(attestant))
 
+        val opphørsperiode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021))
         val revurdering = IverksattRevurdering.Opphørt(
             id = UUID.randomUUID(),
-            periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+            periode = opphørsperiode,
             opprettet = Tidspunkt.now(clock),
             tilRevurdering = Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetalingId),
             saksbehandler = saksbehandler,
@@ -765,7 +796,16 @@ internal class LagBrevRequestVisitorTest {
             ),
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata(
+                bosituasjon = listOf(
+                    Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                        id = UUID.randomUUID(),
+                        opprettet = fixedTidspunkt,
+                        periode = opphørsperiode,
+                        begrunnelse = null,
+                    ),
+                ),
+            ),
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Vurdert.Uførhet.create(
                     vurderingsperioder = nonEmptyListOf(
@@ -803,12 +843,12 @@ internal class LagBrevRequestVisitorTest {
         brevRevurdering.brevRequest shouldBe LagBrevRequest.Opphørsvedtak(
             person = person,
             beregning = revurdering.beregning,
-            behandlingsinformasjon = revurdering.behandlingsinformasjon,
+            harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEktefelle(),
             saksbehandlerNavn = saksbehandlerNavn,
             attestantNavn = attestantNavn,
             fritekst = "FRITEKST REVURDERING",
             forventetInntektStørreEnn0 = false,
-            opphørsgrunner = listOf(Opphørsgrunn.UFØRHET)
+            opphørsgrunner = listOf(Opphørsgrunn.UFØRHET),
         ).right()
     }
 
@@ -822,9 +862,10 @@ internal class LagBrevRequestVisitorTest {
                 .tilAttestering(saksbehandler, "Fritekst!")
                 .tilIverksatt(Attestering.Iverksatt(attestant))
 
+        val revurderingsperiode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021))
         val revurdering = IverksattRevurdering.IngenEndring(
             id = UUID.randomUUID(),
-            periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+            periode = revurderingsperiode,
             opprettet = Tidspunkt.now(clock),
             tilRevurdering = Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetalingId),
             saksbehandler = saksbehandler,
@@ -839,7 +880,16 @@ internal class LagBrevRequestVisitorTest {
             skalFøreTilBrevutsending = false,
             forhåndsvarsel = null,
             behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata(
+                bosituasjon = listOf(
+                    Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                        id = UUID.randomUUID(),
+                        opprettet = fixedTidspunkt,
+                        periode = revurderingsperiode,
+                        begrunnelse = null,
+                    ),
+                ),
+            ),
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
@@ -943,6 +993,7 @@ internal class LagBrevRequestVisitorTest {
         periodeList = listOf(),
     )
 
+    private val stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021)))
     private val uavklart = Søknadsbehandling.Vilkårsvurdert.Uavklart(
         id = UUID.randomUUID(),
         opprettet = Tidspunkt.now(),
@@ -953,7 +1004,17 @@ internal class LagBrevRequestVisitorTest {
         behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
         fnr = FnrGenerator.random(),
         fritekstTilBrev = "",
-        stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
+        stønadsperiode = stønadsperiode,
+        grunnlagsdata = Grunnlagsdata(
+            bosituasjon = listOf(
+                Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                    id = UUID.randomUUID(),
+                    opprettet = fixedTidspunkt,
+                    periode = stønadsperiode.periode,
+                    begrunnelse = null,
+                ),
+            ),
+        ),
         vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
     )
 }

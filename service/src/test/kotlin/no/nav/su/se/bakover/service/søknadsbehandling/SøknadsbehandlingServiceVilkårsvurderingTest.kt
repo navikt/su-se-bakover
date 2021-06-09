@@ -64,6 +64,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
         fnr = FnrGenerator.random(),
         fritekstTilBrev = "",
         stønadsperiode = stønadsperiode,
+        grunnlagsdata = Grunnlagsdata.EMPTY,
         vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
     )
 
@@ -103,6 +104,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
             fnr = opprettetBehandling.fnr,
             fritekstTilBrev = "",
             stønadsperiode = opprettetBehandling.stønadsperiode!!,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 
@@ -143,6 +145,7 @@ internal class SøknadsbehandlingServiceVilkårsvurderingTest {
             fnr = opprettetBehandling.fnr,
             fritekstTilBrev = "",
             stønadsperiode = opprettetBehandling.stønadsperiode!!,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 

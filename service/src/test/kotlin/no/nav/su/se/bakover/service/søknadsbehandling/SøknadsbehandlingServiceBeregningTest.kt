@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -33,6 +34,7 @@ import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.tidspunkt
 import no.nav.su.se.bakover.service.beregning.BeregningService
 import no.nav.su.se.bakover.service.beregning.TestBeregning
+import no.nav.su.se.bakover.service.fixedTidspunkt
 import org.junit.jupiter.api.Test
 import java.time.temporal.ChronoUnit
 import java.util.UUID
@@ -59,6 +61,16 @@ class SøknadsbehandlingServiceBeregningTest {
         fnr = FnrGenerator.random(),
         fritekstTilBrev = "",
         stønadsperiode = stønadsperiode,
+        grunnlagsdata = Grunnlagsdata(
+            bosituasjon = listOf(
+                Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                    id = UUID.randomUUID(),
+                    opprettet = fixedTidspunkt,
+                    periode = stønadsperiode.periode,
+                    begrunnelse = null,
+                ),
+            ),
+        ),
         vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
     )
 
@@ -105,7 +117,16 @@ class SøknadsbehandlingServiceBeregningTest {
             beregning = TestBeregning,
             fritekstTilBrev = "",
             stønadsperiode = vilkårsvurdertBehandling.stønadsperiode,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata(
+                bosituasjon = listOf(
+                    Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                        id = response.orNull()!!.grunnlagsdata.bosituasjon[0].id,
+                        opprettet = fixedTidspunkt,
+                        periode = vilkårsvurdertBehandling.stønadsperiode.periode,
+                        begrunnelse = null,
+                    ),
+                ),
+            ),
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
 

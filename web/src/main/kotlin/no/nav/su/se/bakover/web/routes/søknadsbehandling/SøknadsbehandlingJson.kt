@@ -3,9 +3,10 @@ package no.nav.su.se.bakover.web.routes.søknadsbehandling
 import io.ktor.http.HttpStatusCode
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.behandling.Attestering
+import no.nav.su.se.bakover.domain.grunnlag.throwIfMultiple
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.web.Resultat
-import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson
+import no.nav.su.se.bakover.web.routes.grunnlag.GrunnlagsdataOgVilkårsvurderingerJson.Companion.create
 import no.nav.su.se.bakover.web.routes.søknad.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingsinformasjonJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.SimuleringJson.Companion.toJson
@@ -27,7 +28,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
             beregning = null,
             simulering = null,
             stønadsperiode = stønadsperiode?.toJson(),
-            vilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerJson.create(grunnlagsdata, vilkårsvurderinger),
+            grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
         )
         is Søknadsbehandling.Beregnet -> {
             BehandlingJson(
@@ -42,7 +43,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 beregning = beregning.toJson(),
                 simulering = null,
                 stønadsperiode = stønadsperiode.toJson(),
-                vilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerJson.create(grunnlagsdata, vilkårsvurderinger),
+                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
             )
         }
         is Søknadsbehandling.Simulert -> {
@@ -58,7 +59,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 beregning = beregning.toJson(),
                 simulering = simulering.toJson(),
                 stønadsperiode = stønadsperiode.toJson(),
-                vilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerJson.create(grunnlagsdata, vilkårsvurderinger),
+                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
             )
         }
         is Søknadsbehandling.TilAttestering.Innvilget -> {
@@ -74,7 +75,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 beregning = beregning.toJson(),
                 simulering = simulering.toJson(),
                 stønadsperiode = stønadsperiode.toJson(),
-                vilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerJson.create(grunnlagsdata, vilkårsvurderinger),
+                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
             )
         }
         is Søknadsbehandling.TilAttestering.Avslag.MedBeregning -> {
@@ -90,7 +91,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 beregning = beregning.toJson(),
                 simulering = null,
                 stønadsperiode = stønadsperiode.toJson(),
-                vilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerJson.create(grunnlagsdata, vilkårsvurderinger),
+                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
             )
         }
         is Søknadsbehandling.TilAttestering.Avslag.UtenBeregning -> {
@@ -106,7 +107,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 beregning = null,
                 simulering = null,
                 stønadsperiode = stønadsperiode.toJson(),
-                vilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerJson.create(grunnlagsdata, vilkårsvurderinger),
+                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
             )
         }
         is Søknadsbehandling.Underkjent.Innvilget -> {
@@ -136,7 +137,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 beregning = beregning.toJson(),
                 simulering = simulering.toJson(),
                 stønadsperiode = stønadsperiode.toJson(),
-                vilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerJson.create(grunnlagsdata, vilkårsvurderinger),
+                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
             )
         }
         is Søknadsbehandling.Underkjent.Avslag.UtenBeregning -> {
@@ -166,7 +167,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 beregning = null,
                 simulering = null,
                 stønadsperiode = stønadsperiode.toJson(),
-                vilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerJson.create(grunnlagsdata, vilkårsvurderinger),
+                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
             )
         }
         is Søknadsbehandling.Underkjent.Avslag.MedBeregning -> {
@@ -196,7 +197,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 beregning = beregning.toJson(),
                 simulering = null,
                 stønadsperiode = stønadsperiode.toJson(),
-                vilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerJson.create(grunnlagsdata, vilkårsvurderinger),
+                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
             )
         }
         is Søknadsbehandling.Iverksatt.Avslag.MedBeregning -> {
@@ -226,7 +227,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 beregning = beregning.toJson(),
                 simulering = null,
                 stønadsperiode = stønadsperiode.toJson(),
-                vilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerJson.create(grunnlagsdata, vilkårsvurderinger),
+                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
             )
         }
         is Søknadsbehandling.Iverksatt.Avslag.UtenBeregning -> {
@@ -256,7 +257,7 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 beregning = null,
                 simulering = null,
                 stønadsperiode = stønadsperiode.toJson(),
-                vilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerJson.create(grunnlagsdata, vilkårsvurderinger),
+                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
             )
         }
         is Søknadsbehandling.Iverksatt.Innvilget -> {
@@ -286,9 +287,13 @@ internal fun Søknadsbehandling.toJson(): BehandlingJson {
                 beregning = beregning.toJson(),
                 simulering = simulering.toJson(),
                 stønadsperiode = stønadsperiode.toJson(),
-                vilkårsvurderinger = GrunnlagsdataOgVilkårsvurderingerJson.create(grunnlagsdata, vilkårsvurderinger),
+                grunnlagsdataOgVilkårsvurderinger = create(grunnlagsdata, vilkårsvurderinger),
             )
         }
+    }.also {
+        // TODO jah: Vi skal ikke pre-utfylle Bosituasjon for revurdering med mer enn ett element.
+        //  vi ønsker å gjøre denne sjekken backend for å ha bedre kontroll + oversikt (logger)
+        grunnlagsdata.bosituasjon.throwIfMultiple()
     }
 }
 

@@ -4,10 +4,18 @@ import arrow.core.getOrHandle
 import no.nav.su.se.bakover.domain.behandling.Satsgrunn
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 
 class BeregningStrategyFactory {
-    fun beregn(søknadsbehandling: Søknadsbehandling, fradrag: List<Fradrag>, begrunnelse: String?): Beregning {
+    fun beregn(
+        søknadsbehandling: Søknadsbehandling,
+        fradrag: List<Fradrag>,
+        begrunnelse: String?,
+    ): Beregning {
+        val bosituasjon = søknadsbehandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow()
+
         val beregningsgrunnlag = Beregningsgrunnlag.tryCreate(
             beregningsperiode = søknadsbehandling.periode,
             uføregrunnlag = søknadsbehandling.grunnlagsdata.uføregrunnlag,
@@ -16,9 +24,15 @@ class BeregningStrategyFactory {
             // TODO jah: Kan vurdere å legge på en left her (KanIkkeBeregne.UgyldigBeregningsgrunnlag
             throw IllegalArgumentException(it.toString())
         }
-        val strategy = søknadsbehandling.behandlingsinformasjon.getBeregningStrategy()
-        // TODO jah: Kan vurdere å legge på en left her (KanIkkeBeregne.UfullstendigBehandlingsinformasjon
-        return strategy.orNull()!!.beregn(beregningsgrunnlag, begrunnelse)
+        val strategy =
+            when (bosituasjon) {
+                is Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen -> BeregningStrategy.BorMedVoksne
+                is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre -> BeregningStrategy.Eps67EllerEldre
+                is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> BeregningStrategy.EpsUnder67År
+                is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning -> BeregningStrategy.EpsUnder67ÅrOgUførFlyktning
+                is Grunnlag.Bosituasjon.Fullstendig.Enslig -> BeregningStrategy.BorAlene
+            }
+        return strategy.beregn(beregningsgrunnlag, begrunnelse)
     }
 }
 
@@ -32,7 +46,7 @@ internal sealed class BeregningStrategy {
             sats = sats(),
             fradrag = beregningsgrunnlag.fradrag,
             fradragStrategy = fradragStrategy(),
-            begrunnelse = begrunnelse
+            begrunnelse = begrunnelse,
         )
     }
 
@@ -64,5 +78,15 @@ internal sealed class BeregningStrategy {
         override fun fradragStrategy(): FradragStrategy = FradragStrategy.EpsUnder67År
         override fun sats(): Sats = Sats.HØY
         override fun satsgrunn(): Satsgrunn = Satsgrunn.DELER_BOLIG_MED_EKTEMAKE_SAMBOER_UNDER_67
+    }
+}
+
+internal fun Grunnlag.Bosituasjon.Fullstendig.utledBeregningsstrategi(): BeregningStrategy {
+    return when (this) {
+        is Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen -> BeregningStrategy.BorMedVoksne
+        is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> BeregningStrategy.EpsUnder67År
+        is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre -> BeregningStrategy.Eps67EllerEldre
+        is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning -> BeregningStrategy.EpsUnder67ÅrOgUførFlyktning
+        is Grunnlag.Bosituasjon.Fullstendig.Enslig -> BeregningStrategy.BorAlene
     }
 }

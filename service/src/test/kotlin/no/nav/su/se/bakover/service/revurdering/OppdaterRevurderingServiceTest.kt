@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -101,7 +102,16 @@ internal class OppdaterRevurderingServiceTest {
         revurderingsårsak = revurderingsårsak,
         forhåndsvarsel = null,
         behandlingsinformasjon = behandlingsinformasjon,
-        grunnlagsdata = Grunnlagsdata.EMPTY,
+        grunnlagsdata = Grunnlagsdata(
+            bosituasjon = listOf(
+                Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                    id = UUID.randomUUID(),
+                    opprettet = fixedTidspunkt,
+                    periode = periode,
+                    begrunnelse = null,
+                ),
+            ),
+        ),
         vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         informasjonSomRevurderes = InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert)),
     )
@@ -261,7 +271,16 @@ internal class OppdaterRevurderingServiceTest {
                     behandlingsinformasjon = behandlingsinformasjon,
                     simulering = mock(),
                     forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-                    grunnlagsdata = Grunnlagsdata.EMPTY,
+                    grunnlagsdata = Grunnlagsdata(
+                        bosituasjon = listOf(
+                            Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                                id = UUID.randomUUID(),
+                                opprettet = fixedTidspunkt,
+                                periode = it.periode,
+                                begrunnelse = null,
+                            ),
+                        ),
+                    ),
                     vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
                     informasjonSomRevurderes = it.informasjonSomRevurderes,
                 )
@@ -349,6 +368,7 @@ internal class OppdaterRevurderingServiceTest {
             verify(revurderingRepoMock).lagre(actual)
             verify(vilkårsvurderingServiceMock).lagre(actual.id, actual.vilkårsvurderinger)
             verify(grunnlagServiceMock).lagreFradragsgrunnlag(actual.id, actual.grunnlagsdata.fradragsgrunnlag)
+            verify(grunnlagServiceMock).lagreBosituasjongrunnlag(actual.id, actual.grunnlagsdata.bosituasjon)
         }
         mocks.verifyNoMoreInteractions()
     }
@@ -397,6 +417,7 @@ internal class OppdaterRevurderingServiceTest {
             verify(revurderingRepoMock).lagre(actual)
             verify(vilkårsvurderingServiceMock).lagre(actual.id, actual.vilkårsvurderinger)
             verify(grunnlagServiceMock).lagreFradragsgrunnlag(actual.id, actual.grunnlagsdata.fradragsgrunnlag)
+            verify(grunnlagServiceMock).lagreBosituasjongrunnlag(actual.id, actual.grunnlagsdata.bosituasjon)
         }
         mocks.verifyNoMoreInteractions()
     }
@@ -444,6 +465,7 @@ internal class OppdaterRevurderingServiceTest {
             verify(revurderingRepoMock).lagre(actual)
             verify(vilkårsvurderingServiceMock).lagre(actual.id, actual.vilkårsvurderinger)
             verify(grunnlagServiceMock).lagreFradragsgrunnlag(actual.id, actual.grunnlagsdata.fradragsgrunnlag)
+            verify(grunnlagServiceMock).lagreBosituasjongrunnlag(actual.id, actual.grunnlagsdata.bosituasjon)
         }
         mocks.verifyNoMoreInteractions()
     }

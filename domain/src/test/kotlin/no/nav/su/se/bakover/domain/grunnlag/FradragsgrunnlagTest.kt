@@ -26,7 +26,10 @@ internal class FradragsgrunnlagTest {
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.BRUKER,
             ),
-        ).valider(behandlingsperiode) shouldBeLeft Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.UtenforBehandlingsperiode
+        ).valider(
+            behandlingsperiode,
+            false,
+        ) shouldBeLeft Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.UtenforBehandlingsperiode
     }
 
     @Test
@@ -39,7 +42,10 @@ internal class FradragsgrunnlagTest {
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.BRUKER,
             ),
-        ).valider(behandlingsperiode) shouldBeLeft Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag
+        ).valider(
+            behandlingsperiode,
+            false,
+        ) shouldBeLeft Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag
 
         Grunnlag.Fradragsgrunnlag(
             fradrag = FradragFactory.ny(
@@ -49,7 +55,10 @@ internal class FradragsgrunnlagTest {
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.BRUKER,
             ),
-        ).valider(behandlingsperiode) shouldBeLeft Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag
+        ).valider(
+            behandlingsperiode,
+            true,
+        ) shouldBeLeft Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag
 
         Grunnlag.Fradragsgrunnlag(
             fradrag = FradragFactory.ny(
@@ -59,7 +68,10 @@ internal class FradragsgrunnlagTest {
                 utenlandskInntekt = null,
                 tilhører = FradragTilhører.BRUKER,
             ),
-        ).valider(behandlingsperiode) shouldBeLeft Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag
+        ).valider(
+            behandlingsperiode,
+            false,
+        ) shouldBeLeft Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag
     }
 
     @Test
@@ -83,6 +95,6 @@ internal class FradragsgrunnlagTest {
                     tilhører = FradragTilhører.BRUKER,
                 ),
             ),
-        ).valider(behandlingsperiode) shouldBeLeft Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag
+        ).valider(behandlingsperiode, true) shouldBeLeft Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag
     }
 }

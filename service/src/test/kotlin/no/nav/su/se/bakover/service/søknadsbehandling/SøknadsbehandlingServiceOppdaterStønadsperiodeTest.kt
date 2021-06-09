@@ -22,6 +22,7 @@ import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -87,6 +88,7 @@ internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
             fnr = FnrGenerator.random(),
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         ).tilAttestering(Saksbehandler("saksa"), "")
 
@@ -123,6 +125,7 @@ internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
             fnr = FnrGenerator.random(),
             fritekstTilBrev = "",
             stønadsperiode = null,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         )
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
@@ -168,6 +171,7 @@ internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
             fnr = FnrGenerator.random(),
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = createVilkårsvurdering(stønadsperiode.periode, vilkårsvurderingId, grunnlagId),
         )
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {

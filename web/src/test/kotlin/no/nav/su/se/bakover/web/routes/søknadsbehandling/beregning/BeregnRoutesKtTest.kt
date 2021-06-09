@@ -17,7 +17,6 @@ import no.nav.su.se.bakover.database.DatabaseBuilder
 import no.nav.su.se.bakover.database.EmbeddedDatabase
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.Fnr
-import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.SakFactory
 import no.nav.su.se.bakover.domain.Søknad
@@ -25,6 +24,7 @@ import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.søknadsbehandling.BehandlingsStatus
@@ -34,6 +34,10 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.ServiceBuilder
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService
 import no.nav.su.se.bakover.service.søknadsbehandling.SøknadsbehandlingService.VilkårsvurderRequest
+import no.nav.su.se.bakover.service.vilkår.BosituasjonValg
+import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.TestClientsBuilder
 import no.nav.su.se.bakover.web.applicationConfig
@@ -49,7 +53,6 @@ import java.util.UUID
 
 internal class BeregnRoutesKtTest {
 
-    private val saksbehandler = NavIdentBruker.Saksbehandler("AB12345")
     private val stønadsperiode = Stønadsperiode.create(
         periode = Periode.create(1.januar(2021), 31.desember(2021)),
         begrunnelse = "begrunnelse",
@@ -71,18 +74,11 @@ internal class BeregnRoutesKtTest {
                 testSusebakover()
             },
         ) {
-            val objects = setup()
-
-            services.søknadsbehandling.vilkårsvurder(
-                VilkårsvurderRequest(
-                    objects.behandling.id,
-                    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-                ),
-            )
+            val objects = setupMedAlleVilkårOppfylt()
 
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn",
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/beregn",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
@@ -111,20 +107,13 @@ internal class BeregnRoutesKtTest {
                 testSusebakover()
             },
         ) {
-            val objects = setup()
+            val objects = setupMedAlleVilkårOppfylt()
             val fradragFraOgMed = LocalDate.of(2020, Month.JANUARY, 1)
             val fradragTilOgMed = LocalDate.of(2021, Month.DECEMBER, 31)
 
-            services.søknadsbehandling.vilkårsvurder(
-                VilkårsvurderRequest(
-                    objects.behandling.id,
-                    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-                ),
-            )
-
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn",
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/beregn",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
@@ -160,20 +149,13 @@ internal class BeregnRoutesKtTest {
                 testSusebakover()
             },
         ) {
-            val objects = setup()
+            val objects = setupMedAlleVilkårOppfylt()
             val fraOgMed = LocalDate.of(2021, Month.JANUARY, 1)
             val tilOgMed = LocalDate.of(2021, Month.DECEMBER, 31)
 
-            services.søknadsbehandling.vilkårsvurder(
-                VilkårsvurderRequest(
-                    objects.behandling.id,
-                    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-                ),
-            )
-
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn",
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/beregn",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
@@ -223,20 +205,13 @@ internal class BeregnRoutesKtTest {
                 testSusebakover()
             },
         ) {
-            val objects = setup()
+            val objects = setupMedAlleVilkårOppfylt()
             val fraOgMed = LocalDate.of(2021, Month.JANUARY, 1)
             val tilOgMed = LocalDate.of(2021, Month.DECEMBER, 31)
 
-            services.søknadsbehandling.vilkårsvurder(
-                VilkårsvurderRequest(
-                    objects.behandling.id,
-                    Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
-                ),
-            )
-
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn",
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/beregn",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
@@ -312,7 +287,7 @@ internal class BeregnRoutesKtTest {
             }
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn",
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/beregn",
                 listOf(Brukerrolle.Saksbehandler),
             ).apply {
                 assertSoftly {
@@ -322,14 +297,14 @@ internal class BeregnRoutesKtTest {
             }
             services.søknadsbehandling.vilkårsvurder(
                 VilkårsvurderRequest(
-                    objects.behandling.id,
+                    objects.søknadsbehandling.id,
                     Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
                 ),
             )
 
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn",
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/beregn",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
@@ -362,11 +337,17 @@ internal class BeregnRoutesKtTest {
             },
         ) {
             val objects = setup()
-            objects.behandling.status shouldBe BehandlingsStatus.OPPRETTET
+            services.søknadsbehandling.leggTilBosituasjonEpsgrunnlag(
+                LeggTilBosituasjonEpsRequest(
+                    behandlingId = objects.søknadsbehandling.id,
+                    epsFnr = null,
+                ),
+            )
+            objects.søknadsbehandling.status shouldBe BehandlingsStatus.OPPRETTET
 
             defaultRequest(
                 HttpMethod.Post,
-                "$sakPath/${objects.sak.id}/behandlinger/${objects.behandling.id}/beregn",
+                "$sakPath/${objects.sak.id}/behandlinger/${objects.søknadsbehandling.id}/beregn",
                 listOf(Brukerrolle.Saksbehandler),
             ) {
                 setBody(
@@ -390,13 +371,12 @@ internal class BeregnRoutesKtTest {
         }
     }
 
-    data class Objects(
+    data class UavklartVilkårsvurdertSøknadsbehandling(
         val sak: Sak,
-        val søknad: Søknad,
-        val behandling: Søknadsbehandling.Vilkårsvurdert.Uavklart,
+        val søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Uavklart,
     )
 
-    private fun setup(): Objects {
+    private fun setup(): UavklartVilkårsvurdertSøknadsbehandling {
         val søknadInnhold = SøknadInnholdTestdataBuilder.build()
         val fnr: Fnr = FnrGenerator.random()
         SakFactory(clock = fixedClock).nySak(fnr, søknadInnhold).also {
@@ -429,10 +409,54 @@ internal class BeregnRoutesKtTest {
             ),
         )
 
-        return Objects(
+        return UavklartVilkårsvurdertSøknadsbehandling(
             repos.sak.hentSak(sak.id)!!,
-            repos.søknad.hentSøknad(søknadMedOppgave.id)!!,
             repos.søknadsbehandling.hent(nySøknadsbehandling.id) as Søknadsbehandling.Vilkårsvurdert.Uavklart,
+        )
+    }
+
+    data class InnvilgetVilkårsvurdertSøknadsbehandling(
+        val sak: Sak,
+        val søknadsbehandling: Søknadsbehandling.Vilkårsvurdert.Innvilget,
+    )
+
+    private fun setupMedAlleVilkårOppfylt(): InnvilgetVilkårsvurdertSøknadsbehandling {
+        val objects = setup()
+
+        val behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt()
+        services.søknadsbehandling.leggTilUføregrunnlag(
+            LeggTilUførevurderingRequest(
+                behandlingId = objects.søknadsbehandling.id,
+                periode = objects.søknadsbehandling.periode,
+                uføregrad = Uføregrad.parse(behandlingsinformasjon.uførhet!!.uføregrad!!),
+                forventetInntekt = behandlingsinformasjon.uførhet!!.forventetInntekt,
+                oppfylt = behandlingsinformasjon.uførhet!!.status,
+                begrunnelse = behandlingsinformasjon.uførhet!!.begrunnelse,
+            ),
+        )
+        services.søknadsbehandling.leggTilBosituasjonEpsgrunnlag(
+            LeggTilBosituasjonEpsRequest(
+                behandlingId = objects.søknadsbehandling.id,
+                epsFnr = null,
+            ),
+        )
+        services.søknadsbehandling.fullførBosituasjongrunnlag(
+            FullførBosituasjonRequest(
+                behandlingId = objects.søknadsbehandling.id,
+                bosituasjon = BosituasjonValg.BOR_ALENE,
+                begrunnelse = behandlingsinformasjon.bosituasjon?.begrunnelse,
+            ),
+        )
+        services.søknadsbehandling.vilkårsvurder(
+            VilkårsvurderRequest(
+                objects.søknadsbehandling.id,
+                behandlingsinformasjon,
+            ),
+        )
+
+        return InnvilgetVilkårsvurdertSøknadsbehandling(
+            repos.sak.hentSak(objects.sak.id)!!,
+            repos.søknadsbehandling.hent(objects.søknadsbehandling.id) as Søknadsbehandling.Vilkårsvurdert.Innvilget,
         )
     }
 }

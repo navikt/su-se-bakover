@@ -51,12 +51,15 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeForhåndsvarsle
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeIverksetteRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLageBrevutkastForRevurdering
+import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilBosituasjongrunnlag
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilFradragsgrunnlag
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilGrunnlag
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppdatereRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeOppretteRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeSendeRevurderingTilAttestering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeUnderkjenneRevurdering
+import no.nav.su.se.bakover.service.revurdering.LeggTilBosituasjongrunnlagRequest
+import no.nav.su.se.bakover.service.revurdering.LeggTilBosituasjongrunnlagResponse
 import no.nav.su.se.bakover.service.revurdering.LeggTilFradragsgrunnlagRequest
 import no.nav.su.se.bakover.service.revurdering.LeggTilFradragsgrunnlagResponse
 import no.nav.su.se.bakover.service.revurdering.LeggTilUføregrunnlagResponse
@@ -85,6 +88,8 @@ import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
+import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
+import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import java.time.LocalDate
@@ -352,6 +357,16 @@ open class AccessCheckProxy(
                     assertHarTilgangTilBehandling(request.behandlingId)
                     return services.søknadsbehandling.leggTilUføregrunnlag(request)
                 }
+
+                override fun leggTilBosituasjonEpsgrunnlag(request: LeggTilBosituasjonEpsRequest): Either<SøknadsbehandlingService.KunneIkkeLeggeTilBosituasjonEpsGrunnlag, Søknadsbehandling> {
+                    assertHarTilgangTilBehandling(request.behandlingId)
+                    return services.søknadsbehandling.leggTilBosituasjonEpsgrunnlag(request)
+                }
+
+                override fun fullførBosituasjongrunnlag(request: FullførBosituasjonRequest): Either<SøknadsbehandlingService.KunneIkkeFullføreBosituasjonGrunnlag, Søknadsbehandling> {
+                    assertHarTilgangTilBehandling(request.behandlingId)
+                    return services.søknadsbehandling.fullførBosituasjongrunnlag(request)
+                }
             },
             ferdigstillVedtak = object : FerdigstillVedtakService {
                 override fun ferdigstillVedtakEtterUtbetaling(utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering): Unit =
@@ -379,7 +394,7 @@ open class AccessCheckProxy(
 
                 override fun opprettRevurdering(
                     opprettRevurderingRequest: OpprettRevurderingRequest,
-                ): Either<KunneIkkeOppretteRevurdering, Revurdering> {
+                ): Either<KunneIkkeOppretteRevurdering, OpprettetRevurdering> {
                     assertHarTilgangTilSak(opprettRevurderingRequest.sakId)
                     return services.revurdering.opprettRevurdering(opprettRevurderingRequest)
                 }
@@ -478,6 +493,11 @@ open class AccessCheckProxy(
                     return services.revurdering.leggTilFradragsgrunnlag(request)
                 }
 
+                override fun leggTilBosituasjongrunnlag(request: LeggTilBosituasjongrunnlagRequest): Either<KunneIkkeLeggeTilBosituasjongrunnlag, LeggTilBosituasjongrunnlagResponse> {
+                    assertHarTilgangTilRevurdering(request.revurderingId)
+                    return services.revurdering.leggTilBosituasjongrunnlag(request)
+                }
+
                 override fun hentGjeldendeGrunnlagsdataOgVilkårsvurderinger(revurderingId: UUID): Either<KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger, HentGjeldendeGrunnlagsdataOgVilkårsvurderingerResponse> {
                     assertHarTilgangTilRevurdering(revurderingId)
                     return services.revurdering.hentGjeldendeGrunnlagsdataOgVilkårsvurderinger(revurderingId)
@@ -494,6 +514,17 @@ open class AccessCheckProxy(
                 }
 
                 override fun hentFradragsgrunnlag(behandlingId: UUID): List<Grunnlag.Fradragsgrunnlag> {
+                    kastKanKunKallesFraAnnenService()
+                }
+
+                override fun lagreBosituasjongrunnlag(
+                    behandlingId: UUID,
+                    bosituasjongrunnlag: List<Grunnlag.Bosituasjon>,
+                ) {
+                    kastKanKunKallesFraAnnenService()
+                }
+
+                override fun hentBosituasjongrunnlang(behandlingId: UUID): List<Grunnlag.Bosituasjon> {
                     kastKanKunKallesFraAnnenService()
                 }
             },

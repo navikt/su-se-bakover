@@ -64,6 +64,14 @@ class RevurderingBeregnOgSimulerTest {
                         ),
                     ),
                 ),
+                bosituasjon = listOf(
+                    Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                        id = UUID.randomUUID(),
+                        opprettet = fixedTidspunkt,
+                        periode = RevurderingTestUtils.periode,
+                        begrunnelse = null,
+                    ),
+                )
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Vurdert.Uførhet.create(

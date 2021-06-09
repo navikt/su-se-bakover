@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.behandling
 
 import arrow.core.Either
+import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import com.fasterxml.jackson.annotation.JsonIgnore
@@ -11,6 +12,8 @@ import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import java.time.LocalDate
 import java.time.Period
 
@@ -244,7 +247,20 @@ data class Behandlingsinformasjon(
             val pengerSkyldt: Int?,
             val kontanter: Int?,
             val depositumskonto: Int?,
-        )
+        ) {
+            fun erVerdierStørreEnn0(): Boolean = sumVerdier() > 0
+
+            private fun sumVerdier(): Int {
+                return (verdiIkkePrimærbolig ?: 0) +
+                    (verdiEiendommer ?: 0) +
+                    (verdiKjøretøy ?: 0) +
+                    (innskudd ?: 0) +
+                    (verdipapir ?: 0) +
+                    (pengerSkyldt ?: 0) +
+                    (kontanter ?: 0) +
+                    (depositumskonto ?: 0)
+            }
+        }
 
         enum class Status {
             VilkårOppfylt,
@@ -257,6 +273,10 @@ data class Behandlingsinformasjon(
 
         override fun avslagsgrunn(): Avslagsgrunn? =
             if (erVilkårIkkeOppfylt()) Avslagsgrunn.FORMUE else null
+
+        fun harEpsFormue(): Boolean {
+            return epsVerdier?.erVerdierStørreEnn0() == true
+        }
     }
 
     data class PersonligOppmøte(
@@ -358,7 +378,98 @@ data class Behandlingsinformasjon(
             formue = null,
             personligOppmøte = null,
             bosituasjon = null,
-            ektefelle = null
+            ektefelle = null,
         )
+    }
+
+    /**
+     * Midlertidig migreringsfunksjon fra Behandlingsinformasjon + Grunnlag.Bosituasjon -> Behandlingsinformasjon
+     * Behandlingsinformasjonen ligger blant annet i Vedtaket inntil videre.
+     * */
+    fun oppdaterBosituasjonOgEktefelle(
+        bosituasjon: Grunnlag.Bosituasjon,
+        hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
+    ): Either<KunneIkkeHentePerson, Behandlingsinformasjon> {
+        val behandlingsinformasjonBosituasjon = when (bosituasjon) {
+            is Grunnlag.Bosituasjon.Ufullstendig.HarEps -> Bosituasjon(
+                ektefelle = hentEktefelle(bosituasjon.fnr, hentPerson).getOrHandle { return it.left() },
+                delerBolig = null,
+                ektemakeEllerSamboerUførFlyktning = null,
+                begrunnelse = null,
+            )
+            is Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps -> {
+                Bosituasjon(
+                    ektefelle = EktefellePartnerSamboer.IngenEktefelle,
+                    delerBolig = null,
+                    ektemakeEllerSamboerUførFlyktning = null,
+                    begrunnelse = null,
+                )
+            }
+            is Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen -> {
+                Bosituasjon(
+                    ektefelle = EktefellePartnerSamboer.IngenEktefelle,
+                    delerBolig = true,
+                    ektemakeEllerSamboerUførFlyktning = null,
+                    begrunnelse = bosituasjon.begrunnelse,
+                )
+            }
+            is Grunnlag.Bosituasjon.Fullstendig.Enslig -> {
+                Bosituasjon(
+                    ektefelle = EktefellePartnerSamboer.IngenEktefelle,
+                    delerBolig = false,
+                    ektemakeEllerSamboerUførFlyktning = null,
+                    begrunnelse = bosituasjon.begrunnelse,
+                )
+            }
+            is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.SektiSyvEllerEldre -> {
+                Bosituasjon(
+                    ektefelle = hentEktefelle(bosituasjon.fnr, hentPerson).getOrHandle { return it.left() },
+                    delerBolig = null,
+                    ektemakeEllerSamboerUførFlyktning = null,
+                    begrunnelse = bosituasjon.begrunnelse,
+                )
+            }
+            is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.IkkeUførFlyktning -> {
+                Bosituasjon(
+                    ektefelle = hentEktefelle(bosituasjon.fnr, hentPerson).getOrHandle { return it.left() },
+                    delerBolig = null,
+                    ektemakeEllerSamboerUførFlyktning = false,
+                    begrunnelse = bosituasjon.begrunnelse,
+                )
+            }
+            is Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning -> {
+                Bosituasjon(
+                    ektefelle = hentEktefelle(bosituasjon.fnr, hentPerson).getOrHandle { return it.left() },
+                    delerBolig = null,
+                    ektemakeEllerSamboerUførFlyktning = true,
+                    begrunnelse = bosituasjon.begrunnelse,
+                )
+            }
+        }
+        return this.copy(
+            bosituasjon = behandlingsinformasjonBosituasjon,
+            ektefelle = behandlingsinformasjonBosituasjon.ektefelle,
+        ).right()
+    }
+
+    private fun hentEktefelle(
+        fnr: Fnr,
+        hentPerson: (fnr: Fnr) -> Either<KunneIkkeHentePerson, Person>,
+    ): Either<KunneIkkeHentePerson, EktefellePartnerSamboer.Ektefelle> {
+        val eps = hentPerson(fnr).getOrHandle {
+            return KunneIkkeHentePerson.FantIkkePerson.left()
+        }
+        return EktefellePartnerSamboer.Ektefelle(
+            fnr = fnr,
+            navn = eps.navn,
+            kjønn = eps.kjønn,
+            fødselsdato = eps.fødselsdato,
+            adressebeskyttelse = eps.adressebeskyttelse,
+            skjermet = eps.skjermet,
+        ).right()
+    }
+
+    fun harEpsFormue(): Boolean {
+        return formue?.harEpsFormue() == true
     }
 }

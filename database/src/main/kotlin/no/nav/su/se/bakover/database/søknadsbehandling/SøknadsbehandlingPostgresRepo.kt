@@ -6,6 +6,8 @@ import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.beregning.toSnapshot
+import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.VilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.hent
@@ -36,6 +38,8 @@ import javax.sql.DataSource
 internal class SøknadsbehandlingPostgresRepo(
     private val dataSource: DataSource,
     private val uføregrunnlagRepo: UføregrunnlagPostgresRepo,
+    private val fradragsgrunnlagPostgresRepo: FradragsgrunnlagPostgresRepo,
+    private val bosituasjongrunnlagRepo: BosituasjongrunnlagPostgresRepo,
     private val vilkårsvurderingRepo: VilkårsvurderingPostgresRepo,
 ) : SøknadsbehandlingRepo {
     override fun lagre(søknadsbehandling: Søknadsbehandling) {
@@ -144,6 +148,8 @@ internal class SøknadsbehandlingPostgresRepo(
         val fnr = Fnr(string("fnr"))
         val grunnlagsdata = Grunnlagsdata(
             uføregrunnlag = uføregrunnlagRepo.hentUføregrunnlag(behandlingId, session),
+            fradragsgrunnlag = fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(behandlingId, session),
+            bosituasjon = bosituasjongrunnlagRepo.hentBosituasjongrunnlag(behandlingId, session),
         )
         val vilkårsvurderinger = Vilkårsvurderinger(
             uføre = vilkårsvurderingRepo.hent(behandlingId, session),
@@ -161,6 +167,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 fnr = fnr,
                 fritekstTilBrev = fritekstTilBrev,
                 stønadsperiode = stønadsperiode,
+                grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
             )
             BehandlingsStatus.VILKÅRSVURDERT_INNVILGET -> Søknadsbehandling.Vilkårsvurdert.Innvilget(
@@ -174,6 +181,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 fnr = fnr,
                 fritekstTilBrev = fritekstTilBrev,
                 stønadsperiode = stønadsperiode!!,
+                grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
             )
             BehandlingsStatus.VILKÅRSVURDERT_AVSLAG -> Søknadsbehandling.Vilkårsvurdert.Avslag(
@@ -187,6 +195,7 @@ internal class SøknadsbehandlingPostgresRepo(
                 fnr = fnr,
                 fritekstTilBrev = fritekstTilBrev,
                 stønadsperiode = stønadsperiode!!,
+                grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
             )
             BehandlingsStatus.BEREGNET_INNVILGET -> Søknadsbehandling.Beregnet.Innvilget(

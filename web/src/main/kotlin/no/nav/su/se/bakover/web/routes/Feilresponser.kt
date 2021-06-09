@@ -6,8 +6,13 @@ import no.nav.su.se.bakover.web.errorJson
 internal object Feilresponser {
 
     val fantIkkeBehandling = HttpStatusCode.NotFound.errorJson(
-        "fant ikke behandling",
+        "Fant ikke behandling",
         "fant_ikke_behandling",
+    )
+
+    val klarteIkkeHentePerson = HttpStatusCode.NotFound.errorJson(
+        "Fant ikke person",
+        "fant_ikke_person",
     )
 
     val overlappendeVurderingsperioder = HttpStatusCode.BadRequest.errorJson(
@@ -33,8 +38,17 @@ internal object Feilresponser {
         "vurderingene_må_ha_samme_resultat",
     )
 
+    val kunneIkkeLageBosituasjon = HttpStatusCode.NotFound.errorJson(
+        "Klarte ikke lagre bosituasjon",
+        "klarte_ikke_lagre_bosituasjon",
+    )
+
     val ikkeGyldigFødselsnummer = HttpStatusCode.BadRequest.errorJson(
         "Inneholder ikke et gyldig fødselsnummer",
         "ikke_gyldig_fødselsnummer",
+    )
+    val kanIkkeHaEpsFradragUtenEps = HttpStatusCode.BadRequest.errorJson(
+        "Kan ikke ha fradrag knyttet til EPS når bruker ikke har EPS.",
+        "kan_ikke_ha_eps_fradrag_uten_eps",
     )
 }
