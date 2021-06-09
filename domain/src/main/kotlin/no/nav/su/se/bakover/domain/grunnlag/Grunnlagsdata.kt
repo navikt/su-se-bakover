@@ -9,6 +9,7 @@ data class Grunnlagsdata(
      * Etter vilkårsvurdering: Skal være en. Senere kan den være fler hvis vi støtter sats per måned.
      * */
     val bosituasjon: List<Grunnlag.Bosituasjon> = emptyList(),
+    val formuegrunnlag: List<Formuegrunnlag> = emptyList(),
 ) {
     companion object {
         val EMPTY = Grunnlagsdata()
