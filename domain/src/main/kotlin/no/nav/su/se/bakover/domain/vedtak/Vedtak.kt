@@ -56,6 +56,10 @@ interface VedtakFelles {
     val periode: Periode
 }
 
+sealed interface VedtakSomKanRevurderes : VedtakFelles {
+    val beregning: Beregning
+}
+
 sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
 
     abstract fun journalfør(journalfør: () -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre, Vedtak>
@@ -132,11 +136,11 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
         override val attestant: NavIdentBruker.Attestant,
         override val journalføringOgBrevdistribusjon: JournalføringOgBrevdistribusjon,
         override val periode: Periode,
-        val beregning: Beregning,
+        override val beregning: Beregning,
         val simulering: Simulering,
         val utbetalingId: UUID30,
         override val vedtakType: VedtakType,
-    ) : Vedtak() {
+    ) : Vedtak(), VedtakSomKanRevurderes {
 
         override fun journalfør(journalfør: () -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre, EndringIYtelse> {
             return if (vedtakType == VedtakType.SØKNAD || vedtakType == VedtakType.ENDRING || vedtakType == VedtakType.OPPHØR) {
@@ -170,8 +174,8 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
         override val attestant: NavIdentBruker.Attestant,
         override val journalføringOgBrevdistribusjon: JournalføringOgBrevdistribusjon,
         override val periode: Periode,
-        val beregning: Beregning,
-    ) : Vedtak() {
+        override val beregning: Beregning,
+    ) : Vedtak(), VedtakSomKanRevurderes {
         override val vedtakType: VedtakType = VedtakType.INGEN_ENDRING
 
         override fun journalfør(journalfør: () -> Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre.FeilVedJournalføring, JournalpostId>): Either<KunneIkkeJournalføreOgDistribuereBrev.KunneIkkeJournalføre, IngenEndringIYtelse> {
@@ -291,8 +295,13 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
         }
     }
 
+    /**
+     * Representerer et vedtak plassert på en tidslinje utledet fra vedtakenes temporale gyldighet.
+     * I denne sammenhen er et vedtak ansett som gyldig inntil det utløper eller overskrives (helt/delvis) av et nytt.
+     * Ved plassering på tidslinja gjennom [KanPlasseresPåTidslinje], er objektet ansvarlig for at alle periodiserbare
+     * opplysninger som ligger til grunn for vedtaket justeres i henhold til aktuell periode gitt av [CopyArgs.Tidslinje].
+     */
     data class VedtakPåTidslinje(
-        val vedtakId: UUID,
         override val opprettet: Tidspunkt,
         override val periode: Periode,
         val grunnlagsdata: Grunnlagsdata,
@@ -303,6 +312,11 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
          * søknadsbehandlinger og revurderinger, må vi inntil videre utlede fradragsgrunnlag fra tidligere beregninger.
          */
         val fradrag: List<Fradrag>,
+        /**
+         * Referanse til det originale vedtaket dette tidslinje-elementet er basert på. Må ikke endres eller benyttes
+         * til uthenting av grunnlagsdata.
+         */
+        val originaltVedtak: VedtakSomKanRevurderes,
     ) : KanPlasseresPåTidslinje<VedtakPåTidslinje> {
         override fun copy(args: CopyArgs.Tidslinje): VedtakPåTidslinje =
             when (args) {
@@ -320,7 +334,6 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                     }
                     copy(
                         periode = periode,
-                        vedtakId = vedtakId,
                         grunnlagsdata = Grunnlagsdata(
                             uføregrunnlag = when (uførevilkår) {
                                 Vilkår.IkkeVurdert.Uførhet -> emptyList()
@@ -338,6 +351,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                         fradrag = fradrag.filterNot { it.fradragstype == Fradragstype.ForventetInntekt }.mapNotNull {
                             it.copy(CopyArgs.Snitt(periode))
                         },
+                        originaltVedtak = originaltVedtak,
                     )
                 }
                 is CopyArgs.Tidslinje.NyPeriode -> {
@@ -354,7 +368,6 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                     }
                     copy(
                         periode = args.periode,
-                        vedtakId = vedtakId,
                         grunnlagsdata = Grunnlagsdata(
                             uføregrunnlag = Tidslinje(
                                 periode = args.periode,
@@ -372,6 +385,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                         fradrag = fradrag.filterNot { it.fradragstype == Fradragstype.ForventetInntekt }.mapNotNull {
                             it.copy(CopyArgs.Snitt(args.periode))
                         },
+                        originaltVedtak = originaltVedtak,
                     )
                 }
             }
@@ -379,19 +393,19 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
 }
 
 // TODO: ("Må sees i sammenheng med evt endringer knyttet til hvilke vedtakstyper som legges til grunn for revurdering")
-fun List<Vedtak.EndringIYtelse>.lagTidslinje(periode: Periode): List<Vedtak.VedtakPåTidslinje> =
+fun List<VedtakSomKanRevurderes>.lagTidslinje(periode: Periode): Tidslinje<Vedtak.VedtakPåTidslinje> =
     map {
         Vedtak.VedtakPåTidslinje(
-            vedtakId = it.id,
             opprettet = it.opprettet,
             periode = it.periode,
             grunnlagsdata = it.behandling.grunnlagsdata,
             vilkårsvurderinger = it.behandling.vilkårsvurderinger,
             fradrag = it.beregning.getFradrag(),
+            originaltVedtak = it,
         )
     }.let {
         Tidslinje(
             periode = periode,
             objekter = it,
-        ).tidslinje
+        )
     }

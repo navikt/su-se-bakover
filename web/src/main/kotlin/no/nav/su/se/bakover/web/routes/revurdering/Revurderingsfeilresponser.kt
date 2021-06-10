@@ -44,7 +44,17 @@ internal object Revurderingsfeilresponser {
 
     val feilutbetalingStøttesIkke = InternalServerError.errorJson(
         "Feilutbetalinger støttes ikke",
-        "feilutbetalinger_støttes_ikke"
+        "feilutbetalinger_støttes_ikke",
+    )
+
+    val fantIngenVedtakSomKanRevurderes = NotFound.errorJson(
+        "Fant ingen vedtak som kan revurderes for angitt periode",
+        "ingenting_å_revurdere_i_perioden",
+    )
+
+    val tidslinjeForVedtakErIkkeKontinuerlig = InternalServerError.errorJson(
+        "Mangler systemstøtte for revurdering av perioder med hull i tidslinjen for vedtak",
+        "tidslinje_for_vedtak_ikke_kontinuerlig",
     )
 
     fun ugyldigPeriode(ugyldigPeriode: UgyldigPeriode): Resultat {

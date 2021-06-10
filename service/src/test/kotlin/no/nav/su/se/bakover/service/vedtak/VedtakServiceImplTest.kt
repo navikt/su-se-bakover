@@ -1,10 +1,13 @@
 package no.nav.su.se.bakover.service.vedtak
 
+import arrow.core.left
+import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
+import io.kotest.assertions.arrow.either.shouldBeLeft
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
@@ -15,6 +18,7 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
+import no.nav.su.se.bakover.domain.Sak
 import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.Søknad
 import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
@@ -31,7 +35,10 @@ import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
 import no.nav.su.se.bakover.service.beregning.TestBeregning
+import no.nav.su.se.bakover.service.sak.FantIkkeSak
+import no.nav.su.se.bakover.service.sak.SakService
 import org.junit.jupiter.api.Test
+import java.time.LocalDate
 import java.util.UUID
 
 internal class VedtakServiceImplTest {
@@ -47,7 +54,7 @@ internal class VedtakServiceImplTest {
         }
 
         val actual = createService(
-            vedtakRepo = vedtakRepoMock
+            vedtakRepo = vedtakRepoMock,
         ).hentAktiveFnr(dato)
 
         actual shouldBe listOf(fnr)
@@ -67,7 +74,7 @@ internal class VedtakServiceImplTest {
         }
 
         val actual = createService(
-            vedtakRepo = vedtakRepoMock
+            vedtakRepo = vedtakRepoMock,
         ).hentAktiveFnr(dato)
 
         actual shouldBe listOf(fnr)
@@ -89,7 +96,7 @@ internal class VedtakServiceImplTest {
         }
 
         val actual = createService(
-            vedtakRepo = vedtakRepoMock
+            vedtakRepo = vedtakRepoMock,
         ).hentAktiveFnr(dato)
 
         actual shouldBe listOf(fnrFørst, fnrSist)
@@ -98,10 +105,67 @@ internal class VedtakServiceImplTest {
         verifyNoMoreInteractions(vedtakRepoMock)
     }
 
+    @Test
+    fun `kopier gjeldende vedtaksdata - fant ikke sak`() {
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(any<UUID>()) } doReturn FantIkkeSak.left()
+        }
+        createService(
+            sakService = sakServiceMock,
+        ).kopierGjeldendeVedtaksdata(UUID.randomUUID(), LocalDate.EPOCH) shouldBeLeft KunneIkkeKopiereGjeldendeVedtaksdata.FantIkkeSak
+    }
+
+    @Test
+    fun `kopier gjeldende vedtaksdata - fant ingen vedtak`() {
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(any<UUID>()) } doReturn Sak(
+                id = UUID.randomUUID(),
+                saksnummer = Saksnummer(nummer = 9999),
+                opprettet = Tidspunkt.now(),
+                fnr = FnrGenerator.random(),
+                søknader = listOf(),
+                behandlinger = listOf(),
+                utbetalinger = listOf(),
+                revurderinger = listOf(),
+                vedtakListe = listOf(),
+            ).right()
+        }
+        createService(
+            sakService = sakServiceMock,
+        ).kopierGjeldendeVedtaksdata(UUID.randomUUID(), LocalDate.EPOCH) shouldBeLeft KunneIkkeKopiereGjeldendeVedtaksdata.FantIngenVedtak
+    }
+
+    @Test
+    fun `kopier gjeldende vedtaksdata - ugyldig periode`() {
+        val vedtakMock = mock<Vedtak.EndringIYtelse>() {
+            on { periode } doReturn Periode.create(1.januar(2021), 31.desember(2021))
+        }
+        val sakServiceMock = mock<SakService> {
+            on { hentSak(any<UUID>()) } doReturn Sak(
+                id = UUID.randomUUID(),
+                saksnummer = Saksnummer(nummer = 9999),
+                opprettet = Tidspunkt.now(),
+                fnr = FnrGenerator.random(),
+                søknader = listOf(),
+                behandlinger = listOf(),
+                utbetalinger = listOf(),
+                revurderinger = listOf(),
+                vedtakListe = listOf(
+                    vedtakMock,
+                ),
+            ).right()
+        }
+        createService(
+            sakService = sakServiceMock,
+        ).kopierGjeldendeVedtaksdata(UUID.randomUUID(), LocalDate.EPOCH.plusDays(7)) shouldBeLeft KunneIkkeKopiereGjeldendeVedtaksdata.UgyldigPeriode(Periode.UgyldigPeriode.FraOgMedDatoMåVæreFørsteDagIMåneden)
+    }
+
     private fun createService(
-        vedtakRepo: VedtakRepo = mock()
+        vedtakRepo: VedtakRepo = mock(),
+        sakService: SakService = mock(),
     ) = VedtakServiceImpl(
-        vedtakRepo = vedtakRepo
+        vedtakRepo = vedtakRepo,
+        sakService = sakService,
     )
 
     private fun innvilgetVedtak(fnr: Fnr) =

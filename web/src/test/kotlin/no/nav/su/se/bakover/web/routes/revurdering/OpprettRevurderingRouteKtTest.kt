@@ -144,11 +144,11 @@ internal class OpprettRevurderingRouteKtTest {
     @Test
     fun `fant ingenting som kan revurderes`() {
         shouldMapErrorCorrectly(
-            error = KunneIkkeOppretteRevurdering.FantIngentingSomKanRevurderes,
+            error = KunneIkkeOppretteRevurdering.FantIngenVedtakSomKanRevurderes,
             expectedStatusCode = HttpStatusCode.NotFound,
             expectedJsonResponse = """
                 {
-                    "message":"Ingen behandlinger som kan revurderes for angitt periode",
+                    "message":"Fant ingen vedtak som kan revurderes for angitt periode",
                     "code":"ingenting_å_revurdere_i_perioden"
                 }
             """.trimIndent(),

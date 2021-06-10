@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import java.lang.RuntimeException
 import java.util.UUID
 
 internal class SakServiceImplTest {

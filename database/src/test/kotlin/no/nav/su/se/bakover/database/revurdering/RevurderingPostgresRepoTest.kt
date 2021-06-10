@@ -208,9 +208,10 @@ internal class RevurderingPostgresRepoTest {
     }
 
     @Test
-    fun `kan beregne (innvilget) og oppdatere periode og årsak`() {
+    fun `kan beregne (innvilget) og oppdatere revurdering med ny informasjon`() {
         withMigratedDb {
             val vedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
+            val etAnnetVedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
 
             val opprettetRevurdering = opprettet(vedtak)
             repo.lagre(opprettetRevurdering)
@@ -227,7 +228,8 @@ internal class RevurderingPostgresRepoTest {
                 ),
                 grunnlagsdata = opprettetRevurdering.grunnlagsdata,
                 vilkårsvurderinger = opprettetRevurdering.vilkårsvurderinger,
-                informasjonSomRevurderes = opprettetRevurdering.informasjonSomRevurderes,
+                informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
+                tilRevurdering = etAnnetVedtak,
             )
 
             repo.lagre(oppdatertRevurdering)

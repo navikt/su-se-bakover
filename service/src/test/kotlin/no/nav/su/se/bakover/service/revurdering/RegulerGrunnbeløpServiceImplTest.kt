@@ -64,10 +64,8 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.periode
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.revurderingId
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.revurderingsårsak
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.revurderingsårsakRegulerGrunnbeløp
-import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.sak
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.saksbehandler
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.søknadsbehandlingVedtak
-import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
@@ -169,14 +167,9 @@ internal class RegulerGrunnbeløpServiceImplTest {
         }
         val vilkårsvurderingServiceMock = mock<VilkårsvurderingService>()
 
-        val sakServiceMock = mock<SakService>() {
-            on { hentSak(any<UUID>()) } doReturn sak.right()
-        }
-
         createRevurderingService(
             revurderingRepo = revurderingRepoMock,
             vilkårsvurderingService = vilkårsvurderingServiceMock,
-            sakService = sakServiceMock,
         ).leggTilUføregrunnlag(
             LeggTilUførevurderingerRequest(
                 behandlingId = revurderingId,
@@ -196,7 +189,6 @@ internal class RegulerGrunnbeløpServiceImplTest {
         inOrder(
             revurderingRepoMock,
             vilkårsvurderingServiceMock,
-            sakServiceMock,
         ) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
             verify(revurderingRepoMock).lagre(argThat { it shouldBe forventetLagretRevurdering })
@@ -206,7 +198,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             )
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
         }
-        verifyNoMoreInteractions(revurderingRepoMock, vilkårsvurderingServiceMock, sakServiceMock)
+        verifyNoMoreInteractions(revurderingRepoMock, vilkårsvurderingServiceMock)
     }
 
     @Test

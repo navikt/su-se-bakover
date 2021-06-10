@@ -1,28 +1,29 @@
-package no.nav.su.se.bakover.domain.revurdering
+package no.nav.su.se.bakover.domain.vedtak
 
 import arrow.core.Nel
+import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.vedtak.Vedtak
-import no.nav.su.se.bakover.domain.vedtak.lagTidslinje
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import java.time.LocalDate
 import java.util.UUID
 
-data class KopierGjeldendeGrunnlagsdataOgVilkårsvurderinger(
-    private val periode: Periode,
-    private val vedtakListe: List<Vedtak>,
+data class GjeldendeVedtaksdata(
+    val periode: Periode,
+    private val vedtakListe: NonEmptyList<VedtakSomKanRevurderes>,
 ) {
     val grunnlagsdata: Grunnlagsdata
     val vilkårsvurderinger: Vilkårsvurderinger
 
-    private val vedtakstidslinje: List<Vedtak.VedtakPåTidslinje> = vedtakListe
-        .filterIsInstance<Vedtak.EndringIYtelse>()
+    private val tidslinje = vedtakListe
         .lagTidslinje(periode)
 
-    private val vilkårsvurderingerFraTidslinje = vedtakstidslinje.vilkårsvurderinger()
+    private val vedtakPåTidslinje = tidslinje.tidslinje
+
+    private val vilkårsvurderingerFraTidslinje = vedtakPåTidslinje.vilkårsvurderinger()
 
     // Utleder grunnlagstyper som kan knyttes til vilkår via deres respektive vilkårsvurderinger
     private val uføreGrunnlagOgVilkår = when (val uførevilkår = vilkårsvurderingerFraTidslinje.uføre) {
@@ -30,7 +31,7 @@ data class KopierGjeldendeGrunnlagsdataOgVilkårsvurderinger(
         is Vilkår.Vurdert.Uførhet -> Pair(uførevilkår.grunnlag, uførevilkår)
     }
 
-    private val fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag> = vedtakstidslinje.flatMap { it.fradrag }.map {
+    private val fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag> = vedtakPåTidslinje.flatMap { it.fradrag }.map {
         Grunnlag.Fradragsgrunnlag(id = UUID.randomUUID(), opprettet = Tidspunkt.now(), fradrag = it)
     }
 
@@ -38,7 +39,7 @@ data class KopierGjeldendeGrunnlagsdataOgVilkårsvurderinger(
         grunnlagsdata = Grunnlagsdata(
             uføregrunnlag = uføreGrunnlagOgVilkår.first,
             fradragsgrunnlag = fradragsgrunnlag,
-            bosituasjon = vedtakstidslinje.flatMap {
+            bosituasjon = vedtakPåTidslinje.flatMap {
                 it.grunnlagsdata.bosituasjon
             },
         )
@@ -46,6 +47,12 @@ data class KopierGjeldendeGrunnlagsdataOgVilkårsvurderinger(
             uføre = uføreGrunnlagOgVilkår.second,
         )
     }
+
+    fun gjeldendeVedtakPåDato(dato: LocalDate): VedtakSomKanRevurderes? = tidslinje.gjeldendeForDato(dato)?.originaltVedtak
+
+    fun tidslinjeForVedtakErSammenhengende() = vedtakPåTidslinje
+        .zipWithNext { a, b -> a.periode tilstøter b.periode }
+        .all { it }
 }
 
 private fun List<Vedtak.VedtakPåTidslinje>.vilkårsvurderinger(): Vilkårsvurderinger {

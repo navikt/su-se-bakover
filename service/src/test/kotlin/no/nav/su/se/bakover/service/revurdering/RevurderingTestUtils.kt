@@ -48,9 +48,9 @@ import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
-import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
+import no.nav.su.se.bakover.service.vedtak.VedtakService
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
@@ -196,7 +196,7 @@ object RevurderingTestUtils {
     )
 
     internal fun createRevurderingService(
-        sakService: SakService = mock(),
+        vedtakService: VedtakService = mock(),
         utbetalingService: UtbetalingService = mock(),
         revurderingRepo: RevurderingRepo = mock(),
         oppgaveService: OppgaveService = mock(),
@@ -210,7 +210,7 @@ object RevurderingTestUtils {
         grunnlagService: GrunnlagService = mock(),
     ) =
         RevurderingServiceImpl(
-            sakService = sakService,
+            vedtakService = vedtakService,
             utbetalingService = utbetalingService,
             revurderingRepo = revurderingRepo,
             oppgaveService = oppgaveService,

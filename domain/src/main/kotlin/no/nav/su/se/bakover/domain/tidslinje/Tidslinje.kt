@@ -1,8 +1,10 @@
 package no.nav.su.se.bakover.domain.tidslinje
 
+import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
 import java.time.Clock
+import java.time.LocalDate
 import java.util.LinkedList
 
 data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
@@ -20,6 +22,19 @@ data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
     }
 
     val tidslinje = lagTidslinje()
+        .sortedWith(stigendeFraOgMed)
+
+    init {
+        valider(this.tidslinje)
+    }
+
+    companion object Validator {
+        fun <T : KanPlasseresPåTidslinje<T>> valider(elementer: List<T>) {
+            require(elementer.all { t1 -> elementer.minus(t1).none { t2 -> t1.periode.fraOgMed == t2.periode.fraOgMed } }) { "Tidslinje har flere elementer med samme fraOgMed dato!" }
+            require(elementer.all { t1 -> elementer.minus(t1).none { t2 -> t1.periode.tilOgMed == t2.periode.tilOgMed } }) { "Tidslinje har flere elementer med samme tilOgMed dato!" }
+            require(elementer.all { t1 -> elementer.minus(t1).none { t2 -> t1.periode overlapper t2.periode } }) { "Tidslinje har elementer med overlappende perioder!" }
+        }
+    }
 
     private fun lagTidslinje(): List<T> {
         if (objekter.isEmpty()) return emptyList()
@@ -231,4 +246,6 @@ data class Tidslinje<T : KanPlasseresPåTidslinje<T>>(
             any { t2 -> t1.opprettet.instant < t2.opprettet.instant && t2.periode.inneholder(t1.periode) }
         }
     }
+
+    fun gjeldendeForDato(dato: LocalDate): T? = tidslinje.firstOrNull { dato.between(it.periode) }
 }

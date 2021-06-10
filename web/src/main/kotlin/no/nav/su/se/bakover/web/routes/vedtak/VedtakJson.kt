@@ -1,6 +1,7 @@
-package no.nav.su.se.bakover.web.routes.revurdering
+package no.nav.su.se.bakover.web.routes.vedtak
 
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vedtak.VedtakType
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingsinformasjonJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingsinformasjonJson.Companion.toJson
@@ -106,3 +107,8 @@ internal fun Vedtak.IngenEndringIYtelse.toJson(): VedtakJson = VedtakJson(
     periode = periode.toJson(),
     type = vedtakType,
 )
+
+internal fun VedtakSomKanRevurderes.toJson(): VedtakJson = when (this) {
+    is Vedtak.EndringIYtelse -> this.toJson()
+    is Vedtak.IngenEndringIYtelse -> this.toJson()
+}

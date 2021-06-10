@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.vedtak
 
 import arrow.core.nonEmptyListOf
+import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -35,6 +36,8 @@ internal class VedtakPåTidslinjeTest {
 
     @Test
     fun `bevarer korrekte verdier ved kopiering for plassering på tidslinje - full kopi`() {
+        val originaltVedtak = mock<Vedtak.EndringIYtelse>()
+
         val uføregrunnlag = Grunnlag.Uføregrunnlag(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
@@ -76,7 +79,6 @@ internal class VedtakPåTidslinjeTest {
         )
 
         val original = Vedtak.VedtakPåTidslinje(
-            vedtakId = UUID.randomUUID(),
             opprettet = Tidspunkt.now(fixedClock),
             periode = Periode.create(1.januar(2021), 31.desember(2021)),
             grunnlagsdata = Grunnlagsdata(
@@ -90,9 +92,9 @@ internal class VedtakPåTidslinjeTest {
                 ),
             ),
             fradrag = listOf(f1, f2, f3),
+            originaltVedtak = originaltVedtak,
         )
         original.copy(CopyArgs.Tidslinje.Full).let { vedtakPåTidslinje ->
-            vedtakPåTidslinje.vedtakId shouldBe original.vedtakId
             vedtakPåTidslinje.opprettet shouldBe original.opprettet
             vedtakPåTidslinje.periode shouldBe original.periode
             vedtakPåTidslinje.grunnlagsdata.uføregrunnlag[0].let {
@@ -116,11 +118,14 @@ internal class VedtakPåTidslinjeTest {
                 }
             }
             vedtakPåTidslinje.fradrag shouldBe listOf(f1, f2)
+            vedtakPåTidslinje.originaltVedtak shouldBe originaltVedtak
         }
     }
 
     @Test
     fun `bevarer korrekte verdier ved kopiering for plassering på tidslinje - ny periode`() {
+        val originaltVedtak = mock<Vedtak.EndringIYtelse>()
+
         val uføregrunnlag = Grunnlag.Uføregrunnlag(
             id = UUID.randomUUID(),
             opprettet = fixedTidspunkt,
@@ -169,7 +174,6 @@ internal class VedtakPåTidslinjeTest {
         )
 
         val original = Vedtak.VedtakPåTidslinje(
-            vedtakId = UUID.randomUUID(),
             opprettet = Tidspunkt.now(fixedClock),
             periode = Periode.create(1.januar(2021), 31.desember(2021)),
             grunnlagsdata = Grunnlagsdata(
@@ -184,10 +188,10 @@ internal class VedtakPåTidslinjeTest {
                 ),
             ),
             fradrag = listOf(f1, f2, f3),
+            originaltVedtak = originaltVedtak,
         )
 
         original.copy(CopyArgs.Tidslinje.NyPeriode(Periode.create(1.mai(2021), 31.juli(2021)))).let { vedtakPåTidslinje ->
-            vedtakPåTidslinje.vedtakId shouldBe original.vedtakId
             vedtakPåTidslinje.opprettet shouldBe original.opprettet
             vedtakPåTidslinje.periode shouldBe Periode.create(1.mai(2021), 31.juli(2021))
             vedtakPåTidslinje.grunnlagsdata.uføregrunnlag[0].let {
@@ -226,6 +230,7 @@ internal class VedtakPåTidslinjeTest {
                     it.tilhører shouldBe FradragTilhører.BRUKER
                 }
             }
+            vedtakPåTidslinje.originaltVedtak shouldBe originaltVedtak
         }
     }
 }

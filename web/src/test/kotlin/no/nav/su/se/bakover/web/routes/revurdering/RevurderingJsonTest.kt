@@ -24,6 +24,7 @@ import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
+import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.web.routes.grunnlag.BosituasjonJsonTest.Companion.bosituasjon
@@ -34,8 +35,10 @@ import no.nav.su.se.bakover.web.routes.grunnlag.UføreVilkårJsonTest.Companion.
 import no.nav.su.se.bakover.web.routes.grunnlag.UføreVilkårJsonTest.Companion.vurderingsperiodeUføre
 import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagJsonTest.Companion.uføregrunnlag
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.vedtak
+import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingsinformasjonJson.Companion.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.TestBeregning
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.toJson
+import no.nav.su.se.bakover.web.routes.vedtak.toJson
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import java.util.UUID
@@ -45,6 +48,7 @@ internal class RevurderingJsonTest {
         Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
         Revurderingsårsak.Begrunnelse.create("Ny informasjon"),
     )
+    private val vedtak: VedtakSomKanRevurderes = RevurderingRoutesTestData.vedtak
 
     @Test
     fun `should serialize and deserialize OpprettetRevurdering`() {

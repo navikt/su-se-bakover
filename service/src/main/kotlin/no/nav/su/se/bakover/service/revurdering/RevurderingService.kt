@@ -93,7 +93,7 @@ interface RevurderingService {
 
 data class BeregnOgSimulerResponse(
     val revurdering: Revurdering,
-    val feilmeldinger: List<RevurderingsutfallSomIkkeStøttes> = emptyList()
+    val feilmeldinger: List<RevurderingsutfallSomIkkeStøttes> = emptyList(),
 )
 
 sealed class FortsettEtterForhåndsvarslingRequest {
@@ -146,26 +146,27 @@ enum class Revurderingshandling {
 
 sealed class KunneIkkeOppretteRevurdering {
     object FantIkkeSak : KunneIkkeOppretteRevurdering()
-    object FantIngentingSomKanRevurderes : KunneIkkeOppretteRevurdering()
-    object FantIkkeAktørId : KunneIkkeOppretteRevurdering()
-    object KunneIkkeOppretteOppgave : KunneIkkeOppretteRevurdering()
-    data class UgyldigPeriode(val subError: Periode.UgyldigPeriode) : KunneIkkeOppretteRevurdering()
+    object FantIngenVedtakSomKanRevurderes : KunneIkkeOppretteRevurdering()
+    object MåVelgeInformasjonSomSkalRevurderes : KunneIkkeOppretteRevurdering()
+    object TidslinjeForVedtakErIkkeKontinuerlig : KunneIkkeOppretteRevurdering()
     object UgyldigÅrsak : KunneIkkeOppretteRevurdering()
     object UgyldigBegrunnelse : KunneIkkeOppretteRevurdering()
-    object MåVelgeInformasjonSomSkalRevurderes : KunneIkkeOppretteRevurdering()
+    data class UgyldigPeriode(val subError: Periode.UgyldigPeriode) : KunneIkkeOppretteRevurdering()
+    object FantIkkeAktørId : KunneIkkeOppretteRevurdering()
+    object KunneIkkeOppretteOppgave : KunneIkkeOppretteRevurdering()
 }
 
 sealed class KunneIkkeOppdatereRevurdering {
-    object FantIkkeRevurdering : KunneIkkeOppdatereRevurdering()
-    data class UgyldigPeriode(val subError: Periode.UgyldigPeriode) : KunneIkkeOppdatereRevurdering()
+    object FantIkkeSak : KunneIkkeOppdatereRevurdering()
+    object FantIngenVedtakSomKanRevurderes : KunneIkkeOppdatereRevurdering()
+    object MåVelgeInformasjonSomSkalRevurderes : KunneIkkeOppdatereRevurdering()
+    object TidslinjeForVedtakErIkkeKontinuerlig : KunneIkkeOppdatereRevurdering()
     object UgyldigÅrsak : KunneIkkeOppdatereRevurdering()
     object UgyldigBegrunnelse : KunneIkkeOppdatereRevurdering()
-    data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
-        KunneIkkeOppdatereRevurdering()
-
+    data class UgyldigPeriode(val subError: Periode.UgyldigPeriode) : KunneIkkeOppdatereRevurdering()
+    data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) : KunneIkkeOppdatereRevurdering()
+    object FantIkkeRevurdering : KunneIkkeOppdatereRevurdering()
     object KanIkkeOppdatereRevurderingSomErForhåndsvarslet : KunneIkkeOppdatereRevurdering()
-    object MåVelgeInformasjonSomSkalRevurderes : KunneIkkeOppdatereRevurdering()
-    object FantIkkeSak : KunneIkkeOppdatereRevurdering()
 }
 
 sealed class KunneIkkeBeregneOgSimulereRevurdering {
@@ -274,6 +275,8 @@ sealed class KunneIkkeLeggeTilBosituasjongrunnlag {
 sealed class KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger {
     object FantIkkeBehandling : KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger()
     object FantIkkeSak : KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger()
+    object FantIngentingSomKanRevurderes : KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger()
+    data class UgyldigPeriode(val subError: Periode.UgyldigPeriode) : KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger()
 }
 
 data class HentGjeldendeGrunnlagsdataOgVilkårsvurderingerResponse(

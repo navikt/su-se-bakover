@@ -8,9 +8,7 @@ import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.common.log
-import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -34,7 +32,6 @@ import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
 import no.nav.su.se.bakover.domain.revurdering.IdentifiserSaksbehandlingsutfallSomIkkeStøttes
 import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
-import no.nav.su.se.bakover.domain.revurdering.KopierGjeldendeGrunnlagsdataOgVilkårsvurderinger
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
@@ -45,6 +42,7 @@ import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.erKlarForAttestering
 import no.nav.su.se.bakover.domain.revurdering.medFritekst
+import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -54,18 +52,18 @@ import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
-import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.KunneIkkeUtbetale
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
+import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
+import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import java.time.Clock
 import java.util.UUID
 
 internal class RevurderingServiceImpl(
-    private val sakService: SakService,
     private val utbetalingService: UtbetalingService,
     private val revurderingRepo: RevurderingRepo,
     private val oppgaveService: OppgaveService,
@@ -73,10 +71,11 @@ internal class RevurderingServiceImpl(
     private val microsoftGraphApiClient: MicrosoftGraphApiOppslag,
     private val brevService: BrevService,
     private val clock: Clock,
-    internal val vedtakRepo: VedtakRepo,
-    internal val ferdigstillVedtakService: FerdigstillVedtakService,
+    private val vedtakRepo: VedtakRepo,
+    private val ferdigstillVedtakService: FerdigstillVedtakService,
     private val vilkårsvurderingService: VilkårsvurderingService,
     private val grunnlagService: GrunnlagService,
+    private val vedtakService: VedtakService,
 ) : RevurderingService {
 
     private val observers: MutableList<EventObserver> = mutableListOf()
@@ -100,36 +99,37 @@ internal class RevurderingServiceImpl(
             }.left()
         }
 
-        val sak = sakService.hentSak(opprettRevurderingRequest.sakId).getOrElse {
-            return KunneIkkeOppretteRevurdering.FantIkkeSak.left()
+        val informasjonSomRevurderes = InformasjonSomRevurderes.tryCreate(opprettRevurderingRequest.informasjonSomRevurderes)
+            .getOrHandle { return KunneIkkeOppretteRevurdering.MåVelgeInformasjonSomSkalRevurderes.left() }
+
+        val gjeldendeVedtaksdata = vedtakService.kopierGjeldendeVedtaksdata(
+            sakId = opprettRevurderingRequest.sakId,
+            fraOgMed = opprettRevurderingRequest.fraOgMed,
+        ).getOrHandle {
+            return when (it) {
+                KunneIkkeKopiereGjeldendeVedtaksdata.FantIkkeSak -> KunneIkkeOppretteRevurdering.FantIkkeSak
+                KunneIkkeKopiereGjeldendeVedtaksdata.FantIngenVedtak -> KunneIkkeOppretteRevurdering.FantIngenVedtakSomKanRevurderes
+                is KunneIkkeKopiereGjeldendeVedtaksdata.UgyldigPeriode -> KunneIkkeOppretteRevurdering.UgyldigPeriode(it.cause)
+            }.left()
+        }.also {
+            if (!it.tidslinjeForVedtakErSammenhengende()) return KunneIkkeOppretteRevurdering.TidslinjeForVedtakErIkkeKontinuerlig.left()
         }
 
-        val tilRevurdering = sak.vedtakListe
-            .filterIsInstance<Vedtak.EndringIYtelse>()
-            .filter { opprettRevurderingRequest.fraOgMed.between(it.periode) }
-            .maxByOrNull { it.opprettet.instant }
-            ?: return KunneIkkeOppretteRevurdering.FantIngentingSomKanRevurderes.left()
+        // TODO se kommentar for bruk av denne funksjonen
+        val (grunnlagsdata, vilkårsvurderinger) = fjernBosituasjonOgFradragForEpsDersomFlereBosituasjoner(gjeldendeVedtaksdata)
 
-        val periode =
-            Periode.tryCreate(opprettRevurderingRequest.fraOgMed, tilRevurdering.periode.tilOgMed).getOrHandle {
-                return KunneIkkeOppretteRevurdering.UgyldigPeriode(it).left()
-            }
+        val gjeldendeVedtakPåFraOgMedDato = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(opprettRevurderingRequest.fraOgMed)
+            ?: return KunneIkkeOppretteRevurdering.FantIngenVedtakSomKanRevurderes.left()
 
-        val aktørId = personService.hentAktørId(tilRevurdering.behandling.fnr).getOrElse {
+        val aktørId = personService.hentAktørId(gjeldendeVedtakPåFraOgMedDato.behandling.fnr).getOrElse {
             log.error("Fant ikke aktør-id")
             return KunneIkkeOppretteRevurdering.FantIkkeAktørId.left()
         }
 
-        val preutfylteGrunnlagsOgVilkårsverdier = hentPreutfylteGrunnlagsOgVilkårsverdier(periode, sak.vedtakListe)
-
-        val informasjonSomRevurderes =
-            InformasjonSomRevurderes.tryCreate(opprettRevurderingRequest.informasjonSomRevurderes)
-                .getOrHandle { return KunneIkkeOppretteRevurdering.MåVelgeInformasjonSomSkalRevurderes.left() }
-
         // TODO ai 25.02.2021 - Oppgaven skal egentligen ikke opprettes her. Den burde egentligen komma utifra melding av endring, som skal føres til revurdering.
         return oppgaveService.opprettOppgave(
             OppgaveConfig.Revurderingsbehandling(
-                saksnummer = tilRevurdering.behandling.saksnummer,
+                saksnummer = gjeldendeVedtakPåFraOgMedDato.behandling.saksnummer,
                 aktørId = aktørId,
                 tilordnetRessurs = null,
             ),
@@ -137,17 +137,17 @@ internal class RevurderingServiceImpl(
             KunneIkkeOppretteRevurdering.KunneIkkeOppretteOppgave
         }.map { oppgaveId ->
             OpprettetRevurdering(
-                periode = periode,
-                tilRevurdering = tilRevurdering,
+                periode = gjeldendeVedtaksdata.periode,
+                tilRevurdering = gjeldendeVedtakPåFraOgMedDato,
                 saksbehandler = opprettRevurderingRequest.saksbehandler,
                 oppgaveId = oppgaveId,
                 fritekstTilBrev = "",
                 revurderingsårsak = revurderingsårsak,
                 opprettet = Tidspunkt.now(clock),
                 forhåndsvarsel = if (revurderingsårsak.årsak == REGULER_GRUNNBELØP) Forhåndsvarsel.IngenForhåndsvarsel else null,
-                behandlingsinformasjon = tilRevurdering.behandlingsinformasjon,
-                grunnlagsdata = preutfylteGrunnlagsOgVilkårsverdier.first,
-                vilkårsvurderinger = preutfylteGrunnlagsOgVilkårsverdier.second,
+                behandlingsinformasjon = gjeldendeVedtakPåFraOgMedDato.behandlingsinformasjon,
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
             ).also {
                 revurderingRepo.lagre(it)
@@ -175,28 +175,23 @@ internal class RevurderingServiceImpl(
         }
     }
 
-    private fun hentPreutfylteGrunnlagsOgVilkårsverdier(
-        periode: Periode,
-        vedtakListe: List<Vedtak>,
-    ): Pair<Grunnlagsdata, Vilkårsvurderinger> {
-        val gjeldendeGrunnlagsdataOgVilkårsvurderinger =
-            KopierGjeldendeGrunnlagsdataOgVilkårsvurderinger(periode, vedtakListe)
-
-        val gjeldendeBosituasjon = gjeldendeGrunnlagsdataOgVilkårsvurderinger.grunnlagsdata.bosituasjon
+    // TODO jm: er par ting som bør adresseres her - en vs flere, påkreve vurdering, og fjerning av data i det skjulte.
+    private fun fjernBosituasjonOgFradragForEpsDersomFlereBosituasjoner(gjeldendeVedtaksdata: GjeldendeVedtaksdata): Pair<Grunnlagsdata, Vilkårsvurderinger> {
+        val gjeldendeBosituasjon = gjeldendeVedtaksdata.grunnlagsdata.bosituasjon
 
         // Dette kan oppstå når vi revurderer en revurdering. Da må vi vise eksisterende, men skal ikke preutfylle.
         val harFlerEnnEnBosituasjon = gjeldendeBosituasjon.harFlerEnnEnBosituasjonsperiode()
 
-        return gjeldendeGrunnlagsdataOgVilkårsvurderinger.grunnlagsdata.copy(
+        return gjeldendeVedtaksdata.grunnlagsdata.copy(
             // Foreløpig støtter vi kun en aktiv bosituasjon, dersom det er fler, preutfyller vi ikke.
             bosituasjon = if (harFlerEnnEnBosituasjon) emptyList() else listOf(
                 gjeldendeBosituasjon.singleFullstendigOrThrow(),
             ),
             // Fjerner fradrag som er knyttet til Bosituasjon (ektefelle) dersom vi ikke kan preutfylle Bosituasjon
-            fradragsgrunnlag = gjeldendeGrunnlagsdataOgVilkårsvurderinger.grunnlagsdata.fradragsgrunnlag.filterNot {
+            fradragsgrunnlag = gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag.filterNot {
                 it.fradrag.tilhører == FradragTilhører.EPS && harFlerEnnEnBosituasjon
             },
-        ) to gjeldendeGrunnlagsdataOgVilkårsvurderinger.vilkårsvurderinger
+        ) to gjeldendeVedtaksdata.vilkårsvurderinger
     }
 
     override fun leggTilUføregrunnlag(
@@ -337,19 +332,20 @@ internal class RevurderingServiceImpl(
         val revurdering = revurderingRepo.hent(revurderingId)
             ?: return KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger.FantIkkeBehandling.left()
 
-        val sak = sakService.hentSak(revurdering.sakId).getOrHandle {
-            return KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger.FantIkkeSak.left()
-        }
-
-        return KopierGjeldendeGrunnlagsdataOgVilkårsvurderinger(
-            periode = revurdering.periode,
-            vedtakListe = sak.vedtakListe,
-        ).let {
-            HentGjeldendeGrunnlagsdataOgVilkårsvurderingerResponse(
-                it.grunnlagsdata,
-                it.vilkårsvurderinger,
-            )
-        }.right()
+        return vedtakService.kopierGjeldendeVedtaksdata(revurdering.sakId, revurdering.periode.fraOgMed)
+            .mapLeft {
+                when (it) {
+                    KunneIkkeKopiereGjeldendeVedtaksdata.FantIkkeSak -> KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger.FantIkkeSak
+                    KunneIkkeKopiereGjeldendeVedtaksdata.FantIngenVedtak -> KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger.FantIngentingSomKanRevurderes
+                    is KunneIkkeKopiereGjeldendeVedtaksdata.UgyldigPeriode -> KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger.UgyldigPeriode(it.cause)
+                }
+            }
+            .map {
+                HentGjeldendeGrunnlagsdataOgVilkårsvurderingerResponse(
+                    it.grunnlagsdata,
+                    it.vilkårsvurderinger,
+                )
+            }
     }
 
     override fun oppdaterRevurdering(
@@ -362,6 +358,9 @@ internal class RevurderingServiceImpl(
             }.left()
         }
 
+        val informasjonSomRevurderes = InformasjonSomRevurderes.tryCreate(oppdaterRevurderingRequest.informasjonSomRevurderes)
+            .getOrHandle { return KunneIkkeOppdatereRevurdering.MåVelgeInformasjonSomSkalRevurderes.left() }
+
         val revurdering = revurderingRepo.hent(oppdaterRevurderingRequest.revurderingId)
             ?: return KunneIkkeOppdatereRevurdering.FantIkkeRevurdering.left()
 
@@ -369,53 +368,57 @@ internal class RevurderingServiceImpl(
             return KunneIkkeOppdatereRevurdering.KanIkkeOppdatereRevurderingSomErForhåndsvarslet.left()
         }
 
-        val stønadsperiode = revurdering.tilRevurdering.periode
-        val nyPeriode =
-            Periode.tryCreate(oppdaterRevurderingRequest.fraOgMed, stønadsperiode.tilOgMed).getOrHandle {
-                return KunneIkkeOppdatereRevurdering.UgyldigPeriode(it).left()
-            }
-
-        if (oppdaterRevurderingRequest.informasjonSomRevurderes.isEmpty()) {
-            return KunneIkkeOppdatereRevurdering.MåVelgeInformasjonSomSkalRevurderes.left()
+        val gjeldendeVedtaksdata = vedtakService.kopierGjeldendeVedtaksdata(
+            sakId = revurdering.sakId,
+            fraOgMed = oppdaterRevurderingRequest.fraOgMed,
+        ).getOrHandle {
+            return when (it) {
+                KunneIkkeKopiereGjeldendeVedtaksdata.FantIkkeSak -> KunneIkkeOppdatereRevurdering.FantIkkeSak
+                KunneIkkeKopiereGjeldendeVedtaksdata.FantIngenVedtak -> KunneIkkeOppdatereRevurdering.FantIngenVedtakSomKanRevurderes
+                is KunneIkkeKopiereGjeldendeVedtaksdata.UgyldigPeriode -> KunneIkkeOppdatereRevurdering.UgyldigPeriode(it.cause)
+            }.left()
+        }.also {
+            if (!it.tidslinjeForVedtakErSammenhengende()) return KunneIkkeOppdatereRevurdering.TidslinjeForVedtakErIkkeKontinuerlig.left()
         }
 
-        val sak = sakService.hentSak(revurdering.sakId).getOrElse {
-            return KunneIkkeOppdatereRevurdering.FantIkkeSak.left()
-        }
+        // TODO se kommentar for bruk av denne funksjonen
+        val (grunnlagsdata, vilkårsvurderinger) = fjernBosituasjonOgFradragForEpsDersomFlereBosituasjoner(gjeldendeVedtaksdata)
 
-        val preutfylteGrunnlagsOgVilkårsverdier = hentPreutfylteGrunnlagsOgVilkårsverdier(nyPeriode, sak.vedtakListe)
-
-        val informasjonSomRevurderes = InformasjonSomRevurderes.tryCreate(oppdaterRevurderingRequest.informasjonSomRevurderes)
-            .getOrHandle { return KunneIkkeOppdatereRevurdering.MåVelgeInformasjonSomSkalRevurderes.left() }
+        val gjeldendeVedtakPåFraOgMedDato = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(oppdaterRevurderingRequest.fraOgMed)
+            ?: return KunneIkkeOppdatereRevurdering.FantIngenVedtakSomKanRevurderes.left()
 
         return when (revurdering) {
             is OpprettetRevurdering -> revurdering.oppdater(
-                periode = nyPeriode,
-                revurderingsårsak = revurderingsårsak,
-                grunnlagsdata = preutfylteGrunnlagsOgVilkårsverdier.first,
-                vilkårsvurderinger = preutfylteGrunnlagsOgVilkårsverdier.second,
-                informasjonSomRevurderes = informasjonSomRevurderes,
+                gjeldendeVedtaksdata.periode,
+                revurderingsårsak,
+                grunnlagsdata,
+                vilkårsvurderinger,
+                informasjonSomRevurderes,
+                gjeldendeVedtakPåFraOgMedDato,
             ).right()
             is BeregnetRevurdering -> revurdering.oppdater(
-                periode = nyPeriode,
-                revurderingsårsak = revurderingsårsak,
-                grunnlagsdata = preutfylteGrunnlagsOgVilkårsverdier.first,
-                vilkårsvurderinger = preutfylteGrunnlagsOgVilkårsverdier.second,
-                informasjonSomRevurderes = informasjonSomRevurderes,
+                gjeldendeVedtaksdata.periode,
+                revurderingsårsak,
+                grunnlagsdata,
+                vilkårsvurderinger,
+                informasjonSomRevurderes,
+                gjeldendeVedtakPåFraOgMedDato,
             ).right()
             is SimulertRevurdering -> revurdering.oppdater(
-                periode = nyPeriode,
-                revurderingsårsak = revurderingsårsak,
-                grunnlagsdata = preutfylteGrunnlagsOgVilkårsverdier.first,
-                vilkårsvurderinger = preutfylteGrunnlagsOgVilkårsverdier.second,
-                informasjonSomRevurderes = informasjonSomRevurderes,
+                gjeldendeVedtaksdata.periode,
+                revurderingsårsak,
+                grunnlagsdata,
+                vilkårsvurderinger,
+                informasjonSomRevurderes,
+                gjeldendeVedtakPåFraOgMedDato,
             ).right()
             is UnderkjentRevurdering -> revurdering.oppdater(
-                periode = nyPeriode,
-                revurderingsårsak = revurderingsårsak,
-                grunnlagsdata = preutfylteGrunnlagsOgVilkårsverdier.first,
-                vilkårsvurderinger = preutfylteGrunnlagsOgVilkårsverdier.second,
-                informasjonSomRevurderes = informasjonSomRevurderes,
+                gjeldendeVedtaksdata.periode,
+                revurderingsårsak,
+                grunnlagsdata,
+                vilkårsvurderinger,
+                informasjonSomRevurderes,
+                gjeldendeVedtakPåFraOgMedDato,
             ).right()
             else -> KunneIkkeOppdatereRevurdering.UgyldigTilstand(
                 revurdering::class,

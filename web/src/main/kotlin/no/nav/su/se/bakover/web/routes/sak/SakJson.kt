@@ -10,7 +10,6 @@ import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingJson
-import no.nav.su.se.bakover.web.routes.revurdering.VedtakJson
 import no.nav.su.se.bakover.web.routes.revurdering.toJson
 import no.nav.su.se.bakover.web.routes.sak.SakJson.KanStansesEllerGjenopptas.Companion.kanStansesEllerGjenopptas
 import no.nav.su.se.bakover.web.routes.søknad.SøknadJson
@@ -18,6 +17,8 @@ import no.nav.su.se.bakover.web.routes.søknad.toJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.UtbetalingJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.toJson
+import no.nav.su.se.bakover.web.routes.vedtak.VedtakJson
+import no.nav.su.se.bakover.web.routes.vedtak.toJson
 import java.time.Clock
 
 internal data class SakJson(

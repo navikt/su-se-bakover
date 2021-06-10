@@ -10,12 +10,12 @@ import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
-import no.nav.su.se.bakover.service.sak.SakService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
+import no.nav.su.se.bakover.service.vedtak.VedtakService
 
 internal data class RevurderingServiceMocks(
-    val sakService: SakService = mock(),
+    val vedtakService: VedtakService = mock(),
     val utbetalingService: UtbetalingService = mock(),
     val revurderingRepo: RevurderingRepo = mock(),
     val oppgaveService: OppgaveService = mock(),
@@ -28,7 +28,7 @@ internal data class RevurderingServiceMocks(
     val vilkårsvurderingService: VilkårsvurderingService = mock(),
 ) {
     val revurderingService = RevurderingServiceImpl(
-        sakService = sakService,
+        vedtakService = vedtakService,
         utbetalingService = utbetalingService,
         revurderingRepo = revurderingRepo,
         oppgaveService = oppgaveService,
@@ -44,7 +44,7 @@ internal data class RevurderingServiceMocks(
 
     fun verifyNoMoreInteractions() {
         com.nhaarman.mockitokotlin2.verifyNoMoreInteractions(
-            sakService,
+            vedtakService,
             utbetalingService,
             revurderingRepo,
             oppgaveService,
