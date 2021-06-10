@@ -159,6 +159,18 @@ internal class RevurderingServiceImplTest {
                         ),
                     ),
                 ),
+                formue = Vilkår.Vurdert.Formue.create(
+                    vurderingsperioder = nonEmptyListOf(
+                        Vurderingsperiode.Formue.create(
+                            id = UUID.randomUUID(),
+                            opprettet = fixedTidspunkt,
+                            resultat = Resultat.Innvilget,
+                            grunnlag = null,
+                            periode = periode,
+                            begrunnelse = "ok2k",
+                        ),
+                    ),
+                ),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
@@ -289,6 +301,18 @@ internal class RevurderingServiceImplTest {
                             opprettet = fixedTidspunkt,
                             resultat = Resultat.Innvilget,
                             grunnlag = uføregrunnlag,
+                            periode = periode,
+                            begrunnelse = "ok2k",
+                        ),
+                    ),
+                ),
+                formue = Vilkår.Vurdert.Formue.create(
+                    vurderingsperioder = nonEmptyListOf(
+                        Vurderingsperiode.Formue.create(
+                            id = UUID.randomUUID(),
+                            opprettet = fixedTidspunkt,
+                            resultat = Resultat.Innvilget,
+                            grunnlag = null,
                             periode = periode,
                             begrunnelse = "ok2k",
                         ),
@@ -631,6 +655,18 @@ internal class RevurderingServiceImplTest {
                             opprettet = fixedTidspunkt,
                             resultat = Resultat.Innvilget,
                             grunnlag = uføregrunnlag,
+                            periode = periode,
+                            begrunnelse = "ok2k",
+                        ),
+                    ),
+                ),
+                formue = Vilkår.Vurdert.Formue.create(
+                    vurderingsperioder = nonEmptyListOf(
+                        Vurderingsperiode.Formue.create(
+                            id = UUID.randomUUID(),
+                            opprettet = fixedTidspunkt,
+                            resultat = Resultat.Innvilget,
+                            grunnlag = null,
                             periode = periode,
                             begrunnelse = "ok2k",
                         ),

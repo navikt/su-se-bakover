@@ -9,3 +9,16 @@ create table if not exists grunnlag_formue
     søkerFormue JSONB not null,
     begrunnelse text
 );
+
+create table if not exists vilkårsvurdering_formue
+(
+    id uuid primary key,
+    opprettet timestamptz not null,
+    behandlingId uuid not null,
+    formue_grunnlag_id uuid references grunnlag_formue(id),
+    vurdering text not null,
+    resultat text not null,
+    begrunnelse text,
+    fraOgMed date not null,
+    tilOgMed date not null
+    );

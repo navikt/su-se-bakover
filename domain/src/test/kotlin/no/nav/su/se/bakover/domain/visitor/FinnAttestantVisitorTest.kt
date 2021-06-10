@@ -268,6 +268,16 @@ internal class FinnAttestantVisitorTest {
                     ),
                 ),
             ),
+            formue = Vilkår.Vurdert.Formue.create(
+                vurderingsperioder = nonEmptyListOf(
+                    Vurderingsperiode.Formue.create(
+                        resultat = Resultat.Innvilget,
+                        grunnlag = null,
+                        periode = periode,
+                        begrunnelse = null,
+                    ),
+                ),
+            ),
         ),
         informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
     )

@@ -11,9 +11,10 @@ import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.database.Session
 import no.nav.su.se.bakover.database.beregning.PersistertBeregning
 import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.FormueVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
-import no.nav.su.se.bakover.database.grunnlag.VilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
@@ -79,7 +80,8 @@ internal class RevurderingPostgresRepo(
     private val uføregrunnlagRepo: UføregrunnlagPostgresRepo,
     private val fradragsgrunnlagPostgresRepo: FradragsgrunnlagPostgresRepo,
     private val bosituasjonsgrunnlagPostgresRepo: BosituasjongrunnlagPostgresRepo,
-    private val vilkårsvurderingRepo: VilkårsvurderingPostgresRepo,
+    private val uføreVilkårsvurderingRepo: UføreVilkårsvurderingPostgresRepo,
+    private val formueVilkårsvurderingRepo: FormueVilkårsvurderingPostgresRepo,
     søknadsbehandlingRepo: SøknadsbehandlingPostgresRepo,
 ) : RevurderingRepo {
     private val vedtakRepo = VedtakPosgresRepo(dataSource, søknadsbehandlingRepo, this)
@@ -196,7 +198,8 @@ internal class RevurderingPostgresRepo(
         )
 
         val vilkårsvurderinger = Vilkårsvurderinger(
-            uføre = vilkårsvurderingRepo.hent(id, session),
+            uføre = uføreVilkårsvurderingRepo.hent(id, session),
+            formue = formueVilkårsvurderingRepo.hent(id, session),
         )
 
         return when (RevurderingsType.valueOf(string("revurderingsType"))) {

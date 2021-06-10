@@ -16,10 +16,10 @@ import java.util.UUID
 
 internal class UføregrunnlagPostgresRepo {
 
-    internal fun lagre(behandlingId: UUID, uføregrunnlag: List<Grunnlag.Uføregrunnlag>, session: TransactionalSession) {
-        slettForBehandlingId(behandlingId, session)
+    internal fun lagre(behandlingId: UUID, uføregrunnlag: List<Grunnlag.Uføregrunnlag>, tx: TransactionalSession) {
+        slettForBehandlingId(behandlingId, tx)
         uføregrunnlag.forEach {
-            lagre(it, behandlingId, session)
+            lagre(it, behandlingId, tx)
         }
     }
 

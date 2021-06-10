@@ -88,7 +88,18 @@ internal class RevurderingTest {
                         ),
                     ),
                 ),
-
+                formue = Vilkår.Vurdert.Formue.create(
+                    vurderingsperioder = nonEmptyListOf(
+                        Vurderingsperiode.Formue.create(
+                            id = UUID.randomUUID(),
+                            opprettet = Tidspunkt.now(),
+                            resultat = Resultat.Innvilget,
+                            grunnlag = null,
+                            periode = vurderingsperiode,
+                            begrunnelse = null,
+                        )
+                    )
+                ),
             ),
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -155,6 +166,18 @@ internal class RevurderingTest {
                         ),
                     ),
                 ),
+                formue = Vilkår.Vurdert.Formue.create(
+                    vurderingsperioder = nonEmptyListOf(
+                        Vurderingsperiode.Formue.create(
+                            id = UUID.randomUUID(),
+                            opprettet = Tidspunkt.now(),
+                            resultat = Resultat.Innvilget,
+                            grunnlag = null,
+                            periode = vurderingsperiode,
+                            begrunnelse = null,
+                        )
+                    )
+                )
             ),
             fradrag = listOf(
                 Grunnlag.Fradragsgrunnlag(
@@ -211,6 +234,18 @@ internal class RevurderingTest {
                             begrunnelse = null,
                         ),
                     ),
+                ),
+                formue = Vilkår.Vurdert.Formue.create(
+                    vurderingsperioder = nonEmptyListOf(
+                        Vurderingsperiode.Formue.create(
+                            id = UUID.randomUUID(),
+                            opprettet = Tidspunkt.now(),
+                            resultat = Resultat.Innvilget,
+                            grunnlag = null,
+                            periode = vurderingsperiode,
+                            begrunnelse = null,
+                        )
+                    )
                 ),
             ),
             fradrag = listOf(

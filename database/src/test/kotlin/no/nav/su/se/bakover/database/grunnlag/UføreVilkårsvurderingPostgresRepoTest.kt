@@ -19,7 +19,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-internal class VilkårsvurderingPostgresRepoTest {
+internal class UføreVilkårsvurderingPostgresRepoTest {
     private val datasource = EmbeddedDatabase.instance()
     private val testDataHelper = TestDataHelper(datasource)
 
@@ -40,10 +40,10 @@ internal class VilkårsvurderingPostgresRepoTest {
                 ),
             )
 
-            testDataHelper.vilkårsvurderingRepo.lagre(søknadsbehandling.id, vurderingUførhet)
+            testDataHelper.uføreVilkårsvurderingRepo.lagre(søknadsbehandling.id, vurderingUførhet)
 
             datasource.withSession { session ->
-                testDataHelper.vilkårsvurderingRepo.hent(søknadsbehandling.id, session) shouldBe vurderingUførhet
+                testDataHelper.uføreVilkårsvurderingRepo.hent(søknadsbehandling.id, session) shouldBe vurderingUførhet
             }
         }
     }
@@ -73,10 +73,10 @@ internal class VilkårsvurderingPostgresRepoTest {
                 ),
             )
 
-            testDataHelper.vilkårsvurderingRepo.lagre(søknadsbehandling.id, vurderingUførhet)
+            testDataHelper.uføreVilkårsvurderingRepo.lagre(søknadsbehandling.id, vurderingUførhet)
 
             datasource.withSession { session ->
-                testDataHelper.vilkårsvurderingRepo.hent(søknadsbehandling.id, session) shouldBe vurderingUførhet
+                testDataHelper.uføreVilkårsvurderingRepo.hent(søknadsbehandling.id, session) shouldBe vurderingUførhet
             }
         }
     }
@@ -106,16 +106,16 @@ internal class VilkårsvurderingPostgresRepoTest {
                 ),
             )
 
-            testDataHelper.vilkårsvurderingRepo.lagre(søknadsbehandling.id, vurderingUførhet)
+            testDataHelper.uføreVilkårsvurderingRepo.lagre(søknadsbehandling.id, vurderingUførhet)
 
             datasource.withSession { session ->
-                testDataHelper.vilkårsvurderingRepo.hent(søknadsbehandling.id, session) shouldBe vurderingUførhet
+                testDataHelper.uføreVilkårsvurderingRepo.hent(søknadsbehandling.id, session) shouldBe vurderingUførhet
             }
 
-            testDataHelper.vilkårsvurderingRepo.lagre(søknadsbehandling.id, vurderingUførhet)
+            testDataHelper.uføreVilkårsvurderingRepo.lagre(søknadsbehandling.id, vurderingUførhet)
 
             datasource.withSession { session ->
-                testDataHelper.vilkårsvurderingRepo.hent(søknadsbehandling.id, session) shouldBe vurderingUførhet
+                testDataHelper.uføreVilkårsvurderingRepo.hent(søknadsbehandling.id, session) shouldBe vurderingUførhet
             }
         }
     }

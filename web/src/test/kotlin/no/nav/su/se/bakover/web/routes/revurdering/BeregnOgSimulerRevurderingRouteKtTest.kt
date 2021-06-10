@@ -152,6 +152,16 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                         ),
                     ),
                 ),
+                formue = Vilkår.Vurdert.Formue.create(
+                    vurderingsperioder = nonEmptyListOf(
+                        Vurderingsperiode.Formue.create(
+                            resultat = Resultat.Innvilget,
+                            grunnlag = null,
+                            periode = TestBeregning.periode,
+                            begrunnelse = null,
+                        ),
+                    ),
+                ),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         ).beregn().orNull()!!

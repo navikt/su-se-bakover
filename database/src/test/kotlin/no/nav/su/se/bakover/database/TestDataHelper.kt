@@ -12,10 +12,12 @@ import no.nav.su.se.bakover.database.beregning.PersistertMånedsberegning
 import no.nav.su.se.bakover.database.beregning.TestBeregning
 import no.nav.su.se.bakover.database.beregning.toSnapshot
 import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.FormueVilkårsvurderingPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.FormuesgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
-import no.nav.su.se.bakover.database.grunnlag.VilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.hendelseslogg.HendelsesloggPostgresRepo
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo
 import no.nav.su.se.bakover.database.sak.SakPostgresRepo
@@ -184,21 +186,24 @@ internal class TestDataHelper(
     private val fradragsgrunnlagPostgresRepo = FradragsgrunnlagPostgresRepo(dataSource)
     private val bosituasjongrunnlagPostgresRepo = BosituasjongrunnlagPostgresRepo(dataSource)
     internal val grunnlagRepo = GrunnlagPostgresRepo(fradragsgrunnlagPostgresRepo, bosituasjongrunnlagPostgresRepo)
-    internal val vilkårsvurderingRepo = VilkårsvurderingPostgresRepo(dataSource, uføregrunnlagPostgresRepo)
+    internal val uføreVilkårsvurderingRepo = UføreVilkårsvurderingPostgresRepo(dataSource, uføregrunnlagPostgresRepo)
+    private val formuesgrunnlagPostgresRepo = FormuesgrunnlagPostgresRepo(dataSource)
+    internal val formueVilkårsvurderingPostgresRepo = FormueVilkårsvurderingPostgresRepo(dataSource, formuesgrunnlagPostgresRepo)
     internal val søknadsbehandlingRepo =
         SøknadsbehandlingPostgresRepo(
             dataSource,
             uføregrunnlagPostgresRepo,
             fradragsgrunnlagPostgresRepo,
             bosituasjongrunnlagPostgresRepo,
-            vilkårsvurderingRepo,
+            uføreVilkårsvurderingRepo,
         )
     internal val revurderingRepo = RevurderingPostgresRepo(
         dataSource,
         uføregrunnlagPostgresRepo,
         fradragsgrunnlagPostgresRepo,
         bosituasjongrunnlagPostgresRepo,
-        vilkårsvurderingRepo,
+        uføreVilkårsvurderingRepo,
+        formueVilkårsvurderingPostgresRepo,
         søknadsbehandlingRepo,
     )
     internal val vedtakRepo = VedtakPosgresRepo(dataSource, søknadsbehandlingRepo, revurderingRepo)
@@ -465,7 +470,7 @@ internal class TestDataHelper(
             session.transaction { tx ->
                 uføregrunnlagPostgresRepo.lagre(behandlingId, grunnlagsdata.uføregrunnlag, tx)
             }
-            vilkårsvurderingRepo.lagre(behandlingId, vilkårsvurderinger.uføre)
+            uføreVilkårsvurderingRepo.lagre(behandlingId, vilkårsvurderinger.uføre)
         }
     }
 

@@ -26,7 +26,8 @@ internal class ServiceBuilderTest {
                 revurderingRepo = mock(),
                 vedtakRepo = mock(),
                 grunnlagRepo = mock(),
-                vilkårsvurderingRepo = mock(),
+                uføreVilkårsvurderingRepo = mock(),
+                formueVilkårsvurderingRepo = mock(),
             ),
             clients = Clients(
                 oauth = mock(),

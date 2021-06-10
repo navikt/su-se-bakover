@@ -33,6 +33,7 @@ internal fun Vilkår.Vurdert.Uførhet.toJson() = UføreVilkårJson(
 
 internal fun Inngangsvilkår.toJson() = when (this) {
     Inngangsvilkår.Uførhet -> "Uførhet"
+    Inngangsvilkår.Formue -> "Formue"
 }
 
 internal fun Resultat.toStatusString() = when (this) {

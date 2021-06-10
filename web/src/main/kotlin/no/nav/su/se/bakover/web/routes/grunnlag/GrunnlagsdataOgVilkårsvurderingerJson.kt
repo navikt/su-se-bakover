@@ -17,6 +17,7 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
                 uføre = when (val uføre = vilkårsvurderinger.uføre) {
                     Vilkår.IkkeVurdert.Uførhet -> null
                     is Vilkår.Vurdert.Uførhet -> uføre.toJson()
+                    else -> TODO()
                 },
                 fradrag = grunnlagsdata.fradragsgrunnlag.map { it.fradrag.toJson() },
                 bosituasjon = grunnlagsdata.bosituasjon.toJson(),

@@ -17,8 +17,8 @@ import no.nav.su.se.bakover.database.beregning
 import no.nav.su.se.bakover.database.fixedClock
 import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
-import no.nav.su.se.bakover.database.grunnlag.VilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.iverksattAttestering
 import no.nav.su.se.bakover.database.saksbehandler
@@ -48,7 +48,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
     private val uføregrunnlagPostgresRepo = UføregrunnlagPostgresRepo()
     private val fradragsgrunnlagPostgresRepo = FradragsgrunnlagPostgresRepo(dataSource)
     private val bosituasjongrunnlagRepo = BosituasjongrunnlagPostgresRepo(dataSource)
-    private val vilkårsvurderingRepo = VilkårsvurderingPostgresRepo(dataSource, uføregrunnlagPostgresRepo)
+    private val vilkårsvurderingRepo = UføreVilkårsvurderingPostgresRepo(dataSource, uføregrunnlagPostgresRepo)
     private val repo = SøknadsbehandlingPostgresRepo(
         dataSource,
         uføregrunnlagPostgresRepo,
@@ -475,7 +475,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 ),
             )
 
-            testDataHelper.vilkårsvurderingRepo.lagre(iverksatt.id, vurderingUførhet)
+            testDataHelper.uføreVilkårsvurderingRepo.lagre(iverksatt.id, vurderingUførhet)
 
             repo.hent(iverksatt.id).also {
                 it shouldBe Søknadsbehandling.Iverksatt.Avslag.MedBeregning(

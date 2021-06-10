@@ -331,6 +331,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                                 ).tidslinje,
                             ),
                         )
+                        else -> TODO()
                     }
                     copy(
                         periode = periode,
@@ -338,6 +339,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                             uføregrunnlag = when (uførevilkår) {
                                 Vilkår.IkkeVurdert.Uførhet -> emptyList()
                                 is Vilkår.Vurdert.Uførhet -> uførevilkår.grunnlag
+                                else -> TODO()
                             },
                             bosituasjon = grunnlagsdata.bosituasjon.mapNotNull {
                                 (it.fullstendigOrThrow()).copy(
@@ -365,6 +367,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                                 ).tidslinje,
                             ),
                         )
+                        else -> TODO()
                     }
                     copy(
                         periode = args.periode,

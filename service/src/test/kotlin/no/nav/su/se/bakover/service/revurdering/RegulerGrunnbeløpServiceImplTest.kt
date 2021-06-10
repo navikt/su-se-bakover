@@ -294,6 +294,18 @@ internal class RegulerGrunnbeløpServiceImplTest {
                         ),
                     ),
                 ),
+                formue = Vilkår.Vurdert.Formue.create(
+                    vurderingsperioder = nonEmptyListOf(
+                        Vurderingsperiode.Formue.create(
+                            id = UUID.randomUUID(),
+                            opprettet = fixedTidspunkt,
+                            resultat = Resultat.Innvilget,
+                            grunnlag = null,
+                            periode = uføregrunnlag.periode,
+                            begrunnelse = "ok2k",
+                        ),
+                    ),
+                ),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(

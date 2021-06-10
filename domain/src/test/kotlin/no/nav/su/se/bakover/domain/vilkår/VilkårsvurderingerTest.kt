@@ -36,6 +36,16 @@ internal class VilkårsvurderingerTest {
                     ),
                 ),
             ),
+            formue = Vilkår.Vurdert.Formue.create(
+                vurderingsperioder = nonEmptyListOf(
+                    Vurderingsperiode.Formue.create(
+                        resultat = Resultat.Innvilget,
+                        grunnlag = null,
+                        periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                        begrunnelse = "",
+                    ),
+                ),
+            ),
         ).resultat shouldBe Resultat.Innvilget
     }
 

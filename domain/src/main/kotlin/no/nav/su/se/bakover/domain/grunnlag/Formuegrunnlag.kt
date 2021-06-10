@@ -38,6 +38,10 @@ data class Formuegrunnlag(
         }
     }
 
+    fun oppdaterPeriode(periode: Periode): Formuegrunnlag {
+        return this.copy(periode = periode)
+    }
+
     companion object {
         fun tryCreate(
             periode: Periode,
