@@ -85,7 +85,7 @@ internal class VedtakPåTidslinjeTest {
                 uføregrunnlag = listOf(uføregrunnlag),
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Vurdert.Uførhet.create(
+                uføre = Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         vurderingsperiode,
                     ),
@@ -103,7 +103,7 @@ internal class VedtakPåTidslinjeTest {
                 it.uføregrad shouldBe uføregrunnlag.uføregrad
                 it.forventetInntekt shouldBe uføregrunnlag.forventetInntekt
             }
-            (vedtakPåTidslinje.vilkårsvurderinger.uføre as Vilkår.Vurdert.Uførhet).let { vilkårcopy ->
+            (vedtakPåTidslinje.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).let { vilkårcopy ->
                 vilkårcopy.vurderingsperioder[0].let { vurderingsperiodecopy ->
                     vurderingsperiodecopy.id shouldNotBe vurderingsperiode.id
                     vurderingsperiodecopy.begrunnelse shouldBe vurderingsperiode.begrunnelse
@@ -181,7 +181,7 @@ internal class VedtakPåTidslinjeTest {
                 bosituasjon = listOf(bosituasjon),
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Vurdert.Uførhet.create(
+                uføre = Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         vurderingsperiode,
                     ),
@@ -206,7 +206,7 @@ internal class VedtakPåTidslinjeTest {
                 it.periode shouldBe Periode.create(1.mai(2021), 31.juli(2021))
                 it.begrunnelse shouldBe "Begrunnelse"
             }
-            (vedtakPåTidslinje.vilkårsvurderinger.uføre as Vilkår.Vurdert.Uførhet).let { vilkårcopy ->
+            (vedtakPåTidslinje.vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert).let { vilkårcopy ->
                 vilkårcopy.vurderingsperioder[0].let { vurderingsperiodecopy ->
                     vurderingsperiodecopy.id shouldNotBe vurderingsperiode.id
                     vurderingsperiodecopy.begrunnelse shouldBe vurderingsperiode.begrunnelse

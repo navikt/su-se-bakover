@@ -23,12 +23,12 @@ internal class UføreVilkårsvurderingPostgresRepo(
     private val uføregrunnlagRepo: UføregrunnlagPostgresRepo,
 ) : UføreVilkårsvurderingRepo {
 
-    override fun lagre(behandlingId: UUID, vilkår: Vilkår<Grunnlag.Uføregrunnlag?>) {
+    override fun lagre(behandlingId: UUID, vilkår: Vilkår.Uførhet) {
         dataSource.withTransaction { tx ->
             slettForBehandlingId(behandlingId, tx)
             when (vilkår) {
-                Vilkår.IkkeVurdert.Uførhet -> Unit
-                is Vilkår.Vurdert.Uførhet -> {
+                Vilkår.Uførhet.IkkeVurdert -> Unit
+                is Vilkår.Uførhet.Vurdert -> {
                     uføregrunnlagRepo.lagre(behandlingId, vilkår.grunnlag, tx)
                     vilkår.vurderingsperioder.forEach {
                         lagre(behandlingId, it, tx)
@@ -92,7 +92,7 @@ internal class UføreVilkårsvurderingPostgresRepo(
             )
     }
 
-    internal fun hent(behandlingId: UUID, session: Session): Vilkår<Grunnlag.Uføregrunnlag?> {
+    internal fun hent(behandlingId: UUID, session: Session): Vilkår.Uførhet {
         return """
                 select * from vilkårsvurdering_uføre where behandlingId = :behandlingId
         """.trimIndent()
@@ -105,8 +105,8 @@ internal class UføreVilkårsvurderingPostgresRepo(
                 it.toVurderingsperioder(session)
             }.let {
                 when (it.isNotEmpty()) {
-                    true -> Vilkår.Vurdert.Uførhet.create(vurderingsperioder = Nel.fromListUnsafe(it))
-                    false -> Vilkår.IkkeVurdert.Uførhet
+                    true -> Vilkår.Uførhet.Vurdert.create(vurderingsperioder = Nel.fromListUnsafe(it))
+                    false -> Vilkår.Uførhet.IkkeVurdert
                 }
             }
     }

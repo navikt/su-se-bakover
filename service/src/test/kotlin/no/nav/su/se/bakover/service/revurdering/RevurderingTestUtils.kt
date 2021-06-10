@@ -131,7 +131,7 @@ object RevurderingTestUtils {
     )
 
     internal val vilkårsvurderinger = Vilkårsvurderinger(
-        uføre = Vilkår.Vurdert.Uførhet.create(
+        uføre = Vilkår.Uførhet.Vurdert.create(
             vurderingsperioder = nonEmptyListOf(
                 vurderingsperiodeUføre,
             ),
@@ -287,9 +287,9 @@ internal fun Grunnlag.Uføregrunnlag.ekvivalentMed(other: Grunnlag.Uføregrunnla
 }
 
 @Suppress("UNCHECKED_CAST")
-internal fun Vilkår<Grunnlag.Uføregrunnlag?>.ekvivalentMed(other: Vilkår.Vurdert.Uførhet) {
-    this should beOfType<Vilkår.Vurdert.Uførhet>()
-    (this as Vilkår.Vurdert.Uførhet).let {
+internal fun Vilkår.ekvivalentMed(other: Vilkår.Uførhet.Vurdert) {
+    this should beOfType<Vilkår.Uførhet.Vurdert>()
+    (this as Vilkår.Uførhet.Vurdert).let {
         (vurderingsperioder as Nel<Vurderingsperiode.Uføre>).let {
             it shouldHaveSize other.vurderingsperioder.size
             it.forEachIndexed { index, vurderingsperiode ->

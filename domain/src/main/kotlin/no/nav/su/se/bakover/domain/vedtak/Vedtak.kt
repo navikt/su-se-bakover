@@ -322,8 +322,8 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
             when (args) {
                 CopyArgs.Tidslinje.Full -> {
                     val uførevilkår = when (vilkårsvurderinger.uføre) {
-                        Vilkår.IkkeVurdert.Uførhet -> Vilkår.IkkeVurdert.Uførhet
-                        is Vilkår.Vurdert.Uførhet -> vilkårsvurderinger.uføre.copy(
+                        Vilkår.Uførhet.IkkeVurdert -> Vilkår.Uførhet.IkkeVurdert
+                        is Vilkår.Uførhet.Vurdert -> vilkårsvurderinger.uføre.copy(
                             vurderingsperioder = Nel.fromListUnsafe(
                                 Tidslinje(
                                     periode = periode,
@@ -331,15 +331,13 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                                 ).tidslinje,
                             ),
                         )
-                        else -> TODO()
                     }
                     copy(
                         periode = periode,
                         grunnlagsdata = Grunnlagsdata(
                             uføregrunnlag = when (uførevilkår) {
-                                Vilkår.IkkeVurdert.Uførhet -> emptyList()
-                                is Vilkår.Vurdert.Uførhet -> uførevilkår.grunnlag
-                                else -> TODO()
+                                Vilkår.Uførhet.IkkeVurdert -> emptyList()
+                                is Vilkår.Uførhet.Vurdert -> uførevilkår.grunnlag
                             },
                             bosituasjon = grunnlagsdata.bosituasjon.mapNotNull {
                                 (it.fullstendigOrThrow()).copy(
@@ -358,8 +356,8 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                 }
                 is CopyArgs.Tidslinje.NyPeriode -> {
                     val uførevilkår = when (this.vilkårsvurderinger.uføre) {
-                        Vilkår.IkkeVurdert.Uførhet -> Vilkår.IkkeVurdert.Uførhet
-                        is Vilkår.Vurdert.Uførhet -> this.vilkårsvurderinger.uføre.copy(
+                        Vilkår.Uførhet.IkkeVurdert -> Vilkår.Uførhet.IkkeVurdert
+                        is Vilkår.Uførhet.Vurdert -> this.vilkårsvurderinger.uføre.copy(
                             vurderingsperioder = Nel.fromListUnsafe(
                                 Tidslinje(
                                     periode = args.periode,
@@ -367,7 +365,6 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                                 ).tidslinje,
                             ),
                         )
-                        else -> TODO()
                     }
                     copy(
                         periode = args.periode,

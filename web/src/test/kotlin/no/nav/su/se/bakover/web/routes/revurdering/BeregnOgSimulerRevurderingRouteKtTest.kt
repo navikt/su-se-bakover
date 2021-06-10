@@ -142,7 +142,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                 ),
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Vurdert.Uførhet.create(
+                uføre = Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             resultat = Resultat.Innvilget,
@@ -152,7 +152,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                         ),
                     ),
                 ),
-                formue = Vilkår.Vurdert.Formue.create(
+                formue = Vilkår.Formue.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Formue.create(
                             resultat = Resultat.Innvilget,

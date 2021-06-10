@@ -60,7 +60,7 @@ class UføreVilkårJsonTest {
             begrunnelse = "text",
         )
 
-        internal val uførevurdering = Vilkår.Vurdert.Uførhet.create(
+        internal val uførevurdering = Vilkår.Uførhet.Vurdert.create(
             vurderingsperioder = nonEmptyListOf(vurderingsperiodeUføre),
         )
 

@@ -27,9 +27,8 @@ data class GjeldendeVedtaksdata(
 
     // Utleder grunnlagstyper som kan knyttes til vilkår via deres respektive vilkårsvurderinger
     private val uføreGrunnlagOgVilkår = when (val uførevilkår = vilkårsvurderingerFraTidslinje.uføre) {
-        Vilkår.IkkeVurdert.Uførhet -> throw IllegalStateException("Kan ikke opprette vilkårsvurdering fra ikke-vurderte vilkår")
-        is Vilkår.Vurdert.Uførhet -> Pair(uførevilkår.grunnlag, uførevilkår)
-        else -> TODO()
+        Vilkår.Uførhet.IkkeVurdert -> throw IllegalStateException("Kan ikke opprette vilkårsvurdering fra ikke-vurderte vilkår")
+        is Vilkår.Uførhet.Vurdert -> Pair(uførevilkår.grunnlag, uførevilkår)
     }
 
     private val fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag> = vedtakPåTidslinje.flatMap { it.fradrag }.map {
@@ -58,9 +57,9 @@ data class GjeldendeVedtaksdata(
 
 private fun List<Vedtak.VedtakPåTidslinje>.vilkårsvurderinger(): Vilkårsvurderinger {
     return Vilkårsvurderinger(
-        uføre = Vilkår.Vurdert.Uførhet.create(
+        uføre = Vilkår.Uførhet.Vurdert.create(
             map { it.vilkårsvurderinger.uføre }
-                .filterIsInstance<Vilkår.Vurdert.Uførhet>()
+                .filterIsInstance<Vilkår.Uførhet.Vurdert>()
                 .flatMap { it.vurderingsperioder }
                 .let { Nel.fromListUnsafe(it) },
         ),

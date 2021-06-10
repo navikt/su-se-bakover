@@ -15,9 +15,8 @@ internal data class GrunnlagsdataOgVilkårsvurderingerJson(
         fun create(grunnlagsdata: Grunnlagsdata, vilkårsvurderinger: Vilkårsvurderinger): GrunnlagsdataOgVilkårsvurderingerJson {
             return GrunnlagsdataOgVilkårsvurderingerJson(
                 uføre = when (val uføre = vilkårsvurderinger.uføre) {
-                    Vilkår.IkkeVurdert.Uførhet -> null
-                    is Vilkår.Vurdert.Uførhet -> uføre.toJson()
-                    else -> TODO()
+                    Vilkår.Uførhet.IkkeVurdert -> null
+                    is Vilkår.Uførhet.Vurdert -> uføre.toJson()
                 },
                 fradrag = grunnlagsdata.fradragsgrunnlag.map { it.fradrag.toJson() },
                 bosituasjon = grunnlagsdata.bosituasjon.toJson(),

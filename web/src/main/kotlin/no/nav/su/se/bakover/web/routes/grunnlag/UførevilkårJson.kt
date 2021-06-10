@@ -25,7 +25,7 @@ internal fun Vurderingsperiode<Grunnlag.Uføregrunnlag?>.toJson() = Vurderingspe
     begrunnelse = begrunnelse,
 )
 
-internal fun Vilkår.Vurdert.Uførhet.toJson() = UføreVilkårJson(
+internal fun Vilkår.Uførhet.Vurdert.toJson() = UføreVilkårJson(
     vilkår = vilkår.toJson(),
     vurderinger = vurderingsperioder.map { it.toJson() },
     resultat = resultat.toStatusString(),

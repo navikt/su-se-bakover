@@ -66,13 +66,13 @@ data class LeggTilUførevurderingRequest(
         }
     }
 
-    fun toVilkår(behandlingsperiode: Periode): Either<UgyldigUførevurdering, Vilkår.Vurdert.Uførhet> {
+    fun toVilkår(behandlingsperiode: Periode): Either<UgyldigUførevurdering, Vilkår.Uførhet.Vurdert> {
         return toVurderingsperiode(behandlingsperiode)
             .flatMap { vurderingsperiode ->
-                Vilkår.Vurdert.Uførhet.tryCreate(nonEmptyListOf(vurderingsperiode))
+                Vilkår.Uførhet.Vurdert.tryCreate(nonEmptyListOf(vurderingsperiode))
                     .mapLeft {
                         when (it) {
-                            Vilkår.Vurdert.Uførhet.UgyldigUførevilkår.OverlappendeVurderingsperioder -> UgyldigUførevurdering.OverlappendeVurderingsperioder
+                            Vilkår.Uførhet.Vurdert.UgyldigUførevilkår.OverlappendeVurderingsperioder -> UgyldigUførevurdering.OverlappendeVurderingsperioder
                         }
                     }
             }

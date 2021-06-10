@@ -22,7 +22,7 @@ data class LeggTilUførevurderingerRequest(
         object HeleBehandlingsperiodenMåHaVurderinger : UgyldigUførevurdering()
     }
 
-    fun toVilkår(behandlingsperiode: Periode): Either<UgyldigUførevurdering, Vilkår.Vurdert.Uførhet> {
+    fun toVilkår(behandlingsperiode: Periode): Either<UgyldigUførevurdering, Vilkår.Uførhet.Vurdert> {
         return vurderinger.map { vurdering ->
             vurdering.toVurderingsperiode(behandlingsperiode).getOrHandle {
                 return when (it) {
@@ -33,10 +33,10 @@ data class LeggTilUførevurderingerRequest(
                 }
             }
         }.let { vurderingsperioder ->
-            Vilkår.Vurdert.Uførhet.tryCreate(Nel.fromListUnsafe(vurderingsperioder))
+            Vilkår.Uførhet.Vurdert.tryCreate(Nel.fromListUnsafe(vurderingsperioder))
                 .mapLeft {
                     when (it) {
-                        Vilkår.Vurdert.Uførhet.UgyldigUførevilkår.OverlappendeVurderingsperioder -> UgyldigUførevurdering.OverlappendeVurderingsperioder
+                        Vilkår.Uførhet.Vurdert.UgyldigUførevilkår.OverlappendeVurderingsperioder -> UgyldigUførevurdering.OverlappendeVurderingsperioder
                     }
                 }.map {
                     // Denne sjekken vil og fange opp: VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden, derfor kjører vi den etterpå.

@@ -102,7 +102,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             forhåndsvarsel = null,
             grunnlagsdata = eksisterendeGrunnlagsdata,
             vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Vurdert.Uførhet.create(
+                uføre = Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
@@ -282,7 +282,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                 )
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Vurdert.Uførhet.create(
+                uføre = Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
@@ -294,7 +294,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                         ),
                     ),
                 ),
-                formue = Vilkår.Vurdert.Formue.create(
+                formue = Vilkår.Formue.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Formue.create(
                             id = UUID.randomUUID(),

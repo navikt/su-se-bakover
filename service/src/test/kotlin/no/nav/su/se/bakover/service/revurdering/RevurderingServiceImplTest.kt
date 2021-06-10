@@ -147,7 +147,7 @@ internal class RevurderingServiceImplTest {
                 ),
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Vurdert.Uførhet.create(
+                uføre = Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
@@ -159,7 +159,7 @@ internal class RevurderingServiceImplTest {
                         ),
                     ),
                 ),
-                formue = Vilkår.Vurdert.Formue.create(
+                formue = Vilkår.Formue.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Formue.create(
                             id = UUID.randomUUID(),
@@ -294,7 +294,7 @@ internal class RevurderingServiceImplTest {
                 ),
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Vurdert.Uførhet.create(
+                uføre = Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
@@ -306,7 +306,7 @@ internal class RevurderingServiceImplTest {
                         ),
                     ),
                 ),
-                formue = Vilkår.Vurdert.Formue.create(
+                formue = Vilkår.Formue.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Formue.create(
                             id = UUID.randomUUID(),
@@ -648,7 +648,7 @@ internal class RevurderingServiceImplTest {
                 ),
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Vurdert.Uførhet.create(
+                uføre = Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
@@ -660,7 +660,7 @@ internal class RevurderingServiceImplTest {
                         ),
                     ),
                 ),
-                formue = Vilkår.Vurdert.Formue.create(
+                formue = Vilkår.Formue.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Formue.create(
                             id = UUID.randomUUID(),
@@ -1548,7 +1548,7 @@ internal class RevurderingServiceImplTest {
             on { simulering } doReturn mock()
         }
         val vilkårMedAvslag = vilkårsvurderinger.copy(
-            uføre = Vilkår.Vurdert.Uførhet.create(
+            uføre = Vilkår.Uførhet.Vurdert.create(
                 vurderingsperioder = nonEmptyListOf(
                     vurderingsperiodeUføre.copy(
                         resultat = Resultat.Avslag,
@@ -1595,7 +1595,7 @@ internal class RevurderingServiceImplTest {
     @Test
     fun `uavklarte vilkår kaster exception`() {
         val uavklarteVilkår = vilkårsvurderinger.copy(
-            uføre = Vilkår.IkkeVurdert.Uførhet,
+            uføre = Vilkår.Uførhet.IkkeVurdert,
         )
         val revurdering = opprettetRevurdering.copy(
             vilkårsvurderinger = uavklarteVilkår,

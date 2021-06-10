@@ -229,7 +229,7 @@ internal class LeggTilUførevurderingerRequestTest {
                 tilOgMed = 28.februar(2021),
             ),
         ).orNull()!!
-        actual shouldBe Vilkår.Vurdert.Uførhet.create(
+        actual shouldBe Vilkår.Uførhet.Vurdert.create(
             vurderingsperioder = nonEmptyListOf(
                 Vurderingsperiode.Uføre.create(
                     id = actual.vurderingsperioder[0].id,
@@ -292,7 +292,7 @@ internal class LeggTilUførevurderingerRequestTest {
                 tilOgMed = 28.februar(2021),
             ),
         ).orNull()!!
-        actual shouldBe Vilkår.Vurdert.Uførhet.create(
+        actual shouldBe Vilkår.Uførhet.Vurdert.create(
             vurderingsperioder = nonEmptyListOf(
                 Vurderingsperiode.Uføre.create(
                     id = actual.vurderingsperioder[0].id,
@@ -342,7 +342,7 @@ internal class LeggTilUførevurderingerRequestTest {
                 ),
             ),
         ).toVilkår(Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021))).orNull()!!.let { request ->
-            Vilkår.Vurdert.Uførhet.create(
+            Vilkår.Uførhet.Vurdert.create(
                 vurderingsperioder = nonEmptyListOf(
                     Vurderingsperiode.Uføre.create(
                         id = request.vurderingsperioder[0].id,
@@ -369,7 +369,7 @@ internal class LeggTilUførevurderingerRequestTest {
                 ),
             ),
         ).toVilkår(Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021))).orNull()!!.let { request ->
-            Vilkår.Vurdert.Uførhet.create(
+            Vilkår.Uførhet.Vurdert.create(
                 vurderingsperioder = nonEmptyListOf(
                     Vurderingsperiode.Uføre.create(
                         id = request.vurderingsperioder[0].id,

@@ -377,7 +377,7 @@ internal class OppdaterRevurderingServiceTest {
                 it shouldHaveSize 1
                 it[0].ekvivalentMed(uføregrunnlag)
             }
-            oppdatertRevurdering.vilkårsvurderinger.uføre.ekvivalentMed(vilkårsvurderinger.uføre as Vilkår.Vurdert.Uførhet)
+            oppdatertRevurdering.vilkårsvurderinger.uføre.ekvivalentMed(vilkårsvurderinger.uføre as Vilkår.Uførhet.Vurdert)
             oppdatertRevurdering.informasjonSomRevurderes shouldBe InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert))
         }
 

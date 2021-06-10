@@ -72,7 +72,7 @@ internal class RevurderingJsonTest {
                 bosituasjon = listOf(bosituasjon)
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Vurdert.Uførhet.create(
+                uføre = Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(vurderingsperiodeUføre),
                 ),
             ),

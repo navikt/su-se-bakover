@@ -462,7 +462,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 forventetInntekt = 12000,
             )
 
-            val vurderingUførhet = Vilkår.Vurdert.Uførhet.create(
+            val vurderingUførhet = Vilkår.Uførhet.Vurdert.create(
                 vurderingsperioder = nonEmptyListOf(
                     Vurderingsperiode.Uføre.create(
                         id = UUID.randomUUID(),
@@ -505,7 +505,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                         bosituasjon = iverksatt.grunnlagsdata.bosituasjon,
                     ),
                     vilkårsvurderinger = Vilkårsvurderinger(
-                        uføre = Vilkår.Vurdert.Uførhet.create(
+                        uføre = Vilkår.Uførhet.Vurdert.create(
                             vurderingsperioder = nonEmptyListOf(
                                 Vurderingsperiode.Uføre.create(
                                     id = vurderingUførhet.vurderingsperioder[0].id,

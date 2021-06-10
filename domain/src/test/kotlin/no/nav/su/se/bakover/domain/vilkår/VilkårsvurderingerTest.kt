@@ -26,7 +26,7 @@ internal class VilkårsvurderingerTest {
     @Test
     fun `alle vurderingsperioder innvilget gir innvilget vilkår`() {
         Vilkårsvurderinger(
-            uføre = Vilkår.Vurdert.Uførhet.create(
+            uføre = Vilkår.Uførhet.Vurdert.create(
                 vurderingsperioder = nonEmptyListOf(
                     Vurderingsperiode.Uføre.create(
                         resultat = Resultat.Innvilget,
@@ -36,7 +36,7 @@ internal class VilkårsvurderingerTest {
                     ),
                 ),
             ),
-            formue = Vilkår.Vurdert.Formue.create(
+            formue = Vilkår.Formue.Vurdert.create(
                 vurderingsperioder = nonEmptyListOf(
                     Vurderingsperiode.Formue.create(
                         resultat = Resultat.Innvilget,
@@ -52,7 +52,7 @@ internal class VilkårsvurderingerTest {
     @Test
     fun `ingen vurderingsperioder innvilget gir avslått vilkår`() {
         Vilkårsvurderinger(
-            uføre = Vilkår.Vurdert.Uførhet.create(
+            uføre = Vilkår.Uførhet.Vurdert.create(
                 vurderingsperioder = nonEmptyListOf(
                     Vurderingsperiode.Uføre.create(
                         resultat = Resultat.Avslag,
@@ -68,7 +68,7 @@ internal class VilkårsvurderingerTest {
     @Test
     fun `ingen vurderingsperioder gir uavklart vilkår`() {
         Vilkårsvurderinger(
-            uføre = Vilkår.IkkeVurdert.Uførhet,
+            uføre = Vilkår.Uførhet.IkkeVurdert,
         ).let {
             it.resultat shouldBe Resultat.Uavklart
             it.tidligsteDatoForAvslag() shouldBe null
@@ -78,7 +78,7 @@ internal class VilkårsvurderingerTest {
     @Test
     fun `kombinasjon av vurderingsperioder med avslag og innvilgelse gir avslag`() {
         Vilkårsvurderinger(
-            uføre = Vilkår.Vurdert.Uførhet.create(
+            uføre = Vilkår.Uførhet.Vurdert.create(
                 vurderingsperioder = nonEmptyListOf(
                     Vurderingsperiode.Uføre.create(
                         resultat = Resultat.Innvilget,
@@ -112,7 +112,7 @@ internal class VilkårsvurderingerTest {
     fun `oppdaterer perioden på grunnlagen riktig`() {
         val nyPeriode = Periode.create(1.februar(2021), 31.mars(2021))
         val vilkårsvurdering = Vilkårsvurderinger(
-            uføre = Vilkår.Vurdert.Uførhet.create(
+            uføre = Vilkår.Uførhet.Vurdert.create(
                 vurderingsperioder = nonEmptyListOf(
                     Vurderingsperiode.Uføre.create(
                         resultat = Resultat.Innvilget,
@@ -146,7 +146,7 @@ internal class VilkårsvurderingerTest {
     @Test
     fun `uførhet som er avslag blir utledet`() {
         val vilkårsvurdering = Vilkårsvurderinger(
-            uføre = Vilkår.Vurdert.Uførhet.create(
+            uføre = Vilkår.Uførhet.Vurdert.create(
                 vurderingsperioder = nonEmptyListOf(
                     Vurderingsperiode.Uføre.create(
                         resultat = Resultat.Avslag,
@@ -168,7 +168,7 @@ internal class VilkårsvurderingerTest {
     @Test
     fun `ikke vurderte vilkår gir ikke opphørtsgrunn`() {
         val vilkårsvurdering = Vilkårsvurderinger(
-            uføre = Vilkår.IkkeVurdert.Uførhet,
+            uføre = Vilkår.Uførhet.IkkeVurdert,
         )
         vilkårsvurdering.utledOpphørsgrunner() shouldBe emptyList()
     }

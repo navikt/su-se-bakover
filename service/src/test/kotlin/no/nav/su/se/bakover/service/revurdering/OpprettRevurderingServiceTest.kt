@@ -121,7 +121,7 @@ internal class OpprettRevurderingServiceTest {
         forventetInntekt = 12000,
     )
 
-    private val vilkårsvurderingUføre = Vilkår.Vurdert.Uførhet.create(
+    private val vilkårsvurderingUføre = Vilkår.Uførhet.Vurdert.create(
         vurderingsperioder = nonEmptyListOf(
             Vurderingsperiode.Uføre.create(
                 resultat = Resultat.Innvilget,

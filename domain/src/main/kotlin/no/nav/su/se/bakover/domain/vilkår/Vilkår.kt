@@ -42,8 +42,8 @@ sealed class Inngangsvilkår {
 }
 
 data class Vilkårsvurderinger(
-    val uføre: Vilkår<Grunnlag.Uføregrunnlag?> = Vilkår.IkkeVurdert.Uførhet,
-    val formue: Vilkår<Formuegrunnlag?> = Vilkår.IkkeVurdert.Formue,
+    val uføre: Vilkår.Uførhet = Vilkår.Uførhet.IkkeVurdert,
+    val formue: Vilkår.Formue = Vilkår.Formue.IkkeVurdert,
 ) {
     private val vilkår = setOf(uføre, formue)
 
@@ -59,8 +59,8 @@ data class Vilkårsvurderinger(
 
     val grunnlagsdata: Grunnlagsdata =
         Grunnlagsdata(
-            uføregrunnlag = (uføre as? Vilkår.Vurdert.Uførhet)?.grunnlag ?: emptyList(),
-            // formuegrunnlag = (formue as? Vilkår.Vurdert.Formue)?.grunnlag ?: emptyList(),
+            uføregrunnlag = (uføre as? Vilkår.Uførhet.Vurdert)?.grunnlag ?: emptyList(),
+            // formuegrunnlag = (formue as? Vilkår.Formue.Vurdert)?.grunnlag ?: emptyList(),
         )
 
     val resultat: Resultat by lazy {
@@ -73,20 +73,15 @@ data class Vilkårsvurderinger(
         }
     }
 
-    fun tidligsteDatoForAvslag(): LocalDate? {
-        return vilkår.filterIsInstance<Vilkår.Vurdert<*>>()
-            .flatMap { it.vurderingsperioder }
-            .filter { it.resultat == Resultat.Avslag }
-            .minByOrNull { it.periode.fraOgMed }?.periode?.fraOgMed
-    }
+    fun tidligsteDatoForAvslag(): LocalDate? = vilkår.mapNotNull { it.hentTidligesteDatoForAvslag() }.minByOrNull { it }
 
     fun utledOpphørsgrunner(): List<Opphørsgrunn> {
         return vilkår.mapNotNull {
             when (it) {
-                is Vilkår.IkkeVurdert.Uførhet -> null
-                is Vilkår.Vurdert.Uførhet -> if (it.erAvslag) it.vilkår.tilOpphørsgrunn() else null
-                is Vilkår.IkkeVurdert.Formue -> null
-                is Vilkår.Vurdert.Formue -> if (it.erAvslag) it.vilkår.tilOpphørsgrunn() else null
+                // the new bois
+                is Vilkår.Uførhet.Vurdert -> if (it.erAvslag) it.vilkår.tilOpphørsgrunn() else null
+                is Vilkår.Formue.Vurdert -> if (it.erAvslag) it.vilkår.tilOpphørsgrunn() else null
+                Vilkår.Formue.IkkeVurdert, Vilkår.Uførhet.IkkeVurdert -> null
             }
         }
     }
@@ -101,11 +96,11 @@ data class Vilkårsvurderinger(
 
 sealed class Vilkårsvurderingsresultat {
     data class Avslag(
-        val vilkår: Set<Vilkår<*>>,
+        val vilkår: Set<Vilkår>,
     ) : Vilkårsvurderingsresultat()
 
     data class Innvilget(
-        val vilkår: Set<Vilkår<*>>,
+        val vilkår: Set<Vilkår>,
     ) : Vilkårsvurderingsresultat()
 
     data class Uavklart(
@@ -116,103 +111,65 @@ sealed class Vilkårsvurderingsresultat {
 /**
  * Vurderingen av et vilkår mot en eller flere grunnlagsdata
  */
-sealed class Vilkår<T : Grunnlag?> {
-    abstract fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Vilkår<T>
-
-    sealed class IkkeVurdert<T : Grunnlag?> : Vilkår<T>() {
-        object Uførhet : IkkeVurdert<Grunnlag.Uføregrunnlag?>() {
-            override val resultat: Resultat = Resultat.Uavklart
-            override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode) = this
-        }
-
-        object Formue : IkkeVurdert<Formuegrunnlag?>() {
-            override val resultat: Resultat = Resultat.Uavklart
-            override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode) = this
-        }
-    }
-
+sealed class Vilkår {
     abstract val resultat: Resultat
+    abstract val erAvslag: Boolean
+    abstract val erInnvilget: Boolean
 
-    sealed class Vurdert<T : Grunnlag?> : Vilkår<T>() {
-        abstract val vilkår: Inngangsvilkår
-        abstract val grunnlag: List<T>
-        abstract val vurderingsperioder: List<Vurderingsperiode<T>>
+    abstract fun hentTidligesteDatoForAvslag(): LocalDate?
 
-        override val resultat: Resultat by lazy {
-            if (erInnvilget) Resultat.Innvilget else if (erAvslag) Resultat.Avslag else Resultat.Uavklart
+    sealed class Uførhet : Vilkår() {
+        abstract fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Uførhet
+        object IkkeVurdert : Uførhet() {
+            override val resultat: Resultat = Resultat.Uavklart
+            override val erAvslag = false
+            override val erInnvilget = false
+
+            override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): IkkeVurdert = this
+            override fun hentTidligesteDatoForAvslag(): LocalDate? = null
         }
 
-        val erInnvilget: Boolean by lazy {
-            vurderingsperioder.all { it.resultat == Resultat.Innvilget }
-        }
-
-        val erAvslag: Boolean by lazy {
-            vurderingsperioder.any { it.resultat == Resultat.Avslag }
-        }
-
-        data class Formue private constructor(
-            override val vurderingsperioder: Nel<Vurderingsperiode<Formuegrunnlag?>>,
-        ) : Vurdert<Formuegrunnlag?>() {
-            override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Vilkår<Formuegrunnlag?> =
-                this.copy(
-                    vurderingsperioder = this.vurderingsperioder.map {
-                        it.oppdaterStønadsperiode(stønadsperiode)
-                    },
-                )
-
-            override val vilkår = Inngangsvilkår.Formue
-            override val grunnlag: List<Formuegrunnlag> = vurderingsperioder.mapNotNull {
+        data class Vurdert private constructor(
+            val vurderingsperioder: Nel<Vurderingsperiode<Grunnlag.Uføregrunnlag?>>,
+        ) : Uførhet() {
+            val vilkår = Inngangsvilkår.Uførhet
+            val grunnlag: List<Grunnlag.Uføregrunnlag> = vurderingsperioder.mapNotNull {
                 it.grunnlag
             }
 
-            companion object {
-                @TestOnly
-                fun create(
-                    vurderingsperioder: Nel<Vurderingsperiode<Formuegrunnlag?>>,
-                ): Formue = tryCreate(vurderingsperioder).getOrHandle { throw IllegalArgumentException(it.toString()) }
-
-                fun tryCreate(
-                    vurderingsperioder: Nel<Vurderingsperiode<Formuegrunnlag?>>,
-                ): Either<UgyldigFormuevilkår, Formue> {
-                    if (vurderingsperioder.all { v1 ->
-                        vurderingsperioder.minus(v1).any { v2 -> v1.periode overlapper v2.periode }
-                    }
-                    ) {
-                        return UgyldigFormuevilkår.OverlappendeVurderingsperioder.left()
-                    }
-                    return Formue(vurderingsperioder).right()
-                }
+            override val resultat: Resultat by lazy {
+                if (erInnvilget) Resultat.Innvilget else if (erAvslag) Resultat.Avslag else Resultat.Uavklart
             }
 
-            sealed class UgyldigFormuevilkår {
-                object OverlappendeVurderingsperioder : UgyldigFormuevilkår()
+            override val erInnvilget: Boolean by lazy {
+                vurderingsperioder.all { it.resultat == Resultat.Innvilget }
             }
-        }
 
-        data class Uførhet private constructor(
-            override val vurderingsperioder: Nel<Vurderingsperiode<Grunnlag.Uføregrunnlag?>>,
-        ) : Vurdert<Grunnlag.Uføregrunnlag?>() {
-            override val vilkår = Inngangsvilkår.Uførhet
-            override val grunnlag: List<Grunnlag.Uføregrunnlag> = vurderingsperioder.mapNotNull {
-                it.grunnlag
+            override val erAvslag: Boolean by lazy {
+                vurderingsperioder.any { it.resultat == Resultat.Avslag }
+            }
+
+            override fun hentTidligesteDatoForAvslag(): LocalDate? {
+                return vurderingsperioder.filter { it.resultat == Resultat.Avslag }.map { it.periode.fraOgMed }
+                    .minByOrNull { it }
             }
 
             companion object {
                 @TestOnly
                 fun create(
                     vurderingsperioder: Nel<Vurderingsperiode<Grunnlag.Uføregrunnlag?>>,
-                ): Uførhet = tryCreate(vurderingsperioder).getOrHandle { throw IllegalArgumentException(it.toString()) }
+                ): Uførhet.Vurdert = tryCreate(vurderingsperioder).getOrHandle { throw IllegalArgumentException(it.toString()) }
 
                 fun tryCreate(
                     vurderingsperioder: Nel<Vurderingsperiode<Grunnlag.Uføregrunnlag?>>,
-                ): Either<UgyldigUførevilkår, Uførhet> {
+                ): Either<UgyldigUførevilkår, Vurdert> {
                     if (vurderingsperioder.all { v1 ->
                         vurderingsperioder.minus(v1).any { v2 -> v1.periode overlapper v2.periode }
                     }
                     ) {
                         return UgyldigUførevilkår.OverlappendeVurderingsperioder.left()
                     }
-                    return Uførhet(vurderingsperioder).right()
+                    return Vurdert(vurderingsperioder).right()
                 }
             }
 
@@ -220,12 +177,80 @@ sealed class Vilkår<T : Grunnlag?> {
                 object OverlappendeVurderingsperioder : UgyldigUførevilkår()
             }
 
-            override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Vilkår<Grunnlag.Uføregrunnlag?> =
+            override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Uførhet =
                 this.copy(
                     vurderingsperioder = this.vurderingsperioder.map {
                         it.oppdaterStønadsperiode(stønadsperiode)
                     },
                 )
+        }
+    }
+
+    sealed class Formue : Vilkår() {
+        abstract fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Formue
+        object IkkeVurdert : Formue() {
+            override val resultat: Resultat = Resultat.Uavklart
+            override val erAvslag = false
+            override val erInnvilget = false
+
+            override fun hentTidligesteDatoForAvslag(): LocalDate? = null
+            override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Formue = this
+        }
+
+        data class Vurdert private constructor(
+            val vurderingsperioder: Nel<Vurderingsperiode<Formuegrunnlag?>>,
+        ) : Formue() {
+            override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Vilkår.Formue =
+                this.copy(
+                    vurderingsperioder = this.vurderingsperioder.map {
+                        it.oppdaterStønadsperiode(stønadsperiode)
+                    },
+                )
+
+            override val resultat: Resultat by lazy {
+                if (erInnvilget) Resultat.Innvilget else if (erAvslag) Resultat.Avslag else Resultat.Uavklart
+            }
+
+            override val erInnvilget: Boolean by lazy {
+                vurderingsperioder.all { it.resultat == Resultat.Innvilget }
+            }
+
+            override val erAvslag: Boolean by lazy {
+                vurderingsperioder.any { it.resultat == Resultat.Avslag }
+            }
+
+            override fun hentTidligesteDatoForAvslag(): LocalDate? {
+                return vurderingsperioder.filter { it.resultat == Resultat.Avslag }.map { it.periode.fraOgMed }
+                    .minByOrNull { it }
+            }
+
+            val vilkår = Inngangsvilkår.Formue
+            val grunnlag: List<Formuegrunnlag> = vurderingsperioder.mapNotNull {
+                it.grunnlag
+            }
+
+            companion object {
+                @TestOnly
+                fun create(
+                    vurderingsperioder: Nel<Vurderingsperiode<Formuegrunnlag?>>,
+                ): Vurdert = tryCreate(vurderingsperioder).getOrHandle { throw IllegalArgumentException(it.toString()) }
+
+                fun tryCreate(
+                    vurderingsperioder: Nel<Vurderingsperiode<Formuegrunnlag?>>,
+                ): Either<UgyldigFormuevilkår, Vurdert> {
+                    if (vurderingsperioder.all { v1 ->
+                        vurderingsperioder.minus(v1).any { v2 -> v1.periode overlapper v2.periode }
+                    }
+                    ) {
+                        return UgyldigFormuevilkår.OverlappendeVurderingsperioder.left()
+                    }
+                    return Vurdert(vurderingsperioder).right()
+                }
+            }
+
+            sealed class UgyldigFormuevilkår {
+                object OverlappendeVurderingsperioder : UgyldigFormuevilkår()
+            }
         }
     }
 }

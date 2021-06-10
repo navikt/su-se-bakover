@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test
 internal class UførhetTest {
     @Test
     fun `validerer at vurderingsperioder ikke overlapper`() {
-        Vilkår.Vurdert.Uførhet.tryCreate(
+        Vilkår.Uførhet.Vurdert.tryCreate(
             vurderingsperioder = nonEmptyListOf(
                 Vurderingsperiode.Uføre.create(
                     resultat = Resultat.Innvilget,
@@ -25,6 +25,6 @@ internal class UførhetTest {
                     begrunnelse = "",
                 ),
             ),
-        ) shouldBeLeft Vilkår.Vurdert.Uførhet.UgyldigUførevilkår.OverlappendeVurderingsperioder
+        ) shouldBeLeft Vilkår.Uførhet.Vurdert.UgyldigUførevilkår.OverlappendeVurderingsperioder
     }
 }

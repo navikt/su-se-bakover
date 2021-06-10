@@ -519,7 +519,7 @@ internal class SøknadsbehandlingServiceImpl(
             }
         }
         // TODO midliertidig til behandlingsinformasjon er borte
-        val grunnlag = (vilkår as? Vilkår.Vurdert.Uførhet)?.grunnlag?.firstOrNull()
+        val grunnlag = (vilkår as? Vilkår.Uførhet.Vurdert)?.grunnlag?.firstOrNull()
         return vilkårsvurder(
             SøknadsbehandlingService.VilkårsvurderRequest(
                 behandlingId = søknadsbehandling.id,

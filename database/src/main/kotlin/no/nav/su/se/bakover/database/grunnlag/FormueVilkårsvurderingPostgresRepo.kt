@@ -23,12 +23,12 @@ internal class FormueVilkårsvurderingPostgresRepo(
     private val formuesgrunnlagPostgresRepo: FormuesgrunnlagPostgresRepo,
 ) : FormueVilkårsvurderingRepo {
 
-    override fun lagre(behandlingId: UUID, vilkår: Vilkår<Formuegrunnlag?>) {
+    override fun lagre(behandlingId: UUID, vilkår: Vilkår.Formue) {
         dataSource.withSession { tx ->
             slettForBehandlingId(behandlingId, tx)
             when (vilkår) {
-                Vilkår.IkkeVurdert.Formue -> Unit
-                is Vilkår.Vurdert.Formue -> {
+                Vilkår.Formue.IkkeVurdert -> Unit
+                is Vilkår.Formue.Vurdert -> {
                     formuesgrunnlagPostgresRepo.lagreFormuesgrunnlag(behandlingId = behandlingId, formuesgrunnlag = vilkår.grunnlag, tx)
                     vilkår.vurderingsperioder.forEach {
                         lagre(behandlingId, it, tx)
@@ -92,7 +92,7 @@ internal class FormueVilkårsvurderingPostgresRepo(
             )
     }
 
-    internal fun hent(behandlingId: UUID, session: Session): Vilkår<Formuegrunnlag?> {
+    internal fun hent(behandlingId: UUID, session: Session): Vilkår.Formue {
         return """
                 select * from vilkårsvurdering_formue where behandlingId = :behandlingId
         """.trimIndent()
@@ -105,8 +105,8 @@ internal class FormueVilkårsvurderingPostgresRepo(
                 it.toVurderingsperioder(session)
             }.let {
                 when (it.isNotEmpty()) {
-                    true -> Vilkår.Vurdert.Formue.create(vurderingsperioder = Nel.fromListUnsafe(it))
-                    false -> Vilkår.IkkeVurdert.Formue
+                    true -> Vilkår.Formue.Vurdert.create(vurderingsperioder = Nel.fromListUnsafe(it))
+                    false -> Vilkår.Formue.IkkeVurdert
                 }
             }
     }

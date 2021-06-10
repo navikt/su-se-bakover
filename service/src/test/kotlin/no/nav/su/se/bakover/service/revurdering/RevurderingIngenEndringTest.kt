@@ -88,7 +88,7 @@ class RevurderingIngenEndringTest {
                 )
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
-                uføre = Vilkår.Vurdert.Uførhet.create(
+                uføre = Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
@@ -100,7 +100,7 @@ class RevurderingIngenEndringTest {
                         ),
                     ),
                 ),
-                formue = Vilkår.Vurdert.Formue.create(
+                formue = Vilkår.Formue.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
                         Vurderingsperiode.Formue.create(
                             id = UUID.randomUUID(),
