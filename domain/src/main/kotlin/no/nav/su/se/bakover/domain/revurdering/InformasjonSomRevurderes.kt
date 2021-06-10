@@ -16,6 +16,12 @@ data class InformasjonSomRevurderes private constructor(
         )
     }
 
+    fun markerSomIkkeVurdert(revurderingsteg: Revurderingsteg): InformasjonSomRevurderes {
+        return copy(
+            informasjonSomRevurderes = informasjonSomRevurderes + mapOf(revurderingsteg to Vurderingstatus.IkkeVurdert),
+        )
+    }
+
     companion object {
         fun create(revurderingsteg: List<Revurderingsteg>): InformasjonSomRevurderes {
             return tryCreate(revurderingsteg).getOrHandle { throw IllegalArgumentException(it.toString()) }

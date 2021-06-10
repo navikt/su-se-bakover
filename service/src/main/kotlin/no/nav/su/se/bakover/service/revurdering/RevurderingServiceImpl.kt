@@ -15,9 +15,15 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Validator.valider
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.harEktefelle
+import no.nav.su.se.bakover.domain.grunnlag.harFlerEnnEnBosituasjonsperiode
+import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
+import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -36,6 +42,7 @@ import no.nav.su.se.bakover.domain.revurdering.SimulertRevurdering
 import no.nav.su.se.bakover.domain.revurdering.UnderkjentRevurdering
 import no.nav.su.se.bakover.domain.revurdering.erKlarForAttestering
 import no.nav.su.se.bakover.domain.revurdering.medFritekst
+import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -84,7 +91,7 @@ internal class RevurderingServiceImpl(
 
     override fun opprettRevurdering(
         opprettRevurderingRequest: OpprettRevurderingRequest,
-    ): Either<KunneIkkeOppretteRevurdering, Revurdering> {
+    ): Either<KunneIkkeOppretteRevurdering, OpprettetRevurdering> {
         val revurderingsårsak = opprettRevurderingRequest.revurderingsårsak.getOrHandle {
             return when (it) {
                 Revurderingsårsak.UgyldigRevurderingsårsak.UgyldigBegrunnelse -> KunneIkkeOppretteRevurdering.UgyldigBegrunnelse
@@ -107,6 +114,9 @@ internal class RevurderingServiceImpl(
         }.also {
             if (!it.tidslinjeForVedtakErSammenhengende()) return KunneIkkeOppretteRevurdering.TidslinjeForVedtakErIkkeKontinuerlig.left()
         }
+
+        // TODO se kommentar for bruk av denne funksjonen
+        val (grunnlagsdata, vilkårsvurderinger) = fjernBosituasjonOgFradragForEpsDersomFlereBosituasjoner(gjeldendeVedtaksdata)
 
         val gjeldendeVedtakPåFraOgMedDato = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(opprettRevurderingRequest.fraOgMed)
             ?: return KunneIkkeOppretteRevurdering.FantIngenVedtakSomKanRevurderes.left()
@@ -136,8 +146,8 @@ internal class RevurderingServiceImpl(
                 opprettet = Tidspunkt.now(clock),
                 forhåndsvarsel = if (revurderingsårsak.årsak == REGULER_GRUNNBELØP) Forhåndsvarsel.IngenForhåndsvarsel else null,
                 behandlingsinformasjon = gjeldendeVedtakPåFraOgMedDato.behandlingsinformasjon,
-                grunnlagsdata = gjeldendeVedtaksdata.grunnlagsdata,
-                vilkårsvurderinger = gjeldendeVedtaksdata.vilkårsvurderinger,
+                grunnlagsdata = grunnlagsdata,
+                vilkårsvurderinger = vilkårsvurderinger,
                 informasjonSomRevurderes = informasjonSomRevurderes,
             ).also {
                 revurderingRepo.lagre(it)
@@ -152,6 +162,8 @@ internal class RevurderingServiceImpl(
                     fradragsgrunnlag = it.grunnlagsdata.fradragsgrunnlag,
                 )
 
+                grunnlagService.lagreBosituasjongrunnlag(it.id, it.grunnlagsdata.bosituasjon)
+
                 observers.forEach { observer ->
                     observer.handle(
                         Event.Statistikk.RevurderingStatistikk.RevurderingOpprettet(
@@ -161,6 +173,25 @@ internal class RevurderingServiceImpl(
                 }
             }
         }
+    }
+
+    // TODO jm: er par ting som bør adresseres her - en vs flere, påkreve vurdering, og fjerning av data i det skjulte.
+    private fun fjernBosituasjonOgFradragForEpsDersomFlereBosituasjoner(gjeldendeVedtaksdata: GjeldendeVedtaksdata): Pair<Grunnlagsdata, Vilkårsvurderinger> {
+        val gjeldendeBosituasjon = gjeldendeVedtaksdata.grunnlagsdata.bosituasjon
+
+        // Dette kan oppstå når vi revurderer en revurdering. Da må vi vise eksisterende, men skal ikke preutfylle.
+        val harFlerEnnEnBosituasjon = gjeldendeBosituasjon.harFlerEnnEnBosituasjonsperiode()
+
+        return gjeldendeVedtaksdata.grunnlagsdata.copy(
+            // Foreløpig støtter vi kun en aktiv bosituasjon, dersom det er fler, preutfyller vi ikke.
+            bosituasjon = if (harFlerEnnEnBosituasjon) emptyList() else listOf(
+                gjeldendeBosituasjon.singleFullstendigOrThrow(),
+            ),
+            // Fjerner fradrag som er knyttet til Bosituasjon (ektefelle) dersom vi ikke kan preutfylle Bosituasjon
+            fradragsgrunnlag = gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag.filterNot {
+                it.fradrag.tilhører == FradragTilhører.EPS && harFlerEnnEnBosituasjon
+            },
+        ) to gjeldendeVedtaksdata.vilkårsvurderinger
     }
 
     override fun leggTilUføregrunnlag(
@@ -183,7 +214,6 @@ internal class RevurderingServiceImpl(
             }
         }
 
-        // TODO jah: Vi trenger fremdeles behandlingsinformasjon for å utlede sats, så den må ligge inntil vi har flyttet den modellen/logikken til Vilkår
         val oppdatertBehandlingsinformasjon = revurdering.oppdaterBehandlingsinformasjon(
             revurdering.behandlingsinformasjon.copy(
                 uførhet = uførevilkår.vurderingsperioder.firstOrNull()?.let {
@@ -227,10 +257,11 @@ internal class RevurderingServiceImpl(
         if (revurdering.ugyldigTilstandForåLeggeTilGrunnlag())
             return KunneIkkeLeggeTilFradragsgrunnlag.UgyldigStatus.left()
 
-        request.fradragsrunnlag.valider(revurdering.periode).getOrHandle {
+        request.fradragsrunnlag.valider(revurdering.periode, revurdering.grunnlagsdata.bosituasjon.harEktefelle()).getOrHandle {
             return when (it) {
                 Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.UgyldigFradragstypeForGrunnlag -> KunneIkkeLeggeTilFradragsgrunnlag.UgyldigFradragstypeForGrunnlag
                 Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.UtenforBehandlingsperiode -> KunneIkkeLeggeTilFradragsgrunnlag.FradragsgrunnlagUtenforRevurderingsperiode
+                Grunnlag.Fradragsgrunnlag.Validator.UgyldigFradragsgrunnlag.HarIkkeEktelle -> KunneIkkeLeggeTilFradragsgrunnlag.HarIkkeEktelle
             }.left()
         }
 
@@ -241,6 +272,59 @@ internal class RevurderingServiceImpl(
 
         return LeggTilFradragsgrunnlagResponse(
             revurdering = revurderingRepo.hent(revurdering.id)!!,
+        ).right()
+    }
+
+    override fun leggTilBosituasjongrunnlag(request: LeggTilBosituasjongrunnlagRequest): Either<KunneIkkeLeggeTilBosituasjongrunnlag, LeggTilBosituasjongrunnlagResponse> {
+        val revurdering = revurderingRepo.hent(request.revurderingId)
+            ?: return KunneIkkeLeggeTilBosituasjongrunnlag.FantIkkeBehandling.left()
+
+        if ((request.epsFnr == null && request.delerBolig == null) || (request.epsFnr != null && request.delerBolig != null)) {
+            return KunneIkkeLeggeTilBosituasjongrunnlag.UgyldigData.left()
+        }
+        val gjeldendeBosituasjon = revurdering.tilRevurdering.behandling.grunnlagsdata.bosituasjon.singleOrThrow()
+        val bosituasjongrunnlag =
+            request.toDomain(
+                periode = revurdering.periode,
+                clock = clock,
+            ) {
+                personService.hentPerson(it)
+            }.getOrHandle {
+                return it.left()
+            }
+        // Vi ønsker ikke endre eller fjerne EPS dersom dette påvirker EPS sin gjeldende formue.
+        // TODO jah: Fjernes når vi kan revurdere formue
+        if (bosituasjongrunnlag.harEndretEllerFjernetEktefelle(gjeldendeBosituasjon) && revurdering.behandlingsinformasjon.harEpsFormue()) {
+            return KunneIkkeLeggeTilBosituasjongrunnlag.GjeldendeEpsHarFormue.left()
+        }
+
+        // TODO jah: Vi bør se på å fjerne behandlingsinformasjon fra revurdering, og muligens vedtaket.
+        revurdering.oppdaterBehandlingsinformasjon(
+            revurdering.behandlingsinformasjon.oppdaterBosituasjonOgEktefelle(
+                bosituasjon = bosituasjongrunnlag,
+            ) {
+                personService.hentPerson(it)
+            }.getOrHandle {
+                return KunneIkkeLeggeTilBosituasjongrunnlag.KunneIkkeSlåOppEPS.left()
+            },
+        ).also {
+            grunnlagService.lagreBosituasjongrunnlag(revurdering.id, listOf(bosituasjongrunnlag))
+            revurderingRepo.lagre(
+                it.copy(
+                    informasjonSomRevurderes = it.informasjonSomRevurderes
+                        .markerSomVurdert(Revurderingsteg.Bosituasjon).let {
+                            if (bosituasjongrunnlag.harEndretEllerFjernetEktefelle(gjeldendeBosituasjon)) {
+                                it.markerSomIkkeVurdert(Revurderingsteg.Inntekt)
+                            } else {
+                                it
+                            }
+                        },
+                ),
+            )
+        }
+
+        return LeggTilBosituasjongrunnlagResponse(
+            revurdering = revurderingRepo.hent(request.revurderingId)!!,
         ).right()
     }
 
@@ -297,6 +381,9 @@ internal class RevurderingServiceImpl(
             if (!it.tidslinjeForVedtakErSammenhengende()) return KunneIkkeOppdatereRevurdering.TidslinjeForVedtakErIkkeKontinuerlig.left()
         }
 
+        // TODO se kommentar for bruk av denne funksjonen
+        val (grunnlagsdata, vilkårsvurderinger) = fjernBosituasjonOgFradragForEpsDersomFlereBosituasjoner(gjeldendeVedtaksdata)
+
         val gjeldendeVedtakPåFraOgMedDato = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(oppdaterRevurderingRequest.fraOgMed)
             ?: return KunneIkkeOppdatereRevurdering.FantIngenVedtakSomKanRevurderes.left()
 
@@ -304,32 +391,32 @@ internal class RevurderingServiceImpl(
             is OpprettetRevurdering -> revurdering.oppdater(
                 gjeldendeVedtaksdata.periode,
                 revurderingsårsak,
-                gjeldendeVedtaksdata.grunnlagsdata,
-                gjeldendeVedtaksdata.vilkårsvurderinger,
+                grunnlagsdata,
+                vilkårsvurderinger,
                 informasjonSomRevurderes,
                 gjeldendeVedtakPåFraOgMedDato,
             ).right()
             is BeregnetRevurdering -> revurdering.oppdater(
                 gjeldendeVedtaksdata.periode,
                 revurderingsårsak,
-                gjeldendeVedtaksdata.grunnlagsdata,
-                gjeldendeVedtaksdata.vilkårsvurderinger,
+                grunnlagsdata,
+                vilkårsvurderinger,
                 informasjonSomRevurderes,
                 gjeldendeVedtakPåFraOgMedDato,
             ).right()
             is SimulertRevurdering -> revurdering.oppdater(
                 gjeldendeVedtaksdata.periode,
                 revurderingsårsak,
-                gjeldendeVedtaksdata.grunnlagsdata,
-                gjeldendeVedtaksdata.vilkårsvurderinger,
+                grunnlagsdata,
+                vilkårsvurderinger,
                 informasjonSomRevurderes,
                 gjeldendeVedtakPåFraOgMedDato,
             ).right()
             is UnderkjentRevurdering -> revurdering.oppdater(
                 gjeldendeVedtaksdata.periode,
                 revurderingsårsak,
-                gjeldendeVedtaksdata.grunnlagsdata,
-                gjeldendeVedtaksdata.vilkårsvurderinger,
+                grunnlagsdata,
+                vilkårsvurderinger,
                 informasjonSomRevurderes,
                 gjeldendeVedtakPåFraOgMedDato,
             ).right()
@@ -341,6 +428,7 @@ internal class RevurderingServiceImpl(
             revurderingRepo.lagre(it)
             vilkårsvurderingService.lagre(it.id, it.vilkårsvurderinger)
             grunnlagService.lagreFradragsgrunnlag(it.id, it.grunnlagsdata.fradragsgrunnlag)
+            grunnlagService.lagreBosituasjongrunnlag(it.id, it.grunnlagsdata.bosituasjon)
             it
         }
     }
@@ -359,6 +447,7 @@ internal class RevurderingServiceImpl(
                             is Revurdering.KunneIkkeBeregneRevurdering.UgyldigBeregningsgrunnlag -> KunneIkkeBeregneOgSimulereRevurdering.UgyldigBeregningsgrunnlag(
                                 it.reason,
                             )
+                            Revurdering.KunneIkkeBeregneRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps -> KunneIkkeBeregneOgSimulereRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps
                         }.left()
                     }
                 val feilmeldinger = identifiserUtfallSomIkkeStøttes(

@@ -1,4 +1,4 @@
-name: Bygg og deploy ved push til master
+name: Build and deploy to preprod on push to master
 
 on:
   # Trigger the workflow on push or pull request,

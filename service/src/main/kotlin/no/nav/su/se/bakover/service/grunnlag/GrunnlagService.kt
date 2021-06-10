@@ -7,6 +7,8 @@ import java.util.UUID
 interface GrunnlagService {
     fun lagreFradragsgrunnlag(behandlingId: UUID, fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>)
     fun hentFradragsgrunnlag(behandlingId: UUID): List<Grunnlag.Fradragsgrunnlag>
+    fun lagreBosituasjongrunnlag(behandlingId: UUID, bosituasjongrunnlag: List<Grunnlag.Bosituasjon>)
+    fun hentBosituasjongrunnlang(behandlingId: UUID): List<Grunnlag.Bosituasjon>
 
     sealed class KunneIkkeLeggeTilGrunnlagsdata {
         object FantIkkeBehandling : KunneIkkeLeggeTilGrunnlagsdata()
@@ -23,5 +25,13 @@ internal class GrunnlagServiceImpl(
 
     override fun hentFradragsgrunnlag(behandlingId: UUID): List<Grunnlag.Fradragsgrunnlag> {
         return grunnlagRepo.hentFradragsgrunnlag(behandlingId)
+    }
+
+    override fun lagreBosituasjongrunnlag(behandlingId: UUID, bosituasjongrunnlag: List<Grunnlag.Bosituasjon>) {
+        return grunnlagRepo.lagreBosituasjongrunnlag(behandlingId, bosituasjongrunnlag)
+    }
+
+    override fun hentBosituasjongrunnlang(behandlingId: UUID): List<Grunnlag.Bosituasjon> {
+        return grunnlagRepo.hentBosituasjongrunnlag(behandlingId)
     }
 }

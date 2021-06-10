@@ -445,6 +445,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 fnr = it.fnr,
                 fritekstTilBrev = "",
                 stønadsperiode = it.stønadsperiode,
+                grunnlagsdata = Grunnlagsdata.EMPTY,
                 vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
             )
         }

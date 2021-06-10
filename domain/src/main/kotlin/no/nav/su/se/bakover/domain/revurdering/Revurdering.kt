@@ -23,9 +23,12 @@ import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.RevurdertBeregning
 import no.nav.su.se.bakover.domain.beregning.VurderOmBeregningHarEndringerIYtelse
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.beregning.fradrag.harFradragSomTilhørerEps
+import no.nav.su.se.bakover.domain.beregning.utledBeregningsstrategi
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -81,6 +84,8 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
     // TODO ia: fritekst bør flyttes ut av denne klassen og til et eget konsept (som også omfatter fritekst på søknadsbehandlinger)
     abstract val fritekstTilBrev: String
     abstract val revurderingsårsak: Revurderingsårsak
+
+    // TODO jah: Denne bør kunne slettes etter Grunnlagsdata innholder Bosituasjon, men tenker den fortjener egen PR?
     abstract val behandlingsinformasjon: Behandlingsinformasjon
     abstract val informasjonSomRevurderes: InformasjonSomRevurderes
 
@@ -105,7 +110,7 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
     open fun beregn(): Either<KunneIkkeBeregneRevurdering, BeregnetRevurdering> {
         val revurdertBeregning: Beregning = beregnInternt(
             fradrag = grunnlagsdata.fradragsgrunnlag.map { it.fradrag },
-            behandlingsinformasjon = behandlingsinformasjon,
+            bosituasjon = grunnlagsdata.bosituasjon.singleFullstendigOrThrow(),
             uføregrunnlag = grunnlagsdata.uføregrunnlag,
             periode = periode,
             vedtattBeregning = tilRevurdering.beregning,
@@ -216,11 +221,14 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
     companion object {
         private fun beregnInternt(
             fradrag: List<Fradrag>,
-            behandlingsinformasjon: Behandlingsinformasjon,
+            bosituasjon: Grunnlag.Bosituasjon.Fullstendig,
             uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
             periode: Periode,
             vedtattBeregning: Beregning,
         ): Either<KunneIkkeBeregneRevurdering, Beregning> {
+            if (!bosituasjon.harEktefelle() && (fradrag.harFradragSomTilhørerEps())) {
+                return KunneIkkeBeregneRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps.left()
+            }
             val beregningsgrunnlag = Beregningsgrunnlag.tryCreate(
                 beregningsperiode = periode,
                 uføregrunnlag = uføregrunnlag,
@@ -228,14 +236,10 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
             ).getOrHandle {
                 return KunneIkkeBeregneRevurdering.UgyldigBeregningsgrunnlag(it).left()
             }
-            // TODO jah: Også mulig å ta inn beregningsstrategi slik at man kan validere dette på service-nivå
-            val beregningStrategy = behandlingsinformasjon.getBeregningStrategy().getOrHandle {
-                return KunneIkkeBeregneRevurdering.UfullstendigBehandlingsinformasjon(it).left()
-            }
             return RevurdertBeregning.fraSøknadsbehandling(
                 vedtattBeregning = vedtattBeregning,
                 beregningsgrunnlag = beregningsgrunnlag,
-                beregningsstrategi = beregningStrategy,
+                beregningsstrategi = bosituasjon.utledBeregningsstrategi(),
             ).mapLeft {
                 KunneIkkeBeregneRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden
             }
@@ -251,6 +255,8 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
         data class UgyldigBeregningsgrunnlag(
             val reason: no.nav.su.se.bakover.domain.beregning.UgyldigBeregningsgrunnlag,
         ) : KunneIkkeBeregneRevurdering()
+
+        object KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps : KunneIkkeBeregneRevurdering()
     }
 }
 
@@ -1158,6 +1164,7 @@ enum class Revurderingsteg(val vilkår: String) {
     // Oppholdstillatelse("Oppholdstillatelse"),
     // PersonligOppmøte("PersonligOppmøte"),
     Uførhet("Uførhet"),
+    Bosituasjon("Bosituasjon"),
 
     // InnlagtPåInstitusjon("InnlagtPåInstitusjon"),
     // UtenlandsoppholdOver90Dager("UtenlandsoppholdOver90Dager"),

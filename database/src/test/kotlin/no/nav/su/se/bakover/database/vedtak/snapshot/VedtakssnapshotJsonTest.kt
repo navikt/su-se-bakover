@@ -156,16 +156,7 @@ internal class VedtakssnapshotJsonTest {
                            "kontanter":0,
                            "depositumskonto":0
                         },
-                        "epsVerdier":{
-                           "verdiIkkePrimærbolig":0,
-                           "verdiEiendommer":0,
-                           "verdiKjøretøy":0,
-                           "innskudd":0,
-                           "verdipapir":0,
-                           "pengerSkyldt":0,
-                           "kontanter":0,
-                           "depositumskonto":0
-                        },
+                        "epsVerdier": null,
                         "begrunnelse":null
                      },
                      "personligOppmøte":{
@@ -568,16 +559,7 @@ internal class VedtakssnapshotJsonTest {
                            "kontanter":0,
                            "depositumskonto":0
                         },
-                        "epsVerdier":{
-                           "verdiIkkePrimærbolig":0,
-                           "verdiEiendommer":0,
-                           "verdiKjøretøy":0,
-                           "innskudd":0,
-                           "verdipapir":0,
-                           "pengerSkyldt":0,
-                           "kontanter":0,
-                           "depositumskonto":0
-                        },
+                        "epsVerdier":null,
                         "begrunnelse":null
                      },
                      "personligOppmøte":{

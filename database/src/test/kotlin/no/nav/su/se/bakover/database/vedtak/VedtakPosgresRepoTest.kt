@@ -233,7 +233,7 @@ internal class VedtakPosgresRepoTest {
             val søknadsbehandlingVedtak = testDataHelper.vedtakMedInnvilgetSøknadsbehandling().first
 
             val nyRevurdering = testDataHelper.nyRevurdering(søknadsbehandlingVedtak, søknadsbehandlingVedtak.periode)
-            val atteststertRevurdering = RevurderingTilAttestering.IngenEndring(
+            val attestertRevurdering = RevurderingTilAttestering.IngenEndring(
                 id = nyRevurdering.id,
                 periode = søknadsbehandlingVedtak.periode,
                 opprettet = nyRevurdering.opprettet,
@@ -251,9 +251,9 @@ internal class VedtakPosgresRepoTest {
                 behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
                 grunnlagsdata = søknadsbehandlingVedtak.behandling.grunnlagsdata,
                 vilkårsvurderinger = søknadsbehandlingVedtak.behandling.vilkårsvurderinger,
-                informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt))
+                informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             )
-            testDataHelper.revurderingRepo.lagre(atteststertRevurdering)
+            testDataHelper.revurderingRepo.lagre(attestertRevurdering)
             val iverksattRevurdering = IverksattRevurdering.IngenEndring(
                 id = nyRevurdering.id,
                 periode = søknadsbehandlingVedtak.periode,
@@ -271,8 +271,8 @@ internal class VedtakPosgresRepoTest {
                 skalFøreTilBrevutsending = true,
                 forhåndsvarsel = null,
                 behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
-                grunnlagsdata = søknadsbehandlingVedtak.behandling.grunnlagsdata,
-                vilkårsvurderinger = søknadsbehandlingVedtak.behandling.vilkårsvurderinger,
+                grunnlagsdata = Grunnlagsdata.EMPTY,
+                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
@@ -280,6 +280,11 @@ internal class VedtakPosgresRepoTest {
             val revurderingVedtak = Vedtak.from(iverksattRevurdering, fixedClock)
 
             vedtakRepo.lagre(revurderingVedtak)
+            testDataHelper.lagreVilkårOgGrunnlag(
+                revurderingVedtak.id,
+                iverksattRevurdering.vilkårsvurderinger,
+                iverksattRevurdering.grunnlagsdata,
+            )
             datasource.withSession {
                 vedtakRepo.hent(revurderingVedtak.id, it) shouldBe revurderingVedtak
             }

@@ -7,14 +7,16 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
+import no.nav.su.se.bakover.domain.behandling.satsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.harEktefelle
 import no.nav.su.se.bakover.domain.grunnlag.harForventetInntektStørreEnn0
+import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.IverksattRevurdering
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
@@ -277,10 +279,10 @@ class LagBrevRequestVisitor(
             requestForAvslag(
                 personOgNavn = it,
                 avslagsgrunner = avslagsgrunner,
-                behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
+                harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.harEktefelle(),
                 beregning = beregning,
                 fritekst = fritekst,
-                uføregrunnlag = søknadsbehandling.grunnlagsdata.uføregrunnlag
+                uføregrunnlag = søknadsbehandling.grunnlagsdata.uføregrunnlag,
             )
         }
 
@@ -298,10 +300,10 @@ class LagBrevRequestVisitor(
         ).map {
             requestForInnvilgelse(
                 personOgNavn = it,
-                behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
+                bosituasjon = søknadsbehandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow(),
                 beregning = beregning,
                 fritekst = søknadsbehandling.fritekstTilBrev,
-                uføregrunnlag = søknadsbehandling.grunnlagsdata.uføregrunnlag
+                uføregrunnlag = søknadsbehandling.grunnlagsdata.uføregrunnlag,
             )
         }
 
@@ -318,8 +320,8 @@ class LagBrevRequestVisitor(
                 personOgNavn = it,
                 beregning = beregning,
                 fritekst = revurdering.fritekstTilBrev,
-                harEktefelle = revurdering.behandlingsinformasjon.harEktefelle(),
-                uføregrunnlag = revurdering.grunnlagsdata.uføregrunnlag
+                harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEktefelle(),
+                uføregrunnlag = revurdering.grunnlagsdata.uføregrunnlag,
             )
         }
 
@@ -347,14 +349,14 @@ class LagBrevRequestVisitor(
                 revurdering.accept(it)
                 it.attestant
             },
-        ).map { it ->
+        ).map {
             LagBrevRequest.Revurdering.Inntekt(
                 person = it.person,
                 saksbehandlerNavn = it.saksbehandlerNavn,
                 attestantNavn = it.attestantNavn,
                 revurdertBeregning = beregning,
                 fritekst = revurdering.fritekstTilBrev,
-                harEktefelle = revurdering.behandlingsinformasjon.harEktefelle(),
+                harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEktefelle(),
                 forventetInntektStørreEnn0 = revurdering.grunnlagsdata.uføregrunnlag.harForventetInntektStørreEnn0(),
             )
         }
@@ -370,7 +372,7 @@ class LagBrevRequestVisitor(
         ).map {
             LagBrevRequest.Opphørsvedtak(
                 person = it.person,
-                behandlingsinformasjon = revurdering.behandlingsinformasjon,
+                harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEktefelle(),
                 beregning = beregning,
                 fritekst = revurdering.fritekstTilBrev,
                 saksbehandlerNavn = it.saksbehandlerNavn,
@@ -383,7 +385,7 @@ class LagBrevRequestVisitor(
     private fun requestForAvslag(
         personOgNavn: PersonOgNavn,
         avslagsgrunner: List<Avslagsgrunn>,
-        behandlingsinformasjon: Behandlingsinformasjon,
+        harEktefelle: Boolean,
         beregning: Beregning?,
         fritekst: String,
         uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
@@ -392,29 +394,30 @@ class LagBrevRequestVisitor(
         avslag = Avslag(
             opprettet = Tidspunkt.now(clock),
             avslagsgrunner = avslagsgrunner,
-            harEktefelle = behandlingsinformasjon.harEktefelle(),
+            harEktefelle = harEktefelle,
             beregning = beregning,
         ),
         saksbehandlerNavn = personOgNavn.saksbehandlerNavn,
         attestantNavn = personOgNavn.attestantNavn,
         fritekst = fritekst,
-        forventetInntektStørreEnn0 = uføregrunnlag.harForventetInntektStørreEnn0()
+        forventetInntektStørreEnn0 = uføregrunnlag.harForventetInntektStørreEnn0(),
     )
 
     private fun requestForInnvilgelse(
         personOgNavn: PersonOgNavn,
-        behandlingsinformasjon: Behandlingsinformasjon,
+        bosituasjon: Grunnlag.Bosituasjon.Fullstendig,
         uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
         beregning: Beregning,
         fritekst: String,
     ): LagBrevRequest.InnvilgetVedtak = LagBrevRequest.InnvilgetVedtak(
         person = personOgNavn.person,
         beregning = beregning,
-        behandlingsinformasjon = behandlingsinformasjon,
+        satsgrunn = bosituasjon.satsgrunn(),
+        harEktefelle = bosituasjon.harEktefelle(),
         saksbehandlerNavn = personOgNavn.saksbehandlerNavn,
         attestantNavn = personOgNavn.attestantNavn,
         fritekst = fritekst,
-        forventetInntektStørreEnn0 = uføregrunnlag.harForventetInntektStørreEnn0()
+        forventetInntektStørreEnn0 = uføregrunnlag.harForventetInntektStørreEnn0(),
     )
 
     private data class PersonOgNavn(
@@ -447,7 +450,7 @@ class LagBrevRequestVisitor(
         ).map {
             requestForInnvilgelse(
                 personOgNavn = it,
-                behandlingsinformasjon = vedtak.behandlingsinformasjon,
+                bosituasjon = vedtak.behandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow(),
                 beregning = vedtak.beregning,
                 fritekst =
                 // TODO ia: kommer vi oss unna denne? Hadde kanskje gått dersom vi lagret de genererte brevene.
@@ -456,7 +459,7 @@ class LagBrevRequestVisitor(
                     is Søknadsbehandling -> b.fritekstTilBrev
                     else -> ""
                 },
-                uføregrunnlag = vedtak.behandling.grunnlagsdata.uføregrunnlag
+                uføregrunnlag = vedtak.behandling.grunnlagsdata.uføregrunnlag,
             )
         }
 
@@ -495,7 +498,7 @@ class LagBrevRequestVisitor(
                     is Revurdering -> b.fritekstTilBrev
                     else -> ""
                 },
-                behandlingsinformasjon = vedtak.behandlingsinformasjon,
+                harEktefelle = vedtak.behandling.grunnlagsdata.bosituasjon.harEktefelle(),
                 forventetInntektStørreEnn0 = vedtak.behandling.grunnlagsdata.uføregrunnlag.harForventetInntektStørreEnn0(),
                 opphørsgrunner = vedtak.behandling.vilkårsvurderinger.utledOpphørsgrunner(),
             )
@@ -512,7 +515,7 @@ class LagBrevRequestVisitor(
             requestForAvslag(
                 personOgNavn = it,
                 avslagsgrunner = vedtak.avslagsgrunner,
-                behandlingsinformasjon = vedtak.behandlingsinformasjon,
+                harEktefelle = vedtak.behandling.grunnlagsdata.bosituasjon.harEktefelle(),
                 beregning = when (vedtak) {
                     is Vedtak.Avslag.AvslagBeregning -> vedtak.beregning
                     is Vedtak.Avslag.AvslagVilkår -> null
@@ -521,7 +524,7 @@ class LagBrevRequestVisitor(
                     is Søknadsbehandling -> b.fritekstTilBrev // TODO ia: kommer vi oss unna denne?
                     else -> ""
                 },
-                uføregrunnlag = vedtak.behandling.grunnlagsdata.uføregrunnlag
+                uføregrunnlag = vedtak.behandling.grunnlagsdata.uføregrunnlag,
             )
         }
 

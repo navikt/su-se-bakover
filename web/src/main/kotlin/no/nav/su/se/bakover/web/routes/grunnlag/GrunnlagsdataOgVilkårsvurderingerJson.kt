@@ -9,15 +9,18 @@ import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.FradragJson.
 internal data class GrunnlagsdataOgVilkårsvurderingerJson(
     val uføre: UføreVilkårJson?,
     val fradrag: List<FradragJson>,
+    val bosituasjon: List<BosituasjonJson>,
 ) {
     companion object {
-        fun create(grunnlagsdata: Grunnlagsdata, vilkårsvurderinger: Vilkårsvurderinger) =
-            GrunnlagsdataOgVilkårsvurderingerJson(
+        fun create(grunnlagsdata: Grunnlagsdata, vilkårsvurderinger: Vilkårsvurderinger): GrunnlagsdataOgVilkårsvurderingerJson {
+            return GrunnlagsdataOgVilkårsvurderingerJson(
                 uføre = when (val uføre = vilkårsvurderinger.uføre) {
                     Vilkår.IkkeVurdert.Uførhet -> null
                     is Vilkår.Vurdert.Uførhet -> uføre.toJson()
                 },
                 fradrag = grunnlagsdata.fradragsgrunnlag.map { it.fradrag.toJson() },
+                bosituasjon = grunnlagsdata.bosituasjon.toJson(),
             )
+        }
     }
 }

@@ -107,7 +107,16 @@ internal class OppdaterRevurderingServiceTest {
         revurderingsårsak = revurderingsårsak,
         forhåndsvarsel = null,
         behandlingsinformasjon = behandlingsinformasjon,
-        grunnlagsdata = Grunnlagsdata.EMPTY,
+        grunnlagsdata = Grunnlagsdata(
+            bosituasjon = listOf(
+                Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                    id = UUID.randomUUID(),
+                    opprettet = fixedTidspunkt,
+                    periode = periode,
+                    begrunnelse = null,
+                ),
+            ),
+        ),
         vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
         informasjonSomRevurderes = InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert)),
     )
@@ -280,7 +289,16 @@ internal class OppdaterRevurderingServiceTest {
                     behandlingsinformasjon = behandlingsinformasjon,
                     simulering = mock(),
                     forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
-                    grunnlagsdata = Grunnlagsdata.EMPTY,
+                    grunnlagsdata = Grunnlagsdata(
+                        bosituasjon = listOf(
+                            Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                                id = UUID.randomUUID(),
+                                opprettet = fixedTidspunkt,
+                                periode = it.periode,
+                                begrunnelse = null,
+                            ),
+                        ),
+                    ),
                     vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
                     informasjonSomRevurderes = it.informasjonSomRevurderes,
                 )
@@ -374,6 +392,7 @@ internal class OppdaterRevurderingServiceTest {
             verify(revurderingRepoMock).lagre(actual)
             verify(vilkårsvurderingServiceMock).lagre(actual.id, actual.vilkårsvurderinger)
             verify(grunnlagServiceMock).lagreFradragsgrunnlag(actual.id, actual.grunnlagsdata.fradragsgrunnlag)
+            verify(grunnlagServiceMock).lagreBosituasjongrunnlag(actual.id, actual.grunnlagsdata.bosituasjon)
         }
         mocks.verifyNoMoreInteractions()
     }
@@ -435,29 +454,34 @@ internal class OppdaterRevurderingServiceTest {
             vilkårsvurderingService = vilkårsvurderingServiceMock,
         )
 
-        mocks.revurderingService.oppdaterRevurdering(
+        val actual = mocks.revurderingService.oppdaterRevurdering(
             OppdaterRevurderingRequest(
-                revurderingId = opprettetRevurdering.id,
-                fraOgMed = opprettetRevurdering.periode.fraOgMed,
-                årsak = "MELDING_FRA_BRUKER",
-                begrunnelse = "Test",
-                saksbehandler = opprettetRevurdering.saksbehandler,
-                informasjonSomRevurderes = listOf(Revurderingsteg.Uførhet),
+                revurderingId = revurderingId,
+                fraOgMed = periode.fraOgMed,
+                årsak = "REGULER_GRUNNBELØP",
+                begrunnelse = "g-regulering",
+                saksbehandler = saksbehandler,
+                informasjonSomRevurderes = informasjonSomRevurderes,
             ),
-        ).getOrHandle { throw Exception("k") }
+        ).getOrHandle { throw RuntimeException("$it") }
 
-        verify(revurderingRepoMock).hent(opprettetRevurdering.id)
-        verify(vedtakServiceMock).kopierGjeldendeVedtaksdata(opprettetRevurdering.sakId, opprettetRevurdering.periode.fraOgMed)
-        verify(revurderingRepoMock).lagre(any())
-        verify(vilkårsvurderingServiceMock).lagre(
-            argThat { it shouldBe opprettetRevurdering.id },
-            argThat { vilkårsvurdering ->
-                vilkårsvurdering.uføre.let {
-                    it.ekvivalentMed(tilRevurdering.behandling.vilkårsvurderinger.uføre as Vilkår.Vurdert.Uførhet)
-                }
-            },
-        )
-        verify(grunnlagServiceMock).lagreFradragsgrunnlag(opprettetRevurdering.id, tilRevurdering.behandling.grunnlagsdata.fradragsgrunnlag)
+        actual.periode.fraOgMed shouldBe periode.fraOgMed
+        actual.revurderingsårsak.årsak shouldBe Revurderingsårsak.Årsak.REGULER_GRUNNBELØP
+        actual.revurderingsårsak.begrunnelse.toString() shouldBe "g-regulering"
+
+        inOrder(
+            revurderingRepoMock,
+            vilkårsvurderingServiceMock,
+            vedtakServiceMock,
+            grunnlagServiceMock,
+        ) {
+            verify(revurderingRepoMock).hent(revurderingId)
+            verify(vedtakServiceMock).kopierGjeldendeVedtaksdata(opprettetRevurdering.sakId, opprettetRevurdering.periode.fraOgMed)
+            verify(revurderingRepoMock).lagre(actual)
+            verify(vilkårsvurderingServiceMock).lagre(actual.id, actual.vilkårsvurderinger)
+            verify(grunnlagServiceMock).lagreFradragsgrunnlag(actual.id, actual.grunnlagsdata.fradragsgrunnlag)
+            verify(grunnlagServiceMock).lagreBosituasjongrunnlag(actual.id, actual.grunnlagsdata.bosituasjon)
+        }
         mocks.verifyNoMoreInteractions()
     }
 

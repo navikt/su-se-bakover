@@ -15,6 +15,8 @@ import no.nav.su.se.bakover.database.avslåttBeregning
 import no.nav.su.se.bakover.database.behandlingsinformasjonMedAlleVilkårOppfylt
 import no.nav.su.se.bakover.database.beregning
 import no.nav.su.se.bakover.database.fixedClock
+import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføregrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.VilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.hent
@@ -44,8 +46,16 @@ internal class SøknadsbehandlingPostgresRepoTest {
     private val dataSource = EmbeddedDatabase.instance()
     private val testDataHelper = TestDataHelper(dataSource)
     private val uføregrunnlagPostgresRepo = UføregrunnlagPostgresRepo()
+    private val fradragsgrunnlagPostgresRepo = FradragsgrunnlagPostgresRepo(dataSource)
+    private val bosituasjongrunnlagRepo = BosituasjongrunnlagPostgresRepo(dataSource)
     private val vilkårsvurderingRepo = VilkårsvurderingPostgresRepo(dataSource, uføregrunnlagPostgresRepo)
-    private val repo = SøknadsbehandlingPostgresRepo(dataSource, uføregrunnlagPostgresRepo, vilkårsvurderingRepo)
+    private val repo = SøknadsbehandlingPostgresRepo(
+        dataSource,
+        uføregrunnlagPostgresRepo,
+        fradragsgrunnlagPostgresRepo,
+        bosituasjongrunnlagRepo,
+        vilkårsvurderingRepo,
+    )
 
     @Test
     fun `hent tidligere attestering ved underkjenning`() {
@@ -213,8 +223,8 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             saksbehandler = saksbehandler,
                             fritekstTilBrev = "",
                             stønadsperiode = stønadsperiode,
-                            grunnlagsdata = Grunnlagsdata.EMPTY,
-                            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+                            grunnlagsdata = tilAttestering.grunnlagsdata,
+                            vilkårsvurderinger = tilAttestering.vilkårsvurderinger,
                         )
                     }
                 }
@@ -270,8 +280,8 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             saksbehandler = saksbehandler,
                             fritekstTilBrev = "",
                             stønadsperiode = stønadsperiode,
-                            grunnlagsdata = Grunnlagsdata.EMPTY,
-                            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+                            grunnlagsdata = tilAttestering.grunnlagsdata,
+                            vilkårsvurderinger = tilAttestering.vilkårsvurderinger,
                         )
                     }
                 }
@@ -304,8 +314,8 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             attestering = underkjentAttestering,
                             fritekstTilBrev = "",
                             stønadsperiode = stønadsperiode,
-                            grunnlagsdata = Grunnlagsdata.EMPTY,
-                            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+                            grunnlagsdata = tilAttestering.grunnlagsdata,
+                            vilkårsvurderinger = tilAttestering.vilkårsvurderinger,
                         )
                     }
                 }
@@ -363,8 +373,8 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             attestering = underkjentAttestering,
                             fritekstTilBrev = "",
                             stønadsperiode = stønadsperiode,
-                            grunnlagsdata = Grunnlagsdata.EMPTY,
-                            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+                            grunnlagsdata = tilAttestering.grunnlagsdata,
+                            vilkårsvurderinger = tilAttestering.vilkårsvurderinger,
                         )
                     }
                 }
@@ -432,8 +442,8 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     attestering = iverksattAttestering,
                     fritekstTilBrev = "",
                     stønadsperiode = stønadsperiode,
-                    grunnlagsdata = Grunnlagsdata.EMPTY,
-                    vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+                    grunnlagsdata = iverksatt.grunnlagsdata,
+                    vilkårsvurderinger = iverksatt.vilkårsvurderinger,
                 )
             }
         }
@@ -492,6 +502,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                                 forventetInntekt = 12000,
                             ),
                         ),
+                        bosituasjon = iverksatt.grunnlagsdata.bosituasjon,
                     ),
                     vilkårsvurderinger = Vilkårsvurderinger(
                         uføre = Vilkår.Vurdert.Uførhet.create(

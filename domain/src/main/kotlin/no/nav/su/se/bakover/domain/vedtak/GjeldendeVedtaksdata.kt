@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.vedtak
 
+import arrow.core.Nel
 import arrow.core.NonEmptyList
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
@@ -38,6 +39,9 @@ data class GjeldendeVedtaksdata(
         grunnlagsdata = Grunnlagsdata(
             uføregrunnlag = uføreGrunnlagOgVilkår.first,
             fradragsgrunnlag = fradragsgrunnlag,
+            bosituasjon = vedtakPåTidslinje.flatMap {
+                it.grunnlagsdata.bosituasjon
+            },
         )
         vilkårsvurderinger = Vilkårsvurderinger(
             uføre = uføreGrunnlagOgVilkår.second,
@@ -49,4 +53,15 @@ data class GjeldendeVedtaksdata(
     fun tidslinjeForVedtakErSammenhengende() = vedtakPåTidslinje
         .zipWithNext { a, b -> a.periode tilstøter b.periode }
         .all { it }
+}
+
+private fun List<Vedtak.VedtakPåTidslinje>.vilkårsvurderinger(): Vilkårsvurderinger {
+    return Vilkårsvurderinger(
+        uføre = Vilkår.Vurdert.Uførhet.create(
+            map { it.vilkårsvurderinger.uføre }
+                .filterIsInstance<Vilkår.Vurdert.Uførhet>()
+                .flatMap { it.vurderingsperioder }
+                .let { Nel.fromListUnsafe(it) },
+        ),
+    )
 }

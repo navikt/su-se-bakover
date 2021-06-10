@@ -28,10 +28,10 @@ internal class AvstemmingServiceImpl(
         val utbetalinger = repo.hentUtbetalingerForAvstemming(periode.fraOgMed, periode.tilOgMed)
 
         val avstemming = Avstemming(
-            opprettet = Tidspunkt.now(),
+            opprettet = Tidspunkt.now(clock),
             fraOgMed = periode.fraOgMed,
             tilOgMed = periode.tilOgMed,
-            utbetalinger = utbetalinger
+            utbetalinger = utbetalinger,
         )
 
         return publisher.publish(avstemming).fold(

@@ -165,6 +165,14 @@ internal class OpprettRevurderingServiceTest {
         stønadsperiode = stønadsperiode,
         grunnlagsdata = Grunnlagsdata(
             uføregrunnlag = listOf(uføregrunnlag),
+            bosituasjon = listOf(
+                Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                    id = UUID.randomUUID(),
+                    opprettet = fixedTidspunkt,
+                    periode = stønadsperiode.periode,
+                    begrunnelse = null,
+                ),
+            ),
         ),
         vilkårsvurderinger = Vilkårsvurderinger(
             uføre = vilkårsvurderingUføre,
@@ -258,6 +266,7 @@ internal class OpprettRevurderingServiceTest {
                 verify(revurderingRepoMock).lagre(argThat { it.right() shouldBe actual.right() })
                 verify(vilkårsvurderingServiceMock).lagre(actual.id, actual.vilkårsvurderinger)
                 verify(grunnlagServiceMock).lagreFradragsgrunnlag(actual.id, actual.grunnlagsdata.fradragsgrunnlag)
+                verify(grunnlagServiceMock).lagreBosituasjongrunnlag(actual.id, actual.grunnlagsdata.bosituasjon)
             }
 
             mocks.verifyNoMoreInteractions()
@@ -356,6 +365,7 @@ internal class OpprettRevurderingServiceTest {
             verify(revurderingRepoMock).lagre(argThat { it.right() shouldBe actual.right() })
             verify(vilkårsvurderingServiceMock).lagre(any(), any())
             verify(grunnlagServiceMock).lagreFradragsgrunnlag(any(), any())
+            verify(grunnlagServiceMock).lagreBosituasjongrunnlag(actual.id, actual.grunnlagsdata.bosituasjon)
         }
 
         mocks.verifyNoMoreInteractions()
@@ -453,6 +463,7 @@ internal class OpprettRevurderingServiceTest {
             verify(revurderingRepoMock).lagre(argThat { it.right() shouldBe actual.right() })
             verify(vilkårsvurderingServiceMock).lagre(any(), any())
             verify(grunnlagServiceMock).lagreFradragsgrunnlag(any(), any())
+            verify(grunnlagServiceMock).lagreBosituasjongrunnlag(actual.id, actual.grunnlagsdata.bosituasjon)
         }
 
         mocks.verifyNoMoreInteractions()
@@ -508,11 +519,20 @@ internal class OpprettRevurderingServiceTest {
 
     @Test
     fun `for en ny revurdering vil det tas utgangspunkt i nyeste vedtak hvor fraOgMed er inni perioden`() {
+        val vedtaksperiode = Periode.create(1.januar(2021), 31.desember(2021))
         val behandlingMock = mock<Behandling> {
             on { fnr } doReturn FnrGenerator.random()
             on { saksnummer } doReturn Saksnummer(2021)
             on { grunnlagsdata } doReturn Grunnlagsdata(
                 uføregrunnlag = listOf(uføregrunnlag),
+                bosituasjon = listOf(
+                    Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                        id = UUID.randomUUID(),
+                        opprettet = fixedTidspunkt,
+                        periode = vedtaksperiode,
+                        begrunnelse = null,
+                    ),
+                ),
             )
             on { vilkårsvurderinger } doReturn Vilkårsvurderinger(
                 uføre = vilkårsvurderingUføre,
@@ -521,7 +541,7 @@ internal class OpprettRevurderingServiceTest {
         val vedtakForFørsteJanuarLagetNå = mock<Vedtak.EndringIYtelse> {
             on { id } doReturn UUID.randomUUID()
             on { opprettet } doReturn fixedTidspunkt
-            on { periode } doReturn Periode.create(1.januar(2021), 31.desember(2021))
+            on { periode } doReturn vedtaksperiode
             on { behandling } doReturn behandlingMock
             on { behandlingsinformasjon } doReturn Behandlingsinformasjon.lagTomBehandlingsinformasjon()
                 .withAlleVilkårOppfylt()
@@ -539,7 +559,7 @@ internal class OpprettRevurderingServiceTest {
         val vedtakForFørsteJanuarLagetForLengeSiden = mock<Vedtak.EndringIYtelse> {
             on { id } doReturn UUID.randomUUID()
             on { opprettet } doReturn fixedTidspunkt.instant.minus(2, ChronoUnit.HALF_DAYS).toTidspunkt()
-            on { periode } doReturn Periode.create(1.januar(2021), 31.desember(2021))
+            on { periode } doReturn vedtaksperiode
             on { behandling } doReturn behandlingMock
             on { behandlingsinformasjon } doReturn Behandlingsinformasjon.lagTomBehandlingsinformasjon()
                 .withAlleVilkårOppfylt()
@@ -631,6 +651,14 @@ internal class OpprettRevurderingServiceTest {
                 behandlingsinformasjon = opprinneligVedtak.behandlingsinformasjon,
                 grunnlagsdata = Grunnlagsdata(
                     uføregrunnlag = listOf(uføregrunnlag),
+                    bosituasjon = listOf(
+                        Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                            id = UUID.randomUUID(),
+                            opprettet = fixedTidspunkt,
+                            periode = periode,
+                            begrunnelse = null,
+                        ),
+                    ),
                 ),
                 vilkårsvurderinger = Vilkårsvurderinger(
                     uføre = vilkårsvurderingUføre,
@@ -699,6 +727,7 @@ internal class OpprettRevurderingServiceTest {
         )
         verify(vilkårsvurderingServiceMock).lagre(any(), any())
         verify(grunnlagServiceMock).lagreFradragsgrunnlag(any(), any())
+        verify(grunnlagServiceMock).lagreBosituasjongrunnlag(any(), any())
         mocks.verifyNoMoreInteractions()
     }
 

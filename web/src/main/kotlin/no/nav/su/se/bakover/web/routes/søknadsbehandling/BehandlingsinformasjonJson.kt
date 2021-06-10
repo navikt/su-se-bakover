@@ -101,16 +101,16 @@ internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
                     kontanter = f.verdier?.kontanter,
                     depositumskonto = f.verdier?.depositumskonto
                 ),
-                epsVerdier = b.ektefelle?.fnr?.let {
+                epsVerdier = f.epsVerdier?.let {
                     Behandlingsinformasjon.Formue.Verdier(
-                        verdiIkkePrimærbolig = f.epsVerdier?.verdiIkkePrimærbolig,
-                        verdiEiendommer = f.epsVerdier?.verdiEiendommer,
-                        verdiKjøretøy = f.epsVerdier?.verdiKjøretøy,
-                        innskudd = f.epsVerdier?.innskudd,
-                        verdipapir = f.epsVerdier?.verdipapir,
-                        pengerSkyldt = f.epsVerdier?.pengerSkyldt,
-                        kontanter = f.epsVerdier?.kontanter,
-                        depositumskonto = f.epsVerdier?.depositumskonto
+                        verdiIkkePrimærbolig = it.verdiIkkePrimærbolig,
+                        verdiEiendommer = it.verdiEiendommer,
+                        verdiKjøretøy = it.verdiKjøretøy,
+                        innskudd = it.innskudd,
+                        verdipapir = it.verdipapir,
+                        pengerSkyldt = it.pengerSkyldt,
+                        kontanter = it.kontanter,
+                        depositumskonto = it.depositumskonto
                     )
                 },
                 begrunnelse = f.begrunnelse
@@ -122,29 +122,10 @@ internal fun behandlingsinformasjonFromJson(b: BehandlingsinformasjonJson) =
                 begrunnelse = p.begrunnelse
             )
         },
-        bosituasjon = b.bosituasjon?.let { s ->
-            Behandlingsinformasjon.Bosituasjon(
-                ektefelle = b.ektefelle?.let { toEktefelle(it) },
-                delerBolig = s.delerBolig,
-                ektemakeEllerSamboerUførFlyktning = s.ektemakeEllerSamboerUførFlyktning,
-                begrunnelse = s.begrunnelse
-            )
-        },
-        ektefelle = b.ektefelle?.let { e -> toEktefelle(e) }
+        // Vi ønsker ikke at frontenden skal kunne oppdatere bosituasjon og ektefelle. Dette gjøres via grunnlag- og vilkårsvurderingmetodene i SøknadsbehandlingService og RevurderingService.
+        bosituasjon = null,
+        ektefelle = null
     )
-
-internal fun toEktefelle(ektefelleJson: EktefelleJson): Behandlingsinformasjon.EktefellePartnerSamboer {
-    return if (ektefelleJson.fnr != null) {
-        Behandlingsinformasjon.EktefellePartnerSamboer.Ektefelle(
-            fnr = ektefelleJson.fnr,
-            navn = ektefelleJson.navn,
-            kjønn = ektefelleJson.kjønn,
-            fødselsdato = ektefelleJson.fødselsdato,
-            adressebeskyttelse = ektefelleJson.adressebeskyttelse,
-            skjermet = ektefelleJson.skjermet,
-        )
-    } else Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle
-}
 
 internal fun Behandlingsinformasjon.Uførhet.toJson() =
     UførhetJson(

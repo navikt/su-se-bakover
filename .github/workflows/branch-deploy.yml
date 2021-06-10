@@ -1,6 +1,6 @@
 name: Deploy branch to dev-fss [manual deploy]
 # If you want to deploy a branch (feature branch or even redeploy master/main) to dev-fss (preprod) we use github actions workflow_dispatch
-# Goto https://github.com/navikt/su-se-bakover/actions/workflows/branch-deploy.yml chose a branch and deploy it
+# Goto https://github.com/navikt/su-se-bakover/actions/workflows/branch-deploy.yml choose a branch and deploy it
 # See: https://docs.github.com/en/actions/reference/events-that-trigger-workflows#workflow_dispatch
 on: workflow_dispatch
 
@@ -13,12 +13,22 @@ jobs:
       steps:
         - uses: actions/checkout@v2
           with:
-            ref: master
-        - uses: actions/checkout@v2
-        - run: | # Command returns 0 when master is ancestor, 1 if it is not (other positive numbers on error)
-            if git merge-base --is-ancestor "$(git rev-parse origin/master)" HEAD; then
-              echo "You have to merge origin/master before you can deploy a branch."; exit 1
+            fetch-depth: 0
+        - run: | # git merge-base returns 0 when master is ancestor, 1 if it is not (other positive numbers on error)
+            set +e
+            origin_master="$(git rev-parse origin/master)"
+            head="$(git rev-parse HEAD)"
+            echo "Hash for origin master: ${origin_master}. Hash for HEAD: ${head}."
+            merge_base="$(git merge-base $origin_master HEAD)"
+            echo "Merge-base: ${merge_base}"
+            git merge-base --is-ancestor $origin_master HEAD
+            return_code=$?
+            echo "Return code of 'git merge-base': ${return_code}"
+            if [[ return_code -gt 0 ]]; then
+              echo "You have to merge origin/master before you can deploy a branch."
+              exit 1
             fi
+
    build:
       name: Gradle test build and conditional docker build push
       needs: verify-master-is-ancestor

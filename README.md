@@ -125,3 +125,11 @@ prod: https://alertmanager.prod-fss.nais.io
 1. In `build.gradle.kts` and search for `jvmTarget = `
 1. In `.github/workflows/*.yml` and search for `java-version`
 1. In `Dockerfile` replace `FROM navikt/java:<version>`
+
+## Kubernetes
+1. Check out https://github.com/navikt/kubeconfigs
+1. Set context: `kubectl config set-context dev-fss` 
+1. Try to get pods: `kubectl get pods`, and follow the auth info
+
+* Set team-namespace as default: `kubectl config set-context --current --namespace=supstonad`
+* Describe pod: `kubectl describe pod su-se-bakover`

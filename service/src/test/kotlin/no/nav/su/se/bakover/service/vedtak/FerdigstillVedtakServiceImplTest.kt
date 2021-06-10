@@ -34,12 +34,16 @@ import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.BehandlingMetrics
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
+import no.nav.su.se.bakover.domain.behandling.satsgrunn
 import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest.AvslagBrevRequest
 import no.nav.su.se.bakover.domain.eksterneiverksettingssteg.JournalføringOgBrevdistribusjon
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.harEktefelle
+import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
@@ -63,8 +67,10 @@ import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeDistribuereBrev
 import no.nav.su.se.bakover.service.brev.KunneIkkeJournalføreBrev
 import no.nav.su.se.bakover.service.fixedClock
+import no.nav.su.se.bakover.service.fixedTidspunkt
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
+import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.Clock
@@ -116,7 +122,7 @@ internal class FerdigstillVedtakServiceImplTest {
             on { hentPersonMedSystembruker(any()) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
         }
 
-        val vedtakRepoMock = mock<VedtakRepo>() {
+        val vedtakRepoMock = mock<VedtakRepo> {
             on { hentForUtbetaling(any()) } doReturn vedtak
         }
 
@@ -157,7 +163,7 @@ internal class FerdigstillVedtakServiceImplTest {
             on { journalførBrev(any(), any()) } doReturn KunneIkkeJournalføreBrev.KunneIkkeOppretteJournalpost.left()
         }
 
-        val vedtakRepoMock = mock<VedtakRepo>() {
+        val vedtakRepoMock = mock<VedtakRepo> {
             on { hentForUtbetaling(any()) } doReturn vedtak
         }
 
@@ -205,7 +211,7 @@ internal class FerdigstillVedtakServiceImplTest {
             on { distribuerBrev(any()) } doReturn KunneIkkeDistribuereBrev.left()
         }
 
-        val vedtakRepoMock = mock<VedtakRepo>() {
+        val vedtakRepoMock = mock<VedtakRepo> {
             on { hentForUtbetaling(any()) } doReturn vedtak
         }
 
@@ -249,15 +255,15 @@ internal class FerdigstillVedtakServiceImplTest {
             on { hentNavnForNavIdent(any()) } doReturn graphApiResponse.displayName.right()
         }
 
-        val brevServiceMock = mock<BrevService>() {
+        val brevServiceMock = mock<BrevService> {
             on { distribuerBrev(any()) } doReturn iverksattBrevbestillingId.right()
         }
 
-        val vedtakRepoMock = mock<VedtakRepo>() {
+        val vedtakRepoMock = mock<VedtakRepo> {
             on { hentForUtbetaling(any()) } doReturn vedtak
         }
 
-        val oppgaveServiceMock = mock<OppgaveService>() {
+        val oppgaveServiceMock = mock<OppgaveService> {
             on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
         }
 
@@ -311,11 +317,11 @@ internal class FerdigstillVedtakServiceImplTest {
 
         val brevServiceMock = mock<BrevService>()
 
-        val vedtakRepoMock = mock<VedtakRepo>() {
+        val vedtakRepoMock = mock<VedtakRepo> {
             on { hentForUtbetaling(any()) } doReturn vedtak
         }
 
-        val oppgaveServiceMock = mock<OppgaveService>() {
+        val oppgaveServiceMock = mock<OppgaveService> {
             on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
         }
 
@@ -371,16 +377,16 @@ internal class FerdigstillVedtakServiceImplTest {
             )
         }
 
-        val brevServiceMock = mock<BrevService>() {
+        val brevServiceMock = mock<BrevService> {
             on { journalførBrev(any(), any()) } doReturn iverksattJournalpostId.right()
             on { distribuerBrev(any()) } doReturn iverksattBrevbestillingId.right()
         }
 
-        val vedtakRepoMock = mock<VedtakRepo>() {
+        val vedtakRepoMock = mock<VedtakRepo> {
             on { hentForUtbetaling(any()) } doReturn vedtak
         }
 
-        val oppgaveServiceMock = mock<OppgaveService>() {
+        val oppgaveServiceMock = mock<OppgaveService> {
             on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
         }
 
@@ -416,7 +422,8 @@ internal class FerdigstillVedtakServiceImplTest {
                     LagBrevRequest.InnvilgetVedtak(
                         person = person,
                         beregning = vedtak.beregning,
-                        behandlingsinformasjon = vedtak.behandlingsinformasjon,
+                        satsgrunn = vedtak.behandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow().satsgrunn(),
+                        harEktefelle = vedtak.behandling.grunnlagsdata.bosituasjon.harEktefelle(),
                         saksbehandlerNavn = vedtak.saksbehandler.navIdent,
                         attestantNavn = vedtak.saksbehandler.navIdent,
                         fritekst = "",
@@ -443,11 +450,11 @@ internal class FerdigstillVedtakServiceImplTest {
 
         val brevServiceMock = mock<BrevService>()
 
-        val vedtakRepoMock = mock<VedtakRepo>() {
+        val vedtakRepoMock = mock<VedtakRepo> {
             on { hentForUtbetaling(any()) } doReturn vedtak
         }
 
-        val oppgaveServiceMock = mock<OppgaveService>() {
+        val oppgaveServiceMock = mock<OppgaveService> {
             on { lukkOppgaveMedSystembruker(any()) } doReturn Unit.right()
         }
 
@@ -1001,7 +1008,7 @@ internal class FerdigstillVedtakServiceImplTest {
             on { hentUtenBrevbestilling() } doReturn emptyList()
         }
 
-        val brevServiceMock = mock<BrevService>() {
+        val brevServiceMock = mock<BrevService> {
             on { journalførBrev(any(), any()) } doReturn iverksattJournalpostId.right()
         }
 
@@ -1063,7 +1070,7 @@ internal class FerdigstillVedtakServiceImplTest {
             on { hentUtbetaling(innvilgelseUtenBrevbestilling.utbetalingId) } doReturn utbetalingMock
         }
 
-        val brevServiceMock = mock<BrevService>() {
+        val brevServiceMock = mock<BrevService> {
             on { distribuerBrev(any()) } doReturn iverksattBrevbestillingId.right()
         }
 
@@ -1165,7 +1172,7 @@ internal class FerdigstillVedtakServiceImplTest {
         val ukvittertUtbetaling = mock<Utbetaling.OversendtUtbetaling.UtenKvittering>()
 
         val innvilgetVedtakKvitteringMedFeil = innvilgetVedtak()
-        val kvitteringMedFeil = mock<Utbetaling.OversendtUtbetaling.MedKvittering>() {
+        val kvitteringMedFeil = mock<Utbetaling.OversendtUtbetaling.MedKvittering> {
             on { kvittering } doReturn Kvittering(Kvittering.Utbetalingsstatus.FEIL, "")
         }
 
@@ -1279,7 +1286,16 @@ internal class FerdigstillVedtakServiceImplTest {
                 saksbehandler = saksbehandler,
                 fritekstTilBrev = "",
                 stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
-                grunnlagsdata = Grunnlagsdata.EMPTY,
+                grunnlagsdata = Grunnlagsdata(
+                    bosituasjon = listOf(
+                        Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                            id = UUID.randomUUID(),
+                            opprettet = fixedTidspunkt,
+                            periode = RevurderingTestUtils.periode,
+                            begrunnelse = null,
+                        ),
+                    ),
+                ),
                 vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
             ),
         )
@@ -1326,7 +1342,16 @@ internal class FerdigstillVedtakServiceImplTest {
                 attestering = Attestering.Iverksatt(attestant),
                 fritekstTilBrev = "",
                 stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
-                grunnlagsdata = Grunnlagsdata.EMPTY,
+                grunnlagsdata = Grunnlagsdata(
+                    bosituasjon = listOf(
+                        Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                            id = UUID.randomUUID(),
+                            opprettet = fixedTidspunkt,
+                            periode = RevurderingTestUtils.periode,
+                            begrunnelse = null,
+                        ),
+                    ),
+                ),
                 vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
             ),
             utbetalingId = UUID30.randomUUID(),

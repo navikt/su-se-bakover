@@ -32,7 +32,6 @@ import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
@@ -104,6 +103,7 @@ import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
 import java.util.UUID
 
+@Suppress("UNUSED_VARIABLE")
 internal class RevurderingServiceImplTest {
 
     @Test
@@ -135,6 +135,14 @@ internal class RevurderingServiceImplTest {
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
                         ),
+                    ),
+                ),
+                bosituasjon = listOf(
+                    Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                        id = UUID.randomUUID(),
+                        opprettet = fixedTidspunkt,
+                        periode = periode,
+                        begrunnelse = null,
                     ),
                 ),
             ),
@@ -262,6 +270,14 @@ internal class RevurderingServiceImplTest {
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
                         ),
+                    ),
+                ),
+                bosituasjon = listOf(
+                    Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                        id = UUID.randomUUID(),
+                        opprettet = fixedTidspunkt,
+                        periode = periode,
+                        begrunnelse = null,
                     ),
                 ),
             ),
@@ -486,7 +502,7 @@ internal class RevurderingServiceImplTest {
             opprettet = Tidspunkt.EPOCH,
             tilRevurdering = søknadsbehandlingVedtak,
             saksbehandler = saksbehandler,
-            beregning = beregningMock,
+            beregning = beregningMock(),
             simulering = mock(),
             oppgaveId = OppgaveId("oppgaveId"),
             fritekstTilBrev = "",
@@ -577,7 +593,7 @@ internal class RevurderingServiceImplTest {
             opprettet = Tidspunkt.EPOCH,
             tilRevurdering = søknadsbehandlingVedtak,
             saksbehandler = saksbehandler,
-            beregning = beregningMock,
+            beregning = beregningMock(),
             simulering = mock(),
             oppgaveId = OppgaveId("oppgaveId"),
             fritekstTilBrev = "",
@@ -596,6 +612,14 @@ internal class RevurderingServiceImplTest {
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
                         ),
+                    ),
+                ),
+                bosituasjon = listOf(
+                    Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                        id = UUID.randomUUID(),
+                        opprettet = fixedTidspunkt,
+                        periode = periode,
+                        begrunnelse = null,
                     ),
                 ),
             ),
@@ -664,15 +688,7 @@ internal class RevurderingServiceImplTest {
             on { harEktefelle() } doReturn false
         }
 
-        val behandlingMock = mock<Behandling> {
-            on { fnr } doReturn fnr
-        }
-
-        val vedtakMock = mock<Vedtak.EndringIYtelse> {
-            on { behandling } doReturn behandlingMock
-            on { beregning } doReturn mock()
-            on { behandlingsinformasjon } doReturn behandlingsinformasjonMock
-        }
+        val vedtakMock = søknadsbehandlingVedtak
 
         val simulertRevurdering = SimulertRevurdering.Innvilget(
             id = revurderingId,
@@ -693,7 +709,16 @@ internal class RevurderingServiceImplTest {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = null,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
-            grunnlagsdata = Grunnlagsdata.EMPTY,
+            grunnlagsdata = Grunnlagsdata(
+                bosituasjon = listOf(
+                    Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                        id = UUID.randomUUID(),
+                        opprettet = fixedTidspunkt,
+                        periode = periode,
+                        begrunnelse = null,
+                    ),
+                ),
+            ),
             vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
@@ -1557,9 +1582,20 @@ internal class RevurderingServiceImplTest {
     fun `lagreFradrag happy case`() {
         val revurderingId = UUID.randomUUID()
 
+        val revurderingsperiode = Periode.create(1.januar(2021), 31.desember(2021))
         val revuderingMock = mock<OpprettetRevurdering> {
             on { id } doReturn revurderingId
-            on { periode } doReturn Periode.create(1.januar(2021), 31.desember(2021))
+            on { periode } doReturn revurderingsperiode
+            on { grunnlagsdata } doReturn Grunnlagsdata(
+                bosituasjon = listOf(
+                    Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                        id = UUID.randomUUID(),
+                        opprettet = fixedTidspunkt,
+                        periode = revurderingsperiode,
+                        begrunnelse = null,
+                    ),
+                ),
+            )
         }
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -1582,7 +1618,7 @@ internal class RevurderingServiceImplTest {
                     fradrag = FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
                         månedsbeløp = 0.0,
-                        periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021)),
+                        periode = revurderingsperiode,
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
@@ -1701,8 +1737,20 @@ internal class RevurderingServiceImplTest {
 
     @Test
     fun `validerer fradragsgrunnlag`() {
+        val revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021))
         val revurderingMock = mock<OpprettetRevurdering>() {
-            on { periode } doReturn Periode.create(1.mai(2021), 31.desember(2021))
+
+            on { periode } doReturn revurderingsperiode
+            on { grunnlagsdata } doReturn Grunnlagsdata(
+                bosituasjon = listOf(
+                    Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                        id = UUID.randomUUID(),
+                        opprettet = fixedTidspunkt,
+                        periode = revurderingsperiode,
+                        begrunnelse = null,
+                    ),
+                ),
+            )
         }
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -1720,7 +1768,7 @@ internal class RevurderingServiceImplTest {
                     fradrag = FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
                         månedsbeløp = 0.0,
-                        periode = Periode.create(fraOgMed = 1.mai(2021), tilOgMed = 31.desember(2021)),
+                        periode = revurderingsperiode,
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
