@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Validator.valider
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.harEktefelle
+import no.nav.su.se.bakover.domain.grunnlag.harEpsInntekt
 import no.nav.su.se.bakover.domain.grunnlag.harFlerEnnEnBosituasjonsperiode
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
@@ -99,9 +100,6 @@ internal class RevurderingServiceImpl(
             }.left()
         }
 
-        val informasjonSomRevurderes = InformasjonSomRevurderes.tryCreate(opprettRevurderingRequest.informasjonSomRevurderes)
-            .getOrHandle { return KunneIkkeOppretteRevurdering.MåVelgeInformasjonSomSkalRevurderes.left() }
-
         val gjeldendeVedtaksdata = vedtakService.kopierGjeldendeVedtaksdata(
             sakId = opprettRevurderingRequest.sakId,
             fraOgMed = opprettRevurderingRequest.fraOgMed,
@@ -115,11 +113,26 @@ internal class RevurderingServiceImpl(
             if (!it.tidslinjeForVedtakErSammenhengende()) return KunneIkkeOppretteRevurdering.TidslinjeForVedtakErIkkeKontinuerlig.left()
         }
 
-        // TODO se kommentar for bruk av denne funksjonen
-        val (grunnlagsdata, vilkårsvurderinger) = fjernBosituasjonOgFradragForEpsDersomFlereBosituasjoner(gjeldendeVedtaksdata)
+        val informasjonSomRevurderes =
+            InformasjonSomRevurderes.tryCreate(opprettRevurderingRequest.informasjonSomRevurderes)
+                .getOrHandle { return KunneIkkeOppretteRevurdering.MåVelgeInformasjonSomSkalRevurderes.left() }
 
-        val gjeldendeVedtakPåFraOgMedDato = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(opprettRevurderingRequest.fraOgMed)
-            ?: return KunneIkkeOppretteRevurdering.FantIngenVedtakSomKanRevurderes.left()
+        if (gjeldendeVedtaksdata.grunnlagsdata.bosituasjon.harFlerEnnEnBosituasjonsperiode() && !informasjonSomRevurderes.harValgtBosituasjon()) {
+            return KunneIkkeOppretteRevurdering.BosituasjonMedFlerePerioderMåRevurderes.left()
+        }
+
+        if (gjeldendeVedtaksdata.grunnlagsdata.bosituasjon.harFlerEnnEnBosituasjonsperiode() && gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag.harEpsInntekt() && !informasjonSomRevurderes.harValgtInntekt()) {
+            return KunneIkkeOppretteRevurdering.EpsInntektMedFlereBosituasjonsperioderMåRevurderes.left()
+        }
+
+        // TODO se kommentar for bruk av denne funksjonen
+        val (grunnlagsdata, vilkårsvurderinger) = fjernBosituasjonOgFradragForEpsDersomFlereBosituasjoner(
+            gjeldendeVedtaksdata,
+        )
+
+        val gjeldendeVedtakPåFraOgMedDato =
+            gjeldendeVedtaksdata.gjeldendeVedtakPåDato(opprettRevurderingRequest.fraOgMed)
+                ?: return KunneIkkeOppretteRevurdering.FantIngenVedtakSomKanRevurderes.left()
 
         val aktørId = personService.hentAktørId(gjeldendeVedtakPåFraOgMedDato.behandling.fnr).getOrElse {
             log.error("Fant ikke aktør-id")
@@ -358,9 +371,6 @@ internal class RevurderingServiceImpl(
             }.left()
         }
 
-        val informasjonSomRevurderes = InformasjonSomRevurderes.tryCreate(oppdaterRevurderingRequest.informasjonSomRevurderes)
-            .getOrHandle { return KunneIkkeOppdatereRevurdering.MåVelgeInformasjonSomSkalRevurderes.left() }
-
         val revurdering = revurderingRepo.hent(oppdaterRevurderingRequest.revurderingId)
             ?: return KunneIkkeOppdatereRevurdering.FantIkkeRevurdering.left()
 
@@ -375,17 +385,34 @@ internal class RevurderingServiceImpl(
             return when (it) {
                 KunneIkkeKopiereGjeldendeVedtaksdata.FantIkkeSak -> KunneIkkeOppdatereRevurdering.FantIkkeSak
                 KunneIkkeKopiereGjeldendeVedtaksdata.FantIngenVedtak -> KunneIkkeOppdatereRevurdering.FantIngenVedtakSomKanRevurderes
-                is KunneIkkeKopiereGjeldendeVedtaksdata.UgyldigPeriode -> KunneIkkeOppdatereRevurdering.UgyldigPeriode(it.cause)
+                is KunneIkkeKopiereGjeldendeVedtaksdata.UgyldigPeriode -> KunneIkkeOppdatereRevurdering.UgyldigPeriode(
+                    it.cause,
+                )
             }.left()
         }.also {
             if (!it.tidslinjeForVedtakErSammenhengende()) return KunneIkkeOppdatereRevurdering.TidslinjeForVedtakErIkkeKontinuerlig.left()
         }
 
-        // TODO se kommentar for bruk av denne funksjonen
-        val (grunnlagsdata, vilkårsvurderinger) = fjernBosituasjonOgFradragForEpsDersomFlereBosituasjoner(gjeldendeVedtaksdata)
+        val informasjonSomRevurderes =
+            InformasjonSomRevurderes.tryCreate(oppdaterRevurderingRequest.informasjonSomRevurderes)
+                .getOrHandle { return KunneIkkeOppdatereRevurdering.MåVelgeInformasjonSomSkalRevurderes.left() }
 
-        val gjeldendeVedtakPåFraOgMedDato = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(oppdaterRevurderingRequest.fraOgMed)
-            ?: return KunneIkkeOppdatereRevurdering.FantIngenVedtakSomKanRevurderes.left()
+        if (gjeldendeVedtaksdata.grunnlagsdata.bosituasjon.harFlerEnnEnBosituasjonsperiode() && !informasjonSomRevurderes.harValgtBosituasjon()) {
+            return KunneIkkeOppdatereRevurdering.BosituasjonMedFlerePerioderMåRevurderes.left()
+        }
+
+        if (gjeldendeVedtaksdata.grunnlagsdata.bosituasjon.harFlerEnnEnBosituasjonsperiode() && gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag.harEpsInntekt() && !informasjonSomRevurderes.harValgtInntekt()) {
+            return KunneIkkeOppdatereRevurdering.EpsInntektMedFlereBosituasjonsperioderMåRevurderes.left()
+        }
+
+        // TODO se kommentar for bruk av denne funksjonen
+        val (grunnlagsdata, vilkårsvurderinger) = fjernBosituasjonOgFradragForEpsDersomFlereBosituasjoner(
+            gjeldendeVedtaksdata,
+        )
+
+        val gjeldendeVedtakPåFraOgMedDato =
+            gjeldendeVedtaksdata.gjeldendeVedtakPåDato(oppdaterRevurderingRequest.fraOgMed)
+                ?: return KunneIkkeOppdatereRevurdering.FantIngenVedtakSomKanRevurderes.left()
 
         return when (revurdering) {
             is OpprettetRevurdering -> revurdering.oppdater(

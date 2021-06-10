@@ -22,6 +22,9 @@ data class InformasjonSomRevurderes private constructor(
         )
     }
 
+    fun harValgtBosituasjon(): Boolean = this.containsKey(Revurderingsteg.Bosituasjon)
+    fun harValgtInntekt(): Boolean = this.containsKey(Revurderingsteg.Inntekt)
+
     companion object {
         fun create(revurderingsteg: List<Revurderingsteg>): InformasjonSomRevurderes {
             return tryCreate(revurderingsteg).getOrHandle { throw IllegalArgumentException(it.toString()) }
