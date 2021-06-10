@@ -122,6 +122,10 @@ open class AccessCheckProxy(
                     return services.utbetaling.hentUtbetaling(utbetalingId)
                 }
 
+                override fun hentUtbetalinger(sakId: UUID): List<Utbetaling> {
+                    kastKanKunKallesFraAnnenService()
+                }
+
                 override fun oppdaterMedKvittering(
                     avstemmingsnøkkel: Avstemmingsnøkkel,
                     kvittering: Kvittering,
