@@ -154,7 +154,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                 ),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-        ).beregn().orNull()!!
+        ).beregn(eksisterendeUtbetalinger = emptyList()).orNull()!!
 
         val simulertRevurdering = when (beregnetRevurdering) {
             is BeregnetRevurdering.Innvilget -> {

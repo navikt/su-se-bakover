@@ -40,6 +40,10 @@ internal class UtbetalingServiceImpl(
         return utbetalingRepo.hentUtbetaling(utbetalingId)?.right() ?: FantIkkeUtbetaling.left()
     }
 
+    override fun hentUtbetalinger(sakId: UUID): List<Utbetaling> {
+        return utbetalingRepo.hentUtbetalinger(sakId)
+    }
+
     override fun oppdaterMedKvittering(
         avstemmingsnøkkel: Avstemmingsnøkkel,
         kvittering: Kvittering,

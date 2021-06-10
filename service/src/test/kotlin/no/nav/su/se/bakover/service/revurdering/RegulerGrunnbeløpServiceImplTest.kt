@@ -34,6 +34,8 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Forhåndsvarsel
@@ -68,6 +70,7 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.saksbehandl
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.søknadsbehandlingVedtak
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
+import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
 import org.junit.jupiter.api.Test
@@ -279,7 +282,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                         periode = periode,
                         begrunnelse = null,
                     ),
-                )
+                ),
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Vurdert.Uførhet.create(
@@ -327,8 +330,24 @@ internal class RegulerGrunnbeløpServiceImplTest {
             on { hent(revurderingId) } doReturn opprettetRevurdering
         }
 
+        val utbetalingMock = mock<Utbetaling> {
+            on { utbetalingslinjer } doReturn listOf(
+                Utbetalingslinje.Ny(
+                    fraOgMed = periode.fraOgMed,
+                    tilOgMed = periode.tilOgMed,
+                    forrigeUtbetalingslinjeId = null,
+                    beløp = 19637,
+                ),
+            )
+        }
+
+        val utbetalingServiceMock = mock<UtbetalingService> {
+            on { hentUtbetalinger(any()) } doReturn listOf(utbetalingMock)
+        }
+
         val actual = createRevurderingService(
             revurderingRepo = revurderingRepoMock,
+            utbetalingService = utbetalingServiceMock,
         ).beregnOgSimuler(
             revurderingId = revurderingId,
             saksbehandler = BehandlingTestUtils.saksbehandler,

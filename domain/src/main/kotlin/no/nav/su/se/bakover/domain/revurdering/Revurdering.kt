@@ -21,7 +21,6 @@ import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
 import no.nav.su.se.bakover.domain.beregning.RevurdertBeregning
-import no.nav.su.se.bakover.domain.beregning.VurderOmBeregningHarEndringerIYtelse
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.harFradragSomTilhørerEps
 import no.nav.su.se.bakover.domain.beregning.utledBeregningsstrategi
@@ -30,6 +29,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.vedtak.VedtakSomKanRevurderes
@@ -107,7 +107,7 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
         informasjonSomRevurderes = informasjonSomRevurderes,
     )
 
-    open fun beregn(): Either<KunneIkkeBeregneRevurdering, BeregnetRevurdering> {
+    open fun beregn(eksisterendeUtbetalinger: List<Utbetaling>): Either<KunneIkkeBeregneRevurdering, BeregnetRevurdering> {
         val revurdertBeregning: Beregning = beregnInternt(
             fradrag = grunnlagsdata.fradragsgrunnlag.map { it.fradrag },
             bosituasjon = grunnlagsdata.bosituasjon.singleFullstendigOrThrow(),
@@ -193,10 +193,10 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
                     Revurderingsårsak.Årsak.ANDRE_KILDER,
                     -> {
                         when (
-                            endringerAvUtbetalingerErStørreEllerLik10Prosent(
-                                vedtattBeregning = tilRevurdering.beregning,
-                                revurdertBeregning = revurdertBeregning,
-                            )
+                            VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
+                                eksisterendeUtbetalinger = eksisterendeUtbetalinger.flatMap { it.utbetalingslinjer },
+                                nyBeregning = revurdertBeregning,
+                            ).resultat
                         ) {
                             true -> innvilget(revurdertBeregning)
                             false -> ingenEndring(revurdertBeregning)
@@ -204,8 +204,8 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
                     }
                     Revurderingsårsak.Årsak.REGULER_GRUNNBELØP -> {
                         when (
-                            VurderOmBeregningHarEndringerIYtelse(
-                                tidligereBeregning = tilRevurdering.beregning,
+                            VurderOmBeløpErForskjelligFraGjeldendeUtbetaling(
+                                eksisterendeUtbetalinger = eksisterendeUtbetalinger.flatMap { it.utbetalingslinjer },
                                 nyBeregning = revurdertBeregning,
                             ).resultat
                         ) {
@@ -757,7 +757,7 @@ sealed class RevurderingTilAttestering : Revurdering() {
         }
     }
 
-    override fun beregn(): Either<KunneIkkeBeregneRevurdering, BeregnetRevurdering> {
+    override fun beregn(eksisterendeUtbetalinger: List<Utbetaling>): Either<KunneIkkeBeregneRevurdering, BeregnetRevurdering> {
         throw RuntimeException("Skal ikke kunne beregne når revurderingen er til attestering")
     }
 
@@ -925,7 +925,7 @@ sealed class IverksattRevurdering : Revurdering() {
         }
     }
 
-    override fun beregn() = throw RuntimeException("Skal ikke kunne beregne når revurderingen er iverksatt")
+    override fun beregn(eksisterendeUtbetalinger: List<Utbetaling>) = throw RuntimeException("Skal ikke kunne beregne når revurderingen er iverksatt")
 }
 
 sealed class UnderkjentRevurdering : Revurdering() {

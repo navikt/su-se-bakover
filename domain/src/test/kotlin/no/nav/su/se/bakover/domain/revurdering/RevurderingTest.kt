@@ -65,7 +65,7 @@ internal class RevurderingTest {
                 ),
             ),
         ).copy(informasjonSomRevurderes = InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert)))
-            .beregn().orNull()!!.let {
+            .beregn(eksisterendeUtbetalinger = emptyList()).orNull()!!.let {
             it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
             it.informasjonSomRevurderes[Revurderingsteg.Inntekt] shouldBe Vurderingstatus.Vurdert
         }
@@ -99,7 +99,7 @@ internal class RevurderingTest {
                 ),
             ),
         ).copy(informasjonSomRevurderes = InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert)))
-            .beregn().orNull()!!.let {
+            .beregn(eksisterendeUtbetalinger = emptyList()).orNull()!!.let {
             it shouldNotBe beOfType<BeregnetRevurdering.Opphørt>()
             it.informasjonSomRevurderes[Revurderingsteg.Inntekt] shouldBe Vurderingstatus.Vurdert
         }
@@ -177,7 +177,7 @@ internal class RevurderingTest {
         )
 
         val beregnet =
-            revurdering.beregn().getOrElse { throw RuntimeException("Her skal det være en beregnet revurdering") }
+            revurdering.beregn(eksisterendeUtbetalinger = emptyList()).getOrElse { throw RuntimeException("Her skal det være en beregnet revurdering") }
 
         beregnet shouldBe beOfType<BeregnetRevurdering.Opphørt>()
 
@@ -241,7 +241,7 @@ internal class RevurderingTest {
             ),
         )
         val beregnet =
-            revurdering.beregn().getOrElse {
+            revurdering.beregn(eksisterendeUtbetalinger = emptyList()).getOrElse {
                 fail("Her skal det være en beregnet revurdering")
             }
 
