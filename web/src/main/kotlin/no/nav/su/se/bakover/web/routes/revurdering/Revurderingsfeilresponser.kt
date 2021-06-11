@@ -57,6 +57,15 @@ internal object Revurderingsfeilresponser {
         "tidslinje_for_vedtak_ikke_kontinuerlig",
     )
 
+    val bosituasjonMedFlerePerioderMåRevurderes = BadRequest.errorJson(
+        "Bosituasjon må revurderes siden det finnes bosituasjonsperioder",
+        "bosituasjon_med_flere_perioder_må_revurderes",
+    )
+    val epsInntektMedFlereBosituasjonsperioderMåRevurderes = BadRequest.errorJson(
+        "Inntekt må revurderes siden det finnes EPS inntekt og flere bosituasjonsperioder",
+        "eps_inntekt_med_flere_perioder_må_revurderes",
+    )
+
     fun ugyldigPeriode(ugyldigPeriode: UgyldigPeriode): Resultat {
         return BadRequest.errorJson(
             ugyldigPeriode.toString(),
