@@ -8,7 +8,7 @@ import no.nav.su.se.bakover.database.avstemming.AvstemmingRepo
 import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FormueVilkårsvurderingPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FormueVilkårsvurderingRepo
-import no.nav.su.se.bakover.database.grunnlag.FormuesgrunnlagPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.FormuegrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagRepo
@@ -66,7 +66,7 @@ object DatabaseBuilder {
         val uføregrunnlagRepo = UføregrunnlagPostgresRepo()
         val fradragsgrunnlag = FradragsgrunnlagPostgresRepo(dataSource)
         val bosituasjongrunnlag = BosituasjongrunnlagPostgresRepo(dataSource)
-        val formuegrunnlagRepo = FormuesgrunnlagPostgresRepo(dataSource)
+        val formuegrunnlagRepo = FormuegrunnlagPostgresRepo(dataSource)
 
         val grunnlagRepo = GrunnlagPostgresRepo(
             fradragsgrunnlagRepo = fradragsgrunnlag,
@@ -80,7 +80,7 @@ object DatabaseBuilder {
 
         val formueVilkårsvurderingRepo = FormueVilkårsvurderingPostgresRepo(
             dataSource = dataSource,
-            formuesgrunnlagPostgresRepo = formuegrunnlagRepo,
+            formuegrunnlagPostgresRepo = formuegrunnlagRepo,
         )
 
         val saksbehandlingRepo = SøknadsbehandlingPostgresRepo(dataSource, uføregrunnlagRepo, fradragsgrunnlag, bosituasjongrunnlag, uføreVilkårsvurderingRepo)

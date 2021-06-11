@@ -442,7 +442,7 @@ internal class OppdaterRevurderingServiceTest {
                     ),
                 ),
                 vilkårsvurderinger = Vilkårsvurderinger(
-                    uføre = Vilkår.IkkeVurdert.Uførhet,
+                    uføre = Vilkår.Uførhet.IkkeVurdert,
                 ),
             )
         }
@@ -497,7 +497,7 @@ internal class OppdaterRevurderingServiceTest {
             uføregrad = Uføregrad.parse(25),
             forventetInntekt = 12000,
         )
-        val uførevilkår = Vilkår.Vurdert.Uførhet.create(
+        val uførevilkår = Vilkår.Uførhet.Vurdert.create(
             vurderingsperioder = nonEmptyListOf(
                 Vurderingsperiode.Uføre.create(
                     resultat = Resultat.Innvilget,

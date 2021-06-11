@@ -10,7 +10,7 @@ import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.database.uuidOrNull
-import no.nav.su.se.bakover.database.withSession
+import no.nav.su.se.bakover.database.withTransaction
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
@@ -20,16 +20,20 @@ import javax.sql.DataSource
 
 internal class FormueVilkårsvurderingPostgresRepo(
     private val dataSource: DataSource,
-    private val formuesgrunnlagPostgresRepo: FormuesgrunnlagPostgresRepo,
+    private val formuegrunnlagPostgresRepo: FormuegrunnlagPostgresRepo,
 ) : FormueVilkårsvurderingRepo {
 
     override fun lagre(behandlingId: UUID, vilkår: Vilkår.Formue) {
-        dataSource.withSession { tx ->
+        dataSource.withTransaction { tx ->
             slettForBehandlingId(behandlingId, tx)
             when (vilkår) {
                 Vilkår.Formue.IkkeVurdert -> Unit
                 is Vilkår.Formue.Vurdert -> {
-                    formuesgrunnlagPostgresRepo.lagreFormuesgrunnlag(behandlingId = behandlingId, formuesgrunnlag = vilkår.grunnlag, tx)
+                    formuegrunnlagPostgresRepo.lagreFormuegrunnlag(
+                        behandlingId = behandlingId,
+                        formuegrunnlag = vilkår.grunnlag,
+                        tx,
+                    )
                     vilkår.vurderingsperioder.forEach {
                         lagre(behandlingId, it, tx)
                     }
@@ -117,7 +121,7 @@ internal class FormueVilkårsvurderingPostgresRepo(
             opprettet = tidspunkt("opprettet"),
             resultat = ResultatDto.valueOf(string("resultat")).toDomain(),
             grunnlag = uuidOrNull("formue_grunnlag_id")?.let {
-                formuesgrunnlagPostgresRepo.hentForFormuesgrunnlagId(it, session)
+                formuegrunnlagPostgresRepo.hentForFormuegrunnlagId(it, session)
             },
             begrunnelse = stringOrNull("begrunnelse"),
             periode = Periode.create(

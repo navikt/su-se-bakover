@@ -5,52 +5,31 @@ import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.objectMapper
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.Session
+import no.nav.su.se.bakover.database.TransactionalSession
 import no.nav.su.se.bakover.database.hent
-import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid
-import no.nav.su.se.bakover.database.withSession
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import java.util.UUID
 import javax.sql.DataSource
 
-internal class FormuesgrunnlagPostgresRepo(
+internal class FormuegrunnlagPostgresRepo(
     private val dataSource: DataSource,
 ) {
-
-    /**
-     * @param tx forventer at dette er en transaksjon
-     */
-    internal fun lagreFormuesgrunnlag(behandlingId: UUID, formuesgrunnlag: List<Formuegrunnlag>, tx: Session) {
+    internal fun lagreFormuegrunnlag(
+        behandlingId: UUID,
+        formuegrunnlag: List<Formuegrunnlag>,
+        tx: TransactionalSession,
+    ) {
         slettForBehandlingId(behandlingId, tx)
-        formuesgrunnlag.forEach {
+        formuegrunnlag.forEach {
             lagre(it, behandlingId, tx)
         }
     }
 
-    fun hentFormuesgrunnlag(behandlingId: UUID): List<Formuegrunnlag> {
-        return dataSource.withSession { session ->
-            hentFormuesgrunnlag(behandlingId, session)
-        }
-    }
-
-    private fun hentFormuesgrunnlag(behandlingId: UUID, session: Session): List<Formuegrunnlag> {
-        return """
-                select * from grunnlag_formue where behandlingId = :behandlingId
-        """.trimIndent()
-            .hentListe(
-                mapOf(
-                    "behandlingId" to behandlingId,
-                ),
-                session,
-            ) {
-                it.toFormuesgrunnlag()
-            }
-    }
-
-    internal fun hentForFormuesgrunnlagId(formuegrunnlagId: UUID, session: Session): Formuegrunnlag? {
+    internal fun hentForFormuegrunnlagId(formuegrunnlagId: UUID, session: Session): Formuegrunnlag? {
         return """
                 select * from grunnlag_formue where id = :id
         """.trimIndent()
@@ -60,7 +39,7 @@ internal class FormuesgrunnlagPostgresRepo(
                 ),
                 session,
             ) {
-                it.toFormuesgrunnlag()
+                it.toFormuegrunnlag()
             }
     }
 
@@ -76,7 +55,7 @@ internal class FormuesgrunnlagPostgresRepo(
             )
     }
 
-    private fun Row.toFormuesgrunnlag(): Formuegrunnlag {
+    private fun Row.toFormuegrunnlag(): Formuegrunnlag {
         return Formuegrunnlag(
             id = uuid("id"),
             periode = Periode.create(fraOgMed = localDate("fraOgMed"), tilOgMed = localDate("tilOgMed")),

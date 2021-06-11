@@ -13,7 +13,7 @@ import no.nav.su.se.bakover.database.beregning.TestBeregning
 import no.nav.su.se.bakover.database.beregning.toSnapshot
 import no.nav.su.se.bakover.database.grunnlag.BosituasjongrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FormueVilkårsvurderingPostgresRepo
-import no.nav.su.se.bakover.database.grunnlag.FormuesgrunnlagPostgresRepo
+import no.nav.su.se.bakover.database.grunnlag.FormuegrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.FradragsgrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.GrunnlagPostgresRepo
 import no.nav.su.se.bakover.database.grunnlag.UføreVilkårsvurderingPostgresRepo
@@ -187,8 +187,9 @@ internal class TestDataHelper(
     private val bosituasjongrunnlagPostgresRepo = BosituasjongrunnlagPostgresRepo(dataSource)
     internal val grunnlagRepo = GrunnlagPostgresRepo(fradragsgrunnlagPostgresRepo, bosituasjongrunnlagPostgresRepo)
     internal val uføreVilkårsvurderingRepo = UføreVilkårsvurderingPostgresRepo(dataSource, uføregrunnlagPostgresRepo)
-    private val formuesgrunnlagPostgresRepo = FormuesgrunnlagPostgresRepo(dataSource)
-    internal val formueVilkårsvurderingPostgresRepo = FormueVilkårsvurderingPostgresRepo(dataSource, formuesgrunnlagPostgresRepo)
+    private val formuegrunnlagPostgresRepo = FormuegrunnlagPostgresRepo(dataSource)
+    internal val formueVilkårsvurderingPostgresRepo =
+        FormueVilkårsvurderingPostgresRepo(dataSource, formuegrunnlagPostgresRepo)
     internal val søknadsbehandlingRepo =
         SøknadsbehandlingPostgresRepo(
             dataSource,
