@@ -74,7 +74,7 @@ internal class FormueVilkårsvurderingPostgresRepo(
                     "opprettet" to vurderingsperiode.opprettet,
                     "behandlingId" to behandlingId,
                     "formue_grunnlag_id" to vurderingsperiode.grunnlag?.id,
-                    "vurdering" to "MANUELL",
+                    "vurdering" to "AUTOMATISK",
                     "resultat" to vurderingsperiode.resultat.toDto().toString(),
                     "begrunnelse" to vurderingsperiode.begrunnelse,
                     "fraOgMed" to vurderingsperiode.periode.fraOgMed,

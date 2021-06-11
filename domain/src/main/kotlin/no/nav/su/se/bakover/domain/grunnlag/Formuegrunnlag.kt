@@ -26,6 +26,21 @@ data class Formuegrunnlag(
         val kontanter: Int,
         val depositumskonto: Int,
     ) {
+        init {
+            require(
+                verdiIkkePrimærbolig >= 0 &&
+                    verdiEiendommer >= 0 &&
+                    verdiKjøretøy >= 0 &&
+                    innskudd >= 0 &&
+                    verdipapir >= 0 &&
+                    pengerSkyldt >= 0 &&
+                    kontanter >= 0 &&
+                    depositumskonto >= 0,
+            ) {
+                "Alle formueverdiene må være større eller lik 0. Var: $this"
+            }
+        }
+
         internal fun sumVerdier(): Int {
             return verdiIkkePrimærbolig +
                 verdiEiendommer +
@@ -50,7 +65,6 @@ data class Formuegrunnlag(
             begrunnelse: String?,
         ): Either<KunneIkkeLageFormueGrunnlag, Formuegrunnlag> {
             // kanskje sjekke at bosituasjon har eps for hele perioden hvis vi får inn epsformue her
-            // TODO Legg inn validering
 
             return Formuegrunnlag(
                 id = UUID.randomUUID(),
