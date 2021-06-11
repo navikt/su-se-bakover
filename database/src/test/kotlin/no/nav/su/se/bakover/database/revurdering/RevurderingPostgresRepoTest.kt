@@ -17,6 +17,7 @@ import no.nav.su.se.bakover.database.fixedTidspunkt
 import no.nav.su.se.bakover.database.revurdering.RevurderingPostgresRepo.ForhåndsvarselDto
 import no.nav.su.se.bakover.database.withMigratedDb
 import no.nav.su.se.bakover.database.withSession
+import no.nav.su.se.bakover.database.withTransaction
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.NavIdentBruker.Saksbehandler
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -428,11 +429,11 @@ internal class RevurderingPostgresRepoTest {
                 tilAttestering.id,
                 tilAttestering.grunnlagsdata.fradragsgrunnlag,
             )
-            testDataHelper.dataSource.withSession {
+            testDataHelper.dataSource.withTransaction { tx ->
                 uføregrunnlagPostgresRepo.lagre(
                     tilAttestering.id,
                     tilAttestering.grunnlagsdata.uføregrunnlag,
-                    it,
+                    tx,
                 )
             }
 
