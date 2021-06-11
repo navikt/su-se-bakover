@@ -1,11 +1,13 @@
 package no.nav.su.se.bakover.domain.grunnlag
 
 import arrow.core.Either
+import arrow.core.getOrHandle
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
+import org.jetbrains.annotations.TestOnly
 import java.util.UUID
 
 data class Formuegrunnlag(
@@ -58,6 +60,17 @@ data class Formuegrunnlag(
     }
 
     companion object {
+
+        @TestOnly
+        fun create(
+            periode: Periode,
+            epsFormue: Verdier?,
+            søkersFormue: Verdier,
+            begrunnelse: String?,
+        ): Formuegrunnlag = tryCreate(periode, epsFormue, søkersFormue, begrunnelse).getOrHandle {
+            throw IllegalArgumentException(it.toString())
+        }
+
         fun tryCreate(
             periode: Periode,
             epsFormue: Verdier?,

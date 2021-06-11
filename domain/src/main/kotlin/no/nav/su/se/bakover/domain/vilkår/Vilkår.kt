@@ -8,6 +8,7 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
+import no.nav.su.se.bakover.domain.Grunnbeløp
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -158,7 +159,7 @@ sealed class Vilkår {
                 @TestOnly
                 fun create(
                     vurderingsperioder: Nel<Vurderingsperiode<Grunnlag.Uføregrunnlag?>>,
-                ): Uførhet.Vurdert = tryCreate(vurderingsperioder).getOrHandle { throw IllegalArgumentException(it.toString()) }
+                ): Vurdert = tryCreate(vurderingsperioder).getOrHandle { throw IllegalArgumentException(it.toString()) }
 
                 fun tryCreate(
                     vurderingsperioder: Nel<Vurderingsperiode<Grunnlag.Uføregrunnlag?>>,
@@ -200,7 +201,7 @@ sealed class Vilkår {
         data class Vurdert private constructor(
             val vurderingsperioder: Nel<Vurderingsperiode<Formuegrunnlag?>>,
         ) : Formue() {
-            override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Vilkår.Formue =
+            override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Formue =
                 this.copy(
                     vurderingsperioder = this.vurderingsperioder.map {
                         it.oppdaterStønadsperiode(stønadsperiode)
@@ -232,10 +233,27 @@ sealed class Vilkår {
             companion object {
                 @TestOnly
                 fun create(
-                    vurderingsperioder: Nel<Vurderingsperiode<Formuegrunnlag?>>,
-                ): Vurdert = tryCreate(vurderingsperioder).getOrHandle { throw IllegalArgumentException(it.toString()) }
+                    grunnlag: Nel<Formuegrunnlag>,
+                ): Vurdert = tryCreate(grunnlag).getOrHandle { throw IllegalArgumentException(it.toString()) }
 
                 fun tryCreate(
+                    grunnlag: Nel<Formuegrunnlag>,
+                ): Either<UgyldigFormuevilkår, Vurdert> {
+                    val vurderingsperioder = grunnlag.map {
+                        Vurderingsperiode.Formue.tryCreate(it)
+                    }
+                    return fromVurderingsperioder(vurderingsperioder)
+                }
+
+                /**
+                 * Skal kun kalles fra persistence-laget
+                 */
+                fun fromPersistence(
+                    vurderingsperioder: Nel<Vurderingsperiode<Formuegrunnlag?>>,
+                ): Vurdert =
+                    fromVurderingsperioder(vurderingsperioder).getOrHandle { throw IllegalArgumentException(it.toString()) }
+
+                private fun fromVurderingsperioder(
                     vurderingsperioder: Nel<Vurderingsperiode<Formuegrunnlag?>>,
                 ): Either<UgyldigFormuevilkår, Vurdert> {
                     if (vurderingsperioder.all { v1 ->
@@ -406,6 +424,21 @@ sealed class Vurderingsperiode<T : Grunnlag?> : KanPlasseresPåTidslinje<Vurderi
                     periode = vurderingsperiode,
                     begrunnelse = begrunnelse,
                 ).right()
+            }
+
+            fun tryCreate(
+                grunnlag: Formuegrunnlag,
+            ): Formue {
+                return Formue(
+                    id = UUID.randomUUID(),
+                    opprettet = grunnlag.opprettet,
+                    // TODO jah: Nå tar vi første måned, men denne kan forandre seg ila. perioden
+                    resultat = if (grunnlag.sumFormue() <= Grunnbeløp.`0,5G`.fraDato(grunnlag.periode.fraOgMed)) Resultat.Innvilget else Resultat.Avslag,
+                    grunnlag = grunnlag,
+                    periode = grunnlag.periode,
+                    // TODO jah: Skal vi flytte begrunnelsen ut av grunnlaget?
+                    begrunnelse = grunnlag.begrunnelse,
+                )
             }
         }
 

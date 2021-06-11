@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.fixedTidspunkt
+import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
@@ -43,9 +44,29 @@ import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
-val periode = Periode.create(1.januar(2021), 31.januar(2021))
-
 internal class FinnAttestantVisitorTest {
+
+    private val periode = Periode.create(1.januar(2021), 31.januar(2021))
+
+    private fun formueVilkår(periode: Periode) = Vilkår.Formue.Vurdert.create(
+        grunnlag = nonEmptyListOf(
+            Formuegrunnlag.create(
+                periode = periode,
+                epsFormue = null,
+                søkersFormue = Formuegrunnlag.Verdier(
+                    verdiIkkePrimærbolig = 0,
+                    verdiEiendommer = 0,
+                    verdiKjøretøy = 0,
+                    innskudd = 0,
+                    verdipapir = 0,
+                    pengerSkyldt = 0,
+                    kontanter = 0,
+                    depositumskonto = 0,
+                ),
+                begrunnelse = null,
+            ),
+        ),
+    )
 
     @Test
     fun `finner attestant for både søknadsbehandlinger og revurderinger`() {
@@ -268,16 +289,7 @@ internal class FinnAttestantVisitorTest {
                     ),
                 ),
             ),
-            formue = Vilkår.Formue.Vurdert.create(
-                vurderingsperioder = nonEmptyListOf(
-                    Vurderingsperiode.Formue.create(
-                        resultat = Resultat.Innvilget,
-                        grunnlag = null,
-                        periode = periode,
-                        begrunnelse = null,
-                    ),
-                ),
-            ),
+            formue = formueVilkår(periode),
         ),
         informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
     )

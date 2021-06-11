@@ -159,18 +159,7 @@ internal class RevurderingServiceImplTest {
                         ),
                     ),
                 ),
-                formue = Vilkår.Formue.Vurdert.create(
-                    vurderingsperioder = nonEmptyListOf(
-                        Vurderingsperiode.Formue.create(
-                            id = UUID.randomUUID(),
-                            opprettet = fixedTidspunkt,
-                            resultat = Resultat.Innvilget,
-                            grunnlag = null,
-                            periode = periode,
-                            begrunnelse = "ok2k",
-                        ),
-                    ),
-                ),
+                formue = RevurderingTestUtils.formueVilkår(periode),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
@@ -306,18 +295,7 @@ internal class RevurderingServiceImplTest {
                         ),
                     ),
                 ),
-                formue = Vilkår.Formue.Vurdert.create(
-                    vurderingsperioder = nonEmptyListOf(
-                        Vurderingsperiode.Formue.create(
-                            id = UUID.randomUUID(),
-                            opprettet = fixedTidspunkt,
-                            resultat = Resultat.Innvilget,
-                            grunnlag = null,
-                            periode = periode,
-                            begrunnelse = "ok2k",
-                        ),
-                    ),
-                ),
+                formue = RevurderingTestUtils.formueVilkår(periode),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
@@ -660,18 +638,7 @@ internal class RevurderingServiceImplTest {
                         ),
                     ),
                 ),
-                formue = Vilkår.Formue.Vurdert.create(
-                    vurderingsperioder = nonEmptyListOf(
-                        Vurderingsperiode.Formue.create(
-                            id = UUID.randomUUID(),
-                            opprettet = fixedTidspunkt,
-                            resultat = Resultat.Innvilget,
-                            grunnlag = null,
-                            periode = periode,
-                            begrunnelse = "ok2k",
-                        ),
-                    ),
-                ),
+                formue = RevurderingTestUtils.formueVilkår(periode),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
@@ -1544,7 +1511,7 @@ internal class RevurderingServiceImplTest {
 
     @Test
     fun `hvis vilkår ikke er oppfylt, fører revurderingen til et opphør`() {
-        val simulertUtbetalingMock = mock<Utbetaling.SimulertUtbetaling>() {
+        val simulertUtbetalingMock = mock<Utbetaling.SimulertUtbetaling> {
             on { simulering } doReturn mock()
         }
         val vilkårMedAvslag = vilkårsvurderinger.copy(

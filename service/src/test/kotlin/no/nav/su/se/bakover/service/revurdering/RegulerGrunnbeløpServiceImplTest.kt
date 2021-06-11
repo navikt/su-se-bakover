@@ -60,6 +60,7 @@ import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.createRevurderingService
+import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.formueVilkår
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.periode
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.revurderingId
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.revurderingsårsak
@@ -294,18 +295,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
                         ),
                     ),
                 ),
-                formue = Vilkår.Formue.Vurdert.create(
-                    vurderingsperioder = nonEmptyListOf(
-                        Vurderingsperiode.Formue.create(
-                            id = UUID.randomUUID(),
-                            opprettet = fixedTidspunkt,
-                            resultat = Resultat.Innvilget,
-                            grunnlag = null,
-                            periode = uføregrunnlag.periode,
-                            begrunnelse = "ok2k",
-                        ),
-                    ),
-                ),
+                formue = formueVilkår(periode),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(

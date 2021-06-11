@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
+import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
@@ -23,29 +24,41 @@ internal class VilkårsvurderingerTest {
         forventetInntekt = 10_000,
     )
 
+    private fun formueVilkår(periode: Periode) = Vilkår.Formue.Vurdert.create(
+        grunnlag = nonEmptyListOf(
+            Formuegrunnlag.create(
+                periode = periode,
+                epsFormue = null,
+                søkersFormue = Formuegrunnlag.Verdier(
+                    verdiIkkePrimærbolig = 0,
+                    verdiEiendommer = 0,
+                    verdiKjøretøy = 0,
+                    innskudd = 0,
+                    verdipapir = 0,
+                    pengerSkyldt = 0,
+                    kontanter = 0,
+                    depositumskonto = 0,
+                ),
+                begrunnelse = null,
+            ),
+        ),
+    )
+
     @Test
     fun `alle vurderingsperioder innvilget gir innvilget vilkår`() {
+        val vurderingsperiode = Periode.create(1.januar(2021), 31.desember(2021))
         Vilkårsvurderinger(
             uføre = Vilkår.Uførhet.Vurdert.create(
                 vurderingsperioder = nonEmptyListOf(
                     Vurderingsperiode.Uføre.create(
                         resultat = Resultat.Innvilget,
                         grunnlag = uføregrunnlag,
-                        periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                        periode = vurderingsperiode,
                         begrunnelse = "",
                     ),
                 ),
             ),
-            formue = Vilkår.Formue.Vurdert.create(
-                vurderingsperioder = nonEmptyListOf(
-                    Vurderingsperiode.Formue.create(
-                        resultat = Resultat.Innvilget,
-                        grunnlag = null,
-                        periode = Periode.create(1.januar(2021), 31.desember(2021)),
-                        begrunnelse = "",
-                    ),
-                ),
-            ),
+            formue = formueVilkår(vurderingsperiode),
         ).resultat shouldBe Resultat.Innvilget
     }
 

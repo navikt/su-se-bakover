@@ -40,6 +40,7 @@ import no.nav.su.se.bakover.service.revurdering.KunneIkkeBeregneOgSimulereRevurd
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.defaultRequest
+import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.formueVilkår
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.periode
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.requestPath
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.testServices
@@ -152,16 +153,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                         ),
                     ),
                 ),
-                formue = Vilkår.Formue.Vurdert.create(
-                    vurderingsperioder = nonEmptyListOf(
-                        Vurderingsperiode.Formue.create(
-                            resultat = Resultat.Innvilget,
-                            grunnlag = null,
-                            periode = TestBeregning.periode,
-                            begrunnelse = null,
-                        ),
-                    ),
-                ),
+                formue = formueVilkår(periode),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         ).beregn().orNull()!!
