@@ -15,7 +15,6 @@ import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
-import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Validator.valider
@@ -99,8 +98,10 @@ internal class RevurderingServiceImpl(
                 Revurderingsårsak.UgyldigRevurderingsårsak.UgyldigÅrsak -> KunneIkkeOppretteRevurdering.UgyldigÅrsak
             }.left()
         }
+        val informasjonSomRevurderes = InformasjonSomRevurderes.tryCreate(opprettRevurderingRequest.informasjonSomRevurderes)
+            .getOrHandle { return KunneIkkeOppretteRevurdering.MåVelgeInformasjonSomSkalRevurderes.left() }
 
-        val gjeldendeVedtaksdata = vedtakService.kopierGjeldendeVedtaksdata(
+        val gjeldendeVedtaksdata: GjeldendeVedtaksdata = vedtakService.kopierGjeldendeVedtaksdata(
             sakId = opprettRevurderingRequest.sakId,
             fraOgMed = opprettRevurderingRequest.fraOgMed,
         ).getOrHandle {
@@ -113,10 +114,6 @@ internal class RevurderingServiceImpl(
             if (!it.tidslinjeForVedtakErSammenhengende()) return KunneIkkeOppretteRevurdering.TidslinjeForVedtakErIkkeKontinuerlig.left()
         }
 
-        val informasjonSomRevurderes =
-            InformasjonSomRevurderes.tryCreate(opprettRevurderingRequest.informasjonSomRevurderes)
-                .getOrHandle { return KunneIkkeOppretteRevurdering.MåVelgeInformasjonSomSkalRevurderes.left() }
-
         if (gjeldendeVedtaksdata.grunnlagsdata.bosituasjon.harFlerEnnEnBosituasjonsperiode() && !informasjonSomRevurderes.harValgtBosituasjon()) {
             return KunneIkkeOppretteRevurdering.BosituasjonMedFlerePerioderMåRevurderes.left()
         }
@@ -125,14 +122,10 @@ internal class RevurderingServiceImpl(
             return KunneIkkeOppretteRevurdering.EpsInntektMedFlereBosituasjonsperioderMåRevurderes.left()
         }
 
-        // TODO se kommentar for bruk av denne funksjonen
-        val (grunnlagsdata, vilkårsvurderinger) = fjernBosituasjonOgFradragForEpsDersomFlereBosituasjoner(
-            gjeldendeVedtaksdata,
-        )
+        val (grunnlagsdata, vilkårsvurderinger) = fjernBosituasjonHvisIkkeEntydig(gjeldendeVedtaksdata)
 
-        val gjeldendeVedtakPåFraOgMedDato =
-            gjeldendeVedtaksdata.gjeldendeVedtakPåDato(opprettRevurderingRequest.fraOgMed)
-                ?: return KunneIkkeOppretteRevurdering.FantIngenVedtakSomKanRevurderes.left()
+        val gjeldendeVedtakPåFraOgMedDato = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(opprettRevurderingRequest.fraOgMed)
+            ?: return KunneIkkeOppretteRevurdering.FantIngenVedtakSomKanRevurderes.left()
 
         val aktørId = personService.hentAktørId(gjeldendeVedtakPåFraOgMedDato.behandling.fnr).getOrElse {
             log.error("Fant ikke aktør-id")
@@ -188,8 +181,7 @@ internal class RevurderingServiceImpl(
         }
     }
 
-    // TODO jm: er par ting som bør adresseres her - en vs flere, påkreve vurdering, og fjerning av data i det skjulte.
-    private fun fjernBosituasjonOgFradragForEpsDersomFlereBosituasjoner(gjeldendeVedtaksdata: GjeldendeVedtaksdata): Pair<Grunnlagsdata, Vilkårsvurderinger> {
+    private fun fjernBosituasjonHvisIkkeEntydig(gjeldendeVedtaksdata: GjeldendeVedtaksdata): Pair<Grunnlagsdata, Vilkårsvurderinger> {
         val gjeldendeBosituasjon = gjeldendeVedtaksdata.grunnlagsdata.bosituasjon
 
         // Dette kan oppstå når vi revurderer en revurdering. Da må vi vise eksisterende, men skal ikke preutfylle.
@@ -200,10 +192,6 @@ internal class RevurderingServiceImpl(
             bosituasjon = if (harFlerEnnEnBosituasjon) emptyList() else listOf(
                 gjeldendeBosituasjon.singleFullstendigOrThrow(),
             ),
-            // Fjerner fradrag som er knyttet til Bosituasjon (ektefelle) dersom vi ikke kan preutfylle Bosituasjon
-            fradragsgrunnlag = gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag.filterNot {
-                it.fradrag.tilhører == FradragTilhører.EPS && harFlerEnnEnBosituasjon
-            },
         ) to gjeldendeVedtaksdata.vilkårsvurderinger
     }
 
@@ -378,6 +366,9 @@ internal class RevurderingServiceImpl(
             return KunneIkkeOppdatereRevurdering.KanIkkeOppdatereRevurderingSomErForhåndsvarslet.left()
         }
 
+        val informasjonSomRevurderes = InformasjonSomRevurderes.tryCreate(oppdaterRevurderingRequest.informasjonSomRevurderes)
+            .getOrHandle { return KunneIkkeOppdatereRevurdering.MåVelgeInformasjonSomSkalRevurderes.left() }
+
         val gjeldendeVedtaksdata = vedtakService.kopierGjeldendeVedtaksdata(
             sakId = revurdering.sakId,
             fraOgMed = oppdaterRevurderingRequest.fraOgMed,
@@ -393,10 +384,6 @@ internal class RevurderingServiceImpl(
             if (!it.tidslinjeForVedtakErSammenhengende()) return KunneIkkeOppdatereRevurdering.TidslinjeForVedtakErIkkeKontinuerlig.left()
         }
 
-        val informasjonSomRevurderes =
-            InformasjonSomRevurderes.tryCreate(oppdaterRevurderingRequest.informasjonSomRevurderes)
-                .getOrHandle { return KunneIkkeOppdatereRevurdering.MåVelgeInformasjonSomSkalRevurderes.left() }
-
         if (gjeldendeVedtaksdata.grunnlagsdata.bosituasjon.harFlerEnnEnBosituasjonsperiode() && !informasjonSomRevurderes.harValgtBosituasjon()) {
             return KunneIkkeOppdatereRevurdering.BosituasjonMedFlerePerioderMåRevurderes.left()
         }
@@ -405,14 +392,10 @@ internal class RevurderingServiceImpl(
             return KunneIkkeOppdatereRevurdering.EpsInntektMedFlereBosituasjonsperioderMåRevurderes.left()
         }
 
-        // TODO se kommentar for bruk av denne funksjonen
-        val (grunnlagsdata, vilkårsvurderinger) = fjernBosituasjonOgFradragForEpsDersomFlereBosituasjoner(
-            gjeldendeVedtaksdata,
-        )
+        val (grunnlagsdata, vilkårsvurderinger) = fjernBosituasjonHvisIkkeEntydig(gjeldendeVedtaksdata)
 
-        val gjeldendeVedtakPåFraOgMedDato =
-            gjeldendeVedtaksdata.gjeldendeVedtakPåDato(oppdaterRevurderingRequest.fraOgMed)
-                ?: return KunneIkkeOppdatereRevurdering.FantIngenVedtakSomKanRevurderes.left()
+        val gjeldendeVedtakPåFraOgMedDato = gjeldendeVedtaksdata.gjeldendeVedtakPåDato(oppdaterRevurderingRequest.fraOgMed)
+            ?: return KunneIkkeOppdatereRevurdering.FantIngenVedtakSomKanRevurderes.left()
 
         return when (revurdering) {
             is OpprettetRevurdering -> revurdering.oppdater(

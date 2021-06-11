@@ -32,10 +32,9 @@ import no.nav.su.se.bakover.domain.behandling.withAlleVilkårOppfylt
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.MånedsberegningFactory
 import no.nav.su.se.bakover.domain.beregning.Sats
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
@@ -625,7 +624,7 @@ internal class OpprettRevurderingServiceTest {
                 årsak = "MELDING_FRA_BRUKER",
                 begrunnelse = "Ny informasjon",
                 saksbehandler = saksbehandler,
-                informasjonSomRevurderes = informasjonSomRevurderes,
+                informasjonSomRevurderes = listOf(Revurderingsteg.Inntekt, Revurderingsteg.Bosituasjon),
             ),
         )
 
@@ -1012,21 +1011,34 @@ internal class OpprettRevurderingServiceTest {
     }
 
     @Test
-    fun `revurdering med EPS inntekt og flere bosituasjonesperioder må vurderes`() {
+    fun `revurdering med EPS inntekt og flere bosituasjoner må vurderes`() {
+        fun lagBeregning(periode: Periode) = mock<Beregning>() {
+            on { getFradrag() } doReturn listOf(
+                FradragFactory.ny(
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 5000.0,
+                    periode = periode,
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.EPS,
+                ),
+            )
+        }
+
         val revurderingsperiode = Periode.create(
             fraOgMed = stønadsperiode.periode.fraOgMed.plus(1, ChronoUnit.MONTHS),
             tilOgMed = stønadsperiode.periode.tilOgMed,
         )
+        val revurderingBeregning = lagBeregning(revurderingsperiode)
+
         val revurdering = mock<IverksattRevurdering.Innvilget> {
             on { attestering } doReturn Attestering.Iverksatt(NavIdentBruker.Attestant("attestantSomIverksatte"))
             on { behandlingsinformasjon } doReturn mock()
 
             on { periode } doReturn revurderingsperiode
-            on { beregning } doReturn mock()
+            on { beregning } doReturn revurderingBeregning
             on { simulering } doReturn mock()
             on { saksbehandler } doReturn mock()
             on { grunnlagsdata } doReturn Grunnlagsdata(
-                uføregrunnlag = listOf(uføregrunnlag),
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),
@@ -1035,31 +1047,18 @@ internal class OpprettRevurderingServiceTest {
                         begrunnelse = null,
                     ),
                 ),
-                fradragsgrunnlag = listOf(
-                    Grunnlag.Fradragsgrunnlag(
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        fradrag = object : Fradrag {
-                            override val fradragstype = Fradragstype.Arbeidsinntekt
-                            override val månedsbeløp = 1000.0
-                            override val utenlandskInntekt: UtenlandskInntekt? = null
-                            override val tilhører = FradragTilhører.EPS
-                            override val periode = Periode.create(1.januar(2020), 31.januar(2020))
-                            override fun copy(args: CopyArgs.Snitt): Fradrag? {
-                                throw NotImplementedError()
-                            }
-                        },
-                    ),
-                ),
             )
             on { vilkårsvurderinger } doReturn Vilkårsvurderinger(
                 uføre = vilkårsvurderingUføre,
             )
         }
+
         val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
             periode = søknadsbehandlingperiode,
             vedtakListe = nonEmptyListOf(
-                createSøknadsbehandlingVedtak(),
+                createSøknadsbehandlingVedtak().copy(
+                    beregning = lagBeregning(søknadsbehandlingperiode),
+                ),
                 Vedtak.from(revurdering, UUID30.randomUUID()),
             ),
         )

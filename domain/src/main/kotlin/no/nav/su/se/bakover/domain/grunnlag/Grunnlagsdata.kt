@@ -1,7 +1,5 @@
 package no.nav.su.se.bakover.domain.grunnlag
 
-import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-
 // TODO: Del inn i tom og utleda grunnlagsdata. F.eks. ved å bruke NonEmptyList
 data class Grunnlagsdata(
     val uføregrunnlag: List<Grunnlag.Uføregrunnlag> = emptyList(),
@@ -18,5 +16,4 @@ data class Grunnlagsdata(
 }
 
 fun List<Grunnlag.Uføregrunnlag>.harForventetInntektStørreEnn0() = this.sumOf { it.forventetInntekt } > 0
-fun List<Grunnlag.Fradragsgrunnlag>.harEpsInntekt() =
-    this.any { it.fradrag.fradragstype == Fradragstype.ForventetInntekt }
+fun List<Grunnlag.Fradragsgrunnlag>.harEpsInntekt() = this.any { it.fradrag.tilhørerEps() }
