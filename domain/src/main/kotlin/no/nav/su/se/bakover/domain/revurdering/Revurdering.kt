@@ -19,8 +19,6 @@ import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn.Companion.toOpphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
-import no.nav.su.se.bakover.domain.beregning.Månedsberegning
-import no.nav.su.se.bakover.domain.beregning.RevurdertBeregning
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
 import no.nav.su.se.bakover.domain.beregning.fradrag.harFradragSomTilhørerEps
 import no.nav.su.se.bakover.domain.beregning.utledBeregningsstrategi
@@ -37,7 +35,6 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.time.Clock
 import java.util.UUID
-import kotlin.math.abs
 
 enum class BeslutningEtterForhåndsvarsling(val beslutning: String) {
     FortsettSammeOpplysninger("FORTSETT_MED_SAMME_OPPLYSNINGER"),
@@ -113,7 +110,6 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
             bosituasjon = grunnlagsdata.bosituasjon.singleFullstendigOrThrow(),
             uføregrunnlag = grunnlagsdata.uføregrunnlag,
             periode = periode,
-            vedtattBeregning = tilRevurdering.beregning,
         ).getOrHandle { return it.left() }
 
         fun opphør(revurdertBeregning: Beregning): BeregnetRevurdering.Opphørt = BeregnetRevurdering.Opphørt(
@@ -224,7 +220,6 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
             bosituasjon: Grunnlag.Bosituasjon.Fullstendig,
             uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
             periode: Periode,
-            vedtattBeregning: Beregning,
         ): Either<KunneIkkeBeregneRevurdering, Beregning> {
             if (!bosituasjon.harEktefelle() && (fradrag.harFradragSomTilhørerEps())) {
                 return KunneIkkeBeregneRevurdering.KanIkkeHaFradragSomTilhørerEpsHvisBrukerIkkeHarEps.left()
@@ -236,13 +231,9 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
             ).getOrHandle {
                 return KunneIkkeBeregneRevurdering.UgyldigBeregningsgrunnlag(it).left()
             }
-            return RevurdertBeregning.fraSøknadsbehandling(
-                vedtattBeregning = vedtattBeregning,
-                beregningsgrunnlag = beregningsgrunnlag,
-                beregningsstrategi = bosituasjon.utledBeregningsstrategi(),
-            ).mapLeft {
-                KunneIkkeBeregneRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden
-            }
+
+            val beregningsstrategi = bosituasjon.utledBeregningsstrategi()
+            return beregningsstrategi.beregn(beregningsgrunnlag).right()
         }
     }
 
@@ -295,7 +286,7 @@ data class OpprettetRevurdering(
         grunnlagsdata = grunnlagsdata,
         vilkårsvurderinger = vilkårsvurderinger,
         informasjonSomRevurderes = informasjonSomRevurderes,
-        tilRevurdering = tilRevurdering
+        tilRevurdering = tilRevurdering,
     )
 }
 
@@ -448,6 +439,9 @@ sealed class BeregnetRevurdering : Revurdering() {
             vilkårsvurderinger = vilkårsvurderinger,
             informasjonSomRevurderes = informasjonSomRevurderes,
         )
+        //TODO må utledes på samme måte som ved kall til beregn()
+        fun utledOpphørsgrunner(): List<Opphørsgrunn> = vilkårsvurderinger.utledOpphørsgrunner() +
+            listOfNotNull(VurderAvslagGrunnetBeregning.hentAvslagsgrunnForBeregning(beregning).toOpphørsgrunn())
 
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -1108,30 +1102,6 @@ sealed class UnderkjentRevurdering : Revurdering() {
         informasjonSomRevurderes = informasjonSomRevurderes,
     )
 }
-
-/**
- * § 10. Endringar
- * Endring av stønaden må utgjøre minst en 10% endring för att det skal gå igenom.
- * Løsningen sjekker om første måneden utgør minst en 10% endring. Dette baserer sig på
- * att man må revurdere hela stønadsperioden frem i tid.
- * AI 16.02.2020
- */
-private fun endringerAvUtbetalingerErStørreEllerLik10Prosent(
-    vedtattBeregning: Beregning,
-    revurdertBeregning: Beregning,
-): Boolean {
-    val vedtattBeregningsperioder = vedtattBeregning.getMånedsberegninger().associateBy { it.periode }
-
-    return revurdertBeregning.getMånedsberegninger().let {
-        val førsteUtbetaling = it.first()
-        førsteUtbetaling.differanseErStørreEllerLik10Prosent(
-            vedtattBeregningsperioder[førsteUtbetaling.periode]!!,
-        )
-    }
-}
-
-private fun Månedsberegning.differanseErStørreEllerLik10Prosent(otherMånedsberegning: Månedsberegning) =
-    abs(this.getSumYtelse() - otherMånedsberegning.getSumYtelse()) >= (0.1 * this.getSumYtelse())
 
 fun Revurdering.medFritekst(fritekstTilBrev: String) =
     when (this) {
