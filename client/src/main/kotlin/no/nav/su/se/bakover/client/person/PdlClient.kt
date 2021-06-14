@@ -157,7 +157,7 @@ internal class PdlClient(
     private inline fun <reified T> kallPdlMedKunOnBehalfOfToken(fnr: Fnr, query: String, jwtOnBehalfOf: String): Either<KunneIkkeHentePerson, T> {
         val pdlRequest = PdlRequest(query, Variables(ident = fnr.toString()))
         val (_, response, result) = "${config.vars.url}/graphql".httpPost()
-            .header("Authorization", jwtOnBehalfOf)
+            .header("Authorization", "Bearer $jwtOnBehalfOf")
             .header("Tema", Tema.SUPPLERENDE_STØNAD.value)
             .header("Accept", "application/json")
             .header("Content-Type", "application/json")
