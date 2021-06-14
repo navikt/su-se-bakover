@@ -16,7 +16,6 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
 import kotlin.math.abs
 
@@ -167,31 +166,6 @@ internal class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtb
                 Periode.create(1.mars(2021), beregningsperiode.tilOgMed) to 15000,
             ),
         ).resultat shouldBe true
-    }
-
-    @Test
-    fun `kaster exception dersom alle måneder inneholder sumYtelse 0 - disse burde vært håndtert som et opphør`() {
-        assertThrows<IllegalArgumentException> {
-            VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-                eksisterendeUtbetalinger = emptyList(),
-                nyBeregning = lagBeregning(0),
-            ).resultat shouldBe true
-        }
-    }
-
-    @Test
-    fun `kaster exception dersom noen måneder inneholder sumYtelse 0 - disse burde vært håndtert som et opphør`() {
-        assertThrows<IllegalArgumentException> {
-            VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-                eksisterendeUtbetalinger = emptyList(),
-                nyBeregning = lagBeregning(
-                    Periode.create(1.januar(2021), 31.januar(2021)) to 15000,
-                    Periode.create(1.februar(2021), 28.februar(2021)) to 5000,
-                    Periode.create(1.mars(2021), 31.mars(2021)) to 0,
-                    Periode.create(1.april(2021), 30.april(2021)) to 5000,
-                ),
-            ).resultat shouldBe true
-        }
     }
 
     private fun lagUtbetaling(månedsbeløp: Int, periode: Periode = beregningsperiode) = Utbetalingslinje.Ny(

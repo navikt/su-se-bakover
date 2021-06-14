@@ -12,8 +12,6 @@ data class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetal
     val resultat: Boolean
 
     init {
-        require(nyBeregning.getMånedsberegninger().none { it.getSumYtelse() == 0 }) { "Kan ikke vurdere endring på 10% for beregninger med beløp lik 0" }
-
         fun diffEr10ProsentEllerMer(førsteMånedsbeløp: Int, gjeldendeUtbetalingsbeløp: Int) = abs(førsteMånedsbeløp - gjeldendeUtbetalingsbeløp) >= (0.1 * gjeldendeUtbetalingsbeløp)
 
         val utbetalingstidslinje = Tidslinje(
