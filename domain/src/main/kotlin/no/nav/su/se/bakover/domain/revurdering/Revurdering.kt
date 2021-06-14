@@ -111,7 +111,7 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
         val revurdertBeregning: Beregning = beregnInternt(
             fradrag = grunnlagsdata.fradragsgrunnlag.map { it.fradrag },
             bosituasjon = grunnlagsdata.bosituasjon.singleFullstendigOrThrow(),
-            uføregrunnlag = grunnlagsdata.uføregrunnlag,
+            uføregrunnlag = vilkårsvurderinger.uføre.grunnlag,
             periode = periode,
             vedtattBeregning = tilRevurdering.beregning,
         ).getOrHandle { return it.left() }

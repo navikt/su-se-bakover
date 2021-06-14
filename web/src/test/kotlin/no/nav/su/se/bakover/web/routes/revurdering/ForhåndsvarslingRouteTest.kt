@@ -93,8 +93,8 @@ internal class ForhåndsvarslingRouteTest {
             ),
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt))
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
 
         val revurderingServiceMock = mock<RevurderingService> {
@@ -156,8 +156,8 @@ internal class ForhåndsvarslingRouteTest {
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt))
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
 
         val revurderingServiceMock = mock<RevurderingService> {

@@ -2,7 +2,6 @@ package no.nav.su.se.bakover.domain.vilkår
 
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
@@ -11,12 +10,11 @@ import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
-import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
+import no.nav.su.se.bakover.domain.formueVilkår
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import org.junit.jupiter.api.Test
-import java.util.UUID
 
 internal class VilkårsvurderingerTest {
 
@@ -24,33 +22,6 @@ internal class VilkårsvurderingerTest {
         periode = Periode.create(1.januar(2021), 31.desember(2021)),
         uføregrad = Uføregrad.parse(20),
         forventetInntekt = 10_000,
-    )
-
-    private fun formueVilkår(periode: Periode) = Vilkår.Formue.Vurdert.create(
-        grunnlag = nonEmptyListOf(
-            Formuegrunnlag.create(
-                periode = periode,
-                epsFormue = null,
-                søkersFormue = Formuegrunnlag.Verdier(
-                    verdiIkkePrimærbolig = 0,
-                    verdiEiendommer = 0,
-                    verdiKjøretøy = 0,
-                    innskudd = 0,
-                    verdipapir = 0,
-                    pengerSkyldt = 0,
-                    kontanter = 0,
-                    depositumskonto = 0,
-                ),
-                begrunnelse = null,
-                behandlingsPeriode = periode,
-                bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                    id = UUID.randomUUID(),
-                    opprettet = Tidspunkt.now(),
-                    periode = periode,
-                    begrunnelse = null,
-                )
-            ),
-        ),
     )
 
     @Test
@@ -84,14 +55,13 @@ internal class VilkårsvurderingerTest {
                     ),
                 ),
             ),
+            formue = formueVilkår(Periode.create(1.januar(2021), 31.desember(2021))),
         ).resultat shouldBe Resultat.Avslag
     }
 
     @Test
     fun `ingen vurderingsperioder gir uavklart vilkår`() {
-        Vilkårsvurderinger(
-            uføre = Vilkår.Uførhet.IkkeVurdert,
-        ).let {
+        Vilkårsvurderinger.IkkeVurdert.let {
             it.resultat shouldBe Resultat.Uavklart
             it.tidligsteDatoForAvslag() shouldBe null
         }
@@ -124,6 +94,7 @@ internal class VilkårsvurderingerTest {
                     ),
                 ),
             ),
+            formue = formueVilkår(Periode.create(1.januar(2021), 31.desember(2021))),
         ).let {
             it.resultat shouldBe Resultat.Avslag
             it.tidligsteDatoForAvslag() shouldBe 1.mai(2021)
@@ -158,10 +129,11 @@ internal class VilkårsvurderingerTest {
                     ),
                 ),
             ),
+            formue = formueVilkår(nyPeriode),
         )
 
         val actual = vilkårsvurdering.oppdaterStønadsperiode(Stønadsperiode.create(nyPeriode, "test"))
-        actual.grunnlagsdata.uføregrunnlag.first().periode shouldBe nyPeriode
+        actual.uføre.grunnlag.first().periode shouldBe nyPeriode
         actual.tidligsteDatoForAvslag() shouldBe 1.februar(2021)
     }
 

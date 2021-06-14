@@ -180,7 +180,7 @@ internal class TestDataHelper(
     private val clock: Clock = fixedClock,
 ) {
     internal val utbetalingRepo = UtbetalingPostgresRepo(dataSource)
-    internal val hendelsesloggRepo = HendelsesloggPostgresRepo(dataSource)
+    private val hendelsesloggRepo = HendelsesloggPostgresRepo(dataSource)
     internal val søknadRepo = SøknadPostgresRepo(dataSource)
     internal val uføregrunnlagPostgresRepo = UføregrunnlagPostgresRepo()
     private val fradragsgrunnlagPostgresRepo = FradragsgrunnlagPostgresRepo(dataSource)
@@ -369,7 +369,7 @@ internal class TestDataHelper(
             forhåndsvarsel = null,
             behandlingsinformasjon = innvilget.behandlingsinformasjon,
             grunnlagsdata = grunnlagsdata,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         ).also {
             revurderingRepo.lagre(it)
@@ -424,7 +424,7 @@ internal class TestDataHelper(
         ),
     )
 
-    private fun innvilgetGrunnlagsdata(vilkårsvurderinger: Vilkårsvurderinger, epsFnr: Fnr? = null) = Grunnlagsdata(
+    private fun innvilgetGrunnlagsdata(epsFnr: Fnr? = null) = Grunnlagsdata(
         bosituasjon = listOf(
             if (epsFnr != null) Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
                 id = UUID.randomUUID(),
@@ -440,14 +440,13 @@ internal class TestDataHelper(
                     begrunnelse = null,
                 ),
         ),
-        uføregrunnlag = vilkårsvurderinger.grunnlagsdata.uføregrunnlag,
         fradragsgrunnlag = emptyList(),
     )
 
     internal fun nyInnvilgetVilkårsvurdering(
         behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt,
         vilkårsvurderinger: Vilkårsvurderinger = innvilgetVilkårsvurderinger(),
-        grunnlagsdata: Grunnlagsdata = innvilgetGrunnlagsdata(vilkårsvurderinger),
+        grunnlagsdata: Grunnlagsdata = innvilgetGrunnlagsdata(),
     ): Søknadsbehandling.Vilkårsvurdert.Innvilget {
         return nySøknadsbehandling(behandlingsinformasjon = behandlingsinformasjon).copy(
             vilkårsvurderinger = vilkårsvurderinger,
@@ -465,14 +464,9 @@ internal class TestDataHelper(
         vilkårsvurderinger: Vilkårsvurderinger,
         grunnlagsdata: Grunnlagsdata,
     ) {
-        dataSource.withSession { session ->
-            bosituasjongrunnlagPostgresRepo.lagreBosituasjongrunnlag(behandlingId, grunnlagsdata.bosituasjon)
-            fradragsgrunnlagPostgresRepo.lagreFradragsgrunnlag(behandlingId, grunnlagsdata.fradragsgrunnlag)
-            session.transaction { tx ->
-                uføregrunnlagPostgresRepo.lagre(behandlingId, grunnlagsdata.uføregrunnlag, tx)
-            }
-            uføreVilkårsvurderingRepo.lagre(behandlingId, vilkårsvurderinger.uføre)
-        }
+        bosituasjongrunnlagPostgresRepo.lagreBosituasjongrunnlag(behandlingId, grunnlagsdata.bosituasjon)
+        fradragsgrunnlagPostgresRepo.lagreFradragsgrunnlag(behandlingId, grunnlagsdata.fradragsgrunnlag)
+        uføreVilkårsvurderingRepo.lagre(behandlingId, vilkårsvurderinger.uføre)
     }
 
     internal fun nyAvslåttVilkårsvurdering(): Søknadsbehandling.Vilkårsvurdert.Avslag {
@@ -486,7 +480,7 @@ internal class TestDataHelper(
     private fun nyInnvilgetBeregning(
         behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt,
         vilkårsvurderinger: Vilkårsvurderinger = innvilgetVilkårsvurderinger(),
-        grunnlagsdata: Grunnlagsdata = innvilgetGrunnlagsdata(vilkårsvurderinger),
+        grunnlagsdata: Grunnlagsdata = innvilgetGrunnlagsdata(),
     ): Søknadsbehandling.Beregnet.Innvilget {
         return nyInnvilgetVilkårsvurdering(behandlingsinformasjon, vilkårsvurderinger, grunnlagsdata).tilBeregnet(
             beregning(),
@@ -506,7 +500,7 @@ internal class TestDataHelper(
     private fun nySimulering(
         behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt,
         vilkårsvurderinger: Vilkårsvurderinger = innvilgetVilkårsvurderinger(),
-        grunnlagsdata: Grunnlagsdata = innvilgetGrunnlagsdata(vilkårsvurderinger),
+        grunnlagsdata: Grunnlagsdata = innvilgetGrunnlagsdata(),
     ): Søknadsbehandling.Simulert {
         return nyInnvilgetBeregning(behandlingsinformasjon, vilkårsvurderinger, grunnlagsdata).let {
             it.tilSimulert(simulering(it.fnr))
@@ -518,7 +512,7 @@ internal class TestDataHelper(
     internal fun nyTilInnvilgetAttestering(
         behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt,
         vilkårsvurderinger: Vilkårsvurderinger = innvilgetVilkårsvurderinger(),
-        grunnlagsdata: Grunnlagsdata = innvilgetGrunnlagsdata(vilkårsvurderinger),
+        grunnlagsdata: Grunnlagsdata = innvilgetGrunnlagsdata(),
         fritekstTilBrev: String = "",
     ): Søknadsbehandling.TilAttestering.Innvilget {
         return nySimulering(behandlingsinformasjon, vilkårsvurderinger, grunnlagsdata).tilAttestering(
@@ -577,7 +571,7 @@ internal class TestDataHelper(
         behandlingsinformasjon: Behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt,
         vilkårsvurderinger: Vilkårsvurderinger = innvilgetVilkårsvurderinger(),
         epsFnr: Fnr? = null,
-        grunnlagsdata: Grunnlagsdata = innvilgetGrunnlagsdata(vilkårsvurderinger, epsFnr),
+        grunnlagsdata: Grunnlagsdata = innvilgetGrunnlagsdata(epsFnr),
         avstemmingsnøkkel: Avstemmingsnøkkel = no.nav.su.se.bakover.database.avstemmingsnøkkel,
         utbetalingslinjer: List<Utbetalingslinje> = listOf(utbetalingslinje()),
     ): Pair<Søknadsbehandling.Iverksatt.Innvilget, Utbetaling.OversendtUtbetaling.UtenKvittering> {

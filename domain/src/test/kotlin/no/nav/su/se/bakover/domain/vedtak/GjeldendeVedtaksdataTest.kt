@@ -24,9 +24,8 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.formueVilkår
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -49,7 +48,7 @@ internal class GjeldendeVedtaksdataTest {
     @Test
     fun `finner gjeldende vedtak for gitt dato`() {
         val førstegangsvedtak = førstegangsvedtak(Periode.create(1.januar(2021), 31.desember(2021)))
-        val revurdering = revurdering(Periode.create(1.mai(2021), 31.desember(2021)))
+        val revurdering = revurdering(Periode.create(1.mai(2021), 31.desember(2021)), førstegangsvedtak)
         val data = GjeldendeVedtaksdata(
             periode = Periode.create(1.januar(2021), 31.desember(2021)),
             vedtakListe = nonEmptyListOf(
@@ -68,7 +67,7 @@ internal class GjeldendeVedtaksdataTest {
     @Test
     fun `tidslinje inneholder hull mellom to vedtak`() {
         val førstegangsvedtak = førstegangsvedtak(Periode.create(1.januar(2021), 31.mars(2021)))
-        val revurdering = revurdering(Periode.create(1.mai(2021), 31.desember(2021)))
+        val revurdering = revurdering(Periode.create(1.mai(2021), 31.desember(2021)), førstegangsvedtak)
         val data = GjeldendeVedtaksdata(
             periode = Periode.create(1.januar(2021), 31.desember(2021)),
             vedtakListe = nonEmptyListOf(
@@ -146,15 +145,6 @@ internal class GjeldendeVedtaksdataTest {
                 begrunnelse = "",
             ),
             grunnlagsdata = Grunnlagsdata(
-                uføregrunnlag = listOf(
-                    Grunnlag.Uføregrunnlag(
-                        id = UUID.randomUUID(),
-                        opprettet = Tidspunkt.now(),
-                        periode = periode,
-                        uføregrad = Uføregrad.parse(100),
-                        forventetInntekt = 0,
-                    ),
-                ),
                 fradragsgrunnlag = listOf(),
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
@@ -170,21 +160,25 @@ internal class GjeldendeVedtaksdataTest {
                         ),
                     ),
                 ),
+                formue = formueVilkår(periode),
             ),
         ),
         utbetalingId = UUID30.randomUUID(),
     )
 
-    private fun revurdering(periode: Periode) = Vedtak.from(
+    private fun revurdering(periode: Periode, førstegangsvedtak: Vedtak.EndringIYtelse) = Vedtak.from(
         IverksattRevurdering.Innvilget(
             id = UUID.randomUUID(),
             periode = periode,
             opprettet = Tidspunkt.now(),
-            tilRevurdering = førstegangsvedtak(periode),
+            tilRevurdering = førstegangsvedtak,
             saksbehandler = NavIdentBruker.Saksbehandler(navIdent = ""),
             oppgaveId = OppgaveId(value = ""),
             fritekstTilBrev = "",
-            revurderingsårsak = Revurderingsårsak(årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER, begrunnelse = Revurderingsårsak.Begrunnelse.create(value = "beg")),
+            revurderingsårsak = Revurderingsårsak(
+                årsak = Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
+                begrunnelse = Revurderingsårsak.Begrunnelse.create(value = "beg"),
+            ),
             beregning = BeregningFactory.ny(
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.now(),
@@ -214,16 +208,8 @@ internal class GjeldendeVedtaksdataTest {
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
             simulering = Simulering(gjelderId = FnrGenerator.random(), gjelderNavn = "", datoBeregnet = 1.mai(2021), nettoBeløp = 0, periodeList = listOf()),
             grunnlagsdata = Grunnlagsdata(
-                uføregrunnlag = listOf(
-                    Grunnlag.Uføregrunnlag(
-                        id = UUID.randomUUID(),
-                        opprettet = Tidspunkt.now(),
-                        periode = periode,
-                        uføregrad = Uføregrad.parse(90),
-                        forventetInntekt = 12000,
-                    ),
-                ),
                 fradragsgrunnlag = listOf(),
+                bosituasjon = listOf(),
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Uførhet.Vurdert.create(
@@ -238,6 +224,7 @@ internal class GjeldendeVedtaksdataTest {
                         ),
                     ),
                 ),
+                formue = formueVilkår(periode),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 revurderingsteg = mapOf(

@@ -77,6 +77,7 @@ import no.nav.su.se.bakover.service.brev.KunneIkkeJournalføreBrev
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
 import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.fixedTidspunkt
+import no.nav.su.se.bakover.service.formueVilkår
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -125,7 +126,6 @@ internal class RevurderingServiceImplTest {
             forhåndsvarsel = null,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata(
-                uføregrunnlag = listOf(uføregrunnlag),
                 fradragsgrunnlag = listOf(
                     Grunnlag.Fradragsgrunnlag(
                         fradrag = FradragFactory.ny(
@@ -159,7 +159,7 @@ internal class RevurderingServiceImplTest {
                         ),
                     ),
                 ),
-                formue = RevurderingTestUtils.formueVilkår(periode),
+                formue = formueVilkår(periode),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
@@ -218,7 +218,7 @@ internal class RevurderingServiceImplTest {
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
 
@@ -261,7 +261,6 @@ internal class RevurderingServiceImplTest {
             forhåndsvarsel = null,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata(
-                uføregrunnlag = listOf(uføregrunnlag),
                 fradragsgrunnlag = listOf(
                     Grunnlag.Fradragsgrunnlag(
                         fradrag = FradragFactory.ny(
@@ -295,7 +294,7 @@ internal class RevurderingServiceImplTest {
                         ),
                     ),
                 ),
-                formue = RevurderingTestUtils.formueVilkår(periode),
+                formue = formueVilkår(periode),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
@@ -351,7 +350,7 @@ internal class RevurderingServiceImplTest {
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
         val revurderingTilAttestering = RevurderingTilAttestering.Innvilget(
@@ -368,7 +367,7 @@ internal class RevurderingServiceImplTest {
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
 
@@ -444,7 +443,7 @@ internal class RevurderingServiceImplTest {
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
         val attestant = NavIdentBruker.Attestant("ATTT")
@@ -512,7 +511,7 @@ internal class RevurderingServiceImplTest {
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
 
@@ -604,7 +603,6 @@ internal class RevurderingServiceImplTest {
             attestering = attestering,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata(
-                uføregrunnlag = listOf(uføregrunnlag),
                 fradragsgrunnlag = listOf(
                     Grunnlag.Fradragsgrunnlag(
                         fradrag = FradragFactory.ny(
@@ -638,7 +636,7 @@ internal class RevurderingServiceImplTest {
                         ),
                     ),
                 ),
-                formue = RevurderingTestUtils.formueVilkår(periode),
+                formue = formueVilkår(periode),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
@@ -722,7 +720,7 @@ internal class RevurderingServiceImplTest {
                     ),
                 ),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
 
@@ -917,7 +915,7 @@ internal class RevurderingServiceImplTest {
             forhåndsvarsel = null,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -952,7 +950,7 @@ internal class RevurderingServiceImplTest {
             forhåndsvarsel = null,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -994,7 +992,7 @@ internal class RevurderingServiceImplTest {
             forhåndsvarsel = null,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
 
@@ -1122,7 +1120,7 @@ internal class RevurderingServiceImplTest {
             forhåndsvarsel = null,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
         testForhåndsvarslerIkkeGittRevurdering(opprettet)
@@ -1140,7 +1138,7 @@ internal class RevurderingServiceImplTest {
             beregning = TestBeregning,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
         testForhåndsvarslerIkkeGittRevurdering(beregnet)
@@ -1404,7 +1402,7 @@ internal class RevurderingServiceImplTest {
             ),
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
 

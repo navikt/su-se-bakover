@@ -98,8 +98,8 @@ internal class VedtakPosgresRepoTest {
                 ),
                 forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
                 behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
-                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
-                informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt))
+                vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+                informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)
 
@@ -272,7 +272,7 @@ internal class VedtakPosgresRepoTest {
                 forhåndsvarsel = null,
                 behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
                 grunnlagsdata = Grunnlagsdata.EMPTY,
-                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+                vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             )
             testDataHelper.revurderingRepo.lagre(iverksattRevurdering)

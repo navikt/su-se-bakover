@@ -54,6 +54,20 @@ data class Formuegrunnlag private constructor(
                 kontanter +
                 depositumskonto
         }
+
+        companion object {
+            @TestOnly
+            fun empty() = Verdier(
+                verdiIkkePrimærbolig = 0,
+                verdiEiendommer = 0,
+                verdiKjøretøy = 0,
+                innskudd = 0,
+                verdipapir = 0,
+                pengerSkyldt = 0,
+                kontanter = 0,
+                depositumskonto = 0,
+            )
+        }
     }
 
     fun oppdaterPeriode(periode: Periode): Formuegrunnlag {

@@ -63,7 +63,7 @@ object RevurderingRoutesTestData {
                     ektemakeEllerSamboerUførFlyktning = true,
                     begrunnelse = null
                 ),
-                ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle
+                ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
             ),
             fnr = FnrGenerator.random(),
             beregning = TestBeregning,
@@ -73,7 +73,7 @@ object RevurderingRoutesTestData {
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         ),
         UUID30.randomUUID(),
     )
@@ -93,7 +93,7 @@ object RevurderingRoutesTestData {
         forhåndsvarsel = null,
         behandlingsinformasjon = vedtak.behandlingsinformasjon,
         grunnlagsdata = Grunnlagsdata.EMPTY,
-        vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+        vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
     )
 
@@ -102,16 +102,7 @@ object RevurderingRoutesTestData {
             Formuegrunnlag.create(
                 periode = periode,
                 epsFormue = null,
-                søkersFormue = Formuegrunnlag.Verdier(
-                    verdiIkkePrimærbolig = 0,
-                    verdiEiendommer = 0,
-                    verdiKjøretøy = 0,
-                    innskudd = 0,
-                    verdipapir = 0,
-                    pengerSkyldt = 0,
-                    kontanter = 0,
-                    depositumskonto = 0,
-                ),
+                søkersFormue = Formuegrunnlag.Verdier.empty(),
                 begrunnelse = null,
                 behandlingsPeriode = periode,
                 bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -119,7 +110,7 @@ object RevurderingRoutesTestData {
                     opprettet = Tidspunkt.now(),
                     periode = periode,
                     begrunnelse = null,
-                )
+                ),
             ),
         ),
     )

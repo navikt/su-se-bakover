@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.formueVilkår
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
@@ -101,7 +102,7 @@ internal class StatusovergangTest {
         fritekstTilBrev = "",
         stønadsperiode = stønadsperiode,
         grunnlagsdata = Grunnlagsdata.EMPTY,
-        vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+        vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
     )
 
     private val simulering = Simulering(
@@ -866,6 +867,7 @@ internal class StatusovergangTest {
                             ),
                         ),
                     ),
+                    formue = formueVilkår(stønadsperiode.periode),
                 ),
             )
 
@@ -881,7 +883,7 @@ internal class StatusovergangTest {
             )
 
             actual.periode shouldBe nyPeriode
-            actual.vilkårsvurderinger.grunnlagsdata.uføregrunnlag.first().periode shouldBe nyPeriode
+            actual.vilkårsvurderinger.uføre.grunnlag.first().periode shouldBe nyPeriode
         }
     }
 }

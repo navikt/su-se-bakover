@@ -163,7 +163,7 @@ internal class SøknadsbehandlingJsonTest {
             fritekstTilBrev = "",
             stønadsperiode = null,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         )
         val opprettetTidspunkt = DateTimeFormatter.ISO_INSTANT.format(behandlingWithNulls.opprettet)
 

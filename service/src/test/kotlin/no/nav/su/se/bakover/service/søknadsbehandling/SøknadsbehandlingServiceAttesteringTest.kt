@@ -73,7 +73,7 @@ class SøknadsbehandlingServiceAttesteringTest {
             gjelderNavn = "NAVN",
             datoBeregnet = idag(),
             nettoBeløp = 191500,
-            periodeList = listOf()
+            periodeList = listOf(),
         ),
         sakId = sakId,
         saksnummer = saksnummer,
@@ -82,7 +82,7 @@ class SøknadsbehandlingServiceAttesteringTest {
         fritekstTilBrev = "",
         stønadsperiode = stønadsperiode,
         grunnlagsdata = Grunnlagsdata.EMPTY,
-        vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+        vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
     )
 
     private val saksbehandler = NavIdentBruker.Saksbehandler("Z12345")
@@ -129,7 +129,7 @@ class SøknadsbehandlingServiceAttesteringTest {
             fritekstTilBrev = "",
             stønadsperiode = simulertBehandling.stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         )
 
         actual shouldBe expected.right()
@@ -287,7 +287,7 @@ class SøknadsbehandlingServiceAttesteringTest {
             fritekstTilBrev = "",
             stønadsperiode = simulertBehandling.stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         )
 
         actual shouldBe expected.right()

@@ -18,6 +18,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.fixedTidspunkt
+import no.nav.su.se.bakover.domain.formueVilkår
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
@@ -44,7 +45,7 @@ internal class VedtakTest {
             fraDato = 1.januar(2021),
             tilDato = 31.desember(2021),
             grunnlagsdata = Grunnlagsdata(emptyList()),
-            vilkårsvurderinger = Vilkårsvurderinger(uføre = Vilkår.Uførhet.IkkeVurdert),
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         )
         listOf(vedtak).lagTidslinje(Periode.create(1.januar(2021), 31.desember(2021))).tidslinje shouldBe listOf(
             Vedtak.VedtakPåTidslinje(
@@ -70,14 +71,14 @@ internal class VedtakTest {
             fraDato = 1.januar(2021),
             tilDato = 31.desember(2021),
             grunnlagsdata = Grunnlagsdata(emptyList()),
-            vilkårsvurderinger = Vilkårsvurderinger(uføre = Vilkår.Uførhet.IkkeVurdert),
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         )
         val b = lagVedtak(
             rekkefølge = 2,
             fraDato = 1.mai(2021),
             tilDato = 31.desember(2021),
             grunnlagsdata = Grunnlagsdata(emptyList()),
-            vilkårsvurderinger = Vilkårsvurderinger(uføre = Vilkår.Uførhet.IkkeVurdert),
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         )
         listOf(a, b).lagTidslinje(Periode.create(1.januar(2021), 31.desember(2021))).tidslinje shouldBe listOf(
             Vedtak.VedtakPåTidslinje(
@@ -127,10 +128,11 @@ internal class VedtakTest {
             rekkefølge = 1,
             fraDato = p1.fraOgMed,
             tilDato = p1.tilOgMed,
-            grunnlagsdata = Grunnlagsdata(
-                listOf(u1),
+            grunnlagsdata = Grunnlagsdata(),
+            vilkårsvurderinger = Vilkårsvurderinger(
+                uføre = Vilkår.Uførhet.Vurdert.create(nonEmptyListOf(v1)),
+                formue = formueVilkår(p1),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger(uføre = Vilkår.Uførhet.Vurdert.create(nonEmptyListOf(v1))),
         )
 
         val p2 = Periode.create(1.mai(2021), 31.desember(2021))
@@ -151,17 +153,18 @@ internal class VedtakTest {
             rekkefølge = 2,
             fraDato = p2.fraOgMed,
             tilDato = p2.tilOgMed,
-            grunnlagsdata = Grunnlagsdata(
-                listOf(u2),
+            grunnlagsdata = Grunnlagsdata(),
+            vilkårsvurderinger = Vilkårsvurderinger(
+                uføre = Vilkår.Uførhet.Vurdert.create(nonEmptyListOf(v2)),
+                formue = formueVilkår(p1),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger(uføre = Vilkår.Uførhet.Vurdert.create(nonEmptyListOf(v2))),
         )
         listOf(a, b).lagTidslinje(Periode.create(1.januar(2021), 31.desember(2021))).tidslinje.let { tidslinje ->
             tidslinje[0].let { vedtakPåTidslinje ->
                 vedtakPåTidslinje.originaltVedtak shouldBe a
                 vedtakPåTidslinje.opprettet shouldBe a.opprettet
                 vedtakPåTidslinje.periode shouldBe Periode.create(1.januar(2021), 30.april(2021))
-                vedtakPåTidslinje.grunnlagsdata.uføregrunnlag[0].let {
+                vedtakPåTidslinje.vilkårsvurderinger.uføre.grunnlag[0].let {
                     it.id shouldNotBe u1.id
                     it.periode shouldBe Periode.create(1.januar(2021), 30.april(2021))
                     it.uføregrad shouldBe u1.uføregrad
@@ -186,7 +189,7 @@ internal class VedtakTest {
                 vedtakPåTidslinje.originaltVedtak shouldBe b
                 vedtakPåTidslinje.opprettet shouldBe b.opprettet
                 vedtakPåTidslinje.periode shouldBe b.periode
-                vedtakPåTidslinje.grunnlagsdata.uføregrunnlag[0].let {
+                vedtakPåTidslinje.vilkårsvurderinger.uføre.grunnlag[0].let {
                     it.id shouldNotBe u2.id
                     it.periode shouldBe u2.periode
                     it.uføregrad shouldBe u2.uføregrad
@@ -238,16 +241,11 @@ internal class VedtakTest {
             rekkefølge = 1,
             fraDato = 1.januar(2021),
             tilDato = 31.desember(2021),
-            grunnlagsdata = Grunnlagsdata(
-                listOf(
-                    lagUføregrunnlag(
-                        rekkefølge = 1,
-                        fraDato = 1.januar(2021),
-                        tilDato = 31.desember(2021),
-                    ),
-                ),
+            grunnlagsdata = Grunnlagsdata(),
+            vilkårsvurderinger = Vilkårsvurderinger(
+                uføre = Vilkår.Uførhet.Vurdert.create(nonEmptyListOf(v1)),
+                formue = formueVilkår(p1),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger(uføre = Vilkår.Uførhet.Vurdert.create(nonEmptyListOf(v1))),
         )
         val b = lagVedtak(
             rekkefølge = 2,
@@ -256,7 +254,7 @@ internal class VedtakTest {
             grunnlagsdata = Grunnlagsdata(
                 emptyList(),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger(uføre = Vilkår.Uførhet.IkkeVurdert),
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         )
 
         listOf(a, b).lagTidslinje(periode = Periode.create(1.januar(2021), 31.desember(2021))).tidslinje shouldBe listOf(

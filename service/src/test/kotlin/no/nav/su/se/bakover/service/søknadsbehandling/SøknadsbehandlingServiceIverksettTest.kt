@@ -277,7 +277,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             fritekstTilBrev = "",
             stønadsperiode = behandling.stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         )
 
         response shouldBe expected.right()
@@ -356,7 +356,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             fritekstTilBrev = "",
             stønadsperiode = behandling.stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         )
 
         val behandlingMetricsMock = mock<BehandlingMetrics>()
@@ -446,7 +446,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
                 fritekstTilBrev = "",
                 stønadsperiode = it.stønadsperiode,
                 grunnlagsdata = Grunnlagsdata.EMPTY,
-                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+                vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             )
         }
 
@@ -494,7 +494,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         )
 
     private fun avslagTilAttestering() =
@@ -519,7 +519,7 @@ internal class SøknadsbehandlingServiceIverksettTest {
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         )
 
     private val beregning = TestBeregning

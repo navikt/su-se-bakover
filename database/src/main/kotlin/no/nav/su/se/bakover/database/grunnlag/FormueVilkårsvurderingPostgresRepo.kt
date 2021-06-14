@@ -108,7 +108,11 @@ internal class FormueVilkårsvurderingPostgresRepo(
                 it.toVurderingsperioder(session)
             }.let {
                 when (it.isNotEmpty()) {
-                    true -> Vilkår.Formue.Vurdert.fromPersistence(vurderingsperioder = Nel.fromListUnsafe(it))
+                    true -> Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
+                        vurderingsperioder = Nel.fromListUnsafe(
+                            it,
+                        ),
+                    )
                     false -> Vilkår.Formue.IkkeVurdert
                 }
             }

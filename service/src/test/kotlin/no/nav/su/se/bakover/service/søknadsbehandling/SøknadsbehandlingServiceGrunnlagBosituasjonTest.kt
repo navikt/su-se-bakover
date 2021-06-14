@@ -91,7 +91,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         ).tilAttestering(Saksbehandler("saksa"), "")
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
@@ -129,7 +129,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         )
 
         val bosituasjon = Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps(
@@ -237,7 +237,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         ).tilAttestering(Saksbehandler("saksa"), "")
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
@@ -287,7 +287,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
                     ),
                 ),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         )
 
         val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(

@@ -597,7 +597,7 @@ internal class FerdigstillVedtakServiceImplTest {
                     skalFøreTilBrevutsending = false,
                     forhåndsvarsel = null,
                     grunnlagsdata = Grunnlagsdata.EMPTY,
-                    vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+                    vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
                     informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
                 ),
             )
@@ -1296,7 +1296,7 @@ internal class FerdigstillVedtakServiceImplTest {
                         ),
                     ),
                 ),
-                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+                vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             ),
         )
 
@@ -1352,7 +1352,7 @@ internal class FerdigstillVedtakServiceImplTest {
                         ),
                     ),
                 ),
-                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+                vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             ),
             utbetalingId = UUID30.randomUUID(),
         )
@@ -1378,7 +1378,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 ),
                 forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
                 grunnlagsdata = Grunnlagsdata.EMPTY,
-                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+                vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             ),
             utbetalingId = UUID30.randomUUID(),

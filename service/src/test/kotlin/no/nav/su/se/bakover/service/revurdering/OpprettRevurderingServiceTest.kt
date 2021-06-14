@@ -57,6 +57,7 @@ import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.fixedLocalDate
 import no.nav.su.se.bakover.service.fixedTidspunkt
+import no.nav.su.se.bakover.service.formueVilkår
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
@@ -164,7 +165,6 @@ internal class OpprettRevurderingServiceTest {
         fritekstTilBrev = "",
         stønadsperiode = stønadsperiode,
         grunnlagsdata = Grunnlagsdata(
-            uføregrunnlag = listOf(uføregrunnlag),
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
                     id = UUID.randomUUID(),
@@ -176,6 +176,7 @@ internal class OpprettRevurderingServiceTest {
         ),
         vilkårsvurderinger = Vilkårsvurderinger(
             uføre = vilkårsvurderingUføre,
+            formue = formueVilkår(stønadsperiode.periode),
         ),
     )
 
@@ -237,7 +238,7 @@ internal class OpprettRevurderingServiceTest {
             )
             opprettetRevurdering.forhåndsvarsel shouldBe null
             opprettetRevurdering.behandlingsinformasjon shouldBe tilRevurdering.behandlingsinformasjon
-            opprettetRevurdering.grunnlagsdata.uføregrunnlag.let {
+            opprettetRevurdering.vilkårsvurderinger.uføre.grunnlag.let {
                 it shouldHaveSize 1
                 it[0].ekvivalentMed(uføregrunnlag)
             }
@@ -330,7 +331,7 @@ internal class OpprettRevurderingServiceTest {
             )
             opprettetRevurdering.forhåndsvarsel shouldBe Forhåndsvarsel.IngenForhåndsvarsel
             opprettetRevurdering.behandlingsinformasjon shouldBe tilRevurdering.behandlingsinformasjon
-            opprettetRevurdering.grunnlagsdata.uføregrunnlag.let {
+            opprettetRevurdering.vilkårsvurderinger.uføre.grunnlag.let {
                 it shouldHaveSize 1
                 it[0].ekvivalentMed(uføregrunnlag.copy(periode = periode))
             }
@@ -427,7 +428,7 @@ internal class OpprettRevurderingServiceTest {
             )
             opprettetRevurdering.forhåndsvarsel shouldBe Forhåndsvarsel.IngenForhåndsvarsel
             opprettetRevurdering.behandlingsinformasjon shouldBe tilRevurdering.behandlingsinformasjon
-            opprettetRevurdering.grunnlagsdata.uføregrunnlag.let {
+            opprettetRevurdering.vilkårsvurderinger.uføre.grunnlag.let {
                 it shouldHaveSize 1
                 it[0].ekvivalentMed(uføregrunnlag.copy(periode = periode))
             }
@@ -524,7 +525,6 @@ internal class OpprettRevurderingServiceTest {
             on { fnr } doReturn FnrGenerator.random()
             on { saksnummer } doReturn Saksnummer(2021)
             on { grunnlagsdata } doReturn Grunnlagsdata(
-                uføregrunnlag = listOf(uføregrunnlag),
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),
@@ -536,6 +536,7 @@ internal class OpprettRevurderingServiceTest {
             )
             on { vilkårsvurderinger } doReturn Vilkårsvurderinger(
                 uføre = vilkårsvurderingUføre,
+                formue = formueVilkår(stønadsperiode.periode),
             )
         }
         val vedtakForFørsteJanuarLagetNå = mock<Vedtak.EndringIYtelse> {
@@ -650,7 +651,6 @@ internal class OpprettRevurderingServiceTest {
                 forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
                 behandlingsinformasjon = opprinneligVedtak.behandlingsinformasjon,
                 grunnlagsdata = Grunnlagsdata(
-                    uføregrunnlag = listOf(uføregrunnlag),
                     bosituasjon = listOf(
                         Grunnlag.Bosituasjon.Fullstendig.Enslig(
                             id = UUID.randomUUID(),
@@ -662,6 +662,7 @@ internal class OpprettRevurderingServiceTest {
                 ),
                 vilkårsvurderinger = Vilkårsvurderinger(
                     uføre = vilkårsvurderingUføre,
+                    formue = formueVilkår(periode),
                 ),
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             ),
@@ -894,9 +895,7 @@ internal class OpprettRevurderingServiceTest {
         val andreVedtak = createSøknadsbehandlingVedtak().copy(
             periode = periodePlussEtÅr,
             behandling = createInnvilgetBehandling().copy(
-                grunnlagsdata = Grunnlagsdata(
-                    uføregrunnlag = listOf(uføregrunnlag),
-                ),
+                grunnlagsdata = Grunnlagsdata(),
                 vilkårsvurderinger = Vilkårsvurderinger(uføre = uførevilkår),
             ),
         )

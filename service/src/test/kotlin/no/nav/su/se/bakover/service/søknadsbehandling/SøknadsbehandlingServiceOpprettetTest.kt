@@ -192,7 +192,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         )
         val søknadService: SøknadService = mock {
             on { hentSøknad(any()) } doReturn søknad.right()

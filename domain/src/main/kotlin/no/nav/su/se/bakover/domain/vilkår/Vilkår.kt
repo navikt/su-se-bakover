@@ -12,7 +12,6 @@ import no.nav.su.se.bakover.domain.Grunnbeløp
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import org.jetbrains.annotations.TestOnly
@@ -43,7 +42,7 @@ sealed class Inngangsvilkår {
 }
 
 data class Vilkårsvurderinger(
-    val uføre: Vilkår.Uførhet = Vilkår.Uførhet.IkkeVurdert,
+    val uføre: Vilkår.Uførhet,
     val formue: Vilkår.Formue = Vilkår.Formue.IkkeVurdert,
 ) {
     private val vilkår = setOf(uføre, formue)
@@ -55,14 +54,11 @@ data class Vilkårsvurderinger(
         )
 
     companion object {
-        val EMPTY = Vilkårsvurderinger()
-    }
-
-    val grunnlagsdata: Grunnlagsdata =
-        Grunnlagsdata(
-            uføregrunnlag = (uføre as? Vilkår.Uførhet.Vurdert)?.grunnlag ?: emptyList(),
-            // formuegrunnlag = (formue as? Vilkår.Formue.Vurdert)?.grunnlag ?: emptyList(),
+        val IkkeVurdert = Vilkårsvurderinger(
+            uføre = Vilkår.Uførhet.IkkeVurdert,
+            formue = Vilkår.Formue.IkkeVurdert,
         )
+    }
 
     val resultat: Resultat by lazy {
         vilkår.map { it.resultat }.let { alleVurderingsresultat ->
@@ -120,11 +116,15 @@ sealed class Vilkår {
     abstract fun hentTidligesteDatoForAvslag(): LocalDate?
 
     sealed class Uførhet : Vilkår() {
+        abstract val grunnlag: List<Grunnlag.Uføregrunnlag>
+
         abstract fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Uførhet
+
         object IkkeVurdert : Uførhet() {
             override val resultat: Resultat = Resultat.Uavklart
             override val erAvslag = false
             override val erInnvilget = false
+            override val grunnlag = emptyList<Grunnlag.Uføregrunnlag>()
 
             override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): IkkeVurdert = this
             override fun hentTidligesteDatoForAvslag(): LocalDate? = null
@@ -134,7 +134,7 @@ sealed class Vilkår {
             val vurderingsperioder: Nel<Vurderingsperiode.Uføre>,
         ) : Uførhet() {
             val vilkår = Inngangsvilkår.Uførhet
-            val grunnlag: List<Grunnlag.Uføregrunnlag> = vurderingsperioder.mapNotNull {
+            override val grunnlag: List<Grunnlag.Uføregrunnlag> = vurderingsperioder.mapNotNull {
                 it.grunnlag
             }
 
@@ -245,10 +245,7 @@ sealed class Vilkår {
                     return fromVurderingsperioder(vurderingsperioder)
                 }
 
-                /**
-                 * Skal kun kalles fra persistence-laget
-                 */
-                fun fromPersistence(
+                fun createFromVilkårsvurderinger(
                     vurderingsperioder: Nel<Vurderingsperiode.Formue>,
                 ): Vurdert =
                     fromVurderingsperioder(vurderingsperioder).getOrHandle { throw IllegalArgumentException(it.toString()) }

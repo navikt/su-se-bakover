@@ -188,11 +188,9 @@ internal class RevurderingPostgresRepo(
 
         val behandlingsinformasjon: Behandlingsinformasjon = deserialize(string("behandlingsinformasjon"))
 
-        val uføregrunnlag = uføregrunnlagRepo.hentUføregrunnlag(id, session)
         val fradragsgrunnlag = fradragsgrunnlagPostgresRepo.hentFradragsgrunnlag(id, session)
         val bosituasjonsgrunnlag = bosituasjonsgrunnlagPostgresRepo.hentBosituasjongrunnlag(id, session)
         val grunnlagsdata = Grunnlagsdata(
-            uføregrunnlag = uføregrunnlag,
             fradragsgrunnlag = fradragsgrunnlag,
             bosituasjon = bosituasjonsgrunnlag,
         )

@@ -252,7 +252,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             fritekstTilBrev = "",
                             stønadsperiode = stønadsperiode,
                             grunnlagsdata = Grunnlagsdata.EMPTY,
-                            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+                            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
                         )
                     }
                 }
@@ -344,7 +344,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                             fritekstTilBrev = "",
                             stønadsperiode = stønadsperiode,
                             grunnlagsdata = Grunnlagsdata.EMPTY,
-                            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+                            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
                         )
                     }
                 }
@@ -415,7 +415,7 @@ internal class SøknadsbehandlingPostgresRepoTest {
                 fritekstTilBrev = "Dette er fritekst",
                 stønadsperiode = stønadsperiode,
                 grunnlagsdata = Grunnlagsdata.EMPTY,
-                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+                vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             )
             repo.hent(iverksatt.id).also {
                 it shouldBe expected
@@ -493,15 +493,6 @@ internal class SøknadsbehandlingPostgresRepoTest {
                     fritekstTilBrev = "",
                     stønadsperiode = stønadsperiode,
                     grunnlagsdata = Grunnlagsdata(
-                        uføregrunnlag = listOf(
-                            Grunnlag.Uføregrunnlag(
-                                id = uføregrunnlag.id,
-                                opprettet = Tidspunkt.now(fixedClock),
-                                periode = Periode.create(1.januar(2021), 31.desember(2021)),
-                                uføregrad = Uføregrad.parse(50),
-                                forventetInntekt = 12000,
-                            ),
-                        ),
                         bosituasjon = iverksatt.grunnlagsdata.bosituasjon,
                     ),
                     vilkårsvurderinger = Vilkårsvurderinger(

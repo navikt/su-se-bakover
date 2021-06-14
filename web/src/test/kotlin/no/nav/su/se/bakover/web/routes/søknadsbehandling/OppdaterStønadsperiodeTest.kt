@@ -160,7 +160,7 @@ class OppdaterStønadsperiodeTest {
             fritekstTilBrev = "",
             stønadsperiode = BehandlingTestUtils.stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         )
 
         val serviceMock = mock<SøknadsbehandlingService> {

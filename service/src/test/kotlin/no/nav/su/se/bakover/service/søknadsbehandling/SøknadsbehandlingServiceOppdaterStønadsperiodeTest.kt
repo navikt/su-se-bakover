@@ -89,7 +89,7 @@ internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         ).tilAttestering(Saksbehandler("saksa"), "")
 
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
@@ -126,7 +126,7 @@ internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
             fritekstTilBrev = "",
             stønadsperiode = null,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         )
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn uavklart

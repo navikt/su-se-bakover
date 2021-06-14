@@ -86,7 +86,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             gjelderNavn = "NAVN",
             datoBeregnet = idag(),
             nettoBeløp = 191500,
-            periodeList = listOf()
+            periodeList = listOf(),
         ),
         saksbehandler = saksbehandler,
         sakId = sakId,
@@ -96,7 +96,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
         fritekstTilBrev = "",
         stønadsperiode = stønadsperiode,
         grunnlagsdata = Grunnlagsdata.EMPTY,
-        vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+        vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
     )
 
     private val oppgaveConfig = OppgaveConfig.Saksbehandling(
@@ -362,7 +362,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             fritekstTilBrev = "",
             stønadsperiode = innvilgetBehandlingTilAttestering.stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         )
 
         actual shouldBe underkjentMedNyOppgaveIdOgAttestering.right()
@@ -447,7 +447,7 @@ class SøknadsbehandlingServiceUnderkjennTest {
             fritekstTilBrev = "",
             stønadsperiode = innvilgetBehandlingTilAttestering.stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         )
 
         actual shouldBe underkjentMedNyOppgaveIdOgAttestering.right()

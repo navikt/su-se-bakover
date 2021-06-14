@@ -56,11 +56,11 @@ import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
 import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.fixedTidspunkt
+import no.nav.su.se.bakover.service.formueVilkår
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.createRevurderingService
-import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.formueVilkår
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.periode
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.revurderingId
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.revurderingsårsak
@@ -79,17 +79,6 @@ internal class RegulerGrunnbeløpServiceImplTest {
 
     @Test
     fun `oppdaterer behandlingsinformasjon når uføregrunnlag legges til`() {
-        val eksisterendeGrunnlagsdata = Grunnlagsdata(
-            uføregrunnlag = listOf(
-                Grunnlag.Uføregrunnlag(
-                    opprettet = fixedTidspunkt,
-                    periode = periode,
-                    uføregrad = Uføregrad.parse(20),
-                    forventetInntekt = 10,
-                ),
-            ),
-        )
-
         val opprettetRevurdering = OpprettetRevurdering(
             id = revurderingId,
             periode = periode,
@@ -101,7 +90,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             revurderingsårsak = revurderingsårsakRegulerGrunnbeløp,
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
             forhåndsvarsel = null,
-            grunnlagsdata = eksisterendeGrunnlagsdata,
+            grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Uførhet.Vurdert.create(
                     vurderingsperioder = nonEmptyListOf(
@@ -109,7 +98,12 @@ internal class RegulerGrunnbeløpServiceImplTest {
                             id = UUID.randomUUID(),
                             opprettet = fixedTidspunkt,
                             resultat = Resultat.Innvilget,
-                            grunnlag = eksisterendeGrunnlagsdata.uføregrunnlag.first(),
+                            grunnlag = Grunnlag.Uføregrunnlag(
+                                opprettet = fixedTidspunkt,
+                                periode = periode,
+                                uføregrad = Uføregrad.parse(20),
+                                forventetInntekt = 10,
+                            ),
                             periode = periode,
                             begrunnelse = null,
                         ),
@@ -163,7 +157,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturnConsecutively listOf(
                 opprettetRevurdering,
-                forventetLagretRevurdering.copy(grunnlagsdata = Grunnlagsdata(uføregrunnlag = listOf(nyttUføregrunnlag))),
+                forventetLagretRevurdering.copy(grunnlagsdata = Grunnlagsdata.EMPTY),
             )
         }
         val vilkårsvurderingServiceMock = mock<VilkårsvurderingService>()
@@ -272,7 +266,6 @@ internal class RegulerGrunnbeløpServiceImplTest {
             behandlingsinformasjon = behandlingsinformasjon,
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata(
-                uføregrunnlag = listOf(uføregrunnlag),
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),
@@ -646,7 +639,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             skalFøreTilBrevutsending = false,
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
         val revurderingTilAttestering = RevurderingTilAttestering.IngenEndring(
@@ -663,7 +656,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             skalFøreTilBrevutsending = false,
             forhåndsvarsel = null,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
 

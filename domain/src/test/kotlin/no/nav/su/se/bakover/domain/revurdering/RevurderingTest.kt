@@ -24,8 +24,9 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.fixedTidspunkt
-import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
+import no.nav.su.se.bakover.domain.formueVilkår
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
@@ -38,33 +39,6 @@ import java.time.LocalDate
 import java.util.UUID
 
 internal class RevurderingTest {
-
-    private fun formueVilkår(periode: Periode) = Vilkår.Formue.Vurdert.create(
-        grunnlag = nonEmptyListOf(
-            Formuegrunnlag.create(
-                periode = periode,
-                epsFormue = null,
-                søkersFormue = Formuegrunnlag.Verdier(
-                    verdiIkkePrimærbolig = 0,
-                    verdiEiendommer = 0,
-                    verdiKjøretøy = 0,
-                    innskudd = 0,
-                    verdipapir = 0,
-                    pengerSkyldt = 0,
-                    kontanter = 0,
-                    depositumskonto = 0,
-                ),
-                begrunnelse = null,
-                behandlingsPeriode = periode,
-                bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                    id = UUID.randomUUID(),
-                    opprettet = Tidspunkt.now(),
-                    periode = periode,
-                    begrunnelse = null
-                )
-            ),
-        ),
-    )
 
     @Test
     fun `beregning gir opphør hvis vilkår ikke er oppfylt`() {
@@ -83,6 +57,7 @@ internal class RevurderingTest {
                         ),
                     ),
                 ),
+                formue = formueVilkår(vurderingsperiode),
             ),
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
@@ -136,6 +111,7 @@ internal class RevurderingTest {
 
     @Test
     fun `revurdering som er opphørt pga uførhet, blir utledet`() {
+        val periode = Periode.create(1.januar(2021), 31.desember(2021))
         val simulertRevurdering = SimulertRevurdering.Opphørt(
             id = mock(), periode = mock(), opprettet = mock(),
             tilRevurdering = tilRevurderingMock,
@@ -154,11 +130,12 @@ internal class RevurderingTest {
                             opprettet = Tidspunkt.now(),
                             resultat = Resultat.Avslag,
                             grunnlag = null,
-                            periode = Periode.create(1.januar(2021), 31.desember(2021)),
+                            periode = periode,
                             begrunnelse = null,
                         ),
                     ),
                 ),
+                formue = formueVilkår(periode),
             ),
             informasjonSomRevurderes = mock(),
             oppgaveId = mock(),
@@ -312,7 +289,7 @@ internal class RevurderingTest {
         forhåndsvarsel = null,
         behandlingsinformasjon = mock(),
         vilkårsvurderinger = vilkårsvurderinger,
-        grunnlagsdata = vilkårsvurderinger.grunnlagsdata.copy(
+        grunnlagsdata = Grunnlagsdata(
             bosituasjon = bosituasjon,
             fradragsgrunnlag = fradrag,
         ),

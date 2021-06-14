@@ -117,7 +117,7 @@ internal class OppdaterRevurderingServiceTest {
                 ),
             ),
         ),
-        vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+        vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         informasjonSomRevurderes = InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert)),
     )
 
@@ -299,7 +299,7 @@ internal class OppdaterRevurderingServiceTest {
                             ),
                         ),
                     ),
-                    vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+                    vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
                     informasjonSomRevurderes = it.informasjonSomRevurderes,
                 )
             }
@@ -373,7 +373,7 @@ internal class OppdaterRevurderingServiceTest {
             oppdatertRevurdering.revurderingsårsak shouldBe revurderingsårsak
             oppdatertRevurdering.forhåndsvarsel shouldBe null
             oppdatertRevurdering.behandlingsinformasjon shouldBe tilRevurdering.behandlingsinformasjon
-            oppdatertRevurdering.grunnlagsdata.uføregrunnlag.let {
+            oppdatertRevurdering.vilkårsvurderinger.uføre.grunnlag.let {
                 it shouldHaveSize 1
                 it[0].ekvivalentMed(uføregrunnlag)
             }
@@ -433,14 +433,7 @@ internal class OppdaterRevurderingServiceTest {
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn opprettetRevurdering.copy(
                 // simuler at det er gjort endringer før oppdatering
-                grunnlagsdata = Grunnlagsdata(
-                    uføregrunnlag = listOf(
-                        uføregrunnlag.copy(
-                            uføregrad = Uføregrad.parse(73),
-                            forventetInntekt = 7312,
-                        ),
-                    ),
-                ),
+                grunnlagsdata = Grunnlagsdata(),
                 vilkårsvurderinger = Vilkårsvurderinger(
                     uføre = Vilkår.Uførhet.IkkeVurdert,
                 ),
@@ -510,9 +503,7 @@ internal class OppdaterRevurderingServiceTest {
         val andreVedtak = søknadsbehandlingVedtak.copy(
             periode = periodePlussEtÅr,
             behandling = (søknadsbehandlingVedtak.behandling as Søknadsbehandling.Iverksatt.Innvilget).copy(
-                grunnlagsdata = Grunnlagsdata(
-                    uføregrunnlag = listOf(uføregrunnlag),
-                ),
+                grunnlagsdata = Grunnlagsdata(),
                 vilkårsvurderinger = Vilkårsvurderinger(uføre = uførevilkår),
             ),
         )

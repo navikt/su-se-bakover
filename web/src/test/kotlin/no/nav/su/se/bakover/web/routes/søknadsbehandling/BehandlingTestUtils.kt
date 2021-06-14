@@ -24,7 +24,6 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.routes.grunnlag.BosituasjonJsonTest.Companion.bosituasjon
 import no.nav.su.se.bakover.web.routes.grunnlag.UføreVilkårJsonTest.Companion.vurderingsperiodeUføre
-import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagJsonTest.Companion.uføregrunnlag
 import java.time.LocalDate
 import java.util.UUID
 
@@ -140,7 +139,6 @@ object BehandlingTestUtils {
         fritekstTilBrev = "",
         stønadsperiode = stønadsperiode,
         grunnlagsdata = Grunnlagsdata(
-            uføregrunnlag = listOf(uføregrunnlag),
             bosituasjon = listOf(bosituasjon)
         ),
         vilkårsvurderinger = Vilkårsvurderinger(

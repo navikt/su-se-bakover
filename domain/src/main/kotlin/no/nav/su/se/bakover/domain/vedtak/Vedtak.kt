@@ -337,13 +337,23 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                             )
                         }
                     }
+                    val formue = when (vilkårsvurderinger.formue) {
+                        is Vilkår.Formue.IkkeVurdert -> Vilkår.Formue.IkkeVurdert
+                        is Vilkår.Formue.Vurdert -> {
+                            val vurderingsperioder: NonEmptyList<Vurderingsperiode.Formue> = Nel.fromListUnsafe(
+                                Tidslinje(
+                                    periode = periode,
+                                    objekter = vilkårsvurderinger.formue.vurderingsperioder,
+                                ).tidslinje,
+                            )
+                            vilkårsvurderinger.formue.copy(
+                                vurderingsperioder = vurderingsperioder,
+                            )
+                        }
+                    }
                     copy(
                         periode = periode,
                         grunnlagsdata = Grunnlagsdata(
-                            uføregrunnlag = when (uførevilkår) {
-                                Vilkår.Uførhet.IkkeVurdert -> emptyList()
-                                is Vilkår.Uførhet.Vurdert -> uførevilkår.grunnlag
-                            },
                             bosituasjon = grunnlagsdata.bosituasjon.mapNotNull {
                                 (it.fullstendigOrThrow()).copy(
                                     CopyArgs.Snitt(periode),
@@ -352,6 +362,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                         ),
                         vilkårsvurderinger = Vilkårsvurderinger(
                             uføre = uførevilkår,
+                            formue = formue,
                         ),
                         fradrag = fradrag.filterNot { it.fradragstype == Fradragstype.ForventetInntekt }.mapNotNull {
                             it.copy(CopyArgs.Snitt(periode))
@@ -371,13 +382,20 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                             ),
                         )
                     }
+                    val formue = when (this.vilkårsvurderinger.formue) {
+                        Vilkår.Formue.IkkeVurdert -> Vilkår.Formue.IkkeVurdert
+                        is Vilkår.Formue.Vurdert -> this.vilkårsvurderinger.formue.copy(
+                            vurderingsperioder = Nel.fromListUnsafe(
+                                Tidslinje(
+                                    periode = args.periode,
+                                    objekter = this.vilkårsvurderinger.formue.vurderingsperioder,
+                                ).tidslinje,
+                            ),
+                        )
+                    }
                     copy(
                         periode = args.periode,
                         grunnlagsdata = Grunnlagsdata(
-                            uføregrunnlag = Tidslinje(
-                                periode = args.periode,
-                                objekter = grunnlagsdata.uføregrunnlag,
-                            ).tidslinje,
                             bosituasjon = grunnlagsdata.bosituasjon.mapNotNull {
                                 (it.fullstendigOrThrow()).copy(
                                     CopyArgs.Snitt(args.periode),
@@ -386,6 +404,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                         ),
                         vilkårsvurderinger = Vilkårsvurderinger(
                             uføre = uførevilkår,
+                            formue = formue,
                         ),
                         fradrag = fradrag.filterNot { it.fradragstype == Fradragstype.ForventetInntekt }.mapNotNull {
                             it.copy(CopyArgs.Snitt(args.periode))

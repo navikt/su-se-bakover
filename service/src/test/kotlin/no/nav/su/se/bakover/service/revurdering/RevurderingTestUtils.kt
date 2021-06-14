@@ -8,7 +8,6 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
-import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
@@ -22,7 +21,6 @@ import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.MånedsberegningFactory
 import no.nav.su.se.bakover.domain.beregning.Sats
-import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
@@ -45,6 +43,7 @@ import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.fixedLocalDate
 import no.nav.su.se.bakover.service.fixedTidspunkt
+import no.nav.su.se.bakover.service.formueVilkår
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
@@ -58,14 +57,14 @@ import java.util.UUID
 
 object RevurderingTestUtils {
     internal val sakId: UUID = UUID.randomUUID()
-    internal val dagensDato = fixedLocalDate.let {
+    private val dagensDato = fixedLocalDate.let {
         LocalDate.of(
             it.year,
             it.month,
             1,
         )
     }
-    internal val nesteMåned =
+    private val nesteMåned =
         LocalDate.of(
             dagensDato.year,
             dagensDato.month.plus(1),
@@ -137,6 +136,7 @@ object RevurderingTestUtils {
                 vurderingsperiodeUføre,
             ),
         ),
+        formue = formueVilkår(periode),
     )
 
     internal val søknadsbehandlingVedtak = Vedtak.fromSøknadsbehandling(
@@ -164,7 +164,6 @@ object RevurderingTestUtils {
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata(
-                uføregrunnlag = listOf(uføregrunnlag),
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),
@@ -176,6 +175,7 @@ object RevurderingTestUtils {
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = vilkårsvurderinger.uføre,
+                formue = vilkårsvurderinger.formue,
             ),
         ),
         UUID30.randomUUID(),
@@ -237,7 +237,6 @@ object RevurderingTestUtils {
         forhåndsvarsel = null,
         behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
         grunnlagsdata = Grunnlagsdata(
-            uføregrunnlag = listOf(uføregrunnlag),
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
                     id = UUID.randomUUID(),
@@ -265,7 +264,6 @@ object RevurderingTestUtils {
         beregning = beregningMock(),
         forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
         grunnlagsdata = Grunnlagsdata(
-            uføregrunnlag = listOf(uføregrunnlag),
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
                     id = UUID.randomUUID(),
@@ -277,33 +275,6 @@ object RevurderingTestUtils {
         ),
         vilkårsvurderinger = vilkårsvurderinger,
         informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
-    )
-
-    internal fun formueVilkår(periode: Periode) = Vilkår.Formue.Vurdert.create(
-        grunnlag = nonEmptyListOf(
-            Formuegrunnlag.create(
-                periode = periode,
-                epsFormue = null,
-                søkersFormue = Formuegrunnlag.Verdier(
-                    verdiIkkePrimærbolig = 0,
-                    verdiEiendommer = 0,
-                    verdiKjøretøy = 0,
-                    innskudd = 0,
-                    verdipapir = 0,
-                    pengerSkyldt = 0,
-                    kontanter = 0,
-                    depositumskonto = 0,
-                ),
-                begrunnelse = null,
-                behandlingsPeriode = periode,
-                bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                    id = UUID.randomUUID(),
-                    opprettet = Tidspunkt.now(),
-                    periode = periode,
-                    begrunnelse = null,
-                )
-            ),
-        ),
     )
 }
 

@@ -83,7 +83,7 @@ internal class VedtakssnapshotJsonTest {
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         )
 
         val avslag = Vedtakssnapshot.Avslag(
@@ -429,7 +429,7 @@ internal class VedtakssnapshotJsonTest {
             fritekstTilBrev = "",
             stønadsperiode = stønadsperiode,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         )
         val utbetaling = oversendtUtbetalingUtenKvittering(innvilget)
         val innvilgelse = Vedtakssnapshot.Innvilgelse(

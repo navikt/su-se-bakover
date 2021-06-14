@@ -40,13 +40,13 @@ import no.nav.su.se.bakover.service.beregning.TestBeregning
 import no.nav.su.se.bakover.service.beregning.TestBeregningSomGirOpphør
 import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.fixedTidspunkt
+import no.nav.su.se.bakover.service.formueVilkår
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.aktørId
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.attesteringUnderkjent
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.createRevurderingService
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.fnr
-import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.formueVilkår
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.periode
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.revurderingId
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.revurderingsårsak
@@ -78,7 +78,6 @@ class RevurderingIngenEndringTest {
             forhåndsvarsel = null,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata(
-                uføregrunnlag = listOf(uføregrunnlag),
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),
@@ -274,7 +273,7 @@ class RevurderingIngenEndringTest {
             skalFøreTilBrevutsending = false,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
         val underkjentRevurdering = UnderkjentRevurdering.IngenEndring(
@@ -292,7 +291,7 @@ class RevurderingIngenEndringTest {
             skalFøreTilBrevutsending = false,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -368,7 +367,7 @@ class RevurderingIngenEndringTest {
             skalFøreTilBrevutsending = true,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
         val attestant = NavIdentBruker.Attestant("ATTT")
@@ -431,7 +430,7 @@ class RevurderingIngenEndringTest {
             skalFøreTilBrevutsending = false,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
         val attestant = NavIdentBruker.Attestant("ATTT")

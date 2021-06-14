@@ -282,7 +282,7 @@ class LagBrevRequestVisitor(
                 harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.harEktefelle(),
                 beregning = beregning,
                 fritekst = fritekst,
-                uføregrunnlag = søknadsbehandling.grunnlagsdata.uføregrunnlag,
+                uføregrunnlag = søknadsbehandling.vilkårsvurderinger.uføre.grunnlag,
             )
         }
 
@@ -303,7 +303,7 @@ class LagBrevRequestVisitor(
                 bosituasjon = søknadsbehandling.grunnlagsdata.bosituasjon.singleFullstendigOrThrow(),
                 beregning = beregning,
                 fritekst = søknadsbehandling.fritekstTilBrev,
-                uføregrunnlag = søknadsbehandling.grunnlagsdata.uføregrunnlag,
+                uføregrunnlag = søknadsbehandling.vilkårsvurderinger.uføre.grunnlag,
             )
         }
 
@@ -321,7 +321,7 @@ class LagBrevRequestVisitor(
                 beregning = beregning,
                 fritekst = revurdering.fritekstTilBrev,
                 harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEktefelle(),
-                uføregrunnlag = revurdering.grunnlagsdata.uføregrunnlag,
+                uføregrunnlag = revurdering.vilkårsvurderinger.uføre.grunnlag,
             )
         }
 
@@ -357,7 +357,7 @@ class LagBrevRequestVisitor(
                 revurdertBeregning = beregning,
                 fritekst = revurdering.fritekstTilBrev,
                 harEktefelle = revurdering.grunnlagsdata.bosituasjon.harEktefelle(),
-                forventetInntektStørreEnn0 = revurdering.grunnlagsdata.uføregrunnlag.harForventetInntektStørreEnn0(),
+                forventetInntektStørreEnn0 = revurdering.vilkårsvurderinger.uføre.grunnlag.harForventetInntektStørreEnn0(),
             )
         }
 
@@ -377,7 +377,7 @@ class LagBrevRequestVisitor(
                 fritekst = revurdering.fritekstTilBrev,
                 saksbehandlerNavn = it.saksbehandlerNavn,
                 attestantNavn = it.attestantNavn,
-                forventetInntektStørreEnn0 = revurdering.grunnlagsdata.uføregrunnlag.harForventetInntektStørreEnn0(),
+                forventetInntektStørreEnn0 = revurdering.vilkårsvurderinger.uføre.grunnlag.harForventetInntektStørreEnn0(),
                 opphørsgrunner = opphørsgrunner,
             )
         }
@@ -459,7 +459,7 @@ class LagBrevRequestVisitor(
                     is Søknadsbehandling -> b.fritekstTilBrev
                     else -> ""
                 },
-                uføregrunnlag = vedtak.behandling.grunnlagsdata.uføregrunnlag,
+                uføregrunnlag = vedtak.behandling.vilkårsvurderinger.uføre.grunnlag,
             )
         }
 
@@ -479,7 +479,7 @@ class LagBrevRequestVisitor(
                     else -> ""
                 },
                 harEktefelle = vedtak.behandlingsinformasjon.harEktefelle(),
-                forventetInntektStørreEnn0 = vedtak.behandling.grunnlagsdata.uføregrunnlag.harForventetInntektStørreEnn0()
+                forventetInntektStørreEnn0 = vedtak.behandling.vilkårsvurderinger.uføre.grunnlag.harForventetInntektStørreEnn0(),
             )
         }
 
@@ -499,7 +499,7 @@ class LagBrevRequestVisitor(
                     else -> ""
                 },
                 harEktefelle = vedtak.behandling.grunnlagsdata.bosituasjon.harEktefelle(),
-                forventetInntektStørreEnn0 = vedtak.behandling.grunnlagsdata.uføregrunnlag.harForventetInntektStørreEnn0(),
+                forventetInntektStørreEnn0 = vedtak.behandling.vilkårsvurderinger.uføre.grunnlag.harForventetInntektStørreEnn0(),
                 opphørsgrunner = vedtak.behandling.vilkårsvurderinger.utledOpphørsgrunner(),
             )
         }
@@ -524,7 +524,7 @@ class LagBrevRequestVisitor(
                     is Søknadsbehandling -> b.fritekstTilBrev // TODO ia: kommer vi oss unna denne?
                     else -> ""
                 },
-                uføregrunnlag = vedtak.behandling.grunnlagsdata.uføregrunnlag,
+                uføregrunnlag = vedtak.behandling.vilkårsvurderinger.uføre.grunnlag,
             )
         }
 
@@ -541,7 +541,7 @@ class LagBrevRequestVisitor(
                 else -> ""
             },
             harEktefelle = vedtak.behandlingsinformasjon.harEktefelle(),
-            uføregrunnlag = vedtak.behandling.grunnlagsdata.uføregrunnlag
+            uføregrunnlag = vedtak.behandling.vilkårsvurderinger.uføre.grunnlag,
         )
     }
 }

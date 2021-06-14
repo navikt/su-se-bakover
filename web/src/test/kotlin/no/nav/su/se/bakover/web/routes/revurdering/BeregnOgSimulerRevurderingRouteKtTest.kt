@@ -132,7 +132,6 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
             forhåndsvarsel = null,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata(
-                uføregrunnlag = listOf(uføregrunnlag),
                 bosituasjon = listOf(
                     Grunnlag.Bosituasjon.Fullstendig.Enslig(
                         id = UUID.randomUUID(),

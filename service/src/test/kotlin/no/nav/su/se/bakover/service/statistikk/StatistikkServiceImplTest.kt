@@ -379,7 +379,7 @@ internal class StatistikkServiceImplTest {
             fritekstTilBrev = "",
             stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         )
 
         val expected = Statistikk.Behandling(
@@ -436,7 +436,7 @@ internal class StatistikkServiceImplTest {
             forhåndsvarsel = null,
             behandlingsinformasjon = RevurderingTestUtils.søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
 
@@ -504,7 +504,7 @@ internal class StatistikkServiceImplTest {
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = RevurderingTestUtils.søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
 
@@ -573,7 +573,7 @@ internal class StatistikkServiceImplTest {
             revurderingsårsak = revurderingsårsak,
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = RevurderingTestUtils.søknadsbehandlingVedtak.behandlingsinformasjon,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
 

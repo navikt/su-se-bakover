@@ -33,7 +33,6 @@ import no.nav.su.se.bakover.web.routes.grunnlag.FradragsgrunnlagJsonTest.Compani
 import no.nav.su.se.bakover.web.routes.grunnlag.FradragsgrunnlagJsonTest.Companion.fradragsgrunnlag
 import no.nav.su.se.bakover.web.routes.grunnlag.UføreVilkårJsonTest.Companion.expectedVurderingUføreJson
 import no.nav.su.se.bakover.web.routes.grunnlag.UføreVilkårJsonTest.Companion.vurderingsperiodeUføre
-import no.nav.su.se.bakover.web.routes.grunnlag.UføregrunnlagJsonTest.Companion.uføregrunnlag
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.TestBeregning
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.toJson
 import no.nav.su.se.bakover.web.routes.vedtak.toJson
@@ -65,7 +64,6 @@ internal class RevurderingJsonTest {
             forhåndsvarsel = null,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata(
-                uføregrunnlag = listOf(uføregrunnlag),
                 fradragsgrunnlag = listOf(fradragsgrunnlag),
                 bosituasjon = listOf(bosituasjon)
             ),
@@ -135,7 +133,7 @@ internal class RevurderingJsonTest {
             forhåndsvarsel = null,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
@@ -202,7 +200,7 @@ internal class RevurderingJsonTest {
             forhåndsvarsel = null,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
@@ -269,7 +267,7 @@ internal class RevurderingJsonTest {
             forhåndsvarsel = null,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
@@ -337,7 +335,7 @@ internal class RevurderingJsonTest {
             forhåndsvarsel = null,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
@@ -409,7 +407,7 @@ internal class RevurderingJsonTest {
             forhåndsvarsel = null,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
@@ -481,7 +479,7 @@ internal class RevurderingJsonTest {
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.Vurdert,
@@ -554,7 +552,7 @@ internal class RevurderingJsonTest {
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
@@ -627,7 +625,7 @@ internal class RevurderingJsonTest {
             skalFøreTilBrevutsending = false,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
@@ -702,7 +700,7 @@ internal class RevurderingJsonTest {
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
@@ -787,7 +785,7 @@ internal class RevurderingJsonTest {
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
@@ -872,7 +870,7 @@ internal class RevurderingJsonTest {
             skalFøreTilBrevutsending = false,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
@@ -950,7 +948,7 @@ internal class RevurderingJsonTest {
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
@@ -1025,7 +1023,7 @@ internal class RevurderingJsonTest {
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
@@ -1100,7 +1098,7 @@ internal class RevurderingJsonTest {
             skalFøreTilBrevutsending = true,
             behandlingsinformasjon = vedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,

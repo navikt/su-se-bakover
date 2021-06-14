@@ -669,7 +669,7 @@ internal class LagBrevRequestVisitorTest {
             ),
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
 
@@ -737,7 +737,7 @@ internal class LagBrevRequestVisitorTest {
                     ),
                 ),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
 
@@ -847,7 +847,7 @@ internal class LagBrevRequestVisitorTest {
             saksbehandlerNavn = saksbehandlerNavn,
             attestantNavn = attestantNavn,
             fritekst = "FRITEKST REVURDERING",
-            forventetInntektStørreEnn0 = false,
+            forventetInntektStørreEnn0 = true,
             opphørsgrunner = listOf(Opphørsgrunn.UFØRHET),
         ).right()
     }
@@ -890,7 +890,7 @@ internal class LagBrevRequestVisitorTest {
                     ),
                 ),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
 
@@ -1015,6 +1015,6 @@ internal class LagBrevRequestVisitorTest {
                 ),
             ),
         ),
-        vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+        vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
     )
 }

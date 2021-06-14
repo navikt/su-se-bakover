@@ -28,7 +28,12 @@ data class GjeldendeVedtaksdata(
     // Utleder grunnlagstyper som kan knyttes til vilkår via deres respektive vilkårsvurderinger
     private val uføreGrunnlagOgVilkår = when (val uførevilkår = vilkårsvurderingerFraTidslinje.uføre) {
         Vilkår.Uførhet.IkkeVurdert -> throw IllegalStateException("Kan ikke opprette vilkårsvurdering fra ikke-vurderte vilkår")
-        is Vilkår.Uførhet.Vurdert -> Pair(uførevilkår.grunnlag, uførevilkår)
+        is Vilkår.Uførhet.Vurdert -> uførevilkår
+    }
+
+    private val formuevilkårOgGrunnlag = when (val formue = vilkårsvurderingerFraTidslinje.formue) {
+        Vilkår.Formue.IkkeVurdert -> throw IllegalStateException("Kan ikke opprette vilkårsvurdering fra ikke-vurderte vilkår")
+        is Vilkår.Formue.Vurdert -> formue
     }
 
     private val fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag> = vedtakPåTidslinje.flatMap { it.fradrag }.map {
@@ -37,14 +42,14 @@ data class GjeldendeVedtaksdata(
 
     init {
         grunnlagsdata = Grunnlagsdata(
-            uføregrunnlag = uføreGrunnlagOgVilkår.first,
             fradragsgrunnlag = fradragsgrunnlag,
             bosituasjon = vedtakPåTidslinje.flatMap {
                 it.grunnlagsdata.bosituasjon
             },
         )
         vilkårsvurderinger = Vilkårsvurderinger(
-            uføre = uføreGrunnlagOgVilkår.second,
+            uføre = uføreGrunnlagOgVilkår,
+            formue = formuevilkårOgGrunnlag,
         )
     }
 
@@ -60,6 +65,12 @@ private fun List<Vedtak.VedtakPåTidslinje>.vilkårsvurderinger(): Vilkårsvurde
         uføre = Vilkår.Uførhet.Vurdert.create(
             map { it.vilkårsvurderinger.uføre }
                 .filterIsInstance<Vilkår.Uførhet.Vurdert>()
+                .flatMap { it.vurderingsperioder }
+                .let { Nel.fromListUnsafe(it) },
+        ),
+        formue = Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
+            map { it.vilkårsvurderinger.formue }
+                .filterIsInstance<Vilkår.Formue.Vurdert>()
                 .flatMap { it.vurderingsperioder }
                 .let { Nel.fromListUnsafe(it) },
         ),

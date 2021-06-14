@@ -26,7 +26,6 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.brev.BrevbestillingId
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
-import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -92,7 +91,7 @@ internal class RevurderingPostgresRepoTest {
         forhåndsvarsel = null,
         behandlingsinformasjon = vedtak.behandlingsinformasjon,
         grunnlagsdata = Grunnlagsdata.EMPTY,
-        vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+        vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         informasjonSomRevurderes = informasjonSomRevurderes,
     )
 
@@ -112,7 +111,7 @@ internal class RevurderingPostgresRepoTest {
         forhåndsvarsel = null,
         behandlingsinformasjon = vedtak.behandlingsinformasjon,
         grunnlagsdata = Grunnlagsdata.EMPTY,
-        vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+        vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         informasjonSomRevurderes = informasjonSomRevurderes,
     )
 
@@ -132,7 +131,7 @@ internal class RevurderingPostgresRepoTest {
         forhåndsvarsel = null,
         behandlingsinformasjon = vedtak.behandlingsinformasjon,
         grunnlagsdata = Grunnlagsdata.EMPTY,
-        vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+        vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         informasjonSomRevurderes = informasjonSomRevurderes,
     )
 
@@ -152,7 +151,7 @@ internal class RevurderingPostgresRepoTest {
         forhåndsvarsel = null,
         behandlingsinformasjon = vedtak.behandlingsinformasjon,
         grunnlagsdata = Grunnlagsdata.EMPTY,
-        vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+        vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         informasjonSomRevurderes = informasjonSomRevurderes,
     )
 
@@ -170,7 +169,7 @@ internal class RevurderingPostgresRepoTest {
         forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
         behandlingsinformasjon = beregnet.behandlingsinformasjon,
         grunnlagsdata = Grunnlagsdata.EMPTY,
-        vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+        vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         informasjonSomRevurderes = informasjonSomRevurderes,
     )
 
@@ -188,7 +187,7 @@ internal class RevurderingPostgresRepoTest {
         forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
         behandlingsinformasjon = beregnet.behandlingsinformasjon,
         grunnlagsdata = Grunnlagsdata.EMPTY,
-        vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+        vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         informasjonSomRevurderes = informasjonSomRevurderes,
     )
 
@@ -397,15 +396,6 @@ internal class RevurderingPostgresRepoTest {
                 forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
                 behandlingsinformasjon = vedtak.behandlingsinformasjon,
                 grunnlagsdata = Grunnlagsdata(
-                    uføregrunnlag = listOf(
-                        Grunnlag.Uføregrunnlag(
-                            id = UUID.randomUUID(),
-                            opprettet = fixedTidspunkt,
-                            periode = periode,
-                            uføregrad = Uføregrad.parse(20),
-                            forventetInntekt = 0,
-                        ),
-                    ),
                     fradragsgrunnlag = listOf(
                         Grunnlag.Fradragsgrunnlag(
                             id = UUID.randomUUID(),
@@ -421,7 +411,7 @@ internal class RevurderingPostgresRepoTest {
                         ),
                     ),
                 ),
-                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+                vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
             )
 
@@ -432,7 +422,7 @@ internal class RevurderingPostgresRepoTest {
             testDataHelper.dataSource.withTransaction { tx ->
                 uføregrunnlagPostgresRepo.lagre(
                     tilAttestering.id,
-                    tilAttestering.grunnlagsdata.uføregrunnlag,
+                    tilAttestering.vilkårsvurderinger.uføre.grunnlag,
                     tx,
                 )
             }
@@ -536,7 +526,7 @@ internal class RevurderingPostgresRepoTest {
                 forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
                 behandlingsinformasjon = opprettet.behandlingsinformasjon,
                 grunnlagsdata = Grunnlagsdata.EMPTY,
-                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+                vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
             )
 
@@ -569,7 +559,7 @@ internal class RevurderingPostgresRepoTest {
                 forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
                 behandlingsinformasjon = opprettet.behandlingsinformasjon,
                 grunnlagsdata = Grunnlagsdata.EMPTY,
-                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+                vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
             )
 
@@ -615,7 +605,7 @@ internal class RevurderingPostgresRepoTest {
                 forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
                 behandlingsinformasjon = opprettet.behandlingsinformasjon,
                 grunnlagsdata = Grunnlagsdata.EMPTY,
-                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+                vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
             )
 
@@ -648,7 +638,7 @@ internal class RevurderingPostgresRepoTest {
                 forhåndsvarsel = null,
                 behandlingsinformasjon = opprettet.behandlingsinformasjon,
                 grunnlagsdata = opprettet.grunnlagsdata,
-                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+                vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
             )
             repo.lagre(underkjentTilAttestering)
@@ -671,7 +661,7 @@ internal class RevurderingPostgresRepoTest {
                 forhåndsvarsel = null,
                 behandlingsinformasjon = opprettet.behandlingsinformasjon,
                 grunnlagsdata = Grunnlagsdata.EMPTY,
-                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+                vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
             )
 
@@ -703,7 +693,7 @@ internal class RevurderingPostgresRepoTest {
                 forhåndsvarsel = null,
                 behandlingsinformasjon = opprettet.behandlingsinformasjon,
                 grunnlagsdata = Grunnlagsdata.EMPTY,
-                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+                vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
             )
 
@@ -735,7 +725,7 @@ internal class RevurderingPostgresRepoTest {
                 forhåndsvarsel = null,
                 behandlingsinformasjon = opprettet.behandlingsinformasjon,
                 grunnlagsdata = opprettet.grunnlagsdata,
-                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+                vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
             )
             repo.lagre(revurderingTilAttestering)
@@ -756,7 +746,7 @@ internal class RevurderingPostgresRepoTest {
                 forhåndsvarsel = null,
                 behandlingsinformasjon = opprettet.behandlingsinformasjon,
                 grunnlagsdata = opprettet.grunnlagsdata,
-                vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+                vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
                 informasjonSomRevurderes = opprettet.informasjonSomRevurderes,
             )
 

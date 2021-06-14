@@ -25,7 +25,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.fixedTidspunkt
-import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
+import no.nav.su.se.bakover.domain.formueVilkår
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
@@ -47,33 +47,6 @@ import java.util.UUID
 internal class FinnAttestantVisitorTest {
 
     private val periode = Periode.create(1.januar(2021), 31.januar(2021))
-
-    private fun formueVilkår(periode: Periode) = Vilkår.Formue.Vurdert.create(
-        grunnlag = nonEmptyListOf(
-            Formuegrunnlag.create(
-                periode = periode,
-                epsFormue = null,
-                søkersFormue = Formuegrunnlag.Verdier(
-                    verdiIkkePrimærbolig = 0,
-                    verdiEiendommer = 0,
-                    verdiKjøretøy = 0,
-                    innskudd = 0,
-                    verdipapir = 0,
-                    pengerSkyldt = 0,
-                    kontanter = 0,
-                    depositumskonto = 0,
-                ),
-                begrunnelse = null,
-                behandlingsPeriode = periode,
-                bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                    id = UUID.randomUUID(),
-                    opprettet = Tidspunkt.now(),
-                    periode = periode,
-                    begrunnelse = null,
-                )
-            ),
-        ),
-    )
 
     @Test
     fun `finner attestant for både søknadsbehandlinger og revurderinger`() {
@@ -181,7 +154,7 @@ internal class FinnAttestantVisitorTest {
         fritekstTilBrev = "",
         stønadsperiode = Stønadsperiode.create(Periode.create(1.januar(2021), 31.desember(2021))),
         grunnlagsdata = Grunnlagsdata.EMPTY,
-        vilkårsvurderinger = Vilkårsvurderinger.EMPTY,
+        vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
     )
 
     private val behandlingsinformasjonMedAlleVilkårOppfylt = Behandlingsinformasjon.lagTomBehandlingsinformasjon()
@@ -275,7 +248,6 @@ internal class FinnAttestantVisitorTest {
         forhåndsvarsel = null,
         behandlingsinformasjon = behandlingsinformasjonMedAlleVilkårOppfylt,
         grunnlagsdata = Grunnlagsdata(
-            uføregrunnlag = listOf(uføregrunnlag),
             bosituasjon = listOf(
                 Grunnlag.Bosituasjon.Fullstendig.Enslig(
                     id = UUID.randomUUID(),

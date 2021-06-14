@@ -52,7 +52,6 @@ class RevurderingBeregnOgSimulerTest {
             forhåndsvarsel = null,
             behandlingsinformasjon = RevurderingTestUtils.søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata(
-                uføregrunnlag = listOf(uføregrunnlag),
                 fradragsgrunnlag = listOf(
                     Grunnlag.Fradragsgrunnlag(
                         fradrag = FradragFactory.ny(
