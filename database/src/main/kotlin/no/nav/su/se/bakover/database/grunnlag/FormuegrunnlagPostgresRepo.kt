@@ -72,7 +72,6 @@ internal class FormuegrunnlagPostgresRepo() {
                 behandlingId,
                 fraOgMed,
                 tilOgMed,
-                tilhører,
                 epsFormue,
                 søkerFormue,
                 begrunnelse
@@ -83,9 +82,8 @@ internal class FormuegrunnlagPostgresRepo() {
                 :behandlingId,
                 :fraOgMed,
                 :tilOgMed,
-                :tilhører,
                 to_jsonb(:epsFormue::json),
-                to_jsonb(:søkerFormue::json),
+                to_jsonb(:sokerFormue::json),
                 :begrunnelse
             )
         """.trimIndent()
@@ -97,7 +95,7 @@ internal class FormuegrunnlagPostgresRepo() {
                     "fraOgMed" to formuegrunnlag.periode.fraOgMed,
                     "tilOgMed" to formuegrunnlag.periode.tilOgMed,
                     "epsFormue" to objectMapper.writeValueAsString(formuegrunnlag.epsFormue),
-                    "søkerFormue" to objectMapper.writeValueAsString(formuegrunnlag.søkersFormue),
+                    "sokerFormue" to objectMapper.writeValueAsString(formuegrunnlag.søkersFormue),
                     "begrunnelse" to formuegrunnlag.begrunnelse,
                 ),
                 session,
