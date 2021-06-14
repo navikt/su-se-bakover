@@ -170,45 +170,57 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
                 } else informasjonSomRevurderes,
             )
 
-        return when (
-            VurderOpphørVedRevurdering(
-                vilkårsvurderinger = vilkårsvurderinger,
-                beregning = revurdertBeregning,
-                clock = Clock.systemUTC(),
-            ).resultat
-        ) {
-            is OpphørVedRevurdering.Ja -> {
-                opphør(revurdertBeregning)
+        return when (revurderingsårsak.årsak) {
+            Revurderingsårsak.Årsak.REGULER_GRUNNBELØP -> {
+                when (
+                    VurderOmBeløpErForskjelligFraGjeldendeUtbetaling(
+                        eksisterendeUtbetalinger = eksisterendeUtbetalinger.flatMap { it.utbetalingslinjer },
+                        nyBeregning = revurdertBeregning,
+                    ).resultat
+                ) {
+                    true -> {
+                        when (
+                            VurderOpphørVedRevurdering(
+                                vilkårsvurderinger = vilkårsvurderinger,
+                                beregning = revurdertBeregning,
+                                clock = Clock.systemUTC(),
+                            ).resultat
+                        ) {
+                            is OpphørVedRevurdering.Ja -> {
+                                opphør(revurdertBeregning)
+                            }
+                            is OpphørVedRevurdering.Nei -> {
+                                innvilget(revurdertBeregning)
+                            }
+                        }
+                    }
+                    false -> ingenEndring(revurdertBeregning)
+                }
             }
-            OpphørVedRevurdering.Nei -> {
-                when (this.revurderingsårsak.årsak) {
-                    Revurderingsårsak.Årsak.MIGRERT,
-                    Revurderingsårsak.Årsak.MELDING_FRA_BRUKER,
-                    Revurderingsårsak.Årsak.INFORMASJON_FRA_KONTROLLSAMTALE,
-                    Revurderingsårsak.Årsak.DØDSFALL,
-                    Revurderingsårsak.Årsak.ANDRE_KILDER,
-                    -> {
+            else -> {
+                when (
+                    VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
+                        eksisterendeUtbetalinger = eksisterendeUtbetalinger.flatMap { it.utbetalingslinjer },
+                        nyBeregning = revurdertBeregning,
+                    ).resultat
+                ) {
+                    true -> {
                         when (
-                            VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
-                                eksisterendeUtbetalinger = eksisterendeUtbetalinger.flatMap { it.utbetalingslinjer },
-                                nyBeregning = revurdertBeregning,
+                            VurderOpphørVedRevurdering(
+                                vilkårsvurderinger = vilkårsvurderinger,
+                                beregning = revurdertBeregning,
+                                clock = Clock.systemUTC(),
                             ).resultat
                         ) {
-                            true -> innvilget(revurdertBeregning)
-                            false -> ingenEndring(revurdertBeregning)
+                            is OpphørVedRevurdering.Ja -> {
+                                opphør(revurdertBeregning)
+                            }
+                            is OpphørVedRevurdering.Nei -> {
+                                innvilget(revurdertBeregning)
+                            }
                         }
                     }
-                    Revurderingsårsak.Årsak.REGULER_GRUNNBELØP -> {
-                        when (
-                            VurderOmBeløpErForskjelligFraGjeldendeUtbetaling(
-                                eksisterendeUtbetalinger = eksisterendeUtbetalinger.flatMap { it.utbetalingslinjer },
-                                nyBeregning = revurdertBeregning,
-                            ).resultat
-                        ) {
-                            true -> innvilget(revurdertBeregning)
-                            false -> ingenEndring(revurdertBeregning)
-                        }
-                    }
+                    false -> ingenEndring(revurdertBeregning)
                 }
             }
         }.right()
@@ -439,7 +451,8 @@ sealed class BeregnetRevurdering : Revurdering() {
             vilkårsvurderinger = vilkårsvurderinger,
             informasjonSomRevurderes = informasjonSomRevurderes,
         )
-        //TODO må utledes på samme måte som ved kall til beregn()
+
+        // TODO må utledes på samme måte som ved kall til beregn()
         fun utledOpphørsgrunner(): List<Opphørsgrunn> = vilkårsvurderinger.utledOpphørsgrunner() +
             listOfNotNull(VurderAvslagGrunnetBeregning.hentAvslagsgrunnForBeregning(beregning).toOpphørsgrunn())
 

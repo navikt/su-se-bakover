@@ -29,12 +29,14 @@ import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
 internal class RevurderingTest {
 
     @Test
+    @Disabled // TODO vi bør sannsynligvis endre på dette slik at vi vurderer vilkårene lenge før vi gjennomfører beregning
     fun `beregning gir opphør hvis vilkår ikke er oppfylt`() {
         val periode = Periode.create(1.januar(2021), 31.desember(2021))
         lagRevurdering(
@@ -99,6 +101,63 @@ internal class RevurderingTest {
             .beregn(eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(20000, periode)))).orNull()!!.let {
             it shouldNotBe beOfType<BeregnetRevurdering.Opphørt>()
             it.informasjonSomRevurderes[Revurderingsteg.Inntekt] shouldBe Vurderingstatus.Vurdert
+        }
+    }
+
+    @Test
+    fun `beregningen gir ikke opphør dersom beløpet er under minstegrense, men endringen er mindre enn 10 prosent`() {
+        val periode = Periode.create(1.januar(2021), 31.desember(2021))
+        lagRevurdering(
+            periode = periode,
+            vilkårsvurderinger = Vilkårsvurderinger(
+                uføre = Vilkår.Vurdert.Uførhet.create(
+                    vurderingsperioder = nonEmptyListOf(
+                        Vurderingsperiode.Uføre.create(
+                            id = UUID.randomUUID(),
+                            opprettet = Tidspunkt.now(),
+                            resultat = Resultat.Avslag,
+                            grunnlag = null,
+                            periode = periode,
+                            begrunnelse = null,
+                        ),
+                    ),
+                ),
+            ),
+            bosituasjon = listOf(
+                Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                    id = UUID.randomUUID(),
+                    opprettet = fixedTidspunkt,
+                    periode = periode,
+                    begrunnelse = null,
+                ),
+            ),
+            fradrag = listOf(
+                Grunnlag.Fradragsgrunnlag(
+                    fradrag = FradragFactory.ny(
+                        type = Fradragstype.Arbeidsinntekt,
+                        månedsbeløp = 20535.0,
+                        periode = Periode.create(periode.fraOgMed, 30.april(2021)),
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                ),
+                Grunnlag.Fradragsgrunnlag(
+                    fradrag = FradragFactory.ny(
+                        type = Fradragstype.Arbeidsinntekt,
+                        månedsbeløp = 21735.0,
+                        periode = Periode.create(1.mai(2021), periode.tilOgMed),
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                ),
+            ),
+        ).beregn(
+            eksisterendeUtbetalinger = listOf(
+                lagUtbetaling(lagUtbetalingslinje(440, periode)),
+            ),
+        ).orNull()!!.let {
+            it shouldBe beOfType<BeregnetRevurdering.IngenEndring>()
+            it.beregning.alleMånederErUnderMinstebeløp() shouldBe true
         }
     }
 
@@ -238,6 +297,55 @@ internal class RevurderingTest {
             ),
         ).orNull()!!.let {
             it shouldBe beOfType<BeregnetRevurdering.IngenEndring>()
+        }
+    }
+
+    @Test
+    fun `beregning som fører til beløp lik 0 gir opphør - g regulering`() {
+        val periode = Periode.create(1.januar(2021), 31.desember(2021))
+        lagRevurdering(
+            periode = periode,
+            vilkårsvurderinger = Vilkårsvurderinger(
+                uføre = Vilkår.Vurdert.Uførhet.create(
+                    vurderingsperioder = nonEmptyListOf(
+                        Vurderingsperiode.Uføre.create(
+                            id = UUID.randomUUID(),
+                            opprettet = Tidspunkt.now(),
+                            resultat = Resultat.Innvilget,
+                            grunnlag = null,
+                            periode = periode,
+                            begrunnelse = null,
+                        ),
+                    ),
+                ),
+            ),
+            fradrag = listOf(
+                Grunnlag.Fradragsgrunnlag(
+                    fradrag = FradragFactory.ny(
+                        type = Fradragstype.Arbeidsinntekt,
+                        månedsbeløp = 350_000.0,
+                        periode = periode,
+                        utenlandskInntekt = null,
+                        tilhører = FradragTilhører.BRUKER,
+                    ),
+                ),
+            ),
+            bosituasjon = listOf(
+                Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                    id = UUID.randomUUID(),
+                    opprettet = fixedTidspunkt,
+                    periode = periode,
+                    begrunnelse = null,
+                ),
+            ),
+
+            revurderingsårsak = Revurderingsårsak.create(
+                årsak = Revurderingsårsak.Årsak.REGULER_GRUNNBELØP.toString(), begrunnelse = "a",
+            ),
+        ).beregn(
+            eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(14000, periode))),
+        ).orNull()!!.let {
+            it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
         }
     }
 

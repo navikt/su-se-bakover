@@ -1,6 +1,8 @@
 package no.nav.su.se.bakover.domain.revurdering
 
 import no.nav.su.se.bakover.domain.beregning.Beregning
+import no.nav.su.se.bakover.domain.beregning.Månedsberegning
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import kotlin.math.abs
@@ -25,7 +27,7 @@ data class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetal
 
         resultat = when (gjeldendeUtbetaling) {
             null -> true
-            is Utbetalingslinje.Ny -> diffEr10ProsentEllerMer(førsteMånedsberegning.getSumYtelse(), gjeldendeUtbetaling.beløp)
+            is Utbetalingslinje.Ny -> diffEr10ProsentEllerMer(førsteMånedsberegning.finnBeløpFor10ProsentSjekk(), gjeldendeUtbetaling.beløp)
             is Utbetalingslinje.Endring -> {
                 when (gjeldendeUtbetaling.statusendring.status) {
                     Utbetalingslinje.LinjeStatus.OPPHØR -> {
@@ -41,13 +43,27 @@ data class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetal
                              * utbetales er lik 0.
                              */
                             opphørGjelderForHeleBeregningsperioden && (opphørsdato.isEqual(førsteMånedsberegning.periode.fraOgMed) || opphørsdato.isBefore(førsteMånedsberegning.periode.fraOgMed)) -> {
-                                diffEr10ProsentEllerMer(førsteMånedsberegning.getSumYtelse(), 0)
+                                diffEr10ProsentEllerMer(førsteMånedsberegning.finnBeløpFor10ProsentSjekk(), 0)
                             }
-                            else -> diffEr10ProsentEllerMer(førsteMånedsberegning.getSumYtelse(), gjeldendeUtbetaling.beløp)
+                            else -> diffEr10ProsentEllerMer(førsteMånedsberegning.finnBeløpFor10ProsentSjekk(), gjeldendeUtbetaling.beløp)
                         }
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * Dersom beløpet er så lavt at det havner under minstegrensen må vi sjekke fradragsbeløpet opp mot 10%
+     */
+    private fun Månedsberegning.finnBeløpFor10ProsentSjekk(): Int {
+        return if (erSumYtelseUnderMinstebeløp()) {
+            getFradrag()
+                .filter { it.fradragstype == Fradragstype.UnderMinstenivå }
+                .sumOf { it.månedsbeløp }
+                .toInt()
+        } else {
+            getSumYtelse()
         }
     }
 }

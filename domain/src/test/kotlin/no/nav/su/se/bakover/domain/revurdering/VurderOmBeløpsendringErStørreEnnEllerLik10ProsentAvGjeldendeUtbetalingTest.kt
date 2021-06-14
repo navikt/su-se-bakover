@@ -168,6 +168,22 @@ internal class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtb
         ).resultat shouldBe true
     }
 
+    @Test
+    fun `ny beregning er under minstegrense for utbetaling, men differanse mot gjeldende utebetaling er mindre enn 10 prosent gir false`() {
+        VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
+            eksisterendeUtbetalinger = listOf(lagUtbetaling(440)),
+            nyBeregning = lagBeregning(405),
+        ).resultat shouldBe false
+    }
+
+    @Test
+    fun `ny beregning er under minstegrense for utbetaling, og differanse mot gjeldende utebetaling er større enn 10 prosent gir true`() {
+        VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
+            eksisterendeUtbetalinger = listOf(lagUtbetaling(440)),
+            nyBeregning = lagBeregning(390),
+        ).resultat shouldBe true
+    }
+
     private fun lagUtbetaling(månedsbeløp: Int, periode: Periode = beregningsperiode) = Utbetalingslinje.Ny(
         fraOgMed = periode.fraOgMed,
         tilOgMed = periode.tilOgMed,
