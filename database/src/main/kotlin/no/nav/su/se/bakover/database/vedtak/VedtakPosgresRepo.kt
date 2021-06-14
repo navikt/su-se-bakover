@@ -36,7 +36,7 @@ interface VedtakRepo {
     fun hentForSakId(sakId: UUID): List<Vedtak>
     fun hentAktive(dato: LocalDate): List<Vedtak.EndringIYtelse>
     fun lagre(vedtak: Vedtak)
-    fun hentForUtbetaling(utbetalingId: UUID30): Vedtak.EndringIYtelse
+    fun hentForUtbetaling(utbetalingId: UUID30): Vedtak.EndringIYtelse?
     fun hentUtenJournalpost(): List<Vedtak>
     fun hentUtenBrevbestilling(): List<Vedtak>
 }
@@ -68,7 +68,7 @@ internal class VedtakPosgresRepo(
             is Vedtak.IngenEndringIYtelse -> lagre(vedtak)
         }
 
-    override fun hentForUtbetaling(utbetalingId: UUID30): Vedtak.EndringIYtelse {
+    override fun hentForUtbetaling(utbetalingId: UUID30): Vedtak.EndringIYtelse? {
         return dataSource.withSession { session ->
             """
                 SELECT *
@@ -77,7 +77,7 @@ internal class VedtakPosgresRepo(
             """.trimIndent()
                 .hent(mapOf("utbetalingId" to utbetalingId), session) {
                     it.toVedtak(session)
-                } as Vedtak.EndringIYtelse
+                }?.let { it as Vedtak.EndringIYtelse }
         }
     }
 
