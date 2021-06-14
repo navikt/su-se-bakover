@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.vilkår
 
 import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.februar
@@ -15,6 +16,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import org.junit.jupiter.api.Test
+import java.util.UUID
 
 internal class VilkårsvurderingerTest {
 
@@ -40,6 +42,13 @@ internal class VilkårsvurderingerTest {
                     depositumskonto = 0,
                 ),
                 begrunnelse = null,
+                behandlingsPeriode = periode,
+                bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                    id = UUID.randomUUID(),
+                    opprettet = Tidspunkt.now(),
+                    periode = periode,
+                    begrunnelse = null,
+                )
             ),
         ),
     )

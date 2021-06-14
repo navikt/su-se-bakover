@@ -66,7 +66,7 @@ object DatabaseBuilder {
         val uføregrunnlagRepo = UføregrunnlagPostgresRepo()
         val fradragsgrunnlag = FradragsgrunnlagPostgresRepo(dataSource)
         val bosituasjongrunnlag = BosituasjongrunnlagPostgresRepo(dataSource)
-        val formuegrunnlagRepo = FormuegrunnlagPostgresRepo(dataSource)
+        val formuegrunnlagRepo = FormuegrunnlagPostgresRepo()
 
         val grunnlagRepo = GrunnlagPostgresRepo(
             fradragsgrunnlagRepo = fradragsgrunnlag,

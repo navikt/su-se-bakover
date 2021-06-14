@@ -90,4 +90,7 @@ private fun KunneIkkeLeggeTilFormuegrunnlag.tilResultat() = when (this) {
     KunneIkkeLeggeTilFormuegrunnlag.FantIkkeRevurdering -> Revurderingsfeilresponser.fantIkkeRevurdering
     is KunneIkkeLeggeTilFormuegrunnlag.UgyldigTilstand -> Revurderingsfeilresponser.ugyldigTilstand(this.fra, this.til)
     KunneIkkeLeggeTilFormuegrunnlag.IkkeLovMedOverlappendePerioder -> Revurderingsfeilresponser.ikkeLovMedOverlappendePerioder
+    KunneIkkeLeggeTilFormuegrunnlag.EpsFormueperiodeErUtenforBosituasjonPeriode -> Revurderingsfeilresponser.epsFormueperiodeErUtenforBosituasjonPeriode
+    KunneIkkeLeggeTilFormuegrunnlag.FormuePeriodeErUtenforBehandlingsperioden -> Revurderingsfeilresponser.formuePeriodeErUtenforBehandlingsperioden
+    KunneIkkeLeggeTilFormuegrunnlag.MåHaEpsHvisManHarSattEpsFormue -> Revurderingsfeilresponser.måHaEpsHvisManHarSattEpsFormue
 }

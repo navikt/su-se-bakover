@@ -1,5 +1,9 @@
 package no.nav.su.se.bakover.domain.grunnlag
 
+import arrow.core.Either
+import arrow.core.getOrHandle
+import arrow.core.left
+import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
@@ -7,7 +11,7 @@ import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import org.jetbrains.annotations.TestOnly
 import java.util.UUID
 
-data class Formuegrunnlag(
+data class Formuegrunnlag private constructor(
     override val id: UUID,
     override val periode: Periode,
     override val opprettet: Tidspunkt,
@@ -60,24 +64,61 @@ data class Formuegrunnlag(
 
         @TestOnly
         fun create(
+            id: UUID = UUID.randomUUID(),
+            opprettet: Tidspunkt = Tidspunkt.now(),
             periode: Periode,
             epsFormue: Verdier?,
             søkersFormue: Verdier,
             begrunnelse: String?,
-        ): Formuegrunnlag = tryCreate(periode, epsFormue, søkersFormue, begrunnelse)
+            bosituasjon: Bosituasjon.Fullstendig,
+            behandlingsPeriode: Periode,
+        ): Formuegrunnlag = tryCreate(id, opprettet, periode, epsFormue, søkersFormue, begrunnelse, bosituasjon, behandlingsPeriode).getOrHandle { throw IllegalArgumentException("Kunne ikke lage Formuegrunnlag") }
 
         fun tryCreate(
+            id: UUID = UUID.randomUUID(),
+            opprettet: Tidspunkt = Tidspunkt.now(),
+            periode: Periode,
+            epsFormue: Verdier?,
+            søkersFormue: Verdier,
+            begrunnelse: String?,
+            // Denne tar ikke høyde for søknadsbehandling da denne ikke nødvendigvis er fullstendig
+            bosituasjon: Bosituasjon.Fullstendig,
+            behandlingsPeriode: Periode,
+        ): Either<KunneIkkeLageFormueGrunnlag, Formuegrunnlag> {
+            if (epsFormue != null) {
+                if (!(bosituasjon.harEktefelle())) {
+                    return KunneIkkeLageFormueGrunnlag.MåHaEpsHvisManHarSattEpsFormue.left()
+                }
+                if (!(bosituasjon.periode.inneholder(periode))) {
+                    return KunneIkkeLageFormueGrunnlag.EpsFormueperiodeErUtenforBosituasjonPeriode.left()
+                }
+            }
+
+            if (!(behandlingsPeriode.inneholder(periode))) {
+                return KunneIkkeLageFormueGrunnlag.FormuePeriodeErUtenforBehandlingsperioden.left()
+            }
+            return Formuegrunnlag(
+                id = id,
+                periode = periode,
+                opprettet = opprettet,
+                epsFormue = epsFormue,
+                søkersFormue = søkersFormue,
+                begrunnelse = begrunnelse,
+            ).right()
+        }
+
+        fun fromPersistence(
+            id: UUID,
+            opprettet: Tidspunkt,
             periode: Periode,
             epsFormue: Verdier?,
             søkersFormue: Verdier,
             begrunnelse: String?,
         ): Formuegrunnlag {
-            // kanskje sjekke at bosituasjon har eps for hele perioden hvis vi får inn epsformue her
-
             return Formuegrunnlag(
-                id = UUID.randomUUID(),
+                id = id,
                 periode = periode,
-                opprettet = Tidspunkt.now(),
+                opprettet = opprettet,
                 epsFormue = epsFormue,
                 søkersFormue = søkersFormue,
                 begrunnelse = begrunnelse,
@@ -97,4 +138,8 @@ data class Formuegrunnlag(
     }
 }
 
-object KunneIkkeLageFormueGrunnlag
+sealed class KunneIkkeLageFormueGrunnlag {
+    object EpsFormueperiodeErUtenforBosituasjonPeriode : KunneIkkeLageFormueGrunnlag()
+    object MåHaEpsHvisManHarSattEpsFormue : KunneIkkeLageFormueGrunnlag()
+    object FormuePeriodeErUtenforBehandlingsperioden : KunneIkkeLageFormueGrunnlag()
+}

@@ -6,7 +6,6 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import java.util.UUID
 
 interface VilkårsvurderingService {
-    // TODO Skal vi lagre alt, selv om vi bare har endret en ting, eller skal vi ha en lagreUføre og en lagreFormue
     fun lagre(behandlingId: UUID, vilkårsvurderinger: Vilkårsvurderinger)
 }
 

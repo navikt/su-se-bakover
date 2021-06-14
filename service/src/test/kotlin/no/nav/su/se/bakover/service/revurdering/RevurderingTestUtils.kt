@@ -9,6 +9,7 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiClient
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
@@ -295,6 +296,13 @@ object RevurderingTestUtils {
                     depositumskonto = 0,
                 ),
                 begrunnelse = null,
+                behandlingsPeriode = periode,
+                bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                    id = UUID.randomUUID(),
+                    opprettet = Tidspunkt.now(),
+                    periode = periode,
+                    begrunnelse = null,
+                )
             ),
         ),
     )

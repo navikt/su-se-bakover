@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.SøknadInnholdTestdataBuilder
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
+import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -112,6 +113,13 @@ object RevurderingRoutesTestData {
                     depositumskonto = 0,
                 ),
                 begrunnelse = null,
+                behandlingsPeriode = periode,
+                bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                    id = UUID.randomUUID(),
+                    opprettet = Tidspunkt.now(),
+                    periode = periode,
+                    begrunnelse = null,
+                )
             ),
         ),
     )

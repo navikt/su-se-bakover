@@ -345,7 +345,9 @@ internal class RevurderingServiceImpl(
                 OpprettetRevurdering::class,
             ).left()
 
-        val vilkår = request.toDomain().getOrHandle {
+        val bosituasjon = revurdering.grunnlagsdata.bosituasjon.singleFullstendigOrThrow()
+
+        val vilkår = request.toDomain(bosituasjon, revurdering.periode).getOrHandle {
             return it.left()
         }
 

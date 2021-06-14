@@ -67,6 +67,21 @@ internal object Revurderingsfeilresponser {
         "ikke_lov_med_overlappende_perioder",
     )
 
+    val epsFormueperiodeErUtenforBosituasjonPeriode = BadRequest.errorJson(
+        "Ikke lov med formueperiode utenfor bosituasjonperioder",
+        "ikke_lov_med_formueperiode_utenfor_bosituasjonperiode",
+    )
+
+    val formuePeriodeErUtenforBehandlingsperioden = BadRequest.errorJson(
+        "Ikke lov med formueperiode utenfor behandlingsperioden",
+        "ikke_lov_med_formueperiode_utenfor_behandlingsperioden",
+    )
+
+    val måHaEpsHvisManHarSattEpsFormue = BadRequest.errorJson(
+        "Ikke lov med formue for eps hvis man ikke har eps",
+        "ikke_lov_med_formue_for_eps_hvis_man_ikke_har_eps",
+    )
+
     fun ugyldigPeriode(ugyldigPeriode: UgyldigPeriode): Resultat {
         return BadRequest.errorJson(
             ugyldigPeriode.toString(),

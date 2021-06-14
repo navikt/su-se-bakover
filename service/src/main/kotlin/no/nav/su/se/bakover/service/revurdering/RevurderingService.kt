@@ -279,6 +279,9 @@ sealed class KunneIkkeLeggeTilBosituasjongrunnlag {
 sealed class KunneIkkeLeggeTilFormuegrunnlag {
     object FantIkkeRevurdering : KunneIkkeLeggeTilFormuegrunnlag()
     object IkkeLovMedOverlappendePerioder : KunneIkkeLeggeTilFormuegrunnlag()
+    object EpsFormueperiodeErUtenforBosituasjonPeriode : KunneIkkeLeggeTilFormuegrunnlag()
+    object MåHaEpsHvisManHarSattEpsFormue : KunneIkkeLeggeTilFormuegrunnlag()
+    object FormuePeriodeErUtenforBehandlingsperioden : KunneIkkeLeggeTilFormuegrunnlag()
     data class UgyldigTilstand(
         val fra: KClass<out Revurdering>,
         val til: KClass<out Revurdering>,

@@ -13,11 +13,8 @@ import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import java.util.UUID
-import javax.sql.DataSource
 
-internal class FormuegrunnlagPostgresRepo(
-    private val dataSource: DataSource,
-) {
+internal class FormuegrunnlagPostgresRepo() {
     internal fun lagreFormuegrunnlag(
         behandlingId: UUID,
         formuegrunnlag: List<Formuegrunnlag>,
@@ -56,7 +53,7 @@ internal class FormuegrunnlagPostgresRepo(
     }
 
     private fun Row.toFormuegrunnlag(): Formuegrunnlag {
-        return Formuegrunnlag(
+        return Formuegrunnlag.fromPersistence(
             id = uuid("id"),
             periode = Periode.create(fraOgMed = localDate("fraOgMed"), tilOgMed = localDate("tilOgMed")),
             opprettet = tidspunkt("opprettet"),

@@ -187,7 +187,7 @@ internal class TestDataHelper(
     private val bosituasjongrunnlagPostgresRepo = BosituasjongrunnlagPostgresRepo(dataSource)
     internal val grunnlagRepo = GrunnlagPostgresRepo(fradragsgrunnlagPostgresRepo, bosituasjongrunnlagPostgresRepo)
     internal val uføreVilkårsvurderingRepo = UføreVilkårsvurderingPostgresRepo(dataSource, uføregrunnlagPostgresRepo)
-    private val formuegrunnlagPostgresRepo = FormuegrunnlagPostgresRepo(dataSource)
+    private val formuegrunnlagPostgresRepo = FormuegrunnlagPostgresRepo()
     internal val formueVilkårsvurderingPostgresRepo =
         FormueVilkårsvurderingPostgresRepo(dataSource, formuegrunnlagPostgresRepo)
     internal val søknadsbehandlingRepo =

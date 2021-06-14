@@ -64,6 +64,13 @@ internal class FinnAttestantVisitorTest {
                     depositumskonto = 0,
                 ),
                 begrunnelse = null,
+                behandlingsPeriode = periode,
+                bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                    id = UUID.randomUUID(),
+                    opprettet = Tidspunkt.now(),
+                    periode = periode,
+                    begrunnelse = null,
+                )
             ),
         ),
     )

@@ -13,7 +13,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
     private val datasource = EmbeddedDatabase.instance()
     private val repo = FormueVilkårsvurderingPostgresRepo(
         datasource,
-        FormuegrunnlagPostgresRepo(datasource),
+        FormuegrunnlagPostgresRepo(),
     )
 
     @Test
