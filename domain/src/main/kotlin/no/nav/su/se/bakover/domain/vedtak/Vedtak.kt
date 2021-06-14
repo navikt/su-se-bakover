@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.vedtak
 
 import arrow.core.Either
 import arrow.core.Nel
+import arrow.core.NonEmptyList
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.UUID30
@@ -32,6 +33,7 @@ import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
 import no.nav.su.se.bakover.domain.tidslinje.Tidslinje
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.domain.visitor.Visitable
 import java.time.Clock
 import java.util.UUID
@@ -323,14 +325,17 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                 CopyArgs.Tidslinje.Full -> {
                     val uførevilkår = when (vilkårsvurderinger.uføre) {
                         Vilkår.Uførhet.IkkeVurdert -> Vilkår.Uførhet.IkkeVurdert
-                        is Vilkår.Uførhet.Vurdert -> vilkårsvurderinger.uføre.copy(
-                            vurderingsperioder = Nel.fromListUnsafe(
+                        is Vilkår.Uførhet.Vurdert -> {
+                            val vurderingsperioder: NonEmptyList<Vurderingsperiode.Uføre> = Nel.fromListUnsafe(
                                 Tidslinje(
                                     periode = periode,
                                     objekter = vilkårsvurderinger.uføre.vurderingsperioder,
                                 ).tidslinje,
-                            ),
-                        )
+                            )
+                            vilkårsvurderinger.uføre.copy(
+                                vurderingsperioder = vurderingsperioder,
+                            )
+                        }
                     }
                     copy(
                         periode = periode,

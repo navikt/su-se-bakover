@@ -31,3 +31,30 @@ data class FormuegrunnlagJson(
         }
     }
 }
+
+fun Formuegrunnlag.toJson() = FormuegrunnlagJson(
+    epsFormue = this.epsFormue?.let {
+        FormuegrunnlagJson.VerdierJson(
+            verdiIkkePrimærbolig = it.verdiIkkePrimærbolig,
+            verdiEiendommer = it.verdiEiendommer,
+            verdiKjøretøy = it.verdiKjøretøy,
+            innskudd = it.innskudd,
+            verdipapir = it.verdipapir,
+            pengerSkyldt = it.pengerSkyldt,
+            kontanter = it.kontanter,
+            depositumskonto = it.depositumskonto,
+        )
+    },
+    søkersFormue = this.søkersFormue.let {
+        FormuegrunnlagJson.VerdierJson(
+            verdiIkkePrimærbolig = it.verdiIkkePrimærbolig,
+            verdiEiendommer = it.verdiEiendommer,
+            verdiKjøretøy = it.verdiKjøretøy,
+            innskudd = it.innskudd,
+            verdipapir = it.verdipapir,
+            pengerSkyldt = it.pengerSkyldt,
+            kontanter = it.kontanter,
+            depositumskonto = it.depositumskonto,
+        )
+    },
+)

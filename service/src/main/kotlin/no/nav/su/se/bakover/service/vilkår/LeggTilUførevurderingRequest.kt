@@ -31,7 +31,7 @@ data class LeggTilUførevurderingRequest(
     /**
      * @param behandlingsperiode Ved en søknadsbehandling kan det være støndadsperiode. Ved en revurdering kan det være revurderingsperioden.
      */
-    fun toVurderingsperiode(behandlingsperiode: Periode): Either<UgyldigUførevurdering, Vurderingsperiode<Grunnlag.Uføregrunnlag?>> {
+    fun toVurderingsperiode(behandlingsperiode: Periode): Either<UgyldigUførevurdering, Vurderingsperiode.Uføre> {
         if (!(behandlingsperiode inneholder periode)) return UgyldigUførevurdering.VurderingsperiodenKanIkkeVæreUtenforBehandlingsperioden.left()
         return when (oppfylt) {
             Behandlingsinformasjon.Uførhet.Status.VilkårOppfylt -> {

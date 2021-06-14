@@ -1,6 +1,5 @@
 package no.nav.su.se.bakover.service.revurdering
 
-import arrow.core.Nel
 import arrow.core.nonEmptyListOf
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
@@ -319,10 +318,10 @@ internal fun Grunnlag.Uføregrunnlag.ekvivalentMed(other: Grunnlag.Uføregrunnla
 internal fun Vilkår.ekvivalentMed(other: Vilkår.Uførhet.Vurdert) {
     this should beOfType<Vilkår.Uførhet.Vurdert>()
     (this as Vilkår.Uførhet.Vurdert).let {
-        (vurderingsperioder as Nel<Vurderingsperiode.Uføre>).let {
+        (vurderingsperioder).let {
             it shouldHaveSize other.vurderingsperioder.size
             it.forEachIndexed { index, vurderingsperiode ->
-                vurderingsperiode.ekvivalentMed((other.vurderingsperioder as Nel<Vurderingsperiode.Uføre>)[index])
+                vurderingsperiode.ekvivalentMed((other.vurderingsperioder)[index])
             }
         }
     }

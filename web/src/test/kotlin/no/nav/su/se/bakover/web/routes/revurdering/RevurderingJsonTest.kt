@@ -102,7 +102,8 @@ internal class RevurderingJsonTest {
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": $expectedVurderingUføreJson,
                   "fradrag": [$expectedFradragsgrunnlagJson],
-                  "bosituasjon": $expectedBosituasjonJson
+                  "bosituasjon": $expectedBosituasjonJson,
+                  "formue": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -168,7 +169,8 @@ internal class RevurderingJsonTest {
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": null,
                   "fradrag": [],
-                  "bosituasjon": []
+                  "bosituasjon": [],
+                  "formue": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -234,7 +236,8 @@ internal class RevurderingJsonTest {
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": null,
                   "fradrag": [],
-                  "bosituasjon": []
+                  "bosituasjon": [],
+                  "formue": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -300,7 +303,8 @@ internal class RevurderingJsonTest {
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": null,
                   "fradrag": [],
-                  "bosituasjon": []
+                  "bosituasjon": [],
+                  "formue": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -371,7 +375,8 @@ internal class RevurderingJsonTest {
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": null,
                   "fradrag": [],
-                  "bosituasjon": []
+                  "bosituasjon": [],
+                  "formue": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -442,7 +447,8 @@ internal class RevurderingJsonTest {
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": null,
                   "fradrag": [],
-                  "bosituasjon": []
+                  "bosituasjon": [],
+                  "formue": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -514,7 +520,8 @@ internal class RevurderingJsonTest {
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": null,
                   "fradrag": [],
-                  "bosituasjon": []
+                  "bosituasjon": [],
+                  "formue": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "Vurdert",
@@ -586,7 +593,8 @@ internal class RevurderingJsonTest {
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": null,
                   "fradrag": [],
-                  "bosituasjon": []
+                  "bosituasjon": [],
+                  "formue": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -655,7 +663,8 @@ internal class RevurderingJsonTest {
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": null,
                   "fradrag": [],
-                  "bosituasjon": []
+                  "bosituasjon": [],
+                  "formue": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -739,7 +748,8 @@ internal class RevurderingJsonTest {
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": null,
                   "fradrag": [],
-                  "bosituasjon": []
+                  "bosituasjon": [],
+                  "formue": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -823,7 +833,8 @@ internal class RevurderingJsonTest {
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": null,
                   "fradrag": [],
-                  "bosituasjon": []
+                  "bosituasjon": [],
+                  "formue": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -904,7 +915,8 @@ internal class RevurderingJsonTest {
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": null,
                   "fradrag": [],
-                  "bosituasjon": []
+                  "bosituasjon": [],
+                  "formue": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -978,7 +990,8 @@ internal class RevurderingJsonTest {
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": null,
                   "fradrag": [],
-                  "bosituasjon": []
+                  "bosituasjon": [],
+                  "formue": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -1052,7 +1065,8 @@ internal class RevurderingJsonTest {
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": null,
                   "fradrag": [],
-                  "bosituasjon": []
+                  "bosituasjon": [],
+                  "formue": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -1123,7 +1137,8 @@ internal class RevurderingJsonTest {
                 "grunnlagsdataOgVilkårsvurderinger": {
                   "uføre": null,
                   "fradrag": [],
-                  "bosituasjon": []
+                  "bosituasjon": [],
+                  "formue": null
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",

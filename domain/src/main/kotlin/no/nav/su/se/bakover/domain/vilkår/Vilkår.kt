@@ -131,7 +131,7 @@ sealed class Vilkår {
         }
 
         data class Vurdert private constructor(
-            val vurderingsperioder: Nel<Vurderingsperiode<Grunnlag.Uføregrunnlag?>>,
+            val vurderingsperioder: Nel<Vurderingsperiode.Uføre>,
         ) : Uførhet() {
             val vilkår = Inngangsvilkår.Uførhet
             val grunnlag: List<Grunnlag.Uføregrunnlag> = vurderingsperioder.mapNotNull {
@@ -158,11 +158,11 @@ sealed class Vilkår {
             companion object {
                 @TestOnly
                 fun create(
-                    vurderingsperioder: Nel<Vurderingsperiode<Grunnlag.Uføregrunnlag?>>,
+                    vurderingsperioder: Nel<Vurderingsperiode.Uføre>,
                 ): Vurdert = tryCreate(vurderingsperioder).getOrHandle { throw IllegalArgumentException(it.toString()) }
 
                 fun tryCreate(
-                    vurderingsperioder: Nel<Vurderingsperiode<Grunnlag.Uføregrunnlag?>>,
+                    vurderingsperioder: Nel<Vurderingsperiode.Uføre>,
                 ): Either<UgyldigUførevilkår, Vurdert> {
                     if (vurderingsperioder.all { v1 ->
                         vurderingsperioder.minus(v1).any { v2 -> v1.periode overlapper v2.periode }
@@ -199,7 +199,7 @@ sealed class Vilkår {
         }
 
         data class Vurdert private constructor(
-            val vurderingsperioder: Nel<Vurderingsperiode<Formuegrunnlag?>>,
+            val vurderingsperioder: Nel<Vurderingsperiode.Formue>,
         ) : Formue() {
             override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Formue =
                 this.copy(
@@ -249,12 +249,12 @@ sealed class Vilkår {
                  * Skal kun kalles fra persistence-laget
                  */
                 fun fromPersistence(
-                    vurderingsperioder: Nel<Vurderingsperiode<Formuegrunnlag?>>,
+                    vurderingsperioder: Nel<Vurderingsperiode.Formue>,
                 ): Vurdert =
                     fromVurderingsperioder(vurderingsperioder).getOrHandle { throw IllegalArgumentException(it.toString()) }
 
                 private fun fromVurderingsperioder(
-                    vurderingsperioder: Nel<Vurderingsperiode<Formuegrunnlag?>>,
+                    vurderingsperioder: Nel<Vurderingsperiode.Formue>,
                 ): Either<UgyldigFormuevilkår, Vurdert> {
                     if (vurderingsperioder.all { v1 ->
                         vurderingsperioder.minus(v1).any { v2 -> v1.periode overlapper v2.periode }
@@ -273,13 +273,13 @@ sealed class Vilkår {
     }
 }
 
-sealed class Vurderingsperiode<T : Grunnlag?> : KanPlasseresPåTidslinje<Vurderingsperiode<T>> {
-    abstract fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Vurderingsperiode<T>
+sealed class Vurderingsperiode {
+    abstract fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Vurderingsperiode
     abstract val id: UUID
-    abstract override val opprettet: Tidspunkt
+    abstract val opprettet: Tidspunkt
     abstract val resultat: Resultat
-    abstract val grunnlag: T?
-    abstract override val periode: Periode
+    abstract val grunnlag: Grunnlag?
+    abstract val periode: Periode
     abstract val begrunnelse: String?
 
     data class Uføre private constructor(
@@ -289,7 +289,7 @@ sealed class Vurderingsperiode<T : Grunnlag?> : KanPlasseresPåTidslinje<Vurderi
         override val grunnlag: Grunnlag.Uføregrunnlag?,
         override val periode: Periode,
         override val begrunnelse: String?,
-    ) : Vurderingsperiode<Grunnlag.Uføregrunnlag?>() {
+    ) : Vurderingsperiode(), KanPlasseresPåTidslinje<Uføre> {
 
         override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Uføre {
             return this.copy(
@@ -364,7 +364,7 @@ sealed class Vurderingsperiode<T : Grunnlag?> : KanPlasseresPåTidslinje<Vurderi
         override val grunnlag: Formuegrunnlag?,
         override val periode: Periode,
         override val begrunnelse: String?,
-    ) : Vurderingsperiode<Formuegrunnlag?>() {
+    ) : Vurderingsperiode(), KanPlasseresPåTidslinje<Formue> {
 
         override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Formue {
             return this.copy(

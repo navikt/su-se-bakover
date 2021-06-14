@@ -1,7 +1,6 @@
 package no.nav.su.se.bakover.web.routes.grunnlag
 
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.vilkår.Inngangsvilkår
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
@@ -16,7 +15,7 @@ internal data class UføreVilkårJson(
     val resultat: Behandlingsinformasjon.Uførhet.Status,
 )
 
-internal fun Vurderingsperiode<Grunnlag.Uføregrunnlag?>.toJson() = VurderingsperiodeUføreJson(
+internal fun Vurderingsperiode.Uføre.toJson() = VurderingsperiodeUføreJson(
     id = id.toString(),
     opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
     resultat = resultat.toStatusString(),

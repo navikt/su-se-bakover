@@ -11,7 +11,6 @@ import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid
 import no.nav.su.se.bakover.database.uuidOrNull
 import no.nav.su.se.bakover.database.withTransaction
-import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
@@ -38,7 +37,7 @@ internal class UføreVilkårsvurderingPostgresRepo(
         }
     }
 
-    private fun lagre(behandlingId: UUID, vurderingsperiode: Vurderingsperiode<Grunnlag.Uføregrunnlag?>, session: Session) {
+    private fun lagre(behandlingId: UUID, vurderingsperiode: Vurderingsperiode.Uføre, session: Session) {
         """
                 insert into vilkårsvurdering_uføre
                 (
@@ -111,7 +110,7 @@ internal class UføreVilkårsvurderingPostgresRepo(
             }
     }
 
-    private fun Row.toVurderingsperioder(session: Session): Vurderingsperiode<Grunnlag.Uføregrunnlag?> {
+    private fun Row.toVurderingsperioder(session: Session): Vurderingsperiode.Uføre {
         return Vurderingsperiode.Uføre.create(
             id = uuid("id"),
             opprettet = tidspunkt("opprettet"),

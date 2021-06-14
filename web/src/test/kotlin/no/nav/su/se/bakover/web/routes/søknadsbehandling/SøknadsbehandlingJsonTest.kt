@@ -132,7 +132,8 @@ internal class SøknadsbehandlingJsonTest {
           "grunnlagsdataOgVilkårsvurderinger": {
             "uføre": $expectedVurderingUføreJson,
             "fradrag": [],
-            "bosituasjon": $expectedBosituasjonJson
+            "bosituasjon": $expectedBosituasjonJson,
+            "formue": null
           }
         }
             """.trimIndent()
@@ -197,7 +198,8 @@ internal class SøknadsbehandlingJsonTest {
           "grunnlagsdataOgVilkårsvurderinger": {
             "uføre": null,
             "fradrag": [],
-            "bosituasjon": []
+            "bosituasjon": [],
+            "formue": null
           }
         }
         """
