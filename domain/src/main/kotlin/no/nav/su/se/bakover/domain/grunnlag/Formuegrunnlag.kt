@@ -1,8 +1,5 @@
 package no.nav.su.se.bakover.domain.grunnlag
 
-import arrow.core.Either
-import arrow.core.getOrHandle
-import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
@@ -67,16 +64,14 @@ data class Formuegrunnlag(
             epsFormue: Verdier?,
             søkersFormue: Verdier,
             begrunnelse: String?,
-        ): Formuegrunnlag = tryCreate(periode, epsFormue, søkersFormue, begrunnelse).getOrHandle {
-            throw IllegalArgumentException(it.toString())
-        }
+        ): Formuegrunnlag = tryCreate(periode, epsFormue, søkersFormue, begrunnelse)
 
         fun tryCreate(
             periode: Periode,
             epsFormue: Verdier?,
             søkersFormue: Verdier,
             begrunnelse: String?,
-        ): Either<KunneIkkeLageFormueGrunnlag, Formuegrunnlag> {
+        ): Formuegrunnlag {
             // kanskje sjekke at bosituasjon har eps for hele perioden hvis vi får inn epsformue her
 
             return Formuegrunnlag(
@@ -86,7 +81,7 @@ data class Formuegrunnlag(
                 epsFormue = epsFormue,
                 søkersFormue = søkersFormue,
                 begrunnelse = begrunnelse,
-            ).right()
+            )
         }
     }
 

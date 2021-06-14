@@ -1160,7 +1160,7 @@ enum class Vurderingstatus(val status: String) {
 enum class Revurderingsteg(val vilkår: String) {
     // BorOgOppholderSegINorge("BorOgOppholderSegINorge"),
     // Flyktning("Flyktning"),
-    // Formue("Formue"),
+    Formue("Formue"),
     // Oppholdstillatelse("Oppholdstillatelse"),
     // PersonligOppmøte("PersonligOppmøte"),
     Uførhet("Uførhet"),

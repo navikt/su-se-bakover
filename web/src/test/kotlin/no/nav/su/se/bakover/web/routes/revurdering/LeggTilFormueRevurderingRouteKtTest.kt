@@ -26,8 +26,9 @@ internal class LeggTilFormueRevurderingRouteKtTest {
 
     //language=JSON
     private val validBody = """
-        {
-          "søkersFormue" : {
+        [{
+           "periode":{"fraOgMed":"2021-05-01","tilOgMed":"2021-12-31"},
+           "søkersFormue" : {
             "verdiIkkePrimærbolig": 0,
             "verdiEiendommer": 0,
             "verdiKjøretøy": 0,
@@ -37,7 +38,7 @@ internal class LeggTilFormueRevurderingRouteKtTest {
             "kontanter": 0,
             "depositumskonto": 0
           }
-        }
+        }]
     """.trimIndent()
 
     @Test

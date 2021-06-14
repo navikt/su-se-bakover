@@ -278,6 +278,11 @@ sealed class KunneIkkeLeggeTilBosituasjongrunnlag {
 
 sealed class KunneIkkeLeggeTilFormuegrunnlag {
     object FantIkkeRevurdering : KunneIkkeLeggeTilFormuegrunnlag()
+    object IkkeLovMedOverlappendePerioder : KunneIkkeLeggeTilFormuegrunnlag()
+    data class UgyldigTilstand(
+        val fra: KClass<out Revurdering>,
+        val til: KClass<out Revurdering>,
+    ) : KunneIkkeLeggeTilFormuegrunnlag()
 }
 
 sealed class KunneIkkeHenteGjeldendeGrunnlagsdataOgVilkårsvurderinger {

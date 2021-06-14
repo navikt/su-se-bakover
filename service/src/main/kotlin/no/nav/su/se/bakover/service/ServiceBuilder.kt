@@ -85,6 +85,7 @@ object ServiceBuilder {
 
         val vilkårsvurderingService = VilkårsvurderingServiceImpl(
             uføreVilkårsvurderingRepo = databaseRepos.uføreVilkårsvurderingRepo,
+            formueVilkårsvurderingRepo = databaseRepos.formueVilkårsvurderingRepo,
         )
 
         val vedtakService = VedtakServiceImpl(

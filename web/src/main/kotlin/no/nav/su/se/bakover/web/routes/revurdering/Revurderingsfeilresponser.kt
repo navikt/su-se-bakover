@@ -57,6 +57,16 @@ internal object Revurderingsfeilresponser {
         "tidslinje_for_vedtak_ikke_kontinuerlig",
     )
 
+    val formueListeKanIkkeVæreTom = BadRequest.errorJson(
+        "Formueliste kan ikke være tom",
+        "formueliste_kan_ikke_være_tom",
+    )
+
+    val ikkeLovMedOverlappendePerioder = BadRequest.errorJson(
+        "Ikke lov med overlappende perioder",
+        "ikke_lov_med_overlappende_perioder",
+    )
+
     fun ugyldigPeriode(ugyldigPeriode: UgyldigPeriode): Resultat {
         return BadRequest.errorJson(
             ugyldigPeriode.toString(),
