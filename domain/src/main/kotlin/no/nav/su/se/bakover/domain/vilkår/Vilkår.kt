@@ -8,7 +8,6 @@ import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
-import no.nav.su.se.bakover.domain.Grunnbeløp
 import no.nav.su.se.bakover.domain.Grunnbeløp.Companion.`0,5G`
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
@@ -441,10 +440,9 @@ sealed class Vurderingsperiode {
                     id = UUID.randomUUID(),
                     opprettet = grunnlag.opprettet,
                     // TODO jah: Nå tar vi første måned, men denne kan forandre seg ila. perioden
-                    resultat = if (grunnlag.sumFormue() <= Grunnbeløp.`0,5G`.fraDato(grunnlag.periode.fraOgMed)) Resultat.Innvilget else Resultat.Avslag,
+                    resultat = if (grunnlag.sumFormue() <= `0,5G`.fraDato(grunnlag.periode.fraOgMed)) Resultat.Innvilget else Resultat.Avslag,
                     grunnlag = grunnlag,
                     periode = grunnlag.periode,
-                    // TODO jah: Skal vi flytte begrunnelsen ut av grunnlaget?
                     begrunnelse = grunnlag.begrunnelse,
                 )
             }
