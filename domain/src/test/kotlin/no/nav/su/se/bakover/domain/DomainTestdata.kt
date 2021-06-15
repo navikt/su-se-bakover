@@ -18,7 +18,7 @@ internal val fixedTidspunkt: Tidspunkt = Tidspunkt.now(fixedClock)
 internal fun formuegrunnlag(
     periode: Periode,
     id: UUID = UUID.randomUUID(),
-    opprettet: Tidspunkt = Tidspunkt.now(),
+    opprettet: Tidspunkt = fixedTidspunkt,
     epsFormue: Formuegrunnlag.Verdier? = null,
 ) = Formuegrunnlag.create(
     id = id,
@@ -29,7 +29,7 @@ internal fun formuegrunnlag(
     begrunnelse = null,
     bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
         id = UUID.randomUUID(),
-        opprettet = Tidspunkt.now(),
+        opprettet = fixedTidspunkt,
         periode = periode,
         begrunnelse = null,
     ),

@@ -149,14 +149,7 @@ internal class OpprettRevurderingServiceTest {
         saksnummer = saksnummer,
         søknad = mock(),
         oppgaveId = mock(),
-        behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().copy(
-            bosituasjon = Behandlingsinformasjon.Bosituasjon(
-                ektefelle = Behandlingsinformasjon.EktefellePartnerSamboer.IngenEktefelle,
-                delerBolig = false,
-                ektemakeEllerSamboerUførFlyktning = null,
-                begrunnelse = null,
-            ),
-        ),
+        behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon().withAlleVilkårOppfylt(),
         fnr = fnr,
         beregning = createBeregningMock(),
         simulering = mock(),
@@ -892,11 +885,24 @@ internal class OpprettRevurderingServiceTest {
                 ),
             ),
         )
+        val bosituasjon = listOf(
+            Grunnlag.Bosituasjon.Fullstendig.Enslig(
+                id = UUID.randomUUID(),
+                opprettet = fixedTidspunkt,
+                periode = periode,
+                begrunnelse = null,
+            ),
+        )
         val andreVedtak = createSøknadsbehandlingVedtak().copy(
             periode = periodePlussEtÅr,
             behandling = createInnvilgetBehandling().copy(
-                grunnlagsdata = Grunnlagsdata(),
-                vilkårsvurderinger = Vilkårsvurderinger(uføre = uførevilkår),
+                grunnlagsdata = Grunnlagsdata(
+                    bosituasjon = bosituasjon,
+                ),
+                vilkårsvurderinger = Vilkårsvurderinger(
+                    uføre = uførevilkår,
+                ),
+                stønadsperiode = Stønadsperiode.create(periodePlussEtÅr),
             ),
         )
 

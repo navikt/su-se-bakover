@@ -11,6 +11,8 @@ import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verify
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import no.nav.su.se.bakover.common.desember
+import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.revurdering.RevurderingRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -31,6 +33,7 @@ import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
 import no.nav.su.se.bakover.domain.revurdering.Revurderingsårsak
 import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
+import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vedtak.GjeldendeVedtaksdata
 import no.nav.su.se.bakover.domain.vilkår.Resultat
@@ -40,6 +43,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.fixedLocalDate
 import no.nav.su.se.bakover.service.fixedTidspunkt
+import no.nav.su.se.bakover.service.formueVilkår
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.sakId
@@ -490,6 +494,12 @@ internal class OppdaterRevurderingServiceTest {
             uføregrad = Uføregrad.parse(25),
             forventetInntekt = 12000,
         )
+        val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
+            id = UUID.randomUUID(),
+            opprettet = fixedTidspunkt,
+            periode = Periode.create(1.januar(2021), 31.desember(2021)),
+            begrunnelse = null,
+        )
         val uførevilkår = Vilkår.Uførhet.Vurdert.create(
             vurderingsperioder = nonEmptyListOf(
                 Vurderingsperiode.Uføre.create(
@@ -500,11 +510,16 @@ internal class OppdaterRevurderingServiceTest {
                 ),
             ),
         )
+        val andreVedtakFormueVilkår = formueVilkår(periodePlussEtÅr)
         val andreVedtak = søknadsbehandlingVedtak.copy(
             periode = periodePlussEtÅr,
             behandling = (søknadsbehandlingVedtak.behandling as Søknadsbehandling.Iverksatt.Innvilget).copy(
-                grunnlagsdata = Grunnlagsdata(),
-                vilkårsvurderinger = Vilkårsvurderinger(uføre = uførevilkår),
+                stønadsperiode = Stønadsperiode.create(periodePlussEtÅr),
+                grunnlagsdata = Grunnlagsdata(bosituasjon = listOf(bosituasjon)),
+                vilkårsvurderinger = Vilkårsvurderinger(
+                    uføre = uførevilkår,
+                    formue = andreVedtakFormueVilkår,
+                ),
             ),
         )
 

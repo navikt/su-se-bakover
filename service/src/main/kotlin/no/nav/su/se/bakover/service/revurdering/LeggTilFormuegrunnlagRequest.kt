@@ -4,21 +4,28 @@ import arrow.core.Either
 import arrow.core.Nel
 import arrow.core.getOrHandle
 import arrow.core.left
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageFormueGrunnlag
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
+import java.time.Clock
 import java.util.UUID
 
 data class LeggTilFormuegrunnlagRequest(
     val revurderingId: UUID,
     val elementer: Nel<Element>,
 ) {
-    fun toDomain(bosituasjon: Grunnlag.Bosituasjon.Fullstendig, behandlingsperiode: Periode): Either<KunneIkkeLeggeTilFormuegrunnlag, Vilkår.Formue.Vurdert> {
+    fun toDomain(
+        bosituasjon: Grunnlag.Bosituasjon.Fullstendig,
+        behandlingsperiode: Periode,
+        clock: Clock,
+    ): Either<KunneIkkeLeggeTilFormuegrunnlag, Vilkår.Formue.Vurdert> {
         return Vilkår.Formue.Vurdert.tryCreate(
             grunnlag = elementer.map { element ->
                 Formuegrunnlag.tryCreate(
+                    opprettet = Tidspunkt.now(clock),
                     periode = element.periode,
                     epsFormue = element.epsFormue,
                     søkersFormue = element.søkersFormue,

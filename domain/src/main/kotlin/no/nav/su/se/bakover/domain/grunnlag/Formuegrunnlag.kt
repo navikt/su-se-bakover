@@ -90,7 +90,7 @@ data class Formuegrunnlag private constructor(
 
         fun tryCreate(
             id: UUID = UUID.randomUUID(),
-            opprettet: Tidspunkt = Tidspunkt.now(),
+            opprettet: Tidspunkt,
             periode: Periode,
             epsFormue: Verdier?,
             søkersFormue: Verdier,

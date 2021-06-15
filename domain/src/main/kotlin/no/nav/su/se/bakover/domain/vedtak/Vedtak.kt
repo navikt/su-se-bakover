@@ -423,7 +423,14 @@ fun List<VedtakSomKanRevurderes>.lagTidslinje(periode: Periode): Tidslinje<Vedta
             opprettet = it.opprettet,
             periode = it.periode,
             grunnlagsdata = it.behandling.grunnlagsdata,
-            vilkårsvurderinger = it.behandling.vilkårsvurderinger,
+            vilkårsvurderinger = it.behandling.vilkårsvurderinger.copy(
+                formue = it.behandling.let { behandling ->
+                    if (behandling is Søknadsbehandling) behandling.behandlingsinformasjon.formue!!.tilVilkår(
+                        stønadsperiode = behandling.stønadsperiode!!,
+                        bosituasjon = behandling.grunnlagsdata.bosituasjon,
+                    ) else behandling.vilkårsvurderinger.formue
+                },
+            ),
             fradrag = it.beregning.getFradrag(),
             originaltVedtak = it,
         )

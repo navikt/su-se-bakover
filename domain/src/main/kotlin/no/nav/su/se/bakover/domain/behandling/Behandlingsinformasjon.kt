@@ -3,21 +3,27 @@ package no.nav.su.se.bakover.domain.behandling
 import arrow.core.Either
 import arrow.core.getOrHandle
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonTypeInfo
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslagsgrunn
 import no.nav.su.se.bakover.domain.beregning.BeregningStrategy
 import no.nav.su.se.bakover.domain.beregning.Sats
+import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
+import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
+import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import java.time.LocalDate
 import java.time.Period
+import java.util.UUID
 
 data class Behandlingsinformasjon(
     val uførhet: Uførhet? = null,
@@ -278,6 +284,48 @@ data class Behandlingsinformasjon(
 
         fun harEpsFormue(): Boolean {
             return epsVerdier?.erVerdierStørreEnn0() == true
+        }
+
+        fun tilVilkår(
+            stønadsperiode: Stønadsperiode,
+            bosituasjon: List<Grunnlag.Bosituasjon>,
+        ): Vilkår.Formue {
+            return Vilkår.Formue.Vurdert.create(
+                grunnlag = nonEmptyListOf(
+                    Formuegrunnlag.create(
+                        id = UUID.randomUUID(),
+                        opprettet = Tidspunkt.now(),
+                        periode = stønadsperiode.periode,
+                        epsFormue = this.epsVerdier?.let {
+                            Formuegrunnlag.Verdier(
+                                verdiIkkePrimærbolig = it.verdiIkkePrimærbolig ?: 0,
+                                verdiEiendommer = it.verdiEiendommer ?: 0,
+                                verdiKjøretøy = it.verdiKjøretøy ?: 0,
+                                innskudd = it.innskudd ?: 0,
+                                verdipapir = it.verdipapir ?: 0,
+                                pengerSkyldt = it.pengerSkyldt ?: 0,
+                                kontanter = it.kontanter ?: 0,
+                                depositumskonto = it.depositumskonto ?: 0,
+                            )
+                        },
+                        søkersFormue = this.verdier.let {
+                            Formuegrunnlag.Verdier(
+                                verdiIkkePrimærbolig = it?.verdiIkkePrimærbolig ?: 0,
+                                verdiEiendommer = it?.verdiEiendommer ?: 0,
+                                verdiKjøretøy = it?.verdiKjøretøy ?: 0,
+                                innskudd = it?.innskudd ?: 0,
+                                verdipapir = it?.verdipapir ?: 0,
+                                pengerSkyldt = it?.pengerSkyldt ?: 0,
+                                kontanter = it?.kontanter ?: 0,
+                                depositumskonto = it?.depositumskonto ?: 0,
+                            )
+                        },
+                        begrunnelse = this.begrunnelse,
+                        bosituasjon = bosituasjon.singleFullstendigOrThrow(),
+                        behandlingsPeriode = stønadsperiode.periode,
+                    ),
+                ),
+            )
         }
     }
 
