@@ -59,7 +59,7 @@ internal class FormuegrunnlagPostgresRepo() {
             opprettet = tidspunkt("opprettet"),
             epsFormue = stringOrNull("epsFormue")?.let { deserialize(it) },
             søkersFormue = deserialize(string("søkerFormue")),
-            begrunnelse = "begrunnelse",
+            begrunnelse = stringOrNull("begrunnelse"),
         )
     }
 
