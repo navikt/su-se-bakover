@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.domain.revurdering
 import arrow.core.nonEmptyListOf
 import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.beOfType
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.april
@@ -29,14 +28,12 @@ import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
 internal class RevurderingTest {
 
     @Test
-    @Disabled // TODO vi bør sannsynligvis endre på dette slik at vi vurderer vilkårene lenge før vi gjennomfører beregning
     fun `beregning gir opphør hvis vilkår ikke er oppfylt`() {
         val periode = Periode.create(1.januar(2021), 31.desember(2021))
         lagRevurdering(
@@ -66,6 +63,7 @@ internal class RevurderingTest {
         ).copy(informasjonSomRevurderes = InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert)))
             .beregn(eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(20000, periode)))).orNull()!!.let {
             it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
+            (it as BeregnetRevurdering.Opphørt).utledOpphørsgrunner() shouldBe listOf(Opphørsgrunn.UFØRHET)
             it.informasjonSomRevurderes[Revurderingsteg.Inntekt] shouldBe Vurderingstatus.Vurdert
         }
     }
@@ -99,7 +97,7 @@ internal class RevurderingTest {
             ),
         ).copy(informasjonSomRevurderes = InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert)))
             .beregn(eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(20000, periode)))).orNull()!!.let {
-            it shouldNotBe beOfType<BeregnetRevurdering.Opphørt>()
+            it shouldBe beOfType<BeregnetRevurdering.IngenEndring>()
             it.informasjonSomRevurderes[Revurderingsteg.Inntekt] shouldBe Vurderingstatus.Vurdert
         }
     }
@@ -115,7 +113,7 @@ internal class RevurderingTest {
                         Vurderingsperiode.Uføre.create(
                             id = UUID.randomUUID(),
                             opprettet = Tidspunkt.now(),
-                            resultat = Resultat.Avslag,
+                            resultat = Resultat.Innvilget,
                             grunnlag = null,
                             periode = periode,
                             begrunnelse = null,
@@ -346,6 +344,7 @@ internal class RevurderingTest {
             eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(14000, periode))),
         ).orNull()!!.let {
             it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
+            (it as BeregnetRevurdering.Opphørt).utledOpphørsgrunner() shouldBe listOf(Opphørsgrunn.FOR_HØY_INNTEKT)
         }
     }
 

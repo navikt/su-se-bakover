@@ -14,9 +14,7 @@ import no.nav.su.se.bakover.domain.Saksnummer
 import no.nav.su.se.bakover.domain.behandling.Attestering
 import no.nav.su.se.bakover.domain.behandling.Behandling
 import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
-import no.nav.su.se.bakover.domain.behandling.VurderAvslagGrunnetBeregning
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
-import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn.Companion.toOpphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Beregningsgrunnlag
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradrag
@@ -170,6 +168,11 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
                 } else informasjonSomRevurderes,
             )
 
+        // TODO jm: sjekk av vilkår og verifisering av dette bør sannsynligvis legges til et tidspunkt før selve beregningen finner sted. Snarvei inntil videre, da vi mangeler "infrastruktur" for dette pt.  Bør være en tydeligere del av modellen for revurdering.
+        if (VurderOmVilkårGirOpphørVedRevurdering(vilkårsvurderinger).resultat is OpphørVedRevurdering.Ja) {
+            return opphør(revurdertBeregning).right()
+        }
+
         return when (revurderingsårsak.årsak) {
             Revurderingsårsak.Årsak.REGULER_GRUNNBELØP -> {
                 when (
@@ -180,8 +183,7 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
                 ) {
                     true -> {
                         when (
-                            VurderOpphørVedRevurdering(
-                                vilkårsvurderinger = vilkårsvurderinger,
+                            VurderOmBeregningGirOpphørVedRevurdering(
                                 beregning = revurdertBeregning,
                                 clock = Clock.systemUTC(),
                             ).resultat
@@ -206,8 +208,7 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
                 ) {
                     true -> {
                         when (
-                            VurderOpphørVedRevurdering(
-                                vilkårsvurderinger = vilkårsvurderinger,
+                            VurderOmBeregningGirOpphørVedRevurdering(
                                 beregning = revurdertBeregning,
                                 clock = Clock.systemUTC(),
                             ).resultat
@@ -452,9 +453,12 @@ sealed class BeregnetRevurdering : Revurdering() {
             informasjonSomRevurderes = informasjonSomRevurderes,
         )
 
-        // TODO må utledes på samme måte som ved kall til beregn()
-        fun utledOpphørsgrunner(): List<Opphørsgrunn> = vilkårsvurderinger.utledOpphørsgrunner() +
-            listOfNotNull(VurderAvslagGrunnetBeregning.hentAvslagsgrunnForBeregning(beregning).toOpphørsgrunn())
+        fun utledOpphørsgrunner(): List<Opphørsgrunn> {
+            return when (val opphør = VurderOpphørVedRevurdering(vilkårsvurderinger, beregning).resultat) {
+                is OpphørVedRevurdering.Ja -> opphør.opphørsgrunner
+                OpphørVedRevurdering.Nei -> emptyList()
+            }
+        }
 
         override fun accept(visitor: RevurderingVisitor) {
             visitor.visit(this)
@@ -539,8 +543,12 @@ sealed class SimulertRevurdering : Revurdering() {
             visitor.visit(this)
         }
 
-        fun utledOpphørsgrunner(): List<Opphørsgrunn> = vilkårsvurderinger.utledOpphørsgrunner() +
-            listOfNotNull(VurderAvslagGrunnetBeregning.hentAvslagsgrunnForBeregning(beregning).toOpphørsgrunn())
+        fun utledOpphørsgrunner(): List<Opphørsgrunn> {
+            return when (val opphør = VurderOpphørVedRevurdering(vilkårsvurderinger, beregning).resultat) {
+                is OpphørVedRevurdering.Ja -> opphør.opphørsgrunner
+                OpphørVedRevurdering.Nei -> emptyList()
+            }
+        }
 
         fun tilAttestering(
             attesteringsoppgaveId: OppgaveId,
@@ -679,8 +687,12 @@ sealed class RevurderingTilAttestering : Revurdering() {
             visitor.visit(this)
         }
 
-        fun utledOpphørsgrunner(): List<Opphørsgrunn> = vilkårsvurderinger.utledOpphørsgrunner() +
-            listOfNotNull(VurderAvslagGrunnetBeregning.hentAvslagsgrunnForBeregning(beregning).toOpphørsgrunn())
+        fun utledOpphørsgrunner(): List<Opphørsgrunn> {
+            return when (val opphør = VurderOpphørVedRevurdering(vilkårsvurderinger, beregning).resultat) {
+                is OpphørVedRevurdering.Ja -> opphør.opphørsgrunner
+                OpphørVedRevurdering.Nei -> emptyList()
+            }
+        }
 
         // TODO: sjekk om vi skal utbetale 0 utbetalinger, eller ny status
         fun tilIverksatt(
@@ -904,8 +916,12 @@ sealed class IverksattRevurdering : Revurdering() {
             visitor.visit(this)
         }
 
-        fun utledOpphørsgrunner(): List<Opphørsgrunn> = vilkårsvurderinger.utledOpphørsgrunner() +
-            listOfNotNull(VurderAvslagGrunnetBeregning.hentAvslagsgrunnForBeregning(beregning).toOpphørsgrunn())
+        fun utledOpphørsgrunner(): List<Opphørsgrunn> {
+            return when (val opphør = VurderOpphørVedRevurdering(vilkårsvurderinger, beregning).resultat) {
+                is OpphørVedRevurdering.Ja -> opphør.opphørsgrunner
+                OpphørVedRevurdering.Nei -> emptyList()
+            }
+        }
     }
 
     data class IngenEndring(
@@ -1011,8 +1027,12 @@ sealed class UnderkjentRevurdering : Revurdering() {
             visitor.visit(this)
         }
 
-        fun utledOpphørsgrunner(): List<Opphørsgrunn> = vilkårsvurderinger.utledOpphørsgrunner() +
-            listOfNotNull(VurderAvslagGrunnetBeregning.hentAvslagsgrunnForBeregning(beregning).toOpphørsgrunn())
+        fun utledOpphørsgrunner(): List<Opphørsgrunn> {
+            return when (val opphør = VurderOpphørVedRevurdering(vilkårsvurderinger, beregning).resultat) {
+                is OpphørVedRevurdering.Ja -> opphør.opphørsgrunner
+                OpphørVedRevurdering.Nei -> emptyList()
+            }
+        }
 
         fun harSimuleringFeilutbetaling() = simulering.harFeilutbetalinger()
 
