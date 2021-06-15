@@ -5,6 +5,7 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.database.utbetaling.UtbetalingRepo
 import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
@@ -121,6 +122,7 @@ internal class FerdigstillVedtakServiceImpl(
                     log.error("Prøver ikke å ferdigstille innvilgelse siden kvitteringen fra oppdrag ikke var OK.")
                 } else {
                     val vedtak = vedtakRepo.hentForUtbetaling(utbetaling.id)
+                        ?: throw KunneIkkeFerdigstilleVedtakException(utbetaling.id)
                     ferdigstillVedtak(vedtak).getOrHandle {
                         throw KunneIkkeFerdigstilleVedtakException(vedtak, it)
                     }
@@ -403,9 +405,14 @@ internal class FerdigstillVedtakServiceImpl(
         }
     }
 
-    internal data class KunneIkkeFerdigstilleVedtakException(
-        private val vedtak: Vedtak,
-        private val error: KunneIkkeFerdigstilleVedtak,
-        val msg: String = "Kunne ikke ferdigstille vedtakId: ${vedtak.id}. Original feil: ${error::class.qualifiedName}",
-    ) : RuntimeException(msg)
+    internal data class KunneIkkeFerdigstilleVedtakException private constructor(
+        val msg: String,
+    ) : RuntimeException(msg) {
+
+        constructor(vedtak: Vedtak, error: KunneIkkeFerdigstilleVedtak) : this(
+            "Kunne ikke ferdigstille vedtak - id: ${vedtak.id}. Original feil: ${error::class.qualifiedName}",
+        )
+
+        constructor(utbetalingId: UUID30) : this("Kunne ikke ferdigstille vedtak - fant ikke vedtaket som tilhører utbetaling $utbetalingId. Dette kan være en timing issue.")
+    }
 }

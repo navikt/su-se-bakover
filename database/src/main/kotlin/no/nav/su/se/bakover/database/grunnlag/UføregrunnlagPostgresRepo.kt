@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.database.grunnlag
 import kotliquery.Row
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.Session
+import no.nav.su.se.bakover.database.TransactionalSession
 import no.nav.su.se.bakover.database.hent
 import no.nav.su.se.bakover.database.hentListe
 import no.nav.su.se.bakover.database.insert
@@ -15,7 +16,7 @@ import java.util.UUID
 
 internal class UføregrunnlagPostgresRepo {
 
-    internal fun lagre(behandlingId: UUID, uføregrunnlag: List<Grunnlag.Uføregrunnlag>, session: Session) {
+    internal fun lagre(behandlingId: UUID, uføregrunnlag: List<Grunnlag.Uføregrunnlag>, session: TransactionalSession) {
         slettForBehandlingId(behandlingId, session)
         uføregrunnlag.forEach {
             lagre(it, behandlingId, session)

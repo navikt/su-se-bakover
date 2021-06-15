@@ -38,7 +38,9 @@ internal class UføregrunnlagPostgresRepoTest {
             )
 
             datasource.withSession { session ->
-                grunnlagRepo.lagre(behandling.id, listOf(uføregrunnlag1, uføregrunnlag2), session)
+                session.transaction { tx ->
+                    grunnlagRepo.lagre(behandling.id, listOf(uføregrunnlag1, uføregrunnlag2), tx)
+                }
                 grunnlagRepo.hentUføregrunnlag(behandling.id, session) shouldBe listOf(
                     uføregrunnlag1,
                     uføregrunnlag2,

@@ -154,6 +154,8 @@ sealed class KunneIkkeOppretteRevurdering {
     data class UgyldigPeriode(val subError: Periode.UgyldigPeriode) : KunneIkkeOppretteRevurdering()
     object FantIkkeAktørId : KunneIkkeOppretteRevurdering()
     object KunneIkkeOppretteOppgave : KunneIkkeOppretteRevurdering()
+    object BosituasjonMedFlerePerioderMåRevurderes : KunneIkkeOppretteRevurdering()
+    object EpsInntektMedFlereBosituasjonsperioderMåRevurderes : KunneIkkeOppretteRevurdering()
 }
 
 sealed class KunneIkkeOppdatereRevurdering {
@@ -164,9 +166,13 @@ sealed class KunneIkkeOppdatereRevurdering {
     object UgyldigÅrsak : KunneIkkeOppdatereRevurdering()
     object UgyldigBegrunnelse : KunneIkkeOppdatereRevurdering()
     data class UgyldigPeriode(val subError: Periode.UgyldigPeriode) : KunneIkkeOppdatereRevurdering()
-    data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) : KunneIkkeOppdatereRevurdering()
+    data class UgyldigTilstand(val fra: KClass<out Revurdering>, val til: KClass<out Revurdering>) :
+        KunneIkkeOppdatereRevurdering()
+
     object FantIkkeRevurdering : KunneIkkeOppdatereRevurdering()
     object KanIkkeOppdatereRevurderingSomErForhåndsvarslet : KunneIkkeOppdatereRevurdering()
+    object BosituasjonMedFlerePerioderMåRevurderes : KunneIkkeOppdatereRevurdering()
+    object EpsInntektMedFlereBosituasjonsperioderMåRevurderes : KunneIkkeOppdatereRevurdering()
 }
 
 sealed class KunneIkkeBeregneOgSimulereRevurdering {

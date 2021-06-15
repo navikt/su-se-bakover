@@ -462,7 +462,9 @@ internal class TestDataHelper(
         dataSource.withSession { session ->
             bosituasjongrunnlagPostgresRepo.lagreBosituasjongrunnlag(behandlingId, grunnlagsdata.bosituasjon)
             fradragsgrunnlagPostgresRepo.lagreFradragsgrunnlag(behandlingId, grunnlagsdata.fradragsgrunnlag)
-            uføregrunnlagPostgresRepo.lagre(behandlingId, grunnlagsdata.uføregrunnlag, session)
+            session.transaction { tx ->
+                uføregrunnlagPostgresRepo.lagre(behandlingId, grunnlagsdata.uføregrunnlag, tx)
+            }
             vilkårsvurderingRepo.lagre(behandlingId, vilkårsvurderinger.uføre)
         }
     }
