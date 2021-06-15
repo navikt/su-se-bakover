@@ -12,6 +12,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.testing.setBody
 import io.ktor.server.testing.withTestApplication
 import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilFormuegrunnlag
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.defaultRequest
@@ -73,8 +74,104 @@ internal class LeggTilFormueRevurderingRouteKtTest {
 
     @Test
     fun `fant ikke revurdering`() {
+        assertErrorMapsToJson(
+            error = KunneIkkeLeggeTilFormuegrunnlag.FantIkkeRevurdering,
+            expectStatusCode = HttpStatusCode.NotFound,
+            expectErrorJson = """
+                {
+                    "message":"Fant ikke revurdering",
+                    "code":"fant_ikke_revurdering"
+                }
+            """.trimIndent(),
+
+        )
+    }
+
+    @Test
+    fun `ugyldig tilstand`() {
+        assertErrorMapsToJson(
+            error = KunneIkkeLeggeTilFormuegrunnlag.UgyldigTilstand(
+                OpprettetRevurdering::class,
+                OpprettetRevurdering::class,
+            ),
+            expectStatusCode = HttpStatusCode.BadRequest,
+            expectErrorJson = """
+                {
+                    "message":"Kan ikke gå fra tilstanden OpprettetRevurdering til tilstanden OpprettetRevurdering",
+                    "code":"ugyldig_tilstand"
+                }
+            """.trimIndent(),
+
+        )
+    }
+
+    @Test
+    fun `ikke lov med overlappende perioder`() {
+        assertErrorMapsToJson(
+            error = KunneIkkeLeggeTilFormuegrunnlag.IkkeLovMedOverlappendePerioder,
+            expectStatusCode = HttpStatusCode.BadRequest,
+            expectErrorJson = """
+                {
+                    "message":"Ikke lov med overlappende perioder",
+                    "code":"ikke_lov_med_overlappende_perioder"
+                }
+            """.trimIndent(),
+
+        )
+    }
+
+    @Test
+    fun `eps formueperioder er utenfor bosituasjonsperioden`() {
+        assertErrorMapsToJson(
+            error = KunneIkkeLeggeTilFormuegrunnlag.EpsFormueperiodeErUtenforBosituasjonPeriode,
+            expectStatusCode = HttpStatusCode.BadRequest,
+            expectErrorJson = """
+                {
+                    "message":"Ikke lov med formueperiode utenfor bosituasjonperioder",
+                    "code":"ikke_lov_med_formueperiode_utenfor_bosituasjonperiode"
+                }
+            """.trimIndent(),
+
+        )
+    }
+
+    @Test
+    fun `formueperioden er utenfor behandlingsperioden`() {
+        assertErrorMapsToJson(
+            error = KunneIkkeLeggeTilFormuegrunnlag.FormuePeriodeErUtenforBehandlingsperioden,
+            expectStatusCode = HttpStatusCode.BadRequest,
+            expectErrorJson = """
+                {
+                    "message":"Ikke lov med formueperiode utenfor behandlingsperioden",
+                    "code":"ikke_lov_med_formueperiode_utenfor_behandlingsperioden"
+                }
+            """.trimIndent(),
+
+        )
+    }
+
+    @Test
+    fun `må ha EPS hvis man har lagt inn eps formue`() {
+        assertErrorMapsToJson(
+            error = KunneIkkeLeggeTilFormuegrunnlag.MåHaEpsHvisManHarSattEpsFormue,
+            expectStatusCode = HttpStatusCode.BadRequest,
+            expectErrorJson = """
+                {
+                    "message":"Ikke lov med formue for eps hvis man ikke har eps",
+                    "code":"ikke_lov_med_formue_for_eps_hvis_man_ikke_har_eps"
+                }
+            """.trimIndent(),
+
+        )
+    }
+
+    private fun assertErrorMapsToJson(
+        error: KunneIkkeLeggeTilFormuegrunnlag,
+        expectStatusCode: HttpStatusCode,
+        expectErrorJson: String,
+    ) {
         val revurderingServiceMock = mock<RevurderingService> {
-            on { leggTilFormuegrunnlag(any()) } doReturn KunneIkkeLeggeTilFormuegrunnlag.FantIkkeRevurdering.left()
+            on { leggTilFormuegrunnlag(any()) } doReturn error.left()
         }
 
         withTestApplication(
@@ -89,14 +186,9 @@ internal class LeggTilFormueRevurderingRouteKtTest {
             ) {
                 setBody(validBody)
             }.apply {
-                response.status() shouldBe HttpStatusCode.NotFound
+                response.status() shouldBe expectStatusCode
                 JSONAssert.assertEquals(
-                    """
-                            {
-                                "message":"Fant ikke revurdering",
-                                "code":"fant_ikke_revurdering"
-                            }
-                    """.trimIndent(),
+                    expectErrorJson,
                     response.content,
                     true,
                 )
