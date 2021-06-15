@@ -9,6 +9,7 @@ import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.Grunnbeløp
+import no.nav.su.se.bakover.domain.Grunnbeløp.Companion.`0,5G`
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -188,7 +189,18 @@ sealed class Vilkår {
     }
 
     sealed class Formue : Vilkår() {
+
         abstract fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Formue
+
+        /* § 8. Formue over 0,5 ganger grunnbeløpet gir avslag i søknaden. */
+        val vilkår = Inngangsvilkår.Formue
+
+        /**
+         * Definert i paragraf 8 til 0.5 G som vanligvis endrer seg 1. mai, årlig.
+         */
+        val formuegrenser: List<Pair<LocalDate, Int>> =
+            `0,5G`.alleFraDato(LocalDate.of(2021, 1, 1))
+
         object IkkeVurdert : Formue() {
             override val resultat: Resultat = Resultat.Uavklart
             override val erAvslag = false
@@ -225,7 +237,6 @@ sealed class Vilkår {
                     .minByOrNull { it }
             }
 
-            val vilkår = Inngangsvilkår.Formue
             val grunnlag: List<Formuegrunnlag> = vurderingsperioder.mapNotNull {
                 it.grunnlag
             }

@@ -3,6 +3,7 @@ package no.nav.su.se.bakover.domain
 import com.fasterxml.jackson.annotation.JsonValue
 import java.time.LocalDate
 import java.time.Month
+import kotlin.math.roundToInt
 
 class Grunnbeløp private constructor(private val multiplier: Double) {
     private val datoToBeløp: Map<LocalDate, Int> = listOfNotNull(
@@ -20,6 +21,18 @@ class Grunnbeløp private constructor(private val multiplier: Double) {
     fun datoForSisteEndringAvGrunnbeløp(forDato: LocalDate): LocalDate = datoToBeløp.entries
         .sortedByDescending { it.key }
         .first { forDato.isAfter(it.key) || forDato.isEqual(it.key) }.key
+
+    fun alleFraDato(dato: LocalDate): List<Pair<LocalDate, Int>> = datoToBeløp.entries
+        .sortedByDescending { it.key }
+        // TODO jah: Påkall ingar for å finne en sweetere funksjon enn fold.
+        .fold(emptyList<Map.Entry<LocalDate, Int>>()) { acc, entry ->
+            if (entry.key.isAfter(dato) || entry.key.isEqual(dato) || acc.none {
+                it.key.isBefore(dato) || it.key.isEqual(dato)
+            }
+            ) acc + entry else acc
+        }
+        .mapNotNull { it }
+        .map { it.key to (it.value * multiplier).roundToInt() }
 
     companion object {
         val `2,28G` = Grunnbeløp(2.28)

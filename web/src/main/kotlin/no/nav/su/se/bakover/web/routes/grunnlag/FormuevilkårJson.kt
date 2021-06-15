@@ -5,12 +5,14 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.beregning.PeriodeJson.Companion.toJson
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 internal data class FormuevilkårJson(
     val vilkår: String,
     val vurderinger: List<VurderingsperiodeFormueJson>,
     val resultat: Behandlingsinformasjon.Uførhet.Status,
+    val formuegrenser: List<FormuegrenseJson>,
 )
 
 internal data class VurderingsperiodeFormueJson(
@@ -22,12 +24,15 @@ internal data class VurderingsperiodeFormueJson(
     val begrunnelse: String?,
 )
 
-internal fun Vilkår.Formue.toJson(): FormuevilkårJson? = when (this) {
-    Vilkår.Formue.IkkeVurdert -> null
-    is Vilkår.Formue.Vurdert -> FormuevilkårJson(
+internal fun Vilkår.Formue.toJson(): FormuevilkårJson {
+    return FormuevilkårJson(
         vilkår = vilkår.toJson(),
-        vurderinger = vurderingsperioder.map { it.toJson() },
+        vurderinger = when (this) {
+            is Vilkår.Formue.IkkeVurdert -> emptyList()
+            is Vilkår.Formue.Vurdert -> vurderingsperioder.map { it.toJson() }
+        },
         resultat = resultat.toStatusString(),
+        formuegrenser = this.formuegrenser.toJson(),
     )
 }
 
@@ -40,4 +45,18 @@ internal fun Vurderingsperiode.Formue.toJson(): VurderingsperiodeFormueJson {
         periode = periode.toJson(),
         begrunnelse = begrunnelse,
     )
+}
+
+internal data class FormuegrenseJson(
+    val gyldigFra: String,
+    val beløp: Int,
+)
+
+internal fun List<Pair<LocalDate, Int>>.toJson(): List<FormuegrenseJson> {
+    return this.map {
+        FormuegrenseJson(
+            gyldigFra = it.first.format(DateTimeFormatter.ISO_DATE),
+            beløp = it.second,
+        )
+    }
 }

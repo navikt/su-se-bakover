@@ -101,7 +101,21 @@ internal class RevurderingJsonTest {
                   "uføre": $expectedVurderingUføreJson,
                   "fradrag": [$expectedFradragsgrunnlagJson],
                   "bosituasjon": $expectedBosituasjonJson,
-                  "formue": null
+                             "formue": {
+                    "resultat": "HarUføresakTilBehandling",
+                    "formuegrenser": [
+                      {
+                          "gyldigFra": "2021-05-01",
+                          "beløp": 53200
+                      },
+                      {
+                          "gyldigFra": "2020-05-01",
+                          "beløp": 50676
+                      }
+                    ],
+                    "vilkår": "Formue",
+                    "vurderinger": []
+                  }
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -168,7 +182,21 @@ internal class RevurderingJsonTest {
                   "uføre": null,
                   "fradrag": [],
                   "bosituasjon": [],
-                  "formue": null
+                             "formue": {
+                    "resultat": "HarUføresakTilBehandling",
+                    "formuegrenser": [
+                      {
+                          "gyldigFra": "2021-05-01",
+                          "beløp": 53200
+                      },
+                      {
+                          "gyldigFra": "2020-05-01",
+                          "beløp": 50676
+                      }
+                    ],
+                    "vilkår": "Formue",
+                    "vurderinger": []
+                  }
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -235,7 +263,21 @@ internal class RevurderingJsonTest {
                   "uføre": null,
                   "fradrag": [],
                   "bosituasjon": [],
-                  "formue": null
+                             "formue": {
+                    "resultat": "HarUføresakTilBehandling",
+                    "formuegrenser": [
+                      {
+                          "gyldigFra": "2021-05-01",
+                          "beløp": 53200
+                      },
+                      {
+                          "gyldigFra": "2020-05-01",
+                          "beløp": 50676
+                      }
+                    ],
+                    "vilkår": "Formue",
+                    "vurderinger": []
+                  }
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -302,7 +344,21 @@ internal class RevurderingJsonTest {
                   "uføre": null,
                   "fradrag": [],
                   "bosituasjon": [],
-                  "formue": null
+                             "formue": {
+                    "resultat": "HarUføresakTilBehandling",
+                    "formuegrenser": [
+                      {
+                          "gyldigFra": "2021-05-01",
+                          "beløp": 53200
+                      },
+                      {
+                          "gyldigFra": "2020-05-01",
+                          "beløp": 50676
+                      }
+                    ],
+                    "vilkår": "Formue",
+                    "vurderinger": []
+                  }
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -374,7 +430,21 @@ internal class RevurderingJsonTest {
                   "uføre": null,
                   "fradrag": [],
                   "bosituasjon": [],
-                  "formue": null
+                             "formue": {
+                    "resultat": "HarUføresakTilBehandling",
+                    "formuegrenser": [
+                      {
+                          "gyldigFra": "2021-05-01",
+                          "beløp": 53200
+                      },
+                      {
+                          "gyldigFra": "2020-05-01",
+                          "beløp": 50676
+                      }
+                    ],
+                    "vilkår": "Formue",
+                    "vurderinger": []
+                  }
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -446,7 +516,21 @@ internal class RevurderingJsonTest {
                   "uføre": null,
                   "fradrag": [],
                   "bosituasjon": [],
-                  "formue": null
+                             "formue": {
+                    "resultat": "HarUføresakTilBehandling",
+                    "formuegrenser": [
+                      {
+                          "gyldigFra": "2021-05-01",
+                          "beløp": 53200
+                      },
+                      {
+                          "gyldigFra": "2020-05-01",
+                          "beløp": 50676
+                      }
+                    ],
+                    "vilkår": "Formue",
+                    "vurderinger": []
+                  }
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -519,7 +603,21 @@ internal class RevurderingJsonTest {
                   "uføre": null,
                   "fradrag": [],
                   "bosituasjon": [],
-                  "formue": null
+                             "formue": {
+                    "resultat": "HarUføresakTilBehandling",
+                    "formuegrenser": [
+                      {
+                          "gyldigFra": "2021-05-01",
+                          "beløp": 53200
+                      },
+                      {
+                          "gyldigFra": "2020-05-01",
+                          "beløp": 50676
+                      }
+                    ],
+                    "vilkår": "Formue",
+                    "vurderinger": []
+                  }
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "Vurdert",
@@ -592,7 +690,21 @@ internal class RevurderingJsonTest {
                   "uføre": null,
                   "fradrag": [],
                   "bosituasjon": [],
-                  "formue": null
+                             "formue": {
+                    "resultat": "HarUføresakTilBehandling",
+                    "formuegrenser": [
+                      {
+                          "gyldigFra": "2021-05-01",
+                          "beløp": 53200
+                      },
+                      {
+                          "gyldigFra": "2020-05-01",
+                          "beløp": 50676
+                      }
+                    ],
+                    "vilkår": "Formue",
+                    "vurderinger": []
+                  }
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -662,7 +774,21 @@ internal class RevurderingJsonTest {
                   "uføre": null,
                   "fradrag": [],
                   "bosituasjon": [],
-                  "formue": null
+                             "formue": {
+                    "resultat": "HarUføresakTilBehandling",
+                    "formuegrenser": [
+                      {
+                          "gyldigFra": "2021-05-01",
+                          "beløp": 53200
+                      },
+                      {
+                          "gyldigFra": "2020-05-01",
+                          "beløp": 50676
+                      }
+                    ],
+                    "vilkår": "Formue",
+                    "vurderinger": []
+                  }
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -747,7 +873,21 @@ internal class RevurderingJsonTest {
                   "uføre": null,
                   "fradrag": [],
                   "bosituasjon": [],
-                  "formue": null
+                             "formue": {
+                    "resultat": "HarUføresakTilBehandling",
+                    "formuegrenser": [
+                      {
+                          "gyldigFra": "2021-05-01",
+                          "beløp": 53200
+                      },
+                      {
+                          "gyldigFra": "2020-05-01",
+                          "beløp": 50676
+                      }
+                    ],
+                    "vilkår": "Formue",
+                    "vurderinger": []
+                  }
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -832,7 +972,21 @@ internal class RevurderingJsonTest {
                   "uføre": null,
                   "fradrag": [],
                   "bosituasjon": [],
-                  "formue": null
+                             "formue": {
+                    "resultat": "HarUføresakTilBehandling",
+                    "formuegrenser": [
+                      {
+                          "gyldigFra": "2021-05-01",
+                          "beløp": 53200
+                      },
+                      {
+                          "gyldigFra": "2020-05-01",
+                          "beløp": 50676
+                      }
+                    ],
+                    "vilkår": "Formue",
+                    "vurderinger": []
+                  }
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -914,7 +1068,21 @@ internal class RevurderingJsonTest {
                   "uføre": null,
                   "fradrag": [],
                   "bosituasjon": [],
-                  "formue": null
+                             "formue": {
+                    "resultat": "HarUføresakTilBehandling",
+                    "formuegrenser": [
+                      {
+                          "gyldigFra": "2021-05-01",
+                          "beløp": 53200
+                      },
+                      {
+                          "gyldigFra": "2020-05-01",
+                          "beløp": 50676
+                      }
+                    ],
+                    "vilkår": "Formue",
+                    "vurderinger": []
+                  }
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -989,7 +1157,21 @@ internal class RevurderingJsonTest {
                   "uføre": null,
                   "fradrag": [],
                   "bosituasjon": [],
-                  "formue": null
+                  "formue": {
+                    "resultat": "HarUføresakTilBehandling",
+                    "formuegrenser": [
+                      {
+                          "gyldigFra": "2021-05-01",
+                          "beløp": 53200
+                      },
+                      {
+                          "gyldigFra": "2020-05-01",
+                          "beløp": 50676
+                      }
+                    ],
+                    "vilkår": "Formue",
+                    "vurderinger": []
+                  }
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -1064,7 +1246,21 @@ internal class RevurderingJsonTest {
                   "uføre": null,
                   "fradrag": [],
                   "bosituasjon": [],
-                  "formue": null
+                             "formue": {
+                    "resultat": "HarUføresakTilBehandling",
+                    "formuegrenser": [
+                      {
+                          "gyldigFra": "2021-05-01",
+                          "beløp": 53200
+                      },
+                      {
+                          "gyldigFra": "2020-05-01",
+                          "beløp": 50676
+                      }
+                    ],
+                    "vilkår": "Formue",
+                    "vurderinger": []
+                  }
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
@@ -1136,7 +1332,21 @@ internal class RevurderingJsonTest {
                   "uføre": null,
                   "fradrag": [],
                   "bosituasjon": [],
-                  "formue": null
+                             "formue": {
+                    "resultat": "HarUføresakTilBehandling",
+                    "formuegrenser": [
+                      {
+                          "gyldigFra": "2021-05-01",
+                          "beløp": 53200
+                      },
+                      {
+                          "gyldigFra": "2020-05-01",
+                          "beløp": 50676
+                      }
+                    ],
+                    "vilkår": "Formue",
+                    "vurderinger": []
+                  }
                 },
                 "informasjonSomRevurderes": {
                   "Uførhet": "IkkeVurdert",
