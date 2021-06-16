@@ -10,11 +10,11 @@ fun Konsistensproblem.tilResultat() = when (this) {
     )
     Konsistensproblem.Bosituasjon.Ufullstendig -> ErrorJson(
         message = "Bosituasjon er ufullstendig",
-        code = "bosituajson_er_ufullstendig",
+        code = "bosituasjone_er_ufullstendig",
     )
     Konsistensproblem.BosituasjonOgFradrag.FlereBosituasjonerOgFradragForEPS -> ErrorJson(
         message = "Flere bosituasjoner og fradrag for EPS",
-        code = "flere_bositiasjoner_og_fradrag_for_eps",
+        code = "flere_bosituasjoner_og_fradrag_for_eps",
     )
     Konsistensproblem.BosituasjonOgFradrag.IngenEPSMenFradragForEPS -> ErrorJson(
         message = "Har fradrag for EPS, men ingen EPS er registrert.",
