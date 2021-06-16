@@ -287,7 +287,6 @@ sealed class Vurderingsperiode {
     abstract val resultat: Resultat
     abstract val grunnlag: Grunnlag?
     abstract val periode: Periode
-    abstract val begrunnelse: String?
 
     data class Uføre private constructor(
         override val id: UUID = UUID.randomUUID(),
@@ -295,7 +294,7 @@ sealed class Vurderingsperiode {
         override val resultat: Resultat,
         override val grunnlag: Grunnlag.Uføregrunnlag?,
         override val periode: Periode,
-        override val begrunnelse: String?,
+        val begrunnelse: String?,
     ) : Vurderingsperiode(), KanPlasseresPåTidslinje<Uføre> {
 
         override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Uføre {
@@ -370,7 +369,6 @@ sealed class Vurderingsperiode {
         override val resultat: Resultat,
         override val grunnlag: Formuegrunnlag?,
         override val periode: Periode,
-        override val begrunnelse: String?,
     ) : Vurderingsperiode(), KanPlasseresPåTidslinje<Formue> {
 
         override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Formue {
@@ -403,9 +401,8 @@ sealed class Vurderingsperiode {
                 resultat: Resultat,
                 grunnlag: Formuegrunnlag?,
                 periode: Periode,
-                begrunnelse: String?,
             ): Formue {
-                return tryCreate(id, opprettet, resultat, grunnlag, periode, begrunnelse).getOrHandle {
+                return tryCreate(id, opprettet, resultat, grunnlag, periode).getOrHandle {
                     throw IllegalArgumentException(it.toString())
                 }
             }
@@ -416,7 +413,6 @@ sealed class Vurderingsperiode {
                 resultat: Resultat,
                 grunnlag: Formuegrunnlag?,
                 vurderingsperiode: Periode,
-                begrunnelse: String?,
             ): Either<UgyldigVurderingsperiode, Formue> {
 
                 grunnlag?.let {
@@ -429,7 +425,6 @@ sealed class Vurderingsperiode {
                     resultat = resultat,
                     grunnlag = grunnlag,
                     periode = vurderingsperiode,
-                    begrunnelse = begrunnelse,
                 ).right()
             }
 
@@ -439,11 +434,12 @@ sealed class Vurderingsperiode {
                 return Formue(
                     id = UUID.randomUUID(),
                     opprettet = grunnlag.opprettet,
-                    // TODO jah: Nå tar vi første måned, men denne kan forandre seg ila. perioden
-                    resultat = if (grunnlag.sumFormue() <= `0,5G`.fraDato(grunnlag.periode.fraOgMed)) Resultat.Innvilget else Resultat.Avslag,
+                    resultat = if (grunnlag.periode.tilMånedsperioder().all {
+                        grunnlag.sumFormue() <= `0,5G`.fraDato(it.fraOgMed)
+                    }
+                    ) Resultat.Innvilget else Resultat.Avslag,
                     grunnlag = grunnlag,
                     periode = grunnlag.periode,
-                    begrunnelse = grunnlag.begrunnelse,
                 )
             }
         }

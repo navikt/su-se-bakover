@@ -51,7 +51,6 @@ internal class FormueVilkårsvurderingPostgresRepo(
                     formue_grunnlag_id,
                     vurdering,
                     resultat,
-                    begrunnelse,
                     fraOgMed,
                     tilOgMed
                 ) values 
@@ -62,7 +61,6 @@ internal class FormueVilkårsvurderingPostgresRepo(
                     :formue_grunnlag_id,
                     :vurdering,
                     :resultat,
-                    :begrunnelse,
                     :fraOgMed,
                     :tilOgMed
                 )
@@ -75,7 +73,6 @@ internal class FormueVilkårsvurderingPostgresRepo(
                     "formue_grunnlag_id" to vurderingsperiode.grunnlag?.id,
                     "vurdering" to "AUTOMATISK",
                     "resultat" to vurderingsperiode.resultat.toDto().toString(),
-                    "begrunnelse" to vurderingsperiode.begrunnelse,
                     "fraOgMed" to vurderingsperiode.periode.fraOgMed,
                     "tilOgMed" to vurderingsperiode.periode.tilOgMed,
                 ),
@@ -126,7 +123,6 @@ internal class FormueVilkårsvurderingPostgresRepo(
             grunnlag = uuidOrNull("formue_grunnlag_id")?.let {
                 formuegrunnlagPostgresRepo.hentForFormuegrunnlagId(it, session)
             },
-            begrunnelse = stringOrNull("begrunnelse"),
             periode = Periode.create(
                 fraOgMed = localDate("fraOgMed"),
                 tilOgMed = localDate("tilOgMed"),

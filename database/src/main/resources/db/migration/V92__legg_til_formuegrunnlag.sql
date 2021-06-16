@@ -18,7 +18,6 @@ create table if not exists vilkårsvurdering_formue
     formue_grunnlag_id uuid references grunnlag_formue(id),
     vurdering text not null,
     resultat text not null,
-    begrunnelse text,
     fraOgMed date not null,
     tilOgMed date not null
     );

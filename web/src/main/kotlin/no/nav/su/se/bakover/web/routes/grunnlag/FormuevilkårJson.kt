@@ -21,7 +21,6 @@ internal data class VurderingsperiodeFormueJson(
     val resultat: Behandlingsinformasjon.Uførhet.Status,
     val grunnlag: FormuegrunnlagJson?,
     val periode: PeriodeJson,
-    val begrunnelse: String?,
 )
 
 internal fun Vilkår.Formue.toJson(): FormuevilkårJson {
@@ -43,7 +42,6 @@ internal fun Vurderingsperiode.Formue.toJson(): VurderingsperiodeFormueJson {
         resultat = resultat.toStatusString(),
         grunnlag = grunnlag?.toJson(),
         periode = periode.toJson(),
-        begrunnelse = begrunnelse,
     )
 }
 

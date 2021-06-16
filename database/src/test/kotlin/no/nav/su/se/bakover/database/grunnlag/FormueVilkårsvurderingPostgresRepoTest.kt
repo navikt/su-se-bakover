@@ -182,7 +182,6 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
                         resultat = Resultat.Uavklart,
                         grunnlag = null,
                         periode = periode,
-                        begrunnelse = null,
                     ),
                 ),
             )
