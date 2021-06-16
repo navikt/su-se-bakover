@@ -13,6 +13,7 @@ import com.nhaarman.mockitokotlin2.verify
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import com.nhaarman.mockitokotlin2.verifyZeroInteractions
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslag
 import no.nav.su.se.bakover.client.person.MicrosoftGraphApiOppslagFeil
 import no.nav.su.se.bakover.client.person.MicrosoftGraphResponse
@@ -115,6 +116,30 @@ internal class FerdigstillVedtakServiceImplTest {
     }
 
     @Test
+    fun `ferdigstill NY kaster feil hvis utbetalinga ikke kan kobles til et vedtak`() {
+        val vedtak = innvilgetVedtak()
+
+        val vedtakRepoMock = mock<VedtakRepo> {
+            on { hentForUtbetaling(any()) } doReturn null
+        }
+
+        val utbetalingMock = mock<Utbetaling.OversendtUtbetaling.MedKvittering> {
+            on { kvittering } doReturn Kvittering(Kvittering.Utbetalingsstatus.OK, "")
+            on { id } doReturn vedtak.utbetalingId
+            on { type } doReturn Utbetaling.UtbetalingsType.NY
+        }
+        val personServiceMock = mock<PersonService>()
+        assertThrows<FerdigstillVedtakServiceImpl.KunneIkkeFerdigstilleVedtakException> {
+            createService(
+                vedtakRepo = vedtakRepoMock,
+                personService = personServiceMock,
+            ).ferdigstillVedtakEtterUtbetaling(utbetalingMock)
+        }.message shouldContain vedtak.utbetalingId.toString()
+        verify(vedtakRepoMock).hentForUtbetaling(vedtak.utbetalingId)
+        verifyNoMoreInteractions(personServiceMock, vedtakRepoMock)
+    }
+
+    @Test
     fun `ferdigstill NY kaster feil hvis man ikke finner person for journalpost`() {
         val vedtak = innvilgetVedtak()
 
@@ -138,13 +163,9 @@ internal class FerdigstillVedtakServiceImplTest {
                 personService = personServiceMock,
             ).ferdigstillVedtakEtterUtbetaling(utbetalingMock)
         }
-        inOrder(
-            vedtakRepoMock,
-            personServiceMock,
-        ) {
-            verify(vedtakRepoMock).hentForUtbetaling(vedtak.utbetalingId)
-            verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe vedtak.behandling.fnr })
-        }
+        verify(vedtakRepoMock).hentForUtbetaling(vedtak.utbetalingId)
+        verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe vedtak.behandling.fnr })
+        verifyNoMoreInteractions(personServiceMock, vedtakRepoMock)
     }
 
     @Test
@@ -181,17 +202,13 @@ internal class FerdigstillVedtakServiceImplTest {
                 brevService = brevServiceMock,
             ).ferdigstillVedtakEtterUtbetaling(utbetalingMock)
         }
-        inOrder(
-            vedtakRepoMock,
-            personServiceMock,
-            microsoftGraphApiOppslagMock,
-            brevServiceMock,
-        ) {
-            verify(vedtakRepoMock).hentForUtbetaling(vedtak.utbetalingId)
-            verify(personServiceMock).hentPersonMedSystembruker(vedtak.behandling.fnr)
-            verify(microsoftGraphApiOppslagMock, times(2)).hentNavnForNavIdent(any())
-            verify(brevServiceMock).journalførBrev(any(), any())
-        }
+
+        verify(vedtakRepoMock).hentForUtbetaling(vedtak.utbetalingId)
+        verify(personServiceMock).hentPersonMedSystembruker(vedtak.behandling.fnr)
+        verify(microsoftGraphApiOppslagMock, times(2)).hentNavnForNavIdent(any())
+        verify(brevServiceMock).journalførBrev(any(), any())
+
+        verifyNoMoreInteractions(personServiceMock, vedtakRepoMock, microsoftGraphApiOppslagMock, brevServiceMock)
     }
 
     @Test
@@ -229,18 +246,22 @@ internal class FerdigstillVedtakServiceImplTest {
                 brevService = brevServiceMock,
             ).ferdigstillVedtakEtterUtbetaling(utbetalingMock)
         }
-        inOrder(
-            vedtakRepoMock,
-            personServiceMock,
-            microsoftGraphApiOppslagMock,
-            brevServiceMock,
-        ) {
-            verify(vedtakRepoMock).hentForUtbetaling(vedtak.utbetalingId)
-            verify(personServiceMock).hentPersonMedSystembruker(vedtak.behandling.fnr)
-            verify(microsoftGraphApiOppslagMock, times(2)).hentNavnForNavIdent(any())
-            verify(brevServiceMock).journalførBrev(any(), any())
-            verify(brevServiceMock).distribuerBrev(any())
-        }
+        verify(vedtakRepoMock).hentForUtbetaling(vedtak.utbetalingId)
+        verify(personServiceMock).hentPersonMedSystembruker(vedtak.behandling.fnr)
+        verify(microsoftGraphApiOppslagMock, times(2)).hentNavnForNavIdent(any())
+        verify(brevServiceMock).journalførBrev(any(), any())
+        verify(brevServiceMock).distribuerBrev(any())
+        verify(vedtakRepoMock).lagre(
+            argThat {
+                it shouldBe vedtak.copy(
+                    journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.Journalført(
+                        journalpostId = iverksattJournalpostId,
+                    ),
+                )
+            },
+        )
+
+        verifyNoMoreInteractions(personServiceMock, vedtakRepoMock, microsoftGraphApiOppslagMock, brevServiceMock)
     }
 
     @Test
@@ -284,23 +305,33 @@ internal class FerdigstillVedtakServiceImplTest {
             behandlingMetrics = behandlingMetricsMock,
         ).ferdigstillVedtakEtterUtbetaling(utbetalingMock)
 
-        inOrder(
-            vedtakRepoMock,
+        verify(vedtakRepoMock).hentForUtbetaling(vedtak.utbetalingId)
+        verify(personServiceMock).hentPersonMedSystembruker(vedtak.behandling.fnr)
+        verify(microsoftGraphApiOppslagMock, times(2)).hentNavnForNavIdent(any())
+        verify(brevServiceMock, never()).journalførBrev(any(), any())
+        verify(brevServiceMock).distribuerBrev(iverksattJournalpostId)
+        verify(vedtakRepoMock).lagre(
+            argThat {
+                it shouldBe vedtak.copy(
+                    journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev(
+                        journalpostId = iverksattJournalpostId,
+                        brevbestillingId = iverksattBrevbestillingId,
+                    ),
+                )
+            },
+        )
+        verify(behandlingMetricsMock).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.DISTRIBUERT_BREV)
+        verify(oppgaveServiceMock).lukkOppgaveMedSystembruker(vedtak.behandling.oppgaveId)
+        verify(behandlingMetricsMock).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.LUKKET_OPPGAVE)
+
+        verifyNoMoreInteractions(
             personServiceMock,
+            vedtakRepoMock,
             microsoftGraphApiOppslagMock,
             brevServiceMock,
             oppgaveServiceMock,
             behandlingMetricsMock,
-        ) {
-            verify(vedtakRepoMock).hentForUtbetaling(vedtak.utbetalingId)
-            verify(personServiceMock).hentPersonMedSystembruker(vedtak.behandling.fnr)
-            verify(microsoftGraphApiOppslagMock, times(2)).hentNavnForNavIdent(any())
-            verify(brevServiceMock, never()).journalførBrev(any(), any())
-            verify(brevServiceMock).distribuerBrev(iverksattJournalpostId)
-            verify(behandlingMetricsMock).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.DISTRIBUERT_BREV)
-            verify(oppgaveServiceMock).lukkOppgaveMedSystembruker(vedtak.behandling.oppgaveId)
-            verify(behandlingMetricsMock).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.LUKKET_OPPGAVE)
-        }
+        )
     }
 
     @Test
@@ -342,24 +373,24 @@ internal class FerdigstillVedtakServiceImplTest {
             behandlingMetrics = behandlingMetricsMock,
         ).ferdigstillVedtakEtterUtbetaling(utbetalingMock)
 
-        inOrder(
-            vedtakRepoMock,
+        verify(vedtakRepoMock).hentForUtbetaling(vedtak.utbetalingId)
+        verify(personServiceMock).hentPersonMedSystembruker(vedtak.behandling.fnr)
+        verify(microsoftGraphApiOppslagMock, times(2)).hentNavnForNavIdent(any())
+        verify(brevServiceMock, never()).journalførBrev(any(), any())
+        verify(brevServiceMock, never()).distribuerBrev(any())
+        verify(oppgaveServiceMock).lukkOppgaveMedSystembruker(vedtak.behandling.oppgaveId)
+        verify(vedtakRepoMock, never()).lagre(any())
+        verify(behandlingMetricsMock).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.LUKKET_OPPGAVE)
+        verifyNoMoreInteractions(behandlingMetricsMock)
+
+        verifyNoMoreInteractions(
             personServiceMock,
+            vedtakRepoMock,
             microsoftGraphApiOppslagMock,
             brevServiceMock,
             oppgaveServiceMock,
             behandlingMetricsMock,
-        ) {
-            verify(vedtakRepoMock).hentForUtbetaling(vedtak.utbetalingId)
-            verify(personServiceMock).hentPersonMedSystembruker(vedtak.behandling.fnr)
-            verify(microsoftGraphApiOppslagMock, times(2)).hentNavnForNavIdent(any())
-            verify(brevServiceMock, never()).journalførBrev(any(), any())
-            verify(brevServiceMock, never()).distribuerBrev(any())
-            verify(oppgaveServiceMock).lukkOppgaveMedSystembruker(vedtak.behandling.oppgaveId)
-            verify(vedtakRepoMock, never()).lagre(any())
-            verify(behandlingMetricsMock).incrementInnvilgetCounter(BehandlingMetrics.InnvilgetHandlinger.LUKKET_OPPGAVE)
-            verifyNoMoreInteractions(behandlingMetricsMock)
-        }
+        )
     }
 
     @Test

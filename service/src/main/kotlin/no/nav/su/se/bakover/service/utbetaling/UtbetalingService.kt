@@ -15,9 +15,10 @@ import java.util.UUID
 
 interface UtbetalingService {
     fun hentUtbetaling(utbetalingId: UUID30): Either<FantIkkeUtbetaling, Utbetaling>
+    fun hentUtbetalinger(sakId: UUID): List<Utbetaling>
     fun oppdaterMedKvittering(
         avstemmingsnøkkel: Avstemmingsnøkkel,
-        kvittering: Kvittering
+        kvittering: Kvittering,
     ): Either<FantIkkeUtbetaling, Utbetaling.OversendtUtbetaling.MedKvittering>
 
     fun simulerUtbetaling(

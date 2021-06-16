@@ -273,12 +273,13 @@ internal class FinnAttestantVisitorTest {
         informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
     )
 
-    private val beregnetRevurdering = when (val a = revurdering.beregn().orNull()!!) {
-        is BeregnetRevurdering.Innvilget -> {
-            a
+    private val beregnetRevurdering =
+        when (val a = revurdering.beregn(eksisterendeUtbetalinger = emptyList()).orNull()!!) {
+            is BeregnetRevurdering.Innvilget -> {
+                a
+            }
+            else -> fail("Skulle vært typen BeregnetRevurdering.Innvilget, men var ${a::class.simpleName}")
         }
-        else -> fail("Skulle vært typen BeregnetRevurdering.Innvilget, men var ${a::class.simpleName}")
-    }
     private val simulertRevurdering = beregnetRevurdering.toSimulert(mock())
     private val tilAttesteringRevurdering =
         simulertRevurdering.tilAttestering(mock(), saksbehandler, "fritekst til brevet", mock())

@@ -158,7 +158,7 @@ internal class PdlClientTest : WiremockBase {
         }
 
         wireMockServer.stubFor(
-            wiremockBuilderOnBehalfOf("etOnBehalfOfToken")
+            wiremockBuilderOnBehalfOf("Bearer etOnBehalfOfToken")
                 .willReturn(WireMock.ok(suksessResponseJson)),
         )
 
@@ -788,7 +788,7 @@ internal class PdlClientTest : WiremockBase {
         }
 
         wireMockServer.stubFor(
-            wiremockBuilderOnBehalfOf("etOnBehalfOfToken")
+            wiremockBuilderOnBehalfOf("Bearer etOnBehalfOfToken")
                 .willReturn(WireMock.ok(suksessResponseJson)),
         )
 

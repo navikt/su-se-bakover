@@ -19,6 +19,8 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.journal.JournalpostId
+import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
 import no.nav.su.se.bakover.domain.revurdering.BeregnetRevurdering
@@ -85,7 +87,7 @@ class RevurderingIngenEndringTest {
                         periode = periode,
                         begrunnelse = null,
                     ),
-                )
+                ),
             ),
             vilkårsvurderinger = Vilkårsvurderinger(
                 uføre = Vilkår.Uførhet.Vurdert.create(
@@ -113,8 +115,24 @@ class RevurderingIngenEndringTest {
             on { hent(revurderingId) } doReturn opprettetRevurdering
         }
 
+        val utbetalingMock = mock<Utbetaling> {
+            on { utbetalingslinjer } doReturn listOf(
+                Utbetalingslinje.Ny(
+                    fraOgMed = periode.fraOgMed,
+                    tilOgMed = periode.tilOgMed,
+                    forrigeUtbetalingslinjeId = null,
+                    beløp = 20000,
+                ),
+            )
+        }
+
+        val utbetalingServiceMock = mock<UtbetalingService> {
+            on { hentUtbetalinger(any()) } doReturn listOf(utbetalingMock)
+        }
+
         val actual = createRevurderingService(
             revurderingRepo = revurderingRepoMock,
+            utbetalingService = utbetalingServiceMock,
         ).beregnOgSimuler(
             revurderingId = revurderingId,
             saksbehandler = saksbehandler,

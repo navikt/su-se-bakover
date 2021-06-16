@@ -42,6 +42,7 @@ import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest.AvslagBrevRequest
 import no.nav.su.se.bakover.domain.brev.LagBrevRequest.InnvilgetVedtak
 import no.nav.su.se.bakover.domain.fixedTidspunkt
+import no.nav.su.se.bakover.domain.formueVilkår
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
@@ -144,7 +145,7 @@ internal class LagBrevRequestVisitorTest {
                         saksbehandlerNavn = "-",
                         attestantNavn = "-",
                         fritekst = "",
-                        forventetInntektStørreEnn0 = false
+                        forventetInntektStørreEnn0 = false,
                     ).right()
                 }
             }
@@ -195,7 +196,7 @@ internal class LagBrevRequestVisitorTest {
                         saksbehandlerNavn = "-",
                         attestantNavn = "-",
                         fritekst = "",
-                        forventetInntektStørreEnn0 = false
+                        forventetInntektStørreEnn0 = false,
                     ).right()
                 }
             }
@@ -251,7 +252,7 @@ internal class LagBrevRequestVisitorTest {
                         saksbehandlerNavn = saksbehandlerNavn,
                         attestantNavn = "-",
                         fritekst = "Fritekst!",
-                        forventetInntektStørreEnn0 = false
+                        forventetInntektStørreEnn0 = false,
                     ).right()
                 }
             }
@@ -281,7 +282,7 @@ internal class LagBrevRequestVisitorTest {
                         saksbehandlerNavn = saksbehandlerNavn,
                         attestantNavn = "-",
                         fritekst = "Fritekst!",
-                        forventetInntektStørreEnn0 = false
+                        forventetInntektStørreEnn0 = false,
                     ).right()
                 }
             }
@@ -345,7 +346,7 @@ internal class LagBrevRequestVisitorTest {
                         saksbehandlerNavn = saksbehandlerNavn,
                         attestantNavn = attestantNavn,
                         fritekst = "Fritekst!",
-                        forventetInntektStørreEnn0 = false
+                        forventetInntektStørreEnn0 = false,
                     ).right()
                 }
             }
@@ -382,7 +383,7 @@ internal class LagBrevRequestVisitorTest {
                         saksbehandlerNavn = saksbehandlerNavn,
                         attestantNavn = attestantNavn,
                         fritekst = "Fritekst!",
-                        forventetInntektStørreEnn0 = false
+                        forventetInntektStørreEnn0 = false,
                     ).right()
                 }
             }
@@ -449,7 +450,7 @@ internal class LagBrevRequestVisitorTest {
                         saksbehandlerNavn = saksbehandlerNavn,
                         attestantNavn = attestantNavn,
                         fritekst = "Fritekst!",
-                        forventetInntektStørreEnn0 = false
+                        forventetInntektStørreEnn0 = false,
                     ).right()
                 }
             }
@@ -482,7 +483,7 @@ internal class LagBrevRequestVisitorTest {
                         saksbehandlerNavn = saksbehandlerNavn,
                         attestantNavn = attestantNavn,
                         fritekst = "Fritekst!",
-                        forventetInntektStørreEnn0 = false
+                        forventetInntektStørreEnn0 = false,
                     ).right()
                 }
             }
@@ -587,7 +588,7 @@ internal class LagBrevRequestVisitorTest {
             saksbehandlerNavn = saksbehandlerNavn,
             attestantNavn = attestantNavn,
             fritekst = "Fritekst!",
-            forventetInntektStørreEnn0 = false
+            forventetInntektStørreEnn0 = false,
         ).right()
     }
 
@@ -627,7 +628,7 @@ internal class LagBrevRequestVisitorTest {
             saksbehandlerNavn = saksbehandlerNavn,
             attestantNavn = attestantNavn,
             fritekst = "Fritekst!",
-            forventetInntektStørreEnn0 = false
+            forventetInntektStørreEnn0 = false,
         ).right()
     }
 
@@ -695,7 +696,7 @@ internal class LagBrevRequestVisitorTest {
             revurdertBeregning = revurdering.beregning,
             fritekst = "JEPP",
             harEktefelle = false,
-            forventetInntektStørreEnn0 = false
+            forventetInntektStørreEnn0 = false,
         ).right()
     }
 
@@ -737,7 +738,19 @@ internal class LagBrevRequestVisitorTest {
                     ),
                 ),
             ),
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger(
+                uføre = Vilkår.Uførhet.Vurdert.create(
+                    vurderingsperioder = nonEmptyListOf(
+                        Vurderingsperiode.Uføre.create(
+                            resultat = Resultat.Innvilget,
+                            grunnlag = null,
+                            periode = revurderingsperiode,
+                            begrunnelse = null,
+                        ),
+                    ),
+                ),
+                formue = formueVilkår(revurderingsperiode),
+            ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
 
@@ -924,7 +937,7 @@ internal class LagBrevRequestVisitorTest {
                 attestantNavn = attestantNavn,
                 fritekst = "EN FIN FRITEKST",
                 harEktefelle = revurdering.behandlingsinformasjon.harEktefelle(),
-                forventetInntektStørreEnn0 = false
+                forventetInntektStørreEnn0 = false,
             )
 
             it.lagBrevInnhold(personalia) should beOfType<BrevInnhold.VedtakIngenEndring>()

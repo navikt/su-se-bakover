@@ -12,6 +12,7 @@ import no.nav.su.se.bakover.database.withTransaction
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemmingsnøkkel
+import java.util.UUID
 import javax.sql.DataSource
 
 internal class UtbetalingPostgresRepo(
@@ -29,6 +30,10 @@ internal class UtbetalingPostgresRepo(
                 session,
             ) { it.toUtbetaling(session) }
         }
+    }
+
+    override fun hentUtbetalinger(sakId: UUID): List<Utbetaling> {
+        return dataSource.withSession { session -> UtbetalingInternalRepo.hentUtbetalinger(sakId, session) }
     }
 
     override fun hentUkvitterteUtbetalinger(): List<Utbetaling.OversendtUtbetaling.UtenKvittering> {

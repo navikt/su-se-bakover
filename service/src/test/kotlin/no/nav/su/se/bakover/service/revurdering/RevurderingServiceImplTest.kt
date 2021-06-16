@@ -43,6 +43,7 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppdrag.simulering.SimuleringFeilet
 import no.nav.su.se.bakover.domain.oppgave.OppgaveConfig
@@ -170,8 +171,19 @@ internal class RevurderingServiceImplTest {
         val simulertUtbetaling = mock<Utbetaling.SimulertUtbetaling> {
             on { simulering } doReturn mock()
         }
+        val utbetalingMock = mock<Utbetaling> {
+            on { utbetalingslinjer } doReturn listOf(
+                Utbetalingslinje.Ny(
+                    fraOgMed = periode.fraOgMed,
+                    tilOgMed = periode.tilOgMed,
+                    forrigeUtbetalingslinjeId = null,
+                    beløp = 20000,
+                ),
+            )
+        }
         val utbetalingServiceMock = mock<UtbetalingService> {
             on { simulerUtbetaling(any(), any(), any()) } doReturn simulertUtbetaling.right()
+            on { hentUtbetalinger(any()) } doReturn listOf(utbetalingMock)
         }
 
         val actual = createRevurderingService(
@@ -192,6 +204,7 @@ internal class RevurderingServiceImplTest {
             utbetalingServiceMock,
         ) {
             verify(revurderingRepoMock).hent(revurderingId)
+            verify(utbetalingServiceMock).hentUtbetalinger(sakId)
             verify(utbetalingServiceMock).simulerUtbetaling(
                 sakId = argThat { it shouldBe sakId },
                 saksbehandler = argThat { it shouldBe saksbehandler },
@@ -299,12 +312,22 @@ internal class RevurderingServiceImplTest {
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
 
-        val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(revurderingId) } doReturn opprettetRevurdering
+        val utbetalingMock = mock<Utbetaling> {
+            on { utbetalingslinjer } doReturn listOf(
+                Utbetalingslinje.Ny(
+                    fraOgMed = periode.fraOgMed,
+                    tilOgMed = periode.tilOgMed,
+                    forrigeUtbetalingslinjeId = null,
+                    beløp = 20000,
+                ),
+            )
         }
-
         val utbetalingServiceMock = mock<UtbetalingService> {
             on { simulerUtbetaling(any(), any(), any()) } doReturn SimuleringFeilet.TEKNISK_FEIL.left()
+            on { hentUtbetalinger(any()) } doReturn listOf(utbetalingMock)
+        }
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(revurderingId) } doReturn opprettetRevurdering
         }
 
         val actual = createRevurderingService(
@@ -648,8 +671,19 @@ internal class RevurderingServiceImplTest {
         val simulertUtbetaling = mock<Utbetaling.SimulertUtbetaling> {
             on { simulering } doReturn mock()
         }
+        val utbetalingMock = mock<Utbetaling> {
+            on { utbetalingslinjer } doReturn listOf(
+                Utbetalingslinje.Ny(
+                    fraOgMed = periode.fraOgMed,
+                    tilOgMed = periode.tilOgMed,
+                    forrigeUtbetalingslinjeId = null,
+                    beløp = 20000,
+                ),
+            )
+        }
         val utbetalingServiceMock = mock<UtbetalingService> {
             on { simulerUtbetaling(any(), any(), any()) } doReturn simulertUtbetaling.right()
+            on { hentUtbetalinger(any()) } doReturn listOf(utbetalingMock)
         }
 
         val revurderingService = createRevurderingService(
@@ -669,6 +703,7 @@ internal class RevurderingServiceImplTest {
 
         inOrder(revurderingRepoMock, utbetalingServiceMock) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
+            verify(utbetalingServiceMock).hentUtbetalinger(sakId)
             verify(utbetalingServiceMock).simulerUtbetaling(
                 sakId = argThat { it shouldBe sakId },
                 saksbehandler = argThat { it shouldBe saksbehandler },
@@ -1528,8 +1563,19 @@ internal class RevurderingServiceImplTest {
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn revurdering
         }
+        val utbetalingMock = mock<Utbetaling> {
+            on { utbetalingslinjer } doReturn listOf(
+                Utbetalingslinje.Ny(
+                    fraOgMed = periode.fraOgMed,
+                    tilOgMed = periode.tilOgMed,
+                    forrigeUtbetalingslinjeId = null,
+                    beløp = 20000,
+                ),
+            )
+        }
         val utbetalingServiceMock = mock<UtbetalingService> {
             on { simulerOpphør(any(), any(), any()) } doReturn simulertUtbetalingMock.right()
+            on { hentUtbetalinger(any()) } doReturn listOf(utbetalingMock)
         }
 
         val actual = createRevurderingService(
@@ -1547,6 +1593,7 @@ internal class RevurderingServiceImplTest {
             utbetalingServiceMock,
         ) {
             verify(revurderingRepoMock).hent(revurderingId)
+            verify(utbetalingServiceMock).hentUtbetalinger(sakId)
             verify(utbetalingServiceMock).simulerOpphør(
                 sakId = argThat { it shouldBe sakId },
                 saksbehandler = argThat { it shouldBe NavIdentBruker.Saksbehandler("s1") },
@@ -1568,10 +1615,25 @@ internal class RevurderingServiceImplTest {
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn revurdering
         }
+        val utbetalingMock = mock<Utbetaling> {
+            on { utbetalingslinjer } doReturn listOf(
+                Utbetalingslinje.Ny(
+                    fraOgMed = periode.fraOgMed,
+                    tilOgMed = periode.tilOgMed,
+                    forrigeUtbetalingslinjeId = null,
+                    beløp = 20000,
+                ),
+            )
+        }
+
+        val utbetalingServiceMock = mock<UtbetalingService> {
+            on { hentUtbetalinger(any()) } doReturn listOf(utbetalingMock)
+        }
 
         assertThrows<IllegalStateException> {
             createRevurderingService(
                 revurderingRepo = revurderingRepoMock,
+                utbetalingService = utbetalingServiceMock,
             ).beregnOgSimuler(
                 revurderingId = revurderingId,
                 saksbehandler = NavIdentBruker.Saksbehandler("s1"),
