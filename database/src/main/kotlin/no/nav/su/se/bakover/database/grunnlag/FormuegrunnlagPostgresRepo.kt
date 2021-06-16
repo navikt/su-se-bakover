@@ -57,8 +57,8 @@ internal class FormuegrunnlagPostgresRepo() {
             id = uuid("id"),
             periode = Periode.create(fraOgMed = localDate("fraOgMed"), tilOgMed = localDate("tilOgMed")),
             opprettet = tidspunkt("opprettet"),
-            epsFormue = stringOrNull("epsFormue")?.let { deserialize(it) },
-            søkersFormue = deserialize(string("søkerFormue")),
+            epsFormue = stringOrNull("epsFormue")?.let { deserialize<FormueverdierJson?>(it)?.toDomain() },
+            søkersFormue = deserialize<FormueverdierJson>(string("søkerFormue")).toDomain(),
             begrunnelse = stringOrNull("begrunnelse"),
         )
     }
@@ -94,11 +94,51 @@ internal class FormuegrunnlagPostgresRepo() {
                     "behandlingId" to behandlingId,
                     "fraOgMed" to formuegrunnlag.periode.fraOgMed,
                     "tilOgMed" to formuegrunnlag.periode.tilOgMed,
-                    "epsFormue" to objectMapper.writeValueAsString(formuegrunnlag.epsFormue),
-                    "sokerFormue" to objectMapper.writeValueAsString(formuegrunnlag.søkersFormue),
+                    "epsFormue" to objectMapper.writeValueAsString(formuegrunnlag.epsFormue?.toJson()),
+                    "sokerFormue" to objectMapper.writeValueAsString(formuegrunnlag.søkersFormue.toJson()),
                     "begrunnelse" to formuegrunnlag.begrunnelse,
                 ),
                 session,
             )
     }
+}
+
+/**
+ * Blir serialisert/deserialsert som json i databasen
+ */
+private data class FormueverdierJson(
+    val verdiIkkePrimærbolig: Int,
+    val verdiEiendommer: Int,
+    val verdiKjøretøy: Int,
+    val innskudd: Int,
+    val verdipapir: Int,
+    val pengerSkyldt: Int,
+    val kontanter: Int,
+    val depositumskonto: Int,
+) {
+    fun toDomain(): Formuegrunnlag.Verdier {
+        return Formuegrunnlag.Verdier(
+            verdiIkkePrimærbolig = verdiIkkePrimærbolig,
+            verdiEiendommer = verdiEiendommer,
+            verdiKjøretøy = verdiKjøretøy,
+            innskudd = innskudd,
+            verdipapir = verdipapir,
+            pengerSkyldt = pengerSkyldt,
+            kontanter = kontanter,
+            depositumskonto = depositumskonto,
+        )
+    }
+}
+
+private fun Formuegrunnlag.Verdier.toJson(): FormueverdierJson {
+    return FormueverdierJson(
+        verdiIkkePrimærbolig = verdiIkkePrimærbolig,
+        verdiEiendommer = verdiEiendommer,
+        verdiKjøretøy = verdiKjøretøy,
+        innskudd = innskudd,
+        verdipapir = verdipapir,
+        pengerSkyldt = pengerSkyldt,
+        kontanter = kontanter,
+        depositumskonto = depositumskonto,
+    )
 }
