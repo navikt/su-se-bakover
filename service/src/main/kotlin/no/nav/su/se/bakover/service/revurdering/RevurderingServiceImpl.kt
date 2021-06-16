@@ -449,7 +449,9 @@ internal class RevurderingServiceImpl(
     ): Either<KunneIkkeBeregneOgSimulereRevurdering, BeregnOgSimulerResponse> {
         return when (val originalRevurdering = revurderingRepo.hent(revurderingId)) {
             is BeregnetRevurdering, is OpprettetRevurdering, is SimulertRevurdering, is UnderkjentRevurdering -> {
-                val beregnetRevurdering = originalRevurdering.beregn()
+                val eksisterendeUtbetalinger = utbetalingService.hentUtbetalinger(originalRevurdering.sakId)
+
+                val beregnetRevurdering = originalRevurdering.beregn(eksisterendeUtbetalinger)
                     .getOrHandle {
                         return when (it) {
                             is Revurdering.KunneIkkeBeregneRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden -> KunneIkkeBeregneOgSimulereRevurdering.KanIkkeVelgeSisteMånedVedNedgangIStønaden
