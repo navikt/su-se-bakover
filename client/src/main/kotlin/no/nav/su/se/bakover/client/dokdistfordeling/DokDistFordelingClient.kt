@@ -44,9 +44,13 @@ class DokDistFordelingClient(val baseUrl: String, val tokenOppslag: TokenOppslag
                 }
             },
             {
-                log.error("Feil ved bestilling av distribusjon.", it)
+                val response = it.response
+                log.error(
+                    "Feil ved bestilling av distribusjon. status=${response.statusCode} body=${String(response.data)}",
+                    it,
+                )
                 KunneIkkeBestilleDistribusjon.left()
-            }
+            },
         )
     }
 
