@@ -300,11 +300,6 @@ internal class RevurderingServiceImpl(
             }.getOrHandle {
                 return it.left()
             }
-        // Vi ønsker ikke endre eller fjerne EPS dersom dette påvirker EPS sin gjeldende formue.
-        // TODO jah: Fjernes når vi kan revurdere formue
-        if (bosituasjongrunnlag.harEndretEllerFjernetEktefelle(gjeldendeBosituasjon) && revurdering.behandlingsinformasjon.harEpsFormue()) {
-            return KunneIkkeLeggeTilBosituasjongrunnlag.GjeldendeEpsHarFormue.left()
-        }
 
         // TODO jah: Vi bør se på å fjerne behandlingsinformasjon fra revurdering, og muligens vedtaket.
         revurdering.oppdaterBehandlingsinformasjon(

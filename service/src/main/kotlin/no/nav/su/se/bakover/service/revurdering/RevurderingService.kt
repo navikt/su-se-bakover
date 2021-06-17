@@ -279,7 +279,6 @@ sealed class KunneIkkeLeggeTilBosituasjongrunnlag {
     object UgyldigData : KunneIkkeLeggeTilBosituasjongrunnlag()
     object KunneIkkeSlåOppEPS : KunneIkkeLeggeTilBosituasjongrunnlag()
     object EpsAlderErNull : KunneIkkeLeggeTilBosituasjongrunnlag()
-    object GjeldendeEpsHarFormue : KunneIkkeLeggeTilBosituasjongrunnlag()
 }
 
 sealed class KunneIkkeLeggeTilFormuegrunnlag {
