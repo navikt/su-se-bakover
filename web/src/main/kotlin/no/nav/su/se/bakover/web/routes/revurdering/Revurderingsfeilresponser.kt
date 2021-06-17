@@ -73,7 +73,7 @@ internal object Revurderingsfeilresponser {
 
     val depositumKanIkkeVæreHøyereEnnInnskudd = BadRequest.errorJson(
         "Depositum kan ikke være høyere enn innskudd",
-        "Depositum_kan_ikke_være_høyere_enn_innskudd",
+        "depositum_kan_ikke_være_høyere_enn_innskudd",
     )
 
     val ikkeLovMedOverlappendePerioder = BadRequest.errorJson(

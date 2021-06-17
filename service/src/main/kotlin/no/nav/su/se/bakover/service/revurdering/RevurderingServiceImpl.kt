@@ -318,6 +318,7 @@ internal class RevurderingServiceImpl(
                         .markerSomVurdert(Revurderingsteg.Bosituasjon).let {
                             if (bosituasjongrunnlag.harEndretEllerFjernetEktefelle(gjeldendeBosituasjon)) {
                                 it.markerSomIkkeVurdert(Revurderingsteg.Inntekt)
+                                it.markerSomIkkeVurdert(Revurderingsteg.Formue)
                             } else {
                                 it
                             }
