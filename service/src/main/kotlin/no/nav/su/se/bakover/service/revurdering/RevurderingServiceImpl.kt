@@ -19,8 +19,9 @@ import no.nav.su.se.bakover.domain.brev.LagBrevRequest
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag.Fradragsgrunnlag.Validator.valider
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.grunnlag.Konsistensproblem
+import no.nav.su.se.bakover.domain.grunnlag.SjekkOmGrunnlagErKonsistent
 import no.nav.su.se.bakover.domain.grunnlag.harEktefelle
-import no.nav.su.se.bakover.domain.grunnlag.harEpsInntekt
 import no.nav.su.se.bakover.domain.grunnlag.harFlerEnnEnBosituasjonsperiode
 import no.nav.su.se.bakover.domain.grunnlag.singleFullstendigOrThrow
 import no.nav.su.se.bakover.domain.grunnlag.singleOrThrow
@@ -114,12 +115,19 @@ internal class RevurderingServiceImpl(
             if (!it.tidslinjeForVedtakErSammenhengende()) return KunneIkkeOppretteRevurdering.TidslinjeForVedtakErIkkeKontinuerlig.left()
         }
 
-        if (gjeldendeVedtaksdata.grunnlagsdata.bosituasjon.harFlerEnnEnBosituasjonsperiode() && !informasjonSomRevurderes.harValgtBosituasjon()) {
-            return KunneIkkeOppretteRevurdering.BosituasjonMedFlerePerioderMåRevurderes.left()
-        }
-
-        if (gjeldendeVedtaksdata.grunnlagsdata.bosituasjon.harFlerEnnEnBosituasjonsperiode() && gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag.harEpsInntekt() && !informasjonSomRevurderes.harValgtInntekt()) {
-            return KunneIkkeOppretteRevurdering.EpsInntektMedFlereBosituasjonsperioderMåRevurderes.left()
+        SjekkOmGrunnlagErKonsistent(
+            uføregrunnlag = gjeldendeVedtaksdata.grunnlagsdata.uføregrunnlag,
+            bosituasjongrunnlag = gjeldendeVedtaksdata.grunnlagsdata.bosituasjon,
+            fradragsgrunnlag = gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag,
+        ).resultat.getOrHandle {
+            when {
+                !informasjonSomRevurderes.harValgtBosituasjon() && it.contains(Konsistensproblem.Bosituasjon.Flere) -> {
+                    return KunneIkkeOppretteRevurdering.BosituasjonMedFlerePerioderMåRevurderes.left()
+                }
+                !informasjonSomRevurderes.harValgtInntekt() && it.contains(Konsistensproblem.BosituasjonOgFradrag.FlereBosituasjonerOgFradragForEPS) -> {
+                    return KunneIkkeOppretteRevurdering.EpsInntektMedFlereBosituasjonsperioderMåRevurderes.left()
+                }
+            }
         }
 
         val (grunnlagsdata, vilkårsvurderinger) = fjernBosituasjonHvisIkkeEntydig(gjeldendeVedtaksdata)
@@ -384,12 +392,19 @@ internal class RevurderingServiceImpl(
             if (!it.tidslinjeForVedtakErSammenhengende()) return KunneIkkeOppdatereRevurdering.TidslinjeForVedtakErIkkeKontinuerlig.left()
         }
 
-        if (gjeldendeVedtaksdata.grunnlagsdata.bosituasjon.harFlerEnnEnBosituasjonsperiode() && !informasjonSomRevurderes.harValgtBosituasjon()) {
-            return KunneIkkeOppdatereRevurdering.BosituasjonMedFlerePerioderMåRevurderes.left()
-        }
-
-        if (gjeldendeVedtaksdata.grunnlagsdata.bosituasjon.harFlerEnnEnBosituasjonsperiode() && gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag.harEpsInntekt() && !informasjonSomRevurderes.harValgtInntekt()) {
-            return KunneIkkeOppdatereRevurdering.EpsInntektMedFlereBosituasjonsperioderMåRevurderes.left()
+        SjekkOmGrunnlagErKonsistent(
+            uføregrunnlag = gjeldendeVedtaksdata.grunnlagsdata.uføregrunnlag,
+            bosituasjongrunnlag = gjeldendeVedtaksdata.grunnlagsdata.bosituasjon,
+            fradragsgrunnlag = gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag,
+        ).resultat.getOrHandle {
+            when {
+                !informasjonSomRevurderes.harValgtBosituasjon() && it.contains(Konsistensproblem.Bosituasjon.Flere) -> {
+                    return KunneIkkeOppdatereRevurdering.BosituasjonMedFlerePerioderMåRevurderes.left()
+                }
+                !informasjonSomRevurderes.harValgtInntekt() && it.contains(Konsistensproblem.BosituasjonOgFradrag.FlereBosituasjonerOgFradragForEPS) -> {
+                    return KunneIkkeOppdatereRevurdering.EpsInntektMedFlereBosituasjonsperioderMåRevurderes.left()
+                }
+            }
         }
 
         val (grunnlagsdata, vilkårsvurderinger) = fjernBosituasjonHvisIkkeEntydig(gjeldendeVedtaksdata)
