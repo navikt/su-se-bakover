@@ -97,7 +97,7 @@ object RevurderingRoutesTestData {
         informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
     )
 
-    internal fun formueVilkår(periode: Periode) = Vilkår.Formue.Vurdert.create(
+    internal fun formueVilkår(periode: Periode) = Vilkår.Formue.Vurdert.createFromGrunnlag(
         grunnlag = nonEmptyListOf(
             Formuegrunnlag.create(
                 periode = periode,

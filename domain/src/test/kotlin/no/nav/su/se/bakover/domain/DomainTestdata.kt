@@ -36,6 +36,6 @@ internal fun formuegrunnlag(
     behandlingsPeriode = periode,
 )
 
-internal fun formueVilkår(periode: Periode) = Vilkår.Formue.Vurdert.create(
+internal fun formueVilkår(periode: Periode) = Vilkår.Formue.Vurdert.createFromGrunnlag(
     grunnlag = nonEmptyListOf(formuegrunnlag(periode)),
 )

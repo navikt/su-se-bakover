@@ -47,12 +47,16 @@ internal class SimuleringRequestBuilder(
             request = SimulerBeregningRequest().apply {
                 oppdrag = this@SimuleringRequestBuilder.oppdragRequest
                 simuleringsPeriode = SimulerBeregningRequest.SimuleringsPeriode().apply {
-                    datoSimulerFom =
-                        mappedRequest.oppdragslinjer.map { LocalDate.parse(it.datoVedtakFom) }.minByOrNull { it }!!
-                            .toString()
-                    datoSimulerTom =
-                        mappedRequest.oppdragslinjer.map { LocalDate.parse(it.datoVedtakTom) }.maxByOrNull { it }!!
-                            .toString()
+                    datoSimulerFom = mappedRequest.oppdragslinjer.map {
+                        if (it.datoStatusFom != null) {
+                            minOf(LocalDate.parse(it.datoStatusFom), LocalDate.parse(it.datoVedtakFom))
+                        } else {
+                            LocalDate.parse(it.datoVedtakFom)
+                        }
+                    }.minByOrNull { it }!!.toString()
+                    datoSimulerTom = mappedRequest.oppdragslinjer.map {
+                        LocalDate.parse(it.datoVedtakTom)
+                    }.maxByOrNull { it }!!.toString()
                 }
             }
         }

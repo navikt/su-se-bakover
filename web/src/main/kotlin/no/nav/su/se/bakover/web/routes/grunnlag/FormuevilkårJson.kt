@@ -40,7 +40,7 @@ internal fun Vurderingsperiode.Formue.toJson(): VurderingsperiodeFormueJson {
         id = id.toString(),
         opprettet = DateTimeFormatter.ISO_INSTANT.format(opprettet),
         resultat = resultat.toStatusString(),
-        grunnlag = grunnlag?.toJson(),
+        grunnlag = grunnlag.toJson(),
         periode = periode.toJson(),
     )
 }

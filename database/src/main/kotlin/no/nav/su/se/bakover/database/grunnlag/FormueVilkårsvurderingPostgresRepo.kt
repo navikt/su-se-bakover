@@ -9,7 +9,6 @@ import no.nav.su.se.bakover.database.insert
 import no.nav.su.se.bakover.database.oppdatering
 import no.nav.su.se.bakover.database.tidspunkt
 import no.nav.su.se.bakover.database.uuid
-import no.nav.su.se.bakover.database.uuidOrNull
 import no.nav.su.se.bakover.database.withTransaction
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
@@ -70,7 +69,7 @@ internal class FormueVilkårsvurderingPostgresRepo(
                     "id" to vurderingsperiode.id,
                     "opprettet" to vurderingsperiode.opprettet,
                     "behandlingId" to behandlingId,
-                    "formue_grunnlag_id" to vurderingsperiode.grunnlag?.id,
+                    "formue_grunnlag_id" to vurderingsperiode.grunnlag.id,
                     "vurdering" to "AUTOMATISK",
                     "resultat" to vurderingsperiode.resultat.toDto().toString(),
                     "fraOgMed" to vurderingsperiode.periode.fraOgMed,
@@ -120,8 +119,8 @@ internal class FormueVilkårsvurderingPostgresRepo(
             id = uuid("id"),
             opprettet = tidspunkt("opprettet"),
             resultat = ResultatDto.valueOf(string("resultat")).toDomain(),
-            grunnlag = uuidOrNull("formue_grunnlag_id")?.let {
-                formuegrunnlagPostgresRepo.hentForFormuegrunnlagId(it, session)
+            grunnlag = uuid("formue_grunnlag_id").let {
+                formuegrunnlagPostgresRepo.hentForFormuegrunnlagId(it, session)!!
             },
             periode = Periode.create(
                 fraOgMed = localDate("fraOgMed"),

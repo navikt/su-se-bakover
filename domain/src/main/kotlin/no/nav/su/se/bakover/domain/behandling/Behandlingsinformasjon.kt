@@ -290,7 +290,7 @@ data class Behandlingsinformasjon(
             stønadsperiode: Stønadsperiode,
             bosituasjon: List<Grunnlag.Bosituasjon>,
         ): Vilkår.Formue {
-            return Vilkår.Formue.Vurdert.create(
+            return Vilkår.Formue.Vurdert.createFromGrunnlag(
                 grunnlag = nonEmptyListOf(
                     Formuegrunnlag.create(
                         id = UUID.randomUUID(),

@@ -236,21 +236,22 @@ sealed class Vilkår {
                     .minByOrNull { it }
             }
 
-            val grunnlag: List<Formuegrunnlag> = vurderingsperioder.mapNotNull {
+            val grunnlag: List<Formuegrunnlag> = vurderingsperioder.map {
                 it.grunnlag
             }
 
             companion object {
                 @TestOnly
-                fun create(
+                fun createFromGrunnlag(
                     grunnlag: Nel<Formuegrunnlag>,
-                ): Vurdert = tryCreate(grunnlag).getOrHandle { throw IllegalArgumentException(it.toString()) }
+                ): Vurdert =
+                    tryCreateFromGrunnlag(grunnlag).getOrHandle { throw IllegalArgumentException(it.toString()) }
 
-                fun tryCreate(
+                fun tryCreateFromGrunnlag(
                     grunnlag: Nel<Formuegrunnlag>,
                 ): Either<UgyldigFormuevilkår, Vurdert> {
                     val vurderingsperioder = grunnlag.map {
-                        Vurderingsperiode.Formue.tryCreate(it)
+                        Vurderingsperiode.Formue.tryCreateFromGrunnlag(it)
                     }
                     return fromVurderingsperioder(vurderingsperioder)
                 }
@@ -367,14 +368,14 @@ sealed class Vurderingsperiode {
         override val id: UUID = UUID.randomUUID(),
         override val opprettet: Tidspunkt = Tidspunkt.now(),
         override val resultat: Resultat,
-        override val grunnlag: Formuegrunnlag?,
+        override val grunnlag: Formuegrunnlag,
         override val periode: Periode,
     ) : Vurderingsperiode(), KanPlasseresPåTidslinje<Formue> {
 
         override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Formue {
             return this.copy(
                 periode = stønadsperiode.periode,
-                grunnlag = this.grunnlag?.oppdaterPeriode(stønadsperiode.periode),
+                grunnlag = this.grunnlag.oppdaterPeriode(stønadsperiode.periode),
             )
         }
 
@@ -382,14 +383,14 @@ sealed class Vurderingsperiode {
             CopyArgs.Tidslinje.Full -> {
                 copy(
                     id = UUID.randomUUID(),
-                    grunnlag = grunnlag?.copy(args),
+                    grunnlag = grunnlag.copy(args),
                 )
             }
             is CopyArgs.Tidslinje.NyPeriode -> {
                 copy(
                     id = UUID.randomUUID(),
                     periode = args.periode,
-                    grunnlag = grunnlag?.copy(args),
+                    grunnlag = grunnlag.copy(args),
                 )
             }
         }
@@ -399,7 +400,7 @@ sealed class Vurderingsperiode {
                 id: UUID = UUID.randomUUID(),
                 opprettet: Tidspunkt = Tidspunkt.now(),
                 resultat: Resultat,
-                grunnlag: Formuegrunnlag?,
+                grunnlag: Formuegrunnlag,
                 periode: Periode,
             ): Formue {
                 return tryCreate(id, opprettet, resultat, grunnlag, periode).getOrHandle {
@@ -411,11 +412,11 @@ sealed class Vurderingsperiode {
                 id: UUID = UUID.randomUUID(),
                 opprettet: Tidspunkt = Tidspunkt.now(),
                 resultat: Resultat,
-                grunnlag: Formuegrunnlag?,
+                grunnlag: Formuegrunnlag,
                 vurderingsperiode: Periode,
             ): Either<UgyldigVurderingsperiode, Formue> {
 
-                grunnlag?.let {
+                grunnlag.let {
                     if (vurderingsperiode != it.periode) return UgyldigVurderingsperiode.PeriodeForGrunnlagOgVurderingErForskjellig.left()
                 }
 
@@ -428,7 +429,7 @@ sealed class Vurderingsperiode {
                 ).right()
             }
 
-            fun tryCreate(
+            fun tryCreateFromGrunnlag(
                 grunnlag: Formuegrunnlag,
             ): Formue {
                 return Formue(

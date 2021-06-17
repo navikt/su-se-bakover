@@ -22,7 +22,7 @@ data class LeggTilFormuegrunnlagRequest(
         behandlingsperiode: Periode,
         clock: Clock,
     ): Either<KunneIkkeLeggeTilFormuegrunnlag, Vilkår.Formue.Vurdert> {
-        return Vilkår.Formue.Vurdert.tryCreate(
+        return Vilkår.Formue.Vurdert.tryCreateFromGrunnlag(
             grunnlag = elementer.map { element ->
                 Formuegrunnlag.tryCreate(
                     opprettet = Tidspunkt.now(clock),

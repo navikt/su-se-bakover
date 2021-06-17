@@ -84,7 +84,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
 
         withMigratedDb {
             val behandlingId = UUID.randomUUID()
-            val vilkår = Vilkår.Formue.Vurdert.create(
+            val vilkår = Vilkår.Formue.Vurdert.createFromGrunnlag(
                 grunnlag = formuegrunnlag(
                     periode = periode,
                     epsFormue = Formuegrunnlag.Verdier(
@@ -117,7 +117,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
 
         withMigratedDb {
             val behandlingId = UUID.randomUUID()
-            val vilkår = Vilkår.Formue.Vurdert.create(
+            val vilkår = Vilkår.Formue.Vurdert.createFromGrunnlag(
                 grunnlag = formuegrunnlag(
                     periode = periode,
                     epsFormue = null,
@@ -141,7 +141,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
 
         withMigratedDb {
             val behandlingId = UUID.randomUUID()
-            val vilkår = Vilkår.Formue.Vurdert.create(
+            val vilkår = Vilkår.Formue.Vurdert.createFromGrunnlag(
                 grunnlag = formuegrunnlag(
                     periode = periode,
                     epsFormue = Formuegrunnlag.Verdier(
@@ -180,7 +180,10 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
                         id = UUID.randomUUID(),
                         opprettet = fixedTidspunkt,
                         resultat = Resultat.Uavklart,
-                        grunnlag = null,
+                        grunnlag = formuegrunnlag(
+                            periode = periode,
+                            epsFormue = null,
+                        ).first(),
                         periode = periode,
                     ),
                 ),
