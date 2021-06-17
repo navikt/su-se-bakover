@@ -48,11 +48,10 @@ data class Formuegrunnlag private constructor(
             return verdiIkkePrimærbolig +
                 verdiEiendommer +
                 verdiKjøretøy +
-                innskudd +
                 verdipapir +
                 pengerSkyldt +
                 kontanter +
-                depositumskonto
+                ((innskudd - depositumskonto).coerceAtLeast(0))
         }
 
         companion object {

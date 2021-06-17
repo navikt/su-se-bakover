@@ -71,6 +71,11 @@ internal object Revurderingsfeilresponser {
         "formueliste_kan_ikke_være_tom",
     )
 
+    val depositumKanIkkeVæreHøyereEnnInnskudd = BadRequest.errorJson(
+        "Depositum kan ikke være høyere enn innskudd",
+        "Depositum_kan_ikke_være_høyere_enn_innskudd",
+    )
+
     val ikkeLovMedOverlappendePerioder = BadRequest.errorJson(
         "Ikke lov med overlappende perioder",
         "ikke_lov_med_overlappende_perioder",

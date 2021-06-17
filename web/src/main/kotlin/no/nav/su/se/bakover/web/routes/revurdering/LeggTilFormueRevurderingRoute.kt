@@ -26,15 +26,28 @@ import no.nav.su.se.bakover.web.withRevurderingId
 import no.nav.su.se.bakover.web.withSakId
 import java.util.UUID
 
+internal fun FormuegrunnlagJson.VerdierJson.depositumErMindreEllerLikInnskudd() = this.depositumskonto <= this.innskudd
+
 private data class FormueBody(
     val periode: PeriodeJson,
     val epsFormue: FormuegrunnlagJson.VerdierJson?,
     val søkersFormue: FormuegrunnlagJson.VerdierJson,
     val begrunnelse: String?,
 ) {
+    private fun VerdierErGyldig() =
+        this.søkersFormue.depositumErMindreEllerLikInnskudd() && (
+            this.epsFormue?.depositumErMindreEllerLikInnskudd()
+                ?: true
+            )
+
     companion object {
         fun List<FormueBody>.toServiceRequest(revurderingId: UUID): Either<Resultat, LeggTilFormuegrunnlagRequest> {
-            if (this.isEmpty()) { return Revurderingsfeilresponser.formueListeKanIkkeVæreTom.left() }
+            if (this.isEmpty()) {
+                return Revurderingsfeilresponser.formueListeKanIkkeVæreTom.left()
+            }
+            if (!this.all { it.VerdierErGyldig() }) {
+                return Revurderingsfeilresponser.depositumKanIkkeVæreHøyereEnnInnskudd.left()
+            }
 
             return LeggTilFormuegrunnlagRequest(
                 revurderingId = revurderingId,
