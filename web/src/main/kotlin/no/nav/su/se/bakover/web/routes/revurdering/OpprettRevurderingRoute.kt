@@ -96,5 +96,6 @@ private fun KunneIkkeOppretteRevurdering.tilResultat(): Resultat {
         KunneIkkeOppretteRevurdering.TidslinjeForVedtakErIkkeKontinuerlig -> tidslinjeForVedtakErIkkeKontinuerlig
         KunneIkkeOppretteRevurdering.BosituasjonMedFlerePerioderMåRevurderes -> Revurderingsfeilresponser.bosituasjonMedFlerePerioderMåRevurderes
         KunneIkkeOppretteRevurdering.EpsInntektMedFlereBosituasjonsperioderMåRevurderes -> Revurderingsfeilresponser.epsInntektMedFlereBosituasjonsperioderMåRevurderes
+        KunneIkkeOppretteRevurdering.FormueSomFørerTilOpphørMåRevurderes -> Revurderingsfeilresponser.formueSomFørerTilOpphørMåRevurderes
     }
 }

@@ -160,6 +160,7 @@ sealed class KunneIkkeOppretteRevurdering {
     object KunneIkkeOppretteOppgave : KunneIkkeOppretteRevurdering()
     object BosituasjonMedFlerePerioderMåRevurderes : KunneIkkeOppretteRevurdering()
     object EpsInntektMedFlereBosituasjonsperioderMåRevurderes : KunneIkkeOppretteRevurdering()
+    object FormueSomFørerTilOpphørMåRevurderes : KunneIkkeOppretteRevurdering()
 }
 
 sealed class KunneIkkeOppdatereRevurdering {
@@ -177,6 +178,7 @@ sealed class KunneIkkeOppdatereRevurdering {
     object KanIkkeOppdatereRevurderingSomErForhåndsvarslet : KunneIkkeOppdatereRevurdering()
     object BosituasjonMedFlerePerioderMåRevurderes : KunneIkkeOppdatereRevurdering()
     object EpsInntektMedFlereBosituasjonsperioderMåRevurderes : KunneIkkeOppdatereRevurdering()
+    object FormueSomFørerTilOpphørMåRevurderes : KunneIkkeOppdatereRevurdering()
 }
 
 sealed class KunneIkkeBeregneOgSimulereRevurdering {

@@ -96,6 +96,11 @@ internal object Revurderingsfeilresponser {
         "ikke_lov_med_formue_for_eps_hvis_man_ikke_har_eps",
     )
 
+    val formueSomFørerTilOpphørMåRevurderes = BadRequest.errorJson(
+        "Formue som fører til opphør må revurderes",
+        "formue_som_fører_til_opphør_må_revurderes",
+    )
+
     fun ugyldigPeriode(ugyldigPeriode: UgyldigPeriode): Resultat {
         return BadRequest.errorJson(
             ugyldigPeriode.toString(),
