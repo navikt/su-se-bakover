@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.FnrGenerator
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.formueVilkår
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import java.util.UUID
@@ -149,6 +150,7 @@ internal class SjekkOmGrunnlagErKonsistentTest {
                 ),
             )
             SjekkOmGrunnlagErKonsistent(
+                formuegrunnlag = emptyList(),
                 uføregrunnlag = emptyList(),
                 bosituasjongrunnlag = listOf(bosituasjon1, bosituasjon2),
                 fradragsgrunnlag = listOf(arbEps),
@@ -186,6 +188,7 @@ internal class SjekkOmGrunnlagErKonsistentTest {
                 ),
             )
             SjekkOmGrunnlagErKonsistent(
+                formuegrunnlag = formueVilkår(periode).grunnlag,
                 uføregrunnlag = listOf(uføregrunnlag),
                 bosituasjongrunnlag = listOf(bosituasjon),
                 fradragsgrunnlag = listOf(arbEps),

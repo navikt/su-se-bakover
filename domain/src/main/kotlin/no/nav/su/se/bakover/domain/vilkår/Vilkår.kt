@@ -189,6 +189,8 @@ sealed class Vilkår {
 
     sealed class Formue : Vilkår() {
 
+        abstract val grunnlag: List<Formuegrunnlag>
+
         abstract fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Formue
 
         /* § 8. Formue over 0,5 ganger grunnbeløpet gir avslag i søknaden. */
@@ -206,6 +208,8 @@ sealed class Vilkår {
             override val erInnvilget = false
 
             override fun hentTidligesteDatoForAvslag(): LocalDate? = null
+            override val grunnlag = emptyList<Formuegrunnlag>()
+
             override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Formue = this
         }
 
@@ -236,7 +240,7 @@ sealed class Vilkår {
                     .minByOrNull { it }
             }
 
-            val grunnlag: List<Formuegrunnlag> = vurderingsperioder.map {
+            override val grunnlag: List<Formuegrunnlag> = vurderingsperioder.map {
                 it.grunnlag
             }
 

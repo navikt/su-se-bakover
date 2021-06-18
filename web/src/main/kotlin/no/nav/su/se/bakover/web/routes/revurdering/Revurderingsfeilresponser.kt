@@ -65,6 +65,10 @@ internal object Revurderingsfeilresponser {
         "Inntekt må revurderes siden det finnes EPS inntekt og flere bosituasjonsperioder",
         "eps_inntekt_med_flere_perioder_må_revurderes",
     )
+    val epsFormueMedFlereBosituasjonsperioderMåRevurderes = BadRequest.errorJson(
+        "Formue må revurderes siden det finnes EPS formue og flere bosituasjonsperioder",
+        "eps_formue_med_flere_perioder_må_revurderes",
+    )
 
     val formueListeKanIkkeVæreTom = BadRequest.errorJson(
         "Formueliste kan ikke være tom",

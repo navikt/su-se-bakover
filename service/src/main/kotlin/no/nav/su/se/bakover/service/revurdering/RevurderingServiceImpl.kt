@@ -120,6 +120,7 @@ internal class RevurderingServiceImpl(
         }
 
         SjekkOmGrunnlagErKonsistent(
+            formuegrunnlag = gjeldendeVedtaksdata.vilkårsvurderinger.formue.grunnlag,
             uføregrunnlag = gjeldendeVedtaksdata.vilkårsvurderinger.uføre.grunnlag,
             bosituasjongrunnlag = gjeldendeVedtaksdata.grunnlagsdata.bosituasjon,
             fradragsgrunnlag = gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag,
@@ -130,6 +131,9 @@ internal class RevurderingServiceImpl(
                 }
                 !informasjonSomRevurderes.harValgtInntekt() && it.contains(Konsistensproblem.BosituasjonOgFradrag.FlereBosituasjonerOgFradragForEPS) -> {
                     return KunneIkkeOppretteRevurdering.EpsInntektMedFlereBosituasjonsperioderMåRevurderes.left()
+                }
+                !informasjonSomRevurderes.harValgtFormue() && it.contains(Konsistensproblem.BosituasjonOgFormue.FlereBosituasjonerOgFormueForEPS) -> {
+                    return KunneIkkeOppretteRevurdering.EpsFormueMedFlereBosituasjonsperioderMåRevurderes.left()
                 }
             }
         }
@@ -447,6 +451,7 @@ internal class RevurderingServiceImpl(
         }
 
         SjekkOmGrunnlagErKonsistent(
+            formuegrunnlag = gjeldendeVedtaksdata.vilkårsvurderinger.formue.grunnlag,
             uføregrunnlag = gjeldendeVedtaksdata.vilkårsvurderinger.uføre.grunnlag,
             bosituasjongrunnlag = gjeldendeVedtaksdata.grunnlagsdata.bosituasjon,
             fradragsgrunnlag = gjeldendeVedtaksdata.grunnlagsdata.fradragsgrunnlag,

@@ -6,6 +6,7 @@ import arrow.core.right
 import arrow.core.separateEither
 
 data class SjekkOmGrunnlagErKonsistent(
+    private val formuegrunnlag: List<Formuegrunnlag>,
     private val uføregrunnlag: List<Grunnlag.Uføregrunnlag>,
     private val bosituasjongrunnlag: List<Grunnlag.Bosituasjon>,
     private val fradragsgrunnlag: List<Grunnlag.Fradragsgrunnlag>,
@@ -14,6 +15,7 @@ data class SjekkOmGrunnlagErKonsistent(
         Uføre(uføregrunnlag).resultat,
         Bosituasjon(bosituasjongrunnlag).resultat,
         BosituasjonOgFradrag(bosituasjongrunnlag, fradragsgrunnlag).resultat,
+        BosituasjonOgFormue(bosituasjongrunnlag, formuegrunnlag).resultat,
     ).let {
         val problemer = it.separateEither().first.flatten().toSet()
         if (problemer.isEmpty()) Unit.right() else problemer.left()
@@ -79,6 +81,31 @@ data class SjekkOmGrunnlagErKonsistent(
             }
         }
     }
+
+    data class BosituasjonOgFormue(
+        val bosituasjon: List<Grunnlag.Bosituasjon>,
+        val formue: List<Formuegrunnlag>,
+    ) {
+        val resultat: Either<Set<Konsistensproblem.BosituasjonOgFormue>, Unit> =
+            bosituasjonOgFormue(bosituasjon, formue)
+
+        private fun bosituasjonOgFormue(
+            bosituasjon: List<Grunnlag.Bosituasjon>,
+            fradrag: List<Formuegrunnlag>,
+        ): Either<Set<Konsistensproblem.BosituasjonOgFormue>, Unit> {
+            mutableSetOf<Konsistensproblem.BosituasjonOgFormue>().apply {
+                when {
+                    bosituasjon.harFlerEnnEnBosituasjonsperiode() && formue.harEpsFormue() -> {
+                        add(Konsistensproblem.BosituasjonOgFormue.FlereBosituasjonerOgFormueForEPS)
+                    }
+                    !bosituasjon.harFlerEnnEnBosituasjonsperiode() && !bosituasjon.harEktefelle() && fradrag.harEpsFormue() -> {
+                        add(Konsistensproblem.BosituasjonOgFormue.IngenEPSMenFormueForEPS)
+                    }
+                }
+                return if (this.isEmpty()) Unit.right() else this.left()
+            }
+        }
+    }
 }
 
 sealed class Konsistensproblem {
@@ -96,5 +123,10 @@ sealed class Konsistensproblem {
     sealed class BosituasjonOgFradrag : Konsistensproblem() {
         object FlereBosituasjonerOgFradragForEPS : BosituasjonOgFradrag()
         object IngenEPSMenFradragForEPS : BosituasjonOgFradrag()
+    }
+
+    sealed class BosituasjonOgFormue : Konsistensproblem() {
+        object FlereBosituasjonerOgFormueForEPS : BosituasjonOgFormue()
+        object IngenEPSMenFormueForEPS : BosituasjonOgFormue()
     }
 }
