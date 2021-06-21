@@ -47,7 +47,6 @@ data class ProdClientsBuilder(
             vars = clientsConfig.pdlConfig,
             tokenOppslag = tokenOppslag,
             azureAd = oAuth,
-            unleash = unleash,
         )
         val personOppslag = PersonClient(
             PersonClientConfig(
