@@ -101,8 +101,8 @@ internal class RevurderingJsonTest {
                   "uføre": $expectedVurderingUføreJson,
                   "fradrag": [$expectedFradragsgrunnlagJson],
                   "bosituasjon": $expectedBosituasjonJson,
-                             "formue": {
-                    "resultat": "HarUføresakTilBehandling",
+                  "formue": {
+                    "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
                       {
                           "gyldigFra": "2021-05-01",
@@ -182,8 +182,8 @@ internal class RevurderingJsonTest {
                   "uføre": null,
                   "fradrag": [],
                   "bosituasjon": [],
-                             "formue": {
-                    "resultat": "HarUføresakTilBehandling",
+                  "formue": {
+                    "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
                       {
                           "gyldigFra": "2021-05-01",
@@ -263,8 +263,8 @@ internal class RevurderingJsonTest {
                   "uføre": null,
                   "fradrag": [],
                   "bosituasjon": [],
-                             "formue": {
-                    "resultat": "HarUføresakTilBehandling",
+                  "formue": {
+                    "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
                       {
                           "gyldigFra": "2021-05-01",
@@ -344,8 +344,8 @@ internal class RevurderingJsonTest {
                   "uføre": null,
                   "fradrag": [],
                   "bosituasjon": [],
-                             "formue": {
-                    "resultat": "HarUføresakTilBehandling",
+                  "formue": {
+                    "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
                       {
                           "gyldigFra": "2021-05-01",
@@ -430,8 +430,8 @@ internal class RevurderingJsonTest {
                   "uføre": null,
                   "fradrag": [],
                   "bosituasjon": [],
-                             "formue": {
-                    "resultat": "HarUføresakTilBehandling",
+                  "formue": {
+                    "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
                       {
                           "gyldigFra": "2021-05-01",
@@ -516,8 +516,8 @@ internal class RevurderingJsonTest {
                   "uføre": null,
                   "fradrag": [],
                   "bosituasjon": [],
-                             "formue": {
-                    "resultat": "HarUføresakTilBehandling",
+                  "formue": {
+                    "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
                       {
                           "gyldigFra": "2021-05-01",
@@ -603,8 +603,8 @@ internal class RevurderingJsonTest {
                   "uføre": null,
                   "fradrag": [],
                   "bosituasjon": [],
-                             "formue": {
-                    "resultat": "HarUføresakTilBehandling",
+                  "formue": {
+                    "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
                       {
                           "gyldigFra": "2021-05-01",
@@ -690,8 +690,8 @@ internal class RevurderingJsonTest {
                   "uføre": null,
                   "fradrag": [],
                   "bosituasjon": [],
-                             "formue": {
-                    "resultat": "HarUføresakTilBehandling",
+                  "formue": {
+                    "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
                       {
                           "gyldigFra": "2021-05-01",
@@ -774,8 +774,8 @@ internal class RevurderingJsonTest {
                   "uføre": null,
                   "fradrag": [],
                   "bosituasjon": [],
-                             "formue": {
-                    "resultat": "HarUføresakTilBehandling",
+                  "formue": {
+                    "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
                       {
                           "gyldigFra": "2021-05-01",
@@ -873,8 +873,8 @@ internal class RevurderingJsonTest {
                   "uføre": null,
                   "fradrag": [],
                   "bosituasjon": [],
-                             "formue": {
-                    "resultat": "HarUføresakTilBehandling",
+                  "formue": {
+                    "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
                       {
                           "gyldigFra": "2021-05-01",
@@ -972,8 +972,8 @@ internal class RevurderingJsonTest {
                   "uføre": null,
                   "fradrag": [],
                   "bosituasjon": [],
-                             "formue": {
-                    "resultat": "HarUføresakTilBehandling",
+                  "formue": {
+                    "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
                       {
                           "gyldigFra": "2021-05-01",
@@ -1068,8 +1068,8 @@ internal class RevurderingJsonTest {
                   "uføre": null,
                   "fradrag": [],
                   "bosituasjon": [],
-                             "formue": {
-                    "resultat": "HarUføresakTilBehandling",
+                  "formue": {
+                    "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
                       {
                           "gyldigFra": "2021-05-01",
@@ -1158,7 +1158,7 @@ internal class RevurderingJsonTest {
                   "fradrag": [],
                   "bosituasjon": [],
                   "formue": {
-                    "resultat": "HarUføresakTilBehandling",
+         "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
                       {
                           "gyldigFra": "2021-05-01",
@@ -1246,8 +1246,8 @@ internal class RevurderingJsonTest {
                   "uføre": null,
                   "fradrag": [],
                   "bosituasjon": [],
-                             "formue": {
-                    "resultat": "HarUføresakTilBehandling",
+                  "formue": {
+                    "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
                       {
                           "gyldigFra": "2021-05-01",
@@ -1332,8 +1332,8 @@ internal class RevurderingJsonTest {
                   "uføre": null,
                   "fradrag": [],
                   "bosituasjon": [],
-                             "formue": {
-                    "resultat": "HarUføresakTilBehandling",
+                  "formue": {
+                    "resultat": "MåInnhenteMerInformasjon",
                     "formuegrenser": [
                       {
                           "gyldigFra": "2021-05-01",

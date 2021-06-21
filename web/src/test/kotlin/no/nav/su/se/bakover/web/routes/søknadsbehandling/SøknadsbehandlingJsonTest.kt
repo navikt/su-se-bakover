@@ -134,7 +134,7 @@ internal class SøknadsbehandlingJsonTest {
             "fradrag": [],
             "bosituasjon": $expectedBosituasjonJson,
             "formue": {
-                "resultat": "HarUføresakTilBehandling",
+                "resultat": "MåInnhenteMerInformasjon",
                 "formuegrenser": [
                   {
                       "gyldigFra": "2021-05-01",
@@ -214,7 +214,7 @@ internal class SøknadsbehandlingJsonTest {
             "fradrag": [],
             "bosituasjon": [],
             "formue": {
-                "resultat": "HarUføresakTilBehandling",
+                "resultat": "MåInnhenteMerInformasjon",
                 "formuegrenser": [
                   {
                       "gyldigFra": "2021-05-01",
