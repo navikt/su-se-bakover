@@ -64,7 +64,7 @@ allprojects {
         testImplementation("org.mockito:mockito-core:3.10.0")
 
         constraints {
-            implementation("io.netty:netty-codec-http2:4.1.53.Final") {
+            implementation("io.netty:netty-codec-http2:4.1.65.Final") {
                 because("https://app.snyk.io/vuln/SNYK-JAVA-IONETTY-1020439")
             }
             implementation("commons-collections:commons-collections:3.2.2") {
