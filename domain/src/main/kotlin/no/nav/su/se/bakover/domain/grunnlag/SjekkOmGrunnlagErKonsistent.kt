@@ -91,14 +91,14 @@ data class SjekkOmGrunnlagErKonsistent(
 
         private fun bosituasjonOgFormue(
             bosituasjon: List<Grunnlag.Bosituasjon>,
-            fradrag: List<Formuegrunnlag>,
+            formue: List<Formuegrunnlag>,
         ): Either<Set<Konsistensproblem.BosituasjonOgFormue>, Unit> {
             mutableSetOf<Konsistensproblem.BosituasjonOgFormue>().apply {
                 when {
                     bosituasjon.harFlerEnnEnBosituasjonsperiode() && formue.harEpsFormue() -> {
                         add(Konsistensproblem.BosituasjonOgFormue.FlereBosituasjonerOgFormueForEPS)
                     }
-                    !bosituasjon.harFlerEnnEnBosituasjonsperiode() && !bosituasjon.harEktefelle() && fradrag.harEpsFormue() -> {
+                    !bosituasjon.harFlerEnnEnBosituasjonsperiode() && !bosituasjon.harEktefelle() && formue.harEpsFormue() -> {
                         add(Konsistensproblem.BosituasjonOgFormue.IngenEPSMenFormueForEPS)
                     }
                 }

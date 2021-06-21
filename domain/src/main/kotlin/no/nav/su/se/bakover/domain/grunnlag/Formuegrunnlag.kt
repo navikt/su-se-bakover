@@ -19,7 +19,6 @@ data class Formuegrunnlag private constructor(
     val søkersFormue: Verdier,
     val begrunnelse: String?,
 ) : Grunnlag(), KanPlasseresPåTidslinje<Formuegrunnlag> {
-    fun harEpsFormue() = sumFormue() > 0
     data class Verdier(
         val verdiIkkePrimærbolig: Int,
         val verdiEiendommer: Int,
@@ -158,4 +157,4 @@ sealed class KunneIkkeLageFormueGrunnlag {
     object FormuePeriodeErUtenforBehandlingsperioden : KunneIkkeLageFormueGrunnlag()
 }
 
-fun List<Formuegrunnlag>.harEpsFormue() = this.any { it.harEpsFormue() }
+fun List<Formuegrunnlag>.harEpsFormue() = this.any { it.epsFormue != null }
