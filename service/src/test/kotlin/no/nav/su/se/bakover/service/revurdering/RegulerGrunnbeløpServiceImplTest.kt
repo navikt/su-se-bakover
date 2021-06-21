@@ -322,7 +322,7 @@ internal class RegulerGrunnbeløpServiceImplTest {
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 mapOf(
                     Revurderingsteg.Uførhet to Vurderingstatus.IkkeVurdert,
-                    Revurderingsteg.Inntekt to Vurderingstatus.Vurdert,
+                    Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
                 ),
             ),
         )

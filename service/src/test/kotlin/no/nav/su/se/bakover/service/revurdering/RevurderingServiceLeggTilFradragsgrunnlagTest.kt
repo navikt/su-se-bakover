@@ -19,43 +19,28 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.revurdering.InformasjonSomRevurderes
 import no.nav.su.se.bakover.domain.revurdering.OpprettetRevurdering
 import no.nav.su.se.bakover.domain.revurdering.RevurderingTilAttestering
+import no.nav.su.se.bakover.domain.revurdering.Revurderingsteg
+import no.nav.su.se.bakover.domain.revurdering.Vurderingstatus
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.fixedTidspunkt
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.fail
 import java.util.UUID
 
 class RevurderingServiceLeggTilFradragsgrunnlagTest {
     @Test
     fun `lagreFradrag happy case`() {
-        val revurderingId = UUID.randomUUID()
-
-        val revurderingsperiode = Periode.create(1.januar(2021), 31.desember(2021))
-        val revuderingMock = mock<OpprettetRevurdering> {
-            on { id } doReturn revurderingId
-            on { periode } doReturn revurderingsperiode
-            on { grunnlagsdata } doReturn Grunnlagsdata(
-                bosituasjon = listOf(
-                    Grunnlag.Bosituasjon.Fullstendig.Enslig(
-                        id = UUID.randomUUID(),
-                        opprettet = fixedTidspunkt,
-                        periode = revurderingsperiode,
-                        begrunnelse = null,
-                    ),
-                ),
-            )
-        }
+        val revurdering = RevurderingTestUtils.opprettetRevurdering
 
         val revurderingRepoMock = mock<RevurderingRepo> {
-            on { hent(any()) } doReturn revuderingMock
+            on { hent(any()) } doReturn revurdering
         }
 
-        val grunnlagServiceMock = mock<GrunnlagService> {
-            on { lagreFradragsgrunnlag(any(), any()) }.doNothing()
-        }
+        val grunnlagServiceMock = mock<GrunnlagService>()
 
         val revurderingService = RevurderingTestUtils.createRevurderingService(
             revurderingRepo = revurderingRepoMock,
@@ -63,13 +48,13 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
         )
 
         val request = LeggTilFradragsgrunnlagRequest(
-            behandlingId = revurderingId,
+            behandlingId = revurdering.id,
             fradragsrunnlag = listOf(
                 Grunnlag.Fradragsgrunnlag(
                     fradrag = FradragFactory.ny(
                         type = Fradragstype.Arbeidsinntekt,
-                        månedsbeløp = 0.0,
-                        periode = revurderingsperiode,
+                        månedsbeløp = 5000.0,
+                        periode = revurdering.periode,
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
@@ -77,20 +62,25 @@ class RevurderingServiceLeggTilFradragsgrunnlagTest {
             ),
         )
 
-        revurderingService.leggTilFradragsgrunnlag(
-            request,
-        ).getOrHandle { throw Exception("k") }
+        revurderingService.leggTilFradragsgrunnlag(request).getOrHandle { fail { "uventet respons" } }
 
         inOrder(
             revurderingRepoMock,
             grunnlagServiceMock,
         ) {
-            verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
+            verify(revurderingRepoMock).hent(revurdering.id)
             verify(grunnlagServiceMock).lagreFradragsgrunnlag(
-                argThat { it shouldBe revurderingId },
-                argThat { it shouldBe request.fradragsrunnlag },
+                revurdering.id,
+                request.fradragsrunnlag,
             )
-            verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
+            verify(revurderingRepoMock).lagre(
+                revurdering.copy(
+                    informasjonSomRevurderes = InformasjonSomRevurderes.create(
+                        mapOf(Revurderingsteg.Inntekt to Vurderingstatus.Vurdert),
+                    ),
+                ),
+            )
+            verify(revurderingRepoMock).hent(revurdering.id)
         }
 
         verifyNoMoreInteractions(revurderingRepoMock, grunnlagServiceMock)

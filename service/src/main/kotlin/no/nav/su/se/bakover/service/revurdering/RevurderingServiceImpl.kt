@@ -239,11 +239,7 @@ internal class RevurderingServiceImpl(
                 },
             ),
         ).also {
-            revurderingRepo.lagre(
-                it.copy(
-                    informasjonSomRevurderes = it.informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Uførhet),
-                ),
-            )
+            revurderingRepo.lagre(it.markerSomVurdert(Revurderingsteg.Uførhet))
         }
         vilkårsvurderingService.lagre(
             behandlingId = oppdatertBehandlingsinformasjon.id,
@@ -277,6 +273,10 @@ internal class RevurderingServiceImpl(
         grunnlagService.lagreFradragsgrunnlag(
             behandlingId = revurdering.id,
             fradragsgrunnlag = request.fradragsrunnlag,
+        )
+
+        revurderingRepo.lagre(
+            revurdering = revurdering.markerSomVurdert(Revurderingsteg.Inntekt),
         )
 
         return LeggTilFradragsgrunnlagResponse(
