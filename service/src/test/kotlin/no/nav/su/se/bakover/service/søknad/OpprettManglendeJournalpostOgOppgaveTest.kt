@@ -28,7 +28,6 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
@@ -315,7 +314,6 @@ class OpprettManglendeJournalpostOgOppgaveTest {
         val søknadRepoMock = mock<SøknadRepo> {
             on { hentSøknaderUtenJournalpost() } doReturn listOf(nySøknad)
             on { hentSøknaderMedJournalpostMenUtenOppgave() } doReturn listOf(journalførtSøknad)
-            on { oppdaterOppgaveId(any()) }.doNothing()
         }
 
         val sakServiceMock = mock<SakService> {

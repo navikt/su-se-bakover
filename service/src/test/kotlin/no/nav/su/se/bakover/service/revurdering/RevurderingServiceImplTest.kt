@@ -76,7 +76,6 @@ import no.nav.su.se.bakover.service.brev.BrevService
 import no.nav.su.se.bakover.service.brev.KunneIkkeDistribuereBrev
 import no.nav.su.se.bakover.service.brev.KunneIkkeJournalføreBrev
 import no.nav.su.se.bakover.service.brev.KunneIkkeLageBrev
-import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.fixedTidspunkt
 import no.nav.su.se.bakover.service.formueVilkår
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
@@ -1047,7 +1046,6 @@ internal class RevurderingServiceImplTest {
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn simulertRevurdering
-            on { lagre(any()) }.doNothing()
         }
 
         val personServiceMock = mock<PersonService> {
@@ -1462,7 +1460,6 @@ internal class RevurderingServiceImplTest {
                 ),
             )
             on { hentEventuellTidligereAttestering(any()) } doReturn null
-            on { lagre(any()) }.doNothing()
         }
 
         val personServiceMock = mock<PersonService> {
@@ -1760,9 +1757,7 @@ internal class RevurderingServiceImplTest {
             on { hent(any()) } doReturn revuderingMock
         }
 
-        val grunnlagServiceMock = mock<GrunnlagService> {
-            on { lagreFradragsgrunnlag(any(), any()) }.doNothing()
-        }
+        val grunnlagServiceMock = mock<GrunnlagService>()
 
         val revurderingService = createRevurderingService(
             revurderingRepo = revurderingRepoMock,
@@ -1896,7 +1891,7 @@ internal class RevurderingServiceImplTest {
     @Test
     fun `validerer fradragsgrunnlag`() {
         val revurderingsperiode = Periode.create(1.mai(2021), 31.desember(2021))
-        val revurderingMock = mock<OpprettetRevurdering>() {
+        val revurderingMock = mock<OpprettetRevurdering> {
 
             on { periode } doReturn revurderingsperiode
             on { grunnlagsdata } doReturn Grunnlagsdata(

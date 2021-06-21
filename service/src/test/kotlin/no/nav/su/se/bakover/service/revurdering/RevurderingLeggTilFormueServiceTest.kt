@@ -3,14 +3,12 @@ package no.nav.su.se.bakover.service.revurdering
 import arrow.core.Nel
 import arrow.core.getOrHandle
 import arrow.core.nonEmptyListOf
-import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
 import com.nhaarman.mockitokotlin2.verifyNoMoreInteractions
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beOfType
-import no.nav.su.se.bakover.common.april
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.mars
@@ -38,7 +36,6 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.fixedTidspunkt
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.createRevurderingService
@@ -51,19 +48,15 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import java.util.UUID
 
-@Suppress("UNUSED_VARIABLE")
 internal class RevurderingLeggTilFormueServiceTest {
 
     @Test
     fun `legg til revurdering av formue happy case`() {
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn opprettetRevurdering
-            on { lagre(any()) }.doNothing()
         }
 
-        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService> {
-            on { lagre(any(), any()) }.doNothing()
-        }
+        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService>()
 
         val actual = createRevurderingService(
             revurderingRepo = revurderingRepoMock,
@@ -231,14 +224,11 @@ internal class RevurderingLeggTilFormueServiceTest {
                     ),
                 ),
             )
-            on { lagre(any()) }.doNothing()
         }
 
-        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService> {
-            on { lagre(any(), any()) }.doNothing()
-        }
+        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService>()
 
-        val actual = createRevurderingService(
+        createRevurderingService(
             revurderingRepo = revurderingRepoMock,
             vilkårsvurderingService = vilkårsvurderingServiceMock,
         ).leggTilFormuegrunnlag(
@@ -290,14 +280,11 @@ internal class RevurderingLeggTilFormueServiceTest {
     fun `ikke lov å legge inn formue periode utenfor perioden til revurderingen`() {
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn opprettetRevurdering
-            on { lagre(any()) }.doNothing()
         }
 
-        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService> {
-            on { lagre(any(), any()) }.doNothing()
-        }
+        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService>()
 
-        val actual = createRevurderingService(
+        createRevurderingService(
             revurderingRepo = revurderingRepoMock,
             vilkårsvurderingService = vilkårsvurderingServiceMock,
         ).leggTilFormuegrunnlag(
@@ -340,14 +327,11 @@ internal class RevurderingLeggTilFormueServiceTest {
     fun `ikke lov å legge inn epsformue periode utenfor perioden til revurderingen`() {
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn opprettetRevurdering
-            on { lagre(any()) }.doNothing()
         }
 
-        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService> {
-            on { lagre(any(), any()) }.doNothing()
-        }
+        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService>()
 
-        val actual = createRevurderingService(
+        createRevurderingService(
             revurderingRepo = revurderingRepoMock,
             vilkårsvurderingService = vilkårsvurderingServiceMock,
         ).leggTilFormuegrunnlag(
@@ -399,14 +383,11 @@ internal class RevurderingLeggTilFormueServiceTest {
     fun `ikke lov å legge inn formue med overlappende perioder`() {
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn opprettetRevurdering
-            on { lagre(any()) }.doNothing()
         }
 
-        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService> {
-            on { lagre(any(), any()) }.doNothing()
-        }
+        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService>()
 
-        val actual = createRevurderingService(
+        createRevurderingService(
             revurderingRepo = revurderingRepoMock,
             vilkårsvurderingService = vilkårsvurderingServiceMock,
         ).leggTilFormuegrunnlag(
@@ -473,14 +454,11 @@ internal class RevurderingLeggTilFormueServiceTest {
     fun `feilmelding hvis vi ikke finner revurdering`() {
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn null
-            on { lagre(any()) }.doNothing()
         }
 
-        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService> {
-            on { lagre(any(), any()) }.doNothing()
-        }
+        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService>()
 
-        val actual = createRevurderingService(
+        createRevurderingService(
             revurderingRepo = revurderingRepoMock,
             vilkårsvurderingService = vilkårsvurderingServiceMock,
         ).leggTilFormuegrunnlag(
@@ -532,14 +510,11 @@ internal class RevurderingLeggTilFormueServiceTest {
     fun `kan ikke legge inn formue når revurdering er til attestering`() {
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(revurderingId) } doReturn revurderingTilAttestering
-            on { lagre(any()) }.doNothing()
         }
 
-        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService> {
-            on { lagre(any(), any()) }.doNothing()
-        }
+        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService>()
 
-        val actual = createRevurderingService(
+        createRevurderingService(
             revurderingRepo = revurderingRepoMock,
             vilkårsvurderingService = vilkårsvurderingServiceMock,
         ).leggTilFormuegrunnlag(
@@ -594,7 +569,6 @@ internal class RevurderingLeggTilFormueServiceTest {
     private val periodeHele2021 = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.desember(2021))
     private val periodeJanMars = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.mars(2021))
     private val periodeMarsDesember = Periode.create(fraOgMed = 1.mars(2021), tilOgMed = 31.desember(2021))
-    private val periodeAprilDesember = Periode.create(fraOgMed = 1.april(2021), tilOgMed = 31.desember(2021))
     private val periodeHele2020 = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.mars(2020))
     private val uføreId = UUID.randomUUID()
 

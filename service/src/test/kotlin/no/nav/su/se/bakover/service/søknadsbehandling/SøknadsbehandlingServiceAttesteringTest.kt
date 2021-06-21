@@ -36,7 +36,6 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.beregning.TestBeregning
-import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.statistikk.Event
@@ -103,9 +102,7 @@ class SøknadsbehandlingServiceAttesteringTest {
             on { lukkOppgave(any()) } doReturn Unit.right()
         }
 
-        val eventObserver: EventObserver = mock {
-            on { handle(any()) }.doNothing()
-        }
+        val eventObserver: EventObserver = mock()
 
         val actual = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
@@ -259,9 +256,7 @@ class SøknadsbehandlingServiceAttesteringTest {
             on { lukkOppgave(any()) } doReturn KunneIkkeLukkeOppgave.left()
         }
 
-        val eventObserver: EventObserver = mock {
-            on { handle(any()) }.doNothing()
-        }
+        val eventObserver: EventObserver = mock()
 
         val actual = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,

@@ -36,7 +36,6 @@ import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.behandlingsinformasjon
-import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.fixedTidspunkt
 import no.nav.su.se.bakover.service.grunnlag.VilkårsvurderingService
 import org.junit.jupiter.api.Test
@@ -176,11 +175,8 @@ internal class SøknadsbehandlingServiceOppdaterStønadsperiodeTest {
         )
         val søknadsbehandlingRepoMock = mock<SøknadsbehandlingRepo> {
             on { hent(any()) } doReturn uavklart
-            on { lagre(any()) }.doNothing()
         }
-        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService> {
-            on { lagre(any(), any()) }.doNothing()
-        }
+        val vilkårsvurderingServiceMock = mock<VilkårsvurderingService>()
 
         val nyPeriode = Periode.create(1.februar(2021), 31.mars(2021))
         val expected = uavklart.copy(

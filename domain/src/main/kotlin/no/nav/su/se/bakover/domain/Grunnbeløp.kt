@@ -31,7 +31,6 @@ class Grunnbeløp private constructor(private val multiplier: Double) {
             }
             ) acc + entry else acc
         }
-        .mapNotNull { it }
         .map { it.key to (it.value * multiplier).roundToInt() }
 
     companion object {

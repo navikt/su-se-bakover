@@ -29,7 +29,6 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils.behandlingsinformasjon
-import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.fixedTidspunkt
 import no.nav.su.se.bakover.service.grunnlag.GrunnlagService
@@ -163,9 +162,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             )
         }
 
-        val grunnlagServiceMock = mock<GrunnlagService> {
-            on { lagreBosituasjongrunnlag(any(), any()) }.doNothing()
-        }
+        val grunnlagServiceMock = mock<GrunnlagService>()
 
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,
@@ -322,9 +319,7 @@ internal class SøknadsbehandlingServiceGrunnlagBosituasjonTest {
             )
         }
 
-        val grunnlagServiceMock = mock<GrunnlagService> {
-            on { lagreBosituasjongrunnlag(any(), any()) }.doNothing()
-        }
+        val grunnlagServiceMock = mock<GrunnlagService>()
 
         val response = createSøknadsbehandlingService(
             søknadsbehandlingRepo = søknadsbehandlingRepoMock,

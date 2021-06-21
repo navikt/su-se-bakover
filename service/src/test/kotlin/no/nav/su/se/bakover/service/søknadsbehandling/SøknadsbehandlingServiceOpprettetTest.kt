@@ -29,7 +29,6 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.service.argThat
-import no.nav.su.se.bakover.service.doNothing
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.søknad.FantIkkeSøknad
@@ -201,7 +200,6 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             on { harSøknadPåbegyntBehandling(any()) } doReturn false
         }
         val søknadsbehandlingRepoMock: SøknadsbehandlingRepo = mock {
-            on { lagre(any()) }.doNothing()
             on { hent(any()) } doReturn expectedSøknadsbehandling
         }
         val behandlingService = createSøknadsbehandlingService(
@@ -214,9 +212,7 @@ internal class SøknadsbehandlingServiceOpprettetTest {
             behandlingMetrics = mock(),
             beregningService = mock(),
         )
-        val eventObserver: EventObserver = mock {
-            on { handle(any()) }.doNothing()
-        }
+        val eventObserver: EventObserver = mock()
         behandlingService.addObserver(eventObserver)
 
         behandlingService.opprett(
