@@ -517,7 +517,7 @@ class LagBrevRequestVisitor(
             requestForAvslag(
                 personOgNavn = it,
                 avslagsgrunner = vedtak.avslagsgrunner,
-                harEktefelle = vedtak.behandling.grunnlagsdata.bosituasjon.harEktefelle(),
+                harEktefelle = vedtak.behandling.grunnlagsdata.bosituasjon.ifNotEmpty { harEktefelle() } ?: false,
                 beregning = when (vedtak) {
                     is Vedtak.Avslag.AvslagBeregning -> vedtak.beregning
                     is Vedtak.Avslag.AvslagVilkår -> null
