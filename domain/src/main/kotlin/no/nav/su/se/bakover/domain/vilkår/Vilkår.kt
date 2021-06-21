@@ -75,7 +75,6 @@ data class Vilkårsvurderinger(
     fun utledOpphørsgrunner(): List<Opphørsgrunn> {
         return vilkår.mapNotNull {
             when (it) {
-                // the new bois
                 is Vilkår.Uførhet.Vurdert -> if (it.erAvslag) it.vilkår.tilOpphørsgrunn() else null
                 is Vilkår.Formue.Vurdert -> if (it.erAvslag) it.vilkår.tilOpphørsgrunn() else null
                 Vilkår.Formue.IkkeVurdert, Vilkår.Uførhet.IkkeVurdert -> null

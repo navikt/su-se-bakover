@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.domain.brev
 
 import no.nav.su.se.bakover.common.ddMMyyyy
+import no.nav.su.se.bakover.domain.Grunnbeløp
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.behandling.Satsgrunn
 import no.nav.su.se.bakover.domain.behandling.avslag.Avslag
@@ -100,6 +101,7 @@ interface LagBrevRequest {
                 ) LagBrevinnholdForBeregning(beregning).brevInnhold else emptyList(),
                 saksbehandlerNavn = saksbehandlerNavn,
                 attestantNavn = attestantNavn,
+                halvGrunnbeløp = Grunnbeløp.`0,5G`.fraDato(beregning.periode.fraOgMed).toInt(),
                 fritekst = fritekst,
                 opphørsgrunner = opphørsgrunner,
                 avslagsparagrafer = opphørsgrunner.getDistinkteParagrafer(),
