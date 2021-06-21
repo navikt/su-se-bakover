@@ -15,7 +15,7 @@ create table if not exists vilkårsvurdering_formue
     id uuid primary key,
     opprettet timestamptz not null,
     behandlingId uuid not null,
-    formue_grunnlag_id uuid references grunnlag_formue(id),
+    formue_grunnlag_id uuid references grunnlag_formue(id) not null,
     vurdering text not null,
     resultat text not null,
     fraOgMed date not null,
