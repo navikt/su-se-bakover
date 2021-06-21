@@ -616,31 +616,41 @@ internal class RevurderingServiceImpl(
         fritekst: String,
     ): Either<KunneIkkeForhåndsvarsle, Revurdering> {
         val revurdering = revurderingRepo.hent(revurderingId)
-        if (revurdering?.forhåndsvarsel != null) {
-            return KunneIkkeForhåndsvarsle.AlleredeForhåndsvarslet.left()
-        }
-        return when (revurdering) {
+            ?: return KunneIkkeForhåndsvarsle.FantIkkeRevurdering.left()
+
+        when (revurdering) {
             is SimulertRevurdering -> {
-                if (revurderingshandling == Revurderingshandling.FORHÅNDSVARSLE) {
-                    return sendForhåndsvarsling(revurdering, fritekst)
+                kanSendesTilAttestering(revurdering).getOrHandle {
+                    return KunneIkkeForhåndsvarsle.Attestering(it).left()
                 }
-                lagreForhåndsvarsling(revurdering, Forhåndsvarsel.IngenForhåndsvarsel)
-                return sendTilAttestering(
-                    SendTilAttesteringRequest(
-                        revurderingId = revurderingId,
-                        saksbehandler = saksbehandler,
-                        fritekstTilBrev = fritekst,
-                        skalFøreTilBrevutsending = true,
-                    ),
-                ).mapLeft {
-                    KunneIkkeForhåndsvarsle.Attestering(it)
+                val forhåndsvarselErSendt = revurdering.forhåndsvarsel is Forhåndsvarsel.SkalForhåndsvarsles
+
+                if (forhåndsvarselErSendt) {
+                    return KunneIkkeForhåndsvarsle.AlleredeForhåndsvarslet.left()
+                } else {
+                    return when (revurderingshandling) {
+                        Revurderingshandling.SEND_TIL_ATTESTERING -> {
+                            lagreForhåndsvarsling(revurdering, Forhåndsvarsel.IngenForhåndsvarsel)
+                            sendTilAttestering(
+                                SendTilAttesteringRequest(
+                                    revurderingId = revurderingId,
+                                    saksbehandler = saksbehandler,
+                                    fritekstTilBrev = fritekst,
+                                    skalFøreTilBrevutsending = true,
+                                ),
+                            ).mapLeft {
+                                KunneIkkeForhåndsvarsle.Attestering(it)
+                            }
+                        }
+                        Revurderingshandling.FORHÅNDSVARSLE -> {
+                            sendForhåndsvarsling(revurdering, fritekst)
+                        }
+                    }
                 }
             }
-            null -> KunneIkkeForhåndsvarsle.FantIkkeRevurdering.left()
-            else -> KunneIkkeForhåndsvarsle.UgyldigTilstand(
-                revurdering::class,
-                SimulertRevurdering::class,
-            ).left()
+            else -> {
+                return KunneIkkeForhåndsvarsle.UgyldigTilstand(revurdering::class, SimulertRevurdering::class).left()
+            }
         }
     }
 

@@ -1027,7 +1027,21 @@ internal class RevurderingServiceImplTest {
             forhåndsvarsel = null,
             behandlingsinformasjon = søknadsbehandlingVedtak.behandlingsinformasjon,
             grunnlagsdata = Grunnlagsdata.EMPTY,
-            vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
+            vilkårsvurderinger = Vilkårsvurderinger(
+                uføre = Vilkår.Uførhet.Vurdert.create(
+                    vurderingsperioder = nonEmptyListOf(
+                        Vurderingsperiode.Uføre.create(
+                            id = UUID.randomUUID(),
+                            opprettet = fixedTidspunkt,
+                            resultat = Resultat.Innvilget,
+                            grunnlag = null,
+                            periode = periode,
+                            begrunnelse = "ok2k",
+                        ),
+                    ),
+                ),
+                formue = formueVilkår(periode),
+            ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
         )
 
@@ -1107,7 +1121,9 @@ internal class RevurderingServiceImplTest {
 
     @Test
     fun `forhåndsvarsler ikke en allerede forhåndsvarslet revurdering`() {
-        val simulertRevurdering = simulertRevurderingInnvilget
+        val simulertRevurdering = simulertRevurderingInnvilget.copy(
+            forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt(JournalpostId(""), BrevbestillingId("")),
+        )
 
         val revurderingRepoMock = mock<RevurderingRepo> {
             on { hent(any()) } doReturn simulertRevurdering
@@ -1121,6 +1137,85 @@ internal class RevurderingServiceImplTest {
             revurderingshandling = Revurderingshandling.FORHÅNDSVARSLE,
             fritekst = "",
         ) shouldBe KunneIkkeForhåndsvarsle.AlleredeForhåndsvarslet.left()
+    }
+
+    @Test
+    fun `kan endre fra ingen forhåndsvarsel til forhåndsvarsel`() {
+        val simulertRevurdering = simulertRevurderingInnvilget.copy(
+            forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
+        )
+
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn simulertRevurdering
+        }
+
+        val personServiceMock = mock<PersonService> {
+            on { hentPerson(any()) } doReturn person.right()
+        }
+
+        val brevServiceMock = mock<BrevService> {
+            on { journalførBrev(any(), any()) } doReturn JournalpostId("").right()
+            on { distribuerBrev(any()) } doReturn BrevbestillingId("").right()
+        }
+
+        val oppgaveServiceMock = mock<OppgaveService> {
+            on { oppdaterOppgave(any(), any()) } doReturn Unit.right()
+        }
+
+        val microsoftGraphApiClientMock = mock<MicrosoftGraphApiClient> {
+            on { hentNavnForNavIdent(any()) } doReturn saksbehandler.navIdent.right()
+        }
+
+        val response = createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+            personService = personServiceMock,
+            brevService = brevServiceMock,
+            oppgaveService = oppgaveServiceMock,
+            microsoftGraphApiClient = microsoftGraphApiClientMock,
+        ).forhåndsvarsleEllerSendTilAttestering(
+            revurderingId = revurderingId,
+            saksbehandler = saksbehandler,
+            revurderingshandling = Revurderingshandling.FORHÅNDSVARSLE,
+            fritekst = "",
+        )
+
+        response shouldBeRight simulertRevurdering.copy(
+            forhåndsvarsel = Forhåndsvarsel.SkalForhåndsvarsles.Sendt(
+                JournalpostId(""),
+                BrevbestillingId(""),
+            ),
+        )
+
+        verify(personServiceMock).hentPerson(any())
+        verify(brevServiceMock).journalførBrev(any(), any())
+        verify(revurderingRepoMock).lagre(any())
+        verify(oppgaveServiceMock).oppdaterOppgave(any(), any())
+    }
+
+    @Test
+    fun `får ikke sendt forhåndsvarsel dersom det ikke er mulig å sende behandlingen videre til attestering`() {
+        val simuleringMock = mock<Simulering> {
+            on { harFeilutbetalinger() } doReturn true
+        }
+        val simulertRevurdering = simulertRevurderingInnvilget.copy(
+            simulering = simuleringMock,
+            forhåndsvarsel = null,
+        )
+
+        val revurderingRepoMock = mock<RevurderingRepo> {
+            on { hent(any()) } doReturn simulertRevurdering
+        }
+
+        createRevurderingService(
+            revurderingRepo = revurderingRepoMock,
+        ).forhåndsvarsleEllerSendTilAttestering(
+            revurderingId = revurderingId,
+            saksbehandler = saksbehandler,
+            revurderingshandling = Revurderingshandling.FORHÅNDSVARSLE,
+            fritekst = "",
+        ) shouldBeLeft KunneIkkeForhåndsvarsle.Attestering(
+            KunneIkkeSendeRevurderingTilAttestering.FeilutbetalingStøttesIkke,
+        )
     }
 
     private fun testForhåndsvarslerIkkeGittRevurdering(revurdering: Revurdering) {
