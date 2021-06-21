@@ -82,7 +82,7 @@ allprojects {
             implementation("org.postgresql:postgresql:42.2.22") {
                 because("https://app.snyk.io/vuln/SNYK-JAVA-ORGPOSTGRESQL-571481")
             }
-            implementation("org.apache.cxf:cxf-rt-transports-http:3.4.3") {
+            implementation("org.apache.cxf:cxf-rt-transports-http:3.4.4") {
                 because("https://app.snyk.io/vuln/SNYK-JAVA-ORGAPACHECXF-1039798")
             }
             implementation("junit:junit:4.13.2") {
