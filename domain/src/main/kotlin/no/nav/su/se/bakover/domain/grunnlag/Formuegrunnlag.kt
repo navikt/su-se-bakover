@@ -98,26 +98,31 @@ data class Formuegrunnlag private constructor(
             bosituasjon: Bosituasjon.Fullstendig,
             behandlingsPeriode: Periode,
         ): Either<KunneIkkeLageFormueGrunnlag, Formuegrunnlag> {
-            if (epsFormue != null) {
-                if (!(bosituasjon.harEktefelle())) {
-                    return KunneIkkeLageFormueGrunnlag.MåHaEpsHvisManHarSattEpsFormue.left()
-                }
-                if (!(bosituasjon.periode.inneholder(periode))) {
-                    return KunneIkkeLageFormueGrunnlag.EpsFormueperiodeErUtenforBosituasjonPeriode.left()
-                }
-            }
-
-            if (!(behandlingsPeriode.inneholder(periode))) {
-                return KunneIkkeLageFormueGrunnlag.FormuePeriodeErUtenforBehandlingsperioden.left()
-            }
-            return Formuegrunnlag(
+            val formuegrunnlag = Formuegrunnlag(
                 id = id,
                 periode = periode,
                 opprettet = opprettet,
                 epsFormue = epsFormue,
                 søkersFormue = søkersFormue,
                 begrunnelse = begrunnelse,
-            ).right()
+            )
+            SjekkOmGrunnlagErKonsistent.BosituasjonOgFormue(
+                bosituasjon = listOf(bosituasjon),
+                formue = listOf(formuegrunnlag),
+            ).resultat.mapLeft {
+                if (it.contains(Konsistensproblem.BosituasjonOgFormue.IngenEPSMenFormueForEPS)) {
+                    return KunneIkkeLageFormueGrunnlag.MåHaEpsHvisManHarSattEpsFormue.left()
+                }
+            }
+            // TODO jah: Vi sjekker ikke på om epsFormue/epsInntekt er innenfor sin respektive bosituasjonsperiode
+            if (epsFormue != null && !(bosituasjon.periode.inneholder(periode))) {
+                return KunneIkkeLageFormueGrunnlag.EpsFormueperiodeErUtenforBosituasjonPeriode.left()
+            }
+
+            if (!(behandlingsPeriode.inneholder(periode))) {
+                return KunneIkkeLageFormueGrunnlag.FormuePeriodeErUtenforBehandlingsperioden.left()
+            }
+            return formuegrunnlag.right()
         }
 
         fun fromPersistence(

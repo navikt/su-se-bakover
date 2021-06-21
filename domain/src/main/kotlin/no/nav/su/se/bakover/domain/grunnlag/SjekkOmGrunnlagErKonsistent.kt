@@ -61,27 +61,48 @@ data class SjekkOmGrunnlagErKonsistent(
         }
     }
 
+    /**
+     * Dersom man har epsFradrag, sjekker at det ikke finnes fler enn 1 bosituasjon og at man har en EPS
+     *
+     * Bruk Bosituasjon og Fradrag direkte dersom du trenger å vite om de hver for seg er i henhold (typisk om de er utfylt).
+     * @return Either.Right(Unit) dersom søker ikke har EPS eller ikke har fradrag.
+     */
     data class BosituasjonOgFradrag(
         val bosituasjon: List<Grunnlag.Bosituasjon>,
         val fradrag: List<Grunnlag.Fradragsgrunnlag>,
     ) {
-        val resultat: Either<Set<Konsistensproblem.BosituasjonOgFradrag>, Unit> = bosituasjonOgFradrag(bosituasjon, fradrag)
+        val resultat: Either<Set<Konsistensproblem.BosituasjonOgFradrag>, Unit> =
+            bosituasjonOgFradrag(bosituasjon, fradrag)
 
-        private fun bosituasjonOgFradrag(bosituasjon: List<Grunnlag.Bosituasjon>, fradrag: List<Grunnlag.Fradragsgrunnlag>): Either<Set<Konsistensproblem.BosituasjonOgFradrag>, Unit> {
+        private fun bosituasjonOgFradrag(
+            bosituasjon: List<Grunnlag.Bosituasjon>,
+            fradrag: List<Grunnlag.Fradragsgrunnlag>,
+        ): Either<Set<Konsistensproblem.BosituasjonOgFradrag>, Unit> {
+            if (fradrag.isEmpty()) return Unit.right()
+            if (!fradrag.harEpsInntekt()) return Unit.right()
             mutableSetOf<Konsistensproblem.BosituasjonOgFradrag>().apply {
                 when {
-                    bosituasjon.harFlerEnnEnBosituasjonsperiode() && fradrag.harEpsInntekt() -> {
+                    bosituasjon.harFlerEnnEnBosituasjonsperiode() -> {
+                        // Vi støtter ikke fler bosituasjoner ved innsending eller etter vilkårsvurdering.
+                        // Det kan oppstår dersom man revurderer på tvers av vedtak.
                         add(Konsistensproblem.BosituasjonOgFradrag.FlereBosituasjonerOgFradragForEPS)
                     }
-                    !bosituasjon.harFlerEnnEnBosituasjonsperiode() && !bosituasjon.harEktefelle() && fradrag.harEpsInntekt() -> {
+                    bosituasjon.any { !it.harEktefelle() } -> {
                         add(Konsistensproblem.BosituasjonOgFradrag.IngenEPSMenFradragForEPS)
                     }
+                    // TODO jah: Vi sjekker ikke på om epsFormue/epsInntekt er innenfor sin respektive bosituasjonsperiode
                 }
                 return if (this.isEmpty()) Unit.right() else this.left()
             }
         }
     }
 
+    /**
+     * Dersom man har epsFormue, sjekker at det ikke finnes fler enn 1 bosituasjon og at man har en EPS
+     *
+     * Bruk Bosituasjon og Formue direkte dersom du trenger å vite om de hver for seg er i henhold (typisk om de er utfylt).
+     * @return Either.Right(Unit) dersom søker ikke har EPS eller ikke har formue.
+     */
     data class BosituasjonOgFormue(
         val bosituasjon: List<Grunnlag.Bosituasjon>,
         val formue: List<Formuegrunnlag>,
@@ -93,14 +114,19 @@ data class SjekkOmGrunnlagErKonsistent(
             bosituasjon: List<Grunnlag.Bosituasjon>,
             formue: List<Formuegrunnlag>,
         ): Either<Set<Konsistensproblem.BosituasjonOgFormue>, Unit> {
+            if (formue.isEmpty()) return Unit.right()
+            if (!formue.harEpsFormue()) return Unit.right()
             mutableSetOf<Konsistensproblem.BosituasjonOgFormue>().apply {
                 when {
-                    bosituasjon.harFlerEnnEnBosituasjonsperiode() && formue.harEpsFormue() -> {
+                    bosituasjon.harFlerEnnEnBosituasjonsperiode() -> {
+                        // Vi støtter ikke fler bosituasjoner ved innsending eller etter vilkårsvurdering.
+                        // Det kan oppstår dersom man revurderer på tvers av vedtak.
                         add(Konsistensproblem.BosituasjonOgFormue.FlereBosituasjonerOgFormueForEPS)
                     }
-                    !bosituasjon.harFlerEnnEnBosituasjonsperiode() && !bosituasjon.harEktefelle() && formue.harEpsFormue() -> {
+                    bosituasjon.any { !it.harEktefelle() } -> {
                         add(Konsistensproblem.BosituasjonOgFormue.IngenEPSMenFormueForEPS)
                     }
+                    // TODO jah: Vi sjekker ikke på om epsFormue/epsInntekt er innenfor sin respektive bosituasjonsperiode
                 }
                 return if (this.isEmpty()) Unit.right() else this.left()
             }
