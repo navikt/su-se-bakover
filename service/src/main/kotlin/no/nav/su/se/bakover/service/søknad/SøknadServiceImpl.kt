@@ -115,7 +115,7 @@ internal class SøknadServiceImpl(
                 log.error("Fant ikke sak med sakId ${søknad.sakId} - sannsynligvis dataintegritetsfeil i databasen.")
                 return@map KunneIkkeOppretteJournalpost(søknad.sakId, søknad.id, "Fant ikke sak").left()
             }
-            val person = personService.hentPerson(sak.fnr).getOrElse {
+            val person = personService.hentPersonMedSystembruker(sak.fnr).getOrElse {
                 log.error("Fant ikke person med sakId ${sak.id}.")
                 return@map KunneIkkeOppretteJournalpost(sak.id, søknad.id, "Fant ikke person").left()
             }
@@ -134,7 +134,7 @@ internal class SøknadServiceImpl(
                 log.error("Fant ikke sak med sakId ${søknad.sakId} - sannsynligvis dataintegritetsfeil i databasen.")
                 return@map KunneIkkeOppretteOppgave(søknad.sakId, søknad.id, søknad.journalpostId, "Fant ikke sak").left()
             }
-            val person = personService.hentPerson(sak.fnr).getOrElse {
+            val person = personService.hentPersonMedSystembruker(sak.fnr).getOrElse {
                 log.error("Fant ikke person med sakId ${sak.id}.")
                 return@map KunneIkkeOppretteOppgave(sak.id, søknad.id, søknad.journalpostId, "Fant ikke person").left()
             }

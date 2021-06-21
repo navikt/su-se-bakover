@@ -150,7 +150,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
         }
 
         val personServiceMock = mock<PersonService> {
-            on { hentPerson(fnr) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
+            on { hentPersonMedSystembruker(fnr) } doReturn KunneIkkeHentePerson.FantIkkePerson.left()
         }
 
         val søknadService = SøknadServiceImpl(
@@ -177,10 +177,10 @@ class OpprettManglendeJournalpostOgOppgaveTest {
         ) {
             verify(søknadRepoMock).hentSøknaderUtenJournalpost()
             verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe sakId })
-            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
+            verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe fnr })
             verify(søknadRepoMock).hentSøknaderMedJournalpostMenUtenOppgave()
             verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe sakId })
-            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
+            verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe fnr })
         }
         verifyNoMoreInteractions(personServiceMock, sakServiceMock, søknadRepoMock)
     }
@@ -197,7 +197,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
         }
 
         val personServiceMock = mock<PersonService> {
-            on { hentPerson(fnr) } doReturn person.right()
+            on { hentPersonMedSystembruker(fnr) } doReturn person.right()
         }
 
         val pdfGeneratorMock = mock<PdfGenerator> {
@@ -229,7 +229,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
         ) {
             verify(søknadRepoMock).hentSøknaderUtenJournalpost()
             verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe sakId })
-            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
+            verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe fnr })
             verify(pdfGeneratorMock).genererPdf(
                 argThat<SøknadPdfInnhold> {
                     it shouldBe SøknadPdfInnhold.create(
@@ -259,7 +259,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
         }
 
         val personServiceMock = mock<PersonService> {
-            on { hentPerson(fnr) } doReturn person.right()
+            on { hentPersonMedSystembruker(fnr) } doReturn person.right()
         }
 
         val oppgaveServiceMock = mock<OppgaveService> {
@@ -293,7 +293,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             verify(søknadRepoMock).hentSøknaderUtenJournalpost()
             verify(søknadRepoMock).hentSøknaderMedJournalpostMenUtenOppgave()
             verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe sakId })
-            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
+            verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe fnr })
             verify(oppgaveServiceMock).opprettOppgaveMedSystembruker(
                 argThat {
                     it shouldBe OppgaveConfig.Saksbehandling(
@@ -323,7 +323,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
         }
 
         val personServiceMock = mock<PersonService> {
-            on { hentPerson(fnr) } doReturn person.right()
+            on { hentPersonMedSystembruker(fnr) } doReturn person.right()
         }
 
         val oppgaveServiceMock = mock<OppgaveService> {
@@ -366,7 +366,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
         ) {
             verify(søknadRepoMock).hentSøknaderUtenJournalpost()
             verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe sakId })
-            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
+            verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe fnr })
             verify(pdfGeneratorMock).genererPdf(
                 argThat<SøknadPdfInnhold> {
                     it shouldBe SøknadPdfInnhold.create(
@@ -392,7 +392,7 @@ class OpprettManglendeJournalpostOgOppgaveTest {
             verify(søknadRepoMock).oppdaterjournalpostId(argThat { journalførtSøknad.id })
             verify(søknadRepoMock).hentSøknaderMedJournalpostMenUtenOppgave()
             verify(sakServiceMock).hentSak(argThat<UUID> { it shouldBe sakId })
-            verify(personServiceMock).hentPerson(argThat { it shouldBe fnr })
+            verify(personServiceMock).hentPersonMedSystembruker(argThat { it shouldBe fnr })
             verify(oppgaveServiceMock).opprettOppgaveMedSystembruker(
                 argThat {
                     it shouldBe OppgaveConfig.Saksbehandling(
