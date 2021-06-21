@@ -51,9 +51,9 @@ private data class FormueBody(
 
             return LeggTilFormuegrunnlagRequest(
                 revurderingId = revurderingId,
-                elementer = NonEmptyList.fromListUnsafe(
+                formuegrunnlag = NonEmptyList.fromListUnsafe(
                     this.map { formueBody ->
-                        LeggTilFormuegrunnlagRequest.Element(
+                        LeggTilFormuegrunnlagRequest.Grunnlag(
                             periode = formueBody.periode.toPeriode()
                                 .getOrHandle { return it.left() },
                             epsFormue = formueBody.epsFormue?.toDomain(),

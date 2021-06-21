@@ -65,9 +65,9 @@ internal class RevurderingLeggTilFormueServiceTest {
         ).leggTilFormuegrunnlag(
             request = LeggTilFormuegrunnlagRequest(
                 revurderingId = revurderingId,
-                elementer = Nel.fromListUnsafe(
+                formuegrunnlag = Nel.fromListUnsafe(
                     listOf(
-                        LeggTilFormuegrunnlagRequest.Element(
+                        LeggTilFormuegrunnlagRequest.Grunnlag(
                             periode = periodeHele2021,
                             epsFormue = Formuegrunnlag.Verdier(
                                 verdiIkkePrimærbolig = 0,
@@ -235,9 +235,9 @@ internal class RevurderingLeggTilFormueServiceTest {
         ).leggTilFormuegrunnlag(
             request = LeggTilFormuegrunnlagRequest(
                 revurderingId = revurderingId,
-                elementer = Nel.fromListUnsafe(
+                formuegrunnlag = Nel.fromListUnsafe(
                     listOf(
-                        LeggTilFormuegrunnlagRequest.Element(
+                        LeggTilFormuegrunnlagRequest.Grunnlag(
                             periode = periodeHele2021,
                             epsFormue = Formuegrunnlag.Verdier(
                                 verdiIkkePrimærbolig = 0,
@@ -291,9 +291,9 @@ internal class RevurderingLeggTilFormueServiceTest {
         ).leggTilFormuegrunnlag(
             request = LeggTilFormuegrunnlagRequest(
                 revurderingId = revurderingId,
-                elementer = Nel.fromListUnsafe(
+                formuegrunnlag = Nel.fromListUnsafe(
                     listOf(
-                        LeggTilFormuegrunnlagRequest.Element(
+                        LeggTilFormuegrunnlagRequest.Grunnlag(
                             periode = periodeHele2020,
                             epsFormue = null,
                             søkersFormue = Formuegrunnlag.Verdier(
@@ -338,9 +338,9 @@ internal class RevurderingLeggTilFormueServiceTest {
         ).leggTilFormuegrunnlag(
             request = LeggTilFormuegrunnlagRequest(
                 revurderingId = revurderingId,
-                elementer = Nel.fromListUnsafe(
+                formuegrunnlag = Nel.fromListUnsafe(
                     listOf(
-                        LeggTilFormuegrunnlagRequest.Element(
+                        LeggTilFormuegrunnlagRequest.Grunnlag(
                             periode = periodeHele2020,
                             epsFormue = Formuegrunnlag.Verdier(
                                 verdiIkkePrimærbolig = 0,
@@ -394,9 +394,9 @@ internal class RevurderingLeggTilFormueServiceTest {
         ).leggTilFormuegrunnlag(
             request = LeggTilFormuegrunnlagRequest(
                 revurderingId = revurderingId,
-                elementer = Nel.fromListUnsafe(
+                formuegrunnlag = Nel.fromListUnsafe(
                     listOf(
-                        LeggTilFormuegrunnlagRequest.Element(
+                        LeggTilFormuegrunnlagRequest.Grunnlag(
                             periode = periodeJanMars,
                             epsFormue = Formuegrunnlag.Verdier(
                                 verdiIkkePrimærbolig = 0,
@@ -420,7 +420,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                             ),
                             begrunnelse = null,
                         ),
-                        LeggTilFormuegrunnlagRequest.Element(
+                        LeggTilFormuegrunnlagRequest.Grunnlag(
                             periode = periodeMarsDesember,
                             epsFormue = null,
                             søkersFormue = Formuegrunnlag.Verdier(
@@ -465,9 +465,9 @@ internal class RevurderingLeggTilFormueServiceTest {
         ).leggTilFormuegrunnlag(
             request = LeggTilFormuegrunnlagRequest(
                 revurderingId = revurderingId,
-                elementer = Nel.fromListUnsafe(
+                formuegrunnlag = Nel.fromListUnsafe(
                     listOf(
-                        LeggTilFormuegrunnlagRequest.Element(
+                        LeggTilFormuegrunnlagRequest.Grunnlag(
                             periode = periodeHele2021,
                             epsFormue = Formuegrunnlag.Verdier(
                                 verdiIkkePrimærbolig = 0,
@@ -521,9 +521,9 @@ internal class RevurderingLeggTilFormueServiceTest {
         ).leggTilFormuegrunnlag(
             request = LeggTilFormuegrunnlagRequest(
                 revurderingId = revurderingId,
-                elementer = Nel.fromListUnsafe(
+                formuegrunnlag = Nel.fromListUnsafe(
                     listOf(
-                        LeggTilFormuegrunnlagRequest.Element(
+                        LeggTilFormuegrunnlagRequest.Grunnlag(
                             periode = periodeHele2021,
                             epsFormue = Formuegrunnlag.Verdier(
                                 verdiIkkePrimærbolig = 0,
