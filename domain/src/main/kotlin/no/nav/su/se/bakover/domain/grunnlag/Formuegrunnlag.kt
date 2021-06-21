@@ -1,14 +1,12 @@
 package no.nav.su.se.bakover.domain.grunnlag
 
 import arrow.core.Either
-import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
-import org.jetbrains.annotations.TestOnly
 import java.util.UUID
 
 data class Formuegrunnlag private constructor(
@@ -54,19 +52,8 @@ data class Formuegrunnlag private constructor(
                 ((innskudd - depositumskonto).coerceAtLeast(0))
         }
 
-        companion object {
-            @TestOnly
-            fun empty() = Verdier(
-                verdiIkkePrimærbolig = 0,
-                verdiEiendommer = 0,
-                verdiKjøretøy = 0,
-                innskudd = 0,
-                verdipapir = 0,
-                pengerSkyldt = 0,
-                kontanter = 0,
-                depositumskonto = 0,
-            )
-        }
+        // Trengs for at testene kan lage extension functions
+        companion object
     }
 
     fun oppdaterPeriode(periode: Periode): Formuegrunnlag {
@@ -74,18 +61,6 @@ data class Formuegrunnlag private constructor(
     }
 
     companion object {
-
-        @TestOnly
-        fun create(
-            id: UUID = UUID.randomUUID(),
-            opprettet: Tidspunkt = Tidspunkt.now(),
-            periode: Periode,
-            epsFormue: Verdier?,
-            søkersFormue: Verdier,
-            begrunnelse: String?,
-            bosituasjon: Bosituasjon.Fullstendig,
-            behandlingsPeriode: Periode,
-        ): Formuegrunnlag = tryCreate(id, opprettet, periode, epsFormue, søkersFormue, begrunnelse, bosituasjon, behandlingsPeriode).getOrHandle { throw IllegalArgumentException("Kunne ikke lage Formuegrunnlag") }
 
         fun tryCreate(
             id: UUID = UUID.randomUUID(),

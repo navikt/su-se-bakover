@@ -14,7 +14,6 @@ import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
-import org.jetbrains.annotations.TestOnly
 import java.time.LocalDate
 import java.util.UUID
 
@@ -151,10 +150,6 @@ sealed class Vilkår {
             }
 
             companion object {
-                @TestOnly
-                fun create(
-                    vurderingsperioder: Nel<Vurderingsperiode.Uføre>,
-                ): Vurdert = tryCreate(vurderingsperioder).getOrHandle { throw IllegalArgumentException(it.toString()) }
 
                 fun tryCreate(
                     vurderingsperioder: Nel<Vurderingsperiode.Uføre>,
@@ -237,11 +232,6 @@ sealed class Vilkår {
             }
 
             companion object {
-                @TestOnly
-                fun createFromGrunnlag(
-                    grunnlag: Nel<Formuegrunnlag>,
-                ): Vurdert =
-                    tryCreateFromGrunnlag(grunnlag).getOrHandle { throw IllegalArgumentException(it.toString()) }
 
                 fun tryCreateFromGrunnlag(
                     grunnlag: Nel<Formuegrunnlag>,

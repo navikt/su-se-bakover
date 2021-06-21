@@ -30,6 +30,8 @@ dependencies {
     implementation(enforcedPlatform("org.eclipse.jetty:jetty-bom:$jettyVersion")) {
         because("https://app.snyk.io/vuln/SNYK-JAVA-JUNIT-1017047")
     }
+
+    testImplementation(project(":test-common"))
     testImplementation("com.github.tomakehurst:wiremock-jre8:$wireMockVersion") {
         exclude(group = "junit")
     }

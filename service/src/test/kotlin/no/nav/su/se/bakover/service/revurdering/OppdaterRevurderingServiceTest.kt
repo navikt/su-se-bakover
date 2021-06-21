@@ -57,6 +57,7 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.søknadsbeh
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.vilkårsvurderinger
 import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.vedtak.VedtakService
+import no.nav.su.se.bakover.test.create
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit

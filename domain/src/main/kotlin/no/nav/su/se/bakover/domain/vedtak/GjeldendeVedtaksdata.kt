@@ -2,6 +2,7 @@ package no.nav.su.se.bakover.domain.vedtak
 
 import arrow.core.Nel
 import arrow.core.NonEmptyList
+import arrow.core.getOrHandle
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -62,12 +63,14 @@ data class GjeldendeVedtaksdata(
 
 private fun List<Vedtak.VedtakPåTidslinje>.vilkårsvurderinger(): Vilkårsvurderinger {
     return Vilkårsvurderinger(
-        uføre = Vilkår.Uførhet.Vurdert.create(
+        uføre = Vilkår.Uførhet.Vurdert.tryCreate(
             map { it.vilkårsvurderinger.uføre }
                 .filterIsInstance<Vilkår.Uførhet.Vurdert>()
                 .flatMap { it.vurderingsperioder }
                 .let { Nel.fromListUnsafe(it) },
-        ),
+        ).getOrHandle {
+            throw IllegalArgumentException("Kunne ikke instansiere ${Vilkår.Uførhet.Vurdert::class.simpleName}. Melding: $it")
+        },
         formue = Vilkår.Formue.Vurdert.createFromVilkårsvurderinger(
             map { it.vilkårsvurderinger.formue }
                 .filterIsInstance<Vilkår.Formue.Vurdert>()

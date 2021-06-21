@@ -52,6 +52,7 @@ import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vedtak.FerdigstillVedtakService
 import no.nav.su.se.bakover.service.vedtak.VedtakService
+import no.nav.su.se.bakover.test.create
 import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID

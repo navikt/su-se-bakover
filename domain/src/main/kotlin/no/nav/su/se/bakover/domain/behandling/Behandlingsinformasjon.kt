@@ -290,9 +290,9 @@ data class Behandlingsinformasjon(
             stønadsperiode: Stønadsperiode,
             bosituasjon: List<Grunnlag.Bosituasjon>,
         ): Vilkår.Formue {
-            return Vilkår.Formue.Vurdert.createFromGrunnlag(
+            return Vilkår.Formue.Vurdert.tryCreateFromGrunnlag(
                 grunnlag = nonEmptyListOf(
-                    Formuegrunnlag.create(
+                    Formuegrunnlag.tryCreate(
                         id = UUID.randomUUID(),
                         opprettet = Tidspunkt.now(),
                         periode = stønadsperiode.periode,
@@ -323,9 +323,13 @@ data class Behandlingsinformasjon(
                         begrunnelse = this.begrunnelse,
                         bosituasjon = bosituasjon.singleFullstendigOrThrow(),
                         behandlingsPeriode = stønadsperiode.periode,
-                    ),
+                    ).getOrHandle {
+                        throw IllegalArgumentException("Kunne ikke instansiere ${Formuegrunnlag::class.simpleName}. Melding: $it")
+                    },
                 ),
-            )
+            ).getOrHandle {
+                throw IllegalArgumentException("Kunne ikke instansiere ${Vilkår.Formue.Vurdert::class.simpleName}. Melding: $it")
+            }
         }
     }
 

@@ -10,6 +10,7 @@ dependencies {
     implementation("no.nav:vault-jdbc:$vaultJdbcVersion")
     implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
 
+    testImplementation(project(":test-common"))
     testImplementation("com.opentable.components:otj-pg-embedded:0.13.3")
 }
 

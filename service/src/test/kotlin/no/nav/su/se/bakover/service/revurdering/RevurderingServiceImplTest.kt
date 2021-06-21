@@ -32,7 +32,6 @@ import no.nav.su.se.bakover.database.vedtak.VedtakRepo
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Person
 import no.nav.su.se.bakover.domain.behandling.Attestering
-import no.nav.su.se.bakover.domain.behandling.Behandlingsinformasjon
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
@@ -99,12 +98,12 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.vurderingsp
 import no.nav.su.se.bakover.service.statistikk.Event
 import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
+import no.nav.su.se.bakover.test.create
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.LocalDate
 import java.util.UUID
 
-@Suppress("UNUSED_VARIABLE")
 internal class RevurderingServiceImplTest {
 
     @Test
@@ -718,10 +717,6 @@ internal class RevurderingServiceImplTest {
     fun `kan lage brev`() {
         val person = mock<Person>()
         val brevPdf = "".toByteArray()
-
-        val behandlingsinformasjonMock = mock<Behandlingsinformasjon> {
-            on { harEktefelle() } doReturn false
-        }
 
         val vedtakMock = søknadsbehandlingVedtak
 

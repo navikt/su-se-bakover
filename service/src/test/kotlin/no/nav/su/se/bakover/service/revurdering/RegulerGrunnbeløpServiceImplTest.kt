@@ -74,6 +74,7 @@ import no.nav.su.se.bakover.service.statistikk.EventObserver
 import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingerRequest
+import no.nav.su.se.bakover.test.create
 import org.junit.jupiter.api.Test
 import java.time.temporal.ChronoUnit
 import java.util.UUID

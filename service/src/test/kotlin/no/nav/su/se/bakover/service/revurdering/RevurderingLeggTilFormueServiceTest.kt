@@ -44,6 +44,7 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.revurdering
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.saksbehandler
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils.søknadsbehandlingVedtak
 import no.nav.su.se.bakover.service.søknadsbehandling.testBeregning
+import no.nav.su.se.bakover.test.create
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import java.util.UUID

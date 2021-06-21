@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.database.grunnlag
 
 import arrow.core.Nel
+import arrow.core.getOrHandle
 import kotliquery.Row
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.database.Session
@@ -104,7 +105,9 @@ internal class UføreVilkårsvurderingPostgresRepo(
                 it.toVurderingsperioder(session)
             }.let {
                 when (it.isNotEmpty()) {
-                    true -> Vilkår.Uførhet.Vurdert.create(vurderingsperioder = Nel.fromListUnsafe(it))
+                    true -> Vilkår.Uførhet.Vurdert.tryCreate(vurderingsperioder = Nel.fromListUnsafe(it)).getOrHandle {
+                        throw IllegalArgumentException("Kunne ikke instansiere ${Vilkår.Uførhet.Vurdert::class.simpleName}. Melding: $it")
+                    }
                     false -> Vilkår.Uførhet.IkkeVurdert
                 }
             }
