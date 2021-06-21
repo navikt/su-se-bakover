@@ -9,7 +9,7 @@ plugins {
     // Støtter unicode filer (i motsetning til https://github.com/JLLeitschuh/ktlint-gradle 10.0.0) og har nyere dependencies som gradle. Virker som den oppdateres hyppigere.
     id("org.jmailen.kotlinter") version "3.4.4"
     id("com.github.ben-manes.versions") version "0.39.0" // Finds latest versions
-    id("se.patrikerdes.use-latest-versions") version "0.2.16"
+    id("se.patrikerdes.use-latest-versions") version "0.2.17"
 }
 
 version = "0.0.1"
