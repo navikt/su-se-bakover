@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.SøknadsbehandlingVisitor
 import no.nav.su.se.bakover.domain.vedtak.Vedtak
 import no.nav.su.se.bakover.domain.vedtak.VedtakType
 import no.nav.su.se.bakover.domain.vedtak.VedtakVisitor
+import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.time.Clock
 import kotlin.reflect.KClass
 
@@ -279,7 +280,8 @@ class LagBrevRequestVisitor(
             requestForAvslag(
                 personOgNavn = it,
                 avslagsgrunner = avslagsgrunner,
-                harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.harEktefelle(),
+                // Ved avslag så er det ikke sikkert bosituasjon er utfylt.
+                harEktefelle = søknadsbehandling.grunnlagsdata.bosituasjon.ifNotEmpty { harEktefelle() } ?: false,
                 beregning = beregning,
                 fritekst = fritekst,
                 uføregrunnlag = søknadsbehandling.grunnlagsdata.uføregrunnlag,
