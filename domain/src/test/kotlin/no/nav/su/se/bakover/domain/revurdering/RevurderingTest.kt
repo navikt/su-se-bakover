@@ -60,11 +60,9 @@ internal class RevurderingTest {
                     begrunnelse = null,
                 ),
             ),
-        ).copy(informasjonSomRevurderes = InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert)))
-            .beregn(eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(20000, periode)))).orNull()!!.let {
+        ).beregn(eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(20000, periode)))).orNull()!!.let {
             it shouldBe beOfType<BeregnetRevurdering.Opphørt>()
             (it as BeregnetRevurdering.Opphørt).utledOpphørsgrunner() shouldBe listOf(Opphørsgrunn.UFØRHET)
-            it.informasjonSomRevurderes[Revurderingsteg.Inntekt] shouldBe Vurderingstatus.Vurdert
         }
     }
 
@@ -95,10 +93,8 @@ internal class RevurderingTest {
                     begrunnelse = null,
                 ),
             ),
-        ).copy(informasjonSomRevurderes = InformasjonSomRevurderes.create(mapOf(Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert)))
-            .beregn(eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(20000, periode)))).orNull()!!.let {
+        ).beregn(eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(20000, periode)))).orNull()!!.let {
             it shouldBe beOfType<BeregnetRevurdering.IngenEndring>()
-            it.informasjonSomRevurderes[Revurderingsteg.Inntekt] shouldBe Vurderingstatus.Vurdert
         }
     }
 

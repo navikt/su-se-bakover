@@ -86,6 +86,22 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
 
     abstract val forhåndsvarsel: Forhåndsvarsel?
 
+    open fun markerSomVurdert(revurderingsteg: Revurderingsteg) = OpprettetRevurdering(
+        id = id,
+        periode = periode,
+        opprettet = opprettet,
+        tilRevurdering = tilRevurdering,
+        saksbehandler = saksbehandler,
+        oppgaveId = oppgaveId,
+        fritekstTilBrev = fritekstTilBrev,
+        revurderingsårsak = revurderingsårsak,
+        forhåndsvarsel = forhåndsvarsel,
+        behandlingsinformasjon = behandlingsinformasjon,
+        grunnlagsdata = grunnlagsdata,
+        vilkårsvurderinger = vilkårsvurderinger,
+        informasjonSomRevurderes = informasjonSomRevurderes.markerSomVurdert(revurderingsteg),
+    )
+
     open fun oppdaterBehandlingsinformasjon(behandlingsinformasjon: Behandlingsinformasjon) = OpprettetRevurdering(
         id = id,
         periode = periode,
@@ -124,9 +140,7 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
             behandlingsinformasjon = behandlingsinformasjon,
             grunnlagsdata = grunnlagsdata,
             vilkårsvurderinger = vilkårsvurderinger,
-            informasjonSomRevurderes = if (informasjonSomRevurderes.containsKey(Revurderingsteg.Inntekt)) {
-                informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Inntekt)
-            } else informasjonSomRevurderes,
+            informasjonSomRevurderes = informasjonSomRevurderes,
         )
 
         fun innvilget(revurdertBeregning: Beregning): BeregnetRevurdering.Innvilget = BeregnetRevurdering.Innvilget(
@@ -143,9 +157,7 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
             behandlingsinformasjon = behandlingsinformasjon,
             grunnlagsdata = grunnlagsdata,
             vilkårsvurderinger = vilkårsvurderinger,
-            informasjonSomRevurderes = if (informasjonSomRevurderes.containsKey(Revurderingsteg.Inntekt)) {
-                informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Inntekt)
-            } else informasjonSomRevurderes,
+            informasjonSomRevurderes = informasjonSomRevurderes,
         )
 
         fun ingenEndring(revurdertBeregning: Beregning): BeregnetRevurdering.IngenEndring =
@@ -163,9 +175,7 @@ sealed class Revurdering : Behandling, Visitable<RevurderingVisitor> {
                 behandlingsinformasjon = behandlingsinformasjon,
                 grunnlagsdata = grunnlagsdata,
                 vilkårsvurderinger = vilkårsvurderinger,
-                informasjonSomRevurderes = if (informasjonSomRevurderes.containsKey(Revurderingsteg.Inntekt)) {
-                    informasjonSomRevurderes.markerSomVurdert(Revurderingsteg.Inntekt)
-                } else informasjonSomRevurderes,
+                informasjonSomRevurderes = informasjonSomRevurderes,
             )
 
         // TODO jm: sjekk av vilkår og verifisering av dette bør sannsynligvis legges til et tidspunkt før selve beregningen finner sted. Snarvei inntil videre, da vi mangeler "infrastruktur" for dette pt.  Bør være en tydeligere del av modellen for revurdering.
@@ -613,6 +623,9 @@ sealed class RevurderingTilAttestering : Revurdering() {
     override fun oppdaterBehandlingsinformasjon(behandlingsinformasjon: Behandlingsinformasjon) =
         throw IllegalStateException("Ikke lov å oppdatere behandlingsinformasjon i attestert status")
 
+    override fun markerSomVurdert(revurderingsteg: Revurderingsteg) =
+        throw IllegalStateException("Kan ikke oppdatere revurdering i status til attestering")
+
     data class Innvilget(
         override val id: UUID,
         override val periode: Periode,
@@ -868,6 +881,9 @@ sealed class IverksattRevurdering : Revurdering() {
 
     override fun oppdaterBehandlingsinformasjon(behandlingsinformasjon: Behandlingsinformasjon) =
         throw IllegalStateException("Ikke lov å oppdatere behandlingsinformasjon i status Iverksatt")
+
+    override fun markerSomVurdert(revurderingsteg: Revurderingsteg) =
+        throw IllegalStateException("Kan ikke oppdatere revurdering i status iverksatt")
 
     data class Innvilget(
         override val id: UUID,
