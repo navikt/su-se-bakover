@@ -547,24 +547,6 @@ internal class RevurderingServiceImpl(
         val revurdering = revurderingRepo.hent(revurderingId)
             ?: return KunneIkkeForhåndsvarsle.FantIkkeRevurdering.left()
 
-        fun sendTilAttestering(
-            revurderingId: UUID,
-            saksbehandler: NavIdentBruker.Saksbehandler,
-            fritekst: String,
-            skalFøreTilBrevutsending: Boolean = true,
-        ): Either<KunneIkkeForhåndsvarsle.Attestering, Revurdering> {
-            return sendTilAttestering(
-                SendTilAttesteringRequest(
-                    revurderingId = revurderingId,
-                    saksbehandler = saksbehandler,
-                    fritekstTilBrev = fritekst,
-                    skalFøreTilBrevutsending = skalFøreTilBrevutsending,
-                ),
-            ).mapLeft {
-                KunneIkkeForhåndsvarsle.Attestering(it)
-            }
-        }
-
         when (revurdering) {
             is SimulertRevurdering -> {
                 kanSendesTilAttestering(revurdering).getOrHandle {
@@ -579,10 +561,15 @@ internal class RevurderingServiceImpl(
                         Revurderingshandling.SEND_TIL_ATTESTERING -> {
                             lagreForhåndsvarsling(revurdering, Forhåndsvarsel.IngenForhåndsvarsel)
                             sendTilAttestering(
-                                revurderingId = revurderingId,
-                                saksbehandler = saksbehandler,
-                                fritekst = fritekst,
-                            )
+                                SendTilAttesteringRequest(
+                                    revurderingId = revurderingId,
+                                    saksbehandler = saksbehandler,
+                                    fritekstTilBrev = fritekst,
+                                    skalFøreTilBrevutsending = true,
+                                ),
+                            ).mapLeft {
+                                KunneIkkeForhåndsvarsle.Attestering(it)
+                            }
                         }
                         Revurderingshandling.FORHÅNDSVARSLE -> {
                             sendForhåndsvarsling(revurdering, fritekst)
