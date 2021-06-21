@@ -85,7 +85,7 @@ allprojects {
             implementation("org.apache.cxf:cxf-rt-transports-http:3.4.3") {
                 because("https://app.snyk.io/vuln/SNYK-JAVA-ORGAPACHECXF-1039798")
             }
-            implementation("junit:junit:4.13.1") {
+            implementation("junit:junit:4.13.2") {
                 because("https://app.snyk.io/vuln/SNYK-JAVA-JUNIT-1017047")
             }
             implementation("org.bouncycastle:bcprov-jdk15on:$bouncycastleVersion") {
