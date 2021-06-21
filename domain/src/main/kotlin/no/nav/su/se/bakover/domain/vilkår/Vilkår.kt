@@ -60,7 +60,7 @@ data class Vilkårsvurderinger(
         )
     }
 
-    val resultat: Resultat by lazy {
+    val resultat: Resultat =
         vilkår.map { it.resultat }.let { alleVurderingsresultat ->
             when {
                 alleVurderingsresultat.all { it is Resultat.Innvilget } -> Resultat.Innvilget
@@ -68,7 +68,6 @@ data class Vilkårsvurderinger(
                 else -> Resultat.Uavklart
             }
         }
-    }
 
     fun tidligsteDatoForAvslag(): LocalDate? = vilkår.mapNotNull { it.hentTidligesteDatoForAvslag() }.minByOrNull { it }
 
@@ -137,17 +136,14 @@ sealed class Vilkår {
                 it.grunnlag
             }
 
-            override val resultat: Resultat by lazy {
-                if (erInnvilget) Resultat.Innvilget else if (erAvslag) Resultat.Avslag else Resultat.Uavklart
-            }
-
-            override val erInnvilget: Boolean by lazy {
+            override val erInnvilget: Boolean =
                 vurderingsperioder.all { it.resultat == Resultat.Innvilget }
-            }
 
-            override val erAvslag: Boolean by lazy {
+            override val erAvslag: Boolean =
                 vurderingsperioder.any { it.resultat == Resultat.Avslag }
-            }
+
+            override val resultat: Resultat =
+                if (erInnvilget) Resultat.Innvilget else if (erAvslag) Resultat.Avslag else Resultat.Uavklart
 
             override fun hentTidligesteDatoForAvslag(): LocalDate? {
                 return vurderingsperioder.filter { it.resultat == Resultat.Avslag }.map { it.periode.fraOgMed }
@@ -222,17 +218,14 @@ sealed class Vilkår {
                     },
                 )
 
-            override val resultat: Resultat by lazy {
-                if (erInnvilget) Resultat.Innvilget else if (erAvslag) Resultat.Avslag else Resultat.Uavklart
-            }
-
-            override val erInnvilget: Boolean by lazy {
+            override val erInnvilget: Boolean =
                 vurderingsperioder.all { it.resultat == Resultat.Innvilget }
-            }
 
-            override val erAvslag: Boolean by lazy {
+            override val erAvslag: Boolean =
                 vurderingsperioder.any { it.resultat == Resultat.Avslag }
-            }
+
+            override val resultat: Resultat =
+                if (erInnvilget) Resultat.Innvilget else if (erAvslag) Resultat.Avslag else Resultat.Uavklart
 
             override fun hentTidligesteDatoForAvslag(): LocalDate? {
                 return vurderingsperioder.filter { it.resultat == Resultat.Avslag }.map { it.periode.fraOgMed }
