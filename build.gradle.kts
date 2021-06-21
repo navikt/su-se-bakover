@@ -73,7 +73,7 @@ allprojects {
             implementation("commons-codec:commons-codec:1.15") {
                 because("https://app.snyk.io/vuln/SNYK-JAVA-COMMONSCODEC-561518")
             }
-            implementation("com.google.guava:guava:30.0-jre") {
+            implementation("com.google.guava:guava:30.1.1-jre") {
                 because("https://app.snyk.io/vuln/SNYK-JAVA-COMGOOGLEGUAVA-1015415")
             }
             implementation("org.apache.httpcomponents:httpclient:4.5.13") {
