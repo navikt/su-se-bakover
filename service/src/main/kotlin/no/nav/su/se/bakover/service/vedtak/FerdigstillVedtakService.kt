@@ -150,12 +150,12 @@ internal class FerdigstillVedtakServiceImpl(
                     it is Utbetaling.OversendtUtbetaling.MedKvittering && it.kvittering.erKvittertOk()
                 }
             }
-        val vedtakSet = mutableSetOf<Vedtak>()
+        val vedtakBruktVedFiks = mutableListOf<Vedtak>()
         val avslagUtenJournalpost = alleUtenJournalpost.filterIsInstance<Vedtak.Avslag>()
         val journalpostResultat = innvilgetUtenJournalpost.plus(avslagUtenJournalpost).map { vedtak ->
             journalførOgLagre(vedtak)
                 .mapLeft { feilVedJournalføring ->
-                    vedtakSet.add(vedtak)
+                    vedtakBruktVedFiks.add(vedtak)
 
                     when (feilVedJournalføring) {
                         is KunneIkkeFerdigstilleVedtak.KunneIkkeJournalføreBrev.AlleredeJournalført -> {
@@ -174,7 +174,7 @@ internal class FerdigstillVedtakServiceImpl(
                         }
                     }
                 }.map { journalførtVedtak ->
-                    vedtakSet.add(vedtak)
+                    vedtakBruktVedFiks.add(vedtak)
 
                     FerdigstillVedtakService.OpprettetJournalpostForIverksetting(
                         sakId = journalførtVedtak.behandling.sakId,
@@ -183,7 +183,6 @@ internal class FerdigstillVedtakServiceImpl(
                     )
                 }
         }
-
 
         val alleUtenBrevbestilling = vedtakRepo.hentUtenBrevbestilling()
 
@@ -205,12 +204,12 @@ internal class FerdigstillVedtakServiceImpl(
         val brevbestillingResultat = innvilgetUtenBrevbestilling.plus(avslagUtenBrevbestilling).map { vedtak ->
             distribuerOgLagre(vedtak)
                 .mapLeft {
-                    vedtakSet.add(vedtak)
+                    vedtakBruktVedFiks.add(vedtak)
 
                     kunneIkkeBestilleBrev(vedtak, it)
                 }
                 .map { distribuertVedtak ->
-                    vedtakSet.add(vedtak)
+                    vedtakBruktVedFiks.add(vedtak)
 
                     val steg =
                         (distribuertVedtak.journalføringOgBrevdistribusjon as JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev)
@@ -226,7 +225,7 @@ internal class FerdigstillVedtakServiceImpl(
         return FerdigstillVedtakService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
             journalpostresultat = journalpostResultat,
             brevbestillingsresultat = brevbestillingResultat,
-            vedtak = vedtakSet.toList()
+            vedtak = vedtakBruktVedFiks.toList().distinctBy { it.id }
         )
     }
 

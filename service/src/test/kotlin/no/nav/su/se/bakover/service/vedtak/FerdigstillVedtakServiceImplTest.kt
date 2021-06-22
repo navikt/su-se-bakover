@@ -993,7 +993,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 ).left(),
             ),
             brevbestillingsresultat = emptyList(),
-            vedtak = emptyList(),
+            vedtak = listOf(vedtak),
         )
 
         inOrder(

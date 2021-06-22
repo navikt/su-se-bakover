@@ -390,7 +390,7 @@ open class AccessCheckProxy(
                     kastKanKunKallesFraAnnenService()
 
                 override fun lukkOppgaverKnyttetTilVedtak(vedtak: List<Vedtak>) {
-                    kastKanKunKallesFraAnnenService()
+                    return services.ferdigstillVedtak.lukkOppgaverKnyttetTilVedtak(vedtak)
                 }
 
                 override fun lukkOppgaveMedBruker(vedtak: Vedtak): Either<FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Vedtak> =
