@@ -46,7 +46,7 @@ allprojects {
         implementation("io.github.cdimascio:dotenv-kotlin:6.2.2")
         implementation("org.apache.kafka:kafka-clients:2.8.0")
         implementation("com.networknt:json-schema-validator:1.0.53")
-        implementation("no.finn.unleash:unleash-client-java:4.3.0")
+        implementation("no.finn.unleash:unleash-client-java:4.4.0")
 
         implementation("com.ibm.mq:com.ibm.mq.allclient:9.2.2.0")
 
