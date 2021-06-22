@@ -12,7 +12,7 @@ import no.nav.su.se.bakover.domain.søknad.SøknadPdfInnhold
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-internal const val suPdfGenPath = "/api/v1/genpdf/supdfgen"
+internal const val suPdfGenPath = "/api/v1/genpdf/supdfgenZZZ" // rek it
 internal const val SOKNAD_TEMPLATE = "soknad"
 
 internal class PdfClient(private val baseUrl: String) : PdfGenerator {
