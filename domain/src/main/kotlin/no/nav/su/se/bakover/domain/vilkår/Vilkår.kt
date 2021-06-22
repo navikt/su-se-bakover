@@ -190,7 +190,7 @@ sealed class Vilkår {
          * Definert i paragraf 8 til 0.5 G som vanligvis endrer seg 1. mai, årlig.
          */
         val formuegrenser: List<Pair<LocalDate, Int>> =
-            `0,5G`.alleFraDato(LocalDate.of(2021, 1, 1))
+            `0,5G`.gyldigPåDatoOgSenere(LocalDate.of(2021, 1, 1))
 
         object IkkeVurdert : Formue() {
             override val resultat: Resultat = Resultat.Uavklart
@@ -422,7 +422,7 @@ sealed class Vurderingsperiode {
                     id = UUID.randomUUID(),
                     opprettet = grunnlag.opprettet,
                     resultat = if (grunnlag.periode.tilMånedsperioder().all {
-                        grunnlag.sumFormue() <= `0,5G`.fraDato(it.fraOgMed)
+                        grunnlag.sumFormue() <= `0,5G`.påDato(it.fraOgMed)
                     }
                     ) Resultat.Innvilget else Resultat.Avslag,
                     grunnlag = grunnlag,

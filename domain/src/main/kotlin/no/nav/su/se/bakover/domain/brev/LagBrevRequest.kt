@@ -101,7 +101,7 @@ interface LagBrevRequest {
                 ) LagBrevinnholdForBeregning(beregning).brevInnhold else emptyList(),
                 saksbehandlerNavn = saksbehandlerNavn,
                 attestantNavn = attestantNavn,
-                halvGrunnbeløp = Grunnbeløp.`0,5G`.fraDato(beregning.periode.fraOgMed).toInt(),
+                halvGrunnbeløp = Grunnbeløp.`0,5G`.påDato(beregning.periode.fraOgMed).toInt(),
                 fritekst = fritekst,
                 opphørsgrunner = opphørsgrunner,
                 avslagsparagrafer = opphørsgrunner.getDistinkteParagrafer(),

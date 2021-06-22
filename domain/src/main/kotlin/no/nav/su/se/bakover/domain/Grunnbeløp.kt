@@ -14,7 +14,7 @@ class Grunnbeløp private constructor(private val multiplier: Double) {
         LocalDate.of(2021, Month.MAY, 1) to 106399,
     ).toMap()
 
-    fun fraDato(dato: LocalDate): Double = datoToBeløp.entries
+    fun påDato(dato: LocalDate): Double = datoToBeløp.entries
         .sortedByDescending { it.key }
         .first { dato.isAfter(it.key) || dato.isEqual(it.key) }.value * multiplier
 
@@ -22,9 +22,11 @@ class Grunnbeløp private constructor(private val multiplier: Double) {
         .sortedByDescending { it.key }
         .first { forDato.isAfter(it.key) || forDato.isEqual(it.key) }.key
 
-    fun alleFraDato(dato: LocalDate): List<Pair<LocalDate, Int>> = datoToBeløp.entries
+    /**
+     * Hent grunnbeløpet * multiplier som er gyldig på gitt dato og alle senere.
+     */
+    fun gyldigPåDatoOgSenere(dato: LocalDate): List<Pair<LocalDate, Int>> = datoToBeløp.entries
         .sortedByDescending { it.key }
-        // TODO jah: Påkall ingar for å finne en sweetere funksjon enn fold.
         .fold(emptyList<Map.Entry<LocalDate, Int>>()) { acc, entry ->
             if (entry.key.isAfter(dato) || entry.key.isEqual(dato) || acc.none {
                 it.key.isBefore(dato) || it.key.isEqual(dato)

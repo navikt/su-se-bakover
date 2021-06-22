@@ -11,5 +11,5 @@ data class Avslag(
     val harEktefelle: Boolean,
     val beregning: Beregning?,
 ) {
-    val halvGrunnbeløp: Double = Grunnbeløp.`0,5G`.fraDato(opprettet.toLocalDate(zoneIdOslo))
+    val halvGrunnbeløp: Double = Grunnbeløp.`0,5G`.påDato(opprettet.toLocalDate(zoneIdOslo))
 }
