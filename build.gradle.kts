@@ -21,7 +21,6 @@ allprojects {
     apply(plugin = "se.patrikerdes.use-latest-versions")
     repositories {
         mavenCentral()
-        maven("https://packages.confluent.io/maven/")
         maven("https://jitpack.io")
         maven("https://oss.sonatype.org/content/repositories/releases/")
     }
