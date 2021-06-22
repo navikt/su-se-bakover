@@ -61,7 +61,6 @@ data class Formuegrunnlag private constructor(
     }
 
     companion object {
-
         fun tryCreate(
             id: UUID = UUID.randomUUID(),
             opprettet: Tidspunkt,
