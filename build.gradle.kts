@@ -60,7 +60,7 @@ allprojects {
         testImplementation("io.kotest:kotest-extensions:$kotestVersion")
         testImplementation("org.skyscreamer:jsonassert:1.5.0")
         testImplementation("com.nhaarman.mockitokotlin2:mockito-kotlin:2.2.0")
-        testImplementation("org.mockito:mockito-core:3.10.0")
+        testImplementation("org.mockito:mockito-core:3.11.2")
 
         constraints {
             implementation("io.netty:netty-codec-http2:4.1.65.Final") {
