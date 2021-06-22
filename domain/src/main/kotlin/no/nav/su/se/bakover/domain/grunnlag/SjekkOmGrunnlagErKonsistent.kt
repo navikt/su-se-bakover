@@ -126,6 +126,11 @@ data class SjekkOmGrunnlagErKonsistent(
                     bosituasjon.any { !it.harEktefelle() } -> {
                         add(Konsistensproblem.BosituasjonOgFormue.IngenEPSMenFormueForEPS)
                     }
+                    bosituasjon.any { bosituasjon ->
+                        formue.any { formue ->
+                            !bosituasjon.periode.inneholder(formue.periode)
+                        }
+                    } -> add(Konsistensproblem.BosituasjonOgFormue.EPSFormueperiodeErUtenforBosituasjonPeriode)
                     // TODO jah: Vi sjekker ikke på om epsFormue/epsInntekt er innenfor sin respektive bosituasjonsperiode
                 }
                 return if (this.isEmpty()) Unit.right() else this.left()
@@ -154,5 +159,6 @@ sealed class Konsistensproblem {
     sealed class BosituasjonOgFormue : Konsistensproblem() {
         object FlereBosituasjonerOgFormueForEPS : BosituasjonOgFormue()
         object IngenEPSMenFormueForEPS : BosituasjonOgFormue()
+        object EPSFormueperiodeErUtenforBosituasjonPeriode : BosituasjonOgFormue()
     }
 }

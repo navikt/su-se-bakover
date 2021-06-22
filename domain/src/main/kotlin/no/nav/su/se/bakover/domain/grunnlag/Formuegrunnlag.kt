@@ -87,10 +87,9 @@ data class Formuegrunnlag private constructor(
                 if (it.contains(Konsistensproblem.BosituasjonOgFormue.IngenEPSMenFormueForEPS)) {
                     return KunneIkkeLageFormueGrunnlag.MåHaEpsHvisManHarSattEpsFormue.left()
                 }
-            }
-            // TODO jah: Vi sjekker ikke på om epsFormue/epsInntekt er innenfor sin respektive bosituasjonsperiode
-            if (epsFormue != null && !(bosituasjon.periode.inneholder(periode))) {
-                return KunneIkkeLageFormueGrunnlag.EpsFormueperiodeErUtenforBosituasjonPeriode.left()
+                if (it.contains(Konsistensproblem.BosituasjonOgFormue.EPSFormueperiodeErUtenforBosituasjonPeriode)) {
+                    return KunneIkkeLageFormueGrunnlag.EpsFormueperiodeErUtenforBosituasjonPeriode.left()
+                }
             }
 
             if (!(behandlingsPeriode.inneholder(periode))) {

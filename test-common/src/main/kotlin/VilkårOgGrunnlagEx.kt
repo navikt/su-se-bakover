@@ -20,7 +20,7 @@ fun Vilkår.Uførhet.Vurdert.Companion.create(
 fun Vilkår.Formue.Vurdert.Companion.createFromGrunnlag(
     grunnlag: Nel<Formuegrunnlag>,
 ): Vilkår.Formue.Vurdert =
-    Vilkår.Formue.Vurdert.tryCreateFromGrunnlag(grunnlag).getOrHandle { throw IllegalArgumentException(it.toString()) }
+    tryCreateFromGrunnlag(grunnlag).getOrHandle { throw IllegalArgumentException(it.toString()) }
 
 fun Formuegrunnlag.Companion.create(
     id: UUID = UUID.randomUUID(),
@@ -40,7 +40,7 @@ fun Formuegrunnlag.Companion.create(
     begrunnelse,
     bosituasjon,
     behandlingsPeriode,
-).getOrHandle { throw IllegalArgumentException("Kunne ikke lage Formuegrunnlag") }
+).getOrHandle { throw IllegalArgumentException("Kunne ikke instansiere Formuegrunnlag. Underliggende grunn: $it") }
 
 fun Formuegrunnlag.Verdier.Companion.empty() = Formuegrunnlag.Verdier(
     verdiIkkePrimærbolig = 0,
