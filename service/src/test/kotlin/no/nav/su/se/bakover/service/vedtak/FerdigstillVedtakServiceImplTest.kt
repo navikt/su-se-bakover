@@ -941,6 +941,7 @@ internal class FerdigstillVedtakServiceImplTest {
         response shouldBe FerdigstillVedtakService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
             journalpostresultat = emptyList(),
             brevbestillingsresultat = emptyList(),
+            vedtak = emptyList()
         )
 
         inOrder(
@@ -992,6 +993,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 ).left(),
             ),
             brevbestillingsresultat = emptyList(),
+            vedtak = emptyList(),
         )
 
         inOrder(
@@ -1062,6 +1064,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 ).right(),
             ),
             brevbestillingsresultat = emptyList(),
+            vedtak = listOf(avslagsVedtak)
         )
 
         inOrder(
@@ -1124,6 +1127,7 @@ internal class FerdigstillVedtakServiceImplTest {
                     brevbestillingId = iverksattBrevbestillingId,
                 ).right(),
             ),
+            vedtak = listOf(innvilgelseUtenBrevbestilling)
         )
 
         inOrder(
@@ -1184,6 +1188,7 @@ internal class FerdigstillVedtakServiceImplTest {
                     grunn = "MåJournalføresFørst",
                 ).left(),
             ),
+            vedtak = listOf(innvilgelseUtenBrevbestilling)
         )
 
         inOrder(
@@ -1231,6 +1236,7 @@ internal class FerdigstillVedtakServiceImplTest {
         response shouldBe FerdigstillVedtakService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
             journalpostresultat = emptyList(),
             brevbestillingsresultat = emptyList(),
+            vedtak = emptyList(),
         )
 
         verify(vedtakRepoMock).hentUtenJournalpost()

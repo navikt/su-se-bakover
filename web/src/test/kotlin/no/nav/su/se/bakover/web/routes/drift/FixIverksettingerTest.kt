@@ -46,7 +46,8 @@ internal class FixIverksettingerTest {
         val ferdigstillVedtakServiceMock = mock<FerdigstillVedtakService> {
             on { opprettManglendeJournalposterOgBrevbestillinger() } doReturn FerdigstillVedtakService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
                 journalpostresultat = emptyList(),
-                brevbestillingsresultat = emptyList()
+                brevbestillingsresultat = emptyList(),
+                vedtak = emptyList()
             )
         }
         withTestApplication({
@@ -114,7 +115,8 @@ internal class FixIverksettingerTest {
                         JournalpostId("1"),
                         "Kunne ikke bestille brev"
                     ).left(),
-                )
+                ),
+                vedtak = emptyList(),
             )
         }
         withTestApplication({

@@ -36,6 +36,7 @@ interface FerdigstillVedtakService {
     fun opprettManglendeJournalposterOgBrevbestillinger(): OpprettManglendeJournalpostOgBrevdistribusjonResultat
     fun journalførOgLagre(vedtak: Vedtak): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeJournalføreBrev, Vedtak>
     fun distribuerOgLagre(vedtak: Vedtak): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeDistribuereBrev, Vedtak>
+    fun lukkOppgaverKnyttetTilVedtak(vedtak: List<Vedtak>)
     fun lukkOppgaveMedBruker(
         vedtak: Vedtak,
     ): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Vedtak>
@@ -87,6 +88,7 @@ interface FerdigstillVedtakService {
     data class OpprettManglendeJournalpostOgBrevdistribusjonResultat(
         val journalpostresultat: List<Either<KunneIkkeOppretteJournalpostForIverksetting, OpprettetJournalpostForIverksetting>>,
         val brevbestillingsresultat: List<Either<KunneIkkeBestilleBrev, BestiltBrev>>,
+        val vedtak: List<Vedtak>
     ) {
         fun harFeil(): Boolean = journalpostresultat.mapNotNull { it.swap().orNull() }.isNotEmpty() ||
             brevbestillingsresultat.mapNotNull { it.swap().orNull() }.isNotEmpty()
@@ -148,10 +150,13 @@ internal class FerdigstillVedtakServiceImpl(
                     it is Utbetaling.OversendtUtbetaling.MedKvittering && it.kvittering.erKvittertOk()
                 }
             }
+        val vedtakSet = mutableSetOf<Vedtak>()
         val avslagUtenJournalpost = alleUtenJournalpost.filterIsInstance<Vedtak.Avslag>()
         val journalpostResultat = innvilgetUtenJournalpost.plus(avslagUtenJournalpost).map { vedtak ->
             journalførOgLagre(vedtak)
                 .mapLeft { feilVedJournalføring ->
+                    vedtakSet.add(vedtak)
+
                     when (feilVedJournalføring) {
                         is KunneIkkeFerdigstilleVedtak.KunneIkkeJournalføreBrev.AlleredeJournalført -> {
                             return@map FerdigstillVedtakService.KunneIkkeOppretteJournalpostForIverksetting(
@@ -169,6 +174,8 @@ internal class FerdigstillVedtakServiceImpl(
                         }
                     }
                 }.map { journalførtVedtak ->
+                    vedtakSet.add(vedtak)
+
                     FerdigstillVedtakService.OpprettetJournalpostForIverksetting(
                         sakId = journalførtVedtak.behandling.sakId,
                         behandlingId = journalførtVedtak.behandling.id,
@@ -176,6 +183,7 @@ internal class FerdigstillVedtakServiceImpl(
                     )
                 }
         }
+
 
         val alleUtenBrevbestilling = vedtakRepo.hentUtenBrevbestilling()
 
@@ -197,9 +205,13 @@ internal class FerdigstillVedtakServiceImpl(
         val brevbestillingResultat = innvilgetUtenBrevbestilling.plus(avslagUtenBrevbestilling).map { vedtak ->
             distribuerOgLagre(vedtak)
                 .mapLeft {
+                    vedtakSet.add(vedtak)
+
                     kunneIkkeBestilleBrev(vedtak, it)
                 }
                 .map { distribuertVedtak ->
+                    vedtakSet.add(vedtak)
+
                     val steg =
                         (distribuertVedtak.journalføringOgBrevdistribusjon as JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev)
                     FerdigstillVedtakService.BestiltBrev(
@@ -214,6 +226,7 @@ internal class FerdigstillVedtakServiceImpl(
         return FerdigstillVedtakService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
             journalpostresultat = journalpostResultat,
             brevbestillingsresultat = brevbestillingResultat,
+            vedtak = vedtakSet.toList()
         )
     }
 
@@ -294,6 +307,9 @@ internal class FerdigstillVedtakServiceImpl(
             distribuertVedtak
         }
     }
+
+    override fun lukkOppgaverKnyttetTilVedtak(vedtak: List<Vedtak>) =
+        vedtak.forEach { lukkOppgaveMedBruker(it) }
 
     private fun lagBrevRequest(visitable: Visitable<LagBrevRequestVisitor>): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeJournalføreBrev, LagBrevRequest> {
         return lagBrevVisitor().let { visitor ->

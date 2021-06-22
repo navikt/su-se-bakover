@@ -389,6 +389,10 @@ open class AccessCheckProxy(
                 override fun distribuerOgLagre(vedtak: Vedtak): Either<FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeDistribuereBrev, Vedtak> =
                     kastKanKunKallesFraAnnenService()
 
+                override fun lukkOppgaverKnyttetTilVedtak(vedtak: List<Vedtak>) {
+                    kastKanKunKallesFraAnnenService()
+                }
+
                 override fun lukkOppgaveMedBruker(vedtak: Vedtak): Either<FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Vedtak> =
                     kastKanKunKallesFraAnnenService()
             },
