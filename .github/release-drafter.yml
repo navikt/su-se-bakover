@@ -4,3 +4,8 @@ template: |
   ## Hva er nytt?
 
   $CHANGES
+categories:
+  - title: '🧶 Avhengighetsoppdateringer'
+    label: 'dependencies'
+  - title: '🛠  Teknisk'
+    label: 'tech'
