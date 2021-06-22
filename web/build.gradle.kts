@@ -31,7 +31,7 @@ dependencies {
         exclude(group = "org.eclipse.jetty") // conflicts with WireMock
         exclude(group = "org.eclipse.jetty.http2") // conflicts with WireMock
     }
-    testImplementation("com.opentable.components:otj-pg-embedded:0.13.3")
+    testImplementation("com.opentable.components:otj-pg-embedded:0.13.4")
 }
 
 tasks.named<Jar>("jar") {
