@@ -24,7 +24,7 @@ dependencies {
     implementation("javax.xml.ws:jaxws-api:2.3.1")
     implementation("javax.jws:javax.jws-api:1.1")
     // Fails to find SAAJMetaFactoryImpl when either missing or if you upgrade to 2.0.0
-    implementation("com.sun.xml.messaging.saaj:saaj-impl:1.5.2")
+    implementation("com.sun.xml.messaging.saaj:saaj-impl:2.0.1")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.12.3")
 
     implementation(enforcedPlatform("org.eclipse.jetty:jetty-bom:$jettyVersion")) {
