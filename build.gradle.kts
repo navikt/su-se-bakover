@@ -28,7 +28,7 @@ allprojects {
     val arrowVersion = "0.13.2"
     val kotestVersion = "4.6.0"
     val jacksonVersion = "2.12.3"
-    val bouncycastleVersion = "1.68"
+    val bouncycastleVersion = "1.69"
     val kotlinVersion = "1.5.10"
     dependencies {
         api(kotlin("stdlib-jdk8"))
