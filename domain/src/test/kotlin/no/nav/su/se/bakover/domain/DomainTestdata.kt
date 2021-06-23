@@ -23,12 +23,13 @@ internal fun formuegrunnlag(
     id: UUID = UUID.randomUUID(),
     opprettet: Tidspunkt = fixedTidspunkt,
     epsFormue: Formuegrunnlag.Verdier? = null,
+    søkersFormue: Formuegrunnlag.Verdier = Formuegrunnlag.Verdier.empty(),
 ) = Formuegrunnlag.create(
     id = id,
     opprettet = opprettet,
     periode = periode,
     epsFormue = epsFormue,
-    søkersFormue = Formuegrunnlag.Verdier.empty(),
+    søkersFormue = søkersFormue,
     begrunnelse = null,
     bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
         id = UUID.randomUUID(),
@@ -39,6 +40,15 @@ internal fun formuegrunnlag(
     behandlingsPeriode = periode,
 )
 
-internal fun formueVilkår(periode: Periode) = Vilkår.Formue.Vurdert.createFromGrunnlag(
+internal fun innvilgetFormueVilkår(periode: Periode) = Vilkår.Formue.Vurdert.createFromGrunnlag(
     grunnlag = nonEmptyListOf(formuegrunnlag(periode)),
+)
+
+internal fun avslåttFormueVilkår(periode: Periode) = Vilkår.Formue.Vurdert.createFromGrunnlag(
+    grunnlag = nonEmptyListOf(
+        formuegrunnlag(
+            periode = periode,
+            søkersFormue = Formuegrunnlag.Verdier.empty().copy(verdiEiendommer = 300000),
+        ),
+    ),
 )

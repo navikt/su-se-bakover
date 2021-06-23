@@ -168,12 +168,16 @@ sealed class Vilkår {
                 object OverlappendeVurderingsperioder : UgyldigUførevilkår()
             }
 
-            override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Uførhet =
-                this.copy(
+            override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Uførhet {
+                if (this.vurderingsperioder.size > 1) {
+                    throw IllegalStateException("kan ikke oppdatere stønadsperiode for uføre vilkår som har mer enn èn vurdering")
+                }
+                return this.copy(
                     vurderingsperioder = this.vurderingsperioder.map {
                         it.oppdaterStønadsperiode(stønadsperiode)
                     },
                 )
+            }
         }
     }
 
@@ -206,12 +210,16 @@ sealed class Vilkår {
         data class Vurdert private constructor(
             val vurderingsperioder: Nel<Vurderingsperiode.Formue>,
         ) : Formue() {
-            override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Formue =
-                this.copy(
+            override fun oppdaterStønadsperiode(stønadsperiode: Stønadsperiode): Formue {
+                if (this.vurderingsperioder.size > 1) {
+                    throw IllegalStateException("kan ikke oppdatere stønadsperiode for formue vilkår som har mer enn èn vurdering")
+                }
+                return this.copy(
                     vurderingsperioder = this.vurderingsperioder.map {
                         it.oppdaterStønadsperiode(stønadsperiode)
                     },
                 )
+            }
 
             override val erInnvilget: Boolean =
                 vurderingsperioder.all { it.resultat == Resultat.Innvilget }

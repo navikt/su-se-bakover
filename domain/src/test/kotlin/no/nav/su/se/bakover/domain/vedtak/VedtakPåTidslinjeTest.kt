@@ -19,10 +19,10 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.fixedTidspunkt
-import no.nav.su.se.bakover.domain.formueVilkår
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
+import no.nav.su.se.bakover.domain.innvilgetFormueVilkår
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
@@ -81,7 +81,7 @@ internal class VedtakPåTidslinjeTest {
             tilhører = FradragTilhører.BRUKER,
         )
 
-        val formuevilkår = formueVilkår(periode)
+        val formuevilkår = innvilgetFormueVilkår(periode)
         val original = Vedtak.VedtakPåTidslinje(
             opprettet = Tidspunkt.now(fixedClock),
             periode = periode,
@@ -206,7 +206,7 @@ internal class VedtakPåTidslinjeTest {
             tilhører = FradragTilhører.BRUKER,
         )
 
-        val formuevilkår = formueVilkår(periode)
+        val formuevilkår = innvilgetFormueVilkår(periode)
         val original = Vedtak.VedtakPåTidslinje(
             opprettet = Tidspunkt.now(fixedClock),
             periode = periode,

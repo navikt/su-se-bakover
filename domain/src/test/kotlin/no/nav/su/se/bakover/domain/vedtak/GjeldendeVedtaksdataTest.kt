@@ -27,9 +27,9 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.fixedClock
 import no.nav.su.se.bakover.domain.fixedTidspunkt
-import no.nav.su.se.bakover.domain.formueVilkår
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
+import no.nav.su.se.bakover.domain.innvilgetFormueVilkår
 import no.nav.su.se.bakover.domain.journal.JournalpostId
 import no.nav.su.se.bakover.domain.oppdrag.simulering.Simulering
 import no.nav.su.se.bakover.domain.oppgave.OppgaveId
@@ -176,7 +176,7 @@ internal class GjeldendeVedtaksdataTest {
                         ),
                     ),
                 ),
-                formue = formueVilkår(periode),
+                formue = innvilgetFormueVilkår(periode),
             ),
         ),
         utbetalingId = UUID30.randomUUID(),
@@ -247,7 +247,7 @@ internal class GjeldendeVedtaksdataTest {
                         ),
                     ),
                 ),
-                formue = formueVilkår(periode),
+                formue = innvilgetFormueVilkår(periode),
             ),
             informasjonSomRevurderes = InformasjonSomRevurderes.create(
                 revurderingsteg = mapOf(
