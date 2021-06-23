@@ -121,6 +121,7 @@ object RevurderingTestUtils {
         periode = periode,
         uføregrad = Uføregrad.parse(20),
         forventetInntekt = 10,
+        opprettet = fixedTidspunkt,
     )
 
     internal val vurderingsperiodeUføre = Vurderingsperiode.Uføre.create(
@@ -173,6 +174,7 @@ object RevurderingTestUtils {
             ),
         ),
         UUID30.randomUUID(),
+        fixedClock
     )
 
     internal val sak = Sak(

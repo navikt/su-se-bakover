@@ -161,6 +161,7 @@ internal class SøknadsbehandlingServiceImpl(
         val fradrag = request.toFradrag(
             søknadsbehandling.stønadsperiode!!,
             søknadsbehandling.grunnlagsdata.bosituasjon.harEktefelle(),
+            clock
         ).getOrHandle {
             return when (it) {
                 SøknadsbehandlingService.BeregnRequest.UgyldigFradrag.IkkeLovMedFradragUtenforPerioden -> SøknadsbehandlingService.KunneIkkeBeregne.IkkeLovMedFradragUtenforPerioden.left()
@@ -350,7 +351,7 @@ internal class SøknadsbehandlingServiceImpl(
             when (iverksattBehandling) {
                 is Søknadsbehandling.Iverksatt.Innvilget -> {
                     søknadsbehandlingRepo.lagre(iverksattBehandling)
-                    val vedtak = Vedtak.fromSøknadsbehandling(iverksattBehandling, utbetaling!!.id)
+                    val vedtak = Vedtak.fromSøknadsbehandling(iverksattBehandling, utbetaling!!.id, clock)
                     vedtakRepo.lagre(vedtak)
 
                     log.info("Iverksatt innvilgelse for behandling ${iverksattBehandling.id}")
@@ -419,10 +420,10 @@ internal class SøknadsbehandlingServiceImpl(
     private fun opprettAvslagsvedtak(iverksattBehandling: Søknadsbehandling.Iverksatt.Avslag): Vedtak.Avslag =
         when (iverksattBehandling) {
             is Søknadsbehandling.Iverksatt.Avslag.MedBeregning -> {
-                Vedtak.Avslag.fromSøknadsbehandlingMedBeregning(iverksattBehandling)
+                Vedtak.Avslag.fromSøknadsbehandlingMedBeregning(iverksattBehandling, clock)
             }
             is Søknadsbehandling.Iverksatt.Avslag.UtenBeregning -> {
-                Vedtak.Avslag.fromSøknadsbehandlingUtenBeregning(iverksattBehandling)
+                Vedtak.Avslag.fromSøknadsbehandlingUtenBeregning(iverksattBehandling, clock)
             }
         }
 

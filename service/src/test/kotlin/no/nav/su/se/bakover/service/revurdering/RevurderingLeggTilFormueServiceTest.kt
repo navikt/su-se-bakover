@@ -615,6 +615,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
+                    opprettet = fixedTidspunkt,
                 ),
             ),
             bosituasjon = listOf(
@@ -660,6 +661,7 @@ internal class RevurderingLeggTilFormueServiceTest {
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
+                    opprettet = fixedTidspunkt,
                 ),
             ),
             bosituasjon = listOf(

@@ -935,7 +935,7 @@ internal class RevurderingServiceImpl(
                                 it.id
                             }
                         }.map {
-                            vedtakRepo.lagre(Vedtak.from(it, utbetaling!!.id))
+                            vedtakRepo.lagre(Vedtak.from(it, utbetaling!!.id, clock))
                             it
                         }
                     }
@@ -958,7 +958,7 @@ internal class RevurderingServiceImpl(
                                 it.id
                             }
                         }.map {
-                            vedtakRepo.lagre(Vedtak.from(it, utbetaling!!.id))
+                            vedtakRepo.lagre(Vedtak.from(it, utbetaling!!.id, clock))
                             it
                         }
                     }

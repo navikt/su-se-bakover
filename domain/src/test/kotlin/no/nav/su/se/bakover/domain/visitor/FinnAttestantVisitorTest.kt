@@ -229,6 +229,7 @@ internal class FinnAttestantVisitorTest {
         periode = periode,
         uføregrad = Uføregrad.parse(20),
         forventetInntekt = 10,
+        opprettet = fixedTidspunkt,
     )
     private val revurdering = OpprettetRevurdering(
         id = UUID.randomUUID(),

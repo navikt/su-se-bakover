@@ -112,6 +112,7 @@ internal class RevurderingServiceImplTest {
             periode = periode,
             uføregrad = Uføregrad.parse(20),
             forventetInntekt = 10,
+            opprettet = fixedTidspunkt,
         )
         val opprettetRevurdering = OpprettetRevurdering(
             id = revurderingId,
@@ -134,6 +135,7 @@ internal class RevurderingServiceImplTest {
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
                         ),
+                        opprettet = fixedTidspunkt,
                     ),
                 ),
                 bosituasjon = listOf(
@@ -259,6 +261,7 @@ internal class RevurderingServiceImplTest {
             periode = periode,
             uføregrad = Uføregrad.parse(20),
             forventetInntekt = 10,
+            opprettet = fixedTidspunkt,
         )
         val opprettetRevurdering = OpprettetRevurdering(
             id = revurderingId,
@@ -281,6 +284,7 @@ internal class RevurderingServiceImplTest {
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
                         ),
+                        opprettet = fixedTidspunkt,
                     ),
                 ),
                 bosituasjon = listOf(
@@ -608,6 +612,7 @@ internal class RevurderingServiceImplTest {
             periode = periode,
             uføregrad = Uføregrad.parse(20),
             forventetInntekt = 10,
+            opprettet = fixedTidspunkt,
         )
         val underkjentRevurdering = UnderkjentRevurdering.Innvilget(
             id = revurderingId,
@@ -633,6 +638,7 @@ internal class RevurderingServiceImplTest {
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
                         ),
+                        opprettet = fixedTidspunkt,
                     ),
                 ),
                 bosituasjon = listOf(
@@ -1770,6 +1776,7 @@ internal class RevurderingServiceImplTest {
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
+                    opprettet = fixedTidspunkt,
                 ),
             ),
         )
@@ -1817,6 +1824,7 @@ internal class RevurderingServiceImplTest {
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
+                    opprettet = fixedTidspunkt,
                 ),
             ),
         )
@@ -1865,6 +1873,7 @@ internal class RevurderingServiceImplTest {
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
+                    opprettet = fixedTidspunkt,
                 ),
             ),
         )
@@ -1920,6 +1929,7 @@ internal class RevurderingServiceImplTest {
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
+                    opprettet = fixedTidspunkt,
                 ),
                 Grunnlag.Fradragsgrunnlag(
                     fradrag = FradragFactory.ny(
@@ -1929,6 +1939,7 @@ internal class RevurderingServiceImplTest {
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
+                    opprettet = fixedTidspunkt,
                 ),
             ),
         )

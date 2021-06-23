@@ -68,6 +68,7 @@ class RevurderingIngenEndringTest {
             periode = periode,
             uføregrad = Uføregrad.parse(20),
             forventetInntekt = 12000,
+            opprettet = fixedTidspunkt,
         )
         val opprettetRevurdering = OpprettetRevurdering(
             id = revurderingId,

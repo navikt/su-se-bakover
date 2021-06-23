@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.Either
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.behandling.Attestering
@@ -18,6 +19,7 @@ import no.nav.su.se.bakover.domain.søknadsbehandling.Søknadsbehandling
 import no.nav.su.se.bakover.service.vilkår.FullførBosituasjonRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilBosituasjonEpsRequest
 import no.nav.su.se.bakover.service.vilkår.LeggTilUførevurderingRequest
+import java.time.Clock
 import java.util.UUID
 import kotlin.reflect.KClass
 
@@ -76,7 +78,7 @@ interface SøknadsbehandlingService {
             object HarIkkeEktelle : UgyldigFradrag()
         }
 
-        fun toFradrag(stønadsperiode: Stønadsperiode, harEktefelle: Boolean): Either<UgyldigFradrag, List<Fradrag>> =
+        fun toFradrag(stønadsperiode: Stønadsperiode, harEktefelle: Boolean, clock: Clock): Either<UgyldigFradrag, List<Fradrag>> =
             fradrag.map {
                 // map til grunnlag for å låne valideringer
                 Grunnlag.Fradragsgrunnlag(
@@ -87,6 +89,7 @@ interface SøknadsbehandlingService {
                         utenlandskInntekt = it.utenlandskInntekt,
                         tilhører = it.tilhører,
                     ),
+                    opprettet = Tidspunkt.now(clock),
                 )
             }.valider(stønadsperiode.periode, harEktefelle)
                 .mapLeft { valideringsfeil ->

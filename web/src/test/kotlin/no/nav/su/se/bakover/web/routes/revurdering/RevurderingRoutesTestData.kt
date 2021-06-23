@@ -31,6 +31,7 @@ import no.nav.su.se.bakover.test.createFromGrunnlag
 import no.nav.su.se.bakover.test.empty
 import no.nav.su.se.bakover.web.FnrGenerator
 import no.nav.su.se.bakover.web.TestServicesBuilder
+import no.nav.su.se.bakover.web.fixedClock
 import no.nav.su.se.bakover.web.routes.sak.sakPath
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.BehandlingTestUtils.stønadsperiode
 import no.nav.su.se.bakover.web.routes.søknadsbehandling.TestBeregning
@@ -44,7 +45,7 @@ object RevurderingRoutesTestData {
     internal val periode = Periode.create(fraOgMed = 1.januar(2020), tilOgMed = 31.desember(2020))
 
     internal val vedtak = Vedtak.fromSøknadsbehandling(
-        Søknadsbehandling.Iverksatt.Innvilget(
+        søknadsbehandling = Søknadsbehandling.Iverksatt.Innvilget(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.now(),
             sakId = sakId,
@@ -78,7 +79,8 @@ object RevurderingRoutesTestData {
             grunnlagsdata = Grunnlagsdata.EMPTY,
             vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
         ),
-        UUID30.randomUUID(),
+        utbetalingId = UUID30.randomUUID(),
+        clock = fixedClock
     )
 
     internal val opprettetRevurdering = OpprettetRevurdering(

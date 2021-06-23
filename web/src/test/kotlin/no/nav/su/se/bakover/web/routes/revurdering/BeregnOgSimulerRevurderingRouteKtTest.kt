@@ -118,6 +118,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
             periode = TestBeregning.periode,
             uføregrad = Uføregrad.parse(20),
             forventetInntekt = 12000,
+            opprettet = fixedTidspunkt,
         )
         val beregnetRevurdering = OpprettetRevurdering(
             id = UUID.randomUUID(),

@@ -47,6 +47,7 @@ data class LeggTilUførevurderingRequest(
                         periode = periode,
                         uføregrad = uføregrad,
                         forventetInntekt = forventetInntekt,
+                        opprettet = Tidspunkt.now(clock),
                     ),
                     vurderingsperiode = periode,
                     begrunnelse = begrunnelse,

@@ -146,6 +146,7 @@ internal class RevurderingTest {
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
+                    opprettet = fixedTidspunkt,
                 ),
                 Grunnlag.Fradragsgrunnlag(
                     fradrag = FradragFactory.ny(
@@ -155,6 +156,7 @@ internal class RevurderingTest {
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
+                    opprettet = fixedTidspunkt,
                 ),
             ),
         ).beregn(
@@ -339,6 +341,7 @@ internal class RevurderingTest {
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
+                    opprettet = fixedTidspunkt,
                 ),
             ),
             bosituasjon = listOf(
@@ -368,6 +371,7 @@ internal class RevurderingTest {
             periode = periode,
             uføregrad = Uføregrad.parse(100),
             forventetInntekt = 0,
+            opprettet = fixedTidspunkt,
         )
         lagRevurdering(
             periode = periode,
@@ -403,6 +407,7 @@ internal class RevurderingTest {
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
+                    opprettet = fixedTidspunkt,
                 ),
             ),
         ).beregn(eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(14000, periode)))).orNull()!!.let {
@@ -418,6 +423,7 @@ internal class RevurderingTest {
             periode = periode,
             uføregrad = Uføregrad.parse(100),
             forventetInntekt = 0,
+            opprettet = fixedTidspunkt,
         )
         lagRevurdering(
             periode = periode,
@@ -453,6 +459,7 @@ internal class RevurderingTest {
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
+                    opprettet = fixedTidspunkt,
                 ),
                 Grunnlag.Fradragsgrunnlag(
                     fradrag = FradragFactory.ny(
@@ -462,6 +469,7 @@ internal class RevurderingTest {
                         utenlandskInntekt = null,
                         tilhører = FradragTilhører.BRUKER,
                     ),
+                    opprettet = fixedTidspunkt,
                 ),
             ),
         ).beregn(eksisterendeUtbetalinger = listOf(lagUtbetaling(lagUtbetalingslinje(14000, periode)))).orNull()!!.let {

@@ -198,6 +198,7 @@ internal class VedtakServiceImplTest {
                 vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             ),
             UUID30.randomUUID(),
+            fixedClock
         )
 
     private val oppgaveId = OppgaveId("2")

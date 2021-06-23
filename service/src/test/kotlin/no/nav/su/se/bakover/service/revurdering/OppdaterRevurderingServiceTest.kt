@@ -110,6 +110,7 @@ internal class OppdaterRevurderingServiceTest {
         periode = periode,
         uføregrad = Uføregrad.parse(25),
         forventetInntekt = 12000,
+        opprettet = fixedTidspunkt,
     )
 
     private val vilkårsvurderingUføre = Vilkår.Uførhet.Vurdert.create(
@@ -523,6 +524,7 @@ internal class OppdaterRevurderingServiceTest {
             periode = periodePlussEtÅr,
             uføregrad = Uføregrad.parse(25),
             forventetInntekt = 12000,
+            opprettet = fixedTidspunkt,
         )
         val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.Enslig(
             id = UUID.randomUUID(),
@@ -646,7 +648,7 @@ internal class OppdaterRevurderingServiceTest {
                 søknadsbehandlingVedtak.copy(
                     beregning = lagBeregning(periode),
                 ),
-                Vedtak.from(revurdering, UUID30.randomUUID()),
+                Vedtak.from(revurdering, UUID30.randomUUID(), fixedClock),
             ),
             clock = fixedClock,
         )
@@ -729,7 +731,7 @@ internal class OppdaterRevurderingServiceTest {
                 søknadsbehandlingVedtak.copy(
                     beregning = lagBeregning(periode),
                 ),
-                Vedtak.from(revurdering, UUID30.randomUUID()),
+                Vedtak.from(revurdering, UUID30.randomUUID(), fixedClock),
             ),
             clock = fixedClock,
         )

@@ -71,7 +71,9 @@ import no.nav.su.se.bakover.service.vedtak.KunneIkkeKopiereGjeldendeVedtaksdata
 import no.nav.su.se.bakover.service.vedtak.VedtakService
 import no.nav.su.se.bakover.test.create
 import org.junit.jupiter.api.Test
+import java.time.Clock
 import java.time.LocalDate
+import java.time.ZoneOffset
 import java.time.temporal.ChronoUnit
 import java.util.UUID
 
@@ -127,6 +129,7 @@ internal class OpprettRevurderingServiceTest {
         periode = stønadsperiode.periode,
         uføregrad = Uføregrad.parse(25),
         forventetInntekt = 12000,
+        opprettet = fixedTidspunkt,
     )
 
     private val vilkårsvurderingUføre = Vilkår.Uførhet.Vurdert.create(
@@ -192,7 +195,7 @@ internal class OpprettRevurderingServiceTest {
     )
 
     private fun createSøknadsbehandlingVedtak() =
-        Vedtak.fromSøknadsbehandling(createInnvilgetBehandling(), UUID30.randomUUID())
+        Vedtak.fromSøknadsbehandling(createInnvilgetBehandling(), UUID30.randomUUID(), fixedClock)
 
     @Test
     fun `oppretter en revurdering`() {
@@ -656,9 +659,9 @@ internal class OpprettRevurderingServiceTest {
 
     @Test
     fun `kan revurdere en periode med eksisterende revurdering`() {
-        val opprinneligVedtak = Vedtak.fromSøknadsbehandling(createInnvilgetBehandling(), UUID30.randomUUID())
+        val opprinneligVedtak = Vedtak.fromSøknadsbehandling(createInnvilgetBehandling(), UUID30.randomUUID(), fixedClock)
         val revurdering = Vedtak.from(
-            IverksattRevurdering.Innvilget(
+            revurdering = IverksattRevurdering.Innvilget(
                 id = UUID.randomUUID(),
                 periode = søknadsbehandlingperiode,
                 opprettet = Tidspunkt.EPOCH,
@@ -688,7 +691,8 @@ internal class OpprettRevurderingServiceTest {
                 ),
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             ),
-            UUID30.randomUUID(),
+            utbetalingId = UUID30.randomUUID(),
+            clock = Clock.fixed(fixedClock.instant().plus(1, ChronoUnit.DAYS), ZoneOffset.UTC),
         )
 
         val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
@@ -906,6 +910,7 @@ internal class OpprettRevurderingServiceTest {
             periode = periodePlussEtÅr,
             uføregrad = Uføregrad.parse(25),
             forventetInntekt = 12000,
+            opprettet = fixedTidspunkt,
         )
         val uførevilkår = Vilkår.Uførhet.Vurdert.create(
             vurderingsperioder = nonEmptyListOf(
@@ -1004,7 +1009,7 @@ internal class OpprettRevurderingServiceTest {
             periode = søknadsbehandlingperiode,
             vedtakListe = nonEmptyListOf(
                 createSøknadsbehandlingVedtak(),
-                Vedtak.from(revurdering, UUID30.randomUUID()),
+                Vedtak.from(revurdering, UUID30.randomUUID(), fixedClock),
             ),
             clock = fixedClock,
         )
@@ -1081,7 +1086,7 @@ internal class OpprettRevurderingServiceTest {
                 createSøknadsbehandlingVedtak().copy(
                     beregning = lagBeregning(søknadsbehandlingperiode),
                 ),
-                Vedtak.from(revurdering, UUID30.randomUUID()),
+                Vedtak.from(revurdering, UUID30.randomUUID(), fixedClock),
             ),
             clock = fixedClock,
         )

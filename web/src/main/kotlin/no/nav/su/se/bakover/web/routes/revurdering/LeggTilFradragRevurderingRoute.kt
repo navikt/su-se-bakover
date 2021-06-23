@@ -9,6 +9,7 @@ import io.ktor.http.HttpStatusCode.Companion.BadRequest
 import io.ktor.http.HttpStatusCode.Companion.InternalServerError
 import io.ktor.routing.Route
 import io.ktor.routing.post
+import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -26,15 +27,24 @@ import no.nav.su.se.bakover.web.svar
 import no.nav.su.se.bakover.web.withBody
 import no.nav.su.se.bakover.web.withRevurderingId
 import no.nav.su.se.bakover.web.withSakId
+import java.time.Clock
 
 internal fun Route.leggTilFradragRevurdering(
     revurderingService: RevurderingService,
+    clock: Clock,
 ) {
     data class BeregningForRevurderingBody(
         val fradrag: List<FradragJson>,
     ) {
-        fun toDomain(): Either<Resultat, List<Grunnlag.Fradragsgrunnlag>> =
-            fradrag.toFradrag().map { it.map { fradrag -> Grunnlag.Fradragsgrunnlag(fradrag = fradrag) } }
+        fun toDomain(clock: Clock): Either<Resultat, List<Grunnlag.Fradragsgrunnlag>> =
+            fradrag.toFradrag().map {
+                it.map { fradrag ->
+                    Grunnlag.Fradragsgrunnlag(
+                        fradrag = fradrag,
+                        opprettet = Tidspunkt.now(clock),
+                    )
+                }
+            }
     }
 
     authorize(Brukerrolle.Saksbehandler) {
@@ -43,7 +53,7 @@ internal fun Route.leggTilFradragRevurdering(
                 call.withRevurderingId { revurderingId ->
                     call.withBody<BeregningForRevurderingBody> { body ->
                         call.svar(
-                            body.toDomain().flatMap { fradrag ->
+                            body.toDomain(clock).flatMap { fradrag ->
                                 revurderingService.leggTilFradragsgrunnlag(
                                     LeggTilFradragsgrunnlagRequest(
                                         revurderingId,

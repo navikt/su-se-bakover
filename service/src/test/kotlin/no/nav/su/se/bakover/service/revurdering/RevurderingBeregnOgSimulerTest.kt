@@ -41,6 +41,7 @@ class RevurderingBeregnOgSimulerTest {
             periode = RevurderingTestUtils.periode,
             uføregrad = Uføregrad.parse(20),
             forventetInntekt = 10,
+            opprettet = fixedTidspunkt,
         )
         val opprettetRevurdering = OpprettetRevurdering(
             id = RevurderingTestUtils.revurderingId,
@@ -63,6 +64,7 @@ class RevurderingBeregnOgSimulerTest {
                             utenlandskInntekt = null,
                             tilhører = FradragTilhører.BRUKER,
                         ),
+                        opprettet = fixedTidspunkt,
                     ),
                 ),
                 bosituasjon = listOf(

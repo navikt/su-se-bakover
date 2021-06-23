@@ -1329,6 +1329,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 ),
                 vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             ),
+            fixedClock
         )
 
     private fun journalførtAvslagsVedtak() =
@@ -1386,6 +1387,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 vilkårsvurderinger = Vilkårsvurderinger.IkkeVurdert,
             ),
             utbetalingId = UUID30.randomUUID(),
+            clock = fixedClock
         )
     }
 
@@ -1413,6 +1415,7 @@ internal class FerdigstillVedtakServiceImplTest {
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(listOf(Revurderingsteg.Inntekt)),
             ),
             utbetalingId = UUID30.randomUUID(),
+            clock = fixedClock
         )
 
     private fun journalførtInnvilgetVedtak() =

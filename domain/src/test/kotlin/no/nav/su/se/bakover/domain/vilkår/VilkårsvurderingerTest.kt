@@ -24,6 +24,7 @@ internal class VilkårsvurderingerTest {
         periode = Periode.create(1.januar(2021), 31.desember(2021)),
         uføregrad = Uføregrad.parse(20),
         forventetInntekt = 10_000,
+        opprettet = fixedTidspunkt,
     )
 
     @Test
@@ -82,6 +83,7 @@ internal class VilkårsvurderingerTest {
                             periode = Periode.create(1.januar(2021), 30.april(2021)),
                             uføregrad = Uføregrad.parse(20),
                             forventetInntekt = 10_000,
+                            opprettet = fixedTidspunkt,
                         ),
                         periode = Periode.create(1.januar(2021), 30.april(2021)),
                         begrunnelse = "",
@@ -93,6 +95,7 @@ internal class VilkårsvurderingerTest {
                             periode = Periode.create(1.mai(2021), 31.desember(2021)),
                             uføregrad = Uføregrad.parse(20),
                             forventetInntekt = 10_000,
+                            opprettet = fixedTidspunkt,
                         ),
                         periode = Periode.create(1.mai(2021), 31.desember(2021)),
                         begrunnelse = "",
@@ -119,6 +122,7 @@ internal class VilkårsvurderingerTest {
                             periode = Periode.create(1.januar(2021), 30.april(2021)),
                             uføregrad = Uføregrad.parse(20),
                             forventetInntekt = 10_000,
+                            opprettet = fixedTidspunkt,
                         ),
                         periode = Periode.create(1.januar(2021), 30.april(2021)),
                         begrunnelse = "",
@@ -130,6 +134,7 @@ internal class VilkårsvurderingerTest {
                             periode = Periode.create(1.mai(2021), 31.desember(2021)),
                             uføregrad = Uføregrad.parse(20),
                             forventetInntekt = 10_000,
+                            opprettet = fixedTidspunkt,
                         ),
                         periode = Periode.create(1.mai(2021), 31.desember(2021)),
                         begrunnelse = "",
@@ -156,6 +161,7 @@ internal class VilkårsvurderingerTest {
                             periode = Periode.create(1.januar(2021), 30.april(2021)),
                             uføregrad = Uføregrad.parse(20),
                             forventetInntekt = 10_000,
+                            opprettet = fixedTidspunkt,
                         ),
                         periode = Periode.create(1.januar(2021), 30.april(2021)),
                         begrunnelse = "",

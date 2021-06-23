@@ -11,6 +11,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.beregning.fradrag.UtenlandskInntekt
+import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import org.junit.jupiter.api.Test
@@ -50,6 +51,7 @@ internal class EnsligBorMedVoksneBeregningTest {
                     periode = periode,
                     uføregrad = Uføregrad.parse(100),
                     forventetInntekt = 0,
+                    opprettet = fixedTidspunkt,
                 ),
             ),
             fradragFraSaksbehandler = listOf(

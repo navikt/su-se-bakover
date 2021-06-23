@@ -70,10 +70,10 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
         (this.behandling as? IverksattRevurdering.Innvilget)?.revurderingsårsak?.årsak != Revurderingsårsak.Årsak.REGULER_GRUNNBELØP
 
     companion object {
-        fun fromSøknadsbehandling(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget, utbetalingId: UUID30) =
+        fun fromSøknadsbehandling(søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget, utbetalingId: UUID30, clock: Clock) =
             EndringIYtelse(
                 id = UUID.randomUUID(),
-                opprettet = Tidspunkt.now(),
+                opprettet = Tidspunkt.now(clock),
                 periode = søknadsbehandling.periode,
                 behandling = søknadsbehandling,
                 behandlingsinformasjon = søknadsbehandling.behandlingsinformasjon,
@@ -98,9 +98,9 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
             journalføringOgBrevdistribusjon = JournalføringOgBrevdistribusjon.IkkeJournalførtEllerDistribuert,
         )
 
-        fun from(revurdering: IverksattRevurdering.Innvilget, utbetalingId: UUID30) = EndringIYtelse(
+        fun from(revurdering: IverksattRevurdering.Innvilget, utbetalingId: UUID30, clock: Clock) = EndringIYtelse(
             id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(),
+            opprettet = Tidspunkt.now(clock),
             behandling = revurdering,
             behandlingsinformasjon = revurdering.behandlingsinformasjon,
             periode = revurdering.periode,
@@ -113,9 +113,9 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
             vedtakType = VedtakType.ENDRING,
         )
 
-        fun from(revurdering: IverksattRevurdering.Opphørt, utbetalingId: UUID30) = EndringIYtelse(
+        fun from(revurdering: IverksattRevurdering.Opphørt, utbetalingId: UUID30, clock: Clock) = EndringIYtelse(
             id = UUID.randomUUID(),
-            opprettet = Tidspunkt.now(),
+            opprettet = Tidspunkt.now(clock),
             behandling = revurdering,
             behandlingsinformasjon = revurdering.behandlingsinformasjon,
             periode = revurdering.periode,
@@ -207,10 +207,10 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
         override val vedtakType = VedtakType.AVSLAG
 
         companion object {
-            fun fromSøknadsbehandlingMedBeregning(avslag: Søknadsbehandling.Iverksatt.Avslag.MedBeregning) =
+            fun fromSøknadsbehandlingMedBeregning(avslag: Søknadsbehandling.Iverksatt.Avslag.MedBeregning, clock: Clock) =
                 AvslagBeregning(
                     id = UUID.randomUUID(),
-                    opprettet = Tidspunkt.now(),
+                    opprettet = Tidspunkt.now(clock),
                     behandling = avslag,
                     behandlingsinformasjon = avslag.behandlingsinformasjon,
                     beregning = avslag.beregning,
@@ -220,10 +220,10 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
                     periode = avslag.periode,
                 )
 
-            fun fromSøknadsbehandlingUtenBeregning(avslag: Søknadsbehandling.Iverksatt.Avslag.UtenBeregning) =
+            fun fromSøknadsbehandlingUtenBeregning(avslag: Søknadsbehandling.Iverksatt.Avslag.UtenBeregning, clock: Clock) =
                 AvslagVilkår(
                     id = UUID.randomUUID(),
-                    opprettet = Tidspunkt.now(),
+                    opprettet = Tidspunkt.now(clock),
                     behandling = avslag,
                     behandlingsinformasjon = avslag.behandlingsinformasjon,
                     saksbehandler = avslag.saksbehandler,

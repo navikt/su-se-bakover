@@ -303,14 +303,14 @@ internal class TestDataHelper(
         søknadsbehandling: Søknadsbehandling.Iverksatt.Innvilget,
         utbetalingId: UUID30,
     ) =
-        Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetalingId).also {
+        Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetalingId, fixedClock).also {
             vedtakRepo.lagre(it)
         }
 
     fun vedtakMedInnvilgetSøknadsbehandling(): Pair<Vedtak.EndringIYtelse, Utbetaling> {
         val (søknadsbehandling, utbetaling) = nyOversendtUtbetalingMedKvittering()
         return Pair(
-            Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetaling.id).also {
+            Vedtak.fromSøknadsbehandling(søknadsbehandling, utbetaling.id, fixedClock).also {
                 vedtakRepo.lagre(it)
             },
             utbetaling,
@@ -334,6 +334,7 @@ internal class TestDataHelper(
                     attestant = attestant,
                 ) { utbetaling.id.right() }.orNull()!!,
                 utbetalingId = utbetaling.id,
+                fixedClock
             ).also {
                 vedtakRepo.lagre(it)
             },

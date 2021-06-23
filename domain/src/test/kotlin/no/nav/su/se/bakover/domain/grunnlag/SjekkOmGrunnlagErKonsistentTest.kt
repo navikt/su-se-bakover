@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.domain.FnrGenerator
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.formueVilkår
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
@@ -88,6 +89,7 @@ internal class SjekkOmGrunnlagErKonsistentTest {
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.EPS,
                 ),
+                opprettet = fixedTidspunkt,
             )
             SjekkOmGrunnlagErKonsistent.BosituasjonOgFradrag(
                 listOf(bosituasjon1, bosituasjon2),
@@ -113,6 +115,7 @@ internal class SjekkOmGrunnlagErKonsistentTest {
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.EPS,
                 ),
+                opprettet = fixedTidspunkt,
             )
             SjekkOmGrunnlagErKonsistent.BosituasjonOgFradrag(
                 listOf(bosituasjon),
@@ -148,6 +151,7 @@ internal class SjekkOmGrunnlagErKonsistentTest {
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.EPS,
                 ),
+                opprettet = fixedTidspunkt,
             )
             SjekkOmGrunnlagErKonsistent(
                 formuegrunnlag = emptyList(),
@@ -170,6 +174,7 @@ internal class SjekkOmGrunnlagErKonsistentTest {
                 periode = periode,
                 uføregrad = Uføregrad.parse(100),
                 forventetInntekt = 0,
+                opprettet = fixedTidspunkt,
             )
             val bosituasjon = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
                 id = UUID.randomUUID(),
@@ -186,6 +191,7 @@ internal class SjekkOmGrunnlagErKonsistentTest {
                     utenlandskInntekt = null,
                     tilhører = FradragTilhører.EPS,
                 ),
+                opprettet = fixedTidspunkt,
             )
             SjekkOmGrunnlagErKonsistent(
                 formuegrunnlag = formueVilkår(periode).grunnlag,

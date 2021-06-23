@@ -14,6 +14,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategyName
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
 import org.junit.jupiter.api.Test
@@ -42,6 +43,7 @@ internal class RevurdertBeregningTest {
                             periode = januar,
                             uføregrad = Uføregrad.parse(100),
                             forventetInntekt = 0,
+                            opprettet = fixedTidspunkt,
                         ),
                     ),
                     fradragFraSaksbehandler = emptyList()
@@ -84,6 +86,7 @@ internal class RevurdertBeregningTest {
                             periode = januar,
                             uføregrad = Uføregrad.parse(100),
                             forventetInntekt = 0,
+                            opprettet = fixedTidspunkt,
                         ),
                     ),
                     fradragFraSaksbehandler = emptyList()
@@ -124,6 +127,7 @@ internal class RevurdertBeregningTest {
                             periode = periode,
                             uføregrad = Uføregrad.parse(100),
                             forventetInntekt = 0,
+                            opprettet = fixedTidspunkt,
                         ),
                     ),
                     fradragFraSaksbehandler = emptyList()
@@ -172,6 +176,7 @@ internal class RevurdertBeregningTest {
                         periode = januar,
                         uføregrad = Uføregrad.parse(99),
                         forventetInntekt = 12,
+                        opprettet = fixedTidspunkt,
                     ),
                 ),
                 fradragFraSaksbehandler = emptyList()
@@ -218,6 +223,7 @@ internal class RevurdertBeregningTest {
                         periode = januar,
                         uføregrad = Uføregrad.parse(99),
                         forventetInntekt = 12,
+                        opprettet = fixedTidspunkt,
                     ),
                 ),
                 fradragFraSaksbehandler = emptyList()
@@ -248,6 +254,7 @@ internal class RevurdertBeregningTest {
                         periode = periode,
                         uføregrad = Uføregrad.parse(80),
                         forventetInntekt = 12000,
+                        opprettet = fixedTidspunkt,
                     ),
                 ),
                 fradragFraSaksbehandler = listOf(

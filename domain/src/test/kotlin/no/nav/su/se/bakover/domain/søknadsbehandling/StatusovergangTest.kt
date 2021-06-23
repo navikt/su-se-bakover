@@ -27,6 +27,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.formueVilkår
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
@@ -862,6 +863,7 @@ internal class StatusovergangTest {
                                     periode = stønadsperiode.periode,
                                     uføregrad = Uføregrad.parse(20),
                                     forventetInntekt = 10,
+                                    opprettet = fixedTidspunkt,
                                 ),
                                 periode = stønadsperiode.periode,
                                 begrunnelse = "ok2k",

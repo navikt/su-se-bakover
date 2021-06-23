@@ -180,10 +180,11 @@ internal class GjeldendeVedtaksdataTest {
             ),
         ),
         utbetalingId = UUID30.randomUUID(),
+        clock = fixedClock
     )
 
     private fun revurdering(periode: Periode, førstegangsvedtak: Vedtak.EndringIYtelse) = Vedtak.from(
-        IverksattRevurdering.Innvilget(
+        revurdering = IverksattRevurdering.Innvilget(
             id = UUID.randomUUID(),
             periode = periode,
             opprettet = Tidspunkt.now(),
@@ -222,7 +223,13 @@ internal class GjeldendeVedtaksdataTest {
             attestering = Attestering.Iverksatt(attestant = NavIdentBruker.Attestant(navIdent = "")),
             forhåndsvarsel = Forhåndsvarsel.IngenForhåndsvarsel,
             behandlingsinformasjon = Behandlingsinformasjon.lagTomBehandlingsinformasjon(),
-            simulering = Simulering(gjelderId = FnrGenerator.random(), gjelderNavn = "", datoBeregnet = 1.mai(2021), nettoBeløp = 0, periodeList = listOf()),
+            simulering = Simulering(
+                gjelderId = FnrGenerator.random(),
+                gjelderNavn = "",
+                datoBeregnet = 1.mai(2021),
+                nettoBeløp = 0,
+                periodeList = listOf(),
+            ),
             grunnlagsdata = Grunnlagsdata(
                 fradragsgrunnlag = listOf(),
                 bosituasjon = listOf(),
@@ -249,6 +256,7 @@ internal class GjeldendeVedtaksdataTest {
                 ),
             ),
         ),
-        UUID30.randomUUID(),
+        utbetalingId = UUID30.randomUUID(),
+        clock = fixedClock,
     )
 }
