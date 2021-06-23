@@ -78,6 +78,7 @@ internal class LagBrevRequestVisitorTest {
                 LagBrevRequestVisitor(
                     hentPerson = { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson.left() },
                     hentNavn = { hentNavn(it) },
+                    hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                     clock = clock,
                 ).apply { søknadsbehandling.accept(this) }.let {
                     it.brevRequest shouldBe LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson.left()
@@ -96,6 +97,7 @@ internal class LagBrevRequestVisitorTest {
                 LagBrevRequestVisitor(
                     hentPerson = { person.right() },
                     hentNavn = { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left() },
+                    hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                     clock = clock,
                 ).apply { søknadsbehandling.accept(this) }.let {
                     it.brevRequest shouldBe LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant.left()
@@ -110,6 +112,7 @@ internal class LagBrevRequestVisitorTest {
                 LagBrevRequestVisitor(
                     hentPerson = { person.right() },
                     hentNavn = { hentNavn(it) },
+                    hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                     clock = Clock.systemUTC(),
                 ).apply { it.accept(this) }
             }
@@ -121,6 +124,7 @@ internal class LagBrevRequestVisitorTest {
                     LagBrevRequestVisitor(
                         hentPerson = { person.right() },
                         hentNavn = { hentNavn(it) },
+                        hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                         clock = Clock.systemUTC(),
                     ).apply { it.accept(this) }
                 }
@@ -134,6 +138,7 @@ internal class LagBrevRequestVisitorTest {
                 LagBrevRequestVisitor(
                     hentPerson = { person.right() },
                     hentNavn = { hentNavn(it) },
+                    hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                     clock = clock,
                 ).apply { søknadsbehandling.accept(this) }.let {
                     it.brevRequest shouldBe AvslagBrevRequest(
@@ -161,6 +166,7 @@ internal class LagBrevRequestVisitorTest {
                 LagBrevRequestVisitor(
                     hentPerson = { person.right() },
                     hentNavn = { hentNavn(it) },
+                    hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                     clock = clock,
                 ).apply { søknadsbehandling.accept(this) }.let {
                     it.brevRequest shouldBe InnvilgetVedtak(
@@ -185,6 +191,7 @@ internal class LagBrevRequestVisitorTest {
                 LagBrevRequestVisitor(
                     hentPerson = { person.right() },
                     hentNavn = { hentNavn(it) },
+                    hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                     clock = clock,
                 ).apply { søknadsbehandling.accept(this) }.let {
                     it.brevRequest shouldBe AvslagBrevRequest(
@@ -213,6 +220,7 @@ internal class LagBrevRequestVisitorTest {
                 LagBrevRequestVisitor(
                     hentPerson = { person.right() },
                     hentNavn = { hentNavn(it) },
+                    hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                     clock = clock,
                 ).apply { søknadsbehandling.accept(this) }.let {
                     it.brevRequest shouldBe InnvilgetVedtak(
@@ -241,6 +249,7 @@ internal class LagBrevRequestVisitorTest {
                 LagBrevRequestVisitor(
                     hentPerson = { person.right() },
                     hentNavn = { hentNavn(it) },
+                    hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                     clock = clock,
                 ).apply { søknadsbehandling.accept(this) }.let {
                     it.brevRequest shouldBe AvslagBrevRequest(
@@ -271,6 +280,7 @@ internal class LagBrevRequestVisitorTest {
                 LagBrevRequestVisitor(
                     hentPerson = { person.right() },
                     hentNavn = { hentNavn(it) },
+                    hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                     clock = clock,
                 ).apply { søknadsbehandling.accept(this) }.let {
                     it.brevRequest shouldBe AvslagBrevRequest(
@@ -300,6 +310,7 @@ internal class LagBrevRequestVisitorTest {
                 LagBrevRequestVisitor(
                     hentPerson = { person.right() },
                     hentNavn = { hentNavn(it) },
+                    hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                     clock = clock,
                 ).apply { søknadsbehandling.accept(this) }.let {
                     it.brevRequest shouldBe InnvilgetVedtak(
@@ -335,6 +346,7 @@ internal class LagBrevRequestVisitorTest {
                 LagBrevRequestVisitor(
                     hentPerson = { person.right() },
                     hentNavn = { hentNavn(it) },
+                    hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                     clock = clock,
                 ).apply { søknadsbehandling.accept(this) }.let {
                     it.brevRequest shouldBe AvslagBrevRequest(
@@ -372,6 +384,7 @@ internal class LagBrevRequestVisitorTest {
                 LagBrevRequestVisitor(
                     hentPerson = { person.right() },
                     hentNavn = { hentNavn(it) },
+                    hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                     clock = clock,
                 ).apply { søknadsbehandling.accept(this) }.let {
                     it.brevRequest shouldBe AvslagBrevRequest(
@@ -408,6 +421,7 @@ internal class LagBrevRequestVisitorTest {
                 LagBrevRequestVisitor(
                     hentPerson = { person.right() },
                     hentNavn = { hentNavn(it) },
+                    hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                     clock = clock,
                 ).apply { søknadsbehandling.accept(this) }.let {
                     it.brevRequest shouldBe InnvilgetVedtak(
@@ -439,6 +453,7 @@ internal class LagBrevRequestVisitorTest {
                 LagBrevRequestVisitor(
                     hentPerson = { person.right() },
                     hentNavn = { hentNavn(it) },
+                    hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                     clock = clock,
                 ).apply { søknadsbehandling.accept(this) }.let {
                     it.brevRequest shouldBe AvslagBrevRequest(
@@ -472,6 +487,7 @@ internal class LagBrevRequestVisitorTest {
                 LagBrevRequestVisitor(
                     hentPerson = { person.right() },
                     hentNavn = { hentNavn(it) },
+                    hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                     clock = clock,
                 ).apply { søknadsbehandling.accept(this) }.let {
                     it.brevRequest shouldBe AvslagBrevRequest(
@@ -502,6 +518,7 @@ internal class LagBrevRequestVisitorTest {
                 LagBrevRequestVisitor(
                     hentPerson = { person.right() },
                     hentNavn = { hentNavn(it) },
+                    hentGjeldendeUtbetaling = { _, _ -> 0.right() },
                     clock = clock,
                 ).apply { søknadsbehandling.accept(this) }.let {
                     it.brevRequest shouldBe InnvilgetVedtak(
@@ -533,12 +550,14 @@ internal class LagBrevRequestVisitorTest {
         val brevSøknadsbehandling = LagBrevRequestVisitor(
             hentPerson = { person.right() },
             hentNavn = { hentNavn(it) },
+            hentGjeldendeUtbetaling = { _, _ -> 0.right() },
             clock = clock,
         ).apply { søknadsbehandling.accept(this) }
 
         val brevVedtak = LagBrevRequestVisitor(
             hentPerson = { person.right() },
             hentNavn = { hentNavn(it) },
+            hentGjeldendeUtbetaling = { _, _ -> 0.right() },
             clock = clock,
         ).apply { innvilgetVedtak.accept(this) }
 
@@ -569,12 +588,14 @@ internal class LagBrevRequestVisitorTest {
         val brevSøknadsbehandling = LagBrevRequestVisitor(
             hentPerson = { person.right() },
             hentNavn = { hentNavn(it) },
+            hentGjeldendeUtbetaling = { _, _ -> 0.right() },
             clock = clock,
         ).apply { søknadsbehandling.accept(this) }
 
         val brevVedtak = LagBrevRequestVisitor(
             hentPerson = { person.right() },
             hentNavn = { hentNavn(it) },
+            hentGjeldendeUtbetaling = { _, _ -> 0.right() },
             clock = clock,
         ).apply { avslåttVedtak.accept(this) }
 
@@ -609,12 +630,14 @@ internal class LagBrevRequestVisitorTest {
         val brevSøknadsbehandling = LagBrevRequestVisitor(
             hentPerson = { person.right() },
             hentNavn = { hentNavn(it) },
+            hentGjeldendeUtbetaling = { _, _ -> 0.right() },
             clock = clock,
         ).apply { søknadsbehandling.accept(this) }
 
         val brevVedtak = LagBrevRequestVisitor(
             hentPerson = { person.right() },
             hentNavn = { hentNavn(it) },
+            hentGjeldendeUtbetaling = { _, _ -> 0.right() },
             clock = clock,
         ).apply { avslåttVedtak.accept(this) }
 
@@ -681,12 +704,14 @@ internal class LagBrevRequestVisitorTest {
         val brevRevurdering = LagBrevRequestVisitor(
             hentPerson = { person.right() },
             hentNavn = { hentNavn(it) },
+            hentGjeldendeUtbetaling = { _, _ -> 0.right() },
             clock = clock,
         ).apply { revurdering.accept(this) }
 
         val brevVedtak = LagBrevRequestVisitor(
             hentPerson = { person.right() },
             hentNavn = { hentNavn(it) },
+            hentGjeldendeUtbetaling = { _, _ -> 0.right() },
             clock = clock,
         ).apply { avslåttVedtak.accept(this) }
 
@@ -762,12 +787,14 @@ internal class LagBrevRequestVisitorTest {
         val brevRevurdering = LagBrevRequestVisitor(
             hentPerson = { person.right() },
             hentNavn = { hentNavn(it) },
+            hentGjeldendeUtbetaling = { _, _ -> 0.right() },
             clock = clock,
         ).apply { revurdering.accept(this) }
 
         val brevVedtak = LagBrevRequestVisitor(
             hentPerson = { person.right() },
             hentNavn = { hentNavn(it) },
+            hentGjeldendeUtbetaling = { _, _ -> 0.right() },
             clock = clock,
         ).apply { opphørsvedtak.accept(this) }
 
@@ -848,12 +875,14 @@ internal class LagBrevRequestVisitorTest {
         val brevRevurdering = LagBrevRequestVisitor(
             hentPerson = { person.right() },
             hentNavn = { hentNavn(it) },
+            hentGjeldendeUtbetaling = { _, _ -> 0.right() },
             clock = clock,
         ).apply { revurdering.accept(this) }
 
         val brevVedtak = LagBrevRequestVisitor(
             hentPerson = { person.right() },
             hentNavn = { hentNavn(it) },
+            hentGjeldendeUtbetaling = { _, _ -> 0.right() },
             clock = clock,
         ).apply { opphørsvedtak.accept(this) }
 
@@ -917,12 +946,14 @@ internal class LagBrevRequestVisitorTest {
         val brevRevurdering = LagBrevRequestVisitor(
             hentPerson = { person.right() },
             hentNavn = { hentNavn(it) },
+            hentGjeldendeUtbetaling = { _, _ -> 120.right() },
             clock = clock,
         ).apply { revurdering.accept(this) }
 
         val brevVedtak = LagBrevRequestVisitor(
             hentPerson = { person.right() },
             hentNavn = { hentNavn(it) },
+            hentGjeldendeUtbetaling = { _, _ -> 120.right() },
             clock = clock,
         ).apply { vedtakIngenEndring.accept(this) }
 
@@ -943,6 +974,7 @@ internal class LagBrevRequestVisitorTest {
                 fritekst = "EN FIN FRITEKST",
                 harEktefelle = revurdering.behandlingsinformasjon.harEktefelle(),
                 forventetInntektStørreEnn0 = false,
+                gjeldendeMånedsutbetaling = 120
             )
 
             it.lagBrevInnhold(personalia) should beOfType<BrevInnhold.VedtakIngenEndring>()

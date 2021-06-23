@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.søknadsbehandling
 
 import arrow.core.Either
+import arrow.core.flatMap
 import arrow.core.getOrElse
 import arrow.core.getOrHandle
 import arrow.core.left
@@ -140,8 +141,12 @@ internal class SøknadsbehandlingServiceImpl(
                 is Grunnlag.Bosituasjon.Fullstendig.DelerBoligMedVoksneBarnEllerAnnenVoksen,
                 is Grunnlag.Bosituasjon.Fullstendig.Enslig,
                 is Grunnlag.Bosituasjon.Ufullstendig.HarIkkeEps,
-                null -> { return SøknadsbehandlingService.KunneIkkeVilkårsvurdere.HarIkkeEktefelle.left() }
-                else -> {}
+                null,
+                -> {
+                    return SøknadsbehandlingService.KunneIkkeVilkårsvurdere.HarIkkeEktefelle.left()
+                }
+                else -> {
+                }
             }
         }
 
@@ -448,6 +453,13 @@ internal class SøknadsbehandlingServiceImpl(
                 hentNavnForNavIdent(ident)
                     .mapLeft { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant }
             },
+            hentGjeldendeUtbetaling = { sakId, forDato ->
+                utbetalingService.hentGjeldendeUtbetaling(sakId, forDato)
+                    .bimap(
+                        { LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeFinneGjeldendeUtbetaling },
+                        { it.beløp },
+                    )
+            },
             clock = clock,
         ).apply {
             val behandling = when (request) {
@@ -460,19 +472,23 @@ internal class SøknadsbehandlingServiceImpl(
             behandling.accept(this)
         }
 
-        val brevRequest = visitor.brevRequest.getOrHandle {
-            return when (it) {
-                LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> {
-                    SøknadsbehandlingService.KunneIkkeLageBrev.FikkIkkeHentetSaksbehandlerEllerAttestant.left()
+        return visitor.brevRequest
+            .mapLeft {
+                when (it) {
+                    LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHenteNavnForSaksbehandlerEllerAttestant -> {
+                        SøknadsbehandlingService.KunneIkkeLageBrev.FikkIkkeHentetSaksbehandlerEllerAttestant
+                    }
+                    LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson -> {
+                        SøknadsbehandlingService.KunneIkkeLageBrev.FantIkkePerson
+                    }
+                    LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeFinneGjeldendeUtbetaling -> {
+                        SøknadsbehandlingService.KunneIkkeLageBrev.KunneIkkeFinneGjeldendeUtbetaling
+                    }
                 }
-                LagBrevRequestVisitor.KunneIkkeLageBrevRequest.KunneIkkeHentePerson -> {
-                    SøknadsbehandlingService.KunneIkkeLageBrev.FantIkkePerson.left()
-                }
+            }.flatMap {
+                brevService.lagBrev(it)
+                    .mapLeft { SøknadsbehandlingService.KunneIkkeLageBrev.KunneIkkeLagePDF }
             }
-        }
-
-        return brevService.lagBrev(brevRequest)
-            .mapLeft { SøknadsbehandlingService.KunneIkkeLageBrev.KunneIkkeLagePDF }
     }
 
     private fun hentNavnForNavIdent(navIdent: NavIdentBruker): Either<MicrosoftGraphApiOppslagFeil, String> {
@@ -578,9 +594,23 @@ internal class SøknadsbehandlingServiceImpl(
         }.map {
             grunnlagService.lagreBosituasjongrunnlag(behandlingId = request.behandlingId, listOf(bosituasjon))
             return when (it) {
-                is Søknadsbehandling.Vilkårsvurdert.Avslag -> it.copy(grunnlagsdata = it.grunnlagsdata.copy(bosituasjon = listOf(bosituasjon)))
-                is Søknadsbehandling.Vilkårsvurdert.Innvilget -> it.copy(grunnlagsdata = it.grunnlagsdata.copy(bosituasjon = listOf(bosituasjon)))
-                is Søknadsbehandling.Vilkårsvurdert.Uavklart -> it.copy(grunnlagsdata = it.grunnlagsdata.copy(bosituasjon = listOf(bosituasjon)))
+                is Søknadsbehandling.Vilkårsvurdert.Avslag -> it.copy(
+                    grunnlagsdata = it.grunnlagsdata.copy(
+                        bosituasjon = listOf(
+                            bosituasjon,
+                        ),
+                    ),
+                )
+                is Søknadsbehandling.Vilkårsvurdert.Innvilget -> it.copy(
+                    grunnlagsdata = it.grunnlagsdata.copy(
+                        bosituasjon = listOf(bosituasjon),
+                    ),
+                )
+                is Søknadsbehandling.Vilkårsvurdert.Uavklart -> it.copy(
+                    grunnlagsdata = it.grunnlagsdata.copy(
+                        bosituasjon = listOf(bosituasjon),
+                    ),
+                )
             }.right()
         }
     }

@@ -72,6 +72,7 @@ import no.nav.su.se.bakover.service.fixedTidspunkt
 import no.nav.su.se.bakover.service.oppgave.OppgaveService
 import no.nav.su.se.bakover.service.person.PersonService
 import no.nav.su.se.bakover.service.revurdering.RevurderingTestUtils
+import no.nav.su.se.bakover.service.utbetaling.UtbetalingService
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.time.Clock
@@ -1280,12 +1281,14 @@ internal class FerdigstillVedtakServiceImplTest {
         clock: Clock = fixedClock,
         microsoftGraphApiClient: MicrosoftGraphApiOppslag = mock(),
         brevService: BrevService = mock(),
+        utbetalingService: UtbetalingService = mock(),
         vedtakRepo: VedtakRepo = mock(),
         utbetalingRepo: UtbetalingRepo = mock(),
         behandlingMetrics: BehandlingMetrics = mock(),
     ) = FerdigstillVedtakServiceImpl(
         oppgaveService = oppgaveService,
         personService = personService,
+        utbetalingService = utbetalingService,
         clock = clock,
         microsoftGraphApiOppslag = microsoftGraphApiClient,
         brevService = brevService,
@@ -1300,6 +1303,7 @@ internal class FerdigstillVedtakServiceImplTest {
         val clock: Clock = fixedClock,
         val microsoftGraphApiClient: MicrosoftGraphApiOppslag = mock(),
         val brevService: BrevService = mock(),
+        val utbetalingService: UtbetalingService = mock(),
         val vedtakRepo: VedtakRepo = mock(),
         val utbetalingRepo: UtbetalingRepo = mock(),
         val behandlingMetrics: BehandlingMetrics = mock(),
@@ -1307,6 +1311,7 @@ internal class FerdigstillVedtakServiceImplTest {
         val ferdigstillVedtakService = FerdigstillVedtakServiceImpl(
             oppgaveService = oppgaveService,
             personService = personService,
+            utbetalingService = utbetalingService,
             clock = clock,
             microsoftGraphApiOppslag = microsoftGraphApiClient,
             brevService = brevService,

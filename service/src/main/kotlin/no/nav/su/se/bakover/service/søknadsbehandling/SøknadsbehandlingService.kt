@@ -179,6 +179,7 @@ interface SøknadsbehandlingService {
         object KunneIkkeLagePDF : KunneIkkeLageBrev()
         object FantIkkePerson : KunneIkkeLageBrev()
         object FikkIkkeHentetSaksbehandlerEllerAttestant : KunneIkkeLageBrev()
+        object KunneIkkeFinneGjeldendeUtbetaling : KunneIkkeLageBrev()
     }
 
     data class HentRequest(
