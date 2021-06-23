@@ -26,10 +26,6 @@ dependencies {
     // Fails to find SAAJMetaFactoryImpl when either missing or if you upgrade to 2.0.0
     implementation("com.sun.xml.messaging.saaj:saaj-impl:1.5.2")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.12.3")
-
-    implementation(enforcedPlatform("org.eclipse.jetty:jetty-bom:$jettyVersion")) {
-        because("https://app.snyk.io/vuln/SNYK-JAVA-JUNIT-1017047")
-    }
     testImplementation("com.github.tomakehurst:wiremock-jre8:$wireMockVersion") {
         exclude(group = "junit")
     }

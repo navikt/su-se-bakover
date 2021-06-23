@@ -34,7 +34,7 @@ dependencies {
         exclude(group = "org.eclipse.jetty.http2") // conflicts with WireMock
     }
     testImplementation("com.opentable.components:otj-pg-embedded:0.13.4") {
-        exclude("com.github.spotbugs","spotbugs-annotations")
+        exclude(group = "com.github.spotbugs")
     }
 }
 
