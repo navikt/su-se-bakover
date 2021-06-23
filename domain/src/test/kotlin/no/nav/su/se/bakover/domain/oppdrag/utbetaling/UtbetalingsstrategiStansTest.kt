@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.domain.oppdrag.utbetaling
 
+import arrow.core.NonEmptyList
+import arrow.core.nonEmptyListOf
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -35,7 +37,7 @@ internal class OppdragStansTest {
     @Test
     fun `stans av utbetaling`() {
         val utbetaling = createUtbetaling(
-            listOf(
+            nonEmptyListOf(
                 Utbetalingslinje.Ny(
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.desember(2020),
@@ -66,7 +68,7 @@ internal class OppdragStansTest {
     @Test
     fun `ingen løpende utbetalinger å stanse etter første dato i neste måned`() {
         val utbetaling = createUtbetaling(
-            listOf(
+            nonEmptyListOf(
                 Utbetalingslinje.Ny(
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.mai(2020),
@@ -94,7 +96,7 @@ internal class OppdragStansTest {
     @Test
     fun `siste utbetaling er en 'stans utbetaling'`() {
         val utbetaling = createUtbetaling(
-            listOf(
+            nonEmptyListOf(
                 Utbetalingslinje.Ny(
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.desember(2020),
@@ -119,7 +121,7 @@ internal class OppdragStansTest {
         }
     }
 
-    private fun createUtbetaling(utbetalingslinjer: List<Utbetalingslinje>, type: Utbetaling.UtbetalingsType) =
+    private fun createUtbetaling(utbetalingslinjer: NonEmptyList<Utbetalingslinje>, type: Utbetaling.UtbetalingsType) =
         Utbetaling.OversendtUtbetaling.MedKvittering(
             sakId = sakId,
             saksnummer = saksnummer,

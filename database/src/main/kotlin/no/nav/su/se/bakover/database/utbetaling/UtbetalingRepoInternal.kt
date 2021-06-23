@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.utbetaling
 
+import arrow.core.NonEmptyList
 import com.fasterxml.jackson.module.kotlin.readValue
 import kotliquery.Row
 import no.nav.su.se.bakover.common.UUID30
@@ -70,7 +71,7 @@ internal fun Row.toUtbetaling(session: Session): Utbetaling.OversendtUtbetaling 
         sakId = sakId,
         saksnummer = saksnummer,
         fnr = fnr,
-        utbetalingslinjer = utbetalingslinjer,
+        utbetalingslinjer = NonEmptyList.fromListUnsafe(utbetalingslinjer),
         type = type,
         avstemmingsnøkkel = avstemmingsnøkkel,
         simulering = simulering,

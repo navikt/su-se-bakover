@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.service.utbetaling
 
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
@@ -61,7 +62,15 @@ internal class GjenopptaUtbetalingerServiceTest {
         sakId = sakId,
         saksnummer = saksnummer,
         fnr = fnr,
-        utbetalingslinjer = listOf(),
+        utbetalingslinjer = nonEmptyListOf(
+            Utbetalingslinje.Ny(
+                opprettet = Tidspunkt.EPOCH,
+                fraOgMed = 1.januar(2020),
+                tilOgMed = 31.januar(2020),
+                forrigeUtbetalingslinjeId = null,
+                beløp = 0
+            )
+        ),
         type = Utbetaling.UtbetalingsType.GJENOPPTA,
         behandler = saksbehandler,
         avstemmingsnøkkel = avstemmingsnøkkel
@@ -90,13 +99,13 @@ internal class GjenopptaUtbetalingerServiceTest {
         utbetalinger = listOf(
             oversendtUtbetaling.copy(
                 type = Utbetaling.UtbetalingsType.NY,
-                utbetalingslinjer = listOf(
+                utbetalingslinjer = nonEmptyListOf(
                     førsteUtbetalingslinje
                 )
             ),
             oversendtUtbetaling.copy(
                 type = Utbetaling.UtbetalingsType.STANS,
-                utbetalingslinjer = listOf(
+                utbetalingslinjer = nonEmptyListOf(
                     Utbetalingslinje.Ny(
                         id = andreUtbetalingslinjeId,
                         opprettet = Tidspunkt.EPOCH,
@@ -157,7 +166,7 @@ internal class GjenopptaUtbetalingerServiceTest {
                         id = it.id,
                         opprettet = it.opprettet,
                         avstemmingsnøkkel = it.avstemmingsnøkkel,
-                        utbetalingslinjer = listOf(
+                        utbetalingslinjer = nonEmptyListOf(
                             førsteUtbetalingslinje.copy(
                                 id = it.utbetalingslinjer[0].id,
                                 opprettet = it.utbetalingslinjer[0].opprettet,
@@ -173,7 +182,7 @@ internal class GjenopptaUtbetalingerServiceTest {
                         id = it.id,
                         opprettet = it.opprettet,
                         avstemmingsnøkkel = it.avstemmingsnøkkel,
-                        utbetalingslinjer = listOf(
+                        utbetalingslinjer = nonEmptyListOf(
                             førsteUtbetalingslinje.copy(
                                 id = it.utbetalingslinjer[0].id,
                                 opprettet = it.utbetalingslinjer[0].opprettet,
@@ -190,7 +199,7 @@ internal class GjenopptaUtbetalingerServiceTest {
                         id = it.id,
                         opprettet = it.opprettet,
                         avstemmingsnøkkel = it.avstemmingsnøkkel,
-                        utbetalingslinjer = listOf(
+                        utbetalingslinjer = nonEmptyListOf(
                             førsteUtbetalingslinje.copy(
                                 id = it.utbetalingslinjer[0].id,
                                 opprettet = it.utbetalingslinjer[0].opprettet,
@@ -269,7 +278,7 @@ internal class GjenopptaUtbetalingerServiceTest {
                         id = it.id,
                         opprettet = it.opprettet,
                         avstemmingsnøkkel = it.avstemmingsnøkkel,
-                        utbetalingslinjer = listOf(
+                        utbetalingslinjer = nonEmptyListOf(
                             førsteUtbetalingslinje.copy(
                                 id = it.utbetalingslinjer[0].id,
                                 opprettet = it.utbetalingslinjer[0].opprettet,

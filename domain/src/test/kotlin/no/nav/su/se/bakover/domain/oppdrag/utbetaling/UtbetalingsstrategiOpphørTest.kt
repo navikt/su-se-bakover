@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.oppdrag.utbetaling
 
+import arrow.core.nonEmptyListOf
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.common.Tidspunkt
@@ -52,7 +53,7 @@ internal class UtbetalingsstrategiOpphørTest {
         ),
         kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK, ""),
         utbetalingsrequest = Utbetalingsrequest(value = ""),
-        utbetalingslinjer = listOf(enUtbetalingslinje),
+        utbetalingslinjer = nonEmptyListOf(enUtbetalingslinje),
         fnr = fnr,
         type = Utbetaling.UtbetalingsType.NY,
         behandler = behandler,

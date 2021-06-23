@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client.oppdrag.utbetaling
 
+import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.oppdrag.avstemming.sakId
 import no.nav.su.se.bakover.client.oppdrag.avstemming.saksnummer
@@ -31,7 +32,7 @@ internal class UtbetalingRequestTest {
         val nyUtbetaling = Utbetaling.UtbetalingForSimulering(
             sakId = sakId,
             saksnummer = saksnummer,
-            utbetalingslinjer = listOf(
+            utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Ny(
                     id = nyOppdragslinjeId1,
                     fraOgMed = 1.januar(2020),
@@ -75,7 +76,7 @@ internal class UtbetalingRequestTest {
                     tidspktMelding = "2020-01-01-00.00.00.000000",
                 ),
                 kodeAksjon = UtbetalingRequest.KodeAksjon.UTBETALING,
-                oppdragslinjer = listOf(
+                oppdragslinjer = nonEmptyListOf(
                     UtbetalingRequest.Oppdragslinje(
                         kodeStatusLinje = null,
                         datoStatusFom = null,
@@ -134,7 +135,7 @@ internal class UtbetalingRequestTest {
         val nyUtbetaling = Utbetaling.UtbetalingForSimulering(
             sakId = sakId,
             saksnummer = saksnummer,
-            utbetalingslinjer = listOf(
+            utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Ny(
                     id = nyOppdragslinjeid1,
                     fraOgMed = 1.januar(2020),
@@ -179,7 +180,7 @@ internal class UtbetalingRequestTest {
                     tidspktMelding = "2020-01-01-00.00.00.000000",
                 ),
                 kodeAksjon = UtbetalingRequest.KodeAksjon.UTBETALING,
-                oppdragslinjer = listOf(
+                oppdragslinjer = nonEmptyListOf(
                     UtbetalingRequest.Oppdragslinje(
                         kodeEndringLinje = UtbetalingRequest.Oppdragslinje.KodeEndringLinje.NY,
                         delytelseId = nyUtbetaling.utbetalingslinjer[0].id.toString(),
@@ -262,7 +263,7 @@ internal class UtbetalingRequestTest {
                     tidspktMelding = "2020-01-01-00.00.00.000000",
                 ),
                 kodeAksjon = UtbetalingRequest.KodeAksjon.UTBETALING,
-                oppdragslinjer = listOf(
+                oppdragslinjer = nonEmptyListOf(
                     UtbetalingRequest.Oppdragslinje(
                         kodeEndringLinje = UtbetalingRequest.Oppdragslinje.KodeEndringLinje.ENDRING,
                         delytelseId = nyUtbetaling.utbetalingslinjer[0].id.toString(),

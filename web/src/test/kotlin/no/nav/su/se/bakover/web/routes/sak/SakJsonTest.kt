@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.web.routes.sak
 
+import arrow.core.nonEmptyListOf
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
@@ -88,12 +89,12 @@ internal class SakJsonTest {
             )
 
             val utbetaling1 = mock<Utbetaling.OversendtUtbetaling.UtenKvittering> {
-                on { utbetalingslinjer } doReturn listOf(førsteUtbetaling)
+                on { utbetalingslinjer } doReturn nonEmptyListOf(førsteUtbetaling)
                 on { type } doReturn Utbetaling.UtbetalingsType.NY
                 on { opprettet } doReturn førsteUtbetaling.opprettet
             }
             val utbetaling2 = mock<Utbetaling.OversendtUtbetaling.UtenKvittering> {
-                on { utbetalingslinjer } doReturn listOf(opphørslinje)
+                on { utbetalingslinjer } doReturn nonEmptyListOf(opphørslinje)
                 on { type } doReturn Utbetaling.UtbetalingsType.OPPHØR
                 on { opprettet } doReturn opphørslinje.opprettet
             }

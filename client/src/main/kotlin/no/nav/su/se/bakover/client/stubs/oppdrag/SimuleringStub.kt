@@ -28,7 +28,7 @@ object SimuleringStub : SimuleringClient {
     }
 
     private fun simulerNyUtbetaling(utbetaling: Utbetaling, saksnummer: Saksnummer): Simulering {
-        val perioder = utbetaling.utbetalingslinjer.flatMap { utbetalingslinje ->
+        val perioder = utbetaling.utbetalingslinjer.map { utbetalingslinje ->
             Periode.create(utbetalingslinje.fraOgMed, utbetalingslinje.tilOgMed).tilMånedsperioder().mapNotNull {
                 if (utbetalingslinje.beløp > 0) {
                     SimulertPeriode(
@@ -51,7 +51,7 @@ object SimuleringStub : SimuleringClient {
                     null
                 }
             }
-        }
+        }.flatten()
 
         return Simulering(
             gjelderId = utbetaling.fnr,

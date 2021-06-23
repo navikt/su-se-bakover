@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client.oppdrag.simulering
 
+import arrow.core.nonEmptyListOf
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequest
 import no.nav.su.se.bakover.client.oppdrag.utbetaling.UtbetalingRequestTest
@@ -49,7 +50,7 @@ internal class SimuleringRequestBuilderTest {
         val utbetalingMedEndring = UtbetalingRequestTest.nyUtbetaling.copy(
             type = Utbetaling.UtbetalingsType.OPPHØR,
             avstemmingsnøkkel = Avstemmingsnøkkel(18.september(2020).startOfDay()),
-            utbetalingslinjer = listOf(linjeMedEndring),
+            utbetalingslinjer = nonEmptyListOf(linjeMedEndring),
         )
 
         val utbetalingsRequest = toUtbetalingRequest(utbetalingMedEndring).oppdragRequest

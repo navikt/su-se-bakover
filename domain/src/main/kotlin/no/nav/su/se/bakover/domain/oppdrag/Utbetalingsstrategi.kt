@@ -1,5 +1,7 @@
 package no.nav.su.se.bakover.domain.oppdrag
 
+import arrow.core.NonEmptyList
+import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.common.erFørsteDagIMåned
@@ -48,7 +50,7 @@ sealed class Utbetalingsstrategi {
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,
-                utbetalingslinjer = listOf(
+                utbetalingslinjer = nonEmptyListOf(
                     Utbetalingslinje.Ny(
                         fraOgMed = stansesFraOgMed,
                         tilOgMed = stansesTilOgMed,
@@ -73,19 +75,20 @@ sealed class Utbetalingsstrategi {
         val clock: Clock,
     ) : Utbetalingsstrategi() {
         override fun generate(): Utbetaling.UtbetalingForSimulering {
+            val utbetalingslinjer = createUtbetalingsperioder(beregning).map {
+                Utbetalingslinje.Ny(
+                    fraOgMed = it.fraOgMed,
+                    tilOgMed = it.tilOgMed,
+                    forrigeUtbetalingslinjeId = sisteOversendteUtbetaling()?.sisteUtbetalingslinje()?.id,
+                    beløp = it.beløp,
+                )
+            }.also {
+                it.zipWithNext { a, b -> b.link(a) }
+            }
             return Utbetaling.UtbetalingForSimulering(
                 sakId = sakId,
                 saksnummer = saksnummer,
-                utbetalingslinjer = createUtbetalingsperioder(beregning).map {
-                    Utbetalingslinje.Ny(
-                        fraOgMed = it.fraOgMed,
-                        tilOgMed = it.tilOgMed,
-                        forrigeUtbetalingslinjeId = sisteOversendteUtbetaling()?.sisteUtbetalingslinje()?.id,
-                        beløp = it.beløp,
-                    )
-                }.also {
-                    it.zipWithNext { a, b -> b.link(a) }
-                },
+                utbetalingslinjer = NonEmptyList.fromListUnsafe(utbetalingslinjer),
                 fnr = fnr,
                 type = Utbetaling.UtbetalingsType.NY,
                 behandler = behandler,
@@ -126,7 +129,7 @@ sealed class Utbetalingsstrategi {
             return Utbetaling.UtbetalingForSimulering(
                 sakId = sakId,
                 saksnummer = saksnummer,
-                utbetalingslinjer = listOf(
+                utbetalingslinjer = nonEmptyListOf(
                     Utbetalingslinje.Endring(
                         utbetalingslinje = sisteUtbetalingslinje,
                         statusendring = Utbetalingslinje.Statusendring(
@@ -186,10 +189,8 @@ sealed class Utbetalingsstrategi {
                 "Feil ved start av utbetalinger. Stopputbetalingens tilOgMed ($stansetTilOgMed) matcher ikke utbetalingslinja (${stansetEllerDelvisStansetUtbetalingslinjer.last().tilOgMed}"
             }
 
-            return Utbetaling.UtbetalingForSimulering(
-                sakId = sakId,
-                saksnummer = saksnummer,
-                utbetalingslinjer = stansetEllerDelvisStansetUtbetalingslinjer.fold(listOf()) { acc, utbetalingslinje ->
+            val utbetalingslinjer =
+                stansetEllerDelvisStansetUtbetalingslinjer.fold<Utbetalingslinje, List<Utbetalingslinje>>(listOf()) { acc, utbetalingslinje ->
                     (
                         acc + Utbetalingslinje.Ny(
                             fraOgMed = maxOf(stansetFraOgMed, utbetalingslinje.fraOgMed),
@@ -198,7 +199,12 @@ sealed class Utbetalingsstrategi {
                             beløp = utbetalingslinje.beløp,
                         )
                         )
-                },
+                }
+
+            return Utbetaling.UtbetalingForSimulering(
+                sakId = sakId,
+                saksnummer = saksnummer,
+                utbetalingslinjer = NonEmptyList.fromListUnsafe(utbetalingslinjer),
                 fnr = fnr,
                 type = Utbetaling.UtbetalingsType.GJENOPPTA,
                 behandler = behandler,

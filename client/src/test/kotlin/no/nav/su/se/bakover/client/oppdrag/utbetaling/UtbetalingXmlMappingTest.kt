@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.client.oppdrag.utbetaling
 
+import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.client.oppdrag.XmlMapper
 import no.nav.su.se.bakover.client.oppdrag.avstemming.sakId
 import no.nav.su.se.bakover.client.oppdrag.avstemming.saksnummer
@@ -54,7 +55,7 @@ class UtbetalingXmlMappingTest {
     private val utbetaling = Utbetaling.UtbetalingForSimulering(
         sakId = sakId,
         saksnummer = saksnummer,
-        utbetalingslinjer = listOf(
+        utbetalingslinjer = nonEmptyListOf(
             førsteUtbetalingsLinje,
             andreUtbetalingslinje,
             tredjeUtbetalingslinje,

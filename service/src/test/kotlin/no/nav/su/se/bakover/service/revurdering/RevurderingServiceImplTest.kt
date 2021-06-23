@@ -165,7 +165,7 @@ internal class RevurderingServiceImplTest {
             on { simulering } doReturn mock()
         }
         val utbetalingMock = mock<Utbetaling> {
-            on { utbetalingslinjer } doReturn listOf(
+            on { utbetalingslinjer } doReturn nonEmptyListOf(
                 Utbetalingslinje.Ny(
                     fraOgMed = periode.fraOgMed,
                     tilOgMed = periode.tilOgMed,
@@ -306,7 +306,7 @@ internal class RevurderingServiceImplTest {
         )
 
         val utbetalingMock = mock<Utbetaling> {
-            on { utbetalingslinjer } doReturn listOf(
+            on { utbetalingslinjer } doReturn nonEmptyListOf(
                 Utbetalingslinje.Ny(
                     fraOgMed = periode.fraOgMed,
                     tilOgMed = periode.tilOgMed,
@@ -665,7 +665,7 @@ internal class RevurderingServiceImplTest {
             on { simulering } doReturn mock()
         }
         val utbetalingMock = mock<Utbetaling> {
-            on { utbetalingslinjer } doReturn listOf(
+            on { utbetalingslinjer } doReturn nonEmptyListOf(
                 Utbetalingslinje.Ny(
                     fraOgMed = periode.fraOgMed,
                     tilOgMed = periode.tilOgMed,
@@ -1651,7 +1651,7 @@ internal class RevurderingServiceImplTest {
             on { hent(revurderingId) } doReturn revurdering
         }
         val utbetalingMock = mock<Utbetaling> {
-            on { utbetalingslinjer } doReturn listOf(
+            on { utbetalingslinjer } doReturn nonEmptyListOf(
                 Utbetalingslinje.Ny(
                     fraOgMed = periode.fraOgMed,
                     tilOgMed = periode.tilOgMed,
@@ -1703,7 +1703,7 @@ internal class RevurderingServiceImplTest {
             on { hent(revurderingId) } doReturn revurdering
         }
         val utbetalingMock = mock<Utbetaling> {
-            on { utbetalingslinjer } doReturn listOf(
+            on { utbetalingslinjer } doReturn nonEmptyListOf(
                 Utbetalingslinje.Ny(
                     fraOgMed = periode.fraOgMed,
                     tilOgMed = periode.tilOgMed,

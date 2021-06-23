@@ -2,10 +2,12 @@ package no.nav.su.se.bakover.client.oppdrag.avstemming
 
 import arrow.core.Either
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.oppdrag.MqPublisher
 import no.nav.su.se.bakover.common.Tidspunkt
+import no.nav.su.se.bakover.common.UUID30
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
 import no.nav.su.se.bakover.common.startOfDay
@@ -13,6 +15,7 @@ import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
+import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingsrequest
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.Avstemming
 import no.nav.su.se.bakover.domain.oppdrag.avstemming.AvstemmingPublisher
@@ -48,27 +51,36 @@ class AvstemmingPublisherTest {
             Utbetaling.OversendtUtbetaling.MedKvittering(
                 saksnummer = saksnummer,
                 sakId = sakId,
-                utbetalingslinjer = listOf(),
+                utbetalingslinjer = nonEmptyListOf(
+                    Utbetalingslinje.Ny(
+                        id = UUID30.randomUUID(),
+                        opprettet = Tidspunkt.EPOCH,
+                        fraOgMed = 1.januar(2021),
+                        tilOgMed = 31.januar(2021),
+                        forrigeUtbetalingslinjeId = null,
+                        beløp = 0,
+                    ),
+                ),
                 fnr = Fnr("12345678910"),
                 simulering = Simulering(
                     gjelderId = Fnr("12345678910"),
                     gjelderNavn = "",
                     datoBeregnet = idag(),
                     nettoBeløp = 0,
-                    periodeList = listOf()
+                    periodeList = listOf(),
                 ),
                 utbetalingsrequest = Utbetalingsrequest(
-                    value = ""
+                    value = "",
                 ),
                 kvittering = Kvittering(
                     utbetalingsstatus = Kvittering.Utbetalingsstatus.OK,
                     originalKvittering = "hallo",
-                    mottattTidspunkt = Tidspunkt.now()
+                    mottattTidspunkt = Tidspunkt.now(),
                 ),
                 type = Utbetaling.UtbetalingsType.NY,
-                behandler = NavIdentBruker.Saksbehandler("Z123")
-            )
-        )
+                behandler = NavIdentBruker.Saksbehandler("Z123"),
+            ),
+        ),
     )
 
     class MqPublisherMock(val response: Either<MqPublisher.CouldNotPublish, Unit>) : MqPublisher {

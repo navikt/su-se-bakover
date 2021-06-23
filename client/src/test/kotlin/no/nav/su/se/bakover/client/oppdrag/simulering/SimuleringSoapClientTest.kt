@@ -1,6 +1,7 @@
 package no.nav.su.se.bakover.client.oppdrag.simulering
 
 import arrow.core.left
+import arrow.core.nonEmptyListOf
 import arrow.core.right
 import io.kotest.matchers.shouldBe
 import no.nav.su.se.bakover.client.oppdrag.avstemming.sakId
@@ -171,7 +172,7 @@ internal class SimuleringSoapClientTest {
             saksnummer = saksnummer,
             sakId = sakId,
             fnr = FNR,
-            utbetalingslinjer = listOf(
+            utbetalingslinjer = nonEmptyListOf(
                 Utbetalingslinje.Ny(
                     fraOgMed = 1.oktober(2020),
                     tilOgMed = 31.desember(2020),
@@ -238,7 +239,7 @@ internal class SimuleringSoapClientTest {
     private fun createUtbetaling() = Utbetaling.UtbetalingForSimulering(
         sakId = sakId,
         saksnummer = saksnummer,
-        utbetalingslinjer = listOf(
+        utbetalingslinjer = nonEmptyListOf(
             Utbetalingslinje.Ny(
                 id = UUID30.randomUUID(),
                 fraOgMed = 1.januar(2020),

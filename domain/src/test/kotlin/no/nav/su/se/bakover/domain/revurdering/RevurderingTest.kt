@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.revurdering
 
+import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import com.nhaarman.mockitokotlin2.mock
 import io.kotest.matchers.shouldBe
@@ -486,7 +487,7 @@ internal class RevurderingTest {
         sakId = UUID.randomUUID(),
         saksnummer = Saksnummer(9999),
         fnr = FnrGenerator.random(),
-        utbetalingslinjer = utbetalingslinjer.toList(),
+        utbetalingslinjer = NonEmptyList.fromListUnsafe(utbetalingslinjer.toList()),
         type = Utbetaling.UtbetalingsType.NY,
         behandler = mock(),
         avstemmingsnøkkel = mock(),

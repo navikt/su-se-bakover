@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.utbetaling
 
+import arrow.core.nonEmptyListOf
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -60,7 +61,7 @@ internal class UtbetalingPostgresRepoTest {
     @Test
     fun `opprett og hent utbetalingslinjer`() {
         val utbetalingslinjeId1 = UUID30.randomUUID()
-        val utbetalingslinjer = listOf(
+        val utbetalingslinjer = nonEmptyListOf(
             utbetalingslinje().copy(
                 id = utbetalingslinjeId1,
             ),
@@ -88,7 +89,7 @@ internal class UtbetalingPostgresRepoTest {
             )
 
             val (_, utbetaling) = testDataHelper.nyIverksattInnvilget(
-                utbetalingslinjer = listOf(originalUtbetalingslinje),
+                utbetalingslinjer = nonEmptyListOf(originalUtbetalingslinje),
             )
 
             val endretUtbetalingslinje = originalUtbetalingslinje.let {
@@ -104,7 +105,7 @@ internal class UtbetalingPostgresRepoTest {
             val endring = utbetaling.copy(
                 id = UUID30.randomUUID(),
                 type = Utbetaling.UtbetalingsType.OPPHØR,
-                utbetalingslinjer = listOf(endretUtbetalingslinje),
+                utbetalingslinjer = nonEmptyListOf(endretUtbetalingslinje),
             )
 
             repo.opprettUtbetaling(endring)
