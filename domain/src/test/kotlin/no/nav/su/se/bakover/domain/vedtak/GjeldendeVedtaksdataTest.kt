@@ -25,6 +25,7 @@ import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragStrategy
 import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
 import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
+import no.nav.su.se.bakover.domain.fixedClock
 import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.formueVilkår
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
@@ -59,6 +60,7 @@ internal class GjeldendeVedtaksdataTest {
                 førstegangsvedtak,
                 revurdering,
             ),
+            clock = fixedClock,
         )
         data.gjeldendeVedtakPåDato(1.januar(2021)) shouldBe førstegangsvedtak
         data.gjeldendeVedtakPåDato(30.april(2021)) shouldBe førstegangsvedtak
@@ -78,6 +80,7 @@ internal class GjeldendeVedtaksdataTest {
                 førstegangsvedtak,
                 revurdering,
             ),
+            clock = fixedClock,
         )
 
         data.gjeldendeVedtakPåDato(1.mars(2021)) shouldBe førstegangsvedtak
@@ -94,6 +97,7 @@ internal class GjeldendeVedtaksdataTest {
             vedtakListe = nonEmptyListOf(
                 førstegangsvedtak,
             ),
+            clock = fixedClock,
         )
         data.tidslinjeForVedtakErSammenhengende() shouldBe true
     }

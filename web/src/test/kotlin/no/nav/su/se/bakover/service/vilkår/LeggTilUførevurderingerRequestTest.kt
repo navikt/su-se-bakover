@@ -20,6 +20,7 @@ import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.test.create
+import no.nav.su.se.bakover.web.fixedClock
 import org.junit.jupiter.api.Test
 import java.util.UUID
 
@@ -35,13 +36,13 @@ internal class LeggTilUførevurderingerRequestTest {
         ).forEach { testArg ->
             val behandlingId = UUID.randomUUID()
             val leggTilUførevurderingRequest = mock<LeggTilUførevurderingRequest> {
-                on { toVurderingsperiode(any()) } doReturn testArg.first.left()
+                on { toVurderingsperiode(any(), any()) } doReturn testArg.first.left()
             }
             LeggTilUførevurderingerRequest(
                 behandlingId = behandlingId,
                 vurderinger = nonEmptyListOf(leggTilUførevurderingRequest),
             ).toVilkår(
-                Periode.create(1.januar(2021), 31.januar(2021)),
+                Periode.create(1.januar(2021), 31.januar(2021)), fixedClock,
             ) shouldBe testArg.second.left()
         }
     }
@@ -74,6 +75,7 @@ internal class LeggTilUførevurderingerRequestTest {
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 31.juli(2021),
             ),
+            fixedClock,
         ) shouldBe LeggTilUførevurderingerRequest.UgyldigUførevurdering.OverlappendeVurderingsperioder.left()
     }
 
@@ -105,6 +107,7 @@ internal class LeggTilUførevurderingerRequestTest {
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 31.juli(2021),
             ),
+            fixedClock,
         ) shouldBe LeggTilUførevurderingerRequest.UgyldigUførevurdering.HeleBehandlingsperiodenMåHaVurderinger.left()
     }
 
@@ -136,6 +139,7 @@ internal class LeggTilUførevurderingerRequestTest {
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 28.februar(2021),
             ),
+            fixedClock,
         ) shouldBe LeggTilUførevurderingerRequest.UgyldigUførevurdering.AlleVurderingeneMåHaSammeResultat.left()
     }
 
@@ -167,6 +171,7 @@ internal class LeggTilUførevurderingerRequestTest {
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 28.februar(2021),
             ),
+            fixedClock,
         ) shouldBe LeggTilUførevurderingerRequest.UgyldigUførevurdering.AlleVurderingeneMåHaSammeResultat.left()
     }
 
@@ -198,6 +203,7 @@ internal class LeggTilUførevurderingerRequestTest {
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 28.februar(2021),
             ),
+            fixedClock,
         ) shouldBe LeggTilUførevurderingerRequest.UgyldigUførevurdering.AlleVurderingeneMåHaSammeResultat.left()
     }
 
@@ -229,6 +235,7 @@ internal class LeggTilUførevurderingerRequestTest {
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 28.februar(2021),
             ),
+            fixedClock,
         ).orNull()!!
         actual shouldBe Vilkår.Uførhet.Vurdert.create(
             vurderingsperioder = nonEmptyListOf(
@@ -292,6 +299,7 @@ internal class LeggTilUførevurderingerRequestTest {
                 fraOgMed = 1.januar(2021),
                 tilOgMed = 28.februar(2021),
             ),
+            fixedClock,
         ).orNull()!!
         actual shouldBe Vilkår.Uførhet.Vurdert.create(
             vurderingsperioder = nonEmptyListOf(
@@ -342,20 +350,21 @@ internal class LeggTilUførevurderingerRequestTest {
                     begrunnelse = "blah",
                 ),
             ),
-        ).toVilkår(Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021))).orNull()!!.let { request ->
-            Vilkår.Uførhet.Vurdert.create(
-                vurderingsperioder = nonEmptyListOf(
-                    Vurderingsperiode.Uføre.create(
-                        id = request.vurderingsperioder[0].id,
-                        opprettet = request.vurderingsperioder[0].opprettet,
-                        resultat = Resultat.Innvilget,
-                        grunnlag = null,
-                        periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
-                        begrunnelse = "blah",
+        ).toVilkår(Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)), fixedClock).orNull()!!
+            .let { request ->
+                Vilkår.Uførhet.Vurdert.create(
+                    vurderingsperioder = nonEmptyListOf(
+                        Vurderingsperiode.Uføre.create(
+                            id = request.vurderingsperioder[0].id,
+                            opprettet = request.vurderingsperioder[0].opprettet,
+                            resultat = Resultat.Innvilget,
+                            grunnlag = null,
+                            periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
+                            begrunnelse = "blah",
+                        ),
                     ),
-                ),
-            )
-        }
+                )
+            }
 
         LeggTilUførevurderingerRequest(
             behandlingId = behandlingId,
@@ -369,19 +378,20 @@ internal class LeggTilUførevurderingerRequestTest {
                     begrunnelse = "blah",
                 ),
             ),
-        ).toVilkår(Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021))).orNull()!!.let { request ->
-            Vilkår.Uførhet.Vurdert.create(
-                vurderingsperioder = nonEmptyListOf(
-                    Vurderingsperiode.Uføre.create(
-                        id = request.vurderingsperioder[0].id,
-                        opprettet = request.vurderingsperioder[0].opprettet,
-                        resultat = Resultat.Uavklart,
-                        grunnlag = null,
-                        periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
-                        begrunnelse = "blah",
+        ).toVilkår(Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)), fixedClock).orNull()!!
+            .let { request ->
+                Vilkår.Uførhet.Vurdert.create(
+                    vurderingsperioder = nonEmptyListOf(
+                        Vurderingsperiode.Uføre.create(
+                            id = request.vurderingsperioder[0].id,
+                            opprettet = request.vurderingsperioder[0].opprettet,
+                            resultat = Resultat.Uavklart,
+                            grunnlag = null,
+                            periode = Periode.create(fraOgMed = 1.januar(2021), tilOgMed = 31.januar(2021)),
+                            begrunnelse = "blah",
+                        ),
                     ),
-                ),
-            )
-        }
+                )
+            }
     }
 }

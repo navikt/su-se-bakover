@@ -35,6 +35,7 @@ import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
 import no.nav.su.se.bakover.service.behandling.BehandlingTestUtils
 import no.nav.su.se.bakover.service.beregning.TestBeregning
+import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.sak.FantIkkeSak
 import no.nav.su.se.bakover.service.sak.SakService
 import org.junit.jupiter.api.Test
@@ -166,6 +167,7 @@ internal class VedtakServiceImplTest {
     ) = VedtakServiceImpl(
         vedtakRepo = vedtakRepo,
         sakService = sakService,
+        clock = fixedClock,
     )
 
     private fun innvilgetVedtak(fnr: Fnr) =

@@ -21,6 +21,7 @@ import no.nav.su.se.bakover.domain.person.KunneIkkeHentePerson
 import no.nav.su.se.bakover.domain.søknadsbehandling.Stønadsperiode
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
+import java.time.Clock
 import java.time.LocalDate
 import java.time.Period
 import java.util.UUID
@@ -289,12 +290,13 @@ data class Behandlingsinformasjon(
         fun tilVilkår(
             stønadsperiode: Stønadsperiode,
             bosituasjon: List<Grunnlag.Bosituasjon>,
+            clock: Clock
         ): Vilkår.Formue {
             return Vilkår.Formue.Vurdert.tryCreateFromGrunnlag(
                 grunnlag = nonEmptyListOf(
                     Formuegrunnlag.tryCreate(
                         id = UUID.randomUUID(),
-                        opprettet = Tidspunkt.now(),
+                        opprettet = Tidspunkt.now(clock),
                         periode = stønadsperiode.periode,
                         epsFormue = this.epsVerdier?.let {
                             Formuegrunnlag.Verdier(

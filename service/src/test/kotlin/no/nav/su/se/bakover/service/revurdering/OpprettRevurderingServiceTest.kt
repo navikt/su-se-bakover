@@ -58,6 +58,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.service.FnrGenerator
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.fixedLocalDate
 import no.nav.su.se.bakover.service.fixedTidspunkt
 import no.nav.su.se.bakover.service.formueVilkår
@@ -135,6 +136,7 @@ internal class OpprettRevurderingServiceTest {
                 grunnlag = uføregrunnlag,
                 periode = stønadsperiode.periode,
                 begrunnelse = "ok",
+                opprettet = fixedTidspunkt,
             ),
         ),
     )
@@ -197,6 +199,7 @@ internal class OpprettRevurderingServiceTest {
         val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
             periode = søknadsbehandlingperiode,
             vedtakListe = nonEmptyListOf(createSøknadsbehandlingVedtak()),
+            clock = fixedClock,
         )
 
         val vedtakServiceMock = mock<VedtakService> {
@@ -290,6 +293,7 @@ internal class OpprettRevurderingServiceTest {
         val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
             periode = søknadsbehandlingperiode,
             vedtakListe = nonEmptyListOf(createSøknadsbehandlingVedtak()),
+            clock = fixedClock,
         )
 
         val vedtakServiceMock = mock<VedtakService> {
@@ -394,6 +398,7 @@ internal class OpprettRevurderingServiceTest {
         val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
             periode = periode,
             vedtakListe = nonEmptyListOf(createSøknadsbehandlingVedtak()),
+            clock = fixedClock,
         )
 
         val vedtakServiceMock = mock<VedtakService> {
@@ -594,11 +599,13 @@ internal class OpprettRevurderingServiceTest {
         val gjeldendeVedtaksdataFebruar = GjeldendeVedtaksdata(
             periode = Periode.create(fraOgMedDatoFebruar, vedtakListe.maxOf { it.periode.tilOgMed }),
             vedtakListe = vedtakListe,
+            clock = fixedClock,
         )
 
         val gjeldendeVedtaksdataApril = GjeldendeVedtaksdata(
             periode = Periode.create(fraOgMedDatoApril, vedtakListe.maxOf { it.periode.tilOgMed }),
             vedtakListe = vedtakListe,
+            clock = fixedClock,
         )
 
         val vedtakServiceMock = mock<VedtakService> {
@@ -690,6 +697,7 @@ internal class OpprettRevurderingServiceTest {
                 opprinneligVedtak,
                 revurdering,
             ),
+            clock = fixedClock,
         )
 
         val vedtakServiceMock = mock<VedtakService> {
@@ -778,6 +786,7 @@ internal class OpprettRevurderingServiceTest {
         val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
             periode = søknadsbehandlingperiode,
             vedtakListe = nonEmptyListOf(createSøknadsbehandlingVedtak()),
+            clock = fixedClock,
         )
 
         val vedtakServiceMock = mock<VedtakService> {
@@ -814,6 +823,7 @@ internal class OpprettRevurderingServiceTest {
         val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
             periode = søknadsbehandlingperiode,
             vedtakListe = nonEmptyListOf(createSøknadsbehandlingVedtak()),
+            clock = fixedClock,
         )
 
         val vedtakServiceMock = mock<VedtakService> {
@@ -904,6 +914,7 @@ internal class OpprettRevurderingServiceTest {
                     grunnlag = uføregrunnlag,
                     periode = periodePlussEtÅr,
                     begrunnelse = "ok",
+                    opprettet = fixedTidspunkt,
                 ),
             ),
         )
@@ -937,6 +948,7 @@ internal class OpprettRevurderingServiceTest {
                 førsteVedtak,
                 andreVedtak,
             ),
+            clock = fixedClock,
         )
 
         val vedtakServiceMock = mock<VedtakService> {
@@ -994,6 +1006,7 @@ internal class OpprettRevurderingServiceTest {
                 createSøknadsbehandlingVedtak(),
                 Vedtak.from(revurdering, UUID30.randomUUID()),
             ),
+            clock = fixedClock,
         )
 
         val vedtakServiceMock = mock<VedtakService> {
@@ -1070,6 +1083,7 @@ internal class OpprettRevurderingServiceTest {
                 ),
                 Vedtak.from(revurdering, UUID30.randomUUID()),
             ),
+            clock = fixedClock,
         )
 
         val vedtakServiceMock = mock<VedtakService> {

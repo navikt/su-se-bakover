@@ -277,7 +277,7 @@ sealed class Vurderingsperiode {
 
     data class Uføre private constructor(
         override val id: UUID = UUID.randomUUID(),
-        override val opprettet: Tidspunkt = Tidspunkt.now(),
+        override val opprettet: Tidspunkt,
         override val resultat: Resultat,
         override val grunnlag: Grunnlag.Uføregrunnlag?,
         override val periode: Periode,
@@ -310,7 +310,7 @@ sealed class Vurderingsperiode {
         companion object {
             fun create(
                 id: UUID = UUID.randomUUID(),
-                opprettet: Tidspunkt = Tidspunkt.now(),
+                opprettet: Tidspunkt,
                 resultat: Resultat,
                 grunnlag: Grunnlag.Uføregrunnlag?,
                 periode: Periode,
@@ -323,7 +323,7 @@ sealed class Vurderingsperiode {
 
             fun tryCreate(
                 id: UUID = UUID.randomUUID(),
-                opprettet: Tidspunkt = Tidspunkt.now(),
+                opprettet: Tidspunkt,
                 resultat: Resultat,
                 grunnlag: Grunnlag.Uføregrunnlag?,
                 vurderingsperiode: Periode,
@@ -352,7 +352,7 @@ sealed class Vurderingsperiode {
 
     data class Formue private constructor(
         override val id: UUID = UUID.randomUUID(),
-        override val opprettet: Tidspunkt = Tidspunkt.now(),
+        override val opprettet: Tidspunkt,
         override val resultat: Resultat,
         override val grunnlag: Formuegrunnlag,
         override val periode: Periode,
@@ -384,7 +384,7 @@ sealed class Vurderingsperiode {
         companion object {
             fun create(
                 id: UUID = UUID.randomUUID(),
-                opprettet: Tidspunkt = Tidspunkt.now(),
+                opprettet: Tidspunkt,
                 resultat: Resultat,
                 grunnlag: Formuegrunnlag,
                 periode: Periode,
@@ -396,7 +396,7 @@ sealed class Vurderingsperiode {
 
             fun tryCreate(
                 id: UUID = UUID.randomUUID(),
-                opprettet: Tidspunkt = Tidspunkt.now(),
+                opprettet: Tidspunkt,
                 resultat: Resultat,
                 grunnlag: Formuegrunnlag,
                 vurderingsperiode: Periode,

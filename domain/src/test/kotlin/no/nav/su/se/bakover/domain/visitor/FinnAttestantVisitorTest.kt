@@ -266,6 +266,7 @@ internal class FinnAttestantVisitorTest {
                         grunnlag = uføregrunnlag,
                         periode = periode,
                         begrunnelse = null,
+                        opprettet = fixedTidspunkt,
                     ),
                 ),
             ),

@@ -9,18 +9,20 @@ import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlagsdata
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
+import java.time.Clock
 import java.time.LocalDate
 import java.util.UUID
 
 data class GjeldendeVedtaksdata(
     val periode: Periode,
     private val vedtakListe: NonEmptyList<VedtakSomKanRevurderes>,
+    private val clock: Clock
 ) {
     val grunnlagsdata: Grunnlagsdata
     val vilkårsvurderinger: Vilkårsvurderinger
 
     private val tidslinje = vedtakListe
-        .lagTidslinje(periode)
+        .lagTidslinje(periode, clock)
 
     private val vedtakPåTidslinje = tidslinje.tidslinje
 

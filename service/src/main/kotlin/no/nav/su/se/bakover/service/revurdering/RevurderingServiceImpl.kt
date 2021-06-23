@@ -232,7 +232,7 @@ internal class RevurderingServiceImpl(
         if (revurdering is RevurderingTilAttestering || revurdering is IverksattRevurdering)
             return KunneIkkeLeggeTilGrunnlag.UgyldigStatus.left()
 
-        val uførevilkår = request.toVilkår(revurdering.periode).getOrHandle {
+        val uførevilkår = request.toVilkår(revurdering.periode, clock).getOrHandle {
             return when (it) {
                 LeggTilUførevurderingerRequest.UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig -> KunneIkkeLeggeTilGrunnlag.PeriodeForGrunnlagOgVurderingErForskjellig.left()
                 LeggTilUførevurderingerRequest.UgyldigUførevurdering.UføregradOgForventetInntektMangler -> KunneIkkeLeggeTilGrunnlag.UføregradOgForventetInntektMangler.left()

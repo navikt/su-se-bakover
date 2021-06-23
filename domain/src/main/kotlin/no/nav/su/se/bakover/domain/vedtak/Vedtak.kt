@@ -417,7 +417,7 @@ sealed class Vedtak : VedtakFelles, Visitable<VedtakVisitor> {
 }
 
 // TODO: ("Må sees i sammenheng med evt endringer knyttet til hvilke vedtakstyper som legges til grunn for revurdering")
-fun List<VedtakSomKanRevurderes>.lagTidslinje(periode: Periode): Tidslinje<Vedtak.VedtakPåTidslinje> =
+fun List<VedtakSomKanRevurderes>.lagTidslinje(periode: Periode, clock: Clock): Tidslinje<Vedtak.VedtakPåTidslinje> =
     map {
         Vedtak.VedtakPåTidslinje(
             opprettet = it.opprettet,
@@ -428,6 +428,7 @@ fun List<VedtakSomKanRevurderes>.lagTidslinje(periode: Periode): Tidslinje<Vedta
                     if (behandling is Søknadsbehandling) behandling.behandlingsinformasjon.formue!!.tilVilkår(
                         stønadsperiode = behandling.stønadsperiode!!,
                         bosituasjon = behandling.grunnlagsdata.bosituasjon,
+                        clock = clock
                     ) else behandling.vilkårsvurderinger.formue
                 },
             ),

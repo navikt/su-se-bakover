@@ -47,6 +47,7 @@ import no.nav.su.se.bakover.domain.vilkår.Vilkår
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import no.nav.su.se.bakover.domain.vilkår.Vurderingsperiode
 import no.nav.su.se.bakover.service.argThat
+import no.nav.su.se.bakover.service.fixedClock
 import no.nav.su.se.bakover.service.fixedLocalDate
 import no.nav.su.se.bakover.service.fixedTidspunkt
 import no.nav.su.se.bakover.service.formueVilkår
@@ -118,6 +119,7 @@ internal class OppdaterRevurderingServiceTest {
                 grunnlag = uføregrunnlag,
                 periode = periode,
                 begrunnelse = "ok",
+                opprettet = fixedTidspunkt
             ),
         ),
     )
@@ -294,6 +296,7 @@ internal class OppdaterRevurderingServiceTest {
         val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
             periode = periode,
             vedtakListe = nonEmptyListOf(tilRevurdering),
+            clock = fixedClock,
         )
 
         val vedtakServiceMock = mock<VedtakService> {
@@ -362,6 +365,7 @@ internal class OppdaterRevurderingServiceTest {
         val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
             periode = periode,
             vedtakListe = nonEmptyListOf(tilRevurdering),
+            clock = fixedClock,
         )
 
         val vedtakServiceMock = mock<VedtakService> {
@@ -450,6 +454,7 @@ internal class OppdaterRevurderingServiceTest {
         val gjeldendeVedtaksdata = GjeldendeVedtaksdata(
             periode = periode,
             vedtakListe = nonEmptyListOf(tilRevurdering),
+            clock = fixedClock,
         )
 
         val vedtakServiceMock = mock<VedtakService> {
@@ -532,6 +537,7 @@ internal class OppdaterRevurderingServiceTest {
                     grunnlag = uføregrunnlag,
                     periode = periodePlussEtÅr,
                     begrunnelse = "ok",
+                    opprettet = fixedTidspunkt
                 ),
             ),
         )
@@ -557,6 +563,7 @@ internal class OppdaterRevurderingServiceTest {
                 førsteVedtak,
                 andreVedtak,
             ),
+            clock = fixedClock,
         )
 
         val vedtakServiceMock = mock<VedtakService> {
@@ -641,6 +648,7 @@ internal class OppdaterRevurderingServiceTest {
                 ),
                 Vedtak.from(revurdering, UUID30.randomUUID()),
             ),
+            clock = fixedClock,
         )
 
         val vedtakServiceMock = mock<VedtakService> {
@@ -723,6 +731,7 @@ internal class OppdaterRevurderingServiceTest {
                 ),
                 Vedtak.from(revurdering, UUID30.randomUUID()),
             ),
+            clock = fixedClock,
         )
 
         val vedtakServiceMock = mock<VedtakService> {

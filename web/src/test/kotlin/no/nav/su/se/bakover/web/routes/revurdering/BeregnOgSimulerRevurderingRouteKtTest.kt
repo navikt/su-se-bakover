@@ -41,6 +41,7 @@ import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.test.create
 import no.nav.su.se.bakover.web.argThat
 import no.nav.su.se.bakover.web.defaultRequest
+import no.nav.su.se.bakover.web.fixedTidspunkt
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.formueVilkår
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.periode
 import no.nav.su.se.bakover.web.routes.revurdering.RevurderingRoutesTestData.requestPath
@@ -150,6 +151,7 @@ internal class BeregnOgSimulerRevurderingRouteKtTest {
                             grunnlag = uføregrunnlag,
                             periode = TestBeregning.periode,
                             begrunnelse = null,
+                            opprettet = fixedTidspunkt
                         ),
                     ),
                 ),

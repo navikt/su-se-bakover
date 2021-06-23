@@ -6,6 +6,7 @@ import arrow.core.getOrHandle
 import arrow.core.left
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.vilkår.Vilkår
+import java.time.Clock
 import java.util.UUID
 
 data class LeggTilUførevurderingerRequest(
@@ -22,9 +23,9 @@ data class LeggTilUførevurderingerRequest(
         object HeleBehandlingsperiodenMåHaVurderinger : UgyldigUførevurdering()
     }
 
-    fun toVilkår(behandlingsperiode: Periode): Either<UgyldigUførevurdering, Vilkår.Uførhet.Vurdert> {
+    fun toVilkår(behandlingsperiode: Periode, clock: Clock): Either<UgyldigUførevurdering, Vilkår.Uførhet.Vurdert> {
         return vurderinger.map { vurdering ->
-            vurdering.toVurderingsperiode(behandlingsperiode).getOrHandle {
+            vurdering.toVurderingsperiode(behandlingsperiode, clock).getOrHandle {
                 return when (it) {
                     LeggTilUførevurderingRequest.UgyldigUførevurdering.UføregradOgForventetInntektMangler -> UgyldigUførevurdering.UføregradOgForventetInntektMangler.left()
                     LeggTilUførevurderingRequest.UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig -> UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig.left()

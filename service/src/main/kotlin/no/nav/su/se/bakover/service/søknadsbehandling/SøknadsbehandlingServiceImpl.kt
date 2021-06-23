@@ -500,7 +500,9 @@ internal class SøknadsbehandlingServiceImpl(
         }
     }
 
-    override fun leggTilUføregrunnlag(request: LeggTilUførevurderingRequest): Either<KunneIkkeLeggeTilGrunnlag, Søknadsbehandling> {
+    override fun leggTilUføregrunnlag(
+        request: LeggTilUførevurderingRequest,
+    ): Either<KunneIkkeLeggeTilGrunnlag, Søknadsbehandling> {
         val søknadsbehandling = søknadsbehandlingRepo.hent(request.behandlingId)
             ?: return KunneIkkeLeggeTilGrunnlag.FantIkkeBehandling.left()
 
@@ -510,7 +512,7 @@ internal class SøknadsbehandlingServiceImpl(
                 Søknadsbehandling.Vilkårsvurdert::class,
             ).left()
 
-        val vilkår = request.toVilkår(søknadsbehandling.periode).getOrHandle {
+        val vilkår = request.toVilkår(søknadsbehandling.periode, clock).getOrHandle {
             return when (it) {
                 LeggTilUførevurderingRequest.UgyldigUførevurdering.UføregradOgForventetInntektMangler -> KunneIkkeLeggeTilGrunnlag.UføregradOgForventetInntektMangler.left()
                 LeggTilUførevurderingRequest.UgyldigUførevurdering.PeriodeForGrunnlagOgVurderingErForskjellig -> KunneIkkeLeggeTilGrunnlag.PeriodeForGrunnlagOgVurderingErForskjellig.left()

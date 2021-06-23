@@ -10,6 +10,7 @@ import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.common.mars
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
+import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.formueVilkår
 import no.nav.su.se.bakover.domain.grunnlag.Grunnlag
 import no.nav.su.se.bakover.domain.grunnlag.Uføregrad
@@ -36,6 +37,7 @@ internal class VilkårsvurderingerTest {
                         grunnlag = uføregrunnlag,
                         periode = vurderingsperiode,
                         begrunnelse = "",
+                        opprettet = fixedTidspunkt,
                     ),
                 ),
             ),
@@ -53,6 +55,7 @@ internal class VilkårsvurderingerTest {
                         grunnlag = uføregrunnlag,
                         periode = Periode.create(1.januar(2021), 31.desember(2021)),
                         begrunnelse = "",
+                        opprettet = fixedTidspunkt,
                     ),
                 ),
             ),
@@ -82,6 +85,7 @@ internal class VilkårsvurderingerTest {
                         ),
                         periode = Periode.create(1.januar(2021), 30.april(2021)),
                         begrunnelse = "",
+                        opprettet = fixedTidspunkt,
                     ),
                     Vurderingsperiode.Uføre.create(
                         resultat = Resultat.Avslag,
@@ -92,6 +96,7 @@ internal class VilkårsvurderingerTest {
                         ),
                         periode = Periode.create(1.mai(2021), 31.desember(2021)),
                         begrunnelse = "",
+                        opprettet = fixedTidspunkt,
                     ),
                 ),
             ),
@@ -117,6 +122,7 @@ internal class VilkårsvurderingerTest {
                         ),
                         periode = Periode.create(1.januar(2021), 30.april(2021)),
                         begrunnelse = "",
+                        opprettet = fixedTidspunkt,
                     ),
                     Vurderingsperiode.Uføre.create(
                         resultat = Resultat.Avslag,
@@ -127,6 +133,7 @@ internal class VilkårsvurderingerTest {
                         ),
                         periode = Periode.create(1.mai(2021), 31.desember(2021)),
                         begrunnelse = "",
+                        opprettet = fixedTidspunkt,
                     ),
                 ),
             ),
@@ -152,6 +159,7 @@ internal class VilkårsvurderingerTest {
                         ),
                         periode = Periode.create(1.januar(2021), 30.april(2021)),
                         begrunnelse = "",
+                        opprettet = fixedTidspunkt,
                     ),
                 ),
             ),
