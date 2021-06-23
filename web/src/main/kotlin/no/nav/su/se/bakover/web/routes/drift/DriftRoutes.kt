@@ -33,12 +33,12 @@ internal fun Route.driftRoutes(
 
     authorize(Brukerrolle.Drift) {
         patch("$DRIFT_PATH/iverksettinger/fix") {
-            val resultat = ferdigstillVedtakService.opprettManglendeJournalposterOgBrevbestillingerOgLukkOppgaver()
-
-            call.respond(
-                HttpStatusCode.OK,
-                serialize(resultat.toJson())
-            )
+            ferdigstillVedtakService.opprettManglendeJournalposterOgBrevbestillingerOgLukkOppgaver().let {
+                call.respond(
+                    HttpStatusCode.OK,
+                    serialize(it.toJson())
+                )
+            }
         }
     }
 
