@@ -33,10 +33,9 @@ import java.util.UUID
 
 interface FerdigstillVedtakService {
     fun ferdigstillVedtakEtterUtbetaling(utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering)
-    fun opprettManglendeJournalposterOgBrevbestillinger(): OpprettManglendeJournalpostOgBrevdistribusjonResultat
+    fun opprettManglendeJournalposterOgBrevbestillingerOgLukkOppgaver(): OpprettManglendeJournalpostOgBrevdistribusjonResultat
     fun journalførOgLagre(vedtak: Vedtak): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeJournalføreBrev, Vedtak>
     fun distribuerOgLagre(vedtak: Vedtak): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeDistribuereBrev, Vedtak>
-    fun lukkOppgaverKnyttetTilVedtak(vedtak: List<Vedtak>)
     fun lukkOppgaveMedBruker(
         vedtak: Vedtak,
     ): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Vedtak>
@@ -88,7 +87,6 @@ interface FerdigstillVedtakService {
     data class OpprettManglendeJournalpostOgBrevdistribusjonResultat(
         val journalpostresultat: List<Either<KunneIkkeOppretteJournalpostForIverksetting, OpprettetJournalpostForIverksetting>>,
         val brevbestillingsresultat: List<Either<KunneIkkeBestilleBrev, BestiltBrev>>,
-        val vedtak: List<Vedtak>
     ) {
         fun harFeil(): Boolean = journalpostresultat.mapNotNull { it.swap().orNull() }.isNotEmpty() ||
             brevbestillingsresultat.mapNotNull { it.swap().orNull() }.isNotEmpty()
@@ -137,7 +135,7 @@ internal class FerdigstillVedtakServiceImpl(
     /**
      * Entry point for drift-operations
      */
-    override fun opprettManglendeJournalposterOgBrevbestillinger(): FerdigstillVedtakService.OpprettManglendeJournalpostOgBrevdistribusjonResultat {
+    override fun opprettManglendeJournalposterOgBrevbestillingerOgLukkOppgaver(): FerdigstillVedtakService.OpprettManglendeJournalpostOgBrevdistribusjonResultat {
         val alleUtenJournalpost = vedtakRepo.hentUtenJournalpost()
         val innvilgetUtenJournalpost = alleUtenJournalpost.filterIsInstance<Vedtak.EndringIYtelse>()
             .filter { it.skalSendeBrev() }
@@ -153,9 +151,10 @@ internal class FerdigstillVedtakServiceImpl(
         val vedtakBruktVedFiks = mutableListOf<Vedtak>()
         val avslagUtenJournalpost = alleUtenJournalpost.filterIsInstance<Vedtak.Avslag>()
         val journalpostResultat = innvilgetUtenJournalpost.plus(avslagUtenJournalpost).map { vedtak ->
+            vedtakBruktVedFiks.add(vedtak)
+
             journalførOgLagre(vedtak)
                 .mapLeft { feilVedJournalføring ->
-                    vedtakBruktVedFiks.add(vedtak)
 
                     when (feilVedJournalføring) {
                         is KunneIkkeFerdigstilleVedtak.KunneIkkeJournalføreBrev.AlleredeJournalført -> {
@@ -174,8 +173,6 @@ internal class FerdigstillVedtakServiceImpl(
                         }
                     }
                 }.map { journalførtVedtak ->
-                    vedtakBruktVedFiks.add(vedtak)
-
                     FerdigstillVedtakService.OpprettetJournalpostForIverksetting(
                         sakId = journalførtVedtak.behandling.sakId,
                         behandlingId = journalførtVedtak.behandling.id,
@@ -202,15 +199,12 @@ internal class FerdigstillVedtakServiceImpl(
 
         val avslagUtenBrevbestilling = alleUtenBrevbestilling.filterIsInstance<Vedtak.Avslag>()
         val brevbestillingResultat = innvilgetUtenBrevbestilling.plus(avslagUtenBrevbestilling).map { vedtak ->
+            vedtakBruktVedFiks.add(vedtak)
             distribuerOgLagre(vedtak)
                 .mapLeft {
-                    vedtakBruktVedFiks.add(vedtak)
-
                     kunneIkkeBestilleBrev(vedtak, it)
                 }
                 .map { distribuertVedtak ->
-                    vedtakBruktVedFiks.add(vedtak)
-
                     val steg =
                         (distribuertVedtak.journalføringOgBrevdistribusjon as JournalføringOgBrevdistribusjon.JournalførtOgDistribuertBrev)
                     FerdigstillVedtakService.BestiltBrev(
@@ -222,10 +216,13 @@ internal class FerdigstillVedtakServiceImpl(
                 }
         }
 
+        lukkOppgaverKnyttetTilVedtak(
+            vedtakBruktVedFiks.toList().distinctBy { it.id }
+        )
+
         return FerdigstillVedtakService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
             journalpostresultat = journalpostResultat,
             brevbestillingsresultat = brevbestillingResultat,
-            vedtak = vedtakBruktVedFiks.toList().distinctBy { it.id }
         )
     }
 
@@ -307,7 +304,7 @@ internal class FerdigstillVedtakServiceImpl(
         }
     }
 
-    override fun lukkOppgaverKnyttetTilVedtak(vedtak: List<Vedtak>) =
+    private fun lukkOppgaverKnyttetTilVedtak(vedtak: List<Vedtak>) =
         vedtak.forEach { lukkOppgaveMedBruker(it) }
 
     private fun lagBrevRequest(visitable: Visitable<LagBrevRequestVisitor>): Either<KunneIkkeFerdigstilleVedtak.KunneIkkeJournalføreBrev, LagBrevRequest> {

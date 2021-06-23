@@ -378,9 +378,9 @@ open class AccessCheckProxy(
                 override fun ferdigstillVedtakEtterUtbetaling(utbetaling: Utbetaling.OversendtUtbetaling.MedKvittering): Unit =
                     kastKanKunKallesFraAnnenService()
 
-                override fun opprettManglendeJournalposterOgBrevbestillinger(): FerdigstillVedtakService.OpprettManglendeJournalpostOgBrevdistribusjonResultat {
+                override fun opprettManglendeJournalposterOgBrevbestillingerOgLukkOppgaver(): FerdigstillVedtakService.OpprettManglendeJournalpostOgBrevdistribusjonResultat {
                     // Dette er et driftsendepunkt og vi vil ikke returnere kode 6/7/person-sensitive data.
-                    return services.ferdigstillVedtak.opprettManglendeJournalposterOgBrevbestillinger()
+                    return services.ferdigstillVedtak.opprettManglendeJournalposterOgBrevbestillingerOgLukkOppgaver()
                 }
 
                 override fun journalførOgLagre(vedtak: Vedtak): Either<FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeJournalføreBrev, Vedtak> =
@@ -388,10 +388,6 @@ open class AccessCheckProxy(
 
                 override fun distribuerOgLagre(vedtak: Vedtak): Either<FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeDistribuereBrev, Vedtak> =
                     kastKanKunKallesFraAnnenService()
-
-                override fun lukkOppgaverKnyttetTilVedtak(vedtak: List<Vedtak>) {
-                    return services.ferdigstillVedtak.lukkOppgaverKnyttetTilVedtak(vedtak)
-                }
 
                 override fun lukkOppgaveMedBruker(vedtak: Vedtak): Either<FerdigstillVedtakService.KunneIkkeFerdigstilleVedtak.KunneIkkeLukkeOppgave, Vedtak> =
                     kastKanKunKallesFraAnnenService()

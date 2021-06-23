@@ -33,8 +33,7 @@ internal fun Route.driftRoutes(
 
     authorize(Brukerrolle.Drift) {
         patch("$DRIFT_PATH/iverksettinger/fix") {
-            val resultat = ferdigstillVedtakService.opprettManglendeJournalposterOgBrevbestillinger()
-            ferdigstillVedtakService.lukkOppgaverKnyttetTilVedtak(resultat.vedtak)
+            val resultat = ferdigstillVedtakService.opprettManglendeJournalposterOgBrevbestillingerOgLukkOppgaver()
 
             call.respond(
                 HttpStatusCode.OK,
