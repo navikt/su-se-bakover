@@ -40,22 +40,23 @@ sealed class Utbetalingsstrategi {
                 idag(clock).with(firstDayOfNextMonth()) // TODO jah: Tor Erik ønsker at den skal stanses snarest mulig, men vi ønsker ikke å stanse ting som er sent til UR/er allerede utbetalt.
 
             validate(harOversendteUtbetalingerEtter(stansesFraOgMed)) { "Det eksisterer ingen utbetalinger med tilOgMed dato større enn eller lik $stansesFraOgMed" }
-            validate(Utbetaling.UtbetalingsType.STANS != sisteOversendteUtbetaling()?.type) { "Kan ikke stanse utbetalinger som allerede er stanset" }
 
-            val sisteOversendteUtbetalingslinje = sisteOversendteUtbetaling()?.sisteUtbetalingslinje()
-                ?: throw UtbetalingStrategyException("Ingen oversendte utbetalinger å stanse")
-            val stansesTilOgMed = sisteOversendteUtbetalingslinje.tilOgMed
+            val sisteOversendtUtbetaling = sisteOversendteUtbetaling()?.also {
+                validate(Utbetaling.UtbetalingsType.STANS != it.type) { "Kan ikke stanse utbetalinger som allerede er stanset" }
+                validate(Utbetaling.UtbetalingsType.OPPHØR != it.type) { "Kan ikke stanse utbetalinger som allerede er opphørt" }
+            } ?: throw UtbetalingStrategyException("Ingen oversendte utbetalinger å stanse")
 
             return Utbetaling.UtbetalingForSimulering(
                 sakId = sakId,
                 saksnummer = saksnummer,
                 fnr = fnr,
                 utbetalingslinjer = nonEmptyListOf(
-                    Utbetalingslinje.Ny(
-                        fraOgMed = stansesFraOgMed,
-                        tilOgMed = stansesTilOgMed,
-                        forrigeUtbetalingslinjeId = sisteOversendteUtbetalingslinje.id,
-                        beløp = 0,
+                    Utbetalingslinje.Endring(
+                        utbetalingslinje = sisteOversendtUtbetaling.sisteUtbetalingslinje(),
+                        statusendring = Utbetalingslinje.Statusendring(
+                            status = Utbetalingslinje.LinjeStatus.MIDLERTIDIG_STANS,
+                            fraOgMed = stansesFraOgMed,
+                        )
                     ),
                 ),
                 type = Utbetaling.UtbetalingsType.STANS,

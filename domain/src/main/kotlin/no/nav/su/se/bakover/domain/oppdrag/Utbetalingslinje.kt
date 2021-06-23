@@ -88,6 +88,8 @@ sealed class Utbetalingslinje : KanPlasseresPåTidslinje<Utbetalingslinje> {
     )
 
     enum class LinjeStatus {
-        OPPHØR;
+        OPPHØR,
+        MIDLERTIDIG_STANS,
+        REAKTIVERING;
     }
 }

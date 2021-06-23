@@ -15,6 +15,7 @@ import no.nav.su.se.bakover.common.mai
 import no.nav.su.se.bakover.domain.Fnr
 import no.nav.su.se.bakover.domain.NavIdentBruker
 import no.nav.su.se.bakover.domain.Saksnummer
+import no.nav.su.se.bakover.domain.fixedTidspunkt
 import no.nav.su.se.bakover.domain.oppdrag.Kvittering
 import no.nav.su.se.bakover.domain.oppdrag.Utbetaling
 import no.nav.su.se.bakover.domain.oppdrag.Utbetalingslinje
@@ -36,16 +37,18 @@ internal class OppdragStansTest {
 
     @Test
     fun `stans av utbetaling`() {
+        val utbetalingslinje = Utbetalingslinje.Ny(
+            opprettet = fixedTidspunkt,
+            fraOgMed = 1.januar(2020),
+            tilOgMed = 31.desember(2020),
+            forrigeUtbetalingslinjeId = null,
+            beløp = 1500,
+        )
         val utbetaling = createUtbetaling(
             nonEmptyListOf(
-                Utbetalingslinje.Ny(
-                    fraOgMed = 1.januar(2020),
-                    tilOgMed = 31.desember(2020),
-                    forrigeUtbetalingslinjeId = null,
-                    beløp = 1500
-                )
+                utbetalingslinje,
             ),
-            type = Utbetaling.UtbetalingsType.NY
+            type = Utbetaling.UtbetalingsType.NY,
         )
 
         val stans = Utbetalingsstrategi.Stans(
@@ -54,14 +57,20 @@ internal class OppdragStansTest {
             fnr = fnr,
             utbetalinger = listOf(utbetaling),
             behandler = NavIdentBruker.Saksbehandler("Z123"),
-            clock = fixedClock
+            clock = fixedClock,
         ).generate()
 
-        stans.utbetalingslinjer[0].assert(
-            fraOgMed = 1.juli(2020),
-            tilOgMed = 31.desember(2020),
-            forrigeUtbetalingslinje = utbetaling.utbetalingslinjer[0].id,
-            beløp = 0
+        stans.utbetalingslinjer[0] shouldBe Utbetalingslinje.Endring(
+            id = utbetalingslinje.id,
+            opprettet = stans.utbetalingslinjer[0].opprettet,
+            fraOgMed = utbetalingslinje.fraOgMed,
+            tilOgMed = utbetalingslinje.tilOgMed,
+            forrigeUtbetalingslinjeId = utbetalingslinje.forrigeUtbetalingslinjeId,
+            beløp = utbetalingslinje.beløp,
+            statusendring = Utbetalingslinje.Statusendring(
+                status = Utbetalingslinje.LinjeStatus.MIDLERTIDIG_STANS,
+                fraOgMed = 1.juli(2020),
+            ),
         )
     }
 
@@ -73,10 +82,10 @@ internal class OppdragStansTest {
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.mai(2020),
                     forrigeUtbetalingslinjeId = null,
-                    beløp = 1500
-                )
+                    beløp = 1500,
+                ),
             ),
-            type = Utbetaling.UtbetalingsType.NY
+            type = Utbetaling.UtbetalingsType.NY,
         )
 
         shouldThrow<Utbetalingsstrategi.UtbetalingStrategyException> {
@@ -86,7 +95,7 @@ internal class OppdragStansTest {
                 fnr = fnr,
                 utbetalinger = listOf(utbetaling),
                 behandler = NavIdentBruker.Saksbehandler("Z123"),
-                clock = fixedClock
+                clock = fixedClock,
             ).generate()
         }.also {
             it.message shouldContain "${1.juli(2020)}"
@@ -101,10 +110,10 @@ internal class OppdragStansTest {
                     fraOgMed = 1.januar(2020),
                     tilOgMed = 31.desember(2020),
                     forrigeUtbetalingslinjeId = null,
-                    beløp = 0
-                )
+                    beløp = 0,
+                ),
             ),
-            type = Utbetaling.UtbetalingsType.STANS
+            type = Utbetaling.UtbetalingsType.STANS,
         )
 
         shouldThrow<Utbetalingsstrategi.UtbetalingStrategyException> {
@@ -114,10 +123,38 @@ internal class OppdragStansTest {
                 fnr = fnr,
                 utbetalinger = listOf(utbetaling),
                 behandler = NavIdentBruker.Saksbehandler("Z123"),
-                clock = fixedClock
+                clock = fixedClock,
             ).generate()
         }.also {
             it.message shouldContain "allerede er stanset"
+        }
+    }
+
+    @Test
+    fun `det er ikke lov å stanse en utbetaling som allerede er opphørt`() {
+        val utbetaling = createUtbetaling(
+            nonEmptyListOf(
+                Utbetalingslinje.Ny(
+                    fraOgMed = 1.januar(2020),
+                    tilOgMed = 31.desember(2020),
+                    forrigeUtbetalingslinjeId = null,
+                    beløp = 0,
+                ),
+            ),
+            type = Utbetaling.UtbetalingsType.OPPHØR,
+        )
+
+        shouldThrow<Utbetalingsstrategi.UtbetalingStrategyException> {
+            Utbetalingsstrategi.Stans(
+                sakId = sakId,
+                saksnummer = saksnummer,
+                fnr = fnr,
+                utbetalinger = listOf(utbetaling),
+                behandler = NavIdentBruker.Saksbehandler("Z123"),
+                clock = fixedClock,
+            ).generate()
+        }.also {
+            it.message shouldContain "Kan ikke stanse utbetalinger som allerede er opphørt"
         }
     }
 
@@ -130,16 +167,16 @@ internal class OppdragStansTest {
                 gjelderNavn = "navn",
                 datoBeregnet = idag(),
                 nettoBeløp = 0,
-                periodeList = listOf()
+                periodeList = listOf(),
             ),
             utbetalingsrequest = Utbetalingsrequest(
-                value = ""
+                value = "",
             ),
             kvittering = Kvittering(Kvittering.Utbetalingsstatus.OK_MED_VARSEL, ""),
             utbetalingslinjer = utbetalingslinjer,
             fnr = fnr,
             type = type,
-            behandler = NavIdentBruker.Saksbehandler("Z123")
+            behandler = NavIdentBruker.Saksbehandler("Z123"),
         )
 }
 

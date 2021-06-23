@@ -38,7 +38,7 @@ internal class SimuleringRequestBuilderTest {
 
     @Test
     fun `bygger simulering request ved endring av eksisterende oppdragslinjer`() {
-        val linjeSomSkalEndres = UtbetalingRequestTest.nyUtbetaling.sisteUtbetalingslinje()!!
+        val linjeSomSkalEndres = UtbetalingRequestTest.nyUtbetaling.sisteUtbetalingslinje()
 
         val linjeMedEndring = Utbetalingslinje.Endring(
             utbetalingslinje = linjeSomSkalEndres,

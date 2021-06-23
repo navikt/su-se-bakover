@@ -53,6 +53,16 @@ internal class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtb
             eksisterendeUtbetalinger = listOf(lagUtbetaling(5000)),
             nyBeregning = lagBeregning(1000),
         ).resultat shouldBe true
+
+        VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
+            eksisterendeUtbetalinger = listOf(lagReaktivert(månedsbeløp = 5000)),
+            nyBeregning = lagBeregning(10000),
+        ).resultat shouldBe true
+
+        VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
+            eksisterendeUtbetalinger = listOf(lagReaktivert(månedsbeløp = 5000)),
+            nyBeregning = lagBeregning(1000),
+        ).resultat shouldBe true
     }
 
     @Test
@@ -64,6 +74,11 @@ internal class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtb
 
         VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
             eksisterendeUtbetalinger = listOf(lagUtbetaling(5000)),
+            nyBeregning = lagBeregning(4500),
+        ).resultat shouldBe true
+
+        VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
+            eksisterendeUtbetalinger = listOf(lagReaktivert(5000)),
             nyBeregning = lagBeregning(4500),
         ).resultat shouldBe true
     }
@@ -82,6 +97,11 @@ internal class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtb
 
         VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
             eksisterendeUtbetalinger = listOf(lagUtbetaling(5000)),
+            nyBeregning = lagBeregning(5000),
+        ).resultat shouldBe false
+
+        VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
+            eksisterendeUtbetalinger = listOf(lagReaktivert(5000)),
             nyBeregning = lagBeregning(5000),
         ).resultat shouldBe false
     }
@@ -169,6 +189,62 @@ internal class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtb
     }
 
     @Test
+    fun `gjeldende utbetaling er midlertidig stans og endringer tidligere enn opphørsdato er mindre enn 10 prosent gir false`() {
+        VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
+            eksisterendeUtbetalinger = listOf(lagMidlertidigStans(5000, 1.februar(2021))),
+            nyBeregning = lagBeregning(5000),
+        ).resultat shouldBe false
+    }
+
+    @Test
+    fun `gjeldende utbetaling er midlertidig stans og endringer senere enn opphørsdato er mindre enn 10 prosent gir true`() {
+        VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
+            eksisterendeUtbetalinger = listOf(lagMidlertidigStans(5000, 1.februar(2021))),
+            nyBeregning = lagBeregning(
+                Periode.create(1.mars(2021), beregningsperiode.tilOgMed) to 5000,
+            ),
+        ).resultat shouldBe true
+    }
+
+    @Test
+    fun `gjeldende utbetaling er midlertidig stans og endringer senere enn opphørsdato større enn 10 prosent gir true`() {
+        VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
+            eksisterendeUtbetalinger = listOf(lagMidlertidigStans(5000, 1.februar(2021))),
+            nyBeregning = lagBeregning(
+                Periode.create(1.mars(2021), beregningsperiode.tilOgMed) to 15000,
+            ),
+        ).resultat shouldBe true
+    }
+
+    // @Test
+    // fun `gjeldende utbetaling er reaktivert og endringer tidligere enn opphørsdato er mindre enn 10 prosent gir false`() {
+    //     VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
+    //         eksisterendeUtbetalinger = listOf(lagReaktivert(5000, 1.februar(2021))),
+    //         nyBeregning = lagBeregning(5000),
+    //     ).resultat shouldBe false
+    // }
+    //
+    // @Test
+    // fun `gjeldende utbetaling er reaktivert og endringer senere enn opphørsdato er mindre enn 10 prosent gir true`() {
+    //     VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
+    //         eksisterendeUtbetalinger = listOf(lagReaktivert(5000, 1.februar(2021))),
+    //         nyBeregning = lagBeregning(
+    //             Periode.create(1.mars(2021), beregningsperiode.tilOgMed) to 5000,
+    //         ),
+    //     ).resultat shouldBe true
+    // }
+    //
+    // @Test
+    // fun `gjeldende utbetaling er reaktivert og endringer senere enn opphørsdato større enn 10 prosent gir true`() {
+    //     VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
+    //         eksisterendeUtbetalinger = listOf(lagReaktivert(5000, 1.februar(2021))),
+    //         nyBeregning = lagBeregning(
+    //             Periode.create(1.mars(2021), beregningsperiode.tilOgMed) to 15000,
+    //         ),
+    //     ).resultat shouldBe true
+    // }
+
+    @Test
     fun `ny beregning er under minstegrense for utbetaling, men differanse mot gjeldende utebetaling er mindre enn 10 prosent gir false`() {
         VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtbetaling(
             eksisterendeUtbetalinger = listOf(lagUtbetaling(440)),
@@ -194,6 +270,16 @@ internal class VurderOmBeløpsendringErStørreEnnEllerLik10ProsentAvGjeldendeUtb
     private fun lagOpphør(månedsbeløp: Int, opphørsdato: LocalDate, periode: Periode = beregningsperiode) = Utbetalingslinje.Endring(
         utbetalingslinje = lagUtbetaling(månedsbeløp = månedsbeløp, periode = periode),
         statusendring = Utbetalingslinje.Statusendring(status = Utbetalingslinje.LinjeStatus.OPPHØR, fraOgMed = opphørsdato),
+    )
+
+    private fun lagMidlertidigStans(månedsbeløp: Int, stansFraOgMedDato: LocalDate, periode: Periode = beregningsperiode) = Utbetalingslinje.Endring(
+        utbetalingslinje = lagUtbetaling(månedsbeløp = månedsbeløp, periode = periode),
+        statusendring = Utbetalingslinje.Statusendring(status = Utbetalingslinje.LinjeStatus.MIDLERTIDIG_STANS, fraOgMed = stansFraOgMedDato),
+    )
+
+    private fun lagReaktivert(månedsbeløp: Int, reaktiverDato: LocalDate = beregningsperiode.fraOgMed.plusMonths(2), periode: Periode = beregningsperiode) = Utbetalingslinje.Endring(
+        utbetalingslinje = lagUtbetaling(månedsbeløp = månedsbeløp, periode = periode),
+        statusendring = Utbetalingslinje.Statusendring(status = Utbetalingslinje.LinjeStatus.REAKTIVERING, fraOgMed = reaktiverDato),
     )
 
     private fun lagBeregning(månedsbeløp: Int): Beregning {
