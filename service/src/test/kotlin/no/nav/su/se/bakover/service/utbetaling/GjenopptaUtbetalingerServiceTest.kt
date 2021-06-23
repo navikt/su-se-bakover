@@ -51,7 +51,7 @@ internal class GjenopptaUtbetalingerServiceTest {
         gjelderNavn = "navn",
         datoBeregnet = idag(),
         nettoBeløp = 13,
-        periodeList = listOf()
+        periodeList = listOf(),
     )
 
     private val oppdragsmelding = Utbetalingsrequest("<xml></xml>")
@@ -68,12 +68,12 @@ internal class GjenopptaUtbetalingerServiceTest {
                 fraOgMed = 1.januar(2020),
                 tilOgMed = 31.januar(2020),
                 forrigeUtbetalingslinjeId = null,
-                beløp = 0
-            )
+                beløp = 0,
+            ),
         ),
         type = Utbetaling.UtbetalingsType.GJENOPPTA,
         behandler = saksbehandler,
-        avstemmingsnøkkel = avstemmingsnøkkel
+        avstemmingsnøkkel = avstemmingsnøkkel,
     )
 
     private val simulertUtbetaling = utbetalingForSimulering.toSimulertUtbetaling(simulering)
@@ -88,9 +88,8 @@ internal class GjenopptaUtbetalingerServiceTest {
         fraOgMed = 1.januar(2020),
         tilOgMed = 31.januar(2020),
         forrigeUtbetalingslinjeId = null,
-        beløp = 5
+        beløp = 5,
     )
-    private val andreUtbetalingslinjeId = UUID30.randomUUID()
     private val sak: Sak = Sak(
         id = sakId,
         saksnummer = saksnummer,
@@ -100,23 +99,35 @@ internal class GjenopptaUtbetalingerServiceTest {
             oversendtUtbetaling.copy(
                 type = Utbetaling.UtbetalingsType.NY,
                 utbetalingslinjer = nonEmptyListOf(
-                    førsteUtbetalingslinje
-                )
+                    førsteUtbetalingslinje,
+                ),
             ),
             oversendtUtbetaling.copy(
                 type = Utbetaling.UtbetalingsType.STANS,
                 utbetalingslinjer = nonEmptyListOf(
-                    Utbetalingslinje.Ny(
-                        id = andreUtbetalingslinjeId,
-                        opprettet = Tidspunkt.EPOCH,
-                        fraOgMed = 1.januar(2020),
-                        tilOgMed = 31.januar(2020),
-                        forrigeUtbetalingslinjeId = førsteUtbetalingslinjeId,
-                        beløp = 0
-                    )
-                )
-            )
-        )
+                    Utbetalingslinje.Endring(
+                        utbetalingslinje = førsteUtbetalingslinje,
+                        statusendring = Utbetalingslinje.Statusendring(
+                            status = Utbetalingslinje.LinjeStatus.MIDLERTIDIG_STANS,
+                            fraOgMed = 1.januar(2020),
+                        ),
+                    ),
+                ),
+            ),
+        ),
+    )
+
+    private fun expected(opprettet: Tidspunkt) = Utbetalingslinje.Endring(
+        id = førsteUtbetalingslinje.id,
+        opprettet = opprettet,
+        fraOgMed = førsteUtbetalingslinje.fraOgMed,
+        tilOgMed = førsteUtbetalingslinje.tilOgMed,
+        forrigeUtbetalingslinjeId = førsteUtbetalingslinje.forrigeUtbetalingslinjeId,
+        beløp = førsteUtbetalingslinje.beløp,
+        statusendring = Utbetalingslinje.Statusendring(
+            status = Utbetalingslinje.LinjeStatus.REAKTIVERING,
+            fraOgMed = 1.januar(2020),
+        ),
     )
 
     @Test
@@ -133,7 +144,7 @@ internal class GjenopptaUtbetalingerServiceTest {
         val utbetalingPublisherMock = mock<UtbetalingPublisher> {
             on {
                 publish(
-                    any()
+                    any(),
                 )
             } doReturn oppdragsmelding.right()
         }
@@ -155,10 +166,10 @@ internal class GjenopptaUtbetalingerServiceTest {
             sakServiceMock,
             simuleringClientMock,
             utbetalingPublisherMock,
-            utbetalingRepoMock
+            utbetalingRepoMock,
         ) {
             verify(sakServiceMock).hentSak(
-                sakId = argThat { it shouldBe sak.id }
+                sakId = argThat { it shouldBe sak.id },
             )
             verify(simuleringClientMock).simulerUtbetaling(
                 argThat {
@@ -167,14 +178,10 @@ internal class GjenopptaUtbetalingerServiceTest {
                         opprettet = it.opprettet,
                         avstemmingsnøkkel = it.avstemmingsnøkkel,
                         utbetalingslinjer = nonEmptyListOf(
-                            førsteUtbetalingslinje.copy(
-                                id = it.utbetalingslinjer[0].id,
-                                opprettet = it.utbetalingslinjer[0].opprettet,
-                                forrigeUtbetalingslinjeId = andreUtbetalingslinjeId,
-                            )
-                        )
+                            expected(it.utbetalingslinjer[0].opprettet)
+                        ),
                     )
-                }
+                },
             )
             verify(utbetalingPublisherMock).publish(
                 argThat {
@@ -183,14 +190,10 @@ internal class GjenopptaUtbetalingerServiceTest {
                         opprettet = it.opprettet,
                         avstemmingsnøkkel = it.avstemmingsnøkkel,
                         utbetalingslinjer = nonEmptyListOf(
-                            førsteUtbetalingslinje.copy(
-                                id = it.utbetalingslinjer[0].id,
-                                opprettet = it.utbetalingslinjer[0].opprettet,
-                                forrigeUtbetalingslinjeId = andreUtbetalingslinjeId,
-                            )
-                        )
+                            expected(it.utbetalingslinjer[0].opprettet)
+                        ),
                     ).toSimulertUtbetaling(simulering)
-                }
+                },
             )
 
             verify(utbetalingRepoMock).opprettUtbetaling(
@@ -200,24 +203,20 @@ internal class GjenopptaUtbetalingerServiceTest {
                         opprettet = it.opprettet,
                         avstemmingsnøkkel = it.avstemmingsnøkkel,
                         utbetalingslinjer = nonEmptyListOf(
-                            førsteUtbetalingslinje.copy(
-                                id = it.utbetalingslinjer[0].id,
-                                opprettet = it.utbetalingslinjer[0].opprettet,
-                                forrigeUtbetalingslinjeId = andreUtbetalingslinjeId,
-                            )
-                        )
+                            expected(it.utbetalingslinjer[0].opprettet)
+                        ),
                     ).toSimulertUtbetaling(simulering).toOversendtUtbetaling(oppdragsmelding)
-                }
+                },
             )
             verify(sakServiceMock).hentSak(
-                sakId = argThat { it shouldBe sak.id }
+                sakId = argThat { it shouldBe sak.id },
             )
         }
         verifyNoMoreInteractions(
             sakServiceMock,
             simuleringClientMock,
             utbetalingRepoMock,
-            utbetalingPublisherMock
+            utbetalingPublisherMock,
         )
     }
 
@@ -279,21 +278,17 @@ internal class GjenopptaUtbetalingerServiceTest {
                         opprettet = it.opprettet,
                         avstemmingsnøkkel = it.avstemmingsnøkkel,
                         utbetalingslinjer = nonEmptyListOf(
-                            førsteUtbetalingslinje.copy(
-                                id = it.utbetalingslinjer[0].id,
-                                opprettet = it.utbetalingslinjer[0].opprettet,
-                                forrigeUtbetalingslinjeId = andreUtbetalingslinjeId,
-                            )
-                        )
+                            expected(it.utbetalingslinjer[0].opprettet)
+                        ),
                     )
-                }
+                },
             )
         }
         verifyNoMoreInteractions(
             sakServiceMock,
             simuleringClientMock,
             utbetalingRepoMock,
-            utbetalingPublisherMock
+            utbetalingPublisherMock,
         )
     }
 
@@ -337,7 +332,7 @@ internal class GjenopptaUtbetalingerServiceTest {
             sakServiceMock,
             simuleringClientMock,
             utbetalingRepoMock,
-            utbetalingRepoMock
+            utbetalingRepoMock,
         )
     }
 }

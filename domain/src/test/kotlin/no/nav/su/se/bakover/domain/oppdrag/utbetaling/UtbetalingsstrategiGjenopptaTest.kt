@@ -6,7 +6,6 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import no.nav.su.se.bakover.common.april
-import no.nav.su.se.bakover.common.august
 import no.nav.su.se.bakover.common.desember
 import no.nav.su.se.bakover.common.idag
 import no.nav.su.se.bakover.common.januar
@@ -53,14 +52,15 @@ internal class UtbetalingsstrategiGjenopptaTest {
 
         val stans: Utbetaling.OversendtUtbetaling.UtenKvittering = createOversendtUtbetaling(
             nonEmptyListOf(
-                Utbetalingslinje.Ny(
-                    fraOgMed = 1.oktober(2020),
-                    tilOgMed = 31.desember(2020),
-                    forrigeUtbetalingslinjeId = opprinnelig.utbetalingslinjer[0].id,
-                    beløp = 0,
+                Utbetalingslinje.Endring(
+                    utbetalingslinje = opprinnelig.sisteUtbetalingslinje(),
+                    statusendring = Utbetalingslinje.Statusendring(
+                        status = Utbetalingslinje.LinjeStatus.MIDLERTIDIG_STANS,
+                        fraOgMed = 1.oktober(2020),
+                    ),
                 ),
             ),
-            type = Utbetaling.UtbetalingsType.GJENOPPTA,
+            type = Utbetaling.UtbetalingsType.STANS,
         )
 
         val actual: Utbetaling.UtbetalingForSimulering = Utbetalingsstrategi.Gjenoppta(
@@ -72,27 +72,30 @@ internal class UtbetalingsstrategiGjenopptaTest {
             clock = fixedClock,
         ).generate()
 
-        actual shouldBe
-            Utbetaling.UtbetalingForSimulering(
-                id = actual.id,
-                opprettet = actual.opprettet,
-                sakId = sakId,
-                saksnummer = saksnummer,
-                fnr = fnr,
-                utbetalingslinjer = nonEmptyListOf(
-                    Utbetalingslinje.Ny(
-                        id = actual.utbetalingslinjer[0].id,
-                        opprettet = actual.utbetalingslinjer[0].opprettet,
+        actual shouldBe Utbetaling.UtbetalingForSimulering(
+            id = actual.id,
+            opprettet = actual.opprettet,
+            sakId = sakId,
+            saksnummer = saksnummer,
+            fnr = fnr,
+            utbetalingslinjer = nonEmptyListOf(
+                Utbetalingslinje.Endring(
+                    id = opprinnelig.utbetalingslinjer[0].id,
+                    opprettet = actual.utbetalingslinjer[0].opprettet,
+                    fraOgMed = opprinnelig.utbetalingslinjer[0].fraOgMed,
+                    tilOgMed = opprinnelig.utbetalingslinjer[0].tilOgMed,
+                    forrigeUtbetalingslinjeId = opprinnelig.utbetalingslinjer[0].forrigeUtbetalingslinjeId,
+                    beløp = opprinnelig.utbetalingslinjer[0].beløp,
+                    statusendring = Utbetalingslinje.Statusendring(
+                        status = Utbetalingslinje.LinjeStatus.REAKTIVERING,
                         fraOgMed = 1.oktober(2020),
-                        tilOgMed = 31.desember(2020),
-                        forrigeUtbetalingslinjeId = stans.utbetalingslinjer[0].id,
-                        beløp = opprinnelig.utbetalingslinjer[0].beløp,
                     ),
                 ),
-                type = Utbetaling.UtbetalingsType.GJENOPPTA,
-                behandler = attestant,
-                avstemmingsnøkkel = actual.avstemmingsnøkkel,
-            )
+            ),
+            type = Utbetaling.UtbetalingsType.GJENOPPTA,
+            behandler = attestant,
+            avstemmingsnøkkel = actual.avstemmingsnøkkel,
+        )
     }
 
     @Test
@@ -121,16 +124,16 @@ internal class UtbetalingsstrategiGjenopptaTest {
                 ),
             ),
             type = Utbetaling.UtbetalingsType.NY,
-
         )
 
         val førsteStans = createOversendtUtbetaling(
             nonEmptyListOf(
-                Utbetalingslinje.Ny(
-                    fraOgMed = 1.oktober(2020),
-                    tilOgMed = 31.desember(2020),
-                    forrigeUtbetalingslinjeId = første.utbetalingslinjer[0].id,
-                    beløp = 0,
+                Utbetalingslinje.Endring(
+                    utbetalingslinje = første.sisteUtbetalingslinje(),
+                    statusendring = Utbetalingslinje.Statusendring(
+                        status = Utbetalingslinje.LinjeStatus.MIDLERTIDIG_STANS,
+                        fraOgMed = 1.oktober(2020),
+                    ),
                 ),
             ),
             type = Utbetaling.UtbetalingsType.STANS,
@@ -138,11 +141,12 @@ internal class UtbetalingsstrategiGjenopptaTest {
 
         val førsteGjenopptak = createOversendtUtbetaling(
             nonEmptyListOf(
-                Utbetalingslinje.Ny(
-                    fraOgMed = 1.oktober(2020),
-                    tilOgMed = 31.desember(2020),
-                    forrigeUtbetalingslinjeId = førsteStans.utbetalingslinjer[0].id,
-                    beløp = 1500,
+                Utbetalingslinje.Endring(
+                    utbetalingslinje = førsteStans.sisteUtbetalingslinje(),
+                    statusendring = Utbetalingslinje.Statusendring(
+                        status = Utbetalingslinje.LinjeStatus.REAKTIVERING,
+                        fraOgMed = 1.oktober(2020),
+                    ),
                 ),
             ),
             type = Utbetaling.UtbetalingsType.GJENOPPTA,
@@ -162,11 +166,12 @@ internal class UtbetalingsstrategiGjenopptaTest {
 
         val andreStans = createOversendtUtbetaling(
             utbetalingslinjer = nonEmptyListOf(
-                Utbetalingslinje.Ny(
-                    fraOgMed = 1.mai(2021),
-                    tilOgMed = 31.oktober(2021),
-                    forrigeUtbetalingslinjeId = andre.utbetalingslinjer[0].id,
-                    beløp = 0,
+                Utbetalingslinje.Endring(
+                    utbetalingslinje = andre.sisteUtbetalingslinje(),
+                    statusendring = Utbetalingslinje.Statusendring(
+                        status = Utbetalingslinje.LinjeStatus.MIDLERTIDIG_STANS,
+                        fraOgMed = 1.mai(2021),
+                    ),
                 ),
             ),
             type = Utbetaling.UtbetalingsType.STANS,
@@ -181,11 +186,19 @@ internal class UtbetalingsstrategiGjenopptaTest {
             clock = fixedClock,
         ).generate()
 
-        actual.utbetalingslinjer[0].assert(
-            fraOgMed = 1.mai(2021),
-            tilOgMed = 31.oktober(2021),
-            forrigeUtbetalingslinje = andreStans.utbetalingslinjer[0].id,
-            beløp = 5100,
+        actual.utbetalingslinjer shouldBe nonEmptyListOf(
+            Utbetalingslinje.Endring(
+                id = andre.utbetalingslinjer[0].id,
+                opprettet = actual.utbetalingslinjer[0].opprettet,
+                fraOgMed = andre.utbetalingslinjer[0].fraOgMed,
+                tilOgMed = andre.utbetalingslinjer[0].tilOgMed,
+                forrigeUtbetalingslinjeId = andre.utbetalingslinjer[0].forrigeUtbetalingslinjeId,
+                beløp = andre.utbetalingslinjer[0].beløp,
+                statusendring = Utbetalingslinje.Statusendring(
+                    status = Utbetalingslinje.LinjeStatus.REAKTIVERING,
+                    fraOgMed = 1.mai(2021),
+                ),
+            ),
         )
     }
 
@@ -213,7 +226,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
                 clock = fixedClock,
             ).generate()
         }.also {
-            it.message shouldContain "Fant ingen utbetalinger som kan gjenopptas"
+            it.message shouldContain "Siste utbetaling er ikke en midlertidig stans, kan ikke gjenoppta."
         }
     }
 
@@ -233,11 +246,12 @@ internal class UtbetalingsstrategiGjenopptaTest {
 
         val andre = createOversendtUtbetaling(
             nonEmptyListOf(
-                Utbetalingslinje.Ny(
-                    fraOgMed = 1.januar(2020),
-                    tilOgMed = 31.juli(2020),
-                    forrigeUtbetalingslinjeId = første.utbetalingslinjer[0].id,
-                    beløp = 1500,
+                Utbetalingslinje.Endring(
+                    utbetalingslinje = første.sisteUtbetalingslinje(),
+                    statusendring = Utbetalingslinje.Statusendring(
+                        status = Utbetalingslinje.LinjeStatus.MIDLERTIDIG_STANS,
+                        fraOgMed = 1.januar(2020),
+                    ),
                 ),
             ),
             type = Utbetaling.UtbetalingsType.STANS,
@@ -245,14 +259,15 @@ internal class UtbetalingsstrategiGjenopptaTest {
 
         val tredje = createOversendtUtbetaling(
             nonEmptyListOf(
-                Utbetalingslinje.Ny(
-                    fraOgMed = 1.august(2020),
-                    tilOgMed = 31.desember(2020),
-                    forrigeUtbetalingslinjeId = andre.utbetalingslinjer[0].id,
-                    beløp = 1500,
+                Utbetalingslinje.Endring(
+                    utbetalingslinje = andre.sisteUtbetalingslinje(),
+                    statusendring = Utbetalingslinje.Statusendring(
+                        status = Utbetalingslinje.LinjeStatus.REAKTIVERING,
+                        fraOgMed = 1.januar(2020),
+                    ),
                 ),
             ),
-            type = Utbetaling.UtbetalingsType.NY,
+            type = Utbetaling.UtbetalingsType.GJENOPPTA,
         )
 
         shouldThrow<Utbetalingsstrategi.UtbetalingStrategyException> {
@@ -265,7 +280,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
                 clock = fixedClock,
             ).generate()
         }.also {
-            it.message shouldContain "Fant ingen utbetalinger som kan gjenopptas"
+            it.message shouldContain "Siste utbetaling er ikke en midlertidig stans, kan ikke gjenoppta."
         }
     }
 
@@ -283,17 +298,19 @@ internal class UtbetalingsstrategiGjenopptaTest {
             forrigeUtbetalingslinjeId = l1.id,
             beløp = 5100,
         )
-        val første = createOversendtUtbetaling(
-            nonEmptyListOf(l1, l2), Utbetaling.UtbetalingsType.NY,
+        val utbetaling = createOversendtUtbetaling(
+            utbetalingslinjer = nonEmptyListOf(l1, l2),
+            type = Utbetaling.UtbetalingsType.NY,
         )
 
         val stans = createOversendtUtbetaling(
             utbetalingslinjer = nonEmptyListOf(
-                Utbetalingslinje.Ny(
-                    fraOgMed = 1.april(2020),
-                    tilOgMed = 31.desember(2020),
-                    forrigeUtbetalingslinjeId = første.utbetalingslinjer[1].id,
-                    beløp = 0,
+                Utbetalingslinje.Endring(
+                    utbetalingslinje = utbetaling.sisteUtbetalingslinje(),
+                    statusendring = Utbetalingslinje.Statusendring(
+                        status = Utbetalingslinje.LinjeStatus.MIDLERTIDIG_STANS,
+                        fraOgMed = 1.april(2020),
+                    ),
                 ),
             ),
             type = Utbetaling.UtbetalingsType.STANS,
@@ -303,21 +320,21 @@ internal class UtbetalingsstrategiGjenopptaTest {
             sakId = sakId,
             saksnummer = saksnummer,
             fnr = fnr,
-            utbetalinger = nonEmptyListOf(første, stans),
+            utbetalinger = nonEmptyListOf(utbetaling, stans),
             behandler = attestant,
             clock = fixedClock,
         ).generate().also {
-            it.utbetalingslinjer[0].assert(
-                fraOgMed = 1.april(2020),
-                tilOgMed = 30.april(2020),
-                forrigeUtbetalingslinje = stans.utbetalingslinjer[0].id,
-                beløp = 1500,
-            )
-            it.utbetalingslinjer[1].assert(
-                fraOgMed = 1.mai(2020),
-                tilOgMed = 31.desember(2020),
-                forrigeUtbetalingslinje = it.utbetalingslinjer[0].id,
-                beløp = 5100,
+            Utbetalingslinje.Endring(
+                id = utbetaling.sisteUtbetalingslinje().id,
+                opprettet = it.utbetalingslinjer[0].opprettet,
+                fraOgMed = utbetaling.sisteUtbetalingslinje().fraOgMed,
+                tilOgMed = utbetaling.sisteUtbetalingslinje().tilOgMed,
+                forrigeUtbetalingslinjeId = utbetaling.sisteUtbetalingslinje().forrigeUtbetalingslinjeId,
+                beløp = utbetaling.sisteUtbetalingslinje().beløp,
+                statusendring = Utbetalingslinje.Statusendring(
+                    status = Utbetalingslinje.LinjeStatus.REAKTIVERING,
+                    fraOgMed = 1.april(2020),
+                ),
             )
         }
     }
@@ -338,7 +355,7 @@ internal class UtbetalingsstrategiGjenopptaTest {
                 gjelderNavn = "navn",
                 datoBeregnet = idag(),
                 nettoBeløp = 0,
-                periodeList = listOf()
+                periodeList = listOf(),
             ),
             behandler = NavIdentBruker.Saksbehandler("Z123"),
         )

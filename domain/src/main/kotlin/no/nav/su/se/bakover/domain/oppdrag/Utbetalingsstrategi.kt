@@ -3,7 +3,6 @@ package no.nav.su.se.bakover.domain.oppdrag
 import arrow.core.NonEmptyList
 import arrow.core.nonEmptyListOf
 import no.nav.su.se.bakover.common.Tidspunkt
-import no.nav.su.se.bakover.common.between
 import no.nav.su.se.bakover.common.erFørsteDagIMåned
 import no.nav.su.se.bakover.common.erSisteDagIMåned
 import no.nav.su.se.bakover.common.idag
@@ -56,7 +55,7 @@ sealed class Utbetalingsstrategi {
                         statusendring = Utbetalingslinje.Statusendring(
                             status = Utbetalingslinje.LinjeStatus.MIDLERTIDIG_STANS,
                             fraOgMed = stansesFraOgMed,
-                        )
+                        ),
                     ),
                 ),
                 type = Utbetaling.UtbetalingsType.STANS,
@@ -159,53 +158,20 @@ sealed class Utbetalingsstrategi {
             val sisteOversendteUtbetalingslinje = sisteOversendteUtbetaling()?.sisteUtbetalingslinje()
                 ?: throw UtbetalingStrategyException("Ingen oversendte utbetalinger å gjenoppta")
 
-            val stansetFraOgMed = sisteOversendteUtbetalingslinje.fraOgMed
-            val stansetTilOgMed = sisteOversendteUtbetalingslinje.tilOgMed
-
-            // Vi må ekskludere alt før nest siste stopp-utbetaling for ikke å duplisere utbetalinger.
-            val startIndeks = utbetalinger.hentOversendteUtbetalingerUtenFeil().dropLast(1).indexOfLast {
-                it.type == Utbetaling.UtbetalingsType.STANS
-            }.let { if (it < 0) 0 else it + 1 } // Ekskluderer den eventuelle stopp-utbetalingen
-
-            val stansetEllerDelvisStansetUtbetalingslinjer = utbetalinger.hentOversendteUtbetalingerUtenFeil()
-                .subList(
-                    startIndeks,
-                    utbetalinger.hentOversendteUtbetalingerUtenFeil().size - 1,
-                ) // Ekskluderer den siste stopp-utbetalingen
-                .flatMap {
-                    it.utbetalingslinjer
-                }.filter {
-                    // Merk: En utbetalingslinje kan være delvis stanset.
-                    it.fraOgMed.between(
-                        stansetFraOgMed,
-                        stansetTilOgMed,
-                    ) || it.tilOgMed.between(
-                        stansetFraOgMed,
-                        stansetTilOgMed,
-                    )
-                }
-
-            validate(stansetEllerDelvisStansetUtbetalingslinjer.isNotEmpty()) { "Kan ikke gjenoppta utbetaling. Fant ingen utbetalinger som kan gjenopptas i perioden: $stansetFraOgMed-$stansetTilOgMed" }
-            validate(stansetEllerDelvisStansetUtbetalingslinjer.last().tilOgMed == stansetTilOgMed) {
-                "Feil ved start av utbetalinger. Stopputbetalingens tilOgMed ($stansetTilOgMed) matcher ikke utbetalingslinja (${stansetEllerDelvisStansetUtbetalingslinjer.last().tilOgMed}"
-            }
-
-            val utbetalingslinjer =
-                stansetEllerDelvisStansetUtbetalingslinjer.fold<Utbetalingslinje, List<Utbetalingslinje>>(listOf()) { acc, utbetalingslinje ->
-                    (
-                        acc + Utbetalingslinje.Ny(
-                            fraOgMed = maxOf(stansetFraOgMed, utbetalingslinje.fraOgMed),
-                            tilOgMed = utbetalingslinje.tilOgMed,
-                            forrigeUtbetalingslinjeId = acc.lastOrNull()?.id ?: sisteOversendteUtbetalingslinje.id,
-                            beløp = utbetalingslinje.beløp,
-                        )
-                        )
-                }
+            validate(sisteOversendteUtbetalingslinje is Utbetalingslinje.Endring && sisteOversendteUtbetalingslinje.statusendring.status == Utbetalingslinje.LinjeStatus.MIDLERTIDIG_STANS) { "Siste utbetaling er ikke en midlertidig stans, kan ikke gjenoppta." }
 
             return Utbetaling.UtbetalingForSimulering(
                 sakId = sakId,
                 saksnummer = saksnummer,
-                utbetalingslinjer = NonEmptyList.fromListUnsafe(utbetalingslinjer),
+                utbetalingslinjer = nonEmptyListOf(
+                    Utbetalingslinje.Endring(
+                        utbetalingslinje = sisteOversendteUtbetalingslinje,
+                        statusendring = Utbetalingslinje.Statusendring(
+                            status = Utbetalingslinje.LinjeStatus.REAKTIVERING,
+                            fraOgMed = (sisteOversendteUtbetalingslinje as Utbetalingslinje.Endring).statusendring.fraOgMed,
+                        ),
+                    ),
+                ),
                 fnr = fnr,
                 type = Utbetaling.UtbetalingsType.GJENOPPTA,
                 behandler = behandler,
