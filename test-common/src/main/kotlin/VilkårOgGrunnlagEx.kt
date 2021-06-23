@@ -2,6 +2,9 @@ package no.nav.su.se.bakover.test
 
 import arrow.core.Nel
 import arrow.core.getOrHandle
+import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeTypeOf
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
@@ -52,3 +55,18 @@ fun Formuegrunnlag.Verdier.Companion.empty() = Formuegrunnlag.Verdier(
     kontanter = 0,
     depositumskonto = 0,
 )
+
+fun Vilkår.Formue.assertEqualsIgnoreId(expected: Vilkår.Formue) {
+    when (this) {
+        Vilkår.Formue.IkkeVurdert -> {
+            this shouldBe expected
+        }
+        is Vilkår.Formue.Vurdert -> {
+            expected.shouldBeTypeOf<Vilkår.Formue.Vurdert>()
+            this.vurderingsperioder.zip(expected.vurderingsperioder).map { (actual, expected) ->
+                actual.shouldBeEqualToIgnoringFields(expected, Vurderingsperiode::id, Vurderingsperiode::grunnlag)
+                actual.grunnlag.shouldBeEqualToIgnoringFields(expected.grunnlag, Formuegrunnlag::id)
+            }
+        }
+    }
+}
