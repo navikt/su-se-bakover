@@ -65,7 +65,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
                     verdipapir = 13,
                     pengerSkyldt = 14,
                     kontanter = 15,
-                    depositumskonto = 16,
+                    depositumskonto = 10,
                 ),
                 begrunnelse = "dfgdfgdfgsdfgdfg",
                 bosituasjon = Grunnlag.Bosituasjon.Fullstendig.EktefellePartnerSamboer.Under67.UførFlyktning(
@@ -97,7 +97,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
                         verdipapir = 5,
                         pengerSkyldt = 6,
                         kontanter = 7,
-                        depositumskonto = 8,
+                        depositumskonto = 3,
                     ),
                 ),
             )
@@ -154,7 +154,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
                         verdipapir = 5,
                         pengerSkyldt = 6,
                         kontanter = 70000,
-                        depositumskonto = 8,
+                        depositumskonto = 3,
                     ),
                 ),
             )
