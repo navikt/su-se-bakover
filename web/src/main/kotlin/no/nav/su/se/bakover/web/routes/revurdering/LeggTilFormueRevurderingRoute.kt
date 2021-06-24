@@ -11,10 +11,13 @@ import io.ktor.routing.Route
 import io.ktor.routing.post
 import no.nav.su.se.bakover.common.serialize
 import no.nav.su.se.bakover.domain.Brukerrolle
+import no.nav.su.se.bakover.domain.grunnlag.Formuegrunnlag
+import no.nav.su.se.bakover.domain.grunnlag.KunneIkkeLageFormueVerdier
 import no.nav.su.se.bakover.service.revurdering.KunneIkkeLeggeTilFormuegrunnlag
 import no.nav.su.se.bakover.service.revurdering.LeggTilFormuegrunnlagRequest
 import no.nav.su.se.bakover.service.revurdering.RevurderingService
 import no.nav.su.se.bakover.web.Resultat
+import no.nav.su.se.bakover.web.errorJson
 import no.nav.su.se.bakover.web.features.authorize
 import no.nav.su.se.bakover.web.routes.grunnlag.FormuegrunnlagJson
 import no.nav.su.se.bakover.web.routes.revurdering.FormueBody.Companion.toServiceRequest
@@ -26,27 +29,17 @@ import no.nav.su.se.bakover.web.withRevurderingId
 import no.nav.su.se.bakover.web.withSakId
 import java.util.UUID
 
-internal fun FormuegrunnlagJson.VerdierJson.depositumErMindreEllerLikInnskudd() = this.depositumskonto <= this.innskudd
-
 private data class FormueBody(
     val periode: PeriodeJson,
     val epsFormue: FormuegrunnlagJson.VerdierJson?,
     val søkersFormue: FormuegrunnlagJson.VerdierJson,
     val begrunnelse: String?,
 ) {
-    private fun VerdierErGyldig() =
-        this.søkersFormue.depositumErMindreEllerLikInnskudd() && (
-            this.epsFormue?.depositumErMindreEllerLikInnskudd()
-                ?: true
-            )
 
     companion object {
         fun List<FormueBody>.toServiceRequest(revurderingId: UUID): Either<Resultat, LeggTilFormuegrunnlagRequest> {
             if (this.isEmpty()) {
                 return Revurderingsfeilresponser.formueListeKanIkkeVæreTom.left()
-            }
-            if (!this.all { it.VerdierErGyldig() }) {
-                return Revurderingsfeilresponser.depositumKanIkkeVæreHøyereEnnInnskudd.left()
             }
 
             return LeggTilFormuegrunnlagRequest(
@@ -56,8 +49,32 @@ private data class FormueBody(
                         LeggTilFormuegrunnlagRequest.Grunnlag(
                             periode = formueBody.periode.toPeriode()
                                 .getOrHandle { return it.left() },
-                            epsFormue = formueBody.epsFormue?.toDomain(),
-                            søkersFormue = formueBody.søkersFormue.toDomain(),
+                            epsFormue = formueBody.epsFormue?.let {
+                                Formuegrunnlag.Verdier.tryCreate(
+                                    verdiIkkePrimærbolig = formueBody.epsFormue.verdiIkkePrimærbolig,
+                                    verdiEiendommer = formueBody.epsFormue.verdiEiendommer,
+                                    verdiKjøretøy = formueBody.epsFormue.verdiKjøretøy,
+                                    innskudd = formueBody.epsFormue.innskudd,
+                                    verdipapir = formueBody.epsFormue.verdipapir,
+                                    pengerSkyldt = formueBody.epsFormue.pengerSkyldt,
+                                    kontanter = formueBody.epsFormue.kontanter,
+                                    depositumskonto = formueBody.epsFormue.depositumskonto,
+                                ).getOrHandle {
+                                    return it.tilResultat().left()
+                                }
+                            },
+                            søkersFormue = Formuegrunnlag.Verdier.tryCreate(
+                                verdiIkkePrimærbolig = formueBody.søkersFormue.verdiIkkePrimærbolig,
+                                verdiEiendommer = formueBody.søkersFormue.verdiEiendommer,
+                                verdiKjøretøy = formueBody.søkersFormue.verdiKjøretøy,
+                                innskudd = formueBody.søkersFormue.innskudd,
+                                verdipapir = formueBody.søkersFormue.verdipapir,
+                                pengerSkyldt = formueBody.søkersFormue.pengerSkyldt,
+                                kontanter = formueBody.søkersFormue.kontanter,
+                                depositumskonto = formueBody.søkersFormue.depositumskonto,
+                            ).getOrHandle {
+                                return it.tilResultat().left()
+                            },
                             begrunnelse = formueBody.begrunnelse,
                         )
                     },
@@ -97,6 +114,17 @@ internal fun Route.leggTilFormueRevurderingRoute(
             }
         }
     }
+}
+
+private fun KunneIkkeLageFormueVerdier.tilResultat() = when (this) {
+    KunneIkkeLageFormueVerdier.DepositumErStørreEnnInnskudd -> HttpStatusCode.BadRequest.errorJson(
+        "Depositum er mindre enn innskudd",
+        "depositum_mindre_enn_innskudd",
+    )
+    KunneIkkeLageFormueVerdier.VerdierKanIkkeVæreNegativ -> HttpStatusCode.BadRequest.errorJson(
+        "Verdier kan ikke være negativ",
+        "verdier_kan_ikke_være_negativ",
+    )
 }
 
 private fun KunneIkkeLeggeTilFormuegrunnlag.tilResultat() = when (this) {

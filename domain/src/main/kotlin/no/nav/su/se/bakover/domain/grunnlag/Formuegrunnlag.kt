@@ -1,13 +1,17 @@
 package no.nav.su.se.bakover.domain.grunnlag
 
 import arrow.core.Either
+import arrow.core.getOrHandle
 import arrow.core.left
 import arrow.core.right
 import no.nav.su.se.bakover.common.Tidspunkt
 import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.CopyArgs
 import no.nav.su.se.bakover.domain.tidslinje.KanPlasseresPåTidslinje
+import org.slf4j.LoggerFactory
 import java.util.UUID
+
+private val log = LoggerFactory.getLogger(Formuegrunnlag::class.java)
 
 data class Formuegrunnlag private constructor(
     override val id: UUID,
@@ -17,7 +21,7 @@ data class Formuegrunnlag private constructor(
     val søkersFormue: Verdier,
     val begrunnelse: String?,
 ) : Grunnlag(), KanPlasseresPåTidslinje<Formuegrunnlag> {
-    data class Verdier(
+    data class Verdier private constructor(
         val verdiIkkePrimærbolig: Int,
         val verdiEiendommer: Int,
         val verdiKjøretøy: Int,
@@ -27,21 +31,6 @@ data class Formuegrunnlag private constructor(
         val kontanter: Int,
         val depositumskonto: Int,
     ) {
-        init {
-            require(
-                verdiIkkePrimærbolig >= 0 &&
-                    verdiEiendommer >= 0 &&
-                    verdiKjøretøy >= 0 &&
-                    innskudd >= 0 &&
-                    verdipapir >= 0 &&
-                    pengerSkyldt >= 0 &&
-                    kontanter >= 0 &&
-                    depositumskonto >= 0,
-            ) {
-                "Alle formueverdiene må være større eller lik 0. Var: $this"
-            }
-        }
-
         internal fun sumVerdier(): Int {
             return verdiIkkePrimærbolig +
                 verdiEiendommer +
@@ -52,8 +41,67 @@ data class Formuegrunnlag private constructor(
                 ((innskudd - depositumskonto).coerceAtLeast(0))
         }
 
-        // Trengs for at testene kan lage extension functions
-        companion object
+        companion object {
+            fun create(
+                verdiIkkePrimærbolig: Int,
+                verdiEiendommer: Int,
+                verdiKjøretøy: Int,
+                innskudd: Int,
+                verdipapir: Int,
+                pengerSkyldt: Int,
+                kontanter: Int,
+                depositumskonto: Int,
+            ): Verdier = tryCreate(
+                verdiIkkePrimærbolig = verdiIkkePrimærbolig,
+                verdiEiendommer = verdiEiendommer,
+                verdiKjøretøy = verdiKjøretøy,
+                innskudd = innskudd,
+                verdipapir = verdipapir,
+                pengerSkyldt = pengerSkyldt,
+                kontanter = kontanter,
+                depositumskonto = depositumskonto,
+            ).getOrHandle { throw IllegalArgumentException(it.toString()) }
+
+            fun tryCreate(
+                verdiIkkePrimærbolig: Int,
+                verdiEiendommer: Int,
+                verdiKjøretøy: Int,
+                innskudd: Int,
+                verdipapir: Int,
+                pengerSkyldt: Int,
+                kontanter: Int,
+                depositumskonto: Int,
+            ): Either<KunneIkkeLageFormueVerdier, Verdier> {
+                if (depositumskonto > innskudd) {
+                    log.warn("Depositum er høyere enn innskudd for denne brukeren, eller hens eps")
+                    // TODO: bytt til return KunneIkkeLageFormueVerdier.DepositumErStørreEnnInnskudd.left()
+                }
+
+                if (
+                    verdiIkkePrimærbolig < 0 ||
+                    verdiEiendommer < 0 ||
+                    verdiKjøretøy < 0 ||
+                    innskudd < 0 ||
+                    verdipapir < 0 ||
+                    pengerSkyldt < 0 ||
+                    kontanter < 0 ||
+                    depositumskonto < 0
+                ) {
+                    return KunneIkkeLageFormueVerdier.VerdierKanIkkeVæreNegativ.left()
+                }
+
+                return Verdier(
+                    verdiIkkePrimærbolig = verdiIkkePrimærbolig,
+                    verdiEiendommer = verdiEiendommer,
+                    verdiKjøretøy = verdiKjøretøy,
+                    innskudd = innskudd,
+                    verdipapir = verdipapir,
+                    pengerSkyldt = pengerSkyldt,
+                    kontanter = kontanter,
+                    depositumskonto = depositumskonto,
+                ).right()
+            }
+        }
     }
 
     fun oppdaterPeriode(periode: Periode): Formuegrunnlag {
@@ -133,6 +181,11 @@ sealed class KunneIkkeLageFormueGrunnlag {
     object EpsFormueperiodeErUtenforBosituasjonPeriode : KunneIkkeLageFormueGrunnlag()
     object MåHaEpsHvisManHarSattEpsFormue : KunneIkkeLageFormueGrunnlag()
     object FormuePeriodeErUtenforBehandlingsperioden : KunneIkkeLageFormueGrunnlag()
+}
+
+sealed class KunneIkkeLageFormueVerdier {
+    object DepositumErStørreEnnInnskudd : KunneIkkeLageFormueVerdier()
+    object VerdierKanIkkeVæreNegativ : KunneIkkeLageFormueVerdier()
 }
 
 fun List<Formuegrunnlag>.harEpsFormue() = this.any { it.epsFormue != null }

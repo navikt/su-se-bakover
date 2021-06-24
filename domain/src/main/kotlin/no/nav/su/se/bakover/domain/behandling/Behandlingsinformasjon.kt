@@ -299,7 +299,7 @@ data class Behandlingsinformasjon(
                         opprettet = Tidspunkt.now(clock),
                         periode = stønadsperiode.periode,
                         epsFormue = this.epsVerdier?.let {
-                            Formuegrunnlag.Verdier(
+                            Formuegrunnlag.Verdier.tryCreate(
                                 verdiIkkePrimærbolig = it.verdiIkkePrimærbolig ?: 0,
                                 verdiEiendommer = it.verdiEiendommer ?: 0,
                                 verdiKjøretøy = it.verdiKjøretøy ?: 0,
@@ -308,10 +308,12 @@ data class Behandlingsinformasjon(
                                 pengerSkyldt = it.pengerSkyldt ?: 0,
                                 kontanter = it.kontanter ?: 0,
                                 depositumskonto = it.depositumskonto ?: 0,
-                            )
+                            ).getOrHandle {
+                                throw java.lang.IllegalStateException("Kunne ikke create formue-verdier. Sjekk om data er gyldig")
+                            }
                         },
                         søkersFormue = this.verdier.let {
-                            Formuegrunnlag.Verdier(
+                            Formuegrunnlag.Verdier.tryCreate(
                                 verdiIkkePrimærbolig = it?.verdiIkkePrimærbolig ?: 0,
                                 verdiEiendommer = it?.verdiEiendommer ?: 0,
                                 verdiKjøretøy = it?.verdiKjøretøy ?: 0,
@@ -320,7 +322,9 @@ data class Behandlingsinformasjon(
                                 pengerSkyldt = it?.pengerSkyldt ?: 0,
                                 kontanter = it?.kontanter ?: 0,
                                 depositumskonto = it?.depositumskonto ?: 0,
-                            )
+                            ).getOrHandle {
+                                throw java.lang.IllegalStateException("Kunne ikke create formue-verdier. Sjekk om data er gyldig")
+                            }
                         },
                         begrunnelse = this.begrunnelse,
                         bosituasjon = bosituasjon.singleFullstendigOrThrow(),

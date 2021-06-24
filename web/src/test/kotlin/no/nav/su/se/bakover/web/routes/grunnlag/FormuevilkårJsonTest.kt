@@ -49,7 +49,7 @@ internal class FormuevilkårJsonTest {
                             fraOgMed = LocalDate.of(2021, 1, 1),
                             tilOgMed = LocalDate.of(2021, 6, 30),
                         ),
-                        epsFormue = Formuegrunnlag.Verdier(
+                        epsFormue = Formuegrunnlag.Verdier.create(
                             verdiIkkePrimærbolig = 1,
                             verdiEiendommer = 2,
                             verdiKjøretøy = 3,
@@ -59,7 +59,7 @@ internal class FormuevilkårJsonTest {
                             kontanter = 7,
                             depositumskonto = 8,
                         ),
-                        søkersFormue = Formuegrunnlag.Verdier(
+                        søkersFormue = Formuegrunnlag.Verdier.create(
                             verdiIkkePrimærbolig = 9,
                             verdiEiendommer = 10,
                             verdiKjøretøy = 11,
@@ -93,7 +93,7 @@ internal class FormuevilkårJsonTest {
                             tilOgMed = LocalDate.of(2021, 12, 31),
                         ),
                         epsFormue = null,
-                        søkersFormue = Formuegrunnlag.Verdier(
+                        søkersFormue = Formuegrunnlag.Verdier.create(
                             verdiIkkePrimærbolig = 1,
                             verdiEiendommer = 2,
                             verdiKjøretøy = 3,

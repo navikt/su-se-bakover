@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.domain.grunnlag
 
+import arrow.core.left
 import io.kotest.assertions.arrow.either.shouldBeLeft
 import io.kotest.assertions.arrow.either.shouldBeRight
 import io.kotest.matchers.shouldBe
@@ -21,9 +22,9 @@ internal class FormuegrunnlagTest {
     @Nested
     inner class VerdierTest {
         @Test
-        fun `Formue verdier kan ikke være negative`() {
+        fun `Formue verdier kan ikke være negative for create`() {
             assertThrows<IllegalArgumentException> {
-                Formuegrunnlag.Verdier(
+                Formuegrunnlag.Verdier.create(
                     verdiIkkePrimærbolig = -1,
                     verdiEiendommer = -2,
                     verdiKjøretøy = -3,
@@ -34,6 +35,20 @@ internal class FormuegrunnlagTest {
                     depositumskonto = -8,
                 )
             }
+        }
+
+        @Test
+        fun `Formue verdier kan ikke være negative for try create`() {
+            Formuegrunnlag.Verdier.tryCreate(
+                verdiIkkePrimærbolig = -1,
+                verdiEiendommer = -2,
+                verdiKjøretøy = -3,
+                innskudd = -4,
+                verdipapir = -5,
+                pengerSkyldt = -6,
+                kontanter = -7,
+                depositumskonto = -8,
+            ) shouldBe KunneIkkeLageFormueVerdier.VerdierKanIkkeVæreNegativ.left()
         }
 
         @Test
@@ -76,12 +91,12 @@ internal class FormuegrunnlagTest {
             begrunnelse = null,
         )
 
-        val formueUtenEPS = Formuegrunnlag.create(
+        private val formueUtenEPS = Formuegrunnlag.create(
             id = UUID.randomUUID(),
             opprettet = Tidspunkt.EPOCH,
             periode = Periode.create(1.januar(2021), 31.januar(2021)),
             epsFormue = null,
-            søkersFormue = Formuegrunnlag.Verdier(
+            søkersFormue = Formuegrunnlag.Verdier.create(
                 verdiIkkePrimærbolig = 1,
                 verdiEiendommer = 1,
                 verdiKjøretøy = 1,
@@ -107,7 +122,7 @@ internal class FormuegrunnlagTest {
                 id = UUID.randomUUID(),
                 opprettet = Tidspunkt.EPOCH,
                 periode = Periode.create(1.januar(2021), 31.januar(2021)),
-                epsFormue = Formuegrunnlag.Verdier(
+                epsFormue = Formuegrunnlag.Verdier.create(
                     verdiIkkePrimærbolig = 1,
                     verdiEiendommer = 1,
                     verdiKjøretøy = 1,
@@ -117,7 +132,7 @@ internal class FormuegrunnlagTest {
                     kontanter = 1,
                     depositumskonto = 1,
                 ),
-                søkersFormue = Formuegrunnlag.Verdier(
+                søkersFormue = Formuegrunnlag.Verdier.create(
                     verdiIkkePrimærbolig = 1,
                     verdiEiendommer = 1,
                     verdiKjøretøy = 1,

@@ -17,20 +17,7 @@ data class FormuegrunnlagJson(
         val pengerSkyldt: Int,
         val kontanter: Int,
         val depositumskonto: Int,
-    ) {
-        fun toDomain(): Formuegrunnlag.Verdier {
-            return Formuegrunnlag.Verdier(
-                verdiIkkePrimærbolig = verdiIkkePrimærbolig,
-                verdiEiendommer = verdiEiendommer,
-                verdiKjøretøy = verdiKjøretøy,
-                innskudd = innskudd,
-                verdipapir = verdipapir,
-                pengerSkyldt = pengerSkyldt,
-                kontanter = kontanter,
-                depositumskonto = depositumskonto,
-            )
-        }
-    }
+    )
 }
 
 fun Formuegrunnlag.toJson() = FormuegrunnlagJson(

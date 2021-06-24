@@ -48,7 +48,7 @@ fun Formuegrunnlag.Companion.create(
     behandlingsPeriode,
 ).getOrHandle { throw IllegalArgumentException("Kunne ikke instansiere Formuegrunnlag. Underliggende grunn: $it") }
 
-fun Formuegrunnlag.Verdier.Companion.empty() = Formuegrunnlag.Verdier(
+fun Formuegrunnlag.Verdier.Companion.empty() = create(
     verdiIkkePrimærbolig = 0,
     verdiEiendommer = 0,
     verdiKjøretøy = 0,

@@ -57,7 +57,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
                 opprettet = Tidspunkt.now(),
                 periode = periode,
                 epsFormue = epsFormue,
-                søkersFormue = Formuegrunnlag.Verdier(
+                søkersFormue = Formuegrunnlag.Verdier.create(
                     verdiIkkePrimærbolig = 9,
                     verdiEiendommer = 10,
                     verdiKjøretøy = 11,
@@ -89,7 +89,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
             val vilkår = Vilkår.Formue.Vurdert.createFromGrunnlag(
                 grunnlag = formuegrunnlag(
                     periode = periode,
-                    epsFormue = Formuegrunnlag.Verdier(
+                    epsFormue = Formuegrunnlag.Verdier.create(
                         verdiIkkePrimærbolig = 1,
                         verdiEiendommer = 2,
                         verdiKjøretøy = 3,
@@ -146,7 +146,7 @@ internal class FormueVilkårsvurderingPostgresRepoTest {
             val vilkår = Vilkår.Formue.Vurdert.createFromGrunnlag(
                 grunnlag = formuegrunnlag(
                     periode = periode,
-                    epsFormue = Formuegrunnlag.Verdier(
+                    epsFormue = Formuegrunnlag.Verdier.create(
                         verdiIkkePrimærbolig = 1,
                         verdiEiendommer = 2,
                         verdiKjøretøy = 3,

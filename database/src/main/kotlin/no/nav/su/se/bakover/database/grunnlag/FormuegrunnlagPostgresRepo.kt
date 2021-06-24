@@ -1,5 +1,6 @@
 package no.nav.su.se.bakover.database.grunnlag
 
+import arrow.core.getOrHandle
 import kotliquery.Row
 import no.nav.su.se.bakover.common.deserialize
 import no.nav.su.se.bakover.common.objectMapper
@@ -117,7 +118,7 @@ private data class FormueverdierJson(
     val depositumskonto: Int,
 ) {
     fun toDomain(): Formuegrunnlag.Verdier {
-        return Formuegrunnlag.Verdier(
+        return Formuegrunnlag.Verdier.tryCreate(
             verdiIkkePrimærbolig = verdiIkkePrimærbolig,
             verdiEiendommer = verdiEiendommer,
             verdiKjøretøy = verdiKjøretøy,
@@ -126,7 +127,9 @@ private data class FormueverdierJson(
             pengerSkyldt = pengerSkyldt,
             kontanter = kontanter,
             depositumskonto = depositumskonto,
-        )
+        ).getOrHandle {
+            throw IllegalArgumentException(it.toString())
+        }
     }
 }
 
