@@ -44,9 +44,9 @@ internal class FixIverksettingerTest {
     @Test
     fun `fix-iverksettinger-endepunktet gir tomt resultat`() {
         val ferdigstillVedtakServiceMock = mock<FerdigstillVedtakService> {
-            on { opprettManglendeJournalposterOgBrevbestillinger() } doReturn FerdigstillVedtakService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
+            on { opprettManglendeJournalposterOgBrevbestillingerOgLukkOppgaver() } doReturn FerdigstillVedtakService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
                 journalpostresultat = emptyList(),
-                brevbestillingsresultat = emptyList()
+                brevbestillingsresultat = emptyList(),
             )
         }
         withTestApplication({
@@ -97,7 +97,7 @@ internal class FixIverksettingerTest {
         val søknadIdJournalpost = UUID.fromString("18e19f68-029d-4731-ad4a-48d902fc92a2")
         val søknadIdOppgave = UUID.fromString("22770c98-31b0-412e-9e63-9a878330386e")
         val ferdigstillVedtakServiceMock = mock<FerdigstillVedtakService> {
-            on { opprettManglendeJournalposterOgBrevbestillinger() } doReturn FerdigstillVedtakService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
+            on { opprettManglendeJournalposterOgBrevbestillingerOgLukkOppgaver() } doReturn FerdigstillVedtakService.OpprettManglendeJournalpostOgBrevdistribusjonResultat(
                 journalpostresultat = listOf(
                     journalført.right(),
                     FerdigstillVedtakService.KunneIkkeOppretteJournalpostForIverksetting(
@@ -114,7 +114,7 @@ internal class FixIverksettingerTest {
                         JournalpostId("1"),
                         "Kunne ikke bestille brev"
                     ).left(),
-                )
+                ),
             )
         }
         withTestApplication({

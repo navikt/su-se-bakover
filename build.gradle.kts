@@ -7,9 +7,9 @@ buildscript {
 plugins {
     kotlin("jvm") version "1.5.10"
     // Støtter unicode filer (i motsetning til https://github.com/JLLeitschuh/ktlint-gradle 10.0.0) og har nyere dependencies som gradle. Virker som den oppdateres hyppigere.
-    id("org.jmailen.kotlinter") version "3.4.4"
+    id("org.jmailen.kotlinter") version "3.4.5"
     id("com.github.ben-manes.versions") version "0.39.0" // Finds latest versions
-    id("se.patrikerdes.use-latest-versions") version "0.2.16"
+    id("se.patrikerdes.use-latest-versions") version "0.2.17"
 }
 
 version = "0.0.1"
@@ -21,7 +21,6 @@ allprojects {
     apply(plugin = "se.patrikerdes.use-latest-versions")
     repositories {
         mavenCentral()
-        maven("https://packages.confluent.io/maven/")
         maven("https://jitpack.io")
         maven("https://oss.sonatype.org/content/repositories/releases/")
     }
@@ -29,7 +28,7 @@ allprojects {
     val arrowVersion = "0.13.2"
     val kotestVersion = "4.6.0"
     val jacksonVersion = "2.12.3"
-    val bouncycastleVersion = "1.68"
+    val bouncycastleVersion = "1.69"
     val kotlinVersion = "1.5.10"
     dependencies {
         api(kotlin("stdlib-jdk8"))
@@ -47,7 +46,7 @@ allprojects {
         implementation("io.github.cdimascio:dotenv-kotlin:6.2.2")
         implementation("org.apache.kafka:kafka-clients:2.8.0")
         implementation("com.networknt:json-schema-validator:1.0.53")
-        implementation("no.finn.unleash:unleash-client-java:4.3.0")
+        implementation("no.finn.unleash:unleash-client-java:4.4.0")
 
         implementation("com.ibm.mq:com.ibm.mq.allclient:9.2.2.0")
 
@@ -61,10 +60,10 @@ allprojects {
         testImplementation("io.kotest:kotest-extensions:$kotestVersion")
         testImplementation("org.skyscreamer:jsonassert:1.5.0")
         testImplementation("com.nhaarman.mockitokotlin2:mockito-kotlin:2.2.0")
-        testImplementation("org.mockito:mockito-core:3.10.0")
+        testImplementation("org.mockito:mockito-core:3.11.2")
 
         constraints {
-            implementation("io.netty:netty-codec-http2:4.1.53.Final") {
+            implementation("io.netty:netty-codec-http2:4.1.65.Final") {
                 because("https://app.snyk.io/vuln/SNYK-JAVA-IONETTY-1020439")
             }
             implementation("commons-collections:commons-collections:3.2.2") {
@@ -73,19 +72,19 @@ allprojects {
             implementation("commons-codec:commons-codec:1.15") {
                 because("https://app.snyk.io/vuln/SNYK-JAVA-COMMONSCODEC-561518")
             }
-            implementation("com.google.guava:guava:30.0-jre") {
+            implementation("com.google.guava:guava:30.1.1-jre") {
                 because("https://app.snyk.io/vuln/SNYK-JAVA-COMGOOGLEGUAVA-1015415")
             }
             implementation("org.apache.httpcomponents:httpclient:4.5.13") {
                 because("https://app.snyk.io/vuln/SNYK-JAVA-ORGAPACHEHTTPCOMPONENTS-1016906")
             }
-            implementation("org.postgresql:postgresql:42.2.13") {
+            implementation("org.postgresql:postgresql:42.2.22") {
                 because("https://app.snyk.io/vuln/SNYK-JAVA-ORGPOSTGRESQL-571481")
             }
-            implementation("org.apache.cxf:cxf-rt-transports-http:3.4.3") {
+            implementation("org.apache.cxf:cxf-rt-transports-http:3.4.4") {
                 because("https://app.snyk.io/vuln/SNYK-JAVA-ORGAPACHECXF-1039798")
             }
-            implementation("junit:junit:4.13.1") {
+            implementation("junit:junit:4.13.2") {
                 because("https://app.snyk.io/vuln/SNYK-JAVA-JUNIT-1017047")
             }
             implementation("org.bouncycastle:bcprov-jdk15on:$bouncycastleVersion") {

@@ -1752,6 +1752,7 @@ internal class RevurderingServiceImplTest {
                     ),
                 ),
             )
+            on { markerSomVurdert(any()) }.doReturn(this.mock)
         }
 
         val revurderingRepoMock = mock<RevurderingRepo> {
@@ -1781,7 +1782,7 @@ internal class RevurderingServiceImplTest {
             ),
         )
 
-        revurderingService.leggTilFradragsgrunnlag(
+        val actual = revurderingService.leggTilFradragsgrunnlag(
             request,
         ).getOrHandle { throw Exception("k") }
 
@@ -1790,10 +1791,12 @@ internal class RevurderingServiceImplTest {
             grunnlagServiceMock,
         ) {
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
+
             verify(grunnlagServiceMock).lagreFradragsgrunnlag(
                 argThat { it shouldBe revurderingId },
                 argThat { it shouldBe request.fradragsrunnlag },
             )
+            verify(revurderingRepoMock).lagre(argThat { it shouldBe actual.revurdering })
             verify(revurderingRepoMock).hent(argThat { it shouldBe revurderingId })
         }
 

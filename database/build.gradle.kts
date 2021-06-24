@@ -1,4 +1,4 @@
-val flywayVersion = "7.9.1"
+val flywayVersion = "7.10.0"
 val hikariVersion = "4.0.3"
 val vaultJdbcVersion = "1.3.7"
 val kotliqueryVersion = "1.3.1"
@@ -11,7 +11,9 @@ dependencies {
     implementation("com.github.seratch:kotliquery:$kotliqueryVersion")
 
     testImplementation(project(":test-common"))
-    testImplementation("com.opentable.components:otj-pg-embedded:0.13.3")
+    testImplementation("com.opentable.components:otj-pg-embedded:0.13.4") {
+        exclude(group = "com.github.spotbugs")
+    }
 }
 
 plugins {

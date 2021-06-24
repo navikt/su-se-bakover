@@ -156,7 +156,7 @@ class RevurderingIngenEndringTest {
                 vilkårsvurderinger = opprettetRevurdering.vilkårsvurderinger,
                 informasjonSomRevurderes = InformasjonSomRevurderes.create(
                     mapOf(
-                        Revurderingsteg.Inntekt to Vurderingstatus.Vurdert,
+                        Revurderingsteg.Inntekt to Vurderingstatus.IkkeVurdert,
                     ),
                 ),
             ),

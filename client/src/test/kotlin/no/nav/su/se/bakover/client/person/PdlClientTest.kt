@@ -6,8 +6,8 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
+import io.kotest.assertions.arrow.either.shouldBeLeft
 import io.kotest.matchers.shouldBe
-import no.finn.unleash.FakeUnleash
 import no.nav.su.se.bakover.client.WiremockBase
 import no.nav.su.se.bakover.client.WiremockBase.Companion.wireMockServer
 import no.nav.su.se.bakover.client.azure.OAuth
@@ -23,9 +23,6 @@ import org.slf4j.MDC
 internal class PdlClientTest : WiremockBase {
 
     private val tokenOppslag = TokenOppslagStub
-    private val unleash = FakeUnleash().also {
-        it.disableAll()
-    }
 
     @Test
     fun `hent aktørid inneholder errors`() {
@@ -58,7 +55,7 @@ internal class PdlClientTest : WiremockBase {
             }
             """.trimIndent()
         wireMockServer.stubFor(
-            wiremockBuilder()
+            wiremockBuilderSystembruker("Bearer ${tokenOppslag.token()}")
                 .willReturn(WireMock.ok(errorResponseJson)),
         )
 
@@ -67,7 +64,6 @@ internal class PdlClientTest : WiremockBase {
                 vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
                 tokenOppslag = tokenOppslag,
                 azureAd = mock(),
-                unleash = unleash,
             ),
         )
         client.aktørId(Fnr("12345678912")) shouldBe KunneIkkeHentePerson.Ukjent.left()
@@ -77,7 +73,7 @@ internal class PdlClientTest : WiremockBase {
     fun `hent aktørid ukjent feil`() {
 
         wireMockServer.stubFor(
-            wiremockBuilder()
+            wiremockBuilderSystembruker("Bearer ${tokenOppslag.token()}")
                 .willReturn(WireMock.serverError()),
         )
 
@@ -86,7 +82,6 @@ internal class PdlClientTest : WiremockBase {
                 vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
                 tokenOppslag = tokenOppslag,
                 azureAd = mock(),
-                unleash = unleash,
             ),
         )
         client.aktørId(Fnr("12345678912")) shouldBe KunneIkkeHentePerson.Ukjent.left()
@@ -115,8 +110,12 @@ internal class PdlClientTest : WiremockBase {
               }
             }
             """.trimIndent()
+        val azureAdMock = mock<OAuth> {
+            on { onBehalfOfToken(any(), any()) } doReturn "etOnBehalfOfToken"
+        }
+
         wireMockServer.stubFor(
-            wiremockBuilder()
+            wiremockBuilderOnBehalfOf("Bearer etOnBehalfOfToken")
                 .willReturn(WireMock.ok(suksessResponseJson)),
         )
 
@@ -124,8 +123,7 @@ internal class PdlClientTest : WiremockBase {
             PdlClientConfig(
                 vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
                 tokenOppslag = tokenOppslag,
-                azureAd = mock(),
-                unleash = unleash,
+                azureAd = azureAdMock,
             ),
         )
         client.aktørId(Fnr("12345678912")) shouldBe AktørId("2751637578706").right()
@@ -167,7 +165,6 @@ internal class PdlClientTest : WiremockBase {
                 vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
                 tokenOppslag = tokenOppslag,
                 azureAd = azureAdMock,
-                unleash = FakeUnleash().also { it.enableAll() },
             ),
         )
         client.aktørId(Fnr("12345678912")) shouldBe AktørId("2751637578706").right()
@@ -203,8 +200,12 @@ internal class PdlClientTest : WiremockBase {
               }
             }
             """.trimIndent()
+        val azureAdMock = mock<OAuth> {
+            on { onBehalfOfToken(any(), any()) } doReturn "etOnBehalfOfToken"
+        }
+
         wireMockServer.stubFor(
-            wiremockBuilder()
+            wiremockBuilderOnBehalfOf("Bearer etOnBehalfOfToken")
                 .willReturn(WireMock.ok(errorResponseJson)),
         )
 
@@ -212,8 +213,7 @@ internal class PdlClientTest : WiremockBase {
             PdlClientConfig(
                 vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
                 tokenOppslag = tokenOppslag,
-                azureAd = mock(),
-                unleash = unleash,
+                azureAd = azureAdMock,
             ),
         )
         client.person(Fnr("12345678912")) shouldBe KunneIkkeHentePerson.FantIkkePerson.left()
@@ -222,7 +222,7 @@ internal class PdlClientTest : WiremockBase {
     @Test
     fun `hent person ukjent feil`() {
         wireMockServer.stubFor(
-            wiremockBuilder()
+            wiremockBuilderSystembruker("Bearer ${tokenOppslag.token()}")
                 .willReturn(WireMock.serverError()),
         )
 
@@ -231,7 +231,6 @@ internal class PdlClientTest : WiremockBase {
                 vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
                 tokenOppslag = tokenOppslag,
                 azureAd = mock(),
-                unleash = unleash,
             ),
         )
         client.person(Fnr("12345678912")) shouldBe KunneIkkeHentePerson.Ukjent.left()
@@ -330,8 +329,12 @@ internal class PdlClientTest : WiremockBase {
               }
             }
             """.trimIndent()
+        val azureAdMock = mock<OAuth> {
+            on { onBehalfOfToken(any(), any()) } doReturn "etOnBehalfOfToken"
+        }
+
         wireMockServer.stubFor(
-            wiremockBuilder()
+            wiremockBuilderOnBehalfOf("Bearer etOnBehalfOfToken")
                 .willReturn(WireMock.ok(suksessResponseJson)),
         )
 
@@ -339,8 +342,7 @@ internal class PdlClientTest : WiremockBase {
             PdlClientConfig(
                 vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
                 tokenOppslag = tokenOppslag,
-                azureAd = mock(),
-                unleash = unleash,
+                azureAd = azureAdMock,
             ),
         )
         client.person(Fnr("07028820547")) shouldBe PdlData(
@@ -467,8 +469,12 @@ internal class PdlClientTest : WiremockBase {
               }
             }
             """.trimIndent()
+        val azureAdMock = mock<OAuth> {
+            on { onBehalfOfToken(any(), any()) } doReturn "etOnBehalfOfToken"
+        }
+
         wireMockServer.stubFor(
-            wiremockBuilder()
+            wiremockBuilderOnBehalfOf("Bearer etOnBehalfOfToken")
                 .willReturn(WireMock.ok(suksessResponseJson)),
         )
 
@@ -476,8 +482,7 @@ internal class PdlClientTest : WiremockBase {
             PdlClientConfig(
                 vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
                 tokenOppslag = tokenOppslag,
-                azureAd = mock(),
-                unleash = unleash,
+                azureAd = azureAdMock,
             ),
         )
         client.person(Fnr("07028820547")) shouldBe PdlData(
@@ -611,8 +616,12 @@ internal class PdlClientTest : WiremockBase {
               }
             }
             """.trimIndent()
+        val azureAdMock = mock<OAuth> {
+            on { onBehalfOfToken(any(), any()) } doReturn "etOnBehalfOfToken"
+        }
+
         wireMockServer.stubFor(
-            wiremockBuilder()
+            wiremockBuilderOnBehalfOf("Bearer etOnBehalfOfToken")
                 .willReturn(WireMock.ok(suksessResponseJson)),
         )
 
@@ -620,8 +629,7 @@ internal class PdlClientTest : WiremockBase {
             PdlClientConfig(
                 vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
                 tokenOppslag = tokenOppslag,
-                azureAd = mock(),
-                unleash = unleash,
+                azureAd = azureAdMock,
             ),
         )
         client.person(Fnr("07028820547")) shouldBe PdlData(
@@ -710,7 +718,7 @@ internal class PdlClientTest : WiremockBase {
             }
             """.trimIndent()
         wireMockServer.stubFor(
-            wiremockBuilder("Bearer ${tokenOppslag.token()}")
+            wiremockBuilderSystembruker("Bearer ${tokenOppslag.token()}")
                 .willReturn(WireMock.ok(suksessResponseJson)),
         )
 
@@ -719,7 +727,6 @@ internal class PdlClientTest : WiremockBase {
                 vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
                 tokenOppslag = tokenOppslag,
                 azureAd = mock(),
-                unleash = unleash,
             ),
         )
         client.personForSystembruker(Fnr("07028820547")) shouldBe PdlData(
@@ -797,7 +804,6 @@ internal class PdlClientTest : WiremockBase {
                 vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
                 tokenOppslag = tokenOppslag,
                 azureAd = azureAdMock,
-                unleash = FakeUnleash().also { it.enableAll() },
             ),
         )
         client.person(Fnr("07028820547")) shouldBe PdlData(
@@ -855,7 +861,7 @@ internal class PdlClientTest : WiremockBase {
             }
             """.trimIndent()
         wireMockServer.stubFor(
-            wiremockBuilder()
+            wiremockBuilderSystembruker("Bearer ${tokenOppslag.token()}")
                 .willReturn(WireMock.ok(suksessResponseJson)),
         )
 
@@ -864,20 +870,19 @@ internal class PdlClientTest : WiremockBase {
                 vars = ApplicationConfig.ClientsConfig.PdlConfig(wireMockServer.baseUrl(), "clientId"),
                 tokenOppslag = tokenOppslag,
                 azureAd = mock(),
-                unleash = unleash,
             ),
         )
-        client.person(Fnr("07028820547")) shouldBe KunneIkkeHentePerson.FantIkkePerson.left()
+        client.personForSystembruker(Fnr("07028820547")) shouldBeLeft KunneIkkeHentePerson.FantIkkePerson
     }
 
-    private fun wiremockBuilder(authorization: String = "Bearer abc") = WireMock.post(WireMock.urlPathEqualTo("/graphql"))
+    private fun wiremockBuilderSystembruker(authorization: String) = WireMock.post(WireMock.urlPathEqualTo("/graphql"))
         .withHeader("Authorization", WireMock.equalTo(authorization))
         .withHeader("Content-Type", WireMock.equalTo("application/json"))
         .withHeader("Accept", WireMock.equalTo("application/json"))
         .withHeader("Nav-Consumer-Token", WireMock.equalTo("Bearer ${tokenOppslag.token()}"))
         .withHeader("Tema", WireMock.equalTo("SUP"))
 
-    private fun wiremockBuilderOnBehalfOf(authorization: String = "Bearer abc") = WireMock.post(WireMock.urlPathEqualTo("/graphql"))
+    private fun wiremockBuilderOnBehalfOf(authorization: String) = WireMock.post(WireMock.urlPathEqualTo("/graphql"))
         .withHeader("Authorization", WireMock.equalTo(authorization))
         .withHeader("Content-Type", WireMock.equalTo("application/json"))
         .withHeader("Accept", WireMock.equalTo("application/json"))
