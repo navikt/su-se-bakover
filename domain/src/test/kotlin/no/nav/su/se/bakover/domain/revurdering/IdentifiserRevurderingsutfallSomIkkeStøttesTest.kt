@@ -11,6 +11,9 @@ import no.nav.su.se.bakover.common.periode.Periode
 import no.nav.su.se.bakover.domain.behandling.avslag.Opphørsgrunn
 import no.nav.su.se.bakover.domain.beregning.Beregning
 import no.nav.su.se.bakover.domain.beregning.Månedsberegning
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragFactory
+import no.nav.su.se.bakover.domain.beregning.fradrag.FradragTilhører
+import no.nav.su.se.bakover.domain.beregning.fradrag.Fradragstype
 import no.nav.su.se.bakover.domain.vilkår.Resultat
 import no.nav.su.se.bakover.domain.vilkår.Vilkårsvurderinger
 import org.junit.jupiter.api.Test
@@ -74,7 +77,7 @@ internal class IdentifiserRevurderingsutfallSomIkkeStøttesTest {
     }
 
     @Test
-    fun `identifiserer at opphør av vilkår skjer i kombinasjon med beløpsendringer`() {
+    fun `identifiserer at opphør av uførevilkår skjer i kombinasjon med beløpsendringer`() {
         val vilkårsvurderingerMock = mock<Vilkårsvurderinger> {
             on { resultat } doReturn Resultat.Avslag
             on { utledOpphørsgrunner() } doReturn listOf(Opphørsgrunn.UFØRHET)
@@ -87,6 +90,22 @@ internal class IdentifiserRevurderingsutfallSomIkkeStøttesTest {
         }
         val tidligereBeregningMock = mock<Beregning>() {
             on { getMånedsberegninger() } doReturn listOf(tidligereMånedsberegningMock)
+            on { getFradrag() } doReturn listOf(
+                FradragFactory.ny(
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 100.0,
+                    periode = Periode.create(1.desember(2021), 31.desember(2021)),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER
+                ),
+                FradragFactory.ny(
+                    type = Fradragstype.ForventetInntekt,
+                    månedsbeløp = 200.0,
+                    periode = Periode.create(1.desember(2021), 31.desember(2021)),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER
+                )
+            )
         }
         val nyMånedsberegningMock = mock<Månedsberegning> {
             on { periode } doReturn Periode.create(1.desember(2021), 31.desember(2021))
@@ -95,6 +114,15 @@ internal class IdentifiserRevurderingsutfallSomIkkeStøttesTest {
         }
         val nyBeregningMock = mock<Beregning> {
             on { getMånedsberegninger() } doReturn listOf(nyMånedsberegningMock)
+            on { getFradrag() } doReturn listOf(
+                FradragFactory.ny(
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 101.0,
+                    periode = Periode.create(1.desember(2021), 31.desember(2021)),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER
+                ),
+            )
         }
 
         IdentifiserSaksbehandlingsutfallSomIkkeStøttes(
@@ -342,5 +370,70 @@ internal class IdentifiserRevurderingsutfallSomIkkeStøttesTest {
             tidligereBeregning = mock(),
             nyBeregning = nyBeregningMock,
         ).resultat shouldBeRight Unit
+    }
+
+    @Test
+    fun `identifiserer ingen problemer ved opphør av uførevilkår med endring i forventet inntekt`() {
+        val vilkårsvurderingerMock = mock<Vilkårsvurderinger> {
+            on { resultat } doReturn Resultat.Avslag
+            on { utledOpphørsgrunner() } doReturn listOf(Opphørsgrunn.UFØRHET)
+            on { tidligsteDatoForAvslag() } doReturn 1.juni(2021)
+        }
+        val tidligereMånedsberegningMock = mock<Månedsberegning> {
+            on { periode } doReturn Periode.create(1.desember(2021), 31.desember(2021))
+            on { getSumYtelse() } doReturn 2500
+            on { erSumYtelseUnderMinstebeløp() } doReturn false
+        }
+        val tidligereBeregningMock = mock<Beregning>() {
+            on { getMånedsberegninger() } doReturn listOf(tidligereMånedsberegningMock)
+            on { getFradrag() } doReturn listOf(
+                FradragFactory.ny(
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 100.0,
+                    periode = Periode.create(1.desember(2021), 31.desember(2021)),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER
+                ),
+                FradragFactory.ny(
+                    type = Fradragstype.ForventetInntekt,
+                    månedsbeløp = 200.0,
+                    periode = Periode.create(1.desember(2021), 31.desember(2021)),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER
+                )
+            )
+        }
+        val nyMånedsberegningMock = mock<Månedsberegning> {
+            on { periode } doReturn Periode.create(1.desember(2021), 31.desember(2021))
+            on { getSumYtelse() } doReturn 5000
+            on { erSumYtelseUnderMinstebeløp() } doReturn false
+        }
+        val nyBeregningMock = mock<Beregning> {
+            on { getMånedsberegninger() } doReturn listOf(nyMånedsberegningMock)
+            on { getFradrag() } doReturn listOf(
+                FradragFactory.ny(
+                    type = Fradragstype.Arbeidsinntekt,
+                    månedsbeløp = 100.0,
+                    periode = Periode.create(1.desember(2021), 31.desember(2021)),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER
+                ),
+                FradragFactory.ny(
+                    type = Fradragstype.ForventetInntekt,
+                    månedsbeløp = 0.0,
+                    periode = Periode.create(1.desember(2021), 31.desember(2021)),
+                    utenlandskInntekt = null,
+                    tilhører = FradragTilhører.BRUKER
+                )
+            )
+        }
+
+        IdentifiserSaksbehandlingsutfallSomIkkeStøttes(
+            vilkårsvurderinger = vilkårsvurderingerMock,
+            tidligereBeregning = tidligereBeregningMock,
+            nyBeregning = nyBeregningMock,
+        ).resultat shouldBeLeft setOf(
+            RevurderingsutfallSomIkkeStøttes.OpphørErIkkeFraFørsteMåned,
+        )
     }
 }
